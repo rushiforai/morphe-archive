@@ -1,16 +1,18 @@
-# 👋🧩 Morphe Patches template
+# 🧩 browzomje's Morphe Patches
 
-Template repository for Morphe Patches.
+A collection of patches for Android applications, designed for the [Morphe](https://morphe.software) patcher.
 
 ## ❓ About
 
-This is a template to create a new Morphe Patches repository.
-TODO: Update this about section with a brief introduction/summary about this repo and what it offers.
+This repository provides custom enhancements and modifications for Android apps, currently supporting: 
+- **Pinterest** 
+
+These patches allow you to remove advertisements, block tracking, and add new utility features directly to the apps.
 
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.1.0](https://github.com/browzomje/browzomje-patches/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;3 patches total
+> **[v1.1.1](https://github.com/browzomje/browzomje-patches/releases/tag/v1.1.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;3 patches total
 <details open>
 <summary>📦 Pinterest&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
@@ -32,20 +34,20 @@ TODO: Update this about section with a brief introduction/summary about this rep
 
 #### How to use these patches
 
-Click here to add these patches to Morphe: https://morphe.software/add-source?github=xyz-user/xyz-patches
+Click here to add these patches to Morphe: https://morphe.software/add-source?github=browzomje/browzomje-patches
 
-Or manually add this repository url as a patch source in Morphe: https://github.com/xyz-user/xyz-patches
+Or manually add this repository url as a patch source in Morphe: https://github.com/browzomje/browzomje-patches
 
 ### 📙 Contributing
 
-Thank you for considering contributing to UserXYZ Morphe Patches.  
+Thank you for considering contributing to browzomje Morphe Patches.  
 You can find the contribution guidelines [here](CONTRIBUTING.md).
 
 ### 🛠️ Building
 
-To build UserXYZ Morphe Patches,
+To build browzomje Morphe Patches,
 you can follow the [Morphe documentation](https://github.com/MorpheApp/morphe-documentation).
 
 ## 📜 License
 
-UserXYZ Morphe Patches are licensed under the [GNU General Public License v3.0](LICENSE)
+browzomje Morphe Patches are licensed under the [GNU General Public License v3.0](LICENSE)
