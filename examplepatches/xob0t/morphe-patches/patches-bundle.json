@@ -1,0 +1,7 @@
+{
+  "created_at": "2026-06-23T06:18:01",
+  "description": "## [1.6.0](https://github.com/xob0t/morphe-patches/compare/v1.5.1...v1.6.0) (2026-06-23)\n\n### ✨ New Features\n\n* **avito:** enable Block listings and UI tweaks by default ([#25](https://github.com/xob0t/morphe-patches/issues/25)) ([6ca33dd](https://github.com/xob0t/morphe-patches/commit/6ca33dd5fb624f9a10a9a0ce2e93be90695a0b97))",
+  "download_url": "https://github.com/xob0t/morphe-patches/releases/download/v1.6.0/patches-1.6.0.mpp",
+  "signature_download_url": "",
+  "version": "1.6.0"
+}

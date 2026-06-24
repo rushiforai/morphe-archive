@@ -1,0 +1,97 @@
+# Copyright (c) 2026 nvbangg (github.com/nvbangg)
+
+name: Sync upstream
+
+on:
+  schedule:
+    - cron: "0 8 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    name: Sync upstream
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+          fetch-tags: false
+
+      - name: Check upstream
+        id: check
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
+          UPSTREAM_URL: ${{ vars.UPSTREAM_URL }}
+        run: |
+          if [ -z "$UPSTREAM_URL" ]; then
+            UPSTREAM_URL=$(gh api repos/${{ github.repository }} -q '.parent.html_url // "https://github.com/nvbangg/builder-for-morphe"')
+          fi
+          git remote add upstream "$UPSTREAM_URL"
+          git fetch --no-tags upstream refs/heads/main:refs/remotes/upstream/main
+          git fetch --no-tags origin refs/heads/main:refs/remotes/origin/main
+          git fetch --no-tags origin refs/heads/sync-upstream:refs/remotes/origin/sync-upstream || true
+
+          if [ "$(git rev-list --count origin/main..upstream/main)" -eq 0 ]; then
+            echo "::notice title=Sync upstream::There were no new commits."
+            exit 0
+          fi
+
+          echo "HAS_CHANGES=true" >> "$GITHUB_OUTPUT"
+
+      - name: Sync upstream
+        if: steps.check.outputs.HAS_CHANGES == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if ! git merge upstream/main; then
+            CONFLICT_FILES=$(git diff --name-only --diff-filter=U)
+            if echo "$CONFLICT_FILES" | grep -q -Ev '^config\.toml$'; then
+              echo "::notice title=Sync Upstream::Unresolved conflicts detected"
+              git merge --abort || true
+
+              if git show-ref --verify --quiet refs/remotes/origin/sync-upstream; then
+                if git merge-base --is-ancestor upstream/main origin/sync-upstream; then
+                  echo "::notice title=Sync Upstream::PR branch already contains the latest upstream commits"
+                  exit 0
+                fi
+              fi
+
+              git checkout -B sync-upstream
+              git merge --no-commit -X theirs upstream/main || true
+              git checkout main -- config.toml || true
+              git add config.toml
+              git commit -m "Merge remote-tracking branch 'upstream/main'"
+
+              if ! git push --force -u origin sync-upstream; then
+                echo "::warning title=Sync Upstream Failed::PAT_TOKEN is required for workflow updates"
+                exit 0
+              fi
+
+              gh pr create --repo ${{ github.repository }} --base main --head sync-upstream --title "Sync Upstream" --body "Merge remote-tracking branch 'upstream/main'" || {
+                if [ "$(gh pr list --repo ${{ github.repository }} --head sync-upstream --state open --json number -q 'length')" -eq 0 ]; then
+                  echo "::error title=Sync Upstream Failed::No permission to create Pull Request"
+                  git push origin --delete sync-upstream || true
+                  exit 1
+                fi
+              }
+              exit 0
+            fi
+
+            git checkout --ours -- config.toml
+            git add config.toml
+            git commit -m "Merge remote-tracking branch 'upstream/main'"
+          fi
+          if ! git push; then
+            echo "::warning title=Sync Upstream Failed::PAT_TOKEN is required for workflow updates"
+            exit 0
+          fi
+          echo "::notice title=Sync upstream::New commits were found and synced."

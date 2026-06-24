@@ -1,0 +1,7 @@
+{
+  "created_at": "2026-06-13T14:15:00",
+  "description": "## [1.6.0](https://github.com/sjshb57/Pairip-Patches/compare/v1.5.1...v1.6.0) (2026-06-13)\n\n### ✨ New Features\n\n* add StripDebugInfoPatch to remove debug data ([5cdd188](https://github.com/sjshb57/Pairip-Patches/commit/5cdd188255eda8f12c3f79957e9ca04c788efac2))",
+  "download_url": "https://github.com/sjshb57/Pairip-Patches/releases/download/v1.6.0/patches-1.6.0.mpp",
+  "signature_download_url": "",
+  "version": "1.6.0"
+}

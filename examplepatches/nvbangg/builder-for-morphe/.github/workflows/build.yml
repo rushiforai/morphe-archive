@@ -1,0 +1,204 @@
+name: Build APKs
+on:
+  workflow_dispatch:
+    inputs:
+      patch_source:
+        description: 'Select patch source'
+        required: true
+        default: 'morphe'
+        type: choice
+        options:
+          - morphe
+          - piko
+          - hoo-dles
+          - de-vanced
+          - paresh
+          - anddea
+          - ample
+  workflow_call:
+    inputs:
+      patch_source:
+        default: 'morphe'
+        type: string
+      filter_changelog:
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+        with:
+          fetch-depth: 1
+          submodules: true
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39  # v8.2.0
+        with:
+          python-version: "3.13"
+          enable-cache: true
+          quiet: true
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Prepare version and draft release
+        id: version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VER="$(date +%y.%m.%d)-${{ inputs.patch_source }}"
+          echo "version=${VER}" >> "$GITHUB_OUTPUT"
+          if gh release view "$VER" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release edit "$VER" --draft --repo "$GITHUB_REPOSITORY"
+          else
+            gh release create "$VER" --draft --title "$VER" --notes "" --repo "$GITHUB_REPOSITORY"
+          fi
+
+      - name: Set matrix based on patch source
+        id: set-matrix
+        env:
+          FILTER_CHANGELOG: ${{ inputs.filter_changelog }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "matrix=$(uv run python -m src.scripts.matrix get-matrix '${{ inputs.patch_source }}')" >> "$GITHUB_OUTPUT"
+
+  run:
+    needs: prepare
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.prepare.outputs.matrix) }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+        with:
+          fetch-depth: 0
+          submodules: true
+
+      - name: Install java
+        uses: actions/setup-java@ad2b38190b15e4d6bdf0c97fb4fca8412226d287  # v5.3.0
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39  # v8.2.0
+        with:
+          python-version: "3.13"
+          enable-cache: true
+          quiet: true
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Build APKs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASS }}
+          KEYSTORE_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
+        run: uv run main.py ${{ matrix.id }} ${{ matrix.arch }}
+
+      - name: Upload APKs to draft release
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.prepare.outputs.version }}
+        run: |
+          shopt -s nullglob
+          apks=(./build/*.apk)
+          if [[ ${#apks[@]} -eq 0 ]]; then
+            echo "No APKs to upload, skipping"
+            exit 0
+          fi
+          gh release upload "$TAG" "${apks[@]}" --clobber --repo "$GITHUB_REPOSITORY"
+
+      - name: Upload build log to draft release
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.prepare.outputs.version }}
+          LABEL: ${{ matrix.id }}${{ matrix.arch && format('-{0}', matrix.arch) || '' }}
+        run: |
+          [[ -f build.md ]] || exit 0
+          [[ -s build.md ]] || exit 0
+          cp build.md "build-${LABEL}.md"
+          gh release upload "$TAG" "build-${LABEL}.md" --clobber --repo "$GITHUB_REPOSITORY"
+
+  release:
+    needs: [prepare, run]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+        with:
+          fetch-depth: 0
+          submodules: true
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39  # v8.2.0
+        with:
+          python-version: "3.13"
+          enable-cache: true
+          quiet: true
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Check if any APKs were uploaded
+        id: check
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.prepare.outputs.version }}
+        run: |
+          has=$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '[.assets[].name | select(endswith(".apk"))] | length > 0')
+          echo "has_apks=${has}" >> "$GITHUB_OUTPUT"
+
+      - name: Download logs from draft release
+        if: steps.check.outputs.has_apks == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.prepare.outputs.version }}
+        run: |
+          mkdir -p logs
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern "build-*.md" --dir logs
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[] | select(.name | startswith("build-")) | .apiUrl' | xargs -I{} gh api --method DELETE "{}"
+
+      - name: Combine logs and finalize release
+        if: steps.check.outputs.has_apks == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.prepare.outputs.version }}
+        run: |
+          uv run python -m src.scripts.logs combine-logs logs | sed "s/{TAG}/$TAG/g" > final.md
+          gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false --title "$TAG" --notes-file final.md
+
+      - name: Send Telegram notification
+        if: steps.check.outputs.has_apks == 'true' && env.TG_TOKEN != '' && env.TG_CHAT != ''
+        env:
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT: ${{ secrets.TG_CHAT }}
+        run: uv run python -m src.scripts.telegram notify '${{ inputs.patch_source }}'
+
+      - name: Delete empty draft if no APKs
+        if: steps.check.outputs.has_apks != 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.prepare.outputs.version }}
+        run: gh release delete "$TAG" --repo "$GITHUB_REPOSITORY" --yes || true

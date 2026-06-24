@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Morphe troubleshooting
+    url: https://github.com/MorpheApp/morphe-documentation/blob/main/docs/morphe-resources/troubleshooting.md
+    about: Morphe Manager OOM, signing, and general patch errors
+  - name: Awesome for Morphe
+    url: https://nvbangg.github.io/awesome-for-morphe
+    about: Curated index of Morphe patch sources
+  - name: SamsungAppsPatcher (PC workflow)
+    url: https://github.com/bigyank/SamsungAppsPatcher
+    about: Galaxy Wearable and watch plugin patches — not in this Morphe repo

@@ -1,0 +1,10 @@
+public final class app/revanced/patches/tidal/TidalDebugPatchCompat {
+	public static fun exportDebugActivityPatch ()Ljava/lang/Object;
+	public static fun unlockDebugMenuPatch ()Ljava/lang/Object;
+}
+
+public final class app/revanced/patches/tidal/TidalDebugPatchKt {
+	public static final fun getExportDebugActivityPatch ()Lapp/revanced/patcher/patch/Patch;
+	public static final fun getUnlockDebugMenuPatch ()Lapp/revanced/patcher/patch/Patch;
+}
+

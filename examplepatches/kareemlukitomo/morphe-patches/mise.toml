@@ -1,0 +1,41 @@
+[tools]
+java = "17.0.2"
+node = "lts"
+python = "3.14.3"
+sops = "3.12.1"
+
+[tasks.sign-release]
+description = "Sign the latest or specified GitHub release .mpp asset"
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+
+command=(python3 scripts/sign-latest-release.py "$@")
+secrets_file="secrets/sign-release.env.sops.yaml"
+
+if [[ -f "$secrets_file" ]]; then
+  printf -v command_string '%q ' "${command[@]}"
+  command_string=${command_string% }
+  exec sops exec-env "$secrets_file" "$command_string"
+fi
+
+exec "${command[@]}"
+'''
+
+[tasks.build-sign-release]
+description = "Create a CalVer tag, push it to GitHub, wait for release assets, then sign/upload the .asc"
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+
+command=(python3 scripts/build-sign-release.py "$@")
+secrets_file="secrets/sign-release.env.sops.yaml"
+
+if [[ -f "$secrets_file" ]]; then
+  printf -v command_string '%q ' "${command[@]}"
+  command_string=${command_string% }
+  exec sops exec-env "$secrets_file" "$command_string"
+fi
+
+exec "${command[@]}"
+'''
