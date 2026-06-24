@@ -11,8 +11,8 @@ on:
           - morphe
           - piko
           - hoo-dles
-          - de-vanced
           - paresh
+          - de-vanced
           - anddea
           - ample
   workflow_call:

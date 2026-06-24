@@ -48,13 +48,33 @@ jobs:
         if: steps.check.outputs.HAS_CHANGES == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
+          IGNORE_SYNC_FILES: ${{ vars.IGNORE_SYNC_FILES }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+          IGNORE_LIST="${IGNORE_SYNC_FILES:-config.toml sig.txt}"
+
           if ! git merge upstream/main; then
             CONFLICT_FILES=$(git diff --name-only --diff-filter=U)
-            if echo "$CONFLICT_FILES" | grep -q -Ev '^config\.toml$'; then
+            UNRESOLVED=false
+            if [ -n "$CONFLICT_FILES" ]; then
+              for file in $CONFLICT_FILES; do
+                IGNORED=false
+                for pattern in $IGNORE_LIST; do
+                  if [[ "$file" == "$pattern" ]] || [[ "$file" == "$pattern"/* ]]; then
+                    IGNORED=true
+                    break
+                  fi
+                done
+                if [ "$IGNORED" = false ]; then
+                  UNRESOLVED=true
+                  break
+                fi
+              done
+            fi
+
+            if [ "$UNRESOLVED" = true ]; then
               echo "::notice title=Sync Upstream::Unresolved conflicts detected"
               git merge --abort || true
 
@@ -67,8 +87,10 @@ jobs:
 
               git checkout -B sync-upstream
               git merge --no-commit -X theirs upstream/main || true
-              git checkout main -- config.toml || true
-              git add config.toml
+              for pattern in $IGNORE_LIST; do
+                git checkout main -- "$pattern" || true
+                git add "$pattern" || true
+              done
               git commit -m "Merge remote-tracking branch 'upstream/main'"
 
               if ! git push --force -u origin sync-upstream; then
@@ -86,8 +108,10 @@ jobs:
               exit 0
             fi
 
-            git checkout --ours -- config.toml
-            git add config.toml
+            for pattern in $IGNORE_LIST; do
+              git checkout --ours -- "$pattern" || true
+              git add "$pattern" || true
+            done
             git commit -m "Merge remote-tracking branch 'upstream/main'"
           fi
           if ! git push; then
