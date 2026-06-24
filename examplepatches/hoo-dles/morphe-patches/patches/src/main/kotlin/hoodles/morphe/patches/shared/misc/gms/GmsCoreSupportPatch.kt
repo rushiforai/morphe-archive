@@ -6,6 +6,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchBuilder
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patches.all.misc.extension.ExtensionHook
 import app.morphe.patches.all.misc.extension.sharedExtensionPatch
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.returnEarly
@@ -16,7 +17,6 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference
 import hoodles.morphe.patches.all.manifest.packagename.changePackageNamePatch
 import hoodles.morphe.patches.all.manifest.packagename.setOrGetFallbackPackageName
-import hoodles.morphe.patches.shared.misc.extension.activityOnCreateExtensionHook
 import hoodles.morphe.patches.shared.misc.resources.addAppResources
 import hoodles.morphe.patches.shared.misc.resources.addResourcesPatch
 import kotlin.reflect.KFunction1
@@ -45,17 +45,34 @@ fun gmsCoreSupportPatch(
     earlyReturnFingerprints: Set<Fingerprint> = setOf(),
     executeBlock: BytecodePatchContext.() -> Unit = {},
     block: BytecodePatchBuilder.() -> Unit = {},
+) = gmsCoreSupportPatch(
+    spoofedPackageSignature,
+    getMainOnCreateFingerprint(mainActivityName),
+    fromPackageName,
+    toPackageName,
+    earlyReturnFingerprints,
+    executeBlock,
+    block
+)
+
+fun gmsCoreSupportPatch(
+    spoofedPackageSignature: String,
+    mainOnCreateFingerprint: Fingerprint,
+    fromPackageName: String? = null,
+    toPackageName: String? = null,
+    earlyReturnFingerprints: Set<Fingerprint> = setOf(),
+    executeBlock: BytecodePatchContext.() -> Unit = {},
+    block: BytecodePatchBuilder.() -> Unit = {},
 ) = bytecodePatch(
     name = "MicroG integration",
     description = "Allows the app to work without root by using MicroG instead of Google Play Services.",
-    default = false
 ) {
     val changePackageName = !fromPackageName.isNullOrBlank() && !toPackageName.isNullOrBlank()
 
     dependsOn(
         addResourcesPatch,
         gmsCoreSupportResourcePatch(spoofedPackageSignature, fromPackageName, toPackageName),
-        sharedExtensionPatch(activityOnCreateExtensionHook(mainActivityName)),
+        sharedExtensionPatch(ExtensionHook(mainOnCreateFingerprint))
     )
 
     if (changePackageName) dependsOn(changePackageNamePatch)
@@ -182,7 +199,7 @@ fun gmsCoreSupportPatch(
         OriginalPackageNameExtensionFingerprint.method.returnEarly(fromPackageName ?: packageMetadata.packageName)
 
         // Verify GmsCore is installed and whitelisted for power optimizations and background usage.
-        getMainOnCreateFingerprint(mainActivityName).method.apply {
+        mainOnCreateFingerprint.method.apply {
             addInstruction(
                 0,
                 "invoke-static/range { p0 .. p0 }, $EXTENSION_CLASS_DESCRIPTOR->" +

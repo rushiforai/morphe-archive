@@ -1,37 +1,75 @@
 package app.template.patches.pinterest
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.fieldAccess
-import app.morphe.patcher.methodCall
-import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.Opcode
 
+/**
+ * Constructor of the feed-page model `o12.e` (implements `o12.d`):
+ *
+ *     public e(String baseUrl, String bookmark, String s3, List items) {
+ *         this.f109367a = items != null ? new ArrayList(items) : new ArrayList();
+ *         ...
+ *     }
+ *
+ * Every home-feed page — first load, pagination AND pull-to-refresh — flows through this
+ * constructor, and it stores a FRESH mutable ArrayList copy of the items. That makes it the
+ * ideal, single choke point to actually REMOVE sponsored pins from the feed (not just unlabel
+ * them): we hand `this` to the extension, which strips promoted pins from the stored list.
+ *
+ * Why not just force `me.I5()` (is_promoted) to false? Because that only removes the "Sponsored"
+ * label and, worse, defeats Pinterest's own promoted-pin filters (e.g. s0.W3) — the ad content
+ * keeps showing. The pins have to be dropped from the list itself.
+ */
 object PinterestAdsFingerprint : Fingerprint(
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
-    returnType = "Z",
-    parameters = listOf("Lcom/pinterest/api/model/me;"),
-
-    filters = listOf(
-        methodCall(
-            definingClass = "Lcom/pinterest/api/model/me;",
-            returnType = "Ljava/lang/Boolean;"
-        ),
-
-        fieldAccess(
-            opcode = Opcode.SGET_OBJECT,
-            definingClass = "Ljava/lang/Boolean;",
-            name = "TRUE",
-            type = "Ljava/lang/Boolean;"
-        ),
-
-        methodCall(
-            definingClass = "Lkotlin/jvm/internal/Intrinsics;",
-            name = "e" 
-        )
+    returnType = "V",
+    parameters = listOf(
+        "Ljava/lang/String;",
+        "Ljava/lang/String;",
+        "Ljava/lang/String;",
+        "Ljava/util/List;",
     ),
+    custom = { method, classDef ->
+        classDef.type == "Lo12/e;" && method.name == "<init>"
+    }
+)
 
-    custom = { _, classDef ->
-        classDef.type == "Lcom/pinterest/api/model/AdCheckUtils;" || 
-        classDef.type == "Lcom/pinterest/api/model/ue;"
+/**
+ * Constructor of the generic paged-response model `vr1.i0` (PagedResponse):
+ *
+ *     public i0(String bookmark, String str, List models) { ... this.f135430b = models; ... }
+ *
+ * This is what `RetrofitPagedRemoteRequest.parseResponse` produces for EVERY multi-section feed —
+ * search results, related pins, boards, etc. (the surfaces the home-only `o12.e` hook doesn't
+ * cover). `models` is stored directly, so stripping promoted pins from it here removes sponsored
+ * pins from all those grids with a single hook.
+ */
+object PagedResponseConstructorFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = listOf(
+        "Ljava/lang/String;",
+        "Ljava/lang/String;",
+        "Ljava/util/List;",
+    ),
+    custom = { method, classDef ->
+        classDef.type == "Lvr1/i0;" && method.name == "<init>"
+    }
+)
+
+/**
+ * Constructor of the generic model-list response `vg2.b` (ModelListWithBookmark):
+ *
+ *     public b(List models, String str) { ... this.f134630a = models; ... }
+ *
+ * This is returned by the coroutine network response for endpoints like `search/tab/`
+ * (search discover / search landing page feed). Stripping promoted pins from here prevents
+ * sponsored pins from appearing in the search discovery tab before searching a query.
+ */
+object ModelListWithBookmarkConstructorFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = listOf(
+        "Ljava/util/List;",
+        "Ljava/lang/String;",
+    ),
+    custom = { method, classDef ->
+        classDef.type == "Lvg2/b;" && method.name == "<init>"
     }
 )

@@ -1,3 +1,29 @@
+# [1.37.0](https://github.com/hoo-dles/morphe-patches/compare/v1.36.1...v1.37.0) (2026-06-24)
+
+
+### Bug Fixes
+
+* **Windy:** Update patch to support v50.1.1 ([3abcab8](https://github.com/hoo-dles/morphe-patches/commit/3abcab8377497a58dcdf721e2784a7d41206c45d))
+
+
+### Features
+
+* **Google News:** Add `Enable custom tabs` patch ([55a95ec](https://github.com/hoo-dles/morphe-patches/commit/55a95ecddb909a99151c1ff0bed90b7d28dee000))
+
+# [1.37.0-dev.1](https://github.com/hoo-dles/morphe-patches/compare/v1.36.2-dev.1...v1.37.0-dev.1) (2026-06-24)
+
+
+### Features
+
+* **Google News:** Add `Enable custom tabs` patch ([55a95ec](https://github.com/hoo-dles/morphe-patches/commit/55a95ecddb909a99151c1ff0bed90b7d28dee000))
+
+## [1.36.2-dev.1](https://github.com/hoo-dles/morphe-patches/compare/v1.36.1...v1.36.2-dev.1) (2026-06-23)
+
+
+### Bug Fixes
+
+* **Windy:** Update patch to support v50.1.1 ([3abcab8](https://github.com/hoo-dles/morphe-patches/commit/3abcab8377497a58dcdf721e2784a7d41206c45d))
+
 ## [1.36.1](https://github.com/hoo-dles/morphe-patches/compare/v1.36.0...v1.36.1) (2026-06-23)
 
 

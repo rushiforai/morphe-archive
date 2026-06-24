@@ -6,6 +6,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.util.returnBoxedBooleanEarly
 import app.morphe.util.returnEarly
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import hoodles.morphe.patches.shared.misc.extension.activityOnCreateExtensionHook
@@ -24,13 +25,13 @@ val enablePremiumPatch = bytecodePatch(
         name = "Windy",
         packageName = "com.windyty.android",
         appIconColor = 0x9D0300,
-        targets = listOf(AppTarget("50.0.2"))
+        targets = listOf(AppTarget("50.1.1"))
     ))
 
     dependsOn(extensionPatch)
 
     execute {
-        IsPremiumForWidgetFingerprint.method.returnEarly(true)
+        IsPremiumForWidgetFingerprint.method.returnBoxedBooleanEarly(true)
 
         ShouldInterceptRequestFingerprint.method.apply {
             val returnObjReg = getInstruction<OneRegisterInstruction>(instructions.size - 1).registerA

@@ -7,7 +7,7 @@ import app.morphe.patcher.util.smali.InlineSmaliCompiler
 import app.template.patches.shared.Constants.COMPATIBILITY_PINTEREST
 import com.android.tools.smali.dexlib2.Opcode
 
-private const val EXTENSION_CLASS = "Lapp/template/extension/pinterest/WallpaperUtils;"
+private const val EXTENSION_CLASS = "Lapp/template/extension/pinterest/PinterestUtils;"
 
 private val addWallpaperPermissionPatch = resourcePatch(
     description = "Adds android.permission.SET_WALLPAPER to the manifest."
@@ -63,10 +63,11 @@ val setPinWallpaperPatch = bytecodePatch(
         PinCloseupBitmapFingerprint.methodOrNull?.let { pinMethod ->
             val pinRegisterCount = pinMethod.implementation!!.registerCount
             val pinParameterRegisterCount = pinMethod.parameters.size + 1
-            val p1RegisterIndex = pinRegisterCount - pinParameterRegisterCount + 1
+            val p0RegisterIndex = pinRegisterCount - pinParameterRegisterCount
+            val p1RegisterIndex = p0RegisterIndex + 1
 
             val pinInstructions = InlineSmaliCompiler.compile(
-                "invoke-static/range { v$p1RegisterIndex .. v$p1RegisterIndex }, $EXTENSION_CLASS->setCurrentPinBitmap(Landroid/graphics/Bitmap;)V",
+                "invoke-static/range { v$p0RegisterIndex .. v$p1RegisterIndex }, $EXTENSION_CLASS->setCurrentPinView(Ljava/lang/Object;Landroid/graphics/Bitmap;)V",
                 "",
                 pinRegisterCount,
                 true
