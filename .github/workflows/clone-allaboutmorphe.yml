@@ -1,0 +1,83 @@
+name: Clone All About Morphe Repos
+
+on:
+  workflow_run:
+    workflows: ["Clone Morphe Example Patches"]
+    types: [completed]
+  workflow_dispatch:
+
+concurrency:
+  group: morphe-clone-allaboutmorphe
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+env:
+  REPOS_FILE: morphe_repos.txt
+  DEST_DIR: allaboutmorphe
+  IGNORE_FILE: ignore_repos.txt
+
+jobs:
+  clone:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Clone Each Repo
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+
+          if [ ! -f "$REPOS_FILE" ]; then
+            echo "No $REPOS_FILE found. Add owner/repo lines to it first."
+            exit 1
+          fi
+
+          mkdir -p "$DEST_DIR"
+
+          while IFS= read -r repo || [ -n "$repo" ]; do
+            # skip blank lines and comments
+            [ -z "$repo" ] && continue
+            case "$repo" in \#*) continue ;; esac
+
+            # skip explicitly ignored repos
+            if [ -f "$IGNORE_FILE" ] && grep -Fxq "$repo" "$IGNORE_FILE"; then
+              echo "Skipping ignored repo: $repo"
+              continue
+            fi
+
+            owner="${repo%%/*}"
+            name="${repo##*/}"
+            target="$DEST_DIR/$owner/$name"
+            tmp="$(mktemp -d)"
+
+            echo "Fetching $repo..."
+            if git clone --depth 1 "https://x-access-token:${GITHUB_TOKEN}@github.com/${repo}.git" "$tmp" 2>/dev/null; then
+              rm -rf "$tmp/.git"
+              mkdir -p "$target"
+              # sync fresh content into target, removing stale files, but never deleting the folder itself
+              rsync -a --delete "$tmp/" "$target/"
+              echo "Updated: $repo"
+            else
+              echo "Failed to fetch $repo, leaving existing folder (if any) untouched."
+            fi
+
+            rm -rf "$tmp"
+          done < "$REPOS_FILE"
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A -- "$DEST_DIR"
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(data): refresh ${DEST_DIR} from ${REPOS_FILE} [skip ci]"
+            git push origin main
+          else
+            echo "No changes detected. Skipping commit."
+          fi
