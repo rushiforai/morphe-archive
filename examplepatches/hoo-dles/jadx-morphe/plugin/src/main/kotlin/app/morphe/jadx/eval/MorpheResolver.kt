@@ -6,6 +6,7 @@ import app.morphe.patcher.Match
 import app.morphe.patcher.Patcher
 import app.morphe.patcher.PatcherConfig
 import app.morphe.patcher.patch.bytecodePatch
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -17,6 +18,7 @@ object MorpheResolver {
     private lateinit var sourceApk: File
     private lateinit var temp: File
 
+    @OptIn(DelicateCoroutinesApi::class)
     fun init(
         sourceApk: File,
         temp: File,

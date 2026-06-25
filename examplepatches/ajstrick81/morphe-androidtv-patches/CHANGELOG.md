@@ -1,3 +1,17 @@
+## [1.5.3](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.5.2...v1.5.3) (2026-06-25)
+
+
+### Bug Fixes
+
+* **peacock:** Layer 11 media-client coverage + SAS/VAC shard matching ([#27](https://github.com/ajstrick81/morphe-androidtv-patches/issues/27)) ([a132655](https://github.com/ajstrick81/morphe-androidtv-patches/commit/a132655743cff6cdf56e7ff65be3150952544759))
+
+## [1.5.2](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.5.1...v1.5.2) (2026-06-25)
+
+
+### Bug Fixes
+
+* **peacock:** DNS-independent ad suppression — Sky SDK addon OkHttp client + New Relic agent kill ([#26](https://github.com/ajstrick81/morphe-androidtv-patches/issues/26)) ([5e592a4](https://github.com/ajstrick81/morphe-androidtv-patches/commit/5e592a4a23464c7ed6492cdd69b488f98beb06d8))
+
 ## [1.5.1](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.5.0...v1.5.1) (2026-06-23)
 
 

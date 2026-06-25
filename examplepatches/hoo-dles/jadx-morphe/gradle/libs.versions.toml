@@ -2,7 +2,7 @@
 kotlin = "2.3.10"
 kotlinx = "1.10.2"
 kotlinx-serialization = "1.8.1"
-shadow = "9.0.0-beta12"
+shadow = "9.0.2"
 
 kotlin-logging-jvm = "7.0.5"
 slf4j = "2.0.17"
@@ -14,9 +14,8 @@ flatlaf-extras = "3.7"
 rsyntaxtextarea = "3.6.1"
 autocomplete = "3.3.3"
 
-morphe-patcher = "1.3.3"
-multidexlib2 = "b6365a84f4"
-smali = "b6365a84f4"
+morphe-patcher = "1.5.2"
+smali = "d856bad65f"
 xpp3 = "1.1.4c"
 
 junit = "5.12.2"
@@ -45,8 +44,7 @@ jadx-core = { module = "io.github.skylot:jadx-core", version.ref = "jadx" }
 jadx-gui = { module = "io.github.skylot:jadx-gui", version.ref = "jadx" }
 
 morphe-patcher = { module = "app.morphe:morphe-patcher", version.ref="morphe-patcher"}
-multidexlib2 = { module = "app.morphe:multidexlib2", version.ref = "multidexlib2" }
-smali = { module = "com.github.iBotPeaches.smali:smali", version.ref = "smali" }
+smali = { module = "com.github.MorpheApp.smali:smali", version.ref = "smali" }
 xpp3 = { module = "xpp3:xpp3", version.ref = "xpp3" }
 
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
@@ -56,7 +54,7 @@ junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
 [bundles]
 scripting = ["kotlin-scripting-jvm", "kotlin-scripting-common", "kotlin-scripting-jvm-host", "kotlin-scripting-dependencies"]
 logging = ["kotlin-logging-jvm", "slf4j-api", "logback-classic"]
-morphe = ["smali", "multidexlib2", "morphe-patcher"]
+morphe = ["smali", "morphe-patcher"]
 jadx = ["jadx-core", "jadx-gui"]
 
 [plugins]
