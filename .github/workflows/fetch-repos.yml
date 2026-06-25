@@ -2,7 +2,7 @@ name: Fetch Morphe Repos
 
 on:
   schedule:
-      - cron: "20 2,6,10,14,18,22 * * *" # Every 4 hours
+      - cron: "0 0 * * *"
   workflow_dispatch:
   push:
 
