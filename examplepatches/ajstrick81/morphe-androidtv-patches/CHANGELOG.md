@@ -1,3 +1,10 @@
+## [1.5.4](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.5.3...v1.5.4) (2026-06-25)
+
+
+### Bug Fixes
+
+* **peacock:** revert Layer 11 + SAS/VAC matcher that broke playback on v7.5.100 ([#29](https://github.com/ajstrick81/morphe-androidtv-patches/issues/29)) ([#30](https://github.com/ajstrick81/morphe-androidtv-patches/issues/30)) ([09f5c64](https://github.com/ajstrick81/morphe-androidtv-patches/commit/09f5c64a0b33569779e32d9a1fe55903980ca757)), closes [#27](https://github.com/ajstrick81/morphe-androidtv-patches/issues/27)
+
 ## [1.5.3](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.5.2...v1.5.3) (2026-06-25)
 
 

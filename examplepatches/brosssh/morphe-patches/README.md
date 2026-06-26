@@ -8,7 +8,7 @@ This repository contains patches I made for some apps I care about.
 ## ⚙️ Patch Details
 
 <!-- PATCHES_START -->
-> **[v2.7.0](https://github.com/brosssh/morphe-patches/releases/tag/v2.7.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;22 patches total
+> **[v2.8.0](https://github.com/brosssh/morphe-patches/releases/tag/v2.8.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;22 patches total
 <details>
 <summary>📦 Instagram&nbsp;&nbsp;•&nbsp;&nbsp;18 patches</summary>
 <br>
@@ -20,23 +20,22 @@ This repository contains patches I made for some apps I care about.
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Bypass signature check](#bypass-signature-check) | None |  |
-| [Clone](#clone) | Changes the package name and the app name. This allows you to install the patched app alongside the original Instagram app.
-Caution: Do not select the official Morphe's "Change package name" universal patch. | • Package name<br>• App name |
+| [Bypass signature check](#bypass-signature-check) |  |  |
+| [Clone](#clone) | Changes the package name and the app name. This allows you to install the patched app alongside the original Instagram app.<br>Caution: Do not select the official Morphe's "Change package name" universal patch. | • Package name<br>• App name |
 | [Disable Reels scrolling](#disable-reels-scrolling) | Disables the endless scrolling behavior in Instagram Reels, preventing swiping to the next Reel. Note: On a clean install, the 'Tip' animation may appear but will stop on its own after a few seconds. |  |
 | [Disable story auto flipping](#disable-story-auto-flipping) | Disable stories automatically flipping/skipping after some seconds. |  |
 | [Disable video autoplay](#disable-video-autoplay) | Disable video autoplay from feed |  |
 | [Hide Instants](#hide-instants) | Hides Instants from DMs page. |  |
-| [Hide Reels save button](#hide-reels-save-button) | None |  |
-| [Hide Stories from Home](#hide-stories-from-home) | Hides Stories from the main page, by removing the buttons. |  |
+| [Hide Reels save button](#hide-reels-save-button) |  |  |
 | [Hide Threads profile button](#hide-threads-profile-button) | Hides the Threads button from the profile page action bar (top right of the profile page). |  |
-| [Hide ads](#hide-ads) | None |  |
+| [Hide ads](#hide-ads) |  |  |
+| [Hide all stories](#hide-all-stories) | <br>        Hides all stories from the tray in the feed page.<br>        You may need to clean app data after the initial use of this patch to see its effects.<br>     |  |
 | [Hide explore feed](#hide-explore-feed) | Hides posts and reels from the explore/search page. |  |
 | [Hide feed content](#hide-feed-content) | Hide the feed content, leaving only stories in the home page. |  |
 | [Hide navigation buttons](#hide-navigation-buttons) | Hides navigation bar buttons, such as the Reels and Create button. Choose what button to hide using the patch options. | • Hide Home<br>• Hide Reels<br>• Hide Direct<br>• Hide Search<br>• Hide Profile<br>• Hide Create |
 | [Hide notes tray](#hide-notes-tray) | Hides the notes tray from the direct tab. |  |
 | [Hide reshare button](#hide-reshare-button) | Hides the reshare button from both posts and reels. |  |
-| [Hide suggested content](#hide-suggested-content) | Choose the suggested content to hide using the patch options. | • Hide suggested reels<br>• Hide suggested stories |
+| [Hide suggested content](#hide-suggested-content) | Choose the suggested content to hide using the patch options. | • Hide suggested reels<br>• Hide suggested stories<br>• Hide highlights in stories<br>• Hide suggested accounts |
 | [Limit feed to following profiles](#limit-feed-to-following-profiles) | Filters the home feed to display only content from profiles you follow. |  |
 | [Remove build expired popup](#remove-build-expired-popup) | Removes the popup that appears after a while, when the app version ages. |  |
 
@@ -98,7 +97,7 @@ Caution: Do not select the official Morphe's "Change package name" universal pat
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Unlock premium features](#unlock-premium-features) | None |  |
+| [Unlock premium features](#unlock-premium-features) |  |  |
 
 </details>
 

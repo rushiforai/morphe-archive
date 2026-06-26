@@ -1,5 +1,6 @@
 {
-  "version": "2.7.0",
+  "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
+  "version": "2.8.0",
   "patches": [
     {
       "name": "Bypass signature check",
@@ -17,6 +18,10 @@
           "targets": [
             {
               "version": "430.0.0.53.80",
+              "versionCodes": {
+                "ARM64_V8A": 383611190,
+                "ARMEABI_V7A": 383710475
+              },
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -44,6 +49,10 @@
           "targets": [
             {
               "version": "430.0.0.53.80",
+              "versionCodes": {
+                "ARM64_V8A": 383611190,
+                "ARMEABI_V7A": 383710475
+              },
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -90,6 +99,10 @@
           "targets": [
             {
               "version": "430.0.0.53.80",
+              "versionCodes": {
+                "ARM64_V8A": 383611190,
+                "ARMEABI_V7A": 383710475
+              },
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -115,6 +128,10 @@
           "targets": [
             {
               "version": "430.0.0.53.80",
+              "versionCodes": {
+                "ARM64_V8A": 383611190,
+                "ARMEABI_V7A": 383710475
+              },
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -140,6 +157,10 @@
           "targets": [
             {
               "version": "430.0.0.53.80",
+              "versionCodes": {
+                "ARM64_V8A": 383611190,
+                "ARMEABI_V7A": 383710475
+              },
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -168,6 +189,10 @@
           "targets": [
             {
               "version": "430.0.0.53.80",
+              "versionCodes": {
+                "ARM64_V8A": 383611190,
+                "ARMEABI_V7A": 383710475
+              },
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -195,31 +220,10 @@
           "targets": [
             {
               "version": "430.0.0.53.80",
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Hide Stories from Home",
-      "description": "Hides Stories from the main page, by removing the buttons.",
-      "default": false,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.instagram.android",
-          "name": "Instagram",
-          "description": null,
-          "apkFileType": null,
-          "appIconColor": null,
-          "signatures": null,
-          "targets": [
-            {
-              "version": "430.0.0.53.80",
+              "versionCodes": {
+                "ARM64_V8A": 383611190,
+                "ARMEABI_V7A": 383710475
+              },
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -247,6 +251,10 @@
           "targets": [
             {
               "version": "430.0.0.53.80",
+              "versionCodes": {
+                "ARM64_V8A": 383611190,
+                "ARMEABI_V7A": 383710475
+              },
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -274,6 +282,41 @@
           "targets": [
             {
               "version": "430.0.0.53.80",
+              "versionCodes": {
+                "ARM64_V8A": 383611190,
+                "ARMEABI_V7A": 383710475
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Hide all stories",
+      "description": "\n        Hides all stories from the tray in the feed page.\n        You may need to clean app data after the initial use of this patch to see its effects.\n    ",
+      "default": false,
+      "dependencies": [
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.instagram.android",
+          "name": "Instagram",
+          "description": null,
+          "apkFileType": null,
+          "appIconColor": null,
+          "signatures": null,
+          "targets": [
+            {
+              "version": "430.0.0.53.80",
+              "versionCodes": {
+                "ARM64_V8A": 383611190,
+                "ARMEABI_V7A": 383710475
+              },
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -299,6 +342,10 @@
           "targets": [
             {
               "version": "430.0.0.53.80",
+              "versionCodes": {
+                "ARM64_V8A": 383611190,
+                "ARMEABI_V7A": 383710475
+              },
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -324,6 +371,10 @@
           "targets": [
             {
               "version": "430.0.0.53.80",
+              "versionCodes": {
+                "ARM64_V8A": 383611190,
+                "ARMEABI_V7A": 383710475
+              },
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -351,6 +402,10 @@
           "targets": [
             {
               "version": "430.0.0.53.80",
+              "versionCodes": {
+                "ARM64_V8A": 383611190,
+                "ARMEABI_V7A": 383710475
+              },
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -431,6 +486,10 @@
           "targets": [
             {
               "version": "430.0.0.53.80",
+              "versionCodes": {
+                "ARM64_V8A": 383611190,
+                "ARMEABI_V7A": 383710475
+              },
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -456,6 +515,10 @@
           "targets": [
             {
               "version": "430.0.0.53.80",
+              "versionCodes": {
+                "ARM64_V8A": 383611190,
+                "ARMEABI_V7A": 383710475
+              },
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -470,6 +533,8 @@
       "description": "Choose the suggested content to hide using the patch options.",
       "default": true,
       "dependencies": [
+        "BytecodePatch",
+        "BytecodePatch",
         "BytecodePatch"
       ],
       "compatiblePackages": [
@@ -483,6 +548,10 @@
           "targets": [
             {
               "version": "430.0.0.53.80",
+              "versionCodes": {
+                "ARM64_V8A": 383611190,
+                "ARMEABI_V7A": 383710475
+              },
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -508,6 +577,24 @@
           "type": "kotlin.Boolean",
           "default": true,
           "values": null
+        },
+        {
+          "key": "hideHighlightStories",
+          "title": "Hide highlights in stories",
+          "description": "Hides highlighted stories from story tray, sponsored stories which have no set expiration.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "hideSuggestedAccount",
+          "title": "Hide suggested accounts",
+          "description": "Hides suggested accounts from the list of followers and from other profiles.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
         }
       ]
     },
@@ -529,6 +616,10 @@
           "targets": [
             {
               "version": "430.0.0.53.80",
+              "versionCodes": {
+                "ARM64_V8A": 383611190,
+                "ARMEABI_V7A": 383710475
+              },
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -554,6 +645,10 @@
           "targets": [
             {
               "version": "430.0.0.53.80",
+              "versionCodes": {
+                "ARM64_V8A": 383611190,
+                "ARMEABI_V7A": 383710475
+              },
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -579,6 +674,7 @@
           "targets": [
             {
               "version": "3.9.2",
+              "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -604,6 +700,7 @@
           "targets": [
             {
               "version": "2025.38.2",
+              "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -629,6 +726,7 @@
           "targets": [
             {
               "version": "7.1.11",
+              "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -654,6 +752,7 @@
           "targets": [
             {
               "version": "26.5.0",
+              "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
               "description": null

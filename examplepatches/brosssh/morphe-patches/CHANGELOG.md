@@ -1,3 +1,32 @@
+## [2.8.0](https://github.com/brosssh/morphe-patches/compare/v2.7.0...v2.8.0) (2026-06-25)
+
+### 🐛 Bug Fixes
+
+* **Instagram - Hide all stories:** Do not hide users highlights ([0712c43](https://github.com/brosssh/morphe-patches/commit/0712c4319b94777b30fcfaf531c4a42b62adfc5f))
+
+### ✨ New Features
+
+* **Instagram - Hide suggested content:** Add option to hide highlights in stories ([5a31df3](https://github.com/brosssh/morphe-patches/commit/5a31df3a83e5ef86d38b906bceb9d05cf0f01936))
+* **Instagram - Hide suggested content:** Add option to hide suggested accounts ([8d0593c](https://github.com/brosssh/morphe-patches/commit/8d0593c03ce3ed6006774dda8f901133604302c0))
+
+## [2.8.0-dev.3](https://github.com/brosssh/morphe-patches/compare/v2.8.0-dev.2...v2.8.0-dev.3) (2026-06-25)
+
+### ✨ New Features
+
+* **Instagram - Hide suggested content:** Add option to hide suggested accounts ([8d0593c](https://github.com/brosssh/morphe-patches/commit/8d0593c03ce3ed6006774dda8f901133604302c0))
+
+## [2.8.0-dev.2](https://github.com/brosssh/morphe-patches/compare/v2.8.0-dev.1...v2.8.0-dev.2) (2026-06-23)
+
+### 🐛 Bug Fixes
+
+* **Instagram - Hide all stories:** Do not hide users highlights ([0712c43](https://github.com/brosssh/morphe-patches/commit/0712c4319b94777b30fcfaf531c4a42b62adfc5f))
+
+## [2.8.0-dev.1](https://github.com/brosssh/morphe-patches/compare/v2.7.0...v2.8.0-dev.1) (2026-06-22)
+
+### ✨ New Features
+
+* **Instagram - Hide suggested content:** Add option to hide highlights in stories ([5a31df3](https://github.com/brosssh/morphe-patches/commit/5a31df3a83e5ef86d38b906bceb9d05cf0f01936))
+
 ## [2.7.0](https://github.com/brosssh/morphe-patches/compare/v2.6.3...v2.7.0) (2026-06-21)
 
 ### 🐛 Bug Fixes

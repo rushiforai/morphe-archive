@@ -1,9 +1,9 @@
 package app.morphe.patches.instagram.patches.distractionFree
 
+import app.morphe.library.instagram.utility.replaceJsonFieldWithBogus
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.Constants.COMPATIBILITY_INSTAGRAM
-import app.morphe.patches.instagram.utility.replaceJsonFieldWithBogus
 
 private const val FEED_ITEMS_KEY = "feed_items"
 

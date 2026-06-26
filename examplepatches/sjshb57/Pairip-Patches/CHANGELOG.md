@@ -1,3 +1,21 @@
+## [1.9.0](https://github.com/sjshb57/Pairip-Patches/compare/v1.8.0...v1.9.0) (2026-06-25)
+
+### ✨ New Features
+
+* **minor:** improve pairip constant class identification and add gradle toolchain config ([24f64a3](https://github.com/sjshb57/Pairip-Patches/commit/24f64a330be958313d7bf45850dd541a8f400d28))
+
+## [1.8.0](https://github.com/sjshb57/Pairip-Patches/compare/v1.7.0...v1.8.0) (2026-06-25)
+
+### ✨ New Features
+
+* refine pairip restoration scope and add constant class removal ([c874baf](https://github.com/sjshb57/Pairip-Patches/commit/c874baf4d31363ce231d235cfbeb41d57d9645f4))
+
+## [1.7.0](https://github.com/sjshb57/Pairip-Patches/compare/v1.6.0...v1.7.0) (2026-06-25)
+
+### ✨ New Features
+
+* add patch to inline and remove pairip call wrapper stubs ([a47d63c](https://github.com/sjshb57/Pairip-Patches/commit/a47d63c643b5936c943c990454191e7958391816))
+
 ## [1.6.0](https://github.com/sjshb57/Pairip-Patches/compare/v1.5.1...v1.6.0) (2026-06-13)
 
 ### ✨ New Features

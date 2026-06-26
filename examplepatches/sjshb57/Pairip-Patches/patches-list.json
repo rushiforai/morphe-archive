@@ -1,6 +1,16 @@
 {
-  "version": "1.6.0",
+  "version": "1.9.0",
   "patches": [
+    {
+      "name": "Inline pairip call wrappers",
+      "description": "Inlines pairip's static call-wrapper stubs ($<number>) back into their call sites and removes the stubs.",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch"
+      ],
+      "compatiblePackages": null,
+      "options": []
+    },
     {
       "name": "Remove pairip protection",
       "description": "Restores obfuscated strings and removes pairip bytecode protection.",

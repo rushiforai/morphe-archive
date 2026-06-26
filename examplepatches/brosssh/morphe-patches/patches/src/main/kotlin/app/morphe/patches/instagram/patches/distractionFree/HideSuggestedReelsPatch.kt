@@ -1,8 +1,8 @@
 package app.morphe.patches.instagram.patches.distractionFree
 
+import app.morphe.library.instagram.utility.replaceJsonFieldWithBogus
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.patch.BytecodePatchContext
-import app.morphe.patches.instagram.utility.replaceJsonFieldWithBogus
 
 private val FEED_ITEM_KEYS_TO_BE_HIDDEN = arrayOf(
     "clips_netego",

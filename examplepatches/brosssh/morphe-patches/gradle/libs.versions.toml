@@ -1,10 +1,10 @@
 [versions]
-morphe-patcher = "1.5.1"
-morphe-patches-library = "1.2.0"
-instagram-morphe-patches-library = "1.0.1-dev.2"
+morphe-patcher = "1.5.2"
+morphe-patches-library = "1.4.1-dev.5"
+instagram-morphe-patches-library = "1.1.0-dev.3"
 #noinspection GradleDependency
-smali = "b6365a84f4"
-gson = "2.13.2"
+smali = "d92701d947"
+gson = "2.14.0"
 annotation = "1.9.1"
 
 [libraries]
