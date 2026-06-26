@@ -29,12 +29,12 @@ val stripDebugInfoPatch = bytecodePatch(
         var lineCleared = 0
 
         classDefForEach { classDef ->
-            // 先判断有没有 debug，没有就别 mutable（省开销）
             val hasSource = classDef.sourceFile != null
-            val hasLine = classDef.methods.any { m ->
+            // 有 source 必须 mutable；无 source 时再判断有没有 line（决定值不值得 mutable）
+            val needMutable = hasSource || classDef.methods.any { m ->
                 m.implementation?.debugItems?.any() == true
             }
-            if (!hasSource && !hasLine) return@classDefForEach
+            if (!needMutable) return@classDefForEach
 
             val mutableClass = mutableClassDefByOrNull(classDef.type) ?: return@classDefForEach
 
@@ -44,20 +44,18 @@ val stripDebugInfoPatch = bytecodePatch(
                 sourceCleared++
             }
 
-            // .line：就地清每条指令所在位置的 debugItems
-            if (hasLine) {
-                mutableClass.methods.forEach { method ->
-                    val impl = method.implementation ?: return@forEach
-                    var cleared = false
-                    impl.instructions.forEach { insn ->
-                        val items = insn.location.debugItems
-                        if (items.isNotEmpty()) {
-                            items.clear()
-                            cleared = true
-                        }
+            // .line：就地清每条指令所在位置的 debugItems，边清边记（无需预先知道 hasLine）
+            mutableClass.methods.forEach { method ->
+                val impl = method.implementation ?: return@forEach
+                var cleared = false
+                impl.instructions.forEach { insn ->
+                    val items = insn.location.debugItems
+                    if (items.isNotEmpty()) {
+                        items.clear()
+                        cleared = true
                     }
-                    if (cleared) lineCleared++
                 }
+                if (cleared) lineCleared++
             }
         }
 
