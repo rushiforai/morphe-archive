@@ -66,8 +66,8 @@ def build_readme(repos):
     lines.append("")
     lines.append(f"## 📋 Tracked Repositories ({count})")
     lines.append("")
-    lines.append("| # | Repository | Link |")
-    lines.append("|---|------------|------|")
+    lines.append("| # | Repository | Github | Morphe |")
+    lines.append("|---|------------|--------|--------|")
 
     for i, repo in enumerate(repos, start=1):
         owner, _, name = repo.partition("/")
