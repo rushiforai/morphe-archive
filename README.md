@@ -2,7 +2,7 @@
 
 An auto-generated, continuously updated index of every GitHub repository that publishes a [Morphe](https://morphe.software) (`.mpp`) patch bundle.
 
-![Repos tracked](https://img.shields.io/badge/repos%20tracked-77-6366f1)![Last updated](https://img.shields.io/badge/last%20updated-2026-06-26%2003:57%20UTC-555)
+![Repos tracked](https://img.shields.io/badge/repos%20tracked-79-6366f1)![Last updated](https://img.shields.io/badge/last%20updated-2026-06-27%2003:41%20UTC-555)
 
 ---
 
@@ -18,7 +18,7 @@ Repos are never silently removed when a source goes quiet — add an entry to [`
 
 ---
 
-## 📋 Tracked Repositories (77)
+## 📋 Tracked Repositories (79)
 
 | # | Repository | Link |
 |---|------------|------|
@@ -52,53 +52,55 @@ Repos are never silently removed when a source goes quiet — add an entry to [`
 | 28 | `eyalm2000/tidal-debug-menu` | [🔗 Open](https://github.com/eyalm2000/tidal-debug-menu) |
 | 29 | `Graywizard888/Enhancify` | [🔗 Open](https://github.com/Graywizard888/Enhancify) |
 | 30 | `hackingguy/morphe-patches` | [🔗 Open](https://github.com/hackingguy/morphe-patches) |
-| 31 | `hoo-dles/jadx-morphe` | [🔗 Open](https://github.com/hoo-dles/jadx-morphe) |
-| 32 | `hoo-dles/morphe-patches` | [🔗 Open](https://github.com/hoo-dles/morphe-patches) |
-| 33 | `humzakh/HK-Morphe-Patches` | [🔗 Open](https://github.com/humzakh/HK-Morphe-Patches) |
-| 34 | `HvQ/eksi-morphe` | [🔗 Open](https://github.com/HvQ/eksi-morphe) |
-| 35 | `icysymmetra/tiktok-patches-for-morphe` | [🔗 Open](https://github.com/icysymmetra/tiktok-patches-for-morphe) |
-| 36 | `ImmortalZeus/ImmortalZeus-Morphe-Patches` | [🔗 Open](https://github.com/ImmortalZeus/ImmortalZeus-Morphe-Patches) |
-| 37 | `IMXEren/mix-patches` | [🔗 Open](https://github.com/IMXEren/mix-patches) |
-| 38 | `inotia00/proguard-patches` | [🔗 Open](https://github.com/inotia00/proguard-patches) |
-| 39 | `inotia00/x-shim` | [🔗 Open](https://github.com/inotia00/x-shim) |
-| 40 | `isuruhg/fin-tweaks` | [🔗 Open](https://github.com/isuruhg/fin-tweaks) |
-| 41 | `jasonwu1994/Gboard-patches` | [🔗 Open](https://github.com/jasonwu1994/Gboard-patches) |
-| 42 | `jkennethcarino/adobo` | [🔗 Open](https://github.com/jkennethcarino/adobo) |
-| 43 | `Jman-Github/Awesome-ReVanced` | [🔗 Open](https://github.com/Jman-Github/Awesome-ReVanced) |
-| 44 | `Jman-Github/Universal-ReVanced-Manager` | [🔗 Open](https://github.com/Jman-Github/Universal-ReVanced-Manager) |
-| 45 | `Joristdh/Platypatch` | [🔗 Open](https://github.com/Joristdh/Platypatch) |
-| 46 | `kareemlukitomo/morphe-patches` | [🔗 Open](https://github.com/kareemlukitomo/morphe-patches) |
-| 47 | `kiraio-moe/Lain-Patches` | [🔗 Open](https://github.com/kiraio-moe/Lain-Patches) |
-| 48 | `kolaron/morphe-patches` | [🔗 Open](https://github.com/kolaron/morphe-patches) |
-| 49 | `kondratjev/morphe-patches` | [🔗 Open](https://github.com/kondratjev/morphe-patches) |
-| 50 | `kontsevoye/emorphe-patches` | [🔗 Open](https://github.com/kontsevoye/emorphe-patches) |
-| 51 | `LaKakaReal/LaKakaShitPatches` | [🔗 Open](https://github.com/LaKakaReal/LaKakaShitPatches) |
-| 52 | `loskutov/youtube-domain-fronting-patch` | [🔗 Open](https://github.com/loskutov/youtube-domain-fronting-patch) |
-| 53 | `Lynx6319/patch-youtube-scroll-block` | [🔗 Open](https://github.com/Lynx6319/patch-youtube-scroll-block) |
-| 54 | `lyyako/realme-link-patches` | [🔗 Open](https://github.com/lyyako/realme-link-patches) |
-| 55 | `meridianfresco/morphe-meta-patches` | [🔗 Open](https://github.com/meridianfresco/morphe-meta-patches) |
-| 56 | `MorpheApp/morphe-patches` | [🔗 Open](https://github.com/MorpheApp/morphe-patches) |
-| 57 | `nvbangg/builder-for-morphe` | [🔗 Open](https://github.com/nvbangg/builder-for-morphe) |
-| 58 | `osirisad/teamsnap-patches` | [🔗 Open](https://github.com/osirisad/teamsnap-patches) |
-| 59 | `osirisad/ts-patches` | [🔗 Open](https://github.com/osirisad/ts-patches) |
-| 60 | `Paresh-Maheshwari/paresh-patches` | [🔗 Open](https://github.com/Paresh-Maheshwari/paresh-patches) |
-| 61 | `PawiX25/pepper-morphe-patches` | [🔗 Open](https://github.com/PawiX25/pepper-morphe-patches) |
-| 62 | `PixelPusher247/morphe-patches` | [🔗 Open](https://github.com/PixelPusher247/morphe-patches) |
-| 63 | `polka-bear/morphe-patches` | [🔗 Open](https://github.com/polka-bear/morphe-patches) |
-| 64 | `quantavil/edge-morphe-patches` | [🔗 Open](https://github.com/quantavil/edge-morphe-patches) |
-| 65 | `Quantro100/Morphe-patches` | [🔗 Open](https://github.com/Quantro100/Morphe-patches) |
-| 66 | `rabilrbl/fluffy-patches` | [🔗 Open](https://github.com/rabilrbl/fluffy-patches) |
-| 67 | `RealCyberwash/max-patches` | [🔗 Open](https://github.com/RealCyberwash/max-patches) |
-| 68 | `RookieEnough/De-Vanced` | [🔗 Open](https://github.com/RookieEnough/De-Vanced) |
-| 69 | `sjshb57/Pairip-Patches` | [🔗 Open](https://github.com/sjshb57/Pairip-Patches) |
-| 70 | `Trimpsuz/morphe-busuu` | [🔗 Open](https://github.com/Trimpsuz/morphe-busuu) |
-| 71 | `TrollTaylor/morphe-pause-fix` | [🔗 Open](https://github.com/TrollTaylor/morphe-pause-fix) |
-| 72 | `vladon/morphe-patches-navi` | [🔗 Open](https://github.com/vladon/morphe-patches-navi) |
-| 73 | `wchill/anddea-rvx-morphed` | [🔗 Open](https://github.com/wchill/anddea-rvx-morphed) |
-| 74 | `wchill/patcheddit` | [🔗 Open](https://github.com/wchill/patcheddit) |
-| 75 | `wchill/rvx-morphed` | [🔗 Open](https://github.com/wchill/rvx-morphed) |
-| 76 | `Xisrr1/Revancify-Xisr` | [🔗 Open](https://github.com/Xisrr1/Revancify-Xisr) |
-| 77 | `xob0t/morphe-patches` | [🔗 Open](https://github.com/xob0t/morphe-patches) |
+| 31 | `HellveticaStandard/HellveticaPatches` | [🔗 Open](https://github.com/HellveticaStandard/HellveticaPatches) |
+| 32 | `hoo-dles/jadx-morphe` | [🔗 Open](https://github.com/hoo-dles/jadx-morphe) |
+| 33 | `hoo-dles/morphe-patches` | [🔗 Open](https://github.com/hoo-dles/morphe-patches) |
+| 34 | `humzakh/HK-Morphe-Patches` | [🔗 Open](https://github.com/humzakh/HK-Morphe-Patches) |
+| 35 | `HvQ/eksi-morphe` | [🔗 Open](https://github.com/HvQ/eksi-morphe) |
+| 36 | `icysymmetra/tiktok-patches-for-morphe` | [🔗 Open](https://github.com/icysymmetra/tiktok-patches-for-morphe) |
+| 37 | `ImmortalZeus/ImmortalZeus-Morphe-Patches` | [🔗 Open](https://github.com/ImmortalZeus/ImmortalZeus-Morphe-Patches) |
+| 38 | `IMXEren/mix-patches` | [🔗 Open](https://github.com/IMXEren/mix-patches) |
+| 39 | `inotia00/proguard-patches` | [🔗 Open](https://github.com/inotia00/proguard-patches) |
+| 40 | `inotia00/x-shim` | [🔗 Open](https://github.com/inotia00/x-shim) |
+| 41 | `isuruhg/fin-tweaks` | [🔗 Open](https://github.com/isuruhg/fin-tweaks) |
+| 42 | `jasonwu1994/Gboard-patches` | [🔗 Open](https://github.com/jasonwu1994/Gboard-patches) |
+| 43 | `jkennethcarino/adobo` | [🔗 Open](https://github.com/jkennethcarino/adobo) |
+| 44 | `Jman-Github/Awesome-ReVanced` | [🔗 Open](https://github.com/Jman-Github/Awesome-ReVanced) |
+| 45 | `Jman-Github/Universal-ReVanced-Manager` | [🔗 Open](https://github.com/Jman-Github/Universal-ReVanced-Manager) |
+| 46 | `Joristdh/Platypatch` | [🔗 Open](https://github.com/Joristdh/Platypatch) |
+| 47 | `kareemlukitomo/morphe-patches` | [🔗 Open](https://github.com/kareemlukitomo/morphe-patches) |
+| 48 | `kiraio-moe/Lain-Patches` | [🔗 Open](https://github.com/kiraio-moe/Lain-Patches) |
+| 49 | `kolaron/morphe-patches` | [🔗 Open](https://github.com/kolaron/morphe-patches) |
+| 50 | `kondratjev/morphe-patches` | [🔗 Open](https://github.com/kondratjev/morphe-patches) |
+| 51 | `kontsevoye/emorphe-patches` | [🔗 Open](https://github.com/kontsevoye/emorphe-patches) |
+| 52 | `LaKakaReal/LaKakaShitPatches` | [🔗 Open](https://github.com/LaKakaReal/LaKakaShitPatches) |
+| 53 | `loskutov/youtube-domain-fronting-patch` | [🔗 Open](https://github.com/loskutov/youtube-domain-fronting-patch) |
+| 54 | `Lynx6319/patch-youtube-scroll-block` | [🔗 Open](https://github.com/Lynx6319/patch-youtube-scroll-block) |
+| 55 | `lyyako/realme-link-patches` | [🔗 Open](https://github.com/lyyako/realme-link-patches) |
+| 56 | `meridianfresco/morphe-meta-patches` | [🔗 Open](https://github.com/meridianfresco/morphe-meta-patches) |
+| 57 | `MorpheApp/morphe-patches` | [🔗 Open](https://github.com/MorpheApp/morphe-patches) |
+| 58 | `nvbangg/builder-for-morphe` | [🔗 Open](https://github.com/nvbangg/builder-for-morphe) |
+| 59 | `osirisad/teamsnap-patches` | [🔗 Open](https://github.com/osirisad/teamsnap-patches) |
+| 60 | `osirisad/ts-patches` | [🔗 Open](https://github.com/osirisad/ts-patches) |
+| 61 | `Paresh-Maheshwari/paresh-patches` | [🔗 Open](https://github.com/Paresh-Maheshwari/paresh-patches) |
+| 62 | `PawiX25/pepper-morphe-patches` | [🔗 Open](https://github.com/PawiX25/pepper-morphe-patches) |
+| 63 | `PixelPusher247/morphe-patches` | [🔗 Open](https://github.com/PixelPusher247/morphe-patches) |
+| 64 | `polka-bear/morphe-patches` | [🔗 Open](https://github.com/polka-bear/morphe-patches) |
+| 65 | `quantavil/edge-morphe-patches` | [🔗 Open](https://github.com/quantavil/edge-morphe-patches) |
+| 66 | `Quantro100/Morphe-patches` | [🔗 Open](https://github.com/Quantro100/Morphe-patches) |
+| 67 | `rabilrbl/fluffy-patches` | [🔗 Open](https://github.com/rabilrbl/fluffy-patches) |
+| 68 | `RealCyberwash/max-patches` | [🔗 Open](https://github.com/RealCyberwash/max-patches) |
+| 69 | `RookieEnough/De-Vanced` | [🔗 Open](https://github.com/RookieEnough/De-Vanced) |
+| 70 | `sjshb57/Pairip-Patches` | [🔗 Open](https://github.com/sjshb57/Pairip-Patches) |
+| 71 | `Trimpsuz/morphe-busuu` | [🔗 Open](https://github.com/Trimpsuz/morphe-busuu) |
+| 72 | `TrollTaylor/morphe-pause-fix` | [🔗 Open](https://github.com/TrollTaylor/morphe-pause-fix) |
+| 73 | `vladon/morphe-patches-navi` | [🔗 Open](https://github.com/vladon/morphe-patches-navi) |
+| 74 | `wchill/anddea-rvx-morphed` | [🔗 Open](https://github.com/wchill/anddea-rvx-morphed) |
+| 75 | `wchill/patcheddit` | [🔗 Open](https://github.com/wchill/patcheddit) |
+| 76 | `wchill/rvx-morphed` | [🔗 Open](https://github.com/wchill/rvx-morphed) |
+| 77 | `Xisrr1/Revancify-Xisr` | [🔗 Open](https://github.com/Xisrr1/Revancify-Xisr) |
+| 78 | `xob0t/morphe-patches` | [🔗 Open](https://github.com/xob0t/morphe-patches) |
+| 79 | `ynotzort/morphe-patches` | [🔗 Open](https://github.com/ynotzort/morphe-patches) |
 
 ---
 
@@ -107,4 +109,4 @@ Repos are never silently removed when a source goes quiet — add an entry to [`
 This README is regenerated automatically by GitHub Actions whenever `repos.txt` changes.
 To add a repo manually, append it to `custom_repos.txt`. To remove one permanently, add it to `ignore_repos.txt`.
 
-*Last generated: 2026-06-26 03:57 UTC*
+*Last generated: 2026-06-27 03:41 UTC*

@@ -4,6 +4,7 @@ AmpleReVanced/revanced-patches
 BholeyKaBhakt/android-patches-xtra
 BrayDog2010/morphe-patches
 Graywizard888/Enhancify
+HellveticaStandard/HellveticaPatches
 HvQ/eksi-morphe
 IMXEren/mix-patches
 ImmortalZeus/ImmortalZeus-Morphe-Patches
@@ -75,3 +76,4 @@ wchill/anddea-rvx-morphed
 wchill/patcheddit
 wchill/rvx-morphed
 xob0t/morphe-patches
+ynotzort/morphe-patches
