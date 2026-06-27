@@ -1,13 +1,9 @@
 # [1.1.0](https://github.com/AmpleReVanced/revanced-patches/compare/v1.0.1...v1.1.0) (2026-06-13)
 
-
 ### Bug Fixes
 
 * **dcinside:** use label-aware DCCon bytecode injections ([16dc51f](https://github.com/AmpleReVanced/revanced-patches/commit/16dc51fd981e7dd9e1aceba257c577f880e23eca))
 * **kakaotalk:** refresh chat info on deleted or hidden messages ([9a6c900](https://github.com/AmpleReVanced/revanced-patches/commit/9a6c900619f0821289c852885c9f4c12dceb4cda))
-* **unicorn:** preserve original std native handles ([ce874b1](https://github.com/AmpleReVanced/revanced-patches/commit/ce874b119664bb4bf25b037b804470a6f58e4813))
-* **unicorn:** prevent mixed native handle crashes ([28565eb](https://github.com/AmpleReVanced/revanced-patches/commit/28565ebb8da91085a82e09c025bc43c9b524bf20))
-
 
 ### Features
 
@@ -22,28 +18,18 @@
 * **kakaotalk:** update kakaotalk patches for version 26.4.0 ([1bd620b](https://github.com/AmpleReVanced/revanced-patches/commit/1bd620be0013996c1c94910ae9c5e45e4548a6f6))
 * **kakaotalk:** update kakaotalk patches for version 26.4.1 ([10d84ab](https://github.com/AmpleReVanced/revanced-patches/commit/10d84abd7acc1d4b233b246709adce3b05db677a))
 * **kakaotalk:** update kakaotalk patches for version 26.4.2 ([9bceacf](https://github.com/AmpleReVanced/revanced-patches/commit/9bceacfdb38b42649bdf54c034bdff41c3ca91dc))
-* **unicorn:** add patch to disable Sentry reporting ([29cbce1](https://github.com/AmpleReVanced/revanced-patches/commit/29cbce101ed27958e6423b34a1c2d64a420bc28f))
-* **unicorn:** add Reimplement native core patch ([2afb415](https://github.com/AmpleReVanced/revanced-patches/commit/2afb415d679cf1cf4cf98e9d4beb572b772bd999))
-* **unicorn:** update unicorn patches for version 1.30.461 ([886ea5a](https://github.com/AmpleReVanced/revanced-patches/commit/886ea5ae333aa0b7ba79fbbc7ff0125ce7b998c2))
-* **unicorn:** update unicorn patches for version 1.30.467 ([654333a](https://github.com/AmpleReVanced/revanced-patches/commit/654333ad61041851d53c05fb072f3c8ea114774e))
-* **unicorn:** update unicorn patches for version 1.30.471 ([1a53512](https://github.com/AmpleReVanced/revanced-patches/commit/1a535121e9cad281f20c4e6bdaab9090636add7b))
 
 # [1.1.0-dev.15](https://github.com/AmpleReVanced/revanced-patches/compare/v1.1.0-dev.14...v1.1.0-dev.15) (2026-06-13)
 
-
 ### Features
 
-* **unicorn:** update unicorn patches for version 1.30.471 ([1a53512](https://github.com/AmpleReVanced/revanced-patches/commit/1a535121e9cad281f20c4e6bdaab9090636add7b))
-
 # [1.1.0-dev.14](https://github.com/AmpleReVanced/revanced-patches/compare/v1.1.0-dev.13...v1.1.0-dev.14) (2026-06-13)
-
 
 ### Features
 
 * **chzzk:** add auto claim TongPow rewards ([d41e51e](https://github.com/AmpleReVanced/revanced-patches/commit/d41e51ecc18dd9a53a0269c55a9e511b332dcce2))
 
 # [1.1.0-dev.13](https://github.com/AmpleReVanced/revanced-patches/compare/v1.1.0-dev.12...v1.1.0-dev.13) (2026-06-08)
-
 
 ### Features
 
@@ -52,21 +38,17 @@
 
 # [1.1.0-dev.12](https://github.com/AmpleReVanced/revanced-patches/compare/v1.1.0-dev.11...v1.1.0-dev.12) (2026-06-06)
 
-
 ### Features
 
 * **all:** add sharedUserId Patch ([8b09daa](https://github.com/AmpleReVanced/revanced-patches/commit/8b09daa2ba0df47f6787b6db0eb7f5b337273551))
-* **unicorn:** update unicorn patches for version 1.30.467 ([654333a](https://github.com/AmpleReVanced/revanced-patches/commit/654333ad61041851d53c05fb072f3c8ea114774e))
 
 # [1.1.0-dev.11](https://github.com/AmpleReVanced/revanced-patches/compare/v1.1.0-dev.10...v1.1.0-dev.11) (2026-05-25)
-
 
 ### Bug Fixes
 
 * **kakaotalk:** refresh chat info on deleted or hidden messages ([9a6c900](https://github.com/AmpleReVanced/revanced-patches/commit/9a6c900619f0821289c852885c9f4c12dceb4cda))
 
 # [1.1.0-dev.10](https://github.com/AmpleReVanced/revanced-patches/compare/v1.1.0-dev.9...v1.1.0-dev.10) (2026-05-21)
-
 
 ### Features
 
@@ -75,13 +57,11 @@
 
 # [1.1.0-dev.9](https://github.com/AmpleReVanced/revanced-patches/compare/v1.1.0-dev.8...v1.1.0-dev.9) (2026-05-18)
 
-
 ### Features
 
 * **kakaotalk:** update kakaotalk patches for version 26.4.1 ([10d84ab](https://github.com/AmpleReVanced/revanced-patches/commit/10d84abd7acc1d4b233b246709adce3b05db677a))
 
 # [1.1.0-dev.8](https://github.com/AmpleReVanced/revanced-patches/compare/v1.1.0-dev.7...v1.1.0-dev.8) (2026-05-18)
-
 
 ### Features
 
@@ -89,13 +69,9 @@
 
 # [1.1.0-dev.7](https://github.com/AmpleReVanced/revanced-patches/compare/v1.1.0-dev.6...v1.1.0-dev.7) (2026-05-14)
 
-
 ### Features
 
-* **unicorn:** update unicorn patches for version 1.30.461 ([886ea5a](https://github.com/AmpleReVanced/revanced-patches/commit/886ea5ae333aa0b7ba79fbbc7ff0125ce7b998c2))
-
 # [1.1.0-dev.6](https://github.com/AmpleReVanced/revanced-patches/compare/v1.1.0-dev.5...v1.1.0-dev.6) (2026-05-14)
-
 
 ### Bug Fixes
 
@@ -103,13 +79,11 @@
 
 # [1.1.0-dev.5](https://github.com/AmpleReVanced/revanced-patches/compare/v1.1.0-dev.4...v1.1.0-dev.5) (2026-05-13)
 
-
 ### Features
 
 * **dcinside:** add big DCCon size rendering setting ([e38fdc5](https://github.com/AmpleReVanced/revanced-patches/commit/e38fdc58bc47e002bac9128be78fffdc2a0cd8ac))
 
 # [1.1.0-dev.4](https://github.com/AmpleReVanced/revanced-patches/compare/v1.1.0-dev.3...v1.1.0-dev.4) (2026-05-13)
-
 
 ### Features
 
@@ -117,26 +91,15 @@
 
 # [1.1.0-dev.3](https://github.com/AmpleReVanced/revanced-patches/compare/v1.1.0-dev.2...v1.1.0-dev.3) (2026-05-11)
 
-
 ### Bug Fixes
-
-* **unicorn:** prevent mixed native handle crashes ([28565eb](https://github.com/AmpleReVanced/revanced-patches/commit/28565ebb8da91085a82e09c025bc43c9b524bf20))
 
 # [1.1.0-dev.2](https://github.com/AmpleReVanced/revanced-patches/compare/v1.1.0-dev.1...v1.1.0-dev.2) (2026-05-11)
 
-
 ### Bug Fixes
-
-* **unicorn:** preserve original std native handles ([ce874b1](https://github.com/AmpleReVanced/revanced-patches/commit/ce874b119664bb4bf25b037b804470a6f58e4813))
-
 
 ### Features
 
-* **unicorn:** add patch to disable Sentry reporting ([29cbce1](https://github.com/AmpleReVanced/revanced-patches/commit/29cbce101ed27958e6423b34a1c2d64a420bc28f))
-* **unicorn:** add Reimplement native core patch ([2afb415](https://github.com/AmpleReVanced/revanced-patches/commit/2afb415d679cf1cf4cf98e9d4beb572b772bd999))
-
 # [1.1.0-dev.1](https://github.com/AmpleReVanced/revanced-patches/compare/v1.0.1...v1.1.0-dev.1) (2026-05-10)
-
 
 ### Features
 
@@ -144,13 +107,11 @@
 
 ## [1.0.1](https://github.com/AmpleReVanced/revanced-patches/compare/v1.0.0...v1.0.1) (2026-05-06)
 
-
 ### Bug Fixes
 
 * **releaserc:** add releaseNotes to GitHub release configuration ([ffa81f4](https://github.com/AmpleReVanced/revanced-patches/commit/ffa81f4fd4c05ae2d43a519d7269b6351fe73c95))
 
 # 1.0.0 (2026-05-06)
-
 
 ### Bug Fixes
 
@@ -191,7 +152,6 @@
 * **kakaotalk:** update hidden message string reference ([569e91a](https://github.com/AmpleReVanced/revanced-patches/commit/569e91a2d809979adaf396660e19ceb4f5870783))
 * **kakaotalk:** update package name checks to exclude 'android' for WebView detection ([5cf9201](https://github.com/AmpleReVanced/revanced-patches/commit/5cf9201095a0b5b6a6429e3749d8f87bef138b1f))
 * **kakaotalk:** webview package detection fixed for grapheneos ([f6fcf5e](https://github.com/AmpleReVanced/revanced-patches/commit/f6fcf5e39b8519b08bc63c079deff4460f46092a))
-
 
 ### Features
 
@@ -322,13 +282,11 @@
 * update compatibility for dcinside app to version 5.1.6 ([1c08290](https://github.com/AmpleReVanced/revanced-patches/commit/1c08290b55bc4bfc183be3d9e0847c5103db7a64))
 * update compatibility for dcinside app to version 5.1.7 ([90585b5](https://github.com/AmpleReVanced/revanced-patches/commit/90585b5c309663495cc0baf545c0ff63645a2c1d))
 
-
 ### Reverts
 
 * Revert "refactor(kakaotalk): restructure deleted message patch hooks" ([5bc2a0a](https://github.com/AmpleReVanced/revanced-patches/commit/5bc2a0a92752394642a1bad34787cdd93a80b9c2))
 
 # [1.0.0-dev.32](https://github.com/AmpleReVanced/revanced-patches/compare/v1.0.0-dev.31...v1.0.0-dev.32) (2026-05-06)
-
 
 ### Bug Fixes
 
@@ -336,13 +294,11 @@
 
 # [1.0.0-dev.31](https://github.com/AmpleReVanced/revanced-patches/compare/v1.0.0-dev.30...v1.0.0-dev.31) (2026-05-06)
 
-
 ### Bug Fixes
 
 * **dcinside:** target image download menu padding wrapper ([102f850](https://github.com/AmpleReVanced/revanced-patches/commit/102f850785329fae00ffaa3b7896c33c8bfae484))
 
 # [1.0.0-dev.30](https://github.com/AmpleReVanced/revanced-patches/compare/v1.0.0-dev.29...v1.0.0-dev.30) (2026-05-06)
-
 
 ### Features
 
@@ -350,13 +306,11 @@
 
 # [1.0.0-dev.29](https://github.com/AmpleReVanced/revanced-patches/compare/v1.0.0-dev.28...v1.0.0-dev.29) (2026-05-06)
 
-
 ### Bug Fixes
 
 * **kakaotalk:** restore force emoticon plus activation ([a6a8a27](https://github.com/AmpleReVanced/revanced-patches/commit/a6a8a27878b176b008db4a75dc9800d8d1712cd2)), closes [#40](https://github.com/AmpleReVanced/revanced-patches/issues/40)
 
 # [1.0.0-dev.28](https://github.com/AmpleReVanced/revanced-patches/compare/v1.0.0-dev.27...v1.0.0-dev.28) (2026-05-04)
-
 
 ### Bug Fixes
 
@@ -364,13 +318,11 @@
 
 # [1.0.0-dev.27](https://github.com/AmpleReVanced/revanced-patches/compare/v1.0.0-dev.26...v1.0.0-dev.27) (2026-05-04)
 
-
 ### Bug Fixes
 
 * **dcinside:** disable DCCon blocker by default ([8be17b0](https://github.com/AmpleReVanced/revanced-patches/commit/8be17b05801bdff59bfe0eb4ca198b207ace6452))
 
 # [1.0.0-dev.26](https://github.com/AmpleReVanced/revanced-patches/compare/v1.0.0-dev.25...v1.0.0-dev.26) (2026-05-04)
-
 
 ### Features
 
@@ -379,13 +331,11 @@
 
 # [1.0.0-dev.25](https://github.com/AmpleReVanced/revanced-patches/compare/v1.0.0-dev.24...v1.0.0-dev.25) (2026-05-03)
 
-
 ### Features
 
 * **dcinside:** hide official gallery notices ([e668722](https://github.com/AmpleReVanced/revanced-patches/commit/e6687229875c3c694d8ce1e7909302bd56685914))
 
 # [1.0.0-dev.24](https://github.com/AmpleReVanced/revanced-patches/compare/v1.0.0-dev.23...v1.0.0-dev.24) (2026-05-03)
-
 
 ### Bug Fixes
 
@@ -393,13 +343,11 @@
 
 # [1.0.0-dev.23](https://github.com/AmpleReVanced/revanced-patches/compare/v1.0.0-dev.22...v1.0.0-dev.23) (2026-05-02)
 
-
 ### Features
 
 * **dcinside:** add selectable user memo presets ([26bbb1c](https://github.com/AmpleReVanced/revanced-patches/commit/26bbb1c39f1359e1dbeb1db45456e5c1050fe4d3))
 
 # [1.0.0-dev.22](https://github.com/AmpleReVanced/revanced-patches/compare/v1.0.0-dev.21...v1.0.0-dev.22) (2026-05-01)
-
 
 ### Features
 
@@ -407,13 +355,11 @@
 
 # [1.0.0-dev.21](https://github.com/AmpleReVanced/revanced-patches/compare/v1.0.0-dev.20...v1.0.0-dev.21) (2026-05-01)
 
-
 ### Features
 
 * **dcinside:** update dcinside patches for version 5.2.8 ([3a2662e](https://github.com/AmpleReVanced/revanced-patches/commit/3a2662e03c561425ee9e8254d19fa7b5ddebf118))
 
 # [1.0.0-dev.20](https://github.com/AmpleReVanced/revanced-patches/compare/v1.0.0-dev.19...v1.0.0-dev.20) (2026-05-01)
-
 
 ### Reverts
 
@@ -421,13 +367,11 @@
 
 # [1.0.0-dev.19](https://github.com/AmpleReVanced/revanced-patches/compare/v1.0.0-dev.18...v1.0.0-dev.19) (2026-04-28)
 
-
 ### Bug Fixes
 
 * **kakaotalk:** restore hidden message feed handling ([f670c35](https://github.com/AmpleReVanced/revanced-patches/commit/f670c35478d697c315fc2552bb2079d80340dc84))
 
 # [1.0.0-dev.18](https://github.com/AmpleReVanced/revanced-patches/compare/v1.0.0-dev.17...v1.0.0-dev.18) (2026-04-28)
-
 
 ### Features
 
@@ -436,18 +380,15 @@
 
 # [1.0.0-dev.17](https://github.com/AmpleReVanced/revanced-patches/compare/v1.0.0-dev.16...v1.0.0-dev.17) (2026-04-28)
 
-
 ### Bug Fixes
 
 * **kakaotalk:** preserve external package info for themes ([3ee5444](https://github.com/AmpleReVanced/revanced-patches/commit/3ee54442c061c26f897681f417dcdf394afef14c))
 
 # [1.0.0-dev.16](https://github.com/AmpleReVanced/revanced-patches/compare/v1.0.0-dev.15...v1.0.0-dev.16) (2026-04-22)
 
-
 ### Bug Fixes
 
 * **kakaotalk:** remove dependency of disableOpenChatRoomCommentPatch on overrideFeatureFlagPatch ([2ee7897](https://github.com/AmpleReVanced/revanced-patches/commit/2ee78973734dd043440fed0a737150e5a0761200))
-
 
 ### Features
 
@@ -455,11 +396,9 @@
 
 # [1.0.0-dev.15](https://github.com/AmpleReVanced/revanced-patches/compare/v1.0.0-dev.14...v1.0.0-dev.15) (2026-04-22)
 
-
 ### Bug Fixes
 
 * **kakaotalk:** avoid syncing deleted logs as chat list preview ([d5e8a05](https://github.com/AmpleReVanced/revanced-patches/commit/d5e8a0522b7aa95fdf6f94cc60d5bf8b8f492e21))
-
 
 ### Features
 
@@ -468,7 +407,6 @@
 
 # [1.0.0-dev.13](https://github.com/AmpleReVanced/revanced-patches/compare/v1.0.0-dev.12...v1.0.0-dev.13) (2026-04-21)
 
-
 ### Bug Fixes
 
 * **kakaotalk:** add pref_debug to sensitive preferences ([f39d485](https://github.com/AmpleReVanced/revanced-patches/commit/f39d4857a4f44132efa2b2e8563fee74d6d40808))
@@ -476,11 +414,9 @@
 
 # [1.0.0-dev.12](https://github.com/AmpleReVanced/revanced-patches/compare/v1.0.0-dev.11...v1.0.0-dev.12) (2026-04-17)
 
-
 ### Bug Fixes
 
 * **kakaotalk:** adopt Remove300PlusLimitFingerprint to 26.3.0 ([60820ec](https://github.com/AmpleReVanced/revanced-patches/commit/60820ec5ea06be31e6ca96a827d9f526814233c1))
-
 
 ### Features
 
@@ -492,7 +428,6 @@
 
 # [1.0.0-dev.11](https://github.com/AmpleReVanced/revanced-patches/compare/v1.0.0-dev.10...v1.0.0-dev.11) (2026-04-12)
 
-
 ### Features
 
 * **dcinside:** add custom branding patch for app name and icon customization ([4bb298a](https://github.com/AmpleReVanced/revanced-patches/commit/4bb298a3b4258069cf1bf261150188debcd938fa))
@@ -501,18 +436,15 @@
 
 # [1.0.0-dev.10](https://github.com/AmpleReVanced/revanced-patches/compare/v1.0.0-dev.9...v1.0.0-dev.10) (2026-04-02)
 
-
 ### Features
 
 * **kakaotalk:** add telegram link in settings ([e02b1a3](https://github.com/AmpleReVanced/revanced-patches/commit/e02b1a39a990fcf6ec44c106bf998a3e3f591255))
 
 # [1.0.0-dev.9](https://github.com/AmpleReVanced/revanced-patches/compare/v1.0.0-dev.8...v1.0.0-dev.9) (2026-04-01)
 
-
 ### Bug Fixes
 
 * **kakaotalk:** update GitHub link to point to the correct repository ([5d5ef67](https://github.com/AmpleReVanced/revanced-patches/commit/5d5ef679893f6374a21df59adab64a6897a64152))
-
 
 ### Features
 
@@ -521,7 +453,6 @@
 * **kakaotalk:** update Korean strings for clarity and consistency in settings ([07ecf0a](https://github.com/AmpleReVanced/revanced-patches/commit/07ecf0ae79aa5a52067ce75198f3bc05e2cf4b15))
 
 # [1.0.0-dev.8](https://github.com/AmpleReVanced/revanced-patches/compare/v1.0.0-dev.7...v1.0.0-dev.8) (2026-03-31)
-
 
 ### Features
 
@@ -537,13 +468,11 @@
 
 # [1.0.0-dev.7](https://github.com/AmpleReVanced/revanced-patches/compare/v1.0.0-dev.6...v1.0.0-dev.7) (2026-03-30)
 
-
 ### Bug Fixes
 
 * **dcinside:** fixed can't install clone variant ([f89e3e5](https://github.com/AmpleReVanced/revanced-patches/commit/f89e3e5259b1731b6e7cdf25f0f4903b6d2ddaf1))
 
 # [1.0.0-dev.6](https://github.com/AmpleReVanced/revanced-patches/compare/v1.0.0-dev.5...v1.0.0-dev.6) (2026-03-30)
-
 
 ### Features
 
@@ -551,12 +480,10 @@
 
 # [1.0.0-dev.5](https://github.com/AmpleReVanced/revanced-patches/compare/v1.0.0-dev.4...v1.0.0-dev.5) (2026-03-30)
 
-
 ### Bug Fixes
 
 * **dcinside:** fix update check not being disabled ([f70b97a](https://github.com/AmpleReVanced/revanced-patches/commit/f70b97a67e5630e9211f330f67d984429f54098b))
 * **kakaotalk:** replace REVANCED to MORPHE in settings ([68852c6](https://github.com/AmpleReVanced/revanced-patches/commit/68852c6514bb69307702e2b50405b5c0d073c41f))
-
 
 ### Features
 
@@ -564,13 +491,11 @@
 
 # [1.0.0-dev.4](https://github.com/AmpleReVanced/revanced-patches/compare/v1.0.0-dev.3...v1.0.0-dev.4) (2026-03-30)
 
-
 ### Bug Fixes
 
 * **kakaotalk:** update hidden message string reference ([569e91a](https://github.com/AmpleReVanced/revanced-patches/commit/569e91a2d809979adaf396660e19ceb4f5870783))
 
 # [1.0.0-dev.3](https://github.com/AmpleReVanced/revanced-patches/compare/v1.0.0-dev.2...v1.0.0-dev.3) (2026-03-29)
-
 
 ### Bug Fixes
 
@@ -579,7 +504,6 @@
 * **kakaotalk:** should be getItemCount return 1 ([3712723](https://github.com/AmpleReVanced/revanced-patches/commit/371272390e34273af728e825fa23f0a1114c56fe))
 
 # 1.0.0-dev.1 (2026-03-29)
-
 
 ### Bug Fixes
 
@@ -599,7 +523,6 @@
 * **kakaotalk:** update getResourceId to use fixed package name in ResourceHelper ([7669b9a](https://github.com/AmpleReVanced/revanced-patches/commit/7669b9a775400ce4bb622b2c8930143a81c00a6b))
 * **kakaotalk:** update package name checks to exclude 'android' for WebView detection ([5cf9201](https://github.com/AmpleReVanced/revanced-patches/commit/5cf9201095a0b5b6a6429e3749d8f87bef138b1f))
 * **kakaotalk:** webview package detection fixed for grapheneos ([f6fcf5e](https://github.com/AmpleReVanced/revanced-patches/commit/f6fcf5e39b8519b08bc63c079deff4460f46092a))
-
 
 ### Features
 

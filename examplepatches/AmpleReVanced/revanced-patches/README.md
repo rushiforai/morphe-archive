@@ -125,22 +125,6 @@
 </details>
 
 <details open>
-<summary>📦 Unicorn Pro&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 1.30.471 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Disable Sentry](#disable-sentry) | Disables Sentry reporting |  |
-| [Unlock Pro features](#unlock-pro-features) | Makes Unicorn Pro report an active Pro license while preserving the original native object graph. |  |
-
-</details>
-
-<details open>
 <summary>📦 Flexcil&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
