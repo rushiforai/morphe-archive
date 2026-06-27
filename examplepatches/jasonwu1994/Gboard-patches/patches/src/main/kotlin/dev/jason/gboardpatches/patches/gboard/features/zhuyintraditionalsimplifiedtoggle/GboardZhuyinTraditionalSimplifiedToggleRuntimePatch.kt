@@ -18,14 +18,14 @@ internal val gboardZhuyinTraditionalSimplifiedToggleRuntimePatch = bytecodePatch
     description = "處理注音 ㄥ 上滑繁簡切換的 runtime 行為、可見鍵刷新與 popup 文案。"
 ) {
     execute {
-        patchOfiDispatch()
+        installOfiHelpers()
         patchSoftKeyboardView()
         patchBasicPopupView()
     }
 }
 
 context(context: BytecodePatchContext)
-private fun patchOfiDispatch() = with(context) {
+internal fun BytecodePatchContext.installZhuyinToggleOfiHelpers() = with(this) {
     addHelperMethodIfMissing(
         classType = OFI_CLASS,
         name = "jasondevDispatchOrToggle",
@@ -80,14 +80,11 @@ private fun patchOfiDispatch() = with(context) {
         registerCount = 3,
         body = OFI_REFRESH_CURRENT_INPUT_VIEW_BODY
     )
+}
 
-    val mutableMethod = findMutableMethodOrThrow(
-        classType = OFI_CLASS,
-        name = "f",
-        returnType = "V",
-        parameterTypes = listOf("Lofk;", "Lnxi;", "Lnyf;", "Loaa;", "J", "Z", "Z", "I", "Z", "J", "I")
-    )
-    mutableMethod.addInstructions(0, OFI_F_DELEGATE_INSTRUCTIONS)
+context(context: BytecodePatchContext)
+private fun installOfiHelpers() = with(context) {
+    installZhuyinToggleOfiHelpers()
 }
 
 context(context: BytecodePatchContext)

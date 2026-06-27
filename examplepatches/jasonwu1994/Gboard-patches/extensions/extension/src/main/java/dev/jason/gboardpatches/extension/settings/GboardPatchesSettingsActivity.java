@@ -42,10 +42,13 @@ import android.widget.ScrollView;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.VideoView;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import android.widget.Toast;
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -67,6 +70,8 @@ public final class GboardPatchesSettingsActivity extends Activity
             "android.service.quicksettings.action.QS_TILE_PREFERENCES";
     private static final String EXTRA_OPEN_WEB_CLIPBOARD =
             "dev.jason.gboardpatches.extension.extra.OPEN_WEB_CLIPBOARD";
+    private static final int REQUEST_CREATE_TEXT_DOCUMENT = 0x4742;
+    private static final int REQUEST_OPEN_TEXT_DOCUMENT = 0x4743;
     private static final int TOOLBAR_HEIGHT_DP = 56;
     private static final String TOOLBAR_TITLE_PATCHES = "Patches";
     private static final String HEADER_BADGE = "Gboard";
@@ -103,6 +108,10 @@ public final class GboardPatchesSettingsActivity extends Activity
     private static final String ABOUT_AUTHOR_URL = "https://github.com/jasonwu1994";
     private static final String ABOUT_PATCH_REPOSITORY_URL =
             "https://github.com/jasonwu1994/Gboard-patches";
+    private static final String DOCUMENT_TYPE_FALLBACK = "text/plain";
+    private static final String DOCUMENT_PICKER_FAILED = "Unable to open file picker.";
+    private static final String DOCUMENT_WRITE_FAILED = "Failed to export file.";
+    private static final String DOCUMENT_READ_FAILED = "Failed to import file.";
     private Palette palette;
     private LinearLayout toolbarView;
     private TextView toolbarTitleView;
@@ -141,6 +150,8 @@ public final class GboardPatchesSettingsActivity extends Activity
     private int activeModalDialogCount;
     private boolean scrollToTopOnNextScreenApply = true;
     private boolean initialFeatureFromIntentHandled;
+    private PendingTextDocumentWrite pendingTextDocumentWrite;
+    private GboardPatchesSettingsContract.StringValueConsumer pendingTextDocumentReader;
 
     @Override
     protected void attachBaseContext(Context newBase) {
@@ -531,6 +542,75 @@ public final class GboardPatchesSettingsActivity extends Activity
         }
     }
 
+    @Override
+    @SuppressWarnings("deprecation")
+    public void createTextDocument(String fileName, String mimeType, String text,
+            Runnable completionAction) {
+        pendingTextDocumentWrite = new PendingTextDocumentWrite(
+                text != null ? text : "",
+                completionAction);
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        intent.setType(normalizeMimeType(mimeType));
+        if (fileName != null && !fileName.trim().isEmpty()) {
+            intent.putExtra(Intent.EXTRA_TITLE, fileName.trim());
+        }
+        try {
+            startActivityForResult(intent, REQUEST_CREATE_TEXT_DOCUMENT);
+        } catch (ActivityNotFoundException ignored) {
+            pendingTextDocumentWrite = null;
+            Toast.makeText(this, DOCUMENT_PICKER_FAILED, Toast.LENGTH_SHORT).show();
+        } catch (Throwable throwable) {
+            pendingTextDocumentWrite = null;
+            Log.w(TAG, "Failed to launch document create picker", throwable);
+            Toast.makeText(this, DOCUMENT_PICKER_FAILED, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public void openTextDocument(String[] mimeTypes,
+            GboardPatchesSettingsContract.StringValueConsumer valueConsumer) {
+        if (valueConsumer == null) {
+            return;
+        }
+        pendingTextDocumentReader = valueConsumer;
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        String[] normalizedMimeTypes = normalizeMimeTypes(mimeTypes);
+        intent.setType(normalizedMimeTypes.length == 1
+                ? normalizedMimeTypes[0]
+                : "*/*");
+        if (normalizedMimeTypes.length > 1) {
+            intent.putExtra(Intent.EXTRA_MIME_TYPES, normalizedMimeTypes);
+        }
+        try {
+            startActivityForResult(intent, REQUEST_OPEN_TEXT_DOCUMENT);
+        } catch (ActivityNotFoundException ignored) {
+            pendingTextDocumentReader = null;
+            Toast.makeText(this, DOCUMENT_PICKER_FAILED, Toast.LENGTH_SHORT).show();
+        } catch (Throwable throwable) {
+            pendingTextDocumentReader = null;
+            Log.w(TAG, "Failed to launch document open picker", throwable);
+            Toast.makeText(this, DOCUMENT_PICKER_FAILED, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CREATE_TEXT_DOCUMENT) {
+            handleCreateTextDocumentResult(resultCode, data);
+            return;
+        }
+        if (requestCode == REQUEST_OPEN_TEXT_DOCUMENT) {
+            handleOpenTextDocumentResult(resultCode, data);
+        }
+    }
+
     private View buildPreviewMediaCard(String dialogTitle,
             GboardPatchesSettingsContract.PreviewMedia previewMedia, boolean compact,
             List<VideoView> previewVideoViews) {
@@ -765,6 +845,86 @@ public final class GboardPatchesSettingsActivity extends Activity
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 Gravity.CENTER));
+    }
+
+    private void handleCreateTextDocumentResult(int resultCode, Intent data) {
+        PendingTextDocumentWrite pendingWrite = pendingTextDocumentWrite;
+        pendingTextDocumentWrite = null;
+        if (resultCode != RESULT_OK || data == null || data.getData() == null
+                || pendingWrite == null) {
+            return;
+        }
+        try {
+            writeTextDocument(data.getData(), pendingWrite.text);
+            if (pendingWrite.completionAction != null) {
+                pendingWrite.completionAction.run();
+            }
+        } catch (Throwable throwable) {
+            Log.w(TAG, "Failed to write selected document", throwable);
+            Toast.makeText(this, DOCUMENT_WRITE_FAILED, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void handleOpenTextDocumentResult(int resultCode, Intent data) {
+        GboardPatchesSettingsContract.StringValueConsumer reader = pendingTextDocumentReader;
+        pendingTextDocumentReader = null;
+        if (resultCode != RESULT_OK || data == null || data.getData() == null
+                || reader == null) {
+            return;
+        }
+        try {
+            reader.accept(readTextDocument(data.getData()));
+        } catch (Throwable throwable) {
+            Log.w(TAG, "Failed to read selected document", throwable);
+            Toast.makeText(this, DOCUMENT_READ_FAILED, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void writeTextDocument(Uri uri, String text) throws java.io.IOException {
+        try (OutputStream outputStream = getContentResolver().openOutputStream(uri, "wt")) {
+            if (outputStream == null) {
+                throw new java.io.IOException("Content resolver returned null output stream.");
+            }
+            outputStream.write((text != null ? text : "").getBytes(StandardCharsets.UTF_8));
+            outputStream.flush();
+        }
+    }
+
+    private String readTextDocument(Uri uri) throws java.io.IOException {
+        try (InputStream inputStream = getContentResolver().openInputStream(uri)) {
+            if (inputStream == null) {
+                throw new java.io.IOException("Content resolver returned null input stream.");
+            }
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            byte[] buffer = new byte[4096];
+            int read;
+            while ((read = inputStream.read(buffer)) >= 0) {
+                outputStream.write(buffer, 0, read);
+            }
+            return outputStream.toString(StandardCharsets.UTF_8.name());
+        }
+    }
+
+    private static String normalizeMimeType(String mimeType) {
+        return mimeType != null && !mimeType.trim().isEmpty()
+                ? mimeType.trim()
+                : DOCUMENT_TYPE_FALLBACK;
+    }
+
+    private static String[] normalizeMimeTypes(String[] mimeTypes) {
+        if (mimeTypes == null || mimeTypes.length == 0) {
+            return new String[] { DOCUMENT_TYPE_FALLBACK };
+        }
+        List<String> normalized = new ArrayList<String>();
+        for (String mimeType : mimeTypes) {
+            if (mimeType != null && !mimeType.trim().isEmpty()) {
+                normalized.add(mimeType.trim());
+            }
+        }
+        if (normalized.isEmpty()) {
+            normalized.add(DOCUMENT_TYPE_FALLBACK);
+        }
+        return normalized.toArray(new String[0]);
     }
 
     private void configureWindow() {
@@ -1133,10 +1293,11 @@ public final class GboardPatchesSettingsActivity extends Activity
         }
 
         GboardPatchesSettingsContract.Screen screen;
+        GboardPatchesSettingsContract.Feature featureSnapshot = currentFeature;
         try {
             ensureFeaturesInitialized();
             openInitialFeatureFromIntentIfNeeded();
-            GboardPatchesSettingsContract.Feature featureSnapshot = currentFeature;
+            featureSnapshot = currentFeature;
             screen = featureSnapshot == null
                     ? buildRootScreen()
                     : featureSnapshot.buildScreen(this);
@@ -1155,6 +1316,7 @@ public final class GboardPatchesSettingsActivity extends Activity
             screen = buildFeatureErrorScreen(currentFeature);
         }
 
+        GboardPatchesSettingsContract.Feature appliedFeature = featureSnapshot;
         GboardPatchesSettingsContract.Screen finalScreen = screen;
         runOnUiThread(() -> {
             if (!isLatestScreenBuild(buildGeneration)
@@ -1164,7 +1326,21 @@ public final class GboardPatchesSettingsActivity extends Activity
                     && isDestroyed())) {
                 return;
             }
-            applyScreen(finalScreen);
+            try {
+                applyScreen(finalScreen);
+            } catch (Throwable throwable) {
+                Log.w(TAG, "Failed to apply settings screen", throwable);
+                try {
+                    applyScreen(buildFeatureErrorScreen(appliedFeature));
+                } catch (Throwable fallbackThrowable) {
+                    Log.w(TAG, "Failed to apply feature error screen", fallbackThrowable);
+                    try {
+                        fallbackThrowable.addSuppressed(throwable);
+                    } catch (Throwable ignored) {
+                    }
+                    showFatalFallbackScreen("Failed to apply settings screen", fallbackThrowable);
+                }
+            }
         });
     }
 
@@ -1642,6 +1818,7 @@ public final class GboardPatchesSettingsActivity extends Activity
         switchView.setLayoutParams(new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT));
+        switchView.setShowText(false);
         applySwitchTint(switchView);
         switchView.setChecked(rowModel.isChecked());
         switchView.setOnCheckedChangeListener((buttonView, isChecked) -> {
@@ -2236,6 +2413,16 @@ public final class GboardPatchesSettingsActivity extends Activity
 
     private int dp(int value) {
         return Math.round(value * getResources().getDisplayMetrics().density);
+    }
+
+    private static final class PendingTextDocumentWrite {
+        final String text;
+        final Runnable completionAction;
+
+        PendingTextDocumentWrite(String text, Runnable completionAction) {
+            this.text = text;
+            this.completionAction = completionAction;
+        }
     }
 
     private static final class Palette {

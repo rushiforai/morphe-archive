@@ -3,8 +3,11 @@ import re
 import sys
 from pathlib import Path
 
+from curl_cffi import requests as curl_requests
+
 from src.core.logger import IS_GITHUB, abort, epr, pr
-from src.core.network import NetworkManager
+
+_BACKTICK_RE = re.compile(r"`([^`]+)`")
 
 
 def _require_ci(script: str) -> None:
@@ -18,8 +21,8 @@ def _parse_final_md(final_md: Path) -> tuple[list[str], str, list[str]]:
     for line in final_md.read_text(encoding="utf-8").splitlines():
         stripped = line.strip()
         if stripped.startswith("- 🟢"):
-            green_lines.append(re.sub(r"`([^`]+)`", r"\1", stripped.removeprefix("- ")))
-        elif stripped.startswith("▶️"):
+            green_lines.append(_BACKTICK_RE.sub(r"\1", stripped.removeprefix("- ")))
+        elif not microg_line and stripped.startswith("▶️"):
             microg_line = stripped
         elif stripped.startswith("[🔗"):
             if m := re.search(r"\[(.*?)\]\((.*?)\)", stripped):
@@ -28,7 +31,6 @@ def _parse_final_md(final_md: Path) -> tuple[list[str], str, list[str]]:
                 changelog_lines.append(f"[{link_text} ({org})]({url})" if org else stripped)
             else:
                 changelog_lines.append(stripped)
-
     return green_lines, microg_line, changelog_lines
 
 def _build_message(brand: str, green_lines: list[str], microg_line: str, changelog_lines: list[str]) -> str:
@@ -39,7 +41,6 @@ def _build_message(brand: str, green_lines: list[str], microg_line: str, changel
     if changelog_lines:
         parts.append("")
         parts.extend(changelog_lines)
-
     return "\n".join(parts)
 
 def notify(brand: str, final_md_path: str = "final.md") -> None:
@@ -63,8 +64,8 @@ def notify(brand: str, final_md_path: str = "final.md") -> None:
     url = f"https://api.telegram.org/bot{token}/sendMessage"
     payload = {"chat_id": chat, "text": msg, "parse_mode": "Markdown", "link_preview_options": {"is_disabled": True}}
     pr(f"Sending Telegram notification for '{brand}' to '{chat}'")
-    with NetworkManager() as net:
-        resp = net.session.post(url, json=payload, timeout=(5, 10))
+    with curl_requests.Session() as session:
+        resp = session.post(url, json=payload, timeout=(5, 10))
         if resp.status_code != 200:
             epr(f"Telegram API error {resp.status_code}: {resp.text}")
         else:

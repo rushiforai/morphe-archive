@@ -1,0 +1,209 @@
+! Prime Video — DNS Ad-Suppression Filter List
+! Version: 4.3
+! Updated: 2026-06-26
+! Format: AdGuard Home filter syntax (pi-hole notes in dns/README.md)
+! v4.1: safe-harbor + ad hosts re-confirmed against TLS SNI from packet captures.
+! v4.2: live mobile session (10 titles, 1 ad) confirmed the list working; added
+!       hercule.triggers-v1 (suspect ad trigger seen slipping through).
+! v4.3: added optional Section 5 (general third-party trackers seen in-session,
+!       NOT Prime-specific; a maintained general list like HaGeZi is preferred).
+!
+! ─────────────────────────────────────────────────────────────────────────────
+! WHY THIS LIST EXISTS — the dual-layer strategy
+!
+! Prime Video delivers ads down two different "roads", chosen server-side per
+! session (device, title, account, region, A/B bucket):
+!
+!   • Java road  — ad break signalled to the client as a media3 AdPlaybackState
+!                  ad group. Handled by the bytecode PATCH (skipAds*).
+!   • Native road — ad stitched server-side (SGAI) and delivered through Amazon's
+!                  native pipeline + native libcurl. The bytecode patch CANNOT
+!                  see this; it runs below the Java HTTP layer. THIS LIST is the
+!                  tool that reaches it, because DNS blocking operates below HTTP.
+!
+! Neither layer alone is complete. Run the patch AND this list together.
+!
+! ─────────────────────────────────────────────────────────────────────────────
+! EVIDENCE BASIS — every rule is tagged with where it was confirmed:
+!   [ATV]   = on-device Onn 4K logcat, 2026-06-26 (native road, libcurl)
+!   [PC]    = PC AdGuard HAR capture, 2026-06-25 (Java road, getVideoAds)
+!   [PIH]   = friend's pi-hole DNS log, 2026-06-26
+!   [v3.6]  = carried from the user's hand-tuned v3.6 list
+!   [PCAP]  = TLS SNI from packet captures (handshake/type/aiv.pcapng)
+!   [UNV]   = asserted by v3.6 but NOT independently confirmed by our captures
+!
+! ─────────────────────────────────────────────────────────────────────────────
+! WHAT CHANGED FROM v3.6 (and why) — read this before deploying
+!
+!  1. REMOVED the broad VOD-CDN blocks. v3.6 §4/§5 null-routed
+!     *vod-dash-pv-ta-amazon.akamaized.net and *.vod-dash.main.amazon.pv-cdn.net.
+!     Our [PC] capture caught a169/a64 vod-dash-pv-ta...akamaized.net serving the
+!     actual MOVIE. CDN shard assignment is non-deterministic, so prefix/host
+!     blocking on these shared CDNs WILL eventually block content. Ad segments on
+!     these CDNs can only be separated from content at the path/manifest layer —
+!     that is the patch's job, not DNS. These hosts are now in SAFE HARBOR.
+!  2. s0s7.api.amazonvideo.com is NO LONGER blocked. v3.6 null-routed it as
+!     "fast-fail", but [ATV] shows it returning HTTP 304 and [PCAP] caught it in
+!     the live session SNI — it is a playback API. Now in SAFE HARBOR.
+!  3. atv-ps-*.amazon.com moved to opt-in. atv-ps.amazon.com (no hyphen) is the
+!     dual-use DRM + playback + getVideoAds host and is now an $important allow.
+!  4. The path-based "ad image" rules were DROPPED. DNS cannot match URL paths;
+!     those rules were silently ineffective. Ad-image suppression belongs to the
+!     patch / an HTTPS-filtering proxy (see PATCH-DOMAIN section).
+!  5. Safe-harbor allows are now $important so content can never be collateral.
+!
+! ═════════════════════════════════════════════════════════════════════════════
+! SECTION 1 — SAFE HARBOR (MUST BE FIRST; $important so it always wins)
+! These are content / DRM / playback / subtitle hosts. NEVER block them.
+! ═════════════════════════════════════════════════════════════════════════════
+
+! Dual-use playback host: serves Widevine licensing, session APIs AND the
+! /cdp/getVideoAds ad call. DNS must NOT touch it — the ad PATH is the patch's
+! job (see PATCH-DOMAIN). [PC][ATV]
+@@||atv-ps.amazon.com^$important
+
+! Content / playback API prefixes — present in ad-free sessions. [v3.6]
+@@||keho.api.amazonvideo.com^$important
+@@||qgmg.api.amazonvideo.com^$important
+@@||p7kg.api.amazonvideo.com^$important
+! TER playback routing — present in BOTH ad-free and ad-supported sessions [v3.6]
+@@||abxc3apcastp.na-f.api.amazonvideo.com^$important
+! Playback API shard — returned HTTP 304 (live) in capture; confirmed via SNI [ATV][PCAP]
+@@||s0s7.api.amazonvideo.com^$important
+
+! VOD content CDNs — CAUGHT SERVING THE MOVIE. [PC] HAR caught the akamaized
+! host; [PCAP] caught 11 content shards under main.amazon.pv-cdn.net (prefix
+! family abkyoveaaaaaaaam*, across vod-dash / pop-vod-dash / ta.* variants).
+! Allowed at the main.amazon.pv-cdn.net root so every variant is covered.
+! Do not block — see the Tier-2 prefix-roulette note.
+@@||main.amazon.pv-cdn.net^$important
+@@||vod-dash-pv-ta-amazon.akamaized.net^$important
+! Auxiliary playback CDN — subtitles (cf-timedtext) + trickplay scrub thumbnails
+! (cf-trickplay). Generalized to the aux host so both are covered. [v3.6][PCAP]
+@@||aux.pv-cdn.net^$important
+! Experience / UI asset CDN (cloudfront-fronted). NOTE: aiv-cdn.net is CONTENT,
+! distinct from aiv-delivery.net (ads, blocked in §2). [PCAP]
+@@||aiv-cdn.net^$important
+! Image / artwork hosts. Ad images here are PATH-scoped, so the host stays
+! allowed and the patch handles the ad paths (see PATCH-DOMAIN). [PCAP]
+@@||images-na.ssl-images-amazon.com^$important
+@@||m.media-amazon.com^$important
+
+! Weblab is allowed wholesale EXCEPT the zoar/hercule ad triggers (blocked §2). [v3.6]
+@@||*.weblab.a2z.com^
+
+! ═════════════════════════════════════════════════════════════════════════════
+! SECTION 2 — TIER 1: HIGH-CONFIDENCE AD HOSTS (recommended; low content risk)
+! Pure ad infrastructure — never observed serving Prime content.
+! ═════════════════════════════════════════════════════════════════════════════
+
+! Amazon ad platform — exchange/decisioning/aax. Pure ad-tech. [PIH]
+||amazon-adsystem.com^$dnsrewrite=0.0.0.0
+
+! Prime ad delivery / SSAI network — decisioning + SGAI stitchers. Confirmed SNI:
+! api.us-east-1.aiv-delivery.net + ters-draper1.us-east-1.aiv-delivery.net.
+! [ATV][PIH][PCAP]
+! NOTE: this includes the SGAI stitcher (ters-sgai1 / ters-draper1...). On a
+! NATIVE-road session the player expects the stitched manifest, so a rare
+! playback hiccup is possible. If you ever see a stall/black-screen on a title,
+! narrow this to decisioning-only: replace the line below with
+!     ||api.us-east-1.aiv-delivery.net^$dnsrewrite=0.0.0.0
+! and add regional shards as you observe them.
+||aiv-delivery.net^$dnsrewrite=0.0.0.0
+
+! Weblab zoar ad trigger — confirmed ad-specific; $important beats the §1 weblab
+! allow. Prime suspect for persisting pre-rolls. [v3.6][PC]
+||zoar.triggers-v1.prod.mobile.weblab.a2z.com^$important$dnsrewrite=0.0.0.0
+! Weblab hercule ad trigger — SUSPECT: same triggers-v1 namespace as zoar, seen
+! allowed (green) all through a mobile session where 1 ad slipped past. Specific
+! host only; broaden to ||*.triggers-v1.prod.mobile.weblab.a2z.com^ if more ad
+! siblings appear (that nukes ALL mobile weblab experiments — do it knowingly). [UNV]
+||hercule.triggers-v1.prod.mobile.weblab.a2z.com^$important$dnsrewrite=0.0.0.0
+
+! Ad orchestration prefixes on the video API. api.amazonvideo.com hosts MANY
+! rotating CONTENT prefixes (keho/qgmg/p7kg/abxc3apcastp/ab8mt4dd97et...), so we
+! never block the domain — only the ad prefixes. threeplr confirmed via real SNI:
+! threeplr-ab5w7agdemte.api.amazonvideo.com. [v3.6][PCAP]
+||threeplr*.api.amazonvideo.com^$dnsrewrite=0.0.0.0
+||nit*.api.amazonvideo.com^$dnsrewrite=0.0.0.0
+
+! ═════════════════════════════════════════════════════════════════════════════
+! SECTION 3 — TIER 2: AGGRESSIVE / OPT-IN (uncomment to enable; CONTENT RISK)
+! Each carries a real false-positive risk or is unverified by our captures.
+! Enable one at a time and watch for playback breakage.
+! ═════════════════════════════════════════════════════════════════════════════
+
+! -- Akamai ad-segment CDNs (akamaihd.net, distinct from the akamaized.net
+!    content CDN allowed in §1). v3.6-asserted ad hosts, NOT seen in our
+!    captures, and CDN routing is non-deterministic. [UNV]
+! ||*avoddashs3ww-a.akamaihd.net^$dnsrewrite=0.0.0.0
+! ||*aivottevtad-a.akamaihd.net^$dnsrewrite=0.0.0.0
+! /^a\d+.*vottevtad.*\.akamaihd\.net$/$dnsrewrite=0.0.0.0
+
+! -- pv-cdn ad-prefix attempts. HIGH RISK: shares the VOD-DASH content CDN that
+!    §1 protects. [PCAP] caught content on prefix abkyoveaaaaaaaam* — a different
+!    family from these abgqa65/abepmbf/abgarbv guesses, proving the prefix space
+!    rotates and host/prefix blocking here WILL eventually catch content. [UNV]
+! ||abgqa65*.pv-cdn.net^$dnsrewrite=0.0.0.0
+! ||abepmbf*.pv-cdn.net^$dnsrewrite=0.0.0.0
+! ||abgarbv*.pv-cdn.net^$dnsrewrite=0.0.0.0
+
+! -- Playback-service variants / probes. May be regional playback endpoints;
+!    [ATV] shows the un-hyphenated atv-ps.amazon.com is essential. [UNV]
+! ||atv-ps-*.amazon.com^$dnsrewrite=0.0.0.0
+! ||web-checks.a2z.com^$dnsrewrite=0.0.0.0
+
+! -- IoT ad signaling — seen ALLOWED in the mobile session. v3.6 flags it as ad
+!    signaling, but it is a single AWS IoT endpoint that may also carry device /
+!    cast state, so it is left opt-in. Enable if chasing the last ad, and watch
+!    cast/remote features. [v3.6]
+! ||a2hmcwiq4hwfgz-ats.iot.us-east-1.amazonaws.com^$dnsrewrite=0.0.0.0
+
+! ═════════════════════════════════════════════════════════════════════════════
+! SECTION 4 — TELEMETRY / METRICS (optional; privacy, not ad suppression)
+! Blocking these does not affect ads. Some apps retry hard on metric failures.
+! ═════════════════════════════════════════════════════════════════════════════
+||device-metrics-us.amazon.com^$dnsrewrite=0.0.0.0
+||fls-na.amazon.com^$dnsrewrite=0.0.0.0
+||p-v-logs.amazon.com^$dnsrewrite=0.0.0.0
+||global.telemetry.insights.video.a2z.com^$dnsrewrite=0.0.0.0
+! Minerva metric pipeline — hashed-subdomain pattern, confirmed via SNI [ATV][PCAP]
+/^[a-f0-9]{32,}\.[a-z0-9-]+\.prod\.service\.minerva\.devices\.a2z\.com$/$dnsrewrite=0.0.0.0
+
+! ═════════════════════════════════════════════════════════════════════════════
+! SECTION 5 — GENERAL THIRD-PARTY TRACKERS (optional; NOT Prime-specific)
+! ─────────────────────────────────────────────────────────────────────────────
+! These showed up RED (blocked by general lists) alongside Prime Video in a live
+! session, but NONE are Prime infrastructure — they are generic mobile ad /
+! marketing / analytics SDKs and OEM ad junk fired by the OS and other apps.
+!
+! A maintained general blocklist (e.g. HaGeZi Multi/Pro) covers these far better
+! and stays current — see dns/README.md. This curated snapshot is only a baseline
+! for users running ONLY this list. Two RED hosts were deliberately EXCLUDED:
+!   • 1.datadog.pool.ntp.org  — NTP time sync, not an ad host; blocking it risks
+!                               clock drift -> TLS/DRM failures -> broken playback.
+!   • dp-gw-na.amazon.com     — likely a functional Amazon device gateway.
+! ═════════════════════════════════════════════════════════════════════════════
+
+! Mobile attribution / marketing SDKs (pure trackers)
+||kochava.com^
+||moengage.com^
+! OEM lock-screen ad platform (Glance)
+||glanceapps.com^
+! Google telemetry beacons — ONLY the beacons.* hosts, never all of gvt2/gvt3
+! (those carry Chrome / Play / update traffic). [seen: beacons / beacons1-5 / .grp]
+/^beacons[0-9]*\.(grp\.)?gvt[23]\.com$/
+! Facebook tracking/graph. NOTE: also breaks Facebook-SDK login in OTHER apps —
+! drop these two lines if that matters to you.
+||graph.facebook.com^
+||z-m-gateway.facebook.com^
+
+! ═════════════════════════════════════════════════════════════════════════════
+! PATCH-DOMAIN — things DNS CANNOT do (handled by the bytecode patch)
+! Documented here so the division of labor is explicit. Do NOT add as DNS rules.
+! ═════════════════════════════════════════════════════════════════════════════
+!   • atv-ps.amazon.com/cdp/getVideoAds  — ad decisioning is a PATH on a dual-use
+!       host. DNS is host-level only; blocking the host kills DRM. The patch's
+!       enforceAdBlock() blocks this exact path. [PC]
+!   • images-na.ssl-images-amazon.com/images/S/pv-target-images  — ad images are
+!       a PATH on a shared image host. Path-scoped; patch / HTTPS-proxy only.

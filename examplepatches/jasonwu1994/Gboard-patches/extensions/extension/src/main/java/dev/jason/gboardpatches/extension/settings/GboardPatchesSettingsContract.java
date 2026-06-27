@@ -38,6 +38,11 @@ public final class GboardPatchesSettingsContract {
                 TextValueConsumer consumer);
 
         void showPreviewDialog(PreviewSpec previewSpec);
+
+        void createTextDocument(String fileName, String mimeType, String text,
+                Runnable completionAction);
+
+        void openTextDocument(String[] mimeTypes, StringValueConsumer valueConsumer);
     }
 
     public interface StringValueConsumer {

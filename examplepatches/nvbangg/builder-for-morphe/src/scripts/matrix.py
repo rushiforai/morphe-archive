@@ -23,7 +23,6 @@ def _fetch_latest_release(source: str, net: NetworkManager) -> tuple[str, str]:
         upstream_rel = json.loads(net.get(f"https://api.github.com/repos/{clean_src}/releases/latest", headers=net._gh_headers))
         changelog_text = upstream_rel.get("body", "") or ""
         upstream_date = upstream_rel.get("published_at", "") or ""
-
     return changelog_text, upstream_date
 
 def _fetch_our_releases(repo: str, net: NetworkManager) -> dict[str, str]:
@@ -47,12 +46,15 @@ def get_matrix(source: str) -> None:
     filter_changelog = os.getenv("FILTER_CHANGELOG", "false").lower() == "true"
     patches_source = ""
     has_changelog_keywords = False
+    staged: list = []
     for entry in parse_app_entries(data, main_cfg):
-        if entry.enabled and entry.brand.lower() == source_lower:
+        if not entry.enabled or entry.brand.lower() != source_lower:
+            continue
+        if not patches_source:
             patches_source = next(iter(entry.patches), "")
-            if entry.changelog_keywords:
-                has_changelog_keywords = True
-                break
+        if entry.changelog_keywords:
+            has_changelog_keywords = True
+        staged.append(entry)
 
     changelog_text = ""
     if filter_changelog and has_changelog_keywords and patches_source:
@@ -60,21 +62,17 @@ def get_matrix(source: str) -> None:
             repo = os.getenv("GITHUB_REPOSITORY")
             if repo:
                 our_releases_by_brand = _fetch_our_releases(repo, net)
-                our_date = our_releases_by_brand.get(source_lower, "")
-                if our_date:
+                if our_releases_by_brand.get(source_lower, ""):
                     try:
                         changelog_text, _ = _fetch_latest_release(patches_source, net)
                     except Exception as exc:
                         epr(f"Failed to fetch changelog for '{patches_source}': {exc}")
 
+    changelog_lower = changelog_text.lower()
     include: list[dict[str, str]] = []
-    for entry in parse_app_entries(data, main_cfg):
-        if not entry.enabled or entry.brand.lower() != source_lower:
+    for entry in staged:
+        if filter_changelog and entry.changelog_keywords and changelog_text and not any(kw in changelog_lower for kw in entry.changelog_keywords):
             continue
-
-        if filter_changelog and entry.changelog_keywords and changelog_text and not any(kw in changelog_text.lower() for kw in entry.changelog_keywords):
-            continue
-
         if entry.arch == "both":
             include.extend([{"id": entry.table, "arch": "arm64-v8a"}, {"id": entry.table, "arch": "armeabi-v7a"}])
         else:
@@ -82,7 +80,6 @@ def get_matrix(source: str) -> None:
 
     if not include:
         abort(f"No apps found for patch source '{source}'")
-
     print(json.dumps({"include": include}, ensure_ascii=False))
 
 def check_builds_needed(force_all: bool = False) -> None:
@@ -108,14 +105,17 @@ def check_builds_needed(force_all: bool = False) -> None:
     if not repo:
         abort("GITHUB_REPOSITORY environment variable is not set")
 
+    entries_by_brand: dict[str, list] = {}
+    for entry in parse_app_entries(data, main_cfg):
+        if entry.enabled:
+            entries_by_brand.setdefault(entry.brand.lower(), []).append(entry)
+
     with NetworkManager() as net:
         our_releases_by_brand = _fetch_our_releases(repo, net)
 
         brands_to_build: list[str] = []
         for brand, patches_source in seen.items():
             our_date = our_releases_by_brand.get(brand, "")
-            upstream_date = ""
-            changelog_text = ""
             try:
                 changelog_text, upstream_date = _fetch_latest_release(patches_source, net)
             except ResourceNotFoundError:
@@ -129,15 +129,13 @@ def check_builds_needed(force_all: bool = False) -> None:
             if not our_date:
                 brands_to_build.append(brand)
             elif upstream_date and datetime.fromisoformat(upstream_date) > datetime.fromisoformat(our_date):
-                has_apps = False
-                for app in parse_app_entries(data, main_cfg):
-                    if app.enabled and app.brand.lower() == brand and (not app.changelog_keywords or any(kw in changelog_text.lower() for kw in app.changelog_keywords)):
-                        has_apps = True
-                        break
-                if not has_apps:
-                    continue
-                brands_to_build.append(brand)
-
+                changelog_lower = changelog_text.lower()
+                has_apps = any(
+                    not app.changelog_keywords or any(kw in changelog_lower for kw in app.changelog_keywords)
+                    for app in entries_by_brand.get(brand, [])
+                )
+                if has_apps:
+                    brands_to_build.append(brand)
     print(json.dumps(brands_to_build))
 
 def main() -> None:

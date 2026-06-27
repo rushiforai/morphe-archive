@@ -35,6 +35,8 @@ public final class GboardPatchesFeatureAvailability {
             "dev.jason.gboardpatches.feature.english_uppercase_toggle";
     public static final String FEATURE_AI_WRITING_TOOLS =
             "dev.jason.gboardpatches.feature.ai_writing_tools";
+    public static final String FEATURE_TOP_ROW_SWIPE =
+            "dev.jason.gboardpatches.feature.top_row_swipe";
 
     private static final String TAG = "GboardPatches";
 

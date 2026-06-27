@@ -80,6 +80,12 @@ Gboard Patches is a public Morphe source for a curated set of Gboard enhancement
 </details>
 
 <details>
+  <summary><code>Enable Inline Autofill Suggestions</code></summary>
+
+  Enables inline autofill suggestions in supported contexts.
+</details>
+
+<details>
   <summary><code>Grammar Checker</code></summary>
 
   Enables the <code>Text correction &gt; Grammar check</code> setting and its related rollout gate.
@@ -101,6 +107,12 @@ Gboard Patches is a public Morphe source for a curated set of Gboard enhancement
   <summary><code>Settings Homepage Override</code></summary>
 
   Lets you switch between the new and legacy Gboard settings homepage styles.
+</details>
+
+<details>
+  <summary><code>Swipeable Custom Top Row</code></summary>
+
+  Lets you swipe the keyboard top row horizontally to open customizable text and JavaScript slots.
 </details>
 
 ### Taiwan Users

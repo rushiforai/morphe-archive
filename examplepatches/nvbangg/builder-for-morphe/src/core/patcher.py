@@ -41,7 +41,6 @@ def _parse_versions_output(output: str) -> list[str]:
         clean_ver = line.split("(")[0].strip()
         if clean_ver:
             versions.append(clean_ver)
-
     return versions
 
 def _redact_args(args: list[str | Path]) -> list[str]:
@@ -61,7 +60,7 @@ class PatcherCLI:
 
     def has_signature(self, pkg_name: str) -> bool:
         expected = self._signatures.get(pkg_name)
-        return bool(expected and expected.strip())
+        return bool(expected)
 
     def list_patches(self, pkg_name: str) -> str:
         return "".join(_run_java("-jar", self.cli_jar, "list-patches", "--patches", mpp, "-f", pkg_name, "-v", "-p", timeout=60) for mpp in self.mpp_map.values())
@@ -89,7 +88,8 @@ class PatcherCLI:
     def resolve_auto_patches(self, list_patches_output: str) -> tuple[str, str]:
         microg_patch = psu_patch = ""
         for line in list_patches_output.splitlines():
-            if not line.lower().startswith("name:"):
+            line_lower = line.lower()
+            if not line_lower.startswith("name:"):
                 continue
 
             patch_name = line[5:].strip()
@@ -98,7 +98,6 @@ class PatcherCLI:
                 microg_patch = patch_name
             elif "disable play store updates" in name_lower:
                 psu_patch = patch_name
-
         return microg_patch, psu_patch
 
     def build_patch_args(self, patches: dict[str, dict], extra_args: list[str], arch: str, auto_patches: tuple[str, str], exclusive: bool = False, force: bool = False) -> list[str]:

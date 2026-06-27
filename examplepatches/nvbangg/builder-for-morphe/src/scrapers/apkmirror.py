@@ -1,15 +1,13 @@
-import re
+import re  # noqa: I001
 from pathlib import Path
 from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup
 
 from src.core.network import NetworkManager, ResourceNotFoundError
-from src.scrapers.base import AppMetadata, BaseScraper, DownloadResult, ScraperError
+from src.scrapers.base import AppMetadata, BaseScraper, DownloadResult, ScraperError, _parse_html
 
-
-def _parse_html(html: str) -> BeautifulSoup:
-    return BeautifulSoup(html, "html.parser")
+_DEFAULT_ARCH: frozenset[str] = frozenset({"universal", "noarch", "arm64-v8a + armeabi-v7a", "arm64-v8a + armeabi"})
 
 class APKMirrorError(ScraperError):
     pass
@@ -37,7 +35,6 @@ class APKMirrorScraper(BaseScraper):
             v = text.split()[-1]
             self._release_urls[v] = urljoin("https://www.apkmirror.com", a["href"])
             versions.append(v)
-
         return AppMetadata(pkg_name=m.group(1), versions=versions)
 
     def download(self, url: str, version: str, dest: Path, arch: str, dpi: str) -> DownloadResult:
@@ -77,34 +74,27 @@ class APKMirrorScraper(BaseScraper):
         self.net.download(final_url, out_path)
         return DownloadResult(path=out_path, is_bundle=is_bundle)
 
-    def _pick_variant(self, soup, dpi: str, arch: str) -> tuple[str, str] | None:
-        rows = soup.select("div.table-row.headerFont")
-        for bt in ("APK", "BUNDLE"):
-            url_found = self._search(rows, dpi, arch, bt)
-            if url_found:
-                return url_found, bt
-        return None
-
-    def _search(self, rows: list, dpi: str, arch: str, bundle_type: str) -> str:
-        apparch = {"universal", "noarch", "arm64-v8a + armeabi-v7a", "arm64-v8a + armeabi"}
+    def _pick_variant(self, soup: BeautifulSoup, dpi: str, arch: str) -> tuple[str, str] | None:
+        apparch: set[str] = set(_DEFAULT_ARCH)
         if arch != "all":
             apparch.add(arch)
 
-        for row in reversed(rows):
-            link = row.select_one("div.table-cell:first-child > a")
-            if not link or not link.get("href"):
-                continue
+        rows = soup.select("div.table-row.headerFont")
+        for bundle_type in ("APK", "BUNDLE"):
+            for row in reversed(rows):
+                cells = row.select("div.table-cell")
+                if len(cells) < 4:
+                    continue
 
-            cells = row.select("div.table-cell")
-            if len(cells) < 4:
-                continue
+                link = cells[0].select_one("a")
+                if not link or not link.get("href"):
+                    continue
 
-            badge = cells[0].select_one(".apkm-badge")
-            b_type = badge.get_text(strip=True).upper() if badge else "APK"
-            arch_text = cells[1].get_text(strip=True)
-            dpi_text = cells[3].get_text(strip=True)
-            dpi_ok = not dpi_text or re.match(r"\d+-640dpi", dpi_text) or dpi_text in {"nodpi", "anydpi"} or (dpi and dpi_text == dpi)
-            if b_type == bundle_type and arch_text in apparch and dpi_ok:
-                return urljoin("https://www.apkmirror.com", str(link["href"]))
-
-        return ""
+                badge = cells[0].select_one(".apkm-badge")
+                b_type = badge.get_text(strip=True).upper() if badge else "APK"
+                arch_text = cells[1].get_text(strip=True)
+                dpi_text = cells[3].get_text(strip=True)
+                dpi_ok = not dpi_text or re.match(r"\d+-640dpi", dpi_text) or dpi_text in {"nodpi", "anydpi"} or (dpi and dpi_text == dpi)
+                if b_type == bundle_type and arch_text in apparch and dpi_ok:
+                    return urljoin("https://www.apkmirror.com", str(link["href"])), bundle_type
+        return None

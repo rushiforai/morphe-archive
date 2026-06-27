@@ -121,6 +121,20 @@ public final class GboardPatchesSettingsActivitySourceTest {
         Assert.assertTrue(method.contains("return true;"));
     }
 
+    @Test
+    public void mainThreadApplyScreenFallsBackToFeatureErrorScreen() throws Exception {
+        String source = readSource(
+                "src/main/java/dev/jason/gboardpatches/extension/settings/"
+                        + "GboardPatchesSettingsActivity.java");
+        String method = extractMethod(source, "private void buildAndApplyCurrentScreen(");
+
+        Assert.assertTrue(method.contains("applyScreen(finalScreen);"));
+        Assert.assertTrue(method.contains(
+                "Log.w(TAG, \"Failed to apply settings screen\", throwable);"));
+        Assert.assertTrue(method.contains("buildFeatureErrorScreen("));
+        Assert.assertTrue(method.contains("showFatalFallbackScreen(\"Failed to apply settings screen\""));
+    }
+
     private static String readSource(String path) throws Exception {
         return new String(Files.readAllBytes(Path.of(path)), StandardCharsets.UTF_8);
     }

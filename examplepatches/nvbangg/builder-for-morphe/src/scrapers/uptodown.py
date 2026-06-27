@@ -1,14 +1,11 @@
-import json
+import json  # noqa: I001
 from pathlib import Path
 
-from bs4 import BeautifulSoup
-
 from src.core.network import NetworkManager
-from src.scrapers.base import AppMetadata, BaseScraper, DownloadResult, ScraperError
+from src.scrapers.base import AppMetadata, BaseScraper, DownloadResult, ScraperError, _parse_html
 
+_DEFAULT_ARCH: frozenset[str] = frozenset({"arm64-v8a, armeabi-v7a, x86_64", "arm64-v8a, armeabi-v7a, x86, x86_64", "arm64-v8a, armeabi-v7a"})
 
-def _parse_html(html: str) -> BeautifulSoup:
-    return BeautifulSoup(html, "html.parser")
 
 class UptodownError(ScraperError):
     pass
@@ -16,10 +13,11 @@ class UptodownError(ScraperError):
 class UptodownScraper(BaseScraper):
     def __init__(self, net: NetworkManager) -> None:
         super().__init__(net)
-        self._resp_html: str = ""
+        self._versions_cache: dict[str, str] = {}
 
     def fetch_metadata(self, url: str) -> AppMetadata:
-        self._resp_html = self.net.get(f"{url}/versions")
+        versions_html = self.net.get(f"{url}/versions")
+        self._versions_cache[url] = versions_html
         pkg_html = self.net.get(f"{url}/download")
         soup_pkg = _parse_html(pkg_html)
         th = soup_pkg.find("th", string="Package Name")
@@ -28,26 +26,22 @@ class UptodownScraper(BaseScraper):
         else:
             raise UptodownError("Package name not found")
 
-        soup_ver = _parse_html(self._resp_html)
-        versions: list[str] = []
-        for el in soup_ver.select(".version"):
-            if text := el.get_text(strip=True):
-                versions.append(text)
-
+        soup_ver = _parse_html(versions_html)
+        versions = [text for el in soup_ver.select(".version") if (text := el.get_text(strip=True))]
         return AppMetadata(pkg_name=pkg_name, versions=versions)
 
     def download(self, url: str, version: str, dest: Path, arch: str, dpi: str) -> DownloadResult:
-        if not self._resp_html:
-            self._resp_html = self.net.get(f"{url}/versions")
+        versions_html = self._versions_cache.get(url) or self.net.get(f"{url}/versions")
+        self._versions_cache[url] = versions_html
 
-        apparch = {"arm64-v8a, armeabi-v7a, x86_64", "arm64-v8a, armeabi-v7a, x86, x86_64", "arm64-v8a, armeabi-v7a"}
+        apparch: set[str] = set(_DEFAULT_ARCH)
         if arch != "all":
             apparch.add(arch)
 
-        soup = _parse_html(self._resp_html)
+        soup = _parse_html(versions_html)
         data_code = str(soup.select_one("#detail-app-name")["data-code"])
         version_url_data = self._find_version_url(url, data_code, version)
-        ver_url = f"{version_url_data.get('url', '')}/{version_url_data.get('extraURL', '')}/{version_url_data.get('versionID', '')}"
+        ver_url = "/".join((version_url_data["url"], version_url_data["extraURL"], str(version_url_data["versionID"])))
         is_bundle = version_url_data.get("kindFile") == "xapk"
         soup_ver = _parse_html(self.net.get(ver_url))
         btn_variants = soup_ver.select_one(".button.variants")
@@ -72,7 +66,6 @@ class UptodownScraper(BaseScraper):
                     continue
                 ver_url_dict = entry.get("versionURL") or {}
                 return ver_url_dict | {"kindFile": entry.get("kindFile", "")}
-
         raise UptodownError("Version not found")
 
     def _pick_variant_file(self, url: str, data_code: str, data_version: str, apparch: set[str]) -> tuple[str, bool]:
@@ -94,10 +87,13 @@ class UptodownScraper(BaseScraper):
 
             file_type_tag = child.select_one(".v-file > span")
             is_bundle = file_type_tag.get_text(strip=True) == "xapk" if file_type_tag else False
-            try:
-                file_id = child.select_one(".v-report")["data-file-id"]
-                return self.net.get(f"{url}/download/{file_id}-x"), is_bundle
-            except (TypeError, KeyError):
+            v_report = child.select_one(".v-report")
+            if v_report is None:
                 continue
 
+            file_id = v_report.get("data-file-id")
+            if file_id is None:
+                continue
+
+            return self.net.get(f"{url}/download/{file_id}-x"), is_bundle
         raise UptodownError("No matching variant found")

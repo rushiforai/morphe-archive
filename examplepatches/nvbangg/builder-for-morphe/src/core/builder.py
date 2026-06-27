@@ -44,7 +44,6 @@ def _find_pkg_name(entry: AppEntry, scrapers: dict[str, BaseScraper]) -> tuple[s
         except (NetworkError, ScraperError) as exc:
             epr(f"Could not find '{entry.table}' in '{src}': {exc}")
             failed.add(src)
-
     raise BuilderError("Package name not found")
 
 def _resolve_version(entry: AppEntry, patcher: PatcherCLI, list_patches: str, pkg_name: str, dl_from: str, scrapers: dict[str, BaseScraper]) -> tuple[str, bool]:
@@ -78,22 +77,22 @@ def _download_apk(entry: AppEntry, version: str, arch: str, pkg_name: str, scrap
     for src in ordered_sources:
         if src in failed_sources:
             continue
+
         url = entry.dl_urls[src]
         pr(f"Downloading '{entry.table}' from '{src}'")
         try:
             return scrapers[src].download(url, version, stock_apk, arch, entry.dpi)
         except (NetworkError, ScraperError) as exc:
             epr(f"Failed to fetch '{entry.table}' from '{src}' (version='{version}', arch='{arch}'): {exc}")
-
     raise BuilderError("Stock APK not found")
 
 def _extract_base_apk(apkm: Path, pkg_name: str, dest_dir: Path) -> Path:
     with zipfile.ZipFile(apkm, "r") as zf:
+        names = zf.NameToInfo
         for name in ("base.apk", f"{pkg_name}.apk"):
-            if name in zf.namelist():
+            if name in names:
                 zf.extract(name, dest_dir)
                 return dest_dir / name
-
     raise BuilderError(f"Neither 'base.apk' nor '{pkg_name}.apk' found inside {apkm.name}")
 
 def _verify_sig(dl_result: DownloadResult, pkg_name: str, patcher: PatcherCLI, table: str, skip_sigcheck: bool, strict_sigcheck: bool) -> None:
@@ -105,6 +104,7 @@ def _verify_sig(dl_result: DownloadResult, pkg_name: str, patcher: PatcherCLI, t
         msg = f"No signature entry found in sig.txt for '{pkg_name}'"
         if strict_sigcheck:
             raise SignatureError(msg)
+
         wpr(f"{msg}, skipping it")
         return
 
@@ -163,6 +163,7 @@ def _submit_entries(entries: list[AppEntry], pool: ThreadPoolExecutor, net: Netw
     for e in entries:
         if not e.dl_urls:
             continue
+
         key = (e.cli_source, e.cli_version)
         if key not in cli_cache:
             try:
@@ -200,7 +201,6 @@ def _submit_entries(entries: list[AppEntry], pool: ThreadPoolExecutor, net: Netw
         for arch in arches:
             label = entry.table if entry.arch == "all" else f"{entry.table} ({arch})"
             futures.append(pool.submit(_build_single, entry, arch, label, net, patcher, strict_sigcheck))
-
     return futures
 
 def run_build(entries: list[AppEntry], config: Config, net: NetworkManager) -> bool:
@@ -235,9 +235,11 @@ def run_build(entries: list[AppEntry], config: Config, net: NetworkManager) -> b
 
     raw = "".join(cl.read_text(encoding="utf-8") for cl in sorted(TEMP_DIR.glob("*/changelog.md")))
     block_re = re.compile(r"^> ⚙️ » (CLI|Patches):.*?(?=^> ⚙️ »|\Z)", re.MULTILINE | re.DOTALL)
-    cli_blocks = "".join(m.group() for m in block_re.finditer(raw) if m.group(1) == "CLI")
-    patch_blocks = "".join(m.group() for m in block_re.finditer(raw) if m.group(1) == "Patches")
-    changelogs = cli_blocks + patch_blocks
+    cli_blocks: list[str] = []
+    patch_blocks: list[str] = []
+    for m in block_re.finditer(raw):
+        (cli_blocks if m.group(1) == "CLI" else patch_blocks).append(m.group())
+    changelogs = "".join(cli_blocks) + "".join(patch_blocks)
     microg_line = "▶️ » Install [MicroG-RE](https://github.com/MorpheApp/MicroG-RE/releases) to enable Google account sign-in for supported apps\n"
     Path("build.md").write_text("\n".join([*log_lines, "", microg_line, changelogs]), encoding="utf-8")
     pr("Done")

@@ -43,7 +43,9 @@ import java.util.Map;
  * wrapped in BasicNetwork — the sole implementation of Volley's Network
  * interface in the app, with no app-specific subclass. enforceAdBlock()
  * runs at the top of BasicNetwork.performRequest(Request) and rejects
- * known ad-decisioning/ad-tracking hosts before any HTTP work happens.
+ * known ad-decisioning/ad-tracking hosts, plus the getVideoAds path on
+ * the dual-use atv-ps.amazon.com playback host, before any HTTP work
+ * happens.
  *
  * Throwing a real NoConnectionError (rather than faking a successful
  * response) matters: Volley's own RetryPolicy/NetworkDispatcher already
@@ -146,13 +148,56 @@ public class SkipAdsPatch {
         try {
             String url = request.getUrl();
             if (url == null) return;
+
+            // Ad decisioning is a PATH on the dual-use playback host
+            // atv-ps.amazon.com, which also serves Widevine licensing and
+            // session/playback APIs — never block the host itself, only this
+            // path. Confirmed via PC capture: getVideoAds is the exact call
+            // gating preroll ad markers; an external filter blocking it at
+            // the DNS level (without a path-scoped client-side fallback)
+            // produced a 5-10s player stall instead of a clean skip, since
+            // the app's own retry/backoff still waited on a response that
+            // could never arrive. Throwing NoConnectionError here is the
+            // same fail-fast contract as the host-based blocks below, so the
+            // app's ad-loading state machine resolves immediately instead
+            // of timing out.
+            if (url.contains("/cdp/getVideoAds")) {
+                Log.i(TAG, "enforceAdBlock: blocking getVideoAds (ad decisioning)");
+                throw new NoConnectionError(new IOException("ads_blocked: getVideoAds"));
+            }
+
             String host = new URI(url).getHost();
             if (host == null) return;
             host = host.toLowerCase();
 
-            boolean blocked = host.equals("amazon-adsystem.com")
+            // Allowlist-by-default: only the hosts matched below are rejected;
+            // everything else passes through untouched. In particular the §1
+            // safe-harbor hosts are never matched here — the api.amazonvideo.com
+            // patterns are anchored to the threeplr*/nit* ad prefixes so they
+            // cannot collide with keho/qgmg/p7kg/abxc3apcastp, and the weblab
+            // rule is an exact match for the single zoar ad-trigger host so the
+            // rest of *.weblab.a2z.com is left alone.
+            //
+            // Host inventory derived from an ad-free vs ad-supported session
+            // diff (Prime Video filter list v3.6). These are the control-plane
+            // (Volley-routed) ad hosts only — the media-plane ad segment CDNs
+            // (*.pv-cdn.net / *.akamaihd.net) are fetched by media3's
+            // DefaultHttpDataSource and are out of scope for this hook.
+            boolean blocked =
+                    // Ad exchange / decisioning (covers s. and mads. subdomains)
+                    host.equals("amazon-adsystem.com")
                     || host.endsWith(".amazon-adsystem.com")
-                    || host.matches("ters-[a-z0-9]+\\.[a-z]{2}-[a-z]+-[0-9]\\.aiv-delivery\\.net");
+                    // Ad delivery network — broadened from the old ters-* regex
+                    // to every aiv-delivery.net subdomain per the v3.6 list.
+                    || host.equals("aiv-delivery.net")
+                    || host.endsWith(".aiv-delivery.net")
+                    // Weblab ad trigger — confirmed ad-specific (absent in
+                    // ad-free sessions). Exact match keeps the rest of weblab
+                    // in the safe harbor. Prime suspect for persisting prerolls.
+                    || host.equals("zoar.triggers-v1.prod.mobile.weblab.a2z.com")
+                    // Ad orchestration endpoints on the video API.
+                    || host.matches("threeplr[a-z0-9.-]*\\.api\\.amazonvideo\\.com")
+                    || host.matches("nit[a-z0-9.-]*\\.api\\.amazonvideo\\.com");
 
             if (blocked) {
                 Log.i(TAG, "enforceAdBlock: blocking " + host);

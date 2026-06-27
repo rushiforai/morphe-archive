@@ -1,3 +1,15 @@
+## [1.10.1](https://github.com/sjshb57/Pairip-Patches/compare/v1.10.0...v1.10.1) (2026-06-26)
+
+### 🐛 Bug Fixes
+
+* refine pairip constant class detection in RemovePairipPatch ([2e29034](https://github.com/sjshb57/Pairip-Patches/commit/2e290347a71dc851ce92009cfdb0b2081c51dac5))
+
+## [1.10.0](https://github.com/sjshb57/Pairip-Patches/compare/v1.9.0...v1.10.0) (2026-06-26)
+
+### ✨ New Features
+
+* Update build.gradle.kts ([0acdefe](https://github.com/sjshb57/Pairip-Patches/commit/0acdefe2c73bcc7d2a461748761f39e294f95753))
+
 ## [1.9.0](https://github.com/sjshb57/Pairip-Patches/compare/v1.8.0...v1.9.0) (2026-06-25)
 
 ### ✨ New Features

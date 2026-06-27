@@ -1,7 +1,7 @@
 {
-    "created_at":  "2026-06-22T04:54:56",
-    "description":  "### ✨ New Features\n\n* **Gboard:** add `Enable Inline Autofill Suggestions` to restore inline autofill suggestions from password managers and other supported autofill providers.\n\n### ✨ 新功能\n\n* **Gboard:** 新增 `Enable Inline Autofill Suggestions`，恢復密碼管理員與其他支援的自動填入提供者所提供的內嵌自動填入建議。",
-    "download_url":  "https://github.com/jasonwu1994/Gboard-patches/releases/download/v1.12.0/patches-1.12.0.mpp",
+    "created_at":  "2026-06-26T08:42:21",
+    "description":  "### ✨ New Features\n\n* **Gboard:** add `Swipeable Custom Top Row` so you can swipe left or right to switch between the stock top row and custom input keys, and run JavaScript scripts.\n\n### ✨ 新功能\n\n* **Gboard:** 新增 `Swipeable Custom Top Row`，可透過左右滑動在原生頂排與自訂輸入按鍵之間切換，並執行 JavaScript 腳本。",
+    "download_url":  "https://github.com/jasonwu1994/Gboard-patches/releases/download/v1.13.0/patches-1.13.0.mpp",
     "signature_download_url":  "",
-    "version":  "1.12.0"
+    "version":  "1.13.0"
 }

@@ -10,7 +10,7 @@ def _require_ci(script: str) -> None:
 
 def _parse_log_file(log: Path, green_lines: list[str], collected: list[str]) -> str:
     microg_line = ""
-    lines = [ln.strip() for ln in log.read_text(encoding="utf-8").splitlines() if ln.strip()]
+    lines = [s for ln in log.read_text(encoding="utf-8").splitlines() if (s := ln.strip())]
     for i, line in enumerate(lines):
         if line.startswith("- 🟢"):
             green_lines.append(f"{line}  ")
@@ -20,7 +20,7 @@ def _parse_log_file(log: Path, green_lines: list[str], collected: list[str]) -> 
             collected.append(f"{line}  ")
         elif line.startswith("> ⚙️ » Patches:"):
             next_line = lines[i + 1] if i + 1 < len(lines) else ""
-            collected.append(f"{line}  \n{next_line}  ".strip())
+            collected.append(f"{line}  \n{next_line}  ")
     return microg_line
 
 def combine_logs(logs_dir: Path | str) -> None:

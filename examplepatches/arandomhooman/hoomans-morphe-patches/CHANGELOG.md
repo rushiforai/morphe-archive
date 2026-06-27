@@ -1,3 +1,21 @@
+## [1.31.3](https://github.com/arandomhooman/hoomans-morphe-patches/compare/v1.31.2...v1.31.3) (2026-06-27)
+
+### 🐛 Bug Fixes
+
+* neutralize InShot video engine kill on arm64 ([799a316](https://github.com/arandomhooman/hoomans-morphe-patches/commit/799a3161a237058b9f2d82b5f564d974265e404b))
+
+## [1.31.2](https://github.com/arandomhooman/hoomans-morphe-patches/compare/v1.31.1...v1.31.2) (2026-06-27)
+
+### 🐛 Bug Fixes
+
+* remove Photo Editor Polish patch ([fb576c0](https://github.com/arandomhooman/hoomans-morphe-patches/commit/fb576c00160cd8da11d3ecbf173fc1bae78e3cc5))
+
+## [1.31.1](https://github.com/arandomhooman/hoomans-morphe-patches/compare/v1.31.0...v1.31.1) (2026-06-26)
+
+### 🐛 Bug Fixes
+
+* stabilize InShot and PhotoPolish anti-tamper ([b7e24b4](https://github.com/arandomhooman/hoomans-morphe-patches/commit/b7e24b48e97419c23a4486b267393134774fa764))
+
 ## [1.31.0](https://github.com/arandomhooman/hoomans-morphe-patches/compare/v1.30.0...v1.31.0) (2026-06-24)
 
 ### ✨ New Features

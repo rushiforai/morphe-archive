@@ -1,3 +1,15 @@
+## [1.4.0](https://github.com/IMXEren/mix-patches/compare/v1.3.0...v1.4.0) (2026-06-26)
+
+### ✨ New Features
+
+* **trakt:** add support for `3.13.0` ([66341a7](https://github.com/IMXEren/mix-patches/commit/66341a7652ca2dd9bf6c1e91d66c986b6e99a065))
+
+## [1.4.0-dev.1](https://github.com/IMXEren/mix-patches/compare/v1.3.0...v1.4.0-dev.1) (2026-06-26)
+
+### ✨ New Features
+
+* **trakt:** add support for `3.13.0` ([66341a7](https://github.com/IMXEren/mix-patches/commit/66341a7652ca2dd9bf6c1e91d66c986b6e99a065))
+
 ## [1.3.0](https://github.com/IMXEren/mix-patches/compare/v1.2.0...v1.3.0) (2026-06-20)
 
 ### ✨ New Features

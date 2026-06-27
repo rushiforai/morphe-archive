@@ -9,6 +9,7 @@ import dev.jason.gboardpatches.extension.settings.GboardFeatureGroup;
 import dev.jason.gboardpatches.extension.settings.GboardPatchesSettingsContract;
 import dev.jason.gboardpatches.extension.settings.GboardSettingsText;
 import dev.jason.gboardpatches.extension.symbolfooter.GboardSymbolFooterOrderSettingsFeature;
+import dev.jason.gboardpatches.extension.toprowswipe.GboardTopRowSwipeSettingsFeature;
 import dev.jason.gboardpatches.extension.writingtools.GboardAiWritingToolsSettingsFeature;
 
 public final class GboardKeyboardSettingsGroupFeature
@@ -33,6 +34,7 @@ public final class GboardKeyboardSettingsGroupFeature
                         R.string.gboard_patches_group_keyboard_empty_summary,
                         "This build does not include any keyboard settings features."),
                 Arrays.asList(
+                        new GboardTopRowSwipeSettingsFeature(context),
                         new GboardLatinGlobeKeyIgnoreIntervalSettingsFeature(context),
                         new GboardEnglishUppercaseToggleSettingsFeature(context),
                         new GboardAiWritingToolsSettingsFeature(context),

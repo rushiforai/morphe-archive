@@ -9,7 +9,7 @@ package com.google.android.exoplayer2.source.ads;
  * signatures used in the extension.
  *
  * The ExoPlayer2 AdPlaybackState API is structurally identical to the media3
- * version — same public fields and withSkippedAdGroup contract — but lives
+ * version — same public fields and withRemovedAdGroupCount contract — but lives
  * in a separate package and separate DEX file.
  *
  * DO NOT add implementation logic — this class is never shipped to the device.
@@ -29,18 +29,18 @@ public final class AdPlaybackState {
     public final int removedAdGroupCount;
 
     /**
-     * Returns a copy of this state with all ads in the specified ad group
-     * marked as AD_STATE_SKIPPED.
+     * Returns a copy of this state with the number of removed ad groups set to
+     * {@code removedAdGroupCount}. Ad groups with indices between 0 (inclusive)
+     * and {@code removedAdGroupCount} (exclusive) are dropped from the timeline.
      *
-     * Internally computes arrayIndex = adGroupIndex - removedAdGroupCount,
-     * then calls AdGroup.withAllAdsSkipped() on that entry.
-     * Does not modify isServerSideInserted, so SSAI validation in
-     * ServerSideAdInsertionMediaSource.setAdPlaybackStates() continues to pass.
+     * SkipAdsPatch calls this with {@code adGroupCount} to drop every ad group
+     * from the SSAI schedule before ExoPlayer sees the map.
      *
-     * @param adGroupIndex Absolute ad group index (not array-relative).
-     * @return A new AdPlaybackState with the specified group fully skipped.
+     * @param removedAdGroupCount New count of removed ad groups (must be >= the
+     *                            current value).
+     * @return A new AdPlaybackState with the leading ad groups removed.
      */
-    public AdPlaybackState withSkippedAdGroup(int adGroupIndex) {
+    public AdPlaybackState withRemovedAdGroupCount(int removedAdGroupCount) {
         throw new UnsupportedOperationException("stub");
     }
 }

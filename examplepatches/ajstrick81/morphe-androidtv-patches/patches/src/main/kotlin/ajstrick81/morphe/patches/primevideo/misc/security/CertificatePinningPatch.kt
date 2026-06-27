@@ -10,11 +10,11 @@ import ajstrick81.morphe.patches.primevideo.shared.Constants
 // creates one and references it in AndroidManifest.xml.
 //
 // What this enables:
-//   HTTPS inspection tools (AdGuard Premium) can intercept Prime Video's
-//   HTTPS connections when their CA certificate is installed on the device.
-//   Without this patch, Android's default TLS stack rejects interception
-//   proxies even when a user CA is present, because apps targeting API 24+
-//   only trust system CAs by default.
+//   HTTPS inspection tools (AdGuard Premium) can intercept connections made
+//   through Android's PLATFORM TLS stack (HttpsURLConnection, OkHttp, WebView,
+//   Volley's HurlStack) when their CA certificate is installed on the device.
+//   Without this patch, apps targeting API 24+ trust only system CAs, so the
+//   platform stack rejects interception proxies even when a user CA is present.
 //
 // What this creates:
 //   res/xml/network_security_config.xml:
@@ -26,20 +26,30 @@ import ajstrick81.morphe.patches.primevideo.shared.Constants
 //     - Adds android:networkSecurityConfig="@xml/network_security_config"
 //       to the <application> tag
 //
-// Confirmed benefit:
-//   AGP blocking api.us-east-1.aiv-delivery.net (SSAI manifest endpoint)
-//   consistently suppresses Prime Video pre-roll ads from cold launch.
-//   This patch ensures that blocking is reliable across all sessions rather
-//   than dependent on whether pinning happens to be enforced per-connection.
+// Scope and limitations (confirmed by on-device logcat, 2026-06-26):
+//   This config governs ONLY the Java/platform TLS stack. Prime Video ATV
+//   fetches its ad/media/API/DRM traffic through a NATIVE libcurl stack (the
+//   "DOWNLOADER"), which carries its own CA bundle and ignores the Android
+//   user-trust store this patch edits. Evidence: the SSAI host
+//   ters-sgai1.us-east-1.aiv-delivery.net failed with CURL error 35
+//   (SSL_CONNECT_ERROR) — AGP's interception cert was rejected by libcurl.
+//   AGP therefore CANNOT inspect the native ad plane regardless of this patch.
 //
-// Note: This patch is optional and independent of the Skip ads patch.
-// It is most useful when running AdGuard Premium alongside the bytecode patch.
+//   Reliable suppression of api.us-east-1.aiv-delivery.net is DNS/connection-
+//   level blocking (CURL error 7, "connect refused"), which works below TLS and
+//   needs no interception — see dns/prime-video.txt. It does not depend on this
+//   patch.
+//
+// Note: optional adjunct, independent of the Skip ads patch. It only helps AGP
+// path-filter traffic on the platform TLS stack; for Prime Video ATV that
+// surface is thin (most traffic is native, or already hooked in-process by
+// enforceAdBlock). The DNS layer is the workhorse for the native plane.
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Suppress("unused")
 val certificatePinningPatch = resourcePatch(
     name = "Override certificate pinning",
-    description = "Allows HTTPS traffic inspection tools like AdGuard Premium to intercept app connections. Enables consistent pre-roll suppression when used alongside AdGuard Premium.",
+    description = "Adds a network_security_config trusting user CAs (no pin sets) so AdGuard Premium can inspect the app's platform-stack HTTPS. Optional adjunct: Prime Video's ad plane is largely native libcurl, so DNS blocking is the primary tool.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

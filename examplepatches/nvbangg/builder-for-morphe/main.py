@@ -25,6 +25,7 @@ def _load_dotenv(path: Path = Path(".env")) -> None:
             continue
 
         key, _, value = line.partition("=")
+        key = key.strip()
         if key and key not in os.environ:
             os.environ[key] = value.strip().strip('"\'')
 
@@ -36,6 +37,7 @@ def _require_java(min_version: int = 21) -> None:
     match = re.search(r'version "(\d+)', result.stderr)
     if not match:
         abort("Could not determine Java version")
+    assert match
 
     version = int(match.group(1))
     if version < min_version:

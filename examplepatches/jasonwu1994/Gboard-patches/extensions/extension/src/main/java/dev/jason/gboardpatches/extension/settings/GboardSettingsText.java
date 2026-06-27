@@ -256,6 +256,197 @@ public final class GboardSettingsText {
         templates.put(R.string.gboard_patches_group_keyboard_empty_title, "沒有可用的鍵盤設定");
         templates.put(R.string.gboard_patches_group_keyboard_empty_summary,
                 "這個 build 沒有包含任何鍵盤設定功能。");
+        templates.put(R.string.gboard_patches_top_row_title, "自訂第一排按鍵");
+        templates.put(R.string.gboard_patches_top_row_summary,
+                "左右滑動第一排，打開可自訂文字與 JavaScript slot 的列。");
+        templates.put(R.string.gboard_patches_top_row_header_summary,
+                "設定由第一排左右滑動打開的自訂列。");
+        templates.put(R.string.gboard_patches_top_row_error_title, "自訂第一排按鍵設定無法使用");
+        templates.put(R.string.gboard_patches_top_row_error_summary,
+                "自訂第一排按鍵設定畫面載入失敗。請重新開啟 Gboard 設定再試一次。");
+        templates.put(R.string.gboard_patches_top_row_section_behavior, "行為");
+        templates.put(R.string.gboard_patches_top_row_section_layouts, "支援的版面");
+        templates.put(R.string.gboard_patches_top_row_section_javascript, "JavaScript");
+        templates.put(R.string.gboard_patches_top_row_section_slots, "Slot");
+        templates.put(R.string.gboard_patches_top_row_section_transfer, "匯入匯出");
+        templates.put(R.string.gboard_patches_top_row_section_advanced, "進階");
+        templates.put(R.string.gboard_patches_top_row_section_javascript_guide,
+                "JavaScript 說明");
+        templates.put(R.string.gboard_patches_top_row_enabled_title, "啟用");
+        templates.put(R.string.gboard_patches_top_row_enabled_summary,
+                "啟用由第一排左右滑動打開的自訂列。");
+        templates.put(R.string.gboard_patches_top_row_layout_zhuyin_title, "注音");
+        templates.put(R.string.gboard_patches_top_row_layout_zhuyin_summary,
+                "在注音第一排啟用左右滑動。");
+        templates.put(R.string.gboard_patches_top_row_layout_english_qwerty_title,
+                "英文 QWERTY");
+        templates.put(R.string.gboard_patches_top_row_layout_english_qwerty_summary,
+                "在英文 q-p 第一排啟用左右滑動。");
+        templates.put(R.string.gboard_patches_top_row_global_javascript_title,
+                "全域 JavaScript");
+        templates.put(R.string.gboard_patches_top_row_global_javascript_summary,
+                "定義所有 JavaScript slot 都可共用的 helper function。");
+        templates.put(R.string.gboard_patches_top_row_global_javascript_empty_summary,
+                "目前沒有設定共用 helper。");
+        templates.put(R.string.gboard_patches_top_row_global_javascript_configured_summary,
+                "腳本：%1$s");
+        templates.put(R.string.gboard_patches_top_row_global_javascript_hint,
+                "function helper(input) {\n  return input;\n}");
+        templates.put(R.string.gboard_patches_top_row_runtime_limits_title,
+                "JavaScript 執行限制");
+        templates.put(R.string.gboard_patches_top_row_runtime_limits_summary,
+                "設定 JavaScript slot 使用的全域 response、timeout、memory 與 stack 限制。");
+        templates.put(R.string.gboard_patches_top_row_runtime_limits_value,
+                "%1$s • %2$s • %3$s • %4$s");
+        templates.put(R.string.gboard_patches_top_row_runtime_limits_dialog_title,
+                "JavaScript 執行限制");
+        templates.put(R.string.gboard_patches_top_row_runtime_limits_response_body_label,
+                "Response body 上限（KiB）");
+        templates.put(R.string.gboard_patches_top_row_runtime_limits_response_body_hint, "1024");
+        templates.put(R.string.gboard_patches_top_row_runtime_limits_timeout_max_label,
+                "最大 timeout（ms）");
+        templates.put(R.string.gboard_patches_top_row_runtime_limits_timeout_max_hint, "30000");
+        templates.put(R.string.gboard_patches_top_row_runtime_limits_memory_label,
+                "Memory limit（MiB）");
+        templates.put(R.string.gboard_patches_top_row_runtime_limits_memory_hint, "8");
+        templates.put(R.string.gboard_patches_top_row_runtime_limits_stack_label,
+                "Max stack（KiB）");
+        templates.put(R.string.gboard_patches_top_row_runtime_limits_stack_hint, "512");
+        templates.put(R.string.gboard_patches_top_row_runtime_limits_dialog_error,
+                "請輸入有效的 JavaScript 執行限制。");
+        templates.put(R.string.gboard_patches_top_row_export_title, "匯出設定");
+        templates.put(R.string.gboard_patches_top_row_export_summary,
+                "把全域 JavaScript、執行限制與 10 個 slot 匯出成 JSON 檔。");
+        templates.put(R.string.gboard_patches_top_row_import_title, "匯入設定");
+        templates.put(R.string.gboard_patches_top_row_import_summary,
+                "開啟 JSON 檔，取代全域 JavaScript、執行限制與 10 個 slot。");
+        templates.put(R.string.gboard_patches_top_row_export_done, "已匯出設定");
+        templates.put(R.string.gboard_patches_top_row_import_done, "已匯入設定");
+        templates.put(R.string.gboard_patches_top_row_import_failed_title, "匯入失敗");
+        templates.put(R.string.gboard_patches_top_row_import_failed_summary,
+                "無法匯入選取的檔案。");
+        templates.put(R.string.gboard_patches_top_row_import_invalid_summary,
+                "選取的檔案格式無效。");
+        templates.put(R.string.gboard_patches_top_row_reset_title, "重設 slot");
+        templates.put(R.string.gboard_patches_top_row_reset_summary,
+                "把 10 個 slot 還原成預設 emoji 列。");
+        templates.put(R.string.gboard_patches_top_row_reset_confirm_title, "要重設所有 slot 嗎？");
+        templates.put(R.string.gboard_patches_top_row_reset_confirm_message,
+                "這會把 10 個顯示/輸入對應還原成預設 emoji 列。");
+        templates.put(R.string.gboard_patches_top_row_slot_title, "Slot %1$d");
+        templates.put(R.string.gboard_patches_top_row_slot_summary_plain,
+                "顯示：%1$s\n輸入：%2$s");
+        templates.put(R.string.gboard_patches_top_row_slot_summary_javascript,
+                "顯示：%1$s\nJavaScript\nTimeout：%2$d ms\n腳本：%3$s");
+        templates.put(R.string.gboard_patches_top_row_editor_display_label, "顯示文字");
+        templates.put(R.string.gboard_patches_top_row_editor_display_hint, "顯示文字");
+        templates.put(R.string.gboard_patches_top_row_editor_commit_label, "輸入文字");
+        templates.put(R.string.gboard_patches_top_row_editor_commit_hint, "輸入文字");
+        templates.put(R.string.gboard_patches_top_row_editor_use_javascript, "使用 JavaScript");
+        templates.put(R.string.gboard_patches_top_row_editor_script_label, "JavaScript");
+        templates.put(R.string.gboard_patches_top_row_editor_script_hint, "JavaScript");
+        templates.put(R.string.gboard_patches_top_row_editor_timeout_label, "Timeout（ms）");
+        templates.put(R.string.gboard_patches_top_row_editor_timeout_hint, "Timeout（ms）");
+        templates.put(R.string.gboard_patches_top_row_editor_test_input_hint,
+                "測試輸入（請框選文字作為 input）");
+        templates.put(R.string.gboard_patches_top_row_editor_test_button, "測試");
+        templates.put(R.string.gboard_patches_top_row_editor_test_running, "執行中...");
+        templates.put(R.string.gboard_patches_top_row_editor_display_blank_error,
+                "顯示文字不能空白");
+        templates.put(R.string.gboard_patches_top_row_editor_locked_state, "已鎖定");
+        templates.put(R.string.gboard_patches_top_row_editor_unlocked_state, "已解鎖");
+        templates.put(R.string.gboard_patches_top_row_clear_button, "清除");
+        templates.put(R.string.gboard_patches_top_row_reset_button, "重設");
+        templates.put(R.string.gboard_patches_top_row_test_result_timed_out, "執行逾時");
+        templates.put(R.string.gboard_patches_top_row_test_result_failed, "失敗：%1$s");
+        templates.put(R.string.gboard_patches_top_row_test_result_failed_generic,
+                "QuickJS 測試失敗");
+        templates.put(R.string.gboard_patches_top_row_test_result_output, "輸出：%1$s");
+        templates.put(R.string.gboard_patches_top_row_test_result_finished_no_output,
+                "完成：沒有輸出");
+        templates.put(R.string.gboard_patches_top_row_js_guide_execution_title, "執行模型");
+        templates.put(R.string.gboard_patches_top_row_js_guide_execution_summary,
+                "可用 input 讀取目前選字；return 字串就會送出；每次點按都會建立新的 QuickJS runtime。");
+        templates.put(R.string.gboard_patches_top_row_js_guide_execution_dialog_message,
+                "可用 input 讀取目前選取中的文字；如果沒有選字，input 就是空字串。\n\n"
+                        + "return 字串時，會把它送到 editor；回傳 null、undefined，或根本沒有 return，都會完成但不送出。\n\n"
+                        + "每次按鍵都會先跑 Global JavaScript，再在同一次 execution 內跑 slot body。\n\n"
+                        + "slot body 和 Global JavaScript 共用同一次執行，但每次點按都會建立新的 QuickJS runtime / context，不會保留上一輪留下的狀態。\n\n"
+                        + "如果 Global JavaScript 需要處理 input，請在那裡定義 helper，並從 slot body 把 input 傳進去。\n\n"
+                        + "這個環境只支援同步執行；沒有 DOM、Node.js API、fetch，也沒有 async request pipeline。");
+        templates.put(R.string.gboard_patches_top_row_js_guide_return_title, "回傳與 commit");
+        templates.put(R.string.gboard_patches_top_row_js_guide_return_summary,
+                "只有非 null 的回傳值才會 commit，而且執行期間若 InputConnection 改變，就會跳過 commit。");
+        templates.put(R.string.gboard_patches_top_row_js_guide_return_dialog_message,
+                "回傳規則：\n"
+                        + "- 回傳非 null 且非 undefined 的值時，會先轉成字串再 commit\n"
+                        + "- 回傳 null、回傳 undefined，或根本沒有 return，都會成功結束但不 commit\n\n"
+                        + "即使腳本成功跑完，也只有在結束時的 InputConnection 還是啟動時那個同一個 object 時才會 commit。若焦點切換或 editor 改變，就會 fail closed。");
+        templates.put(R.string.gboard_patches_top_row_js_guide_http_title, "Host APIs");
+        templates.put(R.string.gboard_patches_top_row_js_guide_http_summary,
+                "除了標準 QuickJS 功能外，這個 patch 另外提供 input、httpRequest(options)、httpGet(url) 與 httpPost(url, body)。");
+        templates.put(R.string.gboard_patches_top_row_js_guide_http_dialog_message,
+                "除了標準 QuickJS 功能外，這個 patch 額外提供下面這些 API：\n"
+                        + "- input\n"
+                        + "- httpRequest(options)\n"
+                        + "- httpGet(url)\n"
+                        + "- httpPost(url, body)\n\n"
+                        + "httpRequest 只接受 GET、POST、PUT、PATCH、DELETE，URL 只允許 http:// 與 https://。headers 必須是 plain object，body 會以 UTF-8 傳送。\n\n"
+                        + "非 2xx status、無效 method、無效 URL scheme、timeout、無效 headers、transport error，以及超過 response body limit 的回應，都會直接 throw script error。");
+        templates.put(R.string.gboard_patches_top_row_js_guide_limits_title,
+                "限制與 fail-closed");
+        templates.put(R.string.gboard_patches_top_row_js_guide_limits_summary,
+                "slot 會受全域 timeout、response、memory、stack 限制，syntax 與 runtime error 只會讓該次執行失敗。");
+        templates.put(R.string.gboard_patches_top_row_js_guide_limits_dialog_message,
+                "執行限制：\n"
+                        + "- slot 的 timeoutMs 輸入值只能在 0..全域 timeoutMaxMs 內；sanitize 後的執行期最小值仍是 1 ms\n"
+                        + "- response body limit、memory limit、max stack 都來自 JavaScript Runtime Limits\n\n"
+                        + "預設值：\n"
+                        + "- timeoutMaxMs：30000 ms\n"
+                        + "- response body：1 MiB\n"
+                        + "- memory：8 MiB\n"
+                        + "- max stack：512 KiB\n\n"
+                        + "syntax error、runtime error、timeout、HTTP 失敗、response 過大，以及 commit 前 InputConnection 改變，都只會讓當次執行 fail closed，不會把整個自訂第一排按鍵功能停掉。");
+        templates.put(R.string.gboard_patches_top_row_js_guide_examples_title, "範例");
+        templates.put(R.string.gboard_patches_top_row_js_guide_examples_summary,
+                "可直接複製常用腳本，從基本 return 範例到 IP、OpenAI、timestamp、英國時間與單位換算都有。");
+        templates.put(R.string.gboard_patches_top_row_js_guide_examples_dialog_title,
+                "JavaScript 範例");
+        templates.put(R.string.gboard_patches_top_row_js_guide_examples_copy_button,
+                "複製到剪貼簿");
+        templates.put(R.string.gboard_patches_top_row_js_guide_examples_expand_button, "展開");
+        templates.put(R.string.gboard_patches_top_row_js_guide_examples_collapse_button, "收合");
+        templates.put(R.string.gboard_patches_top_row_js_guide_examples_copied_format,
+                "已複製範例：%1$s");
+        templates.put(R.string.gboard_patches_top_row_js_guide_examples_clipboard_unavailable,
+                "系統剪貼簿無法使用");
+        templates.put(R.string.gboard_patches_top_row_js_example_hello_world_title,
+                "Hello World");
+        templates.put(R.string.gboard_patches_top_row_js_example_hello_world_summary,
+                "回傳固定字串到編輯器。");
+        templates.put(R.string.gboard_patches_top_row_js_example_return_input_title,
+                "回傳 input");
+        templates.put(R.string.gboard_patches_top_row_js_example_return_input_summary,
+                "把目前 input 原樣送出。");
+        templates.put(R.string.gboard_patches_top_row_js_example_ip_title, "取得目前 IP");
+        templates.put(R.string.gboard_patches_top_row_js_example_ip_summary,
+                "用簡單的 GET 請求讀取目前的 public IP。");
+        templates.put(R.string.gboard_patches_top_row_js_example_openai_title,
+                "使用 HTTP 打 OpenAI");
+        templates.put(R.string.gboard_patches_top_row_js_example_openai_summary,
+                "用 httpRequest 呼叫 OpenAI Responses API 與 gpt-5.5。");
+        templates.put(R.string.gboard_patches_top_row_js_example_timestamp_title,
+                "取得目前 timestamp");
+        templates.put(R.string.gboard_patches_top_row_js_example_timestamp_summary,
+                "回傳目前 Unix timestamp（毫秒）。");
+        templates.put(R.string.gboard_patches_top_row_js_example_uk_time_title,
+                "取得英國時間");
+        templates.put(R.string.gboard_patches_top_row_js_example_uk_time_summary,
+                "抓取目前 London time，並格式化成可直接送出的時間字串。");
+        templates.put(R.string.gboard_patches_top_row_js_example_unit_convert_title,
+                "單位自動換算");
+        templates.put(R.string.gboard_patches_top_row_js_example_unit_convert_summary,
+                "把 10lbs、40kg、100F 或 40C 這類輸入做雙向換算。");
         templates.put(R.string.gboard_patches_latin_globe_title, "英文地球鍵忽略時間");
         templates.put(R.string.gboard_patches_latin_globe_summary,
                 "在英文鍵盤中，輸入字母後無法馬上按地球鍵切換鍵盤。官方預設的忽略時間是 500ms。");

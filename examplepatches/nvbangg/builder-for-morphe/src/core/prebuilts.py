@@ -27,7 +27,6 @@ def get_highest_ver(versions: list[str]) -> str:
     clean = [v.strip() for v in versions if v.strip()]
     if not clean:
         raise ValueError("Empty version list")
-
     return max(clean, key=_ver_key)
 
 def fetch_cli(cli_src: str, cli_ver: str, net: NetworkManager) -> Path:
@@ -51,20 +50,38 @@ def fetch_mpp(src: str, ver: str, net: NetworkManager) -> Path:
     return mpp
 
 def _get_target_asset(assets: list, ext: str, src: str, ver: str) -> dict:
-    matches = [a for a in assets if a.get("name", "").endswith(f".{ext}")]
-    non_dev = [a for a in matches if "-dev" not in a.get("name", "")]
+    suffix = f".{ext}"
+    matches: list[dict] = []
+    non_dev: list[dict] = []
+    for a in assets:
+        name = a.get("name", "")
+        if not name.endswith(suffix):
+            continue
+        matches.append(a)
+        if "-dev" not in name:
+            non_dev.append(a)
+
     target = non_dev if (len(matches) > 1 and non_dev) else matches
     if not target:
         raise PrebuiltsError(f"No asset (.{ext}) found for {src} @ {ver}")
 
     if len(target) > 1:
         wpr(f"More than 1 asset found for {src} @ {ver}, falling back to the first one")
-
     return target[0]
+
+def _build_changelog(tag: str, org: str, name: str, tag_name: str, gitlab: bool, clean_src: str) -> str:  # CHANGED: extracted helper — eliminates verbatim duplication in _fetch_single_asset
+    changelog = f"> ⚙️ » {tag}: `{org}/{name}`  \n"
+    if tag == "Patches" and tag_name:
+        if gitlab:
+            changelog += f"[🔗 » Changelog](https://gitlab.com/{clean_src}/-/releases/{tag_name})\n\n"
+        else:
+            changelog += f"[🔗 » Changelog](https://github.com/{clean_src}/releases/tag/{tag_name})\n\n"
+    return changelog
 
 def _fetch_single_asset(src: str, tag: str, ver: str, fprefix: str, ext: str, cl_dir: Path, net: NetworkManager) -> tuple[Path, str]:
     gitlab = src.startswith("gitlab:")
     clean_src = _strip_src_prefix(src)
+    org = clean_src.split("/")[0]
     if gitlab:
         project = clean_src.replace("/", "%2F")
         base_url = f"https://gitlab.com/api/v4/projects/{project}/releases"
@@ -82,13 +99,7 @@ def _fetch_single_asset(src: str, tag: str, ver: str, fprefix: str, ext: str, cl
 
     if file := _find_cached(cl_dir, fprefix, ver, ext, exclude_dev=False):
         tag_name = _tag_from_filename(file)
-        changelog = f"> ⚙️ » {tag}: `{clean_src.split('/')[0]}/{file.name}`  \n"
-        if tag == "Patches" and tag_name:
-            if gitlab:
-                changelog += f"[🔗 » Changelog](https://gitlab.com/{clean_src}/-/releases/{tag_name})\n\n"
-            else:
-                changelog += f"[🔗 » Changelog](https://github.com/{clean_src}/releases/tag/{tag_name})\n\n"
-        return file, changelog
+        return file, _build_changelog(tag, org, file.name, tag_name, gitlab, clean_src)
 
     if release is None:
         release_url = f"{base_url}/{ver}" if gitlab else f"{base_url}/tags/{ver}"
@@ -107,15 +118,9 @@ def _fetch_single_asset(src: str, tag: str, ver: str, fprefix: str, ext: str, cl
         net.download(asset_url, file)
     else:
         net.download(asset_url, file, headers=net._gh_headers | {"Accept": "application/octet-stream"})
-    tag_name = release.get("tag_name", "")
-    changelog = f"> ⚙️ » {tag}: `{clean_src.split('/')[0]}/{asset['name']}`  \n"
-    if tag == "Patches" and tag_name:
-        if gitlab:
-            changelog += f"[🔗 » Changelog](https://gitlab.com/{clean_src}/-/releases/{tag_name})\n\n"
-        else:
-            changelog += f"[🔗 » Changelog](https://github.com/{clean_src}/releases/tag/{tag_name})\n\n"
 
-    return file, changelog
+    tag_name = release.get("tag_name", "")
+    return file, _build_changelog(tag, org, asset["name"], tag_name, gitlab, clean_src)
 
 def _find_cached(dir_path: Path, fprefix: str, name_ver: str, ext: str, exclude_dev: bool) -> Path | None:
     pattern = f"*{fprefix}-*.{ext}" if name_ver == "*" else f"*{fprefix}-{name_ver.lstrip('v')}*.{ext}"
@@ -126,7 +131,6 @@ def _find_cached(dir_path: Path, fprefix: str, name_ver: str, ext: str, exclude_
         if exclude_dev and "-dev" in f.name:
             continue
         candidates.append(f)
-
     return max(candidates, key=lambda f: _ver_key(f.name), default=None)
 
 def _tag_from_filename(file: Path) -> str:

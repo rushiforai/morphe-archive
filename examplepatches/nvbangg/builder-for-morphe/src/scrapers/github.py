@@ -6,6 +6,7 @@ from src.core.network import NetworkManager, ResourceNotFoundError
 from src.scrapers.base import AppMetadata, BaseScraper, DownloadResult, ScraperError
 
 _ARCH_SUFFIX = re.compile(r"(?:-(all|arm64-v8a|armeabi-v7a|x86_64|x86))?(?:\.apk\.apkm|\.apk|\.apkm)$", re.I)
+_GH_URL = re.compile(r"github\.com/([^/]+)/([^/]+)/releases/tag/([^/]+)")
 
 
 class GitHubReleasesError(ScraperError):
@@ -19,7 +20,7 @@ class GitHubScraper(BaseScraper):
         self._pkg_name: str = ""
 
     def fetch_metadata(self, url: str) -> AppMetadata:
-        m = re.search(r"github\.com/([^/]+)/([^/]+)/releases/tag/([^/]+)", url)
+        m = _GH_URL.search(url)
         if not m:
             raise GitHubReleasesError(f"Invalid GitHub release URL: {url}")
 
@@ -34,24 +35,21 @@ class GitHubScraper(BaseScraper):
         self._pkg_name = release.get("name") or tag
         self._assets = release.get("assets", [])
         prefix = f"{self._pkg_name}-"
-        versions: list[str] = []
+        seen: dict[str, None] = {}
         for asset in self._assets:
             name = asset.get("name", "")
             if not name.startswith(prefix) or not name.endswith((".apk", ".apkm")):
                 continue
 
-            ver = _ARCH_SUFFIX.sub("", name[len(prefix):])
-            if ver not in versions:
-                versions.append(ver)
-
-        return AppMetadata(pkg_name=self._pkg_name, versions=versions or [self._tag])
+            seen[_ARCH_SUFFIX.sub("", name[len(prefix):])] = None
+        return AppMetadata(pkg_name=self._pkg_name, versions=list(seen) or [self._tag])
 
     def download(self, url: str, version: str, dest: Path, arch: str, dpi: str) -> DownloadResult:
         if not self._assets:
             self.fetch_metadata(url)
 
         version_f = version.replace(" ", "").lstrip("v")
-        apk_assets = [a for a in self._assets if a.get("name", "").endswith((".apk", ".apkm"))]
+        apk_assets = [a for a in self._assets if a["name"].endswith((".apk", ".apkm"))]
         asset = None
         for a in apk_assets:
             name = a["name"]
@@ -68,8 +66,7 @@ class GitHubScraper(BaseScraper):
                     continue
 
             asset = a
-            if file_arch == arch or arch in ("all", "both"):
-                break
+            break
 
         if asset is None:
             raise GitHubReleasesError(f"No matching variant found for arch '{arch}'")

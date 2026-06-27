@@ -39,6 +39,10 @@ import dev.jason.gboardpatches.patches.gboard.features.settingshomepage.gboardSe
 import dev.jason.gboardpatches.patches.gboard.features.signaturebypass.gboardSignatureBypassBytecodePatch
 import dev.jason.gboardpatches.patches.gboard.features.symbolfooter.gboardSymbolFooterOrderBytecodePatch
 import dev.jason.gboardpatches.patches.gboard.features.symbolfooter.gboardSymbolFooterOrderFeatureMarkerPatch
+import dev.jason.gboardpatches.patches.gboard.features.toprowswipe.gboardTopRowSwipeFeatureMarkerPatch
+import dev.jason.gboardpatches.patches.gboard.features.toprowswipe.gboardTopRowSwipeGesturePatch
+import dev.jason.gboardpatches.patches.gboard.features.toprowswipe.gboardTopRowSwipePointerPatch
+import dev.jason.gboardpatches.patches.gboard.features.toprowswipe.gboardTopRowSwipeSoftKeyPatch
 import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWritingToolsDependencyPatch
 import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWritingToolsFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWritingToolsFlagValuePatch
@@ -96,6 +100,7 @@ val gboardZhuyinQuickTraditionalSimplifiedTogglePatch = resourcePatch(
 
     dependsOn(
         gboardZhuyinSlideInputPatch,
+        gboardTopRowSwipeGesturePatch,
         gboardZhuyinTraditionalSimplifiedToggleSoftKeyPatch,
         gboardZhuyinTraditionalSimplifiedToggleRuntimePatch
     )
@@ -118,6 +123,23 @@ val gboardCustomSymbolsPatch = resourcePatch(
         gboardZhuyinCustomSymbolsEmoticonStatePatch,
         gboardZhuyinCustomSymbolsHistoryPatch,
         gboardZhuyinCustomSymbolsRecyclerPatch
+    )
+}
+
+@Suppress("unused")
+val gboardCustomTopRowSwipePatch = resourcePatch(
+    name = "Swipeable Custom Top Row",
+    description = "滑動鍵盤第一排，在原生列與可自訂文字/JavaScript 列之間切換\nSwipe the keyboard top row to switch between the stock row and a customizable text/JavaScript row.",
+    default = true
+) {
+    compatibleWith(COMPATIBILITY_GBOARD)
+
+    dependsOn(
+        gboardPatchesSettingsPatch,
+        gboardTopRowSwipeFeatureMarkerPatch,
+        gboardTopRowSwipeSoftKeyPatch,
+        gboardTopRowSwipePointerPatch,
+        gboardTopRowSwipeGesturePatch
     )
 }
 

@@ -11,7 +11,7 @@ internal object Constants {
         apkFileType = ApkFileType.APK,
         targets = listOf(
             AppTarget(
-                version = "3.4.1",
+                version = "3.13.0",
             )
         )
     )

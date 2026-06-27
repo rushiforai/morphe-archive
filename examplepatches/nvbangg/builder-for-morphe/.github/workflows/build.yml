@@ -12,9 +12,9 @@ on:
           - piko
           - hoo-dles
           - paresh
+          - rushi
           - de-vanced
           - anddea
-          - ample
   workflow_call:
     inputs:
       patch_source:

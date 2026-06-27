@@ -7,7 +7,7 @@ Custom patches using Morphe. 'Mix' originates from Morphe + IMXEren (also, mixed
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.3.0](https://github.com/IMXEren/mix-patches/releases/tag/v1.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
+> **[v1.4.0](https://github.com/IMXEren/mix-patches/releases/tag/v1.4.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
 <details open>
 <summary>📦 Sync for Reddit&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -29,7 +29,7 @@ Custom patches using Morphe. 'Mix' originates from Morphe + IMXEren (also, mixed
 
 **🎯 Supported versions:**
 
-| 3.4.1 |
+| 3.13.0 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |

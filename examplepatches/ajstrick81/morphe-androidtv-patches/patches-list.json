@@ -1,5 +1,5 @@
 {
-  "version": "1.5.4",
+  "version": "1.6.0",
   "appNames": {
     "com.fox.foxone": "Fox One Android TV",
     "com.peacocktv.peacockandroid": "Peacock TV Android TV",
@@ -75,6 +75,34 @@
       "options": []
     },
     {
+      "name": "GMB send diagnostic (debug)",
+      "description": "Diagnostic-only: logs outbound GMB messages (Java→native) to logcat to test whether the send direction carries ad-related traffic.",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch"
+      ],
+      "compatiblePackages": {
+        "com.amazon.amazonvideo.livingroom": [
+          "6.23.23+v15.5.0.70-armv7a"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Prime Video Android TV",
+          "packageName": "com.amazon.amazonvideo.livingroom",
+          "description": null,
+          "appIconColor": 1539022,
+          "targets": [
+            {
+              "version": "6.23.23+v15.5.0.70-armv7a",
+              "experimental": false
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "HBO Max - Disable Ads",
       "description": "Suppresses nonlinear overlay ads (Bolt), SSAI linear ad timeline registration (GMSS/AdSparx), and live stream preroll ad timeline entry generation for all content types.",
       "use": true,
@@ -133,7 +161,7 @@
     },
     {
       "name": "Override certificate pinning",
-      "description": "Allows HTTPS traffic inspection tools like AdGuard Premium to intercept app connections. Enables consistent pre-roll suppression when used alongside AdGuard Premium.",
+      "description": "Adds a network_security_config trusting user CAs (no pin sets) so AdGuard Premium can inspect the app's platform-stack HTTPS. Optional adjunct: Prime Video's ad plane is largely native libcurl, so DNS blocking is the primary tool.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {
@@ -150,6 +178,32 @@
           "targets": [
             {
               "version": "6.23.23+v15.5.0.70-armv7a",
+              "experimental": false
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Override certificate pinning",
+      "description": "Allows HTTPS traffic inspection tools like AdGuard Premium to intercept app connections. Enables ViX live (Lura SSAI) ad suppression when used alongside AdGuard Premium.",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "com.univision.prendetv": [
+          "4.46.0_tv"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "ViX Android TV",
+          "packageName": "com.univision.prendetv",
+          "description": null,
+          "appIconColor": 41193,
+          "targets": [
+            {
+              "version": "4.46.0_tv",
               "experimental": false
             }
           ]
@@ -242,7 +296,7 @@
     },
     {
       "name": "Skip ads",
-      "description": "Disables ad delivery via Sky SDK surgical targets (FreeWheel DI module skip, MediaTailor SSAI layers, ad-break-started no-op), AdBlockInterceptor wiring across the app NetworkingKt client and the Sky SDK addon network client, New Relic agent init no-op, and WebView shouldInterceptRequest wrapper. Validated v7.5.102 and v7.6.100.",
+      "description": "Disables ad delivery via Sky SDK surgical targets (FreeWheel DI module skip, MediaTailor SSAI layers, ad-break-started no-op), AdBlockInterceptor wiring on the app NetworkingKt OkHttp client, and a WebView shouldInterceptRequest wrapper. Pair with DNS filtering for full ad suppression. Validated v7.5.102 and v7.6.100.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {
@@ -327,7 +381,7 @@
     },
     {
       "name": "Skip ads",
-      "description": "Suppresses ViX ad delivery by disabling the FreeWheel ad provider at the config level and preventing the Innovid SSAI overlay from mounting.",
+      "description": "Suppresses ViX ad delivery by stopping the LuraPlayer linear ad-break scheduler (client-side VAST) and preventing the Innovid SSAI ad overlay from mounting.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {

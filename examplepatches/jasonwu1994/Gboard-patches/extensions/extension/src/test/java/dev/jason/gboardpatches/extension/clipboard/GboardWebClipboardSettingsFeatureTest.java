@@ -122,6 +122,16 @@ public final class GboardWebClipboardSettingsFeatureTest {
         @Override
         public void showPreviewDialog(GboardPatchesSettingsContract.PreviewSpec previewSpec) {
         }
+
+        @Override
+        public void createTextDocument(String fileName, String mimeType, String text,
+                Runnable completionAction) {
+        }
+
+        @Override
+        public void openTextDocument(String[] mimeTypes,
+                GboardPatchesSettingsContract.StringValueConsumer valueConsumer) {
+        }
     }
 
     private static final class InMemorySharedPreferences implements SharedPreferences {

@@ -20,7 +20,7 @@ object SetAdPlaybackStatesMedia3Fingerprint : Fingerprint(
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Secondary target — ExoPlayer2 SSAI ad schedule entry point
-// classes4.dex / smali/com/google/android/exoplayer2/source/ads/
+// classes3.dex / smali/com/google/android/exoplayer2/source/ads/
 // ─────────────────────────────────────────────────────────────────────────────
 object SetAdPlaybackStatesExo2Fingerprint : Fingerprint(
     definingClass = "Lcom/google/android/exoplayer2/source/ads/ServerSideAdInsertionMediaSource;",
