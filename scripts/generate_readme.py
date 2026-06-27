@@ -71,7 +71,7 @@ def build_readme(repos):
 
     for i, repo in enumerate(repos, start=1):
         owner, _, name = repo.partition("/")
-        lines.append(f"| {i} | `{repo}` | [🔗 Open]({f'https://github.com/{repo}'}) |")
+        lines.append(f"| {i} | `{repo}` | [🔗 Open]({f'https://github.com/{repo}'}) | [🔗 Add to morphe]({f'https://morphe.software/add-source?github={repo}'})")
 
     lines.append("")
     lines.append("---")
