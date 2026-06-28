@@ -1,0 +1,69 @@
+name: Release
+permissions: {}
+
+on:
+  workflow_dispatch:
+#  push:
+#    branches:
+#      - main
+
+jobs:
+  build:
+    name: "Gradle build"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "Checkout sources"
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: "Setup Java"
+        uses: actions/setup-java@v5
+        with:
+          distribution: "temurin"
+          java-version: "18"
+      - name: "Setup Gradle"
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-encryption-key: ${{ secrets.GradleEncryptionKey }}
+          build-scan-publish: true
+          build-scan-terms-of-use-url: "https://gradle.com/help/legal-terms-of-use"
+          build-scan-terms-of-use-agree: "yes"
+      - name: "Setup matchers"
+        run: |
+          # Setting up matchers...
+
+          matchers_dir='${{ github.workspace }}/.github/matchers'
+          matcher_list()
+          {
+            echo 'gradle-build-matcher.json'
+            echo 'gradle-build-kotlin-error-matcher.json'
+          }
+
+          matcher_list | while IFS='' read -r NAME; do
+            if test -f "${matchers_dir:?}/${NAME:?}"; then
+              echo "::add-matcher::${matchers_dir:?}/${NAME:?}"
+              echo "Matcher configured: ${NAME:?}"
+            fi
+          done
+      - name: "Execute Gradle build"
+        run: "./gradlew --no-daemon clean :play-services-core:assembleDefaultRelease"
+
+      - uses: ilharp/sign-android-release@v2
+        name: "Sign app APK"
+        id: sign_app
+        with:
+          releaseDir: play-services-core/build/outputs/apk/default/release
+          signingKey: ${{ secrets.KEYSTORE_B64 }}
+          keyAlias: ${{ secrets.KEYSTORE_ENTRY_ALIAS }}
+          keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEYSTORE_ENTRY_PASSWORD }}
+          buildToolsVersion: 36.0.0
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: MicroG-RE
+          archive: false
+          path: ${{steps.sign_app.outputs.signedFile}}
+

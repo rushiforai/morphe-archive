@@ -1,0 +1,13 @@
+
+<!--
+  ~ SPDX-FileCopyrightText: 2016 microG Project Team
+  ~ SPDX-License-Identifier: Apache-2.0
+  -->
+
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <meta-data
+                android:name="${basePackageName}.android.gms.version"
+                android:value="$appVersionCode"/>
+    </application>
+</manifest>
