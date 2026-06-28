@@ -41,6 +41,9 @@ jobs:
           mkdir -p "$DEST_DIR"
 
           while IFS= read -r repo || [ -n "$repo" ]; do
+            # strip any trailing carriage return (handles CRLF-encoded files)
+            repo="${repo%$'\r'}"
+
             # skip blank lines and comments
             [ -z "$repo" ] && continue
             case "$repo" in \#*) continue ;; esac
