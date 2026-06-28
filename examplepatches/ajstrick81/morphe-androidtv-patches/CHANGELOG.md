@@ -1,3 +1,15 @@
+# [1.7.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.6.0...v1.7.0) (2026-06-27)
+
+
+### Bug Fixes
+
+* **dns:** match akamaized.net safe-harbor host by concatenated prefix ([b883df7](https://github.com/ajstrick81/morphe-androidtv-patches/commit/b883df7853da554f75e0a184bafdb08988ddf709))
+
+
+### Features
+
+* **primevideo:** remove GMB send diagnostic patch, add DNS rules from live testing ([48b744b](https://github.com/ajstrick81/morphe-androidtv-patches/commit/48b744bb136a49ecdaa8c7d3a5ed11e618e73d60))
+
 # [1.6.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.5.7...v1.6.0) (2026-06-26)
 
 

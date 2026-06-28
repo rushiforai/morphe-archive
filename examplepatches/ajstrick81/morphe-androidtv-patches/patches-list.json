@@ -1,5 +1,5 @@
 {
-  "version": "1.6.0",
+  "version": "1.7.0",
   "appNames": {
     "com.fox.foxone": "Fox One Android TV",
     "com.peacocktv.peacockandroid": "Peacock TV Android TV",
@@ -67,34 +67,6 @@
             },
             {
               "version": "26.9.2+rc1-2026.06.12",
-              "experimental": false
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "GMB send diagnostic (debug)",
-      "description": "Diagnostic-only: logs outbound GMB messages (Java→native) to logcat to test whether the send direction carries ad-related traffic.",
-      "use": true,
-      "dependencies": [
-        "BytecodePatch"
-      ],
-      "compatiblePackages": {
-        "com.amazon.amazonvideo.livingroom": [
-          "6.23.23+v15.5.0.70-armv7a"
-        ]
-      },
-      "compatibility": [
-        {
-          "name": "Prime Video Android TV",
-          "packageName": "com.amazon.amazonvideo.livingroom",
-          "description": null,
-          "appIconColor": 1539022,
-          "targets": [
-            {
-              "version": "6.23.23+v15.5.0.70-armv7a",
               "experimental": false
             }
           ]

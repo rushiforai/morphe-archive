@@ -1,3 +1,17 @@
+# [1.38.0](https://github.com/hoo-dles/morphe-patches/compare/v1.37.0...v1.38.0) (2026-06-27)
+
+
+### Features
+
+* **Goodreads:** Add `Disable ads` patch ([d9da4fe](https://github.com/hoo-dles/morphe-patches/commit/d9da4feed08dc0cac0b7556ce00287bd865d02ee))
+
+# [1.38.0-dev.1](https://github.com/hoo-dles/morphe-patches/compare/v1.37.0...v1.38.0-dev.1) (2026-06-26)
+
+
+### Features
+
+* **Goodreads:** Add `Disable ads` patch ([d9da4fe](https://github.com/hoo-dles/morphe-patches/commit/d9da4feed08dc0cac0b7556ce00287bd865d02ee))
+
 # [1.37.0](https://github.com/hoo-dles/morphe-patches/compare/v1.36.1...v1.37.0) (2026-06-24)
 
 

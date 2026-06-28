@@ -60,7 +60,7 @@ This repo is based on the [krvstek/uni-apks](https://github.com/krvstek/uni-apks
 
 - Easily [build your own APKs](#-build-your-own-apks) just by customizing `config.toml` (no extra setup required)
   - No manual brand configuration needed in `ci.yml`
-  - Automatic upstream sync (preserves your custom `config.toml`)
-  - Pre-configured support for many apps
+  - [Automatic upstream sync](CONTRIBUTING.md#-sync-upstream) (preserves your custom `config.toml`)
+  - Pre-configured support for many apps (just set `enabled = true` for the apps you want)
 - Other changes contributed upstream: [Pull Requests](https://github.com/krvstek/uni-apks/commits/main/?author=nvbangg), [co-authored commits](https://github.com/search?q=repo%3Akrvstek%2Funi-apks+Co-authored-by%3A+nvbangg&type=commits)
 </details>

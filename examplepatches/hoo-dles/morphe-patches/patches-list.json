@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.37.0",
+  "version": "1.38.0",
   "patches": [
     {
       "name": "AMOLED dark theme",
@@ -130,6 +130,34 @@
       "default": false,
       "dependencies": [],
       "compatiblePackages": null,
+      "options": []
+    },
+    {
+      "name": "Disable ads",
+      "description": "Disables all ads contained within the UI.",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.goodreads",
+          "name": "Goodreads",
+          "description": null,
+          "apkFileType": null,
+          "appIconColor": "#EAE2D6",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "2.75.0 Build 3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
       "options": []
     },
     {
@@ -411,7 +439,7 @@
     },
     {
       "name": "Enable Peak membership",
-      "description": "Enables app features locked behind the subscription paywall.",
+      "description": "Enables some app features locked behind the subscription paywall. Not all premium functionality is available.",
       "default": true,
       "dependencies": [],
       "compatiblePackages": [

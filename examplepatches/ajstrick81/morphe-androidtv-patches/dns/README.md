@@ -12,8 +12,8 @@ Prime Video chooses an ad-delivery architecture **server-side, per session**
 
 | Road | How the ad arrives | Reached by |
 |---|---|---|
-| **Java road** | Ad break signalled to the client as a media3 `AdPlaybackState` ad group | **Bytecode patch** (`skipAllMedia3AdGroups`) |
-| **Native road** | Ad stitched server-side (SGAI) and delivered through Amazon's **native** pipeline over **native libcurl** | **DNS blocking** (this list) |
+| **Java Pipeline** | Ad break signalled to the client as a media3 `AdPlaybackState` ad group | **Bytecode patch** (`skipAllMedia3AdGroups`) |
+| **Native Pipeline** | Ad stitched server-side (SGAI) and delivered through Amazon's **native** pipeline over **native libcurl** | **DNS blocking** (this list) |
 
 The bytecode patch operates at the Java layer and **cannot see** native-road
 traffic — on-device logcat confirmed Prime Video's ad/media/API plane runs

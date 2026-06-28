@@ -8,7 +8,7 @@ import app.morphe.util.returnEarly
 @Suppress("unused")
 val enablePremiumPatch = bytecodePatch(
     name = "Enable Peak membership",
-    description = "Enables app features locked behind the subscription paywall.",
+    description = "Enables some app features locked behind the subscription paywall. Not all premium functionality is available."
 ) {
     compatibleWith(
         Compatibility(
