@@ -556,6 +556,22 @@
                 "sortOrder": 66,
                 "createdAt": 1782666758836,
                 "updatedAt": 1782666758836
+            },
+            {
+                "name": "ytmusic-patches",
+                "source": "https://raw.githubusercontent.com/PrathxmOp/ytmusic-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 67,
+                "createdAt": 1782669431016,
+                "updatedAt": 1782669431016
+            },
+            {
+                "name": "npci-bhim-morphe-patches",
+                "source": "https://raw.githubusercontent.com/kun-codes/npci-bhim-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 68,
+                "createdAt": 1782669432943,
+                "updatedAt": 1782669432943
             }
         ],
         "bytecodeModePreference": "STRIP_FAST"

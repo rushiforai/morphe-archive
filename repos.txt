@@ -17,6 +17,7 @@ MorpheApp/morphe-patches
 Paresh-Maheshwari/paresh-patches
 PawiX25/pepper-morphe-patches
 PixelPusher247/morphe-patches
+PrathxmOp/ytmusic-patches
 Quantro100/Morphe-patches
 RealCyberwash/max-patches
 RookieEnough/De-Vanced
@@ -61,6 +62,7 @@ kiraio-moe/Lain-Patches
 kolaron/morphe-patches
 kondratjev/morphe-patches
 kontsevoye/emorphe-patches
+kun-codes/npci-bhim-morphe-patches
 loskutov/youtube-domain-fronting-patch
 lyyako/realme-link-patches
 meridianfresco/morphe-meta-patches
