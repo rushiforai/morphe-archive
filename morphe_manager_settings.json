@@ -18,7 +18,7 @@
         "installerHiddenComponents": [],
         "keystoreAlias": "Morphe",
         "keystorePass": "Morphe",
-        "firstLaunch": true,
+        "firstLaunch": false,
         "useManagerPrereleases": true,
         "bundlePrereleasesEnabled": [],
         "bundleExperimentalVersionsEnabled": [],

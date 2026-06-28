@@ -57,17 +57,46 @@ jobs:
             tmp="$(mktemp -d)"
 
             echo "Fetching $repo..."
-            if git clone --depth 1 "https://x-access-token:${GITHUB_TOKEN}@github.com/${repo}.git" "$tmp" 2>/dev/null; then
+
+            success=false
+            for attempt in 1 2 3; do
+              # Public repos don't need auth at all; try anonymous first so an
+              # org-level token/SSO restriction can't block an otherwise-public clone.
+              if git clone --depth 1 "https://github.com/${repo}.git" "$tmp" 2>clone_err.log; then
+                success=true
+                break
+              fi
+
+              echo "Anonymous clone attempt $attempt failed for $repo:"
+              cat clone_err.log
+
+              # Fall back to authenticated clone in case the repo is actually private.
+              rm -rf "$tmp"
+              tmp="$(mktemp -d)"
+              if git clone --depth 1 "https://x-access-token:${GITHUB_TOKEN}@github.com/${repo}.git" "$tmp" 2>clone_err.log; then
+                success=true
+                break
+              fi
+
+              echo "Authenticated clone attempt $attempt failed for $repo:"
+              cat clone_err.log
+
+              rm -rf "$tmp"
+              tmp="$(mktemp -d)"
+              sleep $((attempt * 5))
+            done
+
+            if [ "$success" = true ]; then
               rm -rf "$tmp/.git"
               mkdir -p "$target"
               # sync fresh content into target, removing stale files, but never deleting the folder itself
               rsync -a --delete "$tmp/" "$target/"
               echo "Updated: $repo"
             else
-              echo "Failed to fetch $repo, leaving existing folder (if any) untouched."
+              echo "Failed to fetch $repo after 3 attempts, leaving existing folder (if any) untouched."
             fi
 
-            rm -rf "$tmp"
+            rm -rf "$tmp" clone_err.log
           done < "$REPOS_FILE"
 
       - name: Commit and Push Changes
