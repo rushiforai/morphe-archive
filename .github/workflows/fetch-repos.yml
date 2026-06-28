@@ -55,6 +55,12 @@ jobs:
         run: |
           python scripts/generate_readme.py
 
+      - name: Generate Settings Json
+        env:
+          OUTPUT_FILE: ${{ env.OUTPUT_FILE }}
+        run: |
+          python scripts/add_repos_to_bundles.py
+
       - name: Commit and Push Changes
         run: |
           git config --global user.name "github-actions[bot]"

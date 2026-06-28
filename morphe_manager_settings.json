@@ -1,0 +1,51 @@
+{
+    "settings": {
+        "dynamicColor": true,
+        "pureBlackTheme": true,
+        "customAccentColor": "",
+        "customThemeColor": "",
+        "themePresetSelectionName": "DEFAULT",
+        "themePresetSelectionEnabled": true,
+        "stripUnusedNativeLibs": false,
+        "theme": "SYSTEM",
+        "appLanguage": "system",
+        "includeGitHubPatInExports": false,
+        "useProcessRuntime": true,
+        "patcherProcessMemoryLimit": 1024,
+        "allowMeteredUpdates": true,
+        "installerPrimary": ":internal:",
+        "installerCustomComponents": [],
+        "installerHiddenComponents": [],
+        "keystoreAlias": "Morphe",
+        "keystorePass": "Morphe",
+        "firstLaunch": true,
+        "useManagerPrereleases": true,
+        "bundlePrereleasesEnabled": [],
+        "bundleExperimentalVersionsEnabled": [],
+        "disablePatchVersionCompatCheck": false,
+        "showGreetingPhrases": false,
+        "backgroundType": "CIRCLES",
+        "randomBackgroundInterval": "ON_LAUNCH",
+        "useExpertMode": true,
+        "updateCheckInterval": "DAILY",
+        "customBundles": [
+            {
+                "name": "Morphe Patches",
+                "source": "https://raw.githubusercontent.com/abdul-hubbali/Morphe-Fork/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 1,
+                "createdAt": 1773466678000,
+                "updatedAt": 1782622556515
+            },
+            {
+                "name": "Abhis1n Patches",
+                "source": "https://raw.githubusercontent.com/abhis1n/Morphe-Patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 2,
+                "createdAt": 1781677472000,
+                "updatedAt": 1782622561416
+            }
+        ],
+        "bytecodeModePreference": "STRIP_FAST"
+    }
+}
