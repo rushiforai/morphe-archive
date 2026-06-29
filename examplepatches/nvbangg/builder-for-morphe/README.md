@@ -30,12 +30,14 @@ For maximum security, we recommend building your own APKs as follows:
 
 - 🍴 `Fork` [this repo](https://github.com/nvbangg/builder-for-morphe) (don't forget to ⭐ `Star` and 👀 `Watch` it)
 - ⚙️ **[Optional]** Customize the apps you want in [`config.toml`](config.toml)
-- 🚀 Run the [CI workflow](../../actions/workflows/ci.yml) (enable workflows on first run)
+- 🚀 Run the [CI workflow](../../actions/workflows/ci.yml) (make sure workflows are enabled first)
 - ⬇️ Download your APKs from [Releases](../../releases)
 
 ## 📚 Documentation & Contributing
 
 For full configuration reference, setup and contributing guide, see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+For all Morphe resources, projects, supported apps and patches, visit [nvbangg/awesome-for-morphe](https://github.com/nvbangg/awesome-for-morphe).
 
 <details>
 <summary><h3>⚠️ Disclaimer</h3></summary>

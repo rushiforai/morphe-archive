@@ -1,3 +1,46 @@
+## [1.4.3](https://github.com/humzakh/HK-Morphe-Patches/compare/v1.4.2...v1.4.3) (2026-06-29)
+
+### 🐛 Bug Fixes
+
+* Add message when Restore Comment fails ([f761a9a](https://github.com/humzakh/HK-Morphe-Patches/commit/f761a9a7b78ab66727f8cb078a195a49c29bcaf6))
+
+## [1.4.3-dev.1](https://github.com/humzakh/HK-Morphe-Patches/compare/v1.4.2...v1.4.3-dev.1) (2026-06-29)
+
+### 🐛 Bug Fixes
+
+* Add message when Restore Comment fails ([f761a9a](https://github.com/humzakh/HK-Morphe-Patches/commit/f761a9a7b78ab66727f8cb078a195a49c29bcaf6))
+
+## [1.4.2](https://github.com/humzakh/HK-Morphe-Patches/compare/v1.4.1...v1.4.2) (2026-06-29)
+
+### 🐛 Bug Fixes
+
+* Replace icon in Restore Comment swipe action ([0ba7a9f](https://github.com/humzakh/HK-Morphe-Patches/commit/0ba7a9f1fba6ade4de6acfb8663a35fa8dbc71c8))
+
+## [1.4.2-dev.1](https://github.com/humzakh/HK-Morphe-Patches/compare/v1.4.1...v1.4.2-dev.1) (2026-06-29)
+
+### 🐛 Bug Fixes
+
+* Replace icon in Restore Comment swipe action ([0ba7a9f](https://github.com/humzakh/HK-Morphe-Patches/commit/0ba7a9f1fba6ade4de6acfb8663a35fa8dbc71c8))
+
+## [1.4.1](https://github.com/humzakh/HK-Morphe-Patches/compare/v1.4.0...v1.4.1) (2026-06-28)
+
+### 🐛 Bug Fixes
+
+* Replace Profile swipe action with Restore Comment for deleted comments ([a0e0b56](https://github.com/humzakh/HK-Morphe-Patches/commit/a0e0b562ce35f0aa12890d0f537c44b4eb31dbab))
+* Support Sync Dev in Other Discussions fingerprint ([99fe4a9](https://github.com/humzakh/HK-Morphe-Patches/commit/99fe4a9493153268ee8176d4537b953ac5de19ca))
+
+## [1.4.1-dev.2](https://github.com/humzakh/HK-Morphe-Patches/compare/v1.4.1-dev.1...v1.4.1-dev.2) (2026-06-28)
+
+### 🐛 Bug Fixes
+
+* Replace Profile swipe action with Restore Comment for deleted comments ([a0e0b56](https://github.com/humzakh/HK-Morphe-Patches/commit/a0e0b562ce35f0aa12890d0f537c44b4eb31dbab))
+
+## [1.4.1-dev.1](https://github.com/humzakh/HK-Morphe-Patches/compare/v1.4.0...v1.4.1-dev.1) (2026-06-28)
+
+### 🐛 Bug Fixes
+
+* Support Sync Dev in Other Discussions fingerprint ([99fe4a9](https://github.com/humzakh/HK-Morphe-Patches/commit/99fe4a9493153268ee8176d4537b953ac5de19ca))
+
 ## [1.4.0](https://github.com/humzakh/HK-Morphe-Patches/compare/v1.3.5...v1.4.0) (2026-06-28)
 
 ### ✨ New Features

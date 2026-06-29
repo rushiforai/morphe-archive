@@ -44,3 +44,26 @@ internal val CommentHolderTFingerprint = Fingerprint(
     parameters = listOf(),
     accessFlags = listOf(AccessFlags.PRIVATE)
 )
+
+internal val CommentSwipeActionProfileFingerprint = Fingerprint(
+    definingClass = "Lgb/m;",
+    name = "E",
+    parameters = listOf("Lxa/d;", "I"),
+    returnType = "V",
+    accessFlags = listOf(AccessFlags.PRIVATE)
+)
+
+internal val CommentSwipeActionDrawFingerprint = Fingerprint(
+    definingClass = "Lgb/m;",
+    name = "u",
+    parameters = listOf("Landroid/graphics/Canvas;", "Landroidx/recyclerview/widget/RecyclerView;", "Landroidx/recyclerview/widget/RecyclerView\$c0;", "F", "F", "I", "Z"),
+    returnType = "V",
+    accessFlags = listOf(AccessFlags.PUBLIC)
+)
+
+internal val RestoreCommentParseNetworkResponseFingerprint = Fingerprint(
+    definingClass = "Lr8/h;",
+    name = "parseNetworkResponse",
+    parameters = listOf("Lcom/android/volley/NetworkResponse;"),
+    returnType = "Lcom/android/volley/Response;"
+)
