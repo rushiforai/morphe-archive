@@ -1,3 +1,21 @@
+## [1.36.0](https://github.com/arandomhooman/hoomans-morphe-patches/compare/v1.35.0...v1.36.0) (2026-06-30)
+
+### ✨ New Features
+
+* add Symfonium unlock premium ([0ab2ecb](https://github.com/arandomhooman/hoomans-morphe-patches/commit/0ab2ecba425a3e2728783be994170515a61a566d))
+
+## [1.35.0](https://github.com/arandomhooman/hoomans-morphe-patches/compare/v1.34.1...v1.35.0) (2026-06-29)
+
+### ✨ New Features
+
+* add Smart AudioBook Player full unlock ([e212cf5](https://github.com/arandomhooman/hoomans-morphe-patches/commit/e212cf500597d53fb13b9e384a06f09248a7b05f))
+
+## [1.34.1](https://github.com/arandomhooman/hoomans-morphe-patches/compare/v1.34.0...v1.34.1) (2026-06-29)
+
+### 🐛 Bug Fixes
+
+* support Battery Guru 2.5.0.2 beta ([463a458](https://github.com/arandomhooman/hoomans-morphe-patches/commit/463a458b1e8a543d4d5b413fca32672d6eb12b8a))
+
 ## [1.34.0](https://github.com/arandomhooman/hoomans-morphe-patches/compare/v1.33.0...v1.34.0) (2026-06-29)
 
 ### ✨ New Features

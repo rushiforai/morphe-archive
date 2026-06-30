@@ -14,18 +14,6 @@
       "options": []
     },
     {
-      "name": "Example Patch",
-      "description": "Example patch to start with.",
-      "use": true,
-      "dependencies": [],
-      "compatiblePackages": {
-        "com.example.app": [
-          "1.0.0"
-        ]
-      },
-      "options": []
-    },
-    {
       "name": "Increase scan limit",
       "description": "Increases the free scan limit from 30 to 50 scans",
       "use": true,
