@@ -572,6 +572,30 @@
                 "sortOrder": 68,
                 "createdAt": 1782669432943,
                 "updatedAt": 1782669432943
+            },
+            {
+                "name": "Telegram-patchesMorphe",
+                "source": "https://raw.githubusercontent.com/MoonShadowKeeper/Telegram-patchesMorphe/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 69,
+                "createdAt": 1782791664063,
+                "updatedAt": 1782791664063
+            },
+            {
+                "name": "morphe-screenshot-patches",
+                "source": "https://raw.githubusercontent.com/Pa-kon/morphe-screenshot-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 70,
+                "createdAt": 1782791664124,
+                "updatedAt": 1782791664124
+            },
+            {
+                "name": "Prathxm-Patches",
+                "source": "https://raw.githubusercontent.com/PrathxmOp/Prathxm-Patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 71,
+                "createdAt": 1782791664276,
+                "updatedAt": 1782791664276
             }
         ],
         "bytecodeModePreference": "STRIP_FAST"

@@ -2,7 +2,7 @@
 
 An auto-generated, continuously updated index of every GitHub repository that publishes a [Morphe](https://morphe.software) (`.mpp`) patch bundle.
 
-![Repos tracked](https://img.shields.io/badge/repos%20tracked-81-6366f1)![Last updated](https://img.shields.io/badge/last%20updated-2026-06-29%2004:12%20UTC-555)
+![Repos tracked](https://img.shields.io/badge/repos%20tracked-84-6366f1)![Last updated](https://img.shields.io/badge/last%20updated-2026-06-30%2003:54%20UTC-555)
 
 ---
 
@@ -18,7 +18,7 @@ Repos are never silently removed when a source goes quiet — add an entry to [`
 
 ---
 
-## 📋 Tracked Repositories (81)
+## 📋 Tracked Repositories (84)
 
 | # | Repository | Github | Morphe |
 |---|------------|--------|--------|
@@ -79,30 +79,33 @@ Repos are never silently removed when a source goes quiet — add an entry to [`
 | 55 | `Lynx6319/patch-youtube-scroll-block` | [🔗 Open](https://github.com/Lynx6319/patch-youtube-scroll-block) | [🔗 Add to morphe](https://morphe.software/add-source?github=Lynx6319/patch-youtube-scroll-block)
 | 56 | `lyyako/realme-link-patches` | [🔗 Open](https://github.com/lyyako/realme-link-patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=lyyako/realme-link-patches)
 | 57 | `meridianfresco/morphe-meta-patches` | [🔗 Open](https://github.com/meridianfresco/morphe-meta-patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=meridianfresco/morphe-meta-patches)
-| 58 | `MorpheApp/morphe-patches` | [🔗 Open](https://github.com/MorpheApp/morphe-patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=MorpheApp/morphe-patches)
-| 59 | `nvbangg/builder-for-morphe` | [🔗 Open](https://github.com/nvbangg/builder-for-morphe) | [🔗 Add to morphe](https://morphe.software/add-source?github=nvbangg/builder-for-morphe)
-| 60 | `osirisad/teamsnap-patches` | [🔗 Open](https://github.com/osirisad/teamsnap-patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=osirisad/teamsnap-patches)
-| 61 | `osirisad/ts-patches` | [🔗 Open](https://github.com/osirisad/ts-patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=osirisad/ts-patches)
-| 62 | `Paresh-Maheshwari/paresh-patches` | [🔗 Open](https://github.com/Paresh-Maheshwari/paresh-patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=Paresh-Maheshwari/paresh-patches)
-| 63 | `PawiX25/pepper-morphe-patches` | [🔗 Open](https://github.com/PawiX25/pepper-morphe-patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=PawiX25/pepper-morphe-patches)
-| 64 | `PixelPusher247/morphe-patches` | [🔗 Open](https://github.com/PixelPusher247/morphe-patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=PixelPusher247/morphe-patches)
-| 65 | `polka-bear/morphe-patches` | [🔗 Open](https://github.com/polka-bear/morphe-patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=polka-bear/morphe-patches)
-| 66 | `PrathxmOp/ytmusic-patches` | [🔗 Open](https://github.com/PrathxmOp/ytmusic-patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=PrathxmOp/ytmusic-patches)
-| 67 | `quantavil/edge-morphe-patches` | [🔗 Open](https://github.com/quantavil/edge-morphe-patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=quantavil/edge-morphe-patches)
-| 68 | `Quantro100/Morphe-patches` | [🔗 Open](https://github.com/Quantro100/Morphe-patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=Quantro100/Morphe-patches)
-| 69 | `rabilrbl/fluffy-patches` | [🔗 Open](https://github.com/rabilrbl/fluffy-patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=rabilrbl/fluffy-patches)
-| 70 | `RealCyberwash/max-patches` | [🔗 Open](https://github.com/RealCyberwash/max-patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=RealCyberwash/max-patches)
-| 71 | `RookieEnough/De-Vanced` | [🔗 Open](https://github.com/RookieEnough/De-Vanced) | [🔗 Add to morphe](https://morphe.software/add-source?github=RookieEnough/De-Vanced)
-| 72 | `sjshb57/Pairip-Patches` | [🔗 Open](https://github.com/sjshb57/Pairip-Patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=sjshb57/Pairip-Patches)
-| 73 | `Trimpsuz/morphe-busuu` | [🔗 Open](https://github.com/Trimpsuz/morphe-busuu) | [🔗 Add to morphe](https://morphe.software/add-source?github=Trimpsuz/morphe-busuu)
-| 74 | `TrollTaylor/morphe-pause-fix` | [🔗 Open](https://github.com/TrollTaylor/morphe-pause-fix) | [🔗 Add to morphe](https://morphe.software/add-source?github=TrollTaylor/morphe-pause-fix)
-| 75 | `vladon/morphe-patches-navi` | [🔗 Open](https://github.com/vladon/morphe-patches-navi) | [🔗 Add to morphe](https://morphe.software/add-source?github=vladon/morphe-patches-navi)
-| 76 | `wchill/anddea-rvx-morphed` | [🔗 Open](https://github.com/wchill/anddea-rvx-morphed) | [🔗 Add to morphe](https://morphe.software/add-source?github=wchill/anddea-rvx-morphed)
-| 77 | `wchill/patcheddit` | [🔗 Open](https://github.com/wchill/patcheddit) | [🔗 Add to morphe](https://morphe.software/add-source?github=wchill/patcheddit)
-| 78 | `wchill/rvx-morphed` | [🔗 Open](https://github.com/wchill/rvx-morphed) | [🔗 Add to morphe](https://morphe.software/add-source?github=wchill/rvx-morphed)
-| 79 | `Xisrr1/Revancify-Xisr` | [🔗 Open](https://github.com/Xisrr1/Revancify-Xisr) | [🔗 Add to morphe](https://morphe.software/add-source?github=Xisrr1/Revancify-Xisr)
-| 80 | `xob0t/morphe-patches` | [🔗 Open](https://github.com/xob0t/morphe-patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=xob0t/morphe-patches)
-| 81 | `ynotzort/morphe-patches` | [🔗 Open](https://github.com/ynotzort/morphe-patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=ynotzort/morphe-patches)
+| 58 | `MoonShadowKeeper/Telegram-patchesMorphe` | [🔗 Open](https://github.com/MoonShadowKeeper/Telegram-patchesMorphe) | [🔗 Add to morphe](https://morphe.software/add-source?github=MoonShadowKeeper/Telegram-patchesMorphe)
+| 59 | `MorpheApp/morphe-patches` | [🔗 Open](https://github.com/MorpheApp/morphe-patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=MorpheApp/morphe-patches)
+| 60 | `nvbangg/builder-for-morphe` | [🔗 Open](https://github.com/nvbangg/builder-for-morphe) | [🔗 Add to morphe](https://morphe.software/add-source?github=nvbangg/builder-for-morphe)
+| 61 | `osirisad/teamsnap-patches` | [🔗 Open](https://github.com/osirisad/teamsnap-patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=osirisad/teamsnap-patches)
+| 62 | `osirisad/ts-patches` | [🔗 Open](https://github.com/osirisad/ts-patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=osirisad/ts-patches)
+| 63 | `Pa-kon/morphe-screenshot-patches` | [🔗 Open](https://github.com/Pa-kon/morphe-screenshot-patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=Pa-kon/morphe-screenshot-patches)
+| 64 | `Paresh-Maheshwari/paresh-patches` | [🔗 Open](https://github.com/Paresh-Maheshwari/paresh-patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=Paresh-Maheshwari/paresh-patches)
+| 65 | `PawiX25/pepper-morphe-patches` | [🔗 Open](https://github.com/PawiX25/pepper-morphe-patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=PawiX25/pepper-morphe-patches)
+| 66 | `PixelPusher247/morphe-patches` | [🔗 Open](https://github.com/PixelPusher247/morphe-patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=PixelPusher247/morphe-patches)
+| 67 | `polka-bear/morphe-patches` | [🔗 Open](https://github.com/polka-bear/morphe-patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=polka-bear/morphe-patches)
+| 68 | `PrathxmOp/Prathxm-Patches` | [🔗 Open](https://github.com/PrathxmOp/Prathxm-Patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=PrathxmOp/Prathxm-Patches)
+| 69 | `PrathxmOp/ytmusic-patches` | [🔗 Open](https://github.com/PrathxmOp/ytmusic-patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=PrathxmOp/ytmusic-patches)
+| 70 | `quantavil/edge-morphe-patches` | [🔗 Open](https://github.com/quantavil/edge-morphe-patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=quantavil/edge-morphe-patches)
+| 71 | `Quantro100/Morphe-patches` | [🔗 Open](https://github.com/Quantro100/Morphe-patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=Quantro100/Morphe-patches)
+| 72 | `rabilrbl/fluffy-patches` | [🔗 Open](https://github.com/rabilrbl/fluffy-patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=rabilrbl/fluffy-patches)
+| 73 | `RealCyberwash/max-patches` | [🔗 Open](https://github.com/RealCyberwash/max-patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=RealCyberwash/max-patches)
+| 74 | `RookieEnough/De-Vanced` | [🔗 Open](https://github.com/RookieEnough/De-Vanced) | [🔗 Add to morphe](https://morphe.software/add-source?github=RookieEnough/De-Vanced)
+| 75 | `sjshb57/Pairip-Patches` | [🔗 Open](https://github.com/sjshb57/Pairip-Patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=sjshb57/Pairip-Patches)
+| 76 | `Trimpsuz/morphe-busuu` | [🔗 Open](https://github.com/Trimpsuz/morphe-busuu) | [🔗 Add to morphe](https://morphe.software/add-source?github=Trimpsuz/morphe-busuu)
+| 77 | `TrollTaylor/morphe-pause-fix` | [🔗 Open](https://github.com/TrollTaylor/morphe-pause-fix) | [🔗 Add to morphe](https://morphe.software/add-source?github=TrollTaylor/morphe-pause-fix)
+| 78 | `vladon/morphe-patches-navi` | [🔗 Open](https://github.com/vladon/morphe-patches-navi) | [🔗 Add to morphe](https://morphe.software/add-source?github=vladon/morphe-patches-navi)
+| 79 | `wchill/anddea-rvx-morphed` | [🔗 Open](https://github.com/wchill/anddea-rvx-morphed) | [🔗 Add to morphe](https://morphe.software/add-source?github=wchill/anddea-rvx-morphed)
+| 80 | `wchill/patcheddit` | [🔗 Open](https://github.com/wchill/patcheddit) | [🔗 Add to morphe](https://morphe.software/add-source?github=wchill/patcheddit)
+| 81 | `wchill/rvx-morphed` | [🔗 Open](https://github.com/wchill/rvx-morphed) | [🔗 Add to morphe](https://morphe.software/add-source?github=wchill/rvx-morphed)
+| 82 | `Xisrr1/Revancify-Xisr` | [🔗 Open](https://github.com/Xisrr1/Revancify-Xisr) | [🔗 Add to morphe](https://morphe.software/add-source?github=Xisrr1/Revancify-Xisr)
+| 83 | `xob0t/morphe-patches` | [🔗 Open](https://github.com/xob0t/morphe-patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=xob0t/morphe-patches)
+| 84 | `ynotzort/morphe-patches` | [🔗 Open](https://github.com/ynotzort/morphe-patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=ynotzort/morphe-patches)
 
 ---
 
@@ -111,4 +114,4 @@ Repos are never silently removed when a source goes quiet — add an entry to [`
 This README is regenerated automatically by GitHub Actions whenever `repos.txt` changes.
 To add a repo manually, append it to `custom_repos.txt`. To remove one permanently, add it to `ignore_repos.txt`.
 
-*Last generated: 2026-06-29 04:12 UTC*
+*Last generated: 2026-06-30 03:54 UTC*

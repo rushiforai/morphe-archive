@@ -13,10 +13,13 @@ Jman-Github/Universal-ReVanced-Manager
 Joristdh/Platypatch
 LaKakaReal/LaKakaShitPatches
 Lynx6319/patch-youtube-scroll-block
+MoonShadowKeeper/Telegram-patchesMorphe
 MorpheApp/morphe-patches
+Pa-kon/morphe-screenshot-patches
 Paresh-Maheshwari/paresh-patches
 PawiX25/pepper-morphe-patches
 PixelPusher247/morphe-patches
+PrathxmOp/Prathxm-Patches
 PrathxmOp/ytmusic-patches
 Quantro100/Morphe-patches
 RealCyberwash/max-patches
