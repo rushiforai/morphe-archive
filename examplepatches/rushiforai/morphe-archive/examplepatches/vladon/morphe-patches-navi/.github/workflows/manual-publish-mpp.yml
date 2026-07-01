@@ -1,0 +1,86 @@
+# Публикует .mpp и JSON так, как ожидает Morphe Manager (GitHub Release + assets).
+# Запуск: Actions → "Manual publish MPP" → Run workflow → укажи version (например 1.0.0).
+# Документация: https://github.com/MorpheApp/morphe-patches-template#-usage
+name: Manual publish MPP
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Версия патчей (semver), должна совпадать с полем version в gradle.properties"
+        required: true
+        default: "1.0.0"
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Cache Gradle
+        uses: burrunan/gradle-cache-action@v3
+
+      - name: Sync version into gradle.properties
+        run: sed -i "s/^version=.*/version=${{ github.event.inputs.version }}/" gradle.properties
+
+      - name: Build Android MPP + patches list
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          chmod +x gradlew
+          ./gradlew :patches:buildAndroid generatePatchesList --no-daemon
+
+      - name: Verify MPP artifact
+        run: |
+          VER="${{ github.event.inputs.version }}"
+          MPP="patches/build/libs/patches-${VER}.mpp"
+          test -f "$MPP" || (echo "Missing $MPP"; ls -la patches/build/libs/; exit 1)
+
+      - name: Write patches-bundle.json for this release
+        run: |
+          VER="${{ github.event.inputs.version }}"
+          REPO="${{ github.repository }}"
+          URL="https://github.com/${REPO}/releases/download/v${VER}/patches-${VER}.mpp"
+          # Morphe Manager deserializes created_at as LocalDateTime (no trailing Z) — same as morphe-patches releases.
+          TS=$(date -u +%Y-%m-%dT%H:%M:%S)
+          jq -n --arg v "$VER" --arg url "$URL" --arg ts "$TS" \
+            '{created_at: $ts, description: "Yandex Navigator Morphe patches (manual publish).", download_url: $url, signature_download_url: "", version: $v}' \
+            > patches-bundle.json
+
+      - name: Create GitHub Release with assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VER="${{ github.event.inputs.version }}"
+          MPP="patches/build/libs/patches-${VER}.mpp"
+          gh release create "v${VER}" \
+            "$MPP" \
+            patches-list.json \
+            patches-bundle.json \
+            --title "v${VER}" \
+            --notes "Morphe patches bundle. Add source: https://morphe.software/add-source?github=${{ github.repository }}&name=Yandex+Navigator+patches"
+
+      # Morphe Manager loads patches-bundle.json from raw.githubusercontent.com/.../main/ — not from the release.
+      # Without this commit, download_url on main stays empty and the app fails to fetch the .mpp.
+      - name: Commit bundle metadata to main
+        run: |
+          VER="${{ github.event.inputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add patches-bundle.json patches-list.json
+          if git diff --staged --quiet; then
+            echo "No JSON changes to commit (already synced)."
+            exit 0
+          fi
+          git commit -m "chore: sync patches-bundle.json and patches-list.json for v${VER}"
+          git push origin HEAD:main

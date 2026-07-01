@@ -1,0 +1,72 @@
+/*
+ * SPDX-FileCopyrightText: 2020, microG Project Team
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'maven-publish'
+apply plugin: 'signing'
+
+dependencies {
+    api project(':play-services-basement-ktx')
+
+    implementation "androidx.annotation:annotation:$annotationVersion"
+    //noinspection GradleDependency
+    implementation "androidx.appcompat:appcompat:$appcompatVersion"
+    //noinspection GradleDependency
+    implementation "androidx.lifecycle:lifecycle-service:$lifecycleVersion"
+    //noinspection GradleDependency
+    implementation "androidx.navigation:navigation-fragment-ktx:$navigationVersion"
+    //noinspection GradleDependency
+    implementation "androidx.navigation:navigation-ui-ktx:$navigationVersion"
+    implementation "androidx.preference:preference-ktx:$preferenceVersion"
+    //noinspection GradleDependency
+    implementation "com.google.android.material:material:$materialVersion"
+
+    //noinspection GradleDependency
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
+}
+
+android {
+    namespace "org.microg.gms.base.core"
+
+    compileSdkVersion androidCompileSdk
+//    buildToolsVersion "$androidBuildVersionTools"
+
+    defaultConfig {
+        versionName version
+        minSdkVersion androidMinSdk
+        targetSdkVersion androidTargetSdk
+
+        buildConfigField "String", "BASE_PACKAGE_NAME", "\"$basePackageName\""
+    }
+
+    buildFeatures {
+        //noinspection DataBindingWithoutKapt
+        dataBinding = true
+        buildConfig true
+    }
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_18
+        targetCompatibility JavaVersion.VERSION_18
+    }
+
+    kotlinOptions {
+        //noinspection GrDeprecatedAPIUsage
+        jvmTarget = '18'
+    }
+
+    lintOptions {
+        disable 'MissingTranslation'
+    }
+}
+
+apply from: '../../gradle/publish-android.gradle'
+
+description = 'microG service implementation for play-services-base'

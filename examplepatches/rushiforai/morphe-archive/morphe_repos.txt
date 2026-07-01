@@ -1,0 +1,10 @@
+# Add one "owner/repo" per line. The "Clone All About Morphe Repos"
+# workflow clones each of these into allaboutmorphe/<owner>/<repo>.
+# Lines starting with # are ignored.
+MorpheApp/morphe-documentation
+MorpheApp/morphe-cli
+MorpheApp/microg-RE
+MorpheApp/morphe-patches-library
+MorpheApp/morphe-patches-template
+MorpheApp/morphe-patcher
+MorpheApp/morphe-library

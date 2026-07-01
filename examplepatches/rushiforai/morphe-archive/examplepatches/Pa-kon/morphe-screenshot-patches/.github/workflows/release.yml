@@ -1,0 +1,89 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'patches-bundle.json'
+      - 'patches-list.json'
+      - 'README.md'
+
+jobs:
+  release:
+    name: Release
+    permissions:
+      contents: write
+      packages: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute version
+        id: ver
+        run: |
+          VERSION="1.0.${{ github.run_number }}"
+          TAG="v$VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Bump version in gradle.properties
+        run: |
+          sed -i "s/^version = .*/version = ${{ steps.ver.outputs.version }}/" gradle.properties
+          cat gradle.properties
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Cache Gradle
+        uses: burrunan/gradle-cache-action@v3
+
+      - name: Build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:buildAndroid :patches:generatePatchesList
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          MPP=$(ls patches/build/libs/*.mpp | grep -v -- '-sources.mpp' | grep -v -- '-javadoc.mpp' | head -n1)
+          echo "Releasing: $MPP"
+          gh release create "${{ steps.ver.outputs.tag }}" \
+            --title "${{ steps.ver.outputs.tag }}" \
+            --notes "Automated release from commit ${{ github.sha }}" \
+            "$MPP" \
+            patches-list.json
+
+      - name: Update patches-bundle.json
+        run: |
+          VERSION="${{ steps.ver.outputs.version }}"
+          TAG="${{ steps.ver.outputs.tag }}"
+          REPO="${{ github.repository }}"
+          DOWNLOAD_URL="https://github.com/$REPO/releases/download/$TAG/patches-$VERSION.mpp"
+          CREATED_AT=$(date -u +"%Y-%m-%dT%H:%M:%S")
+          cat > patches-bundle.json <<EOF
+          {
+            "created_at": "$CREATED_AT",
+            "description": "Pakon Patches $TAG. Personal experimental patches — use at your own risk. Universal: removes screenshot restrictions from any app.",
+            "download_url": "$DOWNLOAD_URL",
+            "signature_download_url": "",
+            "version": "$VERSION"
+          }
+          EOF
+          cat patches-bundle.json
+
+      - name: Commit and push bundle update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add patches-bundle.json patches-list.json
+          git diff --cached --quiet || git commit -m "chore: Update patches-bundle.json for ${{ steps.ver.outputs.tag }} [skip ci]"
+          git push

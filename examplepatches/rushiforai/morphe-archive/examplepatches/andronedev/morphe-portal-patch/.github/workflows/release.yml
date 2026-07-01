@@ -1,0 +1,60 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "patches/**"
+      - "extensions/**"
+      - "gradle/**"
+      - "*.gradle.kts"
+      - "gradle.properties"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Build patch bundle
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GPR_USER: ${{ secrets.GPR_USER }}
+          GPR_KEY: ${{ secrets.GPR_KEY }}
+        run: |
+          chmod +x gradlew
+          ARGS=""
+          if [ -n "$GPR_KEY" ]; then
+            ARGS="-Pgpr.user=$GPR_USER -Pgpr.key=$GPR_KEY"
+          fi
+          ./gradlew build --no-daemon $ARGS
+
+      - name: Publish the patches-<version>.mpp release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(sed -n 's/^version[[:space:]]*=[[:space:]]*//p' gradle.properties | tr -d '[:space:]')
+          MPP="patches/build/libs/patches-$VERSION.mpp"
+          if [ ! -f "$MPP" ]; then
+            echo "No bundle at $MPP" >&2
+            exit 1
+          fi
+          if gh release view "v$VERSION" >/dev/null 2>&1; then
+            gh release upload "v$VERSION" "$MPP" --clobber
+          else
+            gh release create "v$VERSION" "$MPP" \
+              --title "v$VERSION" \
+              --notes "Custom DPI patch bundle for Meta Portal apps."
+          fi

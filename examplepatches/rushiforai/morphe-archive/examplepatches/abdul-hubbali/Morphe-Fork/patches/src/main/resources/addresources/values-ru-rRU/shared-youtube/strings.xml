@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Shared with YouTube and YT Music -->
+<!--
+    Strings with new lines must be raw strings where they're wrapped in quotes and new lines are not encoded.
+    Raw strings still requires escaping embedded double quotes but escaping embedded single quotes is optional.
+
+    Raw strings are required because Crowdin AI translations regularly gets confused and
+    replace \n with an encoded new line character.
+
+    Bad:
+        <string name="summary_key">First \'item\' text\nSecond \"item\" text</string>
+
+    Good:
+        <string name="summary_key">"First 'item' text
+Second \"item\" text"</string>
+
+-->
+<resources>
+  <!-- layout.branding.baseCustomBrandingPatch -->
+  <string name="morphe_custom_branding_name_title">Название приложения</string>
+  <!-- Translations of this should be identical to morphe_custom_branding_icon_entry_5 -->
+  <string name="morphe_custom_branding_name_entry_5">Пользовательское</string>
+  <string name="morphe_custom_branding_icon_title">Иконка приложения</string>
+  <string name="morphe_custom_branding_icon_entry_1">Оригинальная</string>
+  <string name="morphe_custom_branding_icon_entry_2">Мorphe чёрный</string>
+  <string name="morphe_custom_branding_icon_entry_3">Morphe тёмный</string>
+  <string name="morphe_custom_branding_icon_entry_4">Мorphe светлый</string>
+  <!-- Translations of this should be identical to morphe_custom_branding_name_entry_5 -->
+  <string name="morphe_custom_branding_icon_entry_5">Пользовательский</string>
+  <!-- If any of these experimental strings are changed then also change the hard coded values in the patch for Reddit -->
+  <!-- misc.checks.experimentalAppNoticePatch -->
+  <string name="morphe_experimental_app_version_dialog_title">🚨 Экспериментальное оповещение 🚨</string>
+  <string name="morphe_experimental_app_version_dialog_message">"Вы используете экспериментальную версию программы⚠️ &lt;b&gt;%1$s&lt;/b&gt;
+&lt;br/&gt;&lt;br/&gt;
+🔧 Ожидайте странного поведения программы или необнаруженных ошибок, пока мы усовершенствуем исправление для этой версии программы.
+&lt;br/&gt;&lt;br/&gt;
+Если вы хотите получить максимально беспроблемный опыт, тогда &lt;b&gt;удалите&lt;/b&gt; это и пропатчите рекомендованную версию программы ✅ &lt;b&gt;%2$s&lt;/b&gt;"</string>
+  <string name="morphe_experimental_app_version_dialog_confirm">⚠️ Я хочу экспериментальную</string>
+  <string name="morphe_experimental_app_version_dialog_open_homepage">✅ Я хочу стабильную</string>
+  <!-- misc.dns.checkWatchHistoryDomainNameResolutionPatch -->
+  <string name="morphe_check_watch_history_domain_name_dialog_title">Уведомление Morphe</string>
+  <string name="morphe_check_watch_history_domain_name_dialog_message">Ваша история просмотра не сохраняется.&lt;br&gt;&lt;br&gt; Вероятнее всего это вызвано DNS блокировщиком рекламы или сетевым прокси.&lt;br&gt;&lt;br&gt; Чтобы это исправить, добавьте &lt;b&gt;s.youtube.com&lt;/b&gt; в белый список блокировщика рекламы или отключите все блокировщики DNS и прокси.</string>
+  <string name="morphe_check_watch_history_domain_name_dialog_ignore">Не показывать снова</string>
+  <!-- misc.fix.playback.spoofVideoStreamsPatch -->
+  <string name="morphe_spoof_video_streams_screen_title">Подмена видеопотоков</string>
+  <string name="morphe_spoof_video_streams_screen_summary">Подделка видео потоков клиента для предотвращения проблем с воспроизведением</string>
+  <string name="morphe_spoof_video_streams_title">Поддельные видео потоки</string>
+  <string name="morphe_spoof_video_streams_summary_on">"Видео потоки подделаны
+
+Если Вы являетесь пользователем YouTube Premium, эта настройка может не потребоваться"</string>
+  <string name="morphe_spoof_video_streams_summary_off">"Видео потоки не подделаны
+
+Воспроизведение может не работать"</string>
+  <string name="morphe_spoof_video_streams_no_clients_toast">Не удалось получить никаких клиентских потоков</string>
+  <string name="morphe_spoof_video_streams_user_dialog_message">Выключение этой настройки может привести к возникновению проблем с воспроизведением.</string>
+  <!-- "Spoof video streams" must use the same translation as morphe_spoof_video_streams_title.
+         "Sign in to Android VR" must use the same translation as morphe_spoof_video_streams_sign_in_android_vr_about_title -->
+  <string name="morphe_spoof_video_streams_no_clients_suggest_vr_toast">Попробуйте включить: Поддельные видео потоки &gt; Вход в Android VR</string>
+  <string name="morphe_spoof_video_streams_client_type_title">Клиент по умолчанию</string>
+  <!-- Ensure this translation matches the translation of morphe_spoof_video_streams_no_clients_suggest_vr_toast -->
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_about_title">Войти в Android VR</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary">Вы не вошли в Android VR. Нажмите здесь, чтобы войти</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary_signed_in">Теперь вы вошли в Android VR</string>
+  <!-- "Default client" must be the same translated text as morphe_spoof_video_streams_client_type_title -->
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary_disabled">Чтобы использовать эту функцию, изменить значение \'Default client\' на Android VR</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_dialog_title">Войти в Android VR</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_dialog_not_signed_in_message">"Вход в Android VR может решать проблемы с воспроизведением для некоторых пользователей
+
+Чтобы войти, нажмите кнопку \"Продолжить\" ниже"</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_dialog_continue">Продолжить</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_dialog_reset">Выйти</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_activation_code_dialog_title">Инструкции</string>
+  <!-- "Open website" must use the same translation as morphe_spoof_video_streams_sign_in_android_vr_activation_code_dialog_open_website -->
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_activation_code_dialog_message">"Код активации: %s
+
+1. Нажмите \"Открыть вебсайт\" ниже, чтобы открыть вебсайт \"Подключить устройство\"
+2. Вставьте из буфера обмена (или введите) код активации, показанный выше
+3. Войдите в Google при необходимости. Если у вас есть несколько аккаунтов, выберите этот аккаунт YouTube
+4. Нажмите \"Разрешить доступ к YouTube VR\"
+5. Вернитесь в приложение после того, как вы увидите сообщение \"Устройство подключено\""</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_activation_code_dialog_open_website">Открыть вебсайт</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_toast_get_activation_code_failed">Не удалось выдать код активации</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_toast_get_authorization_code_failed">Не удалось выдать токен аутентификации</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_success_dialog_title">Вход выполнен успешно</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_success_dialog_message">"Аутентификация сохранена
+
+• В настройках Morphe не будет импортироваться/экспортироваться аутентификация Android VR
+• Если это приложение не будет использоваться в течение 6 месяцев, Google удалит эту аутентификацию
+• Вам нужно будет снова войти, если вы измените пароль Google или отмените регистрацию этого устройства в настройках Google"</string>
+  <string name="morphe_oauth2_connection_failure_timeout">OAuth2 временно недоступен (время ожидания API истекло)</string>
+  <string name="morphe_oauth2_connection_failure_status_400">Срок действия входа в Android VR истек. Попробуйте войти в VR снова</string>
+  <string name="morphe_oauth2_connection_failure_status">OAuth2 временно недоступна (статус %d)</string>
+  <string name="morphe_oauth2_connection_failure_generic">OAuth2 временно недоступна</string>
+  <string name="morphe_oauth2_connection_failure_auth_not_approved">Невозможно войти в VR, веб-авторизация не была одобрена</string>
+  <string name="morphe_oauth2_connection_failure_auth_error">Не удается войти в VR: %s</string>
+  <string name="morphe_oauth2_toast_reset">Вышли из войти Android VR</string>
+  <string name="morphe_oauth2_toast_invalid">Недействительный токен входа в VR, попробуйте войти в VR еще раз</string>
+  <string name="morphe_spoof_video_streams_disable_player_js_update_title">Отключить обновление JavaScript плеера</string>
+  <string name="morphe_spoof_video_streams_disable_player_js_update_summary_on">"Обновление хеша JavaScript плеера отключено
+
+• Требуется действительный хеш JavaScript плеера
+• Воспроизведение не удастся, если хеш JavaScript плеера отозван GVS"</string>
+  <string name="morphe_spoof_video_streams_disable_player_js_update_summary_off">Обновление хеша JavaScript плеера включено</string>
+  <string name="morphe_spoof_video_streams_disable_player_js_update_user_dialog_message">Хеши JavaScript плеера действительны примерно один месяц, а устаревший хеш может быть отменен GVS.</string>
+  <string name="morphe_spoof_video_streams_player_js_hash_title">Хеш JavaScript плеера</string>
+  <string name="morphe_spoof_video_streams_player_js_hash_summary">Введите допустимый хеш JavaScript плеера</string>
+  <!-- misc.quic.disableQUICProtocolPatch -->
+  <string name="morphe_disable_quic_protocol_title">Отключить протокол QUIC</string>
+  <string name="morphe_disable_quic_protocol_summary_on">Протокол QUIC отключен</string>
+  <string name="morphe_disable_quic_protocol_summary_off">Протокол QUIC включен</string>
+  <!-- misc.audio.drc.disableDRCAudioPatch  -->
+  <string name="morphe_disable_drc_audio_title">Отключить DRC аудио</string>
+  <string name="morphe_disable_drc_audio_summary_on">Аудио DRC отключено</string>
+  <string name="morphe_disable_drc_audio_summary_off">Аудио DRC включено</string>
+  <!-- misc.audio.tracks.forceOriginalAudioPatch -->
+  <string name="morphe_force_original_audio_title">Принудительно оригинальная звуковая дорожка</string>
+  <string name="morphe_force_original_audio_summary_on">Используется оригинальная звуковая дорожка</string>
+  <string name="morphe_force_original_audio_summary_off">Используется звуковая дорожка по умолчанию</string>
+  <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
+  <string name="morphe_force_original_audio_not_available">Для использования этой функции измените клиент в \"Подмене видеопотоков\" на любой, кроме Android Studio</string>
+  <!-- misc.privacy.sanitizeSharingLinksPatch -->
+  <string name="morphe_sanitize_sharing_links_title">Очищать ссылки для обмена</string>
+  <string name="morphe_sanitize_sharing_links_summary_on">Параметр отслеживания запросов удален из ссылок для обмена</string>
+  <string name="morphe_sanitize_sharing_links_summary_off">Параметр отслеживания запросов не удален из ссылок для обмена</string>
+  <string name="morphe_replace_music_with_youtube_title">Изменить ссылки для обмена на youtube.com</string>
+  <string name="morphe_replace_music_with_youtube_summary_on">Общие ссылки используют youtube.com</string>
+  <string name="morphe_replace_music_with_youtube_summary_off">Общие ссылки используют music.youtube.com</string>
+</resources>

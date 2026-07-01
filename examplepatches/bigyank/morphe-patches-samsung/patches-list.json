@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs.",
-  "version": "1.1.0",
+  "version": "1.2.1",
   "patches": [
     {
       "name": "Bypass Samsung Account provider checks",
@@ -16,6 +16,12 @@
           "appIconColor": "#1DC9A0",
           "signatures": null,
           "targets": [
+            {
+              "version": "7.00.0.107",
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
             {
               "version": "6.32.0.001",
               "isExperimental": false,
@@ -47,6 +53,12 @@
           "appIconColor": "#1DC9A0",
           "signatures": null,
           "targets": [
+            {
+              "version": "7.00.0.107",
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
             {
               "version": "6.32.0.001",
               "isExperimental": false,

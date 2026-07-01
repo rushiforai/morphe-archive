@@ -32,10 +32,8 @@ public final class QuickJsNgBridgePayloadSourceTest {
                 "dev/jason/gboardpatches/extension/quickjs/QuickJsNgBridge"));
         Assert.assertTrue(text.contains(
                 "dev/jason/gboardpatches/extension/quickjs/QuickJsNgBridge$NativeEvalResult"));
-        Assert.assertFalse(text.contains(
-                "dev/jason/hexcrack/targets/gboard/QuickJsNgBridge"));
-        Assert.assertFalse(text.contains(
-                "dev/jason/hexcrack/targets/gboard/QuickJsNgBridge$NativeEvalResult"));
+        Assert.assertFalse(text.contains(legacyBridgePath()));
+        Assert.assertFalse(text.contains(legacyBridgeResultPath()));
     }
 
     private static String readText(String path) throws Exception {
@@ -44,5 +42,13 @@ public final class QuickJsNgBridgePayloadSourceTest {
 
     private static String legacyWord() {
         return "hex" + "crack";
+    }
+
+    private static String legacyBridgePath() {
+        return "dev/jason/" + legacyWord() + "/targets/gboard/QuickJsNgBridge";
+    }
+
+    private static String legacyBridgeResultPath() {
+        return legacyBridgePath() + "$NativeEvalResult";
     }
 }

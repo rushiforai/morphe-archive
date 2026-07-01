@@ -1,0 +1,138 @@
+<!--
+
+    Strings with new lines must be raw strings where they're wrapped in quotes and new lines are not encoded.
+    Raw strings still requires escaping embedded double quotes but escaping embedded single quotes is optional.
+
+    Raw strings are required because Crowdin AI translations regularly gets confused and
+    replace \n with an encoded new line character.
+
+    Bad:
+        <string name="summary_key">First \'item\' text\nSecond \"item\" text</string>
+
+    Good:
+        <string name="summary_key">"First 'item' text
+Second \"item\" text"</string>
+
+-->
+<resources>
+    <!-- misc.settings.settingsPatch -->
+
+    <!-- In languages where "About" is ambiguous, translate this as "About Morphe" (i.e., About this app). -->
+    <string name="morphe_settings_music_screen_0_about_title">About</string>
+    <string name="morphe_settings_music_screen_2_general_title">General</string>
+    <string name="morphe_settings_music_screen_4_misc_title">Miscellaneous</string>
+
+    <!-- interaction.discord.discordPatch -->
+    <string name="morphe_settings_music_screen_5_discord_rpc_title">Discord Rich Presence</string>
+    <string name="morphe_music_discord_rpc_screen_title">Discord Rich Presence</string>
+    <string name="morphe_music_discord_rpc_screen_summary">Show what you are listening to on your Discord profile</string>
+    <string name="morphe_music_discord_rpc_about_title">About Discord RPC</string>
+    <string name="morphe_music_discord_rpc_about_summary">"Discord Rich Presence connects directly to Discord to show your current song on your profile.
+
+Rate Limiting: Discord limits presence updates to once every 15 seconds. Rapid changes like skipping tracks may take a few seconds to reflect on your profile.
+
+Background Playback: To ensure presence updates continue reliably in the background, please verify that YouTube Music's system battery usage is set to \"Unrestricted\"."</string>
+    <string name="morphe_music_discord_rpc_enabled_title">Enable Discord RPC</string>
+    <string name="morphe_music_discord_rpc_enabled_summary">Show your current song on your Discord profile</string>
+    <string name="morphe_music_discord_rpc_token_title">Discord Account</string>
+    <string name="morphe_music_discord_rpc_token_summary_logged_in">Linked</string>
+    <string name="morphe_music_discord_rpc_token_summary_logged_out">Not Linked</string>
+    <string name="morphe_music_discord_rpc_token_dialog_title">Discord Authentication</string>
+    <string name="morphe_music_discord_rpc_token_dialog_message">Link your Discord account to display your current track on your profile.</string>
+    <string name="morphe_music_discord_rpc_token_dialog_link_btn">Link Account</string>
+    <string name="morphe_music_discord_rpc_token_dialog_logout_btn">Log Out</string>
+    <string name="morphe_music_discord_rpc_token_dialog_cancel_btn">Cancel</string>
+    <string name="morphe_music_discord_rpc_token_dialog_manual_message">If the app doesn\'t open automatically after logging in, copy the browser\'s address bar URL and paste it below:</string>
+    <string name="morphe_music_discord_rpc_token_dialog_manual_hint">Paste morphediscord:// URL here</string>
+    <string name="morphe_music_discord_rpc_token_dialog_manual_btn">Paste &amp; Submit</string>
+    <string name="morphe_music_discord_rpc_token_status_linking">Linking account...</string>
+    <string name="morphe_music_discord_rpc_token_status_success">Account linked successfully!</string>
+    <string name="morphe_music_discord_rpc_token_status_error">Failed to link account: %s</string>
+    <string name="morphe_music_discord_rpc_customization_title">Customization</string>
+    <string name="morphe_music_discord_rpc_state_template_title">State Template</string>
+    <string name="morphe_music_discord_rpc_state_template_summary">Customize presence state text. Example: {artist.name}</string>
+    <string name="morphe_music_discord_rpc_details_template_title">Details Template</string>
+    <string name="morphe_music_discord_rpc_details_template_summary">Customize presence details text. Example: {song.name}</string>
+
+    <!-- interaction.scrobbling.scrobblingPatch -->
+    <string name="morphe_settings_music_screen_4_scrobbling_title">Scrobbling</string>
+    <string name="morphe_music_scrobbling_title" translatable="false">Scrobbling</string>
+    <string name="morphe_music_scrobbling_summary">Configure Last.fm and ListenBrainz integration</string>
+    <string name="morphe_music_scrobbling_summary_logged_out">Not logged in. Tap to configure</string>
+    <string name="morphe_music_scrobbling_log_out">Log out</string>
+    <string name="morphe_music_scrobbling_logged_out_toast">Logged out</string>
+
+    <string name="morphe_music_listenbrainz_title" translatable="false">ListenBrainz</string>
+    <!-- 'scrobbling' must be kept untranslated -->
+    <string name="morphe_music_listenbrainz_enabled_title">Enable scrobbling</string>
+    <string name="morphe_music_listenbrainz_now_playing_title">Submit \"Now Playing\" status</string>
+    <string name="morphe_music_listenbrainz_min_song_duration_title">Minimum song duration</string>
+    <!-- 'scrobbled' must be kept untranslated -->
+    <string name="morphe_music_listenbrainz_min_song_duration_summary">Songs shorter than this will not be scrobbled</string>
+    <!-- 'scrobble' must be kept untranslated -->
+    <string name="morphe_music_listenbrainz_delay_percent_title">Scrobble delay percent</string>
+    <!-- 'scrobble' must be kept untranslated -->
+    <string name="morphe_music_listenbrainz_delay_percent_summary">Trigger scrobble after listening to this percentage of the song</string>
+    <!-- 'scrobble' must be kept untranslated -->
+    <string name="morphe_music_listenbrainz_delay_seconds_title">Scrobble delay seconds</string>
+    <!-- 'scrobble' must be kept untranslated -->
+    <string name="morphe_music_listenbrainz_delay_seconds_summary">Trigger scrobble after listening for this many seconds</string>
+    <string name="morphe_music_listenbrainz_token_title">ListenBrainz Account</string>
+    <string name="morphe_music_listenbrainz_token_summary_logged_in">Logged in. Tap to manage account</string>
+    <!-- 'scrobbling' must be kept untranslated -->
+    <string name="morphe_music_listenbrainz_token_dialog_instruction">Enter your ListenBrainz User Token to enable scrobbling</string>
+    <string name="morphe_music_listenbrainz_token_dialog_hint">Token</string>
+    <string name="morphe_music_listenbrainz_token_dialog_get_token">Get token</string>
+    <string name="morphe_music_listenbrainz_token_dialog_verify">Verify</string>
+    <string name="morphe_music_listenbrainz_token_status_empty">Please enter a token</string>
+    <string name="morphe_music_listenbrainz_token_status_validating">Validating...</string>
+    <string name="morphe_music_listenbrainz_token_status_valid">Valid token! User: %s</string>
+    <string name="morphe_music_listenbrainz_token_status_invalid">Invalid token: %s</string>
+    <string name="morphe_music_listenbrainz_token_status_invalid_unknown">unknown</string>
+    <string name="morphe_music_listenbrainz_token_status_failed">Verification failed: %s</string>
+    <string name="morphe_music_listenbrainz_token_toast_cleared">Token cleared</string>
+    <string name="morphe_music_listenbrainz_token_toast_saved">Token saved</string>
+    <string name="morphe_music_listenbrainz_token_toast_invalid_warning">Warning: Saved token is invalid!</string>
+
+    <string name="morphe_music_lastfm_title" translatable="false">Last.fm</string>
+    <!-- 'scrobbling' must be kept untranslated -->
+    <string name="morphe_music_lastfm_enabled_title">Enable scrobbling</string>
+    <string name="morphe_music_lastfm_now_playing_title">Submit \"Now Playing\" status</string>
+    <string name="morphe_music_lastfm_love_on_like_title">Love liked tracks</string>
+    <string name="morphe_music_lastfm_love_on_like_summary">Automatically love tracks on Last.fm when you like them on YouTube Music (and remove love when unliked or disliked)</string>
+    <string name="morphe_music_lastfm_min_song_duration_title">Minimum song duration</string>
+    <!-- 'scrobbled' must be kept untranslated -->
+    <string name="morphe_music_lastfm_min_song_duration_summary">Songs shorter than this will not be scrobbled</string>
+    <!-- 'scrobble' must be kept untranslated -->
+    <string name="morphe_music_lastfm_delay_percent_title">Scrobble delay percent</string>
+    <!-- 'scrobble' must be kept untranslated -->
+    <string name="morphe_music_lastfm_delay_percent_summary">Trigger scrobble after listening to this percentage of the song</string>
+    <!-- 'scrobble' must be kept untranslated -->
+    <string name="morphe_music_lastfm_delay_seconds_title">Scrobble delay seconds</string>
+    <!-- 'scrobble' must be kept untranslated -->
+    <string name="morphe_music_lastfm_delay_seconds_summary">Trigger scrobble after listening for this many seconds</string>
+    <string name="morphe_music_lastfm_token_title">Last.fm Account</string>
+    <string name="morphe_music_lastfm_token_summary_logged_in">Logged in as %s. Tap to manage account</string>
+    <string name="morphe_music_lastfm_token_dialog_instruction">Enter your Last.fm credentials to log in</string>
+    <string name="morphe_music_lastfm_token_dialog_username_hint">Username</string>
+    <string name="morphe_music_lastfm_token_dialog_password_hint">Password</string>
+    <string name="morphe_music_lastfm_token_dialog_login">Log in</string>
+    <string name="morphe_music_lastfm_token_status_empty">Please enter username and password</string>
+    <string name="morphe_music_lastfm_token_status_logging_in">Logging in...</string>
+    <string name="morphe_music_lastfm_token_status_success">Logged in successfully!</string>
+    <string name="morphe_music_lastfm_token_status_no_session">Failed to get session from Last.fm</string>
+    <string name="morphe_music_lastfm_token_status_failed">Login failed: %s</string>
+    <string name="morphe_music_lastfm_token_toast_saved">Last.fm credentials saved!</string>
+
+    <string name="morphe_settings_music_scrobbling_metadata_title">Metadata cleanup</string>
+    <string name="morphe_music_scrobbling_metadata_cleanup_title">Clean up metadata</string>
+    <string name="morphe_music_scrobbling_metadata_cleanup_summary">Automatically clean common clutter (like \"Official Video\", \"Remaster\", \"Live\") from titles, artists, and albums before scrobbling</string>
+    <string name="morphe_music_scrobbling_custom_regex_title">Custom regex cleanup</string>
+    <string name="morphe_music_scrobbling_custom_regex_summary">"Enter a custom regular expression (regex) to match and remove additional text from song titles, artists, or albums.
+Example: (?i)\\s*\\((clean|explicit)\\)"</string>
+
+    <string name="morphe_music_scrobbling_about_title">About scrobbling</string>
+    <string name="morphe_music_scrobbling_about_summary">"Scrobbling automatically tracks the music you play on YouTube Music and syncs it to your Last.fm or ListenBrainz profile.
+
+To ensure scrobbling runs reliably in the background, please verify that YouTube Music's system battery usage is set to \"Unrestricted\"."</string>
+</resources>

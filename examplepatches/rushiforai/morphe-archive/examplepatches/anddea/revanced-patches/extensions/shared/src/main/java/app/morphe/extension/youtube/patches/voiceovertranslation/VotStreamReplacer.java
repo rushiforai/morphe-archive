@@ -1,0 +1,206 @@
+/*
+ * Copyright (C) 2026 anddea
+ *
+ * This file is part of the revanced-patches project:
+ * https://github.com/anddea/revanced-patches
+ *
+ * Original author(s):
+ * - Jav1x (https://github.com/Jav1x)
+ *
+ * Licensed under the GNU General Public License v3.0.
+ *
+ * ------------------------------------------------------------------------
+ * GPLv3 Section 7 – Additional Terms & Attribution Requirements
+ * ------------------------------------------------------------------------
+ *
+ * This file contains substantial original work by the author(s) listed above.
+ *
+ * In accordance with Section 7 of the GNU General Public License v3.0,
+ * the following additional terms apply to this file:
+ *
+ * 1. Source Credit Preservation (Section 7(b)): This specific copyright notice
+ *    and the list of original authors above must be preserved in any copy
+ *    or derivative work. You may add your own copyright notice below it,
+ *    but you may not remove the original one.
+ *
+ * 2. Origin & Modification Marking (Section 7(c)): Modified versions must be
+ *    clearly marked as such (e.g., by adding a "Modified by" line or a new
+ *    copyright notice) and must not be misrepresented as the original work.
+ *
+ * 3. Version Control Attribution (Section 7(b)): Any ports or substantial
+ *    modifications must retain historical authorship credit in version control
+ *    systems (e.g., Git), listing original author(s) appropriately and
+ *    modifiers as committers or co-authors.
+ *
+ * 4. User Interface Attribution (Section 7(b)): Any works containing or
+ *    derived from this material must maintain a visible credit or
+ *    acknowledgment to the original author(s) within the application's
+ *    user interface (e.g., in an "About" or "Credits" section).
+ */
+
+package app.morphe.extension.youtube.patches.voiceovertranslation;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.google.protos.youtube.api.innertube.StreamingDataOuterClass.StreamingData;
+
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+import app.morphe.extension.shared.innertube.utils.StreamingDataOuterClassUtils;
+
+import app.morphe.extension.shared.utils.Utils;
+import app.morphe.extension.youtube.settings.Settings;
+
+import static app.morphe.extension.shared.utils.StringRef.str;
+import app.morphe.extension.youtube.shared.VideoInformation;
+
+@SuppressWarnings("unused")
+public final class VotStreamReplacer {
+
+    private static volatile String lastReplacedVideoId = null;
+    private static volatile String skipReplacementForVideoId = null;
+    private static volatile String replaceOnlyForVideoId = null;
+    private static final int TRANSLATION_TIMEOUT_SEC = 60;
+    private static final ExecutorService executor = Executors.newSingleThreadExecutor(r -> {
+        Thread t = new Thread(r, "vot-stream-replacer");
+        t.setDaemon(true);
+        return t;
+    });
+
+    @Nullable
+    public static StreamingData process(@NonNull StreamingData stream, @NonNull String videoId) {
+        if (!Settings.VOT_ENABLED.get()) {
+            return stream;
+        }
+        if (videoId.equals(skipReplacementForVideoId)) {
+            skipReplacementForVideoId = null;
+            return stream;
+        }
+        if (!videoId.equals(replaceOnlyForVideoId)) {
+            return stream;
+        }
+        Utils.runOnMainThread(() -> Utils.showToastShort(str("revanced_vot_stream_requesting")));
+        String sourceLang = Settings.VOT_SOURCE_LANGUAGE.get();
+        String targetLang = Settings.VOT_TARGET_LANGUAGE.get();
+        if (!sourceLang.isEmpty() && !"auto".equalsIgnoreCase(sourceLang) && sourceLang.equals(targetLang)) {
+            return stream;
+        }
+        long durationMs = StreamingDataOuterClassUtils.getApproxDurationMsFromFirstFormat(stream);
+        double durationSec = durationMs / 1000.0;
+        if (durationSec <= 0) durationSec = 60.0;
+        if (durationSec > 4 * 3600) {
+            return stream;
+        }
+        List<?> formats = StreamingDataOuterClassUtils.getAdaptiveFormats(stream);
+        int audioCount = 0;
+        if (formats != null) {
+            for (Object f : formats) {
+                if (StreamingDataOuterClassUtils.isAudioOnlyFormat(f)) audioCount++;
+            }
+        }
+        String title = VideoInformation.getVideoTitle();
+        final double durationSecFinal = durationSec;
+        final String titleFinal = title;
+        final String youtubeUrlFinal = "https://youtu.be/" + videoId;
+
+        Callable<StreamingData> task = () -> {
+            long deadline = System.currentTimeMillis() + TRANSLATION_TIMEOUT_SEC * 1000L;
+            boolean[] hadWaiting = {false};
+
+            VotApiClient.TranslationResult result = VotApiClient.pollUntilReady(
+                    youtubeUrlFinal, durationSecFinal, sourceLang, targetLang, titleFinal,
+                    0,
+                    new VotApiClient.PollHandler() {
+                        @Override
+                        public boolean isCancelled() {
+                            return System.currentTimeMillis() >= deadline;
+                        }
+
+                        @Override
+                        public void onAudioReady(VotApiClient.TranslationResult res) {
+                        }
+
+                        @Override
+                        public void onAudioRequested(String videoUrl, String translationId) {
+                        }
+
+                        @Override
+                        public boolean onFailed() {
+                            if (Settings.VOT_USE_LIVE_VOICES.get()) {
+                                Settings.VOT_USE_LIVE_VOICES.save(false);
+                                Utils.runOnMainThread(() -> Utils.showToastShort(str("revanced_vot_live_voices_unavailable")));
+                                return true;
+                            }
+                            if (hadWaiting[0]) {
+                                Utils.runOnMainThread(() -> Utils.showToastShort(str("revanced_vot_stream_not_ready")));
+                            }
+                            return false;
+                        }
+
+                        @Override
+                        public void onSessionRequired() {
+                        }
+
+                        @Override
+                        public void onWaiting(int waitSeconds, boolean isFirstWait) {
+                            hadWaiting[0] = true;
+                            if (isFirstWait) {
+                                String timeStr = VoiceOverTranslationPatch.formatRemainingTime(waitSeconds);
+                                Utils.runOnMainThread(() -> Utils.showToastShort(str("revanced_vot_stream_waiting", timeStr)));
+                            }
+                        }
+                    }
+            );
+
+            if (result == null || result.audioUrl() == null || result.audioUrl().isEmpty()) {
+                if (hadWaiting[0]) {
+                    Utils.runOnMainThread(() -> Utils.showToastShort(str("revanced_vot_stream_not_ready")));
+                }
+                return stream;
+            }
+
+            List<?> formatList = StreamingDataOuterClassUtils.getAdaptiveFormats(stream);
+            if (formatList == null || formatList.isEmpty()) {
+                return stream;
+            }
+            int replaced = 0;
+            String audioUrl = result.audioUrl();
+            if (Settings.VOT_AUDIO_PROXY_ENABLED.get()) {
+                audioUrl = VotApiClient.toProxyAudioUrl(audioUrl);
+            }
+            for (Object format : formatList) {
+                if (StreamingDataOuterClassUtils.isAudioOnlyFormat(format)) {
+                    StreamingDataOuterClassUtils.setUrl(format, audioUrl);
+                    replaced++;
+                }
+            }
+            if (replaced > 0) {
+                lastReplacedVideoId = videoId;
+                replaceOnlyForVideoId = null;
+                Utils.runOnMainThread(() -> Utils.showToastShort(str("revanced_vot_stream_ready")));
+            }
+            return stream;
+        };
+
+        try {
+            Future<StreamingData> future = executor.submit(task);
+            return future.get(TRANSLATION_TIMEOUT_SEC, TimeUnit.SECONDS);
+        } catch (TimeoutException e) {
+            Utils.runOnMainThread(() -> Utils.showToastShort(str("revanced_vot_stream_not_ready")));
+            return stream;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return stream;
+        } catch (ExecutionException e) {
+            return stream;
+        }
+    }
+}

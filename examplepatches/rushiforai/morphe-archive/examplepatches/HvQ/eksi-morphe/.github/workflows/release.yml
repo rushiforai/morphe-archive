@@ -1,0 +1,82 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout patches
+        uses: actions/checkout@v5
+        with:
+          path: eksi-morphe
+
+      - name: Checkout Morphe Gradle plugin
+        uses: actions/checkout@v5
+        with:
+          repository: MorpheApp/morphe-patches-gradle-plugin
+          path: morphe-patches-gradle-plugin
+
+      - name: Checkout Morphe patcher
+        uses: actions/checkout@v5
+        with:
+          repository: MorpheApp/morphe-patcher
+          path: morphe-patcher
+
+      - name: Checkout Morphe patches library
+        uses: actions/checkout@v5
+        with:
+          repository: MorpheApp/morphe-patches-library
+          path: morphe-patches-library
+
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Build patch bundle
+        working-directory: eksi-morphe
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --no-parallel :morphe-patcher:jar :morphe-patches-library:patch-library:jar
+          ./gradlew --no-parallel :patches:buildAndroid :patches:generatePatchesList
+
+      - name: Prepare release assets
+        working-directory: eksi-morphe
+        run: |
+          version="$(grep '^version' gradle.properties | sed 's/.*= *//')"
+          if grep -Eq '"created_at": ".*(Z|[+-][0-9]{2}:[0-9]{2})"' patches-bundle.json; then
+            echo "::error::patches-bundle.json created_at must be a local date-time without timezone, e.g. 2026-05-06T08:59:32"
+            exit 1
+          fi
+          mkdir -p release-assets
+          cp "patches/build/libs/patches-${version}.mpp" release-assets/
+          cp patches-list.json release-assets/
+          cp patches-bundle.json release-assets/
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: eksi-morphe
+          path: |
+            eksi-morphe/release-assets/*
+
+      - name: Publish GitHub release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          overwrite_files: true
+          files: |
+            eksi-morphe/release-assets/*

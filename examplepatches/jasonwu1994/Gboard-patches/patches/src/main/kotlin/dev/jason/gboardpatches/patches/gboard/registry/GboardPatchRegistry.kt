@@ -52,6 +52,8 @@ import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWrit
 import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesExtensionCarrierPatch
 import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesSettingsPatch
 import dev.jason.gboardpatches.patches.gboard.features.undoredoaccesspoint.gboardUndoRedoAccessPointBytecodePatch
+import dev.jason.gboardpatches.patches.gboard.features.zhuyinbottomrow.gboardZhuyinBottomRowWeightFeatureMarkerPatch
+import dev.jason.gboardpatches.patches.gboard.features.zhuyinbottomrow.gboardZhuyinBottomRowWeightSoftKeyPatch
 import dev.jason.gboardpatches.patches.gboard.features.zhuyinslide.gboardZhuyinSlidePointerAnchorPatch
 import dev.jason.gboardpatches.patches.gboard.features.zhuyinslide.gboardZhuyinSlideResourcePatch
 import dev.jason.gboardpatches.patches.gboard.features.zhuyintraditionalsimplifiedtoggle.gboardZhuyinTraditionalSimplifiedToggleRuntimePatch
@@ -359,6 +361,21 @@ val gboardLatinGlobeKeyIgnoreIntervalPatch = resourcePatch(
         gboardPatchesSettingsPatch,
         gboardLatinGlobeKeyIgnoreIntervalFeatureMarkerPatch,
         gboardLatinGlobeKeyIgnoreIntervalBytecodePatch
+    )
+}
+
+@Suppress("unused")
+val gboardZhuyinBottomRowWeightPatch = resourcePatch(
+    name = "Zhuyin Bottom Row Key Sizes",
+    description = "調整注音鍵盤底排按鍵大小\nAdjust Zhuyin keyboard bottom-row key sizes.",
+    default = true
+) {
+    compatibleWith(COMPATIBILITY_GBOARD)
+
+    dependsOn(
+        gboardPatchesSettingsPatch,
+        gboardZhuyinBottomRowWeightFeatureMarkerPatch,
+        gboardZhuyinBottomRowWeightSoftKeyPatch
     )
 }
 

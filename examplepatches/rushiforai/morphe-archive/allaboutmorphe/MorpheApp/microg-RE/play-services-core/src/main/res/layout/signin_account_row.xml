@@ -1,0 +1,54 @@
+<!--
+  ~ SPDX-FileCopyrightText: 2023 microG Project Team
+  ~ SPDX-License-Identifier: Apache-2.0
+  -->
+
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="24dp"
+        android:orientation="horizontal">
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/account_photo"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginVertical="12dp"
+            android:src="@drawable/ic_google_logo" />
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginVertical="12dp"
+            android:layout_marginStart="12dp"
+            android:orientation="vertical">
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/account_display_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceListItem"
+                tools:text="Ada Lovelace" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/account_email"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="example@gmail.com" />
+        </androidx.appcompat.widget.LinearLayoutCompat>
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginHorizontal="24dp"
+        android:background="?attr/dividerHorizontal" />
+</androidx.appcompat.widget.LinearLayoutCompat>

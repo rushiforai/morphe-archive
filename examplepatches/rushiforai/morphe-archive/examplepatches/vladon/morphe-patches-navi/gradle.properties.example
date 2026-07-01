@@ -1,0 +1,12 @@
+# Секреты для GitHub Packages (плагин Morphe) НЕ хранятся в репозитории.
+# Добавь в файл пользователя (один раз):
+#   Windows: %USERPROFILE%\.gradle\gradle.properties
+#   Linux/macOS: ~/.gradle/gradle.properties
+#
+# Содержимое:
+# gpr.user=ТВОЙ_ЛОГИН_GITHUB
+# gpr.key=ghp_...
+#
+# Локальная сборка: ./gradlew :patches:buildAndroid
+#
+# Корневой gradle.properties в репозитории — только version и флаги Gradle (без токена).

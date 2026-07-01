@@ -9,7 +9,7 @@ Handoff doc for agents continuing work on **Samsung Health Morphe patches**. Rea
 | **Repo** | https://github.com/bigyank/morphe-patches-samsung |
 | **Latest release** | **v1.1.0** — stable; Knox 0x1 device-verified |
 | **Morphe plugin** | `app.morphe.patches` 1.3.0 |
-| **Target app** | Samsung Health `com.sec.android.app.shealth` — **latest: 6.32.0.001** (also 6.31.3.013) |
+| **Target app** | Samsung Health `com.sec.android.app.shealth` — **latest: 7.00.0.107** (also 6.32.0.001, 6.31.3.013) |
 | **User scenario** | Knox tripped (0x1), **unrooted** Samsung phone; stock Health blocks Knox/integrity; patched Health must launch, login, and sync |
 | **Patch source URL** | `https://github.com/bigyank/morphe-patches-samsung` |
 
@@ -38,6 +38,8 @@ Patch Samsung Health **on-device** via [Morphe Manager](https://morphe.software/
 | Morphe OOM / patch loop on device | `resourcePatch` decodes ~300 MB Health resources | **Dex-only** account patch; never re-add manifest/res decode (v1.0.10 was broken) |
 | CI compile failures after refactor | Morphe 1.3 needs `BytecodePatchContext` for `fingerprint.method` and smali `addInstructions` | Extension functions on `BytecodePatchContext`, logic inside `fingerprint.method.apply { }` (v1.0.12) |
 | OOBE fingerprint mismatch on 6.32 | Hardcoded `util/h.p` obfuscated per build | Content-scanned `OobeKnoxStubber.kt` (v1.0.15) |
+| Health 7.x SAK fingerprint | Empty `c6r` class — hard fingerprint fails | Optional `c6r` fingerprint + `SakSupportedStubber.kt` dex scan |
+| Health 7.x account API refactor | `getSamsungAccountId(Context)` removed; provider gate takes `Context` | `isAccountProviderSupported(Context)` fingerprint + `AccountProviderStubber.kt` scans `SamsungAccountDataSourceImpl` |
 | CI compile fail on `$this$isRooted` string | Kotlin string interpolation in `isRootedFileCheck` | Escape dollars: `${'$'}this${'$'}isRooted` (v1.0.16) |
 
 ### Refactor completed (main branch)
@@ -174,7 +176,7 @@ CI runs the same Gradle command on push to `main`, then semantic-release publish
 ## Device testing checklist
 
 1. Morphe Manager → process runtime **1280 MB**.
-2. Add patch source; select the **latest** Health APK (currently **6.32.0.001** universal).
+2. Add patch source; select the **latest** Health APK (currently **7.00.0.107** or **6.32.0.001** universal).
 3. Enable **both** patches; patch on device.
 4. Uninstall stock Health; install patched APK.
 5. Verify:
@@ -265,5 +267,5 @@ gh run list --repo bigyank/morphe-patches-samsung --limit 3
 
 - **CI:** green (`./gradlew :patches:buildAndroid generatePatchesList clean`)
 - **Device:** launch, account sync, Galaxy Fit3 wearable sync confirmed on SM-S911B, Knox 0x1
-- **Stable target:** Samsung Health 6.32.0.001 / 6.31.3.013 with both default-on patches
+- **Stable targets:** Samsung Health 7.00.0.107 / 6.32.0.001 / 6.31.3.013 with both default-on patches
 - **Open work:** separate Wearable Morphe repo if expanding scope — see [AUDIT.md](./AUDIT.md)

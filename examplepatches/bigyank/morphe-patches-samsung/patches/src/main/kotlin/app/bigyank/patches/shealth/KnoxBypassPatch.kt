@@ -34,7 +34,8 @@ val disableKnoxIntegrityChecksPatch = bytecodePatch(
         stubZeroReturn(IKnoxControlProxyIsKnoxAvailableFingerprint, returnObject = false)
         stubZeroReturn(IKnoxControlProxyRequestKeyInitForKnoxFingerprint, returnObject = false)
         stubZeroReturn(SakCheckerIsSupportedFingerprint, returnObject = false)
-        stubZeroReturn(SamsungSakCheckerC6rFingerprint, returnObject = false)
+        stubZeroReturnIfPresent(SamsungSakCheckerC6rFingerprint, returnObject = false)
+        stubObfuscatedSakCheckers()
 
         stubOobeKnoxGates()
     }

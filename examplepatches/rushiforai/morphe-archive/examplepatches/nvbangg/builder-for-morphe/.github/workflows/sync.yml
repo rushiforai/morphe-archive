@@ -1,0 +1,121 @@
+# Copyright (c) 2026 nvbangg (github.com/nvbangg)
+
+name: Sync upstream
+
+on:
+  schedule:
+    - cron: "0 8 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    name: Sync upstream
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+          fetch-tags: false
+
+      - name: Check upstream
+        id: check
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
+          UPSTREAM_URL: ${{ vars.UPSTREAM_URL }}
+        run: |
+          if [ -z "$UPSTREAM_URL" ]; then
+            UPSTREAM_URL=$(gh api repos/${{ github.repository }} -q '.parent.html_url // "https://github.com/nvbangg/builder-for-morphe"')
+          fi
+          git remote add upstream "$UPSTREAM_URL"
+          git fetch --no-tags upstream refs/heads/main:refs/remotes/upstream/main
+          git fetch --no-tags origin refs/heads/main:refs/remotes/origin/main
+          git fetch --no-tags origin refs/heads/sync-upstream:refs/remotes/origin/sync-upstream || true
+
+          if [ "$(git rev-list --count origin/main..upstream/main)" -eq 0 ]; then
+            echo "::notice title=Sync upstream::There were no new commits."
+            exit 0
+          fi
+
+          echo "HAS_CHANGES=true" >> "$GITHUB_OUTPUT"
+
+      - name: Sync upstream
+        if: steps.check.outputs.HAS_CHANGES == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
+          IGNORE_SYNC_FILES: ${{ vars.IGNORE_SYNC_FILES }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          IGNORE_LIST="${IGNORE_SYNC_FILES:-config.toml sig.txt}"
+
+          if ! git merge upstream/main; then
+            CONFLICT_FILES=$(git diff --name-only --diff-filter=U)
+            UNRESOLVED=false
+            if [ -n "$CONFLICT_FILES" ]; then
+              for file in $CONFLICT_FILES; do
+                IGNORED=false
+                for pattern in $IGNORE_LIST; do
+                  if [[ "$file" == "$pattern" ]] || [[ "$file" == "$pattern"/* ]]; then
+                    IGNORED=true
+                    break
+                  fi
+                done
+                if [ "$IGNORED" = false ]; then
+                  UNRESOLVED=true
+                  break
+                fi
+              done
+            fi
+
+            if [ "$UNRESOLVED" = true ]; then
+              echo "::notice title=Sync Upstream::Unresolved conflicts detected"
+              git merge --abort || true
+
+              if git show-ref --verify --quiet refs/remotes/origin/sync-upstream; then
+                if git merge-base --is-ancestor upstream/main origin/sync-upstream; then
+                  echo "::notice title=Sync Upstream::PR branch already contains the latest upstream commits"
+                  exit 0
+                fi
+              fi
+
+              git checkout -B sync-upstream
+              git merge --no-commit -X theirs upstream/main || true
+              for pattern in $IGNORE_LIST; do
+                git checkout main -- "$pattern" || true
+                git add "$pattern" || true
+              done
+              git commit -m "Merge remote-tracking branch 'upstream/main'"
+
+              if ! git push --force -u origin sync-upstream; then
+                echo "::warning title=Sync Upstream Failed::PAT_TOKEN is required for workflow updates"
+                exit 0
+              fi
+
+              gh pr create --repo ${{ github.repository }} --base main --head sync-upstream --title "Sync Upstream" --body "Merge remote-tracking branch 'upstream/main'" || {
+                if [ "$(gh pr list --repo ${{ github.repository }} --head sync-upstream --state open --json number -q 'length')" -eq 0 ]; then
+                  echo "::error title=Sync Upstream Failed::No permission to create Pull Request"
+                  git push origin --delete sync-upstream || true
+                  exit 1
+                fi
+              }
+              exit 0
+            fi
+
+            for pattern in $IGNORE_LIST; do
+              git checkout --ours -- "$pattern" || true
+              git add "$pattern" || true
+            done
+            git commit -m "Merge remote-tracking branch 'upstream/main'"
+          fi
+          if ! git push; then
+            echo "::warning title=Sync Upstream Failed::PAT_TOKEN is required for workflow updates"
+            exit 0
+          fi
+          echo "::notice title=Sync upstream::New commits were found and synced."

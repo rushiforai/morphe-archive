@@ -11,9 +11,10 @@ object Constants {
         apkFileType = ApkFileType.APK,
         appIconColor = 0x1DC9A0,
         targets = listOf(
-            // Latest public release (APKMirror + Play Store, Apr 2026)
+            // Major redesign (APKMirror, Jun 2026)
+            AppTarget(version = "7.00.0.107"),
+            // Previous 6.3x stable
             AppTarget(version = "6.32.0.001"),
-            // Previous stable — same 6.3x Knox/account SDK layout
             AppTarget(version = "6.31.3.013"),
         ),
     )

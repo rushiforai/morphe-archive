@@ -1,0 +1,20 @@
+# Build output
+build/
+.gradle/
+
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local config
+local.properties
+
+# Large/temp files
+*.apk
+*.zip

@@ -1,0 +1,7 @@
+{
+  "created_at": "2026-06-26T09:18:10",
+  "description": "## [1.10.1](https://github.com/sjshb57/Pairip-Patches/compare/v1.10.0...v1.10.1) (2026-06-26)\n\n### 🐛 Bug Fixes\n\n* refine pairip constant class detection in RemovePairipPatch ([2e29034](https://github.com/sjshb57/Pairip-Patches/commit/2e290347a71dc851ce92009cfdb0b2081c51dac5))",
+  "download_url": "https://github.com/sjshb57/Pairip-Patches/releases/download/v1.10.1/patches-1.10.1.mpp",
+  "signature_download_url": "",
+  "version": "1.10.1"
+}

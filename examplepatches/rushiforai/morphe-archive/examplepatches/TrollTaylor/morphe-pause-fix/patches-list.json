@@ -1,0 +1,15 @@
+{
+  "version": "1.0.30",
+  "patches": [
+    {
+      "name": "Fix Auto-Play Pause",
+      "description": "Fixes YouTube videos auto-pausing immediately after opening when logged in.",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "com.google.android.youtube": null
+      },
+      "options": []
+    }
+  ]
+}

@@ -1,0 +1,93 @@
+package app.morphe.patches.all.misc.transformation
+
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.util.fiveRegisters
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction35c
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+
+typealias Instruction35cInfo = Triple<IMethodCall, Instruction35c, Int>
+
+@Deprecated(
+    "This code may be deleted in the future. Instead use Fingerprint.matchAll() " +
+            "or classDefForEach {} with findInstructionIndicesReversedOrThrow()"
+)
+interface IMethodCall {
+    val definedClassName: String
+    val methodName: String
+    val methodParams: Array<String>
+    val methodReturnType: String
+
+    /**
+     * Replaces an invoke-virtual instruction with an invoke-static instruction,
+     * which calls a static replacement method in the respective extension class.
+     * The method definition in the extension class is expected to be the same,
+     * except that the method should be static and take as a first parameter
+     * an instance of the class, in which the original method was defined in.
+     *
+     * Example:
+     *
+     * original method: Window#setFlags(int, int)
+     *
+     * replacement method: Extension#setFlags(Window, int, int)
+     */
+    fun replaceInvokeVirtualWithExtension(
+        definingClassDescriptor: String,
+        method: MutableMethod,
+        instructionIndex: Int,
+    ) {
+        method.apply {
+            val args = fiveRegisters(instructionIndex)
+            val replacementMethod =
+                "$methodName(${definedClassName}${methodParams.joinToString(separator = "")})$methodReturnType"
+
+            replaceInstruction(
+                instructionIndex,
+                "invoke-static { $args }, $definingClassDescriptor->$replacementMethod",
+            )
+        }
+    }
+}
+
+@Deprecated(
+    "This code may be deleted in the future. Instead use Fingerprint.matchAll() " +
+            "or classDefForEach {} with findInstructionIndicesReversedOrThrow()"
+)
+inline fun <reified E> fromMethodReference(
+    methodReference: MethodReference,
+)
+        where E : Enum<E>, E : IMethodCall = enumValues<E>().firstOrNull { search ->
+    search.definedClassName == methodReference.definingClass &&
+            search.methodName == methodReference.name &&
+            methodReference.parameterTypes.toTypedArray().contentEquals(search.methodParams) &&
+            search.methodReturnType == methodReference.returnType
+}
+
+@Deprecated(
+    "This code may be deleted in the future. Instead use Fingerprint.matchAll() " +
+            "or classDefForEach {} with findInstructionIndicesReversedOrThrow()"
+)
+inline fun <reified E> filterMapInstruction35c(
+    extensionClassDescriptorPrefix: String,
+    classDef: ClassDef,
+    instruction: Instruction,
+    instructionIndex: Int,
+): Instruction35cInfo? where E : Enum<E>, E : IMethodCall {
+    if (classDef.startsWith(extensionClassDescriptorPrefix)) {
+        // avoid infinite recursion
+        return null
+    }
+
+    if (instruction.opcode != Opcode.INVOKE_VIRTUAL) {
+        return null
+    }
+
+    val invokeInstruction = instruction as Instruction35c
+    val methodRef = invokeInstruction.reference as MethodReference
+    val methodCall = fromMethodReference<E>(methodRef) ?: return null
+
+    return Instruction35cInfo(methodCall, invokeInstruction, instructionIndex)
+}

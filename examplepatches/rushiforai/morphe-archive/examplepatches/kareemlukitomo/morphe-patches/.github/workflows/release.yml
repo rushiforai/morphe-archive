@@ -1,0 +1,165 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "CalVer release version without leading v, for example 26.4.29-abcdef"
+        required: true
+        type: string
+  push:
+    tags:
+      - "v[0-9][0-9].[0-9]*.[0-9]*-*"
+
+jobs:
+  release:
+    name: Release
+    permissions:
+      contents: write
+      packages: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Resolve CalVer version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            version="${GITHUB_REF_NAME#v}"
+            tag="${GITHUB_REF_NAME}"
+          else
+            version="${{ inputs.version }}"
+            tag="v${version}"
+          fi
+
+          if [[ ! "${version}" =~ ^[0-9]{2}\.[0-9]{1,2}\.[0-9]{1,2}-[0-9a-f]{6}$ ]]; then
+            echo "Expected CalVer version like 26.4.29-abcdef, got: ${version}" >&2
+            exit 1
+          fi
+
+          short_sha="$(git rev-parse --short=6 HEAD)"
+          suffix="${version##*-}"
+          if [[ "${suffix}" != "${short_sha}" ]]; then
+            echo "Version suffix ${suffix} does not match checked-out commit ${short_sha}" >&2
+            exit 1
+          fi
+
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+          echo "mpp_path=patches/build/libs/patches-${version}.mpp" >> "$GITHUB_OUTPUT"
+
+      - name: Set Gradle version
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import os
+
+          version = os.environ["RELEASE_VERSION"]
+          path = Path("gradle.properties")
+          lines = path.read_text().splitlines()
+          updated = False
+          for index, line in enumerate(lines):
+              if line.strip().startswith("version"):
+                  lines[index] = f"version = {version}"
+                  updated = True
+                  break
+          if not updated:
+              lines.append(f"version = {version}")
+          path.write_text("\n".join(lines) + "\n")
+          PY
+        env:
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Cache Gradle
+        uses: burrunan/gradle-cache-action@v3
+
+      - name: Build patch bundle
+        env:
+          GPR_KEY: ${{ secrets.GPR_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          export GITHUB_TOKEN="${GPR_KEY:-$GITHUB_TOKEN}"
+          ./gradlew :patches:buildAndroid generatePatchesList --no-daemon
+          test -f "${{ steps.version.outputs.mpp_path }}"
+
+      - name: Generate release metadata
+        shell: bash
+        env:
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          python3 - <<'PY'
+          from datetime import datetime, timezone
+          from pathlib import Path
+          import json
+          import os
+          import subprocess
+
+          version = os.environ["RELEASE_VERSION"]
+          tag = os.environ["RELEASE_TAG"]
+          repo = os.environ["GITHUB_REPOSITORY"]
+          base = f"https://github.com/{repo}/releases/download/{tag}"
+          bundle_name = f"patches-{version}.mpp"
+
+          previous_tag = subprocess.run(
+              ["git", "describe", "--tags", "--abbrev=0", "HEAD^"],
+              text=True,
+              stdout=subprocess.PIPE,
+              stderr=subprocess.DEVNULL,
+          ).stdout.strip()
+          if previous_tag:
+              log_range = f"{previous_tag}..HEAD"
+          else:
+              root = subprocess.check_output(
+                  ["git", "rev-list", "--max-parents=0", "HEAD"],
+                  text=True,
+              ).strip().splitlines()[0]
+              log_range = f"{root}..HEAD"
+          changes = subprocess.check_output(
+              ["git", "log", "--pretty=- %s (%h)", log_range],
+              text=True,
+          ).strip()
+
+          Path("patches-bundle.json").write_text(
+              json.dumps(
+                  {
+                      "created_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+                      "description": "Kareem Morphe patch bundle",
+                      "download_url": f"{base}/{bundle_name}",
+                      "signature_download_url": f"{base}/{bundle_name}.asc",
+                      "version": version,
+                  },
+                  indent=2,
+              )
+              + "\n"
+          )
+          Path("RELEASE_NOTES.md").write_text(
+              f"## {tag}\n\n" + (changes or "- CalVer patch bundle release") + "\n"
+          )
+          PY
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: ${{ steps.version.outputs.tag }}
+          body_path: RELEASE_NOTES.md
+          files: |
+            ${{ steps.version.outputs.mpp_path }}
+            patches-list.json
+            patches-bundle.json

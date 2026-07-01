@@ -23,32 +23,21 @@ val bypassSamsungAccountSignatureCheckPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_SHEALTH)
 
     execute {
-        stubReturnFalse(SamsungAccountUtilsIsAccountProviderSupportedFingerprint)
+        // 6.3x no-arg vs 7.x Context arg — only one exists per APK.
+        stubReturnFalseIfPresent(SamsungAccountUtilsIsAccountProviderSupportedFingerprint)
+        stubReturnFalseIfPresent(SamsungAccountUtilsIsAccountProviderSupportedWithContextFingerprint)
+        stubReturnFalseIfPresent(AccountCountryLookupIsAccountProviderSupportedFingerprint)
+
         stubReturnFalse(UtilGetSupportAccountManagerProviderFingerprint)
         stubReturnFalse(UtilIsAccountSignedInFromAccountManagerProviderFingerprint)
 
-        SamsungAccountUtilsGetSamsungAccountIdFingerprint.let { fingerprint ->
-            replaceMethodBody(
-                fingerprint,
-                """
-            invoke-static {p1}, Landroid/accounts/AccountManager;->get(Landroid/content/Context;)Landroid/accounts/AccountManager;
-            move-result-object v0
-            const-string v1, "$DEVICE_SAMSUNG_ACCOUNT_TYPE"
-            invoke-virtual {v0, v1}, Landroid/accounts/AccountManager;->getAccountsByType(Ljava/lang/String;)[Landroid/accounts/Account;
-            move-result-object v0
-            array-length v1, v0
-            if-lez v1, :sa_no_account
-            const/4 v1, 0x0
-            aget-object v0, v0, v1
-            iget-object v0, v0, Landroid/accounts/Account;->name:Ljava/lang/String;
-            return-object v0
-            :sa_no_account
-            const/4 v0, 0x0
-            return-object v0
-            """.trimIndent(),
-            )
-        }
+        // 6.3x direct provider call; 7.x uses SamsungAccountDataSourceImpl (content-scanned below).
+        replaceMethodBodyIfPresent(
+            SamsungAccountUtilsGetSamsungAccountIdFingerprint,
+            accountManagerLookupBody("p1"),
+        )
 
+        stubAccountProviderFetchCalls()
         replaceSigninPackageInDex()
     }
 }

@@ -90,12 +90,15 @@ public final class GboardSettingsGroupingTest {
         Assert.assertFalse(registrySource.contains("new GboardSymbolFooterOrderSettingsFeature("));
         Assert.assertFalse(registrySource.contains("new GboardAiWritingToolsSettingsFeature("));
         Assert.assertFalse(registrySource.contains("new GboardEnglishUppercaseToggleSettingsFeature("));
+        Assert.assertFalse(registrySource.contains("new GboardZhuyinBottomRowWeightSettingsFeature("));
         Assert.assertTrue(keyboardGroupSource.contains(
                 "new GboardLatinGlobeKeyIgnoreIntervalSettingsFeature("));
         Assert.assertTrue(keyboardGroupSource.contains(
                 "new GboardEnglishUppercaseToggleSettingsFeature("));
         Assert.assertTrue(keyboardGroupSource.contains("new GboardAiWritingToolsSettingsFeature("));
         Assert.assertTrue(keyboardGroupSource.contains("new GboardSymbolFooterOrderSettingsFeature("));
+        Assert.assertTrue(keyboardGroupSource.contains(
+                "new GboardZhuyinBottomRowWeightSettingsFeature("));
     }
 
     @Test
@@ -117,11 +120,16 @@ public final class GboardSettingsGroupingTest {
         Assert.assertTrue(availabilitySource.contains("FEATURE_AI_WRITING_TOOLS"));
         Assert.assertTrue(availabilitySource.contains(
                 "dev.jason.gboardpatches.feature.ai_writing_tools"));
+        Assert.assertTrue(availabilitySource.contains("FEATURE_ZHUYIN_BOTTOM_ROW_WEIGHT"));
+        Assert.assertTrue(availabilitySource.contains(
+                "dev.jason.gboardpatches.feature.zhuyin_bottom_row_weight"));
         Assert.assertTrue(patchSource.contains(
                 "gboardLatinGlobeKeyIgnoreIntervalFeatureMarkerPatch"));
         Assert.assertTrue(patchSource.contains(
                 "gboardEnglishUppercaseToggleFeatureMarkerPatch"));
         Assert.assertTrue(patchSource.contains("gboardAiWritingToolsFeatureMarkerPatch"));
+        Assert.assertTrue(patchSource.contains(
+                "gboardZhuyinBottomRowWeightFeatureMarkerPatch"));
     }
 
     @Test
