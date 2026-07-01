@@ -15,6 +15,7 @@ LaKakaReal/LaKakaShitPatches
 Lynx6319/patch-youtube-scroll-block
 MoonShadowKeeper/Telegram-patchesMorphe
 MorpheApp/morphe-patches
+Nai64/Nai64Patches
 Pa-kon/morphe-screenshot-patches
 Paresh-Maheshwari/paresh-patches
 PawiX25/pepper-morphe-patches
@@ -23,6 +24,7 @@ PrathxmOp/Prathxm-Patches
 PrathxmOp/ytmusic-patches
 Quantro100/Morphe-patches
 RealCyberwash/max-patches
+Ripthulhu/morphe-google-patches
 RookieEnough/De-Vanced
 Trimpsuz/morphe-busuu
 TrollTaylor/morphe-pause-fix
@@ -75,6 +77,7 @@ osirisad/ts-patches
 polka-bear/morphe-patches
 quantavil/edge-morphe-patches
 rabilrbl/fluffy-patches
+rushiforai/morphe-archive
 sjshb57/Pairip-Patches
 vladon/morphe-patches-navi
 wchill/anddea-rvx-morphed

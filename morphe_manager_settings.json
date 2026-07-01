@@ -596,6 +596,22 @@
                 "sortOrder": 71,
                 "createdAt": 1782791664276,
                 "updatedAt": 1782791664276
+            },
+            {
+                "name": "Nai64Patches",
+                "source": "https://raw.githubusercontent.com/Nai64/Nai64Patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 72,
+                "createdAt": 1782878942576,
+                "updatedAt": 1782878942576
+            },
+            {
+                "name": "morphe-google-patches",
+                "source": "https://raw.githubusercontent.com/Ripthulhu/morphe-google-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 73,
+                "createdAt": 1782878942984,
+                "updatedAt": 1782878942984
             }
         ],
         "bytecodeModePreference": "STRIP_FAST"
