@@ -1,3 +1,15 @@
+# [1.8.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.7.0...v1.8.0) (2026-07-02)
+
+
+### Bug Fixes
+
+* **primevideo:** block additional Volley ad hosts ([b47e706](https://github.com/ajstrick81/morphe-androidtv-patches/commit/b47e706d8597ba36ad66a2385a2e1ec07a123472))
+
+
+### Features
+
+* **primevideo:** add Clone Prime Video side-by-side install patch ([0ebea56](https://github.com/ajstrick81/morphe-androidtv-patches/commit/0ebea56de302d986a3e559a224c7e5e5affdab3b))
+
 # [1.7.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.6.0...v1.7.0) (2026-06-27)
 
 

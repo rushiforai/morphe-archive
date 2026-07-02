@@ -54,8 +54,10 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           IGNORE_LIST="${IGNORE_SYNC_FILES:-config.toml sig.txt}"
+          MERGE_FAILED=false
+          git merge --no-commit --no-ff upstream/main || MERGE_FAILED=true
 
-          if ! git merge upstream/main; then
+          if [ "$MERGE_FAILED" = true ]; then
             CONFLICT_FILES=$(git diff --name-only --diff-filter=U)
             UNRESOLVED=false
             if [ -n "$CONFLICT_FILES" ]; then
@@ -107,13 +109,13 @@ jobs:
               }
               exit 0
             fi
-
-            for pattern in $IGNORE_LIST; do
-              git checkout --ours -- "$pattern" || true
-              git add "$pattern" || true
-            done
-            git commit -m "Merge remote-tracking branch 'upstream/main'"
           fi
+
+          for pattern in $IGNORE_LIST; do
+            git restore --source=HEAD --staged --worktree -- "$pattern" 2>/dev/null || true
+          done
+          
+          git commit --allow-empty -m "Merge remote-tracking branch 'upstream/main'"
           if ! git push; then
             echo "::warning title=Sync Upstream Failed::PAT_TOKEN is required for workflow updates"
             exit 0

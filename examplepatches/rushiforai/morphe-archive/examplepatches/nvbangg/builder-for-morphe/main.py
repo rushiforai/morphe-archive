@@ -66,16 +66,17 @@ def _build(target_app: str | None = None, arch_override: str | None = None) -> i
     return 0 if success else 1
 
 def _clear() -> int:
+    cleaned = False
     for directory in (TEMP_DIR, BUILD_DIR):
         if directory.exists():
             shutil.rmtree(directory)
-            pr(f"Removed '{directory}'")
-        else:
-            pr(f"'{directory}' already clean")
+            cleaned = True
 
     if (build_md := Path("build.md")).exists():
         build_md.unlink()
-        pr("Removed 'build.md'")
+        cleaned = True
+
+    pr("Cleaned successfully" if cleaned else "Already clean")
     return 0
 
 def _sigint_handler(sig: int, frame: object) -> None:

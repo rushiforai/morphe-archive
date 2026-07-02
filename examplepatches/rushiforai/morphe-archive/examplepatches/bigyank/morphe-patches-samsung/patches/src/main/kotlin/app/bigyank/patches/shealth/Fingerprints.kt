@@ -147,12 +147,30 @@ object IKnoxControlProxyRequestKeyInitForKnoxFingerprint : Fingerprint(
 
 // ── Samsung Account provider bypass ──────────────────────────────────────────
 
+/** Health 6.3x — no-arg provider gate. */
 object SamsungAccountUtilsIsAccountProviderSupportedFingerprint : Fingerprint(
     definingClass = "Lcom/samsung/android/sdk/healthdata/privileged/samsungaccount/SamsungAccountUtils;",
     name = "isAccountProviderSupported",
     accessFlags = listOf(AccessFlags.PRIVATE, AccessFlags.FINAL),
     returnType = "Z",
     parameters = emptyList(),
+)
+
+/** Health 7.x — checks PackageManager for AccountManagerProvider metadata. */
+object SamsungAccountUtilsIsAccountProviderSupportedWithContextFingerprint : Fingerprint(
+    definingClass = "Lcom/samsung/android/sdk/healthdata/privileged/samsungaccount/SamsungAccountUtils;",
+    name = "isAccountProviderSupported",
+    accessFlags = listOf(AccessFlags.PRIVATE, AccessFlags.FINAL),
+    returnType = "Z",
+    parameters = listOf("Landroid/content/Context;"),
+)
+
+object AccountCountryLookupIsAccountProviderSupportedFingerprint : Fingerprint(
+    definingClass = "Lcom/samsung/android/sdk/healthdata/privileged/util/AccountCountryLookup;",
+    name = "isAccountProviderSupported",
+    accessFlags = listOf(AccessFlags.PRIVATE, AccessFlags.STATIC, AccessFlags.FINAL),
+    returnType = "Z",
+    parameters = listOf("Landroid/content/Context;"),
 )
 
 object SamsungAccountUtilsGetSamsungAccountIdFingerprint : Fingerprint(

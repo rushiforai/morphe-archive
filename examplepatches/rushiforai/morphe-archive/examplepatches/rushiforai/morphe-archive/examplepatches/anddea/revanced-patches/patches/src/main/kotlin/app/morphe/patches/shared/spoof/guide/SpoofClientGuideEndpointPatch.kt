@@ -1,0 +1,123 @@
+@file:Suppress("CONTEXT_RECEIVERS_DEPRECATED")
+
+package app.morphe.patches.shared.spoof.guide
+
+import app.morphe.patcher.Match
+import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import app.morphe.patches.shared.authenticationChangeListenerFingerprint
+import app.morphe.patches.shared.clientTypeFingerprint
+import app.morphe.patches.shared.indexOfClientInfoInstruction
+import app.morphe.patches.shared.indexOfMessageLiteBuilderReference
+import app.morphe.util.fingerprint.methodOrThrow
+import app.morphe.util.getReference
+import app.morphe.util.indexOfFirstInstructionReversedOrThrow
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+
+private lateinit var insertMatch: Match
+private lateinit var clientInfoField: FieldReference
+private lateinit var messageLiteBuilderField: FieldReference
+private lateinit var messageLiteBuilderMethod: MethodReference
+
+val spoofClientGuideEndpointPatch = bytecodePatch(
+    description = "spoofClientGuideEndpointPatch"
+) {
+    execute {
+        clientTypeFingerprint.methodOrThrow().apply {
+            val clientInfoIndex = indexOfClientInfoInstruction(this)
+            val messageLiteBuilderIndex =
+                indexOfFirstInstructionReversedOrThrow(clientInfoIndex) {
+                    opcode == Opcode.IGET_OBJECT &&
+                            getReference<FieldReference>()?.name == "instance"
+                }
+
+            clientInfoField =
+                getInstruction<ReferenceInstruction>(clientInfoIndex).reference as FieldReference
+            messageLiteBuilderField =
+                getInstruction<ReferenceInstruction>(messageLiteBuilderIndex).reference as FieldReference
+        }
+
+        authenticationChangeListenerFingerprint.methodOrThrow().apply {
+            val messageLiteBuilderIndex =
+                indexOfMessageLiteBuilderReference(this, messageLiteBuilderField.definingClass)
+
+            messageLiteBuilderMethod =
+                getInstruction<ReferenceInstruction>(messageLiteBuilderIndex).reference as MethodReference
+        }
+
+        insertMatch = GuideEndpointRequestBodyFingerprint.match(GuideEndpointConstructorFingerprint.classDef)
+    }
+}
+
+internal fun addClientInfoHook(
+    helperMethodName: String,
+    smaliInstructions: String,
+    insertLast: Boolean = false,
+) = insertMatch.let {
+    it.method.apply {
+        it.classDef.methods.add(
+            ImmutableMethod(
+                definingClass,
+                helperMethodName,
+                emptyList(),
+                "V",
+                AccessFlags.PRIVATE.value or AccessFlags.FINAL.value,
+                annotations,
+                null,
+                MutableMethodImplementation(5),
+            ).toMutable().apply {
+                addInstructionsWithLabels(
+                    0, """
+                        invoke-virtual {p0}, $messageLiteBuilderMethod
+                        move-result-object v0
+                        iget-object v0, v0, $messageLiteBuilderField
+                        check-cast v0, ${clientInfoField.definingClass}
+                        iget-object v1, v0, $clientInfoField
+                        if-eqz v1, :ignore
+                        """ + smaliInstructions + """
+                        :ignore
+                        return-void
+                        """,
+                )
+            }
+        )
+
+        addInstruction(
+            if (insertLast) implementation!!.instructions.lastIndex else 0,
+            "invoke-direct/range { p0 .. p0 }, $definingClass->$helperMethodName()V"
+        )
+    }
+}
+
+context(BytecodePatchContext)
+internal fun addClientOSVersionHook(
+    helperMethodName: String,
+    descriptor: String,
+    @Suppress("UNUSED_PARAMETER")
+    isObject: Boolean = false,
+    insertLast: Boolean = true,
+) {
+    val osNameIndex = BuildClientContextBodyFingerprint.instructionMatches[1].index
+    val osNameReference = BuildClientContextBodyFingerprint.method
+        .getInstruction<ReferenceInstruction>(osNameIndex).reference
+
+    addClientInfoHook(
+        helperMethodName,
+        """
+            invoke-static {}, $descriptor
+            move-result-object v2
+            iput-object v2, v1, $osNameReference
+            """,
+        insertLast,
+    )
+}

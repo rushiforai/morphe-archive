@@ -1,0 +1,18 @@
+name = "morphe-patches-json"
+main = "src/index.js"
+compatibility_date = "2025-01-01"
+workers_dev = true
+
+routes = [
+  { pattern = "morphe.kareem.one/patches.json", zone_name = "kareem.one" },
+  { pattern = "morphe.kareem.one/*", zone_name = "kareem.one" }
+]
+
+[vars]
+PRIMARY_HOST = "morphe.kareem.one"
+GITHUB_OWNER = "kareemlukitomo"
+GITHUB_REPO = "morphe-patches"
+REPO_HOMEPAGE = "https://github.com/kareemlukitomo/morphe-patches"
+ALLOWED_GITHUB_ACTORS = "kareemlukitomo,github-actions[bot]"
+ALLOW_PRERELEASE = "false"
+REQUIRE_SIGNATURE = "true"

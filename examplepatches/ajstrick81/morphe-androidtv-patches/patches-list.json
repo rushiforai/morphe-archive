@@ -1,5 +1,5 @@
 {
-  "version": "1.7.0",
+  "version": "1.8.0",
   "appNames": {
     "com.fox.foxone": "Fox One Android TV",
     "com.peacocktv.peacockandroid": "Peacock TV Android TV",
@@ -12,6 +12,32 @@
     "com.cbs.ott": "Paramount+ Android TV"
   },
   "patches": [
+    {
+      "name": "Clone Prime Video",
+      "description": "Renames the package to <original>.mod (and its provider authorities / custom permissions) so the patched app installs side-by-side with a non-removable system Prime Video. Opt-in.",
+      "use": false,
+      "dependencies": [],
+      "compatiblePackages": {
+        "com.amazon.amazonvideo.livingroom": [
+          "6.23.23+v15.5.0.70-armv7a"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Prime Video Android TV",
+          "packageName": "com.amazon.amazonvideo.livingroom",
+          "description": null,
+          "appIconColor": 1539022,
+          "targets": [
+            {
+              "version": "6.23.23+v15.5.0.70-armv7a",
+              "experimental": false
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
     {
       "name": "Disable auto-updates",
       "description": "Prevents Google Play Store from automatically replacing the patched APK with the official unpatched version.",

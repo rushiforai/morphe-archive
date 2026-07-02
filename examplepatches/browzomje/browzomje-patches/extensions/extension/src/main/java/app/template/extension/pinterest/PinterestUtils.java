@@ -88,11 +88,19 @@ public final class PinterestUtils {
     }
 
     public static void setCurrentVideoPin(Object pin) {
-        VideoDownloadHandler.setCurrentVideoPin(pin);
+        try {
+            VideoDownloadHandler.setCurrentVideoPin(pin);
+        } catch (Throwable t) {
+            Log.e(TAG, "Errore durante setCurrentVideoPin", t);
+        }
     }
 
     public static void addDownloadVideoOption(final Object menuContainer) {
-        VideoDownloadHandler.addDownloadVideoOption(menuContainer);
+        try {
+            VideoDownloadHandler.addDownloadVideoOption(menuContainer);
+        } catch (Throwable t) {
+            Log.e(TAG, "Errore durante addDownloadVideoOption", t);
+        }
     }
 
     // Delegate for wallpaper
@@ -306,16 +314,40 @@ public final class PinterestUtils {
             @Override
             public void run() {
                 try {
-                    Class<?> tClass = Class.forName("fb0.t");
-                    java.lang.reflect.Field aField = tClass.getField("a");
-                    Object eventManager = aField.get(null);
+                    Object eventManager = null;
+                    try {
+                        Class<?> qClass = Class.forName("fb0.q");
+                        java.lang.reflect.Field aField = qClass.getField("a");
+                        eventManager = aField.get(null);
+                    } catch (Throwable e) {
+                        Class<?> tClass = Class.forName("fb0.t");
+                        java.lang.reflect.Field aField = tClass.getField("a");
+                        eventManager = aField.get(null);
+                    }
                     
-                    Class<?> fClass = Class.forName("ir2.f");
+                    Class<?> fClass;
+                    try {
+                        fClass = Class.forName("jr2.e");
+                    } catch (ClassNotFoundException e) {
+                        fClass = Class.forName("ir2.f");
+                    }
                     java.lang.reflect.Constructor<?> fCtor = fClass.getConstructor(String.class, int.class);
                     Object toastObj = fCtor.newInstance(message, 7000);
                     
-                    Class<?> hClass = Class.forName("ir2.h");
-                    Class<?> oClass = Class.forName("ww1.o");
+                    Class<?> hClass;
+                    try {
+                        hClass = Class.forName("jr2.g");
+                    } catch (ClassNotFoundException e) {
+                        hClass = Class.forName("ir2.h");
+                    }
+                    
+                    Class<?> oClass;
+                    try {
+                        oClass = Class.forName("kw1.p");
+                    } catch (ClassNotFoundException e) {
+                        oClass = Class.forName("ww1.o");
+                    }
+                    
                     java.lang.reflect.Constructor<?> hCtor = hClass.getConstructor(oClass);
                     Object eventObj = hCtor.newInstance(toastObj);
                     
@@ -335,16 +367,27 @@ public final class PinterestUtils {
             @Override
             public void run() {
                 try {
-                    Class<?> tClass = Class.forName("fb0.t");
-                    java.lang.reflect.Field aField = tClass.getField("a");
-                    Object eventManager = aField.get(null);
+                    Object eventManager = null;
+                    try {
+                        Class<?> qClass = Class.forName("fb0.q");
+                        java.lang.reflect.Field aField = qClass.getField("a");
+                        eventManager = aField.get(null);
+                    } catch (Throwable e) {
+                        Class<?> tClass = Class.forName("fb0.t");
+                        java.lang.reflect.Field aField = tClass.getField("a");
+                        eventManager = aField.get(null);
+                    }
                     
-                    Class<?> uClass = Class.forName("ai0.u");
-                    java.lang.reflect.Constructor<?> constructor = uClass.getConstructor(int.class, boolean.class);
-                    Object dismissEvent = constructor.newInstance(0, true);
+                    Class<?> uClass;
+                    try {
+                        uClass = Class.forName("bi0.p");
+                    } catch (ClassNotFoundException e) {
+                        uClass = Class.forName("ai0.u");
+                    }
+                    Object dismissEventObj = uClass.newInstance();
                     
                     java.lang.reflect.Method dMethod = eventManager.getClass().getMethod("d", Object.class);
-                    dMethod.invoke(eventManager, dismissEvent);
+                    dMethod.invoke(eventManager, dismissEventObj);
                     Log.d(TAG, "Menu dismissed via EventManager.");
                 } catch (Throwable t) {
                     Log.e(TAG, "Errore nella dismissione del menu tramite EventManager", t);
@@ -354,14 +397,34 @@ public final class PinterestUtils {
     }
 
     static View buildRowReflective(ViewGroup container, String labelText, String iconEnumName, View.OnClickListener onClickListener) throws Exception {
-        Method dMethod = container.getClass().getMethod("D");
+        Method dMethod;
+        try {
+            dMethod = container.getClass().getMethod("y");
+        } catch (NoSuchMethodException e) {
+            dMethod = container.getClass().getMethod("D");
+        }
         Object viewCreator = dMethod.invoke(container);
 
-        Class<?> xClass = Class.forName("ku1.x");
+        Class<?> xClass;
+        try {
+            xClass = Class.forName("zt1.w");
+        } catch (ClassNotFoundException e) {
+            xClass = Class.forName("ku1.x");
+        }
         Object imageIcon = Enum.valueOf((Class<Enum>) xClass, iconEnumName);
 
-        Field bField = container.getClass().getField("B");
-        boolean z9 = bField.getBoolean(container);
+        boolean z9 = false;
+        try {
+            Field yField = container.getClass().getField("y");
+            z9 = yField.getBoolean(container);
+        } catch (NoSuchFieldException e) {
+            try {
+                Field bField = container.getClass().getField("B");
+                z9 = bField.getBoolean(container);
+            } catch (Throwable t) {
+                Log.w(TAG, "Impossibile leggere il campo boolean per la riga, uso false", t);
+            }
+        }
 
         Method aMethod = viewCreator.getClass().getMethod("a", CharSequence.class, String.class, xClass, boolean.class);
         RelativeLayout row = (RelativeLayout) aMethod.invoke(viewCreator, labelText, null, imageIcon, z9);

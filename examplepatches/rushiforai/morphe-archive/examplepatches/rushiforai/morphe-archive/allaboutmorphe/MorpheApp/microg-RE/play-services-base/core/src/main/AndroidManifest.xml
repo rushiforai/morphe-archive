@@ -1,0 +1,21 @@
+
+<!--
+  ~ SPDX-FileCopyrightText: 2020, microG Project Team
+  ~ SPDX-License-Identifier: Apache-2.0
+  -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <permission android:name="${applicationId}.permission.READ_SETTINGS"
+        android:protectionLevel="signature" />
+    <permission android:name="${applicationId}.permission.WRITE_SETTINGS"
+        android:protectionLevel="signature" />
+
+    <application>
+        <provider
+            android:name="org.microg.gms.settings.SettingsProvider"
+            android:authorities="${applicationId}.microg.settings"
+            android:exported="true"
+            android:readPermission="${applicationId}.permission.READ_SETTINGS"
+            android:writePermission="${applicationId}.permission.WRITE_SETTINGS" />
+    </application>
+</manifest>

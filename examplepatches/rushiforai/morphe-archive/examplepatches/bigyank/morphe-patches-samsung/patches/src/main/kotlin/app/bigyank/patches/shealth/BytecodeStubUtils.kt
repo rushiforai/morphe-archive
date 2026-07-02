@@ -16,6 +16,19 @@ internal fun BytecodePatchContext.stubReturnFalse(fingerprint: Fingerprint) {
     stubZeroReturn(fingerprint, returnObject = false)
 }
 
+/** Stub when present; skip silently when the target APK uses a different Health version layout. */
+internal fun BytecodePatchContext.stubReturnFalseIfPresent(fingerprint: Fingerprint) {
+    runCatching { stubReturnFalse(fingerprint) }
+}
+
+internal fun BytecodePatchContext.replaceMethodBodyIfPresent(fingerprint: Fingerprint, stubBody: String) {
+    runCatching { replaceMethodBody(fingerprint, stubBody) }
+}
+
+internal fun BytecodePatchContext.stubZeroReturnIfPresent(fingerprint: Fingerprint, returnObject: Boolean) {
+    runCatching { stubZeroReturn(fingerprint, returnObject) }
+}
+
 internal fun BytecodePatchContext.stubReturnVoid(fingerprint: Fingerprint) {
     replaceMethodBody(fingerprint, "return-void")
 }

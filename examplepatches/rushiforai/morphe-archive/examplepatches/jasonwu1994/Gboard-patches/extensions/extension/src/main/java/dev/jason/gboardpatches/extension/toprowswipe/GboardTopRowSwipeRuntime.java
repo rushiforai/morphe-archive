@@ -894,9 +894,13 @@ public final class GboardTopRowSwipeRuntime {
         return true;
     }
 
-    private static Object resolveOriginalKeyMetadata(Object keyMetadata) {
+    public static Object resolveOriginalKeyMetadataForPatchInterop(Object keyMetadata) {
         Object originalMetadata = ORIGINAL_KEY_METADATA_BY_PATCHED.get(keyMetadata);
         return originalMetadata != null ? originalMetadata : keyMetadata;
+    }
+
+    private static Object resolveOriginalKeyMetadata(Object keyMetadata) {
+        return resolveOriginalKeyMetadataForPatchInterop(keyMetadata);
     }
 
     private static boolean isTopRowCustomPatchedMetadata(Object keyMetadata) {

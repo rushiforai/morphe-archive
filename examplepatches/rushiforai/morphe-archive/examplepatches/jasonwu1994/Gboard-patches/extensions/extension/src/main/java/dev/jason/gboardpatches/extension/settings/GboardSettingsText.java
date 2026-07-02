@@ -483,6 +483,55 @@ public final class GboardSettingsText {
                 "小寫字母上滑會輸出大寫，大寫字母上滑會輸出小寫。");
         templates.put(R.string.gboard_patches_english_uppercase_toggle_section_behavior,
                 "行為");
+        templates.put(R.string.gboard_patches_zhuyin_bottom_row_title, "注音底排按鍵大小");
+        templates.put(R.string.gboard_patches_zhuyin_bottom_row_summary,
+                "調整注音鍵盤底排 7 個按鍵 slot 的權重。");
+        templates.put(R.string.gboard_patches_zhuyin_bottom_row_header_summary,
+                "調整注音鍵盤底排 7 個按鍵 slot 的權重。");
+        templates.put(R.string.gboard_patches_zhuyin_bottom_row_error_title,
+                "注音底排按鍵大小無法使用");
+        templates.put(R.string.gboard_patches_zhuyin_bottom_row_error_summary,
+                "注音底排按鍵大小設定畫面載入失敗。請重新開啟 Gboard 設定再試一次。");
+        templates.put(R.string.gboard_patches_zhuyin_bottom_row_enabled_title, "啟用");
+        templates.put(R.string.gboard_patches_zhuyin_bottom_row_enabled_summary, "啟用自訂權重覆寫");
+        templates.put(R.string.gboard_patches_zhuyin_bottom_row_section_behavior, "行為");
+        templates.put(R.string.gboard_patches_zhuyin_bottom_row_section_weights, "權重");
+        templates.put(R.string.gboard_patches_zhuyin_bottom_row_section_advanced, "進階");
+        templates.put(R.string.gboard_patches_zhuyin_bottom_row_apply_recommended_title,
+                "套用推薦值");
+        templates.put(R.string.gboard_patches_zhuyin_bottom_row_apply_recommended_summary,
+                "推薦：把空白鍵改成 200、刪除鍵改成 200，其餘保持預設。");
+        templates.put(R.string.gboard_patches_zhuyin_bottom_row_apply_recommended_confirm_title,
+                "要套用推薦值嗎？");
+        templates.put(R.string.gboard_patches_zhuyin_bottom_row_apply_recommended_confirm_message,
+                "要把空白鍵設成 200、刪除鍵設成 200，並把其他注音底排 slot 還原成預設值嗎？");
+        templates.put(R.string.gboard_patches_zhuyin_bottom_row_reset_title, "重設為預設值");
+        templates.put(R.string.gboard_patches_zhuyin_bottom_row_reset_summary,
+                "把 7 個底排 slot 權重還原成原廠配置。");
+        templates.put(R.string.gboard_patches_zhuyin_bottom_row_reset_confirm_title,
+                "要重設所有注音底排權重嗎？");
+        templates.put(R.string.gboard_patches_zhuyin_bottom_row_reset_confirm_message,
+                "這會把 7 個底排 slot 的權重還原成原廠注音一般排版。");
+        templates.put(R.string.gboard_patches_zhuyin_bottom_row_dialog_title, "%1$s");
+        templates.put(R.string.gboard_patches_zhuyin_bottom_row_dialog_hint, "1-500");
+        templates.put(R.string.gboard_patches_zhuyin_bottom_row_dialog_error,
+                "請輸入 1 到 500 之間的值。");
+        templates.put(R.string.gboard_patches_zhuyin_bottom_row_weight_summary,
+                "範圍：1-500。官方預設：%1$d");
+        templates.put(R.string.gboard_patches_zhuyin_bottom_row_weight_value, "%1$d");
+        templates.put(R.string.gboard_patches_zhuyin_bottom_row_weight_value_default,
+                "%1$d（預設）");
+        templates.put(R.string.gboard_patches_zhuyin_bottom_row_weight_switch_to_symbol_title,
+                "?123");
+        templates.put(R.string.gboard_patches_zhuyin_bottom_row_weight_a02_title, "，");
+        templates.put(
+                R.string.gboard_patches_zhuyin_bottom_row_weight_switch_to_next_language_title,
+                "地球鍵");
+        templates.put(R.string.gboard_patches_zhuyin_bottom_row_weight_space_title, "空白鍵");
+        templates.put(R.string.gboard_patches_zhuyin_bottom_row_weight_a06_title, "ㄦ");
+        templates.put(R.string.gboard_patches_zhuyin_bottom_row_weight_a08_title, "刪除鍵");
+        templates.put(R.string.gboard_patches_zhuyin_bottom_row_weight_ime_action_title,
+                "搜尋 / 送出鍵");
         templates.put(R.string.gboard_patches_ai_writing_tools_title, "AI 撰寫工具");
         templates.put(R.string.gboard_patches_ai_writing_tools_summary,
                 "控制是否強制顯示官方 AI 撰寫工具開關。");

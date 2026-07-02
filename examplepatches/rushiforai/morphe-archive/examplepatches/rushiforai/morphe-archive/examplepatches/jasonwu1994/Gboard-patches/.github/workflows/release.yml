@@ -1,0 +1,96 @@
+name: Release from tag
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    name: Release
+    permissions:
+      contents: write
+      packages: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Cache Gradle
+        uses: burrunan/gradle-cache-action@v3
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Build
+        env:
+          GITHUB_ACTOR: ${{ github.repository_owner }}
+          GITHUB_TOKEN: ${{ secrets.MORPHE_PACKAGES_TOKEN }}
+        run: ./gradlew :patches:buildAndroid generatePatchesList
+
+      - name: Validate synced release metadata
+        id: metadata
+        shell: pwsh
+        env:
+          REPO_SLUG: ${{ github.repository }}
+        run: |
+          $tag = $env:GITHUB_REF_NAME
+          if (-not $tag.StartsWith("v")) {
+              throw "Release tag must start with 'v'."
+          }
+
+          $expectedVersion = $tag.Substring(1)
+          $gradleText = Get-Content -LiteralPath "gradle.properties" -Raw
+          $match = [regex]::Match($gradleText, '(?m)^\s*version\s*=\s*([^\r\n#]+?)\s*$')
+          if (-not $match.Success) {
+              throw "Unable to resolve version from gradle.properties."
+          }
+
+          $actualVersion = $match.Groups[1].Value.Trim()
+          if ($actualVersion -ne $expectedVersion) {
+              throw "Tag version '$expectedVersion' does not match gradle.properties version '$actualVersion'."
+          }
+
+          $bundle = Get-Content -LiteralPath "patches-bundle.json" -Raw | ConvertFrom-Json
+          if ([string]$bundle.version -ne $actualVersion) {
+              throw "patches-bundle.json version '$($bundle.version)' does not match '$actualVersion'."
+          }
+
+          $expectedDownloadUrl = "https://github.com/$($env:REPO_SLUG)/releases/download/$tag/patches-$actualVersion.mpp"
+
+          if ([string]$bundle.download_url -ne $expectedDownloadUrl) {
+              throw "patches-bundle.json download_url does not match expected public release URL."
+          }
+          if (-not [string]::IsNullOrEmpty([string]$bundle.signature_download_url)) {
+              throw "patches-bundle.json signature_download_url must be empty for the public repo."
+          }
+
+          "version=$actualVersion" >> $env:GITHUB_OUTPUT
+
+      - name: Prepare release notes
+        shell: pwsh
+        run: |
+          $bundle = Get-Content -LiteralPath "patches-bundle.json" -Raw | ConvertFrom-Json
+          $notes = [string]$bundle.description
+          if ([string]::IsNullOrWhiteSpace($notes)) {
+              $notes = "Public mirror release for $env:GITHUB_REF_NAME."
+          }
+          Set-Content -LiteralPath "release-notes.md" -Value $notes -Encoding utf8
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          body_path: release-notes.md
+          prerelease: ${{ contains(github.ref_name, '-dev.') }}
+          files: |
+            patches/build/libs/patches-${{ steps.metadata.outputs.version }}.mpp

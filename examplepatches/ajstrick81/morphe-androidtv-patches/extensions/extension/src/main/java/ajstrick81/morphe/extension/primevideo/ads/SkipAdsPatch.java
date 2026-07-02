@@ -55,10 +55,15 @@ import java.util.Map;
  * specific response shape.
  *
  * This hook does NOT suppress mid-roll ad segments — those are fetched by
- * ExoPlayer/media3's own DefaultHttpDataSource, a completely separate HTTP
- * stack that never touches Volley.
+ * Amazon's native MediaPipelineBackend (libcurl), a completely separate HTTP
+ * stack that never touches Volley. Confirmed via on-device logcat: the
+ * DOWNLOADER tag (native) fetches manifests/segments directly, including ad
+ * segments delivered at an /iad_X/ path (where X is a segment ID) on the SAME safe-harbored content
+ * CDN host as the movie itself - a path-only distinction invisible to both
+ * this hook and DNS blocking. No bytecode-reachable mitigation exists for
+ * that delivery mode on this build.
  *
- * All methods wrapped in try/catch — failures are logged to TAG below instead
+ * All methods wrapped in try/catch - failures are logged to TAG below instead
  * of silently swallowed, so logcat can confirm whether the hook fired and
  * whether the strip actually took effect.
  */
@@ -195,9 +200,19 @@ public class SkipAdsPatch {
                     // ad-free sessions). Exact match keeps the rest of weblab
                     // in the safe harbor. Prime suspect for persisting prerolls.
                     || host.equals("zoar.triggers-v1.prod.mobile.weblab.a2z.com")
+                    || host.equals("hercule.triggers-v1.prod.mobile.weblab.a2z.com")
                     // Ad orchestration endpoints on the video API.
                     || host.matches("threeplr[a-z0-9.-]*\\.api\\.amazonvideo\\.com")
-                    || host.matches("nit[a-z0-9.-]*\\.api\\.amazonvideo\\.com");
+                    || host.matches("nit[a-z0-9.-]*\\.api\\.amazonvideo\\.com")
+                    // s0s7: fires every ad cycle per on-device DNS log; never seen
+                    // in any PC/web capture, so its transport layer (Volley vs.
+                    // native libcurl) on this app is unconfirmed. Mirrored here as
+                    // a no-cost safety net for patch-only users without AGH — if
+                    // it's native-only this branch simply never fires.
+                    || host.equals("s0s7.api.amazonvideo.com")
+                    // Pause-screen ad endpoint surfaced via GetVodPlaybackResources
+                    // -> pauseAdsResolutionUrl (/getAds?...&format=PAUSE_ADS_STATIC).
+                    || host.equals("regolith.prime-video.amazon.dev");
 
             if (blocked) {
                 Log.i(TAG, "enforceAdBlock: blocking " + host);

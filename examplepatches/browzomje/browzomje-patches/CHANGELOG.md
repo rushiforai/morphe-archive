@@ -1,3 +1,21 @@
+## [1.3.2](https://github.com/browzomje/browzomje-patches/compare/v1.3.1...v1.3.2) (2026-07-01)
+
+### 🐛 Bug Fixes
+
+* **pinterest:** fixed snackbar using again the same system of other pinterest features instead of stock android snackbars ([4f14937](https://github.com/browzomje/browzomje-patches/commit/4f14937fad4ef1710bbcd2c64356401c66235993))
+
+## [1.3.1](https://github.com/browzomje/browzomje-patches/compare/v1.3.0...v1.3.1) (2026-07-01)
+
+### 🐛 Bug Fixes
+
+* **pinterest:** fixed menu crashing the app ([c5442a8](https://github.com/browzomje/browzomje-patches/commit/c5442a89cee3fc39baa3e3cb52a6ceec6346412b))
+
+## [1.3.0](https://github.com/browzomje/browzomje-patches/compare/v1.2.2...v1.3.0) (2026-07-01)
+
+### ✨ New Features
+
+* **pinterest:** add support for 14.24.0 ([07afd6a](https://github.com/browzomje/browzomje-patches/commit/07afd6a21f14aa065036d0cde2b55750bc30fa1f))
+
 ## [1.2.2](https://github.com/browzomje/browzomje-patches/compare/v1.2.1...v1.2.2) (2026-06-25)
 
 ### 🐛 Bug Fixes

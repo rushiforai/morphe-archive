@@ -1,0 +1,74 @@
+[
+    {
+        "source": "ReVanced",
+        "repository": "ReVanced/revanced-patches",
+        "api": {
+            "json": "https://api.revanced.app/v4/patches/list",
+            "version": null
+        }
+    },
+    {
+        "source": "Anddea",
+        "repository": "anddea/revanced-patches",
+        "api": {
+            "json": "https://raw.githubusercontent.com/anddea/revanced-patches/refs/heads/main/patches-list.json",
+            "version": null
+        }
+    },
+    {
+        "source": "Piko",
+        "repository": "crimera/piko",
+        "api": {
+            "json": "https://raw.githubusercontent.com/crimera/piko/refs/heads/main/patches-list.json",
+            "version": null
+        }
+    },
+    {
+        "source": "Morphe",
+        "repository": "MorpheApp/morphe-patches",
+        "api": {
+            "json": "https://raw.githubusercontent.com/MorpheApp/morphe-patches/refs/heads/main/patches-list.json",
+            "version": null
+        }
+    },
+    {
+        "source": "hoodles-Morphe",
+        "repository": "hoo-dles/morphe-patches",
+        "api": {
+            "json": "https://raw.githubusercontent.com/hoo-dles/morphe-patches/refs/heads/main/patches-list.json",
+            "version": null
+        }
+    },
+    {
+        "source": "Paresh-Morphe",
+        "repository": "Paresh-Maheshwari/paresh-patches",
+        "api": {
+            "json": "https://gitlab.com/Paresh-Maheshwari/paresh-patches/-/raw/main/patches-list.json",
+            "version": null
+        }
+    },
+    {
+        "source": "De-ReVanced",
+        "repository": "RookieEnough/De-ReVanced",
+        "api": {
+            "json": "https://raw.githubusercontent.com/RookieEnough/De-ReVanced/refs/heads/main/patches-list.json",
+            "version": null
+        }
+    },
+    {
+        "source": "Patcheddit",
+        "repository": "wchill/patcheddit",
+        "api": {
+            "json": "https://raw.githubusercontent.com/wchill/patcheddit/refs/heads/main/patches-list.json",
+            "version": null
+        }
+    },
+    {
+        "source": "ReVanced-Experiments",
+        "repository": "Aunali321/ReVancedExperiments",
+        "api": {
+            "json": null,
+            "version": null
+        }
+    }
+]

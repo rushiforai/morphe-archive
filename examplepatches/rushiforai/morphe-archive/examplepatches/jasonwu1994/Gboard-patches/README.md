@@ -130,6 +130,12 @@ Gboard Patches is a public Morphe source for a curated set of Gboard enhancement
 </details>
 
 <details>
+  <summary><code>Zhuyin Bottom Row Key Sizes</code></summary>
+
+  Adjusts the seven bottom-row slot sizes on the Zhuyin keyboard, including <code>?123</code>, <code>，</code>, the globe key, space, <code>ㄦ</code>, backspace, and the IME action key.
+</details>
+
+<details>
   <summary><code>Chinese Online Voice Input</code></summary>
 
   Forces Gboard to use the built-in Chinese voice input flow.

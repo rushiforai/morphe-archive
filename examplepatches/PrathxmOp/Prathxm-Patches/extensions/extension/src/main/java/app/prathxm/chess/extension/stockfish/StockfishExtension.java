@@ -899,7 +899,22 @@ public class StockfishExtension {
     private static void registerLifecycleCallbacks(Application app) {
         app.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
             @Override
-            public void onActivityCreated(Activity activity, android.os.Bundle savedInstanceState) {}
+            public void onActivityCreated(Activity activity, android.os.Bundle savedInstanceState) {
+                String name = activity.getClass().getName();
+                if (name.startsWith("com.chess.features.puzzles.")) {
+                    
+                    activity.finish();
+                    activity.overridePendingTransition(0, 0);
+                    
+                    try {
+                        android.content.Intent intent = new android.content.Intent(activity, Class.forName("app.prathxm.chess.extension.lichesspuzzle.LichessPuzzleJourneyActivity"));
+                        intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+                        activity.startActivity(intent);
+                    } catch (Throwable t) {
+                        Log.e(TAG, "Failed to redirect puzzle activity: " + t.getMessage(), t);
+                    }
+                }
+            }
 
             @Override
             public void onActivityStarted(Activity activity) {}
@@ -1180,6 +1195,17 @@ public class StockfishExtension {
         engineTv.setTextSize(11);
         engineTv.setGravity(android.view.Gravity.CENTER);
         creditsCard.addView(engineTv);
+
+        addDialogSpacer(creditsCard, 2, density);
+
+        String versionText = "v" + app.prathxm.chess.extension.BuildConfig.PATCH_VERSION;
+
+        android.widget.TextView patchTv = new android.widget.TextView(activity);
+        patchTv.setText("Patch Version: " + versionText + " 🧩");
+        patchTv.setTextColor(0xFF8B8985);
+        patchTv.setTextSize(11);
+        patchTv.setGravity(android.view.Gravity.CENTER);
+        creditsCard.addView(patchTv);
 
         rootLayout.addView(creditsCard);
 

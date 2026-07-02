@@ -1,0 +1,7 @@
+{
+  "created_at": "2026-05-09T17:40:17",
+  "description": "## [1.5.2](https://github.com/hackingguy/morphe-patches/compare/v1.5.1...v1.5.2) (2026-05-09)\n\n\n### Bug Fixes\n\n* fix spoofed setting ([b1e3da0](https://github.com/hackingguy/morphe-patches/commit/b1e3da0736e9bf67fd48766202b6eaedb318ede0))",
+  "download_url": "https://github.com/hackingguy/morphe-patches/releases/download/v1.5.2/patches-1.5.2.mpp",
+  "signature_download_url": "https://github.com/hackingguy/morphe-patches/releases/download/v1.5.2/patches-1.5.2.mpp.asc",
+  "version": "1.5.2"
+}

@@ -1,0 +1,16 @@
+[project]
+name = "uni-apks"
+version = "0.0.0"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "beautifulsoup4>=4.15.0",
+    "curl-cffi>=0.15.0",
+]
+
+[tool.ruff]
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "B", "I", "UP", "RUF", "SIM", "C4", "PTH", "G", "PIE"]
+ignore = ["E501"]

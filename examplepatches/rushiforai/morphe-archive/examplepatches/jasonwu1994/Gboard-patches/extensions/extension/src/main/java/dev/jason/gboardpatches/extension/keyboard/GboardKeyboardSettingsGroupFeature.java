@@ -11,6 +11,7 @@ import dev.jason.gboardpatches.extension.settings.GboardSettingsText;
 import dev.jason.gboardpatches.extension.symbolfooter.GboardSymbolFooterOrderSettingsFeature;
 import dev.jason.gboardpatches.extension.toprowswipe.GboardTopRowSwipeSettingsFeature;
 import dev.jason.gboardpatches.extension.writingtools.GboardAiWritingToolsSettingsFeature;
+import dev.jason.gboardpatches.extension.zhuyinbottomrow.GboardZhuyinBottomRowWeightSettingsFeature;
 
 public final class GboardKeyboardSettingsGroupFeature
         implements GboardPatchesSettingsContract.Feature {
@@ -37,6 +38,7 @@ public final class GboardKeyboardSettingsGroupFeature
                         new GboardTopRowSwipeSettingsFeature(context),
                         new GboardLatinGlobeKeyIgnoreIntervalSettingsFeature(context),
                         new GboardEnglishUppercaseToggleSettingsFeature(context),
+                        new GboardZhuyinBottomRowWeightSettingsFeature(context),
                         new GboardAiWritingToolsSettingsFeature(context),
                         new GboardSymbolFooterOrderSettingsFeature(context)));
     }

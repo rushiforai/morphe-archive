@@ -1,5 +1,5 @@
 ! Prime Video — DNS Ad-Suppression Filter List
-! Version: 4.5  (2026-06-27)
+! Version: 4.6  (2026-06-30)
 ! AdGuard Home syntax. Safe-harbor allows first, then blocks.
 !
 ! Two Ad Pipelines: (1) Java/media3 ad-groups -> bytecode PATCH; (2) native SGAI ->
@@ -65,6 +65,10 @@
 ||global.telemetry.insights.video.a2z.com^$dnsrewrite=0.0.0.0
 ! Minerva metric pipeline (hashed-subdomain pattern)
 /^[a-f0-9]{32,}\.[a-z0-9-]+\.prod\.service\.minerva\.devices\.a2z\.com$/$dnsrewrite=0.0.0.0
+! Sonar client QoE/diagnostics telemetry (sibling of regolith on
+! prime-video.amazon.dev). Telemetry only — not ad-delivery. Parent-domain
+! match covers all region/stage prefixes (prod.us-east-1.sonar.* etc.).
+||sonar.prime-video.amazon.dev^$dnsrewrite=0.0.0.0
 
 ! ── GENERAL THIRD-PARTY TRACKERS (optional; not Prime-specific) ───────────────
 ! A maintained list (HaGeZi) covers these better. Deliberately NOT blocked:
