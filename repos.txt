@@ -77,7 +77,6 @@ osirisad/ts-patches
 polka-bear/morphe-patches
 quantavil/edge-morphe-patches
 rabilrbl/fluffy-patches
-rushiforai/morphe-archive
 sjshb57/Pairip-Patches
 vladon/morphe-patches-navi
 wchill/anddea-rvx-morphed

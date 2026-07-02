@@ -2,7 +2,7 @@
 
 An auto-generated, continuously updated index of every GitHub repository that publishes a [Morphe](https://morphe.software) (`.mpp`) patch bundle.
 
-![Repos tracked](https://img.shields.io/badge/repos%20tracked-87-6366f1)![Last updated](https://img.shields.io/badge/last%20updated-2026-07-02%2003:50%20UTC-555)
+![Repos tracked](https://img.shields.io/badge/repos%20tracked-86-6366f1)![Last updated](https://img.shields.io/badge/last%20updated-2026-07-02%2009:12%20UTC-555)
 
 ---
 
@@ -18,7 +18,7 @@ Repos are never silently removed when a source goes quiet — add an entry to [`
 
 ---
 
-## 📋 Tracked Repositories (87)
+## 📋 Tracked Repositories (86)
 
 | # | Repository | Github | Morphe |
 |---|------------|--------|--------|
@@ -98,17 +98,16 @@ Repos are never silently removed when a source goes quiet — add an entry to [`
 | 74 | `RealCyberwash/max-patches` | [🔗 Open](https://github.com/RealCyberwash/max-patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=RealCyberwash/max-patches)
 | 75 | `Ripthulhu/morphe-google-patches` | [🔗 Open](https://github.com/Ripthulhu/morphe-google-patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=Ripthulhu/morphe-google-patches)
 | 76 | `RookieEnough/De-Vanced` | [🔗 Open](https://github.com/RookieEnough/De-Vanced) | [🔗 Add to morphe](https://morphe.software/add-source?github=RookieEnough/De-Vanced)
-| 77 | `rushiforai/morphe-archive` | [🔗 Open](https://github.com/rushiforai/morphe-archive) | [🔗 Add to morphe](https://morphe.software/add-source?github=rushiforai/morphe-archive)
-| 78 | `sjshb57/Pairip-Patches` | [🔗 Open](https://github.com/sjshb57/Pairip-Patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=sjshb57/Pairip-Patches)
-| 79 | `Trimpsuz/morphe-busuu` | [🔗 Open](https://github.com/Trimpsuz/morphe-busuu) | [🔗 Add to morphe](https://morphe.software/add-source?github=Trimpsuz/morphe-busuu)
-| 80 | `TrollTaylor/morphe-pause-fix` | [🔗 Open](https://github.com/TrollTaylor/morphe-pause-fix) | [🔗 Add to morphe](https://morphe.software/add-source?github=TrollTaylor/morphe-pause-fix)
-| 81 | `vladon/morphe-patches-navi` | [🔗 Open](https://github.com/vladon/morphe-patches-navi) | [🔗 Add to morphe](https://morphe.software/add-source?github=vladon/morphe-patches-navi)
-| 82 | `wchill/anddea-rvx-morphed` | [🔗 Open](https://github.com/wchill/anddea-rvx-morphed) | [🔗 Add to morphe](https://morphe.software/add-source?github=wchill/anddea-rvx-morphed)
-| 83 | `wchill/patcheddit` | [🔗 Open](https://github.com/wchill/patcheddit) | [🔗 Add to morphe](https://morphe.software/add-source?github=wchill/patcheddit)
-| 84 | `wchill/rvx-morphed` | [🔗 Open](https://github.com/wchill/rvx-morphed) | [🔗 Add to morphe](https://morphe.software/add-source?github=wchill/rvx-morphed)
-| 85 | `Xisrr1/Revancify-Xisr` | [🔗 Open](https://github.com/Xisrr1/Revancify-Xisr) | [🔗 Add to morphe](https://morphe.software/add-source?github=Xisrr1/Revancify-Xisr)
-| 86 | `xob0t/morphe-patches` | [🔗 Open](https://github.com/xob0t/morphe-patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=xob0t/morphe-patches)
-| 87 | `ynotzort/morphe-patches` | [🔗 Open](https://github.com/ynotzort/morphe-patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=ynotzort/morphe-patches)
+| 77 | `sjshb57/Pairip-Patches` | [🔗 Open](https://github.com/sjshb57/Pairip-Patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=sjshb57/Pairip-Patches)
+| 78 | `Trimpsuz/morphe-busuu` | [🔗 Open](https://github.com/Trimpsuz/morphe-busuu) | [🔗 Add to morphe](https://morphe.software/add-source?github=Trimpsuz/morphe-busuu)
+| 79 | `TrollTaylor/morphe-pause-fix` | [🔗 Open](https://github.com/TrollTaylor/morphe-pause-fix) | [🔗 Add to morphe](https://morphe.software/add-source?github=TrollTaylor/morphe-pause-fix)
+| 80 | `vladon/morphe-patches-navi` | [🔗 Open](https://github.com/vladon/morphe-patches-navi) | [🔗 Add to morphe](https://morphe.software/add-source?github=vladon/morphe-patches-navi)
+| 81 | `wchill/anddea-rvx-morphed` | [🔗 Open](https://github.com/wchill/anddea-rvx-morphed) | [🔗 Add to morphe](https://morphe.software/add-source?github=wchill/anddea-rvx-morphed)
+| 82 | `wchill/patcheddit` | [🔗 Open](https://github.com/wchill/patcheddit) | [🔗 Add to morphe](https://morphe.software/add-source?github=wchill/patcheddit)
+| 83 | `wchill/rvx-morphed` | [🔗 Open](https://github.com/wchill/rvx-morphed) | [🔗 Add to morphe](https://morphe.software/add-source?github=wchill/rvx-morphed)
+| 84 | `Xisrr1/Revancify-Xisr` | [🔗 Open](https://github.com/Xisrr1/Revancify-Xisr) | [🔗 Add to morphe](https://morphe.software/add-source?github=Xisrr1/Revancify-Xisr)
+| 85 | `xob0t/morphe-patches` | [🔗 Open](https://github.com/xob0t/morphe-patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=xob0t/morphe-patches)
+| 86 | `ynotzort/morphe-patches` | [🔗 Open](https://github.com/ynotzort/morphe-patches) | [🔗 Add to morphe](https://morphe.software/add-source?github=ynotzort/morphe-patches)
 
 ---
 
@@ -117,4 +116,4 @@ Repos are never silently removed when a source goes quiet — add an entry to [`
 This README is regenerated automatically by GitHub Actions whenever `repos.txt` changes.
 To add a repo manually, append it to `custom_repos.txt`. To remove one permanently, add it to `ignore_repos.txt`.
 
-*Last generated: 2026-07-02 03:50 UTC*
+*Last generated: 2026-07-02 09:12 UTC*
