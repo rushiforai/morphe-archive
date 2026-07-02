@@ -1,0 +1,68 @@
+name: CI
+on:
+  schedule:
+    - cron: '0 10 * * *'
+  workflow_dispatch:
+    inputs:
+      force_build:
+        description: 'Build all apps (skip update check)'
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  check-versions:
+    runs-on: ubuntu-latest
+    outputs:
+      build_matrix: ${{ steps.get-matrix.outputs.build_matrix }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39  # v8.2.0
+        with:
+          python-version: "3.13"
+          enable-cache: true
+          quiet: true
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Get build matrix
+        id: get-matrix
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ inputs.force_build }}" = "true" ]; then
+            echo "build_matrix=$(uv run python -m src.scripts.matrix get-matrix-force)" >> "$GITHUB_OUTPUT"
+          else
+            echo "build_matrix=$(uv run python -m src.scripts.matrix get-matrix)" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Notify skipped build
+        if: steps.get-matrix.outputs.build_matrix == '[]'
+        run: echo "::notice title=Build Skipped::No new releases detected."
+
+      - name: Clear older runs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh run list -L400 --repo "$GITHUB_REPOSITORY" --json databaseId -q '.[].databaseId' | tail -n+91 | xargs -IID gh api "repos/$GITHUB_REPOSITORY/actions/runs/ID" -X DELETE || true
+
+  build:
+    needs: check-versions
+    if: needs.check-versions.outputs.build_matrix != '[]' && needs.check-versions.outputs.build_matrix != ''
+    strategy:
+      fail-fast: false
+      matrix:
+        patch_source: ${{ fromJSON(needs.check-versions.outputs.build_matrix) }}
+    uses: ./.github/workflows/build.yml
+    with:
+      patch_source: ${{ matrix.patch_source }}
+      filter_changelog: ${{ inputs.force_build != true }}
+    secrets: inherit
