@@ -3,3 +3,5 @@
 # Lines starting with # are ignored.
 rushiranpise/morphe-patches
 Jman-Github
+nvbangg
+rushiforai/morphe-archive
