@@ -612,6 +612,14 @@
                 "sortOrder": 73,
                 "createdAt": 1782878942984,
                 "updatedAt": 1782878942984
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/arunpdl/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 74,
+                "createdAt": 1783049460642,
+                "updatedAt": 1783049460642
             }
         ],
         "bytecodeModePreference": "STRIP_FAST"
