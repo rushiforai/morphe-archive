@@ -12,13 +12,18 @@ def _require_ci(script: str) -> None:
     if not IS_GITHUB:
         abort(f"'{script}' is only available in GitHub Actions")
 
-def _fetch_latest_release(source: str, net: NetworkManager) -> tuple[str, str]:
+def _fetch_latest_release(source: str, net: NetworkManager, version: str = "latest") -> tuple[str, str]:
     scheme, clean_src = source.split(":", 1)
     if scheme == "gitlab":
         project = clean_src.replace("/", "%2F")
         upstream_rel = json.loads(net.get(f"https://gitlab.com/api/v4/projects/{project}/releases/permalink/latest"))
         changelog_text = upstream_rel.get("description", "") or ""
         upstream_date = upstream_rel.get("released_at", "") or ""
+    elif version == "dev":
+        releases = json.loads(net.get(f"https://api.github.com/repos/{clean_src}/releases?per_page=1", headers=net._gh_headers))
+        upstream_rel = releases[0] if releases else {}
+        changelog_text = upstream_rel.get("body", "") or ""
+        upstream_date = upstream_rel.get("published_at", "") or ""
     else:
         upstream_rel = json.loads(net.get(f"https://api.github.com/repos/{clean_src}/releases/latest", headers=net._gh_headers))
         changelog_text = upstream_rel.get("body", "") or ""
@@ -39,19 +44,24 @@ def _fetch_our_releases(repo: str, net: NetworkManager) -> dict[str, str]:
         our_releases_by_brand = {}
     return our_releases_by_brand
 
-def get_matrix(source: str) -> None:
+def _load_entries() -> list:
     data = load_toml(CONFIG_PATH)
-    main_cfg = parse_config(data)
+    return parse_app_entries(data, parse_config(data))
+
+def get_matrix(source: str) -> None:
     source_lower = source.lower()
     filter_changelog = os.getenv("FILTER_CHANGELOG", "false").lower() == "true"
     patches_source = ""
     has_changelog_keywords = False
+    is_prerelease = False
     staged: list = []
-    for entry in parse_app_entries(data, main_cfg):
+    for entry in _load_entries():
         if not entry.enabled or entry.brand.lower() != source_lower:
             continue
         if not patches_source:
             patches_source = next(iter(entry.patches), "")
+        if any(spec["version"] == "dev" for spec in entry.patches.values()):
+            is_prerelease = True
         if entry.changelog_keywords:
             has_changelog_keywords = True
         staged.append(entry)
@@ -80,18 +90,20 @@ def get_matrix(source: str) -> None:
 
     if not include:
         abort(f"No apps found for patch source '{source}'")
-    print(json.dumps({"include": include}, ensure_ascii=False))
+    print(json.dumps({"include": include, "prerelease": is_prerelease}, ensure_ascii=False))
 
 def check_builds_needed(force_all: bool = False) -> None:
-    data = load_toml(CONFIG_PATH)
-    main_cfg = parse_config(data)
     seen: dict[str, str] = {}
-    for entry in parse_app_entries(data, main_cfg):
+    dev_brands: set[str] = set()
+    entries = _load_entries()
+    for entry in entries:
         if not entry.enabled:
             continue
         brand = entry.brand.lower()
         if brand not in seen:
             seen[brand] = next(iter(entry.patches), "")
+        if any(spec["version"] == "dev" for spec in entry.patches.values()):
+            dev_brands.add(brand)
 
     if not seen:
         print(json.dumps([]))
@@ -106,7 +118,7 @@ def check_builds_needed(force_all: bool = False) -> None:
         abort("GITHUB_REPOSITORY environment variable is not set")
 
     entries_by_brand: dict[str, list] = {}
-    for entry in parse_app_entries(data, main_cfg):
+    for entry in entries:
         if entry.enabled:
             entries_by_brand.setdefault(entry.brand.lower(), []).append(entry)
 
@@ -117,7 +129,7 @@ def check_builds_needed(force_all: bool = False) -> None:
         for brand, patches_source in seen.items():
             our_date = our_releases_by_brand.get(brand, "")
             try:
-                changelog_text, upstream_date = _fetch_latest_release(patches_source, net)
+                changelog_text, upstream_date = _fetch_latest_release(patches_source, net, version="dev" if brand in dev_brands else "latest")
             except ResourceNotFoundError:
                 epr(f"No upstream release found for '{patches_source}', skipping brand '{brand}'")
                 continue
@@ -130,10 +142,11 @@ def check_builds_needed(force_all: bool = False) -> None:
                 brands_to_build.append(brand)
             elif upstream_date and datetime.fromisoformat(upstream_date) > datetime.fromisoformat(our_date):
                 changelog_lower = changelog_text.lower()
-                has_apps = any(
-                    not app.changelog_keywords or any(kw in changelog_lower for kw in app.changelog_keywords)
-                    for app in entries_by_brand.get(brand, [])
-                )
+                has_apps = False
+                for app in entries_by_brand.get(brand, []):
+                    if not app.changelog_keywords or any(kw in changelog_lower for kw in app.changelog_keywords):
+                        has_apps = True
+                        break
                 if has_apps:
                     brands_to_build.append(brand)
     print(json.dumps(brands_to_build))

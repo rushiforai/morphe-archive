@@ -74,7 +74,10 @@ class PatcherCLI:
 
     def get_last_supported_version(self, list_patches_output: str, pkg_name: str, patches: dict[str, dict]) -> str | None:
         all_included = [p for spec in patches.values() for p in spec["include"]]
-        if all_included and (all_vers := [v for p in all_included for v in _parse_patch_block(list_patches_output, p)]):
+        all_vers: list[str] = []
+        for p in all_included:
+            all_vers.extend(_parse_patch_block(list_patches_output, p))
+        if all_vers:
             return get_highest_ver(all_vers)
 
         versions_output = self.list_versions(pkg_name)
