@@ -26,8 +26,10 @@ Quantro100/Morphe-patches
 RealCyberwash/max-patches
 Ripthulhu/morphe-google-patches
 RookieEnough/De-Vanced
+Tornillo2/movistar-block-ads-morphe
 Trimpsuz/morphe-busuu
 TrollTaylor/morphe-pause-fix
+Xhehab/Xhehab-Patches
 Xisrr1/Revancify-Xisr
 abdul-hubbali/Morphe-Fork
 abhis1n/Morphe-Patches

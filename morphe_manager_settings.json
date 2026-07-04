@@ -620,6 +620,22 @@
                 "sortOrder": 74,
                 "createdAt": 1783049460642,
                 "updatedAt": 1783049460642
+            },
+            {
+                "name": "movistar-block-ads-morphe",
+                "source": "https://raw.githubusercontent.com/Tornillo2/movistar-block-ads-morphe/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 75,
+                "createdAt": 1783135386416,
+                "updatedAt": 1783135386416
+            },
+            {
+                "name": "Xhehab-Patches",
+                "source": "https://raw.githubusercontent.com/Xhehab/Xhehab-Patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 76,
+                "createdAt": 1783135386518,
+                "updatedAt": 1783135386518
             }
         ],
         "bytecodeModePreference": "STRIP_FAST"
