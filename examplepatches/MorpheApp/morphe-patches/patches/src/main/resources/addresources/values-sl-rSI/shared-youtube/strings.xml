@@ -109,6 +109,25 @@ Predvajanje se bo izvedlo neuspešno, če je hash JavaScript predvajalnika zasta
   <!-- misc.audio.tracks.forceOriginalAudioPatch -->
   <string name="morphe_force_original_audio_title">Sili izvorno jezikovno sledi</string>
   <string name="morphe_force_original_audio_summary">Vedno predvaja prvotno zvočno pot videoposnetka namesto sinhronizirane različice</string>
+  <!-- misc.proxy.networkProxyPatch -->
+  <string name="morphe_proxy_screen_title">Omrežni proxy</string>
+  <string name="morphe_proxy_screen_summary">Usmerjanje podpršanih omrežnih zahtev prek proxyja</string>
+  <string name="morphe_proxy_enabled_title">Omogoči proxy</string>
+  <string name="morphe_proxy_enabled_summary">Usmerja podprane omrežne zahteve prek konfiguriranega HTTP ali HTTPS proxy strežnika</string>
+  <string name="morphe_proxy_host_title">Gostitelj proxy strežnika</string>
+  <string name="morphe_proxy_host_summary">Ime gostitelja ali IP naslov proxy strežnika</string>
+  <string name="morphe_proxy_port_title">Vrata proxy strežnika</string>
+  <string name="morphe_proxy_port_summary">Vrata proxy strežnika</string>
+  <string name="morphe_proxy_https_title">Uporabi HTTPS proxy</string>
+  <string name="morphe_proxy_https_summary">Uporabi HTTPS za povezavo na proxy strežnik namesto HTTP</string>
+  <string name="morphe_proxy_auth_enabled_title">Preverjanje pristnosti proxy strežnika</string>
+  <string name="morphe_proxy_auth_enabled_summary">Pošlje osrednje preverjanje pristnosti z zahtevami proxy strežnika</string>
+  <string name="morphe_proxy_auth_username_title">Uporabniško ime proxy strežnika</string>
+  <string name="morphe_proxy_auth_username_summary">Uporabniško ime za osrednje preverjanje pristnosti proxy strežnika</string>
+  <string name="morphe_proxy_auth_password_title">Geslo proxy strežnika</string>
+  <string name="morphe_proxy_auth_password_summary">Geslo za osrednje preverjanje pristnosti proxy strežnika</string>
+  <string name="morphe_proxy_allow_direct_fallback_title">Dovoli neposredno rezervno povezavo</string>
+  <string name="morphe_proxy_allow_direct_fallback_summary">Poveži se neposredno, če proxy strežnik ne deluje</string>
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">Onemogoči oglas s polnim zaslonom</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
@@ -120,4 +139,10 @@ Predvajanje se bo izvedlo neuspešno, če je hash JavaScript predvajalnika zasta
   <string name="morphe_replace_music_with_youtube_summary">Nadomešča music.youtube.com z youtube.com v skupnih povezavah.</string>
   <string name="morphe_replace_links_with_shortener_title">Spremenite povezave za deljenje v youtu.be</string>
   <string name="morphe_replace_links_with_shortener_summary">Prisilno uporablja skrajšano obliko URL-jev youtu.be za videe</string>
+  <!-- misc.debugging.enableDebuggingPatch -->
+  <string name="morphe_debug_protobuffer_title">Debug protokol protokola</string>
+  <string name="morphe_debug_protobuffer_summary">Dodaja dodatne informacije za razvojarje za prepoznavanje komponent aplikacije</string>
+  <string name="morphe_debug_protobuffer_user_dialog_message">"Ta nastavitev bo omogočila beleženje dodatnih podatkov o razmerju med elementi, vključno z besedilom na zaslonu za nekatere UI komponente.
+
+To lahko pomaga pri prepoznavanju komponent pri ustvarjanju prilagojenih filtrov, vendar bo omogočanje te možnosti tudi beležilo nekaj uporabniških podatkov, kot je vaš IP naslov."</string>
 </resources>

@@ -1,3 +1,12 @@
+# [1.9.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.8.0...v1.9.0) (2026-07-03)
+
+
+### Features
+
+* **pluto:** add certificate-pinning override for HTTPS inspection ([723ceeb](https://github.com/ajstrick81/morphe-androidtv-patches/commit/723ceebb3ee0987efb0991478b902b467bcd2076))
+* **pluto:** strip ad-break timeline to remove VOD ads ([16cc76b](https://github.com/ajstrick81/morphe-androidtv-patches/commit/16cc76b67468d692ef0c4c1f7b5789d8cc79883b))
+* **pluto:** verify ad hooks against dex, add clickable-ads suppression ([575612f](https://github.com/ajstrick81/morphe-androidtv-patches/commit/575612f34caf006a040df1e200b02f03f31184c3))
+
 # [1.8.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.7.0...v1.8.0) (2026-07-02)
 
 

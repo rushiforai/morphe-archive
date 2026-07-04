@@ -8,11 +8,13 @@
 package app.morphe.extension.youtube.patches;
 
 import static app.morphe.extension.shared.StringRef.str;
+import static app.morphe.extension.shared.Utils.getContext;
 
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Parcelable;
 
 import androidx.annotation.NonNull;
@@ -22,6 +24,7 @@ import java.util.Objects;
 
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.youtube.shared.PlayerType;
 
 @SuppressWarnings("unused")
 public final class LoadVideoPatch {
@@ -52,13 +55,15 @@ public final class LoadVideoPatch {
         playerInterfaceRef = new WeakReference<>(Objects.requireNonNull(playerInterfaceInit));
     }
 
-    /**
-     * If the player is not active, the layout may break.
-     * Use it only when it is guaranteed to be used in situations where the player is active.
-     */
     @SuppressWarnings("ExtractMethodRecommender")
-    public static void reloadVideo() {
+    public static void initializeReloadVideo() {
         try {
+            // If the player is not active, the layout may break.
+            // Use it only when it is guaranteed to be used in situations where the player is active.
+            if (PlayerType.getCurrent().isNoneOrHidden()) {
+                return;
+            }
+
             PlayerInterface playerInterface = playerInterfaceRef.get();
             if (playerInterface == null) {
                 Utils.showToastShort(str("morphe_dismiss_player_not_available_toast"));
@@ -73,13 +78,12 @@ public final class LoadVideoPatch {
                     : VideoInformation.getPlayerResponseVideoId();
             String playlistId = VideoInformation.getPlaylistId();
             final long videoTime = VideoInformation.getVideoTime();
-            String parameterSeparator = "?";
+            String parameterSeparator = "&";
             StringBuilder builder = new StringBuilder(videoId);
             if (!playlistId.isEmpty()) {
                 builder.append(parameterSeparator);
                 builder.append("list=");
                 builder.append(playlistId);
-                parameterSeparator = "&";
             }
             if (videoTime > 0) {
                 builder.append(parameterSeparator);
@@ -87,45 +91,82 @@ public final class LoadVideoPatch {
                 builder.append(videoTime / 1000);
                 builder.append('s');
             }
-            String builderString = builder.toString();
-            Logger.printDebug(() -> "Opening: https://www.youtube.com/watch?v=" + builderString);
+            String builderString = "https://www.youtube.com/watch?v=" + builder;
+            Logger.printDebug(() -> "Opening: " + builderString);
 
-            // Dismiss the player.
-            playerInterface.patch_dismissPlayer();
-
-            // Reopens the video after 500ms.
-            Utils.runOnMainThreadDelayed(() -> openVideo(builderString), 500);
+            openIntent(builderString, true);
         } catch (Exception ex) {
             Logger.printException(() -> "Failed to reload video", ex);
         }
     }
 
-    // This method opens a video based on hardcoded parameters found in an obfuscated class.
-    public static void openVideo(String videoIDWithParams) {
+    public static PlayerInterface getPlayerInterface() {
         PlayerInterface playerInterface = playerInterfaceRef.get();
         if (playerInterface == null) {
             Utils.showToastShort(str("morphe_dismiss_player_not_available_toast"));
-            return;
+            return null;
+        }
+        return playerInterface;
+    }
+
+    public static void openIntent(String url, boolean closeCurrentPlayerInstance) {
+        int loadVideoDelay = 0;
+
+        // Close the current player instance.
+        PlayerInterface playerInterface;
+        if (closeCurrentPlayerInstance && (playerInterface = getPlayerInterface()) != null) {
+            playerInterface.patch_dismissPlayer();
+
+            loadVideoDelay = 500;
         }
 
-        Context context = mainActivityRef.get();
-        // No videoID is needed to put inside the Intent initialization.
-        Intent reloadVideoIntent = new Intent();
-        reloadVideoIntent.setComponent(new ComponentName(
-                context,
-                "com.google.android.apps.youtube.app.watchwhile.InternalMainActivity"
-        ));
-        // NEW_TASK intent is not needed by this code.
-        reloadVideoIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        // Always put 'inventory_identifier' putExtra before 'watch'
-        // putExtra, to ensure the patch works correctly.
-        reloadVideoIntent.putExtra(
-                "android.intent.extra.inventory_identifier", new String[]{"vnd.youtube://" + videoIDWithParams}
-        );
-        // Get the needed Parcelable object from a static method, which will
-        // read inventory_identifier inside the currently built Intent.
-        reloadVideoIntent.putExtra("watch", playerInterface.patch_getIntentParcelable(reloadVideoIntent));
+        // Reopens the video after 0ms or 500ms.
+        Utils.runOnMainThreadDelayed(() -> {
+            Context context = getContext();
 
-        context.startActivity(reloadVideoIntent);
+            if (context == null) {
+                return;
+            }
+
+            Intent intent = new Intent("android.intent.action.VIEW", Uri.parse(url));
+            intent.setPackage(context.getPackageName());
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(intent);
+        }, loadVideoDelay);
+    }
+
+    // This method opens a video based on hardcoded parameters found in an obfuscated class.
+    public static void openVideoWithInternalIntent(String videoIDWithParams) {
+        PlayerInterface playerInterface;
+        if ((playerInterface = getPlayerInterface()) != null) {
+            Context context = mainActivityRef.get();
+            // No videoID is needed to put inside the Intent initialization.
+            Intent reloadVideoIntent = new Intent();
+            reloadVideoIntent.setComponent(new ComponentName(
+                    context,
+                    "com.google.android.apps.youtube.app.watchwhile.InternalMainActivity"
+            ));
+            // NEW_TASK intent is not needed by this code.
+            reloadVideoIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            // Always put 'inventory_identifier' putExtra before 'watch'
+            // putExtra, to ensure the patch works correctly.
+            reloadVideoIntent.putExtra(
+                    "android.intent.extra.inventory_identifier", new String[]{"vnd.youtube://" + videoIDWithParams}
+            );
+            // Get the needed Parcelable object from a static method, which will
+            // read inventory_identifier inside the currently built Intent.
+            reloadVideoIntent.putExtra("watch", playerInterface.patch_getIntentParcelable(reloadVideoIntent));
+
+            context.startActivity(reloadVideoIntent);
+        }
+    }
+
+    private static boolean checkDismissPlayerAvailability(PlayerInterface playerInterface) {
+        if (playerInterface == null) {
+            Utils.showToastShort(str("morphe_dismiss_player_not_available_toast"));
+            return false;
+        }
+
+        return true;
     }
 }

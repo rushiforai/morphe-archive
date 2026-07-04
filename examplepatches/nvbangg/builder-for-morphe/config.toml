@@ -1,60 +1,63 @@
 strict-sigcheck = false
 
-[YouTube-Stable]
+[YouTube]
 enabled = true
 apkmirror-dlurl = "https://www.apkmirror.com/apk/google-inc/youtube"
 uptodown-dlurl = "https://youtube.en.uptodown.com/android"
 
-[YouTube-Stable.patches]
+[YouTube.patches]
 "github:MorpheApp/morphe-patches" = []
 
-[YT-Music-Stable]
+[YT-Music]
 enabled = true
 apkmirror-dlurl = "https://www.apkmirror.com/apk/google-inc/youtube-music"
 uptodown-dlurl = "https://youtube-music.en.uptodown.com/android"
 arch = "both"
 
-[YT-Music-Stable.patches]
+[YT-Music.patches]
 "github:MorpheApp/morphe-patches" = []
 
-[Reddit-Stable]
+[Reddit]
 enabled = true
 apkmirror-dlurl = "https://www.apkmirror.com/apk/redditinc/reddit"
 uptodown-dlurl = "https://reddit-official-app.en.uptodown.com/android"
 
-[Reddit-Stable.patches]
+[Reddit.patches]
 "github:MorpheApp/morphe-patches" = []
 
 [YouTube-Experimental]
 enabled = false
+brand = "morphe-dev"
 apkmirror-dlurl = "https://www.apkmirror.com/apk/google-inc/youtube"
 uptodown-dlurl = "https://youtube.en.uptodown.com/android"
-version = "21.25.523"
+version = "21.26.360"
 patcher-args = "-e 'Change header' -Ocustom=icons/YouTube/header -e 'Custom branding' -OcustomIcon=icons/YouTube/branding -OcustomName='YouTube Morphe'"
 
 [YouTube-Experimental.patches]
-"github:MorpheApp/morphe-patches" = []
+"github:MorpheApp/morphe-patches" = { version = "dev" }
 
 [YT-Music-Experimental]
 enabled = false
+brand = "morphe-dev"
 apkmirror-dlurl = "https://www.apkmirror.com/apk/google-inc/youtube-music"
 uptodown-dlurl = "https://youtube-music.en.uptodown.com/android"
 arch = "both"
-version = "9.24.51"
+version = "9.26.51"
 patcher-args = "-e 'Change header' -Ocustom=icons/Music/header -e 'Custom branding' -OcustomIcon=icons/Music/branding -OcustomName='Music Morphe'"
 
 [YT-Music-Experimental.patches]
-"github:MorpheApp/morphe-patches" = []
+"github:MorpheApp/morphe-patches" = { version = "dev" }
 
 [Reddit-Experimental]
 enabled = false
+brand = "morphe-dev"
 apkmirror-dlurl = "https://www.apkmirror.com/apk/redditinc/reddit"
 uptodown-dlurl = "https://reddit-official-app.en.uptodown.com/android"
-version = "2026.25.0"
+version = "2026.26.0"
 patcher-args = "-e 'Custom branding name for Reddit' -OappName='Reddit Morphe'"
 
 [Reddit-Experimental.patches]
-"github:MorpheApp/morphe-patches" = []
+"github:MorpheApp/morphe-patches" = { version = "dev" }
 
 [X-Twitter]
 enabled = true

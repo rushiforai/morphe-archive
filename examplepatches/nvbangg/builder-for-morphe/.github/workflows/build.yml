@@ -9,6 +9,7 @@ on:
         type: choice
         options:
           - morphe
+          - morphe-dev
           - piko
           - hoo-dles
           - paresh

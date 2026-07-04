@@ -9,6 +9,7 @@ package app.morphe.patches.youtube.interaction.reload
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
+import app.morphe.patcher.OpcodesFilter
 import app.morphe.patcher.anyInstruction
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.opcode
@@ -52,4 +53,22 @@ internal object OpenNewVideoIntentParcelableFingerprint : Fingerprint(
         "vnd.youtube",
         "No video id in the Uri: "
     )
+)
+
+internal object BackButtonFinishActivityOnNewVideoIntentFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = listOf("L"),
+    filters = OpcodesFilter.opcodesToFilters(
+        Opcode.IGET,
+        Opcode.IF_EQZ,
+        Opcode.RETURN_VOID,
+        Opcode.IGET_OBJECT,
+        Opcode.CHECK_CAST,
+        Opcode.IGET_OBJECT,
+        Opcode.INVOKE_INTERFACE,
+        Opcode.MOVE_RESULT_OBJECT,
+        Opcode.CHECK_CAST,
+        Opcode.IGET_OBJECT,
+    ),
 )

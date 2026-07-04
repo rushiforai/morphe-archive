@@ -109,6 +109,25 @@ Pemutaran akan gagal jika hash pemutar JavaScript sudah kedaluwarsa."</string>
   <!-- misc.audio.tracks.forceOriginalAudioPatch -->
   <string name="morphe_force_original_audio_title">Paksa bahasa audio asli</string>
   <string name="morphe_force_original_audio_summary">Selalu memutar trek audio asli video tersebut daripada versi sulih suara</string>
+  <!-- misc.proxy.networkProxyPatch -->
+  <string name="morphe_proxy_screen_title">Proksi jaringan</string>
+  <string name="morphe_proxy_screen_summary">Arahkan permintaan jaringan yang didukung melalui proksi</string>
+  <string name="morphe_proxy_enabled_title">Aktifkan proksi</string>
+  <string name="morphe_proxy_enabled_summary">Merutekan permintaan jaringan yang didukung melalui proksi HTTP atau HTTPS yang telah dikonfigurasi</string>
+  <string name="morphe_proxy_host_title">Host proksi</string>
+  <string name="morphe_proxy_host_summary">Nama host atau alamat IP server proksi</string>
+  <string name="morphe_proxy_port_title">Port proksi</string>
+  <string name="morphe_proxy_port_summary">Port server proksi</string>
+  <string name="morphe_proxy_https_title">Gunakan proksi HTTPS</string>
+  <string name="morphe_proxy_https_summary">Gunakan HTTPS untuk terhubung ke server proksi daripada HTTP</string>
+  <string name="morphe_proxy_auth_enabled_title">Autentikasi proksi</string>
+  <string name="morphe_proxy_auth_enabled_summary">Mengirim autentikasi Dasar dengan permintaan proksi</string>
+  <string name="morphe_proxy_auth_username_title">Nama pengguna proksi</string>
+  <string name="morphe_proxy_auth_username_summary">Nama pengguna untuk autentikasi proksi Dasar</string>
+  <string name="morphe_proxy_auth_password_title">Kata sandi proksi</string>
+  <string name="morphe_proxy_auth_password_summary">Kata sandi untuk autentikasi proksi Dasar</string>
+  <string name="morphe_proxy_allow_direct_fallback_title">Izinkan penggantian langsung</string>
+  <string name="morphe_proxy_allow_direct_fallback_summary">Terhubung secara langsung jika proksi gagal</string>
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">Sembunyikan iklan layar penuh</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
@@ -120,4 +139,12 @@ Pemutaran akan gagal jika hash pemutar JavaScript sudah kedaluwarsa."</string>
   <string name="morphe_replace_music_with_youtube_summary">Mengganti music.youtube.com dengan youtube.com di tautan yang dibagikan</string>
   <string name="morphe_replace_links_with_shortener_title">Ubah tautan berbagi ke youtu.be</string>
   <string name="morphe_replace_links_with_shortener_summary">Memaksa video untuk menggunakan format pemendek URL youtu.be</string>
+  <!-- misc.debugging.enableDebuggingPatch -->
+  <string name="morphe_debug_protobuffer_title">Buffer protokol log</string>
+  <string name="morphe_debug_protobuffer_summary">Menambahkan informasi catatan tambahan untuk pengembang guna mengidentifikasi komponen aplikasi</string>
+  <string name="morphe_debug_protobuffer_user_dialog_message">"Mengaktifkan pengaturan ini akan mencatat data tata letak tambahan, termasuk teks pada layar untuk beberapa komponen UI.
+
+Ini dapat membantu mengidentifikasi komponen saat membuat penyaring khusus.
+
+Namun, mengaktifkan ini juga akan mencatat beberapa data pengguna seperti alamat IP Anda."</string>
 </resources>

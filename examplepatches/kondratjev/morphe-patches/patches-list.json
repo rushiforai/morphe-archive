@@ -1,5 +1,5 @@
 {
-  "version": "1.14.0",
+  "version": "1.16.0",
   "patches": [
     {
       "name": "Change version code",
@@ -37,7 +37,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": "1.103.0.3",
+              "version": "1.104.0.2",
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -62,7 +62,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": "2026.06.03-release",
+              "version": "2026.06.25-release",
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -95,7 +95,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": "0.6.11",
+              "version": "0.6.12",
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -120,7 +120,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": "1.103.0.3",
+              "version": "1.104.0.2",
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -157,7 +157,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": "1.103.0.3",
+              "version": "1.104.0.2",
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -182,7 +182,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": "1.103.0.3",
+              "version": "1.104.0.2",
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -209,7 +209,32 @@
           "signatures": null,
           "targets": [
             {
-              "version": "11.5.0.4",
+              "version": "11.6.0.1",
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Disable force update dialog",
+      "description": "Makes the 'App must update' dialog skippable by forcing is_cancelable=true.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.fatsecret.android",
+          "name": "FatSecret",
+          "description": null,
+          "apkFileType": null,
+          "appIconColor": "#00897B",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "11.6.0.1",
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -234,7 +259,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": "1.103.0.3",
+              "version": "1.104.0.2",
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -259,7 +284,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": "2026.06.03-release",
+              "version": "2026.06.25-release",
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -284,7 +309,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": "2026.06.03-release",
+              "version": "2026.06.25-release",
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -309,7 +334,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": "1.103.0.3",
+              "version": "1.104.0.2",
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -336,7 +361,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": "11.5.0.4",
+              "version": "11.6.0.1",
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -388,7 +413,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": "1.573",
+              "version": "1.575",
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -492,7 +517,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": "0.6.11",
+              "version": "0.6.12",
               "isExperimental": false,
               "minSdk": null,
               "description": null

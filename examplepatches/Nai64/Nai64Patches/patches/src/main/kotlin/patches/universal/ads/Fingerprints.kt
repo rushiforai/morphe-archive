@@ -73,6 +73,67 @@ internal object PerformLocalInstallerCheckFingerprint : Fingerprint(
     parameters = emptyList(),
 )
 
+// ── Generic Play Store installer check fingerprints ──
+// Match methods containing "com.android.vending" string in their body,
+// a strong indicator of install source checking logic.
+
+internal object GenericBooleanInstallerCheckFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PRIVATE),
+    returnType = "Z",
+    parameters = emptyList(),
+    strings = listOf("com.android.vending"),
+)
+
+internal object GenericStringInstallerCheckFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PRIVATE),
+    returnType = "Ljava/lang/String;",
+    parameters = emptyList(),
+    strings = listOf("com.android.vending"),
+)
+
+internal object FallbackBooleanInstallerCheckFingerprint : Fingerprint(
+    returnType = "Z",
+    parameters = emptyList(),
+    strings = listOf("com.android.vending"),
+)
+
+internal object FallbackStringInstallerCheckFingerprint : Fingerprint(
+    returnType = "Ljava/lang/String;",
+    parameters = emptyList(),
+    strings = listOf("com.android.vending"),
+)
+
+internal object PairipVMRunnerInvokeFingerprint : Fingerprint(
+    definingClass = "Lcom/pairip/VMRunner;",
+    name = "invoke",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf("Ljava/lang/String;", "[Ljava/lang/Object;"),
+)
+
+internal object PairipStartupLauncherLaunchFingerprint : Fingerprint(
+    definingClass = "Lcom/pairip/StartupLauncher;",
+    name = "launch",
+    returnType = "V",
+    parameters = emptyList(),
+)
+
+internal object PairipSignatureCheckVerifyIntegrityFingerprint : Fingerprint(
+    definingClass = "Lcom/pairip/SignatureCheck;",
+    name = "verifyIntegrity",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "V",
+    parameters = listOf("Landroid/content/Context;"),
+)
+
+internal object PairipSignatureCheckVerifySignatureMatchesFingerprint : Fingerprint(
+    definingClass = "Lcom/pairip/SignatureCheck;",
+    name = "verifySignatureMatches",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "Z",
+    parameters = listOf("Ljava/lang/String;"),
+)
+
 // ── Native MAX (non-Unity) fingerprints ──
 
 internal object MaxRewardedAdIsReadyFingerprint : Fingerprint(
@@ -136,5 +197,41 @@ internal object UnityRewardedAdShowFingerprint : Fingerprint(
         "Landroid/app/Activity;",
         "Lcom/unity3d/ads/ShowConfiguration;",
         "Lcom/unity3d/ads/RewardedShowListener;",
+    ),
+)
+
+// ── LevelPlay RewardedAd fingerprints ──
+
+internal object LevelPlayRewardedAdIsReadyFingerprint : Fingerprint(
+    definingClass = "Lcom/unity3d/mediation/rewarded/LevelPlayRewardedAd;",
+    name = "isAdReady",
+    returnType = "Z",
+    parameters = emptyList(),
+)
+
+internal object LevelPlayRewardedAdShowAdFingerprint : Fingerprint(
+    definingClass = "Lcom/unity3d/mediation/rewarded/LevelPlayRewardedAd;",
+    name = "showAd",
+    returnType = "V",
+    parameters = listOf(
+        "Landroid/app/Activity;",
+        "Ljava/lang/String;",
+    ),
+)
+
+internal object IronSourceUnityRewardedAdIsReadyFingerprint : Fingerprint(
+    definingClass = "Lcom/ironsource/unity/androidbridge/RewardedAd;",
+    name = "isAdReady",
+    returnType = "Z",
+    parameters = emptyList(),
+)
+
+internal object IronSourceLevelPlayFullScreenShowAdFingerprint : Fingerprint(
+    definingClass = "Lcom/ironsource/Ya;",
+    name = "a",
+    returnType = "V",
+    parameters = listOf(
+        "Landroid/app/Activity;",
+        "Ljava/lang/String;",
     ),
 )

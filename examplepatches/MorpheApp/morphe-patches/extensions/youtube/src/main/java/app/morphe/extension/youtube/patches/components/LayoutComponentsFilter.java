@@ -30,12 +30,17 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.patches.components.BufferAsciiStrings;
+import app.morphe.extension.shared.patches.components.ByteArrayFilterGroup;
+import app.morphe.extension.shared.patches.components.ByteArrayFilterGroupList;
+import app.morphe.extension.shared.patches.components.ContextInterface;
+import app.morphe.extension.shared.patches.components.Filter;
+import app.morphe.extension.shared.patches.components.StringFilterGroup;
+import app.morphe.extension.shared.patches.components.StringFilterGroupList;
 import app.morphe.extension.shared.StringTrieSearch;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.youtube.patches.ChangeHeaderPatch;
-import app.morphe.extension.youtube.patches.components.LithoFilterPatch.BufferAsciiStrings;
 import app.morphe.extension.youtube.settings.Settings;
-import app.morphe.extension.youtube.shared.ConversionContext.ContextInterface;
 
 @SuppressWarnings("unused")
 public final class LayoutComponentsFilter extends Filter {
@@ -44,13 +49,10 @@ public final class LayoutComponentsFilter extends Filter {
             "cell_description_body",
             "channel_profile"
     );
-    private static final ByteArrayFilterGroup mix8Buffer = new ByteArrayFilterGroup(
+    private static final ByteArrayFilterGroup mixPlaylistUrlBuffer = new ByteArrayFilterGroup(
             null,
-            "Mix8"
-    );
-    private static final ByteArrayFilterGroup playlistListTagBuffer = new ByteArrayFilterGroup(
-            null,
-            "&list="
+            "?list=RD",
+            "&list=RD"
     );
 
     private static final List<String> channelTabFilterStrings = getFilterStrings(Settings.HIDE_CHANNEL_TAB_FILTER_STRINGS);
@@ -393,15 +395,15 @@ public final class LayoutComponentsFilter extends Filter {
     }
 
     @Override
-    boolean isFiltered(ContextInterface contextInterface,
-                       String identifier,
-                       String accessibility,
-                       String path,
-                       byte[] buffer,
-                       BufferAsciiStrings asciiStrings,
-                       StringFilterGroup matchedGroup,
-                       FilterContentType contentType,
-                       int contentIndex) {
+    public boolean isFiltered(ContextInterface contextInterface,
+                              String identifier,
+                              String accessibility,
+                              String path,
+                              byte[] buffer,
+                              BufferAsciiStrings asciiStrings,
+                              StringFilterGroup matchedGroup,
+                              FilterContentType contentType,
+                              int contentIndex) {
         // Exceptions are not filtered.
         if (exceptions.matches(path)) {
             return false;
@@ -499,8 +501,7 @@ public final class LayoutComponentsFilter extends Filter {
             }
 
             if (!mixPlaylistsBuffersExceptions.check(buffer).isFiltered() &&
-                    mix8Buffer.check(buffer).isFiltered() &&
-                    playlistListTagBuffer.check(buffer).isFiltered()) {
+                    mixPlaylistUrlBuffer.check(buffer).isFiltered()) {
                 Logger.printDebug(() -> "Filtered mix playlist");
                 return true;
             }
@@ -784,6 +785,7 @@ public final class LayoutComponentsFilter extends Filter {
 
         for (String filter : flyoutMenuFilterStrings) {
             if (menuTitleString.equalsIgnoreCase(filter)) {
+                Logger.printDebug(() -> "Hiding: " + menuTitleString);
                 return null;
             }
         }
@@ -810,6 +812,7 @@ public final class LayoutComponentsFilter extends Filter {
 
         for (String filter : flyoutMenuFilterStrings) {
             if (menuTitleString.equalsIgnoreCase(filter)) {
+                Logger.printDebug(() -> "Hiding: " + menuTitleString);
                 Utils.hideViewByLayoutParams(parentView);
             }
         }

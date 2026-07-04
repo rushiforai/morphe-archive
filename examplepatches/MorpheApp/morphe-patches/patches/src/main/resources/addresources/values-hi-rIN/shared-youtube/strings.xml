@@ -108,6 +108,25 @@ Second \"item\" text"</string>
   <!-- misc.audio.tracks.forceOriginalAudioPatch -->
   <string name="morphe_force_original_audio_title">ओरिजिनल ऑडियो भाषा को मजबूर करें</string>
   <string name="morphe_force_original_audio_summary">हमेशा वीडियो के मूल ऑडियो ट्रैक को डब किए गए संस्करण के बजाय चलाता है</string>
+  <!-- misc.proxy.networkProxyPatch -->
+  <string name="morphe_proxy_screen_title">नेटवर्क प्रॉक्सी</string>
+  <string name="morphe_proxy_screen_summary">प्रॉक्सी के माध्यम से समर्थित नेटवर्क अनुरोधों को रूट करें</string>
+  <string name="morphe_proxy_enabled_title">प्रॉक्सी सक्षम करें</string>
+  <string name="morphe_proxy_enabled_summary">कॉन्फ़िगर किए गए HTTP या HTTPS प्रॉक्सी के माध्यम से समर्थित नेटवर्क अनुरोध मार्ग</string>
+  <string name="morphe_proxy_host_title">प्रॉक्सी होस्ट</string>
+  <string name="morphe_proxy_host_summary">प्रॉक्सी सर्वर का होस्टनाम या आईपी पता</string>
+  <string name="morphe_proxy_port_title">प्रॉक्सी पोर्ट</string>
+  <string name="morphe_proxy_port_summary">प्रॉक्सी सर्वर का पोर्ट</string>
+  <string name="morphe_proxy_https_title">HTTPS प्रॉक्सी का उपयोग करें</string>
+  <string name="morphe_proxy_https_summary">HTTP के बजाय प्रॉक्सी सर्वर से कनेक्ट करने के लिए HTTPS का उपयोग करें</string>
+  <string name="morphe_proxy_auth_enabled_title">प्रॉक्सी प्रमाणीकरण</string>
+  <string name="morphe_proxy_auth_enabled_summary">प्रॉक्सी अनुरोधों के साथ बेसिक प्रमाणीकरण भेजें</string>
+  <string name="morphe_proxy_auth_username_title">प्रॉक्सी उपयोगकर्ता नाम</string>
+  <string name="morphe_proxy_auth_username_summary">बेसिक प्रॉक्सी प्रमाणीकरण के लिए उपयोगकर्ता नाम</string>
+  <string name="morphe_proxy_auth_password_title">प्रॉक्सी पासवर्ड</string>
+  <string name="morphe_proxy_auth_password_summary">बेसिक प्रॉक्सी प्रमाणीकरण के लिए पासवर्ड</string>
+  <string name="morphe_proxy_allow_direct_fallback_title">प्रत्यक्ष फ़ॉलबैक की अनुमति दें</string>
+  <string name="morphe_proxy_allow_direct_fallback_summary">यदि प्रॉक्सी विफल हो जाती है तो सीधे कनेक्ट करें</string>
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">छुपाएं फुलस्क्रीन विज्ञापन</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
@@ -119,4 +138,12 @@ Second \"item\" text"</string>
   <string name="morphe_replace_music_with_youtube_summary">साझा लिंक में music.youtube.com को youtube.com से बदलता है।</string>
   <string name="morphe_replace_links_with_shortener_title">youtu.be के साथ शेयर लिंक बदलें</string>
   <string name="morphe_replace_links_with_shortener_summary">वीडियो को संक्षिप्त youtu.be URL प्रारूप का उपयोग करने के लिए बाध्य करता है</string>
+  <!-- misc.debugging.enableDebuggingPatch -->
+  <string name="morphe_debug_protobuffer_title">डीबग लॉग प्रोटोकॉल बफर</string>
+  <string name="morphe_debug_protobuffer_summary">डेवलपर्स को ऐप घटकों की पहचान करने के लिए अतिरिक्त लॉगिंग जानकारी जोड़ता है</string>
+  <string name="morphe_debug_protobuffer_user_dialog_message">"इस सेटिंग को सक्षम करने से अतिरिक्त लेआउट डेटा रिकॉर्ड होगा, जिसमें कुछ यूआई घटकों के स्क्रीन पर पाठ शामिल होंगे।
+
+यह कस्टम फ़िल्टर बनाने के लिए घटकों को पहचानने में मदद करेगा।
+
+लेकिन, इसका सक्षम करना भी कुछ उपयोगकर्ता डेटा जैसे आपके आईपी पता को रिकॉर्ड करेगा।"</string>
 </resources>

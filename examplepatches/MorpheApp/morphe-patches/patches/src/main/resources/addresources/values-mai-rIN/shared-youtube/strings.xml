@@ -95,6 +95,7 @@ Second \"item\" text"</string>
   <string name="morphe_disable_drc_audio_title">DRC ऑडियो बंद करू</string>
   <!-- misc.audio.tracks.forceOriginalAudioPatch -->
   <string name="morphe_force_original_audio_title">ओरिजनल ऑडियो भाषा फ़ोर्स करू</string>
+  <!-- misc.proxy.networkProxyPatch -->
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">फुलस्क्रीन विज्ञापन छुपाउ</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
@@ -103,4 +104,5 @@ Second \"item\" text"</string>
   <string name="morphe_sanitize_sharing_links_title">शेयरिंग लिंकसके सेनिटाइज करू</string>
   <string name="morphe_replace_music_with_youtube_title">शेयर लिंकके youtube.com में बदलू</string>
   <string name="morphe_replace_links_with_shortener_title">शेअर लिंकके youtu.be में बदलू</string>
+  <!-- misc.debugging.enableDebuggingPatch -->
 </resources>

@@ -43,7 +43,6 @@ private val reloadVideoButtonResourcePatch = resourcePatch {
     )
 
     execute {
-
         copyResources(
             "reloadbutton",
             ResourceGroup(
@@ -165,5 +164,10 @@ val reloadVideoButtonPatch = bytecodePatch(
                 )
             }
         }
+
+        BackButtonFinishActivityOnNewVideoIntentFingerprint.method.addInstruction(
+            0,
+            "return-void"
+        )
     }
 }

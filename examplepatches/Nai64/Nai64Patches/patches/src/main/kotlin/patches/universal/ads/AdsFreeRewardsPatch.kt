@@ -8,21 +8,24 @@ import java.util.logging.Logger
 @Suppress("unused")
 val adsFreeRewardsPatch = bytecodePatch(
     name = "Ads Free Rewards",
-    description = "Auto-claim rewarded ad rewards without watching ads. Supports MAX Unity, native MAX, Unity Ads. " +
+    description = "Auto-claim rewarded ad rewards without watching ads. Supports MAX Unity, native MAX, Unity Ads, LevelPlay. " +
             "WARNING: Enabling No Ads alongside this patch will prevent rewards from being claimed.",
     default = false,
 ) {
     execute {
+        val logger = Logger.getLogger(this::class.java.name)
         // ── Bail out early if no supported SDK is present ──
         val hasMaxUnity = ShowRewardedAdFingerprint.methodOrNull != null &&
             IsRewardedAdReadyFingerprint.methodOrNull != null
         val hasNativeMax = MaxRewardedAdIsReadyFingerprint.methodOrNull != null &&
             MaxRewardedAdShowAdFingerprint.methodOrNull != null
         val hasUnityAds = UnityRewardedAdShowFingerprint.methodOrNull != null
+        val hasLevelPlay = LevelPlayRewardedAdIsReadyFingerprint.methodOrNull != null
+        val hasIronSourceUnityBridge = IronSourceUnityRewardedAdIsReadyFingerprint.methodOrNull != null &&
+            IronSourceLevelPlayFullScreenShowAdFingerprint.methodOrNull != null
 
-        if (!hasMaxUnity && !hasNativeMax && !hasUnityAds) {
-            return@execute Logger.getLogger(this::class.java.name)
-                .warning("Could not find supported ad SDK (MAX Unity, native MAX, or Unity Ads). No changes applied.")
+        if (!hasMaxUnity && !hasNativeMax && !hasUnityAds && !hasLevelPlay && !hasIronSourceUnityBridge) {
+            return@execute logger.warning("Could not find supported ad SDK (MAX Unity, native MAX, Unity Ads, LevelPlay, or ironSource Unity bridge). No changes applied.")
         }
 
         // ── Strategy 1: MAX Unity wrapper ──
@@ -103,7 +106,53 @@ val adsFreeRewardsPatch = bytecodePatch(
             return@execute
         }
 
-        // ── Strategy 3: Unity Ads RewardedAd ──
+        // ── Strategy 3: LevelPlay RewardedAd (ironSource mediation) ──
+        // Forces isAdReady() to return true. showAd() is NOT patched here;
+        // the call flows through to the ironSource Unity adapter which
+        // invokes com.unity3d.ads.RewardedAd.show(), which Strategy 4 patches.
+        val levelPlayReady = LevelPlayRewardedAdIsReadyFingerprint.methodOrNull
+        if (levelPlayReady != null) {
+            levelPlayReady.addInstructions(0, """
+                const/4 v0, 0x1
+                return v0
+            """.trimIndent())
+            logger.info("Applied Ads Free Rewards LevelPlay ready strategy")
+            // Continue to Strategy 4 to also patch RewardedAd.show()
+        }
+
+        // Strategy 3b: ironSource Unity bridge backed by LevelPlay.
+        // Pickcrafter uses this bridge instead of MAX. Force the Unity-facing
+        // ready check, then intercept the shared fullscreen show path and fire
+        // the bridge listener lifecycle directly.
+        val bridgeReady = IronSourceUnityRewardedAdIsReadyFingerprint.methodOrNull
+        val bridgeShow = IronSourceLevelPlayFullScreenShowAdFingerprint.methodOrNull
+        if (bridgeReady != null && bridgeShow != null) {
+            bridgeReady.addInstructions(0, """
+                const/4 v0, 0x1
+                return v0
+            """.trimIndent())
+
+            bridgeShow.addInstructions(0, """
+                iget-object v0, p0, Lcom/ironsource/Ya;->k:Lcom/ironsource/Za;
+                if-eqz v0, :morphe_ads_free_rewards_done
+                iget-object p1, p0, Lcom/ironsource/Ya;->m:Lcom/ironsource/q6;
+                invoke-interface {p1}, Lcom/ironsource/q6;->b()Lcom/unity3d/mediation/LevelPlayAdInfo;
+                move-result-object p1
+                invoke-interface {v0, p1}, Lcom/ironsource/Za;->onAdDisplayed(Lcom/unity3d/mediation/LevelPlayAdInfo;)V
+                new-instance v1, Lcom/unity3d/mediation/rewarded/LevelPlayReward;
+                const-string p2, "reward"
+                const/4 p0, 0x1
+                invoke-direct {v1, p2, p0}, Lcom/unity3d/mediation/rewarded/LevelPlayReward;-><init>(Ljava/lang/String;I)V
+                invoke-interface {v0, v1, p1}, Lcom/ironsource/Za;->onAdRewarded(Lcom/unity3d/mediation/rewarded/LevelPlayReward;Lcom/unity3d/mediation/LevelPlayAdInfo;)V
+                invoke-interface {v0, p1}, Lcom/ironsource/Za;->onAdClosed(Lcom/unity3d/mediation/LevelPlayAdInfo;)V
+                :morphe_ads_free_rewards_done
+                return-void
+            """.trimIndent())
+            logger.info("Applied Ads Free Rewards ironSource Unity bridge strategy")
+            return@execute
+        }
+
+        // Strategy 4: Unity Ads RewardedAd.
         val adsShow = UnityRewardedAdShowFingerprint.methodOrNull
         if (adsShow != null) {
             // Only patch show() — do NOT patch load() so the real ad loads
@@ -115,7 +164,6 @@ val adsFreeRewardsPatch = bytecodePatch(
                 invoke-interface {p3, p0, v0}, Lcom/unity3d/ads/ShowListener;->onCompleted(Ljava/lang/Object;Lcom/unity3d/ads/ShowFinishState;)V
                 return-void
             """.trimIndent())
-            return@execute
         }
 
         // ── No supported SDK found — silently skip ──

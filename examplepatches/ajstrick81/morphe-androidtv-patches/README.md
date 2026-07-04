@@ -22,6 +22,7 @@ I'm just like you — I enjoy watching TV and movies without being bored and ann
 | 🟢 Peacock | `com.peacocktv.peacockandroid` | Working - [Use with DNS filters:](https://github.com/ajstrick81/Peacock-Ads) | `v7.5.102` | 6/13/26 |
 | 🟢 Tubi | `com.tubitv` | Working | `v10.20.5000` | 5/20/26 |
 | 🟢 ViX | `com.univision.prendetv` | Working | `v4.46.0_tv` | 6/26/26 |
+| 🟡 Pluto TV | `tv.pluto.android` | Testing — ad tracking + pause ads suppressed; stitched (SSAI) video ads remain | `5.66.0-leanback` | 7/1/26 |
 | 🔴 Paramount+ | `com.cbs.ott` | In Development | `v16.8 → v16.12` | — |
 | 🔴 Fox One | **Under Development** | — |
 | 🔴 MLB TV | **Under Development** | — |
@@ -115,6 +116,26 @@ All patches follow the same general workflow using **Morphe Manager**:
 1. Go to [apkmirror.com](https://www.apkmirror.com) and search for:
    ```
    ViX v4.46.0_tv (Android TV)
+   ```
+2. Download the `.apkm` file
+3. Select it in Morphe Manager
+4. Apply the patch
+
+---
+
+### 📡 Pluto TV
+
+> 🟡 **Testing.** Pluto is a free, 100% ad-supported (FAST) service that uses
+> **server-side ad stitching (SSAI)** — ads are baked directly into the video
+> stream from the same CDN as the content, so there is no ad domain to block
+> and no ad-free tier to unlock. This patch neuters the ad *tracking beacons*
+> and the *pause-ad* overlay. The stitched video ads themselves still occupy
+> their slot in the timeline; a VOD auto-skip pass is planned. DNS filters do
+> **not** help here.
+
+1. Go to [apkmirror.com](https://www.apkmirror.com) and search for:
+   ```
+   Pluto TV 5.66.0-leanback (Android TV)
    ```
 2. Download the `.apkm` file
 3. Select it in Morphe Manager

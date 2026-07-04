@@ -109,6 +109,25 @@ Oynadıcı JavaScript hash-i köhnədirsə, oynatma uğursuz olacaq."</string>
   <!-- misc.audio.tracks.forceOriginalAudioPatch -->
   <string name="morphe_force_original_audio_title">Orijinal səs dilini zorla</string>
   <string name="morphe_force_original_audio_summary">Həmişə videonun dublyaj olunan versiyası əvəzinə əsil audio trekini oynadır</string>
+  <!-- misc.proxy.networkProxyPatch -->
+  <string name="morphe_proxy_screen_title">Şəbəkə proksisi</string>
+  <string name="morphe_proxy_screen_summary">Dəstəklənən şəbəkə sorğularını proksi vasitəsilə yönləndir</string>
+  <string name="morphe_proxy_enabled_title">Proksini aktivləşdir</string>
+  <string name="morphe_proxy_enabled_summary">Dəstəklənən şəbəkə sorğularını konfiqurasiya olunmuş HTTP və ya HTTPS proksi vasitəsilə yönləndirir</string>
+  <string name="morphe_proxy_host_title">Proksi host</string>
+  <string name="morphe_proxy_host_summary">Proksi serverin host adı və ya IP ünvanı</string>
+  <string name="morphe_proxy_port_title">Proksi portu</string>
+  <string name="morphe_proxy_port_summary">Proksi serverin portu</string>
+  <string name="morphe_proxy_https_title">HTTPS proksi istifadə et</string>
+  <string name="morphe_proxy_https_summary">HTTP əvəzinə proksi serverə qoşulmaq üçün HTTPS istifadə et</string>
+  <string name="morphe_proxy_auth_enabled_title">Proksi təsdiqlənməsi</string>
+  <string name="morphe_proxy_auth_enabled_summary">Proksi sorğuları ilə əsas təsdiqlənməni göndərir</string>
+  <string name="morphe_proxy_auth_username_title">Proksi istifadəçi adı</string>
+  <string name="morphe_proxy_auth_username_summary">Əsas proksi təsdiqlənməsi üçün istifadəçi adı</string>
+  <string name="morphe_proxy_auth_password_title">Proksi parolu</string>
+  <string name="morphe_proxy_auth_password_summary">Əsas proksi təsdiqlənməsi üçün parol</string>
+  <string name="morphe_proxy_allow_direct_fallback_title">Birbaşa ehtiyat keçidə icazə ver</string>
+  <string name="morphe_proxy_allow_direct_fallback_summary">Proksi sıradan çıxarsa, birbaşa qoşul</string>
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">Tam ekran reklamlarını gizlət</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
@@ -120,4 +139,12 @@ Oynadıcı JavaScript hash-i köhnədirsə, oynatma uğursuz olacaq."</string>
   <string name="morphe_replace_music_with_youtube_summary">Paylaşılan linklərdə music.youtube.com- u youtube.com- a dəyişir</string>
   <string name="morphe_replace_links_with_shortener_title">Paylaşma keçidlərini youtu.be-yə dəyişdir</string>
   <string name="morphe_replace_links_with_shortener_summary">Videoları qısaldılan youtu.be URL formatın istifadə etməyə zorlayır</string>
+  <!-- misc.debugging.enableDebuggingPatch -->
+  <string name="morphe_debug_protobuffer_title">Bufer protokol sazlanma jurnalı</string>
+  <string name="morphe_debug_protobuffer_summary">Tətbiq elementlərin təyin etmək məqsədilə tərtibatçılar üçün əlavə giriş məlumatları əlavə edir</string>
+  <string name="morphe_debug_protobuffer_user_dialog_message">"Bu seçimi aktivləşdirmə bəzi UI quruluşları üçün ekran mətni də olmaqla əlavə tərtibat bazasını daxil edəcək.
+
+Bu, xüsusi filtrlər yaradarkən quruluşları müəyyən etməyə kömək edə bilər.
+
+Hər halda, bunu aktivləşdirmə IP ünvanınız kimi bəzi istifadəçi məlumatın da daxil edəcək."</string>
 </resources>

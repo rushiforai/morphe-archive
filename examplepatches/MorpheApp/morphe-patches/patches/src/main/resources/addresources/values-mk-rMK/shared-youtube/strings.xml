@@ -101,6 +101,7 @@ Second \"item\" text"</string>
   <!-- misc.audio.tracks.forceOriginalAudioPatch -->
   <string name="morphe_force_original_audio_title">Принудно оригинално аудио</string>
   <string name="morphe_force_original_audio_summary">Секогаш пуштај оригинален аудио трак за видео наместо добликан верзија</string>
+  <!-- misc.proxy.networkProxyPatch -->
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">Скриј реклами со целоцен екран</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
@@ -112,4 +113,6 @@ Second \"item\" text"</string>
   <string name="morphe_replace_music_with_youtube_summary">Ја заменува music.youtube.com со youtube.com во споделуваните линкови.</string>
   <string name="morphe_replace_links_with_shortener_title">Промени линковите за споделување на youtu.be</string>
   <string name="morphe_replace_links_with_shortener_summary">Принудува видеата да го користат скратениот формат на URL youtu.be</string>
+  <!-- misc.debugging.enableDebuggingPatch -->
+  <string name="morphe_debug_protobuffer_summary">Додава дополнителни информации за евидентира ње за програмери за да ги идентификуваат компонентите на апликацијата</string>
 </resources>

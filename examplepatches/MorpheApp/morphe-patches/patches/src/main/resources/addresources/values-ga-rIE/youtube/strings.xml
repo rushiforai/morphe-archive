@@ -33,14 +33,6 @@ Second \"item\" text"</string>
   <!-- misc.backgroundplayback.backgroundPlaybackPatch -->
   <string name="morphe_remove_background_playback_restrictions_title">Bain srianta súgartha cúlra</string>
   <string name="morphe_shorts_disable_background_playback_title">Díchumasaigh súgradh sa chúlra</string>
-  <!-- misc.debugging.enableDebuggingPatch -->
-  <string name="morphe_debug_protobuffer_title">Maolán prótacail loga dífhabhtaithe</string>
-  <string name="morphe_debug_protobuffer_summary">Cuireann sé faisnéis logála bhreise leis do fhorbróirí chun comhpháirteanna an aip a aithint</string>
-  <string name="morphe_debug_protobuffer_user_dialog_message">"Má chumasaíonn tú an socrú seo, logálfar sonraí breise leagain amach, lena n-áirítear téacs ar an scáileán do roinnt comhpháirteanna den Chomhéadan Úsáideora.
-
-Is féidir leis seo cabhrú le comhpháirteanna a aithint agus scagairí saincheaptha á gcruthú.
-
-Mar sin féin, má chumasaíonn tú é seo, logálfar roinnt sonraí úsáideora freisin amhail do sheoladh IP."</string>
   <!-- layout.disableLayoutUpdatesPatch -->
   <string name="morphe_disable_layout_updates_title">Díchumasaigh nuashonruithe leagan amach</string>
   <string name="morphe_disable_layout_updates_summary">Coscann sé seo an freastalaí ó leagan amach an aip a nuashonrú</string>
@@ -136,6 +128,8 @@ I measc na n-athruithe tá:
   <string name="morphe_hide_timed_reactions_summary">Folaíonn sé an ghné a ligeann d’úsáideoirí imoibriú le emojis sa chuid tuairimí agus sa chomhrá beo</string>
   <string name="morphe_hide_video_title_title">Folaigh teideal an fhíseáin</string>
   <string name="morphe_hide_video_title_summary">Folaíonn sé teideal an fhíseáin sa mhodh lánscáileáin</string>
+  <string name="morphe_sanitize_video_subtitle_title">Glanadh fotheideal físe</string>
+  <string name="morphe_sanitize_video_subtitle_summary">Glanann sé frásaí cosúil le \'#\', \'Bailitheoir Airgid\', \'Siopa\', agus \'táirgí\' ó fhotheideal an fhíseáin</string>
   <string name="morphe_hide_description_components_screen_title">Cur síos ar an bhfíseán</string>
   <string name="morphe_hide_description_components_screen_summary">Roghnaigh cé na comhpháirteanna a thaispeántar i dtuairisc an fhíseáin</string>
   <string name="morphe_hide_ai_generated_video_summary_section_title">Folaigh an chuid \'Achoimre ar fhíseán a ghintear le hintleacht shaorga\'</string>
@@ -306,6 +300,59 @@ Teorainneacha:
 
 Fíoraigh go bhfuil ainm an phacáiste ceart agus go bhfuil an aip suiteáilte"</string>
   <string name="morphe_external_downloader_empty_warning">Ní féidir ainm an phacáiste a fhágáil folamh</string>
+  <!-- video.voiceovertranslation.voiceOverTranslationPatch -->
+  <string name="morphe_vot_screen_title">Aistriúchán gutha</string>
+  <string name="morphe_vot_screen_summary">Léigh fotheidil físe os ard ag baint úsáide as téacs-go-hurlabhra ar an ngléas, sioncrónaithe le hathsheinm</string>
+  <string name="morphe_vot_enabled_title">Aistriúchán gutha</string>
+  <string name="morphe_vot_caption_language_title">Teanga</string>
+  <string name="morphe_vot_translation_service_title">Soláthraí aistriúcháin</string>
+  <string name="morphe_vot_original_audio_volume_title">An toirt fuaime bunaidh</string>
+  <string name="morphe_vot_original_audio_volume_summary">Toirt an fhuaime bhunaidh YouTube agus an t-aistriúchán á labhairt</string>
+  <string name="morphe_vot_translation_volume_title">Toirt aistriúcháin</string>
+  <string name="morphe_vot_translation_volume_summary">Toirt an ghlór aistriúcháin dubáilte</string>
+  <string name="morphe_vot_max_speech_rate_title">Uasráta cainte</string>
+  <string name="morphe_vot_max_speech_rate_summary">Iolraitheoir uasta luais agus cainte á cur isteach i sliotán fotheideal</string>
+  <string name="morphe_vot_mymemory_info_summary">"API aistriúcháin saor in aisce, níl aon eochair API ag teastáil. Suas le 5,000 carachtar in aghaidh an lae ar an leibhéal saor in aisce, nó suas le 50,000 carachtar in aghaidh an lae le seoladh ríomhphoist.
+
+Tapáil anseo chun MyMemory.translated.net a oscailt"</string>
+  <string name="morphe_vot_mymemory_email_title">Ríomhphost MyMemory</string>
+  <string name="morphe_vot_mymemory_email_summary">Roghnach. Cuir isteach do sheoladh ríomhphoist MyMemory chun an teorainn laethúil a mhéadú ó 5,000 go 50,000 carachtar. Fág folamh chun an teorainn gan ainm a úsáid.</string>
+  <string name="morphe_vot_openrouter_info_summary">"Aistriúchán AI íoctha trí OpenRouter. Barr suas uair amháin agus aistrigh na mílte físeán. Is é Mistral Nemo an rogha is saoire, agus cuireann Gemma 4 an caighdeán is airde ar fáil.
+
+Tapáil anseo chun OpenRouter.ai a oscailt."</string>
+  <string name="morphe_vot_openrouter_api_key_title">Eochair API OpenRouter</string>
+  <string name="morphe_vot_openrouter_api_key_summary">D\'eochair API OpenRouter. Cruthaigh eochair ag OpenRouter.ai &gt; Spás Oibre &gt; Eochracha API</string>
+  <string name="morphe_vot_openrouter_model_title">Samhail OpenRouter</string>
+  <string name="morphe_vot_openrouter_model_custom">Saincheaptha</string>
+  <string name="morphe_vot_openrouter_not_configured_title">Níl OpenRouter cumraithe</string>
+  <string name="morphe_vot_openrouter_not_configured_message">Cuir isteach d’eochair API OpenRouter sna socruithe sula roghnaíonn tú an soláthraí seo</string>
+  <string name="morphe_vot_cost_free">Saor in aisce</string>
+  <!-- %s is dollar cost, e.g. $0.10 per 100 hours -->
+  <string name="morphe_vot_cost_per_hour">%s in aghaidh gach 100 uair an chloig físe</string>
+  <string name="morphe_vot_tts_voice_type">Guth</string>
+  <string name="morphe_vot_tts_system">Córas</string>
+  <string name="morphe_vot_voice_gender_male_multilingual">Fireann ilteangach</string>
+  <string name="morphe_vot_voice_gender_female_multilingual">Bean ilteangach</string>
+  <string name="morphe_vot_voice_gender_male">Fireann</string>
+  <string name="morphe_vot_voice_gender_female">Baineann</string>
+  <string name="morphe_vot_tts_sample">Tá sé in am morphing!</string>
+  <string name="morphe_vot_http_error_title">Aistriúchán ar fáil</string>
+  <string name="morphe_vot_http_error_message">"D’fhill an tseirbhís aistriúcháin earráid HTTP %s. Is dócha go bhfuil teorainn ráta curtha le do sheoladh IP ar feadh suas le 24 uair an chloig.
+
+Chun leanúint ar aghaidh ag úsáid aistriúcháin, aistrigh chuig soláthraí aistriúcháin difriúil sna socruithe nó bain úsáid as VPN."</string>
+  <string name="morphe_vot_do_not_show_again">Ná taispeáin arís</string>
+  <string name="morphe_vot_export_api_key_warning">"Tá eochair API OpenRouter i do shocruithe.
+
+Níor cheart d'eochair API a roinnt choíche. Is féidir le duine ar bith a bhfuil rochtain aige uirthi do chreidmheasanna OpenRouter a úsáid."</string>
+  <string name="morphe_vot_openrouter_credits_title">Teorainn chreidmheasa OpenRouter sroichte</string>
+  <string name="morphe_vot_openrouter_credits_message">Tá do theorainn chreidmheasa OpenRouter sroichte. Cuir barr le d’iarmhéid nó méadaigh do phríomhtheorainn caiteachais ag OpenRouter.ai</string>
+  <string name="morphe_vot_openrouter_open_website">Oscail OpenRouter.ai</string>
+  <string name="morphe_vot_openrouter_error">Theip ar aistriúchán OpenRouter (HTTP %s)</string>
+  <string name="morphe_vot_mymemory_quota_title">Teorainn laethúil MyMemory sroichte</string>
+  <string name="morphe_vot_mymemory_quota_next_available">Ar fáil ag %s an chéad cheann eile.</string>
+  <string name="morphe_vot_mymemory_quota_message_no_email">Tá cuóta aistriúcháin saor in aisce MyMemory (5,000 carachtar) úsáidte agat inniu. Cuir ríomhphost MyMemory leis sna socruithe chun an teorainn laethúil a ardú go 50,000 carachtar, nó aistrigh chuig seirbhís aistriúcháin eile.</string>
+  <string name="morphe_vot_mymemory_quota_message_with_email">Tá cuóta aistriúcháin MyMemory (50,000 carachtar) úsáidte agat inniu. Athraigh chuig seirbhís aistriúcháin eile nó déan iarracht arís amárach.</string>
+  <string name="morphe_vot_mymemory_error">Theip ar aistriúchán MyMemory (stádas %s)</string>
   <!-- interaction.loop.loopVideoPatch -->
   <string name="morphe_loop_video_title">Cumasaigh físeán lúbtha</string>
   <string name="morphe_do_not_remember_loop_video_title">Ná cuir i gcuimhne físeán lúpa</string>
@@ -356,6 +403,8 @@ Eolas: Seans nach n-oibreoidh sé ar shruthanna beo"</string>
   <string name="morphe_queue_restore_summary">Coinnítear an scuaine tar éis an aip a atosú</string>
   <string name="morphe_swap_save_and_queue_actions_title">Malartaigh gníomhartha Sábháil agus Ciú</string>
   <string name="morphe_swap_save_and_queue_actions_summary">Tapáil le haghaidh roghanna scuaine, tapáil agus coinnigh síos chun sábháil le féachaint air níos déanaí</string>
+  <string name="morphe_queue_override_flyout_menu_title">Sáraigh an cnaipe scuaine fothaithe</string>
+  <string name="morphe_queue_override_flyout_menu_summary">Osclaíonn sé an scuaine Morphe in ionad scuaine YouTube</string>
   <string name="morphe_queue_manager_check_failed_auth">Gan logáil isteach</string>
   <string name="morphe_queue_manager_check_failed_playlist_id">Gan aon ID seinmliosta</string>
   <string name="morphe_queue_manager_check_failed_queue">Tá an scuaine folamh</string>
@@ -775,7 +824,9 @@ Socruithe → Athsheinm (nó Uathsheinm) → Uathsheinm an chéad fhíseán eile
   <string name="morphe_ryd_estimated_like_summary">Taispeánann sé líon measta na \'Is maith liom\' ar fhíseáin inar dhíchumasaigh an cruthaitheoir \'Is maith liom\'</string>
   <string name="morphe_ryd_toast_on_connection_error_title">Taispeáin foláirimh earráide nasc</string>
   <string name="morphe_ryd_toast_on_connection_error_summary">Taispeánann sé fógra nuair nach bhfuil an freastalaí Return YouTube Dislike ar fáil</string>
-  <string name="morphe_ryd_attribution_summary">Cuirtear sonraí ar fáil ag an Return YouTube Dislike API. Beartaíonn anseo le tuilleadh eolais a fháil</string>
+  <string name="morphe_ryd_attribution_summary">"Cuirtear sonraí ar fáil ag API Return YouTube Dislike
+
+Tapáil anseo chun ReturnYouTubeDislike.com a oscailt"</string>
   <!-- Statistic strings are shown in the settings only when Morphe debug mode is enabled. Typical users will never see these. -->
   <string name="morphe_ryd_statistics_category_title">Staitisticí API ReturnYouTubeDislike an ghléis seo</string>
   <string name="morphe_ryd_statistics_getFetchCallResponseTimeAverage_title">Am freagartha API, meán</string>
@@ -796,228 +847,6 @@ Socruithe → Athsheinm (nó Uathsheinm) → Uathsheinm an chéad fhíseán eile
   <!-- layout.searchbar.wideSearchbarPatch -->
   <string name="morphe_wide_searchbar_title">Cumasaigh barra cuardaigh leathan</string>
   <!-- layout.sponsorblock.sponsorBlockPatch -->
-  <string name="morphe_sb_enable_sb">Cumasaigh SponsorBlock</string>
-  <string name="morphe_sb_enable_sb_summary">Is córas sluafhoinsithe é SponsorBlock chun codanna cráite de fhíseáin YouTube a scipeáil</string>
-  <string name="morphe_sb_appearance_category">Dealramh</string>
-  <string name="morphe_sb_enable_voting">Taispeáin an cnaipe vótála</string>
-  <string name="morphe_sb_enable_voting_summary">Cuireann cnaipe leis chun codanna a vótáil suas nó síos</string>
-  <string name="morphe_sb_square_layout">Úsáid leagan amach cearnach</string>
-  <string name="morphe_sb_square_layout_summary">Úsáideann sé coirnéil chruinne le haghaidh cnaipí agus rialuithe SponsorBlock</string>
-  <!-- Translations should match the language used in 'morphe_ryd_compact_layout_title'. -->
-  <string name="morphe_sb_enable_compact_skip_button">Úsáid an cnaipe Scipeáil dlúth</string>
-  <string name="morphe_sb_enable_compact_skip_button_summary">Laghdaíonn sé leithead an chnaipe Skip chun spás a shábháil</string>
-  <string name="morphe_sb_enable_auto_hide_skip_segment_button">Folaigh an cnaipe Scipeáil go huathoibríoch</string>
-  <string name="morphe_sb_enable_auto_hide_skip_segment_button_summary">Folaíonn sé an cnaipe Skip tar éis cúpla soicind in ionad é a choinneáil le feiceáil don deighleog ar fad.</string>
-  <string name="morphe_sb_auto_hide_skip_button_duration">Fad an chnaipe scipeála</string>
-  <string name="morphe_sb_auto_hide_skip_button_duration_summary">Socraigh cé chomh fada is a fhanann na cnaipí Skip le feiceáil</string>
-  <string name="morphe_sb_general_skiptoast">Taispeáin an tósta cealaithe scipeáilte</string>
-  <string name="morphe_sb_general_skiptoast_summary">Taispeánann sé fógra a ligeann duit tapáil chun scipeáil uathoibríoch a chealú</string>
-  <string name="morphe_sb_toast_on_skip_duration">Scipeáil fad an tósta</string>
-  <string name="morphe_sb_toast_on_skip_duration_summary">Socraigh cé chomh fada is a fhanfaidh an fógra cealaithe le feiceáil</string>
-  <string name="morphe_sb_duration_1s">1 soicind</string>
-  <string name="morphe_sb_duration_2s">2 soicind</string>
-  <string name="morphe_sb_duration_3s">3 soicind</string>
-  <string name="morphe_sb_duration_4s">4 soicind</string>
-  <string name="morphe_sb_duration_5s">5 soicind</string>
-  <string name="morphe_sb_duration_6s">6 soicind</string>
-  <string name="morphe_sb_duration_7s">7 soicind</string>
-  <string name="morphe_sb_duration_8s">8 soicind</string>
-  <string name="morphe_sb_duration_9s">9 soicind</string>
-  <string name="morphe_sb_duration_10s">10 soicind</string>
-  <string name="morphe_sb_general_time_without">Taispeáin fad an fhíseáin gan deighleog</string>
-  <string name="morphe_sb_general_time_without_summary">Baintear na codanna uile as fad iomlán an fhíseáin a thaispeántar ar an mbarra cuardaigh</string>
-  <string name="morphe_sb_create_segment_category">Deighleoga nua a chruthú</string>
-  <string name="morphe_sb_enable_create_segment">Taispeáin an cnaipe \'Cruthaigh deighleog nua\'</string>
-  <string name="morphe_sb_enable_create_segment_summary">Cuireann sé cnaipe leis an seinnteoir físe a ligeann duit codanna nua SponsorBlock a chur isteach</string>
-  <string name="morphe_sb_general_adjusting">Céim choigeartaithe ama</string>
-  <string name="morphe_sb_general_adjusting_summary">Lorg méid na gcnaipí coigeartaithe ama (i milleasoicindí)</string>
-  <string name="morphe_sb_general_adjusting_invalid">Ní mór don luach a bheith ina uimhir dhearfach</string>
-  <string name="morphe_sb_guidelines_preference_title">Treoirlínte aighneachta</string>
-  <string name="morphe_sb_guidelines_preference_summary">Tá rialacha agus leideanna ann maidir le codanna nua a chruthú i dtreoirlínte</string>
-  <string name="morphe_sb_guidelines_popup_title">Lean na treoirlínte</string>
-  <string name="morphe_sb_guidelines_popup_content">Léigh treoirlínte SponsorBlock sula gcruthaíonn tú codanna nua</string>
-  <string name="morphe_sb_guidelines_popup_already_read">Léite cheana féin</string>
-  <string name="morphe_sb_guidelines_popup_open">Taispeáin dom</string>
-  <string name="morphe_sb_general">Ginearálta</string>
-  <string name="morphe_sb_toast_on_connection_error">Taispeáin foláirimh earráide nasc</string>
-  <string name="morphe_sb_toast_on_connection_error_summary">Taispeánann sé fógra nuair nach bhfuil freastalaí SponsorBlock ar fáil</string>
-  <string name="morphe_sb_general_skipcount">Cumasaigh rianú comhaireamh scipeála</string>
-  <string name="morphe_sb_general_skipcount_summary">Seolann sé comhaireamh scipeála chuig clár ceannairí SponsorBlock chun súil a choinneáil ar an méid ama a shábháiltear</string>
-  <string name="morphe_sb_general_min_duration">Fad íosta deighleog</string>
-  <string name="morphe_sb_general_min_duration_summary">Ní thaispeánfar codanna níos giorra ná an luach seo (i soicindí) ná ní scipeálfar iad</string>
-  <string name="morphe_sb_general_min_duration_invalid">Fad ama neamhbhailí</string>
-  <string name="morphe_sb_general_uuid">D\'aitheantas úsáideora príobháideach</string>
-  <string name="morphe_sb_general_uuid_summary">Ba chóir é seo a choinneáil príobháideach. Tá sé seo cosúil le pasfhocal agus níor chóir é a roinnt le duine ar bith. Má tá sé seo ag duine éigin, is féidir leo aithris a dhéanamh ar do phearsantú.</string>
-  <string name="morphe_sb_general_uuid_invalid">Caithfidh Id príobháideach a bheith ≥30 carachtar</string>
-  <string name="morphe_sb_general_api_url">Athraigh URL API</string>
-  <string name="morphe_sb_general_api_url_summary">An seoladh a úsáideann SponsorBlock chun glaonna a dhéanamh chuig an bhfreastalaí</string>
-  <string name="morphe_sb_channel_whitelist">Liosta bán cainéal</string>
-  <string name="morphe_sb_channel_whitelist_summary">Tá UrraitheoirBloc díchumasaithe do chainéil atá ar an liosta bán</string>
-  <string name="morphe_sb_channel_whitelist_current_channel">Cainéal reatha:</string>
-  <string name="morphe_sb_channel_whitelist_add">Cuir leis an liosta bán</string>
-  <string name="morphe_sb_channel_whitelist_remove">Bain</string>
-  <string name="morphe_sb_channel_whitelist_channels_header">Cainéil ar an liosta bán</string>
-  <string name="morphe_sb_channel_whitelist_empty">Níl aon chainéil ar an liosta bán</string>
-  <string name="morphe_sb_channel_whitelist_channel_added">Cainéal curtha leis an liosta bán</string>
-  <string name="morphe_sb_channel_whitelist_channel_removed">Baineadh an cainéal den liosta bán</string>
-  <string name="morphe_sb_toast_on_whitelisted_channel">Fógra ar chainéal ar an liosta bán</string>
-  <string name="morphe_sb_toast_on_whitelisted_channel_summary">Taispeánann sé fógra nuair a bhíonn UrraitheoirBloc díchumasaithe do chainéal atá ar an liosta bán</string>
-  <string name="morphe_sb_channel_whitelisted_toast">Tá UrraitheoirBloc díchumasaithe don chainéal seo</string>
-  <string name="morphe_sb_api_url_reset">Athshocrú URL API</string>
-  <string name="morphe_sb_api_url_invalid">Tá URL API neamhbhailí</string>
-  <string name="morphe_sb_api_url_changed">URL API athraithe</string>
-  <string name="morphe_sb_settings_ie">Socruithe Iompórtála/Easpórtála</string>
-  <string name="morphe_sb_settings_copy">Cóipeáil</string>
-  <string name="morphe_sb_settings_ie_summary">Do chumraíocht SponsorBlock JSON is féidir a allmhairiú/a onnmhairiú chuig Morphe agus ardáin SponsorBlock eile</string>
-  <string name="morphe_sb_settings_ie_summary_warning">"Do chumraíocht SponsorBlock JSON is féidir a allmhairiú/a onnmhairiú chuig Morphe agus ardáin SponsorBlock eile
-
-Áirítear leis seo d’aitheantas úsáideora príobháideach. Bí cinnte é seo a roinnt go ciallmhar"</string>
-  <string name="morphe_sb_settings_import_successful">D\'éirigh leis na socruithe a iompórtáil</string>
-  <string name="morphe_sb_settings_import_failed">Theip ar iompórtáil: %s</string>
-  <string name="morphe_sb_settings_export_failed">Theip ar easpórtáil: %s</string>
-  <string name="morphe_sb_settings_morphe_export_user_id_warning">"Tá aitheantas úsáideora príobháideach SponsorBlock i do shocruithe.
-
-Tá d’aitheantas úsáideora cosúil le pasfhocal, agus níor cheart é a roinnt choíche."</string>
-  <string name="morphe_sb_settings_morphe_export_user_id_warning_dismiss">Ná taispeáin arís</string>
-  <string name="morphe_sb_diff_segments">Athraigh iompar deighleog</string>
-  <string name="morphe_sb_segments_sponsor">Urraitheoir</string>
-  <string name="morphe_sb_segments_sponsor_summary">Cur chun cinn íoctha, atreoruithe íoctha agus fógraí díreacha. Ní le haghaidh féinchur chun cinn ná le haghaidh moladh saor in aisce do chúiseanna / cruthaitheoirí / suíomhanna gréasáin / táirgí is maith leo.</string>
-  <string name="morphe_sb_segments_selfpromo">Gan Íoc / Féin-Chur Chun Cinn</string>
-  <string name="morphe_sb_segments_selfpromo_summary">Cosúil le hUrraitheoir ach amháin i gcás neamhíoctha / féin-chur chun cinn. Áirítear leis rannóga faoi earraí, síntiúis nó faisnéis faoi cé leis ar chomhoibrigh siad.</string>
-  <string name="morphe_sb_segments_interaction">Meabhrúchán Idirghníomhaíochta (Liostáil)</string>
-  <string name="morphe_sb_segments_interaction_summary">Meabhrúchán gearr chun iad a thaitin, liostáil nó leanúint i lár ábhair. Más fada é nó má bhaineann sé le rud éigin ar leith, ba chóir é a bheith faoi fhéin-chur chun cinn ina ionad sin.</string>
-  <string name="morphe_sb_segments_highlight">Aibhsigh</string>
-  <string name="morphe_sb_segments_highlight_summary">An chuid den fhíseán atá á lorg ag formhór na ndaoine</string>
-  <string name="morphe_sb_segments_intro">Beochan Eatramh / Réamhrá</string>
-  <string name="morphe_sb_segments_intro_summary">Eatramh gan ábhar iarbhír. D’fhéadfadh sé a bheith ina sos, ina fhráma statach, nó ina bheochan athchleachtach. Ní áirítear leis aistrithe ina bhfuil faisnéis.</string>
-  <string name="morphe_sb_segments_outro">Cártaí Deiridh / Creidmheasanna</string>
-  <string name="morphe_sb_segments_outro_summary">Creidmheasanna nó cathain a thaispeántar cártaí deiridh YouTube. Ní le haghaidh conclúidí le faisnéis.</string>
-  <string name="morphe_sb_segments_hook">Crúca / Beannachtaí</string>
-  <string name="morphe_sb_segments_hook_summary">Leantóirí inste don fhíseán atá le teacht, beannachtaí agus slán. Ní áirítear leis rannóga a chuireann ábhar breise leis.</string>
-  <string name="morphe_sb_segments_preview">Réamhamharc / Achoimre</string>
-  <string name="morphe_sb_segments_preview_summary">Bailiúchán gearrthóga a thaispeánann cad atá le teacht nó cad a tharla sa fhíseán nó i bhfíseáin eile de shraith, áit a ndéantar an fhaisnéis go léir a athdhéanamh in áit eile</string>
-  <string name="morphe_sb_segments_filler">Seachrán / Scéalta Grinn</string>
-  <string name="morphe_sb_segments_filler_summary">Radhairc nó scéalta grinn tadhlacha nach bhfuil riachtanach chun príomhábhar an fhíseáin a thuiscint. Ní áirítear leis rannóga a thugann comhthéacs ná sonraí cúlra.</string>
-  <string name="morphe_sb_segments_nomusic">Ceol: Rannóg Neamh-Cheoil</string>
-  <string name="morphe_sb_segments_nomusic_summary">Le húsáid i bhfíseáin cheoil amháin. Codanna de fhíseáin cheoil gan cheol nach bhfuil clúdaithe cheana féin ag catagóir eile.</string>
-  <string name="morphe_sb_skip_button_compact">Scipeáil</string>
-  <string name="morphe_sb_skip_button_compact_highlight">Aibhsigh</string>
-  <string name="morphe_sb_skip_button_sponsor">Scipeáil urraitheoir</string>
-  <string name="morphe_sb_skip_button_selfpromo">Scipeáil promóisean</string>
-  <string name="morphe_sb_skip_button_interaction">Scipeáil idirghníomhú</string>
-  <string name="morphe_sb_skip_button_highlight">Scipeáil go dtí aird a tharraingt</string>
-  <string name="morphe_sb_skip_button_intro_beginning">Scipeáil réamhrá</string>
-  <string name="morphe_sb_skip_button_intro_middle">Scipeáil briseadh</string>
-  <string name="morphe_sb_skip_button_intro_end">Scipeáil briseadh</string>
-  <string name="morphe_sb_skip_button_outro">Scipeáil an chuid deiridh</string>
-  <string name="morphe_sb_skip_button_hook">Scipeáil crúca</string>
-  <string name="morphe_sb_skip_button_preview_beginning">Scipeáil réamhamharc</string>
-  <string name="morphe_sb_skip_button_preview_middle">Scipeáil réamhamharc</string>
-  <string name="morphe_sb_skip_button_preview_end">Scipeáil achoimre</string>
-  <string name="morphe_sb_skip_button_filler">Scipeáil tadhlaí</string>
-  <string name="morphe_sb_skip_button_nomusic">Scipeáil neamh-cheol</string>
-  <string name="morphe_sb_skip_button_unsubmitted">Scipeáil deighleog</string>
-  <string name="morphe_sb_skipped_sponsor">Scipeáilte urraitheoir</string>
-  <string name="morphe_sb_skipped_selfpromo">Scipeáilte féin-chur chun cinn</string>
-  <string name="morphe_sb_skipped_interaction">Scipeáilte meabhrúchán cráite</string>
-  <string name="morphe_sb_skipped_highlight">Scipeáilte aird a tharraingt</string>
-  <string name="morphe_sb_skipped_intro_beginning">Scipeáilte réamhrá</string>
-  <string name="morphe_sb_skipped_intro_middle">Scipeáilte briseadh</string>
-  <string name="morphe_sb_skipped_intro_end">Scipeáilte briseadh</string>
-  <string name="morphe_sb_skipped_outro">Scipeáilte  an chuid deiridh</string>
-  <string name="morphe_sb_skipped_hook">Scipeáilte crúca</string>
-  <string name="morphe_sb_skipped_preview_beginning">Scipeáilte réamhamharc</string>
-  <string name="morphe_sb_skipped_preview_middle">Scipeáilte réamhamharc</string>
-  <string name="morphe_sb_skipped_preview_end">Scipeáilte achoimre </string>
-  <string name="morphe_sb_skipped_filler">Scipeáilte tadhlaí </string>
-  <string name="morphe_sb_skipped_nomusic">Scipeáladh cuid nach ceolmhar í</string>
-  <string name="morphe_sb_skipped_unsubmitted">Deighleog gan curtha isteach scipeáilte</string>
-  <string name="morphe_sb_skipped_multiple_segments">Scipeáilte iomadúil deighleoga</string>
-  <string name="morphe_sb_skip_automatically">Scipeáil go huathoibríoch</string>
-  <string name="morphe_sb_skip_automatically_once">Scipeáil go huathoibríoch uair amháin</string>
-  <string name="morphe_sb_skip_showbutton">Taispeáin cnaipe Scipeáil</string>
-  <string name="morphe_sb_skip_seekbaronly">Taispeáin i mbarra lorg</string>
-  <string name="morphe_sb_skip_ignore">Díchumasaigh</string>
-  <string name="morphe_sb_submit_failed_invalid">Ní féidir deighleog a chur isteach: %s</string>
-  <string name="morphe_sb_submit_failed_timeout">Tá SponsorBlock síos go sealadach</string>
-  <string name="morphe_sb_submit_failed_unknown_error">Ní féidir deighleog a chur isteach (stádas: %1$d %2$s)</string>
-  <string name="morphe_sb_submit_failed_rate_limit">Ní féidir deighleog a chur isteach. Ráta Teoranta (an iomarca ón úsáideoir nó IP céanna)</string>
-  <string name="morphe_sb_submit_failed_forbidden">Ní féidir an deighleog a chur isteach: %s</string>
-  <string name="morphe_sb_submit_failed_duplicate">"Ní féidir deighleog a chur isteach.
-Tá sé ann cheana féin"</string>
-  <string name="morphe_sb_submit_succeeded">Cuireadh an deighleog isteach go rathúil</string>
-  <!-- Notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
-  <string name="morphe_sb_sponsorblock_connection_failure_timeout">Níl SponsorBlock ar fáil go sealadach (API am istigh)</string>
-  <string name="morphe_sb_sponsorblock_connection_failure_status">Níl SponsorBlock ar fáil go sealadach (stádas %d)</string>
-  <string name="morphe_sb_sponsorblock_connection_failure_generic">Níl UrraitheoirBloc ar fáil faoi láthair</string>
-  <string name="morphe_sb_vote_failed_timeout">Ní féidir vótáil don deighleog (API am istigh)</string>
-  <string name="morphe_sb_vote_failed_unknown_error">Ní féidir vótáil a dhéanamh don deighleog (stádas: %1$d %2$s)</string>
-  <string name="morphe_sb_vote_failed_forbidden">Ní féidir vótáil don mhír: %s</string>
-  <string name="morphe_sb_vote_upvote">Vótáil suas</string>
-  <string name="morphe_sb_vote_downvote">Vótáil sios</string>
-  <string name="morphe_sb_vote_category">Athraigh catagóir</string>
-  <string name="morphe_sb_vote_no_segments">Níl aon deighleoga le vótáil orthu</string>
-  <!-- A segment start and end time, such as "02:10 to 03:40". -->
-  <string name="morphe_sb_vote_segment_time_to_from">%1$s go %2$s</string>
-  <string name="morphe_sb_new_segment_choose_category">Roghnaigh catagóir deighleog</string>
-  <string name="morphe_sb_new_segment_disabled_category">Catagóir díchumasaithe. Cumasaigh í le cur isteach.</string>
-  <string name="morphe_sb_new_segment_title">Deighleog nua SponsorBlock</string>
-  <string name="morphe_sb_new_segment_mark_time_as_question">Socraigh %s mar thús nó deireadh deighleog nua?</string>
-  <string name="morphe_sb_new_segment_mark_start">Tosaigh</string>
-  <string name="morphe_sb_new_segment_mark_end">Deireadh</string>
-  <string name="morphe_sb_new_segment_now">Anois</string>
-  <string name="morphe_sb_new_segment_time_start">Am a thosaíonn an deighleog ag</string>
-  <string name="morphe_sb_new_segment_time_end">Am a chríochnaíonn an deighleog ag</string>
-  <string name="morphe_sb_new_segment_confirm_title">An bhfuil na hamanna ceart?</string>
-  <string name="morphe_sb_new_segment_confirm_content">"Tá an deighleog ó
-
-%1$s
-go
-%2$s
-
-(%3$s)
-
-Réidh le cur isteach?"</string>
-  <string name="morphe_sb_new_segment_confirm_submit">Cuir isteach</string>
-  <string name="morphe_sb_new_segment_start_is_before_end">Caithfidh an tús a bheith roimh an deireadh</string>
-  <string name="morphe_sb_new_segment_mark_locations_first">Marcáil suíomh ar an mbarra ama ar dtús</string>
-  <string name="morphe_sb_new_segment_preview_segment_first">Féach ar an deighleog agus cinntigh léim réidh</string>
-  <string name="morphe_sb_new_segment_edit_by_hand_title">Cuir am an deighleog in eagar de láimh</string>
-  <string name="morphe_sb_new_segment_edit_by_hand_content">Ar mhaith leat an t-am a chur in eagar do thús nó deireadh an deighleog?</string>
-  <string name="morphe_sb_new_segment_edit_by_hand_parse_error">Am neamhbhailí tugtha</string>
-  <string name="morphe_sb_new_segment_highlight_title">Cuir buaicphointe isteach</string>
-  <string name="morphe_sb_new_segment_highlight_content">"An bhfuil an t-am buaicphointí ceart?
-
-%s
-
-Mura bhfuil buaicphointe á chur isteach agat, tapáil Cealaigh agus marcáil an dara hionad"</string>
-  <string name="morphe_sb_new_segment_highlight_submit">Cuir buaicphointe isteach</string>
-  <string name="morphe_sb_stats_title">Staitisticí</string>
-  <!-- Shown in the settings preferences, and translations can be any text length. -->
-  <string name="morphe_sb_stats_connection_failure">Níl staitisticí ar fáil faoi láthair (tá an API síos)</string>
-  <string name="morphe_sb_stats_loading">Ag lódáil...</string>
-  <string name="morphe_sb_stats_sb_disabled">Tá SponsorBlock díchumasaithe</string>
-  <string name="morphe_sb_stats_username">D\'ainm úsáideora: &lt;b&gt;%s&lt;/b&gt;</string>
-  <string name="morphe_sb_stats_username_change">Tapáil anseo chun d\'ainm úsáideora a athrú</string>
-  <string name="morphe_sb_stats_username_change_unknown_error">Ní féidir ainm úsáideora a athrú: Stádas: %1$d %2$s</string>
-  <string name="morphe_sb_stats_username_changed">Athraíodh ainm úsáideora go rathúil</string>
-  <string name="morphe_sb_stats_reputation">Is é do chlú  &lt;b&gt;%.2f&lt;/b&gt;</string>
-  <string name="morphe_sb_stats_submissions">Chruthaigh tú &lt;b&gt;%s&lt;/b&gt; deighleoga</string>
-  <string name="morphe_sb_stats_submissions_summary">Beartaigh anseo chun do dheighleoga a fheiceáil</string>
-  <string name="morphe_sb_stats_saved_zero">Clár ceannairí SponsorBlock</string>
-  <string name="morphe_sb_stats_saved">Tá daoine sábháilte agat ó &lt;b&gt;%s&lt;/b&gt; deighleoga</string>
-  <string name="morphe_sb_stats_saved_summary_zero">Beartaigh anseo chun na staitisticí domhanda agus na príomh-rannpháirtithe a fheiceáil</string>
-  <string name="morphe_sb_stats_saved_summary">Sin &lt;b&gt;%s&lt;/b&gt; dá saol.&lt;br&gt;Tapáil anseo chun an clár ceannaireachta a fheiceáil</string>
-  <string name="morphe_sb_stats_self_saved">Rinne tú scipeáil ar &lt;b&gt;%s&lt;/b&gt; deighleoga</string>
-  <string name="morphe_sb_stats_self_saved_summary">Sin é &lt;b&gt;%s&lt;/b&gt;</string>
-  <string name="morphe_sb_stats_self_saved_reset_title">Athshocrú cuntar deighleoga scipeáilte?</string>
-  <string name="morphe_sb_stats_saved_hour_format">%1$s uaireanta %2$s nóiméad</string>
-  <string name="morphe_sb_stats_saved_minute_format">%1$s nóiméad %2$s soicind</string>
-  <string name="morphe_sb_stats_saved_second_format">%s soicind</string>
-  <string name="morphe_sb_color_opacity_label">Teimhneacht:</string>
-  <string name="morphe_sb_color_dot_label">Dath:</string>
-  <string name="morphe_sb_about_title">Maidir</string>
-  <string name="morphe_sb_about_api_summary">Cuirtear sonraí ar fáil ag API SponsorBlock. Tapáil anseo chun tuilleadh eolais a fháil agus íoslódálacha le haghaidh ardáin eile a fheiceáil</string>
   <!-- layout.formfactor.changeFormFactorPatch -->
   <string name="morphe_change_form_factor_title">Leagan amach na ngléasanna</string>
   <string name="morphe_change_form_factor_entry_1">Réamhshocrú</string>
@@ -1090,10 +919,6 @@ Má mhúchtar é níos déanaí, moltar sonraí na haipe a ghlanadh chun fabhtan
   <string name="morphe_change_start_page_entry_virtual_reality">Réaltacht Fhíorúil</string>
   <string name="morphe_change_start_page_entry_watch_later">Féach níos déanaí</string>
   <string name="morphe_change_start_page_entry_your_clips">Do ghearrthóga</string>
-  <string name="morphe_change_start_page_always_title">Athraigh an leathanach tosaigh i gcónaí</string>
-  <string name="morphe_change_start_page_always_summary">"Atreoraíonn i gcónaí chuig an leathanach tosaigh roghnaithe, ní hamháin nuair a thosaíonn an aip
-
-Teorainn: B’fhéidir nach n-oibreoidh an cnaipe ar ais ar an mbarra uirlisí a úsáid"</string>
   <!-- layout.shortsnoresume.disableShortsResumingOnStartupPatch -->
   <string name="morphe_disable_shorts_resuming_on_startup_title">Díchumasaigh atosú ag am tosaithe</string>
   <!-- layout.shortsplayer.shortsPlayerTypePatch -->
@@ -1168,11 +993,11 @@ Teorainn: B’fhéidir nach n-oibreoidh an cnaipe ar ais ar an mbarra uirlisí a
   <string name="morphe_alt_thumbnail_options_entry_2">DeArrow &amp; Mionsamhlacha bunaidh</string>
   <string name="morphe_alt_thumbnail_options_entry_3">DeArrow &amp; Gabhálacha fós</string>
   <string name="morphe_alt_thumbnail_options_entry_4">Gabhann fós</string>
-  <string name="morphe_alt_thumbnail_dearrow_about_summary">"Soláthraíonn DeArrow miontaispeántais foinse-phobail do fhíseáin YouTube. Bíonn na miontaispeántais seo níos ábhartha go minic ná na cinn a sholáthraíonn YouTube
+  <string name="morphe_alt_thumbnail_dearrow_about_summary">"Soláthraíonn DeArrow mionsamhlacha slua-fhoinsithe do fhíseáin YouTube. Is minic a bhíonn na mionsamhlacha seo níos ábhartha ná na cinn a sholáthraíonn YouTube.
 
-Má tá sé cumasaithe, cuirfear URLanna físeán chuig an bhfreastalaí API agus ní sheolfar aon sonraí eile. Má níl aon mhiontaisspeántais DeArrow ag físeán, ansin taispeántar na miontaispeántais bunaidh nó na gafaí fós
+Má tá sé cumasaithe, seolfar URLanna físeáin chuig an bhfreastalaí API agus ní sheolfar aon sonraí eile. Mura bhfuil mionsamhlacha DeArrow ag físeán, taispeántar na gabhálacha bunaidh nó na gabhálacha fós.
 
-Brúigh anseo chun tuilleadh eolais a fháil faoi DeArrow"</string>
+Tapáil anseo chun DeArrow.ajay.app a oscailt."</string>
   <string name="morphe_alt_thumbnail_dearrow_connection_toast_title">Taispeáin foláirimh earráide nasc</string>
   <string name="morphe_alt_thumbnail_dearrow_connection_toast_summary">Taispeánann sé fógra nuair nach bhfuil freastalaí DeArrow ar fáil</string>
   <string name="morphe_alt_thumbnail_dearrow_api_url_title">Deirphointe API DeArrow</string>

@@ -109,6 +109,25 @@ Bạn sẽ không còn xem được video nếu mã băm hết hạn."</string>
   <!-- misc.audio.tracks.forceOriginalAudioPatch -->
   <string name="morphe_force_original_audio_title">Buộc ngôn ngữ âm thanh gốc</string>
   <string name="morphe_force_original_audio_summary">Luôn phát âm thanh gốc của video thay vì bản lồng tiếng</string>
+  <!-- misc.proxy.networkProxyPatch -->
+  <string name="morphe_proxy_screen_title">Proxy mạng</string>
+  <string name="morphe_proxy_screen_summary">Định tuyến các kết nối mạng được hỗ trợ qua proxy</string>
+  <string name="morphe_proxy_enabled_title">Bật proxy</string>
+  <string name="morphe_proxy_enabled_summary">Định tuyến các kết nối mạng được hỗ trợ qua proxy HTTP hoặc HTTPS đã cấu hình</string>
+  <string name="morphe_proxy_host_title">Máy chủ proxy</string>
+  <string name="morphe_proxy_host_summary">Nhập tên miền hoặc địa chỉ IP của máy chủ proxy</string>
+  <string name="morphe_proxy_port_title">Cổng proxy</string>
+  <string name="morphe_proxy_port_summary">Cổng của máy chủ proxy</string>
+  <string name="morphe_proxy_https_title">Dùng HTTP proxy</string>
+  <string name="morphe_proxy_https_summary">Kết nối đến máy chủ proxy bằng HTTPS thay vì HTTP</string>
+  <string name="morphe_proxy_auth_enabled_title">Xác thực proxy</string>
+  <string name="morphe_proxy_auth_enabled_summary">Gửi xác thực Basic kèm theo các yêu cầu proxy</string>
+  <string name="morphe_proxy_auth_username_title">Tên người dùng proxy</string>
+  <string name="morphe_proxy_auth_username_summary">Tên người dùng để xác thực proxy Basic</string>
+  <string name="morphe_proxy_auth_password_title">Mật khẩu proxy</string>
+  <string name="morphe_proxy_auth_password_summary">Mật khẩu để xác thực proxy Basic</string>
+  <string name="morphe_proxy_allow_direct_fallback_title">Cho phép chuyển sang trực tiếp</string>
+  <string name="morphe_proxy_allow_direct_fallback_summary">Kết nối trực tiếp nếu proxy gặp sự cố</string>
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">Ẩn quảng cáo toàn màn hình</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
@@ -120,4 +139,12 @@ Bạn sẽ không còn xem được video nếu mã băm hết hạn."</string>
   <string name="morphe_replace_music_with_youtube_summary">Thay music.youtube.com bằng youtube.com khi chia sẻ liên kết</string>
   <string name="morphe_replace_links_with_shortener_title">Đổi liên kết chia sẻ thành youtu.be</string>
   <string name="morphe_replace_links_with_shortener_summary">Buộc các video dùng định dạng youtu.be</string>
+  <!-- misc.debugging.enableDebuggingPatch -->
+  <string name="morphe_debug_protobuffer_title">Bộ đệm giao thức nhật ký gỡ lỗi</string>
+  <string name="morphe_debug_protobuffer_summary">Bổ sung thông tin chi tiết hơn giúp nhà phát triển xác định các thành phần trong ứng dụng</string>
+  <string name="morphe_debug_protobuffer_user_dialog_message">"Bật cài đặt này sẽ ghi lại dữ liệu bố cục bổ sung, bao gồm cả văn bản trên màn hình cho một số thành phần giao diện người dùng.
+
+Điều này có thể giúp xác định các thành phần khi tạo bộ lọc tùy chỉnh.
+
+Tuy nhiên, bật tính năng này cũng sẽ ghi lại một số dữ liệu người dùng, chẳng hạn như địa chỉ IP của bạn."</string>
 </resources>

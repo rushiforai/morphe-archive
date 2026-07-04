@@ -10,13 +10,12 @@ package app.morphe.extension.youtube.patches.utils;
 import static app.morphe.extension.shared.StringRef.str;
 import static app.morphe.extension.shared.innertube.utils.AuthUtils.getRequestHeader;
 import static app.morphe.extension.shared.innertube.utils.AuthUtils.isNotLoggedIn;
+import static app.morphe.extension.youtube.patches.LoadVideoPatch.openIntent;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.Intent;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.ImageView;
@@ -95,7 +94,7 @@ public class PlaylistPatch {
             synchronized (lastVideoIds) {
                 videoId = currentVideoId;
                 QueueManager[] customActionsEntries;
-                boolean canReload = PlayerType.getCurrent().isMaximizedOrFullscreen() &&
+                boolean canReload = !PlayerType.getCurrent().isNoneOrHidden() &&
                         lastVideoIds.get(VideoInformation.getVideoId()) != null;
                 if (playlistId.isEmpty() || lastVideoIds.get(currentVideoId) == null) {
                     customActionsEntries = canReload
@@ -382,19 +381,25 @@ public class PlaylistPatch {
                         return;
                     }
                     if (reload) {
-                        url = "https://youtu.be/" + VideoInformation.getVideoId()
-                                + "?list=" + currentPlaylistId;
+                        final long videoTime = VideoInformation.getVideoTime();
+
+                        url = "https://www.youtube.com/watch?v=" +
+                                VideoInformation.getVideoId() +
+                                "&list=" +
+                                currentPlaylistId +
+                                (videoTime > 0 ? "&t=" + (videoTime / 1000) : "");
                     } else {
-                        url = "https://youtu.be/" + currentVideoId + "?list=" + currentPlaylistId;
+                        url = "https://www.youtube.com/watch?v=" +
+                                currentVideoId +
+                                "&list=" +
+                                currentPlaylistId;
                     }
                 } else {
-                    url = "https://www.youtube.com/playlist?list=" + currentPlaylistId;
+                    url = "https://www.youtube.com/playlist?list=" +
+                            currentPlaylistId;
                 }
 
-                Intent intent = new Intent("android.intent.action.VIEW", Uri.parse(url));
-                intent.setPackage(context.getPackageName());
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                context.startActivity(intent);
+                openIntent(url, reload);
             } catch (Exception ex) {
                 Logger.printException(() -> "openQueue failure", ex);
             }

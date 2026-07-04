@@ -98,6 +98,7 @@ Tryck på Fortsätt nedan för att logga in"</string>
   <!-- misc.audio.tracks.forceOriginalAudioPatch -->
   <string name="morphe_force_original_audio_title">Tvinga ursprungligt ljudspråk</string>
   <string name="morphe_force_original_audio_summary">Spelar alltid videons ursprungliga ljudspår istället för en dubbad version</string>
+  <!-- misc.proxy.networkProxyPatch -->
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">Dölj helskärmsannonser</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
@@ -108,4 +109,11 @@ Tryck på Fortsätt nedan för att logga in"</string>
   <string name="morphe_replace_music_with_youtube_title">Ändra delningslänkar till youtube.com</string>
   <string name="morphe_replace_links_with_shortener_title">Ändra delningslänkar till youtu.be</string>
   <string name="morphe_replace_links_with_shortener_summary">Tvingar videor att använda det förkortade webbadressformatet youtu.be</string>
+  <!-- misc.debugging.enableDebuggingPatch -->
+  <string name="morphe_debug_protobuffer_summary">Lägger till ytterligare loggningsinformation för utvecklare för att identifiera appkomponenter</string>
+  <string name="morphe_debug_protobuffer_user_dialog_message">"Om du aktiverar den här inställningen loggas ytterligare layoutdata, inklusive text på skärmen för vissa komponenter i användargränssnittet.
+
+Detta kan hjälpa till att identifiera komponenter när du skapar anpassade filter.
+
+Men om du aktiverar detta kommer även vissa användardata, t.ex. din IP-adress, att loggas."</string>
 </resources>

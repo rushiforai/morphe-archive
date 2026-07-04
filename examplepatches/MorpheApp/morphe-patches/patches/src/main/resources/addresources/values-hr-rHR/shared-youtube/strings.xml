@@ -98,6 +98,7 @@ Za prijavu, pritisnite nastavak ispod"</string>
   <!-- misc.audio.tracks.forceOriginalAudioPatch -->
   <string name="morphe_force_original_audio_title">Sili originalni jezik zvuka</string>
   <string name="morphe_force_original_audio_summary">Uvijek reproducira izvorni zvučni zapis videozapisa umjesto sinkronizirane verzije</string>
+  <!-- misc.proxy.networkProxyPatch -->
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">Sakrij pune zaslonske oglase</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
@@ -107,4 +108,11 @@ Za prijavu, pritisnite nastavak ispod"</string>
   <string name="morphe_sanitize_sharing_links_summary">Uklanja parametre upita za praćenje iz zajedničkih poveznica</string>
   <string name="morphe_replace_music_with_youtube_title">Promijenite poveznice za dijeljenje na youtube.com</string>
   <string name="morphe_replace_links_with_shortener_title">Promijenite poveznice za dijeljenje na youtu.be</string>
+  <!-- misc.debugging.enableDebuggingPatch -->
+  <string name="morphe_debug_protobuffer_summary">Dodaje dodatne informacije o bilježenju za programere kako bi identificirali komponente aplikacije</string>
+  <string name="morphe_debug_protobuffer_user_dialog_message">"Omogućavanjem ove postavke zabilježit će se dodatni podaci o rasporedu, uključujući tekst na zaslonu za neke komponente korisničkog sučelja.
+
+To može pomoći u identificiranju komponenti prilikom izrade prilagođenih filtera.
+
+Međutim, omogućavanjem ove postavke zabilježit će se i neki korisnički podaci poput vaše IP adrese."</string>
 </resources>

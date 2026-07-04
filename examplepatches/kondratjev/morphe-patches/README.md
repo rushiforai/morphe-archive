@@ -9,14 +9,14 @@ A collection of bytecode patches for Android apps, built for the Morphe patcher.
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.14.0](https://github.com/kondratjev/morphe-patches/releases/tag/v1.14.0)**  •  `main`  •  23 patches total
+> **[v1.16.0](https://github.com/kondratjev/morphe-patches/releases/tag/v1.16.0)**  •  `main`  •  24 patches total
 <details open>
 <summary>📦 RuStore  •  6 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 1.103.0.3 |
+| 1.104.0.2 |
 | :---: |
 
 | 💊 Patch | 📜 Description | ⚙️ Options |
@@ -36,7 +36,7 @@ A collection of bytecode patches for Android apps, built for the Morphe patcher.
 
 **🎯 Supported versions:**
 
-| 2026.06.03-release |
+| 2026.06.25-release |
 | :---: |
 
 | 💊 Patch | 📜 Description | ⚙️ Options |
@@ -53,7 +53,7 @@ A collection of bytecode patches for Android apps, built for the Morphe patcher.
 
 **🎯 Supported versions:**
 
-| 0.6.11 |
+| 0.6.12 |
 | :---: |
 
 | 💊 Patch | 📜 Description | ⚙️ Options |
@@ -64,17 +64,18 @@ A collection of bytecode patches for Android apps, built for the Morphe patcher.
 </details>
 
 <details open>
-<summary>📦 FatSecret  •  2 patches</summary>
+<summary>📦 FatSecret  •  3 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 11.5.0.4 |
+| 11.6.0.1 |
 | :---: |
 
 | 💊 Patch | 📜 Description | ⚙️ Options |
 |----------|----------------|-----------|
 | [Disable community tab](#disable-community-tab) | Hides the News/Community tab from the bottom navigation. |  |
+| [Disable force update dialog](#disable-force-update-dialog) | Makes the 'App must update' dialog skippable by forcing is_cancelable=true. |  |
 | [Unlock Premium](#unlock-premium) | Unlocks all FatSecret Gold features and hides the Premium tab. |  |
 
 </details>
@@ -100,7 +101,7 @@ A collection of bytecode patches for Android apps, built for the Morphe patcher.
 
 **🎯 Supported versions:**
 
-| 1.573 |
+| 1.575 |
 | :---: |
 
 | 💊 Patch | 📜 Description | ⚙️ Options |
