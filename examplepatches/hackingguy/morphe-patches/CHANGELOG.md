@@ -1,3 +1,110 @@
+## [1.6.13](https://github.com/hackingguy/morphe-patches/compare/v1.6.12...v1.6.13) (2026-07-05)
+
+### 🐛 Bug Fixes
+
+* **mygate:** make ShowUpgradeDialogFingerprint matching string-based to prevent obfuscated ViewBinding mismatch ([17eeddd](https://github.com/hackingguy/morphe-patches/commit/17eeddd9708754d585976c56dc3ec02e64128f17))
+
+## [1.6.12](https://github.com/hackingguy/morphe-patches/compare/v1.6.11...v1.6.12) (2026-07-05)
+
+### 🐛 Bug Fixes
+
+* **mygate:** make ShowUpgradeDialogFingerprint dynamic to bypass method z obfuscation ([9fca981](https://github.com/hackingguy/morphe-patches/commit/9fca981a6f7bab44aac16524806474d5d9f62381))
+
+## [1.6.11](https://github.com/hackingguy/morphe-patches/compare/v1.6.10...v1.6.11) (2026-07-05)
+
+### 🐛 Bug Fixes
+
+* **mygate:** resolve notification loss and fingerprint mismatches on 7.30.1 ([030d5ec](https://github.com/hackingguy/morphe-patches/commit/030d5ecc0a48bf8965bde5e86991420d52ff736c))
+* **workflow:** move clean task to start of build to prevent deleting release assets ([54bda4d](https://github.com/hackingguy/morphe-patches/commit/54bda4d8d893af5d17abc545d73d8496e4222576))
+
+## [1.6.11](https://github.com/hackingguy/morphe-patches/compare/v1.6.10...v1.6.11) (2026-07-05)
+
+### 🐛 Bug Fixes
+
+* **mygate:** resolve notification loss and fingerprint mismatches on 7.30.1 ([030d5ec](https://github.com/hackingguy/morphe-patches/commit/030d5ecc0a48bf8965bde5e86991420d52ff736c))
+
+## [1.6.10](https://github.com/hackingguy/morphe-patches/compare/v1.6.9...v1.6.10) (2026-07-05)
+
+### 🐛 Bug Fixes
+
+* **morphe:** merge latest patches template improvements and update patch list generator ([d834cd1](https://github.com/hackingguy/morphe-patches/commit/d834cd1a80a6f19efa51b9da3403023856a8f313))
+
+## [1.6.9](https://github.com/hackingguy/morphe-patches/compare/v1.6.8...v1.6.9) (2026-07-05)
+
+
+### Bug Fixes
+
+* **medium:** add onLongClickListener to hide the Unlock button ([721fc87](https://github.com/hackingguy/morphe-patches/commit/721fc871b369c4af04733b18545286bccf6824bb))
+
+## [1.6.8](https://github.com/hackingguy/morphe-patches/compare/v1.6.7...v1.6.8) (2026-07-05)
+
+
+### Bug Fixes
+
+* **medium:** prevent status bar overlap and adjust FAB bottom margin to 76dp ([57aca3b](https://github.com/hackingguy/morphe-patches/commit/57aca3b063eeb0e15b5a1d61fb065b5cd5335875))
+
+## [1.6.7](https://github.com/hackingguy/morphe-patches/compare/v1.6.6...v1.6.7) (2026-07-05)
+
+
+### Bug Fixes
+
+* **medium:** add custom host option inside freedium settings dialog ([d5a553c](https://github.com/hackingguy/morphe-patches/commit/d5a553c822370ce20c3f6263cdc0862a372f0955))
+
+## [1.6.6](https://github.com/hackingguy/morphe-patches/compare/v1.6.5...v1.6.6) (2026-07-05)
+
+
+### Bug Fixes
+
+* **medium:** set pill-shaped Unlock button with overlay and HTML loading animation inside webview ([6f2ac37](https://github.com/hackingguy/morphe-patches/commit/6f2ac374c5907c357877197b61544ba0683bec04))
+
+## [1.6.5](https://github.com/hackingguy/morphe-patches/compare/v1.6.4...v1.6.5) (2026-07-05)
+
+
+### Bug Fixes
+
+* **medium:** refine Settings row integrations, click ripples, and floating button color/alignment ([a724c4f](https://github.com/hackingguy/morphe-patches/commit/a724c4ffe33d033534e52de8d83e2ce13b619191))
+
+## [1.6.4](https://github.com/hackingguy/morphe-patches/compare/v1.6.3...v1.6.4) (2026-07-05)
+
+
+### Bug Fixes
+
+* **medium:** change extension file type to .mpe for Morphe compatibility ([a3400c4](https://github.com/hackingguy/morphe-patches/commit/a3400c4491dca66cd907e160d57172cbb3bb5fc0))
+
+## [1.6.3](https://github.com/hackingguy/morphe-patches/compare/v1.6.2...v1.6.3) (2026-07-05)
+
+
+### Bug Fixes
+
+* **medium:** implement manual reflection-based extension loader to resolve classloader issues ([f3f536b](https://github.com/hackingguy/morphe-patches/commit/f3f536bf78c015f2896ffac350573f6ce32a0959))
+
+## [1.6.2](https://github.com/hackingguy/morphe-patches/compare/v1.6.1...v1.6.2) (2026-07-05)
+
+
+### Bug Fixes
+
+* **medium:** correct syntax error in FreediumPatch.kt ([b85de4d](https://github.com/hackingguy/morphe-patches/commit/b85de4ddfc46576495b607df04c9d3ccf0baba56))
+* **medium:** declare extension dependency in patch builder DSL ([b9ddfb2](https://github.com/hackingguy/morphe-patches/commit/b9ddfb20539840e51fb2e129cc01bd8f7069b225))
+
+## [1.6.1](https://github.com/hackingguy/morphe-patches/compare/v1.6.0...v1.6.1) (2026-07-05)
+
+
+### Bug Fixes
+
+* **medium:** inject at start of PostFragment.Q to prevent Verifier error ([de17b93](https://github.com/hackingguy/morphe-patches/commit/de17b935495af8923a28becdcca99e9da428cd0f))
+
+# [1.6.0](https://github.com/hackingguy/morphe-patches/compare/v1.5.2...v1.6.0) (2026-07-05)
+
+
+### Bug Fixes
+
+* fix notifications ([fe555c8](https://github.com/hackingguy/morphe-patches/commit/fe555c8d3c93fdf202b7296b4364c5a07329b61e))
+
+
+### Features
+
+* **medium:** add Freedium Mirror patch ([e0465c8](https://github.com/hackingguy/morphe-patches/commit/e0465c86d101e91e10f1f79e1ce02e0036a3a805))
+
 ## [1.5.2](https://github.com/hackingguy/morphe-patches/compare/v1.5.1...v1.5.2) (2026-05-09)
 
 

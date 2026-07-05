@@ -5,7 +5,23 @@ A collection of [Morphe](https://morphe.software) patches for apps I use.
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.2](https://github.com/arunpdl/morphe-patches/releases/tag/v1.0.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;5 patches total
+> **[v1.0.4](https://github.com/arunpdl/morphe-patches/releases/tag/v1.0.4)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
+<details open>
+<summary>📦 byAir&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 2.37.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Enable Online Pro](#enable-online-pro) | Experimental companion patch that keeps byAir's online Pro gates open without forcing the crash-prone global entitlement refresh path. |  |
+| [Enable Pro](#enable-pro) | Suppresses the main byAir paywall, unlock banners, and local user gating. |  |
+
+</details>
+
 <details open>
 <summary>📦 JellyWatch&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -51,6 +67,6 @@ https://github.com/arunpdl/morphe-patches
 
 Or click: https://morphe.software/add-source?github=arunpdl/morphe-patches
 
-## Apps
+## Credits
 
-- **JellyWatch** v2.0.REV-1707 — phone app
+- byAir patches based on [early.egg3707/ee-morphe-patches](https://gitlab.com/early.egg3707/ee-morphe-patches) (2.36.0), adapted for 2.37.0.

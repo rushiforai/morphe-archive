@@ -7,6 +7,7 @@
 package app.morphe.patches.mygate.premium
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.mygate.shared.Constants.COMPATIBILITY_MYGATE
 
@@ -115,6 +116,8 @@ val unlockPremiumPatch = bytecodePatch(
             """
                 new-instance v0, Landroid/content/Intent;
                 sget-object v1, Lcom/mygate/user/app/AppController;->G:Lcom/mygate/user/app/AppController;
+                invoke-virtual {v1}, Landroid/content/Context;->getApplicationContext()Landroid/content/Context;
+                move-result-object v1
                 const-class v2, Lcom/mygate/user/modules/notifications/ui/NotificationCampaignActivity;
                 invoke-direct {v0, v1, v2}, Landroid/content/Intent;-><init>(Landroid/content/Context;Ljava/lang/Class;)V
                 const-string v1, "approvalNotification"
@@ -175,12 +178,14 @@ val unlockPremiumPatch = bytecodePatch(
             return-void
         """.trimIndent()
 
-        TroubleshootingSettingsSuccessFingerprint.method.replaceMethod {
-            append(emitFakeNotificationSettings)
+        TroubleshootingSettingsSuccessFingerprint.method.apply {
+            removeInstructions(0)
+            addInstructions(0, emitFakeNotificationSettings)
         }
         
-        TroubleshootingSettingsFailureFingerprint.method.replaceMethod {
-            append(emitFakeNotificationSettings)
+        TroubleshootingSettingsFailureFingerprint.method.apply {
+            removeInstructions(0)
+            addInstructions(0, emitFakeNotificationSettings)
         }
     }
 }

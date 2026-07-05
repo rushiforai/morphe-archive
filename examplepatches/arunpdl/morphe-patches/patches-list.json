@@ -1,7 +1,61 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "patches": [
+    {
+      "name": "Enable Online Pro",
+      "description": "Experimental companion patch that keeps byAir's online Pro gates open without forcing the crash-prone global entitlement refresh path.",
+      "default": false,
+      "dependencies": [
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.byairapp.android",
+          "name": "byAir",
+          "description": null,
+          "apkFileType": null,
+          "appIconColor": "#1F6FEB",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "2.37.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Enable Pro",
+      "description": "Suppresses the main byAir paywall, unlock banners, and local user gating.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.byairapp.android",
+          "name": "byAir",
+          "description": null,
+          "apkFileType": null,
+          "appIconColor": "#1F6FEB",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "2.37.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
     {
       "name": "Remove License Activity",
       "description": "Removes the PairIP LicenseActivity from AndroidManifest.xml.",

@@ -1,3 +1,28 @@
+## [1.0.4](https://github.com/arunpdl/morphe-patches/compare/v1.0.3...v1.0.4) (2026-07-05)
+
+### 🚀 Updated App Support
+
+* credit original byAir patch author ([b62a80c](https://github.com/arunpdl/morphe-patches/commit/b62a80cf8f55c9449c973dee55e77496953f184e))
+* remove Apps section from README ([d4c1796](https://github.com/arunpdl/morphe-patches/commit/d4c17968dc6b1bf8e3e5b8c1ad9cd9301eea2677))
+
+## [1.0.4-dev.1](https://github.com/arunpdl/morphe-patches/compare/v1.0.3...v1.0.4-dev.1) (2026-07-05)
+
+### 🚀 Updated App Support
+
+* credit original byAir patch author ([b62a80c](https://github.com/arunpdl/morphe-patches/commit/b62a80cf8f55c9449c973dee55e77496953f184e))
+
+## [1.0.3](https://github.com/arunpdl/morphe-patches/compare/v1.0.2...v1.0.3) (2026-07-05)
+
+### 🚀 Updated App Support
+
+* Add byAir 2.37.0 premium unlock patches ([6bb3151](https://github.com/arunpdl/morphe-patches/commit/6bb3151e25ad806b6c4e9af03733b21f08af4f80))
+
+## [1.0.3-dev.1](https://github.com/arunpdl/morphe-patches/compare/v1.0.2...v1.0.3-dev.1) (2026-07-05)
+
+### 🚀 Updated App Support
+
+* Add byAir 2.37.0 premium unlock patches ([6bb3151](https://github.com/arunpdl/morphe-patches/commit/6bb3151e25ad806b6c4e9af03733b21f08af4f80))
+
 ## [1.0.2](https://github.com/arunpdl/morphe-patches/compare/v1.0.1...v1.0.2) (2026-06-29)
 
 ### 🚀 Updated App Support
