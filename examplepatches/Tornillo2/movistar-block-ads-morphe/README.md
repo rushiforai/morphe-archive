@@ -10,7 +10,7 @@ TODO: Update this about section with a brief introduction/summary about this rep
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.3](https://github.com/Tornillo2/movistar-block-ads-morphe/releases/tag/v1.0.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
+> **[v1.0.9](https://github.com/Tornillo2/movistar-block-ads-morphe/releases/tag/v1.0.9)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
 <details open>
 <summary>📦 Movistar Plus&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>

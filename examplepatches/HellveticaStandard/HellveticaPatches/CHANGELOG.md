@@ -1,9 +1,37 @@
-## [1.0.5](https://github.com/HellveticaStandard/HellveticaPatches/compare/v1.0.4...v1.0.5) (2026-07-01)
+## [1.1.0](https://github.com/HellveticaStandard/HellveticaPatches/compare/v1.0.5...v1.1.0) (2026-07-04)
+
+### 🐛 Bug Fixes
+
+* **docs:** remove UnlockPremiumFeaturesPatch from README and patches-list ([43fd8b7](https://github.com/HellveticaStandard/HellveticaPatches/commit/43fd8b75a542bd6e9243aa233e1914c2cc3b27a8))
+* **sankaku:** correct ads toggle and GET SANKAKU PLUS card patches ([9995a46](https://github.com/HellveticaStandard/HellveticaPatches/commit/9995a467ba394b5d574401aefa25f79d54ece1fe)), closes [#12010](https://github.com/HellveticaStandard/HellveticaPatches/issues/12010)
+
+### ✨ New Features
+
+* **sankaku:** add UnlockPremiumFeaturesPatch for 4.24-rc92 ([3aba245](https://github.com/HellveticaStandard/HellveticaPatches/commit/3aba245c4e7a60eb71843117cf595defd9a403fe)), closes [#22029](https://github.com/HellveticaStandard/HellveticaPatches/issues/22029) [#22038](https://github.com/HellveticaStandard/HellveticaPatches/issues/22038) [#16428](https://github.com/HellveticaStandard/HellveticaPatches/issues/16428)
+
+## [1.1.0-dev.3](https://github.com/HellveticaStandard/HellveticaPatches/compare/v1.1.0-dev.2...v1.1.0-dev.3) (2026-07-04)
+
+### 🐛 Bug Fixes
+
+* **docs:** remove UnlockPremiumFeaturesPatch from README and patches-list ([43fd8b7](https://github.com/HellveticaStandard/HellveticaPatches/commit/43fd8b75a542bd6e9243aa233e1914c2cc3b27a8))
+
+## [1.1.0-dev.2](https://github.com/HellveticaStandard/HellveticaPatches/compare/v1.1.0-dev.1...v1.1.0-dev.2) (2026-07-04)
+
+### 🐛 Bug Fixes
+
+* **sankaku:** correct ads toggle and GET SANKAKU PLUS card patches ([9995a46](https://github.com/HellveticaStandard/HellveticaPatches/commit/9995a467ba394b5d574401aefa25f79d54ece1fe)), closes [#12010](https://github.com/HellveticaStandard/HellveticaPatches/issues/12010)
+
+## [1.1.0-dev.1](https://github.com/HellveticaStandard/HellveticaPatches/compare/v1.0.5-dev.2...v1.1.0-dev.1) (2026-07-04)
+
+### ✨ New Features
+
+* **sankaku:** add UnlockPremiumFeaturesPatch for 4.24-rc92 ([3aba245](https://github.com/HellveticaStandard/HellveticaPatches/commit/3aba245c4e7a60eb71843117cf595defd9a403fe)), closes [#22029](https://github.com/HellveticaStandard/HellveticaPatches/issues/22029) [#22038](https://github.com/HellveticaStandard/HellveticaPatches/issues/22038) [#16428](https://github.com/HellveticaStandard/HellveticaPatches/issues/16428)
+
+## [1.0.5-dev.2](https://github.com/HellveticaStandard/HellveticaPatches/compare/v1.0.5-dev.1...v1.0.5-dev.2) (2026-07-01)
 
 ### 🐛 Bug Fixes
 
 * block Sankaku 4.24 upsell modal trigger ([fb1c42d](https://github.com/HellveticaStandard/HellveticaPatches/commit/fb1c42d12636a702497f9ec4770dfab379c320d1))
-* support Sankaku 4.24 popup blocker ([10b6ed1](https://github.com/HellveticaStandard/HellveticaPatches/commit/10b6ed15dfe2774a60953cdacc3696f122fb53fc))
 
 ## [1.0.5-dev.1](https://github.com/HellveticaStandard/HellveticaPatches/compare/v1.0.4...v1.0.5-dev.1) (2026-07-01)
 

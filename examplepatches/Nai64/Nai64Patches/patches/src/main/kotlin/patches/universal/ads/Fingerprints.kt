@@ -92,12 +92,14 @@ internal object GenericStringInstallerCheckFingerprint : Fingerprint(
 )
 
 internal object FallbackBooleanInstallerCheckFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PRIVATE),
     returnType = "Z",
     parameters = emptyList(),
     strings = listOf("com.android.vending"),
 )
 
 internal object FallbackStringInstallerCheckFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PRIVATE),
     returnType = "Ljava/lang/String;",
     parameters = emptyList(),
     strings = listOf("com.android.vending"),
@@ -109,13 +111,6 @@ internal object PairipVMRunnerInvokeFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     returnType = "Ljava/lang/Object;",
     parameters = listOf("Ljava/lang/String;", "[Ljava/lang/Object;"),
-)
-
-internal object PairipStartupLauncherLaunchFingerprint : Fingerprint(
-    definingClass = "Lcom/pairip/StartupLauncher;",
-    name = "launch",
-    returnType = "V",
-    parameters = emptyList(),
 )
 
 internal object PairipSignatureCheckVerifyIntegrityFingerprint : Fingerprint(
@@ -132,6 +127,30 @@ internal object PairipSignatureCheckVerifySignatureMatchesFingerprint : Fingerpr
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     returnType = "Z",
     parameters = listOf("Ljava/lang/String;"),
+)
+
+internal object PairipLicenseClientStartErrorDialogFingerprint : Fingerprint(
+    definingClass = "Lcom/pairip/licensecheck/LicenseClient;",
+    name = "startErrorDialogActivity",
+    accessFlags = listOf(AccessFlags.PRIVATE),
+    returnType = "V",
+    parameters = emptyList(),
+)
+
+internal object PairipLicenseClientStartPaywallFingerprint : Fingerprint(
+    definingClass = "Lcom/pairip/licensecheck/LicenseClient;",
+    name = "startPaywallActivity",
+    accessFlags = listOf(AccessFlags.PRIVATE),
+    returnType = "V",
+    parameters = listOf("Landroid/app/PendingIntent;"),
+)
+
+internal object PairipLicenseActivityShowPaywallFingerprint : Fingerprint(
+    definingClass = "Lcom/pairip/licensecheck/LicenseActivity;",
+    name = "showPaywallAndCloseApp",
+    accessFlags = listOf(AccessFlags.PRIVATE),
+    returnType = "V",
+    parameters = emptyList(),
 )
 
 // ── Native MAX (non-Unity) fingerprints ──

@@ -8,6 +8,10 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -203,6 +207,17 @@ public class PeacockWebViewHelper {
                 WebView view, WebResourceRequest request) {
             try {
                 String url = request.getUrl().toString();
+                // Layer 12 — DAI manifest swap. Peacock's VOD ads are SSAI-stitched
+                // into a DASH manifest at /dai/pub/…master_cmaf.mpd on its own CDN,
+                // fetched by the SPA as an XHR (so shouldInterceptRequest CAN see it).
+                // Serve the clean, non-stitched origin manifest (/pub/) in its place
+                // — the Tubi "DAI → non-stitched fallback" pattern at the WebView layer.
+                if (url.contains("/dai/pub/") && url.contains(".mpd")) {
+                    WebResourceResponse clean = cleanDaiManifest(url);
+                    if (clean != null) {
+                        return clean;
+                    }
+                }
                 if (shouldBlock(url)) {
                     boolean analytics = isAnalyticsHost(url);
                     Log.d(TAG, "BLOCKED [" + (analytics ? "analytics" : "ad") + "]: " + url);
@@ -263,6 +278,52 @@ public class PeacockWebViewHelper {
         public boolean onRenderProcessGone(WebView view,
                 android.webkit.RenderProcessGoneDetail detail) {
             return original.onRenderProcessGone(view, detail);
+        }
+    }
+
+    /**
+     * Fetches the clean (non-ad-stitched) origin DASH manifest for a DAI URL and
+     * returns it as the response, so the player never sees the stitched ad periods.
+     * Rewrites the CDN path /dai/pub/… -> /pub/… (the DAI origin), preserving the
+     * per-asset tokens already in the path. Any failure returns null, so playback
+     * falls through to the original stitched manifest (ads, but never a black screen).
+     */
+    private static WebResourceResponse cleanDaiManifest(String daiUrl) {
+        HttpURLConnection conn = null;
+        try {
+            String cleanUrl = daiUrl.replaceFirst("/dai/pub/", "/pub/");
+            conn = (HttpURLConnection) new URL(cleanUrl).openConnection();
+            conn.setInstanceFollowRedirects(true);
+            conn.setConnectTimeout(8000);
+            conn.setReadTimeout(8000);
+            conn.setRequestProperty("Accept", "application/dash+xml,*/*");
+            int code = conn.getResponseCode();
+            if (code != 200) {
+                Log.d(TAG, "DAI clean manifest HTTP " + code + " -> fall through: " + cleanUrl);
+                return null;
+            }
+            InputStream in = conn.getInputStream();
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            byte[] buf = new byte[8192];
+            int n;
+            while ((n = in.read(buf)) != -1) {
+                bos.write(buf, 0, n);
+            }
+            in.close();
+            byte[] body = bos.toByteArray();
+            Log.d(TAG, "DAI->CLEAN manifest served (" + body.length + " bytes): " + cleanUrl);
+            Map<String, String> headers = new HashMap<>();
+            headers.put("Access-Control-Allow-Origin", "*");
+            return new WebResourceResponse(
+                    "application/dash+xml", "utf-8", 200, "OK", headers,
+                    new ByteArrayInputStream(body));
+        } catch (Exception e) {
+            Log.e(TAG, "DAI clean manifest fetch failed -> fall through: " + e.getMessage());
+            return null;
+        } finally {
+            if (conn != null) {
+                conn.disconnect();
+            }
         }
     }
 

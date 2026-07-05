@@ -40,26 +40,9 @@ public class ExamplePatch {
      */
     private static void notifyPlayerEnded() {
         try {
-            Class<?> mainActivityClazz = Class.forName("com.movistarplus.androidtv.MainActivity");
-
-            // Try common singleton field names used in Movistar Plus builds.
-            Object mainActivityInstance = null;
-            for (String fieldName : new String[]{"instance", "INSTANCE", "sInstance", "mInstance"}) {
-                try {
-                    Field field = mainActivityClazz.getDeclaredField(fieldName);
-                    field.setAccessible(true);
-                    mainActivityInstance = field.get(null);
-                    if (mainActivityInstance != null) break;
-                } catch (NoSuchFieldException ignored) {}
-            }
-
-            if (mainActivityInstance == null) {
-                Log.w(TAG, "Could not obtain MainActivity instance; skipping fireEvent.");
-                return;
-            }
-
-            Method fireEventMethod = mainActivityClazz.getMethod("fireEvent", String.class);
-            fireEventMethod.invoke(mainActivityInstance, "ended");
+            Class<?> cls = Class.forName("com.movistarplus.androidtv.MainActivity");
+            // fireEvent és static -> invoke amb null com a receptor
+            cls.getMethod("fireEvent", String.class).invoke(null, "ended");
             Log.d(TAG, "fireEvent('ended') dispatched successfully.");
         } catch (Exception e) {
             Log.e(TAG, "Failed to dispatch fireEvent('ended')", e);

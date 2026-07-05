@@ -1,3 +1,11 @@
+# [1.10.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.9.0...v1.10.0) (2026-07-04)
+
+
+### Features
+
+* **peacock:** DAI-swap ad suppression + Clone and Disable auto-updates ([2969316](https://github.com/ajstrick81/morphe-androidtv-patches/commit/296931651c3d50c49e88190286d087a23e2a5f32))
+* **pluto:** add Clone and Disable auto-updates patches ([4358314](https://github.com/ajstrick81/morphe-androidtv-patches/commit/4358314cab49bd34a84fa17517f3394a49ea79d3))
+
 # [1.9.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.8.0...v1.9.0) (2026-07-03)
 
 

@@ -1,5 +1,5 @@
 {
-  "version": "1.9.0",
+  "version": "1.10.0",
   "appNames": {
     "com.fox.foxone": "Fox One Android TV",
     "com.peacocktv.peacockandroid": "Peacock TV Android TV",
@@ -13,6 +13,63 @@
     "com.cbs.ott": "Paramount+ Android TV"
   },
   "patches": [
+    {
+      "name": "Clone Peacock",
+      "description": "Installs the patched Peacock as a separate app alongside the stock one, instead of replacing it. Enable this when Peacock is a preinstalled system app that can't be uninstalled — most commonly on Amazon Fire TV, and on some Android TV boxes and Onn devices. The clone gets its own package (suffix .mod), so it shows up as a second Peacock icon and keeps its own login. Leave OFF if you were able to uninstall the original Peacock first (a normal in-place install is cleaner). Opt-in.",
+      "use": false,
+      "dependencies": [],
+      "compatiblePackages": {
+        "com.peacocktv.peacockandroid": [
+          "7.5.102",
+          "7.6.100"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Peacock TV Android TV",
+          "packageName": "com.peacocktv.peacockandroid",
+          "description": null,
+          "appIconColor": 0,
+          "targets": [
+            {
+              "version": "7.5.102",
+              "experimental": false
+            },
+            {
+              "version": "7.6.100",
+              "experimental": false
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Clone Pluto TV",
+      "description": "Installs the patched Pluto TV as a separate app alongside the stock one, instead of replacing it. Enable this when Pluto TV is a preinstalled system app that can't be uninstalled — most commonly on Amazon Fire TV, and on some Android TV boxes and Onn devices. The clone gets its own package (suffix .mod), so it shows up as a second Pluto TV icon and keeps its own settings. Leave OFF if you were able to uninstall the original Pluto TV first (a normal in-place install is cleaner). Opt-in.",
+      "use": false,
+      "dependencies": [],
+      "compatiblePackages": {
+        "tv.pluto.android": [
+          "5.66.0-leanback"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Pluto TV Android TV",
+          "packageName": "tv.pluto.android",
+          "description": null,
+          "appIconColor": 12103684,
+          "targets": [
+            {
+              "version": "5.66.0-leanback",
+              "experimental": false
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
     {
       "name": "Clone Prime Video",
       "description": "Renames the package to <original>.mod (and its provider authorities / custom permissions) so the patched app installs side-by-side with a non-removable system Prime Video. Opt-in.",
@@ -32,6 +89,63 @@
           "targets": [
             {
               "version": "6.23.23+v15.5.0.70-armv7a",
+              "experimental": false
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Disable auto-updates",
+      "description": "Stops the Google Play Store from silently updating Peacock back to the official version and wiping out the patch (which would bring the ads back). Works by setting the patched build's version number far ahead of anything on the Store, so it's treated as already up to date. You can still update deliberately by re-patching a newer APK in Morphe. Recommended to leave ON. Does not apply to mount-installed apps.",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "com.peacocktv.peacockandroid": [
+          "7.5.102",
+          "7.6.100"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Peacock TV Android TV",
+          "packageName": "com.peacocktv.peacockandroid",
+          "description": null,
+          "appIconColor": 0,
+          "targets": [
+            {
+              "version": "7.5.102",
+              "experimental": false
+            },
+            {
+              "version": "7.6.100",
+              "experimental": false
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Disable auto-updates",
+      "description": "Stops the Google Play Store from silently updating Pluto TV back to the official version and wiping out the patch (which would bring the ads back). Works by setting the patched build's version number far ahead of anything on the Store, so it's treated as already up to date. You can still update deliberately by re-patching a newer APK in Morphe. Recommended to leave ON. Does not apply to mount-installed apps.",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "tv.pluto.android": [
+          "5.66.0-leanback"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Pluto TV Android TV",
+          "packageName": "tv.pluto.android",
+          "description": null,
+          "appIconColor": 12103684,
+          "targets": [
+            {
+              "version": "5.66.0-leanback",
               "experimental": false
             }
           ]
@@ -321,7 +435,7 @@
     },
     {
       "name": "Skip ads",
-      "description": "Disables ad delivery via Sky SDK surgical targets (FreeWheel DI module skip, MediaTailor SSAI layers, ad-break-started no-op), AdBlockInterceptor wiring on the app NetworkingKt OkHttp client, and a WebView shouldInterceptRequest wrapper. Pair with DNS filtering for full ad suppression. Validated v7.5.102 and v7.6.100.",
+      "description": "Disables ad delivery via Sky SDK surgical targets (FreeWheel DI module skip, MediaTailor SSAI layers, ad-break-started no-op), AdBlockInterceptor wiring on both the app NetworkingKt OkHttp client and the Sky SDK addon network client, and a WebView shouldInterceptRequest wrapper. Validated v7.5.102 and v7.6.100.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {

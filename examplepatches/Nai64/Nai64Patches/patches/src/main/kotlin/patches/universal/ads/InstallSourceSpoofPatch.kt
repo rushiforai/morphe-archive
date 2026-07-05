@@ -11,14 +11,11 @@ import java.util.logging.Logger
 val installSourceSpoofPatch = bytecodePatch(
     name = "Spoof Play Store Install Source",
     description = "Makes the app think it was installed from Google Play Store. " +
-            "Supports Pairip and generic installer check methods. " +
             "Recommended if the app has a Play Store license check.",
     default = false,
 ) {
     execute {
         val logger = Logger.getLogger(this::class.java.name)
-
-        var pairipApplied = false
 
         // Strategy 1: Pairip performLocalInstallerCheck
         PerformLocalInstallerCheckFingerprint.methodOrNull?.let {
@@ -27,7 +24,6 @@ val installSourceSpoofPatch = bytecodePatch(
                 BuilderInstruction11x(Opcode.RETURN, 0),
             ))
             logger.info("Applied Pairip performLocalInstallerCheck spoof")
-            pairipApplied = true
         }
 
         // Strategy 2: Pairip SignatureCheck.verifyIntegrity() — runs in Application.attachBaseContext
@@ -37,7 +33,6 @@ val installSourceSpoofPatch = bytecodePatch(
                 return-void
             """.trimIndent())
             logger.info("Applied Pairip SignatureCheck.verifyIntegrity bypass")
-            pairipApplied = true
         }
 
         // Strategy 3: Pairip SignatureCheck.verifySignatureMatches() — belt-and-suspenders
@@ -47,28 +42,38 @@ val installSourceSpoofPatch = bytecodePatch(
                 BuilderInstruction11x(Opcode.RETURN, 0),
             ))
             logger.info("Applied Pairip SignatureCheck.verifySignatureMatches bypass")
-            pairipApplied = true
         }
 
-        // Strategy 4: Pairip StartupLauncher.launch() — early native VM entry point.
-        // Skip only the startup VM program; VMRunner.invoke() is a shared dispatcher
-        // used by protected app/library code and must keep returning real values.
-        PairipStartupLauncherLaunchFingerprint.methodOrNull?.let {
+        // Strategy 4: Pairip LicenseClient error dialog — suppresses the "Get from Play Store" redirect
+        PairipLicenseClientStartErrorDialogFingerprint.methodOrNull?.let {
             it.addInstructions(0, """
                 return-void
             """.trimIndent())
-            logger.info("Applied Pairip StartupLauncher.launch bypass")
-            pairipApplied = true
+            logger.info("Applied Pairip LicenseClient error dialog suppress")
         }
 
-        // If any Pairip strategy was applied, generic fallbacks are unnecessary
-        if (pairipApplied) return@execute
+        // Strategy 5: Pairip LicenseClient paywall — suppresses the LVL paywall PendingIntent (opens Play Store)
+        PairipLicenseClientStartPaywallFingerprint.methodOrNull?.let {
+            it.addInstructions(0, """
+                return-void
+            """.trimIndent())
+            logger.info("Applied Pairip LicenseClient paywall suppress")
+        }
+
+        // Strategy 6: Pairip LicenseActivity.showPaywallAndCloseApp — last link before PendingIntent.send()
+        // Catches paywall even if LicenseActivity is started from native code (libpairipcore.so).
+        PairipLicenseActivityShowPaywallFingerprint.methodOrNull?.let {
+            it.addInstructions(0, """
+                return-void
+            """.trimIndent())
+            logger.info("Applied Pairip LicenseActivity paywall suppress")
+        }
 
         // ── Generic string-based strategies ──
         // These search for methods containing "com.android.vending" by return type.
-        // Only reached if no Pairip-specific methods were found.
+        // These run even when Pairip is found — catches non-Pairip methods.
 
-        // Strategy 5: Private boolean method referencing "com.android.vending"
+        // Strategy 7: Private boolean method referencing "com.android.vending"
         val boolCheck = GenericBooleanInstallerCheckFingerprint.methodOrNull
         if (boolCheck != null) {
             boolCheck.addInstructions(0, listOf(
@@ -79,7 +84,7 @@ val installSourceSpoofPatch = bytecodePatch(
             return@execute
         }
 
-        // Strategy 6: Private String method referencing "com.android.vending"
+        // Strategy 8: Private String method referencing "com.android.vending"
         val strCheck = GenericStringInstallerCheckFingerprint.methodOrNull
         if (strCheck != null) {
             strCheck.addInstructions(0, """
@@ -90,7 +95,7 @@ val installSourceSpoofPatch = bytecodePatch(
             return@execute
         }
 
-        // Strategy 7: Any boolean method (any access) with "com.android.vending"
+        // Strategy 9: Private boolean method with "com.android.vending" (duplicate safety net)
         val fallbackBool = FallbackBooleanInstallerCheckFingerprint.methodOrNull
         if (fallbackBool != null) {
             fallbackBool.addInstructions(0, listOf(
@@ -101,7 +106,7 @@ val installSourceSpoofPatch = bytecodePatch(
             return@execute
         }
 
-        // Strategy 8: Any String method (any access) with "com.android.vending"
+        // Strategy 10: Private String method with "com.android.vending" (duplicate safety net)
         val fallbackStr = FallbackStringInstallerCheckFingerprint.methodOrNull
         if (fallbackStr != null) {
             fallbackStr.addInstructions(0, """
