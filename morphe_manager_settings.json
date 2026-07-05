@@ -636,6 +636,14 @@
                 "sortOrder": 76,
                 "createdAt": 1783135386518,
                 "updatedAt": 1783135386518
+            },
+            {
+                "name": "okish-morphe-patches",
+                "source": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 77,
+                "createdAt": 1783222855151,
+                "updatedAt": 1783222855151
             }
         ],
         "bytecodeModePreference": "STRIP_FAST"

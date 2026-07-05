@@ -48,6 +48,7 @@ binarymend/morphe-patches
 brosssh/morphe-patches
 browzomje/browzomje-patches
 bufferk/bounce-patch
+byehi98/okish-morphe-patches
 cesbar/zpatches
 crimera/piko
 docbt/patched-up
