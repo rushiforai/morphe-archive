@@ -26,6 +26,8 @@ import requests
 OUTPUT_FILE = os.environ.get("OUTPUT_FILE", "repos.txt")
 CUSTOM_FILE = os.environ.get("CUSTOM_FILE", "custom_repos.txt")
 IGNORE_FILE = os.environ.get("IGNORE_FILE", "ignore_repos.txt")
+PENDING_FILE = os.environ.get("PENDING_FILE", "pending_repos.txt")
+REVIEW_DISCOVERIES = os.environ.get("REVIEW_DISCOVERIES", "").lower() in ("1", "true", "yes")
 
 HEADERS = {
     "Accept": "application/vnd.github.v3+json",
@@ -158,11 +160,21 @@ def load_lines(path):
     """Read a newline-separated list file, ignoring blanks and # comments."""
     if not os.path.exists(path):
         return set()
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         return {
             line.strip() for line in f
             if line.strip() and not line.strip().startswith("#")
         }
+
+
+def append_pending_repos(path, repos):
+    if not repos:
+        return
+    existing = load_lines(path)
+    combined = sorted(existing | set(repos), key=str.lower)
+    with open(path, "w", encoding="utf-8") as f:
+        for repo in combined:
+            f.write(repo + "\n")
 
 
 def main():
@@ -176,21 +188,28 @@ def main():
     custom_repos = load_lines(CUSTOM_FILE)
     ignore_repos = load_lines(IGNORE_FILE)
 
-    # Merge: keep what's already in repos.txt, add newly verified +
-    # custom repos, then drop anything explicitly ignored. A repo that
-    # no longer shows up in search is NOT auto-removed -- add it to
-    # ignore_repos.txt if it should actually be dropped.
-    combined = sorted((existing_repos | verified | custom_repos) - ignore_repos)
+    new_discoveries = verified - existing_repos - custom_repos - ignore_repos
 
-    with open(OUTPUT_FILE, "w") as f:
+    # Merge: keep what's already in repos.txt and custom repos, then drop
+    # anything explicitly ignored. In review mode, newly verified discoveries
+    # are written to PENDING_FILE instead of being added automatically.
+    verified_to_add = set() if REVIEW_DISCOVERIES else verified
+    combined = sorted((existing_repos | verified_to_add | custom_repos) - ignore_repos)
+
+    with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         for repo in combined:
             f.write(repo + "\n")
+
+    if REVIEW_DISCOVERIES:
+        append_pending_repos(PENDING_FILE, new_discoveries)
 
     print(f"Found {len(candidates)} candidates, {len(verified)} verified with .mpp releases.")
     print(
         f"Existing: {len(existing_repos)}. Custom: {len(custom_repos)}. "
         f"Ignored: {len(ignore_repos)}. Saved {len(combined)} total repos to {OUTPUT_FILE}."
     )
+    if REVIEW_DISCOVERIES:
+        print(f"Queued {len(new_discoveries)} newly discovered repos for review in {PENDING_FILE}.")
 
 
 if __name__ == "__main__":

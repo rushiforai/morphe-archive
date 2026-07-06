@@ -8,8 +8,11 @@ import os
 import urllib.parse
 from datetime import datetime, timezone
 
+from add_repos_to_bundles import parse_repo_ref, resolve_branch
+
 REPOS_FILE = os.environ.get("OUTPUT_FILE", "repos.txt")
 README_FILE = os.environ.get("README_FILE", "README.md")
+VALIDATE_BUNDLES = os.environ.get("VALIDATE_BUNDLES", "1").lower() not in ("0", "false", "no")
 
 
 def load_repos(path):
@@ -22,7 +25,7 @@ def load_repos(path):
         )
 
 
-def parse_repo_ref(repo):
+def parse_readme_repo_ref(repo):
     repo = repo.strip().rstrip("/")
     if repo.startswith(("http://", "https://")):
         parsed = urllib.parse.urlparse(repo)
@@ -41,18 +44,35 @@ def parse_repo_ref(repo):
 
 
 def repo_web_url(repo):
-    host, path = parse_repo_ref(repo)
+    host, path = parse_readme_repo_ref(repo)
     return f"https://{host}/{path}"
 
 
 def morphe_add_url(repo):
-    host, path = parse_repo_ref(repo)
+    host, path = parse_readme_repo_ref(repo)
     if host == "gitlab.com":
         return f"https://morphe.software/add-source?gitlab={path}"
     return f"https://morphe.software/add-source?github={path}"
 
 
-def build_readme(repos):
+def filter_valid_repos(repos):
+    if not VALIDATE_BUNDLES:
+        return repos, []
+
+    valid = []
+    invalid = []
+    for repo in repos:
+        repo_ref = parse_repo_ref(repo)
+        branch = resolve_branch(repo_ref)
+        if branch:
+            valid.append(repo)
+        else:
+            invalid.append(repo)
+    return valid, invalid
+
+
+def build_readme(repos, invalid_repos=None):
+    invalid_repos = invalid_repos or []
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     count = len(repos)
 
@@ -66,6 +86,7 @@ def build_readme(repos):
     lines.append("")
     lines.append(
         f"![Repos tracked](https://img.shields.io/badge/repos%20tracked-{count}-6366f1)"
+        " "
         f"![Last updated](https://img.shields.io/badge/last%20updated-{now.replace(' ', '%20')}-555)"
     )
     lines.append("")
@@ -93,6 +114,11 @@ def build_readme(repos):
         "[`ignore_repos.txt`](./ignore_repos.txt) to intentionally drop one."
     )
     lines.append("")
+    lines.append(
+        "README and settings output include only repos whose `patches-bundle.json` is reachable "
+        "and contains a real `.mpp` reference."
+    )
+    lines.append("")
     lines.append("---")
     lines.append("")
     lines.append(f"## Tracked Repositories ({count})")
@@ -116,6 +142,13 @@ def build_readme(repos):
         "To add a repo manually, append it to `custom_repos.txt`. "
         "To remove one permanently, add it to `ignore_repos.txt`."
     )
+    lines.append("Use `owner/repo` for GitHub, or `gitlab.com/group/project` for GitLab.")
+    if invalid_repos:
+        lines.append("")
+        lines.append(
+            f"{len(invalid_repos)} approved repo entries were hidden because their bundle "
+            "URL is currently invalid."
+        )
     lines.append("")
     lines.append(f"*Last generated: {now}*")
     lines.append("")
@@ -125,12 +158,17 @@ def build_readme(repos):
 
 def main():
     repos = load_repos(REPOS_FILE)
-    readme = build_readme(repos)
+    valid_repos, invalid_repos = filter_valid_repos(repos)
+    readme = build_readme(valid_repos, invalid_repos)
 
     with open(README_FILE, "w", encoding="utf-8") as f:
         f.write(readme)
 
-    print(f"Wrote {README_FILE} with {len(repos)} repos.")
+    print(f"Wrote {README_FILE} with {len(valid_repos)} valid repos.")
+    if invalid_repos:
+        print(f"Hidden {len(invalid_repos)} invalid repos from README:")
+        for repo in invalid_repos:
+            print(f"  - {repo}")
 
 
 if __name__ == "__main__":
