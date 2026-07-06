@@ -1,0 +1,43 @@
+{
+  "branches": [
+    "main",
+    {
+      "name": "dev",
+      "prerelease": true
+    }
+  ],
+  "plugins": [
+    [
+      "@semantic-release/commit-analyzer", {
+        "releaseRules": [
+          { "type": "build", "scope": "Needs bump", "release": "patch" }
+        ]
+      }
+    ],
+    "@semantic-release/release-notes-generator",
+    "@semantic-release/changelog",
+    "gradle-semantic-release-plugin",
+    [
+      "@semantic-release/git",
+      {
+        "assets": [
+          "CHANGELOG.md",
+          "gradle.properties"
+        ],
+        "message": "chore: Release v${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+      }
+    ],
+    [
+      "@kilianpaquier/semantic-release-backmerge",
+      {
+        targets: [{"from": "main", "to": "dev"}]
+      }
+    ],
+    [
+        "@semantic-release/github",
+        {
+            successComment: false
+        }
+    ]
+  ]
+}

@@ -1,0 +1,32 @@
+<!--
+  ~ SPDX-FileCopyrightText: 2020, microG Project Team
+  ~ SPDX-License-Identifier: Apache-2.0
+  -->
+
+<resources>
+
+    <!--Foreground service notification-->
+
+    <string name="foreground_service_notification_title">Ativo em segundo plano</string>
+    <string name="foreground_service_notification_text" formatted="true">%1$s está rodando em segundo plano</string>
+    <string name="foreground_service_notification_big_text">Exclua o %1$s das otimizações de bateria ou altere as configurações de notificação para ocultar este aviso</string>
+    <!--foreground service: notification actions-->
+    <string name="foreground_action_battery_optimization">Otimização de bateria</string>
+    <string name="foreground_action_notification_settings">Configurações</string>
+
+    <!--Actionbar menu-->
+
+    <string name="menu_settings">Configurações</string>
+
+    <!--Google Cloud Messaging-->
+
+    <string name="list_no_item_none">Nenhum</string>
+    <string name="list_item_see_all">Ver todos</string>
+    <!--gcm: network status-->
+    <string name="service_status_disabled">Desativado</string>
+    <string name="service_status_enabled">Ativado</string>
+    <string name="service_status_automatic">Automático</string>
+    <string name="service_status_manual">Manual</string>
+    <string name="service_status_enabled_short">Ativado</string>
+    <string name="service_status_disabled_short">Desativado</string>
+</resources>

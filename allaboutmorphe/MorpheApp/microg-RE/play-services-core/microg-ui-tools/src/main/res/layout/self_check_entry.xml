@@ -1,0 +1,72 @@
+<com.google.android.material.listitem.ListItemLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/list_item_check"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="2dp">
+
+    <com.google.android.material.listitem.ListItemCardView
+        android:id="@+id/material_card_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardBackgroundColor="?attr/colorSurfaceContainer">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:layout_marginBottom="6dp">
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/self_check_name"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:maxLines="2"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                app:layout_constraintBottom_toTopOf="@+id/self_check_resolution"
+                app:layout_constraintEnd_toStartOf="@+id/self_check_result_icon"
+                app:layout_constraintHorizontal_chainStyle="spread"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_chainStyle="packed"
+                tools:text="@string/self_check_title" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/self_check_resolution"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:maxLines="10"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="?android:textColorSecondary"
+                app:layout_constraintBottom_toTopOf="@+id/self_check_chip_group"
+                app:layout_constraintEnd_toEndOf="@id/self_check_name"
+                app:layout_constraintStart_toStartOf="@id/self_check_name"
+                app:layout_constraintTop_toBottomOf="@id/self_check_name"
+                tools:text="@string/self_check_desc" />
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/self_check_chip_group"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="@id/self_check_name"
+                app:layout_constraintStart_toStartOf="@id/self_check_name"
+                app:layout_constraintTop_toBottomOf="@id/self_check_resolution" />
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/self_check_result_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:importantForAccessibility="no"
+                android:paddingStart="8dp"
+                android:src="@drawable/ic_self_check_result"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </com.google.android.material.listitem.ListItemCardView>
+</com.google.android.material.listitem.ListItemLayout>
