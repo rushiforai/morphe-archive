@@ -1,3 +1,0 @@
--keep class app.morphe.extension.** { *; }
--dontwarn app.morphe.extension.**
--keep class com.alibaba.** { *; }
