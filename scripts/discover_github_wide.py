@@ -1,32 +1,25 @@
 """
 Searches GitHub for repositories that look like Morphe patch sources, then
-verifies each candidate actually has a GitHub Release with a `.mpp` asset
-attached (the real signal that it's a Morphe patch bundle, since Morphe
-bundles are distributed as release assets, not regular repo files).
+verifies each candidate by fetching its actual patches-bundle.json.
 
-Steps:
-  1. Code search for `patches-bundle.json` files (excludes forks)
-  2. For each candidate repo, check its Releases API for any asset
-     ending in `.mpp`
-  3. Only repos that pass step 2 are kept
-
-Results are merged with whatever is already in repos.txt (e.g. from
-fetch_org_repos.py) and the de-duplicated, sorted list is written back out.
-
-Note: GitHub's Search API requires authentication for decent rate limits
-(code search: 10/min unauthenticated, higher with a token) and only
-indexes the default branch of repos under a certain size, so this is a
-best-effort discovery pass, not a guarantee of completeness.
+New discoveries can be written to a pending review file instead of directly
+changing repos.txt by setting REVIEW_DISCOVERIES=true.
 """
 
+import json
 import os
 import time
+
 import requests
+
+from add_repos_to_bundles import RepoRef, bundle_url, validate_bundle_url
 
 OUTPUT_FILE = os.environ.get("OUTPUT_FILE", "repos.txt")
 CUSTOM_FILE = os.environ.get("CUSTOM_FILE", "custom_repos.txt")
 IGNORE_FILE = os.environ.get("IGNORE_FILE", "ignore_repos.txt")
+REJECTED_FILE = os.environ.get("REJECTED_FILE", "rejected_repos.txt")
 PENDING_FILE = os.environ.get("PENDING_FILE", "pending_repos.txt")
+PENDING_EVIDENCE_FILE = os.environ.get("PENDING_EVIDENCE_FILE", "pending_repos.json")
 REVIEW_DISCOVERIES = os.environ.get("REVIEW_DISCOVERIES", "").lower() in ("1", "true", "yes")
 
 HEADERS = {
@@ -37,12 +30,10 @@ token = os.environ.get("GITHUB_TOKEN")
 if token:
     HEADERS["Authorization"] = f"token {token}"
 
-# Note: GitHub code search does NOT support the `fork:` qualifier
-# (that's repo-search only). Forks are filtered out afterward using
-# each result's repository metadata instead.
 CODE_SEARCH_QUERIES = [
     "filename:patches-bundle.json",
 ]
+FALLBACK_BRANCHES = ("main", "master")
 
 
 def request_with_backoff(url, params=None):
@@ -52,6 +43,9 @@ def request_with_backoff(url, params=None):
             return resp
         if resp.status_code in (403, 429):
             wait = int(resp.headers.get("Retry-After", 10))
+            reset_at = resp.headers.get("X-RateLimit-Reset")
+            if reset_at and wait == 10:
+                wait = max(int(reset_at) - int(time.time()), 10)
             print(f"Rate limited, waiting {wait}s...")
             time.sleep(wait)
             continue
@@ -61,7 +55,6 @@ def request_with_backoff(url, params=None):
 
 
 def search_code(query):
-    """Paginate through GitHub code search results for a given query."""
     results = []
     page = 1
     per_page = 100
@@ -74,11 +67,10 @@ def search_code(query):
         if resp is None:
             break
 
-        data = resp.json()
-        items = data.get("items", [])
+        items = resp.json().get("items", [])
         results.extend(items)
 
-        if len(items) < per_page or page >= 10:  # Search API caps at 1000 results
+        if len(items) < per_page or page >= 10:
             break
         page += 1
         time.sleep(2)
@@ -86,39 +78,44 @@ def search_code(query):
     return results
 
 
-def is_fork(full_name):
-    """Check whether the repo is a fork via the repo API (code search
-    results don't reliably include this field)."""
-    url = f"https://api.github.com/repos/{full_name}"
-    resp = request_with_backoff(url)
+def get_repo_metadata(full_name, search_metadata):
+    resp = request_with_backoff(f"https://api.github.com/repos/{full_name}")
     if resp is None:
-        return False  # if we can't tell, don't exclude it
-    data = resp.json()
-    return bool(data.get("fork", False))
+        return search_metadata or {}
+    return resp.json()
 
 
-def repo_has_mpp_release(full_name):
-    """Check the repo's releases for any asset ending in .mpp."""
-    url = f"https://api.github.com/repos/{full_name}/releases"
-    resp = request_with_backoff(url, params={"per_page": 10})
-    if resp is None:
-        return False
+def branch_candidates(default_branch):
+    branches = []
+    if default_branch:
+        branches.append(default_branch)
+    for branch in FALLBACK_BRANCHES:
+        if branch not in branches:
+            branches.append(branch)
+    return branches
 
-    releases = resp.json()
-    if not isinstance(releases, list):
-        return False
 
-    for release in releases:
-        for asset in release.get("assets", []):
-            name = asset.get("name", "")
-            if name.lower().endswith(".mpp"):
-                return True
+def validate_repo_bundle(full_name, default_branch):
+    repo_ref = RepoRef(host="github.com", path=full_name)
+    failures = []
 
-    return False
+    for branch in branch_candidates(default_branch):
+        url = bundle_url(repo_ref, branch)
+        valid, reason = validate_bundle_url(url)
+        if valid:
+            return {
+                "repo": full_name,
+                "branch": branch,
+                "bundle_url": url,
+                "source": "GitHub code search",
+            }
+        failures.append(f"{branch}: {reason}")
+
+    return None, "; ".join(failures)
 
 
 def collect_candidate_repos():
-    candidates = {}  # full_name -> repo metadata (to filter forks defensively too)
+    candidates = {}
 
     for query in CODE_SEARCH_QUERIES:
         print(f"Searching code for: {query}")
@@ -136,28 +133,37 @@ def collect_candidate_repos():
     return candidates
 
 
-def filter_verified_repos(candidates):
-    verified = set()
+def filter_verified_repos(candidates, rejected_repos):
+    verified = {}
 
     for full_name in sorted(candidates):
-        print(f"Checking https://github.com/{full_name} for .mpp releases...")
-
-        if is_fork(full_name):
-            print(f"  [-] {full_name} is a fork, skipping")
+        if full_name in rejected_repos:
+            print(f"Skipping rejected repo: {full_name}")
             continue
 
-        if repo_has_mpp_release(full_name):
-            print(f"  [+] {full_name} has a .mpp release asset")
-            verified.add(full_name)
+        print(f"Checking https://github.com/{full_name} bundle JSON...")
+        metadata = get_repo_metadata(full_name, candidates[full_name])
+        canonical_name = metadata.get("full_name") or full_name
+        if canonical_name in rejected_repos:
+            print(f"Skipping rejected repo: {canonical_name}")
+            continue
+
+        evidence = validate_repo_bundle(canonical_name, metadata.get("default_branch"))
+        if isinstance(evidence, tuple):
+            _, reason = evidence
+            print(f"  [-] {canonical_name} has no valid .mpp bundle: {reason}")
         else:
-            print(f"  [-] {full_name} has no .mpp release asset, skipping")
+            if metadata.get("fork"):
+                evidence["fork"] = True
+                evidence["note"] = "Fork accepted because its bundle JSON validates."
+            print(f"  [+] {canonical_name} has a valid .mpp bundle on {evidence['branch']}")
+            verified[canonical_name] = evidence
         time.sleep(1)
 
     return verified
 
 
 def load_lines(path):
-    """Read a newline-separated list file, ignoring blanks and # comments."""
     if not os.path.exists(path):
         return set()
     with open(path, encoding="utf-8") as f:
@@ -177,24 +183,40 @@ def append_pending_repos(path, repos):
             f.write(repo + "\n")
 
 
+def append_pending_evidence(path, evidence_by_repo):
+    if not evidence_by_repo:
+        return
+    existing = {}
+    if os.path.exists(path) and os.path.getsize(path) > 0:
+        with open(path, encoding="utf-8") as f:
+            try:
+                existing = {item["repo"]: item for item in json.load(f)}
+            except json.JSONDecodeError:
+                existing = {}
+    existing.update(evidence_by_repo)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump([existing[key] for key in sorted(existing, key=str.lower)], f, indent=2)
+        f.write("\n")
+
+
 def main():
     if not token:
         print("Warning: no GITHUB_TOKEN set, search rate limits will be very low.")
 
-    candidates = collect_candidate_repos()
-    verified = filter_verified_repos(candidates)
-
     existing_repos = load_lines(OUTPUT_FILE)
     custom_repos = load_lines(CUSTOM_FILE)
     ignore_repos = load_lines(IGNORE_FILE)
+    rejected_repos = load_lines(REJECTED_FILE)
 
-    new_discoveries = verified - existing_repos - custom_repos - ignore_repos
+    candidates = collect_candidate_repos()
+    verified_evidence = filter_verified_repos(candidates, ignore_repos | rejected_repos)
+    verified = set(verified_evidence)
 
-    # Merge: keep what's already in repos.txt and custom repos, then drop
-    # anything explicitly ignored. In review mode, newly verified discoveries
-    # are written to PENDING_FILE instead of being added automatically.
+    new_discoveries = verified - existing_repos - custom_repos - ignore_repos - rejected_repos
+    new_evidence = {repo: verified_evidence[repo] for repo in new_discoveries}
+
     verified_to_add = set() if REVIEW_DISCOVERIES else verified
-    combined = sorted((existing_repos | verified_to_add | custom_repos) - ignore_repos)
+    combined = sorted((existing_repos | verified_to_add | custom_repos) - ignore_repos - rejected_repos)
 
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         for repo in combined:
@@ -202,11 +224,13 @@ def main():
 
     if REVIEW_DISCOVERIES:
         append_pending_repos(PENDING_FILE, new_discoveries)
+        append_pending_evidence(PENDING_EVIDENCE_FILE, new_evidence)
 
-    print(f"Found {len(candidates)} candidates, {len(verified)} verified with .mpp releases.")
+    print(f"Found {len(candidates)} candidates, {len(verified)} with valid .mpp bundle JSON.")
     print(
         f"Existing: {len(existing_repos)}. Custom: {len(custom_repos)}. "
-        f"Ignored: {len(ignore_repos)}. Saved {len(combined)} total repos to {OUTPUT_FILE}."
+        f"Ignored: {len(ignore_repos)}. Rejected: {len(rejected_repos)}. "
+        f"Saved {len(combined)} total repos to {OUTPUT_FILE}."
     )
     if REVIEW_DISCOVERIES:
         print(f"Queued {len(new_discoveries)} newly discovered repos for review in {PENDING_FILE}.")

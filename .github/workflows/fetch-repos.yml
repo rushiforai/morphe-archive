@@ -40,6 +40,7 @@ jobs:
       - name: Prepare pending review list
         run: |
           : > "$RUNNER_TEMP/pending_repos.txt"
+          : > "$RUNNER_TEMP/pending_repos.json"
 
       - name: Fetch Repos (registry-based)
         env:
@@ -56,6 +57,7 @@ jobs:
           OUTPUT_FILE: ${{ env.OUTPUT_FILE }}
           REVIEW_DISCOVERIES: ${{ env.REVIEW_DISCOVERIES }}
           PENDING_FILE: ${{ runner.temp }}/pending_repos.txt
+          PENDING_EVIDENCE_FILE: ${{ runner.temp }}/pending_repos.json
         run: |
           python scripts/discover_github_wide.py
 
@@ -63,6 +65,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PENDING_FILE: ${{ runner.temp }}/pending_repos.txt
+          PENDING_EVIDENCE_FILE: ${{ runner.temp }}/pending_repos.json
         run: |
           set -euo pipefail
 
@@ -78,10 +81,15 @@ jobs:
             echo "New candidate repos were discovered, but they were not added to \`repos.txt\`."
             echo ""
             echo "Review each source, then add approved entries to \`custom_repos.txt\` or \`repos.txt\`."
+            echo "Add unwanted candidates to \`rejected_repos.txt\` to stop future review prompts."
             echo ""
-            echo "\`\`\`text"
-            cat "$PENDING_FILE"
-            echo "\`\`\`"
+            if [ -s "$PENDING_EVIDENCE_FILE" ]; then
+              python scripts/render_pending_issue.py "$PENDING_EVIDENCE_FILE"
+            else
+              echo "\`\`\`text"
+              cat "$PENDING_FILE"
+              echo "\`\`\`"
+            fi
           } > "$body"
 
           existing_issue="$(gh issue list --state open --search "$title in:title" --json number --jq '.[0].number // empty')"

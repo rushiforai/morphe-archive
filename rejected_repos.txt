@@ -1,0 +1,4 @@
+# Repos reviewed and rejected from automatic discovery.
+# Entries here are ignored by GitHub-wide discovery and review issues.
+#
+# Use owner/repo for GitHub repos.
