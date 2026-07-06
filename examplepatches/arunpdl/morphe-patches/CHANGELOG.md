@@ -1,3 +1,9 @@
+## [1.0.5](https://github.com/arunpdl/morphe-patches/compare/v1.0.4...v1.0.5) (2026-07-06)
+
+### 🚀 Updated App Support
+
+* add Karobar v7.8.0 premium unlock patch ([12e59ff](https://github.com/arunpdl/morphe-patches/commit/12e59ff24cf2311c1f44414af30e91ebef4a6a43))
+
 ## [1.0.4](https://github.com/arunpdl/morphe-patches/compare/v1.0.3...v1.0.4) (2026-07-05)
 
 ### 🚀 Updated App Support

@@ -129,4 +129,5 @@ node_modules/
 .idea/
 local.properties
 
-apks
+apks/
+docs/

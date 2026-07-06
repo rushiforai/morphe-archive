@@ -5,7 +5,7 @@ A collection of [Morphe](https://morphe.software) patches for apps I use.
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.4](https://github.com/arunpdl/morphe-patches/releases/tag/v1.0.4)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
+> **[v1.0.5](https://github.com/arunpdl/morphe-patches/releases/tag/v1.0.5)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;8 patches total
 <details open>
 <summary>📦 byAir&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -52,6 +52,21 @@ A collection of [Morphe](https://morphe.software) patches for apps I use.
 | [Remove License Activity](#remove-license-activity) | Removes the PairIP LicenseActivity from AndroidManifest.xml. |  |
 | [Remove License Check](#remove-license-check) | Bypasses the PairIP Google Play Licensing check so the app runs without a valid Play Store license. |  |
 | [Remove Watermark](#remove-watermark) | Patches the procedural GLSL shader in libharwin_native.so to disable the "PRISMATICA" watermark in the video player and exported videos. |  |
+
+</details>
+
+<details open>
+<summary>📦 Mero Karobar&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 7.8.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock Premium](#unlock-premium) | Patches Dart AOT-compiled libapp.so to unlock all premium features. Forces hasPremiumAccess and isPaidUser to always return true by NOPing their ARM64 conditional branch instructions. |  |
 
 </details>
 

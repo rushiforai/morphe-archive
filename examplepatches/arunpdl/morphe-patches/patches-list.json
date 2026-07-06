@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "patches": [
     {
       "name": "Enable Online Pro",
@@ -176,6 +176,32 @@
           "targets": [
             {
               "version": "2.0.REV-1707",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Premium",
+      "description": "Patches Dart AOT-compiled libapp.so to unlock all premium features. Forces hasPremiumAccess and isPaidUser to always return true by NOPing their ARM64 conditional branch instructions.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.bytecaretech.merokarobar",
+          "name": "Mero Karobar",
+          "description": null,
+          "apkFileType": null,
+          "appIconColor": "#1565C0",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "7.8.0",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
