@@ -1,0 +1,18 @@
+{
+  "name": "ee-morphe-patches",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "release": "semantic-release"
+  },
+  "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@saithodev/semantic-release-backmerge": "^4.0.1",
+    "@semantic-release/exec": "^7.1.0",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/gitlab": "^13.3.0",
+    "gradle-semantic-release-plugin": "^1.10.3",
+    "semantic-release": "^25.0.3"
+  }
+}
