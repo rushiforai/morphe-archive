@@ -50,13 +50,38 @@ jobs:
               continue
             fi
 
-            owner="${repo%%/*}"
-            name="${repo##*/}"
-            target="$DEST_DIR/$owner/$name"
+            repo_ref="${repo#https://}"
+            repo_ref="${repo_ref#http://}"
+            repo_ref="${repo_ref%.git}"
+
+            case "$repo_ref" in
+              github.com/*)
+                host="github.com"
+                path="${repo_ref#github.com/}"
+                target="$DEST_DIR/$path"
+                ;;
+              gitlab.com/*)
+                host="gitlab.com"
+                path="${repo_ref#gitlab.com/}"
+                target="$DEST_DIR/$host/$path"
+                ;;
+              *)
+                host="github.com"
+                path="$repo_ref"
+                target="$DEST_DIR/$path"
+                ;;
+            esac
+
             tmp="$(mktemp -d)"
 
             echo "Fetching $repo..."
-            if git clone --depth 1 "https://x-access-token:${GITHUB_TOKEN}@github.com/${repo}.git" "$tmp" 2>/dev/null; then
+            if [ "$host" = "github.com" ]; then
+              clone_url="https://x-access-token:${GITHUB_TOKEN}@github.com/${path}.git"
+            else
+              clone_url="https://gitlab.com/${path}.git"
+            fi
+
+            if git clone --depth 1 "$clone_url" "$tmp" 2>/dev/null; then
               rm -rf "$tmp/.git"
               mkdir -p "$target"
               # sync fresh content into target, removing stale files, but never deleting the folder itself

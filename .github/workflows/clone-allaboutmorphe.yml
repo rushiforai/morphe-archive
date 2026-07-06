@@ -54,18 +54,51 @@ jobs:
               continue
             fi
 
-            owner="${repo%%/*}"
-            name="${repo##*/}"
-            target="$DEST_DIR/$owner/$name"
+            repo_ref="${repo#https://}"
+            repo_ref="${repo_ref#http://}"
+            repo_ref="${repo_ref%.git}"
+
+            case "$repo_ref" in
+              github.com/*)
+                host="github.com"
+                path="${repo_ref#github.com/}"
+                target="$DEST_DIR/$path"
+                ;;
+              gitlab.com/*)
+                host="gitlab.com"
+                path="${repo_ref#gitlab.com/}"
+                target="$DEST_DIR/$host/$path"
+                ;;
+              *)
+                host="github.com"
+                path="$repo_ref"
+                target="$DEST_DIR/$path"
+                ;;
+            esac
+
             tmp="$(mktemp -d)"
 
             echo "Fetching $repo..."
 
             success=false
             for attempt in 1 2 3; do
+              if [ "$host" = "gitlab.com" ]; then
+                if git clone --depth 1 "https://gitlab.com/${path}.git" "$tmp" 2>clone_err.log; then
+                  success=true
+                  break
+                fi
+
+                echo "GitLab clone attempt $attempt failed for $repo:"
+                cat clone_err.log
+                rm -rf "$tmp"
+                tmp="$(mktemp -d)"
+                sleep $((attempt * 5))
+                continue
+              fi
+
               # Public repos don't need auth at all; try anonymous first so an
               # org-level token/SSO restriction can't block an otherwise-public clone.
-              if git clone --depth 1 "https://github.com/${repo}.git" "$tmp" 2>clone_err.log; then
+              if git clone --depth 1 "https://github.com/${path}.git" "$tmp" 2>clone_err.log; then
                 success=true
                 break
               fi
@@ -76,7 +109,7 @@ jobs:
               # Fall back to authenticated clone in case the repo is actually private.
               rm -rf "$tmp"
               tmp="$(mktemp -d)"
-              if git clone --depth 1 "https://x-access-token:${GITHUB_TOKEN}@github.com/${repo}.git" "$tmp" 2>clone_err.log; then
+              if git clone --depth 1 "https://x-access-token:${GITHUB_TOKEN}@github.com/${path}.git" "$tmp" 2>clone_err.log; then
                 success=true
                 break
               fi

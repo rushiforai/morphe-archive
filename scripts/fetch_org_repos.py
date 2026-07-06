@@ -134,7 +134,10 @@ def extract_repo_url(bundle_json, bundle_name):
     for text in candidates:
         match = re.search(r"https://(github|gitlab)\.com/([^/]+)/([^/]+)", text)
         if match:
-            return f"{match.group(2)}/{match.group(3)}"
+            host, owner, repo = match.group(1), match.group(2), match.group(3).removesuffix(".git")
+            if host == "gitlab":
+                return f"gitlab.com/{owner}/{repo}"
+            return f"{owner}/{repo}"
 
     # Fallback default used by the original pipeline
     return f"{bundle_name}/revanced-patches"
@@ -211,7 +214,7 @@ def load_lines(path):
     """Read a newline-separated list file, ignoring blanks and # comments."""
     if not os.path.exists(path):
         return set()
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         return {
             line.strip() for line in f
             if line.strip() and not line.strip().startswith("#")
@@ -237,7 +240,7 @@ def main():
     all_repos = (existing_repos | discovered | custom_repos) - ignore_repos
     sorted_repos = sorted(all_repos, key=str.lower)
 
-    with open(OUTPUT_FILE, "w") as f:
+    with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         for repo in sorted_repos:
             f.write(repo + "\n")
 

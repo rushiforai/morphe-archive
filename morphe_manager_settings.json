@@ -620,6 +620,38 @@
                 "sortOrder": 78,
                 "createdAt": 1783312337942,
                 "updatedAt": 1783312337942
+            },
+            {
+                "name": "paresh-patches",
+                "source": "https://gitlab.com/Paresh-Maheshwari/paresh-patches/-/raw/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 79,
+                "createdAt": 1783314079068,
+                "updatedAt": 1783314079068
+            },
+            {
+                "name": "ee-morphe-patches",
+                "source": "https://gitlab.com/early.egg3707/ee-morphe-patches/-/raw/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 80,
+                "createdAt": 1783314081739,
+                "updatedAt": 1783314081739
+            },
+            {
+                "name": "proguard-patches",
+                "source": "https://gitlab.com/inotia00/proguard-patches/-/raw/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 81,
+                "createdAt": 1783314083626,
+                "updatedAt": 1783314083626
+            },
+            {
+                "name": "x-shim",
+                "source": "https://gitlab.com/inotia00/x-shim/-/raw/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 82,
+                "createdAt": 1783314084308,
+                "updatedAt": 1783314084308
             }
         ],
         "bytecodeModePreference": "STRIP_FAST"
