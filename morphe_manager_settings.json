@@ -302,14 +302,6 @@
                 "updatedAt": 1782666754521
             },
             {
-                "name": "bounce-patch",
-                "source": "https://raw.githubusercontent.com/bufferk/bounce-patch/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 35,
-                "createdAt": 1782666754783,
-                "updatedAt": 1782666754783
-            },
-            {
                 "name": "zpatches",
                 "source": "https://raw.githubusercontent.com/cesbar/zpatches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -350,14 +342,6 @@
                 "updatedAt": 1782666755170
             },
             {
-                "name": "tidal-debug-menu",
-                "source": "https://raw.githubusercontent.com/eyalm2000/tidal-debug-menu/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 41,
-                "createdAt": 1782666755412,
-                "updatedAt": 1782666755412
-            },
-            {
                 "name": "morphe-patches",
                 "source": "https://raw.githubusercontent.com/hackingguy/morphe-patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -388,14 +372,6 @@
                 "sortOrder": 45,
                 "createdAt": 1782666755964,
                 "updatedAt": 1782666755964
-            },
-            {
-                "name": "fin-tweaks",
-                "source": "https://raw.githubusercontent.com/isuruhg/fin-tweaks/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 46,
-                "createdAt": 1782666756300,
-                "updatedAt": 1782666756300
             },
             {
                 "name": "Gboard-patches",
@@ -500,14 +476,6 @@
                 "sortOrder": 59,
                 "createdAt": 1782666757898,
                 "updatedAt": 1782666757898
-            },
-            {
-                "name": "fluffy-patches",
-                "source": "https://raw.githubusercontent.com/rabilrbl/fluffy-patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 60,
-                "createdAt": 1782666758012,
-                "updatedAt": 1782666758012
             },
             {
                 "name": "Pairip-Patches",
@@ -644,6 +612,14 @@
                 "sortOrder": 77,
                 "createdAt": 1783222855151,
                 "updatedAt": 1783222855151
+            },
+            {
+                "name": "fluffy-patches",
+                "source": "https://raw.githubusercontent.com/rabilrbl/fluffy-patches/master/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 78,
+                "createdAt": 1783312337942,
+                "updatedAt": 1783312337942
             }
         ],
         "bytecodeModePreference": "STRIP_FAST"
