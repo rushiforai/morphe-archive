@@ -1,0 +1,155 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - dev
+
+jobs:
+  release:
+    name: Release
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    permissions:
+      contents: write
+      packages: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Make sure the release step uses its own credentials:
+          # https://github.com/cycjimmy/semantic-release-action#private-packages
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Cache Gradle
+        uses: burrunan/gradle-cache-action@v2
+
+      - name: Build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for attempt in 1 2 3; do
+            echo "Gradle build attempt ${attempt}/3"
+            if ./gradlew clean :patches:apiDump && ./gradlew :patches:check; then
+              exit 0
+            fi
+
+            if [ "${attempt}" -lt 3 ]; then
+              echo "Gradle build failed. Retrying in 20 seconds..."
+              ./gradlew --stop || true
+              sleep 20
+            fi
+          done
+
+          echo "Gradle build failed after 3 attempts."
+          exit 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ORG_GRADLE_PROJECT_skipSigning: "true"
+        run: |
+          rm -f revanced-patches/build/libs/patches-*.rvp revanced-patches/build/libs/patches-*.rvp.asc || true
+          rm -f morphe-patches/build/libs/patches-*.mpp morphe-patches/build/libs/patches-*.mpp.asc || true
+          npm exec semantic-release
+
+      - name: Build and upload Morphe bundle assets
+        if: github.ref_name == 'main' || github.ref_name == 'dev'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ORG_GRADLE_PROJECT_skipSigning: "true"
+        run: |
+          TAG="$(git describe --tags --abbrev=0)"
+          VERSION="${TAG#v}"
+
+          ./gradlew :patches:buildAndroid -Pmorphe=true
+
+          MORPHE_BUNDLE="morphe-patches/build/libs/patches-${VERSION}.mpp"
+          MORPHE_SIG="morphe-patches/build/libs/patches-${VERSION}.mpp.asc"
+
+          if [ ! -f "${MORPHE_BUNDLE}" ]; then
+            echo "Expected Morphe bundle not found: ${MORPHE_BUNDLE}"
+            exit 1
+          fi
+
+          ASSETS=("${MORPHE_BUNDLE}")
+          if [ -f "${MORPHE_SIG}" ]; then
+            ASSETS+=("${MORPHE_SIG}")
+          fi
+
+          gh release upload "${TAG}" "${ASSETS[@]}" --clobber
+
+      - name: Update manager source JSON files
+        if: github.ref_name == 'main'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="$(git describe --tags --abbrev=0)"
+          VERSION="${TAG#v}"
+          CREATED_AT="$(date -u +'%Y-%m-%dT%H:%M:%S')"
+
+          REPO_URL="https://github.com/${{ github.repository }}/releases/download/${TAG}"
+          RVP_BUNDLE="patches-${VERSION}.rvp"
+          RVP_SIG="patches-${VERSION}.rvp.asc"
+          MPP_BUNDLE="patches-${VERSION}.mpp"
+          MPP_SIG="patches-${VERSION}.mpp.asc"
+
+          RVP_SIG_URL=""
+          if [ -f "revanced-patches/build/libs/${RVP_SIG}" ]; then
+            RVP_SIG_URL="${REPO_URL}/${RVP_SIG}"
+          fi
+
+          MPP_SIG_URL=""
+          if [ -f "morphe-patches/build/libs/${MPP_SIG}" ]; then
+            MPP_SIG_URL="${REPO_URL}/${MPP_SIG}"
+          fi
+
+          cat > patches-bundle.json <<EOF
+          {
+            "created_at": "${CREATED_AT}",
+            "description": "# TIDAL Debug Menu Patches\\n\\nLatest stable source for ReVanced Manager URL imports.",
+            "download_url": "${REPO_URL}/${RVP_BUNDLE}",
+            "signature_download_url": "${RVP_SIG_URL}",
+            "version": "${VERSION}"
+          }
+          EOF
+
+          cat > morphe-patches-bundle.json <<EOF
+          {
+            "created_at": "${CREATED_AT}",
+            "description": "# TIDAL Debug Menu Patches\\n\\nLatest stable source for Morphe Manager URL imports.",
+            "download_url": "${REPO_URL}/${MPP_BUNDLE}",
+            "signature_download_url": "${MPP_SIG_URL}",
+            "version": "${VERSION}"
+          }
+          EOF
+
+          if git diff --quiet -- patches-bundle.json morphe-patches-bundle.json; then
+            echo "Manager source JSON files are already up to date"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add patches-bundle.json morphe-patches-bundle.json
+          git commit -m "chore: update manager source JSON for ${TAG} [skip ci]"
+          git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git" "HEAD:${{ github.ref_name }}"

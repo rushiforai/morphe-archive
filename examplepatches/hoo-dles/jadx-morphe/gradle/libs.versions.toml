@@ -1,0 +1,62 @@
+[versions]
+kotlin = "2.3.10"
+kotlinx = "1.10.2"
+kotlinx-serialization = "1.8.1"
+shadow = "9.0.2"
+
+kotlin-logging-jvm = "7.0.5"
+slf4j = "2.0.17"
+logback = "1.5.18"
+
+jadx = "1.5.5"
+flatlaf = "3.7"
+flatlaf-extras = "3.7"
+rsyntaxtextarea = "3.6.1"
+autocomplete = "3.3.3"
+
+morphe-patcher = "1.5.2"
+smali = "d856bad65f"
+xpp3 = "1.1.4c"
+
+junit = "5.12.2"
+
+[libraries]
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+kotlin-scripting-jvm = { module = "org.jetbrains.kotlin:kotlin-scripting-jvm", version.ref = "kotlin" }
+kotlin-scripting-common = { module = "org.jetbrains.kotlin:kotlin-scripting-common", version.ref = "kotlin" }
+kotlin-scripting-jvm-host = { module = "org.jetbrains.kotlin:kotlin-scripting-jvm-host", version.ref = "kotlin" }
+kotlin-scripting-dependencies = { module = "org.jetbrains.kotlin:kotlin-scripting-dependencies", version.ref = "kotlin" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx" }
+kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx" }
+
+flatlaf = { module = "com.formdev:flatlaf", version.ref = "flatlaf" }
+flatlaf-extras = { module = "com.formdev:flatlaf-extras", version.ref = "flatlaf-extras" }
+rsyntaxtextarea = { module = "com.fifesoft:rsyntaxtextarea", version.ref = "rsyntaxtextarea" }
+autocomplete = { module = "com.fifesoft:autocomplete", version.ref = "autocomplete" }
+
+kotlin-logging-jvm = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "kotlin-logging-jvm" }
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+
+jadx-core = { module = "io.github.skylot:jadx-core", version.ref = "jadx" }
+jadx-gui = { module = "io.github.skylot:jadx-gui", version.ref = "jadx" }
+
+morphe-patcher = { module = "app.morphe:morphe-patcher", version.ref="morphe-patcher"}
+smali = { module = "com.github.MorpheApp.smali:smali", version.ref = "smali" }
+xpp3 = { module = "xpp3:xpp3", version.ref = "xpp3" }
+
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
+junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
+
+# Libraries can be bundled together for easier import
+[bundles]
+scripting = ["kotlin-scripting-jvm", "kotlin-scripting-common", "kotlin-scripting-jvm-host", "kotlin-scripting-dependencies"]
+logging = ["kotlin-logging-jvm", "slf4j-api", "logback-classic"]
+morphe = ["smali", "morphe-patcher"]
+jadx = ["jadx-core", "jadx-gui"]
+
+[plugins]
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
+kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

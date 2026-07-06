@@ -1,0 +1,32 @@
+[versions]
+morphe-patcher = "1.0.0"
+# Tracking https://github.com/google/smali/issues/100.
+smali = "b6365a84f4"
+gson = "2.13.2"
+guava = "33.5.0-jre"
+agp = "8.13.2"
+annotation = "1.9.1"
+collections4 = "4.5.0"
+desugar = "2.1.5"
+hiddenapi = "6.1"
+lang3 = "3.20.0"
+okhttp3 = "4.12.0"
+protobuf = "0.9.5"
+protoc = "3.25.2"
+preference = "1.2.1"
+
+[libraries]
+annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
+collections4 = { module = "org.apache.commons:commons-collections4", version.ref = "collections4" }
+desugar-jdk-libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+hiddenapi = { module = "org.lsposed.hiddenapibypass:hiddenapibypass", version.ref = "hiddenapi" }
+lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "lang3" }
+okhttp3 = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp3" }
+preference = { module = "androidx.preference:preference", version.ref = "preference" }
+protobuf-javalite = { module = "com.google.protobuf:protobuf-javalite", version.ref = "protoc" }
+protobuf-protoc = { module = "com.google.protobuf:protoc", version.ref = "protoc" }
+
+[plugins]
+android-library = { id = "com.android.library" }
+protobuf = { id = "com.google.protobuf", version.ref = "protobuf" }

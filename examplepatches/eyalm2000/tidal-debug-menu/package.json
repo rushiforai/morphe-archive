@@ -1,0 +1,12 @@
+{
+  "devDependencies": {
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@saithodev/semantic-release-backmerge": "^4.0.1",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/github": "^11.0.4",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/release-notes-generator": "^14.1.0",
+    "gradle-semantic-release-plugin": "^1.10.1",
+    "semantic-release": "^24.1.2"
+  }
+}

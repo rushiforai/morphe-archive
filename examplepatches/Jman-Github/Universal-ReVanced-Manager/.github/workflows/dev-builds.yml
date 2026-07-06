@@ -1,0 +1,151 @@
+name: Dev Builds
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build signed APK
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        id: setup-java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set Gradle Java Home
+        run: echo "ORG_GRADLE_JAVA_HOME=${{ steps.setup-java.outputs.path }}" >> "$GITHUB_ENV"
+
+      - name: Cache Gradle
+        uses: burrunan/gradle-cache-action@v3
+
+      - name: Setup keystore
+        run: |
+          echo "${{ secrets.KEYSTORE }}" | base64 --decode > "app/keystore.jks"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+          cache: npm
+
+      - name: Extract dev release notes
+        id: changelog
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const p = 'api/DEV-CHANGELOG.md';
+          if (!fs.existsSync(p)) throw new Error(`Changelog not found at ${p}`);
+          const lines = fs.readFileSync(p, 'utf8').split(/\r?\n/);
+          const section = [];
+          for (let i = 0; i < lines.length; i += 1) {
+            const line = lines[i];
+            if (i > 0 && /^#\s*v/i.test(line)) break;
+            section.push(line);
+          }
+          const content = section.join('\n').replace(/\s+$/, '');
+          if (!content.trim()) throw new Error('No dev release notes content extracted from changelog.');
+          const header = section.find((l) => /^#\s*v/i.test(l));
+          if (!header) throw new Error('Failed to locate version header in dev changelog.');
+          const m = header.match(/^#\s*(v([0-9]+\.[0-9]+\.[0-9]+)-dev\.([0-9]{2,}))/i);
+          if (!m) throw new Error(`Unable to parse dev version from changelog header: "${header}"`);
+          const version = m[1];
+          const baseVersion = m[2];
+          const devSuffix = `dev.${m[3]}`;
+          fs.writeFileSync('dev_release_notes.md', `${content}\n`, 'utf8');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `version=${version}\n`);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `base_version=${baseVersion}\n`);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `dev_suffix=${devSuffix}\n`);
+          NODE
+
+      - name: Build dev
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEYSTORE_ENTRY_ALIAS: ${{ secrets.KEYSTORE_ENTRY_ALIAS }}
+          KEYSTORE_ENTRY_PASSWORD: ${{ secrets.KEYSTORE_ENTRY_PASSWORD }}
+        run: |
+          ./gradlew -Dorg.gradle.java.home="${{ steps.setup-java.outputs.path }}" --no-daemon \
+            -Pversion="${{ steps.changelog.outputs.base_version }}" \
+            -PdevVersionSuffix="${{ steps.changelog.outputs.dev_suffix }}" \
+            :app:assembleDev
+
+      - name: Locate dev artifacts
+        id: artifact
+        run: |
+          APK_DIR="app/build/outputs/apk/dev"
+          VERSION="${{ steps.changelog.outputs.version }}"
+          EXPECTED=(
+            "universal-revanced-manager-${VERSION}-all.apk"
+            "universal-revanced-manager-${VERSION}-arm64_v8.apk"
+            "universal-revanced-manager-${VERSION}-armeabi_v7a.apk"
+            "universal-revanced-manager-${VERSION}-x86.apk"
+            "universal-revanced-manager-${VERSION}-x86_64.apk"
+          )
+          for name in "${EXPECTED[@]}"; do
+            if [ ! -f "$APK_DIR/$name" ]; then
+              echo "Missing expected dev APK artifact: $APK_DIR/$name"
+              ls -la "$APK_DIR" || true
+              exit 1
+            fi
+            echo "Found $APK_DIR/$name"
+          done
+          mapfile -t ACTUAL < <(find "$APK_DIR" -maxdepth 1 -type f -name 'universal-revanced-manager-*.apk' -printf '%f\n' | sort)
+          if [ "${#ACTUAL[@]}" -ne "${#EXPECTED[@]}" ]; then
+            echo "Unexpected number of manager APK artifacts. Expected ${#EXPECTED[@]}, found ${#ACTUAL[@]}"
+            printf 'Actual manager APKs:\n%s\n' "${ACTUAL[@]}"
+            ls -la "$APK_DIR" || true
+            exit 1
+          fi
+          for name in "${ACTUAL[@]}"; do
+            if [[ ! " ${EXPECTED[*]} " =~ " ${name} " ]]; then
+              echo "Unexpected manager APK artifact name: $name"
+              ls -la "$APK_DIR" || true
+              exit 1
+            fi
+          done
+          echo "apk_dir=$APK_DIR" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare prerelease tag
+        id: release
+        env:
+          VERSION: ${{ steps.changelog.outputs.version }}
+        run: |
+          if [ -z "${VERSION}" ]; then
+            echo "Version extracted from dev changelog is empty."
+            exit 1
+          fi
+          echo "NEW_TAG=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Publish prerelease
+        if: steps.release.outputs.NEW_TAG != ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.release.outputs.NEW_TAG }}
+          APK_DIR: ${{ steps.artifact.outputs.apk_dir }}
+        run: |
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" --title "Universal ReVanced Manager ${TAG}" --notes-file dev_release_notes.md --prerelease
+          else
+            gh release edit "$TAG" --title "Universal ReVanced Manager ${TAG}" --notes-file dev_release_notes.md --prerelease
+          fi
+          gh release upload "$TAG" "$APK_DIR"/*.apk --clobber
+
+      - name: Upload APK artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: universal-revanced-manager-dev-${{ github.sha }}
+          retention-days: 14
+          if-no-files-found: error
+          path: |
+            ${{ steps.artifact.outputs.apk_dir }}/*.apk
+            app/build/outputs/apk/dev/output-metadata.json

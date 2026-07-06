@@ -1,0 +1,201 @@
+Build Patches	Set up job	???2026-03-11T04:52:38.2327823Z Current runner version: '2.332.0'
+Build Patches	Set up job	2026-03-11T04:52:38.2351146Z ##[group]Runner Image Provisioner
+Build Patches	Set up job	2026-03-11T04:52:38.2352116Z Hosted Compute Agent
+Build Patches	Set up job	2026-03-11T04:52:38.2352710Z Version: 20260213.493
+Build Patches	Set up job	2026-03-11T04:52:38.2353344Z Commit: 5c115507f6dd24b8de37d8bbe0bb4509d0cc0fa3
+Build Patches	Set up job	2026-03-11T04:52:38.2354108Z Build Date: 2026-02-13T00:28:41Z
+Build Patches	Set up job	2026-03-11T04:52:38.2354885Z Worker ID: {a158b28b-be86-41af-8529-30f460256c22}
+Build Patches	Set up job	2026-03-11T04:52:38.2355628Z Azure Region: westus2
+Build Patches	Set up job	2026-03-11T04:52:38.2356192Z ##[endgroup]
+Build Patches	Set up job	2026-03-11T04:52:38.2357644Z ##[group]Operating System
+Build Patches	Set up job	2026-03-11T04:52:38.2358261Z Ubuntu
+Build Patches	Set up job	2026-03-11T04:52:38.2358753Z 24.04.3
+Build Patches	Set up job	2026-03-11T04:52:38.2359247Z LTS
+Build Patches	Set up job	2026-03-11T04:52:38.2359723Z ##[endgroup]
+Build Patches	Set up job	2026-03-11T04:52:38.2360273Z ##[group]Runner Image
+Build Patches	Set up job	2026-03-11T04:52:38.2360809Z Image: ubuntu-24.04
+Build Patches	Set up job	2026-03-11T04:52:38.2361348Z Version: 20260302.42.1
+Build Patches	Set up job	2026-03-11T04:52:38.2362279Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260302.42/images/ubuntu/Ubuntu2404-Readme.md
+Build Patches	Set up job	2026-03-11T04:52:38.2363986Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260302.42
+Build Patches	Set up job	2026-03-11T04:52:38.2365148Z ##[endgroup]
+Build Patches	Set up job	2026-03-11T04:52:38.2366290Z ##[group]GITHUB_TOKEN Permissions
+Build Patches	Set up job	2026-03-11T04:52:38.2368022Z Contents: write
+Build Patches	Set up job	2026-03-11T04:52:38.2368661Z Metadata: read
+Build Patches	Set up job	2026-03-11T04:52:38.2369219Z Packages: read
+Build Patches	Set up job	2026-03-11T04:52:38.2369704Z ##[endgroup]
+Build Patches	Set up job	2026-03-11T04:52:38.2371742Z Secret source: Actions
+Build Patches	Set up job	2026-03-11T04:52:38.2372458Z Prepare workflow directory
+Build Patches	Set up job	2026-03-11T04:52:38.2685899Z Prepare all required actions
+Build Patches	Set up job	2026-03-11T04:52:38.2722320Z Getting action download info
+Build Patches	Set up job	2026-03-11T04:52:38.8077877Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
+Build Patches	Set up job	2026-03-11T04:52:38.9595338Z Download action repository 'actions/setup-java@v4' (SHA:c1e323688fd81a25caa38c78aa6df2d33d3e20d9)
+Build Patches	Set up job	2026-03-11T04:52:39.4470348Z Download action repository 'gradle/actions@v3' (SHA:d9c87d481d55275bb5441eef3fe0e46805f9ef70)
+Build Patches	Set up job	2026-03-11T04:52:40.2445568Z Download action repository 'softprops/action-gh-release@v1' (SHA:de2c0eb89ae2a093876385947365aca7b0e5f844)
+Build Patches	Set up job	2026-03-11T04:52:40.7015136Z Complete job name: Build Patches
+Build Patches	Checkout repository	???2026-03-11T04:52:40.7891030Z ##[group]Run actions/checkout@v4
+Build Patches	Checkout repository	2026-03-11T04:52:40.7892250Z with:
+Build Patches	Checkout repository	2026-03-11T04:52:40.7893005Z   repository: TrollTaylor/morphe-pause-fix
+Build Patches	Checkout repository	2026-03-11T04:52:40.7894243Z   token: ***
+Build Patches	Checkout repository	2026-03-11T04:52:40.7895068Z   ssh-strict: true
+Build Patches	Checkout repository	2026-03-11T04:52:40.7895774Z   ssh-user: git
+Build Patches	Checkout repository	2026-03-11T04:52:40.7896502Z   persist-credentials: true
+Build Patches	Checkout repository	2026-03-11T04:52:40.7897315Z   clean: true
+Build Patches	Checkout repository	2026-03-11T04:52:40.7898039Z   sparse-checkout-cone-mode: true
+Build Patches	Checkout repository	2026-03-11T04:52:40.7898924Z   fetch-depth: 1
+Build Patches	Checkout repository	2026-03-11T04:52:40.7899615Z   fetch-tags: false
+Build Patches	Checkout repository	2026-03-11T04:52:40.7900348Z   show-progress: true
+Build Patches	Checkout repository	2026-03-11T04:52:40.7901095Z   lfs: false
+Build Patches	Checkout repository	2026-03-11T04:52:40.7901752Z   submodules: false
+Build Patches	Checkout repository	2026-03-11T04:52:40.7902481Z   set-safe-directory: true
+Build Patches	Checkout repository	2026-03-11T04:52:40.7903509Z ##[endgroup]
+Build Patches	Checkout repository	2026-03-11T04:52:40.8981898Z Syncing repository: TrollTaylor/morphe-pause-fix
+Build Patches	Checkout repository	2026-03-11T04:52:40.8984380Z ##[group]Getting Git version info
+Build Patches	Checkout repository	2026-03-11T04:52:40.8986078Z Working directory is '/home/runner/work/morphe-pause-fix/morphe-pause-fix'
+Build Patches	Checkout repository	2026-03-11T04:52:40.8988061Z [command]/usr/bin/git version
+Build Patches	Checkout repository	2026-03-11T04:52:40.9068953Z git version 2.53.0
+Build Patches	Checkout repository	2026-03-11T04:52:40.9097115Z ##[endgroup]
+Build Patches	Checkout repository	2026-03-11T04:52:40.9113980Z Temporarily overriding HOME='/home/runner/work/_temp/f51fe252-f3cd-48bd-9d24-9a9f49cd0d19' before making global git config changes
+Build Patches	Checkout repository	2026-03-11T04:52:40.9118776Z Adding repository directory to the temporary git global config as a safe directory
+Build Patches	Checkout repository	2026-03-11T04:52:40.9128457Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/morphe-pause-fix/morphe-pause-fix
+Build Patches	Checkout repository	2026-03-11T04:52:40.9169766Z Deleting the contents of '/home/runner/work/morphe-pause-fix/morphe-pause-fix'
+Build Patches	Checkout repository	2026-03-11T04:52:40.9173440Z ##[group]Initializing the repository
+Build Patches	Checkout repository	2026-03-11T04:52:40.9179136Z [command]/usr/bin/git init /home/runner/work/morphe-pause-fix/morphe-pause-fix
+Build Patches	Checkout repository	2026-03-11T04:52:40.9304583Z hint: Using 'master' as the name for the initial branch. This default branch name
+Build Patches	Checkout repository	2026-03-11T04:52:40.9306960Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+Build Patches	Checkout repository	2026-03-11T04:52:40.9309567Z hint: to use in all of your new repositories, which will suppress this warning,
+Build Patches	Checkout repository	2026-03-11T04:52:40.9311919Z hint: call:
+Build Patches	Checkout repository	2026-03-11T04:52:40.9313020Z hint:
+Build Patches	Checkout repository	2026-03-11T04:52:40.9314452Z hint: 	git config --global init.defaultBranch <name>
+Build Patches	Checkout repository	2026-03-11T04:52:40.9316537Z hint:
+Build Patches	Checkout repository	2026-03-11T04:52:40.9318222Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+Build Patches	Checkout repository	2026-03-11T04:52:40.9321179Z hint: 'development'. The just-created branch can be renamed via this command:
+Build Patches	Checkout repository	2026-03-11T04:52:40.9323578Z hint:
+Build Patches	Checkout repository	2026-03-11T04:52:40.9324684Z hint: 	git branch -m <name>
+Build Patches	Checkout repository	2026-03-11T04:52:40.9326151Z hint:
+Build Patches	Checkout repository	2026-03-11T04:52:40.9328163Z hint: Disable this message with "git config set advice.defaultBranchName false"
+Build Patches	Checkout repository	2026-03-11T04:52:40.9330642Z Initialized empty Git repository in /home/runner/work/morphe-pause-fix/morphe-pause-fix/.git/
+Build Patches	Checkout repository	2026-03-11T04:52:40.9334243Z [command]/usr/bin/git remote add origin https://github.com/TrollTaylor/morphe-pause-fix
+Build Patches	Checkout repository	2026-03-11T04:52:40.9361346Z ##[endgroup]
+Build Patches	Checkout repository	2026-03-11T04:52:40.9363498Z ##[group]Disabling automatic garbage collection
+Build Patches	Checkout repository	2026-03-11T04:52:40.9365731Z [command]/usr/bin/git config --local gc.auto 0
+Build Patches	Checkout repository	2026-03-11T04:52:40.9396574Z ##[endgroup]
+Build Patches	Checkout repository	2026-03-11T04:52:40.9398643Z ##[group]Setting up auth
+Build Patches	Checkout repository	2026-03-11T04:52:40.9404389Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Build Patches	Checkout repository	2026-03-11T04:52:40.9438379Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Build Patches	Checkout repository	2026-03-11T04:52:40.9806330Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Build Patches	Checkout repository	2026-03-11T04:52:40.9839837Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Build Patches	Checkout repository	2026-03-11T04:52:41.0069403Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Build Patches	Checkout repository	2026-03-11T04:52:41.0103180Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Build Patches	Checkout repository	2026-03-11T04:52:41.0354128Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+Build Patches	Checkout repository	2026-03-11T04:52:41.0389698Z ##[endgroup]
+Build Patches	Checkout repository	2026-03-11T04:52:41.0391836Z ##[group]Fetching the repository
+Build Patches	Checkout repository	2026-03-11T04:52:41.0401174Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +10e2d4208ccb1695ced095cbbf036aa5475efc89:refs/remotes/origin/main
+Build Patches	Checkout repository	2026-03-11T04:52:41.3336610Z From https://github.com/TrollTaylor/morphe-pause-fix
+Build Patches	Checkout repository	2026-03-11T04:52:41.3339087Z  * [new ref]         10e2d4208ccb1695ced095cbbf036aa5475efc89 -> origin/main
+Build Patches	Checkout repository	2026-03-11T04:52:41.3375802Z ##[endgroup]
+Build Patches	Checkout repository	2026-03-11T04:52:41.3377980Z ##[group]Determining the checkout info
+Build Patches	Checkout repository	2026-03-11T04:52:41.3380444Z ##[endgroup]
+Build Patches	Checkout repository	2026-03-11T04:52:41.3383203Z [command]/usr/bin/git sparse-checkout disable
+Build Patches	Checkout repository	2026-03-11T04:52:41.3433225Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+Build Patches	Checkout repository	2026-03-11T04:52:41.3466180Z ##[group]Checking out the ref
+Build Patches	Checkout repository	2026-03-11T04:52:41.3470716Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+Build Patches	Checkout repository	2026-03-11T04:52:41.3539368Z Switched to a new branch 'main'
+Build Patches	Checkout repository	2026-03-11T04:52:41.3542054Z branch 'main' set up to track 'origin/main'.
+Build Patches	Checkout repository	2026-03-11T04:52:41.3550131Z ##[endgroup]
+Build Patches	Checkout repository	2026-03-11T04:52:41.3585191Z [command]/usr/bin/git log -1 --format=%H
+Build Patches	Checkout repository	2026-03-11T04:52:41.3608709Z 10e2d4208ccb1695ced095cbbf036aa5475efc89
+Build Patches	Setup Java	???2026-03-11T04:52:41.4007000Z ##[group]Run actions/setup-java@v4
+Build Patches	Setup Java	2026-03-11T04:52:41.4007907Z with:
+Build Patches	Setup Java	2026-03-11T04:52:41.4008524Z   distribution: temurin
+Build Patches	Setup Java	2026-03-11T04:52:41.4009428Z   java-version: 17
+Build Patches	Setup Java	2026-03-11T04:52:41.4010102Z   java-package: jdk
+Build Patches	Setup Java	2026-03-11T04:52:41.4010787Z   check-latest: false
+Build Patches	Setup Java	2026-03-11T04:52:41.4011492Z   server-id: github
+Build Patches	Setup Java	2026-03-11T04:52:41.4012191Z   server-username: GITHUB_ACTOR
+Build Patches	Setup Java	2026-03-11T04:52:41.4013038Z   server-password: GITHUB_TOKEN
+Build Patches	Setup Java	2026-03-11T04:52:41.4013879Z   overwrite-settings: true
+Build Patches	Setup Java	2026-03-11T04:52:41.4014702Z   job-status: success
+Build Patches	Setup Java	2026-03-11T04:52:41.4015893Z   token: ***
+Build Patches	Setup Java	2026-03-11T04:52:41.4016521Z ##[endgroup]
+Build Patches	Setup Java	2026-03-11T04:52:41.6034417Z ##[group]Installed distributions
+Build Patches	Setup Java	2026-03-11T04:52:41.6247516Z Resolved Java 17.0.18+8 from tool-cache
+Build Patches	Setup Java	2026-03-11T04:52:41.6249096Z Setting Java 17.0.18+8 as the default
+Build Patches	Setup Java	2026-03-11T04:52:41.6261263Z Creating toolchains.xml for JDK version 17 from temurin
+Build Patches	Setup Java	2026-03-11T04:52:41.6342729Z Writing to /home/runner/.m2/toolchains.xml
+Build Patches	Setup Java	2026-03-11T04:52:41.6343884Z 
+Build Patches	Setup Java	2026-03-11T04:52:41.6344433Z Java configuration:
+Build Patches	Setup Java	2026-03-11T04:52:41.6345896Z   Distribution: temurin
+Build Patches	Setup Java	2026-03-11T04:52:41.6347078Z   Version: 17.0.18+8
+Build Patches	Setup Java	2026-03-11T04:52:41.6348754Z   Path: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
+Build Patches	Setup Java	2026-03-11T04:52:41.6350324Z 
+Build Patches	Setup Java	2026-03-11T04:52:41.6351577Z ##[endgroup]
+Build Patches	Setup Java	2026-03-11T04:52:41.6366429Z Creating settings.xml with server-id: github
+Build Patches	Setup Java	2026-03-11T04:52:41.6369886Z Writing to /home/runner/.m2/settings.xml
+Build Patches	Setup Gradle	???2026-03-11T04:52:41.6793019Z ##[group]Run gradle/actions/setup-gradle@v3
+Build Patches	Setup Gradle	2026-03-11T04:52:41.6793997Z with:
+Build Patches	Setup Gradle	2026-03-11T04:52:41.6794626Z   cache-disabled: false
+Build Patches	Setup Gradle	2026-03-11T04:52:41.6795622Z   cache-read-only: true
+Build Patches	Setup Gradle	2026-03-11T04:52:41.6796400Z   cache-write-only: false
+Build Patches	Setup Gradle	2026-03-11T04:52:41.6797225Z   cache-overwrite-existing: false
+Build Patches	Setup Gradle	2026-03-11T04:52:41.6798240Z   gradle-home-cache-includes: caches
+Build Patches	Setup Gradle	notifications
+Build Patches	Setup Gradle	
+Build Patches	Setup Gradle	2026-03-11T04:52:41.6799351Z   gradle-home-cache-cleanup: false
+Build Patches	Setup Gradle	2026-03-11T04:52:41.6800251Z   add-job-summary: always
+Build Patches	Setup Gradle	2026-03-11T04:52:41.6801079Z   add-job-summary-as-pr-comment: never
+Build Patches	Setup Gradle	2026-03-11T04:52:41.6802028Z   dependency-graph: disabled
+Build Patches	Setup Gradle	2026-03-11T04:52:41.6802942Z   dependency-graph-continue-on-failure: true
+Build Patches	Setup Gradle	2026-03-11T04:52:41.6803963Z   build-scan-publish: false
+Build Patches	Setup Gradle	2026-03-11T04:52:41.6804966Z   validate-wrappers: false
+Build Patches	Setup Gradle	2026-03-11T04:52:41.6805789Z   generate-job-summary: true
+Build Patches	Setup Gradle	2026-03-11T04:52:41.6806651Z   gradle-home-cache-strict-match: false
+Build Patches	Setup Gradle	2026-03-11T04:52:41.6807601Z   workflow-job-context: null
+Build Patches	Setup Gradle	2026-03-11T04:52:41.6808737Z   github-token: ***
+Build Patches	Setup Gradle	2026-03-11T04:52:41.6809399Z env:
+Build Patches	Setup Gradle	2026-03-11T04:52:41.6810334Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
+Build Patches	Setup Gradle	2026-03-11T04:52:41.6811959Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
+Build Patches	Setup Gradle	2026-03-11T04:52:41.6813254Z ##[endgroup]
+Build Patches	Setup Gradle	2026-03-11T04:52:42.7722430Z Merged default JDK locations into /home/runner/.m2/toolchains.xml
+Build Patches	Setup Gradle	2026-03-11T04:52:42.7725147Z ##[group]Restore Gradle state from cache
+Build Patches	Setup Gradle	2026-03-11T04:52:42.9172641Z ##[warning]Failed to restore gradle-home-v1|Linux|build[7c85e324b424d0b429705e29df73c7a0]-10e2d4208ccb1695ced095cbbf036aa5475efc89: Error: Cache service responded with 400
+Build Patches	Setup Gradle	2026-03-11T04:52:42.9226713Z Gradle User Home cache not found. Will initialize empty.
+Build Patches	Setup Gradle	2026-03-11T04:52:42.9227910Z ##[endgroup]
+Build Patches	Build Patches JSON	???2026-03-11T04:52:42.9372416Z ##[group]Run ./gradlew generatePatchesList -Pgpr.user=TrollTaylor -Pgpr.key=***
+Build Patches	Build Patches JSON	2026-03-11T04:52:42.9373236Z [36;1m./gradlew generatePatchesList -Pgpr.user=TrollTaylor -Pgpr.key=***[0m
+Build Patches	Build Patches JSON	2026-03-11T04:52:42.9424299Z shell: /usr/bin/bash -e {0}
+Build Patches	Build Patches JSON	2026-03-11T04:52:42.9424582Z env:
+Build Patches	Build Patches JSON	2026-03-11T04:52:42.9425112Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
+Build Patches	Build Patches JSON	2026-03-11T04:52:42.9425588Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
+Build Patches	Build Patches JSON	2026-03-11T04:52:42.9425983Z   GRADLE_ACTION_ID: gradle/actions/setup-gradle
+Build Patches	Build Patches JSON	2026-03-11T04:52:42.9426276Z   GRADLE_BUILD_ACTION_SETUP_COMPLETED: true
+Build Patches	Build Patches JSON	2026-03-11T04:52:42.9426545Z   GRADLE_BUILD_ACTION_CACHE_RESTORED: true
+Build Patches	Build Patches JSON	2026-03-11T04:52:42.9426946Z   DEVELOCITY_INJECTION_INIT_SCRIPT_NAME: gradle-actions.inject-develocity.init.gradle
+Build Patches	Build Patches JSON	2026-03-11T04:52:42.9427448Z   DEVELOCITY_AUTO_INJECTION_CUSTOM_VALUE: gradle-actions
+Build Patches	Build Patches JSON	2026-03-11T04:52:42.9427957Z   GITHUB_DEPENDENCY_GRAPH_ENABLED: false
+Build Patches	Build Patches JSON	2026-03-11T04:52:42.9428347Z   GITHUB_TOKEN: ***
+Build Patches	Build Patches JSON	2026-03-11T04:52:42.9428576Z   GITHUB_ACTOR: TrollTaylor
+Build Patches	Build Patches JSON	2026-03-11T04:52:42.9428787Z ##[endgroup]
+Build Patches	Build Patches JSON	2026-03-11T04:52:42.9521559Z /home/runner/work/_temp/e7f2ba20-cc2c-466b-ad0b-5446100e6cf9.sh: line 1: ./gradlew: Permission denied
+Build Patches	Build Patches JSON	2026-03-11T04:52:42.9529722Z ##[error]Process completed with exit code 126.
+Build Patches	Post Setup Gradle	???2026-03-11T04:52:42.9688696Z Post job cleanup.
+Build Patches	Post Setup Gradle	2026-03-11T04:52:43.2047903Z In post-action step
+Build Patches	Post Setup Gradle	2026-03-11T04:52:43.2052962Z Cache is read-only: will not save state for use in subsequent builds.
+Build Patches	Post Setup Gradle	2026-03-11T04:52:43.2057656Z Generating Job Summary
+Build Patches	Post Setup Gradle	2026-03-11T04:52:43.2076779Z Completed post-action step
+Build Patches	Post Setup Java	???2026-03-11T04:52:43.2237882Z Post job cleanup.
+Build Patches	Post Checkout repository	???2026-03-11T04:52:43.4042970Z Post job cleanup.
+Build Patches	Post Checkout repository	2026-03-11T04:52:43.4990418Z [command]/usr/bin/git version
+Build Patches	Post Checkout repository	2026-03-11T04:52:43.5027012Z git version 2.53.0
+Build Patches	Post Checkout repository	2026-03-11T04:52:43.5070179Z Temporarily overriding HOME='/home/runner/work/_temp/88294def-b0d6-476e-baf8-4c402b2bda09' before making global git config changes
+Build Patches	Post Checkout repository	2026-03-11T04:52:43.5071072Z Adding repository directory to the temporary git global config as a safe directory
+Build Patches	Post Checkout repository	2026-03-11T04:52:43.5082139Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/morphe-pause-fix/morphe-pause-fix
+Build Patches	Post Checkout repository	2026-03-11T04:52:43.5116998Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Build Patches	Post Checkout repository	2026-03-11T04:52:43.5157351Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Build Patches	Post Checkout repository	2026-03-11T04:52:43.5425814Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Build Patches	Post Checkout repository	2026-03-11T04:52:43.5450987Z http.https://github.com/.extraheader
+Build Patches	Post Checkout repository	2026-03-11T04:52:43.5464480Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+Build Patches	Post Checkout repository	2026-03-11T04:52:43.5499247Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Build Patches	Post Checkout repository	2026-03-11T04:52:43.5755398Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Build Patches	Post Checkout repository	2026-03-11T04:52:43.5790193Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Build Patches	Complete job	???2026-03-11T04:52:43.6161022Z Cleaning up orphan processes
+Build Patches	Complete job	2026-03-11T04:52:43.6432328Z ##[warning]Node.js 20 actions are deprecated. The following actions are running on Node.js 20 and may not work as expected: actions/checkout@v4, actions/setup-java@v4, gradle/actions/setup-gradle@v3. Actions will be forced to run with Node.js 24 by default starting June 2nd, 2026. Please check if updated versions of these actions are available that support Node.js 24. To opt into Node.js 24 now, set the FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true environment variable on the runner or in your workflow file. Once Node.js 24 becomes the default, you can temporarily opt out by setting ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

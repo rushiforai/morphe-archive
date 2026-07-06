@@ -1,0 +1,30 @@
+variables:
+  GIT_DEPTH: 0
+
+stages:
+  - release
+
+release:
+  stage: release
+  image: thyrlian/android-sdk:latest
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH == "dev"
+    - if: $CI_PIPELINE_SOURCE == "web"
+  variables:
+    ANDROID_HOME: "/opt/android-sdk"
+    GITHUB_ACTOR: "${GPR_USER}"
+    GITHUB_TOKEN: "${GPR_TOKEN}"
+  before_script:
+    - yes | sdkmanager --licenses || true
+    - sdkmanager "platforms;android-36" "build-tools;36.0.0"
+    - apt-get update && apt-get install -y curl jq
+    - curl -fsSL https://deb.nodesource.com/setup_24.x | bash -
+    - apt-get install -y nodejs
+  script:
+    - ./gradlew :patches:buildAndroid :patches:generatePatchesList -Pgpr.user=$GITHUB_ACTOR -Pgpr.key=$GITHUB_TOKEN
+    - npm install
+    - npx semantic-release
+  artifacts:
+    paths:
+      - patches/build/libs/*.mpp

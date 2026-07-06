@@ -1,0 +1,21 @@
+# Samsung Health Morphe Patches
+
+> Dex-only Morphe patches for Samsung Health on Knox-tripped (0x1) unrooted Samsung phones.
+
+## Docs
+
+- [README](https://github.com/bigyank/morphe-patches-samsung/blob/main/README.md): Quick start, troubleshooting, patch overview
+- [AUDIT](https://github.com/bigyank/morphe-patches-samsung/blob/main/AUDIT.md): Comparison vs SamsungAppsPatcher PC patcher
+- [CONTRIBUTING](https://github.com/bigyank/morphe-patches-samsung/blob/main/CONTRIBUTING.md): Adding Health versions, patch layout
+- [AGENTS](https://github.com/bigyank/morphe-patches-samsung/blob/main/AGENTS.md): Agent handoff, hard rules, device checklist
+
+## Install patch source
+
+- [Add to Morphe Manager](https://morphe.software/add-source?github=bigyank/morphe-patches-samsung)
+- Repo URL: https://github.com/bigyank/morphe-patches-samsung
+
+## Releases
+
+- [Latest release](https://github.com/bigyank/morphe-patches-samsung/releases/latest)
+- Target app: `com.sec.android.app.shealth` (Samsung Health 6.32.0.001, 6.31.3.013)
+- Two default-on patches: Knox integrity bypass, Samsung Account provider bypass

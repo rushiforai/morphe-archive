@@ -1,0 +1,20 @@
+dependencies {
+    compileOnly(project(":extensions:shared:library"))
+    compileOnly(project(":extensions:kakaotalk:stub"))
+    compileOnly(libs.annotation)
+    compileOnly(libs.okhttp)
+    compileOnly(libs.retrofit)
+    compileOnly(libs.appcompat)
+    compileOnly(libs.netty.all)
+
+    implementation(libs.hiddenapibypass)
+    implementation(libs.pine)
+}
+
+android {
+    compileSdk = 36
+
+    defaultConfig {
+        minSdk = 28 // to enable app component factory
+    }
+}

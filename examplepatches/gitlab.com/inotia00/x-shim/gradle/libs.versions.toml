@@ -1,0 +1,16 @@
+[versions]
+kotlin = "2.2.21" # Do not update until patcher is using 2.3.21+
+kotlinx = "1.11.0"
+morphe-patcher = "1.5.1"
+morphe-patches-library = "1.4.0"
+smali = "d92701d947"
+gson = "2.14.0"
+
+[libraries]
+kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx" }
+morphe-patches-library = { module = "app.morphe:morphe-patches-library", version.ref = "morphe-patches-library" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+
+[plugins]
+android-library = { id = "com.android.library" }

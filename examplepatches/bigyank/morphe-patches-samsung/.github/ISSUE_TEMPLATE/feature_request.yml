@@ -1,0 +1,42 @@
+name: ⭐ Feature request
+description: Request a new patch, Health version, or related app support.
+title: "feat: "
+labels: ["Feature request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Search [existing requests](https://github.com/bigyank/morphe-patches-samsung/issues?q=label%3A%22Feature+request%22) first.
+
+        **In scope:** new Samsung Health versions, Knox/account gate fixes, dex-only hardening.
+
+        **Out of scope (separate repo):** Galaxy Wearable, watch plugin cert patches, manifest multiuser — see [AUDIT.md](https://github.com/bigyank/morphe-patches-samsung/blob/main/AUDIT.md).
+
+  - type: textarea
+    attributes:
+      label: Feature description
+      description: What should be added or changed?
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Motivation
+      description: Why is this needed? Device scenario, logcat, or version that triggered the request.
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: Samsung Health version (if applicable)
+      placeholder: 6.32.0.001
+
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements
+      options:
+        - label: I searched existing issues and this is not a duplicate.
+          required: true
+        - label: I read AUDIT.md for scope boundaries.
+          required: true

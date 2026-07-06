@@ -1,0 +1,3 @@
+creation_rules:
+  - path_regex: ^secrets/.*\.sops\.ya?ml$
+    pgp: 1318540F267F1FF556A007CC6953A5B69805CDF8

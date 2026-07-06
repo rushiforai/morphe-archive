@@ -1,0 +1,84 @@
+name: 🐞 Bug report
+description: Report a patch failure on Samsung Health.
+title: "bug: "
+labels: ["Bug report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Search [existing bug reports](https://github.com/bigyank/morphe-patches-samsung/issues?q=label%3A%22Bug+report%22) first. Include device and Knox details — most failures are version-specific or OOM-related.
+
+  - type: input
+    attributes:
+      label: Device model
+      description: e.g. SM-S911B, SM-S928B
+      placeholder: SM-S911B
+    validations:
+      required: true
+
+  - type: dropdown
+    attributes:
+      label: Knox status
+      options:
+        - Tripped (0x1)
+        - Intact (0x0)
+        - Unknown
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: Samsung Health version
+      description: Settings → Apps → Samsung Health, or `adb shell dumpsys package com.sec.android.app.shealth | grep versionName`
+      placeholder: 6.32.0.001
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: Patch bundle version
+      description: Morphe patch source release, e.g. v1.0.16
+      placeholder: v1.0.16
+    validations:
+      required: true
+
+  - type: dropdown
+    attributes:
+      label: Morphe process runtime (MB)
+      options:
+        - 1280 (recommended for Health)
+        - 512
+        - 256 (default — may OOM)
+        - Other / not set
+    validations:
+      required: true
+
+  - type: checkboxes
+    attributes:
+      label: Patches enabled
+      options:
+        - label: Disable Knox integrity checks
+        - label: Bypass Samsung Account provider checks
+
+  - type: textarea
+    attributes:
+      label: Bug description
+      description: What happened? Steps to reproduce (patch → install → open → login/sync).
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Logcat
+      description: Relevant lines — e.g. `adb logcat | grep -E 'shealth|Knox|OOBEManager|AccountManager|SignatureInfo'`
+      render: shell
+
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements
+      options:
+        - label: I searched existing issues and this is not a duplicate.
+          required: true
+        - label: I included device model, Knox status, Health version, and patch bundle version.
+          required: true
