@@ -5,49 +5,52 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.util.getNode
 import app.morphe.util.returnEarly
+import app.morphe.util.writeRegister
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.analysis.reflection.util.ReflectionUtils
 import hoodles.morphe.patches.shared.misc.extension.sharedExtensionPatch
+import hoodles.morphe.patches.shared.misc.signature.Constants.SPOOF_CLASS_SMALI_NAME
+import hoodles.morphe.util.addInstructionsToEnd
 import hoodles.morphe.util.removeFlag
 import org.w3c.dom.Element
-
-private lateinit var applicationPath: String;
 
 private val manifestPatch = resourcePatch {
     execute {
         document("AndroidManifest.xml").use { document ->
             val application = document.getNode("application") as Element
-            applicationPath = application.getAttribute("android:name")
-            application.setAttribute("android:name", Constants.SPOOF_CLASS_JAVA_NAME)
+            val applicationClass = application.getAttribute("android:name")
+            if (applicationClass.isEmpty())
+                application.setAttribute("android:name", Constants.SPOOF_CLASS_JAVA_NAME)
         }
     }
 }
 
-fun spoofSignaturePatch(signature: String) = bytecodePatch {
+fun spoofSignaturePatch(packageName: String, signature: String) = bytecodePatch {
     dependsOn(manifestPatch, sharedExtensionPatch("signature"))
 
     finalize {
-        val strippedSig = signature.filter { !it.isWhitespace() }
-        GetSignatureFingerprint.method.returnEarly(strippedSig)
+        SignatureSpoofApplicationCtorFingerprint.apply {
+            val strippedSig = signature.filter { !it.isWhitespace() }
 
-        val originalApplicationClassName = ReflectionUtils.javaToDexName(applicationPath)
+            instructionMatches.first().also {
+                method.replaceInstruction(
+                    it.index,
+                    """const-string v${it.instruction.writeRegister}, "$packageName""""
+                )
+            }
 
-        // remove `final` access flag on original application class
-        mutableClassDefBy(originalApplicationClassName).removeFlag(AccessFlags.FINAL)
+            instructionMatches.last().also {
+                method.replaceInstruction(
+                    it.index,
+                    """const-string v${it.instruction.writeRegister}, "$strippedSig""""
+                )
+            }
 
-        GetSignatureFingerprint.classDef.setSuperClass(originalApplicationClassName)
-
-        ConstructorFingerprint.method.replaceInstruction(0, """
-            invoke-direct {p0}, $originalApplicationClassName-><init>()V
-        """.trimIndent())
-
-        AttachBaseContextFingerprint.method.replaceInstruction(1, """
-            invoke-super {p0, p1}, $originalApplicationClassName->attachBaseContext(Landroid/content/Context;)V
-        """.trimIndent())
-
-        mutableClassDefBy(originalApplicationClassName).apply {
-            methods.firstOrNull { method -> method.name == "attachBaseContext"}?.removeFlag(
-                AccessFlags.FINAL)
+            // If Application subclass chain exists, insert our spoof class right before
+            // android.app.Application
+            mutableClassDefByOrNull {
+                it.type != SPOOF_CLASS_SMALI_NAME && it.superclass == "Landroid/app/Application;"
+            }?.setSuperClass(SPOOF_CLASS_SMALI_NAME)
         }
     }
 }

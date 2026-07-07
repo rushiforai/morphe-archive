@@ -7,3 +7,8 @@ object IsSkipLoggingFingerprint : Fingerprint (
     parameters = listOf(),
     returnType = "Z"
 )
+
+object LogAgentRecordFingerprint : Fingerprint (
+    definingClass = "Lcom/intsig/logagent/LogAgent;",
+    name = "record"
+)

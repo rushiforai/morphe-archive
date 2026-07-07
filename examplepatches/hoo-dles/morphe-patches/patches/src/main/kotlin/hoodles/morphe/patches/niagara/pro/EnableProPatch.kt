@@ -1,23 +1,18 @@
 package hoodles.morphe.patches.niagara.pro
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.AppTarget
-import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patches.all.misc.fix.changepackageinstaller.changePackageInstallerPatch
 import hoodles.morphe.patches.niagara.misc.signature.spoofSignaturePatch
+import hoodles.morphe.patches.niagara.shared.Constants
 
 val enableProPatch = bytecodePatch(
     name = "Enable Niagara Pro",
     description = "Enables app features locked behind the subscription paywall."
 ) {
-    compatibleWith(Compatibility(
-        name = "Niagara Launcher",
-        packageName = "bitpit.launcher",
-        appIconColor = 0x9fcdfb,
-        targets = listOf(AppTarget("1.16.7"))
-    ))
+    compatibleWith(Constants.COMPATIBILITY)
 
-    dependsOn(spoofSignaturePatch)
+    dependsOn(spoofSignaturePatch, changePackageInstallerPatch())
 
     execute {
         ProStateConstructorFingerprint.method.addInstructions(0, """

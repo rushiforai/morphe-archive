@@ -1,136 +1,121 @@
-// Adapted from: https://github.com/L-JINBIN/ApkSignatureKiller/blob/master/hook/cc/binmt/signature/PmsHookApplication.java
+// Adapted from: https://github.com/L-JINBIN/ApkSignatureKillerEx
 
 package hoodles.morphe.extension.signature;
 
 import android.app.Application;
-import android.content.Context;
-import android.content.pm.InstallSourceInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
-import android.content.pm.SigningInfo;
 import android.os.Build;
 import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Base64;
-import android.util.Log;
+
+import app.morphe.extension.shared.Logger;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
+import java.util.Map;
 
-public class SignatureSpoofApplication extends Application implements InvocationHandler {
-    private static final int GET_SIGNATURES = 0x00000040;
-    private static final int GET_SIGNING_CERTIFICATES = 0x08000000;
-    private static final int PACKAGE_SOURCE_STORE = 0x00000002;
-    private static final String PACKAGE_SOURCE_NAME = "com.android.vending";
-    private static InstallSourceInfo SPOOFED_INSTALL_SOURCE_INFO = null;
+import org.lsposed.hiddenapibypass.HiddenApiBypass;
 
+public class SignatureSpoofApplication extends Application {
     static {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            Parcel parcel = Parcel.obtain();
-            parcel.writeString(PACKAGE_SOURCE_NAME);            // initiatingPackageName
-            parcel.writeParcelable(null, 0);    // no SigningInfo
-            parcel.writeString(null);                       // originatingPackageName
-            parcel.writeString(PACKAGE_SOURCE_NAME);            // installingPackageName
+        String packageName = "PACKAGE_NAME_PLACEHOLDER";
+        String signature = "SIGNATURE_PLACEHOLDER";
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-                parcel.writeString(null);                   // UpdateOwnerPackageName (API 34+)
+        killPM(packageName, signature);
+    }
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
-                parcel.writeInt(PACKAGE_SOURCE_STORE);          // packageSource (API 33+)
+    private static void killPM(String packageName, String signature) {
+        Signature fakeSignature = new Signature(Base64.decode(signature, Base64.DEFAULT));
+        Parcelable.Creator<PackageInfo> creator = getPackageInfoCreator(packageName, fakeSignature);
 
-            parcel.setDataPosition(0);
-            SPOOFED_INSTALL_SOURCE_INFO = InstallSourceInfo.CREATOR.createFromParcel(parcel);
-            parcel.recycle();
+        try {
+            findField(PackageInfo.class, "CREATOR").set(null, creator);
+        } catch (Exception e) {
+            Logger.printException(() -> "Signature Spoof: Failed to replace PackageInfo.CREATOR");
+            throw new RuntimeException(e);
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            HiddenApiBypass.addHiddenApiExemptions(
+                    "Landroid/os/Parcel;",
+                    "Landroid/content/pm",
+                    "Landroid/app"
+            );
+        }
+
+        try {
+            Object cache = findField(PackageManager.class, "sPackageInfoCache").get(null);
+            cache.getClass().getMethod("clear").invoke(cache);
+        } catch (Exception e) {
+            Logger.printDebug(() -> "Signature Spoof: Failed to clear PackageManager's PackageInfo cache", e);
+        }
+
+        try {
+            Map<?, ?> mCreators = (Map<?, ?>) findField(Parcel.class, "mCreators").get(null);
+            mCreators.clear();
+        } catch (Exception e) {
+            Logger.printDebug(() -> "Signature Spoof: Failed to clear Parcel's Creator cache", e);
+        }
+
+        try {
+            Map<?, ?> sPairedCreators = (Map<?, ?>) findField(Parcel.class, "sPairedCreators").get(null);
+            sPairedCreators.clear();
+        } catch (Exception e) {
+            Logger.printDebug(() -> "Signature Spoof: Failed to clear Parcel's paired Creator cache", e);
         }
     }
 
-    private Object base;
-    private byte[] sign;
-    private String appPkgName = "";
+    private static Parcelable.Creator<PackageInfo> getPackageInfoCreator(String packageName, Signature fakeSignature) {
+        Parcelable.Creator<PackageInfo> originalCreator = PackageInfo.CREATOR;
 
-    private String getSignature() {
-        return "SIGNATURE_SPOOF_PLACEHOLDER";
-    }
-
-    @Override
-    protected void attachBaseContext(Context base) {
-        hook(base);
-        super.attachBaseContext(base);
-    }
-
-    @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        String methodName = method.getName();
-        switch (methodName) {
-            case "getPackageInfo" -> {
-                String pkgName = (String) args[0];
-                long flags = ((Number) args[1]).longValue();
-                if (appPkgName.equals(pkgName)) {
-                    if ((flags & GET_SIGNATURES) != 0) {
-                        PackageInfo info = (PackageInfo) method.invoke(base, args);
-                        info.signatures = new Signature[]{new Signature(this.sign)};
-                        return info;
-                    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && (flags & GET_SIGNING_CERTIFICATES) != 0) {
-                        PackageInfo pkgInfo = (PackageInfo) method.invoke(base, args);
-                        SigningInfo signInfo = pkgInfo.signingInfo;
-                        Signature[] signatures = signInfo.getApkContentsSigners();
-                        if (signatures != null && signatures.length > 0)
-                            signatures[0] = new Signature(this.sign);
-                        return pkgInfo;
+        return new Parcelable.Creator<>() {
+            @Override
+            public PackageInfo createFromParcel(Parcel source) {
+                PackageInfo packageInfo = originalCreator.createFromParcel(source);
+                if (packageInfo.packageName.equals(packageName)) {
+                    if (packageInfo.signatures != null && packageInfo.signatures.length > 0) {
+                        packageInfo.signatures[0] = fakeSignature;
+                    }
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        if (packageInfo.signingInfo != null) {
+                            Signature[] signaturesArray = packageInfo.signingInfo.getApkContentsSigners();
+                            if (signaturesArray != null && signaturesArray.length > 0) {
+                                signaturesArray[0] = fakeSignature;
+                            }
+                        }
                     }
                 }
+                return packageInfo;
             }
-            case "getInstallerPackageName" -> {
-                String pkgName = (String) args[0];
-                if (appPkgName.equals(pkgName)) {
-                    return PACKAGE_SOURCE_NAME;
-                }
-            }
-            case "getInstallSourceInfo" -> {
-                String pkgName = (String) args[0];
-                if (appPkgName.equals(pkgName) && SPOOFED_INSTALL_SOURCE_INFO != null) {
-                    return SPOOFED_INSTALL_SOURCE_INFO;
-                }
-            }
-        }
 
-        return method.invoke(base, args);
+            @Override
+            public PackageInfo[] newArray(int size) {
+                return originalCreator.newArray(size);
+            }
+        };
     }
 
-    private void hook(Context context) {
+    private static Field findField(Class<?> clazz, String fieldName) throws NoSuchFieldException {
         try {
-            Class<?> activityThreadClass = Class.forName("android.app.ActivityThread");
-            Method currentActivityThreadMethod =
-                    activityThreadClass.getDeclaredMethod("currentActivityThread");
-            Object currentActivityThread = currentActivityThreadMethod.invoke(null);
-
-            Field sPackageManagerField = activityThreadClass.getDeclaredField("sPackageManager");
-            sPackageManagerField.setAccessible(true);
-            Object sPackageManager = sPackageManagerField.get(currentActivityThread);
-
-            Class<?> iPackageManagerInterface = Class.forName("android.content.pm.IPackageManager");
-            this.base = sPackageManager;
-            this.sign = Base64.decode(getSignature(), Base64.DEFAULT);
-            this.appPkgName = context.getPackageName();
-
-            Object proxy = Proxy.newProxyInstance(
-                    iPackageManagerInterface.getClassLoader(),
-                    new Class<?>[]{iPackageManagerInterface},
-                    this);
-
-            sPackageManagerField.set(currentActivityThread, proxy);
-
-            PackageManager pm = context.getPackageManager();
-            Field mPmField = pm.getClass().getDeclaredField("mPM");
-            mPmField.setAccessible(true);
-            mPmField.set(pm, proxy);
-
-            Log.d("MORPHE", "Application successfully hooked for signature spoofing");
-        } catch (Exception e) {
-            Log.e("MORPHE", "Failed hooking application for signature spoofing", e);
+            Field field = clazz.getDeclaredField(fieldName);
+            field.setAccessible(true);
+            return field;
+        } catch (NoSuchFieldException e) {
+            while (true) {
+                clazz = clazz.getSuperclass();
+                if (clazz == null || clazz.equals(Object.class)) {
+                    break;
+                }
+                try {
+                    Field field = clazz.getDeclaredField(fieldName);
+                    field.setAccessible(true);
+                    return field;
+                } catch (NoSuchFieldException ignored) {
+                }
+            }
+            throw e;
         }
     }
-
 }

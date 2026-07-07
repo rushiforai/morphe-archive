@@ -303,6 +303,36 @@ val stockfishPatch = bytecodePatch(
         )
         */
 
+        // ─────────────────────────────────────────────────────────────────
+        // Hook 7 – Force Connectivity Status to Online for local analysis in flight mode
+        // ─────────────────────────────────────────────────────────────────
+        ConnectivityUtilImplIsOfflineFingerprint.method.addInstructions(
+            0,
+            """
+                const/4 v0, 0
+                return v0
+            """
+        )
+
+        ConnectivityUtilImplIsOnlineFingerprint.method.addInstructions(
+            0,
+            """
+                const/4 v0, 1
+                return v0
+            """
+        )
+
+        // ─────────────────────────────────────────────────────────────────
+        // Hook 8 – Force GameAnalysisPermissions to unlock analysis/review locally
+        // ─────────────────────────────────────────────────────────────────
+        GameAnalysisServiceImplGetPermissionsFingerprint.method.addInstructions(
+            0,
+            """
+                invoke-static {}, $EXTENSION_CLASS->getFullGameAnalysisPermissions()Ljava/lang/Object;
+                move-result-object v0
+                return-object v0
+            """
+        )
     }
 }
 

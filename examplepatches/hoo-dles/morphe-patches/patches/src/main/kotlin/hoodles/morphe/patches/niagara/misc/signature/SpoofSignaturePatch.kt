@@ -1,5 +1,6 @@
 package hoodles.morphe.patches.niagara.misc.signature
 
+import hoodles.morphe.patches.niagara.shared.Constants
 import hoodles.morphe.patches.shared.misc.signature.spoofSignaturePatch
 
 const val SIGNATURE = """
@@ -23,4 +24,4 @@ sRBbe5Glc3JR362oO29H/Y6f39nxZVip75ZSfOURGj4Pl0+/SDyz4X6SzFKDgoJP
 xxS5Xzpr68K4
 """
 
-val spoofSignaturePatch = spoofSignaturePatch(SIGNATURE)
+val spoofSignaturePatch = spoofSignaturePatch(Constants.PACKAGE_NAME, SIGNATURE)

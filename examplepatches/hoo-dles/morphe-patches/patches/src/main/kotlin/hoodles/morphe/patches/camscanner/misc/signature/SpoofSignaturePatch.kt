@@ -1,5 +1,6 @@
 package hoodles.morphe.patches.camscanner.misc.signature
 
+import hoodles.morphe.patches.camscanner.shared.Constants
 import hoodles.morphe.patches.shared.misc.signature.spoofSignaturePatch
 
 const val SIGNATURE = """
@@ -19,4 +20,4 @@ KJocgndaNhHvojPh5TaZSViXsBIz3XJoPRaSsesNkhkwWNp9aPUndtvqDUR8bpHg
 kXJ8SLeeh9NdBDZXMfS9RchuiQ==
     """
 
-val spoofSignaturePatch = spoofSignaturePatch(SIGNATURE)
+val spoofSignaturePatch = spoofSignaturePatch(Constants.PACKAGE_NAME, SIGNATURE)

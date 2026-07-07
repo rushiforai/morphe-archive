@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.38.1",
+  "version": "1.38.2",
   "patches": [
     {
       "name": "AMOLED dark theme",
@@ -297,6 +297,7 @@
       "description": "Disables CamScanner's custom telemetry system.",
       "default": true,
       "dependencies": [
+        "BytecodePatch",
         "BytecodePatch"
       ],
       "compatiblePackages": [
@@ -309,7 +310,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": "7.15.5.2604080000",
+              "version": "7.20.0.2606230000",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -414,6 +415,7 @@
       "description": "Enables app features locked behind the subscription paywall.",
       "default": true,
       "dependencies": [
+        "BytecodePatch",
         "BytecodePatch"
       ],
       "compatiblePackages": [
@@ -586,7 +588,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": "7.15.5.2604080000",
+              "version": "7.20.0.2606230000",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -1472,6 +1474,7 @@
       "description": null,
       "default": true,
       "dependencies": [
+        "BytecodePatch",
         "BytecodePatch"
       ],
       "compatiblePackages": [

@@ -1,6 +1,7 @@
 package hoodles.morphe.patches.xrecorder.misc.signature
 
 import hoodles.morphe.patches.shared.misc.signature.spoofSignaturePatch
+import hoodles.morphe.patches.xrecorder.shared.Constants
 
 const val SIGNATURE = """
 MIICzTCCAbWgAwIBAgIECSihPDANBgkqhkiG9w0BAQsFADAWMRQwEgYDVQQKEwtW
@@ -21,4 +22,4 @@ DD+gFAoNT4ZFIX7/Jjjo9gBKYqIOtp7ZP5qZpUK7yVAienCOyHwKgGYvegU6tlal
 Ig==
     """
 
-val spoofSignaturePatch = spoofSignaturePatch(SIGNATURE)
+val spoofSignaturePatch = spoofSignaturePatch(Constants.PACKAGE_NAME, SIGNATURE)
