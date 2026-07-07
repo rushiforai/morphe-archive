@@ -582,14 +582,6 @@
                 "updatedAt": 1782878942984
             },
             {
-                "name": "morphe-patches",
-                "source": "https://raw.githubusercontent.com/arunpdl/morphe-patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 74,
-                "createdAt": 1783049460642,
-                "updatedAt": 1783049460642
-            },
-            {
                 "name": "movistar-block-ads-morphe",
                 "source": "https://raw.githubusercontent.com/Tornillo2/movistar-block-ads-morphe/main/patches-bundle.json",
                 "autoUpdate": true,
