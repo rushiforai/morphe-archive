@@ -2,3 +2,10 @@
 # Entries here are ignored by GitHub-wide discovery and review issues.
 #
 # Use owner/repo for GitHub repos.
+rushiforai/morphe-archive
+rushiforai/paresh-patches
+abdul-hubbali/Morphe-Fork
+TrollTaylor/morphe-pause-fix
+mininxd/morphe-patches
+rabilrbl/fluffy-patches
+BrayDog2010/morphe-patc
