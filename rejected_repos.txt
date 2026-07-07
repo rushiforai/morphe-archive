@@ -8,4 +8,4 @@ abdul-hubbali/Morphe-Fork
 TrollTaylor/morphe-pause-fix
 mininxd/morphe-patches
 rabilrbl/fluffy-patches
-BrayDog2010/morphe-patc
+BrayDog2010/morphe-patches

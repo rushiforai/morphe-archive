@@ -85,3 +85,7 @@ wchill/patcheddit
 wchill/rvx-morphed
 xob0t/morphe-patches
 ynotzort/morphe-patches
+franticg33k/morphe-patches
+NekoGryphou/gryphous-morphe-patches
+shaun-the-sheep-patches/morphe-patches
+Utsavrajputt/Modx-patches
