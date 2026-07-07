@@ -644,6 +644,22 @@
                 "sortOrder": 82,
                 "createdAt": 1783314084308,
                 "updatedAt": 1783314084308
+            },
+            {
+                "name": "remove-permaban-banner-patch",
+                "source": "https://raw.githubusercontent.com/bernardo7894/remove-permaban-banner-patch/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 83,
+                "createdAt": 1783417164623,
+                "updatedAt": 1783417164623
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/bufferk/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 84,
+                "createdAt": 1783417164778,
+                "updatedAt": 1783417164778
             }
         ],
         "bytecodeModePreference": "STRIP_FAST"

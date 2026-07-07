@@ -39,10 +39,12 @@ arandomhooman/hoomans-morphe-patches
 ariecos/gemini-patches
 arunpdl/morphe-patches
 bdgerszewski/morphe-patches-ihealth
+bernardo7894/remove-permaban-banner-patch
 bigyank/morphe-patches-samsung
 binarymend/morphe-patches
 brosssh/morphe-patches
 browzomje/browzomje-patches
+bufferk/morphe-patches
 byehi98/okish-morphe-patches
 cesbar/zpatches
 crimera/piko
@@ -83,5 +85,3 @@ wchill/patcheddit
 wchill/rvx-morphed
 xob0t/morphe-patches
 ynotzort/morphe-patches
-bufferk/morphe-patches
-bernardo7894/remove-permaban-banner-patch
