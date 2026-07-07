@@ -1,0 +1,15 @@
+MODX Patches NOTICE
+
+7c. Project Name and Branding
+
+This project is an independent open-source project and is not affiliated with, endorsed by, or maintained by the Morphe project.
+
+The name "MODX Patches" and its associated branding are distinct from the Morphe project. References to Morphe within this repository are used solely to describe compatibility with the Morphe patching framework and do not imply any official relationship, sponsorship, or authorship.
+
+Any mention of Morphe is intended only for descriptive purposes, including but not limited to:
+
+- Compatibility with the Morphe framework;
+- Development using the Morphe patching framework; or
+- Integration with software that supports Morphe patch bundles.
+
+This project does not claim ownership of the Morphe name, logo, trademarks, or branding. All rights to the Morphe project and its associated branding remain with their respective owners.
