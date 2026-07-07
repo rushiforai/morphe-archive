@@ -1,0 +1,9 @@
+.refs/
+.work/
+.tools/
+.gradle/
+build/
+*.apk
+*.apkm
+*.dex
+*.jar
