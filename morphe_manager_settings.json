@@ -1,0 +1,50 @@
+{
+    "settings": {
+        "dynamicColor": true,
+        "pureBlackTheme": true,
+        "customAccentColor": "",
+        "customThemeColor": "",
+        "themePresetSelectionName": "DEFAULT",
+        "themePresetSelectionEnabled": true,
+        "stripUnusedNativeLibs": false,
+        "theme": "SYSTEM",
+        "appLanguage": "system",
+        "includeGitHubPatInExports": false,
+        "useProcessRuntime": true,
+        "patcherProcessMemoryLimit": 1024,
+        "allowMeteredUpdates": true,
+        "installerPrimary": ":internal:",
+        "installerCustomComponents": [],
+        "installerHiddenComponents": [],
+        "keystoreAlias": "Morphe",
+        "keystorePass": "Morphe",
+        "firstLaunch": false,
+        "useManagerPrereleases": true,
+        "bundlePrereleasesEnabled": [
+            "-101824486"
+        ],
+        "bundleExperimentalVersionsEnabled": [],
+        "disablePatchVersionCompatCheck": false,
+        "showGreetingPhrases": true,
+        "backgroundType": "CIRCLES",
+        "randomBackgroundInterval": "ON_LAUNCH",
+        "useExpertMode": true,
+        "updateCheckInterval": "DAILY",
+        "customBundles": [
+            {
+                "name": "Rushi's Patches",
+                "source": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "enabled": false,
+                "sortOrder": 0,
+                "createdAt": 1783365118000,
+                "updatedAt": 1783408641657
+            }
+        ],
+        "bytecodeModePreference": "STRIP_FAST",
+        "filePickerSortMode": "DATE_DESC",
+        "useCustomFilePicker": true,
+        "customFilePickerUserConfigured": false,
+        "sourceBundleSortMode": "MANUAL"
+    }
+}
