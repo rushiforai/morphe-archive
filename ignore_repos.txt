@@ -5,3 +5,9 @@ rushiranpise/morphe-patches
 Jman-Github
 nvbangg
 rushiforai/morphe-archive
+rushiforai/paresh-patches
+abdul-hubbali/Morphe-Fork
+TrollTaylor/morphe-pause-fix
+mininxd/morphe-patches
+rabilrbl/fluffy-patches
+BrayDog2010/morphe-patc
