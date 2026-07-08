@@ -671,6 +671,14 @@
                 "sortOrder": 79,
                 "createdAt": 1783434699316,
                 "updatedAt": 1783434699316
+            },
+            {
+                "name": "pinterest-morphed",
+                "source": "https://raw.githubusercontent.com/SouBryan/pinterest-morphed/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 80,
+                "createdAt": 1783496066810,
+                "updatedAt": 1783496066810
             }
         ],
         "bytecodeModePreference": "STRIP_FAST",

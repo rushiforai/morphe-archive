@@ -1,4 +1,3 @@
-SouBryan/pinterest-morphed
 AlexNaga/android-patches
 Almewty/my-morphe-patches
 AmpleReVanced/revanced-patches
@@ -26,6 +25,7 @@ Quantro100/Morphe-patches
 RealCyberwash/max-patches
 Ripthulhu/morphe-google-patches
 RookieEnough/De-Vanced
+SouBryan/pinterest-morphed
 Tornillo2/movistar-block-ads-morphe
 Trimpsuz/morphe-busuu
 Utsavrajputt/Modx-patches
