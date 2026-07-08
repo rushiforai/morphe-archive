@@ -1,3 +1,4 @@
+SouBryan/pinterest-morphed
 AlexNaga/android-patches
 Almewty/my-morphe-patches
 AmpleReVanced/revanced-patches
