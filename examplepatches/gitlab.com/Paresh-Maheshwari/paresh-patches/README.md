@@ -17,7 +17,7 @@ Custom [Morphe](https://morphe.software) patches for unlocking premium features 
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.18.0](https://github.com/Paresh-Maheshwari/paresh-patches/releases/tag/v1.18.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;55 patches total
+> **[v1.19.0](https://github.com/Paresh-Maheshwari/paresh-patches/releases/tag/v1.19.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;57 patches total
 <details open>
 <summary>📦 Plus Messenger&nbsp;&nbsp;•&nbsp;&nbsp;10 patches</summary>
 <br>
@@ -48,7 +48,7 @@ Custom [Morphe](https://morphe.software) patches for unlocking premium features 
 
 **🎯 Supported versions:**
 
-| 12.6.4 |
+| 12.8.3 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -124,7 +124,7 @@ Custom [Morphe](https://morphe.software) patches for unlocking premium features 
 
 **🎯 Supported versions:**
 
-| 5.18.46.0 |
+| 5.19.16.0 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -215,6 +215,21 @@ Custom [Morphe](https://morphe.software) patches for unlocking premium features 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Lumina Premium](#lumina-premium) | Unlocks all premium wallpapers and categories. |  |
+
+</details>
+
+<details open>
+<summary>📦 MX Player Pro&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.93.4 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [MX Player Pro License](#mx-player-pro-license) | Bypasses license verification and signature checks in MX Player Pro. |  |
 
 </details>
 
@@ -314,7 +329,7 @@ Custom [Morphe](https://morphe.software) patches for unlocking premium features 
 
 **🎯 Supported versions:**
 
-| 1.3.7 |
+| 1.3.8 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -335,6 +350,21 @@ Custom [Morphe](https://morphe.software) patches for unlocking premium features 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Unlock Pro](#unlock-pro) | Unlocks SD Maid SE Pro features — full history, scheduled operations, extra options, custom rules. |  |
+
+</details>
+
+<details open>
+<summary>📦 TaskManager&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.5.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock Pro](#unlock-pro) | Unlocks Pro features — auto refresh, advanced process management, and all settings. |  |
 
 </details>
 

@@ -1,3 +1,9 @@
+## [1.2.1](https://github.com/Utsavrajputt/Modx-patches/compare/v1.2.0...v1.2.1) (2026-07-07)
+
+### 🐛 Bug Fixes
+
+* video tab ([e80f9d5](https://github.com/Utsavrajputt/Modx-patches/commit/e80f9d56615ef4549f108c2750a2484d6a851dd3))
+
 ## [1.2.0](https://github.com/Utsavrajputt/Modx-patches/compare/v1.1.1...v1.2.0) (2026-07-07)
 
 ### ✨ New Features

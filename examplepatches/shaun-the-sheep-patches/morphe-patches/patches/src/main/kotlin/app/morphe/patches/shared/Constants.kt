@@ -17,4 +17,14 @@ object Constants {
             AppTarget(version = "5.1")
         )
     )
+
+    val COMPATIBILITY_RSS_READER = Compatibility(
+        name = "RSS Reader",
+        packageName = "com.vanniktech.rssreader",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x00FF4500, // 0x00RRGGBB — orange
+        targets = listOf(
+            AppTarget(version = "1.48.2")
+        )
+    )
 }

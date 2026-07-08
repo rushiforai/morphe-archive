@@ -1,3 +1,41 @@
+# [1.19.0](https://gitlab.com/Paresh-Maheshwari/paresh-patches/compare/v1.18.0...v1.19.0) (2026-07-07)
+
+
+### Bug Fixes
+
+* handle missing dev branch in CI backmerge ([6fd1f76](https://gitlab.com/Paresh-Maheshwari/paresh-patches/commit/6fd1f764cf39688643b57e79054b3aa6bd9a3a85))
+* update Alarmo recommended version to 1.3.8 ([024e785](https://gitlab.com/Paresh-Maheshwari/paresh-patches/commit/024e785a840b7d01df0b5dab15eedad46483d520))
+* update Proton VPN recommended version to 5.19.16.0 ([5f4994d](https://gitlab.com/Paresh-Maheshwari/paresh-patches/commit/5f4994d909b1ec8457162fadbb8f388df7576ebc))
+* update Telegram recommended version to 12.8.3 ([2ace333](https://gitlab.com/Paresh-Maheshwari/paresh-patches/commit/2ace333510d95ec80580ef8a31dfb8ac8f5f1653))
+
+
+### Features
+
+* add MX Player Pro license bypass patch ([0800707](https://gitlab.com/Paresh-Maheshwari/paresh-patches/commit/0800707a0f4d97efbd86c51ee522969b24bb10e1))
+* add Task Manager pro patch ([2e50d4a](https://gitlab.com/Paresh-Maheshwari/paresh-patches/commit/2e50d4af749db18f6412e28952624f6dace5112c))
+
+# [1.19.0-dev.1](https://gitlab.com/Paresh-Maheshwari/paresh-patches/compare/v1.18.1-dev.1...v1.19.0-dev.1) (2026-07-07)
+
+
+### Bug Fixes
+
+* update Alarmo recommended version to 1.3.8 ([024e785](https://gitlab.com/Paresh-Maheshwari/paresh-patches/commit/024e785a840b7d01df0b5dab15eedad46483d520))
+* update Proton VPN recommended version to 5.19.16.0 ([5f4994d](https://gitlab.com/Paresh-Maheshwari/paresh-patches/commit/5f4994d909b1ec8457162fadbb8f388df7576ebc))
+* update Telegram recommended version to 12.8.3 ([2ace333](https://gitlab.com/Paresh-Maheshwari/paresh-patches/commit/2ace333510d95ec80580ef8a31dfb8ac8f5f1653))
+
+
+### Features
+
+* add MX Player Pro license bypass patch ([0800707](https://gitlab.com/Paresh-Maheshwari/paresh-patches/commit/0800707a0f4d97efbd86c51ee522969b24bb10e1))
+* add Task Manager pro patch ([2e50d4a](https://gitlab.com/Paresh-Maheshwari/paresh-patches/commit/2e50d4af749db18f6412e28952624f6dace5112c))
+
+## [1.18.1-dev.1](https://gitlab.com/Paresh-Maheshwari/paresh-patches/compare/v1.18.0...v1.18.1-dev.1) (2026-06-03)
+
+
+### Bug Fixes
+
+* handle missing dev branch in CI backmerge ([6fd1f76](https://gitlab.com/Paresh-Maheshwari/paresh-patches/commit/6fd1f764cf39688643b57e79054b3aa6bd9a3a85))
+
 # [1.18.0](https://gitlab.com/Paresh-Maheshwari/paresh-patches/compare/v1.17.0...v1.18.0) (2026-06-03)
 
 

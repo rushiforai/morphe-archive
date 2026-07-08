@@ -44,6 +44,6 @@ object VideoTabEnabledFingerprint : Fingerprint(
     parameters = emptyList(),
 
     custom = { method, classDef ->
-        classDef.type == "Lbk7;" && method.name == "A"
+        classDef.type == "Lbk7;" && method.name == "D"
     },
 )
