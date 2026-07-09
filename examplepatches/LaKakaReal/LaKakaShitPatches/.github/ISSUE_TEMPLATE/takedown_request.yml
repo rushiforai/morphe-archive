@@ -1,0 +1,58 @@
+name: ⚖️ Takedown Request
+description: Request the removal of a specific patch or content (For developers / rights holders)
+title: "[Takedown]: "
+labels: ["takedown", "priority"]
+assignees:
+  - LaKakaReal
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### Formal Content Removal Request
+        If you are the developer or authorized representative of an application featured in these learning patches and would like it removed, please fill out this form. Requests are taken seriously and processed promptly.
+
+  - type: input
+    id: targeted_patch
+    attributes:
+      label: Targeted Patch Name
+      description: Which specific patch in this repository needs to be removed?
+      placeholder: e.g., Unlock Premium (Patch Name)
+    validations:
+      required: true
+
+  - type: input
+    id: identity_role
+    attributes:
+      label: Your Organization & Role
+      description: Let us know who you are and your relationship to the software.
+      placeholder: e.g., Lead Developer at [Company] / Legal Rep
+    validations:
+      required: true
+
+  - type: textarea
+    id: removal_reason
+    attributes:
+      label: Reason for Removal Request
+      description: Please provide a brief explanation for the request (e.g., proprietary code bypass, trademark/copyright concern).
+      placeholder: Provide details here...
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: good_faith_declarations
+    attributes:
+      label: Declarations
+      options:
+        - label: I confirm that I am the owner, creator, or authorized representative of the software related to this request.
+          required: true
+        - label: I understand that this repository is a non-commercial, personal educational learning project, and I request the prompt removal of the specified material.
+          required: true
+
+  - type: input
+    id: contact_info
+    attributes:
+      label: Contact Method (Optional)
+      description: Leave an email or username if you require a direct message confirmation once removed.
+      placeholder: legal@example.com or @username
+    validations:
+      required: false

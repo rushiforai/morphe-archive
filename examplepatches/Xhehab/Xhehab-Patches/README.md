@@ -5,7 +5,7 @@ Custom Morphe patches by Xhehab.
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v2.0.0](https://github.com/Xhehab/Xhehab-Patches/releases/tag/v2.0.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;3 patches total
+> **[v2.0.2](https://github.com/Xhehab/Xhehab-Patches/releases/tag/v2.0.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
 <details open>
 <summary>📦 FST-7&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -42,12 +42,27 @@ Custom Morphe patches by Xhehab.
 
 **🎯 Supported versions:**
 
-| 4.1.43 |
+| 4.1.44 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Unlock STNDRD Premium](#unlock-stndrd-premium) | Unlock all Paid features |  |
+
+</details>
+
+<details open>
+<summary>📦 Video Player All Format&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 2.6.2 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock Video Player Premium](#unlock-video-player-premium) | Unlock all Paid features |  |
 
 </details>
 
@@ -78,7 +93,7 @@ https://raw.githubusercontent.com/Xhehab/Xhehab-Patches/main/patches-bundle.json
 The generated patch bundle is written to:
 
 ```text
-patches/build/libs/patches-2.0.0.mpp
+patches/build/libs/patches-2.0.2.mpp
 ```
 
 Remote patch sources are published by `.github/workflows/release.yml` as GitHub Release assets.

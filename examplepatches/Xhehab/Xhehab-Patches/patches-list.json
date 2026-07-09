@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "2.0.0",
+  "version": "2.0.2",
   "patches": [
     {
       "name": "Unlock FST-7 Subscription",
@@ -71,7 +71,33 @@
           "signatures": null,
           "targets": [
             {
-              "version": "4.1.43",
+              "version": "4.1.44",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Video Player Premium",
+      "description": "Unlock all Paid features",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "video.player.videoplayer",
+          "name": "Video Player All Format",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#18DC14",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "2.6.2",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,

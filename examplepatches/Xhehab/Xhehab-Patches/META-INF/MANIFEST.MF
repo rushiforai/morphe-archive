@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Name: Xhehab Patches
 Description: Custom Morphe patches for STNDRD, FST-7, TrainWise, and mor
  e by Xhehab
-Version: 2.0.0
+Version: 2.0.2
 Timestamp: 1783110317689
 Source: git@github.com:Xhehab/Xhehab-Patches.git
 Author: Xhehab

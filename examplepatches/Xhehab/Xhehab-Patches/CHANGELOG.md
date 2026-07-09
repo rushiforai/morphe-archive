@@ -1,3 +1,15 @@
+## [2.0.2](https://github.com/Xhehab/Xhehab-Patches/compare/v2.0.1...v2.0.2) (2026-07-08)
+
+### 🐛 Bug Fixes
+
+* add Video Player All Format patch release ([97aba76](https://github.com/Xhehab/Xhehab-Patches/commit/97aba765e019a2dba033f3a352ebeb23ab8e9793))
+
+## [2.0.1](https://github.com/Xhehab/Xhehab-Patches/compare/v2.0.0...v2.0.1) (2026-07-08)
+
+### 🐛 Bug Fixes
+
+* Bumped STNDRD recommended/supported version ([d54354e](https://github.com/Xhehab/Xhehab-Patches/commit/d54354e443bfa1f182ca5aff90f781f91e3d3ba3))
+
 ## [2.0.0](https://github.com/Xhehab/Xhehab-Patches/compare/v1.0.0...v2.0.0) (2026-07-03)
 
 ### ⚠ BREAKING CHANGES

@@ -12,4 +12,18 @@ object Constants {
         appIconColor = 0x1A1A2E,
         targets = listOf(AppTarget(version = null))
     )
+
+    val INSTAPAPER_COMPATIBILITY = Compatibility(
+        name = "Instapaper",
+        packageName = "com.instapaper.android",
+        appIconColor = "#FFFFFF",
+        targets = listOf(AppTarget(version = null))
+    )
+
+    val SOUNDBRENNER_COMPATIBILITY = Compatibility(
+        name = "Soundbrenner",
+        packageName = "com.soundbrenner.pulse",
+        appIconColor = "#000000",
+        targets = listOf(AppTarget(version = "1.33.0"))
+    )
 }
