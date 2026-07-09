@@ -249,14 +249,6 @@
                 "updatedAt": 1783434696236
             },
             {
-                "name": "Modx-patches",
-                "source": "https://raw.githubusercontent.com/Utsavrajputt/Modx-patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 27,
-                "createdAt": 1783434696274,
-                "updatedAt": 1783434696274
-            },
-            {
                 "name": "Xhehab-Patches",
                 "source": "https://raw.githubusercontent.com/Xhehab/Xhehab-Patches/main/patches-bundle.json",
                 "autoUpdate": true,
