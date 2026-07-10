@@ -12,6 +12,7 @@ Jman-Github/Universal-ReVanced-Manager
 Joristdh/Platypatch
 LaKakaReal/LaKakaShitPatches
 Lynx6319/patch-youtube-scroll-block
+MiguelNinja19/miguel-morphe-patches
 MoonShadowKeeper/Telegram-patchesMorphe
 MorpheApp/morphe-patches
 Nai64/Nai64Patches
@@ -50,10 +51,12 @@ browzomje/browzomje-patches
 bufferk/morphe-patches
 byehi98/okish-morphe-patches
 cesbar/zpatches
+chirag127/morphe-patches
 crimera/piko
 docbt/patched-up
 dumb-software/T2C-App-Patch-Morphe
 durgesh0505/chiggi_morphe_patches
+ethanm6/letterboxd-stremio-morphe-patch
 eyalm2000/tidal-debug-menu
 franticg33k/morphe-patches
 gitlab.com/Paresh-Maheshwari/paresh-patches
@@ -90,7 +93,3 @@ wchill/patcheddit
 wchill/rvx-morphed
 xob0t/morphe-patches
 ynotzort/morphe-patches
-ethanm6/letterboxd-stremio-morphe-patch
-MiguelNinja19/miguel-morphe-patches
-chirag127/morphe-patches
-

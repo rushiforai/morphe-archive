@@ -679,6 +679,30 @@
                 "sortOrder": 81,
                 "createdAt": 1783654429996,
                 "updatedAt": 1783654429996
+            },
+            {
+                "name": "miguel-morphe-patches",
+                "source": "https://raw.githubusercontent.com/MiguelNinja19/miguel-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 82,
+                "createdAt": 1783721094418,
+                "updatedAt": 1783721094418
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/chirag127/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 83,
+                "createdAt": 1783721095427,
+                "updatedAt": 1783721095427
+            },
+            {
+                "name": "letterboxd-stremio-morphe-patch",
+                "source": "https://raw.githubusercontent.com/ethanm6/letterboxd-stremio-morphe-patch/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 84,
+                "createdAt": 1783721095641,
+                "updatedAt": 1783721095641
             }
         ],
         "bytecodeModePreference": "STRIP_FAST",
