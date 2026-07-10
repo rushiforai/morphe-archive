@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "patches": [
     {
       "name": "Disable video ads",
@@ -31,6 +31,32 @@
     {
       "name": "Hide Video/OTT tab",
       "description": "Hides the Video/OTT download tab from the home screen by forcing its visibility flag to always report disabled.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.mxtech.videoplayer.ad",
+          "name": "MX Player",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#E63030",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "2.14.1",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Redirect avatar click to Settings",
+      "description": "Makes the top-right avatar open Settings directly instead of the Me/Profile tab.",
       "default": true,
       "dependencies": [],
       "compatiblePackages": [

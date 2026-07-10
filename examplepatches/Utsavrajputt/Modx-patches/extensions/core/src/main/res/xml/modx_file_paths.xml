@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Secure Folder vault + Recycle Bin, both under app-private files dir -->
+    <files-path name="secure_vault" path="secure_vault/" />
+    <files-path name="recycle_bin" path="recycle_bin/" />
+</paths>

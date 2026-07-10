@@ -3,6 +3,7 @@ package app.template.patches.trainwise
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.bytecodePatch
+import app.template.patches.pairip.disablePairIpLicenseCheckPatch
 import app.template.patches.shared.Constants.TRAINWISE_COMPATIBILITY
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
@@ -13,6 +14,7 @@ val trainwiseUnlockPremiumPatch = bytecodePatch(
     default = true
 ) {
     compatibleWith(TRAINWISE_COMPATIBILITY)
+    dependsOn(disablePairIpLicenseCheckPatch)
 
     execute {
         CustomerInfoMapFingerprint
@@ -29,8 +31,10 @@ val trainwiseUnlockPremiumPatch = bytecodePatch(
             addInstructions(
                 returnIndex,
                 """
+                    move-object v8, v$returnRegister
+
                     new-instance v0, Ljava/util/HashMap;
-                    invoke-direct {v0, v$returnRegister}, Ljava/util/HashMap;-><init>(Ljava/util/Map;)V
+                    invoke-direct {v0, v8}, Ljava/util/HashMap;-><init>(Ljava/util/Map;)V
 
                     new-instance v1, Ljava/util/HashMap;
                     invoke-direct {v1}, Ljava/util/HashMap;-><init>()V

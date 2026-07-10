@@ -47,3 +47,30 @@ object VideoTabEnabledFingerprint : Fingerprint(
         classDef.type == "Lbk7;" && method.name == "D"
     },
 )
+// Targets the shared onClick dispatcher used by the home-screen toolbar header
+// (avatar, search, notifications, etc. all route through one synthetic
+// View.OnClickListener implementation whose onClick() body is a packed-switch
+// on an instance field). We can't pin the class name (it's a different
+// obfuscated single/two-letter class every build, e.g. `bl` in 2.14.1) so we
+// match structurally: implements View.OnClickListener, onClick(View)V shape,
+// and contains the string literals used when building the avatar-tab intent
+// bundle ("tabId", "tab_name", "main"). These strings stay in the bytecode
+// even after this patch runs, because we only prepend a guard - we never
+// delete the original case body - so the fingerprint keeps matching on
+// re-runs/rebuilds too.
+object AvatarClickDispatcherFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = listOf("Landroid/view/View;"),
+
+    filters = listOf(
+        string("tabId"),
+        string("tab_name"),
+        string("main"),
+    ),
+
+    custom = { method, classDef ->
+        method.name == "onClick" &&
+            classDef.interfaces.contains("Landroid/view/View\$OnClickListener;")
+    },
+)

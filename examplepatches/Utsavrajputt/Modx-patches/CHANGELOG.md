@@ -1,3 +1,9 @@
+## [1.2.2](https://github.com/Utsavrajputt/Modx-patches/compare/v1.2.1...v1.2.2) (2026-07-09)
+
+### 🐛 Bug Fixes
+
+* release h ([56d515e](https://github.com/Utsavrajputt/Modx-patches/commit/56d515e4a4d0706d7c506f29f07e9bc7cba2ed40))
+
 ## [1.2.1](https://github.com/Utsavrajputt/Modx-patches/compare/v1.2.0...v1.2.1) (2026-07-07)
 
 ### 🐛 Bug Fixes

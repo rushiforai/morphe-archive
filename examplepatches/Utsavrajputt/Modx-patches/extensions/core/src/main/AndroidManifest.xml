@@ -1,1 +1,44 @@
-<manifest/>
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <activity
+            android:name="app.utsavrajput.extension.AboutActivity"
+            android:exported="false" />
+        <activity
+            android:name="app.utsavrajput.extension.ToolsActivity"
+            android:exported="false" />
+        <activity
+            android:name="app.utsavrajput.extension.TransferFilesActivity"
+            android:exported="false" />
+        <activity
+            android:name="app.utsavrajput.extension.StatusSaverActivity"
+            android:exported="false" />
+        <activity
+            android:name="app.utsavrajput.extension.PlaylistActivity"
+            android:exported="false" />
+        <activity
+            android:name="app.utsavrajput.extension.SecureFolderPinActivity"
+            android:exported="false" />
+        <activity
+            android:name="app.utsavrajput.extension.SecureFolderActivity"
+            android:exported="false" />
+        <activity
+            android:name="app.utsavrajput.extension.UrlStreamActivity"
+            android:exported="false" />
+        <activity
+            android:name="app.utsavrajput.extension.RecycleBinActivity"
+            android:exported="false" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="app.utsavrajput.extension.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/modx_file_paths" />
+        </provider>
+    </application>
+
+</manifest>

@@ -1,3 +1,47 @@
+## [1.1.2](https://github.com/franticg33k/morphe-patches/compare/v1.1.1...v1.1.2) (2026-07-09)
+
+### 🐛 Bug Fixes
+
+* remove MoneyMitra Unlock Premium patch entirely ([c87dcb0](https://github.com/franticg33k/morphe-patches/commit/c87dcb00a936cffaa8240a828d035ec4061be734))
+
+## [1.1.1](https://github.com/franticg33k/morphe-patches/compare/v1.1.0...v1.1.1) (2026-07-09)
+
+## [1.1.0](https://github.com/franticg33k/morphe-patches/compare/v1.0.1...v1.1.0) (2026-07-09)
+
+### 🐛 Bug Fixes
+
+* remove DateActive.isActive() patch, add SubscriptionInfo.isActive() instead ([4901538](https://github.com/franticg33k/morphe-patches/commit/490153879576d7b187dff0d9febee75d13a922d4))
+
+### ✨ New Features
+
+* add CustomerInfo activeSubscriptions/allPurchasedProductIds patches ([de8ccd3](https://github.com/franticg33k/morphe-patches/commit/de8ccd3bd6bb85903e4092e0e4779abd3763ab49))
+* add ForceActiveSubscription binary patch for MoneyMitra libapp.so ([43c2b42](https://github.com/franticg33k/morphe-patches/commit/43c2b4223201849063fc0efac9f39b27469f4dc4))
+* add MoneyMitra Unlock Premium patch ([3a92eb7](https://github.com/franticg33k/morphe-patches/commit/3a92eb7ff75f338eab62d836e8462f5d96a43032))
+
+## [1.1.0-dev.4](https://github.com/franticg33k/morphe-patches/compare/v1.1.0-dev.3...v1.1.0-dev.4) (2026-07-09)
+
+### ✨ New Features
+
+* add ForceActiveSubscription binary patch for MoneyMitra libapp.so ([43c2b42](https://github.com/franticg33k/morphe-patches/commit/43c2b4223201849063fc0efac9f39b27469f4dc4))
+
+## [1.1.0-dev.3](https://github.com/franticg33k/morphe-patches/compare/v1.1.0-dev.2...v1.1.0-dev.3) (2026-07-08)
+
+### ✨ New Features
+
+* add CustomerInfo activeSubscriptions/allPurchasedProductIds patches ([de8ccd3](https://github.com/franticg33k/morphe-patches/commit/de8ccd3bd6bb85903e4092e0e4779abd3763ab49))
+
+## [1.1.0-dev.2](https://github.com/franticg33k/morphe-patches/compare/v1.1.0-dev.1...v1.1.0-dev.2) (2026-07-08)
+
+### 🐛 Bug Fixes
+
+* remove DateActive.isActive() patch, add SubscriptionInfo.isActive() instead ([4901538](https://github.com/franticg33k/morphe-patches/commit/490153879576d7b187dff0d9febee75d13a922d4))
+
+## [1.1.0-dev.1](https://github.com/franticg33k/morphe-patches/compare/v1.0.1...v1.1.0-dev.1) (2026-07-08)
+
+### ✨ New Features
+
+* add MoneyMitra Unlock Premium patch ([3a92eb7](https://github.com/franticg33k/morphe-patches/commit/3a92eb7ff75f338eab62d836e8462f5d96a43032))
+
 ## [1.0.1](https://github.com/franticg33k/morphe-patches/compare/v1.0.0...v1.0.1) (2026-07-06)
 
 ### 🚀 Updated App Support

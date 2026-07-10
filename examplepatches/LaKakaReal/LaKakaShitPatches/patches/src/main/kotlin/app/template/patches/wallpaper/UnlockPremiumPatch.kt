@@ -61,50 +61,5 @@ val unlockPremiumPatch = bytecodePatch(
             val register = moveResultInstr.registerA
             method.addInstructions(moveResultIndex + 1, "const/4 v$register, 0x1")
         }
-
-        // ── Layer 6: Targeted drawable trap sweeper ─────────────────────────
-        val trapDrawableIds = setOf(0x7f070090)
-
-        runCatching {
-            Fo6ClinitFingerprint.method.let { method ->
-                method.instructions.forEachIndexed { index, instruction ->
-                    if (instruction is OneRegisterInstruction && instruction is NarrowLiteralInstruction) {
-                        val literal = instruction.narrowLiteral
-                        if (literal in trapDrawableIds) {
-                            val register = instruction.registerA
-                            method.replaceInstruction(index, "const v$register, 0x0108003e")
-                        }
-                    }
-                }
-            }
-        }
-
-        runCatching {
-            NavigationSetupFingerprint.method.let { method ->
-                method.instructions.forEachIndexed { index, instruction ->
-                    if (instruction is OneRegisterInstruction && instruction is NarrowLiteralInstruction) {
-                        val literal = instruction.narrowLiteral
-                        if (literal in trapDrawableIds) {
-                            val register = instruction.registerA
-                            method.replaceInstruction(index, "const v$register, 0x0108003e")
-                        }
-                    }
-                }
-            }
-        }
-
-        runCatching {
-            Km6InvokeFingerprint.method.let { method ->
-                method.instructions.forEachIndexed { index, instruction ->
-                    if (instruction is OneRegisterInstruction && instruction is NarrowLiteralInstruction) {
-                        val literal = instruction.narrowLiteral
-                        if (literal in trapDrawableIds) {
-                            val register = instruction.registerA
-                            method.replaceInstruction(index, "const v$register, 0x0108003e")
-                        }
-                    }
-                }
-            }
-        }
     }
 }

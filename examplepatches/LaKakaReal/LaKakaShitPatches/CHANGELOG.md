@@ -1,3 +1,15 @@
+## [1.3.1](https://github.com/LaKakaReal/LaKakaShitPatches/compare/v1.3.0...v1.3.1) (2026-07-09)
+
+### 🐛 Bug Fixes
+
+* **Depth Live Wallpapers:** fixed certain icons appearing as a default pencil ([1e33787](https://github.com/LaKakaReal/LaKakaShitPatches/commit/1e33787acc411707d9a717119f5dcc26126cee63))
+
+## [1.3.1-dev.1](https://github.com/LaKakaReal/LaKakaShitPatches/compare/v1.3.0...v1.3.1-dev.1) (2026-07-09)
+
+### 🐛 Bug Fixes
+
+* **Depth Live Wallpapers:** fixed certain icons appearing as a default pencil ([1e33787](https://github.com/LaKakaReal/LaKakaShitPatches/commit/1e33787acc411707d9a717119f5dcc26126cee63))
+
 ## [1.3.0](https://github.com/LaKakaReal/LaKakaShitPatches/compare/v1.2.0...v1.3.0) (2026-07-08)
 
 ### ✨ New Features
