@@ -5,7 +5,7 @@
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
  *
- * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to Morphe contributions.
+ * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  */
 
 package app.morphe.extension.shared.patches.components;
@@ -15,7 +15,6 @@ import androidx.annotation.Nullable;
 
 import java.nio.ByteBuffer;
 import java.util.List;
-import java.util.Objects;
 
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.StringTrieSearch;
@@ -172,7 +171,6 @@ public final class LithoFilterPatch {
         try {
             String identifier = contextInterface.patch_getIdentifier();
             StringBuilder pathBuilder = contextInterface.patch_getPathBuilder();
-            //noinspection SizeReplaceableByIsEmpty
             if (identifier.isEmpty() || pathBuilder.length() == 0) {
                 return false;
             }

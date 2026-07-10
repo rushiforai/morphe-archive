@@ -5,7 +5,7 @@
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
  *
- * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to Morphe contributions.
+ * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  */
 
 package app.morphe.patches.youtube.video.quality
@@ -74,7 +74,8 @@ val rememberVideoQualityPatch = bytecodePatch {
         val initialResolutionField = PlaybackStartParametersToStringFingerprint.method
                 .findFieldFromToString(FIXED_RESOLUTION_STRING)
 
-        val playbackStartParametersConstructorFingerprint = Fingerprint(
+        // Inject a call to override initial video quality.
+        Fingerprint(
             classFingerprint = PlaybackStartParametersToStringFingerprint,
             name = "<init>",
             filters = listOf(
@@ -83,10 +84,7 @@ val rememberVideoQualityPatch = bytecodePatch {
                     reference = initialResolutionField
                 )
             )
-        )
-
-        // Inject a call to override initial video quality.
-        playbackStartParametersConstructorFingerprint.let {
+        ).let {
             it.method.apply {
                 val index = it.instructionMatches.last().index
                 val register = getInstruction<TwoRegisterInstruction>(index).registerA

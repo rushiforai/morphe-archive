@@ -2,7 +2,7 @@
  * Copyright 2026 Morphe.
  * https://github.com/MorpheApp/morphe-patches
  *
- * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to Morphe contributions.
+ * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  */
 
 package app.morphe.patches.youtube.layout.player.fullscreen
@@ -110,6 +110,7 @@ internal val openVideosFullscreenHookPatch = bytecodePatch {
             it.method.apply {
                 val index = it.instructionMatches.first().index
                 val register = getInstruction<OneRegisterInstruction>(index).registerA
+
                 addInstruction(
                     index + 1,
                     "invoke-static { v$register }, $EXTENSION_CLASS->setFullscreenInterface($EXTENSION_FULLSCREEN_INTERFACE)V"

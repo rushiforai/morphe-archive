@@ -2,7 +2,7 @@
  * Copyright 2026 Morphe.
  * https://github.com/MorpheApp/morphe-patches
  *
- * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to this code.
+ * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
 
 package app.morphe.patches.music.layout.miniplayer
@@ -85,25 +85,7 @@ val enableSwipeToDismissMiniplayerPatch = bytecodePatch(
 
         val musicActivityPeerClass = (widgetReferences[0] as FieldReference).definingClass
 
-        val onWatchWhileDismissedFingerprint = Fingerprint(
-            accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-            parameters = listOf(),
-            returnType = "V",
-            filters = listOf(
-                fieldAccess(
-                    opcode = Opcode.IGET_OBJECT,
-                    definingClass = musicActivityPeerClass,
-                    type = "Ljava/util/concurrent/atomic/AtomicBoolean;"
-                ),
-                methodCall(
-                    opcode = Opcode.INVOKE_VIRTUAL,
-                    smali = "Ljava/util/concurrent/atomic/AtomicBoolean;->set(Z)V",
-                    location = MatchAfterWithin(3)
-                )
-            )
-        )
-
-        onWatchWhileDismissedFingerprint.let {
+        watchWhileDismissedFingerprint(musicActivityPeerClass).let {
             val helperMethod = ImmutableMethod(
                 it.classDef.type,
                 "patch_swipeToDismissMiniplayer",
@@ -161,10 +143,8 @@ val enableSwipeToDismissMiniplayerPatch = bytecodePatch(
 
         // region Hide cold start miniplayer text (R.string.mini_player_default_text)
 
-        val coldStartMiniPlayerDefaultTextFingerprint: Fingerprint
-
-        if (is_9_03_or_greater) {
-            coldStartMiniPlayerDefaultTextFingerprint = Fingerprint(
+        (if (is_9_03_or_greater) {
+            Fingerprint(
                 accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
                 parameters = listOf("Ljava/lang/Object;"),
                 returnType = "V",
@@ -177,10 +157,8 @@ val enableSwipeToDismissMiniplayerPatch = bytecodePatch(
                 )
             )
         } else {
-            coldStartMiniPlayerDefaultTextFingerprint = MiniPlayerDefaultTextLegacyFingerprint
-        }
-
-        coldStartMiniPlayerDefaultTextFingerprint.let {
+            MiniPlayerDefaultTextLegacyFingerprint
+        }).let {
             it.method.apply {
                 val insertIndex = it.instructionMatches.first().index
                 val insertRegister = getInstruction<TwoRegisterInstruction>(insertIndex).registerB
@@ -210,7 +188,7 @@ val enableSwipeToDismissMiniplayerPatch = bytecodePatch(
                 )
             }
 
-        val warmStartMiniplayerFingerprint = Fingerprint(
+        Fingerprint(
             definingClass = warmStartMiniplayerClass,
             parameters = listOf("Landroid/view/View;", "I"),
             filters = listOf(
@@ -226,9 +204,7 @@ val enableSwipeToDismissMiniplayerPatch = bytecodePatch(
                     location = MatchAfterWithin(5)
                 )
             )
-        )
-
-        warmStartMiniplayerFingerprint.let {
+        ).let {
             it.method.apply {
                 val insertIndex = it.instructionMatches.first().index
                 val jumpIndex = it.instructionMatches.last().index + 1

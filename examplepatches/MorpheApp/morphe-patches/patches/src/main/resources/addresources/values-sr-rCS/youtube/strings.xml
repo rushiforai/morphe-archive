@@ -97,9 +97,19 @@ Promene uključuju:
   <string name="morphe_hide_surveys_title">Sakrij ankete</string>
   <string name="morphe_hide_surveys_summary">Sakriva ankete i predloge u vezi preciznosti preporuka za sadržaj</string>
   <string name="morphe_hide_ticket_shelf_title">Sakrij policu sa kartama</string>
+  <string name="morphe_hide_upload_time_title">Sakrij vreme otpremanja</string>
+  <!-- Translations should match the language used in 'morphe_hide_view_count_summary'. -->
+  <string name="morphe_hide_upload_time_summary">"Ograničenja:
+• Police Shorts, stranice kanala i rezultati pretrage i dalje mogu da prikazuju vreme otpremanja
+• Ne radi sa automobilskim rasporedom"</string>
   <!-- 'People also watched' and 'You might also like' should be translated using the same localized wording YouTube displays for the label. -->
   <string name="morphe_hide_video_recommendation_labels_title">Sakrij oznake preporuka videa</string>
   <string name="morphe_hide_video_recommendation_labels_summary">Sakriva oznake „Ljudima se takođe svidelo” i „Možda će vam se svideti” u rezultatima pretrage</string>
+  <string name="morphe_hide_view_count_title">Sakrij broj pregleda</string>
+  <!-- Translations should match the language used in 'morphe_hide_upload_time_summary'. -->
+  <string name="morphe_hide_view_count_summary">"Ograničenja:
+• Police Shorts, stranice kanala i rezultati pretrage i dalje mogu da prikazuju broj pregleda
+• Ne radi sa automobilskim rasporedom"</string>
   <string name="morphe_hide_web_search_results_title">Sakrij rezultate veb-pretrage</string>
   <string name="morphe_hide_web_search_results_summary">Sakriva sekciju \'Rezultati sa veba\' iz rezultata pretrage</string>
   <string name="morphe_hide_you_may_like_section_title">Sakrij odjeljak \'Moguće vam se sviđati\'</string>
@@ -158,11 +168,12 @@ Promene uključuju:
   <string name="morphe_hide_transcript_section_title">Sakrij odeljak „Transkript”</string>
   <string name="morphe_hide_video_details_section_title">Sakrij odeljak „Detalji videa”</string>
   <string name="morphe_hide_filter_bar_screen_title">Traka filtera</string>
-  <string name="morphe_hide_filter_bar_screen_summary">Izaberite gde da sakrijete horizontalne čipove kategorija</string>
-  <string name="morphe_hide_filter_bar_feed_in_feed_title">Sakrij u fidovima</string>
-  <string name="morphe_hide_filter_bar_feed_in_related_videos_title">Sakrij u srodnim videima</string>
-  <string name="morphe_hide_filter_bar_feed_in_search_title">Sakrij u rezultatima pretrage</string>
-  <string name="morphe_hide_filter_bar_feed_in_history_title">Sakrij u istoriji gledanja</string>
+  <string name="morphe_hide_filter_bar_screen_summary">Izaberite gde da sakrijete traku za filtriranje</string>
+  <string name="morphe_hide_filter_bar_in_comments_title">Sakrij u komentarima</string>
+  <string name="morphe_hide_filter_bar_in_feed_title">Sakrij u izvorima</string>
+  <string name="morphe_hide_filter_bar_in_related_videos_title">Sakrij u srodnim video zapisima</string>
+  <string name="morphe_hide_filter_bar_in_search_title">Sakrij u rezultatima pretrage</string>
+  <string name="morphe_hide_filter_bar_in_history_title">Sakrij u istoriji gledanja</string>
   <string name="morphe_channel_screen_title">Stranica kanala</string>
   <string name="morphe_channel_screen_summary">Izaberite koje komponente će se pojaviti na stranici kanala</string>
   <string name="morphe_hide_channel_tab_title">Omogući filtriranje po kanalu</string>
@@ -199,30 +210,15 @@ Promene uključuju:
   <string name="morphe_hide_comments_community_guidelines_title">Sakrij smernice zajednice</string>
   <string name="morphe_hide_comments_create_a_short_button_title">Sakrij dugme „Napravi Short”</string>
   <string name="morphe_hide_comments_emoji_and_timestamp_buttons_title">Sakrij dugmad emodžija i vremenske oznake</string>
+  <string name="morphe_hide_comments_filter_bar_options_title">Sakrij opcije trake filtera</string>
+  <string name="morphe_hide_comments_filter_bar_options_summary">Sakriva sve opcije trake filtera, osim \"Najbolje\" i \"Najnovije\"</string>
   <string name="morphe_hide_comments_info_button_title">Sakrij dugme Инфо</string>
   <string name="morphe_hide_comments_live_chat_donators_bar_title">Sakrij traku donatora uživo</string>
   <string name="morphe_hide_comments_preview_comment_title">Sakrij komentar za pregled</string>
   <string name="morphe_hide_comments_preview_comment_summary">Sakriva pregled komentara ispod videa pre otvaranja celog odeljka za komentare</string>
   <string name="morphe_hide_comments_thanks_button_title">Sakrij dugme „Hvala”</string>
-  <string name="morphe_sanitize_comments_category_bar_title">Očisti traku kategorija</string>
-  <string name="morphe_sanitize_comments_category_bar_summary">Sakriva sve opcije za sortiranje komentara osim „Najbolji” i „Najnoviji”</string>
-  <string name="morphe_custom_filter_screen_title">Prilagođeni filter</string>
-  <string name="morphe_custom_filter_screen_summary">Konfiguriši prilagođene filtere za sakrivanje bilo koje komponente</string>
-  <string name="morphe_custom_filter_title">Omogući prilagođeni filter</string>
-  <string name="morphe_custom_filter_strings_title">Prilagođeni filter</string>
-  <!-- 'Component path builder strings' is the technical name for identifying the Litho UI layout items to hide. This is an advanced feature and most users will never use this. -->
-  <string name="morphe_custom_filter_strings_summary">Lista stringova graditelja putanje komponente za filtriranje, odvojena novim redovima</string>
-  <string name="morphe_custom_filter_toast_invalid_syntax">Nevažeći prilagođeni filter: %s</string>
-  <string name="morphe_hide_view_count_title">Sakrij broj pregleda</string>
-  <!-- Translations should match the language used in 'morphe_hide_upload_time_summary'. -->
-  <string name="morphe_hide_view_count_summary">"Ograničenja:
-• Police Shorts, stranice kanala i rezultati pretrage mogu i dalje prikazivati broj pregleda
-• Ova funkcija ne radi sa automobilskim rasporedom."</string>
-  <string name="morphe_hide_upload_time_title">Sakrij vreme otpremanja</string>
-  <!-- Translations should match the language used in 'morphe_hide_view_count_summary'. -->
-  <string name="morphe_hide_upload_time_summary">"Ograničenja:
-• Kratke police, stranice kanala i rezultati pretrage i dalje mogu prikazivati vreme otpremanja
-• Ova funkcija ne radi sa automobilskim izgledom"</string>
+  <string name="morphe_sanitize_comments_highlighted_search_links_title">Dezinfikuje naglašene linkove za pretragu</string>
+  <string name="morphe_sanitize_comments_highlighted_search_links_summary">Dezinfikuje naglašene linkove za pretragu, ostavljajući samo originalni tekst</string>
   <string name="morphe_hide_keyword_content_screen_title">Filtriranje po ključnim rečima</string>
   <string name="morphe_hide_keyword_content_screen_summary">Izaberite određene reči ili fraze da sakrijete video zapise u feedovima i pretrazi</string>
   <string name="morphe_hide_keyword_content_home_title">Sakrij videe na kartici „Početna” prema ključnim rečima</string>
@@ -253,7 +249,7 @@ Ograničenja:
   <string name="morphe_hide_keyword_toast_invalid_conflicting">Ključna reč ima konfliktne izjave: %s</string>
   <string name="morphe_hide_keyword_toast_invalid_length">Ključna reč je prekratka i zahteva navodnike: %s</string>
   <string name="morphe_hide_keyword_toast_invalid_broad">Ključna reč će sakriti sve videe: %s</string>
-  <!-- ad.general.hideAdsPatch -->
+  <!-- ad.hideAdsPatch -->
   <string name="morphe_hide_creator_store_shelf_title">Sakrij policu prodavnice kreatora</string>
   <string name="morphe_hide_end_screen_store_banner_title">Sakrij baner prodavnice na završnom ekranu</string>
   <string name="morphe_hide_general_ads_title">Sakrij opšte oglase</string>
@@ -263,9 +259,8 @@ Ograničenja:
   <string name="morphe_hide_player_popup_ads_title">Sakrij oglasne popupe u plejeru</string>
   <string name="morphe_hide_self_sponsor_ads_title">Sakrij kartice samosponzorstva</string>
   <string name="morphe_hide_shopping_links_title">Sakrij linkove za kupovinu</string>
-  <string name="morphe_hide_youtube_premium_promotions_title">Sakrij promocije za YouTube Premium</string>
-  <!-- ad.video.videoAdsPatch -->
   <string name="morphe_hide_video_ads_title">Sakrij video oglase</string>
+  <string name="morphe_hide_youtube_premium_promotions_title">Sakrij promocije za YouTube Premium</string>
   <!-- interaction.doubletap.doubleTapLengthPatch -->
   <!-- interaction.copyvideolink.copyVideoLinkButtonPatch -->
   <string name="morphe_share_copy_link_button_success">Link kopiran u privremenu memoriju</string>
@@ -283,23 +278,12 @@ Ograničenja:
   <string name="morphe_disable_chapter_skip_double_tap_title">Onemogući preskakanje poglavlja dvostrukim dodirom</string>
   <string name="morphe_disable_chapter_skip_double_tap_summary">Onemogućava dvostruki dodir sa dva prsta koji preskače poglavlja, što se može slučajno aktivirati jednim prstom</string>
   <!-- interaction.downloads.downloadsPatch -->
-  <string name="morphe_external_downloader_screen_title">Spoljna preuzimanja</string>
-  <string name="morphe_external_downloader_screen_summary">Preuzimaj video snimke pomoću aplikacija za preuzimanje trećih strana</string>
+  <string name="morphe_external_downloader_screen_summary">Preuzmite video snimke, podkaste ili pesme pomoću aplikacija za preuzimanje trećih strana</string>
   <string name="morphe_external_downloader_title">Prikaži dugme za spoljno preuzimanje</string>
   <string name="morphe_external_downloader_summary">Prikazuje preklapajući dugme u plejeru videa koje otvara tvoju aplikaciju za preuzimanje</string>
   <!-- 'Download action button' should match the language used in 'morphe_hide_download_button_title'. -->
   <string name="morphe_external_downloader_action_button_title">Zameni dugme radnje „Preuzmi”</string>
   <string name="morphe_external_downloader_action_button_summary">Zamenjuje ugrađenu funkciju za preuzimanje na YouTube-u tvojom aplikacijom za preuzimanje</string>
-  <string name="morphe_external_downloader_name_title">Naziv paketa programa za preuzimanje</string>
-  <string name="morphe_external_downloader_name_summary">Naziv paketa vašeg instaliranog spoljnog programa za preuzimanje</string>
-  <string name="morphe_external_downloader_other_item_hint">Unesite naziv paketa</string>
-  <string name="morphe_external_downloader_other_item">Ostalo</string>
-  <string name="morphe_external_downloader_not_found_title">Aplikacija nije instalirana</string>
-  <string name="morphe_external_downloader_not_installed_warning">%s nije instaliran. Instalirajte ga.</string>
-  <string name="morphe_external_downloader_package_not_found_warning">"Nije pronađena instalirana aplikacija sa nazivom paketa: %s
-
-Proverite da li je naziv paketa ispravan i da li je aplikacija instalirana"</string>
-  <string name="morphe_external_downloader_empty_warning">Naziv paketa ne može biti prazan</string>
   <!-- video.voiceovertranslation.voiceOverTranslationPatch -->
   <string name="morphe_vot_screen_title">Prevod sinhronizovane titlova</string>
   <string name="morphe_vot_screen_summary">Učita titlove iz videa i izgovara ih pomoću ugrađenog pretvarača teksta u govor, sinhronizovano sa reprodukcijom</string>
@@ -434,7 +418,7 @@ Napomena: Možda neće raditi na direktnim prenosima"</string>
   <!-- interaction.seekbar.disablePreciseSeekingGesturePatch -->
   <string name="morphe_disable_precise_seeking_gesture_title">Onemogući pokret preciznog premotavanja</string>
   <string name="morphe_disable_precise_seeking_gesture_summary">Onemogućava precizan način podešavanja koji se aktivira kada povučete traku za podešavanje</string>
-  <!-- interaction.seekbar.livestreamDvrPatch -->
+  <!-- interaction.seekbar.livestreamDVRPatch -->
   <string name="morphe_livestream_dvr_title">Uključi livestream DVR</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
   <string name="morphe_livestream_dvr_summary">"Omogućava preskakanje na svim direktnim prenosima, čak i na onima koji normalno to ograničavaju
@@ -751,7 +735,6 @@ Da biste prikazali meni 'Audio Track', promenite 'Spoof video streams' u 'Androi
   <!-- YouTube may no longer use this feature and this setting may be obsolete. -->
   <string name="morphe_hide_shorts_like_fountain_title">Sakrij animaciju dugmeta „Sviđanje”</string>
   <string name="morphe_hide_shorts_like_button_title">Sakrij dugme „Sviđanje”</string>
-  <string name="morphe_hide_shorts_dislike_button_title">Sakrij dugme „Nesviđanje”</string>
   <string name="morphe_hide_shorts_comments_button_title">Sakrij dugme „Komentari”</string>
   <!-- 'Share' should be translated using the same localized wording YouTube displays for the button. -->
   <string name="morphe_hide_shorts_share_button_title">Sakrij dugme „Deli”</string>
@@ -813,8 +796,6 @@ Postavke → Reprodukcija (ili Automatsko puštanje) → Automatski pusti slede�
   <!-- Video likes have been set to hidden by the video uploader. -->
   <string name="morphe_ryd_video_likes_hidden_by_video_owner">Skriveno od strane vlasnika</string>
   <string name="morphe_ryd_enabled_title">Omogući Return YouTube Dislike</string>
-  <string name="morphe_ryd_shorts_title">Prikaži nesviđanja na Shorts videima</string>
-  <string name="morphe_ryd_shorts_summary">Ograničenje: Lajkovi možda neće biti prikazani u načinu rada bez identiteta</string>
   <string name="morphe_ryd_dislike_percentage_title">Prikaži lajkove kao procenat</string>
   <string name="morphe_ryd_dislike_percentage_summary">Prikazuje lajkove kao procenat lajkova umesto broja</string>
   <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
@@ -869,9 +850,9 @@ Izgled za automobil
 • Stara traka sa akcijama videa nije smanjena"</string>
   <string name="morphe_tablet_layout_in_player_title">Omogući izgled za tablet u plejeru</string>
   <!-- "Restore old video action bar" must be translated the same as morphe_restore_old_video_action_bar_title -->
-  <string name="morphe_tablet_layout_in_player_summary">"Vraća stari izgled plejera
+  <string name="morphe_tablet_layout_in_player_summary">"Vraća stari raspored plejera
 
-Ograničenja: Ako je opcija \"Vrati staru traku sa akcijama za video\" isključena, preklapanje \"Još videa\" možda neće biti dostupno"</string>
+Ograničenje: Ako je \"Vrati staru traku sa akcijama za video\" isključen, prekrivanje \"Više video zapisa\" možda neće biti dostupno"</string>
   <!-- layout.spoofappversion.spoofAppVersionPatch -->
   <string name="morphe_spoof_app_version_title">Lažirana verzija aplikacije</string>
   <string name="morphe_spoof_app_version_summary">Prevara server da misli da koristiš stariju verziju aplikacije kako bi povratio legacy UI funkcije</string>
@@ -950,6 +931,10 @@ Ako se kasnije isključi, preporučuje se da izbrišete podatke aplikacije da bi
   <string name="morphe_miniplayer_disable_drag_and_drop_summary">Sprečava povlačenje smanjenog plejera u različite uglove ekrana</string>
   <string name="morphe_miniplayer_disable_horizontal_drag_title">Onemogući pokret horizontalnog prevlačenja</string>
   <string name="morphe_miniplayer_disable_horizontal_drag_summary">Sprečava zatvaranje mini plejera horizontalnim prevlačenjem sa ekrana</string>
+  <string name="morphe_miniplayer_disable_horizontal_drag_playback_title">Pauzirajte reprodukciju horizontalnim povlačenjem</string>
+  <string name="morphe_miniplayer_disable_horizontal_drag_playback_summary">Reprodukcija će se pauzirati kada se mini plejer pomeri van ekrana</string>
+  <string name="morphe_miniplayer_disable_horizontal_reposition_title">Zapamtite položaj povlačenja</string>
+  <string name="morphe_miniplayer_disable_horizontal_reposition_summary">Povlačenjem mini plejera van ekrana sačuvaće se njegovo korisničko sučelje</string>
   <string name="morphe_miniplayer_hide_overlay_buttons_title">Sakrij dugmad preklopa</string>
   <string name="morphe_miniplayer_width_dip_title">Podrazumevana veličina</string>
   <string name="morphe_miniplayer_width_dip_summary">Postavi početnu veličinu na ekranu, u pikselima</string>
@@ -1057,10 +1042,10 @@ Ako se kasnije isključi, preporučuje se da izbrišete podatke aplikacije da bi
   <string name="morphe_remember_shorts_quality_last_selected_summary">Primena ručne selekcije kvaliteta na sve buduće Shorts</string>
   <string name="morphe_shorts_quality_default_wifi_title">Podrazumevani kvalitet Shorts videa na Wi-Fi mreži</string>
   <string name="morphe_shorts_quality_default_mobile_title">Podrazumevani kvalitet Shorts videa na mobilnoj mreži</string>
-  <string name="morphe_remember_video_quality_mobile">mobilnoj mreži</string>
-  <string name="morphe_remember_video_quality_wifi">Wi-Fi mreži</string>
-  <string name="morphe_remember_video_quality_toast">Kvalitet na %1$s promenjen na: %2$s</string>
-  <string name="morphe_remember_video_quality_toast_shorts">Kvalitet Shorts videa na %1$s promenjen na: %2$s</string>
+  <string name="morphe_remember_video_quality_toast_mobile">Kvalitet na mobilnom je promenjen na: %s</string>
+  <string name="morphe_remember_video_quality_toast_wifi">Kvalitet na Wi-Fi mreži je promenjen na: %s</string>
+  <string name="morphe_remember_video_quality_toast_shorts_mobile">Kvalitet Shorts videa na mobilnom je promenjen na: %s</string>
+  <string name="morphe_remember_video_quality_toast_shorts_wifi">Kvalitet Shorts videa na Wi-Fi mreži je promenjen na: %s</string>
   <!-- video.speed.button.playbackSpeedButtonPatch -->
   <string name="morphe_playback_speed_dialog_button_title">Prikaži dugme za brzinu reprodukcije</string>
   <string name="morphe_playback_speed_dialog_button_summary">Dodirnite i zadržite da biste vratili brzinu na podrazumevanu</string>
@@ -1101,13 +1086,14 @@ Ograničenja:
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
   <string name="morphe_force_avc_codec_not_available">Da biste koristili ovu funkciju, postavite opciju „Lažirani video strimovi” na Android VR ili Android Studio</string>
   <!-- video.quality.advancedVideoQualityMenuPatch -->
-  <string name="morphe_advanced_video_quality_menu_title">Prikaži napredni meni kvaliteta videa</string>
+  <string name="morphe_advanced_video_quality_menu_title">Otvorite meni kvaliteta \"Napredno\"</string>
+  <string name="morphe_advanced_video_quality_menu_summary">Preskače meni za izbor kvaliteta i direktno otvara meni kvaliteta \"Napredno\"</string>
   <!-- video.quality.hidePremiumVideoQualityPatch -->
   <string name="morphe_hide_premium_video_quality_title">Sakrij opcije Premium kvaliteta</string>
   <!-- video.quality.prioritizeVideoQualityPatch -->
   <string name="morphe_prioritize_video_quality_title">Prioritiziraj kvalitet videoa</string>
-  <string name="morphe_prioritize_video_quality_summary">Prioritizuje najviši kvalitet videa u odnosu na efikasnost kodeka</string>
-  <!-- misc.fix.playback.spoofVideoStreamsPatch -->
+  <string name="morphe_prioritize_video_quality_summary">Prioritet daje najvišem dostupnom kvalitetu videa u odnosu na efikasnost kodeka</string>
+  <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_av1_title">Dozvoli Android VR AV1</string>
   <string name="morphe_spoof_video_streams_av1_summary">Omogućava softversko dekodiranje AV1 kada se koristi Android VR klijent</string>
   <string name="morphe_spoof_video_streams_av1_user_dialog_message">"Omogućavanje ove opcije može koristiti softversko dekodiranje AV1.
@@ -1123,11 +1109,13 @@ Reprodukcija videa s AV1 može zastajkivati ili preskakati kadrove."</string>
   <string name="morphe_spoof_video_streams_about_js">• Ako deobfuskacija ne uspeva, reprodukcija može neuspeti</string>
   <!-- "Force original audio" should match the language used in 'morphe_force_original_audio_title'. -->
   <string name="morphe_spoof_video_streams_about_no_force_original_audio">• Prisiljavanje originalnog zvuka nije dostupno</string>
+  <!-- Quality refers to video quality -->
+  <string name="morphe_spoof_video_streams_about_720p_max">• Kvalitet može biti ograničen na 720p</string>
   <string name="morphe_spoof_video_streams_player_js_variant_title">Varijanta JavaScript igračnog programa</string>
   <string name="morphe_spoof_video_streams_stats_for_nerds_title">Prikaži lažiranje u statistici za znalce</string>
   <!-- misc.fix.videoactionbar.restoreOldVideoActionBarPatch -->
   <string name="morphe_restore_old_video_action_bar_title">Vraća staru traku radnji videa</string>
-  <string name="morphe_restore_old_video_action_bar_summary">"Popravlja prikazivanje lajkova i skrivanje dugmadi u traci radnji videa
+  <string name="morphe_restore_old_video_action_bar_summary">"Popravlja prikaz dislajkova i onemogućava sakrivanje dugmadi za akcije sa video zapisom
 
-Ograničenja: Vraća se na stari stil prekrivanja 'Više videa'"</string>
+Ograničenje: Vraća se na stari stil prekrivanja \"Više video zapisa\""</string>
 </resources>

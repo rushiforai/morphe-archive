@@ -20,6 +20,19 @@ Second \"item\" text"</string>
   <string name="morphe_restart_first_run">Mulai ulang untuk menyelesaikan penyiapan</string>
   <!-- layout.branding.baseCustomBrandingPatch -->
   <string name="morphe_custom_branding_name_title">Nama aplikasi</string>
+  <!-- interaction.downloads.downloadsPatch -->
+  <string name="morphe_external_downloader_screen_title">Unduhan eksternal</string>
+  <string name="morphe_external_downloader_name_title">Nama paket pengunduh</string>
+  <string name="morphe_external_downloader_name_summary">Nama paket aplikasi pengunduh eksternal yang terpasang</string>
+  <string name="morphe_external_downloader_flyout_button_title">Ganti tombol feed/pencarian flyout</string>
+  <string name="morphe_external_downloader_other_item_hint">Masukkan nama paket</string>
+  <string name="morphe_external_downloader_other_item">Lainnya</string>
+  <string name="morphe_external_downloader_not_found_title">Aplikasi tidak terpasang</string>
+  <string name="morphe_external_downloader_not_installed_warning">%s belum dipasang. Pasang dulu.</string>
+  <string name="morphe_external_downloader_package_not_found_warning">"Tidak dapat menemukan aplikasi terpasang dengan nama paket: %s
+
+Pastikan nama paket benar dan aplikasi sudah terpasang"</string>
+  <string name="morphe_external_downloader_empty_warning">Nama paket tidak boleh kosong</string>
   <!-- Translations of this should be identical to morphe_custom_branding_icon_entry_7 -->
   <string name="morphe_custom_branding_name_entry_5">Khusus</string>
   <string name="morphe_custom_branding_icon_title">Ikon aplikasi</string>
@@ -147,4 +160,12 @@ Pemutaran akan gagal jika hash pemutar JavaScript sudah kedaluwarsa."</string>
 Ini dapat membantu mengidentifikasi komponen saat membuat penyaring khusus.
 
 Namun, mengaktifkan ini juga akan mencatat beberapa data pengguna seperti alamat IP Anda."</string>
+  <!-- Custom filter -->
+  <string name="morphe_custom_filter_screen_title">Penyaring khusus</string>
+  <string name="morphe_custom_filter_screen_summary">Konfigurasikan penyaring khusus untuk menyembunyikan komponen apa pun</string>
+  <string name="morphe_custom_filter_title">Aktifkan penyaring khusus</string>
+  <string name="morphe_custom_filter_strings_title">Penyaring khusus</string>
+  <!-- 'Component path builder strings' is the technical name for identifying the Litho UI layout items to hide. This is an advanced feature and most users will never use this. -->
+  <string name="morphe_custom_filter_strings_summary">Daftar string pembuat jalur komponen yang akan disaring, dipisahkan oleh baris baru</string>
+  <string name="morphe_custom_filter_toast_invalid_syntax">Penyaring khusus tidak sah: %s</string>
 </resources>

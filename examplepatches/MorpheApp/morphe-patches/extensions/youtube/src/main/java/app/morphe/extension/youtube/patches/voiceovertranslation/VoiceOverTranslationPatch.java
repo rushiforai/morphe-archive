@@ -2,7 +2,7 @@
  * Copyright 2026 Morphe.
  * https://github.com/MorpheApp/morphe-patches
  *
- * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to this code.
+ * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
 
 package app.morphe.extension.youtube.patches.voiceovertranslation;
@@ -298,7 +298,7 @@ public class VoiceOverTranslationPatch {
                 // Small jumps within the same segment are handled by speak()'s startTime logic.
                 Logger.printDebug(() -> "videoTimeChanged jump detected: " + timeSinceLastUpdate + "ms");
                 wasExplicitSeek = true;
-                stopTts();
+                stopTtsPreservingMultiplier();
                 lastSpokenIndex = -1;
                 // Re-target translation at the new position so a seek into an untranslated region
                 // is translated next instead of waiting for the sequential dispatch to reach it.
@@ -761,7 +761,7 @@ public class VoiceOverTranslationPatch {
         }
 
         if (!insideSameSegment) {
-            stopTts();
+            stopTtsPreservingMultiplier();
             lastSpokenIndex = -1;
         }
     }
@@ -872,6 +872,20 @@ public class VoiceOverTranslationPatch {
     }
 
     private static void stopTts() {
+        stopTtsInternal();
+        VotOriginalVolumePatch.clearAudioMultiplier();
+    }
+
+    /**
+     * Stops TTS while keeping the current ducking multiplier. Seek handlers use this so the
+     * old AudioTrack (still draining buffered samples) is not briefly pushed to 100% between
+     * the multiplier clear and the next speak() reapplying it - audible as a click.
+     */
+    private static void stopTtsPreservingMultiplier() {
+        stopTtsInternal();
+    }
+
+    private static void stopTtsInternal() {
         Utils.verifyOnMainThread();
         Logger.printDebug(() -> "stopTts");
         isTestSpeaking = false;
@@ -882,7 +896,6 @@ public class VoiceOverTranslationPatch {
         scheduledCheckForSegmentStartMs = -1;
         currentTtsBaseRate = 1.0f;
         lastAppliedPlaybackSpeed = -1f;
-        VotOriginalVolumePatch.clearAudioMultiplier();
     }
 
     /**

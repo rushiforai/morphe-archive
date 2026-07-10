@@ -20,6 +20,19 @@ Second \"item\" text"</string>
   <string name="morphe_restart_first_run">Restartovat pro dokončení nastavení</string>
   <!-- layout.branding.baseCustomBrandingPatch -->
   <string name="morphe_custom_branding_name_title">Název aplikace</string>
+  <!-- interaction.downloads.downloadsPatch -->
+  <string name="morphe_external_downloader_screen_title">Externí stahování</string>
+  <string name="morphe_external_downloader_name_title">Název balíčku stahovače</string>
+  <string name="morphe_external_downloader_name_summary">Název balíčku vaší nainstalované externí aplikace pro stahování</string>
+  <string name="morphe_external_downloader_flyout_button_title">Přepsat tlačítko nabídky kanálu/vyhledávání</string>
+  <string name="morphe_external_downloader_other_item_hint">Zadejte název balíčku</string>
+  <string name="morphe_external_downloader_other_item">Jiné</string>
+  <string name="morphe_external_downloader_not_found_title">Aplikace není nainstalována</string>
+  <string name="morphe_external_downloader_not_installed_warning">Aplikace %s není nainstalována. Prosím, nainstalujte ji.</string>
+  <string name="morphe_external_downloader_package_not_found_warning">"Nepodařilo se najít nainstalovanou aplikaci s názvem balíčku: %s
+
+Ověřte, zda je název balíčku správný a zda je aplikace nainstalována"</string>
+  <string name="morphe_external_downloader_empty_warning">Název balíčku nemůže být prázdný</string>
   <!-- Translations of this should be identical to morphe_custom_branding_icon_entry_7 -->
   <string name="morphe_custom_branding_name_entry_5">Vlastní</string>
   <string name="morphe_custom_branding_icon_title">Ikona aplikace</string>
@@ -147,4 +160,12 @@ Přehrávání se nezdaří, pokud je hash JavaScriptu přehrávače zastaralý.
 To může pomoci identifikovat komponenty při vytváření vlastních filtrů.
 
 Povolením této možnosti se však budou zaznamenávat i některá uživatelská data, jako je vaše IP adresa."</string>
+  <!-- Custom filter -->
+  <string name="morphe_custom_filter_screen_title">Vlastní filtr</string>
+  <string name="morphe_custom_filter_screen_summary">Konfigurujte vlastní filtry pro skrytí libovolné komponenty</string>
+  <string name="morphe_custom_filter_title">Povolit vlastní filtr</string>
+  <string name="morphe_custom_filter_strings_title">Vlastní filtr</string>
+  <!-- 'Component path builder strings' is the technical name for identifying the Litho UI layout items to hide. This is an advanced feature and most users will never use this. -->
+  <string name="morphe_custom_filter_strings_summary">Seznam řetězců builderu cest komponent oddělených novými řádky</string>
+  <string name="morphe_custom_filter_toast_invalid_syntax">Neplatný vlastní filtr: %s</string>
 </resources>

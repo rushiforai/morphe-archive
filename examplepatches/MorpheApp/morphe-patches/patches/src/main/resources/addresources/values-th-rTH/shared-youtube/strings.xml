@@ -20,6 +20,19 @@ Second \"item\" text"</string>
   <string name="morphe_restart_first_run">รีสตาร์ทเพื่อดำเนินการตั้งค่าให้เสร็จสิ้น</string>
   <!-- layout.branding.baseCustomBrandingPatch -->
   <string name="morphe_custom_branding_name_title">ชื่อแอป</string>
+  <!-- interaction.downloads.downloadsPatch -->
+  <string name="morphe_external_downloader_screen_title">การดาวน์โหลดภายนอก</string>
+  <string name="morphe_external_downloader_name_title">ชื่อแพ็คเกจโปรแกรมดาวน์โหลด</string>
+  <string name="morphe_external_downloader_name_summary">ชื่อแพ็คเกจของแอปดาวน์โหลดภายนอกที่คุณติดตั้งไว้</string>
+  <string name="morphe_external_downloader_flyout_button_title">แทนที่ปุ่มการเปิด/ปิดฟีด/การค้นหา</string>
+  <string name="morphe_external_downloader_other_item_hint">ป้อนชื่อแพ็คเกจ</string>
+  <string name="morphe_external_downloader_other_item">อื่น ๆ</string>
+  <string name="morphe_external_downloader_not_found_title">ไม่พบแอป</string>
+  <string name="morphe_external_downloader_not_installed_warning">ไม่ได้ติดตั้ง %s โปรดติดตั้ง</string>
+  <string name="morphe_external_downloader_package_not_found_warning">"ไม่พบแอปที่ติดตั้งด้วยชื่อแพ็คเกจ: %s
+
+ตรวจสอบว่าชื่อแพ็คเกจถูกต้องและแอปได้ถูกติดตั้งแล้ว"</string>
+  <string name="morphe_external_downloader_empty_warning">ชื่อแพ็คเกจต้องไม่ว่างเปล่า</string>
   <!-- Translations of this should be identical to morphe_custom_branding_icon_entry_7 -->
   <string name="morphe_custom_branding_name_entry_5">กำหนดเอง</string>
   <string name="morphe_custom_branding_icon_title">ไอคอนแอป</string>
@@ -147,4 +160,12 @@ Second \"item\" text"</string>
 ซึ่งจะช่วยระบุส่วนประกอบเมื่อสร้างตัวกรองที่กำหนดเองได้
 
 อย่างไรก็ตาม การเปิดใช้งานนี้จะบันทึกข้อมูลผู้ใช้บางอย่าง เช่น ที่อยู่ IP ของคุณด้วย"</string>
+  <!-- Custom filter -->
+  <string name="morphe_custom_filter_screen_title">ตัวกรองแบบกำหนดเอง</string>
+  <string name="morphe_custom_filter_screen_summary">กำหนดค่าตัวกรองแบบกำหนดเองเพื่อซ่อนส่วนประกอบใดๆ</string>
+  <string name="morphe_custom_filter_title">เปิดใช้งานตัวกรองแบบกำหนดเอง</string>
+  <string name="morphe_custom_filter_strings_title">ตัวกรองแบบกำหนดเอง</string>
+  <!-- 'Component path builder strings' is the technical name for identifying the Litho UI layout items to hide. This is an advanced feature and most users will never use this. -->
+  <string name="morphe_custom_filter_strings_summary">รายการสตริงตัวสร้างเส้นทางส่วนประกอบที่จะกรอง คั่นด้วยบรรทัดใหม่</string>
+  <string name="morphe_custom_filter_toast_invalid_syntax">ตัวกรองแบบกำหนดเองไม่ถูกต้อง: %s</string>
 </resources>

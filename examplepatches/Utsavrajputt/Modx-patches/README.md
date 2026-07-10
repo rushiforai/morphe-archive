@@ -8,7 +8,7 @@
 
 **Clean&nbsp;•&nbsp;Open&nbsp;Source&nbsp;•&nbsp;Community&nbsp;Driven**
 
-Maintained by **Utsav Rajputt**
+Maintained by **Utsav Rajput**
 
 </div>
 
@@ -40,7 +40,7 @@ Whether you're learning how Android patch projects are organized or looking to c
 ## 🩹 Patches List
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.2.2](https://github.com/Utsavrajputt/Modx-patches/releases/tag/v1.2.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;3 patches total
+> **[v1.3.2](https://github.com/Utsavrajputt/Modx-patches/releases/tag/v1.3.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;3 patches total
 <details open>
 <summary>📦 MX Player&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
@@ -54,7 +54,7 @@ Whether you're learning how Android patch projects are organized or looking to c
 |----------|----------------|-----------|
 | [Disable video ads](#disable-video-ads) | Disables video ads by patching the native library. |  |
 | [Hide Video/OTT tab](#hide-video-ott-tab) | Hides the Video/OTT download tab from the home screen by forcing its visibility flag to always report disabled. |  |
-| [Redirect avatar click to Settings](#redirect-avatar-click-to-settings) | Makes the top-right avatar open Settings directly instead of the Me/Profile tab. |  |
+| [Repurpose Search/Games tabs to Tools/About](#repurpose-search-games-tabs-to-tools-about) | Redirects the Search tab to the Modx Tools screen and the Games tab to the Modx About screen. |  |
 
 </details>
 

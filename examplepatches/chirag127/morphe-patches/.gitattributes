@@ -1,0 +1,25 @@
+#
+# Default: all text files use LF line endings in the repo.
+# Windows checkouts get CRLF locally via core.autocrlf; commits go back as LF.
+# Silences the "LF will be replaced by CRLF" warning on Windows commits.
+* text=auto eol=lf
+
+# Linux start script must use lf regardless
+/gradlew        text eol=lf
+
+# Windows script files must use crlf
+*.bat           text eol=crlf
+*.cmd           text eol=crlf
+
+# Binary — never normalize
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.mpp binary
+*.mpe binary
+*.apk binary
+*.jar binary
+*.class binary
+*.dex binary

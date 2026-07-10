@@ -2,7 +2,7 @@
  * Copyright 2026 Morphe.
  * https://github.com/MorpheApp/morphe-patches
  *
- * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to Morphe contributions.
+ * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  */
 
 package app.morphe.extension.music.shared;
@@ -31,6 +31,21 @@ public final class VideoInformation {
         videoTime = -1;
         videoLength = 0;
         Logger.printDebug(() -> "VideoInformation: initialized");
+    }
+
+    /** Injection point. */
+    public static void initializeMdx() {
+        Logger.printDebug(() -> "VideoInformation: initialized MDX player");
+    }
+
+    /**
+     * Id of the current video playing.
+     *
+     * @return The id of the video. Empty string if not set yet.
+     */
+    @NonNull
+    public static String getVideoId() {
+        return videoId;
     }
 
     /** Injection point. Stored for downstream patches; SponsorBlock routes its own id hook. */

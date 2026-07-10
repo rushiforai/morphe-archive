@@ -94,9 +94,13 @@ Second \"item\" text"</string>
   <string name="morphe_hide_surveys_title">Скриј ги анкетите</string>
   <string name="morphe_hide_surveys_summary">Ги крие анкетите и поттикнувањата за прецизноста на препораките за фид</string>
   <string name="morphe_hide_ticket_shelf_title">Скриј ја полицата за билети</string>
+  <string name="morphe_hide_upload_time_title">Скриј го времето на објавување</string>
+  <!-- Translations should match the language used in 'morphe_hide_view_count_summary'. -->
   <!-- 'People also watched' and 'You might also like' should be translated using the same localized wording YouTube displays for the label. -->
   <string name="morphe_hide_video_recommendation_labels_title">Скриј ги ознаките за препорачани видеа</string>
   <string name="morphe_hide_video_recommendation_labels_summary">Прикриј ознаки „Видео што другите исто така го гледаа“ и „Можеби и вас ќе ве интересира“ во резултатите од пребарувањето</string>
+  <string name="morphe_hide_view_count_title">Скриј ја бројката на прегледи</string>
+  <!-- Translations should match the language used in 'morphe_hide_upload_time_summary'. -->
   <string name="morphe_hide_web_search_results_title">Скриј резултати од пребарување на интернет</string>
   <string name="morphe_hide_web_search_results_summary">Ја крие секцијата „Резултат од интернет“ од резултатите од пребарувањето</string>
   <string name="morphe_hide_you_may_like_section_title">Скриј дел „Можеби ќе ти се допадне“</string>
@@ -150,11 +154,6 @@ Second \"item\" text"</string>
   <string name="morphe_hide_transcript_section_title">Прикриј дел „Транскрипт“</string>
   <string name="morphe_hide_video_details_section_title">Прикриј дел „Детали за видеото“</string>
   <string name="morphe_hide_filter_bar_screen_title">Трка од филтри</string>
-  <string name="morphe_hide_filter_bar_screen_summary">Изберете ги компонентите на кои ќе им се примени скривање преку прилагодени филтри</string>
-  <string name="morphe_hide_filter_bar_feed_in_feed_title">Скриј во фидови</string>
-  <string name="morphe_hide_filter_bar_feed_in_related_videos_title">Скриј во поврзани видеа</string>
-  <string name="morphe_hide_filter_bar_feed_in_search_title">Скриј во резултати од пребарување</string>
-  <string name="morphe_hide_filter_bar_feed_in_history_title">Скриј во историја на гледање</string>
   <string name="morphe_channel_screen_title">Страница на канал</string>
   <string name="morphe_channel_screen_summary">Изберете ги компонентите кои ќе се појавуваат на страницата со канал</string>
   <string name="morphe_hide_channel_tab_title">Вклучи филтер за картичката Канал</string>
@@ -192,19 +191,6 @@ Second \"item\" text"</string>
   <string name="morphe_hide_comments_preview_comment_title">Скриј коментар за преглед</string>
   <string name="morphe_hide_comments_preview_comment_summary">Прикри го прегледот на коментари пред отворање на целиот дел со коментари</string>
   <string name="morphe_hide_comments_thanks_button_title">Скриј го копчето „Благодарам“</string>
-  <string name="morphe_sanitize_comments_category_bar_title">Почисти ја лентата за категории</string>
-  <string name="morphe_sanitize_comments_category_bar_summary">Прикри ги сите опции за сортирање на коментарите освен „Најдобри“ и „Најнови“</string>
-  <string name="morphe_custom_filter_screen_title">Прилагоден филтер</string>
-  <string name="morphe_custom_filter_screen_summary">Конфигурирајте прилагодени филтри за да скриете која било компонента</string>
-  <string name="morphe_custom_filter_title">Овозможи прилагоден филтер</string>
-  <string name="morphe_custom_filter_strings_title">Прилагоден филтер</string>
-  <!-- 'Component path builder strings' is the technical name for identifying the Litho UI layout items to hide. This is an advanced feature and most users will never use this. -->
-  <string name="morphe_custom_filter_strings_summary">Список на низаи за креирање на компонента за филтрирање, одделени со нови редови</string>
-  <string name="morphe_custom_filter_toast_invalid_syntax">Невалиден прилагоден филтер: %s</string>
-  <string name="morphe_hide_view_count_title">Скриј ја бројката на прегледи</string>
-  <!-- Translations should match the language used in 'morphe_hide_upload_time_summary'. -->
-  <string name="morphe_hide_upload_time_title">Скриј го времето на објавување</string>
-  <!-- Translations should match the language used in 'morphe_hide_view_count_summary'. -->
   <string name="morphe_hide_keyword_content_screen_title">Филтер за клучни зборови</string>
   <string name="morphe_hide_keyword_content_screen_summary">Изберете специфични зборови или фрази за да скриете видеа во feed и пребарување</string>
   <string name="morphe_hide_keyword_content_home_title">Скриј видеа во почетна страница со клучни зборови</string>
@@ -228,7 +214,7 @@ Second \"item\" text"</string>
   <string name="morphe_hide_keyword_toast_invalid_conflicting">Клучната реч има конфликтни декларации: %s</string>
   <string name="morphe_hide_keyword_toast_invalid_length">Клучната реч е премногу кратка и бара наводници: %s</string>
   <string name="morphe_hide_keyword_toast_invalid_broad">Клучната реч ќе скрие сите видеа: %s</string>
-  <!-- ad.general.hideAdsPatch -->
+  <!-- ad.hideAdsPatch -->
   <string name="morphe_hide_creator_store_shelf_title">Скриј полица со продажна продавница</string>
   <string name="morphe_hide_end_screen_store_banner_title">Скриј банер од продажна продавница на крајот од екранот</string>
   <string name="morphe_hide_general_ads_title">Скриј општи реклами</string>
@@ -238,9 +224,8 @@ Second \"item\" text"</string>
   <string name="morphe_hide_player_popup_ads_title">Скриј реклами во прозорецот на плеер</string>
   <string name="morphe_hide_self_sponsor_ads_title">Скриј картички за само-спонзорирани реклами</string>
   <string name="morphe_hide_shopping_links_title">Скриј линкови за купување</string>
-  <string name="morphe_hide_youtube_premium_promotions_title">Скриј промоции за YouTube Premium</string>
-  <!-- ad.video.videoAdsPatch -->
   <string name="morphe_hide_video_ads_title">Скриј реклами во видеа</string>
+  <string name="morphe_hide_youtube_premium_promotions_title">Скриј промоции за YouTube Premium</string>
   <!-- interaction.doubletap.doubleTapLengthPatch -->
   <!-- interaction.copyvideolink.copyVideoLinkButtonPatch -->
   <string name="morphe_copy_video_link_with_timestamp_button_title">Копирајте го временскиот печат стандардно</string>
@@ -252,23 +237,11 @@ Second \"item\" text"</string>
   <string name="morphe_disable_chapter_skip_double_tap_title">Изберете ја надворешната апликација што ќе ги обработува вашите преземања</string>
   <string name="morphe_disable_chapter_skip_double_tap_summary">Ја исклучува двојната допренска гестикулација со два прста што ги прескокнува поглавјата, која може случајно да се активира со еден прст</string>
   <!-- interaction.downloads.downloadsPatch -->
-  <string name="morphe_external_downloader_screen_title">Преземања од надворешни извори</string>
-  <string name="morphe_external_downloader_screen_summary">Преземајте видеа со апликации за преземање од трети страни</string>
   <string name="morphe_external_downloader_title">Прикажи копче за преземање од надворешен извор</string>
   <string name="morphe_external_downloader_summary">Покажува копче на преклоп во видео плеер што ја отвора вашата апликација за преземање од трета страна</string>
   <!-- 'Download action button' should match the language used in 'morphe_hide_download_button_title'. -->
   <string name="morphe_external_downloader_action_button_title">Заменете го копчето за преземање</string>
   <string name="morphe_external_downloader_action_button_summary">Ја заменува вградената функција за преземање на YouTube со вашата апликација за преземање од трета страна</string>
-  <string name="morphe_external_downloader_name_title">Име на пакетот на преземачот</string>
-  <string name="morphe_external_downloader_name_summary">Име на пакет на инсталирана апликација за преземање</string>
-  <string name="morphe_external_downloader_other_item_hint">Внесете го името на пакетот</string>
-  <string name="morphe_external_downloader_other_item">Други</string>
-  <string name="morphe_external_downloader_not_found_title">Апликација не е инсталирана</string>
-  <string name="morphe_external_downloader_not_installed_warning">%s не е инсталирана. Ве молиме инсталирајте ја.</string>
-  <string name="morphe_external_downloader_package_not_found_warning">"Не може да се пронајде инсталирана апликација со име на пакет: %s
-
-Проверете дали името на пакетот е правилно и дали апликацијата е инсталирана"</string>
-  <string name="morphe_external_downloader_empty_warning">Името на пакетот не може да биде празно</string>
   <!-- video.voiceovertranslation.voiceOverTranslationPatch -->
   <string name="morphe_vot_openrouter_model_custom">По нарачка</string>
   <!-- %s is dollar cost, e.g. $0.10 per 100 hours -->
@@ -322,7 +295,7 @@ Second \"item\" text"</string>
   <!-- interaction.seekbar.disablePreciseSeekingGesturePatch -->
   <string name="morphe_disable_precise_seeking_gesture_title">Оневозможете гест за прецизно премотување</string>
   <string name="morphe_disable_precise_seeking_gesture_summary">Ја исклучува прецизната гестикулација за премотување која се активира кога ќе го повлечете лентата за премотување</string>
-  <!-- interaction.seekbar.livestreamDvrPatch -->
+  <!-- interaction.seekbar.livestreamDVRPatch -->
   <string name="morphe_livestream_dvr_title">Овозможи DVR за пренос во живо</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
   <string name="morphe_expand_livestream_dvr_duration_title">Прошири ја трајноста на DVR за пренос во живо</string>
@@ -628,7 +601,6 @@ Second \"item\" text"</string>
   <!-- YouTube may no longer use this feature and this setting may be obsolete. -->
   <string name="morphe_hide_shorts_like_fountain_title">Скриј анимација на фонтаната „Допада ми се“</string>
   <string name="morphe_hide_shorts_like_button_title">Скриј копче „Допада ми се“</string>
-  <string name="morphe_hide_shorts_dislike_button_title">Скриј копче „Не ми се допаѓа“</string>
   <string name="morphe_hide_shorts_comments_button_title">Скриј копче „Коментари“</string>
   <!-- 'Share' should be translated using the same localized wording YouTube displays for the button. -->
   <string name="morphe_hide_shorts_share_button_title">Скриј копче „Сподели“</string>
@@ -678,8 +650,6 @@ Second \"item\" text"</string>
   <!-- Video likes have been set to hidden by the video uploader. -->
   <string name="morphe_ryd_video_likes_hidden_by_video_owner">Скриено од сопственикот</string>
   <string name="morphe_ryd_enabled_title">Овозможи Return YouTube Dislike</string>
-  <string name="morphe_ryd_shorts_title">Прикажи непотфалувања на Shorts</string>
-  <string name="morphe_ryd_shorts_summary">Ограничување: Dislike можеби нема да се појавува во Incognito режим</string>
   <string name="morphe_ryd_dislike_percentage_title">Прикажи го процентот на Dislike</string>
   <string name="morphe_ryd_dislike_percentage_summary">Прикажува го процентот на Dislike наместо број</string>
   <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
@@ -893,10 +863,6 @@ Second \"item\" text"</string>
   <string name="morphe_remember_shorts_quality_last_selected_summary">Ги применува вашите мануелни избори за квалитет до сите идни Shorts</string>
   <string name="morphe_shorts_quality_default_wifi_title">Стандарден квалитет на Shorts на Wi-Fi мрежа</string>
   <string name="morphe_shorts_quality_default_mobile_title">Стандарден квалитет на Shorts на мобилна мрежа</string>
-  <string name="morphe_remember_video_quality_mobile">мобилен</string>
-  <string name="morphe_remember_video_quality_wifi">wifi</string>
-  <string name="morphe_remember_video_quality_toast">Променет стандарден квалитет на %1$s на: %2$s</string>
-  <string name="morphe_remember_video_quality_toast_shorts">Променет Shorts квалитет на %1$s на: %2$s</string>
   <!-- video.speed.button.playbackSpeedButtonPatch -->
   <string name="morphe_playback_speed_dialog_button_title">Прикажи копче за брзина на репродукција</string>
   <string name="morphe_playback_speed_dialog_button_summary">Допрете и задржете за да ја вратите брзината на стандардна</string>
@@ -928,13 +894,11 @@ Second \"item\" text"</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
   <string name="morphe_force_avc_codec_not_available">За да ја користите оваа функција, поставете го „Лажирање на видео потоци“ на Android VR или Android Studio</string>
   <!-- video.quality.advancedVideoQualityMenuPatch -->
-  <string name="morphe_advanced_video_quality_menu_title">Прикажи напредно мени за квалитет на видео</string>
   <!-- video.quality.hidePremiumVideoQualityPatch -->
   <string name="morphe_hide_premium_video_quality_title">Скриј опции за квалитет на Premium</string>
   <!-- video.quality.prioritizeVideoQualityPatch -->
   <string name="morphe_prioritize_video_quality_title">Дајте приоритет на квалитетот на видеото</string>
-  <string name="morphe_prioritize_video_quality_summary">Приоритет на најдобар квалитет на видео наместо ефикасност на кодек</string>
-  <!-- misc.fix.playback.spoofVideoStreamsPatch -->
+  <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_av1_title">Овозможи AV1 за Android VR</string>
   <string name="morphe_spoof_video_streams_av1_summary">Овозможува софтверско декодирање AV1 кога се користи клиентот Android VR</string>
   <string name="morphe_spoof_video_streams_av1_user_dialog_message">"Вклучувањето на оваа поставка може да користи софтверско декодирање на AV1.
@@ -950,6 +914,7 @@ Second \"item\" text"</string>
   <string name="morphe_spoof_video_streams_about_js">• Ако деобфускацијата не успее, репродукцијата може да не успее</string>
   <!-- "Force original audio" should match the language used in 'morphe_force_original_audio_title'. -->
   <string name="morphe_spoof_video_streams_about_no_force_original_audio">• Недостапен принуден оригинален звук</string>
+  <!-- Quality refers to video quality -->
   <string name="morphe_spoof_video_streams_player_js_variant_title">Варијанта на JavaScript на плеерот</string>
   <string name="morphe_spoof_video_streams_stats_for_nerds_title">Прикажи лажирање во Статистика за гикови</string>
   <!-- misc.fix.videoactionbar.restoreOldVideoActionBarPatch -->

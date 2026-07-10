@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.33.0",
+  "version": "1.34.0",
   "patches": [
     {
       "name": "Add to queue",
@@ -1427,6 +1427,13 @@
           ],
           "targets": [
             {
+              "version": "2026.27.0",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 28,
+              "description": null
+            },
+            {
               "version": "2026.26.0",
               "versionCodes": null,
               "isExperimental": true,
@@ -2237,6 +2244,13 @@
           ],
           "targets": [
             {
+              "version": "2026.27.0",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 28,
+              "description": null
+            },
+            {
               "version": "2026.26.0",
               "versionCodes": null,
               "isExperimental": true,
@@ -2442,6 +2456,13 @@
             "970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f"
           ],
           "targets": [
+            {
+              "version": "2026.27.0",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 28,
+              "description": null
+            },
             {
               "version": "2026.26.0",
               "versionCodes": null,
@@ -2694,6 +2715,75 @@
             },
             {
               "version": "20.21.37",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Downloads",
+      "description": "Adds support to download songs with an external downloader app using the in-app download button.",
+      "default": true,
+      "dependencies": [
+        "ResourcePatch",
+        "BytecodePatch",
+        "BytecodePatch",
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.google.android.apps.youtube.music",
+          "name": "YouTube Music",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#FF0000",
+          "signatures": [
+            "6a2f65ec694a6a632acdcb5080912a565f903d4b8d83f0eb8e44fbdf2660d8e1",
+            "a2a1ad7ba7f41dfca4514e2afeb90691719af6d0fdbed4b09bbf0ed897701ceb"
+          ],
+          "targets": [
+            {
+              "version": "9.26.51",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "9.25.50",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "9.24.51",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "9.15.51",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "8.51.51",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "7.29.52",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": 26,
@@ -3511,6 +3601,13 @@
           ],
           "targets": [
             {
+              "version": "2026.27.0",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 28,
+              "description": null
+            },
+            {
               "version": "2026.26.0",
               "versionCodes": null,
               "isExperimental": true,
@@ -3568,6 +3665,13 @@
             "970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f"
           ],
           "targets": [
+            {
+              "version": "2026.27.0",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 28,
+              "description": null
+            },
             {
               "version": "2026.26.0",
               "versionCodes": null,
@@ -3727,6 +3831,13 @@
           ],
           "targets": [
             {
+              "version": "2026.27.0",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 28,
+              "description": null
+            },
+            {
               "version": "2026.26.0",
               "versionCodes": null,
               "isExperimental": true,
@@ -3768,7 +3879,7 @@
     },
     {
       "name": "Hide ads",
-      "description": "Adds options to hide ads such as the fullscreen Premium popup and \"Get Music Premium\" label.",
+      "description": "Adds options to hide fullscreen ads, Premium promotions and video ads.",
       "default": true,
       "dependencies": [
         "BytecodePatch",
@@ -3854,6 +3965,13 @@
           ],
           "targets": [
             {
+              "version": "2026.27.0",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 28,
+              "description": null
+            },
+            {
               "version": "2026.26.0",
               "versionCodes": null,
               "isExperimental": true,
@@ -3895,12 +4013,13 @@
     },
     {
       "name": "Hide ads",
-      "description": "Adds options to remove general ads.",
+      "description": "Adds options to hide general ads, Premium promotions and video ads.",
       "default": true,
       "dependencies": [
         "ResourcePatch",
         "BytecodePatch",
         "ResourcePatch",
+        "BytecodePatch",
         "BytecodePatch",
         "BytecodePatch"
       ],
@@ -4114,73 +4233,6 @@
       "options": []
     },
     {
-      "name": "Hide category bar",
-      "description": "Adds an option to hide the category bar at the top of the homepage.",
-      "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
-      "compatiblePackages": [
-        {
-          "packageName": "com.google.android.apps.youtube.music",
-          "name": "YouTube Music",
-          "description": null,
-          "apkFileType": "APK_REQUIRED",
-          "appIconColor": "#FF0000",
-          "signatures": [
-            "6a2f65ec694a6a632acdcb5080912a565f903d4b8d83f0eb8e44fbdf2660d8e1",
-            "a2a1ad7ba7f41dfca4514e2afeb90691719af6d0fdbed4b09bbf0ed897701ceb"
-          ],
-          "targets": [
-            {
-              "version": "9.26.51",
-              "versionCodes": null,
-              "isExperimental": true,
-              "minSdk": 26,
-              "description": null
-            },
-            {
-              "version": "9.25.50",
-              "versionCodes": null,
-              "isExperimental": true,
-              "minSdk": 26,
-              "description": null
-            },
-            {
-              "version": "9.24.51",
-              "versionCodes": null,
-              "isExperimental": true,
-              "minSdk": 26,
-              "description": null
-            },
-            {
-              "version": "9.15.51",
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": 26,
-              "description": null
-            },
-            {
-              "version": "8.51.51",
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": 26,
-              "description": null
-            },
-            {
-              "version": "7.29.52",
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": 26,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
       "name": "Hide communities shelf",
       "description": "Adds an option to hide the related or suggested communities shelf in subreddits.",
       "default": true,
@@ -4199,6 +4251,13 @@
             "970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f"
           ],
           "targets": [
+            {
+              "version": "2026.27.0",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 28,
+              "description": null
+            },
             {
               "version": "2026.26.0",
               "versionCodes": null,
@@ -4389,6 +4448,142 @@
       "options": []
     },
     {
+      "name": "Hide filter bar",
+      "description": "Adds an option to hide the filter bar at the top of the homepage.",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch",
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.google.android.apps.youtube.music",
+          "name": "YouTube Music",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#FF0000",
+          "signatures": [
+            "6a2f65ec694a6a632acdcb5080912a565f903d4b8d83f0eb8e44fbdf2660d8e1",
+            "a2a1ad7ba7f41dfca4514e2afeb90691719af6d0fdbed4b09bbf0ed897701ceb"
+          ],
+          "targets": [
+            {
+              "version": "9.26.51",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "9.25.50",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "9.24.51",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "9.15.51",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "8.51.51",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "7.29.52",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Hide flyout menu components",
+      "description": "Adds options to hide individual items from the player and queue flyout menus.",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch",
+        "BytecodePatch",
+        "BytecodePatch",
+        "ResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.google.android.apps.youtube.music",
+          "name": "YouTube Music",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#FF0000",
+          "signatures": [
+            "6a2f65ec694a6a632acdcb5080912a565f903d4b8d83f0eb8e44fbdf2660d8e1",
+            "a2a1ad7ba7f41dfca4514e2afeb90691719af6d0fdbed4b09bbf0ed897701ceb"
+          ],
+          "targets": [
+            {
+              "version": "9.26.51",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "9.25.50",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "9.24.51",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "9.15.51",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "8.51.51",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "7.29.52",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Hide info cards",
       "description": "Adds an option to hide info cards that creators add in the video player.",
       "default": true,
@@ -4454,6 +4649,74 @@
             },
             {
               "version": "20.21.37",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Hide layout components",
+      "description": "Adds options to hide general layout components.",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch",
+        "BytecodePatch",
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.google.android.apps.youtube.music",
+          "name": "YouTube Music",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#FF0000",
+          "signatures": [
+            "6a2f65ec694a6a632acdcb5080912a565f903d4b8d83f0eb8e44fbdf2660d8e1",
+            "a2a1ad7ba7f41dfca4514e2afeb90691719af6d0fdbed4b09bbf0ed897701ceb"
+          ],
+          "targets": [
+            {
+              "version": "9.26.51",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "9.25.50",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "9.24.51",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "9.15.51",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "8.51.51",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "7.29.52",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": 26,
@@ -4549,10 +4812,12 @@
       "options": []
     },
     {
-      "name": "Hide music video ads",
-      "description": "Adds an option to hide ads that appear while listening to or streaming music videos, podcasts, or songs.",
+      "name": "Hide music action buttons",
+      "description": "Adds options to hide action buttons under the player.",
       "default": true,
       "dependencies": [
+        "BytecodePatch",
+        "BytecodePatch",
         "BytecodePatch",
         "BytecodePatch"
       ],
@@ -4634,6 +4899,13 @@
             "970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f"
           ],
           "targets": [
+            {
+              "version": "2026.27.0",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 28,
+              "description": null
+            },
             {
               "version": "2026.26.0",
               "versionCodes": null,
@@ -4998,6 +5270,13 @@
             "970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f"
           ],
           "targets": [
+            {
+              "version": "2026.27.0",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 28,
+              "description": null
+            },
             {
               "version": "2026.26.0",
               "versionCodes": null,
@@ -5949,6 +6228,13 @@
           ],
           "targets": [
             {
+              "version": "2026.27.0",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 28,
+              "description": null
+            },
+            {
               "version": "2026.26.0",
               "versionCodes": null,
               "isExperimental": true,
@@ -6007,6 +6293,13 @@
             "970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f"
           ],
           "targets": [
+            {
+              "version": "2026.27.0",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 28,
+              "description": null
+            },
             {
               "version": "2026.26.0",
               "versionCodes": null,
@@ -6815,6 +7108,13 @@
           ],
           "targets": [
             {
+              "version": "2026.27.0",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 28,
+              "description": null
+            },
+            {
               "version": "2026.26.0",
               "versionCodes": null,
               "isExperimental": true,
@@ -6933,7 +7233,6 @@
       "description": "Adds an option to show the dislike count of videos with Return YouTube Dislike.",
       "default": true,
       "dependencies": [
-        "BytecodePatch",
         "BytecodePatch",
         "BytecodePatch",
         "BytecodePatch",
@@ -7092,6 +7391,13 @@
             "970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f"
           ],
           "targets": [
+            {
+              "version": "2026.27.0",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 28,
+              "description": null
+            },
             {
               "version": "2026.26.0",
               "versionCodes": null,
@@ -7526,6 +7832,13 @@
           ],
           "targets": [
             {
+              "version": "2026.27.0",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 28,
+              "description": null
+            },
+            {
               "version": "2026.26.0",
               "versionCodes": null,
               "isExperimental": true,
@@ -7884,6 +8197,13 @@
           ],
           "targets": [
             {
+              "version": "2026.27.0",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 28,
+              "description": null
+            },
+            {
               "version": "2026.26.0",
               "versionCodes": null,
               "isExperimental": true,
@@ -8227,7 +8547,8 @@
             "Material You - Primary": "@android:color/system_accent1_800",
             "Material You - Secondary": "@android:color/system_accent2_800",
             "Material You - Tertiary": "@android:color/system_accent3_800",
-            "Classic (old YouTube)": "#212121",
+            "Modern YouTube": "#0F0F0F",
+            "Classic YouTube": "#212121",
             "Catppuccin (Mocha)": "#181825",
             "Dark pink": "#290025",
             "Dark blue": "#001029",
@@ -8330,7 +8651,8 @@
             "Material You - Primary": "@android:color/system_accent1_800",
             "Material You - Secondary": "@android:color/system_accent2_800",
             "Material You - Tertiary": "@android:color/system_accent3_800",
-            "Classic (old YouTube)": "#212121",
+            "Modern YouTube": "#0F0F0F",
+            "Classic YouTube": "#212121",
             "Catppuccin (Mocha)": "#181825",
             "Dark pink": "#290025",
             "Dark blue": "#001029",
@@ -8423,81 +8745,6 @@
             },
             {
               "version": "7.29.52",
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": 26,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Video ads",
-      "description": "Adds an option to remove ads in the video player.",
-      "default": true,
-      "dependencies": [
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch"
-      ],
-      "compatiblePackages": [
-        {
-          "packageName": "com.google.android.youtube",
-          "name": "YouTube",
-          "description": null,
-          "apkFileType": "APK_REQUIRED",
-          "appIconColor": "#FF0033",
-          "signatures": [
-            "5aad2bee6db95d17e05a08d7d1e64c10a1511879154483916b6ae6c7fd9cb0c6",
-            "3d7a1223019aa39d9ea0e3436ab7c0896bfb4fb679f4de5fe7c23f326c8f994a"
-          ],
-          "targets": [
-            {
-              "version": "21.26.360",
-              "versionCodes": null,
-              "isExperimental": true,
-              "minSdk": 29,
-              "description": null
-            },
-            {
-              "version": "21.25.523",
-              "versionCodes": null,
-              "isExperimental": true,
-              "minSdk": 29,
-              "description": null
-            },
-            {
-              "version": "21.24.360",
-              "versionCodes": null,
-              "isExperimental": true,
-              "minSdk": 29,
-              "description": null
-            },
-            {
-              "version": "21.05.265",
-              "versionCodes": null,
-              "isExperimental": true,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "20.51.39",
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "20.31.42",
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "20.21.37",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": 26,

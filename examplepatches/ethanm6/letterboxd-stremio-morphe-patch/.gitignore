@@ -1,0 +1,12 @@
+# Build outputs
+**/build/
+.gradle/
+
+# IDE
+.idea/
+*.iml
+local.properties
+
+# Claude Code local settings + project instructions (local-only)
+.claude/
+CLAUDE.md

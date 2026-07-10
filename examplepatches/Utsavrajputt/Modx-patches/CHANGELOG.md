@@ -1,8 +1,27 @@
-## [1.2.2](https://github.com/Utsavrajputt/Modx-patches/compare/v1.2.1...v1.2.2) (2026-07-09)
+## [1.3.2](https://github.com/Utsavrajputt/Modx-patches/compare/v1.3.1...v1.3.2) (2026-07-10)
 
 ### 🐛 Bug Fixes
 
-* release h ([56d515e](https://github.com/Utsavrajputt/Modx-patches/commit/56d515e4a4d0706d7c506f29f07e9bc7cba2ed40))
+* release issue ([db4df04](https://github.com/Utsavrajputt/Modx-patches/commit/db4df047c3473cce7c4cbe3f3fdb706cc49043b5))
+
+## [1.3.1](https://github.com/Utsavrajputt/Modx-patches/compare/v1.3.0...v1.3.1) (2026-07-10)
+
+### 🐛 Bug Fixes
+
+* compatibility ([a406e25](https://github.com/Utsavrajputt/Modx-patches/commit/a406e253ca99552fd6fa91d959ac5cf1ebb1f81e))
+* **mx-player:** add Tools and About tabs ([313a696](https://github.com/Utsavrajputt/Modx-patches/commit/313a696fd2f53df45eba872129b718ac2a332729))
+
+## [1.3.0](https://github.com/Utsavrajputt/Modx-patches/compare/v1.2.1...v1.3.0) (2026-07-10)
+
+### ✨ New Features
+
+* **mx-player:** add Tools and About tabs ([0fa0ca1](https://github.com/Utsavrajputt/Modx-patches/commit/0fa0ca168253d90d4447c7975194b70863bbbf63))
+
+## [1.3.0](https://github.com/Utsavrajputt/Modx-patches/compare/v1.2.1...v1.3.0) (2026-07-10)
+
+### ✨ New Features
+
+* **mx-player:** add Tools and About tabs ([0fa0ca1](https://github.com/Utsavrajputt/Modx-patches/commit/0fa0ca168253d90d4447c7975194b70863bbbf63))
 
 ## [1.2.1](https://github.com/Utsavrajputt/Modx-patches/compare/v1.2.0...v1.2.1) (2026-07-07)
 

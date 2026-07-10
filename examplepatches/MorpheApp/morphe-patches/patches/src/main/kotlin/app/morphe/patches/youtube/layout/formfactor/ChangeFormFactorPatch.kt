@@ -5,7 +5,7 @@
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
  *
- * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to Morphe contributions.
+ * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  */
 
 package app.morphe.patches.youtube.layout.formfactor
@@ -60,7 +60,7 @@ val changeFormFactorPatch = bytecodePatch(
             )
         )
 
-        val createPlayerRequestBodyWithModelFingerprint = Fingerprint(
+        Fingerprint(
             accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
             returnType = "L",
             parameters = listOf(),
@@ -72,9 +72,7 @@ val changeFormFactorPatch = bytecodePatch(
                     location = MatchAfterWithin(50)
                 )
             )
-        )
-
-        createPlayerRequestBodyWithModelFingerprint.let {
+        ).let {
             it.method.apply {
                 val index = it.instructionMatches.last().index
                 val register = getInstruction<TwoRegisterInstruction>(index).registerA

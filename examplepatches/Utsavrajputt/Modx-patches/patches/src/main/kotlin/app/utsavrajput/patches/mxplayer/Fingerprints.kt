@@ -47,30 +47,66 @@ object VideoTabEnabledFingerprint : Fingerprint(
         classDef.type == "Lbk7;" && method.name == "D"
     },
 )
-// Targets the shared onClick dispatcher used by the home-screen toolbar header
-// (avatar, search, notifications, etc. all route through one synthetic
-// View.OnClickListener implementation whose onClick() body is a packed-switch
-// on an instance field). We can't pin the class name (it's a different
-// obfuscated single/two-letter class every build, e.g. `bl` in 2.14.1) so we
-// match structurally: implements View.OnClickListener, onClick(View)V shape,
-// and contains the string literals used when building the avatar-tab intent
-// bundle ("tabId", "tab_name", "main"). These strings stay in the bytecode
-// even after this patch runs, because we only prepend a guard - we never
-// delete the original case body - so the fingerprint keeps matching on
-// re-runs/rebuilds too.
-object AvatarClickDispatcherFingerprint : Fingerprint(
+// --- Append to Fingerprints.kt (below TabSwitchDispatcherFingerprint... i.e. below existing fingerprints) ---
+
+/**
+ * Matches Ln4d;->O1(Ljava/lang/String;Z)V — the shared tab-switch dispatcher.
+ * Every bottom-nav tab (local/online/games/search/fatafat/live/download/
+ * upcoming/bazaar/etc.) routes through this single method by tab-name string.
+ *
+ * Matched structurally (string literals in their fixed appearance order),
+ * NOT by class/method name — Ln4d and O1 are both R8-obfuscated and will
+ * be renamed on future MX Player builds. As long as the tab-name strings
+ * stay the same, this keeps matching.
+ */
+object TabSwitchDispatcherFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "V",
-    parameters = listOf("Landroid/view/View;"),
-
+    parameters = listOf("Ljava/lang/String;", "Z"),
     filters = listOf(
-        string("tabId"),
-        string("tab_name"),
-        string("main"),
+        string("local"),
+        string("online"),
+        string("games"),
+        string("search"),
+        string("fatafat"),
     ),
+)
+// --- Append to Fingerprints.kt (replace/add below TabSwitchDispatcherFingerprint) ---
 
+/**
+ * Matches Ln4d;->y1()V — the Games tab click handler.
+ * Called directly by the tab's dedicated click-listener class (e.g. Lnw;),
+ * NOT via the O1() dispatcher — bottom-nav taps skip O1() entirely.
+ *
+ * NOTE: originally matched via "games"/"gameTab" string literals, but
+ * n4d.j0() (the onResume-triggered method) ALSO carries these same
+ * analytics-tracking strings for every tab, causing an ambiguous match
+ * that crashed on app resume (NoClassDefFoundError, see crash_log.txt).
+ * Pinned directly to class/method name instead, same as
+ * VideoTabEnabledFingerprint. Re-verify against Ln4d;->y1()V if a future
+ * MX Player release renames it (obfuscated names shift every build).
+ */
+object GamesTabHandlerFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = emptyList(),
     custom = { method, classDef ->
-        method.name == "onClick" &&
-            classDef.interfaces.contains("Landroid/view/View\$OnClickListener;")
+        classDef.type == "Ln4d;" && method.name == "y1"
+    },
+)
+
+/**
+ * Matches Ln4d;->L1()V — the Search tab click handler.
+ * Same reasoning as GamesTabHandlerFingerprint above — pinned to
+ * class/method name instead of the ambiguous "search"/"mxSearchTab"
+ * string match (also shared by n4d.j0()). Re-verify against Ln4d;->L1()V
+ * on future MX Player releases.
+ */
+object SearchTabHandlerFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = emptyList(),
+    custom = { method, classDef ->
+        classDef.type == "Ln4d;" && method.name == "L1"
     },
 )

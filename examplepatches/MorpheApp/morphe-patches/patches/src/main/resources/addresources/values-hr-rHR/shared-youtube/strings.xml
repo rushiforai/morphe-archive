@@ -20,6 +20,7 @@ Second \"item\" text"</string>
   <string name="morphe_restart_first_run">Ponovno pokrenite da biste dovršili postavljanje</string>
   <!-- layout.branding.baseCustomBrandingPatch -->
   <string name="morphe_custom_branding_name_title">Naziv aplikacije</string>
+  <!-- interaction.downloads.downloadsPatch -->
   <!-- Translations of this should be identical to morphe_custom_branding_icon_entry_7 -->
   <string name="morphe_custom_branding_name_entry_5">Prilagođeno</string>
   <string name="morphe_custom_branding_icon_title">Ikona aplikacije</string>
@@ -115,4 +116,8 @@ Za prijavu, pritisnite nastavak ispod"</string>
 To može pomoći u identificiranju komponenti prilikom izrade prilagođenih filtera.
 
 Međutim, omogućavanjem ove postavke zabilježit će se i neki korisnički podaci poput vaše IP adrese."</string>
+  <!-- Custom filter -->
+  <string name="morphe_custom_filter_screen_summary">Konfigurirajte prilagođene filtre za skrivanje bilo kojeg komponenta</string>
+  <!-- 'Component path builder strings' is the technical name for identifying the Litho UI layout items to hide. This is an advanced feature and most users will never use this. -->
+  <string name="morphe_custom_filter_strings_summary">Popis nizova alata za izradu putanja komponenti za filtriranje, odvojenih novim retcima</string>
 </resources>

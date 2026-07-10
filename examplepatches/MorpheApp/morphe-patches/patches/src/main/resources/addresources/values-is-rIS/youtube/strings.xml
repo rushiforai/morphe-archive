@@ -97,9 +97,19 @@ Breytingarnar fela í sér:
   <string name="morphe_hide_surveys_title">Fela kannelana</string>
   <string name="morphe_hide_surveys_summary">Hylur kannanir og hröggur um nákvæmni um tillögur um umhverfi</string>
   <string name="morphe_hide_ticket_shelf_title">Fela miðaskjá</string>
+  <string name="morphe_hide_upload_time_title">Fela hleðslutíma vídeós</string>
+  <!-- Translations should match the language used in 'morphe_hide_view_count_summary'. -->
+  <string name="morphe_hide_upload_time_summary">"Takmarkanir:
+• Stuttar hillir, síður rásanna og leitarniðurstöður sýna enn þráhyggjuleiki uppladingartíma.
+• Virkar ekki með bílalagningum."</string>
   <!-- 'People also watched' and 'You might also like' should be translated using the same localized wording YouTube displays for the label. -->
   <string name="morphe_hide_video_recommendation_labels_title">Fela vídeóráðanímir</string>
   <string name="morphe_hide_video_recommendation_labels_summary">Felur af fólki horfðu líka á</string>
+  <string name="morphe_hide_view_count_title">Fela skoðunartölu</string>
+  <!-- Translations should match the language used in 'morphe_hide_upload_time_summary'. -->
+  <string name="morphe_hide_view_count_summary">"Takmarkanir:
+• Stuttar hillir, síður rásanna og leitarniðurstöður sýna enn þráhyggjuleiki skoðunarinnar.
+• Virkar ekki með bílalagningum."</string>
   <string name="morphe_hide_web_search_results_title">Fela veitleitar niðurstöður</string>
   <string name="morphe_hide_web_search_results_summary">Hylur „Úrslit frá vefnum“ deild úr leitarúrslitum</string>
   <string name="morphe_hide_you_may_like_section_title">Felaðu \"Þér gæti líkað\" hluta</string>
@@ -158,11 +168,12 @@ Breytingarnar fela í sér:
   <string name="morphe_hide_transcript_section_title">Felur Aðalrit hluta</string>
   <string name="morphe_hide_video_details_section_title">Felur \'Vídeó upplýsingar\' hluta</string>
   <string name="morphe_hide_filter_bar_screen_title">Síu bar</string>
-  <string name="morphe_hide_filter_bar_screen_summary">Veldu hvar á að fela fljótandi flokka flísar</string>
-  <string name="morphe_hide_filter_bar_feed_in_feed_title">Fela í straumum</string>
-  <string name="morphe_hide_filter_bar_feed_in_related_videos_title">Fela í tengdum vídeóum</string>
-  <string name="morphe_hide_filter_bar_feed_in_search_title">Fela í leitarniðurstöðum</string>
-  <string name="morphe_hide_filter_bar_feed_in_history_title">Fela í sögulegum skoðunum</string>
+  <string name="morphe_hide_filter_bar_screen_summary">Veldu hvar á að fela scrollandi síubalkann</string>
+  <string name="morphe_hide_filter_bar_in_comments_title">Fela í athugasemdum</string>
+  <string name="morphe_hide_filter_bar_in_feed_title">Fela í straumum</string>
+  <string name="morphe_hide_filter_bar_in_related_videos_title">Fela í tengdir myndböndum</string>
+  <string name="morphe_hide_filter_bar_in_search_title">Fela í leitarniðurstöðum</string>
+  <string name="morphe_hide_filter_bar_in_history_title">Fela í skoðunarsögu</string>
   <string name="morphe_channel_screen_title">Rásarsíða</string>
   <string name="morphe_channel_screen_summary">Veldu hvaða þættir birtast á rásarsíðu</string>
   <string name="morphe_hide_channel_tab_title">Vírúð rásar málmvals</string>
@@ -199,30 +210,15 @@ Breytingarnar fela í sér:
   <string name="morphe_hide_comments_community_guidelines_title">Fela samfélagsregluleiðbeiningar</string>
   <string name="morphe_hide_comments_create_a_short_button_title">Fela \'Búa til stutta vídeó\' hnappinn</string>
   <string name="morphe_hide_comments_emoji_and_timestamp_buttons_title">Fela Emoj og Tímamerki hnappana</string>
+  <string name="morphe_hide_comments_filter_bar_options_title">Fela valmöguleika stjórnibarans</string>
+  <string name="morphe_hide_comments_filter_bar_options_summary">Félur alla valmöguleika stjórnibarans nema \'Efst\' og \'Nýjast\'</string>
   <string name="morphe_hide_comments_info_button_title">Fela Info hnapp</string>
   <string name="morphe_hide_comments_live_chat_donators_bar_title">Hylja „Paramert í lausnir“ ummerki</string>
   <string name="morphe_hide_comments_preview_comment_title">Fela forsýningu athugasemda</string>
   <string name="morphe_hide_comments_preview_comment_summary">Felur athugasmd forskoðunina undir vídeó áður en full athugasmdakassinn opnast</string>
   <string name="morphe_hide_comments_thanks_button_title">Fela þakknsemishnappinn</string>
-  <string name="morphe_sanitize_comments_category_bar_title">Hreinsa litabjargan</string>
-  <string name="morphe_sanitize_comments_category_bar_summary">Felur alla athugasmd flokkunarvalkosti nema \'Best\' og \'Nýjasta\'</string>
-  <string name="morphe_custom_filter_screen_title">Sérsniðin síua</string>
-  <string name="morphe_custom_filter_screen_summary">Stilltu sérsniðin síur til að hylja hvaða þátt</string>
-  <string name="morphe_custom_filter_title">Virkja sérsniðna síu</string>
-  <string name="morphe_custom_filter_strings_title">Sérsniðin síua</string>
-  <!-- 'Component path builder strings' is the technical name for identifying the Litho UI layout items to hide. This is an advanced feature and most users will never use this. -->
-  <string name="morphe_custom_filter_strings_summary">Listi yfir þáttastig leiðbyggingarstrengi til að síðast, aðskilin með nýjar línur</string>
-  <string name="morphe_custom_filter_toast_invalid_syntax">Ógilt sérsniðin síua: %s</string>
-  <string name="morphe_hide_view_count_title">Fela skoðunartölu</string>
-  <!-- Translations should match the language used in 'morphe_hide_upload_time_summary'. -->
-  <string name="morphe_hide_view_count_summary">"Takmarkanir:
-• Shelfar úr skammhljóðum, rásarsíðum og leitar niðurstöðum gætu samt sýnt áhorfsa tölu
-• Þessi eiginleiki virkar ekki með bíllastöðulagi"</string>
-  <string name="morphe_hide_upload_time_title">Fela hleðslutíma vídeós</string>
-  <!-- Translations should match the language used in 'morphe_hide_view_count_summary'. -->
-  <string name="morphe_hide_upload_time_summary">"Takmarkanir:
-• Shelfar úr skammhljóðum, rásarsíðum og leitar niðurstöðum gætu samt sýnt uppsetningartíma
-• Þessi eiginleiki virkar ekki með bíllastöðulagi"</string>
+  <string name="morphe_sanitize_comments_highlighted_search_links_title">Hreinsa lýst tengla í leit</string>
+  <string name="morphe_sanitize_comments_highlighted_search_links_summary">Hreinsar lýsta leittengla og skilur eftir aðeins upprunalega textann</string>
   <string name="morphe_hide_keyword_content_screen_title">Hraðvæðir</string>
   <string name="morphe_hide_keyword_content_screen_summary">Veldu sérstaka orð eða setningar til að fela vídeó í feed og leitinni</string>
   <string name="morphe_hide_keyword_content_home_title">Fela heimavídeó eftir leitarorð</string>
@@ -241,7 +237,7 @@ Orð með táknmyndum í miðjunni þurfa nákvæma samsvörun (til dæmis: iPho
   <string name="morphe_hide_keyword_content_about_summary">"Heim / Áskriftir / Leit / Kommenta eru síuð til að fela efni sem samsvarar leitarorðum
 
 Takmörk:
-• Shorts shorts mynda ekki hægt að fela eftir rásarnafni
+• Shorts mynda ekki hægt að fela eftir rásarnafni
 • Sum UI þættir gætu ekki verið feldir
 • Leit að leitarorði getur sýnt engin niðurstöðu"</string>
   <string name="morphe_hide_keyword_content_about_whole_words_title">Nota heildarorð</string>
@@ -253,7 +249,7 @@ Takmörk:
   <string name="morphe_hide_keyword_toast_invalid_conflicting">Leitarorð hefur andstæðar skilgreiningar: %s</string>
   <string name="morphe_hide_keyword_toast_invalid_length">Leitarorð er of stutt og þarf gæsafótur: %s</string>
   <string name="morphe_hide_keyword_toast_invalid_broad">Leitarorð mun fela öll vídeó: %s</string>
-  <!-- ad.general.hideAdsPatch -->
+  <!-- ad.hideAdsPatch -->
   <string name="morphe_hide_creator_store_shelf_title">Fela vöruskjóta</string>
   <string name="morphe_hide_end_screen_store_banner_title">Fela endaskjá vörubanner</string>
   <string name="morphe_hide_general_ads_title">Fela almennar auglýsingar</string>
@@ -263,9 +259,8 @@ Takmörk:
   <string name="morphe_hide_player_popup_ads_title">Felaðu spilandi blaðspilspilaspilspilaspilspilaða spilaralaða reklamu</string>
   <string name="morphe_hide_self_sponsor_ads_title">Fela sjálfsstuddar kort</string>
   <string name="morphe_hide_shopping_links_title">Fela verslunarhlökki</string>
-  <string name="morphe_hide_youtube_premium_promotions_title">Felaðu YouTube Premium kynningu</string>
-  <!-- ad.video.videoAdsPatch -->
   <string name="morphe_hide_video_ads_title">Fela vídeó auglýsingar</string>
+  <string name="morphe_hide_youtube_premium_promotions_title">Felaðu YouTube Premium kynningu</string>
   <!-- interaction.doubletap.doubleTapLengthPatch -->
   <!-- interaction.copyvideolink.copyVideoLinkButtonPatch -->
   <string name="morphe_share_copy_link_button_success">Tengill kopíruðu á klippiborðið</string>
@@ -283,23 +278,12 @@ Takmörk:
   <string name="morphe_disable_chapter_skip_double_tap_title">Gerir virka forskotaskilyrðikvillan sem getur komið í veg fyrir að afritirinn hlaðist</string>
   <string name="morphe_disable_chapter_skip_double_tap_summary">Gerir óvirkt tví fingurgestina tví breytilegu sem hoppar um kafla, sem gæti verið sýnt með einni fingri</string>
   <!-- interaction.downloads.downloadsPatch -->
-  <string name="morphe_external_downloader_screen_title">Utanaðkomandi niðurhal</string>
-  <string name="morphe_external_downloader_screen_summary">Sæktu myndbönd með þriðja aðila niðurhal forrit</string>
+  <string name="morphe_external_downloader_screen_summary">Niðurhalaðu myndbönd, hlaðvarpa eða lög með niðurhalssforritum frá þriðja aðila.</string>
   <string name="morphe_external_downloader_title">Sýna utanaðkomandi niðurhalshnapp</string>
   <string name="morphe_external_downloader_summary">Sýnir hlutfalls hnatta á myndavörpun sem opnar þinn þriðja aðila niðurhal</string>
   <!-- 'Download action button' should match the language used in 'morphe_hide_download_button_title'. -->
   <string name="morphe_external_downloader_action_button_title">Breyta niðurhalshnappi</string>
   <string name="morphe_external_downloader_action_button_summary">Býr í stað þess sem YouTube hefur innbyggt niðurhal með þinn þriðja aðila niðurhal</string>
-  <string name="morphe_external_downloader_name_title">Pakkanafn niðurhalsforrits</string>
-  <string name="morphe_external_downloader_name_summary">Pakkanafn á uppsettu niðurhalsforriti</string>
-  <string name="morphe_external_downloader_other_item_hint">Sláðu inn pakkanafn</string>
-  <string name="morphe_external_downloader_other_item">Annað</string>
-  <string name="morphe_external_downloader_not_found_title">App er ekki uppsett</string>
-  <string name="morphe_external_downloader_not_installed_warning">%s er ekki uppsett. Vinsamlegast settu það upp.</string>
-  <string name="morphe_external_downloader_package_not_found_warning">"Gat ekki fundið uppsett app með pakkanafn: %s
-
-Staðfestu að pakkanafnið er rétt og að appið er uppsett"</string>
-  <string name="morphe_external_downloader_empty_warning">Pakkanafnið er tómt</string>
   <!-- video.voiceovertranslation.voiceOverTranslationPatch -->
   <string name="morphe_vot_screen_title">Þýðing á raddsegulmagni</string>
   <string name="morphe_vot_screen_summary">Les upp undirtitla myndbandsins með texta-til-tala á tækinu, samhæmt með endursendingu</string>
@@ -432,7 +416,7 @@ API lykillinn þinn ætti aldrei að deila. Allir með aðgang að honum geta no
   <!-- interaction.seekbar.disablePreciseSeekingGesturePatch -->
   <string name="morphe_disable_precise_seeking_gesture_title">Gerðu leitarstikuna nákvæma</string>
   <string name="morphe_disable_precise_seeking_gesture_summary">Gerir óvirkt nákvæma leit á þessu sem virkjar þegar þeir draga leitarstikuna</string>
-  <!-- interaction.seekbar.livestreamDvrPatch -->
+  <!-- interaction.seekbar.livestreamDVRPatch -->
   <string name="morphe_livestream_dvr_title">Vírúð lífvídeós DVR</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
   <string name="morphe_livestream_dvr_summary">"Leyfir að leita á öllum streymum, jafnvel þótt þeir venjulega takmarki það
@@ -603,7 +587,7 @@ Athugið: Ef 'Spoofa myndband streymi' er ekki virkjað getur þetta valkosti va
   <string name="morphe_show_settings_button_index_title">Stillingar hnappur staðsetning</string>
   <string name="morphe_show_settings_button_type_title">Starfa árásnstjórnstikur</string>
   <string name="morphe_show_settings_button_type_summary">Opnar Morphe stillingar þegar virkjað, eða YouTube stillingar þegar óvirkt</string>
-  <string name="morphe_swap_create_with_notifications_button_title">Hylja Shorts</string>
+  <string name="morphe_swap_create_with_notifications_button_title">Skildu við skipti Create hnappinn og Notifications hnappinn</string>
   <string name="morphe_swap_create_with_notifications_button_summary">Ef breyting á þessari stillingu hefur ekki áhrif skaltu prófa að skipta yfir í leynistillinga ham</string>
   <string name="morphe_hide_navigation_button_labels_title">Fela stýrihnappamerki</string>
   <string name="morphe_hide_navigation_bar_title">Fela stjórnstikur</string>
@@ -714,7 +698,7 @@ Til að sýna ‚Hljómsnertistilinn‘ skaltu breyta „Forgeðu vídeóstreymi
   <!-- layout.hide.shorts.hideShortsComponentsPatch -->
   <string name="morphe_shorts_player_screen_title">Short síðu</string>
   <string name="morphe_shorts_player_screen_summary">Veldu hvaða þættir birtast í Shorts spilarann</string>
-  <string name="morphe_hide_shorts_category_title">Hylja „Fleiri vírus“ hlutfalls yfirlið</string>
+  <string name="morphe_hide_shorts_category_title">Felja Shorts</string>
   <string name="morphe_hide_shorts_channel_title">Felur á rásarsíðu</string>
   <!-- 'Home' should be translated using the same localized wording YouTube displays for the tab. -->
   <string name="morphe_hide_shorts_home_title">Felur á Heimhópi &amp; tengdri vídeóum</string>
@@ -747,7 +731,6 @@ Til að sýna ‚Hljómsnertistilinn‘ skaltu breyta „Forgeðu vídeóstreymi
   <!-- YouTube may no longer use this feature and this setting may be obsolete. -->
   <string name="morphe_hide_shorts_like_fountain_title">Fela like fontinn</string>
   <string name="morphe_hide_shorts_like_button_title">Fela Like hnappinn</string>
-  <string name="morphe_hide_shorts_dislike_button_title">Fela Ólíka hnappinn</string>
   <string name="morphe_hide_shorts_comments_button_title">Fela athugasemdahnaðinn</string>
   <!-- 'Share' should be translated using the same localized wording YouTube displays for the button. -->
   <string name="morphe_hide_shorts_share_button_title">Fela deila hnappinn</string>
@@ -809,8 +792,6 @@ Stillingar → Spilun (eða Sjálfvædd spilun) → Sjálfvædd næsta myndband"
   <!-- Video likes have been set to hidden by the video uploader. -->
   <string name="morphe_ryd_video_likes_hidden_by_video_owner">Hólar eru ekki virkir</string>
   <string name="morphe_ryd_enabled_title">Virkja Return YouTube Dislike</string>
-  <string name="morphe_ryd_shorts_title">Sýna niðurhal á Shorts</string>
-  <string name="morphe_ryd_shorts_summary">Takmarkanir: Dislikes sýna kannski ekki í Dulmál stillingu</string>
   <string name="morphe_ryd_dislike_percentage_title">Sýna dislikes sem hlutfall</string>
   <string name="morphe_ryd_dislike_percentage_summary">Sýnir dislikes sem hlutfall af likeum frekar en tölu</string>
   <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
@@ -865,9 +846,9 @@ Bílstýringastíll
 • Gamla aðgerðastika myndbandsins, ekki brotin saman, er sýnd"</string>
   <string name="morphe_tablet_layout_in_player_title">Virkja taflalýsing í spilara</string>
   <!-- "Restore old video action bar" must be translated the same as morphe_restore_old_video_action_bar_title -->
-  <string name="morphe_tablet_layout_in_player_summary">"Endurstaðsetur gamla útlit spilarans
+  <string name="morphe_tablet_layout_in_player_summary">"Endurskipar gamla útlit spilarans
 
-Takmörkunir: Ef \"Endurstaðsetja gamla áttavísi myndbandsins\" er slökkt, gæti yfirlag \"Fleiri myndböð\" verið ófáanlegt"</string>
+Takmörkun: Ef 'Endurskapa gamla stjórnbara myndbands' er slökkt, gæti 'Fleiri myndbönd' lagskiptarinn ekki verið tiltæk"</string>
   <!-- layout.spoofappversion.spoofAppVersionPatch -->
   <string name="morphe_spoof_app_version_title">Spofta útgáfu forritsins</string>
   <string name="morphe_spoof_app_version_summary">Breytir netþjóninum til að halda í hugan það að þú ert að nota eldri útgáfu af forritinu til að endurheimta gamla notendaviðmóti</string>
@@ -946,6 +927,10 @@ Ef kveikt á því síðar er mælt með því að hreinsa gögn forritsins til 
   <string name="morphe_miniplayer_disable_drag_and_drop_summary">Kemur í veg fyrir að draga minnkaðan vörpuninn á mismunandi horn skjásins</string>
   <string name="morphe_miniplayer_disable_horizontal_drag_title">Lokað láréttri dragningu</string>
   <string name="morphe_miniplayer_disable_horizontal_drag_summary">Kemur í veg fyrir að loka minnkaðan spilarann með því að draga hann láréttur úr sjónarsviðinu</string>
+  <string name="morphe_miniplayer_disable_horizontal_drag_playback_title">Pausa uppspilun með láréttum dragi</string>
+  <string name="morphe_miniplayer_disable_horizontal_drag_playback_summary">Spilun mun hætta þegar mini-spilarinn er dreginn út af skjánum</string>
+  <string name="morphe_miniplayer_disable_horizontal_reposition_title">Muna drag stöðu</string>
+  <string name="morphe_miniplayer_disable_horizontal_reposition_summary">Að draga litla spilarann ​​utan skjásins mun varðveita UI ástand þess</string>
   <string name="morphe_miniplayer_hide_overlay_buttons_title">Fela yfirborðs hnappa</string>
   <string name="morphe_miniplayer_width_dip_title">Sjálfgengið stærð</string>
   <string name="morphe_miniplayer_width_dip_summary">Stilltu upphaflegu stærðina á skjánum, í pixlum</string>
@@ -1053,10 +1038,10 @@ Bankaðu hér til að opna DeArrow.ajay.app"</string>
   <string name="morphe_remember_shorts_quality_last_selected_summary">Beittu handvirku gæði á all hráttíða framtíð</string>
   <string name="morphe_shorts_quality_default_wifi_title">Sjálfgefin Shorts gæði á Wi-Fi neti</string>
   <string name="morphe_shorts_quality_default_mobile_title">Sjálfgefin Shorts gæði á farsímaneti</string>
-  <string name="morphe_remember_video_quality_mobile">farsími</string>
-  <string name="morphe_remember_video_quality_wifi">wifi</string>
-  <string name="morphe_remember_video_quality_toast">Breytt sjálfgefin %1$s gæði í: %2$s</string>
-  <string name="morphe_remember_video_quality_toast_shorts">Breytt Shorts %1$s gæði í: %2$s</string>
+  <string name="morphe_remember_video_quality_toast_mobile">Breytt úrval gæða fyrir farsíma í: %s</string>
+  <string name="morphe_remember_video_quality_toast_wifi">Breytt úrval gæða fyrir Wi-Fi í: %s</string>
+  <string name="morphe_remember_video_quality_toast_shorts_mobile">Breytt gæði Shorts fyrir farsíma í: %s</string>
+  <string name="morphe_remember_video_quality_toast_shorts_wifi">Breytt gæði Shorts fyrir Wi-Fi í: %s</string>
   <!-- video.speed.button.playbackSpeedButtonPatch -->
   <string name="morphe_playback_speed_dialog_button_title">Sýnir hnappinn umhraða léttar</string>
   <string name="morphe_playback_speed_dialog_button_summary">Snertu og haltu til að endurstill hraða í sjálfgefið</string>
@@ -1097,13 +1082,14 @@ Takmörk:
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
   <string name="morphe_force_avc_codec_not_available">Til að nota þennan eiginleika þarftu að stilla „Forgeðu vídeóstreymi“ á Android VR eða Android Studio</string>
   <!-- video.quality.advancedVideoQualityMenuPatch -->
-  <string name="morphe_advanced_video_quality_menu_title">Sýnaðu útfærslughlutgæða valmynd</string>
+  <string name="morphe_advanced_video_quality_menu_title">Opnað \'Advanced\' gæðavalmynd</string>
+  <string name="morphe_advanced_video_quality_menu_summary">Sleppur yfir valið á gæðum og opnar \'Advanced\' gæðavalmyndina beint</string>
   <!-- video.quality.hidePremiumVideoQualityPatch -->
   <string name="morphe_hide_premium_video_quality_title">Húfa Premium gæðavalmyndir</string>
   <!-- video.quality.prioritizeVideoQualityPatch -->
   <string name="morphe_prioritize_video_quality_title">Forganga vídeógæði</string>
-  <string name="morphe_prioritize_video_quality_summary">Forgangur hærri gæðar vídeós frekar en kóðaskilvirkni</string>
-  <!-- misc.fix.playback.spoofVideoStreamsPatch -->
+  <string name="morphe_prioritize_video_quality_summary">Forgangur er gefinn hæsta mögulega vídeó gæði frekar en samræmikanlegni</string>
+  <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_av1_title">Leyfa Android VR AV1</string>
   <string name="morphe_spoof_video_streams_av1_summary">Leyfir hugbúnaðar AV1 afkóðun þegar þú notar Android VR viðskiptavininn</string>
   <string name="morphe_spoof_video_streams_av1_user_dialog_message">"Vírúð þessa stillingarinnar getur notað hugbúnað AV1 kóðun.
@@ -1119,11 +1105,13 @@ Myndbandsspilun með AV1 getur hakka eða orðið með rammalegsfall."</string>
   <string name="morphe_spoof_video_streams_about_js">• Ef endurkóðun misstakast getur spilunin misst</string>
   <!-- "Force original audio" should match the language used in 'morphe_force_original_audio_title'. -->
   <string name="morphe_spoof_video_streams_about_no_force_original_audio">• Ekki er hægt til þess að neyða upprunalegt hljóð</string>
+  <!-- Quality refers to video quality -->
+  <string name="morphe_spoof_video_streams_about_720p_max">• Gæði gætu takmarkast við 720p</string>
   <string name="morphe_spoof_video_streams_player_js_variant_title">JavaScript breyturinnar</string>
   <string name="morphe_spoof_video_streams_stats_for_nerds_title">Sýnir forgerð á tölfræðinni fyrir nerda</string>
   <!-- misc.fix.videoactionbar.restoreOldVideoActionBarPatch -->
   <string name="morphe_restore_old_video_action_bar_title">Endurstaða gamla myndavélarinnar</string>
-  <string name="morphe_restore_old_video_action_bar_summary">"Leiðrétt vandamál með það sem finnst ekki í ólán og ekki er hægt að fela myndavélarhnappana
+  <string name="morphe_restore_old_video_action_bar_summary">"Lagfærir vandamál með óbirt dislík og ekki hægt er að fela stjórntakkana í myndbandi
 
-Takmörk: Snýr aftur að eldra útliti 'Fleiri myndir' lagskiptingarinnar"</string>
+Takmörkun: Sníð við gamla stíl 'Fleiri myndbönd' lagskiptarinn"</string>
 </resources>

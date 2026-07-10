@@ -41,7 +41,7 @@ val removeViewerDiscretionDialogPatch = bytecodePatch(
             SwitchPreference("morphe_remove_viewer_discretion_dialog"),
         )
 
-        fun applyPatch(instructionIndex: Int, instructionRegister: Int, method: MutableMethod) {
+        fun applyPatch(method: MutableMethod, instructionIndex: Int, instructionRegister: Int) {
             method.addInstructions(
                 instructionIndex,
                 """
@@ -81,7 +81,7 @@ val removeViewerDiscretionDialogPatch = bytecodePatch(
                 val instructionRegister = fingerprint.method
                     .getInstruction<OneRegisterInstruction>(instructionIndex).registerA
 
-                applyPatch(instructionIndex + 1, instructionRegister, fingerprint.method)
+                applyPatch(fingerprint.method, instructionIndex + 1, instructionRegister)
             }
         }
 
@@ -91,7 +91,7 @@ val removeViewerDiscretionDialogPatch = bytecodePatch(
         val adultContentSetPropertiesMatches = AdultContentSetPropertiesFingerprint.instructionMatches
 
         Fingerprint(
-            definingClass = skipDialogFingerprint.method.definingClass,
+            classFingerprint = skipDialogFingerprint,
             accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
             returnType = "V",
             parameters = listOf("L"),
@@ -106,9 +106,9 @@ val removeViewerDiscretionDialogPatch = bytecodePatch(
                     location = MatchAfterWithin(3),
                     smali = adultContentSetPropertiesMatches[2]
                         .getInstruction<ReferenceInstruction>().reference.toString()
-                ),
+                )
             )
-        ).let {fingerprint ->
+        ).let { fingerprint ->
             listOf(
                 fingerprint.instructionMatches[1],
                 fingerprint.instructionMatches[0],
@@ -117,7 +117,7 @@ val removeViewerDiscretionDialogPatch = bytecodePatch(
                 val instructionRegister = fingerprint.method
                     .getInstruction<TwoRegisterInstruction>(instructionIndex).registerA
 
-                applyPatch(instructionIndex, instructionRegister, fingerprint.method)
+                applyPatch(fingerprint.method, instructionIndex, instructionRegister)
             }
         }
 

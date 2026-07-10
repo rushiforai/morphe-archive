@@ -21,6 +21,7 @@ Second \"item\" text"</string>
   <string name="morphe_header_logo_title">हेडर लोगो</string>
   <string name="morphe_header_logo_entry_1">डिफ़ॉल्ट</string>
   <string name="morphe_header_logo_entry_3">कस्टम</string>
+  <!-- interaction.downloads.downloadsPatch -->
   <!-- misc.settings.settingsPatch -->
   <!-- In languages where "About" is ambiguous, translate this as "About Morphe" (i.e., About this app). -->
   <string name="morphe_settings_music_screen_0_about_title">बारे में</string>
@@ -28,9 +29,8 @@ Second \"item\" text"</string>
   <string name="morphe_settings_music_screen_2_general_title">सामान्य</string>
   <string name="morphe_settings_music_screen_3_player_title">प्लेयर</string>
   <string name="morphe_settings_music_screen_6_misc_title">विविध</string>
-  <!-- ad.general.hideAdsPatch -->
+  <!-- ad.hideAdsPatch -->
   <string name="morphe_music_hide_get_premium_label_title">\'म्यूजिक प्रीमियम प्राप्त करें\' लेबल छिपाएं</string>
-  <!-- ad.video.hideVideoAdsPatch -->
   <string name="morphe_music_hide_video_ads_title">वीडियो विज्ञापन छिपाएं</string>
   <!-- interaction.crossfade.crossfadePatch -->
   <string name="morphe_music_crossfade_screen_title">क्रॉसफ़ेड</string>
@@ -100,10 +100,14 @@ YouTube Music 8.x — क्रॉसफेड केवल 9.x आ नय व�
   <!-- interaction.permanentrepeat.permanentRepeatPatch -->
   <string name="morphe_music_play_permanent_repeat_title">स्थायी दोहराव सक्षम करें</string>
   <!-- layout.buttons.hideButtonsPatch -->
-  <string name="morphe_music_hide_cast_button_title">कास्ट बटन छिपाएं</string>
-  <string name="morphe_music_hide_history_button_title">इतिहास बटन छिपाएं</string>
-  <string name="morphe_music_hide_notification_button_title">सूचना बटन छिपाएं</string>
-  <string name="morphe_music_hide_search_button_title">खोज बटन छिपाएं</string>
+  <!-- layout.hide.general.hideMusicComponentsPatch -->
+  <!-- layout.hide.actionbuttons.hideActionButtonsPatch -->
+  <!-- 'Lyrics' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <!-- 'Share' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <!-- 'Save' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <!-- 'Download' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <!-- 'Start radio' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <!-- flyoutmenu.components.hideFlyoutMenuComponentsPatch -->
   <!-- layout.startpage.changeStartPagePatch -->
   <string name="morphe_change_start_page_title">आरंभ पृष्ठ</string>
   <string name="morphe_change_start_page_entry_default">डिफ़ॉल्ट</string>
@@ -116,8 +120,7 @@ YouTube Music 8.x — क्रॉसफेड केवल 9.x आ नय व�
   <string name="morphe_change_start_page_entry_playlists">प्लेलिस्ट</string>
   <string name="morphe_change_start_page_entry_search">खोज</string>
   <string name="morphe_change_start_page_entry_subscriptions">सदस्यताएं</string>
-  <!-- layout.compactheader.hideCategoryBarPatch -->
-  <string name="morphe_music_hide_category_bar_title">श्रेणी बार छिपाएं</string>
+  <!-- layout.compactheader.hideFilterBarPatch -->
   <!-- layout.miniplayer.changeMiniplayerColorPatch -->
   <string name="morphe_music_change_miniplayer_color_title">मिनीप्लेयर रंग बदलें</string>
   <string name="morphe_music_change_miniplayer_color_summary">मिनीप्लेयर क रंग के फुलस्क्रीन प्लेयर सँ मिलाइत छै</string>
@@ -145,8 +148,6 @@ YouTube Music 8.x — क्रॉसफेड केवल 9.x आ नय व�
   <string name="morphe_music_hide_navigation_bar_upgrade_button_title">अपग्रेड बटन छुपाऊ</string>
   <string name="morphe_music_hide_navigation_bar_title">नेविगेशन बार छिपाएं</string>
   <string name="morphe_music_hide_navigation_bar_labels_title">नेविगेशन बटन लेबल छिपाएं</string>
-  <!-- layout.upgradebutton.hideUpgradeButtonPatch -->
-  <string name="morphe_music_hide_upgrade_button_title">अपग्रेड बटन छिपाएं</string>
   <!-- interaction.scrobbling.scrobblingPatch -->
   <string name="morphe_music_scrobbling_summary">Last.fm आ ListenBrainz इंटीग्रेशन कॉन्फ़िगर करू</string>
   <string name="morphe_music_scrobbling_summary_logged_out">लॉग इन नहि छै। कॉन्फ़िगर करय लेल टैप करू</string>
@@ -154,7 +155,6 @@ YouTube Music 8.x — क्रॉसफेड केवल 9.x आ नय व�
   <string name="morphe_music_scrobbling_logged_out_toast">लॉग आउट कएल गेल</string>
   <!-- 'scrobbling' must be kept untranslated -->
   <string name="morphe_music_scrobbling_enabled_title">Scrobbling सक्षम करू</string>
-  <string name="morphe_music_scrobbling_now_playing_title">\"Now Playing\" स्थिति सबमिट करू</string>
   <string name="morphe_music_scrobbling_min_song_duration_title">न्यूनतम गाना अवधि</string>
   <!-- 'scrobbled' must be kept untranslated -->
   <string name="morphe_music_scrobbling_min_song_duration_summary">एतय सँ छोट गाना scrobble नहि होयत</string>

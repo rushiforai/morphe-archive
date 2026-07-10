@@ -5,7 +5,7 @@
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
  *
- * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to Morphe contributions.
+ * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  */
 
 package app.morphe.patches.youtube.layout.hide.general
@@ -699,5 +699,19 @@ internal object SyncButtonFingerprint : Fingerprint(
             returnType = "Landroid/view/View;",
         ),
         opcode(Opcode.MOVE_RESULT_OBJECT, location = MatchAfterImmediately())
+    )
+)
+
+internal object PanelSubheaderFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "V",
+    filters = listOf(
+        resourceLiteral(ResourceType.ID, "panel_header"),
+        resourceLiteral(ResourceType.ID, "close_button"),
+        resourceLiteral(ResourceType.ID, "panel_subheader"),
+        methodCall(
+            opcode = Opcode.INVOKE_VIRTUAL,
+            name = "removeAllViews"
+        )
     )
 )

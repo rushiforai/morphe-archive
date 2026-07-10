@@ -1,0 +1,273 @@
+name: Verify patched APK boots cleanly
+
+# Runs BEFORE release.yml on every push to main.
+# Matrix over 5 targets (Truecaller, Pixel Recorder, Pixel Weather,
+# Pixel Screenshots, GitHub Android). Each cell:
+#   1. Build .mpp
+#   2. Fetch target APK from apkpure (with .xapk handling)
+#   3. Apply patches via morphe-cli
+#   4. Boot x86_64 API 34 emulator, install patched APK
+#   5. Launch main activity via monkey, grep logcat for FATAL
+#
+# fail-fast: false — one target's failure doesn't block others.
+# The AOSP emulator is a PROXY for Poco F7, not a substitute. Real
+# Poco F7 test still needs the user's phone; the emulator only
+# catches launch-time crashes (like the v1.0.1 SuperNotCalledException).
+
+on:
+  push:
+    branches: [main, dev]
+    paths:
+      - 'patches/**'
+      - '.github/workflows/verify.yml'
+  workflow_dispatch:
+    inputs:
+      target_package:
+        description: 'Single package override (skips matrix if set)'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Emulator smoke-test — ${{ matrix.target.name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - { name: truecaller,        pkg: com.truecaller }
+          - { name: pixel-recorder,    pkg: com.google.android.apps.recorder }
+          - { name: pixel-weather,     pkg: com.google.android.apps.weather }
+          - { name: pixel-screenshots, pkg: com.google.android.apps.pixel.agent }
+          - { name: github-android,    pkg: com.github.android }
+          - { name: youtube,           pkg: com.google.android.youtube }
+          - { name: twitter,           pkg: com.twitter.android }
+          - { name: instagram,         pkg: com.instagram.android }
+          - { name: tiktok,            pkg: com.zhiliaoapp.musically }
+          - { name: reddit,            pkg: com.reddit.frontpage }
+          - { name: duolingo,          pkg: com.duolingo }
+          - { name: moonreader,        pkg: com.flyersoft.moonreaderp }
+          - { name: snapchat,          pkg: com.snapchat.android }
+          - { name: whatsapp,          pkg: com.whatsapp }
+          - { name: googlemaps,        pkg: com.google.android.apps.maps }
+          - { name: spotify,           pkg: com.spotify.music }
+          - { name: linkedin,          pkg: com.linkedin.android }
+          - { name: amazonshopping,    pkg: in.amazon.mShop.android.shopping }
+          - { name: primevideo,        pkg: com.amazon.avod.thirdpartyclient }
+          - { name: threads,           pkg: com.instagram.barcelona }
+          - { name: facebook,          pkg: com.facebook.katana }
+          - { name: notion,            pkg: notion.id }
+          - { name: todoist,           pkg: com.todoist }
+          - { name: anydo,             pkg: com.anydo }
+          - { name: miuimusic,         pkg: com.miui.player }
+          - { name: miuiweather,       pkg: com.miui.weather2 }
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java + Android
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', 'gradle.properties') }}
+          restore-keys: gradle-${{ runner.os }}-
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build .mpp bundle
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ./gradlew :patches:buildAndroid --no-daemon
+          MPP=$(ls patches/build/libs/patches-*.mpp | head -1)
+          echo "mpp=$MPP" >> $GITHUB_ENV
+          echo "Built: $MPP ($(du -h $MPP | cut -f1))"
+
+      - name: Fetch Morphe CLI
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          mkdir -p ~/bin
+          # Real asset name is versioned (e.g. morphe-cli-1.9.1-all.jar), NOT morphe-cli.jar
+          # Use `gh release download` with a wildcard pattern to grab the latest all-jar
+          # regardless of version bump.
+          gh release download --repo MorpheApp/morphe-cli \
+            --pattern 'morphe-cli-*-all.jar' \
+            --output ~/bin/morphe-cli.jar
+          # Sanity check — reject if <1MB (must be a real JAR, not a redirect page)
+          SIZE=$(stat -c%s ~/bin/morphe-cli.jar)
+          if [ "$SIZE" -lt 1000000 ]; then
+            echo "::error::morphe-cli.jar too small ($SIZE bytes) — likely a 404 page"
+            head -c 200 ~/bin/morphe-cli.jar
+            exit 1
+          fi
+          echo "Fetched morphe-cli.jar ($(du -h ~/bin/morphe-cli.jar | cut -f1))"
+          echo 'java -jar ~/bin/morphe-cli.jar "$@"' > ~/bin/morphe
+          chmod +x ~/bin/morphe
+          echo "$HOME/bin" >> $GITHUB_PATH
+
+      - name: Determine target package
+        id: target
+        run: |
+          # workflow_dispatch override wins if set, else matrix cell.
+          OVERRIDE="${{ github.event.inputs.target_package }}"
+          if [ -n "$OVERRIDE" ]; then
+            echo "pkg=$OVERRIDE" >> $GITHUB_OUTPUT
+            echo "name=$OVERRIDE" >> $GITHUB_OUTPUT
+          else
+            echo "pkg=${{ matrix.target.pkg }}" >> $GITHUB_OUTPUT
+            echo "name=${{ matrix.target.name }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Fetch target APK
+        env:
+          PKG: ${{ steps.target.outputs.pkg }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          mkdir -p apk
+          curl -sSL -o ~/bin/apkeep \
+            https://github.com/EFForg/apkeep/releases/latest/download/apkeep-x86_64-unknown-linux-gnu
+          chmod +x ~/bin/apkeep
+
+          ~/bin/apkeep -a "$PKG" -d apk-pure apk/ || {
+            echo "::warning::apkeep failed for $PKG — target may be Pixel-mirror-restricted"
+            echo "skip_verify=true" >> $GITHUB_ENV
+            exit 0
+          }
+
+          # Handle .xapk bundles (multi-APK) — morphe-cli needs a merged standalone APK
+          if ls apk/*.xapk 2>/dev/null; then
+            echo "Merging .xapk bundle into standalone APK"
+            # Real asset is APKEditor-<version>.jar not APKEditor.jar; resolve via API
+            APKEDITOR_URL=$(curl -fsSL -H "Authorization: Bearer $GITHUB_TOKEN" \
+              https://api.github.com/repos/REAndroid/APKEditor/releases/latest \
+              | jq -r '.assets[] | select(.name | test("^APKEditor-.*\\.jar$")) | .browser_download_url' | head -1)
+            if [ -z "$APKEDITOR_URL" ] || [ "$APKEDITOR_URL" = "null" ]; then
+              echo "::error::Could not resolve APKEditor jar URL from GitHub API"
+              exit 1
+            fi
+            echo "Downloading: $APKEDITOR_URL"
+            curl -fsSL -o ~/bin/apkeditor.jar "$APKEDITOR_URL"
+            java -jar ~/bin/apkeditor.jar m -i "$(ls -1 apk/*.xapk | head -1)" -o apk/target.apk 2>&1 | tail -5
+          else
+            cp apk/*.apk apk/target.apk 2>/dev/null || true
+          fi
+
+          if [ ! -f apk/target.apk ]; then
+            echo "::warning::No APK ready — skipping verify"
+            echo "skip_verify=true" >> $GITHUB_ENV
+          else
+            echo "APK ready: $(du -h apk/target.apk | cut -f1)"
+          fi
+
+      - name: Cache APKs
+        uses: actions/cache@v4
+        with:
+          path: apk/
+          key: apk-${{ matrix.target.pkg }}-${{ github.run_id }}
+          restore-keys: apk-${{ matrix.target.pkg }}-
+
+      - name: Apply patches to target APK
+        if: env.skip_verify != 'true'
+        env:
+          PKG: ${{ steps.target.outputs.pkg }}
+        run: |
+          set -e
+          echo "Applying $mpp to apk/target.apk"
+          if ! morphe patch \
+            --patches "$mpp" \
+            --out apk/patched.apk \
+            apk/target.apk 2>&1 | tail -30; then
+            echo "::error::morphe-cli failed to apply patches"
+            exit 1
+          fi
+          if [ ! -f apk/patched.apk ]; then
+            echo "::error::morphe-cli exited cleanly but did not produce apk/patched.apk"
+            exit 1
+          fi
+          ls -la apk/patched.apk
+
+      - name: Enable KVM (needed for x86 emulator on GH runner)
+        if: env.skip_verify != 'true'
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | \
+            sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Boot emulator + install + smoke-launch
+        if: env.skip_verify != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        env:
+          PKG: ${{ steps.target.outputs.pkg }}
+        with:
+          api-level: 34
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          disable-spellchecker: true
+          emulator-boot-timeout: 900
+          script: |
+            set -e
+            echo "=== Emulator booted ==="
+            adb devices
+            adb wait-for-device
+
+            echo "=== Installing patched APK ==="
+            # adb install has no --abi flag; just install and tolerate ABI mismatch
+            adb install -r -t apk/patched.apk 2>&1 | tail -5 || true
+
+            echo "=== Confirming install ==="
+            if ! adb shell pm list packages | grep -q "$PKG"; then
+              echo "::error::Package $PKG not present after install (likely INSTALL_FAILED_NO_MATCHING_ABIS from arm64-only native libs)"
+              exit 1
+            fi
+
+            echo "=== Clearing logcat ==="
+            adb logcat -c
+
+            echo "=== Launching main activity (monkey 1) ==="
+            adb shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 2>&1 | tail -10
+
+            sleep 8
+
+            echo "=== Checking logcat for crash markers ==="
+            LOG=$(adb logcat -d -t 500)
+            echo "$LOG" | tail -50
+
+            if echo "$LOG" | grep -qE "SuperNotCalledException|FATAL EXCEPTION.*$PKG|Process crashed"; then
+              echo "::error::Patched APK crashed on launch — logcat shows fatal exception"
+              echo "$LOG" | grep -E "FATAL|Exception|at " | head -30
+              exit 1
+            fi
+
+            if ! adb shell ps -A | grep -q "$PKG"; then
+              echo "::warning::Process $PKG not running after 8s — may have crashed silently"
+            else
+              echo "::notice::Patched APK launched, process alive, no crash markers in logcat"
+            fi
+
+      - name: Skip notice
+        if: env.skip_verify == 'true'
+        run: |
+          echo "::notice::Verify skipped for ${{ steps.target.outputs.name }} — could not fetch target APK. Manual test on Poco F7 recommended."
