@@ -1,3 +1,21 @@
+## [1.6.9](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.6.8...v1.6.9) (2026-07-11)
+
+### 🐛 Bug Fixes
+
+* add Legendary characters (assassinOwned36-44) to Hunter Assassin patch ([65b11b2](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/65b11b2aa7537e07fffc5ac6f818b80c5263f6c2))
+
+## [1.6.8](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.6.7...v1.6.8) (2026-07-10)
+
+### 🐛 Bug Fixes
+
+* use correct save keys for Hunter Assassin - rubyAmount for diamonds, add vipCancelled/removeAdsPurchased/freeTrialUsed, remove invalid CHARACTER_* keys ([1cfc97b](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/1cfc97bed0f96000c1db81827526ccde947025ef))
+
+## [1.6.7](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.6.6...v1.6.7) (2026-07-10)
+
+### 🐛 Bug Fixes
+
+* add crystals, cash, all knives and all special characters to Hunter Assassin patch ([e6a0d11](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/e6a0d110964159bc649ad30572dcb4f14fe045a9))
+
 ## [1.6.6](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.6.5...v1.6.6) (2026-07-10)
 
 ### 🐛 Bug Fixes

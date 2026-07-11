@@ -177,4 +177,4 @@ Pull requests are welcome. AI-assisted contributions are accepted, but all chang
 
 ---
 
-<p align="center"><i>Maintained with ❤️ by <a href="https://github.com/krvstek">krvstek</a> and <a href="https://github.com/nvbangg">nvbangg</a></i></p>
+<p align="center"><i>Maintained with ❤️ by <a href="https://github.com/nvbangg">nvbangg</a> and <a href="https://github.com/krvstek">krvstek</a></i></p>

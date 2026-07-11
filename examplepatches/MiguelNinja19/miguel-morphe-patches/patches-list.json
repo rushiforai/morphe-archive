@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.6.6",
+  "version": "1.6.9",
   "patches": [
     {
       "name": "Auto reward ads",
@@ -168,8 +168,8 @@
       "options": []
     },
     {
-      "name": "Unlimited gems, keys & unlock all",
-      "description": "Sets gems to 9999999, keys to 9999999, unlocks VIP (removes ads) and all assassin characters (2-35) by writing directly to the game's SharedPreferences on startup.",
+      "name": "Unlimited gems, rubies & unlock all",
+      "description": "Sets gems, rubies (diamonds), keys and tickets to 9999999. Unlocks VIP (removes ads + VIP rewards + Ninja Assassin VIP character), all assassin characters (2-44), including all Legendary characters (Scarecrow, Dracula, Thor, Wolverine, Myers, Santa, Grinch, Nutcracker, Cricket Player), and all special knives.",
       "default": true,
       "dependencies": [],
       "compatiblePackages": [
