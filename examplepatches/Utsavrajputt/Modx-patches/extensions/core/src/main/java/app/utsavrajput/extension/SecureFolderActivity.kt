@@ -11,10 +11,8 @@ import android.widget.TextView
 import java.io.File
 
 /**
- * The vault contents screen. Files are moved into getFilesDir()/secure_vault
- * (app-private storage, invisible to other apps and the normal Gallery/file
- * manager) - copied in from the picked file, original left untouched unless
- * you extend this to also delete the source.
+ * The vault contents screen. Built entirely in code - no XML layout /
+ * R.layout reference (see UiUtils.kt for why).
  */
 class SecureFolderActivity : Activity() {
 
@@ -23,11 +21,21 @@ class SecureFolderActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_secure_folder)
 
-        container = findViewById(R.id.secure_folder_container)
-        findViewById<Button>(R.id.secure_folder_add_button).setOnClickListener { pickFile() }
+        val scaffold = UiUtils.scaffold(this)
+        val scroll = scaffold.scroll
+        val content = scaffold.content
 
+        val addButton = Button(this).apply {
+            text = "+ Add"
+            setOnClickListener { pickFile() }
+        }
+        content.addView(UiUtils.titleRow(this, "Secure Folder", 22f, addButton))
+
+        container = UiUtils.container(this)
+        content.addView(container)
+
+        setContentView(scroll)
         render()
     }
 
@@ -47,20 +55,25 @@ class SecureFolderActivity : Activity() {
         val name = uri.lastPathSegment?.substringAfterLast('/') ?: "file_${System.currentTimeMillis()}"
         val destination = File(vaultDir, name)
         contentResolver.openInputStream(uri)?.use { input ->
-            destination.outputStream().use { output -> input.copyTo(output) }
+            java.io.FileOutputStream(destination).use { output -> FileUtils.copyStream(input, output) }
         }
         render()
     }
 
     private fun render() {
         container.removeAllViews()
-        val files = vaultDir.listFiles()?.sortedByDescending { it.lastModified() } ?: emptyList()
+        val filesArray = vaultDir.listFiles()
+        val files = ArrayList<File>()
+        if (filesArray != null) {
+            for (f in filesArray) files.add(f)
+            java.util.Collections.sort(files) { a, b -> b.lastModified().compareTo(a.lastModified()) }
+        }
 
         if (files.isEmpty()) {
             container.addView(
                 TextView(this).apply {
                     text = "Vault is empty. Tap + Add to move a file in."
-                    setTextColor(Color.parseColor("#AAAAAA"))
+                    setTextColor(Color.parseColor(UiUtils.TEXT_SECONDARY))
                 },
             )
             return
@@ -73,7 +86,7 @@ class SecureFolderActivity : Activity() {
         val row = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             setPadding(16, 16, 16, 16)
-            setBackgroundColor(Color.parseColor("#1C1C1C"))
+            setBackgroundColor(Color.parseColor(UiUtils.ROW_BACKGROUND))
             val params = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -94,7 +107,7 @@ class SecureFolderActivity : Activity() {
             Button(this).apply {
                 text = "Share"
                 setOnClickListener {
-                    val ext = file.extension
+                    val ext = FileUtils.fileExtension(file.name)
                     val mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext) ?: "*/*"
                     FileUtils.shareFile(this@SecureFolderActivity, file, mime)
                 }

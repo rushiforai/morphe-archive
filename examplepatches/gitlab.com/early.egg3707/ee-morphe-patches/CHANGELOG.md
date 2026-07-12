@@ -1,3 +1,10 @@
+# [1.3.0](https://gitlab.com/early.egg3707/ee-morphe-patches/compare/v1.2.2...v1.3.0) (2026-07-12)
+
+
+### Features
+
+* appsales ([b394682](https://gitlab.com/early.egg3707/ee-morphe-patches/commit/b394682a14e7174b1e877b41d2197ab8939a0bde))
+
 ## [1.2.2](https://gitlab.com/early.egg3707/ee-morphe-patches/compare/v1.2.1...v1.2.2) (2026-06-28)
 
 

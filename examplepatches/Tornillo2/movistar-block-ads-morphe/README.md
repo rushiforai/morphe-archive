@@ -1,115 +1,115 @@
 # 🧩 Movistar Plus – Block Ads (Morphe Patches)
 
-Font de _patches_ per a **[Morphe](https://morphe.software)** (compatible amb l'ecosistema ReVanced) que **elimina els anuncis i els clips promocionals** de l'aplicació de **Movistar Plus per a Android TV**, sense recompilar l'app manualment: el _patcher_ modifica el bytecode de l'APK original i injecta una petita extensió.
+A source of patches for **[Morphe](https://morphe.software)** (compatible with the ReVanced ecosystem) that **removes ads and promotional clips** from the **Movistar Plus Android TV** app without manually recompiling it. The patcher modifies the original APK's bytecode and injects a small extension.
 
-> ⚠️ **Avís**: aquest projecte és només amb finalitats educatives i d'interoperabilitat. Aplica els _patches_ sobre una APK que hagis obtingut legalment i fes-ho sota la teva responsabilitat.
-
----
-
-## ❓ Què fa
-
-L'aplicació de Movistar Plus reprodueix anuncis inserits en el flux de vídeo (pre-roll, promocions, clips `PROMO_AD`, etc.). Aquest _patch_ intercepta el moment exacte en què el reproductor va a carregar un contingut, detecta si es tracta d'un anunci i, si ho és, **impedeix que es reprodueixi i força el salt cap al contingut real**.
-
-En resum, el _patch_ **`Block Ads`**:
-
-1. **Detecta** si el contingut que està a punt de reproduir-se és un anunci.
-2. **Bloqueja** la inicialització del reproductor per a aquest anunci.
-3. **Salta** automàticament al contingut següent (el programa/canal que l'usuari volia veure).
+> ⚠️ **Disclaimer:** This project is provided for educational and interoperability purposes only. Apply these patches only to an APK that you have obtained legally, and do so at your own risk.
 
 ---
 
-## ⚙️ Com funciona per dins
+## ❓ What it does
 
-El _patch_ té dues parts que treballen juntes: el **_patch_ de bytecode** (Kotlin) i l'**extensió** (Java) que s'injecta dins de l'app.
+The Movistar Plus app plays advertisements embedded in the video stream (pre-rolls, promotional content, `PROMO_AD` clips, etc.). This patch intercepts the exact moment when the player is about to load content, determines whether it is an advertisement, and if so, **prevents it from playing and immediately skips to the actual content**.
 
-### 1. Fingerprint – localitzar el mètode objectiu
+In short, the **`Block Ads`** patch:
 
-`Fingerprints.kt` defineix un _fingerprint_ que localitza el mètode del reproductor a modificar. En lloc de buscar una cadena de text (que no existeix al bytecode), el localitza **pel nom del mètode i la classe**:
+1. **Detects** whether the content about to be played is an advertisement.
+2. **Blocks** the player initialization for that advertisement.
+3. **Automatically skips** to the next piece of content (the program or channel the user originally wanted to watch).
+
+---
+
+## ⚙️ How it works internally
+
+The patch consists of two parts working together: the **bytecode patch** (Kotlin) and the injected **extension** (Java).
+
+### 1. Fingerprint – locating the target method
+
+`Fingerprints.kt` defines a fingerprint that locates the player method to modify. Instead of searching for a string (which does not exist in the bytecode), it identifies the method **by its name and class**:
 
 ```kotlin
 methodDef.name == "initializePlayer" &&
     classDef.type == "Lcom/movistarplus/androidtv/player/PlayerTV;"
 ```
 
-El mètode objectiu és:
+The target method is:
 
 ```java
 PlayerTV.initializePlayer(Uri, long, boolean, PlayerDataModel, String)
 ```
 
-### 2. El patch de bytecode – injectar la comprovació
+### 2. The bytecode patch – injecting the check
 
-`ExamplePatch.kt` (`bytecodePatch` anomenat **"Block Ads"**) injecta, al **principi** de `initializePlayer`, una crida a l'extensió i un retorn condicional en Smali:
+`ExamplePatch.kt` (the `bytecodePatch` named **"Block Ads"**) injects a call to the extension at the **beginning** of `initializePlayer`, followed by a conditional return in Smali:
 
 ```smali
 invoke-static {p5}, Lapp/template/extension/extension/ExamplePatch;->shouldBlockAndSkip(Ljava/lang/Object;)Z
 move-result v0
 if-eqz v0, :continue
-return-void          # si és un anunci -> surt sense inicialitzar el reproductor
+return-void          # If it's an ad -> exit without initializing the player
 :continue
 nop
 ```
 
-- `p5` és el `PlayerDataModel` (les dades del contingut que es vol reproduir).
-- Si `shouldBlockAndSkip(...)` retorna `true`, s'executa `return-void` i **el reproductor mai arriba a muntar l'anunci**.
-- Si retorna `false`, el flux continua amb normalitat.
+- `p5` is the `PlayerDataModel` (the metadata of the content about to be played).
+- If `shouldBlockAndSkip(...)` returns `true`, `return-void` is executed and **the player never initializes the advertisement**.
+- If it returns `false`, execution continues normally.
 
-L'extensió es vincula amb `extendWith("extensions/extension.mpe")` i el _patch_ només s'aplica a l'app de Movistar (`compatibleWith(COMPATIBILITY_MOVISTAR)`).
+The extension is linked using `extendWith("extensions/extension.mpe")`, and the patch is only applied to the Movistar app through `compatibleWith(COMPATIBILITY_MOVISTAR)`.
 
-### 3. L'extensió – decidir i saltar
+### 3. The extension – deciding and skipping
 
-`extensions/.../ExamplePatch.java` conté la lògica en temps d'execució:
+`extensions/.../ExamplePatch.java` contains the runtime logic:
 
-- **`shouldBlockAndSkip(Object playerData)`**: comprova el `PlayerDataModel` i decideix si és un anunci. Ho detecta de dues maneres:
-  - `playerDataModel.isAds()` és `true`, o
-  - `playerDataModel.getTypeOfContent()` és igual a `PlayerDataModel.TYPE_PROMO_AD` (`"PROMO_AD"`).
-- Si detecta un anunci, crida **`notifyPlayerEnded()`**, que dispara l'esdeveniment `ended` cap a la capa Cordova/JS de l'app perquè avanci al contingut real:
+- **`shouldBlockAndSkip(Object playerData)`** inspects the `PlayerDataModel` to determine whether the content is an advertisement. It detects ads in two ways:
+  - `playerDataModel.isAds()` returns `true`, or
+  - `playerDataModel.getTypeOfContent()` equals `PlayerDataModel.TYPE_PROMO_AD` (`"PROMO_AD"`).
+- If an ad is detected, it calls **`notifyPlayerEnded()`**, which dispatches the `ended` event to the app's Cordova/JavaScript layer so playback immediately advances to the real content:
 
 ```java
 Class.forName("com.movistarplus.androidtv.MainActivity")
      .getMethod("fireEvent", String.class)
-     .invoke(null, "ended");   // fireEvent és static
+     .invoke(null, "ended");   // fireEvent is static
 ```
 
-Aquesta crida estàtica és clau: `MainActivity.fireEvent(String)` és `public static` i utilitza el `cordovaWebView` intern, de manera que no cal cap instància de l'activitat.
+This static invocation is essential: `MainActivity.fireEvent(String)` is `public static` and uses the internal `cordovaWebView`, so no activity instance is required.
 
 ---
 
-## 🩹 Llista de patches
+## 🩹 Available patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.9](https://github.com/Tornillo2/movistar-block-ads-morphe/releases/tag/v1.0.9)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patch en total
+> **[v1.0.9](https://github.com/Tornillo2/movistar-block-ads-morphe/releases/tag/v1.0.9)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patch available
 <details open>
 <summary>📦 Movistar Plus&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
-**🎯 Versions compatibles:**
+**🎯 Supported versions:**
 
 | 26.03.100 |
 | :---: |
 
-| 💊&nbsp;Patch | 📜&nbsp;Descripció | ⚙️&nbsp;Opcions |
+| 💊 Patch | 📜 Description | ⚙️ Options |
 |----------|----------------|-----------|
-| Block Ads | Bloqueja els anuncis i clips promocionals. | — |
+| Block Ads | Blocks advertisements and promotional clips. | — |
 
 </details>
 <!-- PATCHES_END -->
 
 ---
 
-## 🚀 Com utilitzar aquests patches
+## 🚀 How to use these patches
 
-**Opció A – afegir la font a Morphe (recomanat):**
+### Option A – Add this source to Morphe (recommended)
 
-Afegeix aquest repositori com a _patch source_ a Morphe:
+Add this repository as a patch source in Morphe:
 
 ```
 https://github.com/Tornillo2/movistar-block-ads-morphe
 ```
 
-Després selecciona l'app de **Movistar Plus**, marca el _patch_ **Block Ads**, aplica'l sobre l'APK **original** i instal·la l'APK resultant.
+Then select the **Movistar Plus** app, enable the **Block Ads** patch, apply it to the **original** APK, and install the resulting patched APK.
 
-**Opció B – ReVanced CLI:**
+### Option B – ReVanced CLI
 
 ```bash
 java -jar revanced-cli.jar patch \
@@ -118,50 +118,52 @@ java -jar revanced-cli.jar patch \
   movistarplus-original.apk
 ```
 
-> Aplica sempre els _patches_ sobre una **APK original sense modificar**, mai sobre una ja pegada.
+> Always apply patches to an **unmodified original APK**, never to one that has already been patched.
 
 ---
 
-## 🛠️ Compilar el projecte
+## 🛠️ Building the project
 
-Requereix JDK 17+ i el _wrapper_ de Gradle inclòs.
+Requires JDK 17+ and the included Gradle wrapper.
 
 ```bash
 ./gradlew build
 ```
 
-Això compila:
+This builds:
 
-- El mòdul **`patches`** (Kotlin) → el bundle de _patches_ (`.rvp`).
-- El mòdul **`extensions/extension`** (Java) → l'extensió `extension.mpe` que s'incrusta a l'app.
+- The **`patches`** module (Kotlin) → the patch bundle (`.rvp`).
+- The **`extensions/extension`** module (Java) → the `extension.mpe` extension embedded into the app.
 
-Consulta la [documentació de Morphe](https://github.com/MorpheApp/morphe-documentation) per a més detalls.
+See the [Morphe documentation](https://github.com/MorpheApp/morphe-documentation) for more details.
 
-### Estructura del repositori
+### Repository structure
 
 ```
-patches/                 # Patches de bytecode (Kotlin)
+patches/                 # Bytecode patches (Kotlin)
   └─ .../example/
-      ├─ ExamplePatch.kt   # Patch "Block Ads": injecta la comprovació a initializePlayer
-      ├─ Fingerprints.kt   # Localitza PlayerTV.initializePlayer
-      └─ ../shared/Constants.kt  # COMPATIBILITY_MOVISTAR (paquet + versions)
-extensions/extension/    # Extensió injectada a l'app (Java)
-  └─ .../ExamplePatch.java  # shouldBlockAndSkip() + notifyPlayerEnded()
-patches-list.json        # Metadades de la llista de patches
-.github/workflows/       # CI: build de PRs i release automàtic (semantic-release)
+      ├─ ExamplePatch.kt      # "Block Ads" patch: injects the check into initializePlayer
+      ├─ Fingerprints.kt      # Locates PlayerTV.initializePlayer
+      └─ ../shared/Constants.kt  # COMPATIBILITY_MOVISTAR (package + supported versions)
+
+extensions/extension/    # Extension injected into the app (Java)
+  └─ .../ExamplePatch.java    # shouldBlockAndSkip() + notifyPlayerEnded()
+
+patches-list.json        # Patch list metadata
+.github/workflows/       # CI: PR builds and automatic releases (semantic-release)
 ```
 
 ---
 
-## 🔍 Com verificar que funciona
+## 🔍 Verifying that it works
 
-Instal·la l'APG pegada i observa els logs:
+Install the patched APK and monitor the logs:
 
 ```bash
 adb logcat -s MorpheBlockAds
 ```
 
-Quan salti un anunci hauries de veure:
+When an advertisement is skipped, you should see:
 
 ```
 Ad detected... Blocking playback
@@ -170,6 +172,6 @@ fireEvent('ended') dispatched successfully.
 
 ---
 
-## 📜 Llicència
+## 📜 License
 
-Aquest projecte està llicenciat sota la [GNU General Public License v3.0](LICENSE).
+This project is licensed under the [GNU General Public License v3.0](LICENSE).

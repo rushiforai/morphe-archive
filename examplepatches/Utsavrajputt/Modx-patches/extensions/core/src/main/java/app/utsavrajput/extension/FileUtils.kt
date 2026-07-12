@@ -19,6 +19,31 @@ object FileUtils {
 
     private const val PROVIDER_AUTHORITY = "app.utsavrajput.extension.fileprovider"
 
+    /**
+     * Plain java.io buffer copy - deliberately NOT Kotlin's InputStream.copyTo()
+     * (kotlin.io.ByteStreamsKt), for the same reason UiUtils avoids kotlin.Pair
+     * and ToolsActivity avoids listOf(vararg): MX Player's own base.apk already
+     * contains an R8-stripped copy of several kotlin-stdlib classes with only
+     * the methods MX Player itself calls kept. Any kotlin-stdlib method this
+     * module calls that MX Player doesn't also call can be missing at runtime
+     * (NoSuchMethodError) even though it compiles fine. Pure java.io calls
+     * side-step this category of crash entirely.
+     */
+    /** Plain java.lang.String logic - deliberately NOT Kotlin's File.extension (kotlin.io.FilesKt), same reasoning as copyStream() above. */
+    fun fileExtension(name: String): String {
+        val dot = name.lastIndexOf('.')
+        return if (dot >= 0 && dot < name.length - 1) name.substring(dot + 1) else ""
+    }
+
+    fun copyStream(input: InputStream, output: OutputStream) {
+        val buffer = ByteArray(8192)
+        while (true) {
+            val read = input.read(buffer)
+            if (read == -1) break
+            output.write(buffer, 0, read)
+        }
+    }
+
     /** Share a file already on disk (app-private files) via the system share sheet. */
     fun shareFile(context: Context, file: File, mimeType: String) {
         val uri: Uri = FileProvider.getUriForFile(context, PROVIDER_AUTHORITY, file)
@@ -69,7 +94,7 @@ object FileUtils {
         val uri = resolver.insert(collection, values) ?: return null
 
         resolver.openOutputStream(uri)?.use { out: OutputStream ->
-            input.copyTo(out)
+            copyStream(input, out)
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {

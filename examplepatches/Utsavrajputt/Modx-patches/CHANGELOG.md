@@ -1,3 +1,15 @@
+## [1.3.6](https://github.com/Utsavrajputt/Modx-patches/compare/v1.3.5...v1.3.6) (2026-07-11)
+
+### 🐛 Bug Fixes
+
+* crash ([3628430](https://github.com/Utsavrajputt/Modx-patches/commit/362843062ac75e464c3e61c9c88e2ad7741ef36d))
+
+## [1.3.5](https://github.com/Utsavrajputt/Modx-patches/compare/v1.3.4...v1.3.5) (2026-07-11)
+
+### 🐛 Bug Fixes
+
+* crash error ([bc8ef01](https://github.com/Utsavrajputt/Modx-patches/commit/bc8ef014d981668452b05acd3a41a1ec5f05218b))
+
 ## [1.3.2](https://github.com/Utsavrajputt/Modx-patches/compare/v1.3.1...v1.3.2) (2026-07-10)
 
 ### 🐛 Bug Fixes

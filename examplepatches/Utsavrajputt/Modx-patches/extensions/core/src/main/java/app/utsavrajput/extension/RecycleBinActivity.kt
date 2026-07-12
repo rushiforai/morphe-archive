@@ -8,23 +8,13 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
-import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 
 /**
- * Recycle Bin: a general-purpose trash for the Tools screens. Trashed
- * files are copied into getFilesDir()/recycle_bin (app-private storage)
- * with their original source Uri remembered, so "Restore" can attempt to
- * write back to a SAF-writable location if you extend this - as shipped,
- * Restore re-shares the file so you can save it back wherever you like
- * (writing to an arbitrary original path isn't always permitted without a
- * persisted write grant on that exact file).
- *
- * Use FileUtils / this Activity's `trash(context, uri, displayName)` from
- * other tool screens (e.g. Secure Folder "Remove", Status Saver "Delete")
- * once you wire a delete action there - trashing here instead of deleting
- * outright is what makes those actions recoverable.
+ * Recycle Bin: a general-purpose trash for the Tools screens. Built
+ * entirely in code - no XML layout / R.layout reference (see UiUtils.kt
+ * for why).
  */
 class RecycleBinActivity : Activity() {
 
@@ -34,22 +24,34 @@ class RecycleBinActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_recycle_bin)
 
-        container = findViewById(R.id.recycle_bin_container)
+        val scaffold = UiUtils.scaffold(this)
+        val scroll = scaffold.scroll
+        val content = scaffold.content
+        content.addView(UiUtils.heading(this, "Recycle Bin", sizeSp = 22f))
+
+        container = UiUtils.container(this)
+        content.addView(container)
+
+        setContentView(scroll)
         render()
     }
 
     private fun render() {
         container.removeAllViews()
         val metadata = loadMetadata()
-        val files = binDir.listFiles()?.sortedByDescending { it.lastModified() } ?: emptyList()
+        val filesArray = binDir.listFiles()
+        val files = ArrayList<File>()
+        if (filesArray != null) {
+            for (f in filesArray) files.add(f)
+            java.util.Collections.sort(files) { a, b -> b.lastModified().compareTo(a.lastModified()) }
+        }
 
         if (files.isEmpty()) {
             container.addView(
                 TextView(this).apply {
                     text = "Recycle bin is empty."
-                    setTextColor(Color.parseColor("#AAAAAA"))
+                    setTextColor(Color.parseColor(UiUtils.TEXT_SECONDARY))
                 },
             )
             return
@@ -64,7 +66,7 @@ class RecycleBinActivity : Activity() {
         val row = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             setPadding(16, 16, 16, 16)
-            setBackgroundColor(Color.parseColor("#1C1C1C"))
+            setBackgroundColor(Color.parseColor(UiUtils.ROW_BACKGROUND))
             val params = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -85,7 +87,7 @@ class RecycleBinActivity : Activity() {
             Button(this).apply {
                 text = "Share/Restore"
                 setOnClickListener {
-                    val ext = file.extension
+                    val ext = FileUtils.fileExtension(file.name)
                     val mime = android.webkit.MimeTypeMap.getSingleton()
                         .getMimeTypeFromExtension(ext) ?: "*/*"
                     FileUtils.shareFile(this@RecycleBinActivity, file, mime)
@@ -126,7 +128,7 @@ class RecycleBinActivity : Activity() {
             val destination = File(binDir, storedName)
 
             activity.contentResolver.openInputStream(sourceUri)?.use { input ->
-                destination.outputStream().use { output -> input.copyTo(output) }
+                java.io.FileOutputStream(destination).use { output -> FileUtils.copyStream(input, output) }
             }
 
             val prefs = activity.getSharedPreferences("modx_recycle_bin", MODE_PRIVATE)

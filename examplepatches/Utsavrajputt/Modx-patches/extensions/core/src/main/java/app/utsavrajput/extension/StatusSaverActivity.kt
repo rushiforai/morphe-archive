@@ -5,22 +5,14 @@ import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
-import android.provider.DocumentsContract
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.documentfile.provider.DocumentFile
 
 /**
- * WhatsApp Status Saver.
- *
- * WhatsApp's status media directory (Android/media/com.whatsapp/WhatsApp/Media/.Statuses,
- * or .../com.whatsapp.w4b/... for Business) is a hidden dot-folder that isn't
- * indexed by MediaStore, so it can't be read with a normal storage
- * permission on Android 11+. Instead we use the Storage Access Framework:
- * the user picks the folder ONCE via the system folder picker, we persist
- * that grant, and reuse it on every future open - no MANAGE_EXTERNAL_STORAGE
- * ("all files access") permission needed.
+ * WhatsApp Status Saver. Built entirely in code - no XML layout / R.layout
+ * reference (see UiUtils.kt for why).
  */
 class StatusSaverActivity : Activity() {
 
@@ -31,11 +23,35 @@ class StatusSaverActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_status_saver)
 
-        statusText = findViewById(R.id.status_saver_status)
-        listContainer = findViewById(R.id.status_saver_list)
-        findViewById<Button>(R.id.status_saver_pick_folder).setOnClickListener { pickStatusFolder() }
+        val scaffold = UiUtils.scaffold(this)
+        val scroll = scaffold.scroll
+        val content = scaffold.content
+        content.addView(UiUtils.heading(this, "WhatsApp Status Saver", sizeSp = 22f))
+
+        content.addView(
+            Button(this).apply {
+                text = "Select status folder"
+                setOnClickListener { pickStatusFolder() }
+            },
+        )
+
+        statusText = TextView(this).apply {
+            setTextColor(Color.parseColor(UiUtils.TEXT_SECONDARY))
+            val params = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            )
+            params.topMargin = 12
+            params.bottomMargin = 16
+            layoutParams = params
+        }
+        content.addView(statusText)
+
+        listContainer = UiUtils.container(this)
+        content.addView(listContainer)
+
+        setContentView(scroll)
 
         prefs.getString(KEY_FOLDER_URI, null)?.let { uriString ->
             loadStatuses(Uri.parse(uriString))
@@ -66,9 +82,15 @@ class StatusSaverActivity : Activity() {
     private fun loadStatuses(treeUri: Uri) {
         listContainer.removeAllViews()
         val folder = DocumentFile.fromTreeUri(this, treeUri)
-        val files = folder?.listFiles()?.filter {
-            it.isFile && (it.type?.startsWith("image") == true || it.type?.startsWith("video") == true)
-        } ?: emptyList()
+        val fileArray = folder?.listFiles()
+        val files = ArrayList<DocumentFile>()
+        if (fileArray != null) {
+            for (f in fileArray) {
+                if (f.isFile && (f.type?.startsWith("image") == true || f.type?.startsWith("video") == true)) {
+                    files.add(f)
+                }
+            }
+        }
 
         if (files.isEmpty()) {
             statusText.text = "No statuses found. Make sure you selected the .Statuses folder " +
@@ -84,7 +106,7 @@ class StatusSaverActivity : Activity() {
         val row = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             setPadding(16, 16, 16, 16)
-            setBackgroundColor(Color.parseColor("#1C1C1C"))
+            setBackgroundColor(Color.parseColor(UiUtils.ROW_BACKGROUND))
             val params = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT,

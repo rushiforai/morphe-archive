@@ -40,9 +40,9 @@ Whether you're learning how Android patch projects are organized or looking to c
 ## 🩹 Patches List
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.3.2](https://github.com/Utsavrajputt/Modx-patches/releases/tag/v1.3.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;3 patches total
+> **[v1.3.6](https://github.com/Utsavrajputt/Modx-patches/releases/tag/v1.3.6)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
 <details open>
-<summary>📦 MX Player&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<summary>📦 MX Player&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -54,6 +54,7 @@ Whether you're learning how Android patch projects are organized or looking to c
 |----------|----------------|-----------|
 | [Disable video ads](#disable-video-ads) | Disables video ads by patching the native library. |  |
 | [Hide Video/OTT tab](#hide-video-ott-tab) | Hides the Video/OTT download tab from the home screen by forcing its visibility flag to always report disabled. |  |
+| [Register Modx extension activities](#register-modx-extension-activities) | Adds the ToolsActivity/AboutActivity/tool screens and FileProvider from the extensions/core module to the app's AndroidManifest.xml so they can actually be launched. |  |
 | [Repurpose Search/Games tabs to Tools/About](#repurpose-search-games-tabs-to-tools-about) | Redirects the Search tab to the Modx Tools screen and the Games tab to the Modx About screen. |  |
 
 </details>

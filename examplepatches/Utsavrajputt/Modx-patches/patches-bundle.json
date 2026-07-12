@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-07-10T14:15:36",
-  "description": "## [1.3.2](https://github.com/Utsavrajputt/Modx-patches/compare/v1.3.1...v1.3.2) (2026-07-10)\n\n### 🐛 Bug Fixes\n\n* release issue ([db4df04](https://github.com/Utsavrajputt/Modx-patches/commit/db4df047c3473cce7c4cbe3f3fdb706cc49043b5))",
-  "download_url": "https://github.com/Utsavrajputt/Modx-patches/releases/download/v1.3.2/patches-1.3.2.mpp",
+  "created_at": "2026-07-11T14:22:14",
+  "description": "## [1.3.6](https://github.com/Utsavrajputt/Modx-patches/compare/v1.3.5...v1.3.6) (2026-07-11)\n\n### 🐛 Bug Fixes\n\n* crash ([3628430](https://github.com/Utsavrajputt/Modx-patches/commit/362843062ac75e464c3e61c9c88e2ad7741ef36d))",
+  "download_url": "https://github.com/Utsavrajputt/Modx-patches/releases/download/v1.3.6/patches-1.3.6.mpp",
   "signature_download_url": "",
-  "version": "1.3.2"
+  "version": "1.3.6"
 }

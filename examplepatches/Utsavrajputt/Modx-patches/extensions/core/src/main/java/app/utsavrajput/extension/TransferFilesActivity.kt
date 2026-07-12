@@ -5,13 +5,13 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.TextView
 
 /**
- * Lets the user pick one or more files and share them through the normal
- * Android system share sheet. On devices with Nearby Share installed
- * (stock on virtually all modern Android phones), it shows up there
- * automatically - no custom P2P/network transfer code needed.
+ * Lets the user pick one or more files and share them through the system
+ * share sheet. Built entirely in code - no XML layout / R.layout reference
+ * (see UiUtils.kt for why).
  */
 class TransferFilesActivity : Activity() {
 
@@ -19,10 +19,29 @@ class TransferFilesActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_transfer_files)
 
-        statusText = findViewById(R.id.transfer_status)
-        findViewById<Button>(R.id.transfer_pick_button).setOnClickListener { pickFiles() }
+        val root = UiUtils.rootColumn(this)
+        root.addView(UiUtils.heading(this, "Transfer Files", sizeSp = 24f))
+
+        root.addView(
+            Button(this).apply {
+                text = "Pick files to send"
+                setOnClickListener { pickFiles() }
+            },
+        )
+
+        statusText = TextView(this).apply {
+            setTextColor(android.graphics.Color.parseColor(UiUtils.TEXT_SECONDARY))
+            val params = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            )
+            params.topMargin = 16
+            layoutParams = params
+        }
+        root.addView(statusText)
+
+        setContentView(root)
     }
 
     private fun pickFiles() {
@@ -38,7 +57,7 @@ class TransferFilesActivity : Activity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode != REQUEST_PICK_FILES || resultCode != RESULT_OK || data == null) return
 
-        val uris = mutableListOf<Uri>()
+        val uris = ArrayList<Uri>()
         val clip = data.clipData
         if (clip != null) {
             for (i in 0 until clip.itemCount) uris.add(clip.getItemAt(i).uri)
@@ -47,9 +66,9 @@ class TransferFilesActivity : Activity() {
         }
         if (uris.isEmpty()) return
 
-        uris.forEach { uri ->
+        for (i in uris.indices) {
             runCatching {
-                contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                contentResolver.takePersistableUriPermission(uris[i], Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
         }
 
@@ -57,7 +76,7 @@ class TransferFilesActivity : Activity() {
 
         val sendIntent = Intent(Intent.ACTION_SEND_MULTIPLE).apply {
             type = "*/*"
-            putParcelableArrayListExtra(Intent.EXTRA_STREAM, ArrayList(uris))
+            putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
         startActivity(Intent.createChooser(sendIntent, "Send via"))

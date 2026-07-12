@@ -14,12 +14,8 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * Simple local playlist manager. Playlists are stored as JSON in
- * SharedPreferences (no server, no external DB dependency). Each entry
- * stores the video's content:// Uri (persisted permission taken on add) and
- * a display name. Playing a video hands off to the system video intent -
- * on this device that resolves to MX Player itself in the normal case,
- * since MX Player is a registered video handler.
+ * Simple local playlist manager. Built entirely in code - no XML layout /
+ * R.layout reference (see UiUtils.kt for why).
  */
 class PlaylistActivity : Activity() {
 
@@ -28,11 +24,21 @@ class PlaylistActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_playlist)
 
-        container = findViewById(R.id.playlist_container)
-        findViewById<Button>(R.id.playlist_add_button).setOnClickListener { promptNewPlaylistName() }
+        val scaffold = UiUtils.scaffold(this)
+        val scroll = scaffold.scroll
+        val content = scaffold.content
 
+        val addButton = Button(this).apply {
+            text = "+ New"
+            setOnClickListener { promptNewPlaylistName() }
+        }
+        content.addView(UiUtils.titleRow(this, "Playlists", 22f, addButton))
+
+        container = UiUtils.container(this)
+        content.addView(container)
+
+        setContentView(scroll)
         render()
     }
 
@@ -57,13 +63,15 @@ class PlaylistActivity : Activity() {
     private fun render() {
         container.removeAllViews()
         val data = loadData()
-        val names = data.keys().asSequence().toList()
+        val names = ArrayList<String>()
+        val keysIterator = data.keys()
+        while (keysIterator.hasNext()) names.add(keysIterator.next())
 
         if (names.isEmpty()) {
             container.addView(
                 TextView(this).apply {
                     text = "No playlists yet. Tap + to create one."
-                    setTextColor(Color.parseColor("#AAAAAA"))
+                    setTextColor(Color.parseColor(UiUtils.TEXT_SECONDARY))
                 },
             )
             return
@@ -76,7 +84,7 @@ class PlaylistActivity : Activity() {
         val row = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(24, 24, 24, 24)
-            setBackgroundColor(Color.parseColor("#1C1C1C"))
+            setBackgroundColor(Color.parseColor(UiUtils.ROW_BACKGROUND))
             val params = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT,

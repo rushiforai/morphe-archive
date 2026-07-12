@@ -1,3 +1,89 @@
+## [1.7.11](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.7.10...v1.7.11) (2026-07-12)
+
+### 🐛 Bug Fixes
+
+* pass both registers to success method VerifyErrorto fix  ([bf8e4f6](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/bf8e4f61d4fa5ac42e53f392d63493006e0bd7ea))
+
+## [1.7.10](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.7.9...v1.7.10) (2026-07-12)
+
+### 🐛 Bug Fixes
+
+* smart billing bypass that finds and calls app's success method ([99baf72](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/99baf727eb13b67ac282ad3e318ce436361a4aef))
+
+## [1.7.9](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.7.8...v1.7.9) (2026-07-12)
+
+### 🐛 Bug Fixes
+
+* stop crash by using addInstructions instead of removeInstructions ([4266c13](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/4266c137eda1d7f8159ba1ab4a324177bf4f26f1))
+
+## [1.7.8](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.7.7...v1.7.8) (2026-07-11)
+
+### 🐛 Bug Fixes
+
+* remove extension to prevent crash, use simple returns only (test) ([9726b38](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/9726b388125106999a25045fdbf80588d56c98ce))
+
+## [1.7.7](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.7.6...v1.7.7) (2026-07-11)
+
+### 🐛 Bug Fixes
+
+* rewrite billing bypass extension to use typed Billing API ([60f3394](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/60f33942fd3a726b28796649a979d847e90758c6))
+* rewrite billing bypass extension to use typed Billing API ([a7bc270](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/a7bc270ba1a3420a171946c1fcd5581b71676fa9))
+* rewrite billing bypass extension to use typed Billing API ([0b5ad93](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/0b5ad93f30031dc21fbeec946be48c7fc89cc6ed))
+
+## [1.7.6](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.7.5...v1.7.6) (2026-07-11)
+
+### 🐛 Bug Fixes
+
+* fix VerifyError crash by correcting argument ([cc74aa3](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/cc74aa37872f3569e6f393eca88aa358e877fe9d))
+* fix VerifyError crash by correcting argument ([2749f79](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/2749f79ea82b8f3b8ff1a8be700f28b9cd3506d3))
+
+## [1.7.5](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.7.4...v1.7.5) (2026-07-11)
+
+### 🐛 Bug Fixes
+
+* prevent crash by ensuring BillingResult is never null ([1f763e4](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/1f763e45010f50dee19c937fc5b1269c66596328))
+
+## [1.7.4](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.7.3...v1.7.4) (2026-07-11)
+
+### 🐛 Bug Fixes
+
+* use invoke-static/range to fix register overflow in billing bypass ([33b83eb](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/33b83eb10faf12acbc18e43ee8acc5b483ceb145))
+
+## [1.7.3](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.7.2...v1.7.3) (2026-07-11)
+
+### 🐛 Bug Fixes
+
+* add billing bypass with callback invocation via extension ([2e97cda](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/2e97cdad71401edb6f91ba343c389539ed9070dd))
+* add billing bypass with callback invocation via extension ([433b5da](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/433b5dad9c62cd4c256ab63daa8bc8bcdfc9f36a))
+
+## [1.7.2](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.7.1...v1.7.2) (2026-07-11)
+
+### 🐛 Bug Fixes
+
+* add billing bypass patch (test) ([6a01749](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/6a017495fcf7e2a0a7fb60d6ec67119abea5fb73))
+
+## [1.7.1](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.7.0...v1.7.1) (2026-07-11)
+
+### 🐛 Bug Fixes
+
+* remove ([e130d40](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/e130d40b6f5fff8c8ceb704083d787bb07e93df9))
+
+## [1.7.0](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.6.9...v1.7.0) (2026-07-11)
+
+### 🐛 Bug Fixes
+
+* add universal patches — ads, billing, license, prefs, signature bypass ([de375c7](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/de375c79034192e4c3fbd92ebca5011e4c85b312))
+* add universal patches — ads, billing, license, prefs, signature bypass ([10e7d29](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/10e7d295793a4dca3bd335f9eed280d1757e9e9c))
+* add universal patches — ads, billing, license, prefs, signature bypass ([7591a9c](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/7591a9c75ee7fd70a9d8389d967b27665cf329da))
+* add universal patches — ads, billing, license, prefs, signature bypass ([ea30653](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/ea30653a91143968b08ceeafd162bed7cd5cdcfb))
+* add universal patches — ads, billing, license, prefs, signature bypass ([a895f87](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/a895f876102b43aecd170d16a76e821ab4f5ac0c))
+* add universal patches — ads, billing, license, prefs, signature bypass ([b32560e](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/b32560e9973bd9c639fbae4acd38d161b0dbef76))
+* add universal patches — ads, billing, license, prefs, signature bypass ([2a346d1](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/2a346d111ec19231dc5a41a9e81b43fcddc8f18d))
+
+### ✨ New Features
+
+* add universal patches — ads, billing, license, prefs, signature bypass ([692e3db](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/692e3dbdf0181faa1aa5a2f4621a159983aa159b))
+
 ## [1.6.9](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.6.8...v1.6.9) (2026-07-11)
 
 ### 🐛 Bug Fixes

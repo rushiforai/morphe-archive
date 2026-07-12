@@ -1,5 +1,5 @@
 {
-  "version": "1.2.2",
+  "version": "1.3.0",
   "patches": [
     {
       "name": "Change package name",
@@ -123,6 +123,31 @@
           "targets": [
             {
               "version": "2.36.0",
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Enable Pro",
+      "description": "Enables app features locked behind the subscription paywall and disables UI prompts.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "net.tsapps.appsales",
+          "name": "AppSales",
+          "description": null,
+          "apkFileType": null,
+          "appIconColor": "#428BCA",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "12.3",
               "isExperimental": false,
               "minSdk": null,
               "description": null
