@@ -1,3 +1,113 @@
+## [1.9.4](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.9.3...v1.9.4) (2026-07-12)
+
+### 🐛 Bug Fixes
+
+* use extension for tribe unlock and force store connection ([ff37175](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/ff3717525f73302a556b44538538cc7ef26fb34b))
+* use extension for tribe unlock and force store connection ([a9c979b](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/a9c979b8a270d444b58e1b23e330b4092dbd3ad7))
+* use extension for tribe unlock and force store connection ([d5defdd](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/d5defdd979c600d5a0c03b3a87840911f89bcbdf))
+
+## [1.9.3](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.9.2...v1.9.3) (2026-07-12)
+
+### 🐛 Bug Fixes
+
+* inject tribe unlock after super.onCreate and remove startConnection patch ([c4a5733](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/c4a573319a3bd22a71339f5e40e6c3de108b77b0))
+* inject tribe unlock after super.onCreate and remove startConnection patch ([23ab05a](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/23ab05a21f0f9567826c6d937a398b80159ff893))
+* inject tribe unlock after super.onCreate and remove startConnection patch ([f8cadec](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/f8cadec4f56997c2103f2ddbb974bde0d1d26a0a))
+
+## [1.9.2](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.9.1...v1.9.2) (2026-07-12)
+
+### 🐛 Bug Fixes
+
+* use extension for tribe unlock and patch startConnection for billing ([fa0e327](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/fa0e3270d6e866f50823ea045a2c9450fb318bf6))
+* use extension for tribe unlock and patch startConnection for billing ([34a714b](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/34a714b8b574d0033b048138db8a388d7bd247fb))
+* use extension for tribe unlock and patch startConnection for billing ([a766765](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/a76676570da0625ae557b91ff275cd782d66178f))
+
+## [1.9.1](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.9.0...v1.9.1) (2026-07-12)
+
+### 🐛 Bug Fixes
+
+* use p-registers for tribe unlock and fix billing bridge instance ([ca6f1ec](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/ca6f1ec77f66b93567eae7a82c35433c09995ff7))
+* use p-registers for tribe unlock and fix billing bridge instance ([a25301c](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/a25301cdf6766a5665e3398cf6140b56fc7a714a))
+* use p-registers for tribe unlock and fix billing bridge instance ([e4e084a](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/e4e084a3b62c49ba1ef32399642b1c1bd974b226))
+
+## [1.9.0](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.8.8...v1.9.0) (2026-07-12)
+
+### ✨ New Features
+
+* add Polytopia tribe unlock and update universal billing bypass ([c4d70df](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/c4d70df428d578479040a33bcb94a6055e69d834))
+* add Polytopia tribe unlock and update universal billing bypass ([297d1c0](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/297d1c0bd4bae837cecb99235bdb5e1c15725eaf))
+* add Polytopia tribe unlock and update universal billing bypass ([ceae171](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/ceae171553446d9c8120a2b39b1d92f430f4f714))
+* add Polytopia tribe unlock and update universal billing bypass ([29c8d10](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/29c8d109df2fd3a4f142438aa3e28ee4d5e16aa8))
+
+## [1.8.8](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.8.7...v1.8.8) (2026-07-12)
+
+### 🐛 Bug Fixes
+
+* extract SKU dynamically and create real Purchase object ([8a713c9](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/8a713c9fb275caca966b2edc09d3e54611189cb1))
+* extract SKU dynamically and create real Purchase object ([3f5fc96](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/3f5fc9672e3b9df6c6d16ead63c0ed695b7dac0f))
+* extract SKU dynamically and create real Purchase object ([07dca56](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/07dca5665f7663d8c623779a967280b14acba8a3))
+
+## [1.8.7](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.8.6...v1.8.7) (2026-07-12)
+
+### 🐛 Bug Fixes
+
+* unlock all tribes via debug SharedPreferences key ([ca9aa03](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/ca9aa03a6725125ecc3c311faa76a690999cb290))
+
+## [1.8.6](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.8.5...v1.8.6) (2026-07-12)
+
+### 🐛 Bug Fixes
+
+* ensure store is connected and run on main thread ([37b468f](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/37b468f94bc5a6410f96f91ab51bb60ab8bd40d4))
+* ensure store is connected and run on main thread ([ee42de3](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/ee42de358b8d6296c93ccc0a9bc66d933953d0c6))
+* intercept onPurchasesUpdated instead of launchBillingFlow ([e65a7ac](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/e65a7ac86cd2001c7f3a6168c315bced8e19e554))
+* intercept onPurchasesUpdated instead of launchBillingFlow ([e72dee2](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/e72dee26058cd1303c8f82a1b5d9388635e2871c))
+
+## [1.8.5](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.8.4...v1.8.5) (2026-07-12)
+
+### 🐛 Bug Fixes
+
+* create fake Purchase object with SKU for Polytopia billing ([0900a01](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/0900a0166dab0d5677a0b5206c27dd7512ae1186))
+
+## [1.8.4](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.8.3...v1.8.4) (2026-07-12)
+
+### 🐛 Bug Fixes
+
+* call nativeOnPurchasesUpdated directly via reflection ([b799b37](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/b799b378d4a531107c9147c3929c887fe4a1cba5))
+* call nativeOnPurchasesUpdated directly via reflection ([9372b55](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/9372b55e611a5d5fe4accbccdaa88c64b112883b))
+
+## [1.8.3](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.8.2...v1.8.3) (2026-07-12)
+
+### 🐛 Bug Fixes
+
+* pass correct parameters to billing bypass extension ([35eb639](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/35eb63927d3c67d73ee37aefd8e6039260905c62))
+* pass correct parameters to billing bypass extension ([d7a7b30](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/d7a7b305fccf0c012018ed4afb2638ba94db63f4))
+
+## [1.8.2](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.8.1...v1.8.2) (2026-07-12)
+
+### 🐛 Bug Fixes
+
+* use invoke-static/range to fix register overflow in Polytopia ([9841ead](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/9841eada434a901ef9e9a5627251ed11d04a7554))
+
+## [1.8.1](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.8.0...v1.8.1) (2026-07-12)
+
+### 🐛 Bug Fixes
+
+* rewrite Polytopia patch to create fake Purchase object ([67b49af](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/67b49afd168cd671ab2101161117b74f55625daf))
+* rewrite Polytopia patch to create fake Purchase object ([4733800](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/4733800614f19f6c7d8113f34c262db872db3ca2))
+
+## [1.8.0](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.7.11...v1.8.0) (2026-07-12)
+
+### 🐛 Bug Fixes
+
+* correct import for POLYTOPIA in FreeInAppPurchasesPatch ([ce93f94](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/ce93f9490cbd325d291d2c6ef974dacfd4554c1c))
+
+### ✨ New Features
+
+* add Polytopia patch and Unity IL2CPP support to universal billing ([f80ae6b](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/f80ae6b10133fb890e072fd60eafa47f1287768d))
+* add Polytopia patch and Unity IL2CPP support to universal billing ([d4b2f72](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/d4b2f72eb16433f8c2eefd15b242bebe4d7b0d63))
+* add Polytopia patch and Unity IL2CPP support to universal billing ([5547501](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/5547501e4f8f822ffc3f3e2e09bd77df92ad776d))
+* add Polytopia patch and Unity IL2CPP support to universal billing ([084d48d](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/084d48dc699c589be2bcd66ef2bcc02647adf803))
+
 ## [1.7.11](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.7.10...v1.7.11) (2026-07-12)
 
 ### 🐛 Bug Fixes

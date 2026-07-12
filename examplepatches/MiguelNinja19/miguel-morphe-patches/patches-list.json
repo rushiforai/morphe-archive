@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.7.11",
+  "version": "1.9.4",
   "patches": [
     {
       "name": "Auto reward ads",
@@ -37,10 +37,43 @@
     },
     {
       "name": "Billing bypass",
-      "description": "Attempts to credit purchases by finding the app's own success callback method and calling it directly. Scans for methods like nativeOnSuccess, onPurchaseSuccess, onIAPSuccess, etc. If no success method is found, patches billing to return success without crediting.",
+      "description": "Attempts to credit purchases by finding the app's own success callback method and calling it directly. Scans for methods like nativeOnSuccess, onPurchaseSuccess, onIAPSuccess, etc. Also supports Unity IL2CPP games by finding nativeOnPurchasesUpdated JNI bridge methods and creating fake Purchase objects. If no success method is found, patches billing to return success without crediting.",
       "default": false,
       "dependencies": [],
       "compatiblePackages": null,
+      "options": []
+    },
+    {
+      "name": "Free in-app purchases",
+      "description": "Skips Google Play Billing by forcing store connection and creating fake Purchase objects.",
+      "default": false,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "air.com.midjiwan.polytopia",
+          "name": "The Battle of Polytopia",
+          "description": null,
+          "apkFileType": "APKS",
+          "appIconColor": "#3B5998",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "2.17.2.16299",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
       "options": []
     },
     {
@@ -191,6 +224,39 @@
           "targets": [
             {
               "version": "2.041",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock all tribes",
+      "description": "Unlocks all 20 tribes by setting the debug flag in Unity PlayerPrefs via extension.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "air.com.midjiwan.polytopia",
+          "name": "The Battle of Polytopia",
+          "description": null,
+          "apkFileType": "APKS",
+          "appIconColor": "#3B5998",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "2.17.2.16299",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,

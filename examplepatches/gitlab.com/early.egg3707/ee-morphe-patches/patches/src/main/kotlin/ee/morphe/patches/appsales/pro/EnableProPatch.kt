@@ -9,7 +9,7 @@ import app.morphe.util.returnEarly
 @Suppress("unused")
 val enableProPatch = bytecodePatch(
     name = "Enable Pro",
-    description = "Enables app features locked behind the subscription paywall and disables UI prompts."
+    description = "Enables Appsales features locked behind the subscription paywall and disables UI prompts for Appsales Premium."
 ) {
     compatibleWith(Compatibility(
         name = "AppSales",

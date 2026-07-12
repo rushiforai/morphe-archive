@@ -1,3 +1,17 @@
+## [1.4.1](https://gitlab.com/early.egg3707/ee-morphe-patches/compare/v1.4.0...v1.4.1) (2026-07-12)
+
+
+### Bug Fixes
+
+* appsales description ([39bd4d3](https://gitlab.com/early.egg3707/ee-morphe-patches/commit/39bd4d3d2122b0f88642f83dc50251d17908e535))
+
+# [1.4.0](https://gitlab.com/early.egg3707/ee-morphe-patches/compare/v1.3.0...v1.4.0) (2026-07-12)
+
+
+### Features
+
+* appsales ([3b342da](https://gitlab.com/early.egg3707/ee-morphe-patches/commit/3b342dac2a89b20e40bbe7a6c915a6b2ec35f6fb))
+
 # [1.3.0](https://gitlab.com/early.egg3707/ee-morphe-patches/compare/v1.2.2...v1.3.0) (2026-07-12)
 
 

@@ -85,6 +85,77 @@ object UiUtils {
             ).apply { this.bottomMargin = marginBottom }
         }
 
+    /**
+     * A top app-bar: back arrow + title, dark background, bottom divider.
+     * Meant to sit ABOVE the scrollable content (add to the Activity's
+     * root, not inside the scaffold's scrolling column) so it stays fixed
+     * while content scrolls underneath - matches how MX Player's own
+     * screens are laid out, instead of a plain heading floating at the
+     * top of a scroll view.
+     */
+    fun topBar(activity: Activity, title: String): LinearLayout {
+        val back = TextView(activity).apply {
+            text = "\u2190"
+            setTextColor(Color.WHITE)
+            textSize = 20f
+            setPadding(0, 0, 24, 0)
+            isClickable = true
+            isFocusable = true
+            setOnClickListener { activity.finish() }
+        }
+
+        val titleView = TextView(activity).apply {
+            this.text = title
+            setTextColor(Color.WHITE)
+            textSize = 18f
+            setTypeface(typeface, Typeface.BOLD)
+        }
+
+        return LinearLayout(activity).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(24, 32, 24, 24)
+            setBackgroundColor(Color.parseColor(BACKGROUND))
+            layoutParams = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+            )
+            addView(back)
+            addView(titleView)
+        }
+    }
+
+    /**
+     * Full-screen root: a fixed topBar() on top, with a scaffold()'s
+     * scrollable content below it filling the rest of the screen. This is
+     * the standard shell every extension screen should use - call
+     * setContentView(root) with the returned root, then addView() your
+     * rows into .content.
+     */
+    class Screen(val root: LinearLayout, val content: LinearLayout)
+
+    fun screen(activity: Activity, title: String): Screen {
+        val inner = scaffold(activity)
+        val root = LinearLayout(activity).apply {
+            orientation = LinearLayout.VERTICAL
+            setBackgroundColor(Color.parseColor(BACKGROUND))
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT,
+            )
+            addView(topBar(activity, title))
+            addView(
+                inner.scroll,
+                LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    0,
+                    1f,
+                ),
+            )
+        }
+        return Screen(root, inner.content)
+    }
+
     /** A horizontal row: weighted title on the left, one action Button on the right. */
     fun titleRow(activity: Activity, title: String, sizeSp: Float, button: android.widget.Button, marginBottom: Int = 16): LinearLayout =
         LinearLayout(activity).apply {

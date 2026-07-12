@@ -32,3 +32,45 @@ object ExtensionHooks {
         context.startActivity(intent)
     }
 }
+
+// ---- Append these inside the existing `object ExtensionHooks { ... }` body ----
+// (do not create a new file/object — this must live in your existing
+// ExtensionHooks.kt so launchTools()/launchAbout() and this share the class)
+
+private var tabHostRef: java.lang.ref.WeakReference<Any>? = null
+
+/**
+ * Called on every n4d.j0() (fragment onResume) via CaptureTabHostPatch.
+ * Stores a weak reference to the live tab-host fragment instance so we can
+ * later trigger a real tab switch instead of just finish()ing back to
+ * whatever tab happened to be visible before.
+ */
+@JvmStatic
+fun captureTabHost(host: Any) {
+    tabHostRef = java.lang.ref.WeakReference(host)
+}
+
+/**
+ * Switches MX Player's bottom nav to the given internal tab name
+ * ("local", "fatafat", "games", "online") by reflectively invoking the
+ * fragment's own public O1(String, boolean) method — the exact same
+ * method MX Player's own tab-switch logic uses.
+ *
+ * Safe no-op if we haven't captured a host yet, or if reflection fails
+ * for any reason (e.g. method renamed on an MX Player update) — caller
+ * should still finish() the extension Activity regardless.
+ */
+@JvmStatic
+fun switchTab(tabName: String) {
+    val host = tabHostRef?.get()
+    if (host == null) {
+        return
+    }
+    try {
+        val method = host.javaClass.getMethod("O1", String::class.java, java.lang.Boolean.TYPE)
+        method.invoke(host, tabName, false)
+    } catch (e: Exception) {
+        // Silently ignore — worst case the tab just doesn't switch and the
+        // user sees whatever was underneath, same as before this fix.
+    }
+}

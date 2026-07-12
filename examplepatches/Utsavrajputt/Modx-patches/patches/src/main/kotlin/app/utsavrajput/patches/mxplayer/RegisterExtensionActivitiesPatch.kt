@@ -37,16 +37,19 @@ val registerExtensionActivitiesPatch = resourcePatch(
     // Every Activity class currently declared in
     // extensions/core/src/main/AndroidManifest.xml. Keep this list in sync
     // whenever a new screen is added to the extension module.
+    //
+    // NOTE: the 6 tool screens (Transfer Files, WhatsApp Status Saver,
+    // Playlist, Secure Folder, URL Stream, Recycle Bin) are NOT custom
+    // Activities anymore - ToolsActivity now launches MX Player's own
+    // built-in feature Activities directly (confirmed present in MX
+    // Player's own AndroidManifest.xml, e.g.
+    // com.mxtech.videoplayer.ad.local.bin.RecycleBinActivity,
+    // com.mxtech.privatefolder.setup.PrivateVerifyActivity, etc.) instead
+    // of reimplementing them - those are already declared in MX Player's
+    // manifest and need no registration here.
     val extensionActivities = listOf(
         "app.utsavrajput.extension.AboutActivity",
         "app.utsavrajput.extension.ToolsActivity",
-        "app.utsavrajput.extension.TransferFilesActivity",
-        "app.utsavrajput.extension.StatusSaverActivity",
-        "app.utsavrajput.extension.PlaylistActivity",
-        "app.utsavrajput.extension.SecureFolderPinActivity",
-        "app.utsavrajput.extension.SecureFolderActivity",
-        "app.utsavrajput.extension.UrlStreamActivity",
-        "app.utsavrajput.extension.RecycleBinActivity",
     )
 
     execute {
@@ -59,6 +62,18 @@ val registerExtensionActivitiesPatch = resourcePatch(
                 val activity = document.createElement("activity")
                 activity.setAttribute("android:name", className)
                 activity.setAttribute("android:exported", "false")
+                // Explicit solid, non-translucent, no-action-bar framework
+                // theme. Without this, the activity inherits MX Player's
+                // own <application> default theme, which on some builds
+                // can be a translucent/dialog-style theme (used elsewhere
+                // for floating players/dialogs) - that leaves part of the
+                // window non-opaque, so the previous Activity underneath
+                // (with the Local/Fatafat/Search/Games bottom nav) stays
+                // visible/touchable through the gaps. Using a plain AOSP
+                // framework theme (android: namespace, always present,
+                // not tied to MX Player's own resource table) guarantees
+                // a fully opaque, fullscreen window every time.
+                activity.setAttribute("android:theme", "@android:style/Theme.DeviceDefault.NoActionBar")
                 applicationNode.appendChild(activity)
             }
 

@@ -13,10 +13,14 @@ val billingBypassPatch = bytecodePatch(
     description = "Attempts to credit purchases by finding the app's own " +
         "success callback method and calling it directly. Scans for methods " +
         "like nativeOnSuccess, onPurchaseSuccess, onIAPSuccess, etc. " +
+        "Also supports Unity IL2CPP games by finding nativeOnPurchasesUpdated " +
+        "JNI bridge methods and creating fake Purchase objects. " +
         "If no success method is found, patches billing to return success " +
         "without crediting.",
     default = false,
 ) {
+    extendWith("extensions/extension.mpe")
+
     execute {
         val logger = Logger.getLogger("BillingBypass")
 
@@ -26,6 +30,10 @@ val billingBypassPatch = bytecodePatch(
             "Lcom/google/android/gms/iap/",
         )
 
+        // ================================================================
+        // Phase 1: SMART bypass — find app-level success methods
+        // Works for: Cocos2d-x games (AOS5), custom Java apps
+        // ================================================================
         val successMethodPatterns = listOf(
             "nativeOnSuccess", "onPurchaseSuccess", "onIAPSuccess",
             "onBillingSuccess", "onSuccess", "purchaseSuccess",
@@ -42,9 +50,8 @@ val billingBypassPatch = bytecodePatch(
         var wrapperClassName = ""
         var wrapperMethodName = ""
 
-        logger.info("Scanning for billing success methods...")
+        logger.info("Phase 1: Scanning for app-level success methods...")
 
-        // Phase 1: Find classes that call launchBillingFlow and have a success method
         classDefForEach { classDef ->
             if (foundSmartBypass) return@classDefForEach
 
@@ -56,7 +63,6 @@ val billingBypassPatch = bytecodePatch(
                 className.startsWith("Lkotlin/")
             ) return@classDefForEach
 
-            // Check if this class calls launchBillingFlow
             val callsLaunchBillingFlow = classDef.methods.any { method ->
                 method.implementation?.instructions?.any { insn ->
                     if (insn is ReferenceInstruction) {
@@ -70,9 +76,8 @@ val billingBypassPatch = bytecodePatch(
 
             if (!callsLaunchBillingFlow) return@classDefForEach
 
-            logger.info("Found billing wrapper class: $className")
+            logger.info("  Found billing wrapper class: $className")
 
-            // Find success method
             val successMethod = classDef.methods.find { method ->
                 val name = method.name
                 val matchedPattern = successMethodPatterns.any { pattern ->
@@ -96,11 +101,9 @@ val billingBypassPatch = bytecodePatch(
                 successMethodName = successMethod.name
                 successMethodParamTypes = successMethod.parameterTypes
                 successMethodIsStatic = successMethod.accessFlags.and(0x8) != 0
-                logger.info("Found success method: $className->${successMethod.name}(${successMethod.parameterTypes.joinToString()})")
-                logger.info("  static=$successMethodIsStatic, params=${successMethodParamTypes.size}")
+                logger.info("  Found success method: $className->${successMethod.name}")
             }
 
-            // Find wrapper method
             val wrapperMethod = classDef.methods.find { method ->
                 method.implementation?.instructions?.any { insn ->
                     if (insn is ReferenceInstruction) {
@@ -115,13 +118,11 @@ val billingBypassPatch = bytecodePatch(
             if (wrapperMethod != null) {
                 wrapperClassName = className
                 wrapperMethodName = wrapperMethod.name
-                logger.info("Found wrapper method: $className->${wrapperMethod.name}")
             }
         }
 
-        // Phase 2: Apply smart bypass
         if (foundSmartBypass && wrapperClassName.isNotEmpty()) {
-            logger.info("Applying SMART billing bypass...")
+            logger.info("Phase 1: Applying SMART billing bypass...")
 
             val mutableClass = mutableClassDefBy(wrapperClassName)
             val wrapperMethod = mutableClass.methods.find {
@@ -133,41 +134,32 @@ val billingBypassPatch = bytecodePatch(
             if (wrapperMethod != null && wrapperMethod.implementation != null) {
                 val paramCount = successMethodParamTypes.size
                 val isStatic = successMethodIsStatic
-
-                // Build the parameter type string for the smali signature
                 val paramSig = successMethodParamTypes.joinToString("") { it.toString() }
 
-                // Build smali — match the working AOS5 patch pattern exactly
                 val smali = when {
                     isStatic && paramCount == 2 -> {
-                        // static nativeOnSuccess(String, boolean)
-                        // Match AOS5: const/4 v0, 0x1; invoke-static {p1, v0}
                         """
                             const/4 v0, 0x1
                             invoke-static {p1, v0}, $successMethodClass->$successMethodName($paramSig)V
                         """.trimIndent()
                     }
                     isStatic && paramCount == 1 -> {
-                        // static onSuccess(String)
                         """
                             invoke-static {p1}, $successMethodClass->$successMethodName($paramSig)V
                         """.trimIndent()
                     }
                     !isStatic && paramCount == 2 -> {
-                        // instance method(String, boolean)
                         """
                             const/4 v0, 0x1
                             invoke-virtual {p0, p1, v0}, $successMethodClass->$successMethodName($paramSig)V
                         """.trimIndent()
                     }
                     !isStatic && paramCount == 1 -> {
-                        // instance method(String)
                         """
                             invoke-virtual {p0, p1}, $successMethodClass->$successMethodName($paramSig)V
                         """.trimIndent()
                     }
                     else -> {
-                        // Fallback: just pass p1
                         """
                             invoke-static {p1}, $successMethodClass->$successMethodName($paramSig)V
                         """.trimIndent()
@@ -175,14 +167,72 @@ val billingBypassPatch = bytecodePatch(
                 }
 
                 wrapperMethod.addInstructions(0, smali)
-                logger.info("✓ Injected: $smali")
+                logger.info("  ✓ Injected: $smali")
                 logger.info("Billing bypass complete (SMART mode)")
                 return@execute
             }
         }
 
-        // Phase 3: Fallback
-        logger.info("No success method found. Applying fallback billing bypass...")
+        // ================================================================
+        // Phase 2: Unity IL2CPP bypass — find nativeOnPurchasesUpdated
+        // Works for: Unity IL2CPP games (Polytopia, etc.)
+        // Uses extension to create fake Purchase and call native method
+        // ================================================================
+        logger.info("Phase 2: Scanning for Unity IL2CPP billing bridge...")
+
+        var unityBridgeClass = ""
+        var unityBridgeFound = false
+
+        classDefForEach { classDef ->
+            if (unityBridgeFound) return@classDefForEach
+
+            val className = classDef.type
+
+            if (!className.startsWith("Lcom/android/billingclient/api/")) return@classDefForEach
+
+            val hasNativeOnPurchasesUpdated = classDef.methods.any { method ->
+                method.name == "nativeOnPurchasesUpdated"
+            }
+
+            if (hasNativeOnPurchasesUpdated) {
+                unityBridgeClass = className
+                unityBridgeFound = true
+                logger.info("  Found Unity IL2CPP billing bridge: $className")
+            }
+        }
+
+        if (unityBridgeFound) {
+            logger.info("Phase 2: Applying Unity IL2CPP billing bypass...")
+
+            val billingClientImpl = classDefByOrNull("Lcom/android/billingclient/api/BillingClientImpl;")
+            if (billingClientImpl != null) {
+                val mutableBilling = mutableClassDefBy(billingClientImpl)
+
+                mutableBilling.methods.find {
+                    it.name == "launchBillingFlow" && it.parameterTypes.size == 2
+                }?.let { method ->
+                    if (method.implementation != null) {
+                        val returnType = method.returnType
+                        if (returnType == "Lcom/android/billingclient/api/BillingResult;") {
+                            method.addInstructions(0, """
+                                invoke-static/range {p0 .. p2}, Ldiozz/cubex/patches/extension/BillingBypass;->handleLaunchBillingFlow(Lcom/android/billingclient/api/BillingClient;Ljava/lang/Object;Ljava/lang/Object;)Lcom/android/billingclient/api/BillingResult;
+                                move-result-object v0
+                                return-object v0
+                            """.trimIndent())
+                            logger.info("  ✓ launchBillingFlow → BillingBypass extension")
+                        }
+                    }
+                }
+            }
+
+            logger.info("Billing bypass complete (Unity IL2CPP mode)")
+            return@execute
+        }
+
+        // ================================================================
+        // Phase 3: Fallback — patch billing library methods only
+        // ================================================================
+        logger.info("Phase 3: No success method found. Applying fallback...")
 
         var patchedCount = 0
 

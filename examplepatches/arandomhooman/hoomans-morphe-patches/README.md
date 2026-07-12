@@ -10,7 +10,7 @@ Personal [Morphe](https://morphe.software) patches for paid Android apps.
 ## 🩹 Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.42.0](https://github.com/arandomhooman/hoomans-morphe-patches/releases/tag/v1.42.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;53 patches total
+> **[v1.43.0](https://github.com/arandomhooman/hoomans-morphe-patches/releases/tag/v1.43.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;53 patches total
 <details>
 <summary>📦 Twitch&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
@@ -245,7 +245,7 @@ Personal [Morphe](https://morphe.software) patches for paid Android apps.
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Unlock Plus](#unlock-plus) | Removes ads and unlocks the on-device Quizlet Plus features without a subscription. The AI tools, like Magic Notes and generation, run on Quizlet's servers and stay locked. |  |
+| [Unlock Plus](#unlock-plus) | Removes ads and unlocks the on-device Quizlet Plus features without a subscription, including unlimited Learn and Test rounds and textbook explanation views that free accounts meter. The AI tools, like Magic Notes and generation, run on Quizlet's servers and stay locked. |  |
 
 </details>
 
@@ -255,8 +255,8 @@ Personal [Morphe](https://morphe.software) patches for paid Android apps.
 
 **🎯 Supported versions:**
 
-| 6.8.1 |
-| :---: |
+| 6.8.1 | 7.1.1 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -425,7 +425,7 @@ Personal [Morphe](https://morphe.software) patches for paid Android apps.
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Unlock Premium](#unlock-premium) | Turns on Symfonium's paid features. The build ships as a public beta with a built-in trial: a license value the app keeps locally decides whether the paid UI is open, and two timers (the beta cutoff and the trial countdown) lock the app once they pass. This forces the license read to "licensed" so the paid screens open, drops the "trial expires on ..." line from settings, and stops the cutoff from triggering by cutting off the trusted-time lookup the timers rely on, which leaves the app in its offline state where neither timer fires. The license is checked on the client (a local Play purchase verify), so the unlock holds without an account. Connecting Plex, Jellyfin and other media servers is untouched. |  |
+| [Unlock Premium](#unlock-premium) | Turns on Symfonium's paid features. The build ships as a public beta with a built-in trial: a license value the app keeps locally decides whether the paid UI is open, and two timers (the beta cutoff and the trial countdown) lock the app once they pass. This forces the license read to "licensed" so the paid screens open, drops the "trial expires on ..." line from settings, and freezes the trusted-time lookup the timers read at a fixed pre-cutoff instant so neither timer can fire. The license is checked on the client (a local Play purchase verify), so the unlock holds without an account. Connecting Plex, Jellyfin and other media servers is untouched. |  |
 
 </details>
 
@@ -575,7 +575,7 @@ Personal [Morphe](https://morphe.software) patches for paid Android apps.
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Unlock Pro](#unlock-pro) | Unlocks Tracked's premium training tools without a subscription, like muscle analytics and training programs. They run on the workout data already on your device, so they keep working offline. The separate human-coaching marketplace still needs its own subscription. |  |
+| [Unlock Pro](#unlock-pro) | Unlocks Tracked's premium training tools without a subscription, like muscle analytics, training programs, dashboard customization, and session density/net progression. They run on the workout data already on your device, so they keep working offline. The separate human-coaching marketplace still needs its own subscription. |  |
 
 </details>
 

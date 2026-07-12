@@ -1,3 +1,21 @@
+## [1.4.2](https://github.com/Utsavrajputt/Modx-patches/compare/v1.4.1...v1.4.2) (2026-07-12)
+
+### 🐛 Bug Fixes
+
+* tool activity ([1a11c24](https://github.com/Utsavrajputt/Modx-patches/commit/1a11c24d5773a53d17e7d3c11a37500518bb2227))
+
+## [1.4.1](https://github.com/Utsavrajputt/Modx-patches/compare/v1.4.0...v1.4.1) (2026-07-12)
+
+### 🐛 Bug Fixes
+
+* Navigation tools ([cd1a004](https://github.com/Utsavrajputt/Modx-patches/commit/cd1a00467157c87f1f3aa793ad0bcf81ce39a4c8))
+
+## [1.4.0](https://github.com/Utsavrajputt/Modx-patches/compare/v1.3.6...v1.4.0) (2026-07-12)
+
+### ✨ New Features
+
+* added tools ([e5e4b89](https://github.com/Utsavrajputt/Modx-patches/commit/e5e4b893de01f6057a6c29fd50b389a8cef42caf))
+
 ## [1.3.6](https://github.com/Utsavrajputt/Modx-patches/compare/v1.3.5...v1.3.6) (2026-07-11)
 
 ### 🐛 Bug Fixes

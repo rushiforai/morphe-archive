@@ -8,37 +8,21 @@
         <activity
             android:name="app.utsavrajput.extension.ToolsActivity"
             android:exported="false" />
-        <activity
-            android:name="app.utsavrajput.extension.TransferFilesActivity"
-            android:exported="false" />
-        <activity
-            android:name="app.utsavrajput.extension.StatusSaverActivity"
-            android:exported="false" />
-        <activity
-            android:name="app.utsavrajput.extension.PlaylistActivity"
-            android:exported="false" />
-        <activity
-            android:name="app.utsavrajput.extension.SecureFolderPinActivity"
-            android:exported="false" />
-        <activity
-            android:name="app.utsavrajput.extension.SecureFolderActivity"
-            android:exported="false" />
-        <activity
-            android:name="app.utsavrajput.extension.UrlStreamActivity"
-            android:exported="false" />
-        <activity
-            android:name="app.utsavrajput.extension.RecycleBinActivity"
-            android:exported="false" />
-
-        <provider
-            android:name="androidx.core.content.FileProvider"
-            android:authorities="app.utsavrajput.extension.fileprovider"
-            android:exported="false"
-            android:grantUriPermissions="true">
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/modx_file_paths" />
-        </provider>
     </application>
+
+    <!--
+    The 6 tool screens (Transfer Files, WhatsApp Status Saver, Playlist,
+    Secure Folder, URL Stream, Recycle Bin) are no longer custom Activities
+    in this module - ToolsActivity launches MX Player's own built-in
+    feature Activities directly via explicit Intent (setClassName), since
+    they already exist, working and pre-themed, in MX Player's own
+    AndroidManifest.xml. See ToolsActivity.kt for the exact class names.
+
+    NOTE: this manifest is NOT actually merged into MX Player's APK by
+    extendWith() - see RegisterExtensionActivitiesPatch.kt, which injects
+    the real <activity> entries directly into MX Player's own
+    AndroidManifest.xml at patch time. This file is kept in sync purely for
+    documentation/consistency.
+    -->
 
 </manifest>
