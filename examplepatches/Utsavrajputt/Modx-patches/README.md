@@ -40,9 +40,9 @@ Whether you're learning how Android patch projects are organized or looking to c
 ## 🩹 Patches List
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.4.2](https://github.com/Utsavrajputt/Modx-patches/releases/tag/v1.4.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
+> **[v1.4.1](https://github.com/Utsavrajputt/Modx-patches/releases/tag/v1.4.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;5 patches total
 <details open>
-<summary>📦 MX Player&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<summary>📦 MX Player&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -52,6 +52,7 @@ Whether you're learning how Android patch projects are organized or looking to c
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
+| [Capture tab host for programmatic tab switching](#capture-tab-host-for-programmatic-tab-switching) | Lets extension Activities (Tools/About) trigger a real MX Player tab switch instead of just finishing back to whatever tab was last visible. |  |
 | [Disable video ads](#disable-video-ads) | Disables video ads by patching the native library. |  |
 | [Hide Video/OTT tab](#hide-video-ott-tab) | Hides the Video/OTT download tab from the home screen by forcing its visibility flag to always report disabled. |  |
 | [Register Modx extension activities](#register-modx-extension-activities) | Adds the ToolsActivity/AboutActivity/tool screens and FileProvider from the extensions/core module to the app's AndroidManifest.xml so they can actually be launched. |  |

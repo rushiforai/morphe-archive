@@ -1,3 +1,29 @@
+## [1.9.7](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.9.6...v1.9.7) (2026-07-13)
+
+### 🐛 Bug Fixes
+
+* move IAP fake purchase logic to Java extension ([60a64f6](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/60a64f63a0fab79dc0195a1382da91aeb8d5f292))
+* move IAP fake purchase logic to Java extension ([ccf8b40](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/ccf8b4075ef1c2fb97e614528a1ec95719b616f3))
+
+## [1.9.6](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.9.5...v1.9.6) (2026-07-13)
+
+### 🐛 Bug Fixes
+
+* **polytopia:** resolve register crashes in both patches ([8b5f1ec](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/8b5f1ec316a0ee4385c99c2ba5bea2b588a63383))
+* **polytopia:** resolve register crashes in both patches ([bbf38a8](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/bbf38a82370249e7a9b328c352fe2287669a2150))
+* **polytopia:** resolve register crashes in both patches ([fcab7a4](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/fcab7a48860db1c5dbfc0ee491f9889b935ac352))
+
+## [1.9.5](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.9.4...v1.9.5) (2026-07-13)
+
+### 🐛 Bug Fixes
+
+* **polytopia:** add unlock all tribes and free IAP patches ([a6cce19](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/a6cce19edd1e724f426c3bf11451d5f0fe0273d7))
+* **polytopia:** add unlock all tribes and free IAP patches ([7cb6faf](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/7cb6faf1bb37b913e5dd78deea40d2dade1c5d36))
+* **polytopia:** add unlock all tribes and free IAP patches ([bddd7d7](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/bddd7d724e94deec252c055570e6cb208c46edc1))
+* **polytopia:** add unlock all tribes and free IAP patches ([77f1d9e](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/77f1d9e08a5968ca73782cd8232e94093014d4f4))
+* **polytopia:** correct imports and escape $ in smali inner class references ([4bb8e4d](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/4bb8e4d8bf679b281b7c34a024d38d29a130b55c))
+* **polytopia:** correct imports and escape $ in smali inner class references ([15ee78c](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/15ee78c37f705d50e8f5905c8f099368148dffda))
+
 ## [1.9.4](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.9.3...v1.9.4) (2026-07-12)
 
 ### 🐛 Bug Fixes

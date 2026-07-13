@@ -7,7 +7,7 @@ import android.util.Base64
 /**
  * Real MX Player bottom-nav icons, embedded as Base64 PNG bytes and decoded
  * at runtime. This sidesteps the extension module's resource-merge
- * limitation entirely (extendWith() only merges DEX, never res/*), while
+ * limitation entirely (extendWith() only merges DEX, never res/ files), while
  * still giving pixel-identical icons to the ones MX Player itself uses —
  * because they ARE the same PNG files, just extracted from the app.
  *

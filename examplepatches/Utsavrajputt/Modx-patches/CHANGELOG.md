@@ -1,3 +1,16 @@
+## [1.4.1](https://github.com/Utsavrajputt/Modx-patches/compare/v1.4.0...v1.4.1) (2026-07-13)
+
+### 🐛 Bug Fixes
+
+* Add TODOs for Local, Search, and Games icons ([7820cd7](https://github.com/Utsavrajputt/Modx-patches/commit/7820cd7a85011198115d7450dfa2fef8855cc27c))
+* Clean up Iconassets.kt by removing unused code ([a6ddec6](https://github.com/Utsavrajputt/Modx-patches/commit/a6ddec6e8ca0bf9b6c8ba00ad13f897362986bcf))
+* Implement tab host capture and switching methods ([daf5816](https://github.com/Utsavrajputt/Modx-patches/commit/daf581638e56ed00ee550d49aa8e5857017b3478))
+* Navigation tools ([cd1a004](https://github.com/Utsavrajputt/Modx-patches/commit/cd1a00467157c87f1f3aa793ad0bcf81ce39a4c8))
+* tool activity ([d706e63](https://github.com/Utsavrajputt/Modx-patches/commit/d706e635bf3960a4a70ba6adda59286735dfd75e))
+* tool activity ([2a69225](https://github.com/Utsavrajputt/Modx-patches/commit/2a69225e0ce4f9494c367e38b0bb2ce9f3a2ae58))
+* tool activity ([eff1b79](https://github.com/Utsavrajputt/Modx-patches/commit/eff1b7975e1503159c9c654e4e34cf55a95e2b99))
+* tool activity ([1a11c24](https://github.com/Utsavrajputt/Modx-patches/commit/1a11c24d5773a53d17e7d3c11a37500518bb2227))
+
 ## [1.4.2](https://github.com/Utsavrajputt/Modx-patches/compare/v1.4.1...v1.4.2) (2026-07-12)
 
 ### 🐛 Bug Fixes
