@@ -235,7 +235,7 @@ class ToolsActivity : Activity() {
         // those directly, no tint needed since the art is pre-colored.
         // Other tabs fall back to emoji glyphs until their icons are
         // extracted the same way (see IconAssets.kt TODOs).
-        if (item.tabKey == "fatafat") {
+        if (item.tabKey.equals("fatafat")) {
             val iconView = ImageView(this).apply {
                 setImageBitmap(
                     if (item.active) IconAssets.fatafatSelected() else IconAssets.fatafatDefault()

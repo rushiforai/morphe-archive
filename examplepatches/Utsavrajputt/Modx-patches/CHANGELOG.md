@@ -1,3 +1,9 @@
+## [1.4.2](https://github.com/Utsavrajputt/Modx-patches/compare/v1.4.1...v1.4.2) (2026-07-13)
+
+### 🐛 Bug Fixes
+
+* Crash on clicking tools ([89d28b3](https://github.com/Utsavrajputt/Modx-patches/commit/89d28b36638626750ca3445220b41f8d9e6ee2be))
+
 ## [1.4.1](https://github.com/Utsavrajputt/Modx-patches/compare/v1.4.0...v1.4.1) (2026-07-13)
 
 ### 🐛 Bug Fixes

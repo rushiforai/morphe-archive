@@ -18,7 +18,7 @@ https://github.com/MiguelNinja19/miguel-morphe-patches
 ## 🩹 Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.9.7](https://github.com/MiguelNinja19/miguel-morphe-patches/releases/tag/v1.9.7)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
+> **[v1.9.10](https://github.com/MiguelNinja19/miguel-morphe-patches/releases/tag/v1.9.10)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
 <details open>
 <summary>📦 Hunter Assassin&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -46,8 +46,8 @@ https://github.com/MiguelNinja19/miguel-morphe-patches
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Free in-app purchases](#free-in-app-purchases) | Skips Google Play Billing and credits IAP items (tribes, skins, crystal packs) directly. Patches the billing bridge to report success, forces Purchase.isAcknowledged() and getPurchaseState() to return valid values, and intercepts launchBillingFlow to create a fake Purchase via Java extension and feed it to the game's native billing callback — no payment, no Play Store dialog, instant credit. |  |
-| [Unlock all tribes](#unlock-all-tribes) | Unlocks all 20 tribes (Xinxi, Imperius, Bardur, Oumaji, Kickoo, Hoodrick, Luxidoor, Vengir, Zebasi, Aimo, Aquarion, Elyrion, Polaris, Magma, Yadakk, Quetzali, Cymanti, Swamp, Ikarus, Urkaz) by activating the game's built-in DEBUG MODE. Writes a user.cfg file with debugUnlock=true before the game loads, which makes Polytopia use its internal EverythingUnlockedPlatformPurchaseManager (a debug class that unlocks everything for free). |  |
+| [Free in-app purchases](#free-in-app-purchases) | Skips Google Play Billing and credits IAP items (crystal packs, tribe skins) directly. Patches the billing bridge to report success, forces Purchase.isAcknowledged() and getPurchaseState() to return valid values, and swallows purchase errors so no error dialog appears. |  |
+| [Unlock all tribes](#unlock-all-tribes) | Unlocks all 20 tribes (Xinxi, Imperius, Bardur, Oumaji, Kickoo, Hoodrick, Luxidoor, Vengir, Zebasi, Aimo, Aquarion, Elyrion, Polaris, Magma, Yadakk, Quetzali, Cymanti, Swamp, Ikarus, Urkaz) and all skins by patching the native IL2CPP library (libil2cpp.so). Makes IsTribeUnlocked() and IsSkinUnlocked() always return true via ARM64 hex patching. |  |
 
 </details>
 
@@ -104,7 +104,7 @@ https://github.com/MiguelNinja19/miguel-morphe-patches
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Billing bypass](#billing-bypass) | Attempts to credit purchases by finding the app's own success callback method and calling it directly. Scans for methods like nativeOnSuccess, onPurchaseSuccess, onIAPSuccess, etc. Also supports Unity IL2CPP games by finding nativeOnPurchasesUpdated JNI bridge methods and creating fake Purchase objects. If no success method is found, patches billing to return success without crediting. |  |
+| [Billing bypass](#billing-bypass) | Attempts to credit purchases by scanning the app for billing code and applying the appropriate bypass. Runs 4 phases: (1) Cocos2d-x helper — finds app-level success methods. (2) Google Play Billing — patches Purchase.isAcknowledged and getPurchaseState. (3) Unity billing — patches zzbq bridge callbacks (onBillingSetupFinished, onPurchasesUpdated). (4) Fallback — patches billing to return success without crediting. |  |
 
 </details>
 
