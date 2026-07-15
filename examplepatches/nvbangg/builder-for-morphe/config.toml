@@ -30,7 +30,7 @@ enabled = false
 brand = "morphe-dev"
 apkmirror-dlurl = "https://www.apkmirror.com/apk/google-inc/youtube"
 uptodown-dlurl = "https://youtube.en.uptodown.com/android"
-version = "21.26.360"
+version = "latest"
 patcher-args = "-e 'Change header' -Ocustom=icons/YouTube/header -e 'Custom branding' -OcustomIcon=icons/YouTube/branding -OcustomName='YouTube Morphe'"
 
 [YouTube-Experimental.patches]
@@ -42,7 +42,7 @@ brand = "morphe-dev"
 apkmirror-dlurl = "https://www.apkmirror.com/apk/google-inc/youtube-music"
 uptodown-dlurl = "https://youtube-music.en.uptodown.com/android"
 arch = "both"
-version = "9.26.51"
+version = "latest"
 patcher-args = "-e 'Change header' -Ocustom=icons/Music/header -e 'Custom branding' -OcustomIcon=icons/Music/branding -OcustomName='Music Morphe'"
 
 [YT-Music-Experimental.patches]
@@ -53,7 +53,7 @@ enabled = false
 brand = "morphe-dev"
 apkmirror-dlurl = "https://www.apkmirror.com/apk/redditinc/reddit"
 uptodown-dlurl = "https://reddit-official-app.en.uptodown.com/android"
-version = "2026.26.0"
+version = "latest"
 patcher-args = "-e 'Custom branding name for Reddit' -OappName='Reddit Morphe'"
 
 [Reddit-Experimental.patches]

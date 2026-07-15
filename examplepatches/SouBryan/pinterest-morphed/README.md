@@ -69,29 +69,39 @@ Then:
 
 ## 🎯 Supported Pinterest versions
 
-| Version | Channel       | Notes                                                          |
-| ------- | ------------- | -------------------------------------------------------------- |
-| 14.26.0 | Experimental  | Latest beta channel — should work, fingerprints not re-anchored |
-| 14.25.0 | **Recommended** | Latest stable on the Play Store — patches developed here      |
-| 14.24.0 | Experimental  | Kept working for users still on an older release               |
+| Version | Channel         | Notes                                                                    |
+| ------- | --------------- | ------------------------------------------------------------------------ |
+| 14.27.0 | Stable          | Latest release — bumps `minSdk` to Android 12L (SDK 32)                  |
+| 14.26.0 | Stable          |                                                                          |
+| 14.25.0 | **Recommended** | Most-tested build on real hardware (ad-blocking, sanitisers, resolver)   |
+| 14.24.0 | Stable          |                                                                          |
+| 14.23.0 | Stable          |                                                                          |
+| 14.22.0 | Stable          |                                                                          |
+| 14.21.0 | Stable          |                                                                          |
+| 14.20.0 | Stable          | Oldest supported release                                                 |
 
-Fingerprints are anchored to **14.25.0**. Older/newer versions are best-effort:
-if a patch's fingerprint no longer matches, the patch is skipped instead of
-applying incorrectly, so the app will still install — you just get less
-cleanup.
+Every listed version has been verified end-to-end — **all 12 patches apply
+cleanly on the exact `versionCode` declared in
+[`Constants.kt`](patches/src/main/kotlin/app/soubryan/patches/pinterest/shared/Constants.kt).**
+Fingerprints are anchored on Gson `@SerializedName` values, Pinterest-owned
+class names and stable Android SDK strings, so they survive every 14.2x
+release without any code change.
+
+Morphe Manager fetches the exact APKMirror download link for each version
+automatically — no need to hunt for it manually.
 
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.1.0](https://github.com/SouBryan/pinterest-morphed/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
+> **[v1.5.0](https://github.com/SouBryan/pinterest-morphed/releases/tag/v1.5.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;12 patches total
 <details open>
-<summary>📦 Pinterest&nbsp;&nbsp;•&nbsp;&nbsp;10 patches</summary>
+<summary>📦 Pinterest&nbsp;&nbsp;•&nbsp;&nbsp;12 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 🧪&nbsp;14.26.0 | 14.25.0 | 🧪&nbsp;14.24.0 |
-| :---: | :---: | :---: |
+| 14.27.0 | 14.26.0 | 14.25.0 | 14.24.0 | 14.23.0 | 14.22.0 | 14.21.0 | 14.20.0 |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -101,9 +111,11 @@ cleanup.
 | [Disable Google Ads SDK](#disable-google-ads-sdk) | Removes the Google Mobile Ads (AdMob) initialization metadata so the SDK never starts. |  |
 | [Disable Google Engage integration](#disable-google-engage-integration) | Removes the Google Engage broadcast receiver so Pinterest cannot publish content recommendations back to Google (Discover, Assistant, Play Store, etc.). |  |
 | [Disable Google Engage worker](#disable-google-engage-worker) | Rewrites GoogleEngageWorker.createWork() to return null so WorkManager fails the periodic job and no content recommendations are ever published to Google. |  |
-| [Hide promoted pins](#hide-promoted-pins) | Overrides every `isPromoted` getter on the Pinterest pin/story models to return false, so ad chrome, ad beacons and click-out CTAs are never rendered or fired. |  |
+| [Hide ad views](#hide-ad-views) | Collapses Pinterest's ad-specific views (TextAdView, promoted closeup action bars, board sponsor headers, …) to zero-size on construction, so ad chrome never draws even if the feed adapter tries to render one. |  |
+| [Hide promoted pins](#hide-promoted-pins) | Neutralises every ad-indicator field on the Pinterest pin/story models (is_promoted, promoted_is_*, is_native, ad_data, ...) so Promoted Pins, shopping-carousel ads, native-content ads and click-out CTAs are never rendered or fired. |  |
 | [Opt out of Google Analytics](#opt-out-of-google-analytics) | Sets the default Google Analytics consent flags to false so the Firebase Measurement SDK does not collect analytics, ad data or personalization signals. |  |
 | [Remove Advertising ID permission](#remove-advertising-id-permission) | Strips the com.google.android.gms.permission.AD_ID permission so any residual SDK cannot read the device's Google Advertising ID. |  |
+| [Sanitize copied links](#sanitize-copied-links) | Resolves Pinterest short URLs (pin.it/…, pinterest.com/url_shortener/…) to their canonical pin URL before they are placed on the system clipboard, so "Copy link" no longer produces a fingerprinted short link. |  |
 | [Sanitize sharing links](#sanitize-sharing-links) | Strips UTM and click-ID tracking parameters from the URL the app puts on the Android share sheet, so friends receive clean pin links. |  |
 
 </details>
@@ -173,15 +185,20 @@ talk to a re-signed APK. Log in with email/password instead. This is a
 limitation of every patched Android app, not something specific to this repo.
 
 ### Which APK/bundle should I download?
-For the bundle patches, prefer `.apkm` from APKMirror. `arm64-v8a` is enough
-if your phone is from the last 6 years. Avoid already-modded or repacked
-APKs.
+See the [Supported Pinterest versions](#-supported-pinterest-versions) table
+above for direct APKMirror links. Prefer the **Bundle** (`.apkm`) variant when
+listed — it's the same multi-split file Google Play delivers, so the download
+matches your device configuration exactly. If the bundle installer refuses
+your device, fall back to the **Universal APK**. Both produce identical
+patched builds. Avoid already-modded or repacked APKs from other sources.
 
 ### Will you support version X.Y.Z?
-If it's a Pinterest release after `14.25.0` and the fingerprints still hold,
-it should already work (marked "experimental"). If a patch stops applying,
-open an issue with your Pinterest version and the CLI output so I can
-re-anchor the fingerprints.
+Pinterest **14.20.0 through 14.27.0** are already verified (12/12 patches on
+every release in that range). If a future Pinterest release still applies all
+12 patches, it works with no code change on my side — the fingerprints are
+anchored on Gson `@SerializedName` values and Pinterest-owned class names,
+which R8 preserves. If a patch does stop applying, open an issue with your
+Pinterest version and the CLI output so I can re-anchor the fingerprint.
 
 ### Can you make patches for other apps?
 No — this repo is Pinterest-only by design. There are other Morphe patch

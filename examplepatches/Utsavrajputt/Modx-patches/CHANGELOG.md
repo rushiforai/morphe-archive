@@ -1,3 +1,15 @@
+## [1.5.1](https://github.com/Utsavrajputt/Modx-patches/compare/v1.5.0...v1.5.1) (2026-07-14)
+
+### 🐛 Bug Fixes
+
+* Navbar item ([6d37aa6](https://github.com/Utsavrajputt/Modx-patches/commit/6d37aa6d59064abc68d8d8e36ee9d794ea6c38b3))
+
+## [1.5.0](https://github.com/Utsavrajputt/Modx-patches/compare/v1.4.2...v1.5.0) (2026-07-14)
+
+### ✨ New Features
+
+* Added about section ([233691d](https://github.com/Utsavrajputt/Modx-patches/commit/233691deb7acfbf7c183f5fe6d805893dc4cd650))
+
 ## [1.4.2](https://github.com/Utsavrajputt/Modx-patches/compare/v1.4.1...v1.4.2) (2026-07-13)
 
 ### 🐛 Bug Fixes

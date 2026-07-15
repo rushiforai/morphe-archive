@@ -33,7 +33,7 @@ def fetch_cli(cli_src: str, cli_ver: str, net: NetworkManager) -> Path:
     cli_org = _strip_src_prefix(cli_src).split("/")[0]
     cli_dir = TEMP_DIR / cli_org.lower()
     cli_dir.mkdir(parents=True, exist_ok=True)
-    jar, changelog = _fetch_single_asset(cli_src, "CLI", cli_ver, "cli", "jar", cli_dir, net)
+    jar, changelog = _fetch_single_asset(cli_src, "CLI", cli_ver, "jar", cli_dir, net)
     if changelog:
         with (cli_dir / "changelog.md").open("a", encoding="utf-8") as f:
             f.write(changelog)
@@ -43,7 +43,7 @@ def fetch_mpp(src: str, ver: str, net: NetworkManager) -> Path:
     org = _strip_src_prefix(src).split("/")[0]
     cl_dir = TEMP_DIR / org.lower()
     cl_dir.mkdir(parents=True, exist_ok=True)
-    mpp, changelog = _fetch_single_asset(src, "Patches", ver, "patches", "mpp", cl_dir, net)
+    mpp, changelog = _fetch_single_asset(src, "Patches", ver, "mpp", cl_dir, net)
     if changelog:
         with (cl_dir / "changelog.md").open("a", encoding="utf-8") as f:
             f.write(changelog)
@@ -78,7 +78,7 @@ def _build_changelog(tag: str, org: str, name: str, tag_name: str, gitlab: bool,
             changelog += f"[🔗 » Changelog](https://github.com/{clean_src}/releases/tag/{tag_name})\n\n"
     return changelog
 
-def _fetch_single_asset(src: str, tag: str, ver: str, fprefix: str, ext: str, cl_dir: Path, net: NetworkManager) -> tuple[Path, str]:
+def _fetch_single_asset(src: str, tag: str, ver: str, ext: str, cl_dir: Path, net: NetworkManager) -> tuple[Path, str]:
     gitlab = src.startswith("gitlab:")
     clean_src = _strip_src_prefix(src)
     org = clean_src.split("/")[0]
@@ -97,7 +97,7 @@ def _fetch_single_asset(src: str, tag: str, ver: str, fprefix: str, ext: str, cl
         release = json.loads(net.get(latest_url) if gitlab else net.get(latest_url, headers=net._gh_headers))
         ver = release.get("tag_name", "")
 
-    if file := _find_cached(cl_dir, fprefix, ver, ext, exclude_dev=False):
+    if file := _find_cached(cl_dir, ver, ext, exclude_dev=False):
         tag_name = _tag_from_filename(file)
         return file, _build_changelog(tag, org, file.name, tag_name, gitlab, clean_src)
 
@@ -108,7 +108,7 @@ def _fetch_single_asset(src: str, tag: str, ver: str, fprefix: str, ext: str, cl
     raw_assets = release.get("assets", {}).get("links", []) if gitlab else release.get("assets", [])
     asset = _get_target_asset(raw_assets, ext, src, ver)
     file = cl_dir / asset["name"]
-    for old_file in cl_dir.glob(f"*{fprefix}-*.{ext}"):
+    for old_file in cl_dir.glob(f"*.{ext}"):
         if old_file.is_file() and not old_file.name.startswith("tmp."):
             old_file.unlink(missing_ok=True)
 
@@ -122,8 +122,8 @@ def _fetch_single_asset(src: str, tag: str, ver: str, fprefix: str, ext: str, cl
     tag_name = release.get("tag_name", "")
     return file, _build_changelog(tag, org, asset["name"], tag_name, gitlab, clean_src)
 
-def _find_cached(dir_path: Path, fprefix: str, name_ver: str, ext: str, exclude_dev: bool) -> Path | None:
-    pattern = f"*{fprefix}-*.{ext}" if name_ver == "*" else f"*{fprefix}-{name_ver.lstrip('v')}*.{ext}"
+def _find_cached(dir_path: Path, name_ver: str, ext: str, exclude_dev: bool) -> Path | None:
+    pattern = f"*.{ext}" if name_ver == "*" else f"*{name_ver.lstrip('v')}*.{ext}"
     candidates: list[Path] = []
     for f in dir_path.glob(pattern):
         if not f.is_file() or f.name.startswith("tmp."):

@@ -1,5 +1,6 @@
 package app.utsavrajput.extension
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 
@@ -24,12 +25,18 @@ object ExtensionHooks {
 
     private fun launch(context: Context, activity: Class<*>) {
         val intent = Intent(context, activity)
-        if (context !is android.app.Activity) {
+        if (context !is Activity) {
             // Called with a non-Activity context - needs NEW_TASK to
             // start an Activity from there.
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         context.startActivity(intent)
+        if (context is Activity) {
+            // Kill the default window scale/fade transition so switching
+            // into Tools/About feels as instant as the native
+            // Local<->Fatafat fragment swap.
+            context.overridePendingTransition(0, 0)
+        }
     }
 
     private var tabHostRef: java.lang.ref.WeakReference<Any>? = null

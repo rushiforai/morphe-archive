@@ -53,7 +53,7 @@ def parse_config(data: dict[str, object]) -> Config:
         parallel_jobs=int(data.get("parallel-jobs", os.process_cpu_count() or 1)),
         brand=str(data.get("brand", "Morphe")),
         cli_version=str(data.get("cli-version", "latest")),
-        cli_source=str(data.get("cli-source", "github:MorpheApp/morphe-cli")),
+        cli_source=str(data.get("cli-source", "github:MorpheApp/morphe-desktop")),
         strict_sigcheck=_parse_bool(data, "strict-sigcheck", True),
     )
 

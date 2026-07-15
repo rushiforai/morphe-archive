@@ -49,7 +49,7 @@ def _find_pkg_name(entry: AppEntry, scrapers: dict[str, BaseScraper]) -> tuple[s
 def _resolve_version(entry: AppEntry, patcher: PatcherCLI, list_patches: str, pkg_name: str, dl_from: str, scrapers: dict[str, BaseScraper]) -> tuple[str, bool]:
     if entry.version not in ("auto", "latest"):
         version, is_custom = entry.version, True
-    elif entry.version == "auto" and (v := patcher.get_last_supported_version(list_patches, pkg_name, entry.patches)):
+    elif entry.version in ("auto", "latest") and (v := patcher.get_last_supported_version(list_patches, pkg_name, entry.patches, experimental=entry.version == "latest")):
         version, is_custom = v, False
     else:
         versions = scrapers[dl_from].cached_metadata(entry.dl_urls[dl_from]).versions
@@ -141,7 +141,7 @@ def _build_single(entry: AppEntry, arch: str, label: str, net: NetworkManager, p
     try:
         scrapers = {src: _make_scraper(src, net) for src in entry.dl_urls}
         pkg_name, dl_from, failed_sources = _find_pkg_name(entry, scrapers)
-        list_patches = patcher.list_patches(pkg_name)
+        list_patches = patcher.list_patches(pkg_name, experimental=entry.version == "latest")
         version, force = _resolve_version(entry, patcher, list_patches, pkg_name, dl_from, scrapers)
         dl_result = _download_apk(entry, version, arch, pkg_name, scrapers, dl_from, failed_sources)
         _verify_sig(dl_result, pkg_name, patcher, label, entry.skip_sigcheck, strict_sigcheck)

@@ -61,17 +61,19 @@ class PatcherCLI:
         expected = self._signatures.get(pkg_name)
         return bool(expected)
 
-    def list_patches(self, pkg_name: str) -> str:
-        return "".join(_run_java("-jar", self.cli_jar, "list-patches", "--patches", mpp, "-f", pkg_name, "-v", "-p", timeout=60) for mpp in self.mpp_map.values())
+    def list_patches(self, pkg_name: str, experimental: bool = False) -> str:
+        extra = ["-x"] if experimental else []
+        return "".join(_run_java("-jar", self.cli_jar, "list-patches", "--patches", mpp, "-f", pkg_name, "-v", "-p", *extra, timeout=60) for mpp in self.mpp_map.values())
 
-    def list_versions(self, pkg_name: str) -> str:
+    def list_versions(self, pkg_name: str, experimental: bool = False) -> str:
+        extra = ["-x"] if experimental else []
         parts = []
         for mpp in self.mpp_map.values():
             with contextlib.suppress(PatcherError):
-                parts.append(_run_java("-jar", self.cli_jar, "list-versions", "--patches", mpp, "-f", pkg_name, timeout=60))
+                parts.append(_run_java("-jar", self.cli_jar, "list-versions", "--patches", mpp, "-f", pkg_name, *extra, timeout=60))
         return "\n".join(parts)
 
-    def get_last_supported_version(self, list_patches_output: str, pkg_name: str, patches: dict[str, dict]) -> str | None:
+    def get_last_supported_version(self, list_patches_output: str, pkg_name: str, patches: dict[str, dict], experimental: bool = False) -> str | None:
         all_included = [p for spec in patches.values() for p in spec["include"]]
         all_vers: list[str] = []
         for p in all_included:
@@ -79,7 +81,7 @@ class PatcherCLI:
         if all_vers:
             return get_highest_ver(all_vers)
 
-        versions_output = self.list_versions(pkg_name)
+        versions_output = self.list_versions(pkg_name, experimental)
         if "Any" in versions_output:
             return None
 
@@ -124,7 +126,7 @@ class PatcherCLI:
         return p_args
 
     def patch(self, stock_apk: Path, output_apk: Path, patch_args: list[str]) -> None:
-        base_cmd = ["-jar", self.cli_jar, "patch", stock_apk, "--purge", "-o", output_apk]
+        base_cmd = ["-jar", self.cli_jar, "patch", stock_apk, "-o", output_apk]
         ks_args: list[str] = []
         if self.ks_path and (ks_pass := os.getenv("KEYSTORE_PASS")) and (ks_alias := os.getenv("KEYSTORE_ALIAS")):
             ks_args = [f"--keystore={self.ks_path}", f"--keystore-entry-password={ks_pass}", f"--keystore-password={ks_pass}", f"--signer={ks_alias}", f"--keystore-entry-alias={ks_alias}"]

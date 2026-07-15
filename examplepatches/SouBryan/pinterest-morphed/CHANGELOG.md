@@ -1,3 +1,33 @@
+## [1.5.0](https://github.com/SouBryan/pinterest-morphed/compare/v1.4.0...v1.5.0) (2026-07-14)
+
+### ✨ New Features
+
+* **safety:** pin Pinterest signing certificate SHA-256 ([0a3fff7](https://github.com/SouBryan/pinterest-morphed/commit/0a3fff7e3ff7b1040e902d333ae27168649bb931))
+
+## [1.4.0](https://github.com/SouBryan/pinterest-morphed/compare/v1.3.0...v1.4.0) (2026-07-14)
+
+### ✨ New Features
+
+* **compat:** support Pinterest 14.20.0-14.27.0 as stable ([0e10291](https://github.com/SouBryan/pinterest-morphed/commit/0e1029111ef8530982d215bd1af05694767de7ae))
+
+## [1.3.0](https://github.com/SouBryan/pinterest-morphed/compare/v1.2.1...v1.3.0) (2026-07-14)
+
+### ✨ New Features
+
+* add HideAdViewsPatch — collapse ad-specific views to GONE ([064d99c](https://github.com/SouBryan/pinterest-morphed/commit/064d99ccb5cbcd7b70955f7b6de0b2d298b83163))
+
+## [1.2.1](https://github.com/SouBryan/pinterest-morphed/compare/v1.2.0...v1.2.1) (2026-07-14)
+
+### 🐛 Bug Fixes
+
+* cover shopping ads and ad_data in HidePromotedPinsPatch ([2ac9672](https://github.com/SouBryan/pinterest-morphed/commit/2ac967234e54f113e693454fd6066cc5ba13e312))
+
+## [1.2.0](https://github.com/SouBryan/pinterest-morphed/compare/v1.1.0...v1.2.0) (2026-07-14)
+
+### ✨ New Features
+
+* resolve pin.it and pinterest.com/url_shortener short links to canonical pin URLs, and sanitize clipboard ([1e6b6e4](https://github.com/SouBryan/pinterest-morphed/commit/1e6b6e461300c3ae21000a427ba26f28086e62fa))
+
 ## [1.1.0](https://github.com/SouBryan/pinterest-morphed/compare/v1.0.0...v1.1.0) (2026-07-07)
 
 ### ✨ New Features
