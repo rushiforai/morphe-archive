@@ -16,8 +16,6 @@ import app.morphe.library.installation.installer.Constants.RESTART
 import app.morphe.library.installation.installer.Constants.TMP_FILE_PATH
 import app.morphe.library.installation.installer.Constants.UMOUNT
 import app.morphe.library.installation.installer.Constants.invoke
-import app.morphe.library.installation.installer.Installer.Apk
-import app.morphe.library.installation.installer.RootInstaller.NoRootPermissionException
 import java.io.File
 
 /**
@@ -68,6 +66,10 @@ abstract class RootInstaller internal constructor(
         DELETE(TMP_FILE_PATH)()
 
         return RootInstallerResult.SUCCESS
+    }
+
+    override suspend fun install(apks: List<Apk>): RootInstallerResult {
+        TODO()
     }
 
     override suspend fun uninstall(packageName: String): RootInstallerResult {

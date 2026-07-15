@@ -1,6 +1,6 @@
 /*
  * Copyright 2026 Morphe.
- * https://github.com/MorpheApp/morphe-cli
+ * https://github.com/MorpheApp/morphe-desktop
  */
 
 package app.morphe.gui.data.repository
@@ -262,6 +262,16 @@ class PatchSourceManager(
     suspend fun removeSource(id: String) {
         configRepository.removePatchSource(id)
         repositories.remove(id)
+        refreshEnabledSources()
+        _sourceVersion.value++
+    }
+
+    /**
+     * Persist a new source ordering. Order affects only the display-name
+     * tiebreak and UI presentation, not which patches load.
+     */
+    suspend fun reorderSources(orderedIds: List<String>) {
+        configRepository.reorderPatchSources(orderedIds)
         refreshEnabledSources()
         _sourceVersion.value++
     }

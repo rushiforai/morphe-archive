@@ -9,7 +9,6 @@ import android.content.IntentFilter
 import android.content.pm.PackageInstaller
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
-import app.morphe.library.installation.installer.Installer.Apk
 import java.io.Closeable
 import java.io.File
 
@@ -62,6 +61,26 @@ class LocalInstaller(
 
         packageInstaller.openSession(packageInstaller.createSession(sessionParams)).use { session ->
             session.writeApk(apk.file)
+            session.commit(intentSender)
+        }
+    }
+
+    override suspend fun install(apks: List<Apk>) {
+        logger.info("Installing ${apks.joinToString(", ") { it.file.name }}")
+
+        val packageInstaller = context.packageManager.packageInstaller
+
+        packageInstaller.openSession(packageInstaller.createSession(sessionParams)).use { session ->
+            for (apk in apks) {
+                apk.file.inputStream().use { inputStream ->
+                    // openWrite needs a unique name for each call
+                    session.openWrite(apk.file.name, 0, apk.file.length()).use { outputStream ->
+                        inputStream.copyTo(outputStream)
+                        // flush
+                        session.fsync(outputStream)
+                    }
+                }
+            }
             session.commit(intentSender)
         }
     }

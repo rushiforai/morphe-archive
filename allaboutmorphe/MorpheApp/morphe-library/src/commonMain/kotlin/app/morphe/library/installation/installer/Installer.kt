@@ -1,6 +1,5 @@
 package app.morphe.library.installation.installer
 
-import app.morphe.library.installation.installer.Installer.Apk
 import java.io.File
 import java.util.logging.Logger
 
@@ -24,6 +23,15 @@ abstract class Installer<TInstallerResult, TInstallation : Installation> interna
      * @return The result of the installation.
      */
     abstract suspend fun install(apk: Apk): TInstallerResult
+
+    /**
+     * Installs the [Apk] files.
+     *
+     * @param apks The [Apk] files.
+     *
+     * @return The result of the installation.
+     */
+    abstract suspend fun install(apks: List<Apk>): TInstallerResult
 
     /**
      * Uninstalls the package.

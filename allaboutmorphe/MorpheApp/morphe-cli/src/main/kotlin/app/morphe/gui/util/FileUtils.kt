@@ -1,6 +1,6 @@
 /*
  * Copyright 2026 Morphe.
- * https://github.com/MorpheApp/morphe-cli
+ * https://github.com/MorpheApp/morphe-desktop
  */
 
 package app.morphe.gui.util
@@ -26,7 +26,7 @@ object FileUtils {
      */
     val ANDROID_ARCHITECTURES = setOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
 
-    private val EXTENSION_APK_BUNDLES = setOf("apkm", "xapk", "apks")
+    private val EXTENSION_APK_BUNDLES = app.morphe.engine.util.BundleFormats.EXTENSIONS
     private val EXTENSION_APK_ANY = EXTENSION_APK_BUNDLES + "apk"
 
     /** Returns the unified Morphe data root. Was: per-OS app-data folder. */
@@ -42,6 +42,14 @@ object FileUtils {
     fun getConfigFile(): File = MorpheData.configFile
 
     /** Returns the patcher-scratch directory shared with the CLI. */
+    // TODO: This points at morphe-data/tmp, but the GUI's actual patching scratch
+    //  goes to the system temp dir (PatchEngine uses Files.createTempDirectory
+    //  when no tempDir is passed, and PatchService never passes one). So the
+    //  cleanup/size helpers below (getTempDirSize, hasTempFiles, cleanupAllTempDirs)
+    //  under-report — they miss the real per-run patching scratch. Either route GUI
+    //  patching through this dir (createPatchingTempDir is currently dead code) or
+    //  point these helpers at the actual system-temp location. Part of the
+    //  unified-data-location cleanup.
     fun getTempDir(): File = MorpheData.tmpDir
 
     /**

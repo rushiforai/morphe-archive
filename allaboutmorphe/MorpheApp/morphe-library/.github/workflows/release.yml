@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           # Make sure the release step uses its own credentials:
           # https://github.com/cycjimmy/semantic-release-action#private-packages
@@ -27,7 +27,10 @@ jobs:
         uses: burrunan/gradle-cache-action@v1
 
       - name: Setup Java
-        run: echo "JAVA_HOME=$JAVA_HOME_17_X64" >> $GITHUB_ENV
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '21'
 
       - name: Build
         env:
@@ -44,7 +47,7 @@ jobs:
         run: npm install
 
       - name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@v6
+        uses: crazy-max/ghaction-import-gpg@v7
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}

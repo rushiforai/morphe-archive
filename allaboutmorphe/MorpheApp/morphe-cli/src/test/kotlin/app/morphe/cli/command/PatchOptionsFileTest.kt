@@ -1,3 +1,8 @@
+/*
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-desktop
+ */
+
 package app.morphe.cli.command
 
 import app.morphe.cli.command.model.PatchBundle

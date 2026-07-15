@@ -30,6 +30,12 @@ class AdbInstaller(
         return runPackageManager { install(apk.file) }
     }
 
+    override suspend fun install(apks: List<Apk>): AdbInstallerResult {
+        logger.info("Installing ${apks.joinToString(", ") { it.file.name }}")
+
+        return runPackageManager { install(apks.map { it.file }) }
+    }
+
     override suspend fun uninstall(packageName: String): AdbInstallerResult {
         logger.info("Uninstalling $packageName")
 

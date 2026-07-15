@@ -1,3 +1,17 @@
+# [1.4.0](https://github.com/MorpheApp/morphe-library/compare/v1.3.0...v1.4.0) (2026-07-14)
+
+
+### Features
+
+* Add support for install-multiple ([#39](https://github.com/MorpheApp/morphe-library/issues/39)) ([c457ab0](https://github.com/MorpheApp/morphe-library/commit/c457ab04e5f4e6af7f5389bf4c9b541a2ecc4e1c))
+
+# [1.4.0-dev.1](https://github.com/MorpheApp/morphe-library/compare/v1.3.0...v1.4.0-dev.1) (2026-05-16)
+
+
+### Features
+
+* Add support for install-multiple ([#39](https://github.com/MorpheApp/morphe-library/issues/39)) ([c457ab0](https://github.com/MorpheApp/morphe-library/commit/c457ab04e5f4e6af7f5389bf4c9b541a2ecc4e1c))
+
 # [1.3.0](https://github.com/MorpheApp/morphe-library/compare/v1.2.0...v1.3.0) (2026-03-07)
 
 

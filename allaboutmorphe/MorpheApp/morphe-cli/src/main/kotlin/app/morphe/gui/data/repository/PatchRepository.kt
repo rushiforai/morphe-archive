@@ -1,15 +1,15 @@
 /*
  * Copyright 2026 Morphe.
- * https://github.com/MorpheApp/morphe-cli
+ * https://github.com/MorpheApp/morphe-desktop
  */
 
 package app.morphe.gui.data.repository
 
 import app.morphe.engine.model.Release
 import app.morphe.engine.model.ReleaseAsset
+import app.morphe.engine.patches.PatchCache
 import app.morphe.engine.patches.RemotePatchSource
 import app.morphe.engine.patches.findPatchAsset
-import app.morphe.gui.util.FileUtils
 import app.morphe.gui.util.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -55,7 +55,7 @@ class PatchRepository(
          * to eyeball when grepping the cache directory than a single dash.
          */
         fun cachedFileName(release: Release, asset: ReleaseAsset): String =
-            "${release.tagName}__${asset.name}"
+            PatchCache.cachedFileName(release, asset)
     }
 
     // In-memory cache so multiple callers don't re-fetch from the remote API
@@ -103,10 +103,26 @@ class PatchRepository(
         fetchReleases().map { releases -> releases.filter { it.isDevRelease() } }
 
     suspend fun getLatestStableRelease(): Result<Release?> =
-        fetchStableReleases().map { it.firstOrNull() }
+        latestFromManifestOrApi(prerelease = false)
 
     suspend fun getLatestDevRelease(): Result<Release?> =
-        fetchDevReleases().map { it.firstOrNull() }
+        latestFromManifestOrApi(prerelease = true)
+
+    /**
+     * Resolve the latest release for a channel via the repo's `patches-bundle.json`
+     * (raw CDN, no API rate limit); fall back to the releases API only when the source
+     * publishes no manifest. This is the common path, so it keeps the tight 60/hr GitHub
+     * API budget for the rarer "list older versions" case.
+     */
+    private suspend fun latestFromManifestOrApi(prerelease: Boolean): Result<Release?> =
+        withContext(Dispatchers.IO) {
+            remoteSource.fetchLatestFromManifest(prerelease).getOrNull()?.let {
+                Logger.info("Latest ${if (prerelease) "dev" else "stable"} via patches-bundle.json: ${it.tagName}")
+                return@withContext Result.success(it)
+            }
+            if (prerelease) fetchDevReleases().map { it.firstOrNull() }
+            else fetchStableReleases().map { it.firstOrNull() }
+        }
 
     /** Find the patch .mpp asset in a release. */
     fun findPatchAsset(release: Release): ReleaseAsset? = release.findPatchAsset()
@@ -124,8 +140,7 @@ class PatchRepository(
                 Exception("No .mpp patch files found in release ${release.tagName}")
             )
 
-        val patchesDir = File(FileUtils.getPatchesDir(), repoPath.replace("/", "-"))
-        patchesDir.mkdirs()
+        val patchesDir = PatchCache.sourceDir(repoPath)
         val targetFile = File(patchesDir, cachedFileName(release, asset))
 
         // Cache hit rules:
@@ -147,15 +162,22 @@ class PatchRepository(
             return@withContext Result.success(targetFile)
         }
 
-        // Delegate the actual network IO to the engine source.
-        val result = remoteSource.downloadAsset(asset, targetFile)
+        // Delegate the actual network IO to the engine source, translating byte
+        // progress into a 0..1 fraction for the UI. When the server omits
+        // Content-Length we can't compute a fraction, so the bar stays put until
+        // completion — GitHub/GitLab CDN downloads do send it, so this is rare.
+        val result = remoteSource.downloadAsset(asset, targetFile) { bytesRead, contentLength ->
+            if (contentLength != null && contentLength > 0L) {
+                onProgress((bytesRead.toFloat() / contentLength).coerceIn(0f, 1f))
+            }
+        }
         if (result.isSuccess) onProgress(1f)
         result
     }
 
     /** Get cached patch file for a specific version. */
     fun getCachedPatches(version: String): File? {
-        val patchesDir = File(FileUtils.getPatchesDir(), repoPath.replace("/", "-"))
+        val patchesDir = PatchCache.sourceDir(repoPath)
         return patchesDir.listFiles()?.find {
             it.name.contains(version) && isPatchFileName(it.name)
         }
@@ -166,23 +188,19 @@ class PatchRepository(
 
     /** List all cached patch versions. */
     fun listCachedPatches(): List<File> {
-        val patchesDir = File(FileUtils.getPatchesDir(), repoPath.replace("/", "-"))
+        val patchesDir = PatchCache.sourceDir(repoPath)
         return patchesDir.listFiles()?.filter { isPatchFileName(it.name) } ?: emptyList()
     }
 
     /** Get the per-source cache directory for this repository. */
-    fun getCacheDir(): File {
-        val dir = File(FileUtils.getPatchesDir(), repoPath.replace("/", "-"))
-        dir.mkdirs()
-        return dir
-    }
+    fun getCacheDir(): File = PatchCache.sourceDir(repoPath)
 
     /** Delete cached patches (both in-memory release list and on-disk files). */
     fun clearCache(): Boolean {
         cachedReleases = null
         cacheTimestamp = 0L
         return try {
-            val patchesDir = File(FileUtils.getPatchesDir(), repoPath.replace("/", "-"))
+            val patchesDir = PatchCache.sourceDir(repoPath)
             var failedCount = 0
             patchesDir.listFiles()?.forEach { file ->
                 try {

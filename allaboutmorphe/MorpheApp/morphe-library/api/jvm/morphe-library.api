@@ -5,7 +5,7 @@ public abstract interface class app/morphe/library/installation/command/RunResul
 	public abstract fun getError ()Ljava/lang/String;
 	public abstract fun getExitCode ()I
 	public abstract fun getOutput ()Ljava/lang/String;
-	public abstract fun waitFor ()V
+	public fun waitFor ()V
 }
 
 public final class app/morphe/library/installation/command/RunResult$DefaultImpls {
@@ -23,6 +23,7 @@ public final class app/morphe/library/installation/installer/AdbInstaller : app/
 	public synthetic fun <init> (Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun getInstallation (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun install (Lapp/morphe/library/installation/installer/Installer$Apk;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun install (Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun uninstall (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
@@ -55,6 +56,7 @@ public abstract class app/morphe/library/installation/installer/Installer {
 	public abstract fun getInstallation (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	protected final fun getLogger ()Ljava/util/logging/Logger;
 	public abstract fun install (Lapp/morphe/library/installation/installer/Installer$Apk;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun install (Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun uninstall (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
@@ -74,6 +76,7 @@ public abstract class app/morphe/library/installation/installer/RootInstaller : 
 	public fun getInstallation (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	protected final fun getShellCommandRunner ()Lapp/morphe/library/installation/command/ShellCommandRunner;
 	public fun install (Lapp/morphe/library/installation/installer/Installer$Apk;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun install (Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	protected final fun invoke (Ljava/lang/String;)Lapp/morphe/library/installation/command/RunResult;
 	protected final fun move (Ljava/io/File;Ljava/lang/String;)V
 	public fun uninstall (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;

@@ -65,7 +65,7 @@ kotlin {
 
 android {
     namespace = "app.morphe.library"
-    compileSdk = 35
+    compileSdk = 36
     defaultConfig {
         minSdk = 26
     }

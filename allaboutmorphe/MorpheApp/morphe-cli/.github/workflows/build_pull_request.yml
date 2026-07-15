@@ -17,7 +17,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -41,4 +41,4 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           archive: false
-          path: build/libs/morphe-cli-*-all.jar
+          path: build/libs/morphe-desktop-*-all.jar

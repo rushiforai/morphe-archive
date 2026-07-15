@@ -1,3 +1,8 @@
+/*
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-desktop
+ */
+
 package app.morphe.cli.command
 
 import app.morphe.cli.command.utility.UtilityCommand
@@ -24,9 +29,9 @@ private object CLIVersionProvider : IVersionProvider {
                 Properties().apply {
                     load(stream)
                 }.let {
-                    "Morphe CLI v${it.getProperty("version")}"
+                    "Morphe Desktop v${it.getProperty("version")}"
                 }
-            } ?: "Morphe CLI",
+            } ?: "Morphe Desktop",
         )
 }
 
