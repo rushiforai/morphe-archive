@@ -1,3 +1,9 @@
+ARHCOS/arhcos-patches
+drosoCode/morphe-patches
+fangkampanat/gmaps-patches
+Joussflls10/Jouss-Patches
+saieshshirodkar/saiesh-morphe-patches
+rushiranpise/RI-Vanced-Universal-Morphe-Patches
 AlexNaga/android-patches
 Almewty/my-morphe-patches
 AmpleReVanced/revanced-patches
