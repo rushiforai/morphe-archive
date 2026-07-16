@@ -1,0 +1,64 @@
+name: Feature request
+description: Request a universal/shared patch or project improvement.
+title: "feat: "
+labels: ["Feature request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This project is intentionally narrow: universal/shared patches ported or adapted for Morphe.
+
+        Requests for app-specific YouTube, YouTube Music, Reddit, or similar patches do not belong in this repo.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Before opening this request
+      options:
+        - label: I searched existing open and closed issues.
+          required: true
+        - label: This request fits the universal/shared patch scope of this repo.
+          required: true
+        - label: This request does not ask for app-specific YouTube, YouTube Music, Reddit, or similar patches.
+          required: true
+
+  - type: dropdown
+    id: request-type
+    attributes:
+      label: Request type
+      options:
+        - New universal patch
+        - Improve an existing patch
+        - Morphe compatibility update
+        - Documentation or workflow improvement
+    validations:
+      required: true
+
+  - type: input
+    id: patch
+    attributes:
+      label: Related patch
+      description: Leave blank if this is not about an existing patch.
+      placeholder: Change package name
+
+  - type: textarea
+    id: idea
+    attributes:
+      label: What should change?
+      description: Describe the feature or improvement.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reason
+    attributes:
+      label: Why is this useful?
+      description: Explain the real use case and why it belongs in a universal patch source.
+    validations:
+      required: true
+
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: Link upstream ReVanced patches, docs, examples, logs, or related issues if useful.

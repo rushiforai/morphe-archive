@@ -1,3 +1,21 @@
+## [1.5.16](https://github.com/Utsavrajputt/Modx-patches/compare/v1.5.15...v1.5.16) (2026-07-16)
+
+### 🐛 Bug Fixes
+
+* Add dpF function for converting DP to pixels ([4fa7fb7](https://github.com/Utsavrajputt/Modx-patches/commit/4fa7fb7a9fabd4a0e44a974523333c3cd02c62d5))
+
+## [1.5.15](https://github.com/Utsavrajputt/Modx-patches/compare/v1.5.14...v1.5.15) (2026-07-16)
+
+### 🐛 Bug Fixes
+
+* Adjust padding and icon sizing in NavBarBuilder ([2d8867a](https://github.com/Utsavrajputt/Modx-patches/commit/2d8867afa4f5772beabacbe0f7a8477094c26b97))
+
+## [1.5.14](https://github.com/Utsavrajputt/Modx-patches/compare/v1.5.13...v1.5.14) (2026-07-16)
+
+### 🐛 Bug Fixes
+
+* Refine icon sizing and margin adjustments in NavBarBuilder ([f865468](https://github.com/Utsavrajputt/Modx-patches/commit/f865468fcd1c211c07daf193a16a4e9a3cc885fb))
+
 ## [1.5.13](https://github.com/Utsavrajputt/Modx-patches/compare/v1.5.12...v1.5.13) (2026-07-15)
 
 ### 🐛 Bug Fixes

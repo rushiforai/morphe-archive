@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-07-15T13:52:02",
-  "description": "## [1.5.13](https://github.com/Utsavrajputt/Modx-patches/compare/v1.5.12...v1.5.13) (2026-07-15)\n\n### 🐛 Bug Fixes\n\n* Adjust padding in NavBarBuilder layout ([8518d5f](https://github.com/Utsavrajputt/Modx-patches/commit/8518d5ff04b6f37fda123e4d104262bd0bd156fe))",
-  "download_url": "https://github.com/Utsavrajputt/Modx-patches/releases/download/v1.5.13/patches-1.5.13.mpp",
+  "created_at": "2026-07-16T05:37:53",
+  "description": "## [1.5.16](https://github.com/Utsavrajputt/Modx-patches/compare/v1.5.15...v1.5.16) (2026-07-16)\n\n### 🐛 Bug Fixes\n\n* Add dpF function for converting DP to pixels ([4fa7fb7](https://github.com/Utsavrajputt/Modx-patches/commit/4fa7fb7a9fabd4a0e44a974523333c3cd02c62d5))",
+  "download_url": "https://github.com/Utsavrajputt/Modx-patches/releases/download/v1.5.16/patches-1.5.16.mpp",
   "signature_download_url": "",
-  "version": "1.5.13"
+  "version": "1.5.16"
 }

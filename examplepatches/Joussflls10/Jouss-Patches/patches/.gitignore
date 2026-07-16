@@ -1,0 +1,4 @@
+*.mpp
+build/
+.gradle/
+

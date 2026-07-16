@@ -33,12 +33,20 @@ object NavBarBuilder {
     private const val TOOLS_ACTIVE_RED = "#E53935"
     private const val TOOLS_INACTIVE_GREY = "#9E9E9E"
     private const val BAR_BACKGROUND = "#121212"
-    private const val BAR_SEPARATOR = "#232428"
+    private const val BAR_SEPARATOR = "#1A1B1E"
 
     private fun dp(activity: Activity, value: Int): Int {
         return TypedValue.applyDimension(
             TypedValue.COMPLEX_UNIT_DIP,
             value.toFloat(),
+            activity.resources.displayMetrics,
+        ).toInt()
+    }
+
+    private fun dpF(activity: Activity, value: Float): Int {
+        return TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            value,
             activity.resources.displayMetrics,
         ).toInt()
     }
@@ -69,7 +77,7 @@ object NavBarBuilder {
 
         val row = LinearLayout(activity).apply {
             orientation = LinearLayout.HORIZONTAL
-            setPadding(0, dp(activity, 6), 0, dp(activity, 8) + navInset)
+            setPadding(0, dpF(activity, 6.2f), 0, dp(activity, 8) + navInset)
             layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -100,17 +108,35 @@ object NavBarBuilder {
             isFocusable = true
         }
 
-        // Tools' "X" glyph is thin and doesn't fill its canvas the way the
-        // Fatafat "F" logo does, so it reads visually smaller at the same
-        // dp size — bump it up a bit to match, offsetting the top margin
-        // so it still lines up with the other icons.
-        val iconSizeDp = if (key.equals("tools")) 30 else 24
-        val iconTopOffset = if (key.equals("tools")) -dp(activity, 3) else 0
+        // Measured directly against native MX Player screenshots (icon
+        // bounding-box width/height + vertical start position, pixel for
+        // pixel) — each tab's icon was a different size/position relative
+        // to native, not just Tools:
+        //   Local:   custom was ~20% smaller than native, sat too high
+        //   Fatafat: custom was ~11% smaller than native, position was fine
+        //   Tools:   size already matched native, but sat ~9px too high
+        //   About:   custom was ~13% smaller than native, sat slightly high
+        //
+        // iconSizeDp = matched to native's measured icon size.
+        // topMarginDp/bottomMarginDp = chosen so icon+top+bottom always
+        // sums to 31dp for every tab — this pushes each icon down to its
+        // native vertical position *within its own slot*, without moving
+        // the label below it or changing any other tab's total height
+        // (so the bar's outer height stays fixed).
+        val iconSizeDp: Int
+        val iconTopMarginDp: Int
+        when {
+            key.equals("local") -> { iconSizeDp = 26; iconTopMarginDp = 4 }
+            key.equals("fatafat") -> { iconSizeDp = 24; iconTopMarginDp = 0 }
+            key.equals("tools") -> { iconSizeDp = 26; iconTopMarginDp = 5 }
+            else -> { iconSizeDp = 25; iconTopMarginDp = 1 } // about
+        }
+        val iconBottomMarginDp = 31 - iconSizeDp - iconTopMarginDp
 
         val iconView = ImageView(activity).apply {
             layoutParams = LinearLayout.LayoutParams(dp(activity, iconSizeDp), dp(activity, iconSizeDp)).apply {
-                bottomMargin = dp(activity, 2) + iconTopOffset
-                topMargin = iconTopOffset
+                topMargin = dp(activity, iconTopMarginDp)
+                bottomMargin = dp(activity, iconBottomMarginDp)
             }
         }
 

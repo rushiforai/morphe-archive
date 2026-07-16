@@ -1,0 +1,20 @@
+# Secrets
+.env
+Morphe.keystore
+
+# Large/generated
+analysis/
+morphe-data/
+*.apk
+*.apkm
+*.xapk
+*.apks
+
+# Binaries
+morphe-cli.jar
+
+# Gradle
+patches/**/build/
+patches/**/.gradle/
+patches/**/local.properties
+*.mpp
