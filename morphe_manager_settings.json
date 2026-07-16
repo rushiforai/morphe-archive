@@ -703,6 +703,54 @@
                 "sortOrder": 84,
                 "createdAt": 1783721095641,
                 "updatedAt": 1783721095641
+            },
+            {
+                "name": "arhcos-patches",
+                "source": "https://raw.githubusercontent.com/ARHCOS/arhcos-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 85,
+                "createdAt": 1784187751570,
+                "updatedAt": 1784187751570
+            },
+            {
+                "name": "Jouss-Patches",
+                "source": "https://raw.githubusercontent.com/Joussflls10/Jouss-Patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 86,
+                "createdAt": 1784187751721,
+                "updatedAt": 1784187751721
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/drosoCode/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 87,
+                "createdAt": 1784187751877,
+                "updatedAt": 1784187751877
+            },
+            {
+                "name": "gmaps-patches",
+                "source": "https://raw.githubusercontent.com/fangkampanat/gmaps-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 88,
+                "createdAt": 1784187751949,
+                "updatedAt": 1784187751949
+            },
+            {
+                "name": "RI-Vanced-Universal-Morphe-Patches",
+                "source": "https://raw.githubusercontent.com/rushiranpise/RI-Vanced-Universal-Morphe-Patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 89,
+                "createdAt": 1784187752148,
+                "updatedAt": 1784187752148
+            },
+            {
+                "name": "saiesh-morphe-patches",
+                "source": "https://raw.githubusercontent.com/saieshshirodkar/saiesh-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 90,
+                "createdAt": 1784187752170,
+                "updatedAt": 1784187752170
             }
         ],
         "bytecodeModePreference": "STRIP_FAST",
