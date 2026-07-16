@@ -69,7 +69,7 @@ object NavBarBuilder {
 
         val row = LinearLayout(activity).apply {
             orientation = LinearLayout.HORIZONTAL
-            setPadding(0, dp(activity, 14), 0, dp(activity, 8) + navInset)
+            setPadding(0, dp(activity, 6), 0, dp(activity, 8) + navInset)
             layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT,

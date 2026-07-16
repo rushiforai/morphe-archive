@@ -12,7 +12,7 @@ private val extensionPatch = sharedExtensionPatch(
 )
 
 val enablePremiumPatch = bytecodePatch(
-    name = "Enable SoundCloud Go+",
+    name = "Enable SoundCloud Go",
     description = "Enables app features locked behind the subscription paywall."
 ) {
     compatibleWith(Constants.COMPATIBILITY)

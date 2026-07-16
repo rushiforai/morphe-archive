@@ -8,7 +8,8 @@ object Constants {
     /**
      * Sankaku Channel app (APK variant — "black" flavor).
      * Package name confirmed from BuildConfig: com.sankakucomplex.channel.black
-     * Targeted versions: 4.23 (versionCode 91 = rc91), 4.24 (versionCode 92 = rc92)
+     * Targeted versions: 4.23 (versionCode 91 = rc91), 4.24 (versionCode 92 = rc92),
+     *                    4.25 (versionCode 93 = rc93)
      */
     val COMPATIBILITY_SANKAKU = Compatibility(
         name = "Sankaku App",
@@ -21,6 +22,9 @@ object Constants {
             ),
             AppTarget(
                 version = "4.24",
+            ),
+            AppTarget(
+                version = "4.25",
             )
         )
     )

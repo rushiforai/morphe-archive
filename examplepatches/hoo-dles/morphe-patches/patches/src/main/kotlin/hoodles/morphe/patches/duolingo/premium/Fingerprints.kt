@@ -55,10 +55,12 @@ fun getFeatureFingerprint(feature: String) = Fingerprint(
     )
 )
 
-object VideoCallTabCtaButtonStateToStringFingerprint : Fingerprint(
-    strings = listOf("VideoCallTabCtaButtonState(userHasMax="),
-    filters = listOf(
-        string(", isEligibleForSecondaryUpsell="),
-        opcode(Opcode.IGET_BOOLEAN)
+fun getVideoCallTabCtaButtonStateFieldFingerprint(field: String) : Fingerprint {
+    return Fingerprint(
+        strings = listOf("VideoCallTabCtaButtonState(userHasMax="),
+        filters = listOf(
+            string(field),
+            opcode(Opcode.IGET_BOOLEAN)
+        )
     )
-)
+}

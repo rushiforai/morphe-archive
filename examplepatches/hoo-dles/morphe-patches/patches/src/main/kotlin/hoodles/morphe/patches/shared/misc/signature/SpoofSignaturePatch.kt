@@ -4,14 +4,9 @@ import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.util.getNode
-import app.morphe.util.returnEarly
 import app.morphe.util.writeRegister
-import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.analysis.reflection.util.ReflectionUtils
 import hoodles.morphe.patches.shared.misc.extension.sharedExtensionPatch
 import hoodles.morphe.patches.shared.misc.signature.Constants.SPOOF_CLASS_SMALI_NAME
-import hoodles.morphe.util.addInstructionsToEnd
-import hoodles.morphe.util.removeFlag
 import org.w3c.dom.Element
 
 private val manifestPatch = resourcePatch {

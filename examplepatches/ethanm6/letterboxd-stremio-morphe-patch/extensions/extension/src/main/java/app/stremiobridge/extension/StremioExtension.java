@@ -13,6 +13,7 @@ import android.widget.LinearLayout;
 
 import androidx.fragment.app.Fragment;
 
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -54,6 +55,14 @@ public final class StremioExtension {
      */
     private static volatile String sCachedImdbId = null;
 
+    /**
+     * Weak reference to the most recently created Stremio button.
+     * cacheImdbId and onTrailerConfigured can run in either order within a
+     * film-page load, so the button's visibility is set from the cached ID
+     * at build time AND re-applied here whenever new film data arrives.
+     */
+    private static volatile WeakReference<Button> sButtonRef = null;
+
     // ── Entry point 1: cache the IMDb ID ────────────────────────────────────
 
     /**
@@ -64,6 +73,23 @@ public final class StremioExtension {
     public static void cacheImdbId(Object filmResultsObj) {
         sCachedImdbId = extractImdbId(filmResultsObj);
         Log.d(TAG, "Cached IMDb ID: " + sCachedImdbId);
+        updateButtonVisibility();
+    }
+
+    /**
+     * Shows the Stremio button only when the current film has an IMDb link,
+     * mirroring the trailer button's own behavior (hidden via GONE when the
+     * film has no trailer). Safe to call from any thread; the visibility
+     * change is posted to the button's UI thread.
+     */
+    private static void updateButtonVisibility() {
+        WeakReference<Button> ref = sButtonRef;
+        final Button button = (ref != null) ? ref.get() : null;
+        if (button == null) return;
+        String id = sCachedImdbId;
+        final boolean show = id != null && !id.isEmpty();
+        button.post(() ->
+            button.setVisibility(show ? View.VISIBLE : View.GONE));
     }
 
     private static String extractImdbId(Object filmResultsObj) {
@@ -123,7 +149,10 @@ public final class StremioExtension {
                 ViewGroup p = (ViewGroup) rowObj;
                 if (p.findViewWithTag(BTN_TAG) == null) {
                     Button b = cloneTrailerButton(trailerButton);
+                    b.setOnClickListener(
+                        v -> openInStremio(v.getContext(), sCachedImdbId));
                     p.addView(b, p.indexOfChild(trailerButton) + 1);
+                    applyInitialVisibility(b);
                 }
             }
             return;
@@ -192,7 +221,21 @@ public final class StremioExtension {
         stremioButton.setOnClickListener(
             v -> openInStremio(v.getContext(), sCachedImdbId));
 
+        // Like the trailer button when there's no trailer: hidden (GONE, still
+        // in the layout) when the film has no IMDb link. cacheImdbId may run
+        // before or after this point, so visibility is set from the current
+        // cache here and re-applied by updateButtonVisibility when data lands.
+        applyInitialVisibility(stremioButton);
+
         Log.d(TAG, "Stremio button inserted (hasTrailer=" + hasTrailer + ")");
+    }
+
+    /** Registers the button for visibility updates and applies the current one. */
+    private static void applyInitialVisibility(Button stremioButton) {
+        sButtonRef = new WeakReference<>(stremioButton);
+        String id = sCachedImdbId;
+        stremioButton.setVisibility(
+            (id != null && !id.isEmpty()) ? View.VISIBLE : View.GONE);
     }
 
     // ── Reflection: pull the real Button out of the generated binding ──────
@@ -255,10 +298,6 @@ public final class StremioExtension {
         // (minWidth -2 in XML), so zero here matches its content-hugging width.
         clone.setMinWidth(0);
         clone.setMinimumWidth(0);
-        try {
-            // MaterialButton may also expose its own insets/min via these.
-            clone.getClass().getMethod("setMinWidth", int.class).invoke(clone, 0);
-        } catch (Exception ignored) { }
         clone.setPadding(
             source.getPaddingLeft(), source.getPaddingTop(),
             source.getPaddingRight(), source.getPaddingBottom());
@@ -268,9 +307,12 @@ public final class StremioExtension {
                 source.getPaddingEnd(), source.getPaddingBottom());
         } catch (Exception ignored) { }
 
-        // Material-specific dimensional props via reflection (insets, icon,
-        // corner radius). These directly affect rendered height & centering.
+        // Material-specific dimensional props via reflection (insets, icon).
+        // These directly affect rendered height & centering. The corner radius
+        // is NOT copied — the source reports 0 (its pill comes from a Material
+        // shapeAppearance); forcePillShape sets the real radius below.
         copyMaterialDimensions(source, clone);
+        copyRippleColor(source, clone);
 
         // ── Text appearance ──────────────────────────────────────────────────
         clone.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, source.getTextSize());
@@ -301,11 +343,12 @@ public final class StremioExtension {
             // shapeAppearance, which getCornerRadius() reports as 0 — so the
             // copied value gives a near-square rectangle. Force a fully-rounded
             // pill explicitly: once the button has a height, set its corner
-            // radius to half that height. Done in a post() so the height is
-            // available; also re-applied immediately with a sensible default.
+            // radius to half that height. The exact radius is applied from an
+            // OnPreDrawListener (after measure, before the first paint) so the
+            // first visible frame already has the true pill shape; the
+            // immediate call sets a close fixed-dp fallback until then.
             forcePillShape(clone);
-            final Button c = clone;
-            clone.post(() -> forcePillShape(c));
+            setPillRadiusBeforeDraw(clone);
         }
 
         // ── Icon (the play triangle) ─────────────────────────────────────────
@@ -364,9 +407,46 @@ public final class StremioExtension {
     }
 
     /**
+     * Applies the true pill radius (half the measured height) from an
+     * OnPreDrawListener, which fires after measure/layout but before the first
+     * paint — so the button is never painted with the approximate fallback
+     * radius set by the immediate forcePillShape() call. Removes itself once
+     * the height is available.
+     */
+    private static void setPillRadiusBeforeDraw(final Button clone) {
+        final android.view.ViewTreeObserver vto = clone.getViewTreeObserver();
+        vto.addOnPreDrawListener(new android.view.ViewTreeObserver.OnPreDrawListener() {
+            @Override public boolean onPreDraw() {
+                if (clone.getHeight() <= 0) return true; // not measured yet
+                android.view.ViewTreeObserver live = clone.getViewTreeObserver();
+                if (live.isAlive()) live.removeOnPreDrawListener(this);
+                forcePillShape(clone);
+                return true;
+            }
+        });
+    }
+
+    /**
+     * Copies the MaterialButton press-ripple color so touch feedback on the
+     * purple pill matches the trailer button's, rather than the theme default
+     * (which is calibrated against the original background color). No-op if
+     * either button isn't a MaterialButton.
+     */
+    private static void copyRippleColor(Button source, Button clone) {
+        try {
+            Object ripple = source.getClass().getMethod("getRippleColor").invoke(source);
+            if (ripple instanceof android.content.res.ColorStateList) {
+                clone.getClass()
+                    .getMethod("setRippleColor", android.content.res.ColorStateList.class)
+                    .invoke(clone, ripple);
+            }
+        } catch (Exception ignored) { }
+    }
+
+    /**
      * Copies MaterialButton dimensional properties (insets, icon size/padding/
-     * gravity, corner radius) from source to clone via reflection. No-op if
-     * either isn't a MaterialButton.
+     * gravity) from source to clone via reflection. No-op if either isn't a
+     * MaterialButton.
      */
     private static void copyMaterialDimensions(Button source, Button clone) {
         // int getters with matching setters
@@ -376,7 +456,6 @@ public final class StremioExtension {
             {"getIconSize", "setIconSize"},
             {"getIconPadding", "setIconPadding"},
             {"getIconGravity", "setIconGravity"},
-            {"getCornerRadius", "setCornerRadius"},
         };
         for (String[] pair : intProps) {
             try {

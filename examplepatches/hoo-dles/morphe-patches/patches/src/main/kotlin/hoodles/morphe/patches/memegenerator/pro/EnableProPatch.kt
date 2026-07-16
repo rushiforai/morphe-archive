@@ -5,9 +5,9 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.util.returnBoxedBooleanEarly
 import app.morphe.util.returnEarly
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
-import hoodles.morphe.util.returnBoxedBooleanEarly
 
 const val SIGNATURE_SHA1 = "72:D5:86:CB:B6:55:46:5D:64:07:87:68:AF:77:5D:A5:E6:0B:91:C9"
 

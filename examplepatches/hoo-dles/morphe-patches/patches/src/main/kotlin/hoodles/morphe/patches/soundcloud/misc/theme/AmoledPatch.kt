@@ -2,9 +2,9 @@ package hoodles.morphe.patches.soundcloud.misc.theme
 
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
+import app.morphe.util.addInstructionsToEnd
 import app.morphe.util.findElementByAttributeValue
 import hoodles.morphe.patches.soundcloud.shared.Constants
-import hoodles.morphe.util.addInstructionsToEnd
 import org.w3c.dom.Element
 
 private val bottomBarPatch = bytecodePatch {

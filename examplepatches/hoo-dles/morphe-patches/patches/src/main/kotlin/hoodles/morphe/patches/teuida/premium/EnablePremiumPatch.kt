@@ -1,8 +1,8 @@
 package hoodles.morphe.patches.teuida.premium
 
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.util.returnBoxedBooleanEarly
 import hoodles.morphe.patches.teuida.shared.Constants
-import hoodles.morphe.util.returnBoxedBooleanEarly
 
 @Suppress("unused")
 val enablePremiumPatch = bytecodePatch(

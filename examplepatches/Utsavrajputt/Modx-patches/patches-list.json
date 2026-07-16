@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.5.1",
+  "version": "1.5.13",
   "patches": [
     {
       "name": "Capture tab host for programmatic tab switching",
@@ -109,6 +109,58 @@
     {
       "name": "Repurpose Search/Games tabs to Tools/About",
       "description": "Redirects the Search tab to the Modx Tools screen and the Games tab to the Modx About screen.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.mxtech.videoplayer.ad",
+          "name": "MX Player",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#E63030",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "2.14.1",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Restyle Search/Games tab icons to Tools/About",
+      "description": "Overrides the native Search/Games bottom-nav icons with the Modx Tools/About artwork.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.mxtech.videoplayer.ad",
+          "name": "MX Player",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#E63030",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "2.14.1",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Restyle Search/Games tab labels to Tools/About",
+      "description": "Renames the native Search/Games tab labels to Tools/About.",
       "default": true,
       "dependencies": [],
       "compatiblePackages": [

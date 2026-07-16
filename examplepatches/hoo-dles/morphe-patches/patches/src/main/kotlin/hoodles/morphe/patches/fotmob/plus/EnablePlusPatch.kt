@@ -9,11 +9,11 @@ import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.util.indexOfFirstInstructionReversed
+import app.morphe.util.returnBoxedBooleanEarly
 import app.morphe.util.returnEarly
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import hoodles.morphe.patches.fotmob.misc.extension.sharedExtensionPatch
-import hoodles.morphe.util.returnBoxedBooleanEarly
 
 @Suppress("unused")
 val enablePlusPatch = bytecodePatch(
@@ -32,7 +32,7 @@ val enablePlusPatch = bytecodePatch(
     execute {
         val subUtilClass = SubscriptionUtilClassFingerprint.classDef
         IsValidSubFingerprint.match(subUtilClass).method.returnEarly(true)
-        HasActiveSubFingerprint.match(subUtilClass).method.returnBoxedBooleanEarly(value = true, force = true)
+        HasActiveSubFingerprint.match(subUtilClass).method.returnBoxedBooleanEarly(value = true)
 
         val entitlementType = EntitlementFingerprint.classDef.type
         Fingerprint(filters = listOf(

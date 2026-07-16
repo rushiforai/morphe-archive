@@ -3,23 +3,20 @@ package hoodles.morphe.patches.duolingo.premium
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.stringOption
+import app.morphe.util.fieldByName
 import app.morphe.util.getReference
 import hoodles.morphe.patches.duolingo.shared.Constants
 import hoodles.morphe.patches.duolingo.shared.Utils.fieldFromToString
 import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
-import hoodles.morphe.util.constructor
-import hoodles.morphe.util.fieldByName
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import hoodles.morphe.patches.duolingo.shared.integrity.disableLoginIntegrityPatch
-import hoodles.morphe.util.addInstructionsToEnd
+import hoodles.morphe.util.constructor
 import hoodles.morphe.util.removeFlag
 
 enum class PremiumVariant {
@@ -73,7 +70,7 @@ val enablePremiumPatch = bytecodePatch(
         // For patching user properties, we target the User object that is passed in to the
         // constructor of the LoggedIn class. This way we don't affect all instances of users
         // (eg. viewing a friend's profile).
-        LoggedInStateFingerprint.classDef.constructor().apply {
+        LoggedInStateFingerprint.classDef.constructor.apply {
             val userType = UserFingerprint.classDef.type
             val patchIndex = this.instructions.count() - 1
 
@@ -122,20 +119,27 @@ val enablePremiumPatch = bytecodePatch(
                 }
             }
 
-            // Video call from bottom nav is gated by isEligibleForSecondaryUpsell, which will
+            // Video call from bottom nav is gated by isEligibleFor[Secondary]Upsell, which will
             // force upsell purchase activity if true. I don't know where this comes from either,
             // so patch at VideoCallTabCtaButtonState initialization.
-            VideoCallTabCtaButtonStateToStringFingerprint.apply {
-                val upsellField = instructionMatches.last().getFieldAccessed()
-                classDef.constructor().also {
-                    val setFieldIndex = it.indexOfFirstInstructionOrThrow {
-                        getReference<FieldReference>()?.name == upsellField.name
-                    }
-                    val paramReg = it.getInstruction<TwoRegisterInstruction>(setFieldIndex).registerA
+            val vidCallFieldStrings = listOf(
+                ", isEligibleForSecondaryUpsell=",
+                ", isEligibleForUpsell="
+            )
 
-                    it.addInstructions(setFieldIndex, """
+            vidCallFieldStrings.forEach { fieldStr ->
+                getVideoCallTabCtaButtonStateFieldFingerprint(fieldStr).apply {
+                    val upsellField = instructionMatches.last().getFieldAccessed()
+                    classDef.constructor.also {
+                        val setFieldIndex = it.indexOfFirstInstructionOrThrow {
+                            getReference<FieldReference>()?.name == upsellField.name
+                        }
+                        val paramReg = it.getInstruction<TwoRegisterInstruction>(setFieldIndex).registerA
+
+                        it.addInstructions(setFieldIndex, """
                         const/4 v$paramReg, 0x0
                     """.trimIndent())
+                    }
                 }
             }
         }

@@ -38,3 +38,7 @@ fun ByteArray.toInt(littleEndian: Boolean = false): Int {
             (bytes[2].toInt() and 0xFF) shl 8 or
             (bytes[3].toInt() and 0xFF)
 }
+
+fun asCString(str: String, padTo: Int? = null): ByteArray {
+    return str.toByteArray(Charsets.US_ASCII) + byteArrayOf(0)
+}

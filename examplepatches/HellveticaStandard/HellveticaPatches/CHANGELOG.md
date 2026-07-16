@@ -1,3 +1,15 @@
+## [1.1.1](https://github.com/HellveticaStandard/HellveticaPatches/compare/v1.1.0...v1.1.1) (2026-07-15)
+
+### 🚀 Updated App Support
+
+* **sankaku:** add support for 4.25-rc93 ([4f1d854](https://github.com/HellveticaStandard/HellveticaPatches/commit/4f1d854f968bd743dd08e0f61aa844406add1150)), closes [#37517](https://github.com/HellveticaStandard/HellveticaPatches/issues/37517) [#19483](https://github.com/HellveticaStandard/HellveticaPatches/issues/19483)
+
+## [1.1.1-dev.1](https://github.com/HellveticaStandard/HellveticaPatches/compare/v1.1.0...v1.1.1-dev.1) (2026-07-15)
+
+### 🚀 Updated App Support
+
+* **sankaku:** add support for 4.25-rc93 ([4f1d854](https://github.com/HellveticaStandard/HellveticaPatches/commit/4f1d854f968bd743dd08e0f61aa844406add1150)), closes [#37517](https://github.com/HellveticaStandard/HellveticaPatches/issues/37517) [#19483](https://github.com/HellveticaStandard/HellveticaPatches/issues/19483)
+
 ## [1.1.0](https://github.com/HellveticaStandard/HellveticaPatches/compare/v1.0.5...v1.1.0) (2026-07-04)
 
 ### 🐛 Bug Fixes

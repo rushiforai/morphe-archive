@@ -1,7 +1,6 @@
 package hoodles.morphe.patches.primevideo.ads
 
 import app.morphe.patcher.Fingerprint
-import hoodles.morphe.util.hasFlag
 import com.android.tools.smali.dexlib2.AccessFlags
 
 object EnterServerInsertedAdBreakStateFingerprint : Fingerprint(
@@ -21,9 +20,9 @@ object DoTriggerFingerprint : Fingerprint(
 // The owning class has changed for these methods in v3.0.443. Just look for method names in non-abstract class.
 object OnSeekPastUnwatchedAdFingerprint : Fingerprint(
     name = "onSeekPastUnwatchedAd",
-    custom = {_, classDef -> !classDef.hasFlag(AccessFlags.ABSTRACT) }
+    custom = {_, classDef -> !AccessFlags.ABSTRACT.isSet(classDef.accessFlags) }
 )
 object OnSeekBehindUnwatchedAdFingerprint : Fingerprint(
     name = "onSeekBehindUnwatchedAd",
-    custom = {_, classDef -> !classDef.hasFlag(AccessFlags.ABSTRACT) }
+    custom = {_, classDef -> !AccessFlags.ABSTRACT.isSet(classDef.accessFlags) }
 )

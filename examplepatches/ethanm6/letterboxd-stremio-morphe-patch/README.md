@@ -7,6 +7,8 @@ Morphe patches for the Letterboxd Android app. Made using Claude.
 
 All three are on by default and can be toggled independently.
 
+<img src="assets/film-page.png" width="400" alt="Patched Letterboxd film page showing a purple Stremio button below the trailer button">
+
 ## Installation
 
 1. Open Morphe Manager.

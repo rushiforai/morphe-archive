@@ -22,6 +22,14 @@ import app.morphe.patcher.patch.rawResourcePatch
  * - Change `JmpTrue 112, r4` to `JmpTrue 112, r3`.
  * - Function #19195 at file offset 0x00E9821F.
  * - Change the final `true` returns in `checkShowPopupUpsellModal` to `false`.
+ *
+ * 4.25-rc93:
+ * - Function #37517 at file offset 0x012749D8.
+ * - Change `JmpTrue 108, r4` to `JmpTrue 108, r3`.
+ *   (Same structure as rc92; only the Addr8 operand changed: 0x70 → 0x6C.)
+ * - Function #19483 at file offset 0x00F94E29.
+ * - Change the final `true` returns in `checkShowPopupUpsellModal` to `false`.
+ *   (Identical byte pattern to rc92; bundle offset shifted.)
  */
 @Suppress("unused")
 val disableInfinitePopupPatch = rawResourcePatch(
@@ -65,6 +73,19 @@ val disableInfinitePopupPatch = rawResourcePatch(
             0xB0.toByte(), 0x70, 0x03,     // JmpTrue 112, r3
         )
 
+        // rc93: same GetParentEnvironment+LoadFromEnvironment prologue; Addr8 changed 0x70→0x6C
+        val rc93ShowPopupTargetPattern = byteArrayOf(
+            0x34, 0x03, 0x00,              // GetParentEnvironment r3, 0
+            0x3B, 0x04, 0x03, 0x03,        // LoadFromEnvironment r4, r3, 3
+            0xB0.toByte(), 0x6C, 0x04,     // JmpTrue 108, r4
+        )
+
+        val rc93ShowPopupReplacementPattern = byteArrayOf(
+            0x34, 0x03, 0x00,
+            0x3B, 0x04, 0x03, 0x03,
+            0xB0.toByte(), 0x6C, 0x03,     // JmpTrue 108, r3 (early return always taken)
+        )
+
         val rc92CheckPopupTargetPattern = byteArrayOf(
             0x96.toByte(), 0x02, 0x76, 0x02, // LoadConstFalse r2; Ret r2
             0x95.toByte(), 0x02, 0x76, 0x02, // LoadConstTrue r2; Ret r2
@@ -98,6 +119,10 @@ val disableInfinitePopupPatch = rawResourcePatch(
         )
 
         val patchTargets = listOf(
+            "4.25-rc93" to listOf(
+                BundlePatch("showPopupUpsell early return", rc93ShowPopupTargetPattern, rc93ShowPopupReplacementPattern),
+                BundlePatch("checkShowPopupUpsellModal returns false", rc92CheckPopupTargetPattern, rc92CheckPopupReplacementPattern),
+            ),
             "4.24-rc92" to listOf(
                 BundlePatch("showPopupUpsell early return", rc92ShowPopupTargetPattern, rc92ShowPopupReplacementPattern),
                 BundlePatch("checkShowPopupUpsellModal returns false", rc92CheckPopupTargetPattern, rc92CheckPopupReplacementPattern),

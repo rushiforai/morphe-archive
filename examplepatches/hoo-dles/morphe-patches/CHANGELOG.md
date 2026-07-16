@@ -1,3 +1,45 @@
+# [1.39.0](https://github.com/hoo-dles/morphe-patches/compare/v1.38.2...v1.39.0) (2026-07-15)
+
+
+### Bug Fixes
+
+* **SuperChinese:** Allow starting pre-downloaded lessons after VIP lapse ([3f84b3c](https://github.com/hoo-dles/morphe-patches/commit/3f84b3c47ecf66c7cae96d17481fc9ed0be14a0a))
+
+
+### Features
+
+* **Duolingo:** Update patches to support v6.86.5 ([266024c](https://github.com/hoo-dles/morphe-patches/commit/266024ce90fe0b6fca71a1c5b914dff7031a4208))
+* **IbisPaint X:** Update patch to support v14.0.6 and be more resilient to new versions ([b664261](https://github.com/hoo-dles/morphe-patches/commit/b664261a9c70e34082f6da983de5b1ac376fd6d1))
+* **SuperChinese:** Add `Unlock all lessons` and `Disable telemetry` patches ([5a4000e](https://github.com/hoo-dles/morphe-patches/commit/5a4000e7cc1282518fe963582c3731deda929b57))
+
+# [1.39.0-dev.4](https://github.com/hoo-dles/morphe-patches/compare/v1.39.0-dev.3...v1.39.0-dev.4) (2026-07-12)
+
+
+### Bug Fixes
+
+* **SuperChinese:** Allow starting pre-downloaded lessons after VIP lapse ([3f84b3c](https://github.com/hoo-dles/morphe-patches/commit/3f84b3c47ecf66c7cae96d17481fc9ed0be14a0a))
+
+# [1.39.0-dev.3](https://github.com/hoo-dles/morphe-patches/compare/v1.39.0-dev.2...v1.39.0-dev.3) (2026-07-10)
+
+
+### Features
+
+* **Duolingo:** Update patches to support v6.86.5 ([266024c](https://github.com/hoo-dles/morphe-patches/commit/266024ce90fe0b6fca71a1c5b914dff7031a4208))
+
+# [1.39.0-dev.2](https://github.com/hoo-dles/morphe-patches/compare/v1.39.0-dev.1...v1.39.0-dev.2) (2026-07-10)
+
+
+### Features
+
+* **IbisPaint X:** Update patch to support v14.0.6 and be more resilient to new versions ([b664261](https://github.com/hoo-dles/morphe-patches/commit/b664261a9c70e34082f6da983de5b1ac376fd6d1))
+
+# [1.39.0-dev.1](https://github.com/hoo-dles/morphe-patches/compare/v1.38.2...v1.39.0-dev.1) (2026-07-10)
+
+
+### Features
+
+* **SuperChinese:** Add `Unlock all lessons` and `Disable telemetry` patches ([5a4000e](https://github.com/hoo-dles/morphe-patches/commit/5a4000e7cc1282518fe963582c3731deda929b57))
+
 ## [1.38.2](https://github.com/hoo-dles/morphe-patches/compare/v1.38.1...v1.38.2) (2026-07-06)
 
 

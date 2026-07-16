@@ -8,7 +8,7 @@
 
 **Clean&nbsp;•&nbsp;Open&nbsp;Source&nbsp;•&nbsp;Community&nbsp;Driven**
 
-Maintained by **Utsav Rajput**
+Maintained by **Utsav Rajputt**
 
 </div>
 
@@ -40,9 +40,9 @@ Whether you're learning how Android patch projects are organized or looking to c
 ## 🩹 Patches List
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.5.1](https://github.com/Utsavrajputt/Modx-patches/releases/tag/v1.5.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;5 patches total
+> **[v1.5.13](https://github.com/Utsavrajputt/Modx-patches/releases/tag/v1.5.13)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
 <details open>
-<summary>📦 MX Player&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
+<summary>📦 MX Player&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -57,6 +57,8 @@ Whether you're learning how Android patch projects are organized or looking to c
 | [Hide Video/OTT tab](#hide-video-ott-tab) | Hides the Video/OTT download tab from the home screen by forcing its visibility flag to always report disabled. |  |
 | [Register Modx extension activities](#register-modx-extension-activities) | Adds the ToolsActivity/AboutActivity/tool screens and FileProvider from the extensions/core module to the app's AndroidManifest.xml so they can actually be launched. |  |
 | [Repurpose Search/Games tabs to Tools/About](#repurpose-search-games-tabs-to-tools-about) | Redirects the Search tab to the Modx Tools screen and the Games tab to the Modx About screen. |  |
+| [Restyle Search/Games tab icons to Tools/About](#restyle-search-games-tab-icons-to-tools-about) | Overrides the native Search/Games bottom-nav icons with the Modx Tools/About artwork. |  |
+| [Restyle Search/Games tab labels to Tools/About](#restyle-search-games-tab-labels-to-tools-about) | Renames the native Search/Games tab labels to Tools/About. |  |
 
 </details>
 

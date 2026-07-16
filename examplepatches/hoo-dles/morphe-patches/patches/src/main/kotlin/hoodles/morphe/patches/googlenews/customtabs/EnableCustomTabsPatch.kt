@@ -3,10 +3,10 @@ package hoodles.morphe.patches.googlenews.customtabs
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.util.addInstructionsToEnd
 import app.morphe.util.returnEarly
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import hoodles.morphe.patches.googlenews.shared.Constants
-import hoodles.morphe.util.addInstructionsToEnd
 
 @Suppress("unused")
 val EnableCustomTabsPatch = bytecodePatch(

@@ -1,3 +1,92 @@
+## [1.5.13](https://github.com/Utsavrajputt/Modx-patches/compare/v1.5.12...v1.5.13) (2026-07-15)
+
+### 🐛 Bug Fixes
+
+* Adjust padding in NavBarBuilder layout ([8518d5f](https://github.com/Utsavrajputt/Modx-patches/commit/8518d5ff04b6f37fda123e4d104262bd0bd156fe))
+
+## [1.5.12](https://github.com/Utsavrajputt/Modx-patches/compare/v1.5.11...v1.5.12) (2026-07-15)
+
+### 🐛 Bug Fixes
+
+* Adjust padding in NavBarBuilder for better layout ([350e320](https://github.com/Utsavrajputt/Modx-patches/commit/350e32011aea1c38ab9e5f2aa866cb70ce6f6a8e))
+* Adjust padding values in NavBarBuilder ([493c727](https://github.com/Utsavrajputt/Modx-patches/commit/493c72793cc7c294c1b66514af06bf59a67b7c98))
+
+## [1.5.11](https://github.com/Utsavrajputt/Modx-patches/compare/v1.5.10...v1.5.11) (2026-07-15)
+
+### 🐛 Bug Fixes
+
+* Adjust padding values in NavBarBuilder ([5af148f](https://github.com/Utsavrajputt/Modx-patches/commit/5af148f0e89f7d92c379fd328ecb3ed1b9327d28))
+
+## [1.5.10](https://github.com/Utsavrajputt/Modx-patches/compare/v1.5.9...v1.5.10) (2026-07-15)
+
+### 🐛 Bug Fixes
+
+* Adjust padding in NavBarBuilder ([46038f3](https://github.com/Utsavrajputt/Modx-patches/commit/46038f3c8855b355f22d26c794600c3a1bdb105d))
+
+## [1.5.9](https://github.com/Utsavrajputt/Modx-patches/compare/v1.5.8...v1.5.9) (2026-07-15)
+
+### 🐛 Bug Fixes
+
+* Adjust navigation bar top padding ([9955f0a](https://github.com/Utsavrajputt/Modx-patches/commit/9955f0aa4e84872218714e3e6f47b429307862bb))
+
+## [1.5.8](https://github.com/Utsavrajputt/Modx-patches/compare/v1.5.7...v1.5.8) (2026-07-15)
+
+### 🐛 Bug Fixes
+
+* Increase top padding in NavBarBuilder ([f5ca684](https://github.com/Utsavrajputt/Modx-patches/commit/f5ca684636ec0b91e38861111fdd5352c1a2d743))
+
+## [1.5.7](https://github.com/Utsavrajputt/Modx-patches/compare/v1.5.6...v1.5.7) (2026-07-15)
+
+### 🐛 Bug Fixes
+
+* Add color filter to ImageView in search and game tab ([d504890](https://github.com/Utsavrajputt/Modx-patches/commit/d5048901cc4730d0bba7736b5bcbd1fcc5de106f))
+
+## [1.5.6](https://github.com/Utsavrajputt/Modx-patches/compare/v1.5.5...v1.5.6) (2026-07-15)
+
+### 🐛 Bug Fixes
+
+* player crashing ([bc4bed4](https://github.com/Utsavrajputt/Modx-patches/commit/bc4bed46f858781bf80b6e3bc693d6d61a620d5f))
+
+## [1.5.5](https://github.com/Utsavrajputt/Modx-patches/compare/v1.5.4...v1.5.5) (2026-07-15)
+
+### 🐛 Bug Fixes
+
+* crash error ([4381389](https://github.com/Utsavrajputt/Modx-patches/commit/4381389ead5d562f6f83446c149bf771bf8bffbb))
+
+## [1.5.4](https://github.com/Utsavrajputt/Modx-patches/compare/v1.5.3...v1.5.4) (2026-07-15)
+
+### 🐛 Bug Fixes
+
+* build error ([dc8eec0](https://github.com/Utsavrajputt/Modx-patches/commit/dc8eec008c43513b39a6272cc2146ec574f68ffd))
+
+## [1.5.3](https://github.com/Utsavrajputt/Modx-patches/compare/v1.5.2...v1.5.3) (2026-07-15)
+
+### 🐛 Bug Fixes
+
+* icon not showing ([4771616](https://github.com/Utsavrajputt/Modx-patches/commit/477161623a41abda831708871ca740384a21fa1a))
+* Kotlin compilation ([de1f6d6](https://github.com/Utsavrajputt/Modx-patches/commit/de1f6d6ba5e86213c8083e39ad63359293733f22))
+
+## [1.5.2](https://github.com/Utsavrajputt/Modx-patches/compare/v1.5.1...v1.5.2) (2026-07-15)
+
+### 🐛 Bug Fixes
+
+* Compile error ([0991303](https://github.com/Utsavrajputt/Modx-patches/commit/0991303c8c6233fab100c0737e25aaf5bff6cbdc))
+
+## [1.5.1](https://github.com/Utsavrajputt/Modx-patches/compare/v1.5.0...v1.5.1) (2026-07-15)
+
+### 🐛 Bug Fixes
+
+* about and tool icon ([3c64165](https://github.com/Utsavrajputt/Modx-patches/commit/3c641654c8f3fb10d6f827d707e8d7e166672f7c))
+* Navbar item ([6d37aa6](https://github.com/Utsavrajputt/Modx-patches/commit/6d37aa6d59064abc68d8d8e36ee9d794ea6c38b3))
+* typo in maintainer's name ([7403496](https://github.com/Utsavrajputt/Modx-patches/commit/7403496b3f2981dfa5df064de37aaf5882fc94f4))
+
+## [1.5.1](https://github.com/Utsavrajputt/Modx-patches/compare/v1.5.0...v1.5.1) (2026-07-15)
+
+### 🐛 Bug Fixes
+
+* about and tool icon ([3c64165](https://github.com/Utsavrajputt/Modx-patches/commit/3c641654c8f3fb10d6f827d707e8d7e166672f7c))
+* Navbar item ([6d37aa6](https://github.com/Utsavrajputt/Modx-patches/commit/6d37aa6d59064abc68d8d8e36ee9d794ea6c38b3))
+
 ## [1.5.1](https://github.com/Utsavrajputt/Modx-patches/compare/v1.5.0...v1.5.1) (2026-07-14)
 
 ### 🐛 Bug Fixes
