@@ -23,8 +23,10 @@ Second \"item\" text"</string>
   <string name="morphe_header_logo_entry_3">Saincheaptha</string>
   <!-- interaction.downloads.downloadsPatch -->
   <string name="morphe_external_downloader_screen_summary">Íoslódáil físeáin ceoil, podchraoltaí, nó amhráin le haipeanna íoslódála tríú páirtí</string>
-  <string name="morphe_external_downloader_action_button_title">Sáraigh an cnaipe Íosluchtaigh gníomh</string>
-  <string name="morphe_external_downloader_action_button_summary">Cuirtear d\'íoslódálaí seachtrach in ionad fheidhm íoslódála ionsuite YouTube Music</string>
+  <!-- 'Download' should be translated using the same localized wording YouTube displays for the button. -->
+  <string name="morphe_external_downloader_action_button_title">Sáraigh an cnaipe Íoslódála</string>
+  <string name="morphe_external_downloader_action_button_summary">Úsáideann sé an íoslódálaí seachtrach a roghnaigh tú in ionad ghné íoslódála ionsuite YouTube Music</string>
+  <string name="morphe_external_downloader_flyout_menu_title">Sáraigh an roghchlár Íoslódála</string>
   <!-- misc.settings.settingsPatch -->
   <!-- In languages where "About" is ambiguous, translate this as "About Morphe" (i.e., About this app). -->
   <string name="morphe_settings_music_screen_0_about_title">Maidir</string>
@@ -100,8 +102,13 @@ Má chuirtear sos ar an traschéimniú chun féachaint ar fhíseán ceoil, is f�
 YouTube Music 8.x — ní ritheann an traschéimniú ach ar 9.x agus níos nuaí."</string>
   <string name="morphe_music_crossfade_about_credit_title">Creidmheas</string>
   <string name="morphe_music_crossfade_about_credit_summary">Gné traschéimnithe le VazerOG</string>
-  <!-- interaction.permanentrepeat.permanentRepeatPatch -->
-  <string name="morphe_music_play_permanent_repeat_title">Cumasaigh athrá buan</string>
+  <!-- interaction.remember.repeatstate.rememberRepeatStatePatch-->
+  <string name="morphe_music_remember_repeat_state_title">Cuimhnigh ar an staid athrá</string>
+  <!-- interaction.remember.shufflestate.rememberShuffleStatePatch -->
+  <string name="morphe_music_remember_shuffle_state_title">Cuimhnigh ar an staid mheasctha</string>
+  <!-- interaction.dislikeredirection.disableDislikeRedirectionPatch -->
+  <string name="morphe_music_disable_dislike_redirection_title">Díchumasaigh atreorú \"díomá\"</string>
+  <string name="morphe_music_disable_dislike_redirection_summary">Coscann sé léim go dtí an chéad rian eile nuair a bhrúitear an cnaipe \'Ní maith liom\'</string>
   <!-- layout.buttons.hideButtonsPatch -->
   <string name="morphe_music_hide_cast_button_title">Folaigh an cnaipe Cast</string>
   <string name="morphe_music_hide_history_button_title">Cnaipe Folaigh Stair</string>
@@ -269,4 +276,10 @@ YouTube Music 8.x — ní ritheann an traschéimniú ach ar 9.x agus níos nuaí
   <string name="morphe_music_scrobbling_about_summary">"Sincronóireann scrobbling do úsáid YouTube Music le do phróifíl Last.fm or ListenBrainz go huathoimatic
 
 Chun a chinntiú go bhfuil scrobbling i gcóir le linn imirt san chúlra, déan cinnte go bhfuil úsáid batáire aipe YouTube Music socraithe go \"Gan teorainn\""</string>
+  <!-- misc.spoof.appversion.spoofAppVersionPatch -->
+  <string name="morphe_music_spoof_app_version_target_entry_6_35_52">6.35.52 - Athchóirigh an seanphainéal eitilte</string>
+  <string name="morphe_music_spoof_app_version_target_entry_6_42_55">6.42.55 - Liricí fíor-ama a dhíchumasú</string>
+  <string name="morphe_music_spoof_app_version_target_entry_7_12_52">7.12.52 - Seanliricí dinimiciúla a athchóiriú</string>
+  <string name="morphe_music_spoof_app_version_target_entry_7_16_53">7.16.53 - Athchóirigh an seanbharra gníomhaíochta</string>
+  <string name="morphe_music_spoof_app_version_target_entry_7_17_52">7.17.52 - Ní fheictear an chuid tuairimí sa bheatha baile</string>
 </resources>

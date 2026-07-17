@@ -236,7 +236,7 @@ Si vous ne soumettez pas de point clé, appuyez sur 'Annuler' et marquez le seco
   <string name="morphe_sb_color_opacity_label">Opacité :</string>
   <string name="morphe_sb_color_dot_label">Couleur :</string>
   <string name="morphe_sb_about_title">À propos</string>
-  <string name="morphe_sb_about_api_summary">"Les données sont fournies par l’API SponsorBlock.
+  <string name="morphe_sb_about_api_summary">"Les données sont fournies par l'API SponsorBlock.
 
 Appuyez ici pour ouvrir Sponsor.ajay.app et voir les téléchargements disponibles pour les autres plateformes"</string>
 </resources>

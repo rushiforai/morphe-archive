@@ -69,7 +69,7 @@ def _get_target_asset(assets: list, ext: str, src: str, ver: str) -> dict:
         wpr(f"More than 1 asset found for {src} @ {ver}, falling back to the first one")
     return target[0]
 
-def _build_changelog(tag: str, org: str, name: str, tag_name: str, gitlab: bool, clean_src: str) -> str:  # CHANGED: extracted helper — eliminates verbatim duplication in _fetch_single_asset
+def _build_changelog(tag: str, org: str, name: str, tag_name: str, gitlab: bool, clean_src: str) -> str:
     changelog = f"> ⚙️ » {tag}: `{org}/{name}`  \n"
     if tag == "Patches" and tag_name:
         if gitlab:
@@ -97,7 +97,7 @@ def _fetch_single_asset(src: str, tag: str, ver: str, ext: str, cl_dir: Path, ne
         release = json.loads(net.get(latest_url) if gitlab else net.get(latest_url, headers=net._gh_headers))
         ver = release.get("tag_name", "")
 
-    if file := _find_cached(cl_dir, ver, ext, exclude_dev=False):
+    if file := _find_cached(cl_dir, ver, ext):
         tag_name = _tag_from_filename(file)
         return file, _build_changelog(tag, org, file.name, tag_name, gitlab, clean_src)
 
@@ -122,13 +122,11 @@ def _fetch_single_asset(src: str, tag: str, ver: str, ext: str, cl_dir: Path, ne
     tag_name = release.get("tag_name", "")
     return file, _build_changelog(tag, org, asset["name"], tag_name, gitlab, clean_src)
 
-def _find_cached(dir_path: Path, name_ver: str, ext: str, exclude_dev: bool) -> Path | None:
+def _find_cached(dir_path: Path, name_ver: str, ext: str) -> Path | None:
     pattern = f"*.{ext}" if name_ver == "*" else f"*{name_ver.lstrip('v')}*.{ext}"
     candidates: list[Path] = []
     for f in dir_path.glob(pattern):
         if not f.is_file() or f.name.startswith("tmp."):
-            continue
-        if exclude_dev and "-dev" in f.name:
             continue
         candidates.append(f)
     return max(candidates, key=lambda f: _ver_key(f.name), default=None)

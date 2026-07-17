@@ -5,7 +5,7 @@ Custom Morphe patches by Xhehab.
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v3.0.15](https://github.com/Xhehab/Xhehab-Patches/releases/tag/v3.0.15)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;15 patches total
+> **[v3.3.0](https://github.com/Xhehab/Xhehab-Patches/releases/tag/v3.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;17 patches total
 <details open>
 <summary>📦 TrainWise - Workout & Fitness Coach&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -71,6 +71,21 @@ Custom Morphe patches by Xhehab.
 </details>
 
 <details open>
+<summary>📦 BASE Strength AI&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 2.0.82 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock BASE Strength Premium](#unlock-base-strength-premium) | Unlock all Paid features |  |
+
+</details>
+
+<details open>
 <summary>📦 Boostcamp&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -131,6 +146,21 @@ Custom Morphe patches by Xhehab.
 </details>
 
 <details open>
+<summary>📦 JuggernautAI&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 2.6.6 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock JuggernautAI Premium](#unlock-juggernautai-premium) | Unlock all Paid features |  |
+
+</details>
+
+<details open>
 <summary>📦 MyoAdapt - Build Muscle Fast&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -166,7 +196,7 @@ Custom Morphe patches by Xhehab.
 
 **🎯 Supported versions:**
 
-| 2.6.2 |
+| 2.7.3 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |

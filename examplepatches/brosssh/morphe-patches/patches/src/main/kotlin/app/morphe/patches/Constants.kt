@@ -10,10 +10,10 @@ object Constants {
         packageName = "com.instagram.android",
         targets = listOf(
             AppTarget(
-                version = "430.0.0.53.80",
+                version = "435.0.0.37.76",
                 versionCodes = mapOf(
-                    SupportedAbi.ARM64_V8A to 383611190,
-                    SupportedAbi.ARMEABI_V7A to 383710475
+                    SupportedAbi.ARM64_V8A to 384109456,
+                    SupportedAbi.ARMEABI_V7A to 384109422
                 )
             )
         )
@@ -30,7 +30,7 @@ object Constants {
         name = "Komoot",
         packageName = "de.komoot.android",
         appIconColor = 0xECEBB4,
-        targets = listOf(AppTarget(version = "2025.38.2")),
+        targets = listOf(AppTarget(version = "2026.26.7")),
     )
 
     val COMPATIBILITY_MAPY = Compatibility(

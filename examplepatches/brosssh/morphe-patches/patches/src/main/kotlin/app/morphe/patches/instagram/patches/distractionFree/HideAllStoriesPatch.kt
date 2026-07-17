@@ -10,7 +10,7 @@ val hideAllStoriesPatch = bytecodePatch(
     description = """
         Hides all stories from the tray in the feed page.
         You may need to clean app data after the initial use of this patch to see its effects.
-    """,
+    """.trimIndent(),
     default = false
 ) {
     compatibleWith(COMPATIBILITY_INSTAGRAM)

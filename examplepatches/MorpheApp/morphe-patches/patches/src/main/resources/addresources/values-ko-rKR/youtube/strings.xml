@@ -64,10 +64,8 @@ Second \"item\" text"</string>
   <string name="morphe_hide_compact_banner_summary">일부 구성 요소 사이에서 소형 배너 및 여백을 숨깁니다</string>
   <string name="morphe_hide_expandable_card_title">동영상 아래 펼쳐볼 수 있는 정보</string>
   <string name="morphe_hide_expandable_card_entry_1">모두 표시</string>
-  <string name="morphe_hide_expandable_card_entry_2">제품 정보만 숨기기</string>
-  <string name="morphe_hide_expandable_card_entry_3">요약 정보만 숨기기</string>
-  <string name="morphe_hide_expandable_card_entry_4">제품 및 요약 정보 숨기기</string>
-  <string name="morphe_hide_expandable_card_entry_5">모두 숨기기</string>
+  <string name="morphe_hide_expandable_card_entry_2">요약 정보만 숨기기</string>
+  <string name="morphe_hide_expandable_card_entry_3">모두 숨기기</string>
   <string name="morphe_hide_floating_microphone_button_title">플로팅 마이크 버튼 숨기기</string>
   <string name="morphe_hide_floating_microphone_button_summary">검색 추천 화면 오른쪽 하단에 있는 플로팅 마이크 버튼을 숨깁니다</string>
   <string name="morphe_hide_horizontal_shelves_title">좌우 슬라이드형 선반 숨기기</string>
@@ -102,6 +100,7 @@ Second \"item\" text"</string>
   <string name="morphe_hide_upload_time_summary">"제한 사항:
 • Shorts 선반, 채널 페이지 및 검색 결과에서 업로드 시간이 계속 표시될 수 있습니다
 • 이 기능은 오토모티브 레이아웃에서 작동하지 않습니다"</string>
+  <string name="morphe_hide_video_thumbnail_title">동영상 썸네일 숨기기</string>
   <!-- 'People also watched' and 'You might also like' should be translated using the same localized wording YouTube displays for the label. -->
   <string name="morphe_hide_video_recommendation_labels_title">동영상 추천 라벨 숨기기</string>
   <string name="morphe_hide_video_recommendation_labels_summary">검색 결과에서 다음 라벨을 숨깁니다:\n• 시청자가 이 동영상도 시청함\n• 내가 좋아할 만한 동영상</string>
@@ -212,6 +211,8 @@ Second \"item\" text"</string>
   <string name="morphe_hide_comments_emoji_and_timestamp_buttons_title">이모지 및 타임스탬프 버튼 숨기기</string>
   <string name="morphe_hide_comments_filter_bar_options_title">필터 바 옵션 숨기기</string>
   <string name="morphe_hide_comments_filter_bar_options_summary">\'인기순\' 및 \'최신순\'을 제외한 모든 필터 바 옵션을 숨깁니다</string>
+  <string name="morphe_hide_comments_gift_animation_and_cards_title">기프트 애니메이션 및 카드 숨기기</string>
+  <string name="morphe_hide_comments_gift_button_title">기프트 버튼 숨기기</string>
   <string name="morphe_hide_comments_info_button_title">정보 버튼 숨기기</string>
   <string name="morphe_hide_comments_live_chat_donators_bar_title">실시간 채팅 후원자 섹션 숨기기</string>
   <string name="morphe_hide_comments_preview_comment_title">댓글 미리보기 숨기기</string>
@@ -233,7 +234,6 @@ Second \"item\" text"</string>
 필터링 키워드는 채널 이름 또는 동영상 제목에 표시되는 모든 텍스트가 될 수 있습니다
 
 대문자가 있는 단어는 대소문자를 함께 입력해야 합니다 (예: iPhone, TikTok, LeBlanc)"</string>
-  <string name="morphe_hide_keyword_content_about_title">키워드 필터링 정보</string>
   <string name="morphe_hide_keyword_content_about_summary">"홈 / 구독 / 검색 결과 / 댓글 섹션에서 키워드 구문과 일치하는 콘텐츠가 필터링되어 숨겨집니다
 
 제한 사항:
@@ -249,6 +249,36 @@ Second \"item\" text"</string>
   <string name="morphe_hide_keyword_toast_invalid_conflicting">키워드에 충돌하는 선언이 있습니다: %s</string>
   <string name="morphe_hide_keyword_toast_invalid_length">키워드가 너무 짧아서 따옴표가 필요합니다: %s</string>
   <string name="morphe_hide_keyword_toast_invalid_broad">키워드가 모든 동영상을 숨길 것입니다: %s</string>
+  <string name="morphe_hide_keyword_content_stats_hidden_breakdown">"• 홈: %s
+• 구독: %s
+• 검색: %s
+• 댓글: %s
+• 합계: %s"</string>
+  <string name="morphe_hide_stats_category_title">통계</string>
+  <string name="morphe_hide_stats_hidden_24h_title">지난 24시간 동안 숨겨진 동영상</string>
+  <string name="morphe_hide_stats_hidden_all_title">전체 시간 동안 숨겨진 동영상</string>
+  <string name="morphe_hide_stats_hidden_24h_reset_title">지난 24시간 카운터 초기화</string>
+  <string name="morphe_hide_stats_hidden_all_reset_title">전체 시간 카운터 초기화</string>
+  <string name="morphe_hide_about_category_title">정보</string>
+  <string name="morphe_hide_aislist_screen_title">AI 채널 필터</string>
+  <string name="morphe_hide_aislist_screen_summary">AiSList 커뮤니티 목록에서 AI 생성 콘텐츠 채널로 지정된 채널의 동영상을 숨깁니다</string>
+  <string name="morphe_hide_aislist_blocklist_category_title">차단 목록: 높은 신뢰도</string>
+  <string name="morphe_hide_aislist_warnlist_category_title">경고 목록: 보통 신뢰도</string>
+  <string name="morphe_hide_aislist_hide_home_title">홈에서 동영상 숨기기</string>
+  <string name="morphe_hide_aislist_hide_search_title">검색에서 동영상 숨기기</string>
+  <string name="morphe_hide_aislist_stats_hidden_breakdown">"• 홈: %s
+• 검색: %s
+• 합계: %s"</string>
+  <string name="morphe_hide_aislist_stats_blocklist_title">차단 목록 채널 수: %s</string>
+  <string name="morphe_hide_aislist_stats_warnlist_title">경고 목록 채널 수: %s</string>
+  <string name="morphe_hide_aislist_about_summary">"홈 및 검색 결과에서 AiSList에 의해 지정된 채널의 동영상을 숨기도록 필터링됩니다
+
+제한 사항:
+• 필터링된 AI Shorts는 빈 공간으로 표시될 수 있습니다
+• 일부 AI 동영상은 여전히 표시될 수 있습니다"</string>
+  <string name="morphe_hide_aislist_attribution_summary">"데이터는 AiSList에 의해 제공됩니다
+
+다른 플랫폼용 다운로드를 확인하려면 여기를 탭하여 'AiSlopList.com'으로 이동하세요"</string>
   <!-- ad.hideAdsPatch -->
   <string name="morphe_hide_creator_store_shelf_title">판매자 스토어 선반 숨기기</string>
   <string name="morphe_hide_end_screen_store_banner_title">최종 화면 스토어 배너 숨기기</string>
@@ -281,9 +311,9 @@ Second \"item\" text"</string>
   <string name="morphe_external_downloader_screen_summary">서드파티 다운로드 앱을 사용하여 동영상, 팟캐스트 또는 노래를 다운로드할 수 있습니다</string>
   <string name="morphe_external_downloader_title">외부 다운로드 버튼 표시하기</string>
   <string name="morphe_external_downloader_summary">외부 다운로드 앱을 실행할 수 있는 오버레이 버튼을 동영상 플레이어에 표시합니다</string>
-  <!-- 'Download action button' should match the language used in 'morphe_hide_download_button_title'. -->
-  <string name="morphe_external_downloader_action_button_title">오프라인 저장 버튼 재정의하기</string>
-  <string name="morphe_external_downloader_action_button_summary">YouTube의 기본 다운로드 기능을 사용자가 설정한 외부 다운로더 앱으로 대체합니다</string>
+  <!-- 'Download' should be translated using the same localized wording YouTube displays for the button. -->
+  <string name="morphe_external_downloader_action_button_title">오프라인 저장 버튼 및 메뉴 재정의하기</string>
+  <string name="morphe_external_downloader_action_button_summary">YouTube의 기본 다운로드 기능 대신 선택한 외부 다운로더를 사용합니다</string>
   <!-- video.voiceovertranslation.voiceOverTranslationPatch -->
   <string name="morphe_vot_screen_title">음성 번역</string>
   <string name="morphe_vot_screen_summary">기기의 텍스트 음성 변환(TTS)을 사용하여 재생에 맞춰 동기화된 동영상 자막을 읽어줍니다</string>
@@ -479,6 +509,8 @@ API 키는 절대로 다른 사람과 공유해서는 안 됩니다. API 키에 
   <string name="morphe_swipe_speed_summary">전체 화면 모드 상단에서 가로로 스와이프하여 재생 속도를 조절합니다</string>
   <string name="morphe_swipe_speed_sensitivity_title">속도 스와이프 민감도</string>
   <string name="morphe_swipe_speed_sensitivity_summary">값이 높을수록 속도 단계를 변경하려면 더 많이 스와이프해야 합니다</string>
+  <string name="morphe_swipe_speed_step_title">속도 단계</string>
+  <string name="morphe_swipe_speed_step_summary">한 단계당 변경할 수 있는 재생 속도 값을 설정할 수 있습니다</string>
   <string name="morphe_swipe_speed_zone_height_title">속도 영역 높이</string>
   <string name="morphe_swipe_speed_zone_height_summary">플레이어 높이 대비 속도 제스처 영역의 높이 비율을 설정할 수 있습니다 (5~75)</string>
   <string name="morphe_swipe_zone_label_speed">속도</string>
@@ -855,15 +887,7 @@ API 키는 절대로 다른 사람과 공유해서는 안 됩니다. API 키에 
   <string name="morphe_tablet_layout_in_player_summary">"이전 플레이어 레이아웃을 복원합니다
 
 제한 사항: '이전 동영상 작업 버튼바 복원하기'를 비활성화하면, '동영상 더보기' 오버레이를 사용할 수 없을 수 있습니다"</string>
-  <!-- layout.spoofappversion.spoofAppVersionPatch -->
-  <string name="morphe_spoof_app_version_title">앱 버전 속이기</string>
-  <string name="morphe_spoof_app_version_summary">서버가 사용 중인 앱 버전을 더 오래된 버전으로 인식하도록 속여, 이전 레이아웃 기능을 다시 복원합니다</string>
-  <string name="morphe_spoof_app_version_user_dialog_message">"앱 버전이 YouTube 이전 앱 버전으로 속여집니다.
-
-이 경우 앱 레이아웃과 기능이 변경되지만 알려지지 않은 부작용이 발생할 수 있습니다.
-
-나중에 이 기능을 비활성화하면 앱 UI 버그를 방지하기 위해 앱 데이터를 지우는 것이 좋습니다."</string>
-  <string name="morphe_spoof_app_version_target_title">속이기에 사용될 앱 버전</string>
+  <!-- misc.spoof.appversion.spoofAppVersionPatch -->
   <string name="morphe_spoof_app_version_target_entry_20_39">20.39.41 - 이전 \'재생목록에 저장\'을 복원합니다</string>
   <string name="morphe_spoof_app_version_target_entry_20_28">20.28.41 - 굵은 아이콘을 비활성화합니다</string>
   <string name="morphe_spoof_app_version_target_entry_20_13">20.13.41 - 동영상 플레이어 아래에서 채널 이름을 복원합니다</string>
@@ -872,8 +896,8 @@ API 키는 절대로 다른 사람과 공유해서는 안 됩니다. API 키에 
   <string name="morphe_open_system_share_sheet_summary">콘텐츠를 공유할 경우에 앱 기본 공유 시트 대신 시스템 공유 시트를 실행합니다</string>
   <!-- layout.music.overrideYouTubeMusicButtonsPatch -->
   <string name="morphe_override_youtube_music_buttons_title">YouTube Music 버튼 재정의하기</string>
-  <string name="morphe_override_youtube_music_buttons_summary">Music 버튼을 탭했을 경우에 YouTube Music 앱 대신 사용자가 사용하고 싶은 Music 앱을 열 수 있도록 설정할 수 있습니다</string>
-  <string name="morphe_music_package_name_title">재정의에 사용될 Music 앱 패키지명</string>
+  <string name="morphe_override_youtube_music_buttons_summary">Music 버튼을 탭했을 경우에 공식 YouTube Music 앱 대신 사용자가 사용하고 싶은 Music 앱을 열 수 있도록 설정할 수 있습니다</string>
+  <string name="morphe_music_package_name_title">Music 앱 패키지명</string>
   <string name="morphe_music_package_name_summary">사용자가 사용하고 싶은 Music 앱 패키지명을 설정하세요</string>
   <!-- layout.startpage.changeStartPagePatch -->
   <string name="morphe_change_start_page_title">시작 페이지</string>
@@ -1088,7 +1112,7 @@ API 키는 절대로 다른 사람과 공유해서는 안 됩니다. API 키에 
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
   <string name="morphe_force_avc_codec_not_available">이 기능을 사용하려면, \'동영상 스트림 속이기\'에서 \'기본 클라이언트\'를 \'Android VR\' 또는 \'Android Studio\'로 변경하세요</string>
   <!-- video.quality.advancedVideoQualityMenuPatch -->
-  <string name="morphe_advanced_video_quality_menu_title">\'고급\' 화질 메뉴 열기</string>
+  <string name="morphe_advanced_video_quality_menu_title">고급 화질 메뉴 열기</string>
   <string name="morphe_advanced_video_quality_menu_summary">화질 선택 메뉴를 건너뛰고 고급 화질 메뉴를 바로 엽니다</string>
   <!-- video.quality.hidePremiumVideoQualityPatch -->
   <string name="morphe_hide_premium_video_quality_title">Premium 화질 옵션 숨기기</string>

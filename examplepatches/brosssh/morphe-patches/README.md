@@ -8,14 +8,14 @@ This repository contains patches I made for some apps I care about.
 ## ⚙️ Patch Details
 
 <!-- PATCHES_START -->
-> **[v2.8.0](https://github.com/brosssh/morphe-patches/releases/tag/v2.8.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;22 patches total
+> **[v2.8.1](https://github.com/brosssh/morphe-patches/releases/tag/v2.8.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;22 patches total
 <details>
 <summary>📦 Instagram&nbsp;&nbsp;•&nbsp;&nbsp;18 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 430.0.0.53.80 |
+| 435.0.0.37.76 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -29,7 +29,7 @@ This repository contains patches I made for some apps I care about.
 | [Hide Reels save button](#hide-reels-save-button) |  |  |
 | [Hide Threads profile button](#hide-threads-profile-button) | Hides the Threads button from the profile page action bar (top right of the profile page). |  |
 | [Hide ads](#hide-ads) |  |  |
-| [Hide all stories](#hide-all-stories) | <br>        Hides all stories from the tray in the feed page.<br>        You may need to clean app data after the initial use of this patch to see its effects.<br>     |  |
+| [Hide all stories](#hide-all-stories) | Hides all stories from the tray in the feed page.<br>You may need to clean app data after the initial use of this patch to see its effects. |  |
 | [Hide explore feed](#hide-explore-feed) | Hides posts and reels from the explore/search page. |  |
 | [Hide feed content](#hide-feed-content) | Hide the feed content, leaving only stories in the home page. |  |
 | [Hide navigation buttons](#hide-navigation-buttons) | Hides navigation bar buttons, such as the Reels and Create button. Choose what button to hide using the patch options. | • Hide Home<br>• Hide Reels<br>• Hide Direct<br>• Hide Search<br>• Hide Profile<br>• Hide Create |
@@ -62,7 +62,7 @@ This repository contains patches I made for some apps I care about.
 
 **🎯 Supported versions:**
 
-| 2025.38.2 |
+| 2026.26.7 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |

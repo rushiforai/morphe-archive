@@ -1,6 +1,6 @@
 /*
  * Copyright 2026 Morphe.
- * https://github.com/MorpheApp/morphe-patches
+ * https://github.com/MorpheApp/morphe-patches/pull/1837
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
@@ -17,11 +17,13 @@ import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.string
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import app.morphe.patches.shared.misc.litho.filter.addLithoFilter
 import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
 import app.morphe.patches.youtube.layout.hide.general.ContextualMenuItemBuilderFingerprint
 import app.morphe.patches.youtube.layout.hide.general.ContextualMenuItemBuilderOnClickFingerprint
 import app.morphe.patches.youtube.misc.auth.authHookPatch
 import app.morphe.patches.youtube.misc.extension.sharedExtensionPatch
+import app.morphe.patches.youtube.misc.litho.filter.lithoFilterPatch
 import app.morphe.patches.youtube.misc.playservice.is_21_05_or_greater
 import app.morphe.patches.youtube.misc.playservice.versionCheckPatch
 import app.morphe.patches.youtube.misc.settings.PreferenceScreen
@@ -47,11 +49,17 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 private const val EXTENSION_CLASS =
     "Lapp/morphe/extension/youtube/patches/AddToQueuePatch;"
 
+private const val EXTENSION_UTILS_CLASS =
+    "Lapp/morphe/extension/youtube/patches/utils/FlyoutUtils;"
+
+private const val EXTENSION_FILTER =
+    "Lapp/morphe/extension/youtube/patches/components/ChannelPageFlyoutFilter;"
+
 private const val EXTENSION_FLYOUT_MENU_VIDEO_ID_INTERFACE =
-    $$"Lapp/morphe/extension/youtube/patches/AddToQueuePatch$FlyoutMenuVideoIdInterface;"
+    $$"Lapp/morphe/extension/youtube/patches/utils/FlyoutUtils$FlyoutMenuVideoIdInterface;"
 
 private const val EXTENSION_PROTOCOL_BUFFER_INTERFACE =
-    $$"Lapp/morphe/extension/youtube/patches/AddToQueuePatch$ProtocolBufferFieldInterface;"
+    $$"Lapp/morphe/extension/youtube/patches/utils/FlyoutUtils$ProtocolBufferFieldInterface;"
 
 
 @Suppress("unused")
@@ -63,6 +71,7 @@ val addToQueuePatch = bytecodePatch(
         settingsPatch,
         sharedExtensionPatch,
         settingsPatch,
+        lithoFilterPatch,
         versionCheckPatch,
         videoInformationPatch,
         authHookPatch
@@ -166,19 +175,32 @@ val addToQueuePatch = bytecodePatch(
         // region Hook flyout menu protocol buffer object.
         FeedFlyoutBufferObjectFingerprint.method.addInstruction(
             0,
-            "invoke-static/range { p2 .. p2 }, $EXTENSION_CLASS->extractVideoId(Ljava/util/Map;)V"
+            "invoke-static/range { p2 .. p2 }, $EXTENSION_UTILS_CLASS->" +
+                    "extractVideoId(Ljava/util/Map;)V"
         )
+
+        OnClickLithoButtonBufferObjectFingerprint.let {
+            val match = it.instructionMatches[4]
+            val index = match.index
+            val register = match.getInstruction<FiveRegisterInstruction>().registerC
+
+            it.method.addInstruction(
+                index + 1,
+                "invoke-static { v$register }, $EXTENSION_UTILS_CLASS->" +
+                        "extractIdFromLithoButton(Ljava/util/Map;)V"
+            )
+        }
 
         FullHistoryFlyoutBufferObjectFingerprint.let {
             it.method.apply {
-                val instructionIndex = it.instructionMatches[2].index
-                val instructionRegister = getInstruction<OneRegisterInstruction>(
-                    instructionIndex
-                ).registerA
+                val match = it.instructionMatches[2]
+                val index = match.index
+                val register = match.getInstruction<OneRegisterInstruction>().registerA
 
                 addInstruction(
-                    instructionIndex + 1,
-                    "invoke-static { v$instructionRegister }, $EXTENSION_CLASS->extractVideoId(Ljava/lang/Object;)V"
+                    index + 1,
+                    "invoke-static { v$register }, $EXTENSION_UTILS_CLASS->" +
+                            "extractVideoId(Ljava/lang/Object;)V"
                 )
             }
         }
@@ -193,7 +215,7 @@ val addToQueuePatch = bytecodePatch(
             val enumIntField = mainFingerprintMatches[6].getInstruction<ReferenceInstruction>().reference
             val enumMethodCall = mainFingerprintMatches[7].getInstruction<ReferenceInstruction>().reference
             val runnableIndex = mainFingerprintMatches.last().index
-            val charCheckRegister = mainFingerprint.method.getInstruction<OneRegisterInstruction>(charCheckIndex).registerA
+            val charCheckRegister = mainFingerprintMatches.last().getInstruction<OneRegisterInstruction>().registerA
 
             mainFingerprint.method.apply {
                 val runnableRegister = getInstruction<TwoRegisterInstruction>(runnableIndex).registerA
@@ -219,14 +241,11 @@ val addToQueuePatch = bytecodePatch(
 
             ContextualMenuItemBuilderFingerprint.let {
                 it.method.cloneParameters().apply {
-                    val filterIndexClonedOffset = numberOfParameterRegisters
-                    val targetInstructionIndex = it.instructionMatches[3].index + filterIndexClonedOffset
-                    val targetInstructionRegister = getInstruction<FiveRegisterInstruction>(
-                        targetInstructionIndex
-                    ).registerC
-                    val secondButtonInfoParameterRegister = getInstruction<FiveRegisterInstruction>(
-                        it.instructionMatches[2].index + filterIndexClonedOffset
-                    ).registerC
+                    val targetInstructionIndex = it.instructionMatches[3].index + numberOfParameterRegisters
+                    val targetInstructionRegister = it.instructionMatches[3]
+                        .getInstruction<FiveRegisterInstruction>().registerC
+                    val secondButtonInfoParameterRegister = it.instructionMatches[2]
+                        .getInstruction<FiveRegisterInstruction>().registerC
 
                     addInstructions(
                         targetInstructionIndex,
@@ -293,7 +312,7 @@ val addToQueuePatch = bytecodePatch(
 
                 addInstruction(
                     index,
-                    "invoke-static { v$register }, $EXTENSION_CLASS->" +
+                    "invoke-static { v$register }, $EXTENSION_UTILS_CLASS->" +
                             "setBottomSheetFlyout(Landroid/app/Dialog;)V"
                 )
             }
@@ -306,10 +325,12 @@ val addToQueuePatch = bytecodePatch(
 
                 addInstruction(
                     instructionIndex,
-                    "invoke-static { v$instructionRegister }, $EXTENSION_CLASS->" +
+                    "invoke-static { v$instructionRegister }, $EXTENSION_UTILS_CLASS->" +
                             "setPopupWindowFlyout(Landroid/widget/PopupWindow;)V"
                 )
             }
         }
+
+        addLithoFilter(EXTENSION_FILTER)
     }
 }

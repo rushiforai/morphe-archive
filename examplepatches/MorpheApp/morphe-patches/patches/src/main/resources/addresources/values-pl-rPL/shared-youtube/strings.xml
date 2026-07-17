@@ -24,7 +24,6 @@ Second \"item\" text"</string>
   <string name="morphe_external_downloader_screen_title">Zewnętrzne pobieranie</string>
   <string name="morphe_external_downloader_name_title">Nazwa pakietu aplikacji do pobierania</string>
   <string name="morphe_external_downloader_name_summary">Nazwa pakietu zainstalowanej aplikacji do pobierania</string>
-  <string name="morphe_external_downloader_flyout_button_title">Zastąp przycisk w menu kanału/wyszukiwania</string>
   <string name="morphe_external_downloader_other_item_hint">Wprowadź nazwę pakietu</string>
   <string name="morphe_external_downloader_other_item">Inna</string>
   <string name="morphe_external_downloader_not_found_title">Aplikacja nie jest zainstalowana</string>
@@ -53,7 +52,7 @@ Upewnij się, że nazwa pakietu jest poprawna i czy aplikacja jest zainstalowana
   <string name="morphe_check_watch_history_domain_name_dialog_title">Powiadomienie Morphe</string>
   <string name="morphe_check_watch_history_domain_name_dialog_message">Twoja historia oglądania nie jest zapisywana.&lt;br&gt;&lt;br&gt;Najprawdopodobniej jest to spowodowane przez bloker reklam DNS lub serwer proxy.&lt;br&gt;&lt;br&gt;Aby to naprawić, dodaj do białej listy &lt;b&gt;s.youtube.com&lt;/b&gt; lub wyłącz wszystkie blokery DNS i serwery proxy.</string>
   <string name="morphe_check_watch_history_domain_name_dialog_ignore">Nie pokazuj ponownie</string>
-  <!-- misc.fix.playback.spoofVideoStreamsPatch -->
+  <!-- misc.spoof.spoofVideoStreamsPatch -->
   <string name="morphe_spoof_video_streams_screen_title">Fałszowanie strumieni filmów</string>
   <string name="morphe_spoof_video_streams_screen_summary">Skonfiguruj fałszowanie klienta, aby zapobiec problemom z odtwarzaniem</string>
   <string name="morphe_spoof_video_streams_title">Fałszuj strumienie filmów</string>
@@ -168,4 +167,13 @@ Pamiętaj jednak, że rejestrowane będą również niektóre dane użytkownika,
   <!-- 'Component path builder strings' is the technical name for identifying the Litho UI layout items to hide. This is an advanced feature and most users will never use this. -->
   <string name="morphe_custom_filter_strings_summary">Lista ścieżek elementów do ukrycia, każda w nowej linii</string>
   <string name="morphe_custom_filter_toast_invalid_syntax">Nieprawidłowy własny filtr: %s</string>
+  <!-- misc.spoof.appversion.spoofAppVersionPatch -->
+  <string name="morphe_spoof_app_version_title">Fałszuj wersję aplikacji</string>
+  <string name="morphe_spoof_app_version_summary">Oszukuje serwer, że używasz starszej wersji aplikacji, aby przywrócić klasyczne elementy interfejsu</string>
+  <string name="morphe_spoof_app_version_user_dialog_message">"Aplikacja będzie przedstawiać się serwerom jako starsza wersja.
+
+Może to zmienić wygląd i funkcje, ale też powodować nieznane błędy.
+
+Jeśli później zostanie to wyłączone, zalecane jest usunięcie danych aplikacji, aby zapobiec błędom interfejsu."</string>
+  <string name="morphe_spoof_app_version_target_title">Docelowa wersja aplikacji</string>
 </resources>

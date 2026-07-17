@@ -31,6 +31,7 @@ import app.morphe.patches.shared.misc.settings.preference.PreferenceScreenPrefer
 import app.morphe.patches.shared.misc.settings.preference.PreferenceScreenPreference.Sorting
 import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
 import app.morphe.patches.shared.misc.settings.preference.TextPreference
+import app.morphe.patches.shared.misc.settings.preference.PreferenceCategory
 import app.morphe.patches.shared.misc.settings.preference.noTitleUnsortedPreferenceCategory
 import app.morphe.patches.shared.misc.spans.addSpanFilter
 import app.morphe.patches.shared.misc.spans.inclusiveSpanPatch
@@ -81,6 +82,8 @@ private const val CUSTOM_FILTER =
     "Lapp/morphe/extension/youtube/patches/components/CustomFilter;"
 private const val KEYWORD_FILTER =
     "Lapp/morphe/extension/youtube/patches/components/KeywordContentFilter;"
+private const val AISLIST_FILTER =
+    "Lapp/morphe/extension/youtube/patches/components/AiSListFilter;"
 private const val SANITIZE_VIDEO_SUBTITLE_FILTER =
     "Lapp/morphe/extension/youtube/patches/spans/SanitizeVideoSubtitleFilter;"
 private const val SEARCH_LINKS_FILTER =
@@ -162,6 +165,8 @@ val hideLayoutComponentsPatch = bytecodePatch(
                     SwitchPreference("morphe_hide_comments_create_a_short_button"),
                     SwitchPreference("morphe_hide_comments_emoji_and_timestamp_buttons"),
                     SwitchPreference("morphe_hide_comments_filter_bar_options", summary = true),
+                    SwitchPreference("morphe_hide_comments_gift_animation_and_cards"),
+                    SwitchPreference("morphe_hide_comments_gift_button"),
                     SwitchPreference("morphe_hide_comments_info_button"),
                     SwitchPreference("morphe_hide_comments_live_chat_donators_bar"),
                     SwitchPreference("morphe_hide_comments_preview_comment", summary = true),
@@ -196,13 +201,87 @@ val hideLayoutComponentsPatch = bytecodePatch(
                     SwitchPreference("morphe_hide_keyword_content_search"),
                     SwitchPreference("morphe_hide_keyword_content_comments"),
                     TextPreference("morphe_hide_keyword_content_phrases", inputType = InputType.TEXT_MULTI_LINE),
-                    NonInteractivePreference(
-                        key = "morphe_hide_keyword_content_about",
-                        tag = "app.morphe.extension.shared.settings.preference.BulletPointPreference"
+                    PreferenceCategory(
+                        key = "morphe_hide_keyword_content_stats_category",
+                        titleKey = "morphe_hide_stats_category_title",
+                        sorting = Sorting.UNSORTED,
+                        preferences = emptySet(),
+                        tag = "app.morphe.extension.youtube.settings.preference.KeywordContentStatsPreferenceCategory"
                     ),
-                    NonInteractivePreference(
-                        key = "morphe_hide_keyword_content_about_whole_words",
-                        tag = "app.morphe.extension.youtube.settings.preference.HTMLPreference"
+                    PreferenceCategory(
+                        key = "morphe_hide_keyword_content_about_category",
+                        titleKey = "morphe_hide_about_category_title",
+                        sorting = Sorting.UNSORTED,
+                        preferences = setOf(
+                            NonInteractivePreference(
+                                key = "morphe_hide_keyword_content_about",
+                                titleKey = "morphe_hide_keyword_content_screen_title",
+                                tag = "app.morphe.extension.shared.settings.preference.BulletPointPreference"
+                            ),
+                            NonInteractivePreference(
+                                key = "morphe_hide_keyword_content_about_whole_words",
+                                tag = "app.morphe.extension.youtube.settings.preference.HTMLPreference"
+                            )
+                        )
+                    )
+                )
+            ),
+            PreferenceScreenPreference(
+                key = "morphe_hide_aislist_screen",
+                sorting = Sorting.UNSORTED,
+                preferences = setOf(
+                    PreferenceCategory(
+                        key = "morphe_hide_aislist_blocklist_category",
+                        sorting = Sorting.UNSORTED,
+                        preferences = setOf(
+                            SwitchPreference(
+                                key = "morphe_hide_aislist_blocklist_home",
+                                titleKey = "morphe_hide_aislist_hide_home_title"
+                            ),
+                            SwitchPreference(
+                                key = "morphe_hide_aislist_blocklist_search",
+                                titleKey = "morphe_hide_aislist_hide_search_title"
+                            )
+
+                        )
+                    ),
+                    PreferenceCategory(
+                        key = "morphe_hide_aislist_warnlist_category",
+                        sorting = Sorting.UNSORTED,
+                        preferences = setOf(
+                            SwitchPreference(
+                                key = "morphe_hide_aislist_warnlist_home",
+                                titleKey = "morphe_hide_aislist_hide_home_title"
+                            ),
+                            SwitchPreference(
+                                key = "morphe_hide_aislist_warnlist_search",
+                                titleKey = "morphe_hide_aislist_hide_search_title"
+                            )
+                        )
+                    ),
+                    PreferenceCategory(
+                        key = "morphe_hide_aislist_stats_category",
+                        titleKey = "morphe_hide_stats_category_title",
+                        sorting = Sorting.UNSORTED,
+                        preferences = emptySet(),
+                        tag = "app.morphe.extension.youtube.settings.preference.AiSListStatsPreferenceCategory"
+                    ),
+                    PreferenceCategory(
+                        key = "morphe_hide_aislist_about_category",
+                        titleKey = "morphe_hide_about_category_title",
+                        sorting = Sorting.UNSORTED,
+                        preferences = setOf(
+                            NonInteractivePreference(
+                                key = "morphe_hide_aislist_about",
+                                titleKey = "morphe_hide_aislist_screen_title",
+                                tag = "app.morphe.extension.shared.settings.preference.BulletPointPreference"
+                            ),
+                            NonInteractivePreference(
+                                key = "morphe_hide_aislist_attribution",
+                                tag = "app.morphe.extension.shared.settings.preference.AiSListAttributionPreference",
+                                selectable = true
+                            )
+                        )
                     )
                 )
             ),
@@ -282,6 +361,7 @@ val hideLayoutComponentsPatch = bytecodePatch(
                 summary = true,
                 tag = "app.morphe.extension.shared.settings.preference.BulletPointSwitchPreference"
             ),
+            SwitchPreference("morphe_hide_video_thumbnail"),
             SwitchPreference("morphe_hide_video_recommendation_labels", summary = true),
             SwitchPreference(
                 "morphe_hide_view_count",
@@ -313,6 +393,7 @@ val hideLayoutComponentsPatch = bytecodePatch(
         addLithoFilter(DESCRIPTION_COMPONENTS_FILTER)
         addLithoFilter(COMMENTS_FILTER)
         addLithoFilter(KEYWORD_FILTER)
+        addLithoFilter(AISLIST_FILTER)
         addLithoFilter(CUSTOM_FILTER)
         addSpanFilter(SANITIZE_VIDEO_SUBTITLE_FILTER)
         addSpanFilter(SEARCH_LINKS_FILTER)
@@ -1024,6 +1105,18 @@ val hideLayoutComponentsPatch = bytecodePatch(
                 it.instructionMatches.last().index,
                 LAYOUT_COMPONENTS_FILTER,
                 "hideSyncButton"
+            )
+        }
+
+        // endregion
+
+        // region hide live chat gift button
+
+        JewelsButtonContainerFingerprint.matchAll().forEach { match ->
+            match.method.injectHideViewCall(
+                match.instructionMatches.last().index,
+                COMMENTS_FILTER,
+                "hideLiveChatGiftButton"
             )
         }
 

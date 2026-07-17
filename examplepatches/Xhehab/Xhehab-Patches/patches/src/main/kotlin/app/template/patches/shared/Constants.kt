@@ -38,7 +38,7 @@ object Constants {
         packageName = "video.player.videoplayer",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x18DC14,
-        targets = listOf(AppTarget(version = "2.6.2"))
+        targets = listOf(AppTarget(version = "2.7.3"))
     )
 
     // Boostcamp
@@ -102,5 +102,23 @@ object Constants {
         apkFileType = ApkFileType.XAPK,
         appIconColor = 0xE53935,
         targets = listOf(AppTarget(version = "6.7.0"))
+    )
+
+    // BASE Strength AI
+    val BASE_STRENGTH_COMPATIBILITY = Compatibility(
+        name = "BASE Strength AI",
+        packageName = "com.skynetcoaching.bromleyapp",
+        apkFileType = ApkFileType.XAPK,
+        appIconColor = 0xDDFF00,
+        targets = listOf(AppTarget(version = "2.0.82"))
+    )
+
+    // JuggernautAI
+    val JUGGERNAUT_COMPATIBILITY = Compatibility(
+        name = "JuggernautAI",
+        packageName = "com.jtsstrength.juggernautai",
+        apkFileType = ApkFileType.APKS,
+        appIconColor = 0x111316,
+        targets = listOf(AppTarget(version = "2.6.6"))
     )
 }

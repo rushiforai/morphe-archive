@@ -19,6 +19,7 @@ Second \"item\" text"</string>
   <!-- layout.branding.customBrandingPatch -->
   <!-- layout.branding.header.changeHeaderPatch -->
   <!-- interaction.downloads.downloadsPatch -->
+  <!-- 'Download' should be translated using the same localized wording YouTube displays for the button. -->
   <!-- misc.settings.settingsPatch -->
   <!-- In languages where "About" is ambiguous, translate this as "About Morphe" (i.e., About this app). -->
   <string name="morphe_settings_music_screen_0_about_title">درباره</string>
@@ -31,8 +32,9 @@ Second \"item\" text"</string>
   <!-- Empty string because custom preference handles the title itself -->
   <string name="morphe_music_crossfade_about_title">درباره</string>
   <!-- Banner row has no text; it shows a full-width graphic via a custom layout. -->
-  <!-- interaction.permanentrepeat.permanentRepeatPatch -->
-  <string name="morphe_music_play_permanent_repeat_title">فعال سازی تکرار دائمی</string>
+  <!-- interaction.remember.repeatstate.rememberRepeatStatePatch-->
+  <!-- interaction.remember.shufflestate.rememberShuffleStatePatch -->
+  <!-- interaction.dislikeredirection.disableDislikeRedirectionPatch -->
   <!-- layout.buttons.hideButtonsPatch -->
   <!-- layout.hide.general.hideMusicComponentsPatch -->
   <!-- layout.hide.actionbuttons.hideActionButtonsPatch -->
@@ -65,4 +67,5 @@ Second \"item\" text"</string>
   <string name="morphe_music_listenbrainz_token_status_invalid_unknown">ناشناخته</string>
   <!-- 'scrobbling' must be kept untranslated -->
   <!-- 'scrobbling' must be kept untranslated -->
+  <!-- misc.spoof.appversion.spoofAppVersionPatch -->
 </resources>

@@ -16,8 +16,6 @@ class GitHubScraper(BaseScraper):
     def __init__(self, net: NetworkManager) -> None:
         super().__init__(net)
         self._assets: list[dict] = []
-        self._tag: str = ""
-        self._pkg_name: str = ""
 
     def fetch_metadata(self, url: str) -> AppMetadata:
         m = _GH_URL.search(url)
@@ -25,16 +23,15 @@ class GitHubScraper(BaseScraper):
             raise GitHubReleasesError(f"Invalid GitHub release URL: {url}")
 
         owner, repo, tag = m.groups()
-        self._tag = tag
         api_url = f"https://api.github.com/repos/{owner}/{repo}/releases/tags/{tag}"
         try:
             release = json.loads(self.net.get(api_url, headers=self.net._gh_headers))
         except ResourceNotFoundError:
             raise GitHubReleasesError(f"Release tag '{tag}' not found in '{owner}/{repo}'") from None
 
-        self._pkg_name = release.get("name") or tag
+        pkg_name = release.get("name") or tag
         self._assets = release.get("assets", [])
-        prefix = f"{self._pkg_name}-"
+        prefix = f"{pkg_name}-"
         seen: dict[str, None] = {}
         for asset in self._assets:
             name = asset.get("name", "")
@@ -42,7 +39,7 @@ class GitHubScraper(BaseScraper):
                 continue
 
             seen[_ARCH_SUFFIX.sub("", name[len(prefix):])] = None
-        return AppMetadata(pkg_name=self._pkg_name, versions=list(seen) or [self._tag])
+        return AppMetadata(pkg_name=pkg_name, versions=list(seen) or [tag])
 
     def download(self, url: str, version: str, dest: Path, arch: str, dpi: str) -> DownloadResult:
         if not self._assets:

@@ -22,6 +22,7 @@ Second \"item\" text"</string>
   <string name="morphe_header_logo_entry_1">डिफ़ॉल्ट</string>
   <string name="morphe_header_logo_entry_3">कस्टम</string>
   <!-- interaction.downloads.downloadsPatch -->
+  <!-- 'Download' should be translated using the same localized wording YouTube displays for the button. -->
   <!-- misc.settings.settingsPatch -->
   <!-- In languages where "About" is ambiguous, translate this as "About Morphe" (i.e., About this app). -->
   <string name="morphe_settings_music_screen_0_about_title">बारे में</string>
@@ -97,8 +98,9 @@ YouTube Music 9.x या नय वर्जनक आवश्यकता छ�
 YouTube Music 8.x — क्रॉसफेड केवल 9.x आ नय वर्जन पर चलइत छै"</string>
   <string name="morphe_music_crossfade_about_credit_title">क्रेडिट</string>
   <string name="morphe_music_crossfade_about_credit_summary">VazerOG द्वारा क्रॉसफेड फीचर</string>
-  <!-- interaction.permanentrepeat.permanentRepeatPatch -->
-  <string name="morphe_music_play_permanent_repeat_title">स्थायी दोहराव सक्षम करें</string>
+  <!-- interaction.remember.repeatstate.rememberRepeatStatePatch-->
+  <!-- interaction.remember.shufflestate.rememberShuffleStatePatch -->
+  <!-- interaction.dislikeredirection.disableDislikeRedirectionPatch -->
   <!-- layout.buttons.hideButtonsPatch -->
   <!-- layout.hide.general.hideMusicComponentsPatch -->
   <!-- layout.hide.actionbuttons.hideActionButtonsPatch -->
@@ -207,4 +209,5 @@ YouTube Music 8.x — क्रॉसफेड केवल 9.x आ नय व�
   <string name="morphe_music_scrobbling_about_summary">"Scrobbling स्वचालित रूप सँ अहाँक YouTube Music उपयोग के अहाँक Last.fm या ListenBrainz प्रोफाइल सँ सिंक करैत छै
 
 ई सुनिश्चित करय लेल जे बैकग्राउंड प्लेबैक क दौरान scrobbling सिंक होय, ई सुनिश्चित करू जे YouTube Music क ऐप बैटरी उपयोग \"Unrestricted\" पर सेट छै"</string>
+  <!-- misc.spoof.appversion.spoofAppVersionPatch -->
 </resources>

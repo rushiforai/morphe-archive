@@ -10,7 +10,7 @@ import app.morphe.extension.shared.Logger;
  * Checks whether the device supports the JavaScriptEngine (backed by the system WebView's V8).
  */
 public class JavaScriptEngineSupport {
-    private static final boolean DEVICE_SUPPORTS_JS_ENGINE;
+    private static volatile boolean DEVICE_SUPPORTS_JS_ENGINE;
 
     static {
         boolean sandBoxSupport = false;
@@ -31,5 +31,9 @@ public class JavaScriptEngineSupport {
 
     public static boolean supportsJavaScriptEngine() {
         return DEVICE_SUPPORTS_JS_ENGINE;
+    }
+
+    public static void setDeviceSupportsJsEngine(boolean value) {
+        DEVICE_SUPPORTS_JS_ENGINE = value;
     }
 }

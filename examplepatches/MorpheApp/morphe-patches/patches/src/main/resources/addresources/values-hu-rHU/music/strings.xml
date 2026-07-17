@@ -23,8 +23,10 @@ Second \"item\" text"</string>
   <string name="morphe_header_logo_entry_3">Egyedi</string>
   <!-- interaction.downloads.downloadsPatch -->
   <string name="morphe_external_downloader_screen_summary">Töltsön le zenei videókat, podcastokat vagy dalokat külső letöltő alkalmazásokkal</string>
-  <string name="morphe_external_downloader_action_button_title">A Letöltés művelet gomb felülírása</string>
-  <string name="morphe_external_downloader_action_button_summary">A YouTube Music beépített letöltési funkcióját felváltja a külső letöltőprogramoddal</string>
+  <!-- 'Download' should be translated using the same localized wording YouTube displays for the button. -->
+  <string name="morphe_external_downloader_action_button_title">A Letöltés gomb felülírása</string>
+  <string name="morphe_external_downloader_action_button_summary">A választott külső letöltőprogramot használja a YouTube Music beépített letöltési funkciója helyett</string>
+  <string name="morphe_external_downloader_flyout_menu_title">Letöltés menü felülírása</string>
   <!-- misc.settings.settingsPatch -->
   <!-- In languages where "About" is ambiguous, translate this as "About Morphe" (i.e., About this app). -->
   <string name="morphe_settings_music_screen_0_about_title">Névjegy</string>
@@ -100,8 +102,13 @@ A keresztátmenet szüneteltetése zenevideó nézéséhez fekete képernyőt er
 YouTube Music 8.x – a keresztátmenet csak a 9.x és újabb verziókon fut."</string>
   <string name="morphe_music_crossfade_about_credit_title">Közreműködők</string>
   <string name="morphe_music_crossfade_about_credit_summary">A keresztátmenet funkciót VazerOG készítette</string>
-  <!-- interaction.permanentrepeat.permanentRepeatPatch -->
-  <string name="morphe_music_play_permanent_repeat_title">Állandó ismétlés bekapcsolása</string>
+  <!-- interaction.remember.repeatstate.rememberRepeatStatePatch-->
+  <string name="morphe_music_remember_repeat_state_title">Ismerd fel az ismétlési állapotot</string>
+  <!-- interaction.remember.shufflestate.rememberShuffleStatePatch -->
+  <string name="morphe_music_remember_shuffle_state_title">Ismerd fel a keverési állapotot</string>
+  <!-- interaction.dislikeredirection.disableDislikeRedirectionPatch -->
+  <string name="morphe_music_disable_dislike_redirection_title">Tiltás a nemtetszés átirányításának letiltása</string>
+  <string name="morphe_music_disable_dislike_redirection_summary">Megakadályozza, hogy a nemtetszés gomb megnyomása esetén a következő számra ugorjon</string>
   <!-- layout.buttons.hideButtonsPatch -->
   <string name="morphe_music_hide_cast_button_title">Átküldés gomb elrejtése</string>
   <string name="morphe_music_hide_history_button_title">Előzmények gomb elrejtése</string>
@@ -269,4 +276,10 @@ YouTube Music 8.x – a keresztátmenet csak a 9.x és újabb verziókon fut."</
   <string name="morphe_music_scrobbling_about_summary">"A scrobbling automatikusan szinkronizálja a YouTube Music használatát a Last.fm vagy a ListenBrainz profiljával.
 
 A háttérlejátszás közbeni szinkronizálás biztosításához győződjön meg róla, hogy a YouTube Music alkalmazás akkumulátorhasználata \"Korlátozatlan\" értékre van állítva."</string>
+  <!-- misc.spoof.appversion.spoofAppVersionPatch -->
+  <string name="morphe_music_spoof_app_version_target_entry_6_35_52">6.35.52 - Állítsa vissza a régi felbukkanó panelt</string>
+  <string name="morphe_music_spoof_app_version_target_entry_6_42_55">6.42.55 - Tiltja le a valós idejű dalszövegeket</string>
+  <string name="morphe_music_spoof_app_version_target_entry_7_12_52">7.12.52 - Állítsa vissza a régi dinamikus dalszövegeket</string>
+  <string name="morphe_music_spoof_app_version_target_entry_7_16_53">7.16.53 - Állítsa vissza a régi akciósávot</string>
+  <string name="morphe_music_spoof_app_version_target_entry_7_17_52">7.17.52 - A megjegyzés szekció nem jelenik meg a főoldalon</string>
 </resources>

@@ -9,7 +9,7 @@ from pathlib import Path
 
 from src.core.builder import run_build
 from src.core.config import BUILD_DIR, CONFIG_PATH, TEMP_DIR, VALID_ARCHES, AppEntry, load_toml, parse_app_entries, parse_config
-from src.core.logger import abort, epr, pr
+from src.core.logger import abort, epr, mark_interrupted, pr
 from src.core.network import NetworkManager
 
 _shutting_down = False
@@ -85,6 +85,7 @@ def _sigint_handler(sig: int, frame: object) -> None:
         return
 
     _shutting_down = True
+    mark_interrupted()
     epr("Interrupted by user")
     for tmp in TEMP_DIR.rglob("tmp*"):
         shutil.rmtree(tmp, ignore_errors=True)

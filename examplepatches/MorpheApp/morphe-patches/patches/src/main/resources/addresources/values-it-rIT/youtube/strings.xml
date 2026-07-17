@@ -64,10 +64,8 @@ I cambiamenti riguarderanno:
   <string name="morphe_hide_compact_banner_summary">Nasconde banner compatti e spazi tra alcuni componenti</string>
   <string name="morphe_hide_expandable_card_title">Schede espandibili sotto i video</string>
   <string name="morphe_hide_expandable_card_entry_1">Mostra tutto</string>
-  <string name="morphe_hide_expandable_card_entry_2">Nascondi solo la scheda del prodotto</string>
-  <string name="morphe_hide_expandable_card_entry_3">Nascondi solo la scheda di riepilogo</string>
-  <string name="morphe_hide_expandable_card_entry_4">Nascondi le schede del prodotto e di riepilogo</string>
-  <string name="morphe_hide_expandable_card_entry_5">Nascondi tutto</string>
+  <string name="morphe_hide_expandable_card_entry_2">Nascondi solo la scheda riepilogativa</string>
+  <string name="morphe_hide_expandable_card_entry_3">Nascondi tutto</string>
   <string name="morphe_hide_floating_microphone_button_title">Nascondi il pulsante flottante del microfono</string>
   <string name="morphe_hide_floating_microphone_button_summary">Nasconde il pulsante mobile del microfono nell\'angolo in basso a destra dello schermo dei suggerimenti di ricerca</string>
   <string name="morphe_hide_horizontal_shelves_title">Nascondi sezioni orizzontali</string>
@@ -102,6 +100,7 @@ I cambiamenti riguarderanno:
   <string name="morphe_hide_upload_time_summary">"Limitazioni:
 • Le sezioni Shorts, le pagine del canale e i risultati di ricerca potrebbero ancora mostrare gli orari di caricamento.
 • Questa funzione non funziona con il fattore di forma automotive."</string>
+  <string name="morphe_hide_video_thumbnail_title">Nascondi miniatura video</string>
   <!-- 'People also watched' and 'You might also like' should be translated using the same localized wording YouTube displays for the label. -->
   <string name="morphe_hide_video_recommendation_labels_title">Nascondi etichette di video consigliati</string>
   <string name="morphe_hide_video_recommendation_labels_summary">Nasconde le etichette \'Persone che hanno guardato questo video\' e \'Potrebbe piacerti anche\' nei risultati di ricerca</string>
@@ -212,6 +211,8 @@ I cambiamenti riguarderanno:
   <string name="morphe_hide_comments_emoji_and_timestamp_buttons_title">Nascondi i pulsanti Emoji e Timestamp</string>
   <string name="morphe_hide_comments_filter_bar_options_title">Nascondi le opzioni della barra dei filtri</string>
   <string name="morphe_hide_comments_filter_bar_options_summary">Nasconde tutte le opzioni di ordinamento dei commenti tranne \"In primo piano\" e \"Più recenti\"</string>
+  <string name="morphe_hide_comments_gift_animation_and_cards_title">Nascondi animazione e cartoline regalo</string>
+  <string name="morphe_hide_comments_gift_button_title">Nascondi pulsante Regalo</string>
   <string name="morphe_hide_comments_info_button_title">Nascondi il pulsante Info</string>
   <string name="morphe_hide_comments_live_chat_donators_bar_title">Nascondi la barra dei donatori della chat live</string>
   <string name="morphe_hide_comments_preview_comment_title">Nascondi il commento di anteprima</string>
@@ -233,7 +234,6 @@ I cambiamenti riguarderanno:
 Le parole chiave possono essere qualsiasi testo visualizzato nei titoli dei video o nei nomi dei canali
 
 Le parole con lettere maiuscole al centro dovranno corrispondere in maniera esatta (ad esempio: iPhone, TikTok, LeBlanc)"</string>
-  <string name="morphe_hide_keyword_content_about_title">Informazioni sul filtraggio delle parole chiave</string>
   <string name="morphe_hide_keyword_content_about_summary">"Home / Iscrizioni / Ricerca / Commenti sono filtrati per nascondere i contenuti che corrispondono a frasi con parole chiave
 
 Limitazioni:
@@ -249,6 +249,36 @@ Limitazioni:
   <string name="morphe_hide_keyword_toast_invalid_conflicting">La parola chiave ha dichiarazioni conflittuali: %s</string>
   <string name="morphe_hide_keyword_toast_invalid_length">La parola chiave è troppo corta e richiede le virgolette: %s</string>
   <string name="morphe_hide_keyword_toast_invalid_broad">La parola chiave nasconderà tutti i video: %s</string>
+  <string name="morphe_hide_keyword_content_stats_hidden_breakdown">"• Home: %s
+• Iscrizioni: %s
+• Ricerca: %s
+• Commenti: %s
+• Totale: %s"</string>
+  <string name="morphe_hide_stats_category_title">Statistiche</string>
+  <string name="morphe_hide_stats_hidden_24h_title">Video nascosti, ultime 24 ore</string>
+  <string name="morphe_hide_stats_hidden_all_title">Video nascosti, totale</string>
+  <string name="morphe_hide_stats_hidden_24h_reset_title">Resettare il contatore delle ultime 24 ore?</string>
+  <string name="morphe_hide_stats_hidden_all_reset_title">Resettare tutti i contatori di tempo?</string>
+  <string name="morphe_hide_about_category_title">A proposito di</string>
+  <string name="morphe_hide_aislist_screen_title">Filtro canali IA</string>
+  <string name="morphe_hide_aislist_screen_summary">Nascondi i video provenienti da canali contrassegnati come contenuti generati dall\'IA dalla lista AiSList</string>
+  <string name="morphe_hide_aislist_blocklist_category_title">Blocklist: Alta affidabilità</string>
+  <string name="morphe_hide_aislist_warnlist_category_title">Warnlist: Affidabilità moderata</string>
+  <string name="morphe_hide_aislist_hide_home_title">Nascondi i video nella Home</string>
+  <string name="morphe_hide_aislist_hide_search_title">Nascondi i video nella ricerca</string>
+  <string name="morphe_hide_aislist_stats_hidden_breakdown">"• Home: %s
+• Ricerca: %s
+• Totale: %s"</string>
+  <string name="morphe_hide_aislist_stats_blocklist_title">Canali in blocklist caricati: %s</string>
+  <string name="morphe_hide_aislist_stats_warnlist_title">Canali in warnlist caricati: %s</string>
+  <string name="morphe_hide_aislist_about_summary">"I risultati nella Home e nella ricerca sono filtrati per nascondere i video provenienti da canali contrassegnati da AiSList
+
+Limitazioni:
+• Gli Shorts IA filtrati potrebbero apparire come uno spazio vuoto
+• Alcuni video IA potrebbero comunque essere visualizzati"</string>
+  <string name="morphe_hide_aislist_attribution_summary">"I dati sono forniti da AiSList
+
+Tocca qui per aprire AiSlopList.com e visualizzare i download per altre piattaforme"</string>
   <!-- ad.hideAdsPatch -->
   <string name="morphe_hide_creator_store_shelf_title">Nascondi sezione negozio del creatore</string>
   <string name="morphe_hide_end_screen_store_banner_title">Nascondi banner del negozio della schermata finale</string>
@@ -281,9 +311,9 @@ Limitazioni:
   <string name="morphe_external_downloader_screen_summary">Scarica video, podcast o canzoni con app di download di terze parti</string>
   <string name="morphe_external_downloader_title">Mostra il pulsante Download esterno</string>
   <string name="morphe_external_downloader_summary">Mostra un pulsante di overlay sul lettore video per aprire il tuo downloader esterno</string>
-  <!-- 'Download action button' should match the language used in 'morphe_hide_download_button_title'. -->
-  <string name="morphe_external_downloader_action_button_title">Sovrascrivi il pulsante azione Download</string>
-  <string name="morphe_external_downloader_action_button_summary">Sostituisce la funzione di download integrata di YouTube con il tuo downloader esterno</string>
+  <!-- 'Download' should be translated using the same localized wording YouTube displays for the button. -->
+  <string name="morphe_external_downloader_action_button_title">Sovrascrivi il pulsante azione Download e il menu</string>
+  <string name="morphe_external_downloader_action_button_summary">Utilizza il downloader esterno scelto invece della funzionalità di download integrata di YouTube</string>
   <!-- video.voiceovertranslation.voiceOverTranslationPatch -->
   <string name="morphe_vot_screen_title">Traduzione voice over</string>
   <string name="morphe_vot_screen_summary">Leggi ad alta voce i sottotitoli del video utilizzando la sintesi vocale del dispositivo, sincronizzata con la riproduzione</string>
@@ -477,6 +507,8 @@ Nota: se 'Spoof video streams' non è abilitato, l'abilitazione di questa funzio
   <string name="morphe_swipe_speed_summary">Scorri orizzontalmente nella parte superiore della modalità a schermo intero per modificare la velocità di riproduzione</string>
   <string name="morphe_swipe_speed_sensitivity_title">Sensibilità allo scorrimento della velocità</string>
   <string name="morphe_swipe_speed_sensitivity_summary">Valori più alti richiedono più scorrimenti per ogni passo di velocità</string>
+  <string name="morphe_swipe_speed_step_title">Passo di velocità</string>
+  <string name="morphe_swipe_speed_step_summary">Quantità di cui la velocità di riproduzione cambia per ogni tocco</string>
   <string name="morphe_swipe_speed_zone_height_title">Altezza zona velocità</string>
   <string name="morphe_swipe_speed_zone_height_summary">Altezza della zona del gesto per la velocità espressa come percentuale dell\'altezza del lettore (5-75)</string>
   <string name="morphe_swipe_zone_label_speed">Velocità</string>
@@ -853,15 +885,7 @@ Layout per auto
   <string name="morphe_tablet_layout_in_player_summary">"Ripristina il layout precedente del player
 
 Limitazione: se \"Ripristina la vecchia barra delle azioni video\" è disattivato, la sovrapposizione \"Altri video\" potrebbe non essere disponibile"</string>
-  <!-- layout.spoofappversion.spoofAppVersionPatch -->
-  <string name="morphe_spoof_app_version_title">Simula la versione dell\'app</string>
-  <string name="morphe_spoof_app_version_summary">Inganna il server facendogli pensare di stare utilizzando una versione precedente dell\'app, per ripristinare le funzionalità dell\'interfaccia utente precedente</string>
-  <string name="morphe_spoof_app_version_user_dialog_message">"La versione dell'app sarà camuffata ad una versione precedente di YouTube.
-
-Questo cambierà l'aspetto e le funzionalità dell'app, ma potrebbero verificarsi effetti collaterali sconosciuti.
-
-Se in seguito verrà disattivata, si consiglia di cancellare i dati dell'app per evitare bug dell'interfaccia."</string>
-  <string name="morphe_spoof_app_version_target_title">Versione dell\'app di destinazione desiderata</string>
+  <!-- misc.spoof.appversion.spoofAppVersionPatch -->
   <string name="morphe_spoof_app_version_target_entry_20_39">20.39.41 - Ripristina le vecchie icone del player Shorts</string>
   <string name="morphe_spoof_app_version_target_entry_20_28">20.28.41 - Disabilita icone in grassetto</string>
   <string name="morphe_spoof_app_version_target_entry_20_13">20.13.41 - Ripristina il nome del canale in fondo al lettore video</string>
@@ -870,9 +894,9 @@ Se in seguito verrà disattivata, si consiglia di cancellare i dati dell'app per
   <string name="morphe_open_system_share_sheet_summary">Apre il pannello di condivisione di sistema anziché quello integrato duranre la condivisione di un contenuto</string>
   <!-- layout.music.overrideYouTubeMusicButtonsPatch -->
   <string name="morphe_override_youtube_music_buttons_title">Sovrascrivi i pulsanti di YouTube Music</string>
-  <string name="morphe_override_youtube_music_buttons_summary">Apre l\'app musica preferita anziché quella di YouTube Music quando si toccano i relativi pulsanti</string>
-  <string name="morphe_music_package_name_title">Nome del pacchetto dell\'app musica di destinazione</string>
-  <string name="morphe_music_package_name_summary">Nome del pacchetto della tua app musica installata</string>
+  <string name="morphe_override_youtube_music_buttons_summary">Apre l\'app musicale preferita anziché l\'app ufficiale di YouTube Music quando si toccano i pulsanti musicali</string>
+  <string name="morphe_music_package_name_title">Nome pacchetto dell\'app musicale</string>
+  <string name="morphe_music_package_name_summary">Nome del pacchetto dell\'app musicale installata</string>
   <!-- layout.startpage.changeStartPagePatch -->
   <string name="morphe_change_start_page_title">Pagina iniziale</string>
   <string name="morphe_change_start_page_entry_default">Predefinito</string>
@@ -1086,7 +1110,7 @@ Limitazioni:
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
   <string name="morphe_force_avc_codec_not_available">Per utilizzare questa funzionalità, imposta la falsificazione dei flussi video su Android VR o Android Studio</string>
   <!-- video.quality.advancedVideoQualityMenuPatch -->
-  <string name="morphe_advanced_video_quality_menu_title">Apri il menu qualità \'Avanzate\'</string>
+  <string name="morphe_advanced_video_quality_menu_title">Apri il menu qualità avanzata</string>
   <string name="morphe_advanced_video_quality_menu_summary">Salta il menu di selezione della qualità e apri direttamente il menu qualità avanzate</string>
   <!-- video.quality.hidePremiumVideoQualityPatch -->
   <string name="morphe_hide_premium_video_quality_title">Nascondi opzioni di qualità premium</string>

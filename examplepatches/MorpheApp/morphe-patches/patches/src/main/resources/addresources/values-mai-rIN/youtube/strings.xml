@@ -136,7 +136,6 @@ Second \"item\" text"</string>
   <string name="morphe_hide_keyword_content_phrases_title">छिपाने के लिए कीवर्ड</string>
   <!-- For localization, it is preferred, but not required, if 'LeBlanc' is replaced with a localized name or a familiar word that has upper case letters in the middle of the word.
          This is because keywords can be in any language, and showing an example in the localized script helps convey this. -->
-  <string name="morphe_hide_keyword_content_about_title">कीवर्ड फ़िल्टरिंग के बारे में</string>
   <string name="morphe_hide_keyword_content_about_whole_words_title">पूरे शब्द मिलान करें</string>
   <!-- Translations must use a localized example. For languages that do not use spaces between words (Chinese, Japanese, etc.) the English AI example should be used since no localized examples exist. Or if using machine translations, or if nobody wants to think of a localized example, then the English 'ai' example should be left as-is. -->
   <string name="morphe_hide_keyword_content_about_whole_words_summary">डबल उद्धरण के साथ एक कीवर्ड/वाक्यांश को घेरने से वीडियो शीर्षक और चैनल नामों के आंशिक मिलान को रोका जाएगा&lt;br&gt;&lt;br&gt;उदाहरण के लिए,&lt;br&gt;&lt;b&gt;\"ai\"&lt;/b&gt; वीडियो को छिपा देगा: &lt;b&gt;AI कैसे काम करता है?&lt;/b&gt;&lt;br&gt;लेकिन यह नहीं छिपाएगा: &lt;b&gt;उचित उपयोग का क्या अर्थ है?&lt;/b&gt;</string>
@@ -166,8 +165,7 @@ Second \"item\" text"</string>
   <!-- interaction.doubletap.disableDoubleTapActionsPatch -->
   <!-- interaction.downloads.downloadsPatch -->
   <string name="morphe_external_downloader_title">बाहरी डाउनलोड बटन दिखाएं</string>
-  <!-- 'Download action button' should match the language used in 'morphe_hide_download_button_title'. -->
-  <string name="morphe_external_downloader_action_button_title">डाउनलोड क्रिया बटन ओवरराइड करें</string>
+  <!-- 'Download' should be translated using the same localized wording YouTube displays for the button. -->
   <!-- video.voiceovertranslation.voiceOverTranslationPatch -->
   <!-- %s is dollar cost, e.g. $0.10 per 100 hours -->
   <!-- interaction.loop.loopVideoPatch -->
@@ -430,22 +428,13 @@ Second \"item\" text"</string>
   <string name="morphe_change_form_factor_entry_3">टैबलेट</string>
   <string name="morphe_change_form_factor_entry_4">ऑटोमोटिव</string>
   <!-- "Restore old video action bar" must be translated the same as morphe_restore_old_video_action_bar_title -->
-  <!-- layout.spoofappversion.spoofAppVersionPatch -->
-  <string name="morphe_spoof_app_version_title">ऐप संस्करण स्पूफ करी</string>
-  <string name="morphe_spoof_app_version_user_dialog_message">"एप संस्करण युट्युबको पुरानो संस्करणमा स्पूफ गरिएको हुनेछ।
-
-यसले एपको उपस्थिति र सुविधाहरू परिवर्तन गर्नेछ, तर अज्ञात साइड प्रभावहरू हुन सक्छन्।
-
-छिमेकमा बन्द गरिएको खण्डमा, UI बगहरू रोक्न एप डेटा सफा गर्न सिफारिस गरिन्छ।"</string>
-  <string name="morphe_spoof_app_version_target_title">ऐप संस्करण स्पूफ लक्ष्य</string>
+  <!-- misc.spoof.appversion.spoofAppVersionPatch -->
   <string name="morphe_spoof_app_version_target_entry_20_39">20.39.41 - पुरानो बचतलाई प्लेलिस्टमा पुनर्स्थापित गर्नुहोस्</string>
   <string name="morphe_spoof_app_version_target_entry_20_28">20.28.41 - बोल्ड आइकनहरू अक्षम गर्नुहोस्</string>
   <!-- misc.sharesheet.openSystemShareSheetPatch -->
   <string name="morphe_open_system_share_sheet_title">सिस्टम सेयर शीट खोल्नुहोस्</string>
   <!-- layout.music.overrideYouTubeMusicButtonsPatch -->
   <string name="morphe_override_youtube_music_buttons_title">YouTube संगीत बटनहरूलाई ओभरराइड गर्नुहोस्</string>
-  <string name="morphe_music_package_name_title">लक्ष्य संगीत अनुप्रयोग प्याकेज नाम</string>
-  <string name="morphe_music_package_name_summary">तपाईंको स्थापना गरिएको लक्ष्य संगीत अनुप्रयोगको प्याकेज नाम</string>
   <!-- layout.startpage.changeStartPagePatch -->
   <string name="morphe_change_start_page_entry_default">डिफ़ॉल्ट</string>
   <string name="morphe_change_start_page_entry_all_subscriptions">सब सबस्क्रिपशंस</string>

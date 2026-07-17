@@ -68,10 +68,8 @@ Changes include:
     <string name="morphe_hide_compact_banner_summary">Hides compact banners and spacing between some components</string>
     <string name="morphe_hide_expandable_card_title">Expandable cards under videos</string>
     <string name="morphe_hide_expandable_card_entry_1">Show all</string>
-    <string name="morphe_hide_expandable_card_entry_2">Hide product card only</string>
-    <string name="morphe_hide_expandable_card_entry_3">Hide summary card only</string>
-    <string name="morphe_hide_expandable_card_entry_4">Hide product and summary cards</string>
-    <string name="morphe_hide_expandable_card_entry_5">Hide all</string>
+    <string name="morphe_hide_expandable_card_entry_2">Hide summary card only</string>
+    <string name="morphe_hide_expandable_card_entry_3">Hide all</string>
     <string name="morphe_hide_floating_microphone_button_title">Hide floating microphone button</string>
     <string name="morphe_hide_floating_microphone_button_summary">Hides floating microphone button in the lower-right corner of search suggestions screen</string>
     <string name="morphe_hide_horizontal_shelves_title">Hide horizontal shelves</string>
@@ -106,6 +104,7 @@ Changes include:
     <string name="morphe_hide_upload_time_summary">"Limitations:
 • Shorts shelves, channel pages, and search results may still show upload times
 • Does not work with automotive layout"</string>
+    <string name="morphe_hide_video_thumbnail_title">Hide video thumbnail</string>
     <!-- 'People also watched' and 'You might also like' should be translated using the same localized wording YouTube displays for the label. -->
     <string name="morphe_hide_video_recommendation_labels_title">Hide video recommendation labels</string>
     <string name="morphe_hide_video_recommendation_labels_summary">Hides \'People also watched\' and \'You might also like\' labels in search results</string>
@@ -221,6 +220,8 @@ Changes include:
     <string name="morphe_hide_comments_emoji_and_timestamp_buttons_title">Hide Emoji and Timestamp buttons</string>
     <string name="morphe_hide_comments_filter_bar_options_title">Hide filter bar options</string>
     <string name="morphe_hide_comments_filter_bar_options_summary">Hides all filter bar options except \'Top\' and \'Newest\'</string>
+    <string name="morphe_hide_comments_gift_animation_and_cards_title">Hide gift animation and cards</string>
+    <string name="morphe_hide_comments_gift_button_title">Hide Gift button</string>
     <string name="morphe_hide_comments_info_button_title">Hide Info button</string>
     <string name="morphe_hide_comments_live_chat_donators_bar_title">Hide live chat donators bar</string>
     <string name="morphe_hide_comments_preview_comment_title">Hide preview comment</string>
@@ -243,7 +244,6 @@ Changes include:
 Keywords can be any text shown in video titles or channel names
 
 Words with uppercase letters in the middle must match exactly (ie: iPhone, TikTok, LeBlanc)"</string>
-    <string name="morphe_hide_keyword_content_about_title">About keyword filtering</string>
     <string name="morphe_hide_keyword_content_about_summary">"Home / Subscriptions / Search / Comments are filtered to hide content that matches keyword phrases
 
 Limitations:
@@ -259,6 +259,39 @@ Limitations:
     <string name="morphe_hide_keyword_toast_invalid_conflicting">Keyword has conflicting declarations: %s</string>
     <string name="morphe_hide_keyword_toast_invalid_length">Keyword is too short and requires quotes: %s</string>
     <string name="morphe_hide_keyword_toast_invalid_broad">Keyword will hide all videos: %s</string>
+    <string name="morphe_hide_keyword_content_stats_hidden_breakdown">"• Home: %s
+• Subscriptions: %s
+• Search: %s
+• Comments: %s
+• Total: %s"</string>
+
+    <string name="morphe_hide_stats_category_title">Stats</string>
+    <string name="morphe_hide_stats_hidden_24h_title">Videos hidden, last 24 hours</string>
+    <string name="morphe_hide_stats_hidden_all_title">Videos hidden, all time</string>
+    <string name="morphe_hide_stats_hidden_24h_reset_title">Reset last 24 hours counter?</string>
+    <string name="morphe_hide_stats_hidden_all_reset_title">Reset all time counter?</string>
+    <string name="morphe_hide_about_category_title">About</string>
+
+    <string name="morphe_hide_aislist_screen_title">AI channel filter</string>
+    <string name="morphe_hide_aislist_screen_summary">Hide videos from channels flagged as AI-generated content by the AiSList community list</string>
+    <string name="morphe_hide_aislist_blocklist_category_title">Blocklist: High confidence</string>
+    <string name="morphe_hide_aislist_warnlist_category_title">Warnlist: Moderate confidence</string>
+    <string name="morphe_hide_aislist_hide_home_title">Hide videos in Home</string>
+    <string name="morphe_hide_aislist_hide_search_title">Hide videos in search</string>
+    <string name="morphe_hide_aislist_stats_hidden_breakdown">"• Home: %s
+• Search: %s
+• Total: %s"</string>
+    <string name="morphe_hide_aislist_stats_blocklist_title">Blocklist channels loaded: %s</string>
+    <string name="morphe_hide_aislist_stats_warnlist_title">Warnlist channels loaded: %s</string>
+    <string name="morphe_hide_aislist_about_summary">"Home and search results are filtered to hide videos from channels flagged by AiSList
+
+Limitations:
+• Filtered AI Shorts may show as an empty space
+• Some AI videos may still show"</string>
+    <string name="morphe_hide_aislist_attribution_title" translatable="false">AiSList</string>
+    <string name="morphe_hide_aislist_attribution_summary">"Data is provided by AiSList
+
+Tap here to open AiSlopList.com and see downloads for other platforms"</string>
 
     <!-- ad.hideAdsPatch -->
     <string name="morphe_hide_creator_store_shelf_title">Hide creator store shelf</string>
@@ -308,9 +341,9 @@ Limitations:
     <string name="morphe_external_downloader_screen_summary">Download videos, podcasts, or songs with third-party downloading apps</string>
     <string name="morphe_external_downloader_title">Show external download button</string>
     <string name="morphe_external_downloader_summary">Shows an overlay button in video player that opens your external downloader</string>
-    <!-- 'Download action button' should match the language used in 'morphe_hide_download_button_title'. -->
-    <string name="morphe_external_downloader_action_button_title">Override Download action button</string>
-    <string name="morphe_external_downloader_action_button_summary">Replaces YouTube\'s built-in download function with your external downloader</string>
+    <!-- 'Download' should be translated using the same localized wording YouTube displays for the button. -->
+    <string name="morphe_external_downloader_action_button_title">Override Download button &amp; menu</string>
+    <string name="morphe_external_downloader_action_button_summary">Uses your chosen external downloader instead of YouTube\'s built-in download feature</string>
 
     <!-- video.voiceovertranslation.voiceOverTranslationPatch -->
     <string name="morphe_vot_screen_title">Voice over translation</string>
@@ -524,6 +557,8 @@ Note: If \'Spoof video streams\' is not enabled, enabling this may cause unexpec
     <string name="morphe_swipe_speed_summary">Swipe horizontally in the upper zone of the fullscreen mode to change playback speed</string>
     <string name="morphe_swipe_speed_sensitivity_title">Speed swipe sensitivity</string>
     <string name="morphe_swipe_speed_sensitivity_summary">Higher values require more swiping per speed step</string>
+    <string name="morphe_swipe_speed_step_title">Speed step</string>
+    <string name="morphe_swipe_speed_step_summary">Amount by which the playback speed changes per tick</string>
     <string name="morphe_swipe_speed_zone_height_title">Speed zone height</string>
     <string name="morphe_swipe_speed_zone_height_summary">Height of the speed gesture zone as a percentage of the player height (5-75)</string>
     <string name="morphe_swipe_zone_label_speed">Speed</string>
@@ -932,15 +967,7 @@ Automotive layout
 
 Limitation: If 'Restore old video action bar' is turned off, 'More videos' overlay may not be available"</string>
 
-    <!-- layout.spoofappversion.spoofAppVersionPatch -->
-    <string name="morphe_spoof_app_version_title">Spoof app version</string>
-    <string name="morphe_spoof_app_version_summary">Tricks the server into thinking you are using an older app version to restore legacy UI features</string>
-    <string name="morphe_spoof_app_version_user_dialog_message">"App version will be spoofed to an older version of YouTube.
-
-This will change the appearance and features of the app, but unknown side effects may occur.
-
-If later turned off, it is recommended to clear the app data to prevent UI bugs."</string>
-    <string name="morphe_spoof_app_version_target_title">Spoof app version target</string>
+    <!-- misc.spoof.appversion.spoofAppVersionPatch -->
     <string name="morphe_spoof_app_version_target_entry_20_39">20.39.41 - Restore old save to playlist</string>
     <string name="morphe_spoof_app_version_target_entry_20_28">20.28.41 - Disable bold icons</string>
     <string name="morphe_spoof_app_version_target_entry_20_13">20.13.41 - Restore channel name below video player</string>
@@ -951,9 +978,9 @@ If later turned off, it is recommended to clear the app data to prevent UI bugs.
 
     <!-- layout.music.overrideYouTubeMusicButtonsPatch -->
     <string name="morphe_override_youtube_music_buttons_title">Override YouTube Music buttons</string>
-    <string name="morphe_override_youtube_music_buttons_summary">Opens your preferred music app instead of YouTube Music when tapping music buttons</string>
-    <string name="morphe_music_package_name_title">Target music app package name</string>
-    <string name="morphe_music_package_name_summary">Package name of your installed target music app</string>
+    <string name="morphe_override_youtube_music_buttons_summary">Opens your preferred music app instead of the official YouTube Music app</string>
+    <string name="morphe_music_package_name_title">Music app package name</string>
+    <string name="morphe_music_package_name_summary">Package name of your installed music app</string>
 
     <!-- layout.startpage.changeStartPagePatch -->
     <string name="morphe_change_start_page_title">Start page</string>
@@ -1202,7 +1229,7 @@ Limitations:
     <string name="morphe_force_avc_codec_not_available">To use this feature, set \'Spoof video streams\' to Android VR or Android Studio</string>
 
     <!-- video.quality.advancedVideoQualityMenuPatch -->
-    <string name="morphe_advanced_video_quality_menu_title">Open \'Advanced\' quality menu</string>
+    <string name="morphe_advanced_video_quality_menu_title">Open Advanced quality menu</string>
     <string name="morphe_advanced_video_quality_menu_summary">Skips the quality selection menu and opens the Advanced quality menu directly</string>
 
     <!-- video.quality.hidePremiumVideoQualityPatch -->

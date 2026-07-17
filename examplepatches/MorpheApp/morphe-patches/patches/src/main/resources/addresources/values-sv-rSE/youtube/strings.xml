@@ -60,10 +60,6 @@ Vissa layouter på serversidan kanske inte återställs.
   <string name="morphe_hide_compact_banner_summary">Döljer kompakta banners och avståndet mellan vissa komponenter</string>
   <string name="morphe_hide_expandable_card_title">Expanderbara kort under videor</string>
   <string name="morphe_hide_expandable_card_entry_1">Visa alla</string>
-  <string name="morphe_hide_expandable_card_entry_2">Dölj endast produktkort</string>
-  <string name="morphe_hide_expandable_card_entry_3">Dölj endast översiktskort</string>
-  <string name="morphe_hide_expandable_card_entry_4">Dölj produkt- och översiktskort</string>
-  <string name="morphe_hide_expandable_card_entry_5">Dölj alla</string>
   <string name="morphe_hide_floating_microphone_button_title">Dölj flytande mikrofonknapp</string>
   <string name="morphe_hide_floating_microphone_button_summary">Döljer den flytande mikrofonknappen nere till höger på skärmen för sökförslag</string>
   <string name="morphe_hide_horizontal_shelves_title">Dölj horisontella hyllor</string>
@@ -194,7 +190,6 @@ Vissa layouter på serversidan kanske inte återställs.
   <string name="morphe_hide_keyword_content_phrases_title">Nyckelord som ska döljas</string>
   <!-- For localization, it is preferred, but not required, if 'LeBlanc' is replaced with a localized name or a familiar word that has upper case letters in the middle of the word.
          This is because keywords can be in any language, and showing an example in the localized script helps convey this. -->
-  <string name="morphe_hide_keyword_content_about_title">Om nyckelordsfiltrering</string>
   <string name="morphe_hide_keyword_content_about_whole_words_title">Matcha hela ord</string>
   <!-- Translations must use a localized example. For languages that do not use spaces between words (Chinese, Japanese, etc.) the English AI example should be used since no localized examples exist. Or if using machine translations, or if nobody wants to think of a localized example, then the English 'ai' example should be left as-is. -->
   <string name="morphe_hide_keyword_content_about_whole_words_summary">Om du omger ett nyckelord/en fras med dubbla citattecken förhindrar du partiella matchningar av videotitlar och kanalnamn&lt;br&gt;&lt;br&gt;Till exempel:&lt;br&gt;&lt;b&gt;\"ai\"&lt;/b&gt; kommer att dölja videon: &lt;b&gt;How does AI work?&lt;/b&gt;&lt;br&gt;men kommer inte att dölja: &lt;b&gt;What does fair use mean?&lt;/b&gt;</string>
@@ -226,8 +221,7 @@ Vissa layouter på serversidan kanske inte återställs.
   <string name="morphe_disable_chapter_skip_double_tap_title">Inaktivera dubbeltryck för att hoppa över kapitel</string>
   <!-- interaction.downloads.downloadsPatch -->
   <string name="morphe_external_downloader_title">Visa knapp för extern nedladdning</string>
-  <!-- 'Download action button' should match the language used in 'morphe_hide_download_button_title'. -->
-  <string name="morphe_external_downloader_action_button_title">Åsidosätt åtgärdsknappen Ladda ned</string>
+  <!-- 'Download' should be translated using the same localized wording YouTube displays for the button. -->
   <!-- video.voiceovertranslation.voiceOverTranslationPatch -->
   <string name="morphe_vot_openrouter_model_custom">Anpassad</string>
   <!-- %s is dollar cost, e.g. $0.10 per 100 hours -->
@@ -635,15 +629,7 @@ Om du vill att menyn Ljudspår ska visas ändrar du Förfalska videostreamar til
   <string name="morphe_change_form_factor_entry_3">Surfplatta</string>
   <string name="morphe_change_form_factor_entry_4">Bil</string>
   <!-- "Restore old video action bar" must be translated the same as morphe_restore_old_video_action_bar_title -->
-  <!-- layout.spoofappversion.spoofAppVersionPatch -->
-  <string name="morphe_spoof_app_version_title">Förfalska appversionen</string>
-  <string name="morphe_spoof_app_version_summary">Lurar servern att tro att du använder en äldre appversion för att återställa äldre funktioner i användargränssnittet</string>
-  <string name="morphe_spoof_app_version_user_dialog_message">"Appversionen kommer att förfalskas till en äldre version av YouTube.
-
-Detta kommer att ändra utseendet och funktionerna i appen, men okända bieffekter kan uppstå.
-
-Om du senare inaktiverar det rekommenderar vi att rensa appens data för att förhindra fel i användargränssnittet."</string>
-  <string name="morphe_spoof_app_version_target_title">Mål för Förfalska appversionen</string>
+  <!-- misc.spoof.appversion.spoofAppVersionPatch -->
   <string name="morphe_spoof_app_version_target_entry_20_39">20.39.41 – Återställ gamla Spara i spellista</string>
   <string name="morphe_spoof_app_version_target_entry_20_28">20.28.41 – Inaktivera ikoner i fet stil</string>
   <!-- misc.sharesheet.openSystemShareSheetPatch -->
@@ -651,9 +637,6 @@ Om du senare inaktiverar det rekommenderar vi att rensa appens data för att fö
   <string name="morphe_open_system_share_sheet_summary">Öppnar systemets delningsblad istället för appens när du delar innehåll</string>
   <!-- layout.music.overrideYouTubeMusicButtonsPatch -->
   <string name="morphe_override_youtube_music_buttons_title">Åsidosätt YouTube Music-knapparna</string>
-  <string name="morphe_override_youtube_music_buttons_summary">Öppnar din föredragna musikapp istället för YouTube Music när du trycker på musikknappar</string>
-  <string name="morphe_music_package_name_title">Paketnamn på målappen för musik</string>
-  <string name="morphe_music_package_name_summary">Paketnamn på den installerade målappen för musik</string>
   <!-- layout.startpage.changeStartPagePatch -->
   <string name="morphe_change_start_page_title">Startsida</string>
   <string name="morphe_change_start_page_entry_default">Standard</string>

@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.10.3",
+  "version": "1.11.9",
   "patches": [
     {
       "name": "Auto reward ads",
@@ -314,6 +314,39 @@
           "targets": [
             {
               "version": "2.041",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock all",
+      "description": "Unlocks everything, sets all currencies to 999999999, and bypasses PairIP anti-tamper using 10 strategies from Nai64.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "fi.twomenandadog.zombiecatchers",
+          "name": "Zombie Catchers",
+          "description": null,
+          "apkFileType": "APKS",
+          "appIconColor": "#8BC34A",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.67.15",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,

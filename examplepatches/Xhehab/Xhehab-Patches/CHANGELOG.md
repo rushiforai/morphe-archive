@@ -1,3 +1,22 @@
+## [3.3.0](https://github.com/Xhehab/Xhehab-Patches/compare/v3.2.0...v3.3.0) (2026-07-16)
+
+### ✨ New Features
+
+* Update compatibility for VideoPlayer ([75cf9ab](https://github.com/Xhehab/Xhehab-Patches/commit/75cf9abc98e81d97ca9287f31347e20e54394122))
+
+## [3.2.0](https://github.com/Xhehab/Xhehab-Patches/compare/v3.1.0...v3.2.0) (2026-07-16)
+
+### ✨ New Features
+
+* Add JuggernautAI compatibility and unlock premium patch ([c496bac](https://github.com/Xhehab/Xhehab-Patches/commit/c496bac9b239c9f64a64f6ca022bdb60f393416c))
+
+## [3.1.0](https://github.com/Xhehab/Xhehab-Patches/compare/v3.0.15...v3.1.0) (2026-07-16)
+
+### ✨ New Features
+
+* Add BASE Strength AI compatibility and unlock premium patch ([2dd62d6](https://github.com/Xhehab/Xhehab-Patches/commit/2dd62d63ceff4c7763d3f1ab4ef8822219387163))
+* Update README to include BASE Strength AI patch and total patch count ([9a32db3](https://github.com/Xhehab/Xhehab-Patches/commit/9a32db36412ba9bf3619e39e1cd1912f7d62aac8))
+
 ## [3.0.15](https://github.com/Xhehab/Xhehab-Patches/compare/v3.0.14...v3.0.15) (2026-07-09)
 
 ### 🐛 Bug Fixes

@@ -3,7 +3,15 @@ import sys
 from typing import Never
 
 IS_GITHUB = os.getenv("GITHUB_ACTIONS") == "true"
+INTERRUPTED = False
 
+
+def is_interrupted() -> bool:
+    return INTERRUPTED
+
+def mark_interrupted() -> None:
+    global INTERRUPTED
+    INTERRUPTED = True
 
 def _log(color: str, symbol: str, msg: str, gh_level: str | None = None) -> None:
     if IS_GITHUB and gh_level:

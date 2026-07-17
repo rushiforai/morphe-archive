@@ -16,24 +16,26 @@ import android.widget.TextView
  * (Games tab) — built once here so both screens stay pixel-identical and
  * any future fix only needs to happen in one place.
  *
- * Matches native MX Player "Local" tab bar:
- *  - Dark-grey (#121212) background + 1px top separator line, same as
- *    native — pure black was blending into the content above it and made
- *    the bar look height/boundary-less by comparison.
- *  - Height + padding account for the real navigation-bar inset (gesture
- *    pill area) via Insets.navigationBarHeight(), instead of a fixed guess.
- *  - Local / Fatafat use real extracted MX Player PNG/WebP art.
- *  - Tools (Modx logo) / About (info icon) use single artwork per state,
- *    pre-tinted at asset-build time (grey/red, black-card/blue-card).
+ * Every value below was pulled directly from MX Player's own real APK
+ * (com_mxtech_videoplayer_ad_2.14.1), not measured off a screenshot:
+ *  - Container: res/layout/activity_media_list.xml, id online_bottom_layout
+ *    -> background @drawable/mxskin__mx_home_tab_bg__dark -> flat color
+ *    #FF121212, plus a separate 0.5dp separator View directly above it
+ *    with color @color/mxskin__bottom_tab_divider__dark = #3396A2BA
+ *    (20%-alpha light blue-grey, NOT solid).
+ *  - Per-tab item: res/layout/aurora_home_tab.xml -> icon 22dp x 22dp,
+ *    9dp top margin, label 10sp, 8dp bottom margin.
+ *  - Label colors: res/color/mxskin__aurora_tab_text_color__dark.xml ->
+ *    inactive #FF96A2BA, active (color_tab_select) #FF3C8CF0.
  */
 object NavBarBuilder {
 
-    private const val ACTIVE_BLUE = "#4A90E2"
-    private const val INACTIVE_GREY = "#888888"
+    private const val ACTIVE_BLUE = "#FF3C8CF0"
+    private const val INACTIVE_GREY = "#FF96A2BA"
     private const val TOOLS_ACTIVE_RED = "#E53935"
-    private const val TOOLS_INACTIVE_GREY = "#9E9E9E"
-    private const val BAR_BACKGROUND = "#121212"
-    private const val BAR_SEPARATOR = "#1A1B1E"
+    private const val TOOLS_INACTIVE_GREY = "#FF96A2BA"
+    private const val BAR_BACKGROUND = "#FF121212"
+    private const val BAR_SEPARATOR = "#3396A2BA"
 
     private fun dp(activity: Activity, value: Int): Int {
         return TypedValue.applyDimension(
@@ -61,23 +63,23 @@ object NavBarBuilder {
 
         val outer = LinearLayout(activity).apply {
             orientation = LinearLayout.VERTICAL
-            setBackgroundColor(Color.parseColor(BAR_BACKGROUND))
             layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT,
             )
         }
 
-        // 1px separator line — native MX Player draws this same subtle
-        // top border between content and the nav bar.
+        // Native draws this as a separate 0.5dp View directly above the
+        // bar, not a border on the bar itself — same here.
         outer.addView(
             View(activity).apply { setBackgroundColor(Color.parseColor(BAR_SEPARATOR)) },
-            LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(activity, 1) + 1),
+            LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dpF(activity, 0.5f)),
         )
 
         val row = LinearLayout(activity).apply {
             orientation = LinearLayout.HORIZONTAL
-            setPadding(0, dpF(activity, 6.2f), 0, dp(activity, 8) + navInset)
+            setBackgroundColor(Color.parseColor(BAR_BACKGROUND))
+            setPadding(0, 0, 0, navInset)
             layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -106,37 +108,24 @@ object NavBarBuilder {
             gravity = Gravity.CENTER
             isClickable = true
             isFocusable = true
+            // aurora_home_tab.xml: 9dp top margin to icon, 8dp bottom
+            // margin below label — applied here as container padding
+            // since our tab is a self-contained column, not constraints.
+            setPadding(0, dp(activity, 9), 0, dp(activity, 8))
         }
 
-        // Measured directly against native MX Player screenshots (icon
-        // bounding-box width/height + vertical start position, pixel for
-        // pixel) — each tab's icon was a different size/position relative
-        // to native, not just Tools:
-        //   Local:   custom was ~20% smaller than native, sat too high
-        //   Fatafat: custom was ~11% smaller than native, position was fine
-        //   Tools:   size already matched native, but sat ~9px too high
-        //   About:   custom was ~13% smaller than native, sat slightly high
-        //
-        // iconSizeDp = matched to native's measured icon size.
-        // topMarginDp/bottomMarginDp = chosen so icon+top+bottom always
-        // sums to 31dp for every tab — this pushes each icon down to its
-        // native vertical position *within its own slot*, without moving
-        // the label below it or changing any other tab's total height
-        // (so the bar's outer height stays fixed).
-        val iconSizeDp: Int
-        val iconTopMarginDp: Int
-        when {
-            key.equals("local") -> { iconSizeDp = 26; iconTopMarginDp = 4 }
-            key.equals("fatafat") -> { iconSizeDp = 24; iconTopMarginDp = 0 }
-            key.equals("tools") -> { iconSizeDp = 26; iconTopMarginDp = 5 }
-            else -> { iconSizeDp = 25; iconTopMarginDp = 1 } // about
-        }
-        val iconBottomMarginDp = 31 - iconSizeDp - iconTopMarginDp
+        // Native icon canvas is 22dp x 22dp for every tab. Tools' "X"
+        // glyph is thin and doesn't fill its canvas the way the Fatafat
+        // "F" logo does, so it reads visually smaller at the same dp
+        // size — bump it up slightly to compensate, offsetting so it
+        // still lines up with the other icons' vertical center.
+        val iconSizeDp = if (key.equals("tools")) 26 else 22
+        val iconTopOffset = if (key.equals("tools")) -dp(activity, 2) else 0
 
         val iconView = ImageView(activity).apply {
             layoutParams = LinearLayout.LayoutParams(dp(activity, iconSizeDp), dp(activity, iconSizeDp)).apply {
-                topMargin = dp(activity, iconTopMarginDp)
-                bottomMargin = dp(activity, iconBottomMarginDp)
+                bottomMargin = dp(activity, 4) + iconTopOffset
+                topMargin = iconTopOffset
             }
         }
 
@@ -163,7 +152,8 @@ object NavBarBuilder {
         tab.addView(iconView)
         tab.addView(TextView(activity).apply {
             text = label
-            textSize = 11f
+            // aurora_home_tab.xml label textSize = 10sp
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 10f)
             gravity = Gravity.CENTER
             setTextColor(labelColor)
         })

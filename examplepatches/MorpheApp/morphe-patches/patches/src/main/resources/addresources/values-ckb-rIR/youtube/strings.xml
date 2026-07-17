@@ -125,7 +125,6 @@ Second \"item\" text"</string>
   <string name="morphe_hide_keyword_content_phrases_title">دەستەواژەکان بۆ شاردنەوە</string>
   <!-- For localization, it is preferred, but not required, if 'LeBlanc' is replaced with a localized name or a familiar word that has upper case letters in the middle of the word.
          This is because keywords can be in any language, and showing an example in the localized script helps convey this. -->
-  <string name="morphe_hide_keyword_content_about_title">دەربارەی فلتەرکردنی دەستەواژە</string>
   <string name="morphe_hide_keyword_content_about_whole_words_title">گونجاندنی وشە تەواوەکان</string>
   <!-- Translations must use a localized example. For languages that do not use spaces between words (Chinese, Japanese, etc.) the English AI example should be used since no localized examples exist. Or if using machine translations, or if nobody wants to think of a localized example, then the English 'ai' example should be left as-is. -->
   <!-- Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
@@ -149,7 +148,7 @@ Second \"item\" text"</string>
   <!-- layout.hide.signintotv.disableSignInToTVPopupPatch -->
   <!-- interaction.doubletap.disableDoubleTapActionsPatch -->
   <!-- interaction.downloads.downloadsPatch -->
-  <!-- 'Download action button' should match the language used in 'morphe_hide_download_button_title'. -->
+  <!-- 'Download' should be translated using the same localized wording YouTube displays for the button. -->
   <!-- video.voiceovertranslation.voiceOverTranslationPatch -->
   <string name="morphe_vot_openrouter_model_custom">باو</string>
   <!-- %s is dollar cost, e.g. $0.10 per 100 hours -->
@@ -393,14 +392,7 @@ Second \"item\" text"</string>
   <string name="morphe_change_form_factor_entry_3">تەبلێت</string>
   <string name="morphe_change_form_factor_entry_4">ئۆتۆمۆبێل</string>
   <!-- "Restore old video action bar" must be translated the same as morphe_restore_old_video_action_bar_title -->
-  <!-- layout.spoofappversion.spoofAppVersionPatch -->
-  <string name="morphe_spoof_app_version_title">نسخەی سەرەکیی ئەپ وێنۆ بکە</string>
-  <string name="morphe_spoof_app_version_user_dialog_message">"نسخەی ئەپ دەگێڕدرێتەوە بۆ ئەندازەیەکی کۆتری یوتوب.
-
-ئەمە دەربارەیی ئەپ دەگۆرێت و تایبەتمەندەکانیشی دەگۆرێت، بەڵام دەکرێت لێکەوتووەکانی نادیار ڕووبەڕووبنەوە.
-
-کاتێک دواتر ڕاگیرانە دەخرێتەوە، باشترە کە دادی ئەپ پاک بکرێتەوە بۆ خۆپارێزیکردن لە گرفتەکانی UI."</string>
-  <string name="morphe_spoof_app_version_target_title">ئامانجی وێنۆ کردنی ئەپ</string>
+  <!-- misc.spoof.appversion.spoofAppVersionPatch -->
   <string name="morphe_spoof_app_version_target_entry_20_39">20.39.41 - باشدانی دۆزینەوەی خەمینەڵ نیگاتە</string>
   <string name="morphe_spoof_app_version_target_entry_20_28">20.28.41 - کۆدی ڕەوا نەخۆش هاتبون</string>
   <!-- misc.sharesheet.openSystemShareSheetPatch -->

@@ -1,3 +1,9 @@
+## [1.5.17](https://github.com/Utsavrajputt/Modx-patches/compare/v1.5.16...v1.5.17) (2026-07-17)
+
+### 🐛 Bug Fixes
+
+* navbar style ([7647228](https://github.com/Utsavrajputt/Modx-patches/commit/764722890b41fac7947d884b0047aadbfa59b1e4))
+
 ## [1.5.16](https://github.com/Utsavrajputt/Modx-patches/compare/v1.5.15...v1.5.16) (2026-07-16)
 
 ### 🐛 Bug Fixes

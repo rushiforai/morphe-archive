@@ -41,11 +41,11 @@ Second \"item\" text"</string>
 Niektóre zmiany układu wprowadzone po stronie serwera mogą nie zostać przywrócone.
 
 Zmiany obejmują:
-• Elementy menu ustawień filmów (i powiązanych ustawień) mogą nie działać.
+• Elementy menu wysuwanego odtwarzacza (lub powiązanych ustawień) mogą nie działać.
 • Liczby nie są animowane.
 • Zakładka Biblioteka jest widoczna.
 • Sekcja muzyki w opisie filmu może nie działać.
-• Elementy menu ustawień filmów nie mogą zostać ukryte.
+• Elementy menu wysuwanego odtwarzacza nie mogą zostać ukryte.
 • Przycisk przełączania konta może nie pojawiać się w zakładce Biblioteka."</string>
   <!-- layout.hide.general.hideLayoutComponentsPatch -->
   <string name="morphe_hide_feed_flyout_menu_title">Włącz filtr menu strony głównej</string>
@@ -64,10 +64,8 @@ Zmiany obejmują:
   <string name="morphe_hide_compact_banner_summary">Ukrywa kompaktowe banery i odstępy między niektórymi elementami</string>
   <string name="morphe_hide_expandable_card_title">Rozwijane karty pod filmami</string>
   <string name="morphe_hide_expandable_card_entry_1">Pokaż wszystkie</string>
-  <string name="morphe_hide_expandable_card_entry_2">Ukryj tylko produkty</string>
-  <string name="morphe_hide_expandable_card_entry_3">Ukryj tylko podsumowanie</string>
-  <string name="morphe_hide_expandable_card_entry_4">Ukryj produkty i podsumowanie</string>
-  <string name="morphe_hide_expandable_card_entry_5">Ukryj wszystkie</string>
+  <string name="morphe_hide_expandable_card_entry_2">Ukryj tylko kartę podsumowania</string>
+  <string name="morphe_hide_expandable_card_entry_3">Ukryj wszystkie</string>
   <string name="morphe_hide_floating_microphone_button_title">Ukryj pływający przycisk mikrofonu</string>
   <string name="morphe_hide_floating_microphone_button_summary">Ukrywa pływający przycisk mikrofonu w prawym dolnym rogu na ekranie sugestii wyszukiwania</string>
   <string name="morphe_hide_horizontal_shelves_title">Ukryj poziome sekcje</string>
@@ -102,6 +100,7 @@ Zmiany obejmują:
   <string name="morphe_hide_upload_time_summary">"Ograniczenia:
 • Sekcje filmów Short, strony kanałów i wyniki wyszukiwania mogą nadal pokazywać datę publikacji
 • Nie działa z interfejsem samochodowym"</string>
+  <string name="morphe_hide_video_thumbnail_title">Ukryj miniaturkę filmu</string>
   <!-- 'People also watched' and 'You might also like' should be translated using the same localized wording YouTube displays for the label. -->
   <string name="morphe_hide_video_recommendation_labels_title">Ukryj etykiety rekomendacji filmów</string>
   <string name="morphe_hide_video_recommendation_labels_summary">Ukrywa etykiety \"Ludzie też oglądali\" i \"Może Ci się spodobać\" w wynikach wyszukiwania</string>
@@ -212,6 +211,8 @@ Zmiany obejmują:
   <string name="morphe_hide_comments_emoji_and_timestamp_buttons_title">Ukryj przyciski Emoji i Znaczniki czasu</string>
   <string name="morphe_hide_comments_filter_bar_options_title">Ukryj opcje paska filtrów</string>
   <string name="morphe_hide_comments_filter_bar_options_summary">Ukrywa wszystkie opcje paska filtrów z wyjątkiem \"Najpopularniejsze\" i \"Najnowsze\"</string>
+  <string name="morphe_hide_comments_gift_animation_and_cards_title">Ukryj animację i karty prezentów</string>
+  <string name="morphe_hide_comments_gift_button_title">Ukryj przycisk Prezent</string>
   <string name="morphe_hide_comments_info_button_title">Ukryj przycisk Informacje</string>
   <string name="morphe_hide_comments_live_chat_donators_bar_title">Ukryj pasek wspierających w czacie</string>
   <string name="morphe_hide_comments_preview_comment_title">Ukryj podgląd komentarza</string>
@@ -233,7 +234,6 @@ Zmiany obejmują:
 Słowem może być dowolny tekst wyświetlany w tytułach filmów lub nazwach kanałów
 
 Słowa z wielkimi literami w środku muszą pasować dokładnie (np. iPhone, TikTok, InPost)"</string>
-  <string name="morphe_hide_keyword_content_about_title">O filtrowaniu słów</string>
   <string name="morphe_hide_keyword_content_about_summary">"Strona główna / Subskrypcje / Wyniki wyszukiwania / Komentarze są filtrowane, aby ukryć treści, które zawierają słowa z filtra
 
 Ograniczenia:
@@ -249,6 +249,36 @@ Ograniczenia:
   <string name="morphe_hide_keyword_toast_invalid_conflicting">Słowo zawiera sprzeczne deklaracje: %s</string>
   <string name="morphe_hide_keyword_toast_invalid_length">Słowo jest za krótkie i wymaga użycia cudzysłowu: %s</string>
   <string name="morphe_hide_keyword_toast_invalid_broad">Słowo ukryje wszystkie filmy: %s</string>
+  <string name="morphe_hide_keyword_content_stats_hidden_breakdown">"• Strona główna: %s
+• Subskrypcje: %s
+• Wyszukiwanie: %s
+• Komentarze: %s
+• Łącznie: %s"</string>
+  <string name="morphe_hide_stats_category_title">Statystyki</string>
+  <string name="morphe_hide_stats_hidden_24h_title">Ukryte filmy, ostatnie 24 godziny</string>
+  <string name="morphe_hide_stats_hidden_all_title">Ukryte filmy, od początku</string>
+  <string name="morphe_hide_stats_hidden_24h_reset_title">Zresetować licznik z ostatnich 24 godzin?</string>
+  <string name="morphe_hide_stats_hidden_all_reset_title">Zresetować całkowity licznik?</string>
+  <string name="morphe_hide_about_category_title">Informacje</string>
+  <string name="morphe_hide_aislist_screen_title">Filtr kanałów AI</string>
+  <string name="morphe_hide_aislist_screen_summary">Ukrywaj filmy z kanałów oznaczonych jako treści generowane przez AI na liście społecznościowej AiSList</string>
+  <string name="morphe_hide_aislist_blocklist_category_title">Lista blokad: wysoka pewność</string>
+  <string name="morphe_hide_aislist_warnlist_category_title">Lista ostrzeżeń: umiarkowana pewność</string>
+  <string name="morphe_hide_aislist_hide_home_title">Ukryj filmy na stronie głównej</string>
+  <string name="morphe_hide_aislist_hide_search_title">Ukryj filmy w wynikach wyszukiwania</string>
+  <string name="morphe_hide_aislist_stats_hidden_breakdown">"• Strona główna: %s
+• Wyszukiwanie: %s
+• Łącznie: %s"</string>
+  <string name="morphe_hide_aislist_stats_blocklist_title">Wczytane kanały z listy blokad: %s</string>
+  <string name="morphe_hide_aislist_stats_warnlist_title">Wczytane kanały z listy ostrzeżeń: %s</string>
+  <string name="morphe_hide_aislist_about_summary">"Strona główna i wyniki wyszukiwania są filtrowane, aby ukryć filmy z kanałów oznaczonych przez AiSList
+
+Ograniczenia:
+• Filtrowane filmy Short z AI mogą wyświetlać się jako puste miejsce
+• Niektóre filmy z AI mogą nadal być widoczne"</string>
+  <string name="morphe_hide_aislist_attribution_summary">"Dane są dostarczane przez AiSList
+
+Dotknij tutaj, aby otworzyć AiSlopList.com i zobaczyć wersje na inne platformy"</string>
   <!-- ad.hideAdsPatch -->
   <string name="morphe_hide_creator_store_shelf_title">Ukryj sekcję sklepu twórcy</string>
   <string name="morphe_hide_end_screen_store_banner_title">Ukryj baner sklepowy po zakończeniu filmu</string>
@@ -281,9 +311,9 @@ Ograniczenia:
   <string name="morphe_external_downloader_screen_summary">Pobieraj filmy, podcasty lub utwory za pomocą zewnętrznych aplikacji do pobierania</string>
   <string name="morphe_external_downloader_title">Pokaż przycisk zewnętrznego pobierania</string>
   <string name="morphe_external_downloader_summary">Wyświetla w odtwarzaczu przycisk otwierający zewnętrzną aplikację do pobierania</string>
-  <!-- 'Download action button' should match the language used in 'morphe_hide_download_button_title'. -->
-  <string name="morphe_external_downloader_action_button_title">Zastąp przycisk akcji Pobierz</string>
-  <string name="morphe_external_downloader_action_button_summary">Zastępuje wbudowaną funkcję pobierania YouTube zewnętrzną aplikacją do pobierania</string>
+  <!-- 'Download' should be translated using the same localized wording YouTube displays for the button. -->
+  <string name="morphe_external_downloader_action_button_title">Zastąp przycisk i menu Pobierz</string>
+  <string name="morphe_external_downloader_action_button_summary">Używa wybranej zewnętrznej aplikacji do pobierania zamiast wbudowanej funkcji pobierania YouTube</string>
   <!-- video.voiceovertranslation.voiceOverTranslationPatch -->
   <string name="morphe_vot_screen_title">Tłumaczenie głosowe</string>
   <string name="morphe_vot_screen_summary">Czyta napisy na głos przy użyciu wbudowanego syntezatora mowy, synchronizując je z odtwarzaniem obrazu</string>
@@ -477,6 +507,8 @@ Uwaga: Jeśli opcja \"Fałszowanie strumieni filmów\" nie jest włączona, wł�
   <string name="morphe_swipe_speed_summary">Przesuń poziomo w górnej strefie trybu pełnoekranowego, aby zmienić prędkość odtwarzania</string>
   <string name="morphe_swipe_speed_sensitivity_title">Czułość gestu prędkości</string>
   <string name="morphe_swipe_speed_sensitivity_summary">Wyższe wartości wymagają dłuższego przesunięcia przy zmianie prędkości</string>
+  <string name="morphe_swipe_speed_step_title">Skok prędkości</string>
+  <string name="morphe_swipe_speed_step_summary">Wartość, o którą zmienia się prędkość odtwarzania przy każdym przeskoku</string>
   <string name="morphe_swipe_speed_zone_height_title">Wysokość strefy prędkości</string>
   <string name="morphe_swipe_speed_zone_height_summary">Wysokość strefy gestu prędkości jako procent wysokości odtwarzacza (5-75)</string>
   <string name="morphe_swipe_zone_label_speed">Prędkość</string>
@@ -852,15 +884,7 @@ Układ samochodowy
   <string name="morphe_tablet_layout_in_player_summary">"Przywraca stary układ odtwarzacza
 
 Ograniczenia: Jeśli opcja \"Przywróć stary pasek akcji filmu\" jest wyłączona, nakładka \"Więcej filmów\" może być niedostępna"</string>
-  <!-- layout.spoofappversion.spoofAppVersionPatch -->
-  <string name="morphe_spoof_app_version_title">Fałszuj wersję aplikacji</string>
-  <string name="morphe_spoof_app_version_summary">Oszukuje serwer, że używasz starszej wersji aplikacji, aby przywrócić klasyczne elementy interfejsu</string>
-  <string name="morphe_spoof_app_version_user_dialog_message">"Aplikacja będzie przedstawiać się serwerom jako starsza wersja YouTube.
-
-Może to zmienić wygląd i funkcje, ale też powodować nieznane błędy.
-
-Jeśli później zostanie to wyłączone, zalecane jest usunięcie danych aplikacji, aby zapobiec błędom interfejsu."</string>
-  <string name="morphe_spoof_app_version_target_title">Docelowa wersja aplikacji</string>
+  <!-- misc.spoof.appversion.spoofAppVersionPatch -->
   <string name="morphe_spoof_app_version_target_entry_20_39">20.39.41 - Przywraca stare menu dodawania do playlisty</string>
   <string name="morphe_spoof_app_version_target_entry_20_28">20.28.41 - Wyłącza pogrubione ikony</string>
   <string name="morphe_spoof_app_version_target_entry_20_13">20.13.41 - Przywraca nazwę kanału pod odtwarzaczem</string>
@@ -869,9 +893,9 @@ Jeśli później zostanie to wyłączone, zalecane jest usunięcie danych aplika
   <string name="morphe_open_system_share_sheet_summary">Otwiera systemowe menu udostępniania zamiast tego wbudowanego w aplikacji</string>
   <!-- layout.music.overrideYouTubeMusicButtonsPatch -->
   <string name="morphe_override_youtube_music_buttons_title">Zastąp przyciski YouTube Music</string>
-  <string name="morphe_override_youtube_music_buttons_summary">Otwiera preferowaną aplikację muzyczną zamiast YouTube Music po dotknięciu przycisków muzycznych</string>
-  <string name="morphe_music_package_name_title">Nazwa pakietu docelowej aplikacji</string>
-  <string name="morphe_music_package_name_summary">Pakiet docelowej aplikacji muzycznej</string>
+  <string name="morphe_override_youtube_music_buttons_summary">Otwiera preferowaną aplikację muzyczną zamiast oficjalnej aplikacji YouTube Music</string>
+  <string name="morphe_music_package_name_title">Nazwa pakietu aplikacji muzycznej</string>
+  <string name="morphe_music_package_name_summary">Nazwa pakietu zainstalowanej aplikacji muzycznej</string>
   <!-- layout.startpage.changeStartPagePatch -->
   <string name="morphe_change_start_page_title">Strona startowa</string>
   <string name="morphe_change_start_page_entry_default">Domyślna</string>
@@ -1085,7 +1109,7 @@ Ograniczenia:
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
   <string name="morphe_force_avc_codec_not_available">Aby użyć tej funkcji, ustaw \"Fałszowanie strumieni filmów\" na Android VR lub Android Studio</string>
   <!-- video.quality.advancedVideoQualityMenuPatch -->
-  <string name="morphe_advanced_video_quality_menu_title">Otwieraj menu jakości \"Zaawansowane\"</string>
+  <string name="morphe_advanced_video_quality_menu_title">Otwórz menu zaawansowanej jakości</string>
   <string name="morphe_advanced_video_quality_menu_summary">Pomija podstawowe menu wyboru i od razu otwiera zaawansowane menu jakości</string>
   <!-- video.quality.hidePremiumVideoQualityPatch -->
   <string name="morphe_hide_premium_video_quality_title">Ukryj opcje jakości Premium</string>

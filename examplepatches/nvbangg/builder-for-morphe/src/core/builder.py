@@ -8,7 +8,7 @@ from concurrent.futures import Future, ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 from src.core.config import BUILD_DIR, TEMP_DIR, AppEntry, Config
-from src.core.logger import IS_GITHUB, epr, pr, wpr
+from src.core.logger import IS_GITHUB, epr, is_interrupted, pr, wpr
 from src.core.network import NetworkError, NetworkManager
 from src.core.patcher import PatcherCLI, PatcherError, SignatureError
 from src.core.prebuilts import APKSIGNER, fetch_cli, fetch_mpp, get_highest_ver
@@ -154,7 +154,8 @@ def _build_single(entry: AppEntry, arch: str, label: str, net: NetworkManager, p
         if isinstance(exc, SignatureError):
             _failed_signatures.add(entry.table)
 
-        epr(f"Building '{label}' failed! {exc}")
+        if not is_interrupted():
+            epr(f"Building '{label}' failed! {exc}")
         return None
 
 def _submit_entries(entries: list[AppEntry], pool: ThreadPoolExecutor, net: NetworkManager, ks_path: Path | None, strict_sigcheck: bool) -> list[Future[str | None]]:

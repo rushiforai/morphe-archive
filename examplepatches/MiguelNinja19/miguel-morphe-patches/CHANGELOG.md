@@ -1,3 +1,85 @@
+## [1.11.9](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.11.8...v1.11.9) (2026-07-17)
+
+### 🐛 Bug Fixes
+
+* **zombie-catchers:** integrate Nai64's 10 PairIP bypass strategies ([798b539](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/798b53929ee6ca529a915fa8ea414b3a737d8f68))
+* **zombie-catchers:** integrate Nai64's 10 PairIP bypass strategies ([6ec3dac](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/6ec3dacc311a886203a37e4f51e9a3861d8b2399))
+
+## [1.11.8](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.11.7...v1.11.8) (2026-07-17)
+
+### 🐛 Bug Fixes
+
+* **zombie-catchers:** remove trailing zeros from hex patterns ([0216500](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/0216500415d66c355f6a5342713d51f7d79882e3))
+
+## [1.11.7](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.11.6...v1.11.7) (2026-07-16)
+
+### 🐛 Bug Fixes
+
+* **zombie-catchers:** native hex patch on libcocos2dcpp.so ([c095781](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/c09578184e2f3a3507f1488b41706078180c5324))
+* **zombie-catchers:** use hb() helper to avoid Int vs Byte errors ([641ba27](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/641ba277ddba2c04caaba75045507b639cbcbe01))
+
+## [1.11.6](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.11.5...v1.11.6) (2026-07-16)
+
+### 🐛 Bug Fixes
+
+* **zombie-catchers:** inject SharedPreferences at END of onCreate ([b4fb6d6](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/b4fb6d66c73df628d07e3852eb24086adbba73ea))
+
+## [1.11.5](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.11.4...v1.11.5) (2026-07-16)
+
+### 🐛 Bug Fixes
+
+* **zombie-catchers:** escape $ in SharedPreferences$Editor smali references ([ab5cb8a](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/ab5cb8a2444d21ac22de4d55b15fc2938dcdd4fa))
+* **zombie-catchers:** stealth approach - write to SharedPreferences, don't modify game methods ([e40f7f1](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/e40f7f1ba8ed20658887e8f1322295549b2db70f))
+* **zombie-catchers:** use line comments to avoid unclosed block comment ([a4ff3df](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/a4ff3dff66ae9de157f62a499f48a7cce8098f9e))
+
+## [1.11.4](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.11.3...v1.11.4) (2026-07-16)
+
+### 🐛 Bug Fixes
+
+* **zombie-catchers:** escape $ in InAppServiceImpl$1 and val$callback ([7ade5ac](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/7ade5ac8d202a62b3fe0fcd83dcd96ec0de0a41c))
+* **zombie-catchers:** fix "Get this app from Play" by forcing billing success ([cf4c809](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/cf4c809a50962eafd4713f3ab0e9972b12b900f4))
+* **zombie-catchers:** fix "Get this app from Play" by forcing billing success ([0f37a7e](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/0f37a7e4bdc56ec8a3cef1d4c335c334e32a5f14))
+
+## [1.11.3](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.11.2...v1.11.3) (2026-07-16)
+
+### 🐛 Bug Fixes
+
+* **zombie-catchers:** patch openPlayStoreZCPage to prevent Play Store redirect ([a477716](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/a4777168a13f5644e70f2931f77177377483467b))
+* **zombie-catchers:** patch openPlayStoreZCPage to prevent Play Store redirect ([5f8dc2a](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/5f8dc2aeee3ac7b77bebb879623b553378701ecd))
+
+## [1.11.2](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.11.1...v1.11.2) (2026-07-16)
+
+### 🐛 Bug Fixes
+
+* **zombie-catchers:** bypass all 3 layers of PairIP anti-tamper ([7d80d6d](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/7d80d6d354c000680fee136dc70b4c7c4cadd0da))
+* **zombie-catchers:** bypass all 3 layers of PairIP anti-tamper ([1d83f89](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/1d83f89f3edb134a26d94681d042d8b2cd232611))
+* **zombie-catchers:** escape $ in LicenseActivity$ActivityType fingerprint ([9ab2178](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/9ab2178d27a11d6807f9d4e2726928339b885dc2))
+
+## [1.11.1](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.11.0...v1.11.1) (2026-07-16)
+
+### 🐛 Bug Fixes
+
+* **zombie-catchers:** bypass PairIP anti-tamper protection ([556f21e](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/556f21e7984d112532922814fc8dae00e87776a3))
+* **zombie-catchers:** bypass PairIP anti-tamper protection ([94f6839](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/94f6839d9026f28ee5da23f2d1c3d5cb8da4ee44))
+
+## [1.11.0](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.10.4...v1.11.0) (2026-07-16)
+
+### 🐛 Bug Fixes
+
+* **zombie-catchers:** call matchOrNull() as function, not property ([d0baff6](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/d0baff6e62e9a163f1d518d744214b728316fd17))
+
+### ✨ New Features
+
+* **zombie-catchers:** add Unlock All + Unlimited Everything patch ([efceac1](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/efceac1b217b47c5ff939ac920f87941c30360b1))
+* **zombie-catchers:** add Unlock All + Unlimited Everything patch ([58316ac](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/58316ac909f8298db5d5abd9c404b5099e842f3d))
+* **zombie-catchers:** add Unlock All + Unlimited Everything patch ([c2d67d7](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/c2d67d78260f30efa244a641bc362dd247955487))
+
+## [1.10.4](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.10.3...v1.10.4) (2026-07-16)
+
+### 🐛 Bug Fixes
+
+* **climb:** create mutable ArrayList for fake Purchase injection ([8dce65e](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/8dce65e3e1d02ba1e01ef3aa4b25c4dca158c548))
+
 ## [1.10.3](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.10.2...v1.10.3) (2026-07-16)
 
 ### 🐛 Bug Fixes

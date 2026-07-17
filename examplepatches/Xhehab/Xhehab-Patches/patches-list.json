@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "3.0.15",
+  "version": "3.3.0",
   "patches": [
     {
       "name": "Disable PairIP license check",
@@ -69,6 +69,34 @@
           "targets": [
             {
               "version": "6.7.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock BASE Strength Premium",
+      "description": "Unlock all Paid features",
+      "default": true,
+      "dependencies": [
+        "RawResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.skynetcoaching.bromleyapp",
+          "name": "BASE Strength AI",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#DDFF00",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "2.0.82",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -175,6 +203,32 @@
           "targets": [
             {
               "version": "4.46.2",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock JuggernautAI Premium",
+      "description": "Unlock all Paid features",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.jtsstrength.juggernautai",
+          "name": "JuggernautAI",
+          "description": null,
+          "apkFileType": "APKS",
+          "appIconColor": "#111316",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "2.6.6",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -365,7 +419,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": "2.6.2",
+              "version": "2.7.3",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,

@@ -40,7 +40,7 @@ Whether you're learning how Android patch projects are organized or looking to c
 ## 🩹 Patches List
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.5.16](https://github.com/Utsavrajputt/Modx-patches/releases/tag/v1.5.16)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
+> **[v1.5.17](https://github.com/Utsavrajputt/Modx-patches/releases/tag/v1.5.17)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
 <details open>
 <summary>📦 MX Player&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
 <br>

@@ -15,14 +15,13 @@ class APKMirrorError(ScraperError):
 class APKMirrorScraper(BaseScraper):
     def __init__(self, net: NetworkManager) -> None:
         super().__init__(net)
-        self._resp_html: str = ""
         self._category: str = ""
         self._release_urls: dict[str, str] = {}
 
     def fetch_metadata(self, url: str) -> AppMetadata:
-        self._resp_html = self.net.get(url)
+        resp_html = self.net.get(url)
         self._category = url.rstrip("/").split("/")[-1]
-        m = re.search(r"play\.google\.com/store/apps/details\?id=([\w.]+)", self._resp_html)
+        m = re.search(r"play\.google\.com/store/apps/details\?id=([\w.]+)", resp_html)
         if not m:
             raise APKMirrorError("Package name not found")
 

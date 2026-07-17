@@ -25,7 +25,7 @@ public class SpoofVideoStreamsPatch {
     public static final class JavaScriptClientAvailability implements Setting.Availability {
         @Override
         public boolean isAvailable() {
-            return SharedYouTubeSettings.SPOOF_VIDEO_STREAMS.isAvailable() && preferredClient.requireJS;
+            return SharedYouTubeSettings.SPOOF_VIDEO_STREAMS.get() && preferredClient.requireJS;
         }
 
         @Override
@@ -37,7 +37,7 @@ public class SpoofVideoStreamsPatch {
     public static final class JavaScriptHashAvailability implements Setting.Availability {
         @Override
         public boolean isAvailable() {
-            return SharedYouTubeSettings.SPOOF_VIDEO_STREAMS.isAvailable() && preferredClient.requireJS &&
+            return SharedYouTubeSettings.SPOOF_VIDEO_STREAMS.get() && preferredClient.requireJS &&
                     SharedYouTubeSettings.SPOOF_VIDEO_STREAMS_DISABLE_PLAYER_JS_UPDATE.get();
         }
 
@@ -67,9 +67,9 @@ public class SpoofVideoStreamsPatch {
 
     private static final boolean SPOOF_VIDEO_STREAMS = SharedYouTubeSettings.SPOOF_VIDEO_STREAMS.get();
 
-    public static volatile Map<String, String> currentVideoRequestHeader;
+    private static volatile Map<String, String> currentVideoRequestHeader;
 
-    public static boolean overrideSpoofStreamFlagsForHeaders = SPOOF_VIDEO_STREAMS;
+    private static boolean overrideSpoofStreamFlagsForHeaders = SPOOF_VIDEO_STREAMS;
 
     @Nullable
     private static volatile AppLanguage languageOverride;
@@ -83,6 +83,10 @@ public class SpoofVideoStreamsPatch {
             Logger.printDebug(() -> "Forcing override of spoof stream flags with spoofing off");
             overrideSpoofStreamFlagsForHeaders = true;
         }
+    }
+
+    public static void setCurrentVideoRequestHeader(Map<String, String> newlyVideoRequestHeader) {
+        currentVideoRequestHeader = newlyVideoRequestHeader;
     }
 
     /**
@@ -316,8 +320,6 @@ public class SpoofVideoStreamsPatch {
      * Injection point.
      */
     public static void fetchStreams(String url, Map<String, String> requestHeaders) {
-        currentVideoRequestHeader = requestHeaders;
-
         if (SPOOF_VIDEO_STREAMS) {
             try {
                 Uri uri = Uri.parse(url);
