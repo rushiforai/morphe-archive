@@ -673,14 +673,6 @@
                 "updatedAt": 1783496066810
             },
             {
-                "name": "Modx-patches",
-                "source": "https://raw.githubusercontent.com/Utsavrajputt/Modx-patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 81,
-                "createdAt": 1783654429996,
-                "updatedAt": 1783654429996
-            },
-            {
                 "name": "miguel-morphe-patches",
                 "source": "https://raw.githubusercontent.com/MiguelNinja19/miguel-morphe-patches/main/patches-bundle.json",
                 "autoUpdate": true,

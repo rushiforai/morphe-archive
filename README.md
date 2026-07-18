@@ -2,7 +2,7 @@
 
 An auto-generated, continuously updated index of every GitHub or GitLab repository that publishes a [Morphe](https://morphe.software) (`.mpp`) patch bundle.
 
-![Repos tracked](https://img.shields.io/badge/repos%20tracked-89-6366f1) ![Last updated](https://img.shields.io/badge/last%20updated-2026-07-17%2002:50%20UTC-555)
+![Repos tracked](https://img.shields.io/badge/repos%20tracked-88-6366f1) ![Last updated](https://img.shields.io/badge/last%20updated-2026-07-18%2002:43%20UTC-555)
 
 ---
 
@@ -20,7 +20,7 @@ README and settings output include only repos whose `patches-bundle.json` is rea
 
 ---
 
-## Tracked Repositories (89)
+## Tracked Repositories (88)
 
 | # | Repository | Source | Morphe |
 |---|------------|--------|--------|
@@ -106,13 +106,12 @@ README and settings output include only repos whose `patches-bundle.json` is rea
 | 80 | `SouBryan/pinterest-morphed` | [Open](https://github.com/SouBryan/pinterest-morphed) | [Add to Morphe](https://morphe.software/add-source?github=SouBryan/pinterest-morphed) |
 | 81 | `Tornillo2/movistar-block-ads-morphe` | [Open](https://github.com/Tornillo2/movistar-block-ads-morphe) | [Add to Morphe](https://morphe.software/add-source?github=Tornillo2/movistar-block-ads-morphe) |
 | 82 | `Trimpsuz/morphe-busuu` | [Open](https://github.com/Trimpsuz/morphe-busuu) | [Add to Morphe](https://morphe.software/add-source?github=Trimpsuz/morphe-busuu) |
-| 83 | `Utsavrajputt/Modx-patches` | [Open](https://github.com/Utsavrajputt/Modx-patches) | [Add to Morphe](https://morphe.software/add-source?github=Utsavrajputt/Modx-patches) |
-| 84 | `vladon/morphe-patches-navi` | [Open](https://github.com/vladon/morphe-patches-navi) | [Add to Morphe](https://morphe.software/add-source?github=vladon/morphe-patches-navi) |
-| 85 | `wchill/patcheddit` | [Open](https://github.com/wchill/patcheddit) | [Add to Morphe](https://morphe.software/add-source?github=wchill/patcheddit) |
-| 86 | `wchill/rvx-morphed` | [Open](https://github.com/wchill/rvx-morphed) | [Add to Morphe](https://morphe.software/add-source?github=wchill/rvx-morphed) |
-| 87 | `Xhehab/Xhehab-Patches` | [Open](https://github.com/Xhehab/Xhehab-Patches) | [Add to Morphe](https://morphe.software/add-source?github=Xhehab/Xhehab-Patches) |
-| 88 | `xob0t/morphe-patches` | [Open](https://github.com/xob0t/morphe-patches) | [Add to Morphe](https://morphe.software/add-source?github=xob0t/morphe-patches) |
-| 89 | `ynotzort/morphe-patches` | [Open](https://github.com/ynotzort/morphe-patches) | [Add to Morphe](https://morphe.software/add-source?github=ynotzort/morphe-patches) |
+| 83 | `vladon/morphe-patches-navi` | [Open](https://github.com/vladon/morphe-patches-navi) | [Add to Morphe](https://morphe.software/add-source?github=vladon/morphe-patches-navi) |
+| 84 | `wchill/patcheddit` | [Open](https://github.com/wchill/patcheddit) | [Add to Morphe](https://morphe.software/add-source?github=wchill/patcheddit) |
+| 85 | `wchill/rvx-morphed` | [Open](https://github.com/wchill/rvx-morphed) | [Add to Morphe](https://morphe.software/add-source?github=wchill/rvx-morphed) |
+| 86 | `Xhehab/Xhehab-Patches` | [Open](https://github.com/Xhehab/Xhehab-Patches) | [Add to Morphe](https://morphe.software/add-source?github=Xhehab/Xhehab-Patches) |
+| 87 | `xob0t/morphe-patches` | [Open](https://github.com/xob0t/morphe-patches) | [Add to Morphe](https://morphe.software/add-source?github=xob0t/morphe-patches) |
+| 88 | `ynotzort/morphe-patches` | [Open](https://github.com/ynotzort/morphe-patches) | [Add to Morphe](https://morphe.software/add-source?github=ynotzort/morphe-patches) |
 
 ---
 
@@ -122,6 +121,6 @@ This README is regenerated automatically by GitHub Actions whenever `repos.txt` 
 To add a repo manually, append it to `custom_repos.txt`. To remove one permanently, add it to `ignore_repos.txt`.
 Use `owner/repo` for GitHub, or `gitlab.com/group/project` for GitLab.
 
-12 approved repo entries were hidden because their bundle URL is currently invalid.
+13 approved repo entries were hidden because their bundle URL is currently invalid.
 
-*Last generated: 2026-07-17 02:50 UTC*
+*Last generated: 2026-07-18 02:43 UTC*
