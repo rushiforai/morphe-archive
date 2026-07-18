@@ -1,3 +1,21 @@
+## [1.11.12](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.11.11...v1.11.12) (2026-07-18)
+
+### 🐛 Bug Fixes
+
+* **zombie-catchers:** match working mod approach exactly ([0ff9f5a](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/0ff9f5a79dfd1422371e260376318ccf8a4cc7ab))
+
+## [1.11.11](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.11.10...v1.11.11) (2026-07-18)
+
+### 🐛 Bug Fixes
+
+* **zombie-catchers:** use single resourcePatch for manifest + hex patch ([8f96861](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/8f96861c505c14ac88be7bd1282d28fec4d9c113))
+
+## [1.11.10](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.11.9...v1.11.10) (2026-07-17)
+
+### 🐛 Bug Fixes
+
+* **zombie-catchers:** remove PairIP from manifest + hex patch .so ([bccab6e](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/bccab6e6346eb197f9da05647f2447bc5b64cc5c))
+
 ## [1.11.9](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.11.8...v1.11.9) (2026-07-17)
 
 ### 🐛 Bug Fixes
