@@ -173,7 +173,7 @@ Feature ideas belong in the [Discussions](https://github.com/krvstek/uni-apks/di
 
 3. **🛠️ Pull Requests**:
 
-Pull requests are welcome. AI-assisted contributions are accepted, but all changes must be manually reviewed before submitting, as you are responsible for every line you put your name on. I reserve the right to reject any contribution that does not align with the project's vision.
+Pull requests are welcome. AI-assisted contributions are accepted, but all changes must be manually reviewed before submitting, as you are responsible for every line you put your name on. I reserve the right to reject any contribution that does not align with the project's vision. By submitting a pull request, you agree to license your contribution under the terms of the GNU GPLv3 license.
 
 ---
 

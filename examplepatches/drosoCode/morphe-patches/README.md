@@ -38,4 +38,4 @@ you can follow the [Morphe documentation](https://github.com/MorpheApp/morphe-do
 
 ## 📜 License
 
-Drosocode Patches are licensed under the [GNU General Public License v3.0](LICENSE)
+drosocode Patches are licensed under the [GNU General Public License v3.0](LICENSE)

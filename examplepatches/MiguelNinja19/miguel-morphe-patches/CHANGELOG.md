@@ -1,3 +1,28 @@
+## [1.12.1](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.12.0...v1.12.1) (2026-07-18)
+
+### 🐛 Bug Fixes
+
+* **oddmar:** add unlock full game and free IAP patches for v0.111 ([6b5ca91](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/6b5ca91b79a457542acd4c4b92e31326694e79e3))
+* **oddmar:** add unlock full game and free IAP patches for v0.111 ([7ccbb03](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/7ccbb03b550c541aad8f6e38a7c7b5d61b69769e))
+* **oddmar:** add unlock full game and free IAP patches for v0.111 ([3b5b264](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/3b5b2649bae2f62d72acab50ed9d42d55dd79091))
+* **oddmar:** add unlock full game and free IAP patches for v0.111 ([cdf8cf4](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/cdf8cf4de5cd3428b795dac6ac4d08a3c8182008))
+
+## [1.12.0](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.11.13...v1.12.0) (2026-07-18)
+
+### ✨ New Features
+
+* **oddmar:** add Unlock full game patch ([4d6965c](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/4d6965cbfdb4a41ebde7047942e34a158d4c818c))
+* **oddmar:** add Unlock full game patch ([4b63f67](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/4b63f67928efd8e81f55e44952f9aabf9733fb2a))
+* **oddmar:** add Unlock full game patch ([34c1eb3](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/34c1eb3c9304b4868e458c6be01122bc4f0287a5))
+
+## [1.11.13](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.11.12...v1.11.13) (2026-07-18)
+
+### 🐛 Bug Fixes
+
+* **zombie-catchers:** remove StartupLauncher.launch() from ComponentFactory ([0c569b8](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/0c569b8b959fd6a8824bfbf41b1cf4c814b80aff))
+* **zombie-catchers:** remove StartupLauncher.launch() from ComponentFactory ([6f6cb98](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/6f6cb9815c1f764a2694bc365840703e2d4f7dd2))
+* **zombie-catchers:** split into resourcePatch + bytecodePatch ([a634e8b](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/a634e8bb9f5705368ae8a66b60f6208cf2bb7a42))
+
 ## [1.11.12](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.11.11...v1.11.12) (2026-07-18)
 
 ### 🐛 Bug Fixes

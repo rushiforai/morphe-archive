@@ -1,3 +1,15 @@
+# ---------------------------------------------------------
+# Copyright (C) 2026 krvstek (Original Author)
+# Copyright (C) 2026 The uni-apks Contributors (Modifications)
+# 
+# DO NOT REMOVE OR ALTER THIS COPYRIGHT HEADER.
+# This file is part of uni-apks.
+# Licensed under the GNU GPLv3. You may modify this file,
+# but you MUST keep this original copyright notice intact
+# and prominently state any changes made.
+# See the AUTHORS file in the root directory for details.
+# ---------------------------------------------------------
+
 import base64
 import os
 import re

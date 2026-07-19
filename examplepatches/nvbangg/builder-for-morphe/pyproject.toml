@@ -3,6 +3,11 @@ name = "uni-apks"
 version = "0.0.0"
 readme = "README.md"
 requires-python = ">=3.13"
+authors = [
+    { name = "krvstek" }
+]
+license = { file = "LICENSE" }
+urls = { Repository = "https://github.com/krvstek/uni-apks" }
 dependencies = [
     "beautifulsoup4>=4.15.0",
     "curl-cffi>=0.15.0",
