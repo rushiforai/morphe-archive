@@ -1,3 +1,9 @@
+## [1.6.0](https://github.com/cesbar/zpatches/compare/v1.5.1...v1.6.0) (2026-07-19)
+
+### ✨ New Features
+
+* **Minesweeper / Solitaire The Clean One:** Enable Premium, Disable Internet and Telemetry ([ce70d9b](https://github.com/cesbar/zpatches/commit/ce70d9b6e0d5a2737b9d2131071d19769a4646e4))
+
 ## [1.5.1](https://github.com/cesbar/zpatches/compare/v1.5.0...v1.5.1) (2026-06-15)
 
 ### 🐛 Bug Fixes

@@ -22,3 +22,24 @@ kotlin {
         freeCompilerArgs = listOf("-Xcontext-parameters")
     }
 }
+
+// Separate configuration so Gson is available when generating patches-list.json
+// without bundling it into the patch artifact.
+val patchListGeneratorClasspath = configurations.create("patchListGeneratorClasspath")
+
+dependencies {
+    compileOnly(libs.gson)
+    patchListGeneratorClasspath(libs.gson)
+}
+
+tasks {
+    register<JavaExec>("generatePatchesList") {
+        description = "Build the patch bundle and generate patches-list.json"
+
+        dependsOn(build)
+
+        classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath
+        mainClass.set("util.PatchListGeneratorKt")
+        args(project.version.toString())
+    }
+}

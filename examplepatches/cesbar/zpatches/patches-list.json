@@ -1,5 +1,5 @@
 {
-  "version": "1.5.1",
+  "version": "1.6.0",
   "patches": [
     {
       "name": "Custom Maps API Key",
@@ -24,6 +24,17 @@
       ]
     },
     {
+      "name": "Disable Internet and Telemetry",
+      "description": "Disable Internet and Telemetry by removing all non-necessary permissions from the manifest",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "ee.dustland.android.minesweeper": null,
+        "ee.dustland.android.solitaire": null
+      },
+      "options": []
+    },
+    {
       "name": "Disable map animations",
       "description": "Disable the map zoom-in animation",
       "use": true,
@@ -32,6 +43,17 @@
         "com.jcdecaux.vls.lyon": [
           "3.1.1"
         ]
+      },
+      "options": []
+    },
+    {
+      "name": "Enable Premium",
+      "description": "Unlock all purchasables options",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "ee.dustland.android.minesweeper": null,
+        "ee.dustland.android.solitaire": null
       },
       "options": []
     },
@@ -51,18 +73,6 @@
       "compatiblePackages": {
         "com.jcdecaux.vls.lyon": [
           "3.1.1"
-        ]
-      },
-      "options": []
-    },
-    {
-      "name": "Premium",
-      "description": "Unlock all purchasables options",
-      "use": true,
-      "dependencies": [],
-      "compatiblePackages": {
-        "ee.dustland.android.minesweeper": [
-          "1.21.1"
         ]
       },
       "options": []

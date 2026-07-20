@@ -4,6 +4,27 @@ An unofficial `.mpp` patch source for using supported Google Maps APKs with [ReV
 
 This repository does not distribute original or patched Google Maps APKs, signing keys, or user data.
 
+## 🩹 Patches list
+
+<!-- PATCHES_START EXPANDED -->
+> **[v1.0.4](https://github.com/fangkampanat/gmaps-patches/releases/tag/v1.0.4)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patch total
+<details open>
+<summary>📦 Google Maps&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 26.26.04.935742811 | 26.27.05.941319029 | 26.28.03.942936911 |
+| :---: | :---: | :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Google Maps MicroG](#google-maps-microg) | Routes supported Google Maps builds through ReVanced GmsCore using the patched Maps package and known Google Maps certificate spoof metadata. |  |
+
+</details>
+
+<!-- PATCHES_END -->
+
 ## Requirements
 
 - A computer with Java 21 or newer
