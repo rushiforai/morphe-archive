@@ -53,6 +53,10 @@ private val compatibility = Compatibility(
             version = "26.28.03.942936911",
             minSdk = 28,
         ),
+        AppTarget(
+            version = "26.29.02.946673643",
+            minSdk = 28,
+        ),
     ),
 )
 
@@ -66,7 +70,7 @@ private val manifestPatch = resourcePatch {
 
 @Suppress("unused")
 val googleMapsMicroGPatch = bytecodePatch(
-    name = "Google Maps MicroG",
+    name = "Google Maps for ReVanced GmsCore",
     description = "Routes supported Google Maps builds through ReVanced GmsCore using the patched Maps package and known Google Maps certificate spoof metadata.",
     default = true,
 ) {
@@ -345,6 +349,7 @@ private val mapsActivityOnCreateFingerprints = listOf(
     mapsActivityOnCreateFingerprint("Lmyl;"),
     mapsActivityOnCreateFingerprint("Lnai;"),
     mapsActivityOnCreateFingerprint("Lmzk;"),
+    mapsActivityOnCreateFingerprint("Lnaa;"),
 )
 
 private fun mapsApplicationOnCreateFingerprint(definingClass: String) = Fingerprint(
@@ -358,6 +363,7 @@ private val mapsApplicationOnCreateFingerprints = listOf(
     mapsApplicationOnCreateFingerprint("Lnwc;"),
     mapsApplicationOnCreateFingerprint("Lnya;"),
     mapsApplicationOnCreateFingerprint("Lnxe;"),
+    mapsApplicationOnCreateFingerprint("Lnxw;"),
 )
 
 private val extensionVendorFingerprint = Fingerprint(
@@ -394,6 +400,7 @@ private val googlePlayUtilityFingerprints = listOf(
     googlePlayUtilityFingerprint("Lbjgu;", "n"),
     googlePlayUtilityFingerprint("Lbjgy;", "n"),
     googlePlayUtilityFingerprint("Lbjhc;", "n"),
+    googlePlayUtilityFingerprint("Lbjkw;", "n"),
 )
 
 private fun app.morphe.patcher.patch.BytecodePatchContext.patchExtensionRuntime() {
