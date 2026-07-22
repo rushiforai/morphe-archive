@@ -2,26 +2,21 @@
 
 <div align="center">
 
-[![Typing SVG](https://readme-typing-svg.demolab.com/?font=Google+Sans&size=25&duration=3000&pause=2000&color=&center=true&vCenter=true&random=false&width=550&lines=%F0%9F%93%A6+Build+APKs+from+various+patch+sources)](#-build-your-own-apks)<br>
-This repository uses GitHub Actions to automatically build your own patched APKs on every new update.
+[![Typing SVG](https://readme-typing-svg.demolab.com/?font=Google+Sans&size=25&duration=3000&pause=2000&color=&center=true&vCenter=true&random=false&width=550&lines=%F0%9F%93%A6+Build+APKs+from+Morphe+patch+sources)](#-build-your-own-apks)<br>
+You can use [this repository](https://github.com/nvbangg/builder-for-morphe) to automatically build patched APKs from [Morphe](https://morphe.software) patch sources on every new update.
+
 </div>
 
 <details>
-<summary><b>🔥 Features</b></summary>
+<summary id="features"><b>🔥 Features</b></summary>
 
-- 🛑 **Ad-blocking**: blocks all types of ads (who needs them anyway?).
-- 🚀 **Enhanced features**: squeezes more out of the app.
-- ⭐ **Customization**: personalize the app to fit your needs.
-- 💉 **Optimization**: optimized APKs for performance and size.
-- 🔒 **Persistent**: patched app won't be updated or overwritten by Play Store.
-- 🔄 **Auto-updates**: supports automatic updates through [Obtainium](https://github.com/ImranR98/Obtainium) using releases from your own fork.
+- 🚀 **Easy to use:** easily [build your own APKs](#-build-your-own-apks) just by customizing [`config.toml`](config.toml) (no extra setup required).
+- 🧩 **Many pre-configured apps:** just set `enabled = true` for the apps you want.
+- 🏗️ **Template support:** use this repository as a [template](https://github.com/new?template_name=builder-for-morphe&template_owner=nvbangg) for private builds or personal development.
+- 🔁 **[Automatic upstream sync](CONTRIBUTING.md#-sync-upstream):** pull in bug fixes and new features while still preserving your own configuration.
+- 🔄 **Auto-updates:** supports automatic updates through [Obtainium](https://github.com/ImranR98/Obtainium) using releases from your own fork.
 - ✨ **And much more!**
 </details>
-
-## 📋 List of apps in this repository
-
-- This repository does not provide pre-patched APKs; it is only a tool to build your own APKs. 
-- Releases contain unmodified APKs used for building, not pre-patched ones.
 
 ## 🤖 Build Your Own APKs
 
@@ -34,32 +29,35 @@ This repository uses GitHub Actions to automatically build your own patched APKs
 
 For full configuration reference, setup and contributing guide, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
-For all Morphe resources, projects, supported apps and patches, visit [nvbangg/awesome-for-morphe](https://github.com/nvbangg/awesome-for-morphe).
+For all Morphe resources, patches and community projects, visit [nvbangg/awesome-for-morphe](https://github.com/nvbangg/awesome-for-morphe).
+
+---
+
+<div align="center">
+
+**[github.com/nvbangg/builder-for-morphe](https://github.com/nvbangg/builder-for-morphe)**  
+⭐ Star this repo if you find it useful!  
+Maintained with ❤️ by **[@nvbangg](https://github.com/nvbangg)** (syncing upstream from [krvstek/uni-apks](https://github.com/krvstek/uni-apks) with the changes mentioned in the [Features](#features) section)
+
+</div>
+
+<details>
+<summary><h3>⚖️ License & Copyright</h3></summary>
+
+This project is open-source and distributed under the **[GNU GPLv3](LICENSE)** license. You are free to use, modify, and redistribute this software, but you **must** keep all original and new copyright notices intact.
+
+> **Copyright (C) 2026 [nvbangg](https://github.com/nvbangg)** (for all [modifications](https://github.com/nvbangg/builder-for-morphe/commits/main/?author=nvbangg) by nvbangg in [builder-for-morphe](https://github.com/nvbangg/builder-for-morphe), and those in [contributions](https://github.com/krvstek/uni-apks/commits/main/?author=nvbangg) and [co-authored commits](https://github.com/search?q=repo%3Akrvstek%2Funi-apks+Co-authored-by%3A+nvbangg&type=commits))  
+> **Copyright (C) 2026 [krvstek](https://github.com/krvstek)** (for the original [uni-apks](https://github.com/krvstek/uni-apks) codebase)  
+> **Authors:** See the list of [Contributors](https://github.com/nvbangg/builder-for-morphe/graphs/contributors) for their source code contributions, and see [icons/README.md](icons/README.md) for asset sources.
+
+</details>
 
 <details>
 <summary><h3>⚠️ Disclaimer</h3></summary>
 
-- This project is **not affiliated with any patch creators mentioned here**, and is intended for educational & personal use only.
-- All builds are done using **publicly available tools**. This repository simply automates the process for convenience.
-- Everything happens through the **public GitHub Actions** to ensure security and transparency. For maximum security, you can always build the applications yourself using the provided source code or official methods.
-- The build code is a **complete Python rewrite** based on an adaptation that was first implemented by *[j-hc](https://github.com/j-hc)*. All credits go to him for laying down the initial foundation.
-- If a build fails due to upstream app or patch changes, please report it to the patch creators or wait for an update.
-</details>
-
----
-
-<p align="center">⭐ Star <a href="https://github.com/nvbangg/builder-for-morphe">this repo</a> if useful</p>
-
-<details>
-<summary align="center"><i>Maintained with ❤️ by <a href="https://github.com/nvbangg">nvbangg</a> and <a href="https://github.com/krvstek">krvstek</a></i></summary>
-
-### 🤝 Acknowledgments
-
-This repo is based on the [krvstek/uni-apks](https://github.com/krvstek/uni-apks) (GPL-3.0). See [all changes](https://github.com/nvbangg/builder-for-morphe/commits/main/?author=nvbangg):
-
-- Easily [build your own APKs](#-build-your-own-apks) just by customizing `config.toml` (no extra setup required)
-  - No manual brand configuration needed in `ci.yml`
-  - [Automatic upstream sync](CONTRIBUTING.md#-sync-upstream) (preserves your custom `config.toml`)
-  - Pre-configured support for many apps (just set `enabled = true` for the apps you want)
-- Other changes contributed upstream: [Pull Requests](https://github.com/krvstek/uni-apks/commits/main/?author=nvbangg), [co-authored commits](https://github.com/search?q=repo%3Akrvstek%2Funi-apks+Co-authored-by%3A+nvbangg&type=commits)
+- [This project](https://github.com/nvbangg/builder-for-morphe) is not affiliated with [Morphe](https://morphe.software/) or any authors mentioned here.
+- This project is intended for educational and research purposes only, and is not responsible for any issues arising from its use.
+- All builds are done using publicly available tools. This repository simply automates the process for convenience.
+- This repository does not provide pre-patched APKs. Releases only contain unmodified APKs used for building.
+- Everything happens through public GitHub Actions to ensure security and transparency.
 </details>

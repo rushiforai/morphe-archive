@@ -42,6 +42,10 @@ The patched APK requires ReVanced GmsCore for Google sign-in and related Google 
 | Official Google Play services installed | **User** variant of [ReVanced GmsCore v0.3.13.3.250932](https://github.com/ReVanced/GmsCore/releases/tag/v0.3.13.3.250932) (prerelease) | Tested on an Android tablet. This version includes [improvements for side-by-side installation](https://github.com/ReVanced/GmsCore/commit/776a8fb) with official Google services. |
 | No official GMS | [ReVanced GmsCore v0.3.13.2.250932](https://github.com/ReVanced/GmsCore/releases/tag/v0.3.13.2.250932) | Tested on a BYD vehicle head unit. |
 
+### Running on a BYD head unit
+
+![Patched Google Maps 26.29.02.946673643 running with ReVanced GmsCore on a BYD head unit](docs/screenshots/byd-screen.webp)
+
 > **Not supported:** [Morphe MicroG-RE](https://github.com/MorpheApp/MicroG-RE) `v6.1.4` was tested but did not work with this patched APK. Google account token refresh failed with `INVALID_APPID`, leaving Maps offline.
 
 Other GmsCore versions may work with the patched APK but have not been verified by this project.

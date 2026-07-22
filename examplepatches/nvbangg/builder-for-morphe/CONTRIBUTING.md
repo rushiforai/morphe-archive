@@ -6,7 +6,7 @@ Here you will find a step-by-step technical guide on how to set up your environm
 
 ## 🔄 Sync Upstream
 
-The [Sync upstream workflow](../../actions/workflows/sync.yml) keeps your fork up to date with the upstream repository to pull in bug fixes and new features while preserving your own configuration. It merges new commits automatically or opens a Pull Request if there are unresolvable conflicts.
+The [Sync upstream workflow](../../actions/workflows/sync.yml) keeps your fork up to date with the upstream repository to pull in bug fixes and new features while still preserving your own configuration. It merges new commits automatically or opens a Pull Request if there are unresolvable conflicts.
 
 **[Optional]** You can customize the sync behavior by adding the following variables and secrets to your repository:
 
@@ -174,7 +174,3 @@ Feature ideas belong in the [Discussions](https://github.com/krvstek/uni-apks/di
 3. **🛠️ Pull Requests**:
 
 Pull requests are welcome. AI-assisted contributions are accepted, but all changes must be manually reviewed before submitting, as you are responsible for every line you put your name on. I reserve the right to reject any contribution that does not align with the project's vision. By submitting a pull request, you agree to license your contribution under the terms of the GNU GPLv3 license.
-
----
-
-<p align="center"><i>Maintained with ❤️ by <a href="https://github.com/nvbangg">nvbangg</a> and <a href="https://github.com/krvstek">krvstek</a></i></p>

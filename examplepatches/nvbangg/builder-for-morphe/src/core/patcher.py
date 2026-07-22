@@ -38,8 +38,9 @@ def _run_java(*args: str | Path, capture: bool = True, timeout: int = 600) -> st
         raise PatcherError(redacted.strip())
     return combined
 
-def _parse_patch_block(output: str, patch_name: str) -> list[str]:
-    if m := re.search(rf"Name:\s*{re.escape(patch_name)}\n.*?Compatible versions:\s*\n(.*?)(?:\n\n|\Z)", output, re.DOTALL | re.IGNORECASE):
+def _parse_patch_block(output: str, patch_name: str, pkg_name: str) -> list[str]:
+    pattern = rf"Name:\s*{re.escape(patch_name)}\n.*?Package name:\s*{re.escape(pkg_name)}\s*\n\s*Compatible versions:\s*\n(.*?)(?:\n\s*Package name:|\n\n|\Z)"
+    if m := re.search(pattern, output, re.DOTALL | re.IGNORECASE):
         return [v.strip() for v in m.group(1).splitlines() if v.strip()]
     return []
 
@@ -91,7 +92,7 @@ class PatcherCLI:
         all_included = [p for spec in patches.values() for p in spec["include"]]
         all_vers: list[str] = []
         for p in all_included:
-            all_vers.extend(_parse_patch_block(list_patches_output, p))
+            all_vers.extend(_parse_patch_block(list_patches_output, p, pkg_name))
         if all_vers:
             return get_highest_ver(all_vers)
 
