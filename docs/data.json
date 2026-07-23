@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-07-23 21:49 UTC",
+  "generatedAt": "2026-07-23 21:55 UTC",
   "configFile": "morphe_archive_config_v5.json",
   "configVersion": 5,
   "repoCount": 103,
   "appCount": 508,
-  "patchCount": 1873,
-  "universalPatchCount": 154,
+  "patchCount": 2004,
+  "universalPatchCount": 157,
   "hostCounts": {
     "github.com": 99,
     "gitlab.com": 4
@@ -800,8 +800,8 @@
       "webUrl": "https://github.com/MorpheApp/morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=MorpheApp/morphe-patches",
       "avatarUrl": "https://github.com/MorpheApp.png?size=96",
-      "patchCount": 0,
-      "appCount": 0
+      "patchCount": 131,
+      "appCount": 3
     },
     {
       "name": "dbtcoach-morphe-patches",
@@ -23366,6 +23366,7 @@
         "chirag127/morphe-patches",
         "jkennethcarino/adobo",
         "kareemlukitomo/morphe-patches",
+        "MorpheApp/morphe-patches",
         "variablenine/morphe-patches"
       ],
       "sources": [
@@ -23502,6 +23503,95 @@
           ]
         },
         {
+          "repo": "MorpheApp/morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/MorpheApp/morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=MorpheApp/morphe-patches",
+          "source": "https://raw.githubusercontent.com/MorpheApp/morphe-patches/main/patches-bundle.json",
+          "avatarUrl": "https://github.com/MorpheApp.png?size=96",
+          "patches": [
+            {
+              "name": "Custom branding name for Reddit",
+              "description": "Changes the Reddit app name to the name specified in patch options."
+            },
+            {
+              "name": "Custom font",
+              "description": "Adds an option to replace Reddit Sans / Roboto with a custom TTF or OTF font file at runtime."
+            },
+            {
+              "name": "Disable modern home",
+              "description": "Adds an option to disable the modern home UI. This patch works with Reddit 2026.24.0 and earlier."
+            },
+            {
+              "name": "Disable screenshot popup",
+              "description": "Adds an option to disable the popup that appears when taking a screenshot."
+            },
+            {
+              "name": "Force system font",
+              "description": "Adds an option that renders Reddit with the device system font instead of Reddit Sans / Roboto."
+            },
+            {
+              "name": "Hide ads",
+              "description": "Adds options to hide ads."
+            },
+            {
+              "name": "Hide Ask button",
+              "description": "Adds an option to hide Ask button in the search bar."
+            },
+            {
+              "name": "Hide communities shelf",
+              "description": "Adds an option to hide the related or suggested communities shelf in subreddits."
+            },
+            {
+              "name": "Hide navigation buttons",
+              "description": "Adds options to hide buttons in the navigation bar."
+            },
+            {
+              "name": "Hide Reddit search",
+              "description": "Permanently hides the Reddit search in the contextual menu. This patch does not work with root mounting"
+            },
+            {
+              "name": "Hide sidebar components",
+              "description": "Adds options to hide the sidebar components."
+            },
+            {
+              "name": "Hide Trending shelves",
+              "description": "Adds an option to hide the Trending shelves from feed and search suggestions."
+            },
+            {
+              "name": "Open links directly",
+              "description": "Adds an option to skip over redirection URLs in external links."
+            },
+            {
+              "name": "Open links externally",
+              "description": "Adds an option to always open links in your browser instead of with the in-app-browser."
+            },
+            {
+              "name": "Remove subreddit dialog",
+              "description": "Adds options to remove the NSFW community warning and notifications suggestion dialogs by dismissing them automatically."
+            },
+            {
+              "name": "Sanitize sharing links",
+              "description": "Adds an option to sanitize sharing links by removing tracking query parameters."
+            },
+            {
+              "name": "Show view count",
+              "description": "Adds an option to show the view count of Posts."
+            },
+            {
+              "name": "Spoof signature",
+              "description": "Spoofs the signature of the app to fix notification issues."
+            }
+          ],
+          "versions": [
+            "2026.04.0",
+            "2026.14.0",
+            "2026.24.0",
+            "2026.28.0",
+            "2026.29.0"
+          ]
+        },
+        {
           "repo": "variablenine/morphe-patches",
           "host": "github.com",
           "webUrl": "https://github.com/variablenine/morphe-patches",
@@ -23588,12 +23678,14 @@
         "Change Reddit share domain",
         "Colorize comment indent lines",
         "Custom branding name for Reddit",
+        "Custom font",
         "Disable home feed swipe",
         "Disable home screen redirect",
         "Disable modern home",
         "Disable post detail swipe",
         "Disable screenshot banner",
         "Disable screenshot popup",
+        "Force system font",
         "Hide ads",
         "Hide Ask button",
         "Hide Ask button from search bar",
@@ -23640,6 +23732,10 @@
           "description": "Changes the Reddit app name to the name specified in patch options."
         },
         {
+          "name": "Custom font",
+          "description": "Adds an option to replace Reddit Sans / Roboto with a custom TTF or OTF font file at runtime."
+        },
+        {
           "name": "Disable home feed swipe",
           "description": "Disables the horizontal page swipe gesture used to switch feeds."
         },
@@ -23662,6 +23758,10 @@
         {
           "name": "Disable screenshot popup",
           "description": "Adds an option to disable the popup that appears when taking a screenshot."
+        },
+        {
+          "name": "Force system font",
+          "description": "Adds an option that renders Reddit with the device system font instead of Reddit Sans / Roboto."
         },
         {
           "name": "Hide ads",
@@ -23779,7 +23879,8 @@
         "2026.17.0",
         "2026.24.0",
         "2026.27.0",
-        "2026.28.0"
+        "2026.28.0",
+        "2026.29.0"
       ],
       "iconColor": "#FF4500",
       "iconUrl": "https://play-lh.googleusercontent.com/8FVS0kvM60JwqZWRNzBIlwrZZxJa8vpli8IWaaTo8QXRe1PHmCNJ8UpWoXkGPV3jKEaTY2OVAeYoisOnGJXY"
@@ -31013,6 +31114,7 @@
         "chirag127/morphe-patches",
         "loskutov/youtube-domain-fronting-patch",
         "Lynx6319/patch-youtube-scroll-block",
+        "MorpheApp/morphe-patches",
         "skulldogged/cobalt-morphe",
         "variablenine/morphe-patches",
         "wchill/rvx-morphed"
@@ -31370,6 +31472,318 @@
             "19.16.39",
             "19.25.37",
             "20.47.62"
+          ]
+        },
+        {
+          "repo": "MorpheApp/morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/MorpheApp/morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=MorpheApp/morphe-patches",
+          "source": "https://raw.githubusercontent.com/MorpheApp/morphe-patches/main/patches-bundle.json",
+          "avatarUrl": "https://github.com/MorpheApp.png?size=96",
+          "patches": [
+            {
+              "name": "Add to queue",
+              "description": "Overrides the feed flyout 'Play next in queue' with the Morphe video queue."
+            },
+            {
+              "name": "Alternative thumbnails",
+              "description": "Adds options to replace video thumbnails using the DeArrow API or image captures from the video."
+            },
+            {
+              "name": "Ambient mode",
+              "description": "Adds options to bypass power saving restrictions for Ambient mode and disable it entirely or in fullscreen."
+            },
+            {
+              "name": "Bypass image region restrictions",
+              "description": "Adds an option to use a different host for user avatar and channel images and can fix missing images that are blocked in some countries."
+            },
+            {
+              "name": "Bypass link redirects",
+              "description": "Adds an option to bypass redirects and open the original link directly."
+            },
+            {
+              "name": "Captions",
+              "description": "Adds an option to disable captions from being automatically enabled or to set caption cookies."
+            },
+            {
+              "name": "Change form factor",
+              "description": "Adds an option to change the UI appearance to a phone, tablet, or automotive device."
+            },
+            {
+              "name": "Change header",
+              "description": "Adds an option to change the header logo in the top left corner of the app."
+            },
+            {
+              "name": "Change start page",
+              "description": "Adds an option to set which page the app opens in instead of the homepage."
+            },
+            {
+              "name": "Check watch history domain name resolution",
+              "description": "Checks if the device DNS server is preventing user watch history from being saved."
+            },
+            {
+              "name": "Copy video link",
+              "description": "Adds options to display buttons in the video player to copy video links."
+            },
+            {
+              "name": "Custom branding",
+              "description": "Adds options to change the app icon and app name. Branding cannot be changed for mounted (root) installations."
+            },
+            {
+              "name": "Custom player overlay opacity",
+              "description": "Adds an option to change the opacity of the video player background when player controls are visible."
+            },
+            {
+              "name": "Disable double tap actions",
+              "description": "Adds an option to disable player double tap gestures."
+            },
+            {
+              "name": "Disable DRC audio",
+              "description": "Adds an option to disable DRC (Dynamic Range Compression) audio."
+            },
+            {
+              "name": "Disable fullscreen gestures",
+              "description": "Adds options to selectively disable gestures for entering and exiting fullscreen mode."
+            },
+            {
+              "name": "Disable haptic feedback",
+              "description": "Adds an option to disable haptic feedback in the player for various actions."
+            },
+            {
+              "name": "Disable layout updates",
+              "description": "Adds an option to disable server side layout updates and use an older UI."
+            },
+            {
+              "name": "Disable player popup panels",
+              "description": "Adds an option to disable panels (such as live chat) from opening automatically."
+            },
+            {
+              "name": "Disable QUIC protocol",
+              "description": "Adds an option to disable QUIC (Quick UDP Internet Connections) network protocol."
+            },
+            {
+              "name": "Disable rolling number animations",
+              "description": "Adds an option to disable rolling number animations of video view count, user likes, and upload time."
+            },
+            {
+              "name": "Disable Shorts resuming on startup",
+              "description": "Adds an option to disable Shorts from resuming on app startup when Shorts were last being watched."
+            },
+            {
+              "name": "Disable sign in to TV popup",
+              "description": "Adds an option to disable the popup asking to sign into a TV on the same local network."
+            },
+            {
+              "name": "Disable video codecs",
+              "description": "Adds options to disable HDR and VP9 codecs."
+            },
+            {
+              "name": "Double tap to seek",
+              "description": "Adds additional double-tap to seek values to the YouTube settings menu."
+            },
+            {
+              "name": "Downloads",
+              "description": "Adds support to download videos with an external downloader app using the in-app download button or a video player action button."
+            },
+            {
+              "name": "Enable debugging",
+              "description": "Adds options for debugging and exporting Morphe logs to the clipboard."
+            },
+            {
+              "name": "Exit fullscreen mode",
+              "description": "Adds options to automatically exit fullscreen mode when a video reaches the end."
+            },
+            {
+              "name": "Force original audio",
+              "description": "Adds an option to always use the original audio track."
+            },
+            {
+              "name": "GmsCore support",
+              "description": "Allows the app to work without root by using a different package name when patched using a GmsCore instead of Google Play Services."
+            },
+            {
+              "name": "Hide ads",
+              "description": "Adds options to hide general ads, Premium promotions and video ads."
+            },
+            {
+              "name": "Hide autoplay preview",
+              "description": "Adds an option to hide the autoplay preview at the end of videos."
+            },
+            {
+              "name": "Hide end screen cards",
+              "description": "Adds an option to hide suggested video cards at the end of videos."
+            },
+            {
+              "name": "Hide end screen suggested video",
+              "description": "Adds an option to hide the suggested video at the end of videos."
+            },
+            {
+              "name": "Hide info cards",
+              "description": "Adds an option to hide info cards that creators add in the video player."
+            },
+            {
+              "name": "Hide layout components",
+              "description": "Adds options to hide general layout components."
+            },
+            {
+              "name": "Hide player flyout menu components",
+              "description": "Adds options to hide menu components that appear when pressing the gear icon in the video player."
+            },
+            {
+              "name": "Hide player overlay buttons",
+              "description": "Adds options to hide the player Cast, Autoplay, Captions, Previous & Next buttons, and the player control buttons background."
+            },
+            {
+              "name": "Hide related video overlay",
+              "description": "Adds an option to hide the related video overlay shown when swiping up in fullscreen."
+            },
+            {
+              "name": "Hide related videos",
+              "description": "Adds options to hide related videos."
+            },
+            {
+              "name": "Hide Shorts components",
+              "description": "Adds options to hide components related to Shorts."
+            },
+            {
+              "name": "Hide timestamp",
+              "description": "Adds an option to hide the timestamp in the bottom left of the video player."
+            },
+            {
+              "name": "Hide video action buttons",
+              "description": "Adds options to hide video action buttons in fullscreen and portrait modes."
+            },
+            {
+              "name": "Loop video",
+              "description": "Adds an option to loop videos and display loop video button in the video player."
+            },
+            {
+              "name": "Media notification controls",
+              "description": "Adds options to disable the seekbar and previous/next buttons in the media notification and headphone controls."
+            },
+            {
+              "name": "Miniplayer",
+              "description": "Adds options to change the in-app minimized player. Patching 21.28.206 and lower has more miniplayer types to choose from."
+            },
+            {
+              "name": "Navigation bar",
+              "description": "Adds options to hide and change the bottom navigation bar (such as the Shorts button)  and the upper navigation toolbar. Patching version 20.21.37 and lower also adds a setting to use a wide searchbar."
+            },
+            {
+              "name": "Network proxy",
+              "description": "Adds settings to route supported network requests through an HTTP or HTTPS proxy."
+            },
+            {
+              "name": "Open channel of live avatar",
+              "description": "Adds an option to prevent a channel's current live video from opening when tapping its avatar."
+            },
+            {
+              "name": "Open links externally",
+              "description": "Adds an option to always open links in your browser instead of with the in-app browser."
+            },
+            {
+              "name": "Open Shorts in regular player",
+              "description": "Adds options to open Shorts in the regular video player."
+            },
+            {
+              "name": "Open system share sheet",
+              "description": "Adds an option to always open the system share sheet instead of the in-app share sheet."
+            },
+            {
+              "name": "Open videos fullscreen",
+              "description": "Adds options to automatically open videos in fullscreen portrait or landscape mode."
+            },
+            {
+              "name": "Override YouTube Music buttons",
+              "description": "Overrides YouTube Music buttons to open Morphe Music or any compatible third-party client."
+            },
+            {
+              "name": "Play all",
+              "description": "Adds an option to play all the videos from a channel and to display play all button in the video player."
+            },
+            {
+              "name": "Playback speed",
+              "description": "Adds options to customize available playback speeds, set a default playback speed, and show a speed dialog button in the video player."
+            },
+            {
+              "name": "Reload video",
+              "description": "Adds an option to display reload video button in the video player."
+            },
+            {
+              "name": "Remove background playback restrictions",
+              "description": "Removes restrictions on background playback, including playing kids videos in the background."
+            },
+            {
+              "name": "Remove viewer discretion dialog",
+              "description": "Adds an option to remove the dialog that appears when opening a video that has been age-restricted by accepting it automatically. This does not bypass the age restriction."
+            },
+            {
+              "name": "Return YouTube Dislike",
+              "description": "Adds an option to show the dislike count of videos with Return YouTube Dislike."
+            },
+            {
+              "name": "Sanitize sharing links",
+              "description": "Removes the tracking query parameters from shared links."
+            },
+            {
+              "name": "Save to watch later",
+              "description": "Adds an option to display save to watch later button in the video player."
+            },
+            {
+              "name": "Seekbar",
+              "description": "Adds options to disable precise seeking when swiping up on the seekbar, slide to seek instead of playing at 2x speed when pressing and holding, tapping the player seekbar to seek, hiding the video player seekbar, enabling seeking in livestreams, and expanding the livestream DVR duration."
+            },
+            {
+              "name": "Settings menu filter",
+              "description": "Adds an option to hide items on the standard YouTube settings screen by their visible name."
+            },
+            {
+              "name": "Shorts autoplay",
+              "description": "Adds options to automatically play the next Short."
+            },
+            {
+              "name": "SponsorBlock",
+              "description": "Adds options to enable and configure SponsorBlock, which can skip undesired video segments such as sponsored content."
+            },
+            {
+              "name": "Spoof app version",
+              "description": "Adds an option to trick the app into thinking you are running an older version."
+            },
+            {
+              "name": "Spoof device dimensions",
+              "description": "Adds an option to spoof the device dimensions which can unlock higher video qualities."
+            },
+            {
+              "name": "Spoof video streams",
+              "description": "Adds options to spoof the client video streams to fix playback."
+            },
+            {
+              "name": "Swipe controls",
+              "description": "Adds options to enable and configure volume and brightness swipe controls."
+            },
+            {
+              "name": "Theme",
+              "description": "Adds options for theming and applies a custom background theme (dark background theme defaults to pure black)."
+            },
+            {
+              "name": "Video quality",
+              "description": "Adds options to set default video qualities and always use the advanced video quality menu."
+            },
+            {
+              "name": "Voice over translation",
+              "description": "Adds additional voice over languages using text-to-speech synchronized to the video playback."
+            }
+          ],
+          "versions": [
+            "20.21.37",
+            "20.31.42",
+            "20.51.39",
+            "21.04.223",
+            "21.05.265",
+            "21.26.360",
+            "21.28.204",
+            "21.29.366"
           ]
         },
         {
@@ -32100,9 +32514,10 @@
         "Save to watch later",
         "Seekbar",
         "Seekbar components",
-        "Set transcript cookies",
         "Set Transcript Cookies",
+        "Set transcript cookies",
         "Settings for YouTube",
+        "Settings menu filter",
         "Shorts autoplay",
         "Shorts components",
         "Snack bar components",
@@ -32118,8 +32533,8 @@
         "Video playback",
         "Video quality",
         "Visual preferences icons for YouTube",
-        "Voice Over Translation",
         "Voice over translation",
+        "Voice Over Translation",
         "Watch history",
         "YouTubeDislikeAutoNext (STUB)",
         "YouTubeLikeAutoNext (STUB)"
@@ -32546,16 +32961,20 @@
           "description": "Adds options to hide or change components related to the seekbar."
         },
         {
-          "name": "Set transcript cookies",
+          "name": "Set Transcript Cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {
-          "name": "Set Transcript Cookies",
+          "name": "Set transcript cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {
           "name": "Settings for YouTube",
           "description": "Applies mandatory patches to implement RVX Morphed settings into the application."
+        },
+        {
+          "name": "Settings menu filter",
+          "description": "Adds an option to hide items on the standard YouTube settings screen by their visible name."
         },
         {
           "name": "Shorts autoplay",
@@ -32618,12 +33037,12 @@
           "description": "Adds icons to specific preferences in the settings."
         },
         {
-          "name": "Voice Over Translation",
-          "description": "Adds an option to enable Yandex voice-over translation of video audio tracks."
-        },
-        {
           "name": "Voice over translation",
           "description": "Adds additional voice over languages using text-to-speech synchronized to the video playback."
+        },
+        {
+          "name": "Voice Over Translation",
+          "description": "Adds an option to enable Yandex voice-over translation of video audio tracks."
         },
         {
           "name": "Watch history",
@@ -32658,7 +33077,9 @@
         "21.16.240",
         "21.24.360",
         "21.25.523",
-        "21.26.360"
+        "21.26.360",
+        "21.28.204",
+        "21.29.366"
       ],
       "iconColor": "#FF0000",
       "iconUrl": "https://play-lh.googleusercontent.com/QNmuZQc9I6Zbe3mWnSr0hycnENqGFCI5p3yE29Hkxtf22T0IWS6zTrpxULLyyjWpB7ONAXDsDQXnXcVWokl3eg"
@@ -32670,6 +33091,7 @@
         "anddea/revanced-patches",
         "kontsevoye/emorphe-patches",
         "loskutov/youtube-domain-fronting-patch",
+        "MorpheApp/morphe-patches",
         "PrathxmOp/ytmusic-patches",
         "variablenine/morphe-patches",
         "wchill/rvx-morphed"
@@ -32894,6 +33316,172 @@
             "7.14.53",
             "7.15.52",
             "7.16.50"
+          ]
+        },
+        {
+          "repo": "MorpheApp/morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/MorpheApp/morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=MorpheApp/morphe-patches",
+          "source": "https://raw.githubusercontent.com/MorpheApp/morphe-patches/main/patches-bundle.json",
+          "avatarUrl": "https://github.com/MorpheApp.png?size=96",
+          "patches": [
+            {
+              "name": "Bypass certificate checks",
+              "description": "Bypasses certificate checks which prevent YouTube Music from working on Android Auto."
+            },
+            {
+              "name": "Change header",
+              "description": "Adds an option to change the header logo in the top left corner of the app."
+            },
+            {
+              "name": "Change miniplayer color",
+              "description": "Adds an option to change the miniplayer background color to match the fullscreen player."
+            },
+            {
+              "name": "Change start page",
+              "description": "Adds an option to set which page the app opens in instead of the homepage."
+            },
+            {
+              "name": "Check watch history domain name resolution",
+              "description": "Checks if the device DNS server is preventing user watch history from being saved."
+            },
+            {
+              "name": "Crossfade",
+              "description": "Adds a true dual-player crossfade between consecutive tracks. Requires YouTube Music 9.00 or newer; on older versions the patch is a no-op."
+            },
+            {
+              "name": "Custom branding",
+              "description": "Adds options to change the app icon and app name. Branding cannot be changed for mounted (root) installations."
+            },
+            {
+              "name": "Disable dislike redirection",
+              "description": "Adds an option to prevent skipping to the next track when the dislike button is pressed."
+            },
+            {
+              "name": "Disable DRC audio",
+              "description": "Adds an option to disable DRC (Dynamic Range Compression) audio."
+            },
+            {
+              "name": "Disable QUIC protocol",
+              "description": "Adds an option to disable QUIC (Quick UDP Internet Connections) network protocol."
+            },
+            {
+              "name": "Downloads",
+              "description": "Adds support to download songs with an external downloader app using the in-app download button."
+            },
+            {
+              "name": "Enable debugging",
+              "description": "Adds options for debugging and exporting Morphe logs to the clipboard."
+            },
+            {
+              "name": "Enable exclusive audio playback",
+              "description": "Enables the option to play audio without video."
+            },
+            {
+              "name": "Enable forced miniplayer",
+              "description": "Adds an option to enable forced miniplayer when switching between music videos, podcasts, or songs."
+            },
+            {
+              "name": "Enable swipe to dismiss miniplayer",
+              "description": "Adds an option to enable dismissing the miniplayer by swiping down on it."
+            },
+            {
+              "name": "Force original audio",
+              "description": "Adds an option to always use the original audio track."
+            },
+            {
+              "name": "GmsCore support",
+              "description": "Allows the app to work without root by using a different package name when patched using a GmsCore instead of Google Play Services."
+            },
+            {
+              "name": "Hide ads",
+              "description": "Adds options to hide fullscreen ads, Premium promotions and video ads."
+            },
+            {
+              "name": "Hide buttons",
+              "description": "Adds options to hide the cast, history, notification, and search buttons."
+            },
+            {
+              "name": "Hide filter bar",
+              "description": "Adds an option to hide the filter bar at the top of the homepage."
+            },
+            {
+              "name": "Hide flyout menu components",
+              "description": "Adds options to hide individual items from the player and queue flyout menus."
+            },
+            {
+              "name": "Hide layout components",
+              "description": "Adds options to hide general layout components."
+            },
+            {
+              "name": "Hide music action buttons",
+              "description": "Adds options to hide action buttons under the player."
+            },
+            {
+              "name": "Miniplayer previous and next buttons",
+              "description": "Adds options to show previous and next track buttons in the miniplayer."
+            },
+            {
+              "name": "Navigation bar",
+              "description": "Adds options to hide navigation bar, labels and buttons."
+            },
+            {
+              "name": "Network proxy",
+              "description": "Adds settings to route supported network requests through an HTTP or HTTPS proxy."
+            },
+            {
+              "name": "Remember repeat state",
+              "description": "Adds an option to remember the repeat state when playing a new track or playlist."
+            },
+            {
+              "name": "Remember shuffle state",
+              "description": "Adds an option to remember the shuffle state when playing a new track or playlist."
+            },
+            {
+              "name": "Remove background playback restrictions",
+              "description": "Removes restrictions on background playback, including playing kids videos in the background."
+            },
+            {
+              "name": "Return YouTube Dislike",
+              "description": "Adds an option to show the dislike count of tracks with Return YouTube Dislike."
+            },
+            {
+              "name": "Sanitize sharing links",
+              "description": "Removes the tracking query parameters from shared links."
+            },
+            {
+              "name": "Scrobbling",
+              "description": "Adds options to add played tracks to Last.fm and ListenBrainz."
+            },
+            {
+              "name": "Settings menu filter",
+              "description": "Adds an option to hide items on the standard YouTube Music settings screen by their visible name."
+            },
+            {
+              "name": "SponsorBlock",
+              "description": "Adds options to enable and configure SponsorBlock, which can skip non-music segments."
+            },
+            {
+              "name": "Spoof app version",
+              "description": "Adds an option to trick the app into thinking you are running an older version."
+            },
+            {
+              "name": "Spoof video streams",
+              "description": "Adds options to spoof the client video streams to fix playback."
+            },
+            {
+              "name": "Theme",
+              "description": "Adds options for theming and applies a custom background theme (dark background theme defaults to pure black)."
+            }
+          ],
+          "versions": [
+            "7.29.52",
+            "8.51.51",
+            "9.15.51",
+            "9.25.50",
+            "9.26.51",
+            "9.28.51"
           ]
         },
         {
@@ -33272,6 +33860,7 @@
         "Change share sheet",
         "Change start page",
         "Check watch history domain name resolution",
+        "Crossfade",
         "Custom branding",
         "Custom branding icon for YouTube Music",
         "Custom branding name for YouTube Music",
@@ -33321,6 +33910,7 @@
         "Sanitize sharing links",
         "Scrobbling",
         "Settings for YouTube Music",
+        "Settings menu filter",
         "SponsorBlock",
         "Spoof app version",
         "Spoof app version for lyrics",
@@ -33369,6 +33959,10 @@
         {
           "name": "Check watch history domain name resolution",
           "description": "Checks if the device DNS server is preventing user watch history from being saved."
+        },
+        {
+          "name": "Crossfade",
+          "description": "Adds a true dual-player crossfade between consecutive tracks. Requires YouTube Music 9.00 or newer; on older versions the patch is a no-op."
         },
         {
           "name": "Custom branding",
@@ -33567,6 +34161,10 @@
           "description": "Applies mandatory patches to implement RVX Morphed settings into the application."
         },
         {
+          "name": "Settings menu filter",
+          "description": "Adds an option to hide items on the standard YouTube Music settings screen by their visible name."
+        },
+        {
           "name": "SponsorBlock",
           "description": "Adds options to enable and configure SponsorBlock, which can skip non-music segments."
         },
@@ -33636,7 +34234,8 @@
         "9.23.52",
         "9.24.51",
         "9.25.50",
-        "9.26.51"
+        "9.26.51",
+        "9.28.51"
       ],
       "iconColor": "#FF0000",
       "iconUrl": "https://play-lh.googleusercontent.com/MyptZXmcCyF59phIWPsNCfHq6zSO_ojEdw_4rMYYWPOGdikSjqeOXcoszBZ053VYpINe5K7ZR9KV1nkFWgxdOw"
@@ -34230,6 +34829,32 @@
         {
           "name": "Unity IL2CPP hex patch",
           "description": "Patches libil2cpp.so to bypass Unity IL2CPP billing validation.",
+          "default": false
+        }
+      ]
+    },
+    {
+      "repo": "MorpheApp/morphe-patches",
+      "host": "github.com",
+      "webUrl": "https://github.com/MorpheApp/morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=MorpheApp/morphe-patches",
+      "source": "https://raw.githubusercontent.com/MorpheApp/morphe-patches/main/patches-bundle.json",
+      "avatarUrl": "https://github.com/MorpheApp.png?size=96",
+      "patchCount": 3,
+      "patches": [
+        {
+          "name": "Change package name",
+          "description": "Appends \".morphe\" to the package name by default. Changing the package name of the app can lead to unexpected issues.",
+          "default": false
+        },
+        {
+          "name": "Disable Play Store updates",
+          "description": "Disables Play Store updates by setting the version code to the maximum allowed. This patch does not work if the app is installed by mounting and may cause unexpected issues with some apps.",
+          "default": false
+        },
+        {
+          "name": "Override certificate pinning",
+          "description": "Overrides certificate pinning, allowing to inspect traffic via a proxy.",
           "default": false
         }
       ]

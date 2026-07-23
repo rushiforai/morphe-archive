@@ -344,13 +344,18 @@ HTML = """<!doctype html>
     }
     * { box-sizing: border-box; }
     html { scroll-behavior: smooth; }
+    html, body {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+    }
     body {
       margin: 0;
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: var(--bg);
       color: var(--text);
       line-height: 1.5;
-      padding-bottom: 70px;
+      padding-bottom: 0;
     }
     header {
       border-bottom: 1px solid var(--line);
@@ -361,6 +366,7 @@ HTML = """<!doctype html>
       backdrop-filter: blur(14px);
     }
     .wrap {
+      width: 100%;
       max-width: 1220px;
       margin: 0 auto;
       padding: 18px 24px;
@@ -387,7 +393,7 @@ HTML = """<!doctype html>
     }
     .top {
       display: grid;
-      grid-template-columns: 1fr auto;
+      grid-template-columns: minmax(0, 1fr) auto;
       gap: 20px;
       align-items: end;
       padding: 10px 0 14px;
@@ -397,6 +403,7 @@ HTML = """<!doctype html>
       font-size: clamp(30px, 3.4vw, 48px);
       line-height: 1.04;
       letter-spacing: 0;
+      overflow-wrap: anywhere;
     }
     .accent-text { color: var(--accent); }
     p { margin: 0; color: var(--muted); }
@@ -417,7 +424,7 @@ HTML = """<!doctype html>
     }
     .stats {
       display: grid;
-      grid-template-columns: repeat(4, minmax(92px, 1fr));
+      grid-template-columns: repeat(4, minmax(86px, 1fr));
       gap: 10px;
       flex-wrap: wrap;
       justify-content: flex-end;
@@ -441,7 +448,7 @@ HTML = """<!doctype html>
     }
     .toolbar {
       display: grid;
-      grid-template-columns: auto minmax(130px, 160px) minmax(160px, 220px) minmax(260px, 1fr);
+      grid-template-columns: auto minmax(130px, 160px) minmax(160px, 220px) minmax(220px, 1fr);
       gap: 14px;
       margin-top: 12px;
       align-items: stretch;
@@ -473,7 +480,7 @@ HTML = """<!doctype html>
     main .wrap { padding-top: 18px; }
     .list {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr));
       gap: 20px;
       align-items: start;
     }
@@ -488,6 +495,7 @@ HTML = """<!doctype html>
       border-radius: 14px;
       box-shadow: var(--shadow);
       min-height: 0;
+      min-width: 0;
     }
     .row > .actions {
       margin-left: 68px;
@@ -655,35 +663,7 @@ HTML = """<!doctype html>
       color: var(--muted);
       font-size: 13px;
     }
-    .bottom-bar {
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      z-index: 20;
-      border-top: 1px solid var(--line);
-      background: rgba(17, 19, 24, .94);
-      backdrop-filter: blur(14px);
-      box-shadow: 0 -18px 42px rgba(0, 0, 0, .28);
-    }
-    .bottom-inner {
-      max-width: 1220px;
-      margin: 0 auto;
-      padding: 12px 24px;
-      display: flex;
-      justify-content: space-between;
-      gap: 14px;
-      align-items: center;
-      color: var(--muted);
-      font-size: 13px;
-    }
-    .bottom-actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
     @media (max-width: 760px) {
-      body { padding-bottom: 0; }
       header { position: static; }
       .nav {
         align-items: flex-start;
@@ -701,13 +681,17 @@ HTML = """<!doctype html>
       h1 {
         font-size: 32px;
       }
-      .stats { grid-template-columns: repeat(2, 1fr); }
+      .stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+      }
       .stat {
         min-width: 0;
       }
       .list { grid-template-columns: 1fr; }
       .toolbar {
         gap: 10px;
+        width: 100%;
       }
       .tabs {
         display: grid;
@@ -748,19 +732,12 @@ HTML = """<!doctype html>
         width: 100%;
         padding: 14px;
       }
-      .bottom-bar {
-        position: static;
-      }
-      .bottom-inner { align-items: flex-start; flex-direction: column; padding: 12px 16px; }
-      .bottom-actions {
-        width: 100%;
-      }
-      .bottom-actions .button {
-        flex: 1 1 0;
-      }
     }
     @media (max-width: 520px) {
-      .stats { grid-template-columns: 1fr; }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
       h1 {
         font-size: 29px;
       }
@@ -772,6 +749,12 @@ HTML = """<!doctype html>
       }
       input, select, button, a.button {
         width: 100%;
+      }
+      .stat {
+        padding: 8px 10px;
+      }
+      .stat strong {
+        font-size: 20px;
       }
       .actions .button {
         flex: 1 1 0;
@@ -789,9 +772,8 @@ HTML = """<!doctype html>
   <header>
     <div class="wrap">
       <div class="nav">
-        <div class="brand"><span class="brand-mark">M</span><span>Archive</span></div>
+        <div class="brand"><span class="brand-mark">M</span><span>orphe Archive</span></div>
         <div class="header-actions">
-          <a class="button" href="#how-to-add">How to Add</a>
           <a id="configLink" class="button primary" href="#">Download Config</a>
         </div>
       </div>
@@ -832,19 +814,9 @@ HTML = """<!doctype html>
   <main>
     <div class="wrap">
       <div id="list" class="list"></div>
-      <section id="how-to-add" class="disclaimer">
-        <strong>How to add:</strong> click Add Source on the specific source you want, then open Morphe Manager and import the config from Settings if you prefer the full archive.
-      </section>
+      <p class="disclaimer">Use at your own risk. Sources and patches are community provided and not individually verified.</p>
     </div>
   </main>
-  <footer class="bottom-bar">
-    <div class="bottom-inner">
-      <span>Use at your own risk. Sources and patches are community provided and not individually verified.</span>
-      <div class="bottom-actions">
-        <a class="button" href="#top">Back to top</a>
-      </div>
-    </div>
-  </footer>
   <script>
     const state = { tab: "apps", query: "", host: "all", sort: "name", data: null };
     const list = document.getElementById("list");
@@ -1006,7 +978,7 @@ HTML = """<!doctype html>
           <a class="button" href="${source.webUrl}" target="_blank" rel="noreferrer">Open</a>
           <a class="button primary" href="${source.addUrl}" target="_blank" rel="noreferrer">Add Source</a>
         </div>
-        <details open>
+        <details>
           <summary>Universal patch set</summary>
           <div class="chips">${patchChips(source.patches, 24) || '<span class="chip">No patch metadata</span>'}</div>
         </details>`;
