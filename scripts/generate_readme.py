@@ -102,8 +102,8 @@ def build_readme(repos, invalid_repos=None):
         "behind every bundle that passes the Morphe (`.mpp`) filter."
     )
     lines.append(
-        "2. **GitHub-wide search** - scanning all of GitHub for `patches-bundle.json` files, "
-        "excluding forks, and verifying each candidate has an actual `.mpp` release asset."
+        "2. **GitHub-wide search** - scanning all of GitHub for `patches-bundle.json` files "
+        "and verifying each candidate bundle JSON has an actual `.mpp` reference."
     )
     lines.append(
         "3. **Manual additions** - anything listed in [`custom_repos.txt`](./custom_repos.txt)."
@@ -117,6 +117,37 @@ def build_readme(repos, invalid_repos=None):
     lines.append(
         "README and settings output include only repos whose `patches-bundle.json` is reachable "
         "and contains a real `.mpp` reference."
+    )
+    lines.append("")
+    lines.append("---")
+    lines.append("")
+    lines.append("## Manager Config")
+    lines.append("")
+    lines.append(
+        "The latest `morphe_archive_config_vN.json` file is a Morphe Manager settings export "
+        "with the valid bundle sources already added."
+    )
+    lines.append("")
+    lines.append("To import it:")
+    lines.append("")
+    lines.append("1. Open Morphe Manager.")
+    lines.append("2. Go to **Settings**.")
+    lines.append("3. Open **System**.")
+    lines.append("4. Open **Morphe Settings**.")
+    lines.append("5. Choose **Import**.")
+    lines.append("6. Select the `morphe_archive_config_vN.json` file.")
+    lines.append("7. Choose **Replace existing** when prompted.")
+    lines.append("")
+    lines.append("---")
+    lines.append("")
+    lines.append("## Disclaimer")
+    lines.append("")
+    lines.append(
+        "Use this archive at your own risk. I do not verify every repository listed here, "
+        "and I am not responsible for any patch, patch failure, account ban, device issue, "
+        "data loss, or other side effect caused by using these sources. This repository only "
+        "gathers possible Morphe patch sources; deciding whether to use any source or patch is "
+        "your responsibility."
     )
     lines.append("")
     lines.append("---")

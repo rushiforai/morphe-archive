@@ -2,7 +2,7 @@
 
 An auto-generated, continuously updated index of every GitHub or GitLab repository that publishes a [Morphe](https://morphe.software) (`.mpp`) patch bundle.
 
-![Repos tracked](https://img.shields.io/badge/repos%20tracked-88-6366f1) ![Last updated](https://img.shields.io/badge/last%20updated-2026-07-23%2002:57%20UTC-555)
+![Repos tracked](https://img.shields.io/badge/repos%20tracked-88-6366f1) ![Last updated](https://img.shields.io/badge/last%20updated-2026-07-23%2020:03%20UTC-555)
 
 ---
 
@@ -11,12 +11,34 @@ An auto-generated, continuously updated index of every GitHub or GitLab reposito
 This repo list is kept in [`repos.txt`](./repos.txt) and assembled from three sources:
 
 1. **Registry scan** - crawling [`Jman-Github/ReVanced-Patch-Bundles`](https://github.com/Jman-Github/ReVanced-Patch-Bundles) and extracting the source repo behind every bundle that passes the Morphe (`.mpp`) filter.
-2. **GitHub-wide search** - scanning all of GitHub for `patches-bundle.json` files, excluding forks, and verifying each candidate has an actual `.mpp` release asset.
+2. **GitHub-wide search** - scanning all of GitHub for `patches-bundle.json` files and verifying each candidate bundle JSON has an actual `.mpp` reference.
 3. **Manual additions** - anything listed in [`custom_repos.txt`](./custom_repos.txt).
 
 Repos are never silently removed when a source goes quiet - add an entry to [`ignore_repos.txt`](./ignore_repos.txt) to intentionally drop one.
 
 README and settings output include only repos whose `patches-bundle.json` is reachable and contains a real `.mpp` reference.
+
+---
+
+## Manager Config
+
+The latest `morphe_archive_config_vN.json` file is a Morphe Manager settings export with the valid bundle sources already added.
+
+To import it:
+
+1. Open Morphe Manager.
+2. Go to **Settings**.
+3. Open **System**.
+4. Open **Morphe Settings**.
+5. Choose **Import**.
+6. Select the `morphe_archive_config_vN.json` file.
+7. Choose **Replace existing** when prompted.
+
+---
+
+## Disclaimer
+
+Use this archive at your own risk. I do not verify every repository listed here, and I am not responsible for any patch, patch failure, account ban, device issue, data loss, or other side effect caused by using these sources. This repository only gathers possible Morphe patch sources; deciding whether to use any source or patch is your responsibility.
 
 ---
 
@@ -123,4 +145,4 @@ Use `owner/repo` for GitHub, or `gitlab.com/group/project` for GitLab.
 
 13 approved repo entries were hidden because their bundle URL is currently invalid.
 
-*Last generated: 2026-07-23 02:57 UTC*
+*Last generated: 2026-07-23 20:03 UTC*

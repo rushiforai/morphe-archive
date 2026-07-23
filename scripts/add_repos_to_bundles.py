@@ -18,21 +18,25 @@ Usage:
 
 Defaults:
     REPOS_FILE    = repos.txt
-    SETTINGS_FILE = morphe_manager_settings.json
-    OUTPUT_FILE   = same as SETTINGS_FILE (overwrite)
+    SETTINGS_FILE = latest morphe_archive_config_vN.json
+    OUTPUT_FILE   = next morphe_archive_config_vN.json only when content changes
 """
 
 import json
+import re
 import sys
 import time
 import urllib.error
 import urllib.parse
 import urllib.request
 from dataclasses import dataclass
+from pathlib import Path
 
 BUNDLE_PATH = "patches-bundle.json"
 BRANCHES_TO_TRY = ("main", "master")
 TIMEOUT_SECONDS = 8
+CONFIG_PREFIX = "morphe_archive_config_v"
+CONFIG_PATTERN = re.compile(rf"^{CONFIG_PREFIX}(\d+)\.json$")
 
 
 @dataclass(frozen=True)
@@ -165,10 +169,49 @@ def prune_invalid_bundles(bundles):
     return kept, removed
 
 
+def find_latest_config_file(root="."):
+    latest_version = 0
+    latest_path = None
+
+    for path in Path(root).glob(f"{CONFIG_PREFIX}*.json"):
+        match = CONFIG_PATTERN.match(path.name)
+        if not match:
+            continue
+        version = int(match.group(1))
+        if version > latest_version:
+            latest_version = version
+            latest_path = path
+
+    if latest_path is None:
+        legacy_path = Path(root) / "morphe_manager_settings.json"
+        if legacy_path.exists():
+            return legacy_path, 0
+        return Path(root) / f"{CONFIG_PREFIX}1.json", 0
+
+    return latest_path, latest_version
+
+
+def serialize_json(data):
+    return json.dumps(data, indent=4) + "\n"
+
+
+def resolve_config_paths(argv):
+    repos_file = argv[1] if len(argv) > 1 else "repos.txt"
+    explicit_settings = len(argv) > 2
+    explicit_output = len(argv) > 3
+
+    if explicit_settings:
+        settings_file = Path(argv[2])
+        output_file = Path(argv[3]) if explicit_output else settings_file
+        return repos_file, settings_file, output_file, False
+
+    settings_file, version = find_latest_config_file()
+    output_file = Path(f"{CONFIG_PREFIX}{version + 1}.json")
+    return repos_file, settings_file, output_file, True
+
+
 def main():
-    repos_file = sys.argv[1] if len(sys.argv) > 1 else "repos.txt"
-    settings_file = sys.argv[2] if len(sys.argv) > 2 else "morphe_manager_settings.json"
-    output_file = sys.argv[3] if len(sys.argv) > 3 else settings_file
+    repos_file, settings_file, output_file, versioned_output = resolve_config_paths(sys.argv)
 
     repos = load_repos(repos_file)
 
@@ -222,9 +265,18 @@ def main():
         next_sort_order += 1
         added.append((repo.display, branch))
 
-    with open(output_file, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=4)
-        f.write("\n")
+    output_json = serialize_json(data)
+    if versioned_output and settings_file.exists():
+        current_json = settings_file.read_text(encoding="utf-8")
+        if current_json == output_json:
+            output_file = settings_file
+            print(f"No config changes. Kept {settings_file}.")
+        else:
+            output_file.write_text(output_json, encoding="utf-8")
+            print(f"Wrote {output_file}.")
+    else:
+        output_file.write_text(output_json, encoding="utf-8")
+        print(f"Wrote {output_file}.")
 
     print(f"Added {len(added)} repos.")
     print(f"Skipped {len(skipped_existing)} already present.")
