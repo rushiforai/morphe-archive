@@ -2,12 +2,5 @@
 # repos.txt, even if they get rediscovered by the search/discovery scripts.
 # Lines starting with # are ignored.
 rushiranpise/morphe-patches
-Jman-Github
-nvbangg
 rushiforai/morphe-archive
 rushiforai/paresh-patches
-abdul-hubbali/Morphe-Fork
-TrollTaylor/morphe-pause-fix
-mininxd/morphe-patches
-rabilrbl/fluffy-patches
-BrayDog2010/morphe-patches
