@@ -1,0 +1,42 @@
+name: Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Cache Gradle
+        uses: burrunan/gradle-cache-action@v3
+
+      # Morphe's Gradle plugin and libraries are resolved from GitHub Packages,
+      # which requires an authenticated token even for public packages. The
+      # workflow token usually suffices; if resolution fails with 401/403, add a
+      # classic PAT with read:packages as the GPR_TOKEN repository secret.
+      - name: Build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GPR_TOKEN || secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:buildAndroid --no-daemon
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: patches
+          path: patches/build/libs/*.mpp

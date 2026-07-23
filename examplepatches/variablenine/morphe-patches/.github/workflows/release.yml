@@ -1,0 +1,68 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      send_fcm:
+        description: 'Send FCM push notification'
+        type: boolean
+        default: true
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    name: Release
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+      attestations: write
+      actions: write
+      issues: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Cache Gradle
+        uses: burrunan/gradle-cache-action@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Release
+        uses: cycjimmy/semantic-release-action@v6
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Attest
+        if: steps.release.outputs.new_release_published == 'true'
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-name: 'variablenine Patches ${{ steps.release.outputs.new_release_git_tag }}'
+          subject-path: patches/build/libs/patches-*.mpp
+
+      # NOTE (fork): upstream's remaining release steps trigger Morphe's own
+      # production infrastructure — a deploy dispatch to MorpheApp/morphe-website
+      # and an FCM push to Morphe's app users — using secrets this fork does not
+      # (and must not) have. They only ran on a published release, always failed
+      # at the app-token step, and emailed the owner. Removed on purpose; keep them
+      # out on every upstream sync (see .fork/SYNC.md).

@@ -1,0 +1,30 @@
+package app.pichiwa.patches.whatsapp
+
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.string
+import app.pichiwa.patches.shared.Constants.WHATSAPP
+
+private const val EXT = "Lapp/pichiwa/extension/extension/WExtension;"
+
+@Suppress("unused")
+val enableCopyStatus = bytecodePatch(
+    name = "Copy Statuses",
+    description = "Allow copying text from contact statuses.",
+    default = false
+) {
+    compatibleWith(WHATSAPP)
+
+    execute {
+        Fingerprint(returnType = "V", 
+            filters = listOf(string("conversation/copymessage/npe"))
+        ).let { match ->
+            match.method.addInstructions(0, """
+                return-void
+                :original
+            """)
+        }
+    }
+}
+

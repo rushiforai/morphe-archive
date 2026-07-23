@@ -1,0 +1,31 @@
+package app.pichiwa.patches.whatsapp
+
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.string
+import app.pichiwa.patches.shared.Constants.WHATSAPP
+
+private const val EXT = "Lapp/pichiwa/extension/extension/WExtension;"
+
+@Suppress("unused")
+val hideReadReceipts = bytecodePatch(
+    name = "Hide Read Receipts",
+    description = "Read messages without sending blue ticks.",
+    default = true
+) {
+    compatibleWith(WHATSAPP)
+
+    execute {
+        Fingerprint(
+            returnType = "V",
+            parameters = emptyList(),
+            filters = listOf(string("receipt"))
+        ).let { match ->
+            match.method.addInstructions(0, """
+                return-void
+                :original
+            """)
+        }
+    }
+}

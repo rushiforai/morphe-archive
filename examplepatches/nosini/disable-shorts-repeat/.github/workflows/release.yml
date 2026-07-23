@@ -1,0 +1,67 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Cache Gradle
+        uses: burrunan/gradle-cache-action@v3
+
+      - name: Set version from tag
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+
+      - name: Build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GPR_TOKEN || secrets.GITHUB_TOKEN }}
+        run: ./gradlew -Pversion="$VERSION" :patches:buildAndroid --no-daemon
+
+      # A stable-named copy so /releases/latest/download/patches.mpp always
+      # points at the newest release regardless of version.
+      - name: Stage assets
+        run: cp "patches/build/libs/patches-${VERSION}.mpp" patches.mpp
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: v${{ env.VERSION }}
+          files: |
+            patches/build/libs/patches-${{ env.VERSION }}.mpp
+            patches.mpp
+
+      # Update the bundle descriptor the manager polls for updates.
+      - name: Update patches-bundle.json on main
+        run: |
+          git fetch origin main
+          git switch main
+          cat > patches-bundle.json <<EOF
+          {
+            "created_at": "$(date -u +%Y-%m-%dT%H:%M:%S)",
+            "description": "Disable Shorts Repeat v${VERSION}",
+            "download_url": "https://github.com/${GITHUB_REPOSITORY}/releases/download/v${VERSION}/patches-${VERSION}.mpp",
+            "signature_download_url": "",
+            "version": "${VERSION}"
+          }
+          EOF
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add patches-bundle.json
+          git commit -m "Update patches-bundle.json for v${VERSION}"
+          git push origin main

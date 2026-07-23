@@ -1,0 +1,20 @@
+{
+  "name": "seobject-patches",
+  "private": true,
+  "packageManager": "pnpm@11.7.0",
+  "description": "Release tooling for Seobjects Random Patches",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Seobject/Seobject-patches.git"
+  },
+  "scripts": {
+    "release": "semantic-release"
+  },
+  "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "conventional-changelog-conventionalcommits": "^9.3.1",
+    "gradle-semantic-release-plugin": "^1.10.3",
+    "semantic-release": "^25.0.3"
+  }
+}

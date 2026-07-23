@@ -1,0 +1,94 @@
+{
+  "branches": [
+    "main",
+    {
+      "name": "dev",
+      "prerelease": true
+    }
+  ],
+  "plugins": [
+    [
+        "@semantic-release/commit-analyzer", {
+        "releaseRules": [
+            { "type": "fix", "release": "patch" },
+            { "type": "feat", "release": "minor" },
+            { "type": "bump", "release": "patch" },
+            { "type": "perf", "release": "patch" },
+            { "type": "build", "scope": "Needs bump", "release": "patch" }
+        ]
+        }
+    ],
+    [
+        "@semantic-release/release-notes-generator", {
+        "preset": "conventionalcommits",
+        "presetConfig": {
+            "types": [
+                { "type": "fix", "section": "Bug Fixes", "hidden": false },
+                { "type": "feat", "section": "New Features", "hidden": false },
+                { "type": "bump", "section": "Updated App Support", "hidden": false },
+                { "type": "perf", "section": "Improvements",  "hidden": false },
+                { "type": "build", "hidden": true }
+            ]
+        }
+        }
+    ],
+    [
+      "@MorpheApp/changelog", {
+        "releaseJson": {
+          "path": "patches-bundle.json",
+          "downloadUrlTemplate": "https://github.com/alejandrobellver/pichiwa-patches/releases/download/v${version}/patches-${version}.mpp",
+          "signatureUrlTemplate": "",
+          "extensionDownloadUrlTemplate": "https://github.com/alejandrobellver/pichiwa-patches/releases/download/v${version}/extension.mpe"
+        }
+      }
+    ],
+    "gradle-semantic-release-plugin",
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "./gradlew generatePatchesList \
+          && jq '.version=\"${nextRelease.version}\"' patches.json > patches.json.tmp && mv patches.json.tmp patches.json \
+          && jq '.extension_download_url=\"https://github.com/alejandrobellver/pichiwa-patches/releases/download/v${nextRelease.version}/extension.mpe\" | .extensionDownloadUrlTemplate=\"https://github.com/alejandrobellver/pichiwa-patches/releases/download/v${nextRelease.version}/extension.mpe\"' patches-bundle.json > patches-bundle.json.tmp && mv patches-bundle.json.tmp patches-bundle.json \
+          && python3 .github/scripts/generate_patches_readme.py alejandrobellver/pichiwa-patches $GITHUB_REF_NAME patches.json README.md"
+      }
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "assets": [
+          "CHANGELOG.md",
+          "gradle.properties",
+          "patches-bundle.json",
+          "patches.json",
+          "README.md"
+        ],
+        "message": "chore: Release v${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+      }
+    ],
+    [
+      "@semantic-release/github",
+      {
+        "assets": [
+          {
+            "path": "patches/build/libs/patches-!(*sources*|*javadoc*).mpp?(.asc)"
+          },
+          {
+            "path": "extensions/extension/build/morphe/extensions/extension.mpe",
+            "name": "extension.mpe"
+          },
+          {
+            "path": "patches.json"
+          }
+        ],
+        "successComment": false
+      }
+    ],
+    [
+      "@cleyrop-org/semantic-release-backmerge",
+      {
+        "backmergeBranches": [{"from": "main", "to": "dev"}],
+        "clearWorkspace": true
+      }
+    ]
+  ]
+}

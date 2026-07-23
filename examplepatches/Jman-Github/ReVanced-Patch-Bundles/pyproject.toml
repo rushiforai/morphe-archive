@@ -1,0 +1,30 @@
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "ASYNC", "S", "RUF"]
+ignore = ["S101"]
+
+[tool.ruff.lint.per-file-ignores]
+"scripts/generate_patch_list_catalog.py" = ["S603", "S607"]
+"scripts/build_updated_bundles.py" = ["S603", "S607"]
+"scripts/build_summary.py" = ["S603", "S607"]
+"scripts/generate_bundles.py" = ["S603", "S607"]
+"scripts/bundle_updates.py" = ["S603"]
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+testpaths = ["tests"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_unused_configs = true
+warn_return_any = true
+disallow_untyped_defs = true
+strict_optional = true
+ignore_missing_imports = true

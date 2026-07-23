@@ -1,0 +1,1294 @@
+diff --git a/.github/workflows/open_pull_request.yml b/.github/workflows/open_pull_request.yml
+index 2006f78..8cf51f8 100644
+--- a/.github/workflows/open_pull_request.yml
++++ b/.github/workflows/open_pull_request.yml
+@@ -9,6 +9,10 @@ on:
+ env:
+   MESSAGE: Merge branch `${{ github.head_ref || github.ref_name }}` to `main`
+ 
++permissions:
++  contents: read
++  pull-requests: write
++
+ jobs:
+   pull-request:
+     name: Open pull request
+diff --git a/.github/workflows/release.yml b/.github/workflows/release.yml
+index 6f1aa35..b3c122d 100644
+--- a/.github/workflows/release.yml
++++ b/.github/workflows/release.yml
+@@ -20,6 +20,8 @@ jobs:
+       id-token: write
+       attestations: write
+       actions: write
++      issues: write
++      pull-requests: write
+     runs-on: ubuntu-latest
+     steps:
+       - name: Checkout
+@@ -53,50 +55,14 @@ jobs:
+ 
+       - name: Attest
+         if: steps.release.outputs.new_release_published == 'true'
+-        uses: actions/attest-build-provenance@v3
++        uses: actions/attest-build-provenance@v4
+         with:
+-          subject-name: 'Morphe Patches ${{ steps.release.outputs.new_release_git_tag }}'
++          subject-name: 'variablenine Patches ${{ steps.release.outputs.new_release_git_tag }}'
+           subject-path: patches/build/libs/patches-*.mpp
+ 
+-      - name: Generate website deploy token
+-        if: steps.release.outputs.new_release_published == 'true'
+-        id: app-token
+-        uses: actions/create-github-app-token@v3
+-        with:
+-          client-id: ${{ vars.MORPHE_AAMATT_APP_ID }}
+-          private-key: ${{ secrets.WEBSITE_DISPATCH_TOKEN }}
+-          owner: MorpheApp
+-
+-      - name: Trigger website deploy
+-        if: steps.release.outputs.new_release_published == 'true'
+-        uses: actions/github-script@v9
+-        with:
+-          github-token: ${{ steps.app-token.outputs.token }}
+-          script: |
+-            await github.rest.repos.createDispatchEvent({
+-              owner: 'MorpheApp',
+-              repo: 'morphe-website',
+-              event_type: 'trigger-deploy'
+-            })
+-
+-      - name: Wait before sending FCM
+-        if: steps.release.outputs.new_release_published == 'true' && (github.event_name == 'push' || inputs.send_fcm == true)
+-        run: sleep 300
+-
+-      - name: Setup Python for FCM
+-        if: steps.release.outputs.new_release_published == 'true' && (github.event_name == 'push' || inputs.send_fcm == true)
+-        uses: actions/setup-python@v6
+-        with:
+-          python-version: '3.12'
+-
+-      - name: Send FCM push notification
+-        if: steps.release.outputs.new_release_published == 'true' && (github.event_name == 'push' || inputs.send_fcm == true)
+-        env:
+-          FCM_PROJECT_ID: ${{ secrets.FCM_PROJECT_ID }}
+-          FCM_SERVICE_ACCOUNT_JSON: ${{ secrets.FCM_SERVICE_ACCOUNT_JSON }}
+-          FCM_TYPE: bundle_update
+-          FCM_VERSION: ${{ steps.release.outputs.new_release_version }}
+-          BRANCH: ${{ github.ref_name }}
+-        run: |
+-          pip install cryptography
+-          python3 .github/scripts/send_fcm.py
++      # NOTE (fork): upstream's remaining release steps trigger Morphe's own
++      # production infrastructure — a deploy dispatch to MorpheApp/morphe-website
++      # and an FCM push to Morphe's app users — using secrets this fork does not
++      # (and must not) have. They only ran on a published release, always failed
++      # at the app-token step, and emailed the owner. Removed on purpose; keep them
++      # out on every upstream sync (see .fork/SYNC.md).
+diff --git a/extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/catlock/AlternatingTapUnlock.java b/extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/catlock/AlternatingTapUnlock.java
+new file mode 100644
+index 0000000..b82ffb0
+--- /dev/null
++++ b/extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/catlock/AlternatingTapUnlock.java
+@@ -0,0 +1,100 @@
++package app.morphe.extension.youtube.patches.catlock;
++
++/**
++ * Pure, Android-free recognizer for the Cat Lock unlock gesture: quickly tapping
++ * <b>alternating opposite sides</b> of the screen (left, right, left, right, ...).
++ *
++ * <p>Chosen because it is extremely unlikely for a cat pawing at the screen to produce a clean,
++ * fast run of alternating left/right taps, yet a human can do it easily with two thumbs. Taps in
++ * the middle dead zone are ignored (they neither advance nor reset the streak), so a paw resting
++ * mid-screen doesn't interfere. A same-side tap or too-slow tap resets the streak.
++ *
++ * <p>No Android dependencies — unit-testable in isolation (see {@code AlternatingTapUnlockSelfTest}).
++ */
++public final class AlternatingTapUnlock {
++
++    public enum Side { LEFT, RIGHT, MIDDLE }
++
++    private final int requiredTaps;      // consecutive alternating taps needed to unlock
++    private final long maxIntervalMs;    // max gap between consecutive alternating taps
++    private final float leftMaxFraction; // x < width*leftMaxFraction  => LEFT
++    private final float rightMinFraction;// x > width*rightMinFraction => RIGHT
++
++    private Side lastSide;
++    private long lastTimeMs;
++    private int streak;
++
++    public AlternatingTapUnlock() {
++        this(6, 700L, 0.40f, 0.60f);
++    }
++
++    public AlternatingTapUnlock(int requiredTaps, long maxIntervalMs,
++                                float leftMaxFraction, float rightMinFraction) {
++        this.requiredTaps = Math.max(2, requiredTaps);
++        this.maxIntervalMs = maxIntervalMs;
++        this.leftMaxFraction = leftMaxFraction;
++        this.rightMinFraction = rightMinFraction;
++    }
++
++    /** Classify a touch x-coordinate into a side, given the view width. */
++    public Side sideForX(float x, float width) {
++        if (width <= 0) return Side.MIDDLE;
++        float f = x / width;
++        if (f < leftMaxFraction) return Side.LEFT;
++        if (f > rightMinFraction) return Side.RIGHT;
++        return Side.MIDDLE;
++    }
++
++    /** Convenience: feed a raw tap; returns true if this tap completed the unlock gesture. */
++    public boolean onTap(long timeMs, float x, float width) {
++        return onTap(timeMs, sideForX(x, width));
++    }
++
++    /**
++     * Feed one tap.
++     *
++     * @return true if the unlock gesture just completed (and the recognizer has reset).
++     */
++    public boolean onTap(long timeMs, Side side) {
++        if (side == Side.MIDDLE) {
++            return false; // dead zone: ignore entirely
++        }
++
++        if (lastSide == null) {
++            streak = 1;
++            lastSide = side;
++            lastTimeMs = timeMs;
++            return false;
++        }
++
++        boolean opposite = side != lastSide;
++        boolean inTime = (timeMs - lastTimeMs) <= maxIntervalMs;
++
++        if (opposite && inTime) {
++            streak++;
++        } else {
++            streak = 1; // same side or too slow: restart the run at this tap
++        }
++
++        lastSide = side;
++        lastTimeMs = timeMs;
++
++        if (streak >= requiredTaps) {
++            reset();
++            return true;
++        }
++        return false;
++    }
++
++    /** Forget any in-progress gesture (e.g. when the overlay is (re)shown). */
++    public void reset() {
++        lastSide = null;
++        lastTimeMs = 0;
++        streak = 0;
++    }
++
++    /** For diagnostics/tests. */
++    public int currentStreak() {
++        return streak;
++    }
++}
+diff --git a/extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/catlock/CatLockOverlay.java b/extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/catlock/CatLockOverlay.java
+new file mode 100644
+index 0000000..2edf469
+--- /dev/null
++++ b/extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/catlock/CatLockOverlay.java
+@@ -0,0 +1,154 @@
++package app.morphe.extension.youtube.patches.catlock;
++
++import android.annotation.SuppressLint;
++import android.app.Activity;
++import android.content.Context;
++import android.content.ContextWrapper;
++import android.graphics.Color;
++import android.os.SystemClock;
++import android.view.Gravity;
++import android.view.MotionEvent;
++import android.view.View;
++import android.view.ViewGroup;
++import android.widget.FrameLayout;
++import android.widget.TextView;
++
++import androidx.annotation.Nullable;
++
++import java.lang.ref.WeakReference;
++
++import app.morphe.extension.shared.Logger;
++
++/**
++ * Cat Lock: a full-window, transparent overlay that swallows every touch so a cat playing with
++ * the phone can't accidentally swipe the video away, pause it, or navigate off — while the video
++ * keeps playing underneath. The overlay is dismissed only by the {@link AlternatingTapUnlock}
++ * gesture (quickly tapping alternating opposite sides of the screen).
++ *
++ * <p>The overlay is added to the Activity's decor view, so it covers the whole app UI. It stays
++ * fully transparent (birds stay visible) apart from a small unlock hint that fades out and
++ * reappears on each touch. It also keeps the screen awake while locked.
++ */
++public final class CatLockOverlay {
++
++    @Nullable
++    private static WeakReference<ViewGroup> rootRef;
++    @Nullable
++    private static View overlay;
++
++    public static boolean isLocked() {
++        return overlay != null;
++    }
++
++    /** Engage the lock. {@code anchor} is any view currently attached to the player Activity. */
++    public static void engage(View anchor) {
++        try {
++            if (isLocked()) return;
++            Activity activity = getActivity(anchor.getContext());
++            if (activity == null) {
++                Logger.printException(() -> "Cat lock: could not resolve Activity");
++                return;
++            }
++            ViewGroup root = (ViewGroup) activity.getWindow().getDecorView();
++            LockView v = new LockView(activity);
++            root.addView(v, new FrameLayout.LayoutParams(
++                    FrameLayout.LayoutParams.MATCH_PARENT,
++                    FrameLayout.LayoutParams.MATCH_PARENT));
++            v.setKeepScreenOn(true);
++            v.bringToFront();
++            overlay = v;
++            rootRef = new WeakReference<>(root);
++            Logger.printDebug(() -> "Cat lock engaged");
++        } catch (Exception ex) {
++            Logger.printException(() -> "Cat lock engage failure", ex);
++        }
++    }
++
++    static void disengage() {
++        try {
++            ViewGroup root = rootRef != null ? rootRef.get() : null;
++            if (root != null && overlay != null) {
++                root.removeView(overlay);
++            }
++            Logger.printDebug(() -> "Cat lock disengaged");
++        } catch (Exception ex) {
++            Logger.printException(() -> "Cat lock disengage failure", ex);
++        } finally {
++            overlay = null;
++            rootRef = null;
++        }
++    }
++
++    @Nullable
++    private static Activity getActivity(Context c) {
++        while (c instanceof ContextWrapper) {
++            if (c instanceof Activity) return (Activity) c;
++            c = ((ContextWrapper) c).getBaseContext();
++        }
++        return null;
++    }
++
++    @SuppressLint({"ViewConstructor", "SetTextI18n"})
++    private static final class LockView extends FrameLayout {
++        private final AlternatingTapUnlock unlock = new AlternatingTapUnlock();
++        private final TextView hint;
++
++        LockView(Context ctx) {
++            super(ctx);
++            setClickable(true);
++            setFocusable(true);
++            setBackgroundColor(Color.TRANSPARENT);
++
++            hint = new TextView(ctx);
++            hint.setText("🐾 Cat lock on — tap opposite sides quickly to unlock");
++            hint.setTextColor(0xEEFFFFFF);
++            hint.setTextSize(12f);
++            hint.setPadding(28, 14, 28, 14);
++            hint.setBackgroundColor(0x88000000);
++            FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
++                    FrameLayout.LayoutParams.WRAP_CONTENT,
++                    FrameLayout.LayoutParams.WRAP_CONTENT,
++                    Gravity.TOP | Gravity.CENTER_HORIZONTAL);
++            lp.topMargin = 96;
++            addView(hint, lp);
++            flashHint(null);
++        }
++
++        private void flashHint(@Nullable String text) {
++            if (text != null) hint.setText(text);
++            hint.animate().cancel();
++            hint.setAlpha(1f);
++            hint.animate().alpha(0f).setStartDelay(2500).setDuration(800).start();
++        }
++
++        @Override
++        public boolean onInterceptTouchEvent(MotionEvent ev) {
++            return true; // never let children/underlying views handle touches
++        }
++
++        @Override
++        public boolean onTouchEvent(MotionEvent event) {
++            final int action = event.getActionMasked();
++            // ACTION_POINTER_DOWN matters: tapping alternately with two thumbs usually
++            // overlaps touches, so the second thumb arrives as a POINTER_DOWN of the
++            // same gesture rather than a fresh ACTION_DOWN. Only counting ACTION_DOWN
++            // made two-thumb unlocking nearly impossible.
++            if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_POINTER_DOWN) {
++                float x = event.getX(event.getActionIndex());
++                boolean unlocked = unlock.onTap(SystemClock.uptimeMillis(), x, getWidth());
++                int streak = unlock.currentStreak();
++                if (unlocked) {
++                    performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS);
++                    disengage();
++                } else if (streak >= 2) {
++                    // Visible + haptic progress so a human can tell taps are registering.
++                    performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP);
++                    flashHint("🐾 " + streak + "/6");
++                } else {
++                    flashHint("🐾 Cat lock on — tap opposite sides quickly to unlock");
++                }
++            }
++            return true; // consume everything so YouTube never sees the touch
++        }
++    }
++}
+diff --git a/extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/components/BrainrotCommentFilter.java b/extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/components/BrainrotCommentFilter.java
+new file mode 100644
+index 0000000..787f73f
+--- /dev/null
++++ b/extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/components/BrainrotCommentFilter.java
+@@ -0,0 +1,51 @@
++package app.morphe.extension.youtube.patches.components;
++
++import app.morphe.extension.shared.patches.components.BufferAsciiStrings;
++import app.morphe.extension.shared.patches.components.ContextInterface;
++import app.morphe.extension.shared.patches.components.Filter;
++import app.morphe.extension.shared.patches.components.StringFilterGroup;
++import app.morphe.extension.youtube.settings.Settings;
++
++/**
++ * Hides "brainrot" spam comments — obfuscated, combinatorial reshuffles of a tiny meme
++ * vocabulary ("anti spiral viral", "anti anti spiral", "fix mojang bedrock", ...) — while
++ * keeping legitimate comments that merely mention those words. Detection logic lives in
++ * {@link BrainrotDetector}; this class only wires it into the Litho filter pipeline.
++ *
++ * <p>Registered on the {@code comment_thread.eml} component (the same path token the built-in
++ * "Hide comments by keywords" uses), so a filtered comment is dropped from the list and the
++ * next comment takes its place. Gated by {@link Settings#HIDE_BRAINROT_COMMENTS}.
++ */
++@SuppressWarnings("unused")
++public final class BrainrotCommentFilter extends Filter {
++
++    private final BrainrotDetector detector = new BrainrotDetector();
++    private final StringFilterGroup commentThread;
++
++    public BrainrotCommentFilter() {
++        commentThread = new StringFilterGroup(
++                Settings.HIDE_BRAINROT_COMMENTS,
++                // Expanded comment list items,
++                "comment_thread.eml",
++                // and the collapsed comment preview/teaser shown under the video.
++                "comments_entry_point_teaser",
++                "comments_entry_point_simplebox"
++        );
++
++        addPathCallbacks(commentThread);
++    }
++
++    @Override
++    public boolean isFiltered(ContextInterface contextInterface, String identifier, String accessibility,
++                              String path, byte[] buffer, BufferAsciiStrings asciiStrings,
++                              StringFilterGroup matchedGroup, FilterContentType contentType, int contentIndex) {
++        if (matchedGroup == commentThread) {
++            // asciiStrings holds the printable runs in the component buffer (the comment text,
++            // plus author/UI strings and layout identifiers). Evaluate each run separately so the
++            // surrounding noise doesn't dilute the comment-text run below the detection threshold.
++            return detector.shouldHideAnySegment(asciiStrings.getStrings());
++        }
++
++        return false;
++    }
++}
+diff --git a/extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/components/BrainrotDetector.java b/extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/components/BrainrotDetector.java
+new file mode 100644
+index 0000000..ede7d41
+--- /dev/null
++++ b/extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/components/BrainrotDetector.java
+@@ -0,0 +1,333 @@
++package app.morphe.extension.youtube.patches.components;
++
++import java.text.Normalizer;
++import java.util.ArrayList;
++import java.util.HashMap;
++import java.util.List;
++import java.util.Map;
++
++/**
++ * Pure, Android-free detection core for "brainrot" spam comments
++ * (e.g. "anti spiral viral", "anti anti spiral", "fix mojang bedrock" and endless
++ * obfuscated reshuffles of that tiny meme vocabulary).
++ *
++ * <p>Unlike a keyword blacklist, the spam is not a fixed phrase but a combinatorial
++ * mash-up of a small vocabulary, so we:
++ * <ol>
++ *   <li>de-obfuscate the text (NFKD, leetspeak/homoglyph folding, zero-width strip,
++ *       letter-spacing and concatenation splitting, repeat collapsing), then</li>
++ *   <li>score how much of the comment is meme vocabulary vs. real content and hide only
++ *       short, meme-dominated comments.</li>
++ * </ol>
++ * A substantive comment that merely mentions "anti-spiral" or "fix bedrock" is kept.
++ *
++ * <p>This class has no Android dependencies and is unit-testable in isolation
++ * (see {@code BrainrotDetectorSelfTest}). All tuning knobs are constructor parameters.
++ */
++public final class BrainrotDetector {
++
++    /** Weighted meme lexicon. Strong tokens (weight&gt;=2) stand alone; weak ones need a partner. */
++    private final Map<String, Integer> lexicon;
++
++    // Tuning knobs.
++    private final int hideWeight;       // summed meme weight that alone justifies hiding
++    private final double minDensity;    // meme tokens / total tokens
++    private final int maxRealContent;   // allowed substantive non-meme words
++    private final int maxTokens;        // "short comment" ceiling
++
++    public BrainrotDetector() {
++        this(defaultLexicon(), 3, 0.5, 2, 12);
++    }
++
++    public BrainrotDetector(Map<String, Integer> lexicon, int hideWeight,
++                            double minDensity, int maxRealContent, int maxTokens) {
++        this.lexicon = lexicon;
++        this.hideWeight = hideWeight;
++        this.minDensity = minDensity;
++        this.maxRealContent = maxRealContent;
++        this.maxTokens = maxTokens;
++    }
++
++    public static Map<String, Integer> defaultLexicon() {
++        Map<String, Integer> m = new HashMap<>();
++        m.put("spiral", 2);
++        m.put("mojang", 2);
++        m.put("bedrock", 2);
++        m.put("anti", 1);
++        m.put("viral", 1);
++        m.put("fix", 1);
++        return m;
++    }
++
++    /** Convenience entry point: true if the comment text should be hidden. */
++    public boolean shouldHide(String commentText) {
++        return evaluate(commentText).hide;
++    }
++
++    /**
++     * Evaluate delimited buffer text one segment at a time and hide if <b>any</b> segment is
++     * brainrot. A Litho component buffer yields many strings — the comment text, but also the
++     * author, "Reply"/"Like", timestamps and internal layout identifiers. Scoring the whole
++     * concatenation dilutes the meme density so real spam scores too low; scoring each segment
++     * in isolation keeps the comment-text segment (a full sentence stays one segment, since
++     * spaces are ASCII) separate from the surrounding noise.
++     *
++     * @param delimitedText {@code BufferAsciiStrings.getStrings()} output (segments joined by
++     *                      the {@code ❙} U+2759 delimiter).
++     */
++    public boolean shouldHideAnySegment(String delimitedText) {
++        if (delimitedText == null || delimitedText.isEmpty()) return false;
++        for (String segment : delimitedText.split("[❙\\n\\r]+")) {
++            if (shouldHide(segment)) return true;
++        }
++        return false;
++    }
++
++    // ---- normalization -------------------------------------------------------
++
++    /** Per-char homoglyph / leetspeak folding to a base latin letter. */
++    private static char fold(char c) {
++        switch (c) {
++            case '0': return 'o';
++            case '1': case '|': case '!': return 'i';
++            case '3': return 'e';
++            case '4': case '@': return 'a';
++            case '5': case '$': return 's';
++            case '7': return 't';
++            case '8': return 'b';
++            case '9': return 'g';
++            // common cyrillic / greek look-alikes
++            case 'а': return 'a'; // а
++            case 'е': return 'e'; // е
++            case 'о': return 'o'; // о
++            case 'р': return 'p'; // р
++            case 'с': return 'c'; // с
++            case 'х': return 'x'; // х
++            case 'ѕ': return 's'; // ѕ
++            case 'α': return 'a'; // α
++            case 'ο': return 'o'; // ο
++            default: return c;
++        }
++    }
++
++    /** 3+ repeats of a letter -&gt; 1 (obfuscation); 1-2 repeats kept (legit doubles). */
++    private static String capRuns(String s) {
++        StringBuilder sb = new StringBuilder(s.length());
++        int i = 0;
++        while (i < s.length()) {
++            char c = s.charAt(i);
++            int j = i;
++            while (j < s.length() && s.charAt(j) == c) j++;
++            int len = j - i;
++            sb.append(c);
++            if (len == 2) sb.append(c); // keep legit doubles, collapse 3+ to 1
++            i = j;
++        }
++        return sb.toString();
++    }
++
++    /** Result of normalization: word tokens plus whether obfuscation was observed. */
++    static final class Norm {
++        final List<String> tokens = new ArrayList<>();
++        boolean obfuscated; // leet/homoglyph fold, letter-spacing, concatenation, or repeats seen
++    }
++
++    Norm normalize(String text) {
++        Norm n = new Norm();
++        if (text == null) return n;
++
++        // 1. Unicode NFKD, drop combining marks and zero-width chars, fold look-alikes.
++        String d = Normalizer.normalize(text, Normalizer.Form.NFKD);
++        StringBuilder cleaned = new StringBuilder(d.length());
++        for (int i = 0; i < d.length(); i++) {
++            char c = d.charAt(i);
++            int type = Character.getType(c);
++            if (type == Character.NON_SPACING_MARK || type == Character.ENCLOSING_MARK
++                    || c == '​' || c == '‌' || c == '‍' || c == '﻿') {
++                continue; // strip combining / zero-width
++            }
++            char lower = Character.toLowerCase(c);
++            char f = fold(lower);
++            if (f != lower) n.obfuscated = true;
++            if (f >= 'a' && f <= 'z') {
++                cleaned.append(f);
++            } else {
++                cleaned.append(' '); // any non-letter becomes a boundary
++            }
++        }
++
++        // 2. Tokenize on whitespace.
++        String[] raw = cleaned.toString().trim().split("\\s+");
++
++        // 3. Coalesce runs of single-letter tokens (defeats "s p i r a l"); a coalesced
++        //    blob is known-obfuscated, so segment it into lexicon words unconditionally.
++        List<String> merged = new ArrayList<>();
++        StringBuilder acc = new StringBuilder();
++        int singleRun = 0;
++        for (String t : raw) {
++            if (t.isEmpty()) continue;
++            if (t.length() == 1) {
++                acc.append(t);
++                singleRun++;
++            } else {
++                flushSingles(merged, acc, singleRun, n);
++                acc.setLength(0);
++                singleRun = 0;
++                merged.add(t);
++            }
++        }
++        flushSingles(merged, acc, singleRun, n);
++
++        // 4. Collapse obfuscation-repeats, then split deliberate concatenations
++        //    ("fixmojangbedrock", "antispiral") back into meme words when clearly spam.
++        for (String t : merged) {
++            String capped = capRuns(t);
++            if (!capped.equals(t)) n.obfuscated = true;
++            List<String> seg = segment(capped);
++            if (seg != null && (seg.size() >= 3 || containsStrong(seg))) {
++                n.tokens.addAll(seg);
++                n.obfuscated = true;
++            } else {
++                n.tokens.add(capped);
++            }
++        }
++        return n;
++    }
++
++    private void flushSingles(List<String> out, StringBuilder acc, int singleRun, Norm n) {
++        if (singleRun >= 3) {
++            String blob = capRuns(acc.toString());
++            List<String> seg = segment(blob);
++            if (seg != null) out.addAll(seg);
++            else out.add(blob);
++            n.obfuscated = true;
++        } else if (acc.length() > 0) {
++            for (char c : acc.toString().toCharArray()) out.add(String.valueOf(c));
++        }
++    }
++
++    /** Greedy longest-match segmentation of a token fully into lexicon words, else null. */
++    private List<String> segment(String token) {
++        if (token.length() < 4) return null;
++        if (lexicon.containsKey(token)) return null; // already a single meme word
++        List<String> out = new ArrayList<>();
++        int i = 0;
++        while (i < token.length()) {
++            String best = null;
++            for (String w : lexicon.keySet()) {
++                if (token.startsWith(w, i) && (best == null || w.length() > best.length())) best = w;
++            }
++            if (best == null) return null; // not fully segmentable
++            out.add(best);
++            i += best.length();
++        }
++        return out.size() >= 2 ? out : null;
++    }
++
++    private boolean containsStrong(List<String> seg) {
++        for (String w : seg) if (lexicon.getOrDefault(w, 0) >= 2) return true;
++        return false;
++    }
++
++    // ---- lexicon matching ----------------------------------------------------
++
++    private static boolean hasVowel(String t) {
++        for (int i = 0; i < t.length(); i++) if ("aeiou".indexOf(t.charAt(i)) >= 0) return true;
++        return false;
++    }
++
++    /** @return 0 if within 1 edit, else &gt;1. */
++    private static int editDistanceLE1(String a, String b) {
++        if (a.equals(b)) return 0;
++        int la = a.length(), lb = b.length();
++        if (Math.abs(la - lb) > 1) return 2;
++        int i = 0, j = 0, edits = 0;
++        while (i < la && j < lb) {
++            if (a.charAt(i) == b.charAt(j)) { i++; j++; continue; }
++            if (++edits > 1) return 2;
++            if (la > lb) i++;
++            else if (lb > la) j++;
++            else { i++; j++; }
++        }
++        if (i < la || j < lb) edits++;
++        return edits <= 1 ? 1 : 2;
++    }
++
++    /** @return lexicon weight of token, or 0 if not a meme token. */
++    private int lexWeight(String token) {
++        Integer w = lexicon.get(token);
++        if (w != null) return w;
++        if (token.length() >= 5) { // tolerate one leftover typo/obfuscation char on longer words
++            for (Map.Entry<String, Integer> e : lexicon.entrySet()) {
++                if (e.getKey().length() >= 5 && editDistanceLE1(token, e.getKey()) <= 1) return e.getValue();
++            }
++        }
++        return 0;
++    }
++
++    private String canonicalMeme(String t) {
++        if (lexicon.containsKey(t)) return t;
++        if (t.length() >= 5) {
++            for (String k : lexicon.keySet()) {
++                if (k.length() >= 5 && editDistanceLE1(t, k) <= 1) return k;
++            }
++        }
++        return t;
++    }
++
++    // ---- decision ------------------------------------------------------------
++
++    public static final class Verdict {
++        public final boolean hide;
++        public final String reason;
++
++        Verdict(boolean hide, String reason) {
++            this.hide = hide;
++            this.reason = reason;
++        }
++
++        @Override
++        public String toString() {
++            return (hide ? "HIDE" : "keep") + " (" + reason + ")";
++        }
++    }
++
++    public Verdict evaluate(String comment) {
++        Norm n = normalize(comment);
++        int total = n.tokens.size();
++        if (total == 0) return new Verdict(false, "empty");
++
++        int weight = 0, memeCount = 0, realContent = 0;
++        Map<String, Integer> memeCounts = new HashMap<>();
++        for (String t : n.tokens) {
++            int w = lexWeight(t);
++            if (w > 0) {
++                weight += w;
++                memeCount++;
++                memeCounts.merge(canonicalMeme(t), 1, Integer::sum);
++            } else if (t.length() >= 3 && hasVowel(t)) {
++                realContent++; // a substantive-looking word
++            }
++        }
++        int distinctMeme = memeCounts.size();
++        if (distinctMeme == 0) return new Verdict(false, "no meme tokens");
++
++        boolean repetition = memeCounts.values().stream().anyMatch(c -> c >= 2);
++        double density = (double) memeCount / total;
++
++        boolean shortAndDominant = total <= maxTokens
++                && density >= minDensity
++                && realContent <= maxRealContent;
++
++        boolean strongSignal = weight >= hideWeight
++                || distinctMeme >= 2
++                || repetition
++                || n.obfuscated;
++
++        boolean hide = shortAndDominant && strongSignal;
++        String reason = String.format(
++                "tokens=%d meme=%d distinct=%d weight=%d density=%.2f real=%d rep=%b obf=%b",
++                total, memeCount, distinctMeme, weight, density, realContent, repetition, n.obfuscated);
++        return new Verdict(hide, reason);
++    }
++}
+diff --git a/extensions/youtube/src/main/java/app/morphe/extension/youtube/settings/Settings.java b/extensions/youtube/src/main/java/app/morphe/extension/youtube/settings/Settings.java
+index 17a2a2e..5b5be41 100644
+--- a/extensions/youtube/src/main/java/app/morphe/extension/youtube/settings/Settings.java
++++ b/extensions/youtube/src/main/java/app/morphe/extension/youtube/settings/Settings.java
+@@ -222,6 +222,7 @@ public class Settings extends SharedYouTubeSettings {
+     public static final BooleanSetting SANITIZE_VIDEO_SUBTITLE = new BooleanSetting("morphe_sanitize_video_subtitle", FALSE);
+ 
+     // Overlay buttons
++    public static final BooleanSetting CAT_LOCK_BUTTON = new BooleanSetting("morphe_cat_lock_button", FALSE, true);
+     public static final BooleanSetting COPY_VIDEO_LINK_BUTTON = new BooleanSetting("morphe_copy_video_link_button", FALSE, true);
+     public static final BooleanSetting COPY_VIDEO_LINK_WITH_TIMESTAMP_BUTTON = new BooleanSetting("morphe_copy_video_link_with_timestamp_button", TRUE, true, parent(COPY_VIDEO_LINK_BUTTON));
+     public static final BooleanSetting HIDE_AUTOPLAY_BUTTON = new BooleanSetting("morphe_hide_autoplay_button", TRUE, true);
+@@ -299,6 +300,7 @@ public class Settings extends SharedYouTubeSettings {
+     public static final BooleanSetting HIDE_COMMENTS_GIFT_ANIMATION_AND_CARDS = new BooleanSetting("morphe_hide_comments_gift_animation_and_cards", FALSE);
+     public static final BooleanSetting HIDE_COMMENTS_GIFT_BUTTON = new BooleanSetting("morphe_hide_comments_gift_button", TRUE, true);
+     public static final BooleanSetting HIDE_COMMENTS_INFO_BUTTON = new BooleanSetting("morphe_hide_comments_info_button", FALSE, true);
++    public static final BooleanSetting HIDE_BRAINROT_COMMENTS = new BooleanSetting("morphe_hide_brainrot_comments", TRUE);
+     public static final BooleanSetting HIDE_COMMENTS_LIVE_CHAT_DONATORS_BAR = new BooleanSetting("morphe_hide_comments_live_chat_donators_bar", FALSE, true);
+     public static final BooleanSetting HIDE_COMMENTS_PREVIEW_COMMENT = new BooleanSetting("morphe_hide_comments_preview_comment", FALSE);
+     public static final BooleanSetting HIDE_COMMENTS_PROMPTS = new BooleanSetting("morphe_hide_comments_prompts", FALSE);
+diff --git a/extensions/youtube/src/main/java/app/morphe/extension/youtube/swipecontrols/SwipeControlsHostActivity.kt b/extensions/youtube/src/main/java/app/morphe/extension/youtube/swipecontrols/SwipeControlsHostActivity.kt
+index 9c78b57..b73db02 100644
+--- a/extensions/youtube/src/main/java/app/morphe/extension/youtube/swipecontrols/SwipeControlsHostActivity.kt
++++ b/extensions/youtube/src/main/java/app/morphe/extension/youtube/swipecontrols/SwipeControlsHostActivity.kt
+@@ -10,6 +10,7 @@ import android.view.WindowInsets
+ import app.morphe.extension.shared.Logger.printDebug
+ import app.morphe.extension.shared.Logger.printException
+ import app.morphe.extension.youtube.patches.VersionCheckPatch
++import app.morphe.extension.youtube.patches.catlock.CatLockOverlay
+ import app.morphe.extension.youtube.settings.Settings
+ import app.morphe.extension.youtube.shared.PlayerType
+ import app.morphe.extension.youtube.swipecontrols.controller.AudioVolumeController
+@@ -88,7 +89,10 @@ class SwipeControlsHostActivity : Activity() {
+ 
+     override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
+         ensureInitialized()
+-        return if ((ev != null) && gesture.submitTouchEvent(ev)) {
++        // Cat lock: swipe controls act at the Activity level, before the view hierarchy,
++        // so they would react to brightness/volume swipes even while the lock overlay is
++        // shown. Step aside while locked; the overlay view then consumes the event.
++        return if ((ev != null) && !CatLockOverlay.isLocked() && gesture.submitTouchEvent(ev)) {
+             true
+         } else {
+             super.dispatchTouchEvent(ev)
+diff --git a/extensions/youtube/src/main/java/app/morphe/extension/youtube/videoplayer/CatLockButton.java b/extensions/youtube/src/main/java/app/morphe/extension/youtube/videoplayer/CatLockButton.java
+new file mode 100644
+index 0000000..3c366d0
+--- /dev/null
++++ b/extensions/youtube/src/main/java/app/morphe/extension/youtube/videoplayer/CatLockButton.java
+@@ -0,0 +1,71 @@
++package app.morphe.extension.youtube.videoplayer;
++
++import android.view.View;
++
++import androidx.annotation.Nullable;
++
++import app.morphe.extension.shared.Logger;
++import app.morphe.extension.youtube.patches.catlock.CatLockOverlay;
++import app.morphe.extension.youtube.settings.Settings;
++
++/**
++ * Top player-controls button that engages {@link CatLockOverlay}. Mirrors the other Morphe
++ * player-overlay buttons (e.g. ExternalDownloadButton) so it rides the same initialize/visibility
++ * injection points.
++ */
++@SuppressWarnings("unused")
++public class CatLockButton {
++
++    static {
++        if (Settings.CAT_LOCK_BUTTON.get()) {
++            LegacyPlayerControlButton.incrementUpperButtonCount();
++        }
++    }
++
++    @Nullable
++    private static LegacyPlayerControlButton legacy;
++
++    /**
++     * Injection point.
++     */
++    public static void initializeLegacyButton(View controlsView) {
++        try {
++            legacy = new LegacyPlayerControlButton(
++                    controlsView,
++                    "morphe_cat_lock_button",
++                    null,
++                    "morphe_yt_cat_lock_button",
++                    Settings.CAT_LOCK_BUTTON::get,
++                    CatLockButton::onClick,
++                    null
++            );
++        } catch (Exception ex) {
++            Logger.printException(() -> "Cat lock initializeButton failure", ex);
++        }
++    }
++
++    /**
++     * Injection point.
++     */
++    public static void setVisibilityNegatedImmediate() {
++        if (legacy != null) legacy.setVisibilityNegatedImmediate();
++    }
++
++    /**
++     * Injection point.
++     */
++    public static void setVisibilityImmediate(boolean visible) {
++        if (legacy != null) legacy.setVisibilityImmediate(visible);
++    }
++
++    /**
++     * Injection point.
++     */
++    public static void setVisibility(boolean visible, boolean animated) {
++        if (legacy != null) legacy.setVisibility(visible, animated);
++    }
++
++    private static void onClick(View view) {
++        CatLockOverlay.engage(view);
++    }
++}
+diff --git a/extensions/youtube/src/test/java/app/morphe/extension/youtube/patches/catlock/AlternatingTapUnlockSelfTest.java b/extensions/youtube/src/test/java/app/morphe/extension/youtube/patches/catlock/AlternatingTapUnlockSelfTest.java
+new file mode 100644
+index 0000000..ecccdb9
+--- /dev/null
++++ b/extensions/youtube/src/test/java/app/morphe/extension/youtube/patches/catlock/AlternatingTapUnlockSelfTest.java
+@@ -0,0 +1,65 @@
++package app.morphe.extension.youtube.patches.catlock;
++
++import app.morphe.extension.youtube.patches.catlock.AlternatingTapUnlock.Side;
++
++/**
++ * Dependency-free self-test for {@link AlternatingTapUnlock}. Runs with a plain JDK:
++ *
++ * <pre>
++ *   cd extensions/youtube/src
++ *   javac main/java/app/morphe/extension/youtube/patches/catlock/AlternatingTapUnlock.java -d /tmp/cl
++ *   javac -cp /tmp/cl test/java/app/morphe/extension/youtube/patches/catlock/AlternatingTapUnlockSelfTest.java -d /tmp/cl
++ *   java  -cp /tmp/cl app.morphe.extension.youtube.patches.catlock.AlternatingTapUnlockSelfTest
++ * </pre>
++ */
++public final class AlternatingTapUnlockSelfTest {
++    private static int pass = 0, fail = 0;
++
++    private static void check(boolean cond, String name) {
++        if (cond) pass++; else fail++;
++        System.out.printf("%s  %s%n", cond ? "PASS" : "FAIL", name);
++    }
++
++    /** Feed a side sequence at a fixed cadence; return true if unlock fires on any tap. */
++    private static boolean feed(AlternatingTapUnlock u, long stepMs, Side... sides) {
++        long t = 1000;
++        boolean fired = false;
++        for (Side s : sides) {
++            fired |= u.onTap(t, s);
++            t += stepMs;
++        }
++        return fired;
++    }
++
++    public static void main(String[] args) {
++        Side L = Side.LEFT, R = Side.RIGHT, M = Side.MIDDLE;
++
++        // --- SHOULD UNLOCK ---
++        check(feed(new AlternatingTapUnlock(), 150, L, R, L, R, L, R), "fast L-R x6 unlocks");
++        check(feed(new AlternatingTapUnlock(), 150, R, L, R, L, R, L), "fast R-L x6 unlocks");
++        check(feed(new AlternatingTapUnlock(), 300, L, R, L, R, L, R), "300ms cadence still within window");
++        // middle taps interspersed are ignored, real alternations still count
++        check(feed(new AlternatingTapUnlock(), 150, L, M, R, M, L, R, L, R), "middle taps ignored, still unlocks");
++
++        // --- SHOULD NOT UNLOCK ---
++        check(!feed(new AlternatingTapUnlock(), 150, L, L, L, L, L, L, L, L), "same side (cat pawing) never unlocks");
++        check(!feed(new AlternatingTapUnlock(), 150, L, R, L, L, R, L), "a same-side break resets the run");
++        check(!feed(new AlternatingTapUnlock(), 1500, L, R, L, R, L, R), "too-slow alternation never unlocks");
++        check(!feed(new AlternatingTapUnlock(), 150, L, R, L, R, L), "only 5 taps (need 6) does not unlock");
++        check(!feed(new AlternatingTapUnlock(), 150, M, M, M, M, M, M), "all middle taps never unlock");
++
++        // --- recovery: a broken run followed by a clean run unlocks ---
++        AlternatingTapUnlock u = new AlternatingTapUnlock();
++        feed(u, 150, L, L, L);                 // garbage
++        boolean later = feed(u, 150, R, L, R, L, R, L); // clean run after
++        check(later, "clean run after garbage still unlocks");
++
++        // --- sideForX zoning ---
++        AlternatingTapUnlock z = new AlternatingTapUnlock();
++        check(z.sideForX(50, 1000) == L && z.sideForX(950, 1000) == R && z.sideForX(500, 1000) == M,
++                "sideForX zones left/right/middle correctly");
++
++        System.out.printf("%nRESULT: %d passed, %d failed%n", pass, fail);
++        if (fail > 0) System.exit(1);
++    }
++}
+diff --git a/extensions/youtube/src/test/java/app/morphe/extension/youtube/patches/components/BrainrotDetectorSelfTest.java b/extensions/youtube/src/test/java/app/morphe/extension/youtube/patches/components/BrainrotDetectorSelfTest.java
+new file mode 100644
+index 0000000..1f8946a
+--- /dev/null
++++ b/extensions/youtube/src/test/java/app/morphe/extension/youtube/patches/components/BrainrotDetectorSelfTest.java
+@@ -0,0 +1,89 @@
++package app.morphe.extension.youtube.patches.components;
++
++/**
++ * Dependency-free self-test for {@link BrainrotDetector}. Runs with a plain JDK, no Gradle or
++ * JUnit required:
++ *
++ * <pre>
++ *   cd extensions/youtube/src
++ *   javac main/java/app/morphe/extension/youtube/patches/components/BrainrotDetector.java -d /tmp/bd
++ *   javac -cp /tmp/bd test/java/app/morphe/extension/youtube/patches/components/BrainrotDetectorSelfTest.java -d /tmp/bd
++ *   java  -cp /tmp/bd app.morphe.extension.youtube.patches.components.BrainrotDetectorSelfTest
++ * </pre>
++ *
++ * Exits non-zero if any case fails.
++ */
++public final class BrainrotDetectorSelfTest {
++    private static int pass = 0, fail = 0;
++
++    private static void check(BrainrotDetector d, boolean expectHide, String comment) {
++        BrainrotDetector.Verdict v = d.evaluate(comment);
++        boolean ok = v.hide == expectHide;
++        if (ok) pass++; else fail++;
++        System.out.printf("%s  expect=%-4s got=%-4s | %-42s | %s%n",
++                ok ? "PASS" : "FAIL",
++                expectHide ? "HIDE" : "keep",
++                v.hide ? "HIDE" : "keep",
++                comment.length() > 42 ? comment.substring(0, 39) + "..." : comment,
++                v.reason);
++    }
++
++    private static void checkSeg(BrainrotDetector d, boolean expectHide, String delimited) {
++        boolean got = d.shouldHideAnySegment(delimited);
++        boolean ok = got == expectHide;
++        if (ok) pass++; else fail++;
++        System.out.printf("%s  expect=%-4s got=%-4s | %s%n",
++                ok ? "PASS" : "FAIL",
++                expectHide ? "HIDE" : "keep",
++                got ? "HIDE" : "keep",
++                delimited.length() > 60 ? delimited.substring(0, 57) + "..." : delimited);
++    }
++
++    public static void main(String[] args) {
++        BrainrotDetector d = new BrainrotDetector();
++
++        System.out.println("=== SHOULD HIDE (brainrot spam) ===");
++        check(d, true, "anti spiral");
++        check(d, true, "fix mojang bedrock");
++        check(d, true, "anti spiral viral");
++        check(d, true, "anti viral");
++        check(d, true, "anti anti spiral");
++        check(d, true, "anti spiral anti viral spiral");
++        check(d, true, "FIX MOJANG BEDROCK");
++        check(d, true, "f1x m0jang b3dr0ck");
++        check(d, true, "🅰nti sp1ral");
++        check(d, true, "s p i r a l");
++        check(d, true, "a n t i  s p i r a l");
++        check(d, true, "antiiii spiraaaal");
++        check(d, true, "anti-spiral!!!");
++        check(d, true, "fix bedrock mojang fix bedrock");
++
++        System.out.println();
++        System.out.println("=== SHOULD KEEP (legit comments) ===");
++        check(d, false, "the anti-spiral arc was peak animation honestly");
++        check(d, false, "fix bedrock please mojang the redstone is broken");
++        check(d, false, "i love how the spiral power scales in this fight");
++        check(d, false, "this antiviral medication actually worked for me");
++        check(d, false, "mojang really needs to fix the bedrock parity issues with java redstone");
++        check(d, false, "great video, the editing on this is insane");
++        check(d, false, "anti");
++        check(d, false, "the bedrock of this community is the modders who fix everything");
++
++        System.out.println();
++        System.out.println("=== shouldHideAnySegment (real buffer: comment text + surrounding noise) ===");
++        // '❙' (U+2759) is the delimiter BufferAsciiStrings.getStrings() joins runs with.
++        final String X = "❙";
++        // The exact failure from the screenshot: pure brainrot comment amid author/UI/layout runs.
++        checkSeg(d, true, "FIX MOJANG BEDROCK" + X + "SomeUser" + X + "Reply" + X + "Like" + X + "comment_thread.eml");
++        checkSeg(d, true, "CoolUser" + X + "anti spiral viral" + X + "Reply" + X + "1.2K" + X + "comments_entry_point_teaser");
++        // Legit comment mentioning the words, surrounded by the same noise -> must NOT hide.
++        checkSeg(d, false, "the anti-spiral arc was peak animation honestly" + X + "GurrenFan" + X + "Reply" + X + "comment_thread.eml");
++        checkSeg(d, false, "mojang really needs to fix the bedrock parity issues" + X + "RedstoneNerd" + X + "Reply");
++        // Buffer with no comment-text brainrot at all -> keep.
++        checkSeg(d, false, "great video" + X + "SpiralStudios" + X + "Reply" + X + "Like" + X + "comment_thread.eml");
++
++        System.out.println();
++        System.out.printf("RESULT: %d passed, %d failed%n", pass, fail);
++        if (fail > 0) System.exit(1);
++    }
++}
+diff --git a/patches/build.gradle.kts b/patches/build.gradle.kts
+index 392e0e5..2b6a57f 100644
+--- a/patches/build.gradle.kts
++++ b/patches/build.gradle.kts
+@@ -2,12 +2,12 @@ group = "app.morphe"
+ 
+ patches {
+     about {
+-        name = "Morphe Patches"
+-        description = "Patches for Morphe"
+-        source = "git@github.com:MorpheApp/morphe-patches.git"
+-        author = "MorpheApp"
++        name = "variablenine Patches"
++        description = "Personal fork of Morphe Patches, adding a smarter YouTube brainrot-comment filter"
++        source = "git@github.com:variablenine/morphe-patches.git"
++        author = "variablenine (fork of MorpheApp)"
+         contact = "na"
+-        website = "https://morphe.software"
++        website = "na"
+         license = "GNU General Public License v3.0, with additional GPL section 7 requirements"
+     }
+ }
+diff --git a/patches/src/main/kotlin/app/morphe/patches/youtube/interaction/catlock/CatLockPatch.kt b/patches/src/main/kotlin/app/morphe/patches/youtube/interaction/catlock/CatLockPatch.kt
+new file mode 100644
+index 0000000..0e0013f
+--- /dev/null
++++ b/patches/src/main/kotlin/app/morphe/patches/youtube/interaction/catlock/CatLockPatch.kt
+@@ -0,0 +1,68 @@
++package app.morphe.patches.youtube.interaction.catlock
++
++import app.morphe.patcher.patch.bytecodePatch
++import app.morphe.patcher.patch.resourcePatch
++import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
++import app.morphe.patches.youtube.misc.playercontrols.addTopControl
++import app.morphe.patches.youtube.misc.playercontrols.initializeTopControl
++import app.morphe.patches.youtube.misc.playercontrols.injectVisibilityCheckCall
++import app.morphe.patches.youtube.misc.playercontrols.legacyPlayerControlsPatch
++import app.morphe.patches.youtube.misc.settings.PreferenceScreen
++import app.morphe.patches.youtube.misc.settings.settingsPatch
++import app.morphe.patches.youtube.shared.Constants.COMPATIBILITY_YOUTUBE
++import app.morphe.util.ResourceGroup
++import app.morphe.util.copyResources
++
++private val catLockResourcePatch = resourcePatch {
++    dependsOn(
++        legacyPlayerControlsPatch,
++        settingsPatch,
++    )
++
++    execute {
++        PreferenceScreen.PLAYER.addPreferences(
++            SwitchPreference("morphe_cat_lock_button", summary = true),
++        )
++
++        copyResources(
++            "catlock",
++            ResourceGroup(
++                "drawable",
++                "morphe_yt_cat_lock_button.xml",
++                "morphe_yt_cat_lock_button_bold.xml",
++            ),
++        )
++    }
++
++    finalize {
++        addTopControl(
++            "catlock",
++            "@+id/morphe_cat_lock_button",
++            "@+id/morphe_cat_lock_button",
++        )
++    }
++}
++
++private const val EXTENSION_BUTTON = "Lapp/morphe/extension/youtube/videoplayer/CatLockButton;"
++
++@Suppress("unused")
++val catLockPatch = bytecodePatch(
++    name = "Cat lock",
++    description = "Adds a cat button to the video player that locks the screen so a pet can watch " +
++        "without accidentally swiping the video away; unlock by quickly tapping alternating " +
++        "opposite sides of the screen.",
++) {
++    dependsOn(
++        catLockResourcePatch,
++        legacyPlayerControlsPatch,
++    )
++
++    compatibleWith(COMPATIBILITY_YOUTUBE)
++
++    execute {
++        // The button's click/visibility are handled entirely in the extension via
++        // LegacyPlayerControlButton, so only the initialize + visibility hooks are needed.
++        initializeTopControl(EXTENSION_BUTTON)
++        injectVisibilityCheckCall(EXTENSION_BUTTON)
++    }
++}
+diff --git a/patches/src/main/kotlin/app/morphe/patches/youtube/layout/hide/general/HideLayoutComponentsPatch.kt b/patches/src/main/kotlin/app/morphe/patches/youtube/layout/hide/general/HideLayoutComponentsPatch.kt
+index eb10e7e..76b6fa5 100644
+--- a/patches/src/main/kotlin/app/morphe/patches/youtube/layout/hide/general/HideLayoutComponentsPatch.kt
++++ b/patches/src/main/kotlin/app/morphe/patches/youtube/layout/hide/general/HideLayoutComponentsPatch.kt
+@@ -78,6 +78,8 @@ private const val DESCRIPTION_COMPONENTS_FILTER =
+     "Lapp/morphe/extension/youtube/patches/components/DescriptionComponentsFilter;"
+ private const val COMMENTS_FILTER =
+     "Lapp/morphe/extension/youtube/patches/components/CommentsFilter;"
++private const val BRAINROT_COMMENT_FILTER =
++    "Lapp/morphe/extension/youtube/patches/components/BrainrotCommentFilter;"
+ private const val CUSTOM_FILTER =
+     "Lapp/morphe/extension/youtube/patches/components/CustomFilter;"
+ private const val KEYWORD_FILTER =
+@@ -155,6 +157,7 @@ val hideLayoutComponentsPatch = bytecodePatch(
+                             inputType = InputType.TEXT_MULTI_LINE
+                         )
+                     ),
++                    SwitchPreference("morphe_hide_brainrot_comments", summary = true),
+                     SwitchPreference("morphe_hide_comments_ai_chat_summary"),
+                     SwitchPreference("morphe_hide_comments_channel_guidelines"),
+                     SwitchPreference("morphe_hide_comments_prompts", summary = true),
+@@ -392,6 +395,7 @@ val hideLayoutComponentsPatch = bytecodePatch(
+         addLithoFilter(LAYOUT_COMPONENTS_FILTER)
+         addLithoFilter(DESCRIPTION_COMPONENTS_FILTER)
+         addLithoFilter(COMMENTS_FILTER)
++        addLithoFilter(BRAINROT_COMMENT_FILTER)
+         addLithoFilter(KEYWORD_FILTER)
+         addLithoFilter(AISLIST_FILTER)
+         addLithoFilter(CUSTOM_FILTER)
+diff --git a/patches/src/main/resources/addresources/values/youtube/strings.xml b/patches/src/main/resources/addresources/values/youtube/strings.xml
+index 3acb2ad..46f138e 100644
+--- a/patches/src/main/resources/addresources/values/youtube/strings.xml
++++ b/patches/src/main/resources/addresources/values/youtube/strings.xml
+@@ -208,6 +208,8 @@ Changes include:
+ • If all carousel items are hidden, the entire comments section will also be hidden"</string>
+     <string name="morphe_hide_comments_carousel_filter_strings_title">Comments carousel filter</string>
+     <string name="morphe_hide_comments_carousel_filter_strings_summary">Enter the comments carousel names to filter by, separated by new lines</string>
++    <string name="morphe_hide_brainrot_comments_title">Hide brainrot comments</string>
++    <string name="morphe_hide_brainrot_comments_summary">Hides low-effort meme spam comments (e.g. \"anti spiral viral\", \"fix mojang bedrock\" and obfuscated variants) while keeping genuine comments that mention those words</string>
+     <string name="morphe_hide_comments_ai_chat_summary_title">Hide AI chat summary</string>
+     <string name="morphe_hide_comments_channel_guidelines_title">Hide channel guidelines</string>
+     <string name="morphe_hide_comments_prompts_title">Hide comment prompts</string>
+@@ -321,6 +323,8 @@ Tap here to open AiSlopList.com and see downloads for other platforms"</string>
+     <!-- interaction.copyvideolink.copyVideoLinkButtonPatch -->
+     <string name="morphe_share_copy_link_button_success">Link copied to clipboard</string>
+     <string name="morphe_share_copy_link_with_timestamp_button_success">Link with timestamp copied to clipboard</string>
++    <string name="morphe_cat_lock_button_title">Show Cat lock button</string>
++    <string name="morphe_cat_lock_button_summary">Adds a cat button to the player that locks the screen so a pet can watch without swiping the video away. Unlock by quickly tapping alternating opposite sides of the screen.</string>
+     <string name="morphe_copy_video_link_button_title">Show Copy video link button</string>
+     <string name="morphe_copy_video_link_button_summary">Tap to copy the video link, tap and hold to copy with timestamp</string>
+     <string name="morphe_copy_video_link_with_timestamp_button_title">Copy timestamp by default</string>
+diff --git a/patches/src/main/resources/catlock/drawable/morphe_yt_cat_lock_button.xml b/patches/src/main/resources/catlock/drawable/morphe_yt_cat_lock_button.xml
+new file mode 100644
+index 0000000..8629ca8
+--- /dev/null
++++ b/patches/src/main/resources/catlock/drawable/morphe_yt_cat_lock_button.xml
+@@ -0,0 +1,39 @@
++<?xml version="1.0" encoding="utf-8"?>
++<vector xmlns:android="http://schemas.android.com/apk/res/android"
++    android:width="24dp"
++    android:height="24dp"
++    android:viewportWidth="24"
++    android:viewportHeight="24">
++
++    <!-- Head outline: rounded blob with soft ear tips, matching YouTube's
++         outline icon style (white stroke, round caps/joins, open interior). -->
++    <path
++        android:strokeColor="@android:color/white"
++        android:strokeWidth="1.9"
++        android:strokeLineCap="round"
++        android:strokeLineJoin="round"
++        android:pathData="M5.8,9.4
++            C5.5,8.0 5.4,6.2 6.0,4.9
++            C6.15,4.55 6.6,4.45 6.9,4.7
++            C8.0,5.6 9.0,6.3 10.0,6.7
++            C11.3,6.35 12.7,6.35 14.0,6.7
++            C15.0,6.3 16.0,5.6 17.1,4.7
++            C17.4,4.45 17.85,4.55 18.0,4.9
++            C18.6,6.2 18.5,8.0 18.2,9.4
++            C19.3,10.6 19.9,12.1 19.9,13.6
++            C19.9,17.0 16.4,19.6 12.0,19.6
++            C7.6,19.6 4.1,17.0 4.1,13.6
++            C4.1,12.1 4.7,10.6 5.8,9.4
++            Z" />
++    <path
++        android:fillColor="@android:color/white"
++        android:pathData="M9.2,12.7 m-1.1,0 a1.1,1.1 0 1 0 2.2,0 a1.1,1.1 0 1 0 -2.2,0 Z" />
++    <path
++        android:fillColor="@android:color/white"
++        android:pathData="M14.8,12.7 m-1.1,0 a1.1,1.1 0 1 0 2.2,0 a1.1,1.1 0 1 0 -2.2,0 Z" />
++    <path
++        android:strokeColor="@android:color/white"
++        android:strokeWidth="1.5"
++        android:strokeLineCap="round"
++        android:pathData="M9.9,15.9 C10.5,16.8 11.4,16.8 12.0,16.1 C12.6,16.8 13.5,16.8 14.1,15.9" />
++</vector>
+diff --git a/patches/src/main/resources/catlock/drawable/morphe_yt_cat_lock_button_bold.xml b/patches/src/main/resources/catlock/drawable/morphe_yt_cat_lock_button_bold.xml
+new file mode 100644
+index 0000000..c320a0f
+--- /dev/null
++++ b/patches/src/main/resources/catlock/drawable/morphe_yt_cat_lock_button_bold.xml
+@@ -0,0 +1,39 @@
++<?xml version="1.0" encoding="utf-8"?>
++<vector xmlns:android="http://schemas.android.com/apk/res/android"
++    android:width="24dp"
++    android:height="24dp"
++    android:viewportWidth="24"
++    android:viewportHeight="24">
++
++    <!-- Bold-icon variant: same cat face as morphe_yt_cat_lock_button,
++         thicker strokes to match YouTube's bold player icon setting. -->
++    <path
++        android:strokeColor="@android:color/white"
++        android:strokeWidth="2.4"
++        android:strokeLineCap="round"
++        android:strokeLineJoin="round"
++        android:pathData="M5.8,9.4
++            C5.5,8.0 5.4,6.2 6.0,4.9
++            C6.15,4.55 6.6,4.45 6.9,4.7
++            C8.0,5.6 9.0,6.3 10.0,6.7
++            C11.3,6.35 12.7,6.35 14.0,6.7
++            C15.0,6.3 16.0,5.6 17.1,4.7
++            C17.4,4.45 17.85,4.55 18.0,4.9
++            C18.6,6.2 18.5,8.0 18.2,9.4
++            C19.3,10.6 19.9,12.1 19.9,13.6
++            C19.9,17.0 16.4,19.6 12.0,19.6
++            C7.6,19.6 4.1,17.0 4.1,13.6
++            C4.1,12.1 4.7,10.6 5.8,9.4
++            Z" />
++    <path
++        android:fillColor="@android:color/white"
++        android:pathData="M9.2,12.7 m-1.2,0 a1.2,1.2 0 1 0 2.4,0 a1.2,1.2 0 1 0 -2.4,0 Z" />
++    <path
++        android:fillColor="@android:color/white"
++        android:pathData="M14.8,12.7 m-1.2,0 a1.2,1.2 0 1 0 2.4,0 a1.2,1.2 0 1 0 -2.4,0 Z" />
++    <path
++        android:strokeColor="@android:color/white"
++        android:strokeWidth="1.9"
++        android:strokeLineCap="round"
++        android:pathData="M9.9,15.9 C10.5,16.8 11.4,16.8 12.0,16.1 C12.6,16.8 13.5,16.8 14.1,15.9" />
++</vector>
+diff --git a/patches/src/main/resources/catlock/host/layout/youtube_controls_layout.xml b/patches/src/main/resources/catlock/host/layout/youtube_controls_layout.xml
+new file mode 100644
+index 0000000..33814e4
+--- /dev/null
++++ b/patches/src/main/resources/catlock/host/layout/youtube_controls_layout.xml
+@@ -0,0 +1,15 @@
++<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android">
++
++    <com.google.android.libraries.youtube.common.ui.TouchImageView
++        android:id="@+id/morphe_cat_lock_button"
++        style="@style/YouTubePlayerButton"
++        android:layout_width="@dimen/controls_overlay_action_button_size"
++        android:layout_height="@dimen/controls_overlay_action_button_size"
++        android:layout_alignWithParentIfMissing="true"
++        android:layout_alignParentTop="true"
++        android:layout_marginTop="2dp"
++        android:layout_marginEnd="0dp"
++        android:layout_toStartOf="@id/morphe_external_download_button"
++        android:padding="@dimen/controls_overlay_action_button_padding"
++        android:src="@drawable/morphe_yt_cat_lock_button_bold" />
++</RelativeLayout>

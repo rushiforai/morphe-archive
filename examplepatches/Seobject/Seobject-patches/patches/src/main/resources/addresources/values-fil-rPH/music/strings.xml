@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    Strings with new lines must be raw strings where they're wrapped in quotes and new lines are not encoded.
+    Raw strings still requires escaping embedded double quotes but escaping embedded single quotes is optional.
+
+    Raw strings are required because Crowdin AI translations regularly gets confused and
+    replace \n with an encoded new line character.
+
+    Bad:
+        <string name="summary_key">First \'item\' text\nSecond \"item\" text</string>
+
+    Good:
+        <string name="summary_key">"First 'item' text
+Second \"item\" text"</string>
+
+-->
+<resources>
+  <!-- layout.branding.customBrandingPatch -->
+  <!-- layout.branding.header.changeHeaderPatch -->
+  <string name="morphe_header_logo_title">Logo ng Header</string>
+  <string name="morphe_header_logo_entry_1">Panimula</string>
+  <string name="morphe_header_logo_entry_3">Pasadya</string>
+  <!-- interaction.downloads.downloadsPatch -->
+  <string name="morphe_external_downloader_screen_summary">I-download ang mga music video, podcast, o kanta gamit ang mga app sa pag-download mula sa third-party</string>
+  <string name="morphe_external_downloader_action_button_title">Palitan ang aksyon ng Pag-download na buton</string>
+  <string name="morphe_external_downloader_action_button_summary">Pinapalitan ang built-in na function ng pag-download ng YouTube Music sa iyong panlabas na downloader</string>
+  <!-- misc.settings.settingsPatch -->
+  <!-- In languages where "About" is ambiguous, translate this as "About Morphe" (i.e., About this app). -->
+  <string name="morphe_settings_music_screen_0_about_title">Tungkol sa</string>
+  <string name="morphe_settings_music_screen_1_ads_title">Patalastas</string>
+  <string name="morphe_settings_music_screen_2_general_title">Pangkalahatan</string>
+  <string name="morphe_settings_music_screen_3_player_title">Manlalaro</string>
+  <string name="morphe_settings_music_screen_6_misc_title">Mga sari-sari</string>
+  <!-- ad.hideAdsPatch -->
+  <string name="morphe_music_hide_get_premium_label_title">Itago ang \'Kumuha ng Music Premium\' na tatak</string>
+  <string name="morphe_music_hide_video_ads_title">Itago ang mga patalastas sa video</string>
+  <!-- interaction.crossfade.crossfadePatch -->
+  <string name="morphe_music_crossfade_screen_title">Crossfade</string>
+  <string name="morphe_music_crossfade_screen_summary">Pagsamahin nang maayos ang mga track sa isa\'t isa</string>
+  <string name="morphe_music_crossfade_enabled_title">I-enable ang crossfade</string>
+  <string name="morphe_music_crossfade_curve_title">Kurba ng pagpaliwanag</string>
+  <string name="morphe_music_crossfade_curve_entry_equal_power">Pantay na kapangyarihan</string>
+  <string name="morphe_music_crossfade_curve_entry_ease_out_cubic">Mahinang pagpapanatili</string>
+  <string name="morphe_music_crossfade_curve_entry_ease_out_quad">Malumanay na paghalay</string>
+  <string name="morphe_music_crossfade_curve_entry_smoothstep">Makinis na S-curve</string>
+  <!-- Empty string because custom preference handles the title itself -->
+  <string name="morphe_music_crossfade_curve_preview_outgoing">Papalabas</string>
+  <string name="morphe_music_crossfade_curve_preview_incoming">Papasok</string>
+  <string name="morphe_music_crossfade_duration_title">Tagal ng crossfade</string>
+  <string name="morphe_crossfade_duration_250ms">250 milliseconds</string>
+  <string name="morphe_crossfade_duration_500ms">500 milliseconds</string>
+  <string name="morphe_crossfade_duration_750ms">750 milliseconds</string>
+  <string name="morphe_crossfade_duration_1000ms">1 segundo</string>
+  <string name="morphe_crossfade_duration_2000ms">2 segundo</string>
+  <string name="morphe_crossfade_duration_3000ms">3 segundo</string>
+  <string name="morphe_crossfade_duration_4000ms">4 segundo</string>
+  <string name="morphe_crossfade_duration_5000ms">5 segundo</string>
+  <string name="morphe_crossfade_duration_6000ms">6 segundo</string>
+  <string name="morphe_crossfade_duration_7000ms">7 segundo</string>
+  <string name="morphe_crossfade_duration_8000ms">8 segundo</string>
+  <string name="morphe_crossfade_duration_9000ms">9 segundo</string>
+  <string name="morphe_crossfade_duration_10000ms">10 segundo</string>
+  <string name="morphe_crossfade_duration_11000ms">11 segundo</string>
+  <string name="morphe_crossfade_duration_12000ms">12 segundo</string>
+  <string name="morphe_music_crossfade_on_skip_title">Kontrol sa sesyon</string>
+  <string name="morphe_music_crossfade_on_skip_summary">Ina-apply ang crossfade effect kapag mano-mano kang lumipat sa susunod na track</string>
+  <string name="morphe_music_crossfade_on_auto_advance_title">Crossfade on auto-advance</string>
+  <string name="morphe_music_crossfade_on_auto_advance_summary">Ina-apply ang crossfade effect kapag natural na natatapos ang isang track</string>
+  <string name="morphe_music_crossfade_session_control_title">Kontrol sa sesyon</string>
+  <string name="morphe_music_crossfade_session_control_summary">Pindutin nang matagal ang shuffle button upang i-pause o ipagpatuloy ang crossfade</string>
+  <string name="morphe_music_crossfade_paused_toast">Nawala ang crossfade para sa sesyong ito</string>
+  <string name="morphe_music_crossfade_resumed_toast">Ipinagpatuloy ang crossfade</string>
+  <string name="morphe_music_crossfade_video_mode_disabled_toast">Hindi magagamit ang video mode habang naka-enable ang crossfade</string>
+  <string name="morphe_music_crossfade_cast_unstable_toast">Ang crossfade ay naka-pause habang nagka-cast o nagmi-mirror ng audio. Hindi stable ang crossfade sa pagka-cast/mirror at maaaring hindi ito maayos.</string>
+  <string name="morphe_music_crossfade_about_title">Tungkol</string>
+  <string name="morphe_music_crossfade_about_summary">Paano gumagana ang crossfade — at kung kailan hindi</string>
+  <!-- Banner row has no text; it shows a full-width graphic via a custom layout. -->
+  <string name="morphe_music_crossfade_about_how_title">Paano ito gumagana</string>
+  <string name="morphe_music_crossfade_about_how_summary">"Nagpapatong ang crossfade ng dulo ng isang kanta sa simula ng susunod, pinapahina ang isa habang lumalakas ang isa pa ayon sa iyong napiling tagal at kurba.
+
+Gumagana ito sa auto-advance (kapag natapos ang isang kanta nang mag-isa) at sa manual skips — bawat isa ay may sariling toggle sa itaas. Sa auto-advance, nagsisimula ang paghalo ilang segundo bago matapos ang kanta.
+
+Kinakailangan ang YouTube Music 9.x o mas bago."</string>
+  <string name="morphe_music_crossfade_about_best_title">Pinakamahusay na gumagana sa</string>
+  <string name="morphe_music_crossfade_about_best_summary">Normal na pag-playback ng kanta-sa-kanta at auto-advance, repeat-one (ang kanta ay nag-crossfade sa sarili nito), at lokal na audio — speaker ng telepono, naka-wire na headphone, Bluetooth, o USB.</string>
+  <string name="morphe_music_crossfade_about_quirks_title">Hindi gumagana nang maayos</string>
+  <string name="morphe_music_crossfade_about_quirks_summary">"Nagpe-play bilang audio-only ang mga music video habang naka-on ang crossfade (i-long press ang shuffle para i-pause kung gusto mo ang video)
+
+Ang mga kanta na mas maikli sa iyong tagal ng fade ay maaaring laktawan ang fade
+
+Ang lock screen o notification ay maaaring pansamantalang magpakita ng lumang estado sa kalagitnaan ng transisyon"</string>
+  <string name="morphe_music_crossfade_about_known_title">Mga kilalang isyu</string>
+  <string name="morphe_music_crossfade_about_known_summary">"Ang music video na itinakda bilang unang kanta — o ang isa na sinimulan mula sa labas ng kasalukuyang queue — ay maaaring pansamantalang lumabas bilang video bago magsimula ang audio-only mode
+
+Ang pag-pause ng crossfade para manood ng music video ay maaaring mag-iwan ng ilang video na blangko (ang mga ang audio ay mula sa video mismo). Maiiwasan ito sa pamamagitan ng pag-pause ng crossfade bago piliin ang kanta"</string>
+  <string name="morphe_music_crossfade_about_unsupported_title">Hindi gumagana</string>
+  <string name="morphe_music_crossfade_about_unsupported_summary">"Ang pag-cast o pag-mirror ng audio (Chromecast, screen o audio mirroring) — nagpa-pause ang crossfade dahil hindi ito stable doon at maaaring hindi na maayos.
+
+YouTube Music 8.x — tumatakbo lamang ang crossfade sa 9.x at mas bago"</string>
+  <string name="morphe_music_crossfade_about_credit_title">Credit</string>
+  <string name="morphe_music_crossfade_about_credit_summary">Crossfade feature ni VazerOG</string>
+  <!-- interaction.permanentrepeat.permanentRepeatPatch -->
+  <string name="morphe_music_play_permanent_repeat_title">Paganahin ang permanenteng paulit-ulit</string>
+  <!-- layout.buttons.hideButtonsPatch -->
+  <string name="morphe_music_hide_cast_button_title">Itago ang Cast button</string>
+  <string name="morphe_music_hide_history_button_title">Itago ang kasaysayan na button</string>
+  <string name="morphe_music_hide_notification_button_title">Itago ang notipikasyon na button</string>
+  <string name="morphe_music_hide_search_button_title">Itago ang paghahanap na button</string>
+  <!-- layout.hide.general.hideMusicComponentsPatch -->
+  <string name="morphe_music_hide_lyrics_panel_category_title">Panel ng liriko</string>
+  <string name="morphe_music_hide_lyrics_share_button_title">Itago ang button na Magbahagi</string>
+  <string name="morphe_music_hide_lyrics_translate_button_title">Itago ang button na Isalin</string>
+  <!-- flyoutmenu.components.hideFlyoutMenuComponentsPatch -->
+  <string name="morphe_music_hide_flyout_menu_components_screen_title">Lumabas na menu</string>
+  <string name="morphe_music_hide_flyout_menu_components_screen_summary">Piliin kung aling mga bahagi ang lalabas sa mga menu ng player at pila</string>
+  <string name="morphe_music_hide_flyout_menu_3_column_component_title">Itago ang 3-column na component</string>
+  <string name="morphe_music_hide_flyout_menu_like_dislike_title">Itago ang Like at Dislike na mga button</string>
+  <string name="morphe_music_hide_flyout_menu_taste_match_title">Itago ang menu ng \'Taste match\'</string>
+  <string name="morphe_music_hide_flyout_menu_add_to_listen_later_title">Itago ang menu na \'Idagdag sa playlist na \'Makinig mamaya\'</string>
+  <string name="morphe_music_hide_flyout_menu_add_to_queue_title">Itago ang menu na \'Idagdag sa pila\'</string>
+  <string name="morphe_music_hide_flyout_menu_captions_title">Itago ang menu ng Captions</string>
+  <string name="morphe_music_hide_flyout_menu_delete_playlist_title">Itago ang \'Tanggalin ang playlist\' na menu</string>
+  <string name="morphe_music_hide_flyout_menu_dismiss_queue_title">Itago ang \'Ialis ang queue\' na menu</string>
+  <string name="morphe_music_hide_flyout_menu_dont_recommend_artist_title">Itago ang \'Huwag irekomenda ang artist na ito\' na menu</string>
+  <string name="morphe_music_hide_flyout_menu_download_title">Itago ang menu ng Download</string>
+  <string name="morphe_music_hide_flyout_menu_edit_playlist_title">Itago ang \'Edit playlist\' na menu</string>
+  <string name="morphe_music_hide_flyout_menu_go_to_album_title">Itago ang \'Pumunta sa album\' na menu</string>
+  <string name="morphe_music_hide_flyout_menu_go_to_artist_title">Itago ang \'Pumunta sa artist\' na menu</string>
+  <string name="morphe_music_hide_flyout_menu_go_to_episode_title">Itago ang \'Pumunta sa episode\' na menu</string>
+  <string name="morphe_music_hide_flyout_menu_go_to_podcast_title">Itago ang \'Pumunta sa podcast\' na menu</string>
+  <string name="morphe_music_hide_flyout_menu_help_title">Itago ang menu ng Help</string>
+  <string name="morphe_music_hide_flyout_menu_mark_episode_as_played_title">Itago ang \'Markahan ang episode bilang natapos\' na menu</string>
+  <string name="morphe_music_hide_flyout_menu_not_interested_title">Itago ang \'Hindi interesado\' na menu</string>
+  <string name="morphe_music_hide_flyout_menu_pin_to_speed_dial_title">Itago ang \'I-pin sa speed dial\' na menu</string>
+  <string name="morphe_music_hide_flyout_menu_play_next_title">Itago ang \'Play next\' na menu</string>
+  <string name="morphe_music_hide_flyout_menu_quality_title">Itago ang menu ng Quality</string>
+  <string name="morphe_music_hide_flyout_menu_remove_from_library_title">Itago ang \'Alisin sa library\' na menu</string>
+  <string name="morphe_music_hide_flyout_menu_remove_from_playlist_title">Itago ang \'Alisin sa playlist\' na menu</string>
+  <string name="morphe_music_hide_flyout_menu_report_title">Itago ang menu ng Report</string>
+  <string name="morphe_music_hide_flyout_menu_save_episode_for_later_save_to_library_title">Itago ang \'I-save ang episode para sa ibang pagkakataon\' / \'I-save sa library\' na menu</string>
+  <string name="morphe_music_hide_flyout_menu_save_to_playlist_title">Itago ang \'I-save sa playlist\' na menu</string>
+  <string name="morphe_music_hide_flyout_menu_share_title">Itago ang menu ng Magbahagi</string>
+  <string name="morphe_music_hide_flyout_menu_shuffle_play_title">Itago ang \'Shuffle play\' na menu</string>
+  <string name="morphe_music_hide_flyout_menu_sleep_timer_title">Itago ang \'Sleep timer\' na menu</string>
+  <string name="morphe_music_hide_flyout_menu_start_radio_title">Itago ang \'Magsimula ng radio\' na menu</string>
+  <string name="morphe_music_hide_flyout_menu_stats_for_nerds_title">Itago ang \'Stats for nerds\' na menu</string>
+  <string name="morphe_music_hide_flyout_menu_subscribe_title">Itago ang menu ng Mag-subscribe</string>
+  <string name="morphe_music_hide_flyout_menu_unpin_from_speed_dial_title">Itago ang \'Alisin ang pin mula sa speed dial\' na menu</string>
+  <string name="morphe_music_hide_flyout_menu_view_song_credit_title">Itago ang \'Tingnan ang mga credits ng kanta\' na menu</string>
+  <!-- layout.startpage.changeStartPagePatch -->
+  <string name="morphe_change_start_page_title">Simulang pahina</string>
+  <string name="morphe_change_start_page_entry_default">Panimula</string>
+  <string name="morphe_change_start_page_entry_charts">Charts</string>
+  <string name="morphe_change_start_page_entry_episodes_for_later">Episodes for later</string>
+  <string name="morphe_change_start_page_entry_explore">Explore</string>
+  <string name="morphe_change_start_page_entry_history">Kasaysayan</string>
+  <string name="morphe_change_start_page_entry_library">Aklat</string>
+  <string name="morphe_change_start_page_entry_liked_music">Nagingustuhan ang musika</string>
+  <string name="morphe_change_start_page_entry_playlists">Talatugtugin</string>
+  <string name="morphe_change_start_page_entry_search">Hanapin</string>
+  <string name="morphe_change_start_page_entry_subscriptions">Subkripsyon</string>
+  <!-- layout.compactheader.hideFilterBarPatch -->
+  <string name="morphe_music_hide_filter_bar_title">Itago ang filter bar</string>
+  <!-- layout.miniplayer.changeMiniplayerColorPatch -->
+  <string name="morphe_music_change_miniplayer_color_title">Baguhin ang kulay ng miniplayer</string>
+  <string name="morphe_music_change_miniplayer_color_summary">Tumutugma sa fullscreen na manlalaro ang kulay ng miniplayer</string>
+  <string name="morphe_music_change_navigation_bar_color_title">Baguhin ang kulay ng navigation bar</string>
+  <string name="morphe_music_change_navigation_bar_color_summary">Itugma ang kulay ng navigation bar sa fullscreen player</string>
+  <!-- layout.miniplayer.miniplayerNextPreviousButtonsPatch -->
+  <string name="morphe_music_miniplayer_next_button_title">Ipakita ang susunod na button sa miniplayer</string>
+  <string name="morphe_music_miniplayer_previous_button_title">Ipakita ang nakaraang button sa miniplayer</string>
+  <!-- layout.miniplayer.enableForcedMiniplayerPatch -->
+  <string name="morphe_music_enable_forced_miniplayer_title">Paganahin ang pinilit na miniplayer</string>
+  <string name="morphe_music_enable_forced_miniplayer_summary">Pinipigilan ang player na awtomatikong lumawak sa fullscreen kapag nagsimula ang isang bagong track</string>
+  <!-- layout.miniplayer.enableSwipeToDismissMiniplayerPatch -->
+  <string name="morphe_music_enable_swipe_to_dismiss_miniplayer_title">Paganahin ang pag-swipe para isara ang miniplayer</string>
+  <string name="morphe_music_enable_swipe_to_dismiss_miniplayer_summary">Pinapayagan kang isara ang miniplayer sa pamamagitan ng pag-swipe pababa dito</string>
+  <!-- layout.navigationbar.navigationBarPatch -->
+  <string name="morphe_music_navigation_bar_screen_title">Navigation bar</string>
+  <string name="morphe_music_navigation_bar_screen_summary">Piliin kung aling mga button ang lalabas sa ibabang navigation bar</string>
+  <!-- 'Home' should be translated using the same localized wording YouTube Music displays for the tab. -->
+  <string name="morphe_music_hide_navigation_bar_home_button_title">Itago ang Home button</string>
+  <!-- 'Samples' should be translated using the same localized wording YouTube Music displays for the tab. -->
+  <string name="morphe_music_hide_navigation_bar_samples_button_title">Itago ang Samples button</string>
+  <!-- 'Explore' should be translated using the same localized wording YouTube Music displays for the tab. -->
+  <string name="morphe_music_hide_navigation_bar_explore_button_title">Itago ang Explore button</string>
+  <!-- 'Library' should be translated using the same localized wording YouTube Music displays for the tab. -->
+  <string name="morphe_music_hide_navigation_bar_library_button_title">Itago ang Library button</string>
+  <!-- 'Upgrade' should be translated using the same localized wording YouTube Music displays for the tab. -->
+  <string name="morphe_music_hide_navigation_bar_upgrade_button_title">Itago ang Upgrade button</string>
+  <string name="morphe_music_hide_navigation_bar_title">Itago ang navigation bar</string>
+  <string name="morphe_music_hide_navigation_bar_labels_title">Itago ang mga tatak ng navigation button</string>
+  <!-- interaction.scrobbling.scrobblingPatch -->
+  <string name="morphe_music_scrobbling_summary">I-configure ang Last.fm at ListenBrainz integration</string>
+  <string name="morphe_music_scrobbling_summary_logged_out">Hindi naka-log in. I-tap para i-configure</string>
+  <string name="morphe_music_scrobbling_log_out">Mag-sign out</string>
+  <string name="morphe_music_scrobbling_logged_out_toast">Naka-log out na</string>
+  <!-- 'scrobbling' must be kept untranslated -->
+  <string name="morphe_music_scrobbling_enabled_title">I-enable ang scrobbling</string>
+  <string name="morphe_music_scrobbling_min_song_duration_title">Pinakamababang tagal ng kanta</string>
+  <!-- 'scrobbled' must be kept untranslated -->
+  <string name="morphe_music_scrobbling_min_song_duration_summary">Ang mga kantang mas maikli dito ay hindi ma-scrobble</string>
+  <!-- 'scrobble' must be kept untranslated -->
+  <string name="morphe_music_scrobbling_delay_percent_title">Porsyento ng pagkaantala ng scrobble</string>
+  <!-- 'scrobble' must be kept untranslated -->
+  <string name="morphe_music_scrobbling_delay_percent_summary">I-trigger ang scrobble pagkatapos makinig sa porsyentong ito ng kanta</string>
+  <!-- 'scrobble' must be kept untranslated -->
+  <string name="morphe_music_scrobbling_delay_seconds_title">Pagkaantala ng scrobble sa segundo</string>
+  <!-- 'scrobble' must be kept untranslated -->
+  <string name="morphe_music_scrobbling_delay_seconds_summary">I-trigger ang scrobble pagkatapos makinig sa loob ng ilang segundo</string>
+  <string name="morphe_music_listenbrainz_token_title">ListenBrainz Account</string>
+  <string name="morphe_music_listenbrainz_token_summary_logged_in">Naka-log in. I-tap para pamahalaan ang account</string>
+  <!-- 'scrobbling' must be kept untranslated -->
+  <string name="morphe_music_listenbrainz_token_dialog_instruction">Ipasok ang iyong ListenBrainz User Token para i-enable ang pag-scrobbling</string>
+  <string name="morphe_music_listenbrainz_token_dialog_hint">Token</string>
+  <string name="morphe_music_listenbrainz_token_dialog_get_token">Kumuha ng token</string>
+  <string name="morphe_music_listenbrainz_token_dialog_verify">I-verify</string>
+  <string name="morphe_music_listenbrainz_token_status_empty">Mangyaring ipasok ang isang token</string>
+  <string name="morphe_music_listenbrainz_token_status_validating">Bine-verify...</string>
+  <string name="morphe_music_listenbrainz_token_status_valid">Valid na token! User: %s</string>
+  <string name="morphe_music_listenbrainz_token_status_invalid">Hindi valid na token: %s</string>
+  <string name="morphe_music_listenbrainz_token_status_invalid_unknown">hindi alam</string>
+  <string name="morphe_music_listenbrainz_token_status_failed">Nabigo ang pag-verify: %s</string>
+  <string name="morphe_music_listenbrainz_token_toast_cleared">Nalinisan ang token</string>
+  <string name="morphe_music_listenbrainz_token_toast_saved">Nai-save ang token</string>
+  <string name="morphe_music_listenbrainz_token_toast_invalid_warning">Babala: Hindi valid ang nai-save na token!</string>
+  <string name="morphe_music_lastfm_love_on_like_title">Mahalin ang mga nagustuhang track</string>
+  <string name="morphe_music_lastfm_love_on_like_summary">Awtomatikong mahalin ang mga track sa Last.fm kapag nagustuhan mo ito sa YouTube Music (at alisin ang pagmamahal kapag hindi nagustuhan o hindi nagustuhan)</string>
+  <string name="morphe_music_lastfm_token_title">Last.fm Account</string>
+  <string name="morphe_music_lastfm_token_summary_logged_in">Naka-log in bilang %s. I-tap para pamahalaan ang account</string>
+  <string name="morphe_music_lastfm_token_dialog_instruction">Ipasok ang iyong mga kredensyal ng Last.fm para mag-log in</string>
+  <string name="morphe_music_lastfm_token_dialog_username_hint">Username</string>
+  <string name="morphe_music_lastfm_token_dialog_password_hint">Password</string>
+  <string name="morphe_music_lastfm_token_dialog_login">Mag-log in</string>
+  <string name="morphe_music_lastfm_token_status_empty">Mangyaring ipasok ang username at password</string>
+  <string name="morphe_music_lastfm_token_status_logging_in">Nagla-log in...</string>
+  <string name="morphe_music_lastfm_token_status_success">Matagumpay na naka-log in!</string>
+  <string name="morphe_music_lastfm_token_status_no_session">Nabigo ang pagkuha ng session mula sa Last.fm</string>
+  <string name="morphe_music_lastfm_token_status_failed">Nabigo ang pag-log in: %s</string>
+  <string name="morphe_music_lastfm_token_toast_saved">Nai-save ang mga kredensyal ng Last.fm!</string>
+  <string name="morphe_settings_music_scrobbling_metadata_title">Paglilinis ng metadata</string>
+  <string name="morphe_music_scrobbling_metadata_cleanup_title">Linisin ang metadata</string>
+  <string name="morphe_music_scrobbling_metadata_cleanup_summary">Awtomatikong linisin ang karaniwang gulo (tulad ng \"Official Video\", \"Remaster\", \"Live\") mula sa mga pamagat, artist, at album bago ma-scrobble</string>
+  <string name="morphe_music_scrobbling_custom_regex_title">Custom regex cleanup</string>
+  <string name="morphe_music_scrobbling_custom_regex_summary">Maglagay ng custom regular expression para alisin ang karagdagang teksto mula sa mga pamagat ng kanta, artist, o album. Halimbawa: (?i)\\s*\\((clean|explicit)\\)</string>
+  <string name="morphe_music_scrobbling_parse_title_title">I-parse ang artist at track mula sa pamagat</string>
+  <string name="morphe_music_scrobbling_parse_title_summary">I-extract ang pangalan ng artist at track mula sa pamagat ng video gamit ang separator na \" - \". Kapaki-pakinabang ito para sa mga muling inupload na content kung saan ang pangalan ng channel ay maaaring gamitin bilang artist.</string>
+  <!-- 'scrobbling' must be kept untranslated -->
+  <string name="morphe_music_scrobbling_about_title">Tungkol sa pag-scrobble</string>
+  <!-- 'scrobbling' must be kept untranslated -->
+  <string name="morphe_music_scrobbling_about_summary">"Awtomatikong sini-sync ng Scrobbling ang iyong paggamit ng YouTube Music sa iyong profile ng Last.fm o ListenBrainz.
+
+Para matiyak na naka-sync ang scrobbling habang nagpe-play sa background, siguraduhing ang paggamit ng baterya ng app ng YouTube Music ay nakatakda sa \"Walang Pagbabawal\"."</string>
+</resources>

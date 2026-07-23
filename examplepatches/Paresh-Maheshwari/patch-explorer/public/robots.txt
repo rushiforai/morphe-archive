@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://paresh-maheshwari.github.io/patch-explorer/sitemap.xml

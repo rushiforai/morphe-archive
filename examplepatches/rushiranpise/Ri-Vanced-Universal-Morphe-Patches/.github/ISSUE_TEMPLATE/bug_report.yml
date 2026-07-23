@@ -1,0 +1,91 @@
+name: Bug report
+description: Report a problem with RIVanced Universal Patches.
+title: "bug: "
+labels: ["Bug report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this.
+
+        This repo is only for RIVanced universal/shared Morphe patches. App-specific patches for YouTube, YouTube Music, Reddit, and similar apps are out of scope here.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Before opening this issue
+      options:
+        - label: I searched existing open and closed issues.
+          required: true
+        - label: This is about a universal/shared RIVanced Morphe patch, not an app-specific patch request.
+          required: true
+        - label: I can reproduce this with the latest available RIVanced Universal Patches bundle.
+          required: true
+
+  - type: input
+    id: patch
+    attributes:
+      label: Patch name
+      description: Which patch is failing?
+      placeholder: Disable Play Integrity
+    validations:
+      required: true
+
+  - type: input
+    id: bundle-version
+    attributes:
+      label: Patch bundle version
+      description: The RIVanced Universal Patches version or commit you used.
+      placeholder: 1.0.0 or commit hash
+    validations:
+      required: true
+
+  - type: input
+    id: morphe-version
+    attributes:
+      label: Morphe version
+      placeholder: Manager/patcher version
+    validations:
+      required: true
+
+  - type: input
+    id: target-app
+    attributes:
+      label: Target app
+      description: App name and version you tried to patch.
+      placeholder: App name 1.2.3
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the bug and what you expected to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Select ...
+        2. Enable ...
+        3. Patch ...
+        4. See ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or exception
+      description: Paste the Morphe patcher error, stack trace, or relevant logcat output.
+      render: shell
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Extra context
+      description: Screenshots, APK source, device info, or anything else that helps.

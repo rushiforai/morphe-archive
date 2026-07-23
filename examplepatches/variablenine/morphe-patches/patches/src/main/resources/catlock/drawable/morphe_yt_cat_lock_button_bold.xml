@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Bold-icon variant: same cat face as morphe_yt_cat_lock_button,
+         thicker strokes to match YouTube's bold player icon setting. -->
+    <path
+        android:strokeColor="@android:color/white"
+        android:strokeWidth="2.4"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M5.8,9.4
+            C5.5,8.0 5.4,6.2 6.0,4.9
+            C6.15,4.55 6.6,4.45 6.9,4.7
+            C8.0,5.6 9.0,6.3 10.0,6.7
+            C11.3,6.35 12.7,6.35 14.0,6.7
+            C15.0,6.3 16.0,5.6 17.1,4.7
+            C17.4,4.45 17.85,4.55 18.0,4.9
+            C18.6,6.2 18.5,8.0 18.2,9.4
+            C19.3,10.6 19.9,12.1 19.9,13.6
+            C19.9,17.0 16.4,19.6 12.0,19.6
+            C7.6,19.6 4.1,17.0 4.1,13.6
+            C4.1,12.1 4.7,10.6 5.8,9.4
+            Z" />
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M9.2,12.7 m-1.2,0 a1.2,1.2 0 1 0 2.4,0 a1.2,1.2 0 1 0 -2.4,0 Z" />
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M14.8,12.7 m-1.2,0 a1.2,1.2 0 1 0 2.4,0 a1.2,1.2 0 1 0 -2.4,0 Z" />
+    <path
+        android:strokeColor="@android:color/white"
+        android:strokeWidth="1.9"
+        android:strokeLineCap="round"
+        android:pathData="M9.9,15.9 C10.5,16.8 11.4,16.8 12.0,16.1 C12.6,16.8 13.5,16.8 14.1,15.9" />
+</vector>
