@@ -19,7 +19,7 @@ Usage:
 Defaults:
     REPOS_FILE    = repos.txt
     SETTINGS_FILE = latest morphe_archive_config_vN.json
-    OUTPUT_FILE   = next morphe_archive_config_vN.json only when content changes
+    OUTPUT_FILE   = renamed to next morphe_archive_config_vN.json only when content changes
 """
 
 import json
@@ -273,7 +273,8 @@ def main():
             print(f"No config changes. Kept {settings_file}.")
         else:
             output_file.write_text(output_json, encoding="utf-8")
-            print(f"Wrote {output_file}.")
+            settings_file.unlink()
+            print(f"Renamed {settings_file} to {output_file}.")
     else:
         output_file.write_text(output_json, encoding="utf-8")
         print(f"Wrote {output_file}.")
