@@ -355,7 +355,7 @@ HTML = """<!doctype html>
       background: var(--bg);
       color: var(--text);
       line-height: 1.5;
-      padding-bottom: 0;
+      padding-bottom: 54px;
     }
     header {
       border-bottom: 1px solid var(--line);
@@ -422,6 +422,18 @@ HTML = """<!doctype html>
       flex-wrap: wrap;
       align-items: center;
     }
+    .icon-button {
+      width: 48px;
+      height: 48px;
+      padding: 0;
+      border-radius: 12px;
+      color: var(--accent-2);
+    }
+    .icon-button svg {
+      width: 24px;
+      height: 24px;
+      display: block;
+    }
     .stats {
       display: grid;
       grid-template-columns: repeat(4, minmax(86px, 1fr));
@@ -448,7 +460,7 @@ HTML = """<!doctype html>
     }
     .toolbar {
       display: grid;
-      grid-template-columns: auto minmax(130px, 160px) minmax(160px, 220px) minmax(220px, 1fr);
+      grid-template-columns: auto auto minmax(160px, 220px) minmax(220px, 1fr);
       gap: 14px;
       margin-top: 12px;
       align-items: stretch;
@@ -473,6 +485,20 @@ HTML = """<!doctype html>
       background: var(--panel);
     }
     .tabs button { border: 0; border-radius: 0; background: transparent; }
+    .host-tabs {
+      display: flex;
+      gap: 0;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: hidden;
+      background: var(--panel);
+    }
+    .host-tabs button {
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      min-width: 74px;
+    }
     button.active {
       color: var(--text);
       background: var(--panel-2);
@@ -592,6 +618,11 @@ HTML = """<!doctype html>
       border-color: var(--accent);
       font-weight: 700;
     }
+    a.obtainium {
+      border-color: var(--accent-2);
+      color: var(--accent-2);
+      font-weight: 700;
+    }
     details {
       border-top: 1px solid var(--line);
       margin-top: 8px;
@@ -629,6 +660,8 @@ HTML = """<!doctype html>
       border-radius: 14px;
       padding: 14px;
       background: #141820;
+      min-width: 0;
+      overflow: hidden;
     }
     .source-card-head {
       display: flex;
@@ -643,6 +676,10 @@ HTML = """<!doctype html>
       gap: 8px;
       min-width: 0;
       font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+    .source-card-title span {
+      min-width: 0;
       overflow-wrap: anywhere;
     }
     .patch-note {
@@ -664,10 +701,40 @@ HTML = """<!doctype html>
       font-size: 13px;
     }
     .mobile-footer {
-      display: none;
+      display: block;
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 20;
+      border-top: 1px solid var(--line);
+      background: rgba(17, 19, 24, .96);
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.35;
+      padding: 9px 14px;
+      text-align: center;
+    }
+    .back-top {
+      display: inline-flex;
+      position: fixed;
+      right: 22px;
+      bottom: 58px;
+      z-index: 21;
+      width: 48px;
+      height: 48px;
+      border-radius: 999px;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      color: white;
+      background: var(--accent);
+      border: 0;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, .35);
+      font-size: 28px;
+      line-height: 1;
     }
     @media (max-width: 760px) {
-      body { padding-bottom: 54px; }
       header { position: static; }
       .nav {
         align-items: flex-start;
@@ -704,7 +771,16 @@ HTML = """<!doctype html>
         grid-template-columns: repeat(3, 1fr);
         width: 100%;
       }
+      .host-tabs {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        width: 100%;
+      }
       .tabs button {
+        padding: 10px 8px;
+      }
+      .host-tabs button {
+        min-width: 0;
         padding: 10px 8px;
       }
       .actions { justify-content: flex-start; }
@@ -738,20 +814,8 @@ HTML = """<!doctype html>
         width: 100%;
         padding: 14px;
       }
-      .mobile-footer {
-        display: block;
-        position: fixed;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        z-index: 20;
-        border-top: 1px solid var(--line);
-        background: rgba(17, 19, 24, .96);
-        color: var(--muted);
-        font-size: 11px;
-        line-height: 1.35;
-        padding: 9px 14px;
-        text-align: center;
+      .back-top {
+        right: 16px;
       }
     }
     @media (max-width: 520px) {
@@ -795,6 +859,16 @@ HTML = """<!doctype html>
       <div class="nav">
         <div class="brand"><span class="brand-mark">M</span><span>orphe Archive</span></div>
         <div class="header-actions">
+          <a class="button icon-button" href="https://github.com/rushiforai/morphe-archive" target="_blank" rel="noreferrer" aria-label="Source code" title="Source code">
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+              <path d="M12 .5a12 12 0 0 0-3.8 23.38c.6.12.82-.25.82-.57v-2.1c-3.34.73-4.04-1.42-4.04-1.42-.55-1.4-1.34-1.78-1.34-1.78-1.09-.74.08-.73.08-.73 1.2.09 1.84 1.24 1.84 1.24 1.08 1.83 2.82 1.3 3.5 1 .11-.78.42-1.3.76-1.6-2.66-.3-5.46-1.33-5.46-5.92 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.4 11.4 0 0 1 6 0c2.29-1.55 3.3-1.23 3.3-1.23.66 1.66.25 2.88.12 3.18.77.84 1.24 1.9 1.24 3.22 0 4.6-2.8 5.62-5.48 5.92.43.37.82 1.1.82 2.22v3.3c0 .32.22.7.83.57A12 12 0 0 0 12 .5Z"/>
+            </svg>
+          </a>
+          <a class="button icon-button" href="https://github.com/rushiranpise/morphe-patches#donate" target="_blank" rel="noreferrer" aria-label="Donate" title="Donate">
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+              <path d="M12 21.35 10.55 20.03C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.08A6.02 6.02 0 0 1 16.5 3C19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35Z"/>
+            </svg>
+          </a>
           <a id="configLink" class="button primary" href="#">Download Config</a>
         </div>
       </div>
@@ -819,9 +893,7 @@ HTML = """<!doctype html>
           <button id="reposTab" type="button">Bundles</button>
           <button id="universalTab" type="button">Universal</button>
         </div>
-        <select id="hostFilter" aria-label="Filter by host">
-          <option value="all">All hosts</option>
-        </select>
+        <div id="hostFilter" class="host-tabs" aria-label="Filter by host"></div>
         <select id="sortMode" aria-label="Sort results">
           <option value="name">Name</option>
           <option value="patches">Most patches</option>
@@ -838,6 +910,7 @@ HTML = """<!doctype html>
       <p class="disclaimer">Use at your own risk. Sources and patches are community provided and not individually verified.</p>
     </div>
   </main>
+  <a class="back-top" href="#top" aria-label="Back to top">↑</a>
   <footer class="mobile-footer">Use at your own risk. Community sources are not individually verified.</footer>
   <script>
     const state = { tab: "apps", query: "", host: "all", sort: "name", data: null };
@@ -880,6 +953,65 @@ HTML = """<!doctype html>
       const color = app.iconColor || "#2f3542";
       if (app.iconUrl) return `<span class="app-icon"><img src="${app.iconUrl}" alt="" loading="lazy" onerror="this.remove(); this.parentElement.classList.add('fallback')"></span>`;
       return `<span class="app-icon fallback" style="--icon-color:${escapeHtml(color)}" title="Icon unavailable"></span>`;
+    }
+
+    function slugify(value) {
+      return String(value || "")
+        .toLowerCase()
+        .replace(/&/g, "and")
+        .replace(/\\+/g, "plus")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+    }
+
+    function obtainiumUrl(app, source) {
+      const repoOwner = source.repo.split("/")[0] || "source";
+      const hasMultipleSources = app.sources.length > 1;
+      const packageId = hasMultipleSources
+        ? `${app.packageName}.morphe.${slugify(repoOwner)}`
+        : app.packageName;
+      const appName = hasMultipleSources
+        ? `${app.name} (${repoOwner})`
+        : app.name;
+      const apkSlug = slugify(app.name || app.packageName);
+      const payload = {
+        id: packageId,
+        url: source.webUrl,
+        author: repoOwner,
+        name: appName,
+        preferredApkIndex: 0,
+        additionalSettings: JSON.stringify({
+          includePrereleases: false,
+          fallbackToOlderReleases: true,
+          filterReleaseTitlesByRegEx: "",
+          filterReleaseNotesByRegEx: "",
+          verifyLatestTag: false,
+          sortMethodChoice: "date",
+          useLatestAssetDateAsReleaseDate: false,
+          releaseTitleAsVersion: false,
+          trackOnly: false,
+          versionExtractionRegEx: "",
+          matchGroupToUse: "",
+          versionDetection: false,
+          releaseDateAsVersion: false,
+          useVersionCodeAsOSVersion: false,
+          apkFilterRegEx: `^${apkSlug}-morphe-v?\\\\d.*\\\\.apk$`,
+          invertAPKFilter: false,
+          autoApkFilterByArch: true,
+          appName: "",
+          appAuthor: "",
+          shizukuPretendToBeGooglePlay: false,
+          allowInsecure: false,
+          exemptFromBackgroundUpdates: false,
+          skipUpdateNotifications: false,
+          about: "",
+          refreshBeforeDownload: false,
+          includeZips: false,
+          zippedApkFilterRegEx: ""
+        }),
+        overrideSource: source.host === "gitlab.com" ? "GitLab" : "GitHub"
+      };
+      return `https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/${encodeURIComponent(JSON.stringify(payload))}`;
     }
 
     function sortRows(rows) {
@@ -951,6 +1083,7 @@ HTML = """<!doctype html>
             <div class="actions">
               <a class="button" href="${source.webUrl}" target="_blank" rel="noreferrer">Open</a>
               <a class="button primary" href="${source.addUrl}" target="_blank" rel="noreferrer">Add Source</a>
+              <a class="button obtainium" href="${obtainiumUrl(app, source)}" target="_blank" rel="noreferrer">Install with Obtainium</a>
             </div>
             <div class="chips">
               ${sourceVersions || '<span class="chip">Any version</span>'}
@@ -1012,6 +1145,9 @@ HTML = """<!doctype html>
       reposTab.classList.toggle("active", state.tab === "repos");
       appsTab.classList.toggle("active", state.tab === "apps");
       universalTab.classList.toggle("active", state.tab === "universal");
+      hostFilter.querySelectorAll("button").forEach((button) => {
+        button.classList.toggle("active", button.dataset.host === state.host);
+      });
 
       let rows = [];
       if (state.tab === "repos") {
@@ -1025,12 +1161,15 @@ HTML = """<!doctype html>
           (!state.query || [source.repo, source.host, source.patches.map((patch) => patch.name).join(" ")].some(textMatch))
         );
       } else {
-        rows = state.data.apps.filter((app) => !state.query || [
+        rows = state.data.apps.filter((app) =>
+          (state.host === "all" || app.sources.some((source) => source.host === state.host)) &&
+          (!state.query || [
             app.name,
             app.packageName,
             app.repos.join(" "),
             app.patches.join(" ")
-          ].some(textMatch));
+          ].some(textMatch))
+        );
       }
       rows = sortRows(rows);
 
@@ -1059,11 +1198,14 @@ HTML = """<!doctype html>
         configLink.href = data.configFile;
         configLink.download = data.configFile;
         configLink.textContent = `Download Config v${data.configVersion}`;
-        Object.entries(data.hostCounts || {}).forEach(([host, count]) => {
-          const option = document.createElement("option");
-          option.value = host;
-          option.textContent = `${host || "Other"} (${count})`;
-          hostFilter.appendChild(option);
+        const hostOptions = [["all", "All"], ...Object.keys(data.hostCounts || {}).map((host) => [host, host === "github.com" ? "GitHub" : host === "gitlab.com" ? "GitLab" : host || "Other"])];
+        hostOptions.forEach(([host, label]) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.dataset.host = host;
+          button.textContent = label;
+          button.addEventListener("click", () => { state.host = host; render(); });
+          hostFilter.appendChild(button);
         });
         render();
       });
@@ -1072,7 +1214,6 @@ HTML = """<!doctype html>
       state.query = search.value.trim().toLowerCase();
       render();
     });
-    hostFilter.addEventListener("change", () => { state.host = hostFilter.value; render(); });
     sortMode.addEventListener("change", () => { state.sort = sortMode.value; render(); });
     reposTab.addEventListener("click", () => { state.tab = "repos"; render(); });
     appsTab.addEventListener("click", () => { state.tab = "apps"; render(); });

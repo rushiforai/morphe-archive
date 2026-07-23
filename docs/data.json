@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-23 22:44 UTC",
+  "generatedAt": "2026-07-23 22:59 UTC",
   "configFile": "morphe_archive_config_v5.json",
   "configVersion": 5,
   "repoCount": 103,
@@ -9342,8 +9342,8 @@
         }
       ],
       "patches": [
-        "Disable Ad-Free Banner",
         "Disable ad-free banner",
+        "Disable Ad-Free Banner",
         "Disable blog notification reminder",
         "Disable dashboard ads",
         "Disable gift message popup",
@@ -9355,12 +9355,12 @@
       ],
       "patchDetails": [
         {
-          "name": "Disable Ad-Free Banner",
-          "description": "Disables the banner with a frog, prompting you to buy Tumblr Ad-Free."
-        },
-        {
           "name": "Disable ad-free banner",
           "description": "Hides the banner with the frog that prompts you to buy Tumblr Ad-Free."
+        },
+        {
+          "name": "Disable Ad-Free Banner",
+          "description": "Disables the banner with a frog, prompting you to buy Tumblr Ad-Free."
         },
         {
           "name": "Disable blog notification reminder",
@@ -28979,8 +28979,8 @@
       ],
       "patches": [
         "Disable analytics",
-        "Disable Telemetry",
         "Disable telemetry",
+        "Disable Telemetry",
         "Disable update check",
         "Enable premium features",
         "GMS sign-in bypass",
@@ -29024,11 +29024,11 @@
           "description": "Suppresses Truecaller's CleverTap behavioural event tracking to prevent user-activity telemetry."
         },
         {
-          "name": "Disable Telemetry",
+          "name": "Disable telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
-          "name": "Disable telemetry",
+          "name": "Disable Telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
@@ -32514,8 +32514,8 @@
         "Save to watch later",
         "Seekbar",
         "Seekbar components",
-        "Set Transcript Cookies",
         "Set transcript cookies",
+        "Set Transcript Cookies",
         "Settings for YouTube",
         "Settings menu filter",
         "Shorts autoplay",
@@ -32533,8 +32533,8 @@
         "Video playback",
         "Video quality",
         "Visual preferences icons for YouTube",
-        "Voice over translation",
         "Voice Over Translation",
+        "Voice over translation",
         "Watch history",
         "YouTubeDislikeAutoNext (STUB)",
         "YouTubeLikeAutoNext (STUB)"
@@ -32961,11 +32961,11 @@
           "description": "Adds options to hide or change components related to the seekbar."
         },
         {
-          "name": "Set Transcript Cookies",
+          "name": "Set transcript cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {
-          "name": "Set transcript cookies",
+          "name": "Set Transcript Cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {
@@ -33037,12 +33037,12 @@
           "description": "Adds icons to specific preferences in the settings."
         },
         {
-          "name": "Voice over translation",
-          "description": "Adds additional voice over languages using text-to-speech synchronized to the video playback."
-        },
-        {
           "name": "Voice Over Translation",
           "description": "Adds an option to enable Yandex voice-over translation of video audio tracks."
+        },
+        {
+          "name": "Voice over translation",
+          "description": "Adds additional voice over languages using text-to-speech synchronized to the video playback."
         },
         {
           "name": "Watch history",
