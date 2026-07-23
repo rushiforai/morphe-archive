@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-23 21:35 UTC",
+  "generatedAt": "2026-07-23 21:42 UTC",
   "configFile": "morphe_archive_config_v5.json",
   "configVersion": 5,
   "repoCount": 103,
@@ -28979,8 +28979,8 @@
       ],
       "patches": [
         "Disable analytics",
-        "Disable Telemetry",
         "Disable telemetry",
+        "Disable Telemetry",
         "Disable update check",
         "Enable premium features",
         "GMS sign-in bypass",
@@ -29024,11 +29024,11 @@
           "description": "Suppresses Truecaller's CleverTap behavioural event tracking to prevent user-activity telemetry."
         },
         {
-          "name": "Disable Telemetry",
+          "name": "Disable telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
-          "name": "Disable telemetry",
+          "name": "Disable Telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
@@ -32514,8 +32514,8 @@
         "Save to watch later",
         "Seekbar",
         "Seekbar components",
-        "Set Transcript Cookies",
         "Set transcript cookies",
+        "Set Transcript Cookies",
         "Settings for YouTube",
         "Settings menu filter",
         "Shorts autoplay",
@@ -32961,11 +32961,11 @@
           "description": "Adds options to hide or change components related to the seekbar."
         },
         {
-          "name": "Set Transcript Cookies",
+          "name": "Set transcript cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {
-          "name": "Set transcript cookies",
+          "name": "Set Transcript Cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {

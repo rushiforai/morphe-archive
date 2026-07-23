@@ -350,7 +350,7 @@ HTML = """<!doctype html>
       background: var(--bg);
       color: var(--text);
       line-height: 1.5;
-      padding-bottom: 78px;
+      padding-bottom: 112px;
     }
     header {
       border-bottom: 1px solid var(--line);
@@ -390,11 +390,11 @@ HTML = """<!doctype html>
       grid-template-columns: 1fr auto;
       gap: 20px;
       align-items: end;
-      padding: 36px 0 18px;
+      padding: 22px 0 18px;
     }
     h1 {
       margin: 0 0 8px;
-      font-size: clamp(36px, 5vw, 64px);
+      font-size: clamp(34px, 4vw, 58px);
       line-height: 1.04;
       letter-spacing: 0;
     }
@@ -441,9 +441,10 @@ HTML = """<!doctype html>
     }
     .toolbar {
       display: grid;
-      grid-template-columns: auto auto minmax(220px, 1fr);
+      grid-template-columns: auto minmax(130px, 160px) minmax(160px, 220px) minmax(260px, 1fr);
       gap: 14px;
       margin-top: 22px;
+      align-items: stretch;
     }
     input, select, button, a.button {
       border: 1px solid var(--line);
@@ -454,7 +455,7 @@ HTML = """<!doctype html>
       font: inherit;
     }
     input { width: 100%; }
-    select { min-width: 140px; }
+    input, select { min-width: 0; }
     .tabs {
       display: flex;
       gap: 0;
@@ -472,20 +473,24 @@ HTML = """<!doctype html>
     main .wrap { padding-top: 18px; }
     .list {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
       gap: 20px;
+      align-items: start;
     }
     .row {
       display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 16px;
+      grid-template-columns: 1fr;
+      gap: 14px;
       align-items: start;
       border: 1px solid var(--line);
       background: var(--panel);
       padding: 20px;
       border-radius: 14px;
       box-shadow: var(--shadow);
-      min-height: 110px;
+      min-height: 0;
+    }
+    .row > .actions {
+      margin-left: 68px;
     }
     .row:hover { border-color: #46505f; }
     .name {
@@ -504,8 +509,11 @@ HTML = """<!doctype html>
     }
     .title-line {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 12px;
+      min-width: 0;
+    }
+    .title-line > div {
       min-width: 0;
     }
     .avatar, .app-icon {
@@ -559,7 +567,7 @@ HTML = """<!doctype html>
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
-      justify-content: flex-end;
+      justify-content: flex-start;
     }
     a { color: var(--accent-2); }
     a.button {
@@ -577,7 +585,6 @@ HTML = """<!doctype html>
       font-weight: 700;
     }
     details {
-      grid-column: 1 / -1;
       border-top: 1px solid var(--line);
       margin-top: 8px;
       padding-top: 14px;
@@ -605,7 +612,7 @@ HTML = """<!doctype html>
     }
     .source-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 12px;
       margin-top: 10px;
     }
@@ -657,6 +664,7 @@ HTML = """<!doctype html>
       border-top: 1px solid var(--line);
       background: rgba(17, 19, 24, .94);
       backdrop-filter: blur(14px);
+      box-shadow: 0 -18px 42px rgba(0, 0, 0, .28);
     }
     .bottom-inner {
       max-width: 1220px;
@@ -675,15 +683,97 @@ HTML = """<!doctype html>
       flex-wrap: wrap;
     }
     @media (max-width: 760px) {
+      body { padding-bottom: 0; }
+      header { position: static; }
+      .nav {
+        align-items: flex-start;
+        flex-direction: column;
+        padding-bottom: 10px;
+      }
+      .header-actions {
+        width: 100%;
+      }
+      .header-actions .button {
+        flex: 1 1 0;
+      }
       .top, .toolbar, .row { grid-template-columns: 1fr; }
+      .top {
+        padding: 12px 0 10px;
+      }
+      h1 {
+        font-size: 36px;
+      }
       .stats { grid-template-columns: repeat(2, 1fr); }
+      .stat {
+        min-width: 0;
+      }
       .list { grid-template-columns: 1fr; }
+      .toolbar {
+        gap: 10px;
+      }
+      .tabs {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .tabs button {
+        padding: 10px 8px;
+      }
       .actions { justify-content: flex-start; }
-      .wrap { padding: 18px; }
-      .bottom-inner { align-items: flex-start; flex-direction: column; padding: 12px 18px; }
+      .row > .actions { margin-left: 0; }
+      .row {
+        padding: 14px;
+        border-radius: 12px;
+      }
+      .avatar, .app-icon {
+        width: 46px;
+        height: 46px;
+      }
+      .title-line {
+        gap: 10px;
+      }
+      .source-grid {
+        grid-template-columns: 1fr;
+      }
+      .source-card {
+        padding: 12px;
+      }
+      .source-card-head {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      .chip {
+        border-radius: 10px;
+        width: 100%;
+      }
+      .wrap { padding: 16px; }
+      .bottom-bar {
+        position: static;
+      }
+      .bottom-inner { align-items: flex-start; flex-direction: column; padding: 12px 16px; }
+      .bottom-actions {
+        width: 100%;
+      }
+      .bottom-actions .button {
+        flex: 1 1 0;
+      }
     }
     @media (max-width: 520px) {
       .stats { grid-template-columns: 1fr; }
+      h1 {
+        font-size: 32px;
+      }
+      .brand {
+        font-size: 22px;
+      }
+      .list {
+        gap: 12px;
+      }
+      input, select, button, a.button {
+        width: 100%;
+      }
+      .actions .button {
+        flex: 1 1 0;
+      }
     }
   </style>
 </head>
@@ -882,7 +972,6 @@ HTML = """<!doctype html>
             </div>
           </div>
         </div>
-        <div></div>
         <details>
           <summary>${app.sources.length} source${app.sources.length === 1 ? "" : "s"} with separate patch sets</summary>
           <div class="source-grid">${sourceCards}</div>
@@ -967,7 +1056,7 @@ HTML = """<!doctype html>
         document.getElementById("generatedAt").textContent = `Generated ${data.generatedAt}`;
         const configLink = document.getElementById("configLink");
         const bottomConfigLink = document.getElementById("bottomConfigLink");
-        configLink.href = `../${data.configFile}`;
+        configLink.href = data.configFile;
         configLink.download = data.configFile;
         configLink.textContent = `Download Config v${data.configVersion}`;
         bottomConfigLink.href = configLink.href;
@@ -1000,10 +1089,13 @@ HTML = """<!doctype html>
 def main():
     OUTPUT_DIR.mkdir(exist_ok=True)
     data = build_data()
+    config_source = Path(data["configFile"])
     (OUTPUT_DIR / "data.json").write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
     (OUTPUT_DIR / "index.html").write_text(HTML, encoding="utf-8")
+    (OUTPUT_DIR / data["configFile"]).write_text(config_source.read_text(encoding="utf-8"), encoding="utf-8")
     print(f"Wrote {OUTPUT_DIR / 'index.html'}")
     print(f"Wrote {OUTPUT_DIR / 'data.json'} with {data['repoCount']} repos and {data['appCount']} apps")
+    print(f"Wrote {OUTPUT_DIR / data['configFile']}")
 
 
 if __name__ == "__main__":
