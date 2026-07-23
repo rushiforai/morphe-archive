@@ -17,6 +17,7 @@
       --accent: #74d99f;
       --accent-2: #93baff;
       --warn: #f2c56c;
+      --shadow: 0 18px 45px rgba(0, 0, 0, .24);
     }
     * { box-sizing: border-box; }
     body {
@@ -76,6 +77,7 @@
       padding: 10px 12px;
       border-radius: 8px;
       min-width: 104px;
+      box-shadow: var(--shadow);
     }
     .stat strong { display: block; font-size: 22px; }
     .toolbar {
@@ -118,6 +120,7 @@
       background: var(--panel);
       padding: 14px;
       border-radius: 8px;
+      box-shadow: var(--shadow);
     }
     .row:hover { border-color: #46505f; }
     .name {
@@ -127,11 +130,38 @@
     }
     .meta {
       display: flex;
+      align-items: center;
       gap: 10px;
       flex-wrap: wrap;
       color: var(--muted);
       font-size: 13px;
       margin-top: 4px;
+    }
+    .title-line {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+    .avatar, .app-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      overflow: hidden;
+      background: var(--panel-2);
+      color: var(--text);
+      font-weight: 800;
+    }
+    .avatar img, .app-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
     }
     .badge {
       display: inline-flex;
@@ -194,6 +224,39 @@
       color: var(--muted);
       font-size: 12px;
       overflow-wrap: anywhere;
+    }
+    .source-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .source-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #141820;
+    }
+    .source-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .source-card-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+    .patch-note {
+      color: var(--muted);
+      font-size: 12px;
+      display: block;
+      margin-top: 2px;
     }
     .empty {
       border: 1px dashed var(--line);
@@ -289,6 +352,23 @@
       return `<span class="badge host-${cls}">${label}</span>`;
     }
 
+    function initials(value) {
+      const clean = String(value || "?").replace(/[^a-z0-9]+/gi, " ").trim();
+      return clean ? clean.split(" ").slice(0, 2).map((part) => part[0]).join("").toUpperCase() : "?";
+    }
+
+    function avatarHtml(url, label) {
+      if (!url) return `<span class="avatar">${escapeHtml(initials(label))}</span>`;
+      return `<span class="avatar"><img src="${url}" alt="" loading="lazy" onerror="this.remove(); this.parentElement.textContent='${escapeHtml(initials(label))}'"></span>`;
+    }
+
+    function appIconHtml(app) {
+      const label = initials(app.name || app.packageName);
+      const color = app.iconColor || "#2f3542";
+      if (app.iconUrl) return `<span class="app-icon"><img src="${app.iconUrl}" alt="" loading="lazy" onerror="this.remove(); this.parentElement.textContent='${escapeHtml(label)}'"></span>`;
+      return `<span class="app-icon" style="background:${escapeHtml(color)}">${escapeHtml(label)}</span>`;
+    }
+
     function sortRows(rows) {
       return rows.sort((a, b) => {
         if (state.sort === "patches") return (b.patchCount || b.patches?.length || 0) - (a.patchCount || a.patches?.length || 0);
@@ -303,11 +383,16 @@
       row.className = "row";
       row.innerHTML = `
         <div>
-          <div class="name">${escapeHtml(repo.repo)}</div>
-          <div class="meta">
-            ${hostBadge(repo.host)}
-            <span>${repo.patchCount} patches</span>
-            <span>${repo.appCount} apps</span>
+          <div class="title-line">
+            ${avatarHtml(repo.avatarUrl, repo.repo)}
+            <div>
+              <div class="name">${escapeHtml(repo.repo)}</div>
+              <div class="meta">
+                ${hostBadge(repo.host)}
+                <span>${repo.patchCount} patches</span>
+                <span>${repo.appCount} apps</span>
+              </div>
+            </div>
           </div>
         </div>
         <div class="actions">
@@ -317,6 +402,11 @@
         </div>
         <details>
           <summary>Source details</summary>
+          <div class="meta">
+            ${hostBadge(repo.host)}
+            <span>${repo.patchCount} patches</span>
+            <span>${repo.appCount} apps</span>
+          </div>
           <div class="chips">
             <a class="chip" href="${repo.source}" target="_blank" rel="noreferrer">patches-bundle.json</a>
             <a class="chip" href="${repo.listUrl}" target="_blank" rel="noreferrer">patches-list.json</a>
@@ -329,27 +419,48 @@
       const repo = state.data.repos.find((item) => app.repos.includes(item.repo));
       const row = document.createElement("article");
       row.className = "row";
-      const patches = app.patches.slice(0, 18).map((patch) => `<span class="chip">${escapeHtml(patch)}</span>`).join("");
-      const versions = app.versions.slice(0, 8).map((version) => `<span class="chip">${escapeHtml(version)}</span>`).join("");
+      const sourceCards = app.sources.map((source) => {
+        const sourcePatches = source.patches.slice(0, 16).map((patch) => `
+          <span class="chip">${escapeHtml(patch.name)}${patch.description ? `<span class="patch-note">${escapeHtml(patch.description)}</span>` : ""}</span>
+        `).join("");
+        const sourceVersions = source.versions.slice(0, 6).map((version) => `<span class="chip">${escapeHtml(version)}</span>`).join("");
+        return `
+          <div class="source-card">
+            <div class="source-card-head">
+              <div class="source-card-title">${avatarHtml(source.avatarUrl, source.repo)}<span>${escapeHtml(source.repo)}</span></div>
+              ${hostBadge(source.host)}
+            </div>
+            <div class="actions">
+              <a class="button" href="${source.webUrl}" target="_blank" rel="noreferrer">Open</a>
+              <a class="button primary" href="${source.addUrl}" target="_blank" rel="noreferrer">Add Source</a>
+            </div>
+            <div class="chips">
+              ${sourceVersions || '<span class="chip">Any version</span>'}
+              ${sourcePatches || '<span class="chip">No patch metadata</span>'}
+              ${source.patches.length > 16 ? `<span class="chip">+${source.patches.length - 16} more patches</span>` : ""}
+            </div>
+          </div>`;
+      }).join("");
       row.innerHTML = `
         <div>
-          <div class="name">${escapeHtml(app.name)}</div>
-          <div class="meta">
-            <span>${escapeHtml(app.packageName)}</span>
-            <span>${app.patches.length} patches</span>
-            <span>${app.repos.length} sources</span>
+          <div class="title-line">
+            ${appIconHtml(app)}
+            <div>
+              <div class="name">${escapeHtml(app.name)}</div>
+              <div class="meta">
+                <span>${escapeHtml(app.packageName)}</span>
+                <span>${app.patches.length} patches</span>
+                <span>${app.repos.length} sources</span>
+              </div>
+            </div>
           </div>
         </div>
         <div class="actions">
           ${repo ? `<a class="button" href="${repo.webUrl}" target="_blank" rel="noreferrer">Source</a><a class="button primary" href="${repo.addUrl}" target="_blank" rel="noreferrer">Add Source</a>` : ""}
         </div>
         <details>
-          <summary>Patch and version details</summary>
-          <div class="chips">
-            ${versions || '<span class="chip">Any version</span>'}
-            ${patches}
-            ${app.patches.length > 18 ? `<span class="chip">+${app.patches.length - 18} more patches</span>` : ""}
-          </div>
+          <summary>${app.sources.length} source${app.sources.length === 1 ? "" : "s"} with separate patch sets</summary>
+          <div class="source-grid">${sourceCards}</div>
         </details>`;
       return row;
     }

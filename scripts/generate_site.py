@@ -75,8 +75,42 @@ def add_to_morphe_url(host, repo):
     return f"https://morphe.software/add-source?github={repo}"
 
 
+def repo_avatar_url(host, repo):
+    owner = repo.split("/", 1)[0] if repo else ""
+    if not owner:
+        return ""
+    if host == "github.com":
+        return f"https://github.com/{owner}.png?size=96"
+    if host == "gitlab.com":
+        return f"https://gitlab.com/uploads/-/system/user/avatar/{urllib.parse.quote(owner)}/avatar.png"
+    return ""
+
+
 def patches_list_url(bundle_url):
     return bundle_url.rsplit("/", 1)[0] + "/patches-list.json"
+
+
+def normalize_compatible_packages(value):
+    if isinstance(value, dict):
+        for package_name, versions in value.items():
+            targets = []
+            if isinstance(versions, list):
+                targets = [{"version": str(version)} for version in versions if version]
+            yield {
+                "packageName": package_name,
+                "name": package_name,
+                "targets": targets,
+            }
+        return
+
+    if not isinstance(value, list):
+        return
+
+    for app in value:
+        if isinstance(app, str):
+            yield {"packageName": app, "name": app, "targets": []}
+        elif isinstance(app, dict):
+            yield app
 
 
 def collect_patch_metadata(bundle):
@@ -85,11 +119,9 @@ def collect_patch_metadata(bundle):
     apps = {}
 
     for patch in patches:
-        for app in patch.get("compatiblePackages", []) or []:
-            if isinstance(app, str):
-                app = {"packageName": app, "name": app}
-            if not isinstance(app, dict):
-                continue
+        patch_name = patch.get("name") or "Unnamed patch"
+        patch_description = patch.get("description") or ""
+        for app in normalize_compatible_packages(patch.get("compatiblePackages", []) or []):
             package_name = app.get("packageName")
             if not package_name:
                 continue
@@ -105,11 +137,19 @@ def collect_patch_metadata(bundle):
                     "packageName": package_name,
                     "name": app_name,
                     "patches": set(),
+                    "patchDetails": {},
                     "versions": set(),
+                    "iconColor": app.get("appIconColor") or "",
+                    "iconUrl": app.get("iconUrl") or app.get("appIconUrl") or "",
                 },
             )
-            entry["patches"].add(patch.get("name") or "Unnamed patch")
+            entry["patches"].add(patch_name)
+            entry["patchDetails"][patch_name] = patch_description
             entry["versions"].update(versions)
+            if not entry["iconColor"] and app.get("appIconColor"):
+                entry["iconColor"] = app.get("appIconColor")
+            if not entry["iconUrl"] and (app.get("iconUrl") or app.get("appIconUrl")):
+                entry["iconUrl"] = app.get("iconUrl") or app.get("appIconUrl")
 
     normalized_apps = []
     for app in apps.values():
@@ -118,7 +158,13 @@ def collect_patch_metadata(bundle):
                 "packageName": app["packageName"],
                 "name": app["name"],
                 "patches": sorted(app["patches"], key=str.lower),
+                "patchDetails": [
+                    {"name": name, "description": app["patchDetails"].get(name, "")}
+                    for name in sorted(app["patches"], key=str.lower)
+                ],
                 "versions": sorted(app["versions"], key=str.lower),
+                "iconColor": app["iconColor"],
+                "iconUrl": app["iconUrl"],
             }
         )
 
@@ -148,6 +194,7 @@ def build_data():
             "listUrl": patches_list_url(bundle.get("source", "")),
             "webUrl": web_url(host, repo_path),
             "addUrl": add_to_morphe_url(host, repo_path),
+            "avatarUrl": repo_avatar_url(host, repo_path),
             "patchCount": patch_count,
             "appCount": len(apps),
         }
@@ -160,13 +207,33 @@ def build_data():
                     "packageName": app["packageName"],
                     "name": app["name"],
                     "repos": [],
+                    "sources": {},
                     "patches": set(),
+                    "patchDetails": {},
                     "versions": set(),
+                    "iconColor": "",
+                    "iconUrl": "",
                 },
             )
             existing["repos"].append(repo_path)
+            existing["sources"][repo_path] = {
+                "repo": repo_path,
+                "host": host,
+                "webUrl": repo["webUrl"],
+                "addUrl": repo["addUrl"],
+                "source": repo["source"],
+                "avatarUrl": repo["avatarUrl"],
+                "patches": app["patchDetails"],
+                "versions": app["versions"],
+            }
             existing["patches"].update(app["patches"])
+            for patch in app["patchDetails"]:
+                existing["patchDetails"][patch["name"]] = patch.get("description", "")
             existing["versions"].update(app["versions"])
+            if not existing["iconColor"] and app.get("iconColor"):
+                existing["iconColor"] = app["iconColor"]
+            if not existing["iconUrl"] and app.get("iconUrl"):
+                existing["iconUrl"] = app["iconUrl"]
 
     apps = []
     for app in apps_by_package.values():
@@ -175,8 +242,15 @@ def build_data():
                 "packageName": app["packageName"],
                 "name": app["name"],
                 "repos": sorted(set(app["repos"]), key=str.lower),
+                "sources": sorted(app["sources"].values(), key=lambda item: item["repo"].lower()),
                 "patches": sorted(app["patches"], key=str.lower),
+                "patchDetails": [
+                    {"name": name, "description": app["patchDetails"].get(name, "")}
+                    for name in sorted(app["patches"], key=str.lower)
+                ],
                 "versions": sorted(app["versions"], key=str.lower),
+                "iconColor": app["iconColor"],
+                "iconUrl": app["iconUrl"],
             }
         )
 
@@ -212,6 +286,7 @@ HTML = """<!doctype html>
       --accent: #74d99f;
       --accent-2: #93baff;
       --warn: #f2c56c;
+      --shadow: 0 18px 45px rgba(0, 0, 0, .24);
     }
     * { box-sizing: border-box; }
     body {
@@ -271,6 +346,7 @@ HTML = """<!doctype html>
       padding: 10px 12px;
       border-radius: 8px;
       min-width: 104px;
+      box-shadow: var(--shadow);
     }
     .stat strong { display: block; font-size: 22px; }
     .toolbar {
@@ -313,6 +389,7 @@ HTML = """<!doctype html>
       background: var(--panel);
       padding: 14px;
       border-radius: 8px;
+      box-shadow: var(--shadow);
     }
     .row:hover { border-color: #46505f; }
     .name {
@@ -322,11 +399,38 @@ HTML = """<!doctype html>
     }
     .meta {
       display: flex;
+      align-items: center;
       gap: 10px;
       flex-wrap: wrap;
       color: var(--muted);
       font-size: 13px;
       margin-top: 4px;
+    }
+    .title-line {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+    .avatar, .app-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      overflow: hidden;
+      background: var(--panel-2);
+      color: var(--text);
+      font-weight: 800;
+    }
+    .avatar img, .app-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
     }
     .badge {
       display: inline-flex;
@@ -389,6 +493,39 @@ HTML = """<!doctype html>
       color: var(--muted);
       font-size: 12px;
       overflow-wrap: anywhere;
+    }
+    .source-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .source-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #141820;
+    }
+    .source-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .source-card-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+    .patch-note {
+      color: var(--muted);
+      font-size: 12px;
+      display: block;
+      margin-top: 2px;
     }
     .empty {
       border: 1px dashed var(--line);
@@ -484,6 +621,23 @@ HTML = """<!doctype html>
       return `<span class="badge host-${cls}">${label}</span>`;
     }
 
+    function initials(value) {
+      const clean = String(value || "?").replace(/[^a-z0-9]+/gi, " ").trim();
+      return clean ? clean.split(" ").slice(0, 2).map((part) => part[0]).join("").toUpperCase() : "?";
+    }
+
+    function avatarHtml(url, label) {
+      if (!url) return `<span class="avatar">${escapeHtml(initials(label))}</span>`;
+      return `<span class="avatar"><img src="${url}" alt="" loading="lazy" onerror="this.remove(); this.parentElement.textContent='${escapeHtml(initials(label))}'"></span>`;
+    }
+
+    function appIconHtml(app) {
+      const label = initials(app.name || app.packageName);
+      const color = app.iconColor || "#2f3542";
+      if (app.iconUrl) return `<span class="app-icon"><img src="${app.iconUrl}" alt="" loading="lazy" onerror="this.remove(); this.parentElement.textContent='${escapeHtml(label)}'"></span>`;
+      return `<span class="app-icon" style="background:${escapeHtml(color)}">${escapeHtml(label)}</span>`;
+    }
+
     function sortRows(rows) {
       return rows.sort((a, b) => {
         if (state.sort === "patches") return (b.patchCount || b.patches?.length || 0) - (a.patchCount || a.patches?.length || 0);
@@ -498,11 +652,16 @@ HTML = """<!doctype html>
       row.className = "row";
       row.innerHTML = `
         <div>
-          <div class="name">${escapeHtml(repo.repo)}</div>
-          <div class="meta">
-            ${hostBadge(repo.host)}
-            <span>${repo.patchCount} patches</span>
-            <span>${repo.appCount} apps</span>
+          <div class="title-line">
+            ${avatarHtml(repo.avatarUrl, repo.repo)}
+            <div>
+              <div class="name">${escapeHtml(repo.repo)}</div>
+              <div class="meta">
+                ${hostBadge(repo.host)}
+                <span>${repo.patchCount} patches</span>
+                <span>${repo.appCount} apps</span>
+              </div>
+            </div>
           </div>
         </div>
         <div class="actions">
@@ -512,6 +671,11 @@ HTML = """<!doctype html>
         </div>
         <details>
           <summary>Source details</summary>
+          <div class="meta">
+            ${hostBadge(repo.host)}
+            <span>${repo.patchCount} patches</span>
+            <span>${repo.appCount} apps</span>
+          </div>
           <div class="chips">
             <a class="chip" href="${repo.source}" target="_blank" rel="noreferrer">patches-bundle.json</a>
             <a class="chip" href="${repo.listUrl}" target="_blank" rel="noreferrer">patches-list.json</a>
@@ -524,27 +688,48 @@ HTML = """<!doctype html>
       const repo = state.data.repos.find((item) => app.repos.includes(item.repo));
       const row = document.createElement("article");
       row.className = "row";
-      const patches = app.patches.slice(0, 18).map((patch) => `<span class="chip">${escapeHtml(patch)}</span>`).join("");
-      const versions = app.versions.slice(0, 8).map((version) => `<span class="chip">${escapeHtml(version)}</span>`).join("");
+      const sourceCards = app.sources.map((source) => {
+        const sourcePatches = source.patches.slice(0, 16).map((patch) => `
+          <span class="chip">${escapeHtml(patch.name)}${patch.description ? `<span class="patch-note">${escapeHtml(patch.description)}</span>` : ""}</span>
+        `).join("");
+        const sourceVersions = source.versions.slice(0, 6).map((version) => `<span class="chip">${escapeHtml(version)}</span>`).join("");
+        return `
+          <div class="source-card">
+            <div class="source-card-head">
+              <div class="source-card-title">${avatarHtml(source.avatarUrl, source.repo)}<span>${escapeHtml(source.repo)}</span></div>
+              ${hostBadge(source.host)}
+            </div>
+            <div class="actions">
+              <a class="button" href="${source.webUrl}" target="_blank" rel="noreferrer">Open</a>
+              <a class="button primary" href="${source.addUrl}" target="_blank" rel="noreferrer">Add Source</a>
+            </div>
+            <div class="chips">
+              ${sourceVersions || '<span class="chip">Any version</span>'}
+              ${sourcePatches || '<span class="chip">No patch metadata</span>'}
+              ${source.patches.length > 16 ? `<span class="chip">+${source.patches.length - 16} more patches</span>` : ""}
+            </div>
+          </div>`;
+      }).join("");
       row.innerHTML = `
         <div>
-          <div class="name">${escapeHtml(app.name)}</div>
-          <div class="meta">
-            <span>${escapeHtml(app.packageName)}</span>
-            <span>${app.patches.length} patches</span>
-            <span>${app.repos.length} sources</span>
+          <div class="title-line">
+            ${appIconHtml(app)}
+            <div>
+              <div class="name">${escapeHtml(app.name)}</div>
+              <div class="meta">
+                <span>${escapeHtml(app.packageName)}</span>
+                <span>${app.patches.length} patches</span>
+                <span>${app.repos.length} sources</span>
+              </div>
+            </div>
           </div>
         </div>
         <div class="actions">
           ${repo ? `<a class="button" href="${repo.webUrl}" target="_blank" rel="noreferrer">Source</a><a class="button primary" href="${repo.addUrl}" target="_blank" rel="noreferrer">Add Source</a>` : ""}
         </div>
         <details>
-          <summary>Patch and version details</summary>
-          <div class="chips">
-            ${versions || '<span class="chip">Any version</span>'}
-            ${patches}
-            ${app.patches.length > 18 ? `<span class="chip">+${app.patches.length - 18} more patches</span>` : ""}
-          </div>
+          <summary>${app.sources.length} source${app.sources.length === 1 ? "" : "s"} with separate patch sets</summary>
+          <div class="source-grid">${sourceCards}</div>
         </details>`;
       return row;
     }
