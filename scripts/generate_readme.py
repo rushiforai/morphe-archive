@@ -121,6 +121,15 @@ def build_readme(repos, invalid_repos=None):
     lines.append("")
     lines.append("---")
     lines.append("")
+    lines.append("## Website")
+    lines.append("")
+    lines.append(
+        "Browse the archive, search supported apps, and add sources from the GitHub Pages site: "
+        "[Morphe Archive](https://rushiforai.github.io/morphe-archive/)."
+    )
+    lines.append("")
+    lines.append("---")
+    lines.append("")
     lines.append("## Manager Config")
     lines.append("")
     lines.append(

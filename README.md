@@ -2,7 +2,7 @@
 
 An auto-generated, continuously updated index of every GitHub or GitLab repository that publishes a [Morphe](https://morphe.software) (`.mpp`) patch bundle.
 
-![Repos tracked](https://img.shields.io/badge/repos%20tracked-102-6366f1) ![Last updated](https://img.shields.io/badge/last%20updated-2026-07-23%2020:44%20UTC-555)
+![Repos tracked](https://img.shields.io/badge/repos%20tracked-102-6366f1) ![Last updated](https://img.shields.io/badge/last%20updated-2026-07-23%2020:50%20UTC-555)
 
 ---
 
@@ -17,6 +17,12 @@ This repo list is kept in [`repos.txt`](./repos.txt) and assembled from three so
 Repos are never silently removed when a source goes quiet - add an entry to [`ignore_repos.txt`](./ignore_repos.txt) to intentionally drop one.
 
 README and settings output include only repos whose `patches-bundle.json` is reachable and contains a real `.mpp` reference.
+
+---
+
+## Website
+
+Browse the archive, search supported apps, and add sources from the GitHub Pages site: [Morphe Archive](https://rushiforai.github.io/morphe-archive/).
 
 ---
 
@@ -159,4 +165,4 @@ Use `owner/repo` for GitHub, or `gitlab.com/group/project` for GitLab.
 
 18 approved repo entries were hidden because their bundle URL is currently invalid.
 
-*Last generated: 2026-07-23 20:44 UTC*
+*Last generated: 2026-07-23 20:50 UTC*

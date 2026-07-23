@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Morphe Archive</title>
+  <meta name="description" content="Search Morphe patch sources and supported apps.">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #101114;
+      --panel: #17191e;
+      --line: #2a2e37;
+      --text: #f3f5f7;
+      --muted: #a7adb8;
+      --accent: #75d0a8;
+      --accent-2: #8db7ff;
+      --warn: #f5c36b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    header {
+      border-bottom: 1px solid var(--line);
+      background: #121418;
+    }
+    .wrap {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    .top {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 20px;
+      align-items: end;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(30px, 4vw, 52px);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+    p { margin: 0; color: var(--muted); }
+    .stats {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .stat {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      padding: 10px 12px;
+      min-width: 104px;
+    }
+    .stat strong { display: block; font-size: 22px; }
+    .toolbar {
+      display: grid;
+      grid-template-columns: minmax(180px, 1fr) auto;
+      gap: 12px;
+      margin-top: 22px;
+    }
+    input, select, button, a.button {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--text);
+      border-radius: 6px;
+      padding: 11px 12px;
+      font: inherit;
+    }
+    input { width: 100%; }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    button.active {
+      border-color: var(--accent);
+      color: #08110d;
+      background: var(--accent);
+    }
+    main .wrap { padding-top: 18px; }
+    .list {
+      display: grid;
+      gap: 10px;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      align-items: center;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      padding: 14px;
+      border-radius: 8px;
+    }
+    .name {
+      font-weight: 700;
+      color: var(--text);
+      overflow-wrap: anywhere;
+    }
+    .meta {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 4px;
+    }
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    a { color: var(--accent-2); }
+    a.button {
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      white-space: nowrap;
+    }
+    a.primary {
+      color: #06110c;
+      background: var(--accent);
+      border-color: var(--accent);
+      font-weight: 700;
+    }
+    .empty {
+      border: 1px dashed var(--line);
+      color: var(--muted);
+      padding: 24px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .disclaimer {
+      margin-top: 18px;
+      border-top: 1px solid var(--line);
+      padding-top: 16px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    @media (max-width: 760px) {
+      .top, .toolbar, .row { grid-template-columns: 1fr; }
+      .stats, .actions { justify-content: flex-start; }
+      .wrap { padding: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="top">
+        <div>
+          <h1>Morphe Archive</h1>
+          <p>Search working Morphe patch sources, open their repositories, and add them to Morphe Manager.</p>
+        </div>
+        <div class="stats">
+          <div class="stat"><strong id="repoCount">0</strong><span>sources</span></div>
+          <div class="stat"><strong id="appCount">0</strong><span>apps</span></div>
+        </div>
+      </div>
+      <div class="toolbar">
+        <input id="search" type="search" placeholder="Search repos, apps, packages, patches">
+        <div class="tabs">
+          <button id="reposTab" class="active" type="button">Repos</button>
+          <button id="appsTab" type="button">Apps</button>
+        </div>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div class="wrap">
+      <div id="list" class="list"></div>
+      <p class="disclaimer">Use at your own risk. This site indexes possible Morphe patch sources but does not verify every repository or patch behavior. Patch failures, account bans, device issues, data loss, and other side effects are your responsibility.</p>
+    </div>
+  </main>
+  <script>
+    const state = { tab: "repos", query: "", data: null };
+    const list = document.getElementById("list");
+    const search = document.getElementById("search");
+    const reposTab = document.getElementById("reposTab");
+    const appsTab = document.getElementById("appsTab");
+
+    function textMatch(value) {
+      return String(value || "").toLowerCase().includes(state.query);
+    }
+
+    function repoRow(repo) {
+      const row = document.createElement("article");
+      row.className = "row";
+      row.innerHTML = `
+        <div>
+          <div class="name">${repo.repo}</div>
+          <div class="meta">
+            <span>${repo.host}</span>
+            <span>${repo.patchCount} patches</span>
+            <span>${repo.appCount} apps</span>
+          </div>
+        </div>
+        <div class="actions">
+          <a class="button" href="${repo.webUrl}" target="_blank" rel="noreferrer">Open</a>
+          <a class="button primary" href="${repo.addUrl}" target="_blank" rel="noreferrer">Add to Morphe</a>
+        </div>`;
+      return row;
+    }
+
+    function appRow(app) {
+      const repo = state.data.repos.find((item) => app.repos.includes(item.repo));
+      const row = document.createElement("article");
+      row.className = "row";
+      row.innerHTML = `
+        <div>
+          <div class="name">${app.name}</div>
+          <div class="meta">
+            <span>${app.packageName}</span>
+            <span>${app.patches.length} patches</span>
+            <span>${app.repos.length} sources</span>
+            ${app.versions.length ? `<span>${app.versions.slice(0, 4).join(", ")}</span>` : ""}
+          </div>
+        </div>
+        <div class="actions">
+          ${repo ? `<a class="button" href="${repo.webUrl}" target="_blank" rel="noreferrer">Source</a><a class="button primary" href="${repo.addUrl}" target="_blank" rel="noreferrer">Add Source</a>` : ""}
+        </div>`;
+      return row;
+    }
+
+    function render() {
+      list.innerHTML = "";
+      reposTab.classList.toggle("active", state.tab === "repos");
+      appsTab.classList.toggle("active", state.tab === "apps");
+
+      const rows = state.tab === "repos"
+        ? state.data.repos.filter((repo) => !state.query || [repo.repo, repo.name, repo.host].some(textMatch))
+        : state.data.apps.filter((app) => !state.query || [
+            app.name,
+            app.packageName,
+            app.repos.join(" "),
+            app.patches.join(" ")
+          ].some(textMatch));
+
+      if (!rows.length) {
+        list.innerHTML = '<div class="empty">No matches found.</div>';
+        return;
+      }
+
+      rows.forEach((item) => list.appendChild(state.tab === "repos" ? repoRow(item) : appRow(item)));
+    }
+
+    fetch("data.json")
+      .then((response) => response.json())
+      .then((data) => {
+        state.data = data;
+        document.getElementById("repoCount").textContent = data.repoCount;
+        document.getElementById("appCount").textContent = data.appCount;
+        render();
+      });
+
+    search.addEventListener("input", () => {
+      state.query = search.value.trim().toLowerCase();
+      render();
+    });
+    reposTab.addEventListener("click", () => { state.tab = "repos"; render(); });
+    appsTab.addEventListener("click", () => { state.tab = "apps"; render(); });
+  </script>
+</body>
+</html>

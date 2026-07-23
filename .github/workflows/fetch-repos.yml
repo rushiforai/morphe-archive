@@ -62,6 +62,10 @@ jobs:
         run: |
           python scripts/add_repos_to_bundles.py
 
+      - name: Generate Website
+        run: |
+          python scripts/generate_site.py
+
       - name: Commit and Push Changes
         run: |
           git config --global user.name "github-actions[bot]"
