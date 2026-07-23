@@ -81,7 +81,6 @@ Second \"item\" text"</string>
   <string name="morphe_settings_about_links_rv">2022 – 2025</string>
   <string name="morphe_settings_about_links_vanced">2019 – 2022</string>
   <string name="morphe_settings_about_links_licenses">Известувања за лиценца</string>
-  <string name="morphe_settings_about_licenses_loading">Вчитување...</string>
   <!-- misc.debugging.enableDebuggingPatch -->
   <string name="morphe_debug_screen_title">Дебугирање</string>
   <string name="morphe_debug_screen_summary">Конфигурирајте ги напредните опции за развивач и завршните зафати</string>
@@ -97,7 +96,6 @@ Second \"item\" text"</string>
   <string name="morphe_debug_export_logs_file">Извези во датотека</string>
   <string name="morphe_debug_export_logs_success">Завршни поруки за грешки се извезони успешно</string>
   <string name="morphe_debug_export_logs_failed">Неуспешно извезување на завршни поруки за грешки</string>
-  <string name="morphe_debug_logs_search_hint">Пребарување на дневнички записи за грешки...</string>
   <string name="morphe_debug_export_logs_clear">Обриши</string>
   <string name="morphe_debug_logs_disabled">Дебугирањето е исклучено</string>
   <string name="morphe_debug_logs_none_found">Не се пронајдени завршни поруки за грешки</string>
@@ -108,7 +106,6 @@ Second \"item\" text"</string>
   <string name="morphe_debug_feature_flags_manager_summary">Управление на булеан ознаки за функции</string>
   <string name="morphe_debug_feature_flags_manager_active_header">Активни ознаки за функции (%d)</string>
   <string name="morphe_debug_feature_flags_manager_blocked_header">Заблокирани ознаки за функции (%d)</string>
-  <string name="morphe_debug_feature_flags_manager_search_hint">Пребарување ознаки за функции...</string>
   <string name="morphe_debug_feature_flags_manager_toast_saved">Ознаките за функции се зачувани</string>
   <string name="morphe_debug_feature_flags_manager_toast_reset">Ознаките за функции се вратени</string>
   <string name="morphe_debug_feature_flags_manager_toast_copied">Ознаките за функции се копирани во привремениот простор</string>

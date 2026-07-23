@@ -33,9 +33,10 @@ Second \"item\" text"</string>
   <string name="morphe_settings_music_screen_1_ads_title">广告</string>
   <string name="morphe_settings_music_screen_2_general_title">通用</string>
   <string name="morphe_settings_music_screen_3_player_title">播放器</string>
-  <string name="morphe_settings_music_screen_6_misc_title">其他</string>
+  <string name="morphe_settings_music_screen_7_misc_title">其他</string>
   <!-- ad.hideAdsPatch -->
   <string name="morphe_music_hide_get_premium_label_title">隐藏“订阅 Music Premium”标签</string>
+  <string name="morphe_music_hide_music_premium_promotions_title">隐藏 Music Premium 促销推广</string>
   <string name="morphe_music_hide_video_ads_title">隐藏视频广告</string>
   <!-- interaction.crossfade.crossfadePatch -->
   <string name="morphe_music_crossfade_screen_title">淡入淡出</string>
@@ -241,7 +242,7 @@ YouTube Music 8.x —— 交叉淡入仅在 9.x 及更高版本上运行"</strin
   <string name="morphe_music_listenbrainz_token_dialog_get_token">获取令牌</string>
   <string name="morphe_music_listenbrainz_token_dialog_verify">验证</string>
   <string name="morphe_music_listenbrainz_token_status_empty">请输入令牌</string>
-  <string name="morphe_music_listenbrainz_token_status_validating">验证中...</string>
+  <string name="morphe_music_listenbrainz_token_status_validating">验证中…</string>
   <string name="morphe_music_listenbrainz_token_status_valid">令牌有效！用户：%s</string>
   <string name="morphe_music_listenbrainz_token_status_invalid">令牌无效：%s</string>
   <string name="morphe_music_listenbrainz_token_status_invalid_unknown">未知</string>
@@ -258,7 +259,7 @@ YouTube Music 8.x —— 交叉淡入仅在 9.x 及更高版本上运行"</strin
   <string name="morphe_music_lastfm_token_dialog_password_hint">密码</string>
   <string name="morphe_music_lastfm_token_dialog_login">登录</string>
   <string name="morphe_music_lastfm_token_status_empty">请输入用户名和密码</string>
-  <string name="morphe_music_lastfm_token_status_logging_in">正在登录...</string>
+  <string name="morphe_music_lastfm_token_status_logging_in">正在登录…</string>
   <string name="morphe_music_lastfm_token_status_success">登录成功！</string>
   <string name="morphe_music_lastfm_token_status_no_session">未能从 Last.fm 获取会话</string>
   <string name="morphe_music_lastfm_token_status_failed">登录失败：%s</string>

@@ -157,12 +157,14 @@ Schimbari incluse:
   <string name="morphe_hide_featured_places_section_title">Ascunde secțiunea \"Locuri recomandate\"</string>
   <string name="morphe_hide_featured_videos_section_title">Ascunde secțiunea Videoclipuri recomandate</string>
   <string name="morphe_hide_gaming_section_title">Ascunde secțiunea Jocuri</string>
+  <string name="morphe_hide_hashtag_section_title">Ascunde secțiunea Hashtag</string>
   <string name="morphe_hide_how_this_was_made_section_title">Ascunde secțiunea \"Cum a fost realizat acest conținut\"</string>
   <string name="morphe_hide_hype_points_title">Ascunde Puncte Hype</string>
   <string name="morphe_hide_info_cards_section_title">Ascunde secțiunea Carduri info</string>
   <string name="morphe_hide_key_concepts_section_title">Ascunde secțiunea \"Concepte cheie\"</string>
   <string name="morphe_hide_music_section_title">Ascunde secțiunea Muzică</string>
   <string name="morphe_hide_quizzes_section_title">Ascunde secțiunea Quiz-uri</string>
+  <string name="morphe_hide_search_inside_this_video_section_title">Ascunde secțiunea \'Caută în acest videoclip\'</string>
   <string name="morphe_hide_subscribe_button_title">Ascunde butonul Abonează-te</string>
   <string name="morphe_hide_transcript_section_title">Ascunde secțiunea Transcriere</string>
   <string name="morphe_hide_video_details_section_title">Ascunde secțiunea \"Detalii video\"</string>
@@ -269,8 +271,10 @@ Limitări:
   <string name="morphe_hide_aislist_stats_hidden_breakdown">"• Pagina principală: %s
 • Căutare: %s
 • Total: %s"</string>
-  <string name="morphe_hide_aislist_stats_blocklist_title">Canale din lista neagră încărcate: %s</string>
-  <string name="morphe_hide_aislist_stats_warnlist_title">Canale din lista de avertizare încărcate: %s</string>
+  <string name="morphe_hide_aislist_stats_blocklist_channels_title">Canale din lista neagră</string>
+  <string name="morphe_hide_aislist_stats_warnlist_channels_title">Canale din lista de avertizare</string>
+  <string name="morphe_hide_aislist_stats_channels_disabled_summary">Activează un filtru pentru a încărca canalele</string>
+  <string name="morphe_hide_aislist_stats_channels_loading_summary">Se încarcă canalele…</string>
   <string name="morphe_hide_aislist_about_summary">"Rezultatele de pe pagina principală și cele din căutare sunt filtrate pentru a ascunde videoclipuri de la canalele marcate de AiSList
 
 Limitări:
@@ -450,15 +454,17 @@ Info: S-ar putea să nu funcționeze pe transmisiuni live"</string>
   <string name="morphe_disable_precise_seeking_gesture_summary">Dezactivează modul de căutare precisă care se activează atunci când tragi de bara de căutare</string>
   <!-- interaction.seekbar.livestreamDVRPatch -->
   <string name="morphe_livestream_dvr_title">Activare DVR livestream</string>
+  <string name="morphe_livestream_dvr_summary">Permite căutarea în toate transmisiunile live, chiar și în cele care restricționează în mod normal această funcție</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_livestream_dvr_summary">"Permite derularea tuturor transmisiunilor live, chiar și a celor care restricționează în mod normal această funcție
+  <string name="morphe_livestream_dvr_not_available">"'Activarea înregistrării DVR pentru fluxuri live' este posibil să nu fie disponibilă
 
-Notă: Dacă „Spoof video streams” nu este activat, activarea acesteia poate provoca un comportament neașteptat la derularea transmisiunilor live."</string>
+Pentru a remedia această problemă, activați 'Spoof video streams' și schimbați 'Clientul implicit' în 'TV'"</string>
   <string name="morphe_expand_livestream_dvr_duration_title">Extinde durata DVR pentru livestream</string>
+  <string name="morphe_expand_livestream_dvr_duration_summary">Vă permite să derulați înapoi emisiunile live până la 7 zile în trecut</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_expand_livestream_dvr_duration_summary">"Vă permite să derulați înapoi transmisiunile live cu până la 7 zile în trecut
+  <string name="morphe_expand_livestream_dvr_duration_not_available">"'Extinderea duratei DVR pentru transmisiuni live' nu este disponibilă
 
-Notă: Dacă „Spoof video streams” nu este activat, activarea acesteia poate provoca un comportament neașteptat la derularea transmisiunilor live."</string>
+Pentru a rezolva această problemă, activați 'Falsificare fluxuri video' și schimbați 'Clientul implicit' în 'TV'"</string>
   <!-- interaction.seekbar.enableSlideToSeekPatch -->
   <string name="morphe_slide_to_seek_title">Activează diapozitivul pentru a căuta</string>
   <string name="morphe_slide_to_seek_summary">Activează glisarea pentru a căuta în loc să redă cu o viteză de 2x când apeși și menții apăsat playerul video</string>
@@ -663,10 +669,10 @@ Pentru a accesa Setări, activați butonul Setări prin General → Bara de inst
   <!-- 'Audio track' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_player_flyout_audio_track_title">Ascunde meniul \'Piesă audio\'</string>
   <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
-          'Android Reel' and 'TV' must be kept untranslated. -->
-  <string name="morphe_hide_player_flyout_audio_track_not_available">"Meniul 'Audio Track' este ascuns
+          'Android Studio' must be kept untranslated. -->
+  <string name="morphe_hide_player_flyout_audio_track_not_available">"Meniul 'Pistă audio' este ascuns
 
-Pentru a afișa meniul 'Audio Track', schimbați 'Spoof video streams' în 'Android Reel' sau 'TV'"</string>
+Pentru a afișa meniul 'Pistă audio', schimbați 'Spoof video streams' la orice client, cu excepția 'Android Studio'"</string>
   <string name="morphe_hide_player_flyout_audio_track_footer_title">Ascunde subsolul meniului \'Piesă audio\'</string>
   <!-- 'Captions' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_player_flyout_captions_title">Ascunde meniul Subtitrări</string>
@@ -817,46 +823,6 @@ Setări → Redare (sau Redare automată) → Redare automată următorul videoc
   <string name="morphe_player_overlay_opacity_title">Opacitate suprapusă jucătorului</string>
   <string name="morphe_player_overlay_opacity_summary">Ajustați nivelul de transparență (0 este transparent, 100 este opac)</string>
   <string name="morphe_player_overlay_opacity_invalid_toast">Opacitatea suportată de jucător trebuie să fie între 0-100</string>
-  <!-- layout.returnyoutubedislike.returnYouTubeDislikePatch -->
-  <!-- Brief notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
-  <string name="morphe_ryd_failure_connection_timeout">Dislike-uri temporar indisponibile (API a expirat)</string>
-  <string name="morphe_ryd_failure_connection_status_code">Dislike-uri indisponibile (status %d)</string>
-  <string name="morphe_ryd_failure_client_rate_limit_requested">Nu există aprecieri negative disponibile (limită API client)</string>
-  <string name="morphe_ryd_failure_generic">Dislike-uri indisponibile (%s)</string>
-  <!-- Brief notification (Toast) shown if the user enables RYD while a video is opened, and then tries to vote for the video. -->
-  <string name="morphe_ryd_failure_ryd_enabled_while_playing_video_then_user_voted">Reîncarcă videoclipul pentru a vota folosind Returnare YouTube Dislike</string>
-  <!-- Video likes have been set to hidden by the video uploader. -->
-  <string name="morphe_ryd_video_likes_hidden_by_video_owner">Ascuns de proprietar</string>
-  <string name="morphe_ryd_enabled_title">Activează Return YouTube Dislike</string>
-  <string name="morphe_ryd_dislike_percentage_title">Afișează aprecierile negative ca procentaj</string>
-  <string name="morphe_ryd_dislike_percentage_summary">Afișează aprecierile negative ca un procentaj de aprecieri, în loc de un număr</string>
-  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
-  <string name="morphe_ryd_compact_layout_title">Utilizează butonul Like compact</string>
-  <string name="morphe_ryd_compact_layout_summary">Reduce lățimea butonului Like pentru a economisi spațiu</string>
-  <string name="morphe_ryd_estimated_like_title">Afișați aprecierile estimate</string>
-  <string name="morphe_ryd_estimated_like_summary">Afișează un număr estimat de aprecieri pe videoclipurile în care creatorul a dezactivat aprecierile</string>
-  <string name="morphe_ryd_toast_on_connection_error_title">Afișează alerte de eroare de conexiune</string>
-  <string name="morphe_ryd_toast_on_connection_error_summary">Afișează o notificare atunci când serverul Return YouTube Dislike este indisponibil</string>
-  <string name="morphe_ryd_attribution_summary">"Datele sunt furnizate de API-ul Return YouTube Dislike
-
-Apasa aici pentru a deschide ReturnYouTubeDislike.com"</string>
-  <!-- Statistic strings are shown in the settings only when Morphe debug mode is enabled. Typical users will never see these. -->
-  <string name="morphe_ryd_statistics_category_title">ReturnYouTubeDislike statistici API ale acestui dispozitiv</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeAverage_title">Timp de răspuns API, medie</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMin_title">Timp de răspuns API, minim</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMax_title">Timp de răspuns API, maxim</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_title">Timpul de răspuns API, ultimul video</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_rate_limit_summary">Dislike-uri temporar indisponibile - Limita ratei de client API este în vigoare</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_title">Preluarea de voturi API, numărul de apeluri</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_zero_summary">Nu s-au efectuat apeluri în rețea</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_non_zero_summary">%d apeluri prin rețea efectuate</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_title">Voturi pentru preluarea API, număr de timeout-uri</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_zero_summary">Niciun apel de rețea nu a expirat</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_non_zero_summary">%d apeluri de rețea au expirat</string>
-  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_title">Limite de rată client API</string>
-  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_zero_summary">Nici o limită pentru rata clientului</string>
-  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_non_zero_summary">Limita ratei clientului a fost întâlnită de %d ori</string>
-  <string name="morphe_ryd_statistics_millisecond_text">%d milisecunde</string>
   <!-- layout.searchbar.wideSearchbarPatch -->
   <string name="morphe_wide_searchbar_title">Activează bara de căutare largă</string>
   <!-- layout.sponsorblock.sponsorBlockPatch -->
@@ -1124,7 +1090,6 @@ Limitări:
 
 Redarea video cu AV1 poate sacada sau pierde cadre."</string>
   <string name="morphe_spoof_video_streams_about_title">Efecte secundare ale simulării</string>
-  <string name="morphe_spoof_video_streams_about_experimental">• Client experimental și se poate opri din funcționare oricând</string>
   <string name="morphe_spoof_video_streams_about_playback_failure">• Videoclipul se poate opri la 1:00, sau poate să nu fie disponibil în unele regiuni</string>
   <string name="morphe_spoof_video_streams_about_no_audio_tracks">• Meniul pistei audio lipsește</string>
   <string name="morphe_spoof_video_streams_about_no_av1">• Fara codec video AV1</string>

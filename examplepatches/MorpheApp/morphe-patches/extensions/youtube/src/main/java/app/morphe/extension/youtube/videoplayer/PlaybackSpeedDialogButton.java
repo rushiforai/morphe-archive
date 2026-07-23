@@ -74,7 +74,7 @@ public class PlaybackSpeedDialogButton {
                     "morphe_playback_speed_dialog_button",
                     "morphe_playback_speed_dialog_button_text",
                     null,
-                    Settings.PLAYBACK_SPEED_DIALOG_BUTTON::get,
+                    Settings.PLAYBACK_SPEED_DIALOG_BUTTON,
                     getOnClickListener(),
                     getOnLongClickListener()
             );
@@ -94,7 +94,7 @@ public class PlaybackSpeedDialogButton {
                         VideoInformation.getPlaybackSpeed() == defaultSpeed)
                         ? 1.0f
                         : defaultSpeed;
-                VideoInformation.overridePlaybackSpeed(speed);
+                VideoInformation.changePlaybackSpeed(speed);
             } catch (Exception ex) {
                 Logger.printException(() -> "speed button long click failure", ex);
             }
@@ -114,33 +114,6 @@ public class PlaybackSpeedDialogButton {
                 Logger.printException(() -> "speed button onClick failure", ex);
             }
         };
-    }
-
-    /**
-     * injection point.
-     */
-    public static void setVisibilityNegatedImmediate() {
-        if (legacy != null) {
-            legacy.setVisibilityNegatedImmediate();
-        }
-    }
-
-    /**
-     * Injection point.
-     */
-    public static void setVisibilityImmediate(boolean visible) {
-        if (legacy != null) {
-            legacy.setVisibilityImmediate(visible);
-        }
-    }
-
-    /**
-     * Injection point.
-     */
-    public static void setVisibility(boolean visible, boolean animated) {
-        if (legacy != null) {
-            legacy.setVisibility(visible, animated);
-        }
     }
 
     /**

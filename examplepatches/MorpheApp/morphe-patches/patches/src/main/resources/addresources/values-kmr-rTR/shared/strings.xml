@@ -49,6 +49,7 @@ Second \"item\" text"</string>
   <string name="morphe_settings_search_empty_history_summary">Bo raya şewitîna doza lêgerînê şopandî, î reîka lêgerînê binivîsîne û Enter bikşîne</string>
   <string name="morphe_settings_search_history_title">Nîşan da dîroka dizimê</string>
   <string name="morphe_show_menu_icons_title">Îkonên sazkirina Morphe nîşan da</string>
+  <string name="morphe_settings_menu_copy_path">Kopîkirî: %s</string>
   <string name="morphe_language_title">Zimanê Morphe</string>
   <string name="morphe_language_user_dialog_message">"Wergerandin ji bo hin zimanên ku derketine, kêmtir e an tam nakin.
 
@@ -81,7 +82,7 @@ Da ku zimanên nû wergerînin an wergerandinên hebin baş bikin, malpera morph
   <string name="morphe_settings_about_links_rv">2022 – 2025</string>
   <string name="morphe_settings_about_links_vanced">2019 – 2022</string>
   <string name="morphe_settings_about_links_licenses">Rêxistinên destûrê</string>
-  <string name="morphe_settings_about_licenses_loading">Barbare...</string>
+  <string name="morphe_settings_about_licenses_loading">Bar kirin…</string>
   <!-- misc.debugging.enableDebuggingPatch -->
   <string name="morphe_debug_screen_title">Debug kirin</string>
   <string name="morphe_debug_screen_summary">Vebijarkirina vebijarkên pêşkeftî yên pêşdebazan û pelên tomara teşhîsê</string>
@@ -97,7 +98,7 @@ Tu nedaî belav bibe de kû dabeş bendê neqezbîn."</string>
   <string name="morphe_debug_export_logs_file">Bê ser kontrolê vekişîne</string>
   <string name="morphe_debug_export_logs_success">Logs debug bi serketî hatin vekirin</string>
   <string name="morphe_debug_export_logs_failed">Logs debug serketin nakin vekirin</string>
-  <string name="morphe_debug_logs_search_hint">Logs debug bigere...</string>
+  <string name="morphe_debug_logs_search_hint">Logên debugê bigerin…</string>
   <string name="morphe_debug_export_logs_clear">Paqij bike</string>
   <string name="morphe_debug_logs_disabled">Çavkaniya logê tê qutandin</string>
   <string name="morphe_debug_logs_none_found">Logs debug hatin dîtin nakin</string>
@@ -108,7 +109,7 @@ Tu nedaî belav bibe de kû dabeş bendê neqezbîn."</string>
   <string name="morphe_debug_feature_flags_manager_summary">Bayinatan booleanan sererast bike</string>
   <string name="morphe_debug_feature_flags_manager_active_header">Nîşanan xwertek karî (%d)</string>
   <string name="morphe_debug_feature_flags_manager_blocked_header">Nîşanan xwertek qutî (%d)</string>
-  <string name="morphe_debug_feature_flags_manager_search_hint">Nîşanan xwertek bigere...</string>
+  <string name="morphe_debug_feature_flags_manager_search_hint">Nîşanên taybetmendiyê bigerin…</string>
   <string name="morphe_debug_feature_flags_manager_toast_saved">Nîşanan xwertek hatin vekirin</string>
   <string name="morphe_debug_feature_flags_manager_toast_reset">Nîşanan xwertek hatin veşartin</string>
   <string name="morphe_debug_feature_flags_manager_toast_copied">Nîşanan xwertek lûsteyê hatin vekirin</string>

@@ -81,7 +81,6 @@ Second \"item\" text"</string>
   <string name="morphe_settings_about_links_rv">२०२२ – २०२५</string>
   <string name="morphe_settings_about_links_vanced">२०१९ – २०२२</string>
   <string name="morphe_settings_about_links_licenses">लाइसेन्स सूचनाहरू</string>
-  <string name="morphe_settings_about_licenses_loading">लोड गर्दै...</string>
   <!-- misc.debugging.enableDebuggingPatch -->
   <string name="morphe_debug_screen_title">डिबगिङ</string>
   <string name="morphe_debug_stacktrace_title">डिबग लग स्ट्याक ट्रेस</string>
@@ -94,7 +93,6 @@ Second \"item\" text"</string>
   <string name="morphe_debug_export_logs_file">फाइलमा निर्यात गर्नुहोस्</string>
   <string name="morphe_debug_export_logs_success">डिबग लगहरू सफलतापूर्वक निर्यात गरियो</string>
   <string name="morphe_debug_export_logs_failed">डिबग लगहरू निर्यात गर्न असफल भयो</string>
-  <string name="morphe_debug_logs_search_hint">डिबग लगहरू खोज्नुहोस्...</string>
   <string name="morphe_debug_export_logs_clear">क्लियर गर्नुहोस्</string>
   <string name="morphe_debug_logs_disabled">डिबग लगिङ असक्षम गरिएको छ</string>
   <string name="morphe_debug_logs_none_found">कुनै डिबग लगहरू फेला परेन</string>
@@ -105,7 +103,6 @@ Second \"item\" text"</string>
   <string name="morphe_debug_feature_flags_manager_summary">बूलियन सुविधा झण्डाहरू प्रबन्ध गर्नुहोस्</string>
   <string name="morphe_debug_feature_flags_manager_active_header">सक्रिय सुविधा झण्डाहरू (%d)</string>
   <string name="morphe_debug_feature_flags_manager_blocked_header">अवरुद्ध सुविधा झण्डाहरू (%d)</string>
-  <string name="morphe_debug_feature_flags_manager_search_hint">सुविधा झण्डाहरू खोज्नुहोस्...</string>
   <string name="morphe_debug_feature_flags_manager_toast_saved">सुविधा झण्डाहरू सुरक्षित गरियो</string>
   <string name="morphe_debug_feature_flags_manager_toast_reset">सुविधा झण्डाहरू रिसेट गरियो</string>
   <string name="morphe_debug_feature_flags_manager_toast_copied">सुविधा झण्डाहरू क्लिपबोर्डमा प्रतिलिपि गरियो</string>

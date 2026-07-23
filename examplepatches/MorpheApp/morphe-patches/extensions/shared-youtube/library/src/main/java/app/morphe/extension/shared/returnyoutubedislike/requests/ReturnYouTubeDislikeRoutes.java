@@ -1,4 +1,4 @@
-package app.morphe.extension.youtube.returnyoutubedislike.requests;
+package app.morphe.extension.shared.returnyoutubedislike.requests;
 
 import static app.morphe.extension.shared.requests.Route.Method.GET;
 import static app.morphe.extension.shared.requests.Route.Method.POST;

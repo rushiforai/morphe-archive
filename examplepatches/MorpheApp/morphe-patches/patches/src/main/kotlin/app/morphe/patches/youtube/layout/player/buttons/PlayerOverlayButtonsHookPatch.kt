@@ -14,6 +14,8 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.all.misc.resources.resourceMappingPatch
 import app.morphe.patches.youtube.layout.miniplayer.EXTENSION_CLASS
 import app.morphe.patches.youtube.misc.extension.sharedExtensionPatch
+import app.morphe.patches.youtube.misc.playservice.is_21_29_or_greater
+import app.morphe.patches.youtube.misc.playservice.versionCheckPatch
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import java.lang.ref.WeakReference
 
@@ -32,6 +34,7 @@ internal val playerOverlayButtonsHookPatch = bytecodePatch {
     dependsOn(
         sharedExtensionPatch,
         resourceMappingPatch, // Used by fingerprints.
+        versionCheckPatch
     )
 
     execute {
@@ -45,10 +48,12 @@ internal val playerOverlayButtonsHookPatch = bytecodePatch {
                 // Fix the fullscreen button tint when the minimal miniplayer type is selected.
                 // The minimal type forces a theme where ytOverlayButtonPrimary resolves to gray
                 // instead of white, making the fullscreen button appear gray instead of white.
-                addInstruction(
-                    index + 1,
-                    "invoke-static { v$exploderButtonInsertRegister }, $EXTENSION_CLASS->fixMinimalMiniplayerFullscreenButtonTint(Landroid/view/View;)V"
-                )
+                if (!is_21_29_or_greater) {
+                    addInstruction(
+                        index + 1,
+                        "invoke-static { v$exploderButtonInsertRegister }, $EXTENSION_CLASS->fixMinimalMiniplayerFullscreenButtonTint(Landroid/view/View;)V"
+                    )
+                }
             }
         }
     }

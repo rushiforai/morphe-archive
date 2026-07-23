@@ -17,11 +17,12 @@ import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.ResourceType;
 import app.morphe.extension.shared.ResourceUtils;
 import app.morphe.extension.shared.Utils;
-import app.morphe.extension.youtube.settings.Settings;
-import app.morphe.extension.youtube.shared.PlayerType;
 import app.morphe.extension.shared.sponsorblock.SegmentPlaybackController;
 import app.morphe.extension.shared.sponsorblock.objects.SponsorSegment;
+import app.morphe.extension.youtube.settings.Settings;
+import app.morphe.extension.youtube.shared.PlayerType;
 import app.morphe.extension.youtube.videoplayer.LegacyPlayerControlButton;
+import app.morphe.extension.youtube.videoplayer.LegacyPlayerControlButton.ButtonVisibility;
 import kotlin.Unit;
 
 public class SponsorBlockViewController {
@@ -102,7 +103,17 @@ public class SponsorBlockViewController {
                     "morphe_sb_skip_sponsor_button",
                     null,
                     null,
-                    () -> canShowViewElements && SegmentPlaybackController.currentlyInsideSkippableSegment(),
+                    () -> {
+                        if (SegmentPlaybackController.forceShowSkipButton()) {
+                            return ButtonVisibility.FORCE_SHOW;
+                        }
+                        if (!canShowViewElements) {
+                            return ButtonVisibility.DISABLED;
+                        }
+                        return SegmentPlaybackController.currentlyInsideSkippableSegment()
+                                ? ButtonVisibility.ENABLED
+                                : ButtonVisibility.DISABLED;
+                    },
                     view -> {
                         SkipSponsorButton button = skipSponsorButtonRef.get();
                         if (button != null) {
@@ -111,6 +122,7 @@ public class SponsorBlockViewController {
                     },
                     null
             );
+            skipSponsorPlayerButton.setVisibility(View.GONE);
 
             NewSegmentLayout newSegmentLayout = Objects.requireNonNull(layout.findViewById(
                     ResourceUtils.getIdentifier(ResourceType.ID, "morphe_sb_new_segment_view")));
@@ -202,7 +214,9 @@ public class SponsorBlockViewController {
         }
 
         if (isSkipButton && Settings.SB_AUTO_HIDE_SKIP_BUTTON.get()) {
-            setVisibilityImmediate(visible);
+            if (skipSponsorPlayerButton != null) {
+                skipSponsorPlayerButton.setVisibility(visible ? View.VISIBLE : View.GONE);
+            }
         } else {
             setGenericViewVisibility(button, visible);
         }
@@ -285,47 +299,5 @@ public class SponsorBlockViewController {
         }
         params.bottomMargin = fullScreen ? ctaBottomMargin : defaultBottomMargin;
         view.setLayoutParams(params);
-    }
-
-    // Additional logic to fade in/out the skip segment button when autohide skip button is active.
-
-    /**`
-     * injection point.
-     */
-    public static void setVisibilityNegatedImmediate() {
-        if (SegmentPlaybackController.shouldNotFadeOutPlayerOverlaySkipButton()) {
-            return;
-        }
-
-        if (skipSponsorPlayerButton != null) {
-            skipSponsorPlayerButton.setVisibilityNegatedImmediate();
-        }
-    }
-
-    /**
-     * injection point.
-     * Only for skip button when auto hide is enbled.
-     */
-    public static void setVisibilityImmediate(boolean visible) {
-        if (!visible && SegmentPlaybackController.shouldNotFadeOutPlayerOverlaySkipButton()) {
-            return;
-        }
-
-        if (skipSponsorPlayerButton != null) {
-            skipSponsorPlayerButton.setVisibilityImmediate(visible);
-        }
-    }
-
-    /**
-     * injection point.
-     */
-    public static void setVisibility(boolean visible, boolean animated) {
-        if (!visible && SegmentPlaybackController.shouldNotFadeOutPlayerOverlaySkipButton()) {
-            return;
-        }
-
-        if (skipSponsorPlayerButton != null) {
-            skipSponsorPlayerButton.setVisibility(visible, animated);
-        }
     }
 }

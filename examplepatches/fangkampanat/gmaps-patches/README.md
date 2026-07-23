@@ -9,7 +9,7 @@ This repository does not distribute Google Maps APKs, whether original or patche
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.5](https://github.com/fangkampanat/gmaps-patches/releases/tag/v1.0.5)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patch total
+> **[v1.0.6](https://github.com/fangkampanat/gmaps-patches/releases/tag/v1.0.6)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patch total
 <details open>
 <summary>📦 Google Maps&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -46,9 +46,11 @@ The patched APK requires ReVanced GmsCore for Google sign-in and related Google 
 
 ![Patched Google Maps 26.29.02.946673643 running with ReVanced GmsCore on a BYD head unit](docs/screenshots/byd-screen.webp)
 
+> **BYD DiLink3.0:** Use ReVanced GmsCore `v0.3.13.2.250932`. Do not install `v0.3.13.3.250932-user`; BYD blocks its background services and Maps appears signed out. Profile photos may show an initial with `v0.3.13.2`.
+
 > **Not supported:** [Morphe MicroG-RE](https://github.com/MorpheApp/MicroG-RE) `v6.1.4` was tested but did not work with this patched APK. Google account token refresh failed with `INVALID_APPID`, leaving Maps offline.
 
-Other GmsCore versions may work with the patched APK but have not been verified by this project.
+Other GmsCore versions may work on non-BYD devices but have not been verified by this project.
 
 ## Add the patch source
 

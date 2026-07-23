@@ -47,7 +47,11 @@ public class AiSListStatsPreferenceCategory extends PreferenceCategory {
             Settings.AISLIST_HIDE_COUNT_SEARCH.key,
             Settings.AISLIST_HIDES_24H.key,
             Settings.AISLIST_BLOCKLIST_CACHE.key,
-            Settings.AISLIST_WARNLIST_CACHE.key
+            Settings.AISLIST_WARNLIST_CACHE.key,
+            Settings.HIDE_AISLIST_BLOCKLIST_HOME.key,
+            Settings.HIDE_AISLIST_BLOCKLIST_SEARCH.key,
+            Settings.HIDE_AISLIST_WARNLIST_HOME.key,
+            Settings.HIDE_AISLIST_WARNLIST_SEARCH.key
     );
 
     private final SharedPreferences.OnSharedPreferenceChangeListener listener =
@@ -143,16 +147,38 @@ public class AiSListStatsPreferenceCategory extends PreferenceCategory {
         addPreference(hiddenAllTime);
 
         Preference blocklistPref = new Preference(context);
-        blocklistPref.setTitle(str("morphe_hide_aislist_stats_blocklist_title",
-                nf.format(countHandles(Settings.AISLIST_BLOCKLIST_CACHE.get()))));
+        blocklistPref.setTitle(str("morphe_hide_aislist_stats_blocklist_channels_title"));
+        blocklistPref.setSummary(channelsSummary(Settings.AISLIST_BLOCKLIST_CACHE.get()));
         blocklistPref.setSelectable(false);
         addPreference(blocklistPref);
 
         Preference warnlistPref = new Preference(context);
-        warnlistPref.setTitle(str("morphe_hide_aislist_stats_warnlist_title",
-                nf.format(countHandles(Settings.AISLIST_WARNLIST_CACHE.get()))));
+        warnlistPref.setTitle(str("morphe_hide_aislist_stats_warnlist_channels_title"));
+        warnlistPref.setSummary(channelsSummary(Settings.AISLIST_WARNLIST_CACHE.get()));
         warnlistPref.setSelectable(false);
         addPreference(warnlistPref);
+    }
+
+    /**
+     * The count is the source of truth when the cache is populated. Otherwise, the summary
+     * explains the reason it is empty: no toggle is on (nothing has been requested) or the
+     * fetch is still in flight after the first toggle flip.
+     */
+    private String channelsSummary(String cache) {
+        if (cache != null && !cache.isBlank()) {
+            return nf.format(countHandles(cache));
+        }
+        if (anyToggleEnabled()) {
+            return str("morphe_hide_aislist_stats_channels_loading_summary");
+        }
+        return str("morphe_hide_aislist_stats_channels_disabled_summary");
+    }
+
+    private static boolean anyToggleEnabled() {
+        return Settings.HIDE_AISLIST_BLOCKLIST_HOME.get()
+                || Settings.HIDE_AISLIST_BLOCKLIST_SEARCH.get()
+                || Settings.HIDE_AISLIST_WARNLIST_HOME.get()
+                || Settings.HIDE_AISLIST_WARNLIST_SEARCH.get();
     }
 
     private void showResetDialog(String title, Runnable onConfirm) {

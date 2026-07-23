@@ -100,7 +100,7 @@ I measc na n-athruithe tá:
   <string name="morphe_hide_upload_time_summary">"Teorainneacha:
 • D’fhéadfadh amanna uaslódála a bheith le feiceáil fós ar sheilfeanna gearrscannán, leathanaigh chainéil, agus torthaí cuardaigh
 • Ní oibríonn sé le leagan amach feithicleach"</string>
-  <string name="morphe_hide_video_thumbnail_title">Folaigh mionsamhlacha físe</string>
+  <string name="morphe_hide_video_thumbnail_title">Folaigh mionsamhail an fhíseáin</string>
   <!-- 'People also watched' and 'You might also like' should be translated using the same localized wording YouTube displays for the label. -->
   <string name="morphe_hide_video_recommendation_labels_title">Folaigh lipéid mholtaí físeáin</string>
   <string name="morphe_hide_video_recommendation_labels_summary">Folaíonn sé lipéid \'Daoine a d\'fhéach freisin\' agus \'B\'fhéidir go mbeadh suim agat iontu freisin\' i dtorthaí cuardaigh</string>
@@ -155,6 +155,7 @@ I measc na n-athruithe tá:
   <string name="morphe_hide_featured_channels_section_title">Folaigh rannán cainéil Réadmhaoine</string>
   <string name="morphe_hide_featured_links_section_title">Folaigh an chuid Naisc Réadmhaoine</string>
   <string name="morphe_hide_featured_places_section_title">Folaigh an chuid \'Áiteanna Réadmhaoine\'</string>
+  <string name="morphe_hide_featured_playlists_section_title">Folaigh an rannóg seinmliostaí Réadmhaoine</string>
   <string name="morphe_hide_featured_videos_section_title">Folaigh an rannóg Físeáin Réadmhaoine</string>
   <string name="morphe_hide_gaming_section_title">Folaigh an rannóg Cearrbhachais</string>
   <string name="morphe_hide_how_this_was_made_section_title">Folaigh an chuid \'Conas a cruthaíodh an t-ábhar seo\'</string>
@@ -163,6 +164,7 @@ I measc na n-athruithe tá:
   <string name="morphe_hide_key_concepts_section_title">Folaigh an chuid \'Príomhchoincheapa\'</string>
   <string name="morphe_hide_music_section_title">Folaigh an rannóg Ceoil</string>
   <string name="morphe_hide_quizzes_section_title">Folaigh an rannán Tráth na gCeist</string>
+  <string name="morphe_hide_search_inside_this_video_section_title">Folaigh an chuid \'Cuardaigh taobh istigh den fhíseán seo\'</string>
   <string name="morphe_hide_subscribe_button_title">Folaigh an cnaipe Liostála</string>
   <string name="morphe_hide_transcript_section_title">Folaigh an chuid Tras-scríbhinn</string>
   <string name="morphe_hide_video_details_section_title">Folaigh an chuid \'Sonraí físe\'</string>
@@ -269,8 +271,10 @@ Teorainneacha:
   <string name="morphe_hide_aislist_stats_hidden_breakdown">"• Baile: %s
 • Cuardaigh: %s
 • Iomlán: %s"</string>
-  <string name="morphe_hide_aislist_stats_blocklist_title">Luchtaithe bealaí blocála: %s</string>
-  <string name="morphe_hide_aislist_stats_warnlist_title">Cainéil liosta rabhaidh luchtaithe: %s</string>
+  <string name="morphe_hide_aislist_stats_blocklist_channels_title">Cainéil blocáilte</string>
+  <string name="morphe_hide_aislist_stats_warnlist_channels_title">Cainéil liosta rabhaidh</string>
+  <string name="morphe_hide_aislist_stats_channels_disabled_summary">Cumasaigh scagaire chun bealaí a luchtú</string>
+  <string name="morphe_hide_aislist_stats_channels_loading_summary">Ag lódáil cainéil…</string>
   <string name="morphe_hide_aislist_about_summary">"Déantar torthaí baile agus cuardaigh a scagadh chun físeáin a cheilt ó chainéil atá bratachaithe ag AiSList
 
 Teorainneacha:
@@ -450,15 +454,17 @@ Eolas: Seans nach n-oibreoidh sé ar shruthanna beo"</string>
   <string name="morphe_disable_precise_seeking_gesture_summary">Díchumasaíonn sé an modh cuardaigh bheacht a ghníomhaítear nuair a tharraingítear an barra cuardaigh suas</string>
   <!-- interaction.seekbar.livestreamDVRPatch -->
   <string name="morphe_livestream_dvr_title">Cumasaigh DVR sruthú beo</string>
+  <string name="morphe_livestream_dvr_summary">Ceadaíonn sé cuardach a dhéanamh ar gach sruth beo, fiú iad siúd a chuireann srian air de ghnáth</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_livestream_dvr_summary">"Ceadaíonn sé cuardach ar gach sruth beo, fiú iad siúd a chuireann srian air de ghnáth
+  <string name="morphe_livestream_dvr_not_available">"B’fhéidir nach bhfuil ‘Cumasaigh DVR sruthú beo’ ar fáil
 
-Nóta: Mura bhfuil 'Sruthanna físe bréige' cumasaithe, d'fhéadfadh sé seo iompar gan choinne a chur faoi deara maidir le cuardach sruth beo"</string>
+Chun seo a shocrú, cas ar ‘Sruthanna físe bréige’ agus athraigh an ‘Cliant réamhshocraithe’ go ‘Teilifís’"</string>
   <string name="morphe_expand_livestream_dvr_duration_title">Leathnaigh fad an DVR sruthú beo</string>
+  <string name="morphe_expand_livestream_dvr_duration_summary">Ligeann sé duit craoltaí beo a athchasadh suas le 7 lá san am atá thart</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_expand_livestream_dvr_duration_summary">"Ligeann sé seo duit craoltaí beo a athchasadh suas le 7 lá san am atá thart
+  <string name="morphe_expand_livestream_dvr_duration_not_available">"B’fhéidir nach mbeidh ‘Fad an DVR sruthú beo a leathnú’ ar fáil.
 
-Nóta: Mura bhfuil 'Sruthanna físe bréige' cumasaithe, d'fhéadfadh sé seo iompar gan choinne a chur faoi deara maidir le cuardach sruth beo"</string>
+Chun seo a shocrú, cuir ‘Sruthanna físe bréige’ ar siúl agus athraigh an ‘Cliant réamhshocraithe’ go ‘Teilifís’."</string>
   <!-- interaction.seekbar.enableSlideToSeekPatch -->
   <string name="morphe_slide_to_seek_title">Cumasaigh sleamhnán a lorg</string>
   <string name="morphe_slide_to_seek_summary">Cumasaíonn sé seo an sleamhnán chun cuardach a dhéanamh in ionad é a sheinm ag luas 2x nuair a bhrúnn tú agus a choinníonn tú an seinnteoir físe</string>
@@ -663,10 +669,10 @@ Chun rochtain a fháil ar Socruithe, cumasaigh an cnaipe Socruithe trí Ghinear�
   <!-- 'Audio track' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_player_flyout_audio_track_title">Folaigh an roghchlár \'Rian Fuaime\'</string>
   <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
-          'Android Reel' and 'TV' must be kept untranslated. -->
+          'Android Studio' must be kept untranslated. -->
   <string name="morphe_hide_player_flyout_audio_track_not_available">"Tá an roghchlár 'Rian Fuaime' i bhfolach
 
-Chun an roghchlár 'Rian Fuaime' a thaispeáint, athraigh 'Sruthanna físe bréige' go 'Ríl Android' nó 'Teilifís'"</string>
+Chun an roghchlár 'Rian Fuaime' a thaispeáint, athraigh 'Sruthanna físe bréige' go haon chliant seachas 'Android Studio'"</string>
   <string name="morphe_hide_player_flyout_audio_track_footer_title">Folaigh buntásc an roghchláir \'Rian Fuaime\'</string>
   <!-- 'Captions' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_player_flyout_captions_title">Folaigh roghchlár Fotheidil</string>
@@ -817,46 +823,6 @@ Socruithe → Athsheinm (nó Uathsheinm) → Uathsheinm an chéad fhíseán eile
   <string name="morphe_player_overlay_opacity_title">Teimhneacht fhorleagan imreora</string>
   <string name="morphe_player_overlay_opacity_summary">Coigeartaigh an leibhéal trédhearcachta (is é 0 trédhearcach, is é 100 teimhneach)</string>
   <string name="morphe_player_overlay_opacity_invalid_toast">Teimhneacht fhorleagan an imreora idir 0-100</string>
-  <!-- layout.returnyoutubedislike.returnYouTubeDislikePatch -->
-  <!-- Brief notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
-  <string name="morphe_ryd_failure_connection_timeout">Níl dí-mhaith ar fáil faoi láthair (API am istigh)</string>
-  <string name="morphe_ryd_failure_connection_status_code">Níl \'Ní maith liom\' ar fáil (stádas %d)</string>
-  <string name="morphe_ryd_failure_client_rate_limit_requested">Níl \'Ní maith liom\' ar fáil (teorainn API cliaint)</string>
-  <string name="morphe_ryd_failure_generic">Níl \'Ní maith liom\' ar fáil (%s)</string>
-  <!-- Brief notification (Toast) shown if the user enables RYD while a video is opened, and then tries to vote for the video. -->
-  <string name="morphe_ryd_failure_ryd_enabled_while_playing_video_then_user_voted">Athlódáil físeán vótáil trí Return YouTube Dislike</string>
-  <!-- Video likes have been set to hidden by the video uploader. -->
-  <string name="morphe_ryd_video_likes_hidden_by_video_owner">I bhfolach ag an úinéir</string>
-  <string name="morphe_ryd_enabled_title">Cumasaigh Filleadh ar Dhí-Thaitin YouTube</string>
-  <string name="morphe_ryd_dislike_percentage_title">Taispeáin nach maith liom mar chéatadán</string>
-  <string name="morphe_ryd_dislike_percentage_summary">Taispeánann sé nach maith leat mar chéatadán de na maith leat seachas uimhir</string>
-  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
-  <string name="morphe_ryd_compact_layout_title">Úsáid an cnaipe dlúth Is maith liom</string>
-  <string name="morphe_ryd_compact_layout_summary">Laghdaíonn sé leithead an chnaipe Is maith liom chun spás a shábháil</string>
-  <string name="morphe_ryd_estimated_like_title">Taispeáin \'is maith liom\' measta</string>
-  <string name="morphe_ryd_estimated_like_summary">Taispeánann sé líon measta na \'Is maith liom\' ar fhíseáin inar dhíchumasaigh an cruthaitheoir \'Is maith liom\'</string>
-  <string name="morphe_ryd_toast_on_connection_error_title">Taispeáin foláirimh earráide nasc</string>
-  <string name="morphe_ryd_toast_on_connection_error_summary">Taispeánann sé fógra nuair nach bhfuil an freastalaí Return YouTube Dislike ar fáil</string>
-  <string name="morphe_ryd_attribution_summary">"Cuirtear sonraí ar fáil ag API Return YouTube Dislike
-
-Tapáil anseo chun ReturnYouTubeDislike.com a oscailt"</string>
-  <!-- Statistic strings are shown in the settings only when Morphe debug mode is enabled. Typical users will never see these. -->
-  <string name="morphe_ryd_statistics_category_title">Staitisticí API ReturnYouTubeDislike an ghléis seo</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeAverage_title">Am freagartha API, meán</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMin_title">Am freagartha API, íosmhéid</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMax_title">Am freagartha API, uasmhéid</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_title">Am freagartha API, físeán deireanach</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_rate_limit_summary">Ní dtaitníonn sé ar fáil go sealadach - Teorainn ráta API cliant i bhfeidhm</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_title">Vótaí aisghabhála API, líon na nglaonna</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_zero_summary">Níor rinneadh aon ghlaonna líonra</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_non_zero_summary">%d glaonna líonra déanta</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_title">Vótaí aisghabhála API, líon na sosanna ama</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_zero_summary">Níl aon ghlaonna líonra imithe in éag</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_non_zero_summary">%d glaonna líonra imithe thar an am</string>
-  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_title">Teorainneacha ráta cliant API</string>
-  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_zero_summary">Níor aimsíodh aon teorainneacha ráta cliant</string>
-  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_non_zero_summary">Teorainn ráta cliant a bhíonn le fáil %d uair</string>
-  <string name="morphe_ryd_statistics_millisecond_text">%d milleasoicind</string>
   <!-- layout.searchbar.wideSearchbarPatch -->
   <string name="morphe_wide_searchbar_title">Cumasaigh barra cuardaigh leathan</string>
   <!-- layout.sponsorblock.sponsorBlockPatch -->
@@ -941,6 +907,7 @@ Teorainn: Mura bhfuil 'Barra gníomhaíochta seanfhíseáin athchóirithe' múch
   <string name="morphe_miniplayer_disable_resuming_summary">Díchumasaíonn sé an miniplayer \'Lean ar aghaidh ag breathnú\', gné de chuid YouTube Premium a thaispeántar nuair a thosaítear an aip</string>
   <string name="morphe_miniplayer_screen_title">Mion seinnteoir</string>
   <string name="morphe_miniplayer_screen_summary">Saincheap cuma agus iompar an seinnteora físe íoslaghdaithe</string>
+  <string name="morphe_miniplayer_not_available_summary">Bhain YouTube na miniimreoirí breise go léir. Chun an cineál miniimreoir a athrú, paisteáil YouTube 21.28.207 nó níos sine.</string>
   <string name="morphe_miniplayer_type_title">Cineál Mion seinnteoir</string>
   <string name="morphe_miniplayer_type_entry_0">Díchumasaithe</string>
   <string name="morphe_miniplayer_type_entry_1">Réamhshocrú</string>
@@ -1124,7 +1091,6 @@ Teorainneacha:
 
 D’fhéadfadh sé go mbeadh stad nó go gcaillfí frámaí ag athsheinm físe le AV1."</string>
   <string name="morphe_spoof_video_streams_about_title">Fo-iarsmaí spóifithe</string>
-  <string name="morphe_spoof_video_streams_about_experimental">• Cliant turgnamhach é seo agus féadfaidh sé stop a chur ag obair ag am ar bith</string>
   <string name="morphe_spoof_video_streams_about_playback_failure">• Is féidir go stopfaidh an físeán ag 1:00, nó b\'fhéidir nach mbeidh sé ar fáil i réigiúin áirithe</string>
   <string name="morphe_spoof_video_streams_about_no_audio_tracks">• Tá roghchlár na rianta fuaime ar iarraidh</string>
   <string name="morphe_spoof_video_streams_about_no_av1">• Gan aon chóideic físe AV1</string>

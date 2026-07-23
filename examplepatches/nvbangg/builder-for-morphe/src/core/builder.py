@@ -59,9 +59,15 @@ def _find_pkg_name(entry: AppEntry, scrapers: dict[str, BaseScraper]) -> tuple[s
     raise BuilderError("Package name not found")
 
 def _resolve_version(entry: AppEntry, patcher: PatcherCLI, list_patches: str, pkg_name: str, dl_from: str, scrapers: dict[str, BaseScraper]) -> tuple[str, bool]:
-    if entry.version not in ("auto", "latest"):
+    if entry.version not in ("auto", "latest", "exp"):
         version, is_custom = entry.version, True
-    elif entry.version in ("auto", "latest") and (v := patcher.get_last_supported_version(list_patches, pkg_name, entry.patches, experimental=entry.version == "latest")):
+    elif entry.version == "latest":
+        versions = scrapers[dl_from].cached_metadata(entry.dl_urls[dl_from]).versions
+        version = get_highest_ver(versions) if versions else ""
+        if not version:
+            raise BuilderError("Could not determine version")
+        is_custom = True
+    elif (v := patcher.get_last_supported_version(list_patches, pkg_name, entry.patches, experimental=entry.version == "exp")):
         version, is_custom = v, False
     else:
         versions = scrapers[dl_from].cached_metadata(entry.dl_urls[dl_from]).versions
@@ -153,7 +159,7 @@ def _build_single(entry: AppEntry, arch: str, label: str, net: NetworkManager, p
     try:
         scrapers = {src: _make_scraper(src, net) for src in entry.dl_urls}
         pkg_name, dl_from, failed_sources = _find_pkg_name(entry, scrapers)
-        list_patches = patcher.list_patches(pkg_name, experimental=entry.version == "latest")
+        list_patches = patcher.list_patches(pkg_name, experimental=entry.version == "exp")
         version, force = _resolve_version(entry, patcher, list_patches, pkg_name, dl_from, scrapers)
         dl_result = _download_apk(entry, version, arch, pkg_name, scrapers, dl_from, failed_sources)
         _verify_sig(dl_result, pkg_name, patcher, label, entry.skip_sigcheck, strict_sigcheck)

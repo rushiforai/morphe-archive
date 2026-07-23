@@ -153,14 +153,6 @@ val rememberShuffleStatePatch = bytecodePatch(
             }
         }
 
-        MusicPlaybackControlsFingerprint.method.addInstructions(
-            0,
-            """
-                invoke-static { p1 }, $EXTENSION_CLASS->overrideShuffleButton(Z)Z
-                move-result p1
-            """
-        )
-
         musicVideoIdHook("$EXTENSION_CLASS->applySavedShuffleState(Ljava/lang/String;)V")
     }
 }

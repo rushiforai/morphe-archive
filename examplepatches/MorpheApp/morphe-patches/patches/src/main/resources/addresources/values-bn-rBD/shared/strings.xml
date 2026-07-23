@@ -49,6 +49,7 @@ Second \"item\" text"</string>
   <string name="morphe_settings_search_empty_history_summary">অনুসন্ধান ইতিহাস সংরক্ষণ করতে, একটি অনুসন্ধানের প্রশ্ন টাইপ করুন এবং এন্টার চাপুন</string>
   <string name="morphe_settings_search_history_title">অনুসন্ধান সেটিংসের ইতিহাস দেখান</string>
   <string name="morphe_show_menu_icons_title">Morphe সেটিং আইকন দেখান</string>
+  <string name="morphe_settings_menu_copy_path">কপি করা হয়েছে: %s</string>
   <string name="morphe_language_title">Morphe ভাষা</string>
   <string name="morphe_language_user_dialog_message">"কিছু ভাষার অনুবাদ অনুপস্থিত বা অসম্পূর্ণ হতে পারে।
 
@@ -81,7 +82,7 @@ Second \"item\" text"</string>
   <string name="morphe_settings_about_links_rv">২০২২ &#8209; ২০২৫</string>
   <string name="morphe_settings_about_links_vanced">২০১৯ &#8209; ২০২২</string>
   <string name="morphe_settings_about_links_licenses">লাইসেন্স বিজ্ঞপ্তি</string>
-  <string name="morphe_settings_about_licenses_loading">লোড হচ্ছে...</string>
+  <string name="morphe_settings_about_licenses_loading">লোড হচ্ছে…</string>
   <!-- misc.debugging.enableDebuggingPatch -->
   <string name="morphe_debug_screen_title">ডিবাগিং</string>
   <string name="morphe_debug_screen_summary">উন্নত ডেভেলপার অপশন এবং ডায়াগনস্টিক লগ কনফিগার করুন</string>
@@ -97,7 +98,7 @@ Second \"item\" text"</string>
   <string name="morphe_debug_export_logs_file">ফাইলে রফতানি করুন</string>
   <string name="morphe_debug_export_logs_success">সেটিং সফলভাবে আমদানি করা হয়েছে</string>
   <string name="morphe_debug_export_logs_failed">লগ এক্সপোর্ট করা যায়নি: %s</string>
-  <string name="morphe_debug_logs_search_hint">ডিবাগ লগ খুঁজুন...</string>
+  <string name="morphe_debug_logs_search_hint">ডিবাগ লগ অনুসন্ধান করুন…</string>
   <string name="morphe_debug_export_logs_clear">সাফ করুন</string>
   <string name="morphe_debug_logs_disabled">ডিবাগ লগিং নিষ্ক্রিয় করা হয়েছে</string>
   <string name="morphe_debug_logs_none_found">কোনো লগ পাওয়া যায়নি</string>
@@ -108,7 +109,7 @@ Second \"item\" text"</string>
   <string name="morphe_debug_feature_flags_manager_summary">বুলিয়ান ফিচার ফ্ল্যাগ পরিচালনা করুন</string>
   <string name="morphe_debug_feature_flags_manager_active_header">সক্রিয় ফ্ল্যাগ (%d)</string>
   <string name="morphe_debug_feature_flags_manager_blocked_header">ব্লক করা ফ্ল্যাগ (%d)</string>
-  <string name="morphe_debug_feature_flags_manager_search_hint">ফ্ল্যাগ খুঁজুন...</string>
+  <string name="morphe_debug_feature_flags_manager_search_hint">বৈশিষ্ট্য পতাকা অনুসন্ধান করুন…</string>
   <string name="morphe_debug_feature_flags_manager_toast_saved">ফিচার ফ্ল্যাগ সেভ করা হয়েছে</string>
   <string name="morphe_debug_feature_flags_manager_toast_reset">ফিচার ফ্ল্যাগ রিসেট করা হয়েছে</string>
   <string name="morphe_debug_feature_flags_manager_toast_copied">ফ্ল্যাগ ক্লিপবোর্ডে কপি করা হয়েছে</string>

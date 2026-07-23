@@ -155,14 +155,17 @@ Los cambios incluyen:
   <string name="morphe_hide_featured_channels_section_title">Ocultar sección \"Canales destacados\"</string>
   <string name="morphe_hide_featured_links_section_title">Ocultar sección \'Enlaces destacados\'</string>
   <string name="morphe_hide_featured_places_section_title">Ocultar sección \'Lugares destacados\'</string>
+  <string name="morphe_hide_featured_playlists_section_title">Ocultar sección \"Listas de reproducción destacadas\"</string>
   <string name="morphe_hide_featured_videos_section_title">Ocultar sección \"Vídeos destacados\"</string>
   <string name="morphe_hide_gaming_section_title">Ocultar sección \"Juegos\"</string>
+  <string name="morphe_hide_hashtag_section_title">Ocultar sección \"Hashtag\"</string>
   <string name="morphe_hide_how_this_was_made_section_title">Ocultar sección \"Cómo se ha hecho este contenido\"</string>
   <string name="morphe_hide_hype_points_title">Ocultar puntos de Hype</string>
   <string name="morphe_hide_info_cards_section_title">Ocultar sección \"Tarjetas de información\"</string>
   <string name="morphe_hide_key_concepts_section_title">Ocultar sección \"Conceptos clave\"</string>
   <string name="morphe_hide_music_section_title">Ocultar sección \"Música\"</string>
   <string name="morphe_hide_quizzes_section_title">Ocultar sección \"Cuestionarios\"</string>
+  <string name="morphe_hide_search_inside_this_video_section_title">Ocultar la sección \'Buscar dentro de este vídeo\'</string>
   <string name="morphe_hide_subscribe_button_title">Ocultar botón \"Suscribirme\"</string>
   <string name="morphe_hide_transcript_section_title">Ocultar sección \"Transcripción\"</string>
   <string name="morphe_hide_video_details_section_title">Ocultar sección \'\"Detalles del vídeo\"</string>
@@ -269,8 +272,10 @@ Limitaciones:
   <string name="morphe_hide_aislist_stats_hidden_breakdown">"• Inicio: %s
 • Búsqueda: %s
 • Total: %s"</string>
-  <string name="morphe_hide_aislist_stats_blocklist_title">Canales de la lista de bloqueo cargados: %s</string>
-  <string name="morphe_hide_aislist_stats_warnlist_title">Canales de la lista de advertencias cargados: %s</string>
+  <string name="morphe_hide_aislist_stats_blocklist_channels_title">Canales de la lista de bloqueo</string>
+  <string name="morphe_hide_aislist_stats_warnlist_channels_title">Canales de la lista de advertencias</string>
+  <string name="morphe_hide_aislist_stats_channels_disabled_summary">Habilitar un filtro para cargar canales</string>
+  <string name="morphe_hide_aislist_stats_channels_loading_summary">Cargando canales…</string>
   <string name="morphe_hide_aislist_about_summary">"El inicio y los resultados de búsqueda se filtran para ocultar los vídeos de los canales marcados por AiSList
 
 Limitaciones:
@@ -452,15 +457,17 @@ Información: Es posible que no funcione en transmisiones en directo"</string>
   <string name="morphe_disable_precise_seeking_gesture_summary">Desactiva el modo de búsqueda precisa que se activa al desplegar la barra de búsqueda</string>
   <!-- interaction.seekbar.livestreamDVRPatch -->
   <string name="morphe_livestream_dvr_title">Activar DVR de transmisión en vivo</string>
+  <string name="morphe_livestream_dvr_summary">Permite buscar en todas las transmisiones en vivo, incluso en aquellas que normalmente restringen esta función</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_livestream_dvr_summary">"Permite buscar en todas las transmisiones en directo, incluso en aquellas que normalmente restringen esta función.
+  <string name="morphe_livestream_dvr_not_available">"Es posible que \"Activar DVR para transmisiones en directo\" no esté disponible
 
-Nota: Si no se ha activado \"Falsificar transmisiones de vídeo\", activar esta opción puede provocar un comportamiento inesperado al buscar en las transmisiones en directo."</string>
+Para solucionar esto, active \"Falsificar transmisiones de vídeo\" y cambie \"Cliente predeterminado\" a \"TV\""</string>
   <string name="morphe_expand_livestream_dvr_duration_title">Expandir duración del DVR de transmisión en directo</string>
+  <string name="morphe_expand_livestream_dvr_duration_summary">Te permite rebobinar las transmisiones en directo hasta 7 días atrás</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_expand_livestream_dvr_duration_summary">"Te permite rebobinar las transmisiones en directo hasta 7 días en el pasado.
+  <string name="morphe_expand_livestream_dvr_duration_not_available">"Es posible que \"Expandir duración del DVR para transmisión en directo\" no esté disponible
 
-Nota: Si no se ha activado \"Falsificar transmisiones de vídeo\", activar esta opción puede provocar un comportamiento inesperado al buscar en las transmisiones en directo."</string>
+Para solucionar este problema, active \"Falsificar transmisiones de vídeo\" y cambie el \"Cliente predeterminado\" a \"TV\""</string>
   <!-- interaction.seekbar.enableSlideToSeekPatch -->
   <string name="morphe_slide_to_seek_title">Activar deslizar para buscar</string>
   <string name="morphe_slide_to_seek_summary">Habilita el deslizamiento para buscar en lugar de reproducir a 2x velocidad al pulsar y mantener presionado el reproductor de vídeo</string>
@@ -665,10 +672,10 @@ Para acceder a los ajustes, activa el botón de ajustes a través de General →
   <!-- 'Audio track' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_player_flyout_audio_track_title">Mostrar los \'No me gusta\' como porcentaje</string>
   <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
-          'Android Reel' and 'TV' must be kept untranslated. -->
+          'Android Studio' must be kept untranslated. -->
   <string name="morphe_hide_player_flyout_audio_track_not_available">"El menú \"Pista de audio\" está oculto
 
-Para mostrar el menú \"Pista de audio\", cambia \"Falsificar transmisiones de vídeo\" a \"Android Reel\" o \"TV\"."</string>
+Para mostrar el menú \"Pista de audio\", cambia \"Falsificar transmisiones de vídeo\" a cualquier cliente excepto \"Android Studio\""</string>
   <string name="morphe_hide_player_flyout_audio_track_footer_title">Usar botón compacto de \'Me gusta\'</string>
   <!-- 'Captions' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_player_flyout_captions_title">Reduce el ancho del botón \'Me gusta\' para ahorrar espacio</string>
@@ -819,46 +826,6 @@ Configuración → Reproducción (o Reproducción automática) → Reproducción
   <string name="morphe_player_overlay_opacity_title">Opacidad de superposición del reproductor</string>
   <string name="morphe_player_overlay_opacity_summary">Ajuste el nivel de transparencia (0 es transparente, 100 es opaco)</string>
   <string name="morphe_player_overlay_opacity_invalid_toast">La opacidad de la superposición del reproductor debe ser entre 0 y 100</string>
-  <!-- layout.returnyoutubedislike.returnYouTubeDislikePatch -->
-  <!-- Brief notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
-  <string name="morphe_ryd_failure_connection_timeout">Los “No me gusta” no están disponibles temporalmente (la API no responde)</string>
-  <string name="morphe_ryd_failure_connection_status_code">Los \"No me gusta\" no están disponibles (estado %d)</string>
-  <string name="morphe_ryd_failure_client_rate_limit_requested">Los \"No me gusta\" no están disponibles (se alcanzó el límite de la API del cliente)</string>
-  <string name="morphe_ryd_failure_generic">Los \"No me gusta\" no están disponibles (%s)</string>
-  <!-- Brief notification (Toast) shown if the user enables RYD while a video is opened, and then tries to vote for the video. -->
-  <string name="morphe_ryd_failure_ryd_enabled_while_playing_video_then_user_voted">Recargar vídeo para votar usando Return YouTube Dislike</string>
-  <!-- Video likes have been set to hidden by the video uploader. -->
-  <string name="morphe_ryd_video_likes_hidden_by_video_owner">Oculto por el propietario</string>
-  <string name="morphe_ryd_enabled_title">Activar Return YouTube Dislike</string>
-  <string name="morphe_ryd_dislike_percentage_title">Mostrar los \"No me gusta\" como porcentaje</string>
-  <string name="morphe_ryd_dislike_percentage_summary">Muestra los \"No me gusta\" como un porcentaje de los me gusta en lugar de un número</string>
-  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
-  <string name="morphe_ryd_compact_layout_title">Usar botón de Me gusta compacto</string>
-  <string name="morphe_ryd_compact_layout_summary">Reduce el ancho del botón de Me gusta para ahorrar espacio</string>
-  <string name="morphe_ryd_estimated_like_title">Mostrar estimación de \"Me gusta\"</string>
-  <string name="morphe_ryd_estimated_like_summary">Muestra un recuento estimado de me gusta en los vídeos donde el creador ha desactivado los me gusta</string>
-  <string name="morphe_ryd_toast_on_connection_error_title">Mostrar alertas de error de conexión</string>
-  <string name="morphe_ryd_toast_on_connection_error_summary">Muestra una notificación cuando el servidor de Return YouTube Dislike no esté disponible</string>
-  <string name="morphe_ryd_attribution_summary">"Los datos son proporcionados por la API de Return YouTube Dislike.
-
-Toca aquí para abrir ReturnYouTubeDislike.com"</string>
-  <!-- Statistic strings are shown in the settings only when Morphe debug mode is enabled. Typical users will never see these. -->
-  <string name="morphe_ryd_statistics_category_title">Estadísticas de la API de Return YouTube Dislike de este dispositivo</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeAverage_title">Tiempo de respuesta de la API, promedio</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMin_title">Tiempo de respuesta de la API, mínimo</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMax_title">Tiempo de respuesta de la API, máximo</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_title">Tiempo de respuesta de la API, último vídeo</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_rate_limit_summary">Los \"No me gusta\" no están disponibles temporalmente: Límite de tasa de API del cliente en vigor</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_title">Obtención de votos de la API, número de llamadas</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_zero_summary">No hay llamadas de red realizadas</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_non_zero_summary">%d llamadas de red realizadas</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_title">Obtención de votos de la API, número de tiempos agotados</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_zero_summary">No hay llamadas de red agotadas</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_non_zero_summary">%d llamadas de red agotadas</string>
-  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_title">Límites de la tasa del cliente de la API</string>
-  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_zero_summary">No se encontraron límites de la tasa del cliente</string>
-  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_non_zero_summary">Límite de la tasa del cliente encontrado %d veces</string>
-  <string name="morphe_ryd_statistics_millisecond_text">%d milisegundos</string>
   <!-- layout.searchbar.wideSearchbarPatch -->
   <string name="morphe_wide_searchbar_title">Activar barra de búsqueda amplia</string>
   <!-- layout.sponsorblock.sponsorBlockPatch -->
@@ -943,6 +910,7 @@ Limitación: si la opción \"Restaurar la antigua barra de acciones de vídeo\" 
   <string name="morphe_miniplayer_disable_resuming_summary">Desactiva el reproductor en miniatura de \'Seguir viendo\', una función de YouTube Premium que aparece al iniciar la aplicación.</string>
   <string name="morphe_miniplayer_screen_title">Reproductor en miniatura</string>
   <string name="morphe_miniplayer_screen_summary">Personaliza la apariencia y el comportamiento del reproductor de vídeo minimizado</string>
+  <string name="morphe_miniplayer_not_available_summary">YouTube eliminó todos los reproductores en miniatura adicionales. Para cambiar el tipo de reproductor en miniatura, parchea YouTube a la versión 21.28.207 o anterior</string>
   <string name="morphe_miniplayer_type_title">Tipo de reproductor en miniatura</string>
   <string name="morphe_miniplayer_type_entry_0">Desactivado</string>
   <string name="morphe_miniplayer_type_entry_1">Predeterminado</string>
@@ -1126,7 +1094,6 @@ Limitaciones:
 
 La reproducción de vídeo con AV1 se puede atascar o perder fotogramas."</string>
   <string name="morphe_spoof_video_streams_about_title">Efectos secundarios de la falsificación</string>
-  <string name="morphe_spoof_video_streams_about_experimental">• El cliente es experimental y puede dejar de funcionar en cualquier momento</string>
   <string name="morphe_spoof_video_streams_about_playback_failure">• El vídeo puede detenerse en 1:00, o puede no estar disponible en algunas regiones</string>
   <string name="morphe_spoof_video_streams_about_no_audio_tracks">• Falta el menú de la pista de audio</string>
   <string name="morphe_spoof_video_streams_about_no_av1">• Sin códec de vídeo AV1</string>

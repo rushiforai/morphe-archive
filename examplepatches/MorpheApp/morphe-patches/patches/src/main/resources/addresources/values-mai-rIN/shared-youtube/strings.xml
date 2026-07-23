@@ -99,8 +99,8 @@ Second \"item\" text"</string>
   <!-- misc.proxy.networkProxyPatch -->
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">फुलस्क्रीन विज्ञापन छुपाउ</string>
-  <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_force_original_audio_not_available">एहि फीचरक प्रयोग करबाक लेल, ‘स्पूफ वीडियो स्ट्रीम’के Android Reel या TV में बदलू।</string>
+  <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
+          'Android Studio' must be kept untranslated. -->
   <!-- misc.privacy.sanitizeSharingLinksPatch -->
   <string name="morphe_sanitize_sharing_links_title">शेयरिंग लिंकसके सेनिटाइज करू</string>
   <string name="morphe_replace_music_with_youtube_title">शेयर लिंकके youtube.com में बदलू</string>
@@ -108,5 +108,11 @@ Second \"item\" text"</string>
   <!-- misc.debugging.enableDebuggingPatch -->
   <!-- Custom filter -->
   <!-- 'Component path builder strings' is the technical name for identifying the Litho UI layout items to hide. This is an advanced feature and most users will never use this. -->
+  <!-- Settings menu filter -->
   <!-- misc.spoof.appversion.spoofAppVersionPatch -->
+  <!-- layout.returnyoutubedislike.returnYouTubeDislikePatch -->
+  <!-- Brief notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
+  <!-- Video likes have been set to hidden by the video uploader. -->
+  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
+  <!-- Statistic strings are shown in the settings only when Morphe debug mode is enabled. Typical users will never see these. -->
 </resources>

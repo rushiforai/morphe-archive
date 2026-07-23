@@ -83,7 +83,7 @@ public class LoopVideoButton {
                     "morphe_loop_video_button",
                     null,
                     null,
-                    Settings.LOOP_VIDEO_BUTTON::get,
+                    Settings.LOOP_VIDEO_BUTTON,
                     LoopVideoButton::handleShortClick,
                     v -> {
                         showRangeDialog(v.getContext());
@@ -111,6 +111,7 @@ public class LoopVideoButton {
         if (LOOP_VIDEO_BUTTON.get() && DO_NOT_REMEMBER_LOOP_VIDEO.get()) {
             setLoopButton(false);
         }
+        updateButtonIcon();
     }
 
 
@@ -275,29 +276,6 @@ public class LoopVideoButton {
                             .start();
                 })
                 .start();
-    }
-
-    /**
-     * Injection point.
-     */
-    public static void setVisibilityNegatedImmediate() {
-        if (legacy != null) legacy.setVisibilityNegatedImmediate();
-    }
-
-    /**
-     * Injection point.
-     */
-    public static void setVisibilityImmediate(boolean visible) {
-        if (legacy != null) legacy.setVisibilityImmediate(visible);
-        if (visible) updateButtonIcon();
-    }
-
-    /**
-     * Injection point.
-     */
-    public static void setVisibility(boolean visible, boolean animated) {
-        if (legacy != null) legacy.setVisibility(visible, animated);
-        if (visible) updateButtonIcon();
     }
 
     private static String formatTime(long ms) {

@@ -142,8 +142,9 @@ Oynatıcı JavaScript hash'i güncel değilse oynatma başarısız olur."</strin
   <string name="morphe_proxy_allow_direct_fallback_summary">Proxy başarısız olursa doğrudan bağlan</string>
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">Tam ekran reklamları gizle</string>
-  <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_force_original_audio_not_available">Bu özelliği kullanmak için \'Video akışlarını taklit et\' ayarını Android Reel veya TV olarak değiştirin</string>
+  <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
+          'Android Studio' must be kept untranslated. -->
+  <string name="morphe_force_original_audio_not_available">Bu özelliği kullanmak için \'Video akışlarını taklit et\' ayarını Android Studio dışındaki herhangi bir istemciye değiştirin\'</string>
   <!-- misc.privacy.sanitizeSharingLinksPatch -->
   <string name="morphe_sanitize_sharing_links_title">Paylaşım bağlantılarını temizle</string>
   <string name="morphe_sanitize_sharing_links_summary">Paylaşılan bağlantılardan izleme sorgu parametrelerini kaldırır</string>
@@ -167,6 +168,10 @@ Ancak, bunun etkinleştirilmesi IP adresiniz gibi bazı kullanıcı verilerini d
   <!-- 'Component path builder strings' is the technical name for identifying the Litho UI layout items to hide. This is an advanced feature and most users will never use this. -->
   <string name="morphe_custom_filter_strings_summary">Filtrelenecek bileşen yolu oluşturucu dizelerinin yeni satırlarla ayrılmış listesi</string>
   <string name="morphe_custom_filter_toast_invalid_syntax">Geçersiz özel filtre: %s</string>
+  <!-- Settings menu filter -->
+  <string name="morphe_settings_menu_filter_screen_title">Ayarlar menüsü filtresi</string>
+  <string name="morphe_settings_menu_filter_screen_summary">Görünür adlarına göre standart uygulama ayarları ekranındaki öğeleri gizle</string>
+  <string name="morphe_settings_menu_filter_picker_empty">Listeyi doldurmak için standart uygulama ayarları ekranını bir kez açın</string>
   <!-- misc.spoof.appversion.spoofAppVersionPatch -->
   <string name="morphe_spoof_app_version_title">Uygulama sürümünü taklit et</string>
   <string name="morphe_spoof_app_version_summary">Sunucuya daha eski bir uygulama sürümü kullandığınızı düşündürerek eski arayüz özelliklerini geri yükler</string>
@@ -176,4 +181,42 @@ Bu, uygulamanın görünümünü ve özelliklerini değiştirecektir, ancak bili
 
 Daha sonra kapatılırsa, arayüz hatalarını önlemek için uygulama verilerinin temizlenmesi önerilir."</string>
   <string name="morphe_spoof_app_version_target_title">Hedef uygulama sürümü taklidi</string>
+  <!-- layout.returnyoutubedislike.returnYouTubeDislikePatch -->
+  <!-- Brief notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
+  <string name="morphe_ryd_failure_connection_timeout">Beğenmeme sayıları geçici olarak kullanılamıyor (API zaman aşımına uğradı)</string>
+  <string name="morphe_ryd_failure_connection_status_code">Beğenilmemeler kullanılamıyor (durum %d)</string>
+  <string name="morphe_ryd_failure_client_rate_limit_requested">Beğenilmemeler kullanılamıyor (istemci API sınırı)</string>
+  <string name="morphe_ryd_failure_generic">Beğenilmemeler kullanılamıyor (%s)</string>
+  <!-- Video likes have been set to hidden by the video uploader. -->
+  <string name="morphe_ryd_video_likes_hidden_by_video_owner">Sahibi tarafından gizlendi</string>
+  <string name="morphe_ryd_enabled_title">Return YouTube Dislike\'ı Etkinleştir</string>
+  <string name="morphe_ryd_dislike_percentage_title">Beğenmemeyi yüzde olarak göster</string>
+  <string name="morphe_ryd_dislike_percentage_summary">Beğenmemeleri sayı yerine beğenilere kıyasla yüzde olarak gösterir</string>
+  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
+  <string name="morphe_ryd_compact_layout_title">Ufak Beğen düğmesi kullan</string>
+  <string name="morphe_ryd_compact_layout_summary">Yer kazanmak için Beğen düğmesinin genişliğini azaltır</string>
+  <string name="morphe_ryd_estimated_like_title">Tahmini beğenileri göster</string>
+  <string name="morphe_ryd_estimated_like_summary">İçerik üreticisinin beğenmeleri kapattığı videolarda tahmini bir beğeni sayısı gösterir</string>
+  <string name="morphe_ryd_toast_on_connection_error_title">Bağlantı hatası uyarılarını göster</string>
+  <string name="morphe_ryd_toast_on_connection_error_summary">Return YouTube Dislike sunucusu kullanılamadığında bir bildirim gösterir</string>
+  <string name="morphe_ryd_attribution_summary">"Veriler Return YouTube Dislike API tarafından sağlanır
+
+ReturnYouTubeDislike.com'u açmak için buraya dokunun"</string>
+  <!-- Statistic strings are shown in the settings only when Morphe debug mode is enabled. Typical users will never see these. -->
+  <string name="morphe_ryd_statistics_category_title">Bu cihazın Return YouTube Dislike API istatistikleri</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeAverage_title">API yanıt süresi, ortalama</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMin_title">API yanıt süresi, minimum</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMax_title">API yanıt süresi, maksimum</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_title">API yanıt süresi, son medya</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_rate_limit_summary">Beğenmeme sayıları geçici olarak kullanılamıyor - İstemci API hız sınırı yürürlükte</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_title">API\'den oy isteme çağrısı sayısı</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_zero_summary">Hiç çağrı yapılmadı</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_non_zero_summary">%d ağ çağrısı yapıldı</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_title">API oylarını getirme, zaman aşımı sayısı</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_zero_summary">Hiçbir ağ çağrısı zaman aşımına uğramadı</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_non_zero_summary">%d ağ çağrısı zaman aşımına uğradı</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_title">API istemci hız sınırları</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_zero_summary">Hiçbir istemci hız sınırıyla karşılaşılmadı</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_non_zero_summary">İstemci hız sınırıyla %d kez karşılaşıldı</string>
+  <string name="morphe_ryd_statistics_millisecond_text">%d milisaniye</string>
 </resources>

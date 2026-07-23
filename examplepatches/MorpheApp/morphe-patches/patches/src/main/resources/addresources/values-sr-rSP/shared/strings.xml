@@ -97,7 +97,7 @@ Second \"item\" text"</string>
   <string name="morphe_debug_export_logs_file">Извези у датотеку</string>
   <string name="morphe_debug_export_logs_success">Лог дебјуговања успешно извезен</string>
   <string name="morphe_debug_export_logs_failed">Неуспео извоз логова дебјуговања</string>
-  <string name="morphe_debug_logs_search_hint">Претражуј логе дебјуговања...</string>
+  <string name="morphe_debug_logs_search_hint">Претражи евиденције грешака…</string>
   <string name="morphe_debug_export_logs_clear">Очисти</string>
   <string name="morphe_debug_logs_disabled">Евидентирање отклањања грешака је онемогућено</string>
   <string name="morphe_debug_logs_none_found">Није пронађено лога дебјуговања</string>
@@ -108,7 +108,7 @@ Second \"item\" text"</string>
   <string name="morphe_debug_feature_flags_manager_summary">Управљај буловским ознакама функција</string>
   <string name="morphe_debug_feature_flags_manager_active_header">Активне ознаке функција (%d)</string>
   <string name="morphe_debug_feature_flags_manager_blocked_header">Блокиране ознаке функција (%d)</string>
-  <string name="morphe_debug_feature_flags_manager_search_hint">Претражуј ознаке функција...</string>
+  <string name="morphe_debug_feature_flags_manager_search_hint">Претражи ознаке функција…</string>
   <string name="morphe_debug_feature_flags_manager_toast_saved">Ознаке функција сачуване</string>
   <string name="morphe_debug_feature_flags_manager_toast_reset">Ознаке функција ресетовале</string>
   <string name="morphe_debug_feature_flags_manager_toast_copied">Ознаке функција копиране у оставу</string>

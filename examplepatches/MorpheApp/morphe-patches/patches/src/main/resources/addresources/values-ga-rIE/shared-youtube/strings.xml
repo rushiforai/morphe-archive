@@ -142,8 +142,9 @@ Teipfidh ar an athsheinm má tá hais JavaScript an imreora as dáta."</string>
   <string name="morphe_proxy_allow_direct_fallback_summary">Ceangail go díreach má theipeann ar an seachfhreastalaí</string>
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">Folaigh fógraí lánscáileáin</string>
-  <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_force_original_audio_not_available">Chun an gné seo a úsáid, athraigh \'Sruthanna físe bréige\' go Android Reel nó TV</string>
+  <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
+          'Android Studio' must be kept untranslated. -->
+  <string name="morphe_force_original_audio_not_available">Chun an ghné seo a úsáid, athraigh \'Sruthanna físe bréige\' go haon chliant seachas \'Android Studio\'.</string>
   <!-- misc.privacy.sanitizeSharingLinksPatch -->
   <string name="morphe_sanitize_sharing_links_title">Glanadh naisc chomhroinnte</string>
   <string name="morphe_sanitize_sharing_links_summary">Baintear paraiméadair fiosrúcháin rianaithe as naisc chomhroinnte</string>
@@ -167,6 +168,10 @@ Mar sin féin, má chumasaíonn tú é seo, logálfar roinnt sonraí úsáideora
   <!-- 'Component path builder strings' is the technical name for identifying the Litho UI layout items to hide. This is an advanced feature and most users will never use this. -->
   <string name="morphe_custom_filter_strings_summary">Liosta de theaghráin thógálaí cosáin chomhpháirte le scagadh, scartha le línte nua</string>
   <string name="morphe_custom_filter_toast_invalid_syntax">Scagaire saincheaptha neamhbhailí: %s</string>
+  <!-- Settings menu filter -->
+  <string name="morphe_settings_menu_filter_screen_title">Scagaire roghchláir socruithe</string>
+  <string name="morphe_settings_menu_filter_screen_summary">Folaigh míreanna ar scáileán socruithe caighdeánacha an aip de réir a n-ainm infheicthe</string>
+  <string name="morphe_settings_menu_filter_picker_empty">Oscail an scáileán socruithe caighdeánacha aip uair amháin chun an liosta a líonadh</string>
   <!-- misc.spoof.appversion.spoofAppVersionPatch -->
   <string name="morphe_spoof_app_version_title">Leagan aip bréige</string>
   <string name="morphe_spoof_app_version_summary">Meallann sé an freastalaí le go gceapfá go bhfuil tú ag úsáid seanleagan den aip chun gnéithe oidhreachta den chomhéadan úsáideora a athbhunú.</string>
@@ -176,4 +181,42 @@ Athróidh sé seo cuma agus gnéithe na haipe, ach d'fhéadfadh fo-iarsmaí anai
 
 Má mhúchtar é níos déanaí, moltar sonraí na haipe a ghlanadh chun fabhtanna comhéadain úsáideora a chosc."</string>
   <string name="morphe_spoof_app_version_target_title">Sprioc leagan aip bréige</string>
+  <!-- layout.returnyoutubedislike.returnYouTubeDislikePatch -->
+  <!-- Brief notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
+  <string name="morphe_ryd_failure_connection_timeout">Níl na \"dí-mhaith\" ar fáil go sealadach (tá an t-am caite ag an API)</string>
+  <string name="morphe_ryd_failure_connection_status_code">Níl na rudaí nach maith liom ar fáil (stádas %d)</string>
+  <string name="morphe_ryd_failure_client_rate_limit_requested">Níl na \"dí-mhaith\" ar fáil (teorainn API an chliaint)</string>
+  <string name="morphe_ryd_failure_generic">Níl na \"dí-mhaith\" ar fáil (%s)</string>
+  <!-- Video likes have been set to hidden by the video uploader. -->
+  <string name="morphe_ryd_video_likes_hidden_by_video_owner">I bhfolach ag an úinéir</string>
+  <string name="morphe_ryd_enabled_title">Cumasaigh Filleadh ar Dhí-Thaitin YouTube</string>
+  <string name="morphe_ryd_dislike_percentage_title">Taispeáin nach maith liom mar chéatadán</string>
+  <string name="morphe_ryd_dislike_percentage_summary">Taispeánann sé nach maith leat mar chéatadán de na maith leat seachas uimhir</string>
+  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
+  <string name="morphe_ryd_compact_layout_title">Úsáid an cnaipe dlúth Is maith liom</string>
+  <string name="morphe_ryd_compact_layout_summary">Laghdaíonn sé leithead an chnaipe Is maith liom chun spás a shábháil</string>
+  <string name="morphe_ryd_estimated_like_title">Taispeáin \'is maith liom\' measta</string>
+  <string name="morphe_ryd_estimated_like_summary">Taispeánann sé líon measta na \'Is maith liom\' ar fhíseáin inar dhíchumasaigh an cruthaitheoir \'Is maith liom\'</string>
+  <string name="morphe_ryd_toast_on_connection_error_title">Taispeáin foláirimh earráide nasc</string>
+  <string name="morphe_ryd_toast_on_connection_error_summary">Taispeánann sé fógra nuair nach bhfuil an freastalaí Return YouTube Dislike ar fáil</string>
+  <string name="morphe_ryd_attribution_summary">"Cuirtear sonraí ar fáil ag API Return YouTube Dislike
+
+Tapáil anseo chun ReturnYouTubeDislike.com a oscailt"</string>
+  <!-- Statistic strings are shown in the settings only when Morphe debug mode is enabled. Typical users will never see these. -->
+  <string name="morphe_ryd_statistics_category_title">Staitisticí API YouTube Dislike don ghléas seo a thabhairt ar ais</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeAverage_title">Am freagartha API, meán</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMin_title">Am freagartha API, íosta</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMax_title">Am freagartha API, uasmhéid</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_title">Am freagartha API, na meáin dheireanacha</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_rate_limit_summary">Níl na \"dí-mhaith\" ar fáil faoi láthair - Teorainn ráta API Cliant i bhfeidhm</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_title">Vótaí aisghabhála API, líon na nglaonna</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_zero_summary">Níor rinneadh aon ghlaonna líonra</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_non_zero_summary">%d glaonna líonra déanta</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_title">Vótaí aisghabhála API, líon na sosanna ama</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_zero_summary">Níl aon ghlaonna líonra imithe in éag</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_non_zero_summary">%d glaonna líonra imithe thar an am</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_title">Teorainneacha ráta cliant API</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_zero_summary">Níor aimsíodh aon teorainneacha ráta cliant</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_non_zero_summary">Teorainn ráta cliant a bhíonn le fáil %d uair</string>
+  <string name="morphe_ryd_statistics_millisecond_text">%d milleasoicind</string>
 </resources>

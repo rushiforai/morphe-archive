@@ -210,15 +210,39 @@ internal object RelatedChipCloudFingerprint : Fingerprint(
         resourceLiteral(ResourceType.ID, "related_chip_cloud"),
         methodCall(
             opcode = Opcode.INVOKE_VIRTUAL,
-            name = "findViewById"
+            name = "findViewById",
+            location = MatchAfterImmediately()
         ),
-        literal(45682279L),
+        checkCast(
+            type = "Landroid/support/v7/widget/RecyclerView;",
+            location = MatchAfterWithin(2)
+        )
+    )
+)
+internal object RelatedChipCloudMirrorClassFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = listOf("Landroid/view/View;", "Landroid/view/View;"),
+    filters = listOf(
+        resourceLiteral(ResourceType.ID, "related_chip_cloud"),
         methodCall(
             opcode = Opcode.INVOKE_VIRTUAL,
-            name = "getDimensionPixelSize",
-            returnType = "I",
+            name = "findViewById",
+            location = MatchAfterImmediately()
         ),
-        opcode(Opcode.MOVE_RESULT, location = MatchAfterImmediately())
+        checkCast(
+            type = "Landroid/support/v7/widget/RecyclerView;",
+            location = MatchAfterWithin(2)
+        ),
+        methodCall(
+            opcode = Opcode.INVOKE_VIRTUAL,
+            name = "findViewById",
+            location = MatchAfterWithin(6)
+        ),
+        checkCast(
+            type = "Landroid/support/v7/widget/RecyclerView;",
+            location = MatchAfterWithin(2)
+        )
     )
 )
 

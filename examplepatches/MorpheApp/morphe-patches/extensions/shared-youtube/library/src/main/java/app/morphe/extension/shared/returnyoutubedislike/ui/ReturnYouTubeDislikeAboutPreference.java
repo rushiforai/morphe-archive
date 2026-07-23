@@ -1,4 +1,4 @@
-package app.morphe.extension.youtube.returnyoutubedislike.ui;
+package app.morphe.extension.shared.returnyoutubedislike.ui;
 
 import android.content.Context;
 import android.util.AttributeSet;

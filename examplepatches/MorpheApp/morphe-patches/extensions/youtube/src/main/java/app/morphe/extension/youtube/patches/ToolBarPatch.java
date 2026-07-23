@@ -10,6 +10,8 @@ package app.morphe.extension.youtube.patches;
 import android.view.View;
 import android.widget.ImageView;
 
+import androidx.annotation.Nullable;
+
 import app.morphe.extension.shared.Logger;
 
 @SuppressWarnings("unused")
@@ -18,7 +20,7 @@ public class ToolBarPatch {
     /**
      * Injection point.
      */
-    public static void hookToolBar(Enum<?> iconEnum, ImageView imageView) {
+    public static void hookToolBar(@Nullable Enum<?> iconEnum, ImageView imageView) {
         if (iconEnum != null && imageView.getParent() instanceof View parentView) {
             String enumName = iconEnum.name();
             Logger.printDebug(() -> "enum: " + enumName);

@@ -49,6 +49,7 @@ Second \"item\" text"</string>
   <string name="morphe_settings_search_empty_history_summary">For at gemme søgehistorik skal du skrive en søgeforespørgsel og trykke på Enter</string>
   <string name="morphe_settings_search_history_title">Vis indstillingssøgehistorik</string>
   <string name="morphe_show_menu_icons_title">Vis Morphe-indstillingsikoner</string>
+  <string name="morphe_settings_menu_copy_path">Kopieret: %s</string>
   <string name="morphe_language_title">Morphe-sprog</string>
   <string name="morphe_language_user_dialog_message">"Oversættelser for nogle sprog kan mangle eller være ufuldstændige.
 
@@ -81,7 +82,7 @@ For at oversætte nye sprog eller forbedre de eksisterende oversættelser, besø
   <string name="morphe_settings_about_links_rv">2022 &#8209; 2025</string>
   <string name="morphe_settings_about_links_vanced">2019 &#8209; 2022</string>
   <string name="morphe_settings_about_links_licenses">Licensmeddelelser</string>
-  <string name="morphe_settings_about_licenses_loading">Indlæser...</string>
+  <string name="morphe_settings_about_licenses_loading">Indlæser…</string>
   <!-- misc.debugging.enableDebuggingPatch -->
   <string name="morphe_debug_screen_title">Fejlfinding</string>
   <string name="morphe_debug_screen_summary">Konfigurer avancerede udviklerindstillinger og diagnostiklogs</string>
@@ -97,7 +98,7 @@ Du modtager ikke notifikationer om uventede hændelser."</string>
   <string name="morphe_debug_export_logs_file">Eksportér til fil</string>
   <string name="morphe_debug_export_logs_success">Fejlfindingslogge eksporteret med succes</string>
   <string name="morphe_debug_export_logs_failed">Kunne ikke eksportere logfiler: %s</string>
-  <string name="morphe_debug_logs_search_hint">Søg efter fejlfindingslogfiler...</string>
+  <string name="morphe_debug_logs_search_hint">Søg efter fejlfindingslogfiler</string>
   <string name="morphe_debug_export_logs_clear">Ryd</string>
   <string name="morphe_debug_logs_disabled">Fejlfindingslogning er deaktiveret</string>
   <string name="morphe_debug_logs_none_found">Ingen logfiler fundet</string>
@@ -108,7 +109,7 @@ Du modtager ikke notifikationer om uventede hændelser."</string>
   <string name="morphe_debug_feature_flags_manager_summary">Administrer boolean funktionsflag</string>
   <string name="morphe_debug_feature_flags_manager_active_header"> Aktive funktionsflag (%d)</string>
   <string name="morphe_debug_feature_flags_manager_blocked_header">Blokerede funktionsflag (%d)</string>
-  <string name="morphe_debug_feature_flags_manager_search_hint">Søg i funktionsflag...</string>
+  <string name="morphe_debug_feature_flags_manager_search_hint">Søg i funktionsflag</string>
   <string name="morphe_debug_feature_flags_manager_toast_saved">Funktionsflag gemt</string>
   <string name="morphe_debug_feature_flags_manager_toast_reset">Funktionsflag nulstillet</string>
   <string name="morphe_debug_feature_flags_manager_toast_copied">Funktionsflag kopieret til udklipsholder</string>

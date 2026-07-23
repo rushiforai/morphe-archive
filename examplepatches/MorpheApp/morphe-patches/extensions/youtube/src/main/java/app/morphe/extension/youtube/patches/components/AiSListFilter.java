@@ -73,6 +73,14 @@ public final class AiSListFilter extends BufferPhraseFilter {
 
     @Override
     protected void reparseIfNeeded() {
+        // Skip network fetch and buffer parse while every scope toggle is off.
+        if (!Settings.HIDE_AISLIST_BLOCKLIST_HOME.get()
+                && !Settings.HIDE_AISLIST_BLOCKLIST_SEARCH.get()
+                && !Settings.HIDE_AISLIST_WARNLIST_HOME.get()
+                && !Settings.HIDE_AISLIST_WARNLIST_SEARCH.get()) {
+            return;
+        }
+
         final long now = System.currentTimeMillis();
         final long lastCheck = lastRefreshCheckMs.get();
         if (now - lastCheck > REFRESH_CHECK_INTERVAL_MS

@@ -15,4 +15,55 @@
 Second \"item\" text"</string>
 
 -->
-<resources></resources>
+<resources>
+  <string name="morphe_screen_ads_title">Reklama</string>
+  <string name="morphe_hide_post_ads_title">Yashirish: Lentadagi reklamalar</string>
+  <string name="morphe_hide_comment_ads_title">Yashirish: Izohlardagi reklamalar</string>
+  <string name="morphe_screen_navigation_bar_title">Navigatsiya paneli</string>
+  <string name="morphe_hide_answers_button_title">\"Javoblar\" tugmasini yashirish</string>
+  <string name="morphe_hide_chat_button_title">\"Chat\" tugmasini yashirish</string>
+  <string name="morphe_hide_create_button_title">\"Yaratish\" tugmasini yashirish</string>
+  <string name="morphe_hide_discover_button_title">\"Kashf etish\" yoki \"Hamjamiyatlar\" tugmasini yashirish</string>
+  <string name="morphe_hide_games_button_title">\"O\'yinlar\" tugmasini yashirish</string>
+  <string name="morphe_screen_sidebar_title">Yon menyu</string>
+  <string name="morphe_hide_recently_visited_shelf_title">Yaqinda tashrif buyurilgan javoni yashirish</string>
+  <string name="morphe_hide_games_on_reddit_shelf_title">Reddit\'dagi o\'yinlar javoni yashirish</string>
+  <string name="morphe_hide_reddit_pro_shelf_title">Reddit Pro javoni yashirish</string>
+  <string name="morphe_hide_about_shelf_title">\"Haqida\" javoni yashirish</string>
+  <string name="morphe_hide_resources_shelf_title">\"Resurslar\" javoni yashirish</string>
+  <string name="morphe_screen_layout_title">Tartib</string>
+  <string name="morphe_disable_modern_home_title">Zamonaviy bosh menyuni o\'chirish</string>
+  <string name="morphe_disable_screenshot_popup_title">Skrinshot olinganda paydo bo\'ladigan oynani o\'chirish</string>
+  <string name="morphe_disable_screenshot_popup_summary">Skrinshot qilinganda paydo bo\'ladigan oynani o\'chirib qo\'yish</string>
+  <string name="morphe_hide_ask_button_title">\"So\'rash\" tugmasini yashirish</string>
+  <string name="morphe_hide_ask_button_summary">Qidiruv panelidagi \"So\'rash\" tugmasini yashiradi</string>
+  <string name="morphe_force_system_font_title">Tizim shriftini majburiy usulda qo\'llash</string>
+  <string name="morphe_force_system_font_summary">Morfhe ning tizim xat uslubini ishlatish, Reddit Sans yoki Roboto emas. Buni yoqish moslashtirilgan xatni o‘chirishga olib keladi.</string>
+  <string name="morphe_custom_font_title">Maxsus shrift</string>
+  <string name="morphe_custom_font_summary">Quyidagi yo‘ldan moslashtirilgan TTF yoki OTF shrift faylini yuklang. Buni yoqish tizim xat uslubini majburlashni o‘chirishga olib keladi.</string>
+  <string name="morphe_custom_font_file_path_title">Maxsus shrift fayli</string>
+  <string name="morphe_custom_font_file_path_summary">TTF yoki OTF shrift faylini tanlash uchun bosing</string>
+  <string name="morphe_custom_font_selected_font">Tanlangan shrift - %s</string>
+  <string name="morphe_custom_font_pick_file_first">Avval moslashtirilgan shrift faylini tanlang.</string>
+  <string name="morphe_custom_font_invalid_file">Iltimos, .ttf yoki .otf shrift faylini tanlang.</string>
+  <string name="morphe_custom_font_failed_to_load">Maxsus shriftni yuklash mumkin bo\'lmadi. Boshqa faylni tanlang</string>
+  <string name="morphe_hide_communities_shelf_title">Hamjamiyatlar javoni yashirish</string>
+  <string name="morphe_hide_communities_shelf_summary">Subredditlardagi teginishli yoki taklif etilgan hamjamiyatlar javoni yashiradi</string>
+  <string name="morphe_hide_trending_shelves_title">Trending javonlarni yashirish</string>
+  <string name="morphe_hide_trending_shelves_summary">Lenta va qidirish takliflaridan Trending javonlarni yashiradi</string>
+  <string name="morphe_remove_notification_dialog_title">Bildirishnoma taklif dialogini olib tashlash</string>
+  <string name="morphe_remove_notification_dialog_summary">Subredditga tashrif buyurganingizda bildirishnoma taklif dialogini avtomatik ravishda yopib qo\'yadi</string>
+  <string name="morphe_show_view_count_title">Postlardagi ko\'rishlar sonini ko\'rsatish</string>
+  <string name="morphe_show_view_count_summary">Cheklash: Agar API javobi ko\'rishlar sonini o\'z ichiga olsa,gina mavjud.</string>
+  <string name="morphe_remove_nsfw_dialog_title">NSFW ogohlantirish dialogini olib tashlash</string>
+  <string name="morphe_remove_nsfw_dialog_summary">Subredditga tashrif buyurganingizda NSFW tarkib ogohlantirishini avtomatik ravishda qabul qiladi</string>
+  <string name="morphe_screen_miscellaneous_title">Boshqa</string>
+  <string name="morphe_about_title">Haqida</string>
+  <string name="morphe_about_summary">Versiya va rasmiy havolalar</string>
+  <string name="morphe_sanitize_sharing_links_title">Yashirish havolalarini sanitizatsiya qilish</string>
+  <string name="morphe_sanitize_sharing_links_summary">O\'rtoqlashgan havolalardan kuzatuv parametrlarini olib tashlaydi</string>
+  <string name="morphe_open_links_directly_title">Havolalarni to\'g\'ridan ochish</string>
+  <string name="morphe_open_links_directly_summary">Tashqi havolalarni ochganda yo\'naltirish URL-larini bypass qiladi</string>
+  <string name="morphe_open_links_externally_title">Havolalarni tashqi ko\'rinishda ochish</string>
+  <string name="morphe_open_links_externally_summary">Havolalarni ilovadan tashqaridagi brauzeringizda ochadi</string>
+</resources>

@@ -81,7 +81,6 @@ Om du vill översätta till nya språk eller förbättra befintliga översättni
   <string name="morphe_settings_about_links_rv">2022–2025</string>
   <string name="morphe_settings_about_links_vanced">2019–2022</string>
   <string name="morphe_settings_about_links_licenses">Licensmeddelanden</string>
-  <string name="morphe_settings_about_licenses_loading">Läser in ...</string>
   <!-- misc.debugging.enableDebuggingPatch -->
   <string name="morphe_debug_screen_title">Felsökning</string>
   <string name="morphe_debug_screen_summary">Konfigurera avancerade utvecklaralternativ och diagnostikloggar</string>
@@ -97,7 +96,6 @@ Du kommer inte att bli meddelad om oväntade händelser."</string>
   <string name="morphe_debug_export_logs_file">Exportera till fil</string>
   <string name="morphe_debug_export_logs_success">Felsökningsloggar har exporterats</string>
   <string name="morphe_debug_export_logs_failed">Det gick inte att exportera felsökningsloggar</string>
-  <string name="morphe_debug_logs_search_hint">Sök i felsökningsloggarna ...</string>
   <string name="morphe_debug_export_logs_clear">Rensa</string>
   <string name="morphe_debug_logs_disabled">Felsökningsloggar är inaktiverade</string>
   <string name="morphe_debug_logs_none_found">Inga felsökningsloggar hittades</string>
@@ -108,7 +106,6 @@ Du kommer inte att bli meddelad om oväntade händelser."</string>
   <string name="morphe_debug_feature_flags_manager_summary">Hantera booleska funktionsflaggor</string>
   <string name="morphe_debug_feature_flags_manager_active_header">Aktiva funktionsflaggor (%d)</string>
   <string name="morphe_debug_feature_flags_manager_blocked_header">Blockerade funktionsflaggor (%d)</string>
-  <string name="morphe_debug_feature_flags_manager_search_hint">Sök efter funktionsflaggor ...</string>
   <string name="morphe_debug_feature_flags_manager_toast_saved">Funktionsflaggorna sparades</string>
   <string name="morphe_debug_feature_flags_manager_toast_reset">Funktionsflaggorna återställdes</string>
   <string name="morphe_debug_feature_flags_manager_toast_copied">Funktionsflaggorna kopierades till urklipp</string>

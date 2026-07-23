@@ -49,6 +49,7 @@ Second \"item\" text"</string>
   <string name="morphe_settings_search_empty_history_summary">Untuk menyimpan riwayat pencarian, ketik kueri pencarian dan tekan Enter</string>
   <string name="morphe_settings_search_history_title">Tampilkan pengaturan riwayat pencarian</string>
   <string name="morphe_show_menu_icons_title">Tampilkan ikon pengaturan Morphe</string>
+  <string name="morphe_settings_menu_copy_path">Disalin: %s</string>
   <string name="morphe_language_title">Bahasa Morphe</string>
   <string name="morphe_language_user_dialog_message">"Terjemahan untuk beberapa bahasa mungkin hilang atau tidak lengkap.
 
@@ -81,7 +82,7 @@ Untuk menerjemahkan bahasa baru atau meningkatkan terjemahan yang sudah ada, kun
   <string name="morphe_settings_about_links_rv">2022 &#8209; 2025</string>
   <string name="morphe_settings_about_links_vanced">2019 &#8209; 2022</string>
   <string name="morphe_settings_about_links_licenses">Pemberitahuan lisensi</string>
-  <string name="morphe_settings_about_licenses_loading">Memuat...</string>
+  <string name="morphe_settings_about_licenses_loading">Memuat…</string>
   <!-- misc.debugging.enableDebuggingPatch -->
   <string name="morphe_debug_screen_title">Debug</string>
   <string name="morphe_debug_screen_summary">Konfigurasikan pilihan pengembang lanjutan dan catatan diagnostik</string>
@@ -97,7 +98,7 @@ Anda tidak akan diberi tahu tentang kejadian yang tidak terduga."</string>
   <string name="morphe_debug_export_logs_file">Ekspor ke berkas</string>
   <string name="morphe_debug_export_logs_success">Pencatatan debug berhasil diekspor</string>
   <string name="morphe_debug_export_logs_failed">Gagal mengekspor pencatatan debug</string>
-  <string name="morphe_debug_logs_search_hint">Cari pencatatan debug...</string>
+  <string name="morphe_debug_logs_search_hint">Cari pencatatan debug…</string>
   <string name="morphe_debug_export_logs_clear">Bersihkan</string>
   <string name="morphe_debug_logs_disabled">Pencatatan debug dinonaktifkan</string>
   <string name="morphe_debug_logs_none_found">Tidak ditemukan pencatatan debug</string>
@@ -108,7 +109,7 @@ Anda tidak akan diberi tahu tentang kejadian yang tidak terduga."</string>
   <string name="morphe_debug_feature_flags_manager_summary">Kelola tanda fitur boolean</string>
   <string name="morphe_debug_feature_flags_manager_active_header">Tanda fitur aktif (%d)</string>
   <string name="morphe_debug_feature_flags_manager_blocked_header">Tanda fitur yang diblokir (%d)</string>
-  <string name="morphe_debug_feature_flags_manager_search_hint">Cari tanda fitur...</string>
+  <string name="morphe_debug_feature_flags_manager_search_hint">Cari tanda fitur…</string>
   <string name="morphe_debug_feature_flags_manager_toast_saved">Tanda fitur disimpan</string>
   <string name="morphe_debug_feature_flags_manager_toast_reset">Tanda fitur diatur ulang</string>
   <string name="morphe_debug_feature_flags_manager_toast_copied">Tanda fitur disalin ke papan klip</string>

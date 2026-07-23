@@ -49,6 +49,7 @@ Second \"item\" text"</string>
   <string name="morphe_settings_search_empty_history_summary">Upang i-save ang kasaysayan sa paghahanap, mag-type ng isang paghahanap at pindutin ang Enter</string>
   <string name="morphe_settings_search_history_title">Ipakita ang pagpipilian ng kasaysayan sa paghahanap</string>
   <string name="morphe_show_menu_icons_title">Ipakita ang mga icon ng pagpipilian ng Morphe</string>
+  <string name="morphe_settings_menu_copy_path">Kinopya: %s</string>
   <string name="morphe_language_title">Wika ng Morphe</string>
   <string name="morphe_language_user_dialog_message">"Maaaring nawawala o hindi kumpleto ang mga pagsasalin-wika para sa ilang mga wika.
 
@@ -81,7 +82,7 @@ Upang isalin ang mga bagong wika o pagbutihin ang mga kasalukuyang pagsasalin, b
   <string name="morphe_settings_about_links_rv">2022 – 2025</string>
   <string name="morphe_settings_about_links_vanced">2019 – 2022</string>
   <string name="morphe_settings_about_links_licenses">Mga paalala sa lisensya</string>
-  <string name="morphe_settings_about_licenses_loading">Naglo-load……</string>
+  <string name="morphe_settings_about_licenses_loading">Naglo-load…</string>
   <!-- misc.debugging.enableDebuggingPatch -->
   <string name="morphe_debug_screen_title">Debugging</string>
   <string name="morphe_debug_screen_summary">I-configure ang mga advanced na opsyon ng developer at diagnostic logs</string>
@@ -97,7 +98,7 @@ Hindi ka aabisuhan ng anumang mga hindi inaasahang pangyayari."</string>
   <string name="morphe_debug_export_logs_file">I-export sa file</string>
   <string name="morphe_debug_export_logs_success">Matagumpay na na-export ang mga log ng debug</string>
   <string name="morphe_debug_export_logs_failed">Nabigong i-export ang mga log ng debug</string>
-  <string name="morphe_debug_logs_search_hint">Maghanap ng mga log ng debug...</string>
+  <string name="morphe_debug_logs_search_hint">Maghanap ng mga debug log…</string>
   <string name="morphe_debug_export_logs_clear">Alisin</string>
   <string name="morphe_debug_logs_disabled">Nakapatay ang pagtatala sa debug</string>
   <string name="morphe_debug_logs_none_found">Walang nahanap na mga log ng debug</string>
@@ -108,7 +109,7 @@ Hindi ka aabisuhan ng anumang mga hindi inaasahang pangyayari."</string>
   <string name="morphe_debug_feature_flags_manager_summary">Pamahalaan ang boolean ng mga feature flag</string>
   <string name="morphe_debug_feature_flags_manager_active_header">Mga aktibong flag ng feature (%d)</string>
   <string name="morphe_debug_feature_flags_manager_blocked_header">Mga nakaharang na flag ng feature (%d)</string>
-  <string name="morphe_debug_feature_flags_manager_search_hint">Maghanap ng mga flag ng feature...</string>
+  <string name="morphe_debug_feature_flags_manager_search_hint">Maghanap ng mga feature flag…</string>
   <string name="morphe_debug_feature_flags_manager_toast_saved">Na-save ang mga flag ng feature</string>
   <string name="morphe_debug_feature_flags_manager_toast_reset">Na-reset ang mga flag ng feature</string>
   <string name="morphe_debug_feature_flags_manager_toast_copied">Kinopya ang mga flag sa clipboard</string>

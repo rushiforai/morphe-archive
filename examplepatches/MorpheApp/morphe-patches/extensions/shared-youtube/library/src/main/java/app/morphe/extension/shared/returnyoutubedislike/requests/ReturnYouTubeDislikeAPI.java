@@ -1,7 +1,7 @@
-package app.morphe.extension.youtube.returnyoutubedislike.requests;
+package app.morphe.extension.shared.returnyoutubedislike.requests;
 
 import static app.morphe.extension.shared.StringRef.str;
-import static app.morphe.extension.youtube.returnyoutubedislike.requests.ReturnYouTubeDislikeRoutes.getRYDConnectionFromRoute;
+import static app.morphe.extension.shared.returnyoutubedislike.requests.ReturnYouTubeDislikeRoutes.getRYDConnectionFromRoute;
 
 import android.util.Base64;
 import android.widget.Toast;
@@ -25,8 +25,8 @@ import java.util.Objects;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.requests.Requester;
-import app.morphe.extension.youtube.returnyoutubedislike.ReturnYouTubeDislike;
-import app.morphe.extension.youtube.settings.Settings;
+import app.morphe.extension.shared.returnyoutubedislike.ReturnYouTubeDislike;
+import app.morphe.extension.shared.settings.SharedYouTubeSettings;
 
 public class ReturnYouTubeDislikeAPI {
     /**
@@ -231,7 +231,7 @@ public class ReturnYouTubeDislikeAPI {
             timeToResumeAPICalls = System.currentTimeMillis() + BACKOFF_RATE_LIMIT_MILLISECONDS;
             numberOfRateLimitRequestsEncountered++;
             fetchCallResponseTimeLast = FETCH_CALL_RESPONSE_TIME_VALUE_RATE_LIMIT;
-            if (!lastApiCallFailed && Settings.RYD_TOAST_ON_CONNECTION_ERROR.get()) {
+            if (!lastApiCallFailed && SharedYouTubeSettings.RYD_TOAST_ON_CONNECTION_ERROR.get()) {
                 Utils.showToastLong(str("morphe_ryd_failure_client_rate_limit_requested"));
             }
             lastApiCallFailed = true;
@@ -248,7 +248,7 @@ public class ReturnYouTubeDislikeAPI {
                                              @Nullable Integer responseCode,
                                              @Nullable Exception ex,
                                              @Nullable Integer toastDuration) {
-        if (!lastApiCallFailed && Settings.RYD_TOAST_ON_CONNECTION_ERROR.get()) {
+        if (!lastApiCallFailed && SharedYouTubeSettings.RYD_TOAST_ON_CONNECTION_ERROR.get()) {
             if (responseCode != null && responseCode == HTTP_STATUS_CODE_UNAUTHORIZED) {
                 Logger.printInfo(() -> "Ignoring status code " + HTTP_STATUS_CODE_UNAUTHORIZED
                         + " (API authorization error)");
@@ -432,14 +432,14 @@ public class ReturnYouTubeDislikeAPI {
     private static String getUserID() {
         Utils.verifyOffMainThread();
 
-        String userID = Settings.RYD_USER_ID.get();
+        String userID = SharedYouTubeSettings.RYD_USER_ID.get();
         if (!userID.isEmpty()) {
             return userID;
         }
 
         userID = registerAsNewUser();
         if (userID != null) {
-            Settings.RYD_USER_ID.save(userID);
+            SharedYouTubeSettings.RYD_USER_ID.save(userID);
         }
         return userID;
     }

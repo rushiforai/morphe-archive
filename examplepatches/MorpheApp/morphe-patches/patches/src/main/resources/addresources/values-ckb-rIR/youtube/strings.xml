@@ -167,7 +167,9 @@ Second \"item\" text"</string>
   <!-- interaction.livering.openChannelOfLiveAvatarPatch -->
   <!-- interaction.seekbar.disablePreciseSeekingGesturePatch -->
   <!-- interaction.seekbar.livestreamDVRPatch -->
+  <string name="morphe_livestream_dvr_summary">Allows seeking on all livestreams, even those that normally restrict it</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
+  <string name="morphe_expand_livestream_dvr_duration_summary">Allows you to rewind live broadcasts up to 7 days into the past</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
   <!-- interaction.seekbar.enableSlideToSeekPatch -->
   <!-- interaction.seekbar.enableTapToSeekPatch -->
@@ -278,7 +280,7 @@ Second \"item\" text"</string>
   <string name="morphe_hide_player_flyout_title">خەڵەتە ڕیزكارییەكە</string>
   <!-- 'Audio track' should be translated using the same localized wording YouTube displays for the menu item. -->
   <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
-          'Android Reel' and 'TV' must be kept untranslated. -->
+          'Android Studio' must be kept untranslated. -->
   <!-- 'Captions' should be translated using the same localized wording YouTube displays for the menu item. -->
   <!-- 'Additional settings / More' should be translated using the same localized wording YouTube displays for the menu item. -->
   <!-- 'Sleep timer' should be translated using the same localized wording YouTube displays for the menu item. -->
@@ -367,22 +369,6 @@ Second \"item\" text"</string>
   <string name="morphe_player_overlay_opacity_title">زینەی دەربانەی خەڵاتکار</string>
   <string name="morphe_player_overlay_opacity_summary">ءيجست سير رنغدي - (0 ري رنحانًح, 100 ري دواق)</string>
   <string name="morphe_player_overlay_opacity_invalid_toast">زینەی دەربانەی خەڵاتکار دەبێت لە نێوان 0-100-دا بێت</string>
-  <!-- layout.returnyoutubedislike.returnYouTubeDislikePatch -->
-  <!-- Brief notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
-  <string name="morphe_ryd_failure_connection_status_code">نەخشەڕێزی وشکە ناکرێتە ئەستوور (کۆدی ڕاپرسی %d)</string>
-  <string name="morphe_ryd_failure_client_rate_limit_requested">نەخشەڕێزی وشکە ناکرێتە ئەستوور (پێیواندکاری API ی خەڵاتکار)</string>
-  <string name="morphe_ryd_failure_generic">نەخشەڕێزی وشکە ناکرێتە ئەستوور (%s)</string>
-  <!-- Brief notification (Toast) shown if the user enables RYD while a video is opened, and then tries to vote for the video. -->
-  <string name="morphe_ryd_failure_ryd_enabled_while_playing_video_then_user_voted">ڤیدیۆکەوە باربکەوە بۆ دەنگدان بە بەکارهێنانی Return YouTube Dislike</string>
-  <!-- Video likes have been set to hidden by the video uploader. -->
-  <string name="morphe_ryd_video_likes_hidden_by_video_owner">له‌ لای خاوه‌ن ڕاگیراوه‌</string>
-  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
-  <string name="morphe_ryd_estimated_like_title">خۆشەکانی لێکدان کەڤم وەشاندن</string>
-  <string name="morphe_ryd_toast_on_connection_error_title">نشان دادن ڕێنمایەکانی هەڵە یەکباری پەیوەندیمان</string>
-  <!-- Statistic strings are shown in the settings only when Morphe debug mode is enabled. Typical users will never see these. -->
-  <string name="morphe_ryd_statistics_getFetchCallCount_title">وەڕگێڕانی دەنگیان، ژمارەی بانگەشە</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_zero_summary">هیچ بانگەشەیەك نەكرێتەوە</string>
-  <string name="morphe_ryd_statistics_millisecond_text">%d مىللى سیکنە</string>
   <!-- layout.searchbar.wideSearchbarPatch -->
   <string name="morphe_wide_searchbar_title">چالۆکەی گەڕانی فراوان چالاک بکە</string>
   <!-- layout.sponsorblock.sponsorBlockPatch -->
@@ -531,7 +517,6 @@ Second \"item\" text"</string>
   <string name="morphe_spoof_video_streams_av1_title">إﺫۆنێ ڤێڕ Android VR AV1</string>
   <string name="morphe_spoof_video_streams_av1_user_dialog_message">"چالاکی کردنی ئەم ڕێکخستنە دەکرێت بەکارهێنانێک لە دەربڕەخستنی نەرمەکاری AV1."</string>
   <string name="morphe_spoof_video_streams_about_title">لائەكانی دروستكردن</string>
-  <string name="morphe_spoof_video_streams_about_experimental">• خزمین و دەبێت هه‌ر كاتێك به‌سه‌ر كه‌وێت، به‌كار نه‌هاتووه‌.</string>
   <string name="morphe_spoof_video_streams_about_playback_failure">• ڤیدێو دەتووانێت لە 1:00 راوەستێت، یان لە هەندێ ناحیەیەکیشدا پێچەوانەی ئەوە دەبێت.</string>
   <string name="morphe_spoof_video_streams_about_no_audio_tracks">• خوله‌یا قوڵفه‌ی دەربونه‌ت</string>
   <string name="morphe_spoof_video_streams_about_no_av1">• ناکۆكی كۆدێكی ڤیدیۆ ڤێ (AV1) نییه</string>

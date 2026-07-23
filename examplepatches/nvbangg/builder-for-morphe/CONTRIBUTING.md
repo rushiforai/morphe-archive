@@ -89,7 +89,7 @@ apkmirror-dlurl = "https://www.apkmirror.com/apk/inc/app"
 | `strict-sigcheck` | Fail the build if an app is missing from `sig.txt` (see note below) | `true` | **Global only** |
 | `app-name` | Display name used in output filename and build label | `table name (hyphens replaced by spaces)` | Per-app |
 | `arch` | Target architecture (`all`, `both`, `arm64-v8a`, `armeabi-v7a`, `x86_64`, `x86`) | `all` | Per-app |
-| `version` | Target version (`auto`, `latest`, or a specific version string) - `latest` also considers experimental patch versions, `auto` only stable ones | `auto` | Per-app |
+| `version` | Target version (`auto`, `latest`, `exp`, or a specific version string) - `latest` fetches the newest APK available in the download source, `exp` also considers experimental patch versions, `auto` only stable ones | `auto` | Per-app |
 | `changelog-keywords` | List of keywords used to detect if this app was updated in the release notes | `[]` | Per-app |
 | `apkmirror-dlurl` | APKMirror page URL | `-` | Per-app |
 | `uptodown-dlurl` | Uptodown page URL | `-` | Per-app |

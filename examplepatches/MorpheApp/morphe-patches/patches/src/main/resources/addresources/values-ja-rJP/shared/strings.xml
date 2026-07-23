@@ -49,6 +49,7 @@ Second \"item\" text"</string>
   <string name="morphe_settings_search_empty_history_summary">検索履歴を保存するには、検索クエリを入力して Enter キーを押してください</string>
   <string name="morphe_settings_search_history_title">設定の検索履歴を表示</string>
   <string name="morphe_show_menu_icons_title">Morphe の設定にアイコンを表示</string>
+  <string name="morphe_settings_menu_copy_path">パスをコピーしました (%s)</string>
   <string name="morphe_language_title">Morphe の言語</string>
   <string name="morphe_language_user_dialog_message">"一部の言語では、翻訳が存在しない、または不完全である可能性があります。
 
@@ -104,15 +105,15 @@ Second \"item\" text"</string>
   <string name="morphe_debug_logs_copied_to_clipboard">デバッグログをコピーしました</string>
   <string name="morphe_debug_logs_failed_to_export">デバッグログのエクスポートに失敗しました: %s</string>
   <string name="morphe_debug_logs_clear_toast">デバッグログを消去しました</string>
-  <string name="morphe_debug_feature_flags_manager_title">feature flag マネージャー</string>
-  <string name="morphe_debug_feature_flags_manager_summary">各機能のオン / オフを制御する feature flag を管理します</string>
-  <string name="morphe_debug_feature_flags_manager_active_header">有効な feature flag (%d)</string>
-  <string name="morphe_debug_feature_flags_manager_blocked_header">無効な feature flag (%d)</string>
-  <string name="morphe_debug_feature_flags_manager_search_hint">feature flag を検索</string>
-  <string name="morphe_debug_feature_flags_manager_toast_saved">feature flag を保存しました</string>
-  <string name="morphe_debug_feature_flags_manager_toast_reset">feature flag をリセットしました</string>
-  <string name="morphe_debug_feature_flags_manager_toast_copied">feature flag をクリップボードにコピーしました</string>
-  <string name="morphe_debug_feature_flags_manager_toast_no_flags">この機能を設定するにはアプリを再起動してください</string>
+  <string name="morphe_debug_feature_flags_manager_title">機能フラグ マネージャー</string>
+  <string name="morphe_debug_feature_flags_manager_summary">各機能のオン / オフを制御する機能フラグを管理します</string>
+  <string name="morphe_debug_feature_flags_manager_active_header">有効な機能フラグ (%d)</string>
+  <string name="morphe_debug_feature_flags_manager_blocked_header">無効な機能フラグ (%d)</string>
+  <string name="morphe_debug_feature_flags_manager_search_hint">機能フラグを検索</string>
+  <string name="morphe_debug_feature_flags_manager_toast_saved">機能フラグを保存しました</string>
+  <string name="morphe_debug_feature_flags_manager_toast_reset">機能フラグをリセットしました</string>
+  <string name="morphe_debug_feature_flags_manager_toast_copied">機能フラグをクリップボードにコピーしました</string>
+  <string name="morphe_debug_feature_flags_manager_toast_no_flags">この機能を使用するにはアプリを再起動してください</string>
   <!-- Could be its own resource file, but for simplicity it's shared among all apps. -->
   <!-- misc.gms.gmsCoreSupportResourcePatch -->
   <string name="microg_settings_summary">MicroG の設定メニューを開く</string>

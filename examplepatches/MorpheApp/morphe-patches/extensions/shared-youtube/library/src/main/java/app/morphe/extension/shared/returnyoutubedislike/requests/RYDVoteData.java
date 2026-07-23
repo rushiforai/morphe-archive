@@ -1,6 +1,6 @@
-package app.morphe.extension.youtube.returnyoutubedislike.requests;
+package app.morphe.extension.shared.returnyoutubedislike.requests;
 
-import static app.morphe.extension.youtube.returnyoutubedislike.ReturnYouTubeDislike.Vote;
+import static app.morphe.extension.shared.returnyoutubedislike.ReturnYouTubeDislike.Vote;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;

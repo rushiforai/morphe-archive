@@ -49,6 +49,7 @@ Second \"item\" text"</string>
   <string name="morphe_settings_search_empty_history_summary">Če želite shraniti zgodovino iskanj, vnesite iskalno poizvedbo in pritisnite Enter</string>
   <string name="morphe_settings_search_history_title">Prikaži zgodovino iskanj nastavitev</string>
   <string name="morphe_show_menu_icons_title">Prikaži ikone nastavitev Morphe</string>
+  <string name="morphe_settings_menu_copy_path">Kopirano: %s</string>
   <string name="morphe_language_title">Jezik Morphe</string>
   <string name="morphe_language_user_dialog_message">"Prevodi za nekatere jezike morda manjkajo ali so nepopolni.
 
@@ -81,7 +82,7 @@ Za prevajanje novih jezikov ali izboljšanje že obstoječih prevodov obiščite
   <string name="morphe_settings_about_links_rv">2022 &#8209; 2025</string>
   <string name="morphe_settings_about_links_vanced">2019 &#8209; 2022</string>
   <string name="morphe_settings_about_links_licenses">Obvestila o licencah</string>
-  <string name="morphe_settings_about_licenses_loading">Pehna...</string>
+  <string name="morphe_settings_about_licenses_loading">Nalaganje…</string>
   <!-- misc.debugging.enableDebuggingPatch -->
   <string name="morphe_debug_screen_title">Odmevanje</string>
   <string name="morphe_debug_screen_summary">Konfigurirajte napredne možnosti za razvijalce in diagnostične dnevnike zapisov</string>
@@ -97,7 +98,7 @@ Pričakujete dogodke."</string>
   <string name="morphe_debug_export_logs_file">Izvozi v datoteko</string>
   <string name="morphe_debug_export_logs_success">Strežilnik za hrošče je bil uspešno izvožen</string>
   <string name="morphe_debug_export_logs_failed">Izvoz strežilnika za hrošče je spodletel</string>
-  <string name="morphe_debug_logs_search_hint">Poiščite strežilnik za hrošče...</string>
+  <string name="morphe_debug_logs_search_hint">Išči v zapisih za odpravljanje napak…</string>
   <string name="morphe_debug_export_logs_clear">Počistiti</string>
   <string name="morphe_debug_logs_disabled">Odmevanje beleženja je onemogočeno</string>
   <string name="morphe_debug_logs_none_found">Ni najdenih strežilnikov za hrošče</string>
@@ -108,7 +109,7 @@ Pričakujete dogodke."</string>
   <string name="morphe_debug_feature_flags_manager_summary">Upravljajte logičnimi zastavami funkcij</string>
   <string name="morphe_debug_feature_flags_manager_active_header">Aktivne funkcije (%d)</string>
   <string name="morphe_debug_feature_flags_manager_blocked_header">Blokirane funkcije (%d)</string>
-  <string name="morphe_debug_feature_flags_manager_search_hint">Iskanje funkcij...</string>
+  <string name="morphe_debug_feature_flags_manager_search_hint">Išči funkcije…</string>
   <string name="morphe_debug_feature_flags_manager_toast_saved">Funkcije so shranjene</string>
   <string name="morphe_debug_feature_flags_manager_toast_reset">Funkcije so obnovljene</string>
   <string name="morphe_debug_feature_flags_manager_toast_copied">Funkcije so kopirane v odložišče</string>

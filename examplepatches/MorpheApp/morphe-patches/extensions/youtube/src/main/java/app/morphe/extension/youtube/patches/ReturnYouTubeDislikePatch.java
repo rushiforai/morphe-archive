@@ -10,7 +10,7 @@
 
 package app.morphe.extension.youtube.patches;
 
-import static app.morphe.extension.youtube.returnyoutubedislike.ReturnYouTubeDislike.Vote;
+import static app.morphe.extension.shared.returnyoutubedislike.ReturnYouTubeDislike.Vote;
 
 import android.graphics.drawable.ShapeDrawable;
 import android.text.SpannableString;
@@ -23,7 +23,7 @@ import androidx.annotation.Nullable;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.patches.components.ContextInterface;
-import app.morphe.extension.youtube.returnyoutubedislike.ReturnYouTubeDislike;
+import app.morphe.extension.shared.returnyoutubedislike.ReturnYouTubeDislike;
 import app.morphe.extension.youtube.settings.Settings;
 import app.morphe.extension.youtube.shared.PlayerType;
 
@@ -173,7 +173,7 @@ public class ReturnYouTubeDislikePatch {
                     }
 
                     return measuredTextWidth + 1
-                            + ReturnYouTubeDislike.leftSeparatorBounds.right
+                            + ReturnYouTubeDislike.leftSeparatorBoundsYouTube.right
                             + ReturnYouTubeDislike.leftSeparatorShapePaddingPixels;
                 }
             }

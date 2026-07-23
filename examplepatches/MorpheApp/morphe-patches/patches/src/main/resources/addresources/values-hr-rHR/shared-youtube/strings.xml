@@ -102,8 +102,8 @@ Za prijavu, pritisnite nastavak ispod"</string>
   <!-- misc.proxy.networkProxyPatch -->
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">Sakrij pune zaslonske oglase</string>
-  <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_force_original_audio_not_available">Da biste koristili ovu značajku, promijenite \'Parodija video streamova\' u Android Reel ili TV</string>
+  <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
+          'Android Studio' must be kept untranslated. -->
   <!-- misc.privacy.sanitizeSharingLinksPatch -->
   <string name="morphe_sanitize_sharing_links_title">Očisti poveznice za dijeljenje</string>
   <string name="morphe_sanitize_sharing_links_summary">Uklanja parametre upita za praćenje iz zajedničkih poveznica</string>
@@ -120,5 +120,11 @@ Međutim, omogućavanjem ove postavke zabilježit će se i neki korisnički poda
   <string name="morphe_custom_filter_screen_summary">Konfigurirajte prilagođene filtre za skrivanje bilo kojeg komponenta</string>
   <!-- 'Component path builder strings' is the technical name for identifying the Litho UI layout items to hide. This is an advanced feature and most users will never use this. -->
   <string name="morphe_custom_filter_strings_summary">Popis nizova alata za izradu putanja komponenti za filtriranje, odvojenih novim retcima</string>
+  <!-- Settings menu filter -->
   <!-- misc.spoof.appversion.spoofAppVersionPatch -->
+  <!-- layout.returnyoutubedislike.returnYouTubeDislikePatch -->
+  <!-- Brief notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
+  <!-- Video likes have been set to hidden by the video uploader. -->
+  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
+  <!-- Statistic strings are shown in the settings only when Morphe debug mode is enabled. Typical users will never see these. -->
 </resources>

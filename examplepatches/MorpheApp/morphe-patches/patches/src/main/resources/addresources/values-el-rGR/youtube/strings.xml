@@ -155,14 +155,17 @@ Second \"item\" text"</string>
   <string name="morphe_hide_featured_channels_section_title">Απόκρυψη της ενότητας με τα προτεινόμενα κανάλια</string>
   <string name="morphe_hide_featured_links_section_title">Απόκρυψη τμήματος Προτεινόμενων συνδέσμων</string>
   <string name="morphe_hide_featured_places_section_title">Απόκρυψη τμήματος Επιλεγμένων τοποθεσιών</string>
+  <string name="morphe_hide_featured_playlists_section_title">Απόκρυψη ενότητας με προτεινόμενες λίστες αναπαραγωγής</string>
   <string name="morphe_hide_featured_videos_section_title">Απόκρυψη τμήματος Προτεινόμενων βίντεο</string>
   <string name="morphe_hide_gaming_section_title">Απόκρυψη τμήματος Gaming</string>
+  <string name="morphe_hide_hashtag_section_title">Απόκρυψη ενότητας hashtag</string>
   <string name="morphe_hide_how_this_was_made_section_title">Απόκρυψη τμήματος «Πώς δημιουργήθηκε αυτό το περιεχόμενο»</string>
   <string name="morphe_hide_hype_points_title">Πόντοι Hype</string>
   <string name="morphe_hide_info_cards_section_title">Απόκρυψη τμήματος Καρτών πληροφοριών</string>
   <string name="morphe_hide_key_concepts_section_title">Απόκρυψη τμήματος «Βασικές έννοιες»</string>
   <string name="morphe_hide_music_section_title">Απόκρυψη τμήματος Μουσικής</string>
   <string name="morphe_hide_quizzes_section_title">Απόκρυψη τμήματος Κουίζ</string>
+  <string name="morphe_hide_search_inside_this_video_section_title">Απόκρυψη ενότητας \'Αναζήτηση σε αυτό το βίντεο\'</string>
   <string name="morphe_hide_subscribe_button_title">Κουμπί «Εγγραφή»</string>
   <string name="morphe_hide_transcript_section_title">Απόκρυψη μεταγραφής</string>
   <string name="morphe_hide_video_details_section_title">Απόκρυψη τμήματος \"Λεπτομέρειες βίντεο\"</string>
@@ -269,8 +272,10 @@ Second \"item\" text"</string>
   <string name="morphe_hide_aislist_stats_hidden_breakdown">"• Αρχική σελίδα: %s
 • Αναζήτηση: %s
 • Σύνολο: %s"</string>
-  <string name="morphe_hide_aislist_stats_blocklist_title">Φορτώθηκαν κανάλια μαύρης λίστας: %s</string>
-  <string name="morphe_hide_aislist_stats_warnlist_title">Φορτώθηκαν κανάλια λίστας προειδοποίησης: %s</string>
+  <string name="morphe_hide_aislist_stats_blocklist_channels_title">Κανάλια στη μαύρη λίστα</string>
+  <string name="morphe_hide_aislist_stats_warnlist_channels_title">Κανάλια στη λίστα προειδοποιήσεων</string>
+  <string name="morphe_hide_aislist_stats_channels_disabled_summary">Ενεργοποίηση φίλτρου για φόρτωση καναλιών</string>
+  <string name="morphe_hide_aislist_stats_channels_loading_summary">Φόρτωση καναλιών…</string>
   <string name="morphe_hide_aislist_about_summary">"Τα αποτελέσματα στην Αρχική σελίδα και στην αναζήτηση φιλτράρονται για να αποκρύψουν βίντεο από κανάλια που έχουν επισημανθεί από το AiSList
 
 Περιορισμοί:
@@ -450,15 +455,17 @@ Second \"item\" text"</string>
   <string name="morphe_disable_precise_seeking_gesture_summary">Απενεργοποιεί τη λειτουργία ακριβούς αναζήτησης που ενεργοποιείται όταν τραβάτε επάνω τη γραμμή αναζήτησης</string>
   <!-- interaction.seekbar.livestreamDVRPatch -->
   <string name="morphe_livestream_dvr_title">Ενεργοποίηση εγγραφής ζωντανής μετάδοσης DVR</string>
+  <string name="morphe_livestream_dvr_summary">Επιτρέπει την αναζήτηση σε όλες τις ζωντανές μεταδόσεις, ακόμη και σε αυτές που συνήθως την περιορίζουν</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_livestream_dvr_summary">"Επιτρέπει την αναζήτηση σε όλες τις ζωντανές μεταδόσεις, ακόμη και σε αυτές που συνήθως την περιορίζουν
+  <string name="morphe_livestream_dvr_not_available">"'Η ενεργοποίηση εγγραφής ζωντανής ροής (DVR) ενδέχεται να μην είναι διαθέσιμη
 
-Σημείωση: Εάν το \"Spoof video streams\" δεν είναι ενεργοποιημένο, η ενεργοποίηση αυτού ενδέχεται να προκαλέσει απροσδόκητη συμπεριφορά αναζήτησης σε ζωντανές μεταδόσεις"</string>
+Για να το διορθώσετε, ενεργοποιήστε την επιλογή 'Παραποίηση ροών βίντεο' και αλλάξτε την 'Προεπιλεγμένη συσκευή' σε 'Τηλεόραση'"</string>
   <string name="morphe_expand_livestream_dvr_duration_title">Επέκταση της διάρκειας του DVR της ζωντανής μετάδοσης</string>
+  <string name="morphe_expand_livestream_dvr_duration_summary">Σας επιτρέπει να επανατυλίγετε ζωντανές εκπομπές έως και 7 ημέρες στο παρελθόν</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_expand_livestream_dvr_duration_summary">"Σας επιτρέπει να επανατύλιξετε ζωντανές μεταδόσεις έως και 7 ημέρες στο παρελθόν
+  <string name="morphe_expand_livestream_dvr_duration_not_available">"'Επέκταση διάρκειας εγγραφής ζωντανής ροής (DVR)' ενδέχεται να μην είναι διαθέσιμη
 
-Σημείωση: Εάν το \"Spoof video streams\" δεν είναι ενεργοποιημένο, η ενεργοποίηση αυτού ενδέχεται να προκαλέσει απροσδόκητη συμπεριφορά αναζήτησης σε ζωντανές μεταδόσεις"</string>
+Για να το διορθώσετε, ενεργοποιήστε την επιλογή 'Παραποίηση ροών βίντεο' και αλλάξτε την 'Προεπιλεγμένη συσκευή' σε 'Τηλεόραση'"</string>
   <!-- interaction.seekbar.enableSlideToSeekPatch -->
   <string name="morphe_slide_to_seek_title">Χειρονομία συρσίματος για αναζήτηση</string>
   <string name="morphe_slide_to_seek_summary">Ενεργοποιήστε την ολίσθηση για αναζήτηση αντί να παίξετε με ταχύτητα 2x όταν πατάτε και κρατάτε τον πρόγραμμα αναπαραγωγής βίντεο</string>
@@ -663,10 +670,10 @@ Second \"item\" text"</string>
   <!-- 'Audio track' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_player_flyout_audio_track_title">Κρύψτε το μενού \'Ήχος\'</string>
   <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
-          'Android Reel' and 'TV' must be kept untranslated. -->
-  <string name="morphe_hide_player_flyout_audio_track_not_available">"Το μενού 'Audio Track' είναι κρυφό
+          'Android Studio' must be kept untranslated. -->
+  <string name="morphe_hide_player_flyout_audio_track_not_available">"'Μενού ρυθμίσεων ήχου' είναι κρυφό
 
-Για να εμφανίσετε το μενού 'Audio Track', αλλάξτε το 'Spoof video streams' σε 'Android Reel' ή 'TV'."</string>
+Για να εμφανίσετε το 'Μενού ρυθμίσεων ήχου', αλλάξτε την επιλογή 'Παραποίηση ροών βίντεο' σε οποιαδήποτε συσκευή εκτός από το 'Android Studio'"</string>
   <string name="morphe_hide_player_flyout_audio_track_footer_title">Κρύψτε την υποσημείωση του μενού \'Ήχος\'</string>
   <!-- 'Captions' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_player_flyout_captions_title">Κρύψτε το μενού \'Υπότιτλοι\'</string>
@@ -817,46 +824,6 @@ Second \"item\" text"</string>
   <string name="morphe_player_overlay_opacity_title">Αδιαφάνεια φόντου οθόνης αναπαραγωγής</string>
   <string name="morphe_player_overlay_opacity_summary">Ρυθμίστε το επίπεδο διαφάνειας (0 είναι διαφανές, 100 είναι αδιαφανές)</string>
   <string name="morphe_player_overlay_opacity_invalid_toast">Η αδιαφάνεια φόντου οθόνης αναπαραγωγής πρέπει να είναι μεταξύ 0-100</string>
-  <!-- layout.returnyoutubedislike.returnYouTubeDislikePatch -->
-  <!-- Brief notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
-  <string name="morphe_ryd_failure_connection_timeout">Dislike προσωρινά μη διαθέσιμα (καθυστέρηση API)</string>
-  <string name="morphe_ryd_failure_connection_status_code">Δεδομένα dislike μη διαθέσιμα (κατάσταση %d)</string>
-  <string name="morphe_ryd_failure_client_rate_limit_requested">Δεδομένα dislike μη διαθέσιμα (όριο API πελάτη)</string>
-  <string name="morphe_ryd_failure_generic">Δεδομένα dislike μη διαθέσιμα (%s)</string>
-  <!-- Brief notification (Toast) shown if the user enables RYD while a video is opened, and then tries to vote for the video. -->
-  <string name="morphe_ryd_failure_ryd_enabled_while_playing_video_then_user_voted">Επαναφορτώστε το βίντεο για να ψηφίσετε χρησιμοποιώντας το Return YouTube Dislike</string>
-  <!-- Video likes have been set to hidden by the video uploader. -->
-  <string name="morphe_ryd_video_likes_hidden_by_video_owner">Κρυμμένα από τον ιδιοκτήτη</string>
-  <string name="morphe_ryd_enabled_title">Ενεργοποίηση Return YouTube Dislike</string>
-  <string name="morphe_ryd_dislike_percentage_title">Εμφάνιση των dislikes ως ποσοστό</string>
-  <string name="morphe_ryd_dislike_percentage_summary">Εμφανίζει τα dislikes ως ποσοστό των likes αντί για έναν αριθμό</string>
-  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
-  <string name="morphe_ryd_compact_layout_title">Χρησιμοποιήστε το κουμπί Like σε συμπαγή μορφή</string>
-  <string name="morphe_ryd_compact_layout_summary">Μειώνει το πλάτος του κουμπιού Like για εξοικονόμηση χώρου</string>
-  <string name="morphe_ryd_estimated_like_title">Εμφάνιση των εκτιμώμενων «Μου αρέσει»</string>
-  <string name="morphe_ryd_estimated_like_summary">Εμφανίζει μια εκτιμώμενη καταμέτρηση των likes σε βίντεο όπου ο δημιουργός έχει απενεργοποιήσει τα likes</string>
-  <string name="morphe_ryd_toast_on_connection_error_title">Εμφάνιση ειδοποιήσεων σφάλματος σύνδεσης</string>
-  <string name="morphe_ryd_toast_on_connection_error_summary">Εμφανίζει μια ειδοποίηση όταν ο διακομιστής Return YouTube Dislike δεν είναι διαθέσιμος</string>
-  <string name="morphe_ryd_attribution_summary">"Τα δεδομένα παρέχονται από το Return YouTube Dislike API
-
-Πατήστε εδώ για να ανοίξετε το ReturnYouTubeDislike.com"</string>
-  <!-- Statistic strings are shown in the settings only when Morphe debug mode is enabled. Typical users will never see these. -->
-  <string name="morphe_ryd_statistics_category_title">Στατιστικά ReturnYouTubeDislike API αυτής της συσκευής</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeAverage_title">Χρόνος απόκρισης API, μέσος όρος</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMin_title">Χρόνος απόκρισης API, ελάχιστος</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMax_title">Χρόνος απόκρισης API, μέγιστος</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_title">Χρόνος απόκρισης API, τελευταίου βίντεο</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_rate_limit_summary">Δεδομένα dislike προσωρινά μη διαθέσιμα - Όριο ρυθμού πελάτη API σε ισχύ</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_title">API ανάκτηση ψήφων, αριθμός κλήσεων</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_zero_summary">Δεν πραγματοποιήθηκαν κλήσεις δικτύου</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_non_zero_summary">Πραγματοποιήθηκαν %d κλήσεις δικτύου</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_title">API ανάκτηση ψήφων, αριθμός αποτυχιών</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_zero_summary">Δεν απέτυχαν κλήσεις δικτύου</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_non_zero_summary">απέτυχαν %d κλήσεις δικτύου </string>
-  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_title">Όρια πελατών API</string>
-  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_zero_summary">Δεν ανιχνεύτηκαν περιορισμοί ορίου πελάτη</string>
-  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_non_zero_summary">Ανιχνεύθηκαν %d φορές περιορισμοί ορίου πελάτη</string>
-  <string name="morphe_ryd_statistics_millisecond_text">%d χιλιοστά δευτερολέπτου</string>
   <!-- layout.searchbar.wideSearchbarPatch -->
   <string name="morphe_wide_searchbar_title">Ευρεία γραμμή αναζήτησης</string>
   <!-- layout.sponsorblock.sponsorBlockPatch -->
@@ -941,6 +908,7 @@ Second \"item\" text"</string>
   <string name="morphe_miniplayer_disable_resuming_summary">Απενεργοποιεί το μίνι player \"Συνέχιση παρακολούθησης\", μια λειτουργία YouTube Premium που εμφανίζεται κατά την εκκίνηση της εφαρμογής</string>
   <string name="morphe_miniplayer_screen_title">Ελαχιστοποιημένη οθόνη αναπαραγωγής</string>
   <string name="morphe_miniplayer_screen_summary">Προσαρμόστε την εμφάνιση και τη συμπεριφορά του μικρογραφικού αναπαραγωγέα βίντεο</string>
+  <string name="morphe_miniplayer_not_available_summary">Το YouTube αφαίρεσε όλους τους επιπλέον μίνι παίκτες. Για να αλλάξετε τον τύπο του μίνι παίκτη, κάντε patch στο YouTube 21.28.207 ή παλαιότερη έκδοση</string>
   <string name="morphe_miniplayer_type_title">Τύπος ελαχιστοποιημένης οθόνης αναπαραγωγής</string>
   <string name="morphe_miniplayer_type_entry_0">Απενεργοποιημένη</string>
   <string name="morphe_miniplayer_type_entry_1">Προεπιλογή</string>
@@ -1124,7 +1092,6 @@ Second \"item\" text"</string>
 
 Η αναπαραγωγή βίντεο μπορεί να κομπιάζει ή να χάνει καρέ."</string>
   <string name="morphe_spoof_video_streams_about_title">Παρενέργειες παραποίησης</string>
-  <string name="morphe_spoof_video_streams_about_experimental">• Πειραματικός πελάτης και μπορεί να σταματήσει να λειτουργεί ανά πάσα στιγμή</string>
   <string name="morphe_spoof_video_streams_about_playback_failure">• Το βίντεο μπορεί να σταματήσει στο 1:00 ή να μην είναι διαθέσιμο σε ορισμένες περιοχές</string>
   <string name="morphe_spoof_video_streams_about_no_audio_tracks">• Το μενού «Κομμάτι ήχου» λείπει</string>
   <string name="morphe_spoof_video_streams_about_no_av1">• Δεν υπάρχει ο κωδικοποιητής βίντεο AV1</string>

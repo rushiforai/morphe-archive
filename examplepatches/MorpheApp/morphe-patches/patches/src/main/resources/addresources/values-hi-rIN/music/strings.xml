@@ -33,9 +33,10 @@ Second \"item\" text"</string>
   <string name="morphe_settings_music_screen_1_ads_title">विज्ञापन</string>
   <string name="morphe_settings_music_screen_2_general_title">सामान्य</string>
   <string name="morphe_settings_music_screen_3_player_title">प्लेयर</string>
-  <string name="morphe_settings_music_screen_6_misc_title">विविध</string>
+  <string name="morphe_settings_music_screen_7_misc_title">मिसलेनियस</string>
   <!-- ad.hideAdsPatch -->
   <string name="morphe_music_hide_get_premium_label_title">\'गेट म्यूज़िक प्रीमियम\' लेबल छिपाएं</string>
+  <string name="morphe_music_hide_music_premium_promotions_title">संगीत प्रीमियम प्रचार छुपाएं</string>
   <string name="morphe_music_hide_video_ads_title">विडियो विज्ञापन छिपाएं</string>
   <!-- interaction.crossfade.crossfadePatch -->
   <string name="morphe_music_crossfade_screen_title">क्रॉसफ़ेड</string>
@@ -241,7 +242,7 @@ YouTube Music 8.x - क्रॉसफ़ेड केवल 9.x और उस�
   <string name="morphe_music_listenbrainz_token_dialog_get_token">टोकन प्राप्त करें</string>
   <string name="morphe_music_listenbrainz_token_dialog_verify">सत्यापित करें</string>
   <string name="morphe_music_listenbrainz_token_status_empty">कृपया एक टोकन दर्ज करें</string>
-  <string name="morphe_music_listenbrainz_token_status_validating">सत्यापित किया जा रहा है...</string>
+  <string name="morphe_music_listenbrainz_token_status_validating">मान्य किया जा रहा है…</string>
   <string name="morphe_music_listenbrainz_token_status_valid">मान्य टोकन! उपयोगकर्ता: %s</string>
   <string name="morphe_music_listenbrainz_token_status_invalid">अमान्य टोकन: %s</string>
   <string name="morphe_music_listenbrainz_token_status_invalid_unknown">अज्ञात</string>
@@ -258,7 +259,7 @@ YouTube Music 8.x - क्रॉसफ़ेड केवल 9.x और उस�
   <string name="morphe_music_lastfm_token_dialog_password_hint">पासवर्ड</string>
   <string name="morphe_music_lastfm_token_dialog_login">लॉग इन करें</string>
   <string name="morphe_music_lastfm_token_status_empty">कृपया उपयोगकर्ता नाम और पासवर्ड दर्ज करें</string>
-  <string name="morphe_music_lastfm_token_status_logging_in">लॉग इन किया जा रहा है...</string>
+  <string name="morphe_music_lastfm_token_status_logging_in">लॉग इन किया जा रहा है…</string>
   <string name="morphe_music_lastfm_token_status_success">सफलतापूर्वक लॉग इन किया गया!</string>
   <string name="morphe_music_lastfm_token_status_no_session">Last.fm से सेशन प्राप्त करने में विफल</string>
   <string name="morphe_music_lastfm_token_status_failed">लॉगिन विफल: %s</string>

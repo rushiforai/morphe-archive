@@ -104,10 +104,10 @@ Untuk masuk, tekan lanjutkan di bawah ini"</string>
   <string name="morphe_oauth2_toast_reset">Keluar dari Android VR</string>
   <string name="morphe_oauth2_toast_invalid">Token masuk VR tidak sah, coba masuk ke VR lagi</string>
   <string name="morphe_spoof_video_streams_disable_player_js_update_title">Nonaktifkan pembaruan pemutar JavaScript</string>
-  <string name="morphe_spoof_video_streams_disable_player_js_update_summary">"Mengunci JavaScript pemain ke versi tertentu
+  <string name="morphe_spoof_video_streams_disable_player_js_update_summary">"Mengunci pemutar JavaScript ke versi tertentu
 
-• Hash JavaScript pemain yang valid diperlukan
-• Hash JavaScript pemain berlaku selama sekitar satu bulan, dan hash yang kedaluwarsa akan dicabut oleh GVS
+• Diperlukan hash pemutar JavaScript yang sah
+• Hash pemutar JavaScript berlaku selama sekitar satu bulan, dan hash yang kedaluwarsa akan dicabut oleh GVS
 • Pemutaran gagal jika hash dicabut"</string>
   <string name="morphe_spoof_video_streams_disable_player_js_update_user_dialog_message">"Anda harus memberikan hash pemutar JavaScript yang sah.
 
@@ -142,8 +142,9 @@ Pemutaran akan gagal jika hash pemutar JavaScript sudah kedaluwarsa."</string>
   <string name="morphe_proxy_allow_direct_fallback_summary">Terhubung secara langsung jika proksi gagal</string>
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">Sembunyikan iklan layar penuh</string>
-  <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_force_original_audio_not_available">Untuk menggunakan fitur ini, ubah \'Palsukan aliran video\' ke Android Reel atau TV</string>
+  <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
+          'Android Studio' must be kept untranslated. -->
+  <string name="morphe_force_original_audio_not_available">Untuk menggunakan fitur ini, ubah \'Palsukan aliran video\' ke klien apa pun kecuali Android Studio\'</string>
   <!-- misc.privacy.sanitizeSharingLinksPatch -->
   <string name="morphe_sanitize_sharing_links_title">Bersihkan tautan berbagi</string>
   <string name="morphe_sanitize_sharing_links_summary">Menghapus parameter kueri pelacakan dari tautan yang dibagikan</string>
@@ -167,6 +168,10 @@ Namun, mengaktifkan ini juga akan mencatat beberapa data pengguna seperti alamat
   <!-- 'Component path builder strings' is the technical name for identifying the Litho UI layout items to hide. This is an advanced feature and most users will never use this. -->
   <string name="morphe_custom_filter_strings_summary">Daftar string pembuat jalur komponen yang akan disaring, dipisahkan oleh baris baru</string>
   <string name="morphe_custom_filter_toast_invalid_syntax">Penyaring khusus tidak sah: %s</string>
+  <!-- Settings menu filter -->
+  <string name="morphe_settings_menu_filter_screen_title">Filter menu Pengaturan</string>
+  <string name="morphe_settings_menu_filter_screen_summary">Sembunyikan item di layar pengaturan aplikasi standar berdasarkan nama yang terlihat</string>
+  <string name="morphe_settings_menu_filter_picker_empty">Buka layar pengaturan aplikasi standar sekali untuk mengisi daftar</string>
   <!-- misc.spoof.appversion.spoofAppVersionPatch -->
   <string name="morphe_spoof_app_version_title">Palsukan versi aplikasi</string>
   <string name="morphe_spoof_app_version_summary">Mengelabui server agar mengira Anda menggunakan versi aplikasi yang lebih lama untuk mengembalikan fitur UI lama</string>
@@ -176,4 +181,42 @@ Ini akan mengubah tampilan dan fitur aplikasi, tetapi efek samping yang tidak di
 
 Jika kemudian dimatikan, disarankan untuk menghapus data aplikasi untuk mencegah kerusakan UI."</string>
   <string name="morphe_spoof_app_version_target_title">Target versi aplikasi yang dipalsukan</string>
+  <!-- layout.returnyoutubedislike.returnYouTubeDislikePatch -->
+  <!-- Brief notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
+  <string name="morphe_ryd_failure_connection_timeout">Dislike sementara tidak tersedia (waktu API habis)</string>
+  <string name="morphe_ryd_failure_connection_status_code">Dislike tidak tersedia (status %d)</string>
+  <string name="morphe_ryd_failure_client_rate_limit_requested">Dislike tidak tersedia (pembatasan API klien)</string>
+  <string name="morphe_ryd_failure_generic">Dislike tidak tersedia (%s)</string>
+  <!-- Video likes have been set to hidden by the video uploader. -->
+  <string name="morphe_ryd_video_likes_hidden_by_video_owner">Disembunyikan oleh pemilik</string>
+  <string name="morphe_ryd_enabled_title">Aktifkan Return YouTube Dislike</string>
+  <string name="morphe_ryd_dislike_percentage_title">Tampilkan dislike sebagai persentase</string>
+  <string name="morphe_ryd_dislike_percentage_summary">Menampilkan jumlah tidak suka sebagai persentase dari jumlah suka, bukan sebagai angka</string>
+  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
+  <string name="morphe_ryd_compact_layout_title">Gunakan tombol Suka ringkas</string>
+  <string name="morphe_ryd_compact_layout_summary">Mengurangi lebar tombol Suka untuk menghemat ruang</string>
+  <string name="morphe_ryd_estimated_like_title">Tampilkan perkiraan suka</string>
+  <string name="morphe_ryd_estimated_like_summary">Menampilkan perkiraan jumlah suka pada video di mana pembuatnya telah menonaktifkan fitur suka</string>
+  <string name="morphe_ryd_toast_on_connection_error_title">Tampilkan peringatan kesalahan sambungan</string>
+  <string name="morphe_ryd_toast_on_connection_error_summary">Menampilkan pemberitahuan saat server Return YouTube Dislike tidak tersedia</string>
+  <string name="morphe_ryd_attribution_summary">"Data disediakan oleh API Return YouTube Dislike
+
+Ketuk di sini untuk membuka ReturnYouTubeDislike.com"</string>
+  <!-- Statistic strings are shown in the settings only when Morphe debug mode is enabled. Typical users will never see these. -->
+  <string name="morphe_ryd_statistics_category_title">Statistik API Return YouTube Dislike untuk perangkat ini</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeAverage_title">Waktu respons API, rata-rata</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMin_title">Waktu respons API, minimum</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMax_title">Waktu respons API, maksimum</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_title">Waktu respons API, media terakhir</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_rate_limit_summary">Dislike sementara tidak tersedia - Batas kuota API klien berlaku</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_title">API mengambil vote, jumlah dari panggilan</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_zero_summary">Tidak ada panggilan jaringan yang terjadi</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_non_zero_summary">%d panggilan jaringan dilakukan</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_title">API mengambil vote, jumlah kegagalan</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_zero_summary">Tidak ada panggilan jaringan yang gagal</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_non_zero_summary">%d panggilan jaringan gagal</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_title">Batas kuota klien API</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_zero_summary">Tidak ada batas kuota klien yang terdeteksi</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_non_zero_summary">Batas kuota klien terdeteksi %d kali</string>
+  <string name="morphe_ryd_statistics_millisecond_text">%d milidetik</string>
 </resources>

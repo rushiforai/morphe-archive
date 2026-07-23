@@ -49,6 +49,7 @@ Second \"item\" text"</string>
   <string name="morphe_settings_search_empty_history_summary">لحفظ سجل البحث، اكتب استعلام بحث واضغط على Enter</string>
   <string name="morphe_settings_search_history_title">عرض سجل بحث الإعدادات</string>
   <string name="morphe_show_menu_icons_title">عرض أيقونات إعدادات Morphe</string>
+  <string name="morphe_settings_menu_copy_path">تم نسخ: %s</string>
   <string name="morphe_language_title">لغة Morphe</string>
   <string name="morphe_language_user_dialog_message">"قد تكون ترجمات بعض اللغات مفقودة أو غير مكتملة.
 
@@ -81,7 +82,7 @@ Second \"item\" text"</string>
   <string name="morphe_settings_about_links_rv">2022 &#8209; 2025</string>
   <string name="morphe_settings_about_links_vanced">2019 &#8209; 2022</string>
   <string name="morphe_settings_about_links_licenses">إشعارات الترخيص</string>
-  <string name="morphe_settings_about_licenses_loading">جارٍ التحميل...</string>
+  <string name="morphe_settings_about_licenses_loading">جارٍ التحميل…</string>
   <!-- misc.debugging.enableDebuggingPatch -->
   <string name="morphe_debug_screen_title">تصحيح الأخطاء</string>
   <string name="morphe_debug_screen_summary">تكوين خيارات المطور المتقدمة وسجلات التشخيص</string>

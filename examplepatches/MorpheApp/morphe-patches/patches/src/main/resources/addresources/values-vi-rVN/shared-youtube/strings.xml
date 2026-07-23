@@ -142,8 +142,9 @@ Bạn sẽ không còn xem được video nếu mã băm hết hạn."</string>
   <string name="morphe_proxy_allow_direct_fallback_summary">Kết nối trực tiếp nếu proxy gặp sự cố</string>
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">Ẩn quảng cáo toàn màn hình</string>
-  <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_force_original_audio_not_available">Để dùng tính năng này, hãy đổi \"Giả mạo luồng phát video\" thành Android Reel hoặc TV</string>
+  <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
+          'Android Studio' must be kept untranslated. -->
+  <string name="morphe_force_original_audio_not_available">Để dùng tính năng này, hãy đổi \'Giả mạo luồng phát video\' thành bất kỳ client nào ngoại trừ Android Studio\'</string>
   <!-- misc.privacy.sanitizeSharingLinksPatch -->
   <string name="morphe_sanitize_sharing_links_title">Rút gọn liên kết chia sẻ</string>
   <string name="morphe_sanitize_sharing_links_summary">Xóa các tham số theo dõi khỏi liên kết được chia sẻ</string>
@@ -167,6 +168,10 @@ Tuy nhiên, bật tính năng này cũng sẽ ghi lại một số dữ liệu n
   <!-- 'Component path builder strings' is the technical name for identifying the Litho UI layout items to hide. This is an advanced feature and most users will never use this. -->
   <string name="morphe_custom_filter_strings_summary">Danh sách các chuỗi tạo đường dẫn thành phần cần lọc, mỗi dòng một chuỗi</string>
   <string name="morphe_custom_filter_toast_invalid_syntax">Bộ lọc tuỳ chỉnh không hợp lệ: %s</string>
+  <!-- Settings menu filter -->
+  <string name="morphe_settings_menu_filter_screen_title">Bộ lọc menu Cài đặt</string>
+  <string name="morphe_settings_menu_filter_screen_summary">Ẩn các mục trên màn hình cài đặt ứng dụng tiêu chuẩn theo tên hiển thị của chúng</string>
+  <string name="morphe_settings_menu_filter_picker_empty">Mở màn hình cài đặt ứng dụng tiêu chuẩn một lần để điền vào danh sách</string>
   <!-- misc.spoof.appversion.spoofAppVersionPatch -->
   <string name="morphe_spoof_app_version_title">Giả mạo phiên bản ứng dụng</string>
   <string name="morphe_spoof_app_version_summary">Khiến server nghĩ rằng bạn đang sử dụng phiên bản cũ để khôi phục giao diện cũ</string>
@@ -176,4 +181,42 @@ Tuy nhiên, bật tính năng này cũng sẽ ghi lại một số dữ liệu n
 
 Nếu tắt sau đó, bạn nên xóa dữ liệu ứng dụng để tránh các lỗi giao diện."</string>
   <string name="morphe_spoof_app_version_target_title">Mục tiêu phiên bản giả mạo</string>
+  <!-- layout.returnyoutubedislike.returnYouTubeDislikePatch -->
+  <!-- Brief notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
+  <string name="morphe_ryd_failure_connection_timeout">Không thể hiện số Dislike (API hết thời gian chờ)</string>
+  <string name="morphe_ryd_failure_connection_status_code">Lượt không thích không khả dụng ( trạng thái %d)</string>
+  <string name="morphe_ryd_failure_client_rate_limit_requested">Không thể hiện số dislike (đạt giới hạn API ứng dụng)</string>
+  <string name="morphe_ryd_failure_generic">Số lượt không thích không khả dụng (%s)</string>
+  <!-- Video likes have been set to hidden by the video uploader. -->
+  <string name="morphe_ryd_video_likes_hidden_by_video_owner">Đã ẩn bởi chủ sở hữu</string>
+  <string name="morphe_ryd_enabled_title">Bật Return YouTube Dislike</string>
+  <string name="morphe_ryd_dislike_percentage_title">Hiện số lượt không thích dưới dạng phần trăm</string>
+  <string name="morphe_ryd_dislike_percentage_summary">Hiển thị số lượt không thích dưới dạng phần trăm thay vì một con số</string>
+  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
+  <string name="morphe_ryd_compact_layout_title">Dùng nút Thích thu gọn</string>
+  <string name="morphe_ryd_compact_layout_summary">Giảm độ rộng của nút Thích để tiết kiệm không gian</string>
+  <string name="morphe_ryd_estimated_like_title">Hiện lượt thích ước tính</string>
+  <string name="morphe_ryd_estimated_like_summary">Hiển thị số lượt thích ước tính trên các video mà người sáng tạo đã ẩn lượt thích</string>
+  <string name="morphe_ryd_toast_on_connection_error_title">Hiện cảnh báo lỗi kết nối</string>
+  <string name="morphe_ryd_toast_on_connection_error_summary">Hiển thị thông báo khi máy chủ Return YouTube Dislike không khả dụng</string>
+  <string name="morphe_ryd_attribution_summary">"Dữ liệu được cung cấp bởi API Return YouTube Dislike
+
+Nhấn vào đây để mở ReturnYouTubeDislike.com"</string>
+  <!-- Statistic strings are shown in the settings only when Morphe debug mode is enabled. Typical users will never see these. -->
+  <string name="morphe_ryd_statistics_category_title">Thống kê API Return YouTube Dislike của thiết bị này</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeAverage_title">Thời gian phản hồi API, trung bình</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMin_title">Thời gian phản hồi API, tối thiểu</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMax_title">Thời gian phản hồi API, tối đa</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_title">Thời gian phản hồi API, phương tiện gần nhất</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_rate_limit_summary">Không thể hiện số Dislike - Đạt giới hạn tốc độ API của máy khách</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_title">Số lượt truy vấn API, số lần gọi</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_zero_summary">Không gọi mạng lần nào</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_non_zero_summary">%d lượt gọi mạng đã được thực hiện</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_title">Số lượt truy vấn API, số lần thất bại</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_zero_summary">Không có cuộc gọi mạng nào bị hết thời gian chờ</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_non_zero_summary">%d cuộc gọi mạng bị hết thời gian chờ</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_title">Giới hạn tốc độ máy khách API</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_zero_summary">Không gặp giới hạn tốc độ máy khách</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_non_zero_summary">Đã gặp giới hạn tốc độ máy khách %d lần</string>
+  <string name="morphe_ryd_statistics_millisecond_text">%d mili-giây</string>
 </resources>

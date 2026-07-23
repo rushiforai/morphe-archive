@@ -33,9 +33,10 @@ Second \"item\" text"</string>
   <string name="morphe_settings_music_screen_1_ads_title">Annunci</string>
   <string name="morphe_settings_music_screen_2_general_title">Generale</string>
   <string name="morphe_settings_music_screen_3_player_title">Lettore</string>
-  <string name="morphe_settings_music_screen_6_misc_title">Varie</string>
+  <string name="morphe_settings_music_screen_7_misc_title">Varie</string>
   <!-- ad.hideAdsPatch -->
   <string name="morphe_music_hide_get_premium_label_title">Nascondi l\'etichetta \'Ottieni Music Premium\'</string>
+  <string name="morphe_music_hide_music_premium_promotions_title">Nascondi le promozioni di Music Premium</string>
   <string name="morphe_music_hide_video_ads_title">Nascondi annunci video</string>
   <!-- interaction.crossfade.crossfadePatch -->
   <string name="morphe_music_crossfade_screen_title">Dissolvenza incrociata</string>
@@ -241,7 +242,7 @@ YouTube Music 8.x: il crossfade funziona solo su 9.x e versioni successive"</str
   <string name="morphe_music_listenbrainz_token_dialog_get_token">Ottieni token</string>
   <string name="morphe_music_listenbrainz_token_dialog_verify">Verifica</string>
   <string name="morphe_music_listenbrainz_token_status_empty">Inserisci un token</string>
-  <string name="morphe_music_listenbrainz_token_status_validating">Validazione in corso...</string>
+  <string name="morphe_music_listenbrainz_token_status_validating">In convalida…</string>
   <string name="morphe_music_listenbrainz_token_status_valid">Token valido! Utente: %s</string>
   <string name="morphe_music_listenbrainz_token_status_invalid">Token non valido: %s</string>
   <string name="morphe_music_listenbrainz_token_status_invalid_unknown">sconosciuto</string>
@@ -258,7 +259,7 @@ YouTube Music 8.x: il crossfade funziona solo su 9.x e versioni successive"</str
   <string name="morphe_music_lastfm_token_dialog_password_hint">Password</string>
   <string name="morphe_music_lastfm_token_dialog_login">Accedi</string>
   <string name="morphe_music_lastfm_token_status_empty">Inserisci nome utente e password</string>
-  <string name="morphe_music_lastfm_token_status_logging_in">Accesso in corso...</string>
+  <string name="morphe_music_lastfm_token_status_logging_in">Accesso in corso…</string>
   <string name="morphe_music_lastfm_token_status_success">Accesso riuscito!</string>
   <string name="morphe_music_lastfm_token_status_no_session">Impossibile ottenere la sessione da Last.fm</string>
   <string name="morphe_music_lastfm_token_status_failed">Accesso non riuscito: %s</string>

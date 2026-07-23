@@ -141,8 +141,9 @@ Second \"item\" text"</string>
   <string name="morphe_proxy_allow_direct_fallback_summary">प्रॉक्सी अयशस्वी झाल्यास थेट कनेक्ट करा</string>
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">पूर्ण स्क्रीन जाहिराती लपवा</string>
-  <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_force_original_audio_not_available">हे वैशिष्ट्य वापरण्यासाठी, \'Spoof व्हिडिओ स्ट्रीम\' Android Reel किंवा TV मध्ये बदला</string>
+  <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
+          'Android Studio' must be kept untranslated. -->
+  <string name="morphe_force_original_audio_not_available">हे वैशिष्ट्य वापरण्यासाठी, \'Spoof video streams\' ला \'Android Studio\' वगळता कोणत्याही क्लायंटमध्ये बदला.</string>
   <!-- misc.privacy.sanitizeSharingLinksPatch -->
   <string name="morphe_sanitize_sharing_links_title">सामायिक लिंक संपादित करा</string>
   <string name="morphe_sanitize_sharing_links_summary">सामायिक लिंक्समधून ट्रॅकिंग क्वेरी पॅरामीटर्स काढून टाकते</string>
@@ -166,6 +167,10 @@ Second \"item\" text"</string>
   <!-- 'Component path builder strings' is the technical name for identifying the Litho UI layout items to hide. This is an advanced feature and most users will never use this. -->
   <string name="morphe_custom_filter_strings_summary">नवीन ओळींनी विभक्त केलेल्या फिल्टर करण्यासाठी घटक मार्ग बिल्डर स्ट्रिंगची सूची</string>
   <string name="morphe_custom_filter_toast_invalid_syntax">अवैध सानुकूल फिल्टर: %s</string>
+  <!-- Settings menu filter -->
+  <string name="morphe_settings_menu_filter_screen_title">सेटिंग्ज मेनू फिल्टर</string>
+  <string name="morphe_settings_menu_filter_screen_summary">दृश्यमान नावानुसार स्टँडर्ड ॲप सेटिंग्ज स्क्रीनवरचे आयटम लपवा</string>
+  <string name="morphe_settings_menu_filter_picker_empty">यादी भरण्यासाठी स्टँडर्ड ॲप सेटिंग्ज स्क्रीन एकदा उघडा</string>
   <!-- misc.spoof.appversion.spoofAppVersionPatch -->
   <string name="morphe_spoof_app_version_title">ॲपची आवृत्ती बदलणे</string>
   <string name="morphe_spoof_app_version_summary">सर्व्हरला जुन्या ॲप आवृत्ती वापरत आहात असे दर्शवून जुन्या UI वैशिष्ट्यांची पुनर्संचयित करणे</string>
@@ -175,4 +180,42 @@ Second \"item\" text"</string>
 
 नंतर हे बंद केल्यास, UI बग टाळण्यासाठी ॲप डेटा साफ करण्याची शिफारस केली जाते."</string>
   <string name="morphe_spoof_app_version_target_title">ॲप आवृत्ती बदलण्याचे लक्ष्य</string>
+  <!-- layout.returnyoutubedislike.returnYouTubeDislikePatch -->
+  <!-- Brief notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
+  <string name="morphe_ryd_failure_connection_timeout"> dislikes तात्पुरते उपलब्ध नाहीत (API वेळेत समाप्त)</string>
+  <string name="morphe_ryd_failure_connection_status_code">dislikes उपलब्ध नाहीत (status %d)</string>
+  <string name="morphe_ryd_failure_client_rate_limit_requested">dislikes उपलब्ध नाहीत (क्लायंट API मर्यादा)</string>
+  <string name="morphe_ryd_failure_generic">dislikes उपलब्ध नाहीत (%s)</string>
+  <!-- Video likes have been set to hidden by the video uploader. -->
+  <string name="morphe_ryd_video_likes_hidden_by_video_owner">मालकाने लपवले</string>
+  <string name="morphe_ryd_enabled_title">Return YouTube Dislike सक्षम करा</string>
+  <string name="morphe_ryd_dislike_percentage_title">आवड म्हणून dislikes दर्शवा</string>
+  <string name="morphe_ryd_dislike_percentage_summary">dislikes ची संख्या ऐवजी likes च्या टक्केवारीनुसार दर्शवते</string>
+  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
+  <string name="morphe_ryd_compact_layout_title">कॉम्पॅक्ट Like बटण वापरा</string>
+  <string name="morphe_ryd_compact_layout_summary">जागा वाचवण्यासाठी Like बटणाची रुंदी कमी करते</string>
+  <string name="morphe_ryd_estimated_like_title">अंदाजित likes दर्शवा</string>
+  <string name="morphe_ryd_estimated_like_summary">निर्मात्याने likes अक्षम केलेल्या व्हिडिओवर अंदाजित like संख्या दर्शवते</string>
+  <string name="morphe_ryd_toast_on_connection_error_title">कनेक्शन त्रुटी सूचना दर्शवा</string>
+  <string name="morphe_ryd_toast_on_connection_error_summary">Return YouTube Dislike सर्व्हर उपलब्ध नसल्यास सूचना दर्शवते</string>
+  <string name="morphe_ryd_attribution_summary">"डेटा Return YouTube Dislike API द्वारे प्रदान केला जातो
+
+ReturnYouTubeDislike.com उघडण्यासाठी येथे टॅप करा"</string>
+  <!-- Statistic strings are shown in the settings only when Morphe debug mode is enabled. Typical users will never see these. -->
+  <string name="morphe_ryd_statistics_category_title">Return YouTube Dislike API या डिव्हाइसची आकडेवारी</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeAverage_title">API प्रतिसाद वेळ, सरासरी</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMin_title">API प्रतिसाद वेळ, किमान</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMax_title">API प्रतिसाद वेळ, कमाल</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_title">API प्रतिसाद वेळ, शेवटचे माध्यम</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_rate_limit_summary">dislikes तात्पुरते उपलब्ध नाहीत - क्लायंट API दर मर्यादा लागू आहे</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_title">API fetch votes, कॉलची संख्या</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_zero_summary">नेटवर्क कॉल केलेले नाहीत</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_non_zero_summary">%d नेटवर्क कॉल केले</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_title">API fetch votes, टाइमआउटची संख्या</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_zero_summary">नेटवर्क कॉल टाइमआउट झाले नाहीत</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_non_zero_summary">%d नेटवर्क कॉल टाइमआउट झाले</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_title">API क्लायंट दर मर्यादा</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_zero_summary">क्लायंट दर मर्यादा आढळली नाही</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_non_zero_summary">क्लायंट दर मर्यादा %d वेळा आढळली</string>
+  <string name="morphe_ryd_statistics_millisecond_text">%d मिलीसेकंद</string>
 </resources>

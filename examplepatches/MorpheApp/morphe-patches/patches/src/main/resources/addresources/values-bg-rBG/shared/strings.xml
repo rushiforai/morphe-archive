@@ -49,6 +49,7 @@ Second \"item\" text"</string>
   <string name="morphe_settings_search_empty_history_summary">За да запазите история на търсенето, въведете заявка за търсене и натиснете Enter</string>
   <string name="morphe_settings_search_history_title">Покажи история търсене на настройки</string>
   <string name="morphe_show_menu_icons_title">Покажи икони за настройки на Morphe</string>
+  <string name="morphe_settings_menu_copy_path">Копирано: %s</string>
   <string name="morphe_language_title">Език на Morphe</string>
   <string name="morphe_language_user_dialog_message">"Преводи за някои езици може да липсват или да са незавършени.
 
@@ -81,7 +82,7 @@ Second \"item\" text"</string>
   <string name="morphe_settings_about_links_rv">2022 – 2025</string>
   <string name="morphe_settings_about_links_vanced">2019 – 2022</string>
   <string name="morphe_settings_about_links_licenses">Бележки за лиценз</string>
-  <string name="morphe_settings_about_licenses_loading">Зареждане...</string>
+  <string name="morphe_settings_about_licenses_loading">Зарежда се</string>
   <!-- misc.debugging.enableDebuggingPatch -->
   <string name="morphe_debug_screen_title">Отстраняване на грешки</string>
   <string name="morphe_debug_screen_summary">Конфигуриране на разширени опции за разработчици и диагностични логове</string>
@@ -97,7 +98,7 @@ Second \"item\" text"</string>
   <string name="morphe_debug_export_logs_file">Експортиране във файл</string>
   <string name="morphe_debug_export_logs_success">Логовете за отстраняване на грешки бяха експортирани успешно</string>
   <string name="morphe_debug_export_logs_failed">Неуспешно експортиране на логове за отстраняване на грешки: %s</string>
-  <string name="morphe_debug_logs_search_hint">Търсене на логове за отстраняване на грешки…</string>
+  <string name="morphe_debug_logs_search_hint">Търсене в логовете за отстраняване на грешки…</string>
   <string name="morphe_debug_export_logs_clear">Изчистване</string>
   <string name="morphe_debug_logs_disabled">Отчетите за отстраняване на грешки са изключени</string>
   <string name="morphe_debug_logs_none_found">Не са намерени логове за отстраняване на грешки</string>
@@ -108,7 +109,7 @@ Second \"item\" text"</string>
   <string name="morphe_debug_feature_flags_manager_summary">Управление на флагове на логически функции</string>
   <string name="morphe_debug_feature_flags_manager_active_header">Активни индикатори за функции (%d)</string>
   <string name="morphe_debug_feature_flags_manager_blocked_header">Блокирани индикатори за функции (%d)</string>
-  <string name="morphe_debug_feature_flags_manager_search_hint">Търсене на индикатори за функции…</string>
+  <string name="morphe_debug_feature_flags_manager_search_hint">Търсене на флагове за функции…</string>
   <string name="morphe_debug_feature_flags_manager_toast_saved">Индикаторите за функции бяха запазени</string>
   <string name="morphe_debug_feature_flags_manager_toast_reset">Индикаторите за функции бяха нулирани</string>
   <string name="morphe_debug_feature_flags_manager_toast_copied">Индикаторите за функции бяха копирани в клипборда</string>

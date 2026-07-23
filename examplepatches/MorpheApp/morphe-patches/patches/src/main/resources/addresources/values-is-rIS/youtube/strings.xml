@@ -155,14 +155,17 @@ Breytingarnar fela í sér:
   <string name="morphe_hide_featured_channels_section_title">Hyljur sagalega virka ráðlega</string>
   <string name="morphe_hide_featured_links_section_title">Felur Sérstaka tengla hluta</string>
   <string name="morphe_hide_featured_places_section_title">Felur \'Sérstaka staði\' hluta</string>
+  <string name="morphe_hide_featured_playlists_section_title">Fela valda spilunarlista hluta</string>
   <string name="morphe_hide_featured_videos_section_title">Felur Sérstaka vídeó hluta</string>
   <string name="morphe_hide_gaming_section_title">Felur Leikjahluta</string>
+  <string name="morphe_hide_hashtag_section_title">Fela Hashtag hluta</string>
   <string name="morphe_hide_how_this_was_made_section_title">Felur \'Hvernig þessi efni var búið til\' hluta</string>
   <string name="morphe_hide_hype_points_title">Fela Hype stig</string>
   <string name="morphe_hide_info_cards_section_title">Felur Upplýsingakort hluta</string>
   <string name="morphe_hide_key_concepts_section_title">Felur \'Helstu hugtök\' hluta</string>
   <string name="morphe_hide_music_section_title">Felur Tónlistar hluta</string>
   <string name="morphe_hide_quizzes_section_title">Felur Prófa hluta</string>
+  <string name="morphe_hide_search_inside_this_video_section_title">Fela \'Leit í þessu myndbandi\' hluta</string>
   <string name="morphe_hide_subscribe_button_title">Fela áskriftarhnapp</string>
   <string name="morphe_hide_transcript_section_title">Felur Aðalrit hluta</string>
   <string name="morphe_hide_video_details_section_title">Felur \'Vídeó upplýsingar\' hluta</string>
@@ -269,8 +272,10 @@ Takmörk:
   <string name="morphe_hide_aislist_stats_hidden_breakdown">"• Heim: %s
 • Leitar: %s
 • Heild: %s"</string>
-  <string name="morphe_hide_aislist_stats_blocklist_title">Bannlist каналы hlaðin: %s</string>
-  <string name="morphe_hide_aislist_stats_warnlist_title">Vara list каналы hlaðin: %s</string>
+  <string name="morphe_hide_aislist_stats_blocklist_channels_title">Lokaðar rásir</string>
+  <string name="morphe_hide_aislist_stats_warnlist_channels_title">Viðvörunarrásir</string>
+  <string name="morphe_hide_aislist_stats_channels_disabled_summary">Virkaðu síu til að hlaða rásir</string>
+  <string name="morphe_hide_aislist_stats_channels_loading_summary">Hlaða rásir…</string>
   <string name="morphe_hide_aislist_about_summary">"Heim og leitarniðurstöður eru síðar til að fela myndbönd frá rásum sem AiSList hefur merkt.
 
 Takmarkanir:
@@ -448,15 +453,17 @@ API lykillinn þinn ætti aldrei að deila. Allir með aðgang að honum geta no
   <string name="morphe_disable_precise_seeking_gesture_summary">Gerir óvirkt nákvæma leit á þessu sem virkjar þegar þeir draga leitarstikuna</string>
   <!-- interaction.seekbar.livestreamDVRPatch -->
   <string name="morphe_livestream_dvr_title">Vírúð lífvídeós DVR</string>
+  <string name="morphe_livestream_dvr_summary">Leyfir að spila áfram og aftur á öllum streimum, jafnvel þeim sem venjulega takmarka það</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_livestream_dvr_summary">"Leyfir að leita á öllum streymum, jafnvel þótt þeir venjulega takmarki það
+  <string name="morphe_livestream_dvr_not_available">"'Gerðu líkama DVR streymi' gæti ekki verið tiltækt
 
-Athugið: Ef 'Spoofa myndband streymi' er ekki virkjað getur þetta valkosti valdað óvæntum leitar hegðun"</string>
+Til að laga þetta, kveiktu á 'Spoof myndflæðum' og breytu 'Sjálfgefnri viðskiptavinur' í 'Sjónvarp'"</string>
   <string name="morphe_expand_livestream_dvr_duration_title">Fjarlægðu lífvídeós DVR tíma</string>
+  <string name="morphe_expand_livestream_dvr_duration_summary">Leyfir þér að spola áfram beina útsendingu allt að 7 daga til baka</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_expand_livestream_dvr_duration_summary">"Leyfir þér að spola til baka á beinum útsendingum allt að 7 dögum í fortíðinni
+  <string name="morphe_expand_livestream_dvr_duration_not_available">"'Stækka líkama DVR streymi' gæti ekki verið tiltækt
 
-Athugið: Ef 'Spoofa myndband streymi' er ekki virkjað getur þetta valkosti valdað óvæntum leitar hegðun"</string>
+Til að laga þetta, kveiktu á 'Spoof myndflæðum' og breytu 'Sjálfgefnri viðskiptavinur' í 'Sjónvarp'"</string>
   <!-- interaction.seekbar.enableSlideToSeekPatch -->
   <string name="morphe_slide_to_seek_title">Vírúð renna til leit</string>
   <string name="morphe_slide_to_seek_summary">Virkar að slá til breytilegrar sem þurfa að vera haldar eða halda vídeó leikmanninum</string>
@@ -659,10 +666,10 @@ Til þess að fá access til stillingarinnar skaltu koma á stillinguna í gegnu
   <!-- 'Audio track' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_player_flyout_audio_track_title">Felur \'Hljóðrás\' valmynd</string>
   <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
-          'Android Reel' and 'TV' must be kept untranslated. -->
-  <string name="morphe_hide_player_flyout_audio_track_not_available">"’Hljómsnertistilinn’ er falinn
+          'Android Studio' must be kept untranslated. -->
+  <string name="morphe_hide_player_flyout_audio_track_not_available">"'Hljóðrás' valmyndin er falin
 
-Til að sýna ‚Hljómsnertistilinn‘ skaltu breyta „Forgeðu vídeóstreymi“ í „Android Reel“ eða „Sjónvarp“"</string>
+Til að sýna 'Hljóðrás' valmyndina, breytu 'Spoof myndflæðum' í hvaða þjónustuaðila sem er nema 'Android Studio'"</string>
   <string name="morphe_hide_player_flyout_audio_track_footer_title">Felur \'Hljóðrás\' valmyndar fætur</string>
   <!-- 'Captions' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_player_flyout_captions_title">Felur Undirrita valmynd</string>
@@ -813,46 +820,6 @@ Stillingar → Spilun (eða Sjálfvædd spilun) → Sjálfvædd næsta myndband"
   <string name="morphe_player_overlay_opacity_title">Spilar murargyga </string>
   <string name="morphe_player_overlay_opacity_summary">Stilltu gegnsærastefnu (0 er gagnsætt, 100 er ógegnsætt)</string>
   <string name="morphe_player_overlay_opacity_invalid_toast">Muragygð skal vera á bilinu 0-100 </string>
-  <!-- layout.returnyoutubedislike.returnYouTubeDislikePatch -->
-  <!-- Brief notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
-  <string name="morphe_ryd_failure_connection_timeout">Ekkert ég get sjálfvirka niðurhal (API tímdi út)</string>
-  <string name="morphe_ryd_failure_connection_status_code">Ekki er hægt að sjálfvirkja sjálfvirka niðurhal (staða %d)</string>
-  <string name="morphe_ryd_failure_client_rate_limit_requested">Ekkert er hægt að sjálfvirkja sjálfvirka niðurhal (sjálfvirka niðurhals breytan)</string>
-  <string name="morphe_ryd_failure_generic">Ekki er hægt að sjálfvirkja sjálfvirka niðurhal (%s)</string>
-  <!-- Brief notification (Toast) shown if the user enables RYD while a video is opened, and then tries to vote for the video. -->
-  <string name="morphe_ryd_failure_ryd_enabled_while_playing_video_then_user_voted">Hlöðu vídeó til að nota Return YouTube Dislike </string>
-  <!-- Video likes have been set to hidden by the video uploader. -->
-  <string name="morphe_ryd_video_likes_hidden_by_video_owner">Hólar eru ekki virkir</string>
-  <string name="morphe_ryd_enabled_title">Virkja Return YouTube Dislike</string>
-  <string name="morphe_ryd_dislike_percentage_title">Sýna dislikes sem hlutfall</string>
-  <string name="morphe_ryd_dislike_percentage_summary">Sýnir dislikes sem hlutfall af likeum frekar en tölu</string>
-  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
-  <string name="morphe_ryd_compact_layout_title">Nota þétt Like hnappinn</string>
-  <string name="morphe_ryd_compact_layout_summary">Minnkar breidd Like hnappsins til að spara pláss</string>
-  <string name="morphe_ryd_estimated_like_title">Sýna áætlaða líkindi</string>
-  <string name="morphe_ryd_estimated_like_summary">Sýnir áætlaðan like count á vídeóum þar sem skapari hefur afvirkjað likes</string>
-  <string name="morphe_ryd_toast_on_connection_error_title">Sýna tengingar villuboð</string>
-  <string name="morphe_ryd_toast_on_connection_error_summary">Sýnir tilkynningu þegar Return YouTube Dislike þjón er óvirkur</string>
-  <string name="morphe_ryd_attribution_summary">"Gagnagögn eru veitt af Return YouTube Dislike API
-
-Taktu hér til að opna ReturnYouTubeDislike.com"</string>
-  <!-- Statistic strings are shown in the settings only when Morphe debug mode is enabled. Typical users will never see these. -->
-  <string name="morphe_ryd_statistics_category_title">Return YouTube Dislike API tölfræði fyrir þetta tæki</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeAverage_title">Samspil niðurhal </string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMin_title">Lágmarks svarstími API</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMax_title">Hámarks svarstími API</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_title">Svarstími API, síðasta myndbandið</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_rate_limit_summary">Ólikes eru tímabundið óþægilegar - takmörun á API-beiðnum vinstri hliðar</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_title">API sækir atkvæði, fjöldi kallanna</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_zero_summary">Engar netkrýpur gerðar</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_non_zero_summary">%d netkrýpur gerðar</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_title">API sækir atkvæði, fjöldi tímaúts</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_zero_summary">Engar netkrýpur tímdar út</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_non_zero_summary">%d netkrýpur tímdar út</string>
-  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_title">Takmörun á API-beiðnum</string>
-  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_zero_summary">Engar takmarkanir á API-beiðnum</string>
-  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_non_zero_summary">Takmörun á API-beiðnum komin %d sinnum</string>
-  <string name="morphe_ryd_statistics_millisecond_text">%d millisekúndur</string>
   <!-- layout.searchbar.wideSearchbarPatch -->
   <string name="morphe_wide_searchbar_title">Virkja breið leit</string>
   <!-- layout.sponsorblock.sponsorBlockPatch -->
@@ -937,6 +904,7 @@ Takmörkun: Ef 'Endurskapa gamla stjórnbara myndbands' er slökkt, gæti 'Fleir
   <string name="morphe_miniplayer_disable_resuming_summary">Gerir óvirkt \'Halda áfram að horfa\' litla spilara, YouTube Premium eiginleika sem birtist þegar appið ræsir</string>
   <string name="morphe_miniplayer_screen_title">Mini spilari</string>
   <string name="morphe_miniplayer_screen_summary">Sérsnið útlit og hegðun minnkaðs myndavörpunar</string>
+  <string name="morphe_miniplayer_not_available_summary">YouTube hefur fjarlægt allar aðal smáspilara. Til að breyta gerð smáspilarans skaltu patcha YouTube 21.28.207 eða eldra</string>
   <string name="morphe_miniplayer_type_title">Gerð Mini spilara</string>
   <string name="morphe_miniplayer_type_entry_0">Gerðu óvirkt</string>
   <string name="morphe_miniplayer_type_entry_1">Lágmark</string>
@@ -1120,7 +1088,6 @@ Takmörk:
 
 Myndbandsspilun með AV1 getur hakka eða orðið með rammalegsfall."</string>
   <string name="morphe_spoof_video_streams_about_title">Umráðareitur áhrifa</string>
-  <string name="morphe_spoof_video_streams_about_experimental">• Tilvísanarviðskiptavinur og getur hætt að virka hvenær sem er</string>
   <string name="morphe_spoof_video_streams_about_playback_failure">• Vídeó getur stoppað á 1:00, eða gæti ekki verið fáanlegt í sumum löndum</string>
   <string name="morphe_spoof_video_streams_about_no_audio_tracks">• Hljóðrásavalmynd vantar</string>
   <string name="morphe_spoof_video_streams_about_no_av1">• Enginn AV1 myndbandakód</string>

@@ -49,6 +49,7 @@ Second \"item\" text"</string>
   <string name="morphe_settings_search_empty_history_summary">Om soekgeskiedenis te stoor, tik \'n soekversoek en druk Enter</string>
   <string name="morphe_settings_search_history_title">Wys soekgeskiedenis</string>
   <string name="morphe_show_menu_icons_title">Wys Morphe instellingsikone</string>
+  <string name="morphe_settings_menu_copy_path">Gekopieer: %s</string>
   <string name="morphe_language_title">Morphe taal</string>
   <string name="morphe_language_user_dialog_message">"Vertalings vir sommige tale is dalk ontbrekend of onvolledig.
 
@@ -81,7 +82,7 @@ Om nuwe tale te vertaal of bestaande vertalings te verbeter, besoek morphe.softw
   <string name="morphe_settings_about_links_rv">2022 &#8209; 2025</string>
   <string name="morphe_settings_about_links_vanced">2019 &#8209; 2022</string>
   <string name="morphe_settings_about_links_licenses">Lisensiekennisgewings</string>
-  <string name="morphe_settings_about_licenses_loading">Laai tans...</string>
+  <string name="morphe_settings_about_licenses_loading">Laai…</string>
   <!-- misc.debugging.enableDebuggingPatch -->
   <string name="morphe_debug_screen_title">Ontfouting</string>
   <string name="morphe_debug_screen_summary">Konfigureer gevorderde ontwikkelaarsopsies en diagnostiese logs</string>
@@ -97,7 +98,7 @@ Jy sal nie van enige onverwags gebeurtenisse in kennis gestel word nie."</string
   <string name="morphe_debug_export_logs_file">Uitvoer na vyl</string>
   <string name="morphe_debug_export_logs_success">Ontfouting logboeke is suksesvol uitgevoer</string>
   <string name="morphe_debug_export_logs_failed">Ontfouting logboeke kon nie uitgevoer word nie</string>
-  <string name="morphe_debug_logs_search_hint">Soek ontfouting logboeke...</string>
+  <string name="morphe_debug_logs_search_hint">Soek ontfouting logboeke</string>
   <string name="morphe_debug_export_logs_clear">Klar</string>
   <string name="morphe_debug_logs_disabled">Ontfouting logboeke is gedeaktiveer</string>
   <string name="morphe_debug_logs_none_found">Geen ontfouting logboeke gevind nie</string>
@@ -108,7 +109,7 @@ Jy sal nie van enige onverwags gebeurtenisse in kennis gestel word nie."</string
   <string name="morphe_debug_feature_flags_manager_summary">Bestuur booleaanse kenmerkvlae</string>
   <string name="morphe_debug_feature_flags_manager_active_header">Aktiewe kenmerkvlae (%d)</string>
   <string name="morphe_debug_feature_flags_manager_blocked_header">Geblokkeerde kenmerkvlae (%d)</string>
-  <string name="morphe_debug_feature_flags_manager_search_hint">Soek kenmerkvlae...</string>
+  <string name="morphe_debug_feature_flags_manager_search_hint">Soek kenmerkvlae</string>
   <string name="morphe_debug_feature_flags_manager_toast_saved">Kenmerkvlae is gered</string>
   <string name="morphe_debug_feature_flags_manager_toast_reset">Kenmerkvlae is teruggesit</string>
   <string name="morphe_debug_feature_flags_manager_toast_copied">Kenmerkvlae gekopieer na knipbord</string>

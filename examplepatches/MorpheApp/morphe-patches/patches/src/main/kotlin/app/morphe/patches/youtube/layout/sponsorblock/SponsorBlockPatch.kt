@@ -19,7 +19,6 @@ import app.morphe.patches.shared.misc.settings.preference.TextPreference
 import app.morphe.patches.youtube.misc.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.misc.playercontrols.addTopControl
 import app.morphe.patches.youtube.misc.playercontrols.initializeTopControl
-import app.morphe.patches.youtube.misc.playercontrols.injectVisibilityCheckCall
 import app.morphe.patches.youtube.misc.playercontrols.legacyPlayerControlsPatch
 import app.morphe.patches.youtube.misc.playertype.playerTypeHookPatch
 import app.morphe.patches.youtube.misc.settings.PreferenceScreen
@@ -46,7 +45,7 @@ private const val SB_PREFERENCES_PACKAGE = "app.morphe.extension.youtube.sponsor
 private const val SEGMENT_CATEGORY_PREFERENCE_TAG =
     "app.morphe.extension.shared.sponsorblock.objects.SegmentCategoryPreference"
 
-public fun categoryPreference(settingKey: String): BasePreference =
+fun categoryPreference(settingKey: String): BasePreference =
     object : BasePreference(settingKey, null, null, null, null, null, SEGMENT_CATEGORY_PREFERENCE_TAG) {}
 
 private val sponsorBlockResourcePatch = resourcePatch {
@@ -238,7 +237,7 @@ val sponsorBlockPatch = bytecodePatch(
 
         hookBackgroundPlayVideoId(
             EXTENSION_SEGMENT_PLAYBACK_CONTROLLER_CLASS +
-                "->setCurrentVideoId(Ljava/lang/String;)V"
+                    "->setCurrentVideoId(Ljava/lang/String;)V"
         )
 
         // Set seekbar draw rectangle.
@@ -300,13 +299,7 @@ val sponsorBlockPatch = bytecodePatch(
 
         // Change visibility of the buttons.
         initializeTopControl(EXTENSION_CREATE_SEGMENT_BUTTON_CONTROLLER_CLASS)
-        injectVisibilityCheckCall(EXTENSION_CREATE_SEGMENT_BUTTON_CONTROLLER_CLASS)
-
         initializeTopControl(EXTENSION_VOTING_BUTTON_CONTROLLER_CLASS)
-        injectVisibilityCheckCall(EXTENSION_VOTING_BUTTON_CONTROLLER_CLASS)
-
-        // Show skip button when player overlay is active.
-        injectVisibilityCheckCall(EXTENSION_SPONSORBLOCK_VIEW_CONTROLLER_CLASS)
 
         // Append the new time to the player layout.
         AppendTimeFingerprint.let {
@@ -339,14 +332,16 @@ val sponsorBlockPatch = bytecodePatch(
             }
         }
 
-        AdProgressTextViewVisibilityFingerprint.method.apply {
-            val index = indexOfAdProgressTextViewVisibilityInstruction(this)
-            val register = getInstruction<FiveRegisterInstruction>(index).registerD
+        AdProgressTextViewVisibilityFingerprint.let {
+            it.method.apply {
+                val index = it.instructionMatches.first().index
+                val register = getInstruction<FiveRegisterInstruction>(index).registerD
 
-            addInstructionsAtControlFlowLabel(
-                index,
-                "invoke-static { v$register }, $EXTENSION_SEGMENT_PLAYBACK_CONTROLLER_CLASS->setAdProgressTextVisibility(I)V"
-            )
+                addInstructionsAtControlFlowLabel(
+                    index,
+                    "invoke-static { v$register }, $EXTENSION_SEGMENT_PLAYBACK_CONTROLLER_CLASS->setAdProgressTextVisibility(I)V"
+                )
+            }
         }
     }
 }

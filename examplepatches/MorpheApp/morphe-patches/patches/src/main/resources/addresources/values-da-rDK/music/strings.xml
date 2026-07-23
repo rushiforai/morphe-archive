@@ -33,9 +33,10 @@ Second \"item\" text"</string>
   <string name="morphe_settings_music_screen_1_ads_title">Annoncer</string>
   <string name="morphe_settings_music_screen_2_general_title">Generelt</string>
   <string name="morphe_settings_music_screen_3_player_title">Afspiller</string>
-  <string name="morphe_settings_music_screen_6_misc_title">Diverse</string>
+  <string name="morphe_settings_music_screen_7_misc_title">Diverse</string>
   <!-- ad.hideAdsPatch -->
   <string name="morphe_music_hide_get_premium_label_title">Skjul \"Få Music Premium\"-tekst</string>
+  <string name="morphe_music_hide_music_premium_promotions_title">Skjul Music Premium tilbud</string>
   <string name="morphe_music_hide_video_ads_title">Skjul videoannoncer</string>
   <!-- interaction.crossfade.crossfadePatch -->
   <string name="morphe_music_crossfade_screen_title">Crossfade</string>
@@ -241,7 +242,7 @@ YouTube Music 8.x – crossfade kører kun på 9.x og nyere"</string>
   <string name="morphe_music_listenbrainz_token_dialog_get_token">Hent token</string>
   <string name="morphe_music_listenbrainz_token_dialog_verify">Bekræft</string>
   <string name="morphe_music_listenbrainz_token_status_empty">Angiv venligst et token</string>
-  <string name="morphe_music_listenbrainz_token_status_validating">Validerer...</string>
+  <string name="morphe_music_listenbrainz_token_status_validating">Validerer…</string>
   <string name="morphe_music_listenbrainz_token_status_valid">Gyldigt token! Bruger: %s</string>
   <string name="morphe_music_listenbrainz_token_status_invalid">Ugyldigt token: %s</string>
   <string name="morphe_music_listenbrainz_token_status_invalid_unknown">ukendt</string>
@@ -258,7 +259,7 @@ YouTube Music 8.x – crossfade kører kun på 9.x og nyere"</string>
   <string name="morphe_music_lastfm_token_dialog_password_hint">Adgangskode</string>
   <string name="morphe_music_lastfm_token_dialog_login">Log ind</string>
   <string name="morphe_music_lastfm_token_status_empty">Angiv venligst brugernavn og adgangskode</string>
-  <string name="morphe_music_lastfm_token_status_logging_in">Logger ind...</string>
+  <string name="morphe_music_lastfm_token_status_logging_in">Logger ind…</string>
   <string name="morphe_music_lastfm_token_status_success">Logget ind korrekt!</string>
   <string name="morphe_music_lastfm_token_status_no_session">Kunne ikke hente session fra Last.fm</string>
   <string name="morphe_music_lastfm_token_status_failed">Login mislykkedes: %s</string>

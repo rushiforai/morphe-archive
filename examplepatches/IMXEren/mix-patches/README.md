@@ -7,7 +7,7 @@ Custom patches using Morphe. 'Mix' originates from Morphe + IMXEren (also, mixed
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.4.0](https://github.com/IMXEren/mix-patches/releases/tag/v1.4.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
+> **[v1.4.1](https://github.com/IMXEren/mix-patches/releases/tag/v1.4.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
 <details open>
 <summary>📦 Sync for Reddit&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -48,8 +48,7 @@ Or manually add this repository url as a patch source in Morphe: https://github.
 
 ### 📙 Contributing
 
-Thank you for considering contributing to Mix Patches.  
-You can find the contribution guidelines [here](CONTRIBUTING.md).
+Thank you for considering contributing to Mix Patches.
 
 ### 🛠️ Building
 

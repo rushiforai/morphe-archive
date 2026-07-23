@@ -142,8 +142,9 @@ Spilun mun bregðast ef Player JavaScript hash er úrelt."</string>
   <string name="morphe_proxy_allow_direct_fallback_summary">Tengist beint ef proxy virkar ekki</string>
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">Falir auglýsingar á fullri skjánum</string>
-  <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_force_original_audio_not_available">Til að nota þessa eiginleika skaltu breyta \'Spofa myndstreymi\' í Android Reel eða TV</string>
+  <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
+          'Android Studio' must be kept untranslated. -->
+  <string name="morphe_force_original_audio_not_available">Til að nota þennan eiginleika skaltu breyta \'Spoof video streams\' í hvaða þjónustu sem er nema \'Android Studio\'</string>
   <!-- misc.privacy.sanitizeSharingLinksPatch -->
   <string name="morphe_sanitize_sharing_links_title">Hreinsa deilingshlökki</string>
   <string name="morphe_sanitize_sharing_links_summary">Fjarlægir rekja breytur úr deilingshlökkum</string>
@@ -167,6 +168,10 @@ Athugaðu að einnig kunna að vera skráð ákveðin notendagögn, svo sem IP-t
   <!-- 'Component path builder strings' is the technical name for identifying the Litho UI layout items to hide. This is an advanced feature and most users will never use this. -->
   <string name="morphe_custom_filter_strings_summary">Listi yfir Litho UI útlitseininga strengja til að síu, aðskilin með nýjum línum</string>
   <string name="morphe_custom_filter_toast_invalid_syntax">Ógild sérstök síubreyting: %s</string>
+  <!-- Settings menu filter -->
+  <string name="morphe_settings_menu_filter_screen_title">Síufiltrun valmyndarstillinga</string>
+  <string name="morphe_settings_menu_filter_screen_summary">Fela atriði á venjulegu stillingarvalmyndarstjórnunni eftir sýnilegu nafni</string>
+  <string name="morphe_settings_menu_filter_picker_empty">Opnaðu venjulegu stillingarvalmyndarstjórnunna einu sinni til að fylla listann</string>
   <!-- misc.spoof.appversion.spoofAppVersionPatch -->
   <string name="morphe_spoof_app_version_title">Gerðu app útgáfuna að breytast</string>
   <string name="morphe_spoof_app_version_summary">Blekkur netþjóninn til að láta það virðast eins og þú ert að nota eldri app útgáfu til að endurheimta eldri UI eiginleika</string>
@@ -176,4 +181,42 @@ Athugaðu að einnig kunna að vera skráð ákveðin notendagögn, svo sem IP-t
 
 Ef þú slökkvir þetta síðar er mælt með því að eyða gögnum appsins til að forðast UI villur."</string>
   <string name="morphe_spoof_app_version_target_title">Markmið breyttrar app útgáfu</string>
+  <!-- layout.returnyoutubedislike.returnYouTubeDislikePatch -->
+  <!-- Brief notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
+  <string name="morphe_ryd_failure_connection_timeout">Dislikes eru tímabundið óþægilegt (API tímdi út)</string>
+  <string name="morphe_ryd_failure_connection_status_code">Dislikes eru óþægilegt (staða %d)</string>
+  <string name="morphe_ryd_failure_client_rate_limit_requested">Dislikes eru óþægilegt (takmörk API fyrir notanda)</string>
+  <string name="morphe_ryd_failure_generic">Dislikes eru óþægilegt (%s)</string>
+  <!-- Video likes have been set to hidden by the video uploader. -->
+  <string name="morphe_ryd_video_likes_hidden_by_video_owner">Falinn af eiganda</string>
+  <string name="morphe_ryd_enabled_title">Virkaðu Return YouTube Dislike</string>
+  <string name="morphe_ryd_dislike_percentage_title">Sýna dislikes sem prósentuhlutfall</string>
+  <string name="morphe_ryd_dislike_percentage_summary">Sýnir dislikes sem prósentuhlutfall af likes, frekar en tala</string>
+  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
+  <string name="morphe_ryd_compact_layout_title">Nota samningsfulla Like hnapp</string>
+  <string name="morphe_ryd_compact_layout_summary">Minnkar breidd Like hnappsins til að spara pláss</string>
+  <string name="morphe_ryd_estimated_like_title">Sýna álíkaða likes</string>
+  <string name="morphe_ryd_estimated_like_summary">Sýnir álíkaðan like fjölda á myndböndum þar sem búðandi hefur slökkt á likes</string>
+  <string name="morphe_ryd_toast_on_connection_error_title">Sýna tengingu villuskilaboð</string>
+  <string name="morphe_ryd_toast_on_connection_error_summary">Sýnir tilkynningu þegar Return YouTube Dislike netþjónninn er óskár</string>
+  <string name="morphe_ryd_attribution_summary">"Gögn eru veitt af Return YouTube Dislike API
+
+Tappaðu hér til að opna ReturnYouTubeDislike.com"</string>
+  <!-- Statistic strings are shown in the settings only when Morphe debug mode is enabled. Typical users will never see these. -->
+  <string name="morphe_ryd_statistics_category_title">Return YouTube Dislike API tölfræði þessa tækis</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeAverage_title">Svarstími API, meðaltal</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMin_title">Svarstími API, lágmark</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMax_title">Svarstími API, hámark</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_title">Svarstími API, síðasta media</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_rate_limit_summary">Dislikes eru tímabundið óþægilegt - Takmörk API fyrir notanda í gildi</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_title">API sækir atkvæði, fjöldi kallanna</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_zero_summary">Engar tengingar hafa verið gerðar</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_non_zero_summary">%d tengingar hafa verið gerðar</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_title">API sækir atkvæði, fjöldi tíma úts</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_zero_summary">Engar tengingar hafa farið yfir tíma</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_non_zero_summary">%d tengingar hafa farið yfir tíma</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_title">Takmörk API fyrir notanda</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_zero_summary">Engin takmörk API fyrir notanda hefur komið fyrir</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_non_zero_summary">Takmörk API fyrir notanda hefur komið fyrir %d sinnum</string>
+  <string name="morphe_ryd_statistics_millisecond_text">%d millisekúndur</string>
 </resources>

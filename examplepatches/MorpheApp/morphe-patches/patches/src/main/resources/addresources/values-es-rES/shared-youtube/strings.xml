@@ -31,7 +31,7 @@ Second \"item\" text"</string>
   <string name="morphe_external_downloader_package_not_found_warning">"No se pudo encontrar la aplicación instalada con el nombre de paquete: %s
 
 Verifica que el nombre del paquete sea correcto y que la aplicación esté instalada"</string>
-  <string name="morphe_external_downloader_empty_warning">El nombre del paquete no puede estar vacío</string>
+  <string name="morphe_external_downloader_empty_warning">El nombre de paquete no puede estar vacío</string>
   <!-- Translations of this should be identical to morphe_custom_branding_icon_entry_7 -->
   <string name="morphe_custom_branding_name_entry_5">Personalizado</string>
   <string name="morphe_custom_branding_icon_title">Icono de la aplicación</string>
@@ -142,8 +142,9 @@ La reproducción fallará si el hash de JavaScript del reproductor está desactu
   <string name="morphe_proxy_allow_direct_fallback_summary">Conectar directamente si el proxy falla</string>
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">Ocultar anuncios a pantalla completa</string>
-  <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_force_original_audio_not_available">Para usar esta función, cambia \'Falsificar transmisiones de vídeo\' a Android Reel o TV</string>
+  <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
+          'Android Studio' must be kept untranslated. -->
+  <string name="morphe_force_original_audio_not_available">Para usar esta función, cambia \"Falsificar transmisiones de vídeo\" a cualquier cliente excepto \"Android Studio\"</string>
   <!-- misc.privacy.sanitizeSharingLinksPatch -->
   <string name="morphe_sanitize_sharing_links_title">Limpiar enlaces compartidos</string>
   <string name="morphe_sanitize_sharing_links_summary">Elimina los parámetros de consulta de seguimiento de los enlaces compartidos</string>
@@ -167,6 +168,10 @@ Sin embargo, si activas esto, también se registrarán algunos datos del usuario
   <!-- 'Component path builder strings' is the technical name for identifying the Litho UI layout items to hide. This is an advanced feature and most users will never use this. -->
   <string name="morphe_custom_filter_strings_summary">Lista de cadenas del constructor de rutas de componentes a filtrar, una por línea</string>
   <string name="morphe_custom_filter_toast_invalid_syntax">Filtro personalizado no válido: %s</string>
+  <!-- Settings menu filter -->
+  <string name="morphe_settings_menu_filter_screen_title">Filtro del menú de configuración</string>
+  <string name="morphe_settings_menu_filter_screen_summary">Ocultar elementos en la pantalla de configuración de la aplicación estándar por su nombre visible</string>
+  <string name="morphe_settings_menu_filter_picker_empty">Abrir la pantalla de configuración de la aplicación estándar una vez para completar la lista</string>
   <!-- misc.spoof.appversion.spoofAppVersionPatch -->
   <string name="morphe_spoof_app_version_title">Falsificar versión de la app</string>
   <string name="morphe_spoof_app_version_summary">Engaña al servidor para que crea que estás usando una versión anterior de la aplicación, restaurando así funciones de la interfaz antigua</string>
@@ -176,4 +181,42 @@ Esto cambiará la apariencia y las características de la aplicación, pero pued
 
 Si se desactiva posteriormente, se recomienda borrar los datos de la aplicación para evitar errores en la interfaz de usuario."</string>
   <string name="morphe_spoof_app_version_target_title">Versión a falsificar de la app</string>
+  <!-- layout.returnyoutubedislike.returnYouTubeDislikePatch -->
+  <!-- Brief notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
+  <string name="morphe_ryd_failure_connection_timeout">Los “No me gusta” no están disponibles temporalmente (la API no responde)</string>
+  <string name="morphe_ryd_failure_connection_status_code">Los \"No me gusta\" no están disponibles (estado %d)</string>
+  <string name="morphe_ryd_failure_client_rate_limit_requested">Los \"No me gusta\" no están disponibles (se alcanzó el límite de la API del cliente)</string>
+  <string name="morphe_ryd_failure_generic">Los \"No me gusta\" no están disponibles (%s)</string>
+  <!-- Video likes have been set to hidden by the video uploader. -->
+  <string name="morphe_ryd_video_likes_hidden_by_video_owner">Oculto por el propietario</string>
+  <string name="morphe_ryd_enabled_title">Activar Return YouTube Dislike</string>
+  <string name="morphe_ryd_dislike_percentage_title">Mostrar \"No me gusta\" como porcentaje</string>
+  <string name="morphe_ryd_dislike_percentage_summary">Muestra los \"No me gusta\" como un porcentaje de las reacciones positivas en lugar de un número</string>
+  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
+  <string name="morphe_ryd_compact_layout_title">Usar botón compacto de \"Me gusta\"</string>
+  <string name="morphe_ryd_compact_layout_summary">Reduce el ancho del botón de \"Me gusta\" para ahorrar espacio</string>
+  <string name="morphe_ryd_estimated_like_title">Mostrar estimación de \"Me gusta\"</string>
+  <string name="morphe_ryd_estimated_like_summary">Muestra una estimación del número de \"Me gusta\" en los videos donde el creador ha desactivado las reacciones</string>
+  <string name="morphe_ryd_toast_on_connection_error_title">Mostrar alertas de error de conexión</string>
+  <string name="morphe_ryd_toast_on_connection_error_summary">Muestra una notificación cuando el servidor de Return YouTube Dislike no está disponible</string>
+  <string name="morphe_ryd_attribution_summary">"Los datos son proporcionados por la API de Return YouTube Dislike.
+
+Toca aquí para abrir ReturnYouTubeDislike.com"</string>
+  <!-- Statistic strings are shown in the settings only when Morphe debug mode is enabled. Typical users will never see these. -->
+  <string name="morphe_ryd_statistics_category_title">Estadísticas de la API de Return YouTube Dislike de este dispositivo</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeAverage_title">Tiempo de respuesta de la API, promedio</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMin_title">Tiempo de respuesta de la API, mínimo</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMax_title">Tiempo de respuesta de la API, máximo</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_title">Tiempo de respuesta de la API, último video</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_rate_limit_summary">Los “No me gusta” no están disponibles temporalmente: se ha alcanzado el límite de solicitudes de la API del cliente</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_title">Obtención de votos de la API, número de llamadas</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_zero_summary">No hay llamadas de red realizadas</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_non_zero_summary">%d llamadas de red realizadas</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_title">Obtención de votos de la API, número de errores</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_zero_summary">No se agotó el tiempo de espera de ninguna llamada de red</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_non_zero_summary">%d llamadas de red agotaron el tiempo de espera</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_title">Límites de la API para el cliente</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_zero_summary">No se alcanzó ningún límite para el cliente</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_non_zero_summary">Se alcanzó el límite para el cliente %d veces</string>
+  <string name="morphe_ryd_statistics_millisecond_text">%d milisegundos</string>
 </resources>

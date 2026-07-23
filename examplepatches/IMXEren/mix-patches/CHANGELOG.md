@@ -1,3 +1,15 @@
+## [1.4.1](https://github.com/IMXEren/mix-patches/compare/v1.4.0...v1.4.1) (2026-07-23)
+
+### 🚀 Updated App Support
+
+* morphe-patches-library to 1.5.1 ([55829a5](https://github.com/IMXEren/mix-patches/commit/55829a59f045bbb987b0863a7670563c3e010be0))
+
+## [1.4.1-dev.1](https://github.com/IMXEren/mix-patches/compare/v1.4.0...v1.4.1-dev.1) (2026-07-23)
+
+### 🚀 Updated App Support
+
+* morphe-patches-library to 1.5.1 ([55829a5](https://github.com/IMXEren/mix-patches/commit/55829a59f045bbb987b0863a7670563c3e010be0))
+
 ## [1.4.0](https://github.com/IMXEren/mix-patches/compare/v1.3.0...v1.4.0) (2026-06-26)
 
 ### ✨ New Features

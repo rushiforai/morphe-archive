@@ -142,8 +142,9 @@ Second \"item\" text"</string>
   <string name="morphe_proxy_allow_direct_fallback_summary">প্রক্সি ব্যর্থ হলে সরাসরি কানেক্ট করুন</string>
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">পূর্ণ স্ক্রীন প্যানেল লুকান</string>
-  <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_force_original_audio_not_available">এই বৈশিষ্ট্যটি ব্যবহার করতে, \'স্পুফ ভিডিও স্ট্রিম\' অ্যান্ড্রয়েড রিল বা টিভিতে পরিবর্তন করুন</string>
+  <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
+          'Android Studio' must be kept untranslated. -->
+  <string name="morphe_force_original_audio_not_available">এই বৈশিষ্ট্যটি ব্যবহার করতে, \'ভিডিও স্ট্রিম স্পুফ করুন\' অ্যান্ড্রয়েড স্টুডিও ছাড়া অন্য কোনো ক্লায়েন্টে পরিবর্তন করুন।</string>
   <!-- misc.privacy.sanitizeSharingLinksPatch -->
   <string name="morphe_sanitize_sharing_links_title">শেয়ারিং লিঙ্ক স্যানিটাইজ করুন</string>
   <string name="morphe_sanitize_sharing_links_summary">শেয়ার করা লিঙ্ক থেকে ট্র্যাকিং ক্যোয়ারি প্যারামিটার সরানো হয়েছে</string>
@@ -167,6 +168,10 @@ Second \"item\" text"</string>
   <!-- 'Component path builder strings' is the technical name for identifying the Litho UI layout items to hide. This is an advanced feature and most users will never use this. -->
   <string name="morphe_custom_filter_strings_summary">নতুন লাইন দ্বারা পৃথক করা ফিল্টার করার জন্য উপাদান পাথ বিল্ডার স্ট্রিং এর তালিকা</string>
   <string name="morphe_custom_filter_toast_invalid_syntax">ত্রুটিপূর্ণ কাস্টম ফিল্টার: %s</string>
+  <!-- Settings menu filter -->
+  <string name="morphe_settings_menu_filter_screen_title">সেটিংস মেনু ফিল্টার</string>
+  <string name="morphe_settings_menu_filter_screen_summary">видиমান নামের মাধ্যমে স্ট্যান্ডার্ড অ্যাপ সেটিংস স্ক্রিনে আইটেম লুকান</string>
+  <string name="morphe_settings_menu_filter_picker_empty">তালিকাটি পপুলেট করার জন্য স্ট্যান্ডার্ড অ্যাপ সেটিংস স্ক্রিনটি একবার খুলুন</string>
   <!-- misc.spoof.appversion.spoofAppVersionPatch -->
   <string name="morphe_spoof_app_version_title">অ্যাপের সংস্করণ স্পুফ করুন</string>
   <string name="morphe_spoof_app_version_summary">পুরোনো ইউজার ইন্টারফেস (UI) ফিচারগুলো ফিরিয়ে আনতে সার্ভারকে এমনভাবে বিভ্রান্ত করে যেন মনে হয় আপনি অ্যাপের একটি পুরোনো সংস্করণ ব্যবহার করছেন</string>
@@ -176,4 +181,42 @@ Second \"item\" text"</string>
 
 পরে কখনো এটি বন্ধ করলে, অ্যাপের ডিজাইনে কোনো সমস্যা বা বাগ এড়াতে অ্যাপ ডাটা ক্লিয়ার (Clear Data) করার পরামর্শ দেওয়া হচ্ছে।"</string>
   <string name="morphe_spoof_app_version_target_title">যে অ্যাপ ভার্সনে স্পুফ করবেন</string>
+  <!-- layout.returnyoutubedislike.returnYouTubeDislikePatch -->
+  <!-- Brief notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
+  <string name="morphe_ryd_failure_connection_timeout">অপছন্দ সাময়িকভাবে উপলভ্য নয় (API সময় শেষ হয়েছে)</string>
+  <string name="morphe_ryd_failure_connection_status_code">অপছন্দ উপলভ্য নয় (অবস্থা %d)</string>
+  <string name="morphe_ryd_failure_client_rate_limit_requested">অপছন্দগুলি উপলব্ধ নেই (ক্লায়েন্ট API সীমা)</string>
+  <string name="morphe_ryd_failure_generic">অপছন্দ উপলভ্য নয় (%s)</string>
+  <!-- Video likes have been set to hidden by the video uploader. -->
+  <string name="morphe_ryd_video_likes_hidden_by_video_owner">মালিক কর্তৃক লুকানো</string>
+  <string name="morphe_ryd_enabled_title">Return YouTube Dislike সক্ষম করুন</string>
+  <string name="morphe_ryd_dislike_percentage_title">অপছন্দগুলো শতাংশ অনুযায়ী দেখান</string>
+  <string name="morphe_ryd_dislike_percentage_summary">সংখ্যাটির পরিবর্তে লাইকের শতাংশ হিসাবে অপছন্দ দেখায়</string>
+  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
+  <string name="morphe_ryd_compact_layout_title">সংক্ষিপ্ত Like বোতাম ব্যবহার করুন</string>
+  <string name="morphe_ryd_compact_layout_summary">স্থান বাঁচানোর জন্য Like বোতামের প্রস্থ কমায়</string>
+  <string name="morphe_ryd_estimated_like_title">অনুমানিত লাইক দেখান</string>
+  <string name="morphe_ryd_estimated_like_summary">যে ভিডিওগুলোর নির্মাতারা লাইক নিষ্ক্রিয় করেছেন, সেগুলোতে একটি আনুমানিক লাইকের সংখ্যা দেখায়</string>
+  <string name="morphe_ryd_toast_on_connection_error_title">সংযোগ ত্রুটির সতর্কতা দেখান</string>
+  <string name="morphe_ryd_toast_on_connection_error_summary">Return YouTube Dislike সার্ভারটি অনুপলব্ধ হলে একটি বিজ্ঞপ্তি দেখায়</string>
+  <string name="morphe_ryd_attribution_summary">"উপাত্তসমূহ Return YouTube Dislike API দ্বারা সরবরাহকৃত।
+
+ReturnYouTubeDislike.com ওপেন করতে এখানে ট্যাপ করুন"</string>
+  <!-- Statistic strings are shown in the settings only when Morphe debug mode is enabled. Typical users will never see these. -->
+  <string name="morphe_ryd_statistics_category_title">Return YouTube Dislike API-এর এই ডিভাইসের পরিসংখ্যান</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeAverage_title">API প্রতিক্রিয়া সময়, গড়</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMin_title">API প্রতিক্রিয়া সময়, সর্বনিম্ন</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMax_title">API প্রতিক্রিয়া সময়, সর্বোচ্চ</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_title">API প্রতিক্রিয়া সময়, সর্বশেষ মিডিয়া</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_rate_limit_summary">অপছন্দ সাময়িকভাবে উপলভ্য নয় - ক্লায়েন্ট API হার সীমা কার্যকর</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_title">API ভোট, কল সংখ্যা</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_zero_summary">কোন নেটওয়ার্ক কল তৈরি করা হয়নি</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_non_zero_summary">%d নেটওয়ার্ক কল করা হয়েছে</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_title">API ভোট, কল সংখ্যা</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_zero_summary">কোন নেটওয়ার্ক কল সময় শেষ হয়নি</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_non_zero_summary">%d নেটওয়ার্ক কল সময় শেষ হয়েছে</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_title">API ক্লায়েন্ট হার সীমা</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_zero_summary">কোন ক্লায়েন্ট হার সীমা সম্মুখীন হয়নি</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_non_zero_summary">ক্লায়েন্ট হার সীমা %d বার সম্মুখীন হয়েছে</string>
+  <string name="morphe_ryd_statistics_millisecond_text">%d মিলিসেকেন্ড</string>
 </resources>

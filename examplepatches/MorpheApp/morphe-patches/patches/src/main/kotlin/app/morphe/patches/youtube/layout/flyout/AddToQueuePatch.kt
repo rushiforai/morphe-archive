@@ -176,7 +176,7 @@ val addToQueuePatch = bytecodePatch(
         FeedFlyoutBufferObjectFingerprint.method.addInstruction(
             0,
             "invoke-static/range { p2 .. p2 }, $EXTENSION_UTILS_CLASS->" +
-                    "extractVideoId(Ljava/util/Map;)V"
+                    "extractFlyoutIdFromMap(Ljava/util/Map;)V"
         )
 
         OnClickLithoButtonBufferObjectFingerprint.let {
@@ -187,7 +187,7 @@ val addToQueuePatch = bytecodePatch(
             it.method.addInstruction(
                 index + 1,
                 "invoke-static { v$register }, $EXTENSION_UTILS_CLASS->" +
-                        "extractIdFromLithoButton(Ljava/util/Map;)V"
+                        "extractFlyoutIdFromLithoButton(Ljava/util/Map;)V"
             )
         }
 
@@ -200,7 +200,7 @@ val addToQueuePatch = bytecodePatch(
                 addInstruction(
                     index + 1,
                     "invoke-static { v$register }, $EXTENSION_UTILS_CLASS->" +
-                            "extractVideoId(Ljava/lang/Object;)V"
+                            "extractFlyoutIdFromObject(Ljava/lang/Object;)V"
                 )
             }
         }

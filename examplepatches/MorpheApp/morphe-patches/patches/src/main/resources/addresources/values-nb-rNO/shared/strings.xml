@@ -49,6 +49,7 @@ Second \"item\" text"</string>
   <string name="morphe_settings_search_empty_history_summary">For å lagre søkehistorikk, skriv inn et søkekriterium og trykk Enter</string>
   <string name="morphe_settings_search_history_title">Vis innstillingssøkehistorikk</string>
   <string name="morphe_show_menu_icons_title">Vis Morphe-innstillingsikoner</string>
+  <string name="morphe_settings_menu_copy_path">Kopiert: %s</string>
   <string name="morphe_language_title">Morphe språk</string>
   <string name="morphe_language_user_dialog_message">"Oversettelser for noen språk kan mangle eller være ufullstendige.
 
@@ -81,7 +82,7 @@ For å oversette nye språk eller forbedre de eksisterende oversettelsene, besø
   <string name="morphe_settings_about_links_rv">2022 &#8209; 2025</string>
   <string name="morphe_settings_about_links_vanced">2019 &#8209; 2022</string>
   <string name="morphe_settings_about_links_licenses">Lisensvilkår</string>
-  <string name="morphe_settings_about_licenses_loading">Laster...</string>
+  <string name="morphe_settings_about_licenses_loading">Laster…</string>
   <!-- misc.debugging.enableDebuggingPatch -->
   <string name="morphe_debug_screen_title">Feilsøking</string>
   <string name="morphe_debug_screen_summary">Konfigurer avanserte utvikleralternativer og diagnostikklogger</string>
@@ -97,7 +98,7 @@ Du vil ikke bli varslet om uventede hendelser."</string>
   <string name="morphe_debug_export_logs_file">Eksporter til fil</string>
   <string name="morphe_debug_export_logs_success">Feilsøkingslogger eksportert vellykket</string>
   <string name="morphe_debug_export_logs_failed">Eksportering av feilsøkingslogger mislyktes</string>
-  <string name="morphe_debug_logs_search_hint">Søk i feilsøkingslogger...</string>
+  <string name="morphe_debug_logs_search_hint">Søk i feilsøkingslogger…</string>
   <string name="morphe_debug_export_logs_clear">Slett</string>
   <string name="morphe_debug_logs_disabled">Feilsøkingslogging er deaktivert</string>
   <string name="morphe_debug_logs_none_found">Ingen feilsøkingslogger funnet</string>
@@ -108,7 +109,7 @@ Du vil ikke bli varslet om uventede hendelser."</string>
   <string name="morphe_debug_feature_flags_manager_summary">Administrer boolske feature flags</string>
   <string name="morphe_debug_feature_flags_manager_active_header">Aktive funksjonsflagg (%d)</string>
   <string name="morphe_debug_feature_flags_manager_blocked_header">Blokkerte funksjonsflagg (%d)</string>
-  <string name="morphe_debug_feature_flags_manager_search_hint">Søk etter feature flags...</string>
+  <string name="morphe_debug_feature_flags_manager_search_hint">Søk etter funksjonsflagg…</string>
   <string name="morphe_debug_feature_flags_manager_toast_saved">Feature flags lagret</string>
   <string name="morphe_debug_feature_flags_manager_toast_reset">Feature flags tilbakestilt</string>
   <string name="morphe_debug_feature_flags_manager_toast_copied">Feature flags kopiert til utklippstavlen</string>

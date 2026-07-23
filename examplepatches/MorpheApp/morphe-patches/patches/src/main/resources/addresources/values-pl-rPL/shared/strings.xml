@@ -49,6 +49,7 @@ Second \"item\" text"</string>
   <string name="morphe_settings_search_empty_history_summary">Aby zapisać historię wyszukiwania, wpisz zapytanie i naciśnij Enter</string>
   <string name="morphe_settings_search_history_title">Pokaż historię wyszukiwania ustawień</string>
   <string name="morphe_show_menu_icons_title">Pokaż ikony ustawień Morphe</string>
+  <string name="morphe_settings_menu_copy_path">Skopiowano: %s</string>
   <string name="morphe_language_title">Język Morphe</string>
   <string name="morphe_language_user_dialog_message">"Tłumaczenia dla niektórych języków mogą być niekompletne lub może ich brakować.
 
@@ -81,7 +82,7 @@ Aby przetłumaczyć aplikację na nowe języki lub poprawić istniejące tłumac
   <string name="morphe_settings_about_links_rv">2022 &#8209; 2025</string>
   <string name="morphe_settings_about_links_vanced">2019 &#8209; 2022</string>
   <string name="morphe_settings_about_links_licenses">Licencje</string>
-  <string name="morphe_settings_about_licenses_loading">Wczytywanie...</string>
+  <string name="morphe_settings_about_licenses_loading">Wczytywanie…</string>
   <!-- misc.debugging.enableDebuggingPatch -->
   <string name="morphe_debug_screen_title">Debugowanie</string>
   <string name="morphe_debug_screen_summary">Skonfiguruj zaawansowane opcje programistyczne i logi diagnostyczne</string>
@@ -97,7 +98,7 @@ Nie dostaniesz informacji o żadnych nieoczekiwanych zdarzeniach."</string>
   <string name="morphe_debug_export_logs_file">Wyeksportuj do pliku</string>
   <string name="morphe_debug_export_logs_success">Logi debugowania wyeksportowane pomyślnie</string>
   <string name="morphe_debug_export_logs_failed">Nie udało się wyeksportować logów debugowania</string>
-  <string name="morphe_debug_logs_search_hint">Szukaj logów debugowania...</string>
+  <string name="morphe_debug_logs_search_hint">Szukaj w logach debugowania…</string>
   <string name="morphe_debug_export_logs_clear">Wyczyść</string>
   <string name="morphe_debug_logs_disabled">Logi debugowania są wyłączone</string>
   <string name="morphe_debug_logs_none_found">Nie znaleziono logów debugowania</string>
@@ -108,7 +109,7 @@ Nie dostaniesz informacji o żadnych nieoczekiwanych zdarzeniach."</string>
   <string name="morphe_debug_feature_flags_manager_summary">Zarządzaj flagami funkcji</string>
   <string name="morphe_debug_feature_flags_manager_active_header">Aktywne flagi funkcji (%d)</string>
   <string name="morphe_debug_feature_flags_manager_blocked_header">Zablokowane flagi funkcji (%d)</string>
-  <string name="morphe_debug_feature_flags_manager_search_hint">Szukaj flag funkcji...</string>
+  <string name="morphe_debug_feature_flags_manager_search_hint">Szukaj we flagach funkcji…</string>
   <string name="morphe_debug_feature_flags_manager_toast_saved">Zapisano flagi funkcji</string>
   <string name="morphe_debug_feature_flags_manager_toast_reset">Zresetowano flagi funkcji</string>
   <string name="morphe_debug_feature_flags_manager_toast_copied">Skopiowano flagi funkcji do schowka</string>

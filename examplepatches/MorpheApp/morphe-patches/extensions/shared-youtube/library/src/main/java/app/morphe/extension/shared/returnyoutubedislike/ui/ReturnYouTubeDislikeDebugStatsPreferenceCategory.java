@@ -1,4 +1,4 @@
-package app.morphe.extension.youtube.returnyoutubedislike.ui;
+package app.morphe.extension.shared.returnyoutubedislike.ui;
 
 import static app.morphe.extension.shared.StringRef.str;
 
@@ -11,7 +11,7 @@ import android.view.ViewGroup;
 
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.settings.BaseSettings;
-import app.morphe.extension.youtube.returnyoutubedislike.requests.ReturnYouTubeDislikeAPI;
+import app.morphe.extension.shared.returnyoutubedislike.requests.ReturnYouTubeDislikeAPI;
 
 @SuppressWarnings({"unused", "deprecation"})
 public class ReturnYouTubeDislikeDebugStatsPreferenceCategory extends PreferenceCategory {

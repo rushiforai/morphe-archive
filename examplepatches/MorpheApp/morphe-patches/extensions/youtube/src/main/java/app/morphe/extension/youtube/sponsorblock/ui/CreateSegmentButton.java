@@ -2,8 +2,6 @@ package app.morphe.extension.youtube.sponsorblock.ui;
 
 import android.view.View;
 
-import androidx.annotation.Nullable;
-
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.youtube.settings.Settings;
 import app.morphe.extension.shared.sponsorblock.SegmentPlaybackController;
@@ -19,24 +17,19 @@ public class CreateSegmentButton {
         }
     }
 
-    @Nullable
-    private static LegacyPlayerControlButton instance;
-
-    public static void hideControls() {
-        if (instance != null) instance.hide();
-    }
-
     /**
      * injection point.
      */
     public static void initializeLegacyButton(View controlsView) {
         try {
-            instance = new LegacyPlayerControlButton(
+            new LegacyPlayerControlButton(
                     controlsView,
                     "morphe_sb_create_segment_button",
                     null,
                     "morphe_sb_logo",
-                    CreateSegmentButton::isButtonEnabled,
+                    () -> CreateSegmentButton.isButtonEnabled()
+                            ? LegacyPlayerControlButton.ButtonVisibility.ENABLED
+                            : LegacyPlayerControlButton.ButtonVisibility.DISABLED,
                     v -> SponsorBlockViewController.toggleNewSegmentLayoutVisibility(),
                     v -> {
                         SponsorBlockUtils.showChannelWhitelistDialog(v.getContext());
@@ -46,27 +39,6 @@ public class CreateSegmentButton {
         } catch (Exception ex) {
             Logger.printException(() -> "initializeButton failure", ex);
         }
-    }
-
-    /**
-     * injection point.
-     */
-    public static void setVisibilityNegatedImmediate() {
-        if (instance != null) instance.setVisibilityNegatedImmediate();
-    }
-
-    /**
-     * injection point.
-     */
-    public static void setVisibilityImmediate(boolean visible) {
-        if (instance != null) instance.setVisibilityImmediate(visible);
-    }
-
-    /**
-     * injection point.
-     */
-    public static void setVisibility(boolean visible, boolean animated) {
-        if (instance != null) instance.setVisibility(visible, animated);
     }
 
     private static boolean isButtonEnabled() {

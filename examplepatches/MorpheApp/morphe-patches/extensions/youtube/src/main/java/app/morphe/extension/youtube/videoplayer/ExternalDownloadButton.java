@@ -28,47 +28,23 @@ public class ExternalDownloadButton {
         }
     }
 
-    @Nullable
-    private static LegacyPlayerControlButton legacy;
-
     /**
      * Injection point.
      */
     public static void initializeLegacyButton(View controlsView) {
         try {
-            legacy = new LegacyPlayerControlButton(
+            new LegacyPlayerControlButton(
                     controlsView,
                     "morphe_external_download_button",
                     null,
                     "morphe_yt_download_button",
-                    SharedYouTubeSettings.EXTERNAL_DOWNLOADER::get,
+                    SharedYouTubeSettings.EXTERNAL_DOWNLOADER,
                     ExternalDownloadButton::onDownloadClick,
                     null
             );
         } catch (Exception ex) {
             Logger.printException(() -> "initializeButton failure", ex);
         }
-    }
-
-    /**
-     * injection point.
-     */
-    public static void setVisibilityNegatedImmediate() {
-        if (legacy != null) legacy.setVisibilityNegatedImmediate();
-    }
-
-    /**
-     * injection point.
-     */
-    public static void setVisibilityImmediate(boolean visible) {
-        if (legacy != null) legacy.setVisibilityImmediate(visible);
-    }
-
-    /**
-     * injection point.
-     */
-    public static void setVisibility(boolean visible, boolean animated) {
-        if (legacy != null) legacy.setVisibility(visible, animated);
     }
 
     private static void onDownloadClick(View view) {

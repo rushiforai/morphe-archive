@@ -10,7 +10,8 @@
 
 package app.morphe.extension.shared.spoof.requests;
 
-import org.json.JSONArray;
+import android.text.TextUtils;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -23,44 +24,25 @@ import app.morphe.extension.shared.requests.Requester;
 import app.morphe.extension.shared.requests.Route;
 import app.morphe.extension.shared.settings.AppLanguage;
 import app.morphe.extension.shared.spoof.ClientType;
-import app.morphe.extension.shared.spoof.SpoofVideoStreamsPatch;
 import app.morphe.extension.shared.spoof.js.JavaScriptManager;
 
 public final class PlayerRoutes {
 
-    public static final Route.CompiledRoute GET_CHANNEL_FROM_ID = new Route(
+    private static final Route.CompiledRoute GET_PLAYER_STREAMING_DATA = new Route(
             Route.Method.POST,
             "player" +
-                    "?prettyPrint=false" +
-                    "&fields=videoDetails.channelId"
-    ).compile();
-
-    public static final Route.CompiledRoute GET_PLAYER_STREAMING_DATA = new Route(
-            Route.Method.POST,
-            "player" +
-                    "?fields=playabilityStatus,streamingData" +
+                    "?fields=playabilityStatus,streamingData,playerConfig.mediaCommonConfig" +
                     "&alt=proto"
     ).compile();
 
-    public static final Route.CompiledRoute GET_REEL_STREAMING_DATA = new Route(
+    private static final Route.CompiledRoute GET_REEL_STREAMING_DATA = new Route(
             Route.Method.POST,
             "reel/reel_item_watch" +
-                    "?fields=playerResponse.playabilityStatus,playerResponse.streamingData" +
+                    "?fields=playerResponse.playabilityStatus,playerResponse.streamingData,playerResponse.playerConfig.mediaCommonConfig" +
                     "&alt=proto"
-    ).compile();
-
-    public static final Route.CompiledRoute SEND_SAVE_VIDEO_TO_WATCH_LATER = new Route(
-            Route.Method.POST,
-            "browse/edit_playlist" +
-                    "?fields=status,playlistEditResults"
     ).compile();
 
     private static final String YT_API_URL = "https://youtubei.googleapis.com/youtubei/v1/";
-
-    /**
-     * TCP connection and HTTP read timeout
-     */
-    private static final int CONNECTION_TIMEOUT_MILLISECONDS = 10 * 1000; // 10 Seconds.
 
     private PlayerRoutes() {
     }
@@ -71,65 +53,41 @@ public final class PlayerRoutes {
         try {
             JSONObject context = new JSONObject();
 
-            AppLanguage language = SpoofVideoStreamsPatch.getLanguageOverride();
-            if (language == null) {
-                // Force original audio has not overridden the language.
-                language = AppLanguage.DEFAULT;
-            }
-            Locale streamLocale = language.getLocale();
-
             JSONObject client = new JSONObject();
+            client.put("deviceMake", clientType.deviceMake);
+            client.put("deviceModel", clientType.deviceModel);
             client.put("clientName", clientType.clientName);
             client.put("clientVersion", clientType.clientVersion);
-            if (clientType.deviceModel != null) {
-                client.put("deviceMake", clientType.deviceMake);
-                client.put("deviceModel", clientType.deviceModel);
-                client.put("osName", clientType.osName);
-                client.put("osVersion", clientType.osVersion);
-                String androidSdkVersion = clientType.androidSdkVersion;
-                if (androidSdkVersion != null && !androidSdkVersion.isEmpty()) {
-                    client.put("androidSdkVersion", androidSdkVersion);
-                }
+            client.put("osName", clientType.osName);
+            client.put("osVersion", clientType.osVersion);
+
+            String androidSdkVersion = clientType.androidSdkVersion;
+            if (!TextUtils.isEmpty(androidSdkVersion)) {
+                client.put("androidSdkVersion", androidSdkVersion);
             }
+
             String platform = clientType.clientPlatform;
-            if (platform != null && !platform.isEmpty()) {
+            if (!TextUtils.isEmpty(platform)) {
                 client.put("platform", platform);
             }
 
-            JSONObject user = new JSONObject();
-            user.put("lockedSafetyMode", false);
-            if (clientType.endpoint != GET_PLAYER_STREAMING_DATA && clientType.endpoint != GET_REEL_STREAMING_DATA) {
-                context.put("user", user);
-            } else {
-                client.put("hl", streamLocale.getLanguage());
-                client.put("gl", streamLocale.getCountry());
-            }
+            Locale locale = AppLanguage.DEFAULT.getLocale();
+            client.put("hl", locale.getLanguage());
+            client.put("gl", locale.getCountry());
             context.put("client", client);
 
-            if (clientType.endpoint == GET_REEL_STREAMING_DATA) {
+            if (clientType.usePlayerEndpoint) {
+                innerTubeBody.put("contentCheckOk", true);
+                innerTubeBody.put("racyCheckOk", true);
+                innerTubeBody.put("videoId", videoId);
+            } else {
                 JSONObject playerRequest = new JSONObject();
                 playerRequest.put("contentCheckOk", true);
                 playerRequest.put("racyCheckOk", true);
                 playerRequest.put("videoId", videoId);
+
                 innerTubeBody.put("playerRequest", playerRequest);
                 innerTubeBody.put("disablePlayerResponse", false);
-            } else {
-                innerTubeBody.put("contentCheckOk", true);
-                innerTubeBody.put("racyCheckOk", true);
-                innerTubeBody.put("videoId", videoId);
-                if (clientType.endpoint == SEND_SAVE_VIDEO_TO_WATCH_LATER) {
-                    innerTubeBody.put("playlistId", "WL");
-                    innerTubeBody.put("excludeWatchLater", false);
-
-                    JSONObject action = new JSONObject();
-                    action.put("action", "ACTION_ADD_VIDEO");
-                    action.put("addedVideoId", videoId);
-
-                    JSONArray actions = new JSONArray();
-                    actions.put(action);
-
-                    innerTubeBody.put("actions", actions);
-                }
             }
 
             if (clientType.requireJS) {
@@ -137,6 +95,8 @@ public final class PlayerRoutes {
                 configInfo.put("appInstallData", "");
                 client.put("configInfo", configInfo);
 
+                JSONObject user = new JSONObject();
+                user.put("lockedSafetyMode", false);
                 context.put("user", user);
 
                 JSONObject contentPlaybackContext = new JSONObject();
@@ -171,19 +131,20 @@ public final class PlayerRoutes {
 
     @SuppressWarnings("SameParameterValue")
     static HttpURLConnection getPlayerResponseConnectionFromRoute(ClientType clientType) throws IOException {
-        var connection = Requester.getConnectionFromCompiledRoute(YT_API_URL, clientType.endpoint);
+        Route.CompiledRoute route = clientType.usePlayerEndpoint
+                ? GET_PLAYER_STREAMING_DATA
+                : GET_REEL_STREAMING_DATA;
+        HttpURLConnection connection = Requester.getConnectionFromCompiledRoute(YT_API_URL, route);
 
         connection.setRequestProperty("Content-Type", "application/json");
         connection.setRequestProperty("User-Agent", clientType.userAgent);
         // Not a typo. "Client-Name" uses the client type id.
-        connection.setRequestProperty("X-YouTube-Client-Name", clientType.clientName);
+        connection.setRequestProperty("X-YouTube-Client-Name", String.valueOf(clientType.id));
         connection.setRequestProperty("X-YouTube-Client-Version", clientType.clientVersion);
 
         connection.setUseCaches(false);
         connection.setDoOutput(true);
 
-        connection.setConnectTimeout(CONNECTION_TIMEOUT_MILLISECONDS);
-        connection.setReadTimeout(CONNECTION_TIMEOUT_MILLISECONDS);
         return connection;
     }
 }

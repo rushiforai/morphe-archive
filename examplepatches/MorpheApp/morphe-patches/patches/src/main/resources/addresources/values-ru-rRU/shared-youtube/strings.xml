@@ -142,8 +142,9 @@ Second \"item\" text"</string>
   <string name="morphe_proxy_allow_direct_fallback_summary">Подключитесь напрямую, если прокси-сервер не работает</string>
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">Скрыть полноэкранную рекламу</string>
-  <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_force_original_audio_not_available">Чтобы использовать эту функцию, измените \"Подмена видео потоков\" на Android Reel или TV</string>
+  <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
+          'Android Studio' must be kept untranslated. -->
+  <string name="morphe_force_original_audio_not_available">Для использования этой функции измените клиент в \"Подмене видеопотоков\" на любой, кроме Android Studio\'</string>
   <!-- misc.privacy.sanitizeSharingLinksPatch -->
   <string name="morphe_sanitize_sharing_links_title">Очищать ссылки для обмена</string>
   <string name="morphe_sanitize_sharing_links_summary">Удаляет параметры отслеживания запросов из общих ссылок</string>
@@ -167,6 +168,10 @@ Second \"item\" text"</string>
   <!-- 'Component path builder strings' is the technical name for identifying the Litho UI layout items to hide. This is an advanced feature and most users will never use this. -->
   <string name="morphe_custom_filter_strings_summary">Список строк конструктора путей компонентов для фильтрации, разделенных новой строкой</string>
   <string name="morphe_custom_filter_toast_invalid_syntax">Недопустимый кастомный фильтр: %s</string>
+  <!-- Settings menu filter -->
+  <string name="morphe_settings_menu_filter_screen_title">Фильтр меню настроек</string>
+  <string name="morphe_settings_menu_filter_screen_summary">Скрыть элементы на экране настроек приложения, основываясь на их видимом имени</string>
+  <string name="morphe_settings_menu_filter_picker_empty">Откройте экран стандартных настроек приложения один раз, чтобы заполнить список</string>
   <!-- misc.spoof.appversion.spoofAppVersionPatch -->
   <string name="morphe_spoof_app_version_title">Подменить версию приложения</string>
   <string name="morphe_spoof_app_version_summary">Обманывает сервер, заставляя его думать, что вы используете более старую версию приложения, чтобы восстановить функции устаревшего интерфейса</string>
@@ -176,4 +181,42 @@ Second \"item\" text"</string>
 
 Если позже эта функция будет отключена, рекомендуется очистить данные приложения, чтобы предотвратить ошибки интерфейса."</string>
   <string name="morphe_spoof_app_version_target_title">Подменить версию приложения на</string>
+  <!-- layout.returnyoutubedislike.returnYouTubeDislikePatch -->
+  <!-- Brief notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
+  <string name="morphe_ryd_failure_connection_timeout">Дизлайки временно недоступны (таймаут API)</string>
+  <string name="morphe_ryd_failure_connection_status_code">Дизлайки недоступны (статус %d)</string>
+  <string name="morphe_ryd_failure_client_rate_limit_requested">Дизлайки недоступны (лимит клиентов API)</string>
+  <string name="morphe_ryd_failure_generic">Дизлайки недоступны (%s)</string>
+  <!-- Video likes have been set to hidden by the video uploader. -->
+  <string name="morphe_ryd_video_likes_hidden_by_video_owner">Скрыто владельцем</string>
+  <string name="morphe_ryd_enabled_title">Включить Return YouTube Dislike</string>
+  <string name="morphe_ryd_dislike_percentage_title">Показывать дизлайки в процентах</string>
+  <string name="morphe_ryd_dislike_percentage_summary">Отображает дизлайки в процентах от лайков вместо количества</string>
+  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
+  <string name="morphe_ryd_compact_layout_title">Использовать компактную кнопку «Нравится»</string>
+  <string name="morphe_ryd_compact_layout_summary">Уменьшает ширину кнопки «Нравится», чтобы сэкономить место</string>
+  <string name="morphe_ryd_estimated_like_title">Показать примерное количество лайков</string>
+  <string name="morphe_ryd_estimated_like_summary">Показывает приблизительное количество лайков на видео, где автор отключил лайки</string>
+  <string name="morphe_ryd_toast_on_connection_error_title">Показывать уведомления об ошибках подключения</string>
+  <string name="morphe_ryd_toast_on_connection_error_summary">Показывает уведомление, когда сервер Return YouTube Dislike недоступен</string>
+  <string name="morphe_ryd_attribution_summary">"Данные предоставляются API Return YouTube Dislike
+
+Нажмите здесь, чтобы открыть ReturnYouTubeDislike.com"</string>
+  <!-- Statistic strings are shown in the settings only when Morphe debug mode is enabled. Typical users will never see these. -->
+  <string name="morphe_ryd_statistics_category_title">Статистика API Return YouTube Dislike для этого устройства</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeAverage_title">Время ответа API, среднее</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMin_title">Время ответа API, минимальное</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMax_title">Время ответа API, максимальное</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_title">Время ответа API, последнее медиа</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_rate_limit_summary">Дизлайки временно недоступны — действует ограничение скорости клиентского API</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_title">API получает голоса, количество запросов</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_zero_summary">Сетевые запросы не выполнены</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_non_zero_summary">Выполнено %d сетевых запросов</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_title">API получает голоса, количество запросов</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_zero_summary">Сетевые запросы не завершились с ошибкой</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_non_zero_summary">%d сетевых запросов завершились с ошибкой</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_title">Ограничения скорости клиентского API</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_zero_summary">Ограничения скорости клиентского API не обнаружены</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_non_zero_summary">Превышение ограничения скорости клиентского API встретилось %d раз</string>
+  <string name="morphe_ryd_statistics_millisecond_text">%d миллисекунд</string>
 </resources>

@@ -154,14 +154,17 @@ Muutoksia ovat muun muassa:
   <string name="morphe_hide_featured_channels_section_title">Piilota esiteltyjen kanavien osio</string>
   <string name="morphe_hide_featured_links_section_title">Piilota Tietoja-linkit -osio</string>
   <string name="morphe_hide_featured_places_section_title">Piilota \"Esitellyt paikat\" -osio</string>
+  <string name="morphe_hide_featured_playlists_section_title">Piilota suositellut soittolistat -osio</string>
   <string name="morphe_hide_featured_videos_section_title">Piilota Esitellyt videot -osio</string>
   <string name="morphe_hide_gaming_section_title">Piilota Pelaaminen-osio</string>
+  <string name="morphe_hide_hashtag_section_title">Piilota Hashtag-osio</string>
   <string name="morphe_hide_how_this_was_made_section_title">Piilota \"Miten tämä sisältö on luotu\" -osio</string>
   <string name="morphe_hide_hype_points_title">Piilota Hype-pisteet</string>
   <string name="morphe_hide_info_cards_section_title">Piilota Info-kortit -osio</string>
   <string name="morphe_hide_key_concepts_section_title">Piilota \"Keskeiset käsitteet\" -osio</string>
   <string name="morphe_hide_music_section_title">Piilota Musiikki-osio</string>
   <string name="morphe_hide_quizzes_section_title">Piilota Tietokilpailut-osio</string>
+  <string name="morphe_hide_search_inside_this_video_section_title">Piilota \'Hae videosta\' -osion</string>
   <string name="morphe_hide_subscribe_button_title">Piilota Tilaa-painike</string>
   <string name="morphe_hide_transcript_section_title">Piilota Transkriptio-osio</string>
   <string name="morphe_hide_video_details_section_title">Piilota \"Videotiedot\" -osio</string>
@@ -268,8 +271,10 @@ Rajoitukset:
   <string name="morphe_hide_aislist_stats_hidden_breakdown">"• Aloitus: %s
 • Haku: %s
 • Yhteensä: %s"</string>
-  <string name="morphe_hide_aislist_stats_blocklist_title">Mustalistakanavat ladattu: %s</string>
-  <string name="morphe_hide_aislist_stats_warnlist_title">Varoituslistakanavat ladattu: %s</string>
+  <string name="morphe_hide_aislist_stats_blocklist_channels_title">Estetyt kanavat</string>
+  <string name="morphe_hide_aislist_stats_warnlist_channels_title">Varoituslistakanavat</string>
+  <string name="morphe_hide_aislist_stats_channels_disabled_summary">Ota suodatin käyttöön kanavien lataamiseksi</string>
+  <string name="morphe_hide_aislist_stats_channels_loading_summary">Kanavia ladataan…</string>
   <string name="morphe_hide_aislist_about_summary">"Aloitus- ja hakutulokset on suodatettu piilottaaksesi AiSListin merkitsemät videot
 
 Rajoitukset:
@@ -449,15 +454,17 @@ Tieto: Ei välttämättä toimi suoratoistoissa"</string>
   <string name="morphe_disable_precise_seeking_gesture_summary">Poistaa käytöstä tarkan hakutoiminnon, joka aktivoituu, kun vedät hakupalkkia ylöspäin</string>
   <!-- interaction.seekbar.livestreamDVRPatch -->
   <string name="morphe_livestream_dvr_title">Ota suoratoistinauhoitus käyttöön</string>
+  <string name="morphe_livestream_dvr_summary">Mahdollistaa etsimisen kaikista suoralähetyksistä, myös niistä, jotka yleensä rajoittavat sitä</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_livestream_dvr_summary">"Mahdollistaa haun kaikista livelähetyksistä, myös niistä, jotka normaalisti estävät sen
+  <string name="morphe_livestream_dvr_not_available">"'Livestream-tallennuksen' tallennus ei ehkä ole käytettävissä
 
-Huomautus: Jos ”Väärennä videostriimejä” ei ole käytössä, tämän käytössä ottaminen voi aiheuttaa odottamatonta livelähetysten haun käyttäytymistä"</string>
+Korjaa tämä ottamalla käyttöön 'Väärennä videostriimejä' ja muuttamalla 'Oletusasiakas' arvoksi 'TV'"</string>
   <string name="morphe_expand_livestream_dvr_duration_title">Laajenna suoran lähetyksen DVR:n kestoa</string>
+  <string name="morphe_expand_livestream_dvr_duration_summary">Mahdollistaa suorien lähetysten kelaamisen jopa 7 päivää taaksepäin</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_expand_livestream_dvr_duration_summary">"Mahdollistaa livetapahtumien kelaamisen taaksepäin jopa 7 päivän päähän
+  <string name="morphe_expand_livestream_dvr_duration_not_available">"'Livestream-tallennuksen keston pidentäminen' ei ehkä ole käytettävissä
 
-Huomautus: Jos ”Väärennä videostriimejä” ei ole käytössä, tämän käytössä ottaminen voi aiheuttaa odottamatonta livelähetysten haun käyttäytymistä"</string>
+Korjaa tämä ottamalla käyttöön 'Väärennä videostriimejä' ja muuttamalla 'Oletusasiakas' arvoksi 'TV'"</string>
   <!-- interaction.seekbar.enableSlideToSeekPatch -->
   <string name="morphe_slide_to_seek_title">Ota kelaus liu\'uttamalla käyttöön</string>
   <string name="morphe_slide_to_seek_summary">Ottaa käyttöön pyyhkäisyn hakua varten sen sijaan, että toisto nopeutuisi 2x nopeudella, kun videotoistinta painetaan ja pidetään painettuna</string>
@@ -662,10 +669,10 @@ Saadaksesi asetukset, ota Asetukset-painike käyttöön kohdasta Yleiset → Ty�
   <!-- 'Audio track' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_player_flyout_audio_track_title">Piilota \"Ääniraita\"-valikko</string>
   <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
-          'Android Reel' and 'TV' must be kept untranslated. -->
-  <string name="morphe_hide_player_flyout_audio_track_not_available">"Ääniraitavalikko on piilotettu
+          'Android Studio' must be kept untranslated. -->
+  <string name="morphe_hide_player_flyout_audio_track_not_available">"'Ääniraitavalikko' on piilotettu
 
-Näyttääksesi Ääniraitavalikon, vaihda \"Naamioi videovirrat\" -asetukseksi \"Android Reel\" tai \"TV\"."</string>
+Näyttääksesi 'Ääniraitavalikon', vaihda 'Väärennä videostriimejä' -asetukseksi mikä tahansa muu kuin 'Android Studio'"</string>
   <string name="morphe_hide_player_flyout_audio_track_footer_title">Piilota \'Ääniraita\'-valikon alatunniste</string>
   <!-- 'Captions' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_player_flyout_captions_title">Piilota Tekstitykset-valikko</string>
@@ -816,46 +823,6 @@ Asetukset → Toisto (tai Automaattinen toisto) → Toista seuraava video"</stri
   <string name="morphe_player_overlay_opacity_title">Soittimen peittokuvan läpinäkymättömyys</string>
   <string name="morphe_player_overlay_opacity_summary">Säädä läpinäkyvyys (0 on täysin läpinäkyvä, 100 on peittävä)</string>
   <string name="morphe_player_overlay_opacity_invalid_toast">Soittimen peittokuvan läpinäkymättömyyden tulee olla 0–100 välillä</string>
-  <!-- layout.returnyoutubedislike.returnYouTubeDislikePatch -->
-  <!-- Brief notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
-  <string name="morphe_ryd_failure_connection_timeout">Tykkäykset eivät ole väliaikaisesti käytettävissä (API aikakatkaistu)</string>
-  <string name="morphe_ryd_failure_connection_status_code">Ei-tykkäykset eivät ole saatavilla (tila %d)</string>
-  <string name="morphe_ryd_failure_client_rate_limit_requested">Ei-tykkäykset eivät ole saatavilla (asiakkaan API-raja)</string>
-  <string name="morphe_ryd_failure_generic">Ei-tykkäykset eivät ole saatavilla (%s)</string>
-  <!-- Brief notification (Toast) shown if the user enables RYD while a video is opened, and then tries to vote for the video. -->
-  <string name="morphe_ryd_failure_ryd_enabled_while_playing_video_then_user_voted">Lataa video uudelleen äänestääksesi Return YouTube Dislikellä</string>
-  <!-- Video likes have been set to hidden by the video uploader. -->
-  <string name="morphe_ryd_video_likes_hidden_by_video_owner">Omistajan piilottama</string>
-  <string name="morphe_ryd_enabled_title">Ota Return YouTube Dislike käyttöön</string>
-  <string name="morphe_ryd_dislike_percentage_title">Näytä ei-tykkäykset prosentteina</string>
-  <string name="morphe_ryd_dislike_percentage_summary">Näyttää ei-tykkäykset tykkäysten prosenttiosuutena numeron sijaan</string>
-  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
-  <string name="morphe_ryd_compact_layout_title">Käytä kompaktia tykkäyspainiketta</string>
-  <string name="morphe_ryd_compact_layout_summary">Pienentää tykkäyspainikkeen leveyttä säästääkseen tilaa</string>
-  <string name="morphe_ryd_estimated_like_title">Näytä arvioidut tykkäykset</string>
-  <string name="morphe_ryd_estimated_like_summary">Näyttää arvioidun tykkäysmäärän videoissa, joissa luoja on poistanut tykkäykset käytöstä</string>
-  <string name="morphe_ryd_toast_on_connection_error_title">Näytä yhteysvirheilmoitukset</string>
-  <string name="morphe_ryd_toast_on_connection_error_summary">Näyttää ilmoituksen, kun Return YouTube Dislike -palvelin ei ole käytettävissä</string>
-  <string name="morphe_ryd_attribution_summary">"Data on tarjotaan Return YouTube Dislike API:n avulla
-
-Napauta tästä avataksesi ReturnYouTubeDislike.com"</string>
-  <!-- Statistic strings are shown in the settings only when Morphe debug mode is enabled. Typical users will never see these. -->
-  <string name="morphe_ryd_statistics_category_title">Tämän laitteen ReturnYouTubeDislike API -tilastot</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeAverage_title">API-vasteaika, keskiarvo</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMin_title">API-vasteaika, minimi</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMax_title">API-vasteaika, maksimi</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_title">API-vasteaika, viimeisin video</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_rate_limit_summary">Ei ole tilapäisesti käytettävissä - Asiakkaan API-rajaa voimassa</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_title">API noutaa äänet, puhelujen määrä</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_zero_summary">Verkkokutsuja ei ole tehty</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_non_zero_summary">%d verkkokutsua tehty</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_title">API noutaa äänet, aikataulujen määrä</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_zero_summary">Verkkokutsuja ei ole aikakatkaistu</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_non_zero_summary">%d verkkokutsua aikakatkaistiin</string>
-  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_title">API:n asiakashintojen raja-arvot</string>
-  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_zero_summary">Asiakasmäärän rajoja ei havaittu</string>
-  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_non_zero_summary">Asiakkaan hintaraja kohdistettu %d kertaa</string>
-  <string name="morphe_ryd_statistics_millisecond_text">%d millisekuntia</string>
   <!-- layout.searchbar.wideSearchbarPatch -->
   <string name="morphe_wide_searchbar_title">Ota leveä hakupalkki käyttöön</string>
   <!-- layout.sponsorblock.sponsorBlockPatch -->
@@ -940,6 +907,7 @@ Rajoitus: Jos \"Palauta vanha videotoimintopalkki\" on poissa käytöstä, \"Lis
   <string name="morphe_miniplayer_disable_resuming_summary">Poistaa käytöstä ’Jatka katselua’ -minisoittimen, YouTube Premium -ominaisuuden, joka ilmestyy sovelluksen käynnistyessä</string>
   <string name="morphe_miniplayer_screen_title">Minisoitin</string>
   <string name="morphe_miniplayer_screen_summary">Muokkaa pienennetyn videotoistimen ulkoasua ja toimintaa</string>
+  <string name="morphe_miniplayer_not_available_summary">YouTube poisti kaikki lisäminisoittimet. Muuttaaksesi minisoittimen tyyppiä, paikkaa YouTube 21.28.207 tai vanhempi versio</string>
   <string name="morphe_miniplayer_type_title">Minisoittimen tyyppi</string>
   <string name="morphe_miniplayer_type_entry_0">Pois käytöstä</string>
   <string name="morphe_miniplayer_type_entry_1">Oletus</string>
@@ -1123,7 +1091,6 @@ Rajoitukset:
 
 AV1-videon toisto saattaa pätkiä."</string>
   <string name="morphe_spoof_video_streams_about_title">Naamioimisen sivuvaikutukset</string>
-  <string name="morphe_spoof_video_streams_about_experimental">• Kokeellinen asiakasohjelma, joka saattaa lakata toimimasta milloin tahansa</string>
   <string name="morphe_spoof_video_streams_about_playback_failure">• Video saattaa pysähtyä aikaan 1:00, tai ei välttämättä ole saatavilla joillakin alueilla</string>
   <string name="morphe_spoof_video_streams_about_no_audio_tracks">• Ääniraitavalikko puuttuu</string>
   <string name="morphe_spoof_video_streams_about_no_av1">• Ei AV1-videokoodekkia</string>

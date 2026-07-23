@@ -70,7 +70,7 @@ public final class VoiceOverTranslationButton {
                     "morphe_vot_button",
                     null,
                     "morphe_yt_vot",
-                    Settings.VOT_ENABLED::get,
+                    Settings.VOT_ENABLED,
                     view -> {
                         VoiceOverTranslationPatch.toggleTranslation();
                         refreshActivatedState();
@@ -101,20 +101,5 @@ public final class VoiceOverTranslationButton {
         } catch (Exception ex) {
             Logger.printException(() -> "refreshActivatedState failure", ex);
         }
-    }
-
-    /** Injection point. */
-    public static void setVisibilityNegatedImmediate() {
-        if (legacy != null) legacy.setVisibilityNegatedImmediate();
-    }
-
-    /** Injection point. */
-    public static void setVisibilityImmediate(boolean visible) {
-        if (legacy != null) legacy.setVisibilityImmediate(visible);
-    }
-
-    /** Injection point. */
-    public static void setVisibility(boolean visible, boolean animated) {
-        if (legacy != null) legacy.setVisibility(visible, animated);
     }
 }

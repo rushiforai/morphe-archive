@@ -49,6 +49,7 @@ Second \"item\" text"</string>
   <string name="morphe_settings_search_empty_history_summary">Para salvar o histórico de pesquisa, digite uma consulta de pesquisa e pressione Enter</string>
   <string name="morphe_settings_search_history_title">Mostrar histórico de pesquisa de configurações</string>
   <string name="morphe_show_menu_icons_title">Mostrar ícones de configuração do Morphe</string>
+  <string name="morphe_settings_menu_copy_path">Copiado: %s</string>
   <string name="morphe_language_title">Idioma do Morphe</string>
   <string name="morphe_language_user_dialog_message">"As traduções para alguns idiomas podem estar ausentes ou incompletas.
 
@@ -81,7 +82,7 @@ Para traduzir novos idiomas ou melhorar as traduções existentes, visite morphe
   <string name="morphe_settings_about_links_rv">2022 – 2025</string>
   <string name="morphe_settings_about_links_vanced">2019 – 2022</string>
   <string name="morphe_settings_about_links_licenses">Avisos de licença</string>
-  <string name="morphe_settings_about_licenses_loading">A carregar...</string>
+  <string name="morphe_settings_about_licenses_loading">A carregar</string>
   <!-- misc.debugging.enableDebuggingPatch -->
   <string name="morphe_debug_screen_title">Depuração</string>
   <string name="morphe_debug_screen_summary">Configurar opções avançadas de desenvolvimento e registos de diagnóstico</string>
@@ -97,7 +98,7 @@ Não será notificado de quaisquer eventos inesperados."</string>
   <string name="morphe_debug_export_logs_file">Exportar para ficheiro</string>
   <string name="morphe_debug_export_logs_success">Registos de depuração exportados com sucesso</string>
   <string name="morphe_debug_export_logs_failed">Falha ao exportar registos de depuração</string>
-  <string name="morphe_debug_logs_search_hint">Pesquisar registos de depuração...</string>
+  <string name="morphe_debug_logs_search_hint">Pesquisar registos de depuração…</string>
   <string name="morphe_debug_export_logs_clear">Limpar</string>
   <string name="morphe_debug_logs_disabled">O registo de depuração está desativado</string>
   <string name="morphe_debug_logs_none_found">Nenhum registo de depuração encontrado</string>
@@ -108,7 +109,7 @@ Não será notificado de quaisquer eventos inesperados."</string>
   <string name="morphe_debug_feature_flags_manager_summary">Gerenciar sinalizadores de recurso booleanos</string>
   <string name="morphe_debug_feature_flags_manager_active_header">Sinalizadores de recurso ativos (%d)</string>
   <string name="morphe_debug_feature_flags_manager_blocked_header">Sinalizadores de recurso bloqueados (%d)</string>
-  <string name="morphe_debug_feature_flags_manager_search_hint">Pesquisar sinalizadores de recurso...</string>
+  <string name="morphe_debug_feature_flags_manager_search_hint">Pesquisar funcionalidades…</string>
   <string name="morphe_debug_feature_flags_manager_toast_saved">Sinalizadores de recurso guardados</string>
   <string name="morphe_debug_feature_flags_manager_toast_reset">Sinalizadores de recurso reiniciados</string>
   <string name="morphe_debug_feature_flags_manager_toast_copied">Sinalizadores de recurso copiados para a área de transferência</string>

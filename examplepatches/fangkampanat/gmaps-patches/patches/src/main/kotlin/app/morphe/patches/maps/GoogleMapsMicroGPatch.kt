@@ -116,15 +116,13 @@ private fun rewriteManifestAttributes(node: Node) {
             val name = attribute.nodeName
             val value = attribute.nodeValue
 
-            val renamedPackageValue = when {
+            attribute.nodeValue = when {
                 name == "android:authorities" -> value.replaceOriginalPackage()
                 name == "android:name" && value == "$ORIGINAL_PACKAGE_NAME.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" -> value.replaceOriginalPackage()
-                name == "android:readPermission" -> value.replaceOriginalPackage()
-                name == "android:writePermission" -> value.replaceOriginalPackage()
+                name == "android:name" && node.tagName in manifestPermissionTags -> value.rewriteManifestRoute()
+                name in manifestPermissionAttributes -> value.replaceOriginalPackage().rewriteManifestRoute()
                 else -> value
             }
-
-            attribute.nodeValue = renamedPackageValue.rewriteManifestRoute()
         }
     }
 
@@ -137,8 +135,29 @@ private fun rewriteManifestAttributes(node: Node) {
 private fun String.replaceOriginalPackage() =
     replace(ORIGINAL_PACKAGE_NAME, PATCHED_PACKAGE_NAME)
 
+private val manifestPermissionTags = setOf(
+    "permission",
+    "permission-group",
+    "permission-tree",
+    "uses-permission",
+    "uses-permission-sdk-23",
+)
+
+private val manifestPermissionAttributes = setOf(
+    "android:permission",
+    "android:readPermission",
+    "android:writePermission",
+)
+
+private val manifestRouteReplacements = mapOf(
+    "com.google.android.c2dm.permission.RECEIVE" to "$C2DM_PACKAGE_NAME.permission.RECEIVE",
+    "com.google.android.c2dm.permission.SEND" to "$C2DM_PACKAGE_NAME.permission.SEND",
+    "com.google.android.providers.gsf.permission.READ_GSERVICES" to "$GMS_CORE_VENDOR_GROUP.android.providers.gsf.permission.READ_GSERVICES",
+    "com.google.android.gms.permission.CAR_SPEED" to "$GMS_CORE_PACKAGE_NAME.permission.CAR_SPEED",
+)
+
 private fun String.rewriteManifestRoute() =
-    replace("com.google.android.c2dm", C2DM_PACKAGE_NAME)
+    manifestRouteReplacements[this] ?: this
 
 private fun ensureQueryPackage(document: Document, manifest: Element) {
     val queries = manifest.directChildren("queries").firstOrNull()
@@ -263,12 +282,27 @@ com.google.firebase.dynamiclinks.service.START
 com.google.iid.TOKEN_REQUEST
 """.trimIndent().lines().toSet()
 
+private val exactStringReplacements = mapOf(
+    "com.google" to GMS_CORE_VENDOR_GROUP,
+    "subscribedfeeds" to "$GMS_CORE_VENDOR_GROUP.subscribedfeeds",
+    "$ORIGINAL_PACKAGE_NAME.SuggestionProvider" to "$PATCHED_PACKAGE_NAME.SuggestionProvider",
+    "$ORIGINAL_PACKAGE_NAME.fileprovider" to "$PATCHED_PACKAGE_NAME.fileprovider",
+)
+
+private val exactGmsRouteReplacements = mapOf(
+    "com.google.android.c2dm.permission.RECEIVE" to "$C2DM_PACKAGE_NAME.permission.RECEIVE",
+    "com.google.android.c2dm.permission.SEND" to "$C2DM_PACKAGE_NAME.permission.SEND",
+    "com.google.android.gms" to GMS_CORE_PACKAGE_NAME,
+    "com.google.android.gms.auth.accounts" to "$GMS_CORE_PACKAGE_NAME.auth.accounts",
+    "com.google.android.gms.chimera" to "$GMS_CORE_PACKAGE_NAME.chimera",
+    "com.google.android.gms.fonts" to "$GMS_CORE_PACKAGE_NAME.fonts",
+    "com.google.android.gms.permission.CAR_SPEED" to "$GMS_CORE_PACKAGE_NAME.permission.CAR_SPEED",
+    "com.google.android.gms.phenotype" to "$GMS_CORE_PACKAGE_NAME.phenotype",
+    "com.google.android.providers.gsf.permission.READ_GSERVICES" to "$GMS_CORE_VENDOR_GROUP.android.providers.gsf.permission.READ_GSERVICES",
+)
+
 private fun transformString(value: String): String? {
-    val transformed = when (value) {
-        "com.google" -> GMS_CORE_VENDOR_GROUP
-        "subscribedfeeds" -> "$GMS_CORE_VENDOR_GROUP.subscribedfeeds"
-        "$ORIGINAL_PACKAGE_NAME.SuggestionProvider" -> "$PATCHED_PACKAGE_NAME.SuggestionProvider"
-        "$ORIGINAL_PACKAGE_NAME.fileprovider" -> "$PATCHED_PACKAGE_NAME.fileprovider"
+    val transformed = exactStringReplacements[value] ?: when (value) {
         in exactGmsRoutes -> value.toRevancedRoute()
         else -> value.toRevancedContentUriRoute()
     }
@@ -276,11 +310,8 @@ private fun transformString(value: String): String? {
     return transformed.takeIf { it != value }
 }
 
-private fun String.toRevancedRoute() = when {
-    startsWith("com.google.android.c2dm") -> replace("com.google.android.c2dm", C2DM_PACKAGE_NAME)
-    startsWith("com.google") -> replaceFirst("com.google", GMS_CORE_VENDOR_GROUP)
-    else -> this
-}
+private fun String.toRevancedRoute() =
+    exactGmsRouteReplacements[this] ?: this
 
 private fun String.toRevancedContentUriRoute(): String = when {
     startsWith("content://com.google.android.gms.phenotype") ->

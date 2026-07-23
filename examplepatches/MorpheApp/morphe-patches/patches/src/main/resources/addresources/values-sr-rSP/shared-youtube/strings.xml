@@ -142,8 +142,9 @@ Da bi se prijavili, pritisnite nastavak ispod"</string>
   <string name="morphe_proxy_allow_direct_fallback_summary">Повезивање директно ако прокси не успе</string>
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">Сакриј огласе преко целог екрана</string>
-  <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_force_original_audio_not_available">Да бисте користили ову функцију, промените ‘Лажирани видео снимци’ на Андроид Риел или ТВ</string>
+  <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
+          'Android Studio' must be kept untranslated. -->
+  <string name="morphe_force_original_audio_not_available">Да бисте користили ову функцију, промените опцију „Лажирани видео стримови” на било који клијент осим Android Studio\'</string>
   <!-- misc.privacy.sanitizeSharingLinksPatch -->
   <string name="morphe_sanitize_sharing_links_title">Очисти дељене линкове</string>
   <string name="morphe_sanitize_sharing_links_summary">Уклања параметре упита за праћење из дељених линкова.</string>
@@ -167,6 +168,10 @@ Da bi se prijavili, pritisnite nastavak ispod"</string>
   <!-- 'Component path builder strings' is the technical name for identifying the Litho UI layout items to hide. This is an advanced feature and most users will never use this. -->
   <string name="morphe_custom_filter_strings_summary">Листа стрингова за изградњу путање компоненти за филтрирање, одвојена новим редовима</string>
   <string name="morphe_custom_filter_toast_invalid_syntax">Неважећи прилагођени филтер: %s</string>
+  <!-- Settings menu filter -->
+  <string name="morphe_settings_menu_filter_screen_title">Филтер менија подешавања</string>
+  <string name="morphe_settings_menu_filter_screen_summary">Прикриј ставке на екрану подешавања апликације по њиховом видљивом имену</string>
+  <string name="morphe_settings_menu_filter_picker_empty">Отворите стандардни екран подешавања апликације једном да бисте попунили листу</string>
   <!-- misc.spoof.appversion.spoofAppVersionPatch -->
   <string name="morphe_spoof_app_version_title">Лажирана верзија апликације</string>
   <string name="morphe_spoof_app_version_summary">Превари сервер да мисли да користите старију верзију апликације како би се вратиле застареле функције корисничког интерфејса</string>
@@ -176,4 +181,42 @@ Da bi se prijavili, pritisnite nastavak ispod"</string>
 
 Ако се касније искључи, препоручује се да избришете податке апликације да бисте избегли грешке у корисничком интерфејсу."</string>
   <string name="morphe_spoof_app_version_target_title">Циљна верзија апликације за лажирање</string>
+  <!-- layout.returnyoutubedislike.returnYouTubeDislikePatch -->
+  <!-- Brief notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
+  <string name="morphe_ryd_failure_connection_timeout">Несвиђања привремено нису доступна (API је истекао)</string>
+  <string name="morphe_ryd_failure_connection_status_code">Несвиђања нису доступна (статус %d)</string>
+  <string name="morphe_ryd_failure_client_rate_limit_requested">Несвиђања нису доступна (ограничење клијента API-ја)</string>
+  <string name="morphe_ryd_failure_generic">Несвиђања нису доступна (%s)</string>
+  <!-- Video likes have been set to hidden by the video uploader. -->
+  <string name="morphe_ryd_video_likes_hidden_by_video_owner">Скривено од стране власника</string>
+  <string name="morphe_ryd_enabled_title">Омогући Return YouTube Dislike</string>
+  <string name="morphe_ryd_dislike_percentage_title">Прикажи несвиђања као проценат</string>
+  <string name="morphe_ryd_dislike_percentage_summary">Приказује несвиђања као проценат свиђања уместо броја</string>
+  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
+  <string name="morphe_ryd_compact_layout_title">Користи компактно дугме „Свиђа ми се“</string>
+  <string name="morphe_ryd_compact_layout_summary">Смањује ширину дугмета „Свиђа ми се“ како би се уштедело место</string>
+  <string name="morphe_ryd_estimated_like_title">Прикажи процењени број свиђања</string>
+  <string name="morphe_ryd_estimated_like_summary">Приказује процењену прегледаност на видео снимцима на којем је креатор искључио прегледаност</string>
+  <string name="morphe_ryd_toast_on_connection_error_title">Приказуј упозорења о грешци у вези са повезивањем</string>
+  <string name="morphe_ryd_toast_on_connection_error_summary">Приказује обавештење када је сервер Return YouTube Dislike недоступан</string>
+  <string name="morphe_ryd_attribution_summary">"Подаци су пружени од стране Return YouTube Dislike API-ја
+
+Додирните овде да бисте отворили ReturnYouTubeDislike.com"</string>
+  <!-- Statistic strings are shown in the settings only when Morphe debug mode is enabled. Typical users will never see these. -->
+  <string name="morphe_ryd_statistics_category_title">Статистика Return YouTube Dislike API-ја за овај уређај</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeAverage_title">Време одговора API-ја, просек</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMin_title">Време одговора API-ја, минимум</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMax_title">Време одговора API-ја, максимум</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_title">Време одговора API-ја, последњи медиј</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_rate_limit_summary">Несвиђања привремено нису доступна – Ограничење брзине клијентског API-ја је на снази</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_title">API прикупљање гласова, број позива</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_zero_summary">Није остварен ниједан мрежни позив</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_non_zero_summary">%d мрежних позива је направљено</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_title">API прикупљање гласова, број неуспеха</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_zero_summary">Ниједна мрежна веза није истекла</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_non_zero_summary">%d мрежних позива је истекло</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_title">Ограничења брзине клијентског API-ја</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_zero_summary">Није наишао ни на једно ограничење брзине клијента</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_non_zero_summary">Клијентско ограничење брзине наишло %d пута</string>
+  <string name="morphe_ryd_statistics_millisecond_text">%d милисекунди</string>
 </resources>
