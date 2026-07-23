@@ -865,6 +865,14 @@
                 "sortOrder": 102,
                 "createdAt": 1784838370843,
                 "updatedAt": 1784838370843
+            },
+            {
+                "name": "vocacolle-morphe-patches",
+                "source": "https://raw.githubusercontent.com/ilikeadofai/vocacolle-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 103,
+                "createdAt": 1784840718648,
+                "updatedAt": 1784840718648
             }
         ]
     }

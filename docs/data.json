@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-07-23 20:50 UTC",
-  "configFile": "morphe_archive_config_v4.json",
-  "configVersion": 4,
-  "repoCount": 102,
-  "appCount": 507,
+  "generatedAt": "2026-07-23 21:05 UTC",
+  "configFile": "morphe_archive_config_v5.json",
+  "configVersion": 5,
+  "repoCount": 103,
+  "appCount": 504,
   "repos": [
     {
       "name": "Morphe-Patches",
@@ -434,6 +434,16 @@
       "addUrl": "https://morphe.software/add-source?github=Ikuradachi/ikura-patches",
       "patchCount": 0,
       "appCount": 0
+    },
+    {
+      "name": "vocacolle-morphe-patches",
+      "repo": "ilikeadofai/vocacolle-morphe-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/ilikeadofai/vocacolle-morphe-patches/main/patches-bundle.json",
+      "webUrl": "https://github.com/ilikeadofai/vocacolle-morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=ilikeadofai/vocacolle-morphe-patches",
+      "patchCount": 5,
+      "appCount": 1
     },
     {
       "name": "ImmortalZeus-Morphe-Patches",
@@ -1012,8 +1022,8 @@
       "source": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/patches-bundle.json",
       "webUrl": "https://github.com/xob0t/morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=xob0t/morphe-patches",
-      "patchCount": 24,
-      "appCount": 4
+      "patchCount": 0,
+      "appCount": 0
     },
     {
       "name": "morphe-patches",
@@ -1506,30 +1516,6 @@
       ],
       "versions": [
         "7.5.10"
-      ]
-    },
-    {
-      "packageName": "com.avito.android",
-      "name": "Avito",
-      "repos": [
-        "xob0t/morphe-patches"
-      ],
-      "patches": [
-        "AMOLED dark theme",
-        "Block listings",
-        "Disable telemetry",
-        "Disable update prompts",
-        "Morphe settings",
-        "Remove ads",
-        "UI tweaks"
-      ],
-      "versions": [
-        "224.6",
-        "225.5",
-        "226.5",
-        "227.0",
-        "228.0",
-        "229.1"
       ]
     },
     {
@@ -5816,22 +5802,6 @@
       ]
     },
     {
-      "packageName": "ru.ozon.app.android",
-      "name": "Ozon",
-      "repos": [
-        "xob0t/morphe-patches"
-      ],
-      "patches": [
-        "Remove Ozon ads"
-      ],
-      "versions": [
-        "18.37.0",
-        "19.16.0",
-        "19.22.0",
-        "19.27.0"
-      ]
-    },
-    {
       "packageName": "com.medibang.android.medibangpro",
       "name": "Paletta",
       "repos": [
@@ -7480,21 +7450,6 @@
       ]
     },
     {
-      "packageName": "com.idamob.tinkoff.android",
-      "name": "TBank",
-      "repos": [
-        "xob0t/morphe-patches"
-      ],
-      "patches": [
-        "Bypass anti-tamper",
-        "Remove TBank ads"
-      ],
-      "versions": [
-        "7.36.0",
-        "7.40.0"
-      ]
-    },
-    {
       "packageName": "com.atomengineapps.teachmeanatomy",
       "name": "Teach Me Anatomy",
       "repos": [
@@ -7864,8 +7819,8 @@
       ],
       "patches": [
         "Disable analytics",
-        "Disable Telemetry",
         "Disable telemetry",
+        "Disable Telemetry",
         "Disable update check",
         "Enable premium features",
         "GMS sign-in bypass",
@@ -8140,6 +8095,23 @@
       ]
     },
     {
+      "packageName": "jp.nicovideo.nicobox",
+      "name": "VocaColle",
+      "repos": [
+        "ilikeadofai/vocacolle-morphe-patches"
+      ],
+      "patches": [
+        "Customize VocaColle branding",
+        "English UI",
+        "Korean UI",
+        "VocaColle compatibility probe",
+        "VocaColle Morphe settings"
+      ],
+      "versions": [
+        "7.40.0"
+      ]
+    },
+    {
       "packageName": "com.vpn.free.hotspot.secure.vpnify",
       "name": "vpnify",
       "repos": [
@@ -8239,22 +8211,6 @@
       ],
       "versions": [
         "3.9.5"
-      ]
-    },
-    {
-      "packageName": "com.wildberries.ru",
-      "name": "Wildberries",
-      "repos": [
-        "xob0t/morphe-patches"
-      ],
-      "patches": [
-        "Remove Wildberries ads"
-      ],
-      "versions": [
-        "7.0.6000",
-        "7.6.1000-rustore",
-        "7.6.8001",
-        "7.7.2001-rustore"
       ]
     },
     {
@@ -8537,8 +8493,8 @@
         "Save to watch later",
         "Seekbar",
         "Seekbar components",
-        "Set Transcript Cookies",
         "Set transcript cookies",
+        "Set Transcript Cookies",
         "Settings for YouTube",
         "Settings menu filter",
         "Shorts autoplay",

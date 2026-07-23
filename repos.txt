@@ -83,6 +83,7 @@ hoo-dles/morphe-patches
 humzakh/HK-Morphe-Patches
 hxreborn/morphe-patches
 icysymmetra/tiktok-patches-for-morphe
+ilikeadofai/vocacolle-morphe-patches
 isuruhg/fin-tweaks
 itsthejoker/itsthejoker-patches
 jasonwu1994/Gboard-patches
