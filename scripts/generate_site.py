@@ -566,6 +566,7 @@ HTML = """<!doctype html>
       text-transform: uppercase;
       font-size: 12px;
       letter-spacing: .04em;
+      text-align: center;
     }
     .stat strong {
       display: block;
@@ -721,6 +722,7 @@ HTML = """<!doctype html>
     }
     .source-actions {
       align-items: center;
+      margin-left: 68px;
     }
     .source-actions .obtainium {
       flex-basis: auto;
@@ -792,6 +794,9 @@ HTML = """<!doctype html>
       justify-content: space-between;
       gap: 10px;
       margin-bottom: 8px;
+    }
+    .source-card-head.card-head {
+      grid-template-columns: minmax(0, 1fr);
     }
     .source-card-title {
       display: flex;
@@ -1089,6 +1094,9 @@ HTML = """<!doctype html>
       .source-card-head {
         align-items: flex-start;
         flex-direction: column;
+      }
+      .source-actions {
+        margin-left: 0;
       }
       .source-actions .obtainium {
         max-width: none;
