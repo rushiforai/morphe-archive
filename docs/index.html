@@ -8,46 +8,74 @@
   <style>
     :root {
       color-scheme: dark;
-      --bg: #0f1115;
-      --panel: #181b21;
-      --panel-2: #20242c;
-      --line: #2d333d;
+      --bg: #111318;
+      --panel: #1d1f24;
+      --panel-2: #262931;
+      --line: #474b55;
       --text: #f4f6f8;
       --muted: #a9b1bd;
-      --accent: #74d99f;
-      --accent-2: #93baff;
+      --accent: #28c7dc;
+      --accent-2: #5da8ff;
       --warn: #f2c56c;
-      --shadow: 0 18px 45px rgba(0, 0, 0, .24);
+      --shadow: 0 18px 40px rgba(0, 0, 0, .22);
     }
     * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
     body {
       margin: 0;
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: linear-gradient(180deg, #14171d 0, var(--bg) 420px);
+      background: var(--bg);
       color: var(--text);
       line-height: 1.5;
+      padding-bottom: 78px;
     }
     header {
       border-bottom: 1px solid var(--line);
-      background: #121418;
+      background: #15171c;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(14px);
     }
     .wrap {
-      max-width: 1180px;
+      max-width: 1220px;
       margin: 0 auto;
       padding: 24px;
+    }
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding-bottom: 18px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 25px;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+    .brand-mark {
+      color: var(--accent);
+      font-size: 30px;
+      line-height: 1;
     }
     .top {
       display: grid;
       grid-template-columns: 1fr auto;
       gap: 20px;
       align-items: end;
+      padding: 36px 0 18px;
     }
     h1 {
       margin: 0 0 8px;
-      font-size: clamp(30px, 4vw, 52px);
-      line-height: 1;
+      font-size: clamp(36px, 5vw, 64px);
+      line-height: 1.04;
       letter-spacing: 0;
     }
+    .accent-text { color: var(--accent); }
     p { margin: 0; color: var(--muted); }
     .subline {
       display: flex;
@@ -66,7 +94,7 @@
     }
     .stats {
       display: grid;
-      grid-template-columns: repeat(3, minmax(96px, 1fr));
+      grid-template-columns: repeat(4, minmax(92px, 1fr));
       gap: 10px;
       flex-wrap: wrap;
       justify-content: flex-end;
@@ -78,19 +106,27 @@
       border-radius: 8px;
       min-width: 104px;
       box-shadow: var(--shadow);
+      text-transform: uppercase;
+      font-size: 12px;
+      letter-spacing: .04em;
     }
-    .stat strong { display: block; font-size: 22px; }
+    .stat strong {
+      display: block;
+      font-size: 24px;
+      color: var(--accent);
+      letter-spacing: 0;
+    }
     .toolbar {
       display: grid;
-      grid-template-columns: minmax(220px, 1fr) auto auto auto;
-      gap: 12px;
+      grid-template-columns: auto auto minmax(220px, 1fr);
+      gap: 14px;
       margin-top: 22px;
     }
     input, select, button, a.button {
       border: 1px solid var(--line);
       background: var(--panel);
       color: var(--text);
-      border-radius: 6px;
+      border-radius: 12px;
       padding: 11px 12px;
       font: inherit;
     }
@@ -98,29 +134,35 @@
     select { min-width: 140px; }
     .tabs {
       display: flex;
-      gap: 8px;
+      gap: 0;
       flex-wrap: wrap;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: hidden;
+      background: var(--panel);
     }
+    .tabs button { border: 0; border-radius: 0; background: transparent; }
     button.active {
-      border-color: var(--accent);
-      color: #08110d;
-      background: var(--accent);
+      color: var(--text);
+      background: var(--panel-2);
     }
     main .wrap { padding-top: 18px; }
     .list {
       display: grid;
-      gap: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+      gap: 20px;
     }
     .row {
       display: grid;
       grid-template-columns: 1fr auto;
       gap: 16px;
-      align-items: center;
+      align-items: start;
       border: 1px solid var(--line);
       background: var(--panel);
-      padding: 14px;
-      border-radius: 8px;
+      padding: 20px;
+      border-radius: 14px;
       box-shadow: var(--shadow);
+      min-height: 110px;
     }
     .row:hover { border-color: #46505f; }
     .name {
@@ -144,9 +186,9 @@
       min-width: 0;
     }
     .avatar, .app-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 8px;
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
       border: 1px solid var(--line);
       display: inline-flex;
       align-items: center;
@@ -156,6 +198,19 @@
       background: var(--panel-2);
       color: var(--text);
       font-weight: 800;
+    }
+    .app-icon.fallback {
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.18), rgba(255,255,255,0) 45%),
+        var(--icon-color, #2f3542);
+    }
+    .app-icon.fallback::after {
+      content: "";
+      width: 16px;
+      height: 16px;
+      border-radius: 5px;
+      border: 2px solid rgba(255,255,255,.72);
+      box-shadow: 7px 7px 0 -3px rgba(255,255,255,.5);
     }
     .avatar img, .app-icon img {
       width: 100%;
@@ -201,8 +256,8 @@
     details {
       grid-column: 1 / -1;
       border-top: 1px solid var(--line);
-      margin-top: 2px;
-      padding-top: 10px;
+      margin-top: 8px;
+      padding-top: 14px;
       color: var(--muted);
     }
     summary {
@@ -227,14 +282,14 @@
     }
     .source-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
       margin-top: 10px;
     }
     .source-card {
       border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 12px;
+      border-radius: 14px;
+      padding: 14px;
       background: #141820;
     }
     .source-card-head {
@@ -266,45 +321,80 @@
       text-align: center;
     }
     .disclaimer {
-      margin-top: 18px;
-      border-top: 1px solid var(--line);
-      padding-top: 16px;
+      margin: 24px 0 0;
       color: var(--muted);
       font-size: 13px;
     }
+    .bottom-bar {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 20;
+      border-top: 1px solid var(--line);
+      background: rgba(17, 19, 24, .94);
+      backdrop-filter: blur(14px);
+    }
+    .bottom-inner {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .bottom-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
     @media (max-width: 760px) {
       .top, .toolbar, .row { grid-template-columns: 1fr; }
-      .stats { grid-template-columns: repeat(3, 1fr); }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .list { grid-template-columns: 1fr; }
       .actions { justify-content: flex-start; }
       .wrap { padding: 18px; }
+      .bottom-inner { align-items: flex-start; flex-direction: column; padding: 12px 18px; }
     }
     @media (max-width: 520px) {
       .stats { grid-template-columns: 1fr; }
     }
   </style>
 </head>
-<body>
+<body id="top">
   <header>
     <div class="wrap">
+      <div class="nav">
+        <div class="brand"><span class="brand-mark">M</span><span>Morphe Archive</span></div>
+        <div class="header-actions">
+          <a class="button" href="#how-to-add">How to Add</a>
+          <a id="configLink" class="button primary" href="#">Download Config</a>
+        </div>
+      </div>
       <div class="top">
         <div>
-          <h1>Morphe Archive</h1>
-          <p>Search working Morphe patch sources, open their repositories, and add them to Morphe Manager.</p>
+          <h1>Community <span class="accent-text">Patch Sources</span></h1>
+          <p>Browse working Morphe patch bundles, supported apps, and universal patches that are not tied to one package.</p>
           <div class="subline">
             <span id="generatedAt">Loading archive data</span>
-            <div class="header-actions">
-              <a id="configLink" class="button primary" href="#">Download Manager Config</a>
-            </div>
           </div>
         </div>
         <div class="stats">
           <div class="stat"><strong id="repoCount">0</strong><span>sources</span></div>
           <div class="stat"><strong id="appCount">0</strong><span>apps</span></div>
           <div class="stat"><strong id="patchCount">0</strong><span>patches</span></div>
+          <div class="stat"><strong id="universalCount">0</strong><span>universal</span></div>
         </div>
       </div>
       <div class="toolbar">
-        <input id="search" type="search" placeholder="Search repos, apps, packages, patches">
+        <div class="tabs">
+          <button id="appsTab" class="active" type="button">Apps</button>
+          <button id="reposTab" type="button">Bundles</button>
+          <button id="universalTab" type="button">Universal</button>
+        </div>
         <select id="hostFilter" aria-label="Filter by host">
           <option value="all">All hosts</option>
         </select>
@@ -314,27 +404,36 @@
           <option value="apps">Most apps</option>
           <option value="sources">Most sources</option>
         </select>
-        <div class="tabs">
-          <button id="reposTab" class="active" type="button">Repos</button>
-          <button id="appsTab" type="button">Apps</button>
-        </div>
+        <input id="search" type="search" placeholder="Search bundles, apps, packages, patches">
       </div>
     </div>
   </header>
   <main>
     <div class="wrap">
       <div id="list" class="list"></div>
-      <p class="disclaimer">Use at your own risk. This site indexes possible Morphe patch sources but does not verify every repository or patch behavior. Patch failures, account bans, device issues, data loss, and other side effects are your responsibility.</p>
+      <section id="how-to-add" class="disclaimer">
+        <strong>How to add:</strong> click Add Source on the specific source you want, then open Morphe Manager and import the config from Settings if you prefer the full archive.
+      </section>
     </div>
   </main>
+  <footer class="bottom-bar">
+    <div class="bottom-inner">
+      <span>Use at your own risk. Sources and patches are community provided and not individually verified.</span>
+      <div class="bottom-actions">
+        <a id="bottomConfigLink" class="button primary" href="#">Download Config</a>
+        <a class="button" href="#top">Back to top</a>
+      </div>
+    </div>
+  </footer>
   <script>
-    const state = { tab: "repos", query: "", host: "all", sort: "name", data: null };
+    const state = { tab: "apps", query: "", host: "all", sort: "name", data: null };
     const list = document.getElementById("list");
     const search = document.getElementById("search");
     const hostFilter = document.getElementById("hostFilter");
     const sortMode = document.getElementById("sortMode");
     const reposTab = document.getElementById("reposTab");
     const appsTab = document.getElementById("appsTab");
+    const universalTab = document.getElementById("universalTab");
 
     function escapeHtml(value) {
       const div = document.createElement("div");
@@ -365,8 +464,8 @@
     function appIconHtml(app) {
       const label = initials(app.name || app.packageName);
       const color = app.iconColor || "#2f3542";
-      if (app.iconUrl) return `<span class="app-icon"><img src="${app.iconUrl}" alt="" loading="lazy" onerror="this.remove(); this.parentElement.textContent='${escapeHtml(label)}'"></span>`;
-      return `<span class="app-icon" style="background:${escapeHtml(color)}">${escapeHtml(label)}</span>`;
+      if (app.iconUrl) return `<span class="app-icon"><img src="${app.iconUrl}" alt="" loading="lazy" onerror="this.remove(); this.parentElement.classList.add('fallback')"></span>`;
+      return `<span class="app-icon fallback" style="--icon-color:${escapeHtml(color)}" title="Icon unavailable"></span>`;
     }
 
     function sortRows(rows) {
@@ -415,14 +514,19 @@
       return row;
     }
 
+    function patchChips(patches, limit = 16) {
+      const shown = patches.slice(0, limit).map((patch) => `
+        <span class="chip">${escapeHtml(patch.name)}${patch.description ? `<span class="patch-note">${escapeHtml(patch.description)}</span>` : ""}</span>
+      `).join("");
+      const more = patches.length > limit ? `<span class="chip">+${patches.length - limit} more patches</span>` : "";
+      return shown + more;
+    }
+
     function appRow(app) {
-      const repo = state.data.repos.find((item) => app.repos.includes(item.repo));
       const row = document.createElement("article");
       row.className = "row";
       const sourceCards = app.sources.map((source) => {
-        const sourcePatches = source.patches.slice(0, 16).map((patch) => `
-          <span class="chip">${escapeHtml(patch.name)}${patch.description ? `<span class="patch-note">${escapeHtml(patch.description)}</span>` : ""}</span>
-        `).join("");
+        const sourcePatches = patchChips(source.patches, 16);
         const sourceVersions = source.versions.slice(0, 6).map((version) => `<span class="chip">${escapeHtml(version)}</span>`).join("");
         return `
           <div class="source-card">
@@ -455,12 +559,37 @@
             </div>
           </div>
         </div>
-        <div class="actions">
-          ${repo ? `<a class="button" href="${repo.webUrl}" target="_blank" rel="noreferrer">Source</a><a class="button primary" href="${repo.addUrl}" target="_blank" rel="noreferrer">Add Source</a>` : ""}
-        </div>
+        <div></div>
         <details>
           <summary>${app.sources.length} source${app.sources.length === 1 ? "" : "s"} with separate patch sets</summary>
           <div class="source-grid">${sourceCards}</div>
+        </details>`;
+      return row;
+    }
+
+    function universalRow(source) {
+      const row = document.createElement("article");
+      row.className = "row";
+      row.innerHTML = `
+        <div>
+          <div class="title-line">
+            ${avatarHtml(source.avatarUrl, source.repo)}
+            <div>
+              <div class="name">${escapeHtml(source.repo)}</div>
+              <div class="meta">
+                ${hostBadge(source.host)}
+                <span>${source.patchCount} universal patches</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="actions">
+          <a class="button" href="${source.webUrl}" target="_blank" rel="noreferrer">Open</a>
+          <a class="button primary" href="${source.addUrl}" target="_blank" rel="noreferrer">Add Source</a>
+        </div>
+        <details open>
+          <summary>Universal patch set</summary>
+          <div class="chips">${patchChips(source.patches, 24) || '<span class="chip">No patch metadata</span>'}</div>
         </details>`;
       return row;
     }
@@ -469,18 +598,27 @@
       list.innerHTML = "";
       reposTab.classList.toggle("active", state.tab === "repos");
       appsTab.classList.toggle("active", state.tab === "apps");
+      universalTab.classList.toggle("active", state.tab === "universal");
 
-      let rows = state.tab === "repos"
-        ? state.data.repos.filter((repo) =>
-            (state.host === "all" || repo.host === state.host) &&
-            (!state.query || [repo.repo, repo.name, repo.host].some(textMatch))
-          )
-        : state.data.apps.filter((app) => !state.query || [
+      let rows = [];
+      if (state.tab === "repos") {
+        rows = state.data.repos.filter((repo) =>
+          (state.host === "all" || repo.host === state.host) &&
+          (!state.query || [repo.repo, repo.name, repo.host].some(textMatch))
+        );
+      } else if (state.tab === "universal") {
+        rows = state.data.universalSources.filter((source) =>
+          (state.host === "all" || source.host === state.host) &&
+          (!state.query || [source.repo, source.host, source.patches.map((patch) => patch.name).join(" ")].some(textMatch))
+        );
+      } else {
+        rows = state.data.apps.filter((app) => !state.query || [
             app.name,
             app.packageName,
             app.repos.join(" "),
             app.patches.join(" ")
           ].some(textMatch));
+      }
       rows = sortRows(rows);
 
       if (!rows.length) {
@@ -488,7 +626,11 @@
         return;
       }
 
-      rows.forEach((item) => list.appendChild(state.tab === "repos" ? repoRow(item) : appRow(item)));
+      rows.forEach((item) => {
+        if (state.tab === "repos") list.appendChild(repoRow(item));
+        else if (state.tab === "universal") list.appendChild(universalRow(item));
+        else list.appendChild(appRow(item));
+      });
     }
 
     fetch("data.json")
@@ -498,11 +640,16 @@
         document.getElementById("repoCount").textContent = data.repoCount;
         document.getElementById("appCount").textContent = data.appCount;
         document.getElementById("patchCount").textContent = data.patchCount;
+        document.getElementById("universalCount").textContent = data.universalPatchCount;
         document.getElementById("generatedAt").textContent = `Generated ${data.generatedAt}`;
         const configLink = document.getElementById("configLink");
+        const bottomConfigLink = document.getElementById("bottomConfigLink");
         configLink.href = `../${data.configFile}`;
         configLink.download = data.configFile;
         configLink.textContent = `Download Config v${data.configVersion}`;
+        bottomConfigLink.href = configLink.href;
+        bottomConfigLink.download = data.configFile;
+        bottomConfigLink.textContent = `Config v${data.configVersion}`;
         Object.entries(data.hostCounts || {}).forEach(([host, count]) => {
           const option = document.createElement("option");
           option.value = host;
@@ -520,6 +667,7 @@
     sortMode.addEventListener("change", () => { state.sort = sortMode.value; render(); });
     reposTab.addEventListener("click", () => { state.tab = "repos"; render(); });
     appsTab.addEventListener("click", () => { state.tab = "apps"; render(); });
+    universalTab.addEventListener("click", () => { state.tab = "universal"; render(); });
   </script>
 </body>
 </html>
