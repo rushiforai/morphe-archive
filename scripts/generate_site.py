@@ -381,7 +381,7 @@ HTML = """<!doctype html>
     .brand {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 0;
       font-size: 24px;
       font-weight: 800;
       letter-spacing: 0;
@@ -663,7 +663,11 @@ HTML = """<!doctype html>
       color: var(--muted);
       font-size: 13px;
     }
+    .mobile-footer {
+      display: none;
+    }
     @media (max-width: 760px) {
+      body { padding-bottom: 54px; }
       header { position: static; }
       .nav {
         align-items: flex-start;
@@ -684,9 +688,11 @@ HTML = """<!doctype html>
       .stats {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         width: 100%;
+        gap: 8px;
       }
       .stat {
         min-width: 0;
+        padding: 7px 10px;
       }
       .list { grid-template-columns: 1fr; }
       .toolbar {
@@ -732,12 +738,24 @@ HTML = """<!doctype html>
         width: 100%;
         padding: 14px;
       }
+      .mobile-footer {
+        display: block;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 20;
+        border-top: 1px solid var(--line);
+        background: rgba(17, 19, 24, .96);
+        color: var(--muted);
+        font-size: 11px;
+        line-height: 1.35;
+        padding: 9px 14px;
+        text-align: center;
+      }
     }
     @media (max-width: 520px) {
-      .stats {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       h1 {
         font-size: 29px;
       }
@@ -751,10 +769,13 @@ HTML = """<!doctype html>
         width: 100%;
       }
       .stat {
-        padding: 8px 10px;
+        padding: 7px 9px;
       }
       .stat strong {
-        font-size: 20px;
+        font-size: 19px;
+      }
+      .stat span {
+        font-size: 10px;
       }
       .actions .button {
         flex: 1 1 0;
@@ -817,6 +838,7 @@ HTML = """<!doctype html>
       <p class="disclaimer">Use at your own risk. Sources and patches are community provided and not individually verified.</p>
     </div>
   </main>
+  <footer class="mobile-footer">Use at your own risk. Community sources are not individually verified.</footer>
   <script>
     const state = { tab: "apps", query: "", host: "all", sort: "name", data: null };
     const list = document.getElementById("list");
