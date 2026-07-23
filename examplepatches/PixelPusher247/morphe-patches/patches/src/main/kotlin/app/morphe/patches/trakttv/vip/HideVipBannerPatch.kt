@@ -3,6 +3,7 @@ package app.morphe.patches.trakttv.vip
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.misc.mapping.ResourceType
+import app.morphe.patches.shared.misc.mapping.getResourceElements
 import app.morphe.patches.shared.misc.mapping.getResourceId
 import app.morphe.patches.shared.misc.mapping.resourceMappingPatch
 import app.morphe.util.containsLiteralInstruction
@@ -18,19 +19,19 @@ val hideVipBannerPatch = bytecodePatch(
     compatibleWith("tv.trakt.trakt")
 
     execute {
-        val upsellDefault = getResourceId(ResourceType.STRING, "text_vip_upsell_default")
-        val upsellDefault2 = getResourceId(ResourceType.STRING, "text_vip_upsell_default_2")
         val badgeGetVip = getResourceId(ResourceType.STRING, "badge_text_get_vip")
+        val upsellStringIds = getResourceElements()
+            .filter { it.type == ResourceType.STRING && it.name.startsWith("text_vip_upsell") }
+            .map { it.id }
+        val neutralizedMethods = HashSet<String>()
 
-        forEachLiteralValueInstruction(upsellDefault) { _ ->
-            if (containsLiteralInstruction(badgeGetVip)) {
-                addInstructions(0, "return-void")
-            }
-        }
-
-        forEachLiteralValueInstruction(upsellDefault2) { _ ->
-            if (containsLiteralInstruction(badgeGetVip)) {
-                addInstructions(0, "return-void")
+        upsellStringIds.forEach { upsellId ->
+            forEachLiteralValueInstruction(upsellId) { _ ->
+                if (containsLiteralInstruction(badgeGetVip) &&
+                    neutralizedMethods.add("$definingClass->$name")
+                ) {
+                    addInstructions(0, "return-void")
+                }
             }
         }
     }

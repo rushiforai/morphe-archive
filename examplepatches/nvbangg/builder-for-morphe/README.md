@@ -29,7 +29,7 @@ You can use [this repository](https://github.com/nvbangg/builder-for-morphe) to 
 
 For full configuration reference, setup and contributing guide, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
-For all Morphe resources, patches and community projects, visit [nvbangg/awesome-for-morphe](https://github.com/nvbangg/awesome-for-morphe).
+For all Morphe resources, patches and community projects, visit [nvbangg/awesome-morphe](https://github.com/nvbangg/awesome-morphe).
 
 ---
 

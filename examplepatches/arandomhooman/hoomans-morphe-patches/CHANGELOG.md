@@ -1,3 +1,21 @@
+## [1.43.4](https://github.com/arandomhooman/hoomans-morphe-patches/compare/v1.43.3...v1.43.4) (2026-07-22)
+
+### 🐛 Bug Fixes
+
+* handle install residue during release back-merge ([5fe8fb1](https://github.com/arandomhooman/hoomans-morphe-patches/commit/5fe8fb112354c9a3e1b2f41f095ff6176df6b5b3))
+
+## [1.43.3](https://github.com/arandomhooman/hoomans-morphe-patches/compare/v1.43.2...v1.43.3) (2026-07-22)
+
+### 🐛 Bug Fixes
+
+* harden release back-merge against generated metadata ([e4fe869](https://github.com/arandomhooman/hoomans-morphe-patches/commit/e4fe86979e5a1d91e8e936a6f94e6ddb2420de97))
+
+## [1.43.2](https://github.com/arandomhooman/hoomans-morphe-patches/compare/v1.43.1...v1.43.2) (2026-07-22)
+
+### 🐛 Bug Fixes
+
+* resolve Symfonium playback and Poweramp settings crashes ([caa0bbc](https://github.com/arandomhooman/hoomans-morphe-patches/commit/caa0bbc8f11a6b81df5c1427874576ba597016f2))
+
 ## [1.43.1](https://github.com/arandomhooman/hoomans-morphe-patches/compare/v1.43.0...v1.43.1) (2026-07-20)
 
 ### 🐛 Bug Fixes
