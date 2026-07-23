@@ -1,0 +1,18 @@
+scope,key,context,source,source_language,en,en_status,reviewer
+hardcoded,external_link_title,confirmation dialog title,リンク先に遷移する,ja,Open link,machine_verified,GPT-5.6 Luna low + deterministic QA
+hardcoded,external_link_ok,positive dialog button,OK,en,OK,source_verified,source passthrough + deterministic QA
+hardcoded,external_link_cancel,negative dialog button,Cancel,en,Cancel,source_verified,source passthrough + deterministic QA
+hardcoded,ad_download,ad landing button,ダウンロード,ja,Download,machine_verified,GPT-5.6 Luna low + deterministic QA
+hardcoded,proseka_description,game recommendation description,"「ロキ」「シャルル」「Tell Your World」「ハッピーシンセサイザ」などの名曲を3DMV付きで多数収録！SEGA×Colorful Paletteが贈る、誰でもかんたんに楽しめるリズムゲーム。",ja,"Featuring many hit songs, including “Roki,” “Charles,” “Tell Your World,” and “Happy Synthesizer,” with 3D music videos! A rhythm game from SEGA × Colorful Palette that anyone can easily enjoy.",machine_verified,GPT-5.6 Luna low + deterministic QA
+hardcoded,proseka_subtitle,game recommendation subtitle,初音ミクも登場する新作リズムゲーム,ja,A new rhythm game featuring Hatsune Miku,machine_verified,GPT-5.6 Luna low + deterministic QA
+hardcoded,proseka_title,official game title,プロジェクトセカイ カラフルステージ！ feat. 初音ミク,ja,Project SEKAI COLORFUL STAGE! feat. Hatsune Miku,machine_verified,GPT-5.6 Luna low + deterministic QA
+server,ranking_music_sound,ranking genre,音楽・サウンド,ja,Music & Sound,machine_verified,GPT-5.6 Luna low + deterministic QA
+server,ranking_nico_indies,ranking genre,ニコニコインディーズ,ja,Niconico Indies,machine_verified,GPT-5.6 Luna low + deterministic QA
+server,ranking_played,ranking genre,演奏してみた,ja,Played It,machine_verified,GPT-5.6 Luna low + deterministic QA
+server,ranking_sang,ranking genre,歌ってみた,ja,Sang It,machine_verified,GPT-5.6 Luna low + deterministic QA
+server,ranking_music,ranking genre,音楽,ja,Music,machine_verified,GPT-5.6 Luna low + deterministic QA
+server,ranking_touhou,ranking genre,東方,ja,Touhou,machine_verified,GPT-5.6 Luna low + deterministic QA
+server,ranking_radio,ranking genre,ラジオ,ja,Radio,machine_verified,GPT-5.6 Luna low + deterministic QA
+server,push_info,push notification category title,運営からのお知らせ,ja,News from the Team,machine_verified,GPT-5.6 Luna low + deterministic QA
+server,push_feature,push notification category title,ボカコレの機能とヒント,ja,VocaColle Features & Tips,machine_verified,GPT-5.6 Luna low + deterministic QA
+server,push_recommend,push notification category title,おすすめの作品,ja,Recommended Works,machine_verified,GPT-5.6 Luna low + deterministic QA
