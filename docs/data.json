@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-23 22:59 UTC",
+  "generatedAt": "2026-07-23 23:11 UTC",
   "configFile": "morphe_archive_config_v5.json",
   "configVersion": 5,
   "repoCount": 103,
@@ -2622,8 +2622,8 @@
       ],
       "patches": [
         "Disable PairIP DRM",
-        "Unlock premium",
-        "Unlock Premium"
+        "Unlock Premium",
+        "Unlock premium"
       ],
       "patchDetails": [
         {
@@ -2631,12 +2631,12 @@
           "description": "Disables PairIP signature verification and Google Play LVL license check. Required for the app to launch after re-signing."
         },
         {
-          "name": "Unlock premium",
-          "description": "Unlocks all AT4K premium features by forcing the premium status to true."
-        },
-        {
           "name": "Unlock Premium",
           "description": "Unlocks all premium features by forcing the premium state to true in the purchase manager."
+        },
+        {
+          "name": "Unlock premium",
+          "description": "Unlocks all AT4K premium features by forcing the premium status to true."
         }
       ],
       "versions": [
@@ -9342,8 +9342,8 @@
         }
       ],
       "patches": [
-        "Disable ad-free banner",
         "Disable Ad-Free Banner",
+        "Disable ad-free banner",
         "Disable blog notification reminder",
         "Disable dashboard ads",
         "Disable gift message popup",
@@ -9355,12 +9355,12 @@
       ],
       "patchDetails": [
         {
-          "name": "Disable ad-free banner",
-          "description": "Hides the banner with the frog that prompts you to buy Tumblr Ad-Free."
-        },
-        {
           "name": "Disable Ad-Free Banner",
           "description": "Disables the banner with a frog, prompting you to buy Tumblr Ad-Free."
+        },
+        {
+          "name": "Disable ad-free banner",
+          "description": "Hides the banner with the frog that prompts you to buy Tumblr Ad-Free."
         },
         {
           "name": "Disable blog notification reminder",
@@ -22754,8 +22754,8 @@
       ],
       "patches": [
         "Disable tracking",
-        "Unlock premium",
-        "Unlock Premium"
+        "Unlock Premium",
+        "Unlock premium"
       ],
       "patchDetails": [
         {
@@ -22763,12 +22763,12 @@
           "description": "Disables analytics and crash reporting."
         },
         {
-          "name": "Unlock premium",
-          "description": "Unlocks all premium features."
-        },
-        {
           "name": "Unlock Premium",
           "description": "Unlocks all premium features by bypassing the native library premium check."
+        },
+        {
+          "name": "Unlock premium",
+          "description": "Unlocks all premium features."
         }
       ],
       "versions": [
@@ -32533,8 +32533,8 @@
         "Video playback",
         "Video quality",
         "Visual preferences icons for YouTube",
-        "Voice Over Translation",
         "Voice over translation",
+        "Voice Over Translation",
         "Watch history",
         "YouTubeDislikeAutoNext (STUB)",
         "YouTubeLikeAutoNext (STUB)"
@@ -33037,12 +33037,12 @@
           "description": "Adds icons to specific preferences in the settings."
         },
         {
-          "name": "Voice Over Translation",
-          "description": "Adds an option to enable Yandex voice-over translation of video audio tracks."
-        },
-        {
           "name": "Voice over translation",
           "description": "Adds additional voice over languages using text-to-speech synchronized to the video playback."
+        },
+        {
+          "name": "Voice Over Translation",
+          "description": "Adds an option to enable Yandex voice-over translation of video audio tracks."
         },
         {
           "name": "Watch history",

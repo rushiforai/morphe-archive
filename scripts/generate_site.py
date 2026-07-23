@@ -328,6 +328,7 @@ HTML = """<!doctype html>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Morphe Archive</title>
   <meta name="description" content="Search Morphe patch sources and supported apps.">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111318'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-family='Arial,sans-serif' font-size='42' font-weight='800' fill='%2328c7dc'%3EM%3C/text%3E%3C/svg%3E">
   <style>
     :root {
       color-scheme: dark;
@@ -523,6 +524,9 @@ HTML = """<!doctype html>
       min-height: 0;
       min-width: 0;
     }
+    .list .row {
+      grid-template-rows: minmax(118px, auto) auto;
+    }
     .row > .actions {
       margin-left: 68px;
     }
@@ -540,6 +544,9 @@ HTML = """<!doctype html>
       color: var(--muted);
       font-size: 13px;
       margin-top: 4px;
+    }
+    .meta span {
+      overflow-wrap: anywhere;
     }
     .title-line {
       display: flex;
@@ -602,6 +609,9 @@ HTML = """<!doctype html>
       gap: 8px;
       flex-wrap: wrap;
       justify-content: flex-start;
+    }
+    .repo-actions {
+      margin-left: 68px;
     }
     a { color: var(--accent-2); }
     a.button {
@@ -682,11 +692,33 @@ HTML = """<!doctype html>
       min-width: 0;
       overflow-wrap: anywhere;
     }
+    .avatar.fallback {
+      font-size: 16px;
+      color: var(--accent-2);
+    }
+    .app-icon.fallback {
+      font-size: 16px;
+      color: white;
+    }
     .patch-note {
       color: var(--muted);
       font-size: 12px;
       display: block;
       margin-top: 2px;
+    }
+    .patch-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .patch-item {
+      border: 1px solid var(--line);
+      background: #11151d;
+      border-radius: 12px;
+      padding: 10px 12px;
+      color: var(--text);
+      font-size: 13px;
+      overflow-wrap: anywhere;
     }
     .empty {
       border: 1px dashed var(--line);
@@ -785,9 +817,13 @@ HTML = """<!doctype html>
       }
       .actions { justify-content: flex-start; }
       .row > .actions { margin-left: 0; }
+      .repo-actions { margin-left: 0; }
       .row {
         padding: 14px;
         border-radius: 12px;
+      }
+      .list .row {
+        grid-template-rows: auto auto;
       }
       .avatar, .app-icon {
         width: 46px;
@@ -809,6 +845,9 @@ HTML = """<!doctype html>
       .chip {
         border-radius: 10px;
         width: 100%;
+      }
+      .patch-item {
+        padding: 9px 10px;
       }
       .wrap {
         width: 100%;
@@ -907,7 +946,6 @@ HTML = """<!doctype html>
   <main>
     <div class="wrap">
       <div id="list" class="list"></div>
-      <p class="disclaimer">Use at your own risk. Sources and patches are community provided and not individually verified.</p>
     </div>
   </main>
   <a class="back-top" href="#top" aria-label="Back to top">↑</a>
@@ -944,15 +982,16 @@ HTML = """<!doctype html>
     }
 
     function avatarHtml(url, label) {
-      if (!url) return `<span class="avatar">${escapeHtml(initials(label))}</span>`;
-      return `<span class="avatar"><img src="${url}" alt="" loading="lazy" onerror="this.remove(); this.parentElement.textContent='${escapeHtml(initials(label))}'"></span>`;
+      const text = escapeHtml(initials(label));
+      if (!url) return `<span class="avatar fallback">${text}</span>`;
+      return `<span class="avatar fallback"><img src="${url}" alt="" loading="lazy" onerror="this.remove(); this.parentElement.textContent='${text}'"></span>`;
     }
 
     function appIconHtml(app) {
       const label = initials(app.name || app.packageName);
       const color = app.iconColor || "#2f3542";
-      if (app.iconUrl) return `<span class="app-icon"><img src="${app.iconUrl}" alt="" loading="lazy" onerror="this.remove(); this.parentElement.classList.add('fallback')"></span>`;
-      return `<span class="app-icon fallback" style="--icon-color:${escapeHtml(color)}" title="Icon unavailable"></span>`;
+      if (app.iconUrl) return `<span class="app-icon fallback" style="--icon-color:${escapeHtml(color)}"><img src="${app.iconUrl}" alt="" loading="lazy" onerror="this.remove(); this.parentElement.textContent='${escapeHtml(label)}'"></span>`;
+      return `<span class="app-icon fallback" style="--icon-color:${escapeHtml(color)}" title="Icon unavailable">${escapeHtml(label)}</span>`;
     }
 
     function slugify(value) {
@@ -1040,7 +1079,7 @@ HTML = """<!doctype html>
             </div>
           </div>
         </div>
-        <div class="actions">
+        <div class="actions repo-actions">
           <a class="button" href="${repo.webUrl}" target="_blank" rel="noreferrer">Open</a>
           <a class="button" href="${repo.source}" target="_blank" rel="noreferrer">Bundle</a>
           <a class="button primary" href="${repo.addUrl}" target="_blank" rel="noreferrer">Add to Morphe</a>
@@ -1062,9 +1101,9 @@ HTML = """<!doctype html>
 
     function patchChips(patches, limit = 16) {
       const shown = patches.slice(0, limit).map((patch) => `
-        <span class="chip">${escapeHtml(patch.name)}${patch.description ? `<span class="patch-note">${escapeHtml(patch.description)}</span>` : ""}</span>
+        <div class="patch-item">${escapeHtml(patch.name)}${patch.description ? `<span class="patch-note">${escapeHtml(patch.description)}</span>` : ""}</div>
       `).join("");
-      const more = patches.length > limit ? `<span class="chip">+${patches.length - limit} more patches</span>` : "";
+      const more = patches.length > limit ? `<div class="patch-item">+${patches.length - limit} more patches</div>` : "";
       return shown + more;
     }
 
@@ -1087,9 +1126,8 @@ HTML = """<!doctype html>
             </div>
             <div class="chips">
               ${sourceVersions || '<span class="chip">Any version</span>'}
-              ${sourcePatches || '<span class="chip">No patch metadata</span>'}
-              ${source.patches.length > 16 ? `<span class="chip">+${source.patches.length - 16} more patches</span>` : ""}
             </div>
+            <div class="patch-list">${sourcePatches || '<div class="patch-item">No patch metadata</div>'}</div>
           </div>`;
       }).join("");
       row.innerHTML = `
@@ -1135,7 +1173,7 @@ HTML = """<!doctype html>
         </div>
         <details>
           <summary>Universal patch set</summary>
-          <div class="chips">${patchChips(source.patches, 24) || '<span class="chip">No patch metadata</span>'}</div>
+          <div class="patch-list">${patchChips(source.patches, 24) || '<div class="patch-item">No patch metadata</div>'}</div>
         </details>`;
       return row;
     }
