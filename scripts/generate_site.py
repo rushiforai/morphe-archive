@@ -638,13 +638,13 @@ HTML = """<!doctype html>
       min-height: 0;
       min-width: 0;
     }
-    .list .row {
-      grid-template-rows: minmax(118px, auto) auto;
-    }
-    .row > .actions {
-      margin-left: 68px;
-    }
     .row:hover { border-color: #46505f; }
+    .card-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: start;
+    }
     .name {
       font-weight: 700;
       color: var(--text);
@@ -717,7 +717,7 @@ HTML = """<!doctype html>
       justify-content: flex-start;
     }
     .repo-actions {
-      margin-left: 68px;
+      justify-content: flex-end;
     }
     .source-actions {
       align-items: center;
@@ -867,6 +867,24 @@ HTML = """<!doctype html>
       color: var(--muted);
       font-size: 13px;
     }
+    .site-counter {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin: 18px auto 8px;
+      color: var(--muted);
+      font-size: 12px;
+      min-height: 24px;
+    }
+    .site-counter a {
+      color: var(--muted);
+      text-decoration: none;
+    }
+    .site-counter img {
+      max-height: 22px;
+      vertical-align: middle;
+    }
     .mobile-footer {
       display: block;
       position: fixed;
@@ -881,31 +899,6 @@ HTML = """<!doctype html>
       line-height: 1.35;
       padding: 9px 14px;
       text-align: center;
-    }
-    .footer-inner {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-    .visitor-counter {
-      display: inline-flex;
-      align-items: center;
-      min-height: 18px;
-      padding-left: 12px;
-      border-left: 1px solid var(--line);
-      color: var(--muted);
-    }
-    .visitor-counter a {
-      color: var(--muted);
-      font-size: 11px;
-      text-decoration: none;
-    }
-    .visitor-counter img {
-      display: inline-block;
-      max-height: 20px;
-      vertical-align: middle;
     }
     .back-top {
       display: inline-flex;
@@ -1016,12 +1009,26 @@ HTML = """<!doctype html>
         padding-bottom: 10px;
       }
       .header-actions {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 54px 54px;
         width: 100%;
       }
       .header-actions .button {
-        flex: 1 1 0;
+        width: 100%;
+      }
+      #whatsNewButton {
+        white-space: nowrap;
+        font-size: 14px;
+      }
+      .header-actions .icon-button {
+        width: 54px;
+        height: 54px;
+      }
+      #configLink {
+        grid-column: 1 / -1;
       }
       .top, .toolbar, .row { grid-template-columns: 1fr; }
+      .card-head { grid-template-columns: 1fr; }
       .top { padding: 8px 0 10px; }
       h1 {
         font-size: 32px;
@@ -1058,8 +1065,7 @@ HTML = """<!doctype html>
         padding: 10px 8px;
       }
       .actions { justify-content: flex-start; }
-      .row > .actions { margin-left: 0; }
-      .repo-actions { margin-left: 0; }
+      .repo-actions { justify-content: flex-start; }
       .row {
         padding: 14px;
         border-radius: 12px;
@@ -1201,19 +1207,15 @@ HTML = """<!doctype html>
   <main>
     <div class="wrap">
       <div id="list" class="list"></div>
-    </div>
-  </main>
-  <a class="back-top" href="#top" aria-label="Back to top">↑</a>
-  <footer class="mobile-footer">
-    <span class="footer-inner">
-      <span>Use at your own risk. Community sources are not individually verified.</span>
-      <span class="visitor-counter">
+      <div class="site-counter" aria-label="Visitor counter">
         <a href="http://www.freevisitorcounters.com">free counters</a>
         <script type="text/javascript" src="https://www.freevisitorcounters.com/auth.php?id=f0dabb4db81ab3202c8ff62bee44138e7bc9f57e"></script>
         <script type="text/javascript" src="https://www.freevisitorcounters.com/en/home/counter/1603757/t/0"></script>
-      </span>
-    </span>
-  </footer>
+      </div>
+    </div>
+  </main>
+  <a class="back-top" href="#top" aria-label="Back to top">↑</a>
+  <footer class="mobile-footer">Use at your own risk. Community sources are not individually verified.</footer>
   <div id="whatsNewModal" class="modal" hidden>
     <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="whatsNewTitle">
       <div class="modal-head">
@@ -1355,7 +1357,7 @@ HTML = """<!doctype html>
         </div>
       `).join("");
       row.innerHTML = `
-        <div>
+        <div class="card-head">
           <div class="title-line">
             ${avatarHtml(repo.avatarUrl, repo.repo)}
             <div>
@@ -1367,11 +1369,11 @@ HTML = """<!doctype html>
               </div>
             </div>
           </div>
-        </div>
-        <div class="actions repo-actions">
-          <a class="button" href="${repo.webUrl}" target="_blank" rel="noreferrer">Open</a>
-          <a class="button" href="${repo.source}" target="_blank" rel="noreferrer">Bundle</a>
-          <a class="button primary" href="${repo.addUrl}" target="_blank" rel="noreferrer">Add to Morphe</a>
+          <div class="actions repo-actions">
+            <a class="button" href="${repo.webUrl}" target="_blank" rel="noreferrer">Open</a>
+            <a class="button" href="${repo.source}" target="_blank" rel="noreferrer">Bundle</a>
+            <a class="button primary" href="${repo.addUrl}" target="_blank" rel="noreferrer">Add to Morphe</a>
+          </div>
         </div>
         <details>
           <summary>${repo.appCount} app${repo.appCount === 1 ? "" : "s"} in bundle</summary>
@@ -1401,14 +1403,13 @@ HTML = """<!doctype html>
         const sourceVersions = source.versions.slice(0, 6).map((version) => `<span class="chip">${escapeHtml(version)}</span>`).join("");
         return `
           <div class="source-card">
-            <div class="source-card-head">
-              <div class="source-card-title">${avatarHtml(source.avatarUrl, source.repo)}<span>${escapeHtml(source.repo)}</span></div>
-              ${hostBadge(source.host)}
-            </div>
-            <div class="actions source-actions">
-              <a class="button" href="${source.webUrl}" target="_blank" rel="noreferrer">Open</a>
-              <a class="button primary" href="${source.addUrl}" target="_blank" rel="noreferrer">Add Source</a>
-              <a class="button obtainium" href="${obtainiumUrl(app, source)}" target="_blank" rel="noreferrer">Install with Obtainium</a>
+            <div class="source-card-head card-head">
+              <div class="source-card-title">${avatarHtml(source.avatarUrl, source.repo)}<span>${escapeHtml(source.repo)}</span>${hostBadge(source.host)}</div>
+              <div class="actions source-actions">
+                <a class="button" href="${source.webUrl}" target="_blank" rel="noreferrer">Open</a>
+                <a class="button primary" href="${source.addUrl}" target="_blank" rel="noreferrer">Add Source</a>
+                <a class="button obtainium" href="${obtainiumUrl(app, source)}" target="_blank" rel="noreferrer">Install with Obtainium</a>
+              </div>
             </div>
             <div class="chips">
               ${sourceVersions || '<span class="chip">Any version</span>'}
@@ -1441,7 +1442,7 @@ HTML = """<!doctype html>
       const row = document.createElement("article");
       row.className = "row";
       row.innerHTML = `
-        <div>
+        <div class="card-head">
           <div class="title-line">
             ${avatarHtml(source.avatarUrl, source.repo)}
             <div>
@@ -1452,10 +1453,10 @@ HTML = """<!doctype html>
               </div>
             </div>
           </div>
-        </div>
-        <div class="actions repo-actions">
-          <a class="button" href="${source.webUrl}" target="_blank" rel="noreferrer">Open</a>
-          <a class="button primary" href="${source.addUrl}" target="_blank" rel="noreferrer">Add Source</a>
+          <div class="actions repo-actions">
+            <a class="button" href="${source.webUrl}" target="_blank" rel="noreferrer">Open</a>
+            <a class="button primary" href="${source.addUrl}" target="_blank" rel="noreferrer">Add Source</a>
+          </div>
         </div>
         <details>
           <summary>Universal patch set</summary>
