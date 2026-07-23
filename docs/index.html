@@ -8,20 +8,21 @@
   <style>
     :root {
       color-scheme: dark;
-      --bg: #101114;
-      --panel: #17191e;
-      --line: #2a2e37;
-      --text: #f3f5f7;
-      --muted: #a7adb8;
-      --accent: #75d0a8;
-      --accent-2: #8db7ff;
-      --warn: #f5c36b;
+      --bg: #0f1115;
+      --panel: #181b21;
+      --panel-2: #20242c;
+      --line: #2d333d;
+      --text: #f4f6f8;
+      --muted: #a9b1bd;
+      --accent: #74d99f;
+      --accent-2: #93baff;
+      --warn: #f2c56c;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: var(--bg);
+      background: linear-gradient(180deg, #14171d 0, var(--bg) 420px);
       color: var(--text);
       line-height: 1.5;
     }
@@ -47,8 +48,24 @@
       letter-spacing: 0;
     }
     p { margin: 0; color: var(--muted); }
-    .stats {
+    .subline {
       display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .header-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(96px, 1fr));
       gap: 10px;
       flex-wrap: wrap;
       justify-content: flex-end;
@@ -57,12 +74,13 @@
       border: 1px solid var(--line);
       background: var(--panel);
       padding: 10px 12px;
+      border-radius: 8px;
       min-width: 104px;
     }
     .stat strong { display: block; font-size: 22px; }
     .toolbar {
       display: grid;
-      grid-template-columns: minmax(180px, 1fr) auto;
+      grid-template-columns: minmax(220px, 1fr) auto auto auto;
       gap: 12px;
       margin-top: 22px;
     }
@@ -75,6 +93,7 @@
       font: inherit;
     }
     input { width: 100%; }
+    select { min-width: 140px; }
     .tabs {
       display: flex;
       gap: 8px;
@@ -100,6 +119,7 @@
       padding: 14px;
       border-radius: 8px;
     }
+    .row:hover { border-color: #46505f; }
     .name {
       font-weight: 700;
       color: var(--text);
@@ -113,6 +133,20 @@
       font-size: 13px;
       margin-top: 4px;
     }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 2px 8px;
+      background: var(--panel-2);
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .badge.host-github { color: var(--accent-2); }
+    .badge.host-gitlab { color: var(--warn); }
     .actions {
       display: flex;
       gap: 8px;
@@ -134,6 +168,33 @@
       border-color: var(--accent);
       font-weight: 700;
     }
+    details {
+      grid-column: 1 / -1;
+      border-top: 1px solid var(--line);
+      margin-top: 2px;
+      padding-top: 10px;
+      color: var(--muted);
+    }
+    summary {
+      cursor: pointer;
+      color: var(--text);
+      font-weight: 650;
+    }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .chip {
+      border: 1px solid var(--line);
+      background: #11141a;
+      border-radius: 999px;
+      padding: 4px 8px;
+      color: var(--muted);
+      font-size: 12px;
+      overflow-wrap: anywhere;
+    }
     .empty {
       border: 1px dashed var(--line);
       color: var(--muted);
@@ -150,8 +211,12 @@
     }
     @media (max-width: 760px) {
       .top, .toolbar, .row { grid-template-columns: 1fr; }
-      .stats, .actions { justify-content: flex-start; }
+      .stats { grid-template-columns: repeat(3, 1fr); }
+      .actions { justify-content: flex-start; }
       .wrap { padding: 18px; }
+    }
+    @media (max-width: 520px) {
+      .stats { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -162,14 +227,30 @@
         <div>
           <h1>Morphe Archive</h1>
           <p>Search working Morphe patch sources, open their repositories, and add them to Morphe Manager.</p>
+          <div class="subline">
+            <span id="generatedAt">Loading archive data</span>
+            <div class="header-actions">
+              <a id="configLink" class="button primary" href="#">Download Manager Config</a>
+            </div>
+          </div>
         </div>
         <div class="stats">
           <div class="stat"><strong id="repoCount">0</strong><span>sources</span></div>
           <div class="stat"><strong id="appCount">0</strong><span>apps</span></div>
+          <div class="stat"><strong id="patchCount">0</strong><span>patches</span></div>
         </div>
       </div>
       <div class="toolbar">
         <input id="search" type="search" placeholder="Search repos, apps, packages, patches">
+        <select id="hostFilter" aria-label="Filter by host">
+          <option value="all">All hosts</option>
+        </select>
+        <select id="sortMode" aria-label="Sort results">
+          <option value="name">Name</option>
+          <option value="patches">Most patches</option>
+          <option value="apps">Most apps</option>
+          <option value="sources">Most sources</option>
+        </select>
         <div class="tabs">
           <button id="reposTab" class="active" type="button">Repos</button>
           <button id="appsTab" type="button">Apps</button>
@@ -184,14 +265,37 @@
     </div>
   </main>
   <script>
-    const state = { tab: "repos", query: "", data: null };
+    const state = { tab: "repos", query: "", host: "all", sort: "name", data: null };
     const list = document.getElementById("list");
     const search = document.getElementById("search");
+    const hostFilter = document.getElementById("hostFilter");
+    const sortMode = document.getElementById("sortMode");
     const reposTab = document.getElementById("reposTab");
     const appsTab = document.getElementById("appsTab");
 
+    function escapeHtml(value) {
+      const div = document.createElement("div");
+      div.textContent = String(value || "");
+      return div.innerHTML;
+    }
+
     function textMatch(value) {
       return String(value || "").toLowerCase().includes(state.query);
+    }
+
+    function hostBadge(host) {
+      const label = host === "gitlab.com" ? "GitLab" : host === "github.com" ? "GitHub" : host || "Other";
+      const cls = host === "gitlab.com" ? "gitlab" : host === "github.com" ? "github" : "other";
+      return `<span class="badge host-${cls}">${label}</span>`;
+    }
+
+    function sortRows(rows) {
+      return rows.sort((a, b) => {
+        if (state.sort === "patches") return (b.patchCount || b.patches?.length || 0) - (a.patchCount || a.patches?.length || 0);
+        if (state.sort === "apps") return (b.appCount || 0) - (a.appCount || 0);
+        if (state.sort === "sources") return (b.repos?.length || 0) - (a.repos?.length || 0);
+        return String(a.repo || a.name).localeCompare(String(b.repo || b.name));
+      });
     }
 
     function repoRow(repo) {
@@ -199,17 +303,25 @@
       row.className = "row";
       row.innerHTML = `
         <div>
-          <div class="name">${repo.repo}</div>
+          <div class="name">${escapeHtml(repo.repo)}</div>
           <div class="meta">
-            <span>${repo.host}</span>
+            ${hostBadge(repo.host)}
             <span>${repo.patchCount} patches</span>
             <span>${repo.appCount} apps</span>
           </div>
         </div>
         <div class="actions">
           <a class="button" href="${repo.webUrl}" target="_blank" rel="noreferrer">Open</a>
+          <a class="button" href="${repo.source}" target="_blank" rel="noreferrer">Bundle</a>
           <a class="button primary" href="${repo.addUrl}" target="_blank" rel="noreferrer">Add to Morphe</a>
-        </div>`;
+        </div>
+        <details>
+          <summary>Source details</summary>
+          <div class="chips">
+            <a class="chip" href="${repo.source}" target="_blank" rel="noreferrer">patches-bundle.json</a>
+            <a class="chip" href="${repo.listUrl}" target="_blank" rel="noreferrer">patches-list.json</a>
+          </div>
+        </details>`;
       return row;
     }
 
@@ -217,19 +329,28 @@
       const repo = state.data.repos.find((item) => app.repos.includes(item.repo));
       const row = document.createElement("article");
       row.className = "row";
+      const patches = app.patches.slice(0, 18).map((patch) => `<span class="chip">${escapeHtml(patch)}</span>`).join("");
+      const versions = app.versions.slice(0, 8).map((version) => `<span class="chip">${escapeHtml(version)}</span>`).join("");
       row.innerHTML = `
         <div>
-          <div class="name">${app.name}</div>
+          <div class="name">${escapeHtml(app.name)}</div>
           <div class="meta">
-            <span>${app.packageName}</span>
+            <span>${escapeHtml(app.packageName)}</span>
             <span>${app.patches.length} patches</span>
             <span>${app.repos.length} sources</span>
-            ${app.versions.length ? `<span>${app.versions.slice(0, 4).join(", ")}</span>` : ""}
           </div>
         </div>
         <div class="actions">
           ${repo ? `<a class="button" href="${repo.webUrl}" target="_blank" rel="noreferrer">Source</a><a class="button primary" href="${repo.addUrl}" target="_blank" rel="noreferrer">Add Source</a>` : ""}
-        </div>`;
+        </div>
+        <details>
+          <summary>Patch and version details</summary>
+          <div class="chips">
+            ${versions || '<span class="chip">Any version</span>'}
+            ${patches}
+            ${app.patches.length > 18 ? `<span class="chip">+${app.patches.length - 18} more patches</span>` : ""}
+          </div>
+        </details>`;
       return row;
     }
 
@@ -238,14 +359,18 @@
       reposTab.classList.toggle("active", state.tab === "repos");
       appsTab.classList.toggle("active", state.tab === "apps");
 
-      const rows = state.tab === "repos"
-        ? state.data.repos.filter((repo) => !state.query || [repo.repo, repo.name, repo.host].some(textMatch))
+      let rows = state.tab === "repos"
+        ? state.data.repos.filter((repo) =>
+            (state.host === "all" || repo.host === state.host) &&
+            (!state.query || [repo.repo, repo.name, repo.host].some(textMatch))
+          )
         : state.data.apps.filter((app) => !state.query || [
             app.name,
             app.packageName,
             app.repos.join(" "),
             app.patches.join(" ")
           ].some(textMatch));
+      rows = sortRows(rows);
 
       if (!rows.length) {
         list.innerHTML = '<div class="empty">No matches found.</div>';
@@ -261,6 +386,18 @@
         state.data = data;
         document.getElementById("repoCount").textContent = data.repoCount;
         document.getElementById("appCount").textContent = data.appCount;
+        document.getElementById("patchCount").textContent = data.patchCount;
+        document.getElementById("generatedAt").textContent = `Generated ${data.generatedAt}`;
+        const configLink = document.getElementById("configLink");
+        configLink.href = `../${data.configFile}`;
+        configLink.download = data.configFile;
+        configLink.textContent = `Download Config v${data.configVersion}`;
+        Object.entries(data.hostCounts || {}).forEach(([host, count]) => {
+          const option = document.createElement("option");
+          option.value = host;
+          option.textContent = `${host || "Other"} (${count})`;
+          hostFilter.appendChild(option);
+        });
         render();
       });
 
@@ -268,6 +405,8 @@
       state.query = search.value.trim().toLowerCase();
       render();
     });
+    hostFilter.addEventListener("change", () => { state.host = hostFilter.value; render(); });
+    sortMode.addEventListener("change", () => { state.sort = sortMode.value; render(); });
     reposTab.addEventListener("click", () => { state.tab = "repos"; render(); });
     appsTab.addEventListener("click", () => { state.tab = "apps"; render(); });
   </script>
