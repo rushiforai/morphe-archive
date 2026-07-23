@@ -16,6 +16,7 @@ CONFIG_PATTERN = re.compile(rf"^{CONFIG_PREFIX}(\d+)\.json$")
 OUTPUT_DIR = Path("docs")
 TIMEOUT_SECONDS = 8
 ICON_CACHE_PATH = Path("scripts/app_icon_cache.json")
+MAX_CHANGELOG_ITEMS = 8
 
 
 def latest_config_file():
@@ -65,6 +66,21 @@ def fetch_json(url):
         return None
 
 
+def fetch_text(url):
+    req = urllib.request.Request(
+        url,
+        headers={"User-Agent": "morphe-archive-site-generator/1.0"},
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=TIMEOUT_SECONDS) as resp:
+            if resp.status != 200:
+                return ""
+            charset = resp.headers.get_content_charset() or "utf-8"
+            return resp.read().decode(charset, errors="replace")
+    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError):
+        return ""
+
+
 def repo_from_source(source):
     parsed = urllib.parse.urlparse(source)
     if parsed.netloc == "raw.githubusercontent.com":
@@ -105,6 +121,73 @@ def repo_avatar_url(host, repo):
 
 def patches_list_url(bundle_url):
     return bundle_url.rsplit("/", 1)[0] + "/patches-list.json"
+
+
+def changelog_url(bundle_url):
+    return bundle_url.rsplit("/", 1)[0] + "/CHANGELOG.md"
+
+
+def format_timestamp(ms):
+    if not isinstance(ms, (int, float)) or ms <= 0:
+        return ""
+    try:
+        return datetime.fromtimestamp(ms / 1000, tz=timezone.utc).strftime("%Y-%m-%d")
+    except (OverflowError, OSError, ValueError):
+        return ""
+
+
+def clean_markdown(value):
+    value = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", value)
+    value = re.sub(r"\s+\([0-9a-f]{7,40}\)$", "", value)
+    value = value.replace("`", "")
+    return value.strip()
+
+
+def summarize_changelog(markdown):
+    if not markdown:
+        return {"title": "", "date": "", "items": []}
+
+    title = ""
+    date = ""
+    items = []
+    category = ""
+    in_latest_section = False
+
+    for raw_line in markdown.splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+
+        if line.startswith("#"):
+            heading = clean_markdown(line.lstrip("#").strip())
+            heading_date = re.search(r"\((\d{4}-\d{2}-\d{2})\)", heading) or re.search(r"\b(\d{4}-\d{2}-\d{2})\b", heading)
+            if line.startswith("## "):
+                if in_latest_section and items:
+                    break
+                if not in_latest_section:
+                    title = heading
+                    date = heading_date.group(1) if heading_date else ""
+                    in_latest_section = True
+                category = ""
+                continue
+            if in_latest_section:
+                category = heading
+            continue
+
+        if not in_latest_section:
+            continue
+
+        if line.startswith(("* ", "- ")):
+            item = clean_markdown(line[2:].strip())
+            if item:
+                items.append({"category": category, "text": item})
+        elif items and not line.startswith("|"):
+            items.append({"category": category, "text": clean_markdown(line)})
+
+        if len(items) >= MAX_CHANGELOG_ITEMS:
+            break
+
+    return {"title": title, "date": date, "items": items}
 
 
 def normalize_compatible_packages(value):
@@ -223,6 +306,8 @@ def build_data():
     for bundle in bundles:
         host, repo_path = repo_from_source(bundle.get("source", ""))
         patch_count, apps, universal_patches = collect_patch_metadata(bundle, icon_cache)
+        source_changelog_url = changelog_url(bundle.get("source", ""))
+        latest_changes = summarize_changelog(fetch_text(source_changelog_url))
         host_counts[host or "other"] += 1
         total_patch_count += patch_count
         repo = {
@@ -231,11 +316,27 @@ def build_data():
             "host": host,
             "source": bundle.get("source", ""),
             "listUrl": patches_list_url(bundle.get("source", "")),
+            "changelogUrl": source_changelog_url,
             "webUrl": web_url(host, repo_path),
             "addUrl": add_to_morphe_url(host, repo_path),
             "avatarUrl": repo_avatar_url(host, repo_path),
             "patchCount": patch_count,
             "appCount": len(apps),
+            "createdAt": bundle.get("createdAt", 0),
+            "updatedAt": bundle.get("updatedAt", 0),
+            "createdDate": format_timestamp(bundle.get("createdAt", 0)),
+            "updatedDate": format_timestamp(bundle.get("updatedAt", 0)),
+            "latestChanges": latest_changes,
+            "apps": [
+                {
+                    "name": app["name"],
+                    "packageName": app["packageName"],
+                    "patchCount": len(app["patches"]),
+                    "iconUrl": app["iconUrl"],
+                    "iconColor": app["iconColor"],
+                }
+                for app in apps
+            ],
         }
         repos.append(repo)
         if universal_patches:
@@ -246,8 +347,10 @@ def build_data():
                     "webUrl": repo["webUrl"],
                     "addUrl": repo["addUrl"],
                     "source": repo["source"],
+                    "changelogUrl": repo["changelogUrl"],
                     "avatarUrl": repo["avatarUrl"],
                     "patchCount": len(universal_patches),
+                    "latestChanges": latest_changes,
                     "patches": universal_patches,
                 }
             )
@@ -274,7 +377,9 @@ def build_data():
                 "webUrl": repo["webUrl"],
                 "addUrl": repo["addUrl"],
                 "source": repo["source"],
+                "changelogUrl": repo["changelogUrl"],
                 "avatarUrl": repo["avatarUrl"],
+                "latestChanges": latest_changes,
                 "patches": app["patchDetails"],
                 "versions": app["versions"],
             }
@@ -318,6 +423,14 @@ def build_data():
         "repos": sorted(repos, key=lambda item: item["repo"].lower()),
         "apps": sorted(apps, key=lambda item: item["name"].lower()),
         "universalSources": sorted(universal_sources, key=lambda item: item["repo"].lower()),
+        "recentSources": sorted(
+            repos,
+            key=lambda item: (
+                bool(item.get("latestChanges", {}).get("items")),
+                item.get("updatedAt", 0) or item.get("createdAt", 0),
+            ),
+            reverse=True,
+        )[:12],
     }
 
 
@@ -441,13 +554,14 @@ HTML = """<!doctype html>
       gap: 10px;
       flex-wrap: wrap;
       justify-content: flex-end;
+      max-width: 640px;
     }
     .stat {
       border: 1px solid var(--line);
       background: var(--panel);
       padding: 9px 12px;
       border-radius: 8px;
-      min-width: 104px;
+      min-width: 0;
       box-shadow: var(--shadow);
       text-transform: uppercase;
       font-size: 12px;
@@ -576,14 +690,6 @@ HTML = """<!doctype html>
         linear-gradient(135deg, rgba(255,255,255,.18), rgba(255,255,255,0) 45%),
         var(--icon-color, #2f3542);
     }
-    .app-icon.fallback::after {
-      content: "";
-      width: 16px;
-      height: 16px;
-      border-radius: 5px;
-      border: 2px solid rgba(255,255,255,.72);
-      box-shadow: 7px 7px 0 -3px rgba(255,255,255,.5);
-    }
     .avatar img, .app-icon img {
       width: 100%;
       height: 100%;
@@ -612,6 +718,13 @@ HTML = """<!doctype html>
     }
     .repo-actions {
       margin-left: 68px;
+    }
+    .source-actions {
+      align-items: center;
+    }
+    .source-actions .obtainium {
+      flex-basis: auto;
+      max-width: none;
     }
     a { color: var(--accent-2); }
     a.button {
@@ -711,6 +824,28 @@ HTML = """<!doctype html>
       gap: 8px;
       margin-top: 10px;
     }
+    .bundle-apps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .bundle-app {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px;
+      background: #11151d;
+      min-width: 0;
+    }
+    .bundle-app-info {
+      min-width: 0;
+    }
+    .bundle-app-info .name {
+      font-size: 14px;
+    }
     .patch-item {
       border: 1px solid var(--line);
       background: #11151d;
@@ -747,6 +882,31 @@ HTML = """<!doctype html>
       padding: 9px 14px;
       text-align: center;
     }
+    .footer-inner {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .visitor-counter {
+      display: inline-flex;
+      align-items: center;
+      min-height: 18px;
+      padding-left: 12px;
+      border-left: 1px solid var(--line);
+      color: var(--muted);
+    }
+    .visitor-counter a {
+      color: var(--muted);
+      font-size: 11px;
+      text-decoration: none;
+    }
+    .visitor-counter img {
+      display: inline-block;
+      max-height: 20px;
+      vertical-align: middle;
+    }
     .back-top {
       display: inline-flex;
       position: fixed;
@@ -765,6 +925,88 @@ HTML = """<!doctype html>
       box-shadow: 0 12px 32px rgba(0, 0, 0, .35);
       font-size: 28px;
       line-height: 1;
+    }
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: rgba(0, 0, 0, .62);
+      backdrop-filter: blur(8px);
+    }
+    .modal[hidden] {
+      display: none;
+    }
+    .modal-panel {
+      width: min(980px, 100%);
+      max-height: min(760px, 88vh);
+      display: grid;
+      grid-template-rows: auto 1fr;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--panel);
+      box-shadow: 0 28px 80px rgba(0, 0, 0, .5);
+    }
+    .modal-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 22px 24px;
+      border-bottom: 1px solid var(--line);
+    }
+    .modal-title {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 800;
+    }
+    .modal-body {
+      overflow: auto;
+      padding: 18px 24px 24px;
+    }
+    .change-card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      background: #202228;
+    }
+    .change-card + .change-card {
+      margin-top: 12px;
+    }
+    .change-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .change-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      font-weight: 800;
+    }
+    .change-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .change-item {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      color: var(--text);
+      overflow-wrap: anywhere;
+    }
+    .change-category {
+      color: var(--accent-2);
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
     }
     @media (max-width: 760px) {
       header { position: static; }
@@ -842,6 +1084,9 @@ HTML = """<!doctype html>
         align-items: flex-start;
         flex-direction: column;
       }
+      .source-actions .obtainium {
+        max-width: none;
+      }
       .chip {
         border-radius: 10px;
         width: 100%;
@@ -855,6 +1100,15 @@ HTML = """<!doctype html>
       }
       .back-top {
         right: 16px;
+      }
+      .modal {
+        padding: 10px;
+      }
+      .modal-head {
+        padding: 16px;
+      }
+      .modal-body {
+        padding: 14px;
       }
     }
     @media (max-width: 520px) {
@@ -898,6 +1152,7 @@ HTML = """<!doctype html>
       <div class="nav">
         <div class="brand"><span class="brand-mark">M</span><span>orphe Archive</span></div>
         <div class="header-actions">
+          <button id="whatsNewButton" class="button" type="button">What's New</button>
           <a class="button icon-button" href="https://github.com/rushiforai/morphe-archive" target="_blank" rel="noreferrer" aria-label="Source code" title="Source code">
             <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
               <path d="M12 .5a12 12 0 0 0-3.8 23.38c.6.12.82-.25.82-.57v-2.1c-3.34.73-4.04-1.42-4.04-1.42-.55-1.4-1.34-1.78-1.34-1.78-1.09-.74.08-.73.08-.73 1.2.09 1.84 1.24 1.84 1.24 1.08 1.83 2.82 1.3 3.5 1 .11-.78.42-1.3.76-1.6-2.66-.3-5.46-1.33-5.46-5.92 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.4 11.4 0 0 1 6 0c2.29-1.55 3.3-1.23 3.3-1.23.66 1.66.25 2.88.12 3.18.77.84 1.24 1.9 1.24 3.22 0 4.6-2.8 5.62-5.48 5.92.43.37.82 1.1.82 2.22v3.3c0 .32.22.7.83.57A12 12 0 0 0 12 .5Z"/>
@@ -949,7 +1204,28 @@ HTML = """<!doctype html>
     </div>
   </main>
   <a class="back-top" href="#top" aria-label="Back to top">↑</a>
-  <footer class="mobile-footer">Use at your own risk. Community sources are not individually verified.</footer>
+  <footer class="mobile-footer">
+    <span class="footer-inner">
+      <span>Use at your own risk. Community sources are not individually verified.</span>
+      <span class="visitor-counter">
+        <a href="http://www.freevisitorcounters.com">free counters</a>
+        <script type="text/javascript" src="https://www.freevisitorcounters.com/auth.php?id=f0dabb4db81ab3202c8ff62bee44138e7bc9f57e"></script>
+        <script type="text/javascript" src="https://www.freevisitorcounters.com/en/home/counter/1603757/t/0"></script>
+      </span>
+    </span>
+  </footer>
+  <div id="whatsNewModal" class="modal" hidden>
+    <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="whatsNewTitle">
+      <div class="modal-head">
+        <div>
+          <h2 id="whatsNewTitle" class="modal-title">What's New</h2>
+          <p>Latest changelog entries from patch sources.</p>
+        </div>
+        <button id="closeWhatsNew" class="button icon-button" type="button" aria-label="Close">x</button>
+      </div>
+      <div id="whatsNewBody" class="modal-body"></div>
+    </section>
+  </div>
   <script>
     const state = { tab: "apps", query: "", host: "all", sort: "name", data: null };
     const list = document.getElementById("list");
@@ -959,6 +1235,10 @@ HTML = """<!doctype html>
     const reposTab = document.getElementById("reposTab");
     const appsTab = document.getElementById("appsTab");
     const universalTab = document.getElementById("universalTab");
+    const whatsNewButton = document.getElementById("whatsNewButton");
+    const whatsNewModal = document.getElementById("whatsNewModal");
+    const whatsNewBody = document.getElementById("whatsNewBody");
+    const closeWhatsNew = document.getElementById("closeWhatsNew");
 
     function escapeHtml(value) {
       const div = document.createElement("div");
@@ -1065,6 +1345,15 @@ HTML = """<!doctype html>
     function repoRow(repo) {
       const row = document.createElement("article");
       row.className = "row";
+      const apps = (repo.apps || []).slice(0, 24).map((app) => `
+        <div class="bundle-app">
+          ${appIconHtml(app)}
+          <div class="bundle-app-info">
+            <div class="name">${escapeHtml(app.name)}</div>
+            <div class="meta"><span>${escapeHtml(app.packageName)}</span><span>${app.patchCount} patches</span></div>
+          </div>
+        </div>
+      `).join("");
       row.innerHTML = `
         <div>
           <div class="title-line">
@@ -1085,12 +1374,9 @@ HTML = """<!doctype html>
           <a class="button primary" href="${repo.addUrl}" target="_blank" rel="noreferrer">Add to Morphe</a>
         </div>
         <details>
-          <summary>Source details</summary>
-          <div class="meta">
-            ${hostBadge(repo.host)}
-            <span>${repo.patchCount} patches</span>
-            <span>${repo.appCount} apps</span>
-          </div>
+          <summary>${repo.appCount} app${repo.appCount === 1 ? "" : "s"} in bundle</summary>
+          <div class="bundle-apps">${apps || '<div class="patch-item">No app metadata</div>'}</div>
+          ${repo.appCount > 24 ? `<div class="patch-item">+${repo.appCount - 24} more apps</div>` : ""}
           <div class="chips">
             <a class="chip" href="${repo.source}" target="_blank" rel="noreferrer">patches-bundle.json</a>
             <a class="chip" href="${repo.listUrl}" target="_blank" rel="noreferrer">patches-list.json</a>
@@ -1119,7 +1405,7 @@ HTML = """<!doctype html>
               <div class="source-card-title">${avatarHtml(source.avatarUrl, source.repo)}<span>${escapeHtml(source.repo)}</span></div>
               ${hostBadge(source.host)}
             </div>
-            <div class="actions">
+            <div class="actions source-actions">
               <a class="button" href="${source.webUrl}" target="_blank" rel="noreferrer">Open</a>
               <a class="button primary" href="${source.addUrl}" target="_blank" rel="noreferrer">Add Source</a>
               <a class="button obtainium" href="${obtainiumUrl(app, source)}" target="_blank" rel="noreferrer">Install with Obtainium</a>
@@ -1167,7 +1453,7 @@ HTML = """<!doctype html>
             </div>
           </div>
         </div>
-        <div class="actions">
+        <div class="actions repo-actions">
           <a class="button" href="${source.webUrl}" target="_blank" rel="noreferrer">Open</a>
           <a class="button primary" href="${source.addUrl}" target="_blank" rel="noreferrer">Add Source</a>
         </div>
@@ -1176,6 +1462,65 @@ HTML = """<!doctype html>
           <div class="patch-list">${patchChips(source.patches, 24) || '<div class="patch-item">No patch metadata</div>'}</div>
         </details>`;
       return row;
+    }
+
+    function renderWhatsNew() {
+      const sources = (state.data?.recentSources || []).filter((source) => source.latestChanges?.items?.length);
+      const fallback = state.data?.recentSources || [];
+      const rows = sources.length ? sources : fallback;
+      if (!rows.length) {
+        whatsNewBody.innerHTML = '<div class="empty">No changelog entries found yet.</div>';
+        return;
+      }
+      whatsNewBody.innerHTML = rows.map((source) => {
+        const changes = source.latestChanges || {};
+        const apps = (source.apps || []).slice(0, 8).map((app) => `
+          <span class="chip">${escapeHtml(app.name)}${app.patchCount ? ` (${app.patchCount})` : ""}</span>
+        `).join("");
+        const items = (changes.items || []).map((item) => `
+          <div class="change-item">
+            ${item.category ? `<span class="change-category">${escapeHtml(item.category)}</span>` : ""}
+            <span>${escapeHtml(item.text)}</span>
+          </div>
+        `).join("");
+        const dateText = changes.date || source.updatedDate || source.createdDate || "";
+        return `
+          <article class="change-card">
+            <div class="change-head">
+              <div class="change-title">
+                ${avatarHtml(source.avatarUrl, source.repo)}
+                <div>
+                  <div class="name">${escapeHtml(source.repo)}</div>
+                  <div class="meta">
+                    ${hostBadge(source.host)}
+                    <span>${source.patchCount} patches</span>
+                    <span>${source.appCount} apps</span>
+                    ${dateText ? `<span>${escapeHtml(dateText)}</span>` : ""}
+                  </div>
+                </div>
+              </div>
+              <div class="actions">
+                <a class="button" href="${source.webUrl}" target="_blank" rel="noreferrer">Open</a>
+                <a class="button" href="${source.changelogUrl}" target="_blank" rel="noreferrer">Changelog</a>
+              </div>
+            </div>
+            ${changes.title ? `<div class="subline">${escapeHtml(changes.title)}</div>` : ""}
+            ${apps ? `<div class="chips">${apps}</div>` : ""}
+            <div class="change-list">${items || '<div class="patch-item">No CHANGELOG.md summary found for this source.</div>'}</div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function openWhatsNew() {
+      renderWhatsNew();
+      whatsNewModal.hidden = false;
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeWhatsNewModal() {
+      whatsNewModal.hidden = true;
+      document.body.style.overflow = "";
     }
 
     function render() {
@@ -1256,6 +1601,14 @@ HTML = """<!doctype html>
     reposTab.addEventListener("click", () => { state.tab = "repos"; render(); });
     appsTab.addEventListener("click", () => { state.tab = "apps"; render(); });
     universalTab.addEventListener("click", () => { state.tab = "universal"; render(); });
+    whatsNewButton.addEventListener("click", openWhatsNew);
+    closeWhatsNew.addEventListener("click", closeWhatsNewModal);
+    whatsNewModal.addEventListener("click", (event) => {
+      if (event.target === whatsNewModal) closeWhatsNewModal();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !whatsNewModal.hidden) closeWhatsNewModal();
+    });
   </script>
 </body>
 </html>
