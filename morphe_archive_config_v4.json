@@ -857,6 +857,14 @@
                 "sortOrder": 101,
                 "createdAt": 1784837695652,
                 "updatedAt": 1784837695652
+            },
+            {
+                "name": "tiaruebar-patches",
+                "source": "https://raw.githubusercontent.com/tiaruebar1024/tiaruebar-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 102,
+                "createdAt": 1784838370843,
+                "updatedAt": 1784838370843
             }
         ]
     }

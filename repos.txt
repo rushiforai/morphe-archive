@@ -109,6 +109,7 @@ saieshshirodkar/saiesh-morphe-patches
 shaun-the-sheep-patches/morphe-patches
 sjshb57/Pairip-Patches
 skulldogged/cobalt-morphe
+tiaruebar1024/tiaruebar-patches
 totsiaw/proxma-patches
 variablenine/morphe-patches
 vladon/morphe-patches-navi

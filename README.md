@@ -2,7 +2,7 @@
 
 An auto-generated, continuously updated index of every GitHub or GitLab repository that publishes a [Morphe](https://morphe.software) (`.mpp`) patch bundle.
 
-![Repos tracked](https://img.shields.io/badge/repos%20tracked-101-6366f1) ![Last updated](https://img.shields.io/badge/last%20updated-2026-07-23%2020:14%20UTC-555)
+![Repos tracked](https://img.shields.io/badge/repos%20tracked-102-6366f1) ![Last updated](https://img.shields.io/badge/last%20updated-2026-07-23%2020:25%20UTC-555)
 
 ---
 
@@ -42,7 +42,7 @@ Use this archive at your own risk. I do not verify every repository listed here,
 
 ---
 
-## Tracked Repositories (101)
+## Tracked Repositories (102)
 
 | # | Repository | Source | Morphe |
 |---|------------|--------|--------|
@@ -136,17 +136,18 @@ Use this archive at your own risk. I do not verify every repository listed here,
 | 88 | `skulldogged/cobalt-morphe` | [Open](https://github.com/skulldogged/cobalt-morphe) | [Add to Morphe](https://morphe.software/add-source?github=skulldogged/cobalt-morphe) |
 | 89 | `SouBryan/pinterest-morphed` | [Open](https://github.com/SouBryan/pinterest-morphed) | [Add to Morphe](https://morphe.software/add-source?github=SouBryan/pinterest-morphed) |
 | 90 | `TheRealCrazyfuy/abeja-morphe-patches` | [Open](https://github.com/TheRealCrazyfuy/abeja-morphe-patches) | [Add to Morphe](https://morphe.software/add-source?github=TheRealCrazyfuy/abeja-morphe-patches) |
-| 91 | `Tornillo2/movistar-block-ads-morphe` | [Open](https://github.com/Tornillo2/movistar-block-ads-morphe) | [Add to Morphe](https://morphe.software/add-source?github=Tornillo2/movistar-block-ads-morphe) |
-| 92 | `totsiaw/proxma-patches` | [Open](https://github.com/totsiaw/proxma-patches) | [Add to Morphe](https://morphe.software/add-source?github=totsiaw/proxma-patches) |
-| 93 | `Trimpsuz/morphe-busuu` | [Open](https://github.com/Trimpsuz/morphe-busuu) | [Add to Morphe](https://morphe.software/add-source?github=Trimpsuz/morphe-busuu) |
-| 94 | `variablenine/morphe-patches` | [Open](https://github.com/variablenine/morphe-patches) | [Add to Morphe](https://morphe.software/add-source?github=variablenine/morphe-patches) |
-| 95 | `vladon/morphe-patches-navi` | [Open](https://github.com/vladon/morphe-patches-navi) | [Add to Morphe](https://morphe.software/add-source?github=vladon/morphe-patches-navi) |
-| 96 | `wchill/patcheddit` | [Open](https://github.com/wchill/patcheddit) | [Add to Morphe](https://morphe.software/add-source?github=wchill/patcheddit) |
-| 97 | `wchill/rvx-morphed` | [Open](https://github.com/wchill/rvx-morphed) | [Add to Morphe](https://morphe.software/add-source?github=wchill/rvx-morphed) |
-| 98 | `WZSE/morphe-patches` | [Open](https://github.com/WZSE/morphe-patches) | [Add to Morphe](https://morphe.software/add-source?github=WZSE/morphe-patches) |
-| 99 | `Xhehab/Xhehab-Patches` | [Open](https://github.com/Xhehab/Xhehab-Patches) | [Add to Morphe](https://morphe.software/add-source?github=Xhehab/Xhehab-Patches) |
-| 100 | `xob0t/morphe-patches` | [Open](https://github.com/xob0t/morphe-patches) | [Add to Morphe](https://morphe.software/add-source?github=xob0t/morphe-patches) |
-| 101 | `ynotzort/morphe-patches` | [Open](https://github.com/ynotzort/morphe-patches) | [Add to Morphe](https://morphe.software/add-source?github=ynotzort/morphe-patches) |
+| 91 | `tiaruebar1024/tiaruebar-patches` | [Open](https://github.com/tiaruebar1024/tiaruebar-patches) | [Add to Morphe](https://morphe.software/add-source?github=tiaruebar1024/tiaruebar-patches) |
+| 92 | `Tornillo2/movistar-block-ads-morphe` | [Open](https://github.com/Tornillo2/movistar-block-ads-morphe) | [Add to Morphe](https://morphe.software/add-source?github=Tornillo2/movistar-block-ads-morphe) |
+| 93 | `totsiaw/proxma-patches` | [Open](https://github.com/totsiaw/proxma-patches) | [Add to Morphe](https://morphe.software/add-source?github=totsiaw/proxma-patches) |
+| 94 | `Trimpsuz/morphe-busuu` | [Open](https://github.com/Trimpsuz/morphe-busuu) | [Add to Morphe](https://morphe.software/add-source?github=Trimpsuz/morphe-busuu) |
+| 95 | `variablenine/morphe-patches` | [Open](https://github.com/variablenine/morphe-patches) | [Add to Morphe](https://morphe.software/add-source?github=variablenine/morphe-patches) |
+| 96 | `vladon/morphe-patches-navi` | [Open](https://github.com/vladon/morphe-patches-navi) | [Add to Morphe](https://morphe.software/add-source?github=vladon/morphe-patches-navi) |
+| 97 | `wchill/patcheddit` | [Open](https://github.com/wchill/patcheddit) | [Add to Morphe](https://morphe.software/add-source?github=wchill/patcheddit) |
+| 98 | `wchill/rvx-morphed` | [Open](https://github.com/wchill/rvx-morphed) | [Add to Morphe](https://morphe.software/add-source?github=wchill/rvx-morphed) |
+| 99 | `WZSE/morphe-patches` | [Open](https://github.com/WZSE/morphe-patches) | [Add to Morphe](https://morphe.software/add-source?github=WZSE/morphe-patches) |
+| 100 | `Xhehab/Xhehab-Patches` | [Open](https://github.com/Xhehab/Xhehab-Patches) | [Add to Morphe](https://morphe.software/add-source?github=Xhehab/Xhehab-Patches) |
+| 101 | `xob0t/morphe-patches` | [Open](https://github.com/xob0t/morphe-patches) | [Add to Morphe](https://morphe.software/add-source?github=xob0t/morphe-patches) |
+| 102 | `ynotzort/morphe-patches` | [Open](https://github.com/ynotzort/morphe-patches) | [Add to Morphe](https://morphe.software/add-source?github=ynotzort/morphe-patches) |
 
 ---
 
@@ -158,4 +159,4 @@ Use `owner/repo` for GitHub, or `gitlab.com/group/project` for GitLab.
 
 18 approved repo entries were hidden because their bundle URL is currently invalid.
 
-*Last generated: 2026-07-23 20:14 UTC*
+*Last generated: 2026-07-23 20:25 UTC*
