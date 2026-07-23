@@ -350,7 +350,7 @@ HTML = """<!doctype html>
       background: var(--bg);
       color: var(--text);
       line-height: 1.5;
-      padding-bottom: 112px;
+      padding-bottom: 70px;
     }
     header {
       border-bottom: 1px solid var(--line);
@@ -363,20 +363,20 @@ HTML = """<!doctype html>
     .wrap {
       max-width: 1220px;
       margin: 0 auto;
-      padding: 24px;
+      padding: 18px 24px;
     }
     .nav {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 18px;
-      padding-bottom: 18px;
+      padding-bottom: 10px;
     }
     .brand {
       display: flex;
       align-items: center;
       gap: 10px;
-      font-size: 25px;
+      font-size: 24px;
       font-weight: 800;
       letter-spacing: 0;
     }
@@ -390,11 +390,11 @@ HTML = """<!doctype html>
       grid-template-columns: 1fr auto;
       gap: 20px;
       align-items: end;
-      padding: 22px 0 18px;
+      padding: 10px 0 14px;
     }
     h1 {
       margin: 0 0 8px;
-      font-size: clamp(34px, 4vw, 58px);
+      font-size: clamp(30px, 3.4vw, 48px);
       line-height: 1.04;
       letter-spacing: 0;
     }
@@ -425,7 +425,7 @@ HTML = """<!doctype html>
     .stat {
       border: 1px solid var(--line);
       background: var(--panel);
-      padding: 10px 12px;
+      padding: 9px 12px;
       border-radius: 8px;
       min-width: 104px;
       box-shadow: var(--shadow);
@@ -435,7 +435,7 @@ HTML = """<!doctype html>
     }
     .stat strong {
       display: block;
-      font-size: 24px;
+      font-size: 22px;
       color: var(--accent);
       letter-spacing: 0;
     }
@@ -443,7 +443,7 @@ HTML = """<!doctype html>
       display: grid;
       grid-template-columns: auto minmax(130px, 160px) minmax(160px, 220px) minmax(260px, 1fr);
       gap: 14px;
-      margin-top: 22px;
+      margin-top: 12px;
       align-items: stretch;
     }
     input, select, button, a.button {
@@ -451,7 +451,7 @@ HTML = """<!doctype html>
       background: var(--panel);
       color: var(--text);
       border-radius: 12px;
-      padding: 11px 12px;
+      padding: 10px 12px;
       font: inherit;
     }
     input { width: 100%; }
@@ -697,11 +697,9 @@ HTML = """<!doctype html>
         flex: 1 1 0;
       }
       .top, .toolbar, .row { grid-template-columns: 1fr; }
-      .top {
-        padding: 12px 0 10px;
-      }
+      .top { padding: 8px 0 10px; }
       h1 {
-        font-size: 36px;
+        font-size: 32px;
       }
       .stats { grid-template-columns: repeat(2, 1fr); }
       .stat {
@@ -714,6 +712,7 @@ HTML = """<!doctype html>
       .tabs {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
+        width: 100%;
       }
       .tabs button {
         padding: 10px 8px;
@@ -745,7 +744,10 @@ HTML = """<!doctype html>
         border-radius: 10px;
         width: 100%;
       }
-      .wrap { padding: 16px; }
+      .wrap {
+        width: 100%;
+        padding: 14px;
+      }
       .bottom-bar {
         position: static;
       }
@@ -760,7 +762,7 @@ HTML = """<!doctype html>
     @media (max-width: 520px) {
       .stats { grid-template-columns: 1fr; }
       h1 {
-        font-size: 32px;
+        font-size: 29px;
       }
       .brand {
         font-size: 22px;
@@ -774,6 +776,12 @@ HTML = """<!doctype html>
       .actions .button {
         flex: 1 1 0;
       }
+      .meta {
+        gap: 6px;
+      }
+      .subline {
+        font-size: 12px;
+      }
     }
   </style>
 </head>
@@ -781,7 +789,7 @@ HTML = """<!doctype html>
   <header>
     <div class="wrap">
       <div class="nav">
-        <div class="brand"><span class="brand-mark">M</span><span>Morphe Archive</span></div>
+        <div class="brand"><span class="brand-mark">M</span><span>Archive</span></div>
         <div class="header-actions">
           <a class="button" href="#how-to-add">How to Add</a>
           <a id="configLink" class="button primary" href="#">Download Config</a>
@@ -833,7 +841,6 @@ HTML = """<!doctype html>
     <div class="bottom-inner">
       <span>Use at your own risk. Sources and patches are community provided and not individually verified.</span>
       <div class="bottom-actions">
-        <a id="bottomConfigLink" class="button primary" href="#">Download Config</a>
         <a class="button" href="#top">Back to top</a>
       </div>
     </div>
@@ -973,7 +980,7 @@ HTML = """<!doctype html>
           </div>
         </div>
         <details>
-          <summary>${app.sources.length} source${app.sources.length === 1 ? "" : "s"} with separate patch sets</summary>
+          <summary>${app.sources.length} source${app.sources.length === 1 ? "" : "s"}</summary>
           <div class="source-grid">${sourceCards}</div>
         </details>`;
       return row;
@@ -1055,13 +1062,9 @@ HTML = """<!doctype html>
         document.getElementById("universalCount").textContent = data.universalPatchCount;
         document.getElementById("generatedAt").textContent = `Generated ${data.generatedAt}`;
         const configLink = document.getElementById("configLink");
-        const bottomConfigLink = document.getElementById("bottomConfigLink");
         configLink.href = data.configFile;
         configLink.download = data.configFile;
         configLink.textContent = `Download Config v${data.configVersion}`;
-        bottomConfigLink.href = configLink.href;
-        bottomConfigLink.download = data.configFile;
-        bottomConfigLink.textContent = `Config v${data.configVersion}`;
         Object.entries(data.hostCounts || {}).forEach(([host, count]) => {
           const option = document.createElement("option");
           option.value = host;
