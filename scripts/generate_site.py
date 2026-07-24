@@ -758,6 +758,9 @@ HTML = """<!doctype html>
       flex-wrap: wrap;
       justify-content: flex-start;
     }
+    a.badge {
+      text-decoration: none;
+    }
     .repo-actions {
       justify-content: flex-start;
       margin-top: 10px;
@@ -1338,9 +1341,10 @@ HTML = """<!doctype html>
       return String(value || "").toLowerCase().includes(state.query);
     }
 
-    function hostBadge(host) {
+    function hostBadge(host, url = "") {
       const label = host === "gitlab.com" ? "GitLab" : host === "github.com" ? "GitHub" : host || "Other";
       const cls = host === "gitlab.com" ? "gitlab" : host === "github.com" ? "github" : "other";
+      if (url) return `<a class="badge host-${cls}" href="${url}" target="_blank" rel="noreferrer">${label}</a>`;
       return `<span class="badge host-${cls}">${label}</span>`;
     }
 
@@ -1456,12 +1460,11 @@ HTML = """<!doctype html>
             <div>
               <div class="name">${escapeHtml(repo.repo)}</div>
               <div class="meta">
-                ${hostBadge(repo.host)}
+                ${hostBadge(repo.host, repo.webUrl)}
                 <span>${repo.patchCount} patches</span>
                 <span>${repo.appCount} apps</span>
               </div>
               <div class="actions repo-actions bundle-actions">
-                <a class="button" href="${repo.webUrl}" target="_blank" rel="noreferrer">Open</a>
                 <a class="button" href="${repo.source}" target="_blank" rel="noreferrer">Bundle</a>
                 <a class="button primary" href="${repo.addUrl}" target="_blank" rel="noreferrer">Add Source</a>
               </div>
@@ -1504,9 +1507,8 @@ HTML = """<!doctype html>
         return `
           <div class="source-card">
             <div class="source-card-head card-head">
-              <div class="source-card-title">${avatarHtml(source.avatarUrl, source.repo)}<span>${escapeHtml(source.repo)}</span>${hostBadge(source.host)}</div>
+              <div class="source-card-title">${avatarHtml(source.avatarUrl, source.repo)}<span>${escapeHtml(source.repo)}</span>${hostBadge(source.host, source.webUrl)}</div>
               <div class="actions source-actions">
-                <a class="button" href="${source.webUrl}" target="_blank" rel="noreferrer">Open</a>
                 <a class="button primary" href="${source.addUrl}" target="_blank" rel="noreferrer">Add Source</a>
                 <a class="button obtainium" href="${obtainiumUrl(app, source)}" target="_blank" rel="noreferrer"><span>Add to Obtainium</span></a>
               </div>
@@ -1548,11 +1550,10 @@ HTML = """<!doctype html>
             <div>
               <div class="name">${escapeHtml(source.repo)}</div>
               <div class="meta">
-                ${hostBadge(source.host)}
+                ${hostBadge(source.host, source.webUrl)}
                 <span>${source.patchCount} universal patches</span>
               </div>
               <div class="actions repo-actions bundle-actions">
-                <a class="button" href="${source.webUrl}" target="_blank" rel="noreferrer">Open</a>
                 <a class="button primary" href="${source.addUrl}" target="_blank" rel="noreferrer">Add Source</a>
               </div>
             </div>
