@@ -169,7 +169,7 @@ def build_readme(repos, invalid_repos=None):
     for i, repo in enumerate(repos, start=1):
         lines.append(
             f"| {i} | `{repo}` | [Open]({repo_web_url(repo)}) | "
-            f"[Add to Morphe]({morphe_add_url(repo)}) |"
+            f"[Add Source]({morphe_add_url(repo)}) |"
         )
 
     lines.append("")
