@@ -796,12 +796,15 @@ HTML = """<!doctype html>
       margin-bottom: 8px;
     }
     .source-card-head.card-head {
+      display: grid;
       grid-template-columns: minmax(0, 1fr);
     }
     .source-card-title {
-      display: flex;
+      display: grid;
+      grid-template-columns: 56px minmax(0, 1fr) auto;
       align-items: center;
       gap: 8px;
+      width: 100%;
       min-width: 0;
       font-weight: 700;
       overflow-wrap: anywhere;
@@ -1093,7 +1096,13 @@ HTML = """<!doctype html>
       }
       .source-card-head {
         align-items: flex-start;
-        flex-direction: column;
+      }
+      .source-card-title {
+        grid-template-columns: 46px minmax(0, 1fr);
+      }
+      .source-card-title .badge {
+        grid-column: 2;
+        justify-self: start;
       }
       .source-actions {
         margin-left: 0;
