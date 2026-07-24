@@ -718,11 +718,17 @@ HTML = """<!doctype html>
       justify-content: flex-start;
     }
     .repo-actions {
-      justify-content: flex-end;
+      justify-content: flex-start;
+      margin-top: 10px;
     }
     .source-actions {
       align-items: center;
-      margin-left: 68px;
+      flex-wrap: nowrap;
+    }
+    .source-actions a.button {
+      min-height: 38px;
+      padding: 8px 12px;
+      font-size: 14px;
     }
     .source-actions .obtainium {
       flex-basis: auto;
@@ -1106,6 +1112,7 @@ HTML = """<!doctype html>
       }
       .source-actions {
         margin-left: 0;
+        flex-wrap: wrap;
       }
       .source-actions .obtainium {
         max-width: none;
@@ -1374,7 +1381,7 @@ HTML = """<!doctype html>
         </div>
       `).join("");
       row.innerHTML = `
-        <div class="card-head">
+        <div>
           <div class="title-line">
             ${avatarHtml(repo.avatarUrl, repo.repo)}
             <div>
@@ -1384,12 +1391,12 @@ HTML = """<!doctype html>
                 <span>${repo.patchCount} patches</span>
                 <span>${repo.appCount} apps</span>
               </div>
+              <div class="actions repo-actions">
+                <a class="button" href="${repo.webUrl}" target="_blank" rel="noreferrer">Open</a>
+                <a class="button" href="${repo.source}" target="_blank" rel="noreferrer">Bundle</a>
+                <a class="button primary" href="${repo.addUrl}" target="_blank" rel="noreferrer">Add to Morphe</a>
+              </div>
             </div>
-          </div>
-          <div class="actions repo-actions">
-            <a class="button" href="${repo.webUrl}" target="_blank" rel="noreferrer">Open</a>
-            <a class="button" href="${repo.source}" target="_blank" rel="noreferrer">Bundle</a>
-            <a class="button primary" href="${repo.addUrl}" target="_blank" rel="noreferrer">Add to Morphe</a>
           </div>
         </div>
         <details>
@@ -1459,7 +1466,7 @@ HTML = """<!doctype html>
       const row = document.createElement("article");
       row.className = "row";
       row.innerHTML = `
-        <div class="card-head">
+        <div>
           <div class="title-line">
             ${avatarHtml(source.avatarUrl, source.repo)}
             <div>
@@ -1468,11 +1475,11 @@ HTML = """<!doctype html>
                 ${hostBadge(source.host)}
                 <span>${source.patchCount} universal patches</span>
               </div>
+              <div class="actions repo-actions">
+                <a class="button" href="${source.webUrl}" target="_blank" rel="noreferrer">Open</a>
+                <a class="button primary" href="${source.addUrl}" target="_blank" rel="noreferrer">Add Source</a>
+              </div>
             </div>
-          </div>
-          <div class="actions repo-actions">
-            <a class="button" href="${source.webUrl}" target="_blank" rel="noreferrer">Open</a>
-            <a class="button primary" href="${source.addUrl}" target="_blank" rel="noreferrer">Add Source</a>
           </div>
         </div>
         <details>
