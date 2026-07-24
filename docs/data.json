@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-07-24 00:42 UTC",
+  "generatedAt": "2026-07-24 05:27 UTC",
   "configFile": "morphe_archive_config_v5.json",
   "configVersion": 5,
   "repoCount": 103,
   "appCount": 508,
-  "patchCount": 2004,
+  "patchCount": 2005,
   "universalPatchCount": 157,
   "hostCounts": {
     "github.com": 99,
@@ -7793,19 +7793,19 @@
       "webUrl": "https://github.com/xob0t/morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=xob0t/morphe-patches",
       "avatarUrl": "https://github.com/xob0t.png?size=96",
-      "patchCount": 24,
+      "patchCount": 25,
       "appCount": 4,
       "createdAt": 1784836042808,
       "updatedAt": 1784836042808,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.7.3 (2026-07-23)",
-        "date": "2026-07-23",
+        "title": "1.8.0 (2026-07-24)",
+        "date": "2026-07-24",
         "items": [
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**avito:** blacken AMOLED system bars"
+            "category": "\u2728 New Features",
+            "text": "**avito:** filter professional sellers by review count"
           }
         ]
       },
@@ -7813,7 +7813,7 @@
         {
           "name": "Avito",
           "packageName": "com.avito.android",
-          "patchCount": 7,
+          "patchCount": 8,
           "iconUrl": "",
           "iconColor": "#00AAFF"
         },
@@ -10021,8 +10021,8 @@
       ],
       "patches": [
         "Disable PairIP DRM",
-        "Unlock premium",
-        "Unlock Premium"
+        "Unlock Premium",
+        "Unlock premium"
       ],
       "patchDetails": [
         {
@@ -10030,12 +10030,12 @@
           "description": "Disables PairIP signature verification and Google Play LVL license check. Required for the app to launch after re-signing."
         },
         {
-          "name": "Unlock premium",
-          "description": "Unlocks all AT4K premium features by forcing the premium status to true."
-        },
-        {
           "name": "Unlock Premium",
           "description": "Unlocks all premium features by forcing the premium state to true in the purchase manager."
+        },
+        {
+          "name": "Unlock premium",
+          "description": "Unlocks all AT4K premium features by forcing the premium status to true."
         }
       ],
       "versions": [
@@ -10487,12 +10487,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.7.3 (2026-07-23)",
-            "date": "2026-07-23",
+            "title": "1.8.0 (2026-07-24)",
+            "date": "2026-07-24",
             "items": [
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**avito:** blacken AMOLED system bars"
+                "category": "\u2728 New Features",
+                "text": "**avito:** filter professional sellers by review count"
               }
             ]
           },
@@ -10519,6 +10519,10 @@
             {
               "name": "Disable update prompts",
               "description": "Prevents Avito's force-update screen opener from launching update screens. Toggleable in \u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438 Morphe."
+            },
+            {
+              "name": "Hide professional sellers",
+              "description": "Adds a maximum seller review count to Avito search filters and hides or dims offers from sellers above that limit."
             },
             {
               "name": "Morphe settings",
@@ -10548,6 +10552,7 @@
         "Block listings",
         "Disable telemetry",
         "Disable update prompts",
+        "Hide professional sellers",
         "Morphe settings",
         "Remove ads",
         "UI tweaks"
@@ -10568,6 +10573,10 @@
         {
           "name": "Disable update prompts",
           "description": "Prevents Avito's force-update screen opener from launching update screens. Toggleable in \u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438 Morphe."
+        },
+        {
+          "name": "Hide professional sellers",
+          "description": "Adds a maximum seller review count to Avito search filters and hides or dims offers from sellers above that limit."
         },
         {
           "name": "Morphe settings",
@@ -37287,12 +37296,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.7.3 (2026-07-23)",
-            "date": "2026-07-23",
+            "title": "1.8.0 (2026-07-24)",
+            "date": "2026-07-24",
             "items": [
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**avito:** blacken AMOLED system bars"
+                "category": "\u2728 New Features",
+                "text": "**avito:** filter professional sellers by review count"
               }
             ]
           },
@@ -40439,8 +40448,8 @@
       ],
       "patches": [
         "Disable tracking",
-        "Unlock premium",
-        "Unlock Premium"
+        "Unlock Premium",
+        "Unlock premium"
       ],
       "patchDetails": [
         {
@@ -40448,12 +40457,12 @@
           "description": "Disables analytics and crash reporting."
         },
         {
-          "name": "Unlock premium",
-          "description": "Unlocks all premium features."
-        },
-        {
           "name": "Unlock Premium",
           "description": "Unlocks all premium features by bypassing the native library premium check."
+        },
+        {
+          "name": "Unlock premium",
+          "description": "Unlocks all premium features."
         }
       ],
       "versions": [
@@ -47178,12 +47187,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.7.3 (2026-07-23)",
-            "date": "2026-07-23",
+            "title": "1.8.0 (2026-07-24)",
+            "date": "2026-07-24",
             "items": [
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**avito:** blacken AMOLED system bars"
+                "category": "\u2728 New Features",
+                "text": "**avito:** filter professional sellers by review count"
               }
             ]
           },
@@ -49749,8 +49758,8 @@
       ],
       "patches": [
         "Disable analytics",
-        "Disable Telemetry",
         "Disable telemetry",
+        "Disable Telemetry",
         "Disable update check",
         "Enable premium features",
         "GMS sign-in bypass",
@@ -49794,11 +49803,11 @@
           "description": "Suppresses Truecaller's CleverTap behavioural event tracking to prevent user-activity telemetry."
         },
         {
-          "name": "Disable Telemetry",
+          "name": "Disable telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
-          "name": "Disable telemetry",
+          "name": "Disable Telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
@@ -51962,12 +51971,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.7.3 (2026-07-23)",
-            "date": "2026-07-23",
+            "title": "1.8.0 (2026-07-24)",
+            "date": "2026-07-24",
             "items": [
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**avito:** blacken AMOLED system bars"
+                "category": "\u2728 New Features",
+                "text": "**avito:** filter professional sellers by review count"
               }
             ]
           },
@@ -54454,8 +54463,8 @@
         "Save to watch later",
         "Seekbar",
         "Seekbar components",
-        "Set transcript cookies",
         "Set Transcript Cookies",
+        "Set transcript cookies",
         "Settings for YouTube",
         "Settings menu filter",
         "Shorts autoplay",
@@ -54473,8 +54482,8 @@
         "Video playback",
         "Video quality",
         "Visual preferences icons for YouTube",
-        "Voice Over Translation",
         "Voice over translation",
+        "Voice Over Translation",
         "Watch history",
         "YouTubeDislikeAutoNext (STUB)",
         "YouTubeLikeAutoNext (STUB)"
@@ -54901,11 +54910,11 @@
           "description": "Adds options to hide or change components related to the seekbar."
         },
         {
-          "name": "Set transcript cookies",
+          "name": "Set Transcript Cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {
-          "name": "Set Transcript Cookies",
+          "name": "Set transcript cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {
@@ -54977,12 +54986,12 @@
           "description": "Adds icons to specific preferences in the settings."
         },
         {
-          "name": "Voice Over Translation",
-          "description": "Adds an option to enable Yandex voice-over translation of video audio tracks."
-        },
-        {
           "name": "Voice over translation",
           "description": "Adds additional voice over languages using text-to-speech synchronized to the video playback."
+        },
+        {
+          "name": "Voice Over Translation",
+          "description": "Adds an option to enable Yandex voice-over translation of video audio tracks."
         },
         {
           "name": "Watch history",
@@ -58178,12 +58187,12 @@
       "avatarUrl": "https://github.com/xob0t.png?size=96",
       "patchCount": 13,
       "latestChanges": {
-        "title": "1.7.3 (2026-07-23)",
-        "date": "2026-07-23",
+        "title": "1.8.0 (2026-07-24)",
+        "date": "2026-07-24",
         "items": [
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**avito:** blacken AMOLED system bars"
+            "category": "\u2728 New Features",
+            "text": "**avito:** filter professional sellers by review count"
           }
         ]
       },

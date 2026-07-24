@@ -1365,7 +1365,7 @@ HTML = """<!doctype html>
         additionalSettings: JSON.stringify({
           includePrereleases: false,
           fallbackToOlderReleases: true,
-          filterReleaseTitlesByRegEx: builder.releaseTag || "",
+          filterReleaseTitlesByRegEx: "",
           filterReleaseNotesByRegEx: "",
           verifyLatestTag: false,
           sortMethodChoice: "date",
