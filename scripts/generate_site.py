@@ -143,6 +143,29 @@ def clean_markdown(value):
     return value.strip()
 
 
+def slugify(value):
+    value = str(value or "").lower().replace("&", "and").replace("+", "plus")
+    value = re.sub(r"[^a-z0-9]+", "-", value)
+    return value.strip("-") or "item"
+
+
+def source_slug(repo):
+    return slugify(str(repo or "").replace("/", "-"))
+
+
+def builder_build_id(package_name, repo):
+    return f"{slugify(package_name)}-{source_slug(repo)}"
+
+
+def builder_release_tag(package_name, repo):
+    return f"app-{slugify(package_name)}-{source_slug(repo)}"
+
+
+def builder_asset_name(app_name, package_name, repo):
+    app_part = slugify(app_name or package_name or "app")
+    return f"{app_part}-{source_slug(repo)}.apk"
+
+
 def summarize_changelog(markdown):
     if not markdown:
         return {"title": "", "date": "", "items": []}
@@ -380,6 +403,13 @@ def build_data():
                 "changelogUrl": repo["changelogUrl"],
                 "avatarUrl": repo["avatarUrl"],
                 "latestChanges": latest_changes,
+                "builder": {
+                    "buildId": builder_build_id(app["packageName"], repo_path),
+                    "releaseTag": builder_release_tag(app["packageName"], repo_path),
+                    "assetName": builder_asset_name(app["name"], app["packageName"], repo_path),
+                    "repo": "rushiforai/morphe-builder",
+                    "webUrl": "https://github.com/rushiforai/morphe-builder",
+                },
                 "patches": app["patchDetails"],
                 "versions": app["versions"],
             }
@@ -1309,8 +1339,13 @@ HTML = """<!doctype html>
         .replace(/^-+|-+$/g, "");
     }
 
+    function escapeRegex(value) {
+      return String(value || "").replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&");
+    }
+
     function obtainiumUrl(app, source) {
       const repoOwner = source.repo.split("/")[0] || "source";
+      const builder = source.builder || {};
       const hasMultipleSources = app.sources.length > 1;
       const packageId = hasMultipleSources
         ? `${app.packageName}.morphe.${slugify(repoOwner)}`
@@ -1318,17 +1353,19 @@ HTML = """<!doctype html>
       const appName = hasMultipleSources
         ? `${app.name} (${repoOwner})`
         : app.name;
-      const apkSlug = slugify(app.name || app.packageName);
+      const builderRepo = builder.repo || "rushiforai/morphe-builder";
+      const builderUrl = builder.webUrl || `https://github.com/${builderRepo}`;
+      const assetName = builder.assetName || `${slugify(app.name || app.packageName)}-${slugify(source.repo.replace("/", "-"))}.apk`;
       const payload = {
         id: packageId,
-        url: source.webUrl,
-        author: repoOwner,
+        url: builderUrl,
+        author: "rushiforai",
         name: appName,
         preferredApkIndex: 0,
         additionalSettings: JSON.stringify({
           includePrereleases: false,
           fallbackToOlderReleases: true,
-          filterReleaseTitlesByRegEx: "",
+          filterReleaseTitlesByRegEx: builder.releaseTag || "",
           filterReleaseNotesByRegEx: "",
           verifyLatestTag: false,
           sortMethodChoice: "date",
@@ -1340,7 +1377,7 @@ HTML = """<!doctype html>
           versionDetection: false,
           releaseDateAsVersion: false,
           useVersionCodeAsOSVersion: false,
-          apkFilterRegEx: `^${apkSlug}-morphe-v?\\\\d.*\\\\.apk$`,
+          apkFilterRegEx: `^${escapeRegex(assetName)}$`,
           invertAPKFilter: false,
           autoApkFilterByArch: true,
           appName: "",
@@ -1354,7 +1391,7 @@ HTML = """<!doctype html>
           includeZips: false,
           zippedApkFilterRegEx: ""
         }),
-        overrideSource: source.host === "gitlab.com" ? "GitLab" : "GitHub"
+        overrideSource: "GitHub"
       };
       return `https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/${encodeURIComponent(JSON.stringify(payload))}`;
     }

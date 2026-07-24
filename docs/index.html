@@ -873,8 +873,13 @@
         .replace(/^-+|-+$/g, "");
     }
 
+    function escapeRegex(value) {
+      return String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    }
+
     function obtainiumUrl(app, source) {
       const repoOwner = source.repo.split("/")[0] || "source";
+      const builder = source.builder || {};
       const hasMultipleSources = app.sources.length > 1;
       const packageId = hasMultipleSources
         ? `${app.packageName}.morphe.${slugify(repoOwner)}`
@@ -882,17 +887,19 @@
       const appName = hasMultipleSources
         ? `${app.name} (${repoOwner})`
         : app.name;
-      const apkSlug = slugify(app.name || app.packageName);
+      const builderRepo = builder.repo || "rushiforai/morphe-builder";
+      const builderUrl = builder.webUrl || `https://github.com/${builderRepo}`;
+      const assetName = builder.assetName || `${slugify(app.name || app.packageName)}-${slugify(source.repo.replace("/", "-"))}.apk`;
       const payload = {
         id: packageId,
-        url: source.webUrl,
-        author: repoOwner,
+        url: builderUrl,
+        author: "rushiforai",
         name: appName,
         preferredApkIndex: 0,
         additionalSettings: JSON.stringify({
           includePrereleases: false,
           fallbackToOlderReleases: true,
-          filterReleaseTitlesByRegEx: "",
+          filterReleaseTitlesByRegEx: builder.releaseTag || "",
           filterReleaseNotesByRegEx: "",
           verifyLatestTag: false,
           sortMethodChoice: "date",
@@ -904,7 +911,7 @@
           versionDetection: false,
           releaseDateAsVersion: false,
           useVersionCodeAsOSVersion: false,
-          apkFilterRegEx: `^${apkSlug}-morphe-v?\\d.*\\.apk$`,
+          apkFilterRegEx: `^${escapeRegex(assetName)}$`,
           invertAPKFilter: false,
           autoApkFilterByArch: true,
           appName: "",
@@ -918,7 +925,7 @@
           includeZips: false,
           zippedApkFilterRegEx: ""
         }),
-        overrideSource: source.host === "gitlab.com" ? "GitLab" : "GitHub"
+        overrideSource: "GitHub"
       };
       return `https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/${encodeURIComponent(JSON.stringify(payload))}`;
     }
