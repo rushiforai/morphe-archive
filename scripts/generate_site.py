@@ -757,10 +757,16 @@ HTML = """<!doctype html>
       margin-top: 10px;
     }
     .bundle-actions {
-      display: flex;
+      display: grid;
+      grid-template-columns: auto auto minmax(0, max-content);
       align-items: center;
-      flex-wrap: nowrap;
-      width: 100%;
+      width: fit-content;
+      max-width: 100%;
+    }
+    .bundle-actions .primary {
+      min-width: 0;
+      padding-left: 16px;
+      padding-right: 16px;
     }
     .source-actions {
       align-items: center;
@@ -849,14 +855,14 @@ HTML = """<!doctype html>
       margin-bottom: 8px;
     }
     .source-card-head.card-head {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      align-items: start;
       gap: 12px;
     }
     .source-card-title {
       display: grid;
-      grid-template-columns: 56px minmax(0, 1fr);
+      grid-template-columns: 56px minmax(0, 1fr) auto;
       align-items: center;
       gap: 8px;
       width: 100%;
@@ -871,7 +877,7 @@ HTML = """<!doctype html>
       hyphens: none;
     }
     .source-card-title .badge {
-      grid-column: 2;
+      grid-column: 3;
       justify-self: start;
     }
     .avatar.fallback {
@@ -1135,7 +1141,11 @@ HTML = """<!doctype html>
       }
       .actions { justify-content: flex-start; }
       .repo-actions { justify-content: flex-start; }
-      .bundle-actions { flex-wrap: wrap; }
+      .bundle-actions {
+        display: flex;
+        flex-wrap: wrap;
+        width: 100%;
+      }
       .row {
         padding: 14px;
         border-radius: 12px;
