@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-24 05:27 UTC",
+  "generatedAt": "2026-07-24 08:35 UTC",
   "configFile": "morphe_archive_config_v5.json",
   "configVersion": 5,
   "repoCount": 103,
@@ -8357,7 +8357,7 @@
           "builder": {
             "buildId": "com-adguard-android-rushiranpise-morphe-patches",
             "releaseTag": "app-com-adguard-android-rushiranpise-morphe-patches",
-            "assetName": "adguard-nightly-rushiranpise-morphe-patches.apk",
+            "assetName": "adguard-rushiranpise-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -9934,7 +9934,7 @@
           "builder": {
             "buildId": "com-overdevs-at4k-bufferk-morphe-patches",
             "releaseTag": "app-com-overdevs-at4k-bufferk-morphe-patches",
-            "assetName": "com-overdevs-at4k-bufferk-morphe-patches.apk",
+            "assetName": "at4k-launcher-bufferk-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -9967,7 +9967,7 @@
           "builder": {
             "buildId": "com-overdevs-at4k-hackingguy-morphe-patches",
             "releaseTag": "app-com-overdevs-at4k-hackingguy-morphe-patches",
-            "assetName": "com-overdevs-at4k-hackingguy-morphe-patches.apk",
+            "assetName": "at4k-launcher-hackingguy-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -10000,7 +10000,7 @@
           "builder": {
             "buildId": "com-overdevs-at4k-saieshshirodkar-saiesh-morphe-patches",
             "releaseTag": "app-com-overdevs-at4k-saieshshirodkar-saiesh-morphe-patches",
-            "assetName": "at4k-launcher-android-tv-saieshshirodkar-saiesh-morphe-patches.apk",
+            "assetName": "at4k-launcher-saieshshirodkar-saiesh-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -14730,7 +14730,7 @@
           "builder": {
             "buildId": "com-amazon-avod-thirdpartyclient-hoo-dles-morphe-patches",
             "releaseTag": "app-com-amazon-avod-thirdpartyclient-hoo-dles-morphe-patches",
-            "assetName": "prime-video-hoo-dles-morphe-patches.apk",
+            "assetName": "com-amazon-avod-thirdpartyclient-hoo-dles-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -14983,7 +14983,7 @@
           "builder": {
             "buildId": "com-amazon-mshop-android-shopping-rushiranpise-morphe-patches",
             "releaseTag": "app-com-amazon-mshop-android-shopping-rushiranpise-morphe-patches",
-            "assetName": "amazon-shopping-rushiranpise-morphe-patches.apk",
+            "assetName": "com-amazon-mshop-android-shopping-rushiranpise-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -15866,7 +15866,7 @@
           "builder": {
             "buildId": "com-duolingo-hoo-dles-morphe-patches",
             "releaseTag": "app-com-duolingo-hoo-dles-morphe-patches",
-            "assetName": "duolingo-hoo-dles-morphe-patches.apk",
+            "assetName": "com-duolingo-hoo-dles-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -15913,7 +15913,7 @@
           "builder": {
             "buildId": "com-duolingo-rushiranpise-morphe-patches",
             "releaseTag": "app-com-duolingo-rushiranpise-morphe-patches",
-            "assetName": "duolingo-rushiranpise-morphe-patches.apk",
+            "assetName": "com-duolingo-rushiranpise-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -16648,7 +16648,7 @@
           "builder": {
             "buildId": "com-github-android-hoo-dles-morphe-patches",
             "releaseTag": "app-com-github-android-hoo-dles-morphe-patches",
-            "assetName": "github-hoo-dles-morphe-patches.apk",
+            "assetName": "com-github-android-hoo-dles-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -16908,7 +16908,7 @@
           "builder": {
             "buildId": "com-google-android-apps-magazines-hoo-dles-morphe-patches",
             "releaseTag": "app-com-google-android-apps-magazines-hoo-dles-morphe-patches",
-            "assetName": "google-news-hoo-dles-morphe-patches.apk",
+            "assetName": "com-google-android-apps-magazines-hoo-dles-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -17104,7 +17104,7 @@
           "builder": {
             "buildId": "com-google-android-apps-maps-fangkampanat-gmaps-patches",
             "releaseTag": "app-com-google-android-apps-maps-fangkampanat-gmaps-patches",
-            "assetName": "google-maps-fangkampanat-gmaps-patches.apk",
+            "assetName": "com-google-android-apps-maps-fangkampanat-gmaps-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -17252,7 +17252,7 @@
           "builder": {
             "buildId": "com-google-android-apps-photos-rushiranpise-morphe-patches",
             "releaseTag": "app-com-google-android-apps-photos-rushiranpise-morphe-patches",
-            "assetName": "google-photos-rushiranpise-morphe-patches.apk",
+            "assetName": "com-google-android-apps-photos-rushiranpise-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -17807,7 +17807,7 @@
           "builder": {
             "buildId": "com-google-android-inputmethod-latin-jkennethcarino-adobo",
             "releaseTag": "app-com-google-android-inputmethod-latin-jkennethcarino-adobo",
-            "assetName": "gboard-jkennethcarino-adobo.apk",
+            "assetName": "com-google-android-inputmethod-latin-jkennethcarino-adobo.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -18071,7 +18071,7 @@
           "builder": {
             "buildId": "com-instagram-barcelona-durgesh0505-chiggi-morphe-patches",
             "releaseTag": "app-com-instagram-barcelona-durgesh0505-chiggi-morphe-patches",
-            "assetName": "threads-durgesh0505-chiggi-morphe-patches.apk",
+            "assetName": "com-instagram-barcelona-durgesh0505-chiggi-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -18401,7 +18401,7 @@
           "builder": {
             "buildId": "com-letterboxd-letterboxd-ethanm6-letterboxd-stremio-morphe-patch",
             "releaseTag": "app-com-letterboxd-letterboxd-ethanm6-letterboxd-stremio-morphe-patch",
-            "assetName": "letterboxd-ethanm6-letterboxd-stremio-morphe-patch.apk",
+            "assetName": "com-letterboxd-letterboxd-ethanm6-letterboxd-stremio-morphe-patch.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -19369,7 +19369,7 @@
           "builder": {
             "buildId": "com-rarlab-rar-rushiranpise-morphe-patches",
             "releaseTag": "app-com-rarlab-rar-rushiranpise-morphe-patches",
-            "assetName": "rar-rushiranpise-morphe-patches.apk",
+            "assetName": "com-rarlab-rar-rushiranpise-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -19665,7 +19665,7 @@
           "builder": {
             "buildId": "com-soundcloud-android-hoo-dles-morphe-patches",
             "releaseTag": "app-com-soundcloud-android-hoo-dles-morphe-patches",
-            "assetName": "soundcloud-hoo-dles-morphe-patches.apk",
+            "assetName": "com-soundcloud-android-hoo-dles-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -19708,7 +19708,7 @@
           "builder": {
             "buildId": "com-soundcloud-android-kondratjev-morphe-patches",
             "releaseTag": "app-com-soundcloud-android-kondratjev-morphe-patches",
-            "assetName": "soundcloud-kondratjev-morphe-patches.apk",
+            "assetName": "com-soundcloud-android-kondratjev-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -20200,7 +20200,7 @@
           "builder": {
             "buildId": "com-strava-rushiranpise-morphe-patches",
             "releaseTag": "app-com-strava-rushiranpise-morphe-patches",
-            "assetName": "strava-rushiranpise-morphe-patches.apk",
+            "assetName": "com-strava-rushiranpise-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -20340,7 +20340,7 @@
           "builder": {
             "buildId": "com-thetransitapp-droid-rushiranpise-morphe-patches",
             "releaseTag": "app-com-thetransitapp-droid-rushiranpise-morphe-patches",
-            "assetName": "transit-rushiranpise-morphe-patches.apk",
+            "assetName": "com-thetransitapp-droid-rushiranpise-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -20467,7 +20467,7 @@
           "builder": {
             "buildId": "com-tumblr-arandomhooman-hoomans-morphe-patches",
             "releaseTag": "app-com-tumblr-arandomhooman-hoomans-morphe-patches",
-            "assetName": "tumblr-arandomhooman-hoomans-morphe-patches.apk",
+            "assetName": "com-tumblr-arandomhooman-hoomans-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -20588,8 +20588,8 @@
         }
       ],
       "patches": [
-        "Disable ad-free banner",
         "Disable Ad-Free Banner",
+        "Disable ad-free banner",
         "Disable blog notification reminder",
         "Disable dashboard ads",
         "Disable gift message popup",
@@ -20601,12 +20601,12 @@
       ],
       "patchDetails": [
         {
-          "name": "Disable ad-free banner",
-          "description": "Hides the banner with the frog that prompts you to buy Tumblr Ad-Free."
-        },
-        {
           "name": "Disable Ad-Free Banner",
           "description": "Disables the banner with a frog, prompting you to buy Tumblr Ad-Free."
+        },
+        {
+          "name": "Disable ad-free banner",
+          "description": "Hides the banner with the frog that prompts you to buy Tumblr Ad-Free."
         },
         {
           "name": "Disable blog notification reminder",
@@ -20747,7 +20747,7 @@
           "builder": {
             "buildId": "com-twitter-android-crimera-piko",
             "releaseTag": "app-com-twitter-android-crimera-piko",
-            "assetName": "x-crimera-piko.apk",
+            "assetName": "com-twitter-android-crimera-piko.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -21070,7 +21070,7 @@
           "builder": {
             "buildId": "com-twitter-android-inotia00-x-shim",
             "releaseTag": "app-com-twitter-android-inotia00-x-shim",
-            "assetName": "x-inotia00-x-shim.apk",
+            "assetName": "com-twitter-android-inotia00-x-shim.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -22958,7 +22958,7 @@
           "builder": {
             "buildId": "com-cricbuzz-android-rookieenough-de-vanced",
             "releaseTag": "app-com-cricbuzz-android-rookieenough-de-vanced",
-            "assetName": "com-cricbuzz-android-rookieenough-de-vanced.apk",
+            "assetName": "cricbuzz-rookieenough-de-vanced.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -23958,7 +23958,7 @@
           "builder": {
             "buildId": "com-jndapp-depth-live-wallpaper-rushiranpise-morphe-patches",
             "releaseTag": "app-com-jndapp-depth-live-wallpaper-rushiranpise-morphe-patches",
-            "assetName": "depth-live-wallpaper-rushiranpise-morphe-patches.apk",
+            "assetName": "depth-wallpapers-and-live-clock-rushiranpise-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -26506,7 +26506,7 @@
           "builder": {
             "buildId": "com-google-android-googlequicksearchbox-ariecos-gemini-patches",
             "releaseTag": "app-com-google-android-googlequicksearchbox-ariecos-gemini-patches",
-            "assetName": "com-google-android-googlequicksearchbox-ariecos-gemini-patches.apk",
+            "assetName": "google-ariecos-gemini-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -28103,7 +28103,7 @@
           "builder": {
             "buildId": "in-amazon-mshop-android-shopping-rushiranpise-morphe-patches",
             "releaseTag": "app-in-amazon-mshop-android-shopping-rushiranpise-morphe-patches",
-            "assetName": "amazon-india-rushiranpise-morphe-patches.apk",
+            "assetName": "in-amazon-mshop-android-shopping-rushiranpise-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -28356,7 +28356,7 @@
           "builder": {
             "buildId": "com-nis-app-rookieenough-de-vanced",
             "releaseTag": "app-com-nis-app-rookieenough-de-vanced",
-            "assetName": "com-nis-app-rookieenough-de-vanced.apk",
+            "assetName": "inshorts-rookieenough-de-vanced.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -28607,7 +28607,7 @@
           "builder": {
             "buildId": "com-instagram-android-chirag127-morphe-patches",
             "releaseTag": "app-com-instagram-android-chirag127-morphe-patches",
-            "assetName": "com-instagram-android-chirag127-morphe-patches.apk",
+            "assetName": "instagram-chirag127-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -28898,7 +28898,7 @@
           "builder": {
             "buildId": "com-instagram-android-kareemlukitomo-morphe-patches",
             "releaseTag": "app-com-instagram-android-kareemlukitomo-morphe-patches",
-            "assetName": "com-instagram-android-kareemlukitomo-morphe-patches.apk",
+            "assetName": "instagram-kareemlukitomo-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -32401,7 +32401,7 @@
           "builder": {
             "buildId": "jp-co-shueisha-mangaplus-rushiranpise-morphe-patches",
             "releaseTag": "app-jp-co-shueisha-mangaplus-rushiranpise-morphe-patches",
-            "assetName": "manga-plus-by-shueisha-rushiranpise-morphe-patches.apk",
+            "assetName": "manga-plus-rushiranpise-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -32526,7 +32526,7 @@
           "builder": {
             "buildId": "cz-seznam-mapy-rushiranpise-morphe-patches",
             "releaseTag": "app-cz-seznam-mapy-rushiranpise-morphe-patches",
-            "assetName": "mapy-rushiranpise-morphe-patches.apk",
+            "assetName": "mapy-com-rushiranpise-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -37627,7 +37627,7 @@
           "builder": {
             "buildId": "com-brightstripe-parcels-rushiranpise-morphe-patches",
             "releaseTag": "app-com-brightstripe-parcels-rushiranpise-morphe-patches",
-            "assetName": "parcels-package-tracker-rushiranpise-morphe-patches.apk",
+            "assetName": "parcels-rushiranpise-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -38293,7 +38293,7 @@
           "builder": {
             "buildId": "com-pinterest-binarymend-morphe-patches",
             "releaseTag": "app-com-pinterest-binarymend-morphe-patches",
-            "assetName": "com-pinterest-binarymend-morphe-patches.apk",
+            "assetName": "pinterest-binarymend-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -41463,7 +41463,7 @@
           "builder": {
             "buildId": "com-reddit-frontpage-chirag127-morphe-patches",
             "releaseTag": "app-com-reddit-frontpage-chirag127-morphe-patches",
-            "assetName": "com-reddit-frontpage-chirag127-morphe-patches.apk",
+            "assetName": "reddit-chirag127-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -41616,7 +41616,7 @@
           "builder": {
             "buildId": "com-reddit-frontpage-kareemlukitomo-morphe-patches",
             "releaseTag": "app-com-reddit-frontpage-kareemlukitomo-morphe-patches",
-            "assetName": "com-reddit-frontpage-kareemlukitomo-morphe-patches.apk",
+            "assetName": "reddit-kareemlukitomo-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -46117,7 +46117,7 @@
           "builder": {
             "buildId": "app-symfonik-music-player-binarymend-morphe-patches",
             "releaseTag": "app-app-symfonik-music-player-binarymend-morphe-patches",
-            "assetName": "app-symfonik-music-player-binarymend-morphe-patches.apk",
+            "assetName": "symfonium-binarymend-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -46301,7 +46301,7 @@
           "builder": {
             "buildId": "com-laurencedawson-reddit-sync-wchill-patcheddit",
             "releaseTag": "app-com-laurencedawson-reddit-sync-wchill-patcheddit",
-            "assetName": "com-laurencedawson-reddit-sync-wchill-patcheddit.apk",
+            "assetName": "sync-for-reddit-wchill-patcheddit.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -46560,7 +46560,7 @@
           "builder": {
             "buildId": "com-laurencedawson-reddit-sync-dev-wchill-patcheddit",
             "releaseTag": "app-com-laurencedawson-reddit-sync-dev-wchill-patcheddit",
-            "assetName": "com-laurencedawson-reddit-sync-dev-wchill-patcheddit.apk",
+            "assetName": "sync-for-reddit-dev-wchill-patcheddit.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -46803,7 +46803,7 @@
           "builder": {
             "buildId": "com-laurencedawson-reddit-sync-pro-wchill-patcheddit",
             "releaseTag": "app-com-laurencedawson-reddit-sync-pro-wchill-patcheddit",
-            "assetName": "com-laurencedawson-reddit-sync-pro-wchill-patcheddit.apk",
+            "assetName": "sync-for-reddit-pro-wchill-patcheddit.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -49271,7 +49271,7 @@
           "builder": {
             "buildId": "tv-trakt-trakt-pixelpusher247-morphe-patches",
             "releaseTag": "app-tv-trakt-trakt-pixelpusher247-morphe-patches",
-            "assetName": "tv-trakt-trakt-pixelpusher247-morphe-patches.apk",
+            "assetName": "trakt-pixelpusher247-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -49341,7 +49341,7 @@
           "builder": {
             "buildId": "com-truecaller-binarymend-morphe-patches",
             "releaseTag": "app-com-truecaller-binarymend-morphe-patches",
-            "assetName": "com-truecaller-binarymend-morphe-patches.apk",
+            "assetName": "truecaller-binarymend-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -49443,7 +49443,7 @@
           "builder": {
             "buildId": "com-truecaller-chirag127-morphe-patches",
             "releaseTag": "app-com-truecaller-chirag127-morphe-patches",
-            "assetName": "com-truecaller-chirag127-morphe-patches.apk",
+            "assetName": "truecaller-chirag127-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -49758,8 +49758,8 @@
       ],
       "patches": [
         "Disable analytics",
-        "Disable telemetry",
         "Disable Telemetry",
+        "Disable telemetry",
         "Disable update check",
         "Enable premium features",
         "GMS sign-in bypass",
@@ -49803,11 +49803,11 @@
           "description": "Suppresses Truecaller's CleverTap behavioural event tracking to prevent user-activity telemetry."
         },
         {
-          "name": "Disable telemetry",
+          "name": "Disable Telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
-          "name": "Disable Telemetry",
+          "name": "Disable telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
@@ -50274,7 +50274,7 @@
           "builder": {
             "buildId": "tv-twitch-android-app-arandomhooman-hoomans-morphe-patches",
             "releaseTag": "app-tv-twitch-android-app-arandomhooman-hoomans-morphe-patches",
-            "assetName": "twitch-arandomhooman-hoomans-morphe-patches.apk",
+            "assetName": "tv-twitch-android-app-arandomhooman-hoomans-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -52910,7 +52910,7 @@
           "builder": {
             "buildId": "com-google-android-youtube-anddea-revanced-patches",
             "releaseTag": "app-com-google-android-youtube-anddea-revanced-patches",
-            "assetName": "com-google-android-youtube-anddea-revanced-patches.apk",
+            "assetName": "youtube-anddea-revanced-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -53224,7 +53224,7 @@
           "builder": {
             "buildId": "com-google-android-youtube-chirag127-morphe-patches",
             "releaseTag": "app-com-google-android-youtube-chirag127-morphe-patches",
-            "assetName": "com-google-android-youtube-chirag127-morphe-patches.apk",
+            "assetName": "youtube-chirag127-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -54073,7 +54073,7 @@
           "builder": {
             "buildId": "com-google-android-youtube-wchill-rvx-morphed",
             "releaseTag": "app-com-google-android-youtube-wchill-rvx-morphed",
-            "assetName": "com-google-android-youtube-wchill-rvx-morphed.apk",
+            "assetName": "youtube-wchill-rvx-morphed.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -54463,8 +54463,8 @@
         "Save to watch later",
         "Seekbar",
         "Seekbar components",
-        "Set Transcript Cookies",
         "Set transcript cookies",
+        "Set Transcript Cookies",
         "Settings for YouTube",
         "Settings menu filter",
         "Shorts autoplay",
@@ -54910,11 +54910,11 @@
           "description": "Adds options to hide or change components related to the seekbar."
         },
         {
-          "name": "Set Transcript Cookies",
+          "name": "Set transcript cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {
-          "name": "Set transcript cookies",
+          "name": "Set Transcript Cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {
@@ -55095,7 +55095,7 @@
           "builder": {
             "buildId": "com-google-android-apps-youtube-music-anddea-revanced-patches",
             "releaseTag": "app-com-google-android-apps-youtube-music-anddea-revanced-patches",
-            "assetName": "com-google-android-apps-youtube-music-anddea-revanced-patches.apk",
+            "assetName": "youtube-music-anddea-revanced-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -55801,7 +55801,7 @@
           "builder": {
             "buildId": "com-google-android-apps-youtube-music-wchill-rvx-morphed",
             "releaseTag": "app-com-google-android-apps-youtube-music-wchill-rvx-morphed",
-            "assetName": "com-google-android-apps-youtube-music-wchill-rvx-morphed.apk",
+            "assetName": "youtube-music-wchill-rvx-morphed.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },

@@ -406,7 +406,7 @@ def build_data():
                 "builder": {
                     "buildId": builder_build_id(app["packageName"], repo_path),
                     "releaseTag": builder_release_tag(app["packageName"], repo_path),
-                    "assetName": builder_asset_name(app["name"], app["packageName"], repo_path),
+                    "assetName": builder_asset_name(existing["name"], app["packageName"], repo_path),
                     "repo": "rushiforai/morphe-builder",
                     "webUrl": "https://github.com/rushiforai/morphe-builder",
                 },
