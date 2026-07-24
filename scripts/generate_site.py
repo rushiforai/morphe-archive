@@ -701,6 +701,15 @@ HTML = """<!doctype html>
     .meta span {
       overflow-wrap: anywhere;
     }
+    .count-line {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
     .title-line {
       display: flex;
       align-items: flex-start;
@@ -1449,7 +1458,8 @@ HTML = """<!doctype html>
           ${appIconHtml(app)}
           <div class="bundle-app-info">
             <div class="name">${escapeHtml(app.name)}</div>
-            <div class="meta"><span>${escapeHtml(app.packageName)}</span><span>${app.patchCount} patches</span></div>
+            <div class="meta"><span>${escapeHtml(app.packageName)}</span></div>
+            <div class="count-line"><span>${app.patchCount} patches</span></div>
           </div>
         </div>
       `).join("");
@@ -1461,9 +1471,8 @@ HTML = """<!doctype html>
               <div class="name">${escapeHtml(repo.repo)}</div>
               <div class="meta">
                 ${hostBadge(repo.host, repo.webUrl)}
-                <span>${repo.patchCount} patches</span>
-                <span>${repo.appCount} apps</span>
               </div>
+              <div class="count-line"><span>${repo.patchCount} patches</span><span>${repo.appCount} apps</span></div>
               <div class="actions repo-actions bundle-actions">
                 <a class="button" href="${repo.source}" target="_blank" rel="noreferrer">Bundle</a>
                 <a class="button primary" href="${repo.addUrl}" target="_blank" rel="noreferrer">Add Source</a>
@@ -1527,9 +1536,8 @@ HTML = """<!doctype html>
               <div class="name">${escapeHtml(app.name)}</div>
               <div class="meta">
                 <span>${escapeHtml(app.packageName)}</span>
-                <span>${app.patches.length} patches</span>
-                <span>${app.repos.length} sources</span>
               </div>
+              <div class="count-line"><span>${app.patches.length} patches</span><span>${app.repos.length} sources</span></div>
             </div>
           </div>
         </div>
@@ -1551,8 +1559,8 @@ HTML = """<!doctype html>
               <div class="name">${escapeHtml(source.repo)}</div>
               <div class="meta">
                 ${hostBadge(source.host, source.webUrl)}
-                <span>${source.patchCount} universal patches</span>
               </div>
+              <div class="count-line"><span>${source.patchCount} universal patches</span></div>
               <div class="actions repo-actions bundle-actions">
                 <a class="button primary" href="${source.addUrl}" target="_blank" rel="noreferrer">Add Source</a>
               </div>
