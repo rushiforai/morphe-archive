@@ -668,8 +668,14 @@ HTML = """<!doctype html>
       min-height: 0;
       min-width: 0;
     }
-    .row > details {
+    .row.has-expand { cursor: pointer; }
+    .row.has-expand .expandable {
+      display: none;
       margin-top: auto;
+      cursor: default;
+    }
+    .row.has-expand.open .expandable {
+      display: block;
     }
     .row:hover { border-color: #46505f; }
     .card-head {
@@ -807,17 +813,6 @@ HTML = """<!doctype html>
       color: var(--accent-2);
       font-weight: 700;
     }
-    details {
-      border-top: 1px solid var(--line);
-      margin-top: 8px;
-      padding-top: 14px;
-      color: var(--muted);
-    }
-    summary {
-      cursor: pointer;
-      color: var(--text);
-      font-weight: 650;
-    }
     .chips {
       display: flex;
       flex-wrap: wrap;
@@ -846,6 +841,7 @@ HTML = """<!doctype html>
       background: #141820;
       min-width: 0;
       overflow: hidden;
+      cursor: default;
     }
     .source-card-head {
       display: flex;
@@ -1443,7 +1439,7 @@ HTML = """<!doctype html>
 
     function repoRow(repo) {
       const row = document.createElement("article");
-      row.className = "row";
+      row.className = "row has-expand";
       const apps = (repo.apps || []).slice(0, 24).map((app) => `
         <div class="bundle-app">
           ${appIconHtml(app)}
@@ -1472,15 +1468,15 @@ HTML = """<!doctype html>
             </div>
           </div>
         </div>
-        <details>
-          <summary>${repo.appCount} app${repo.appCount === 1 ? "" : "s"} in bundle</summary>
+        <div class="expandable">
           <div class="bundle-apps">${apps || '<div class="patch-item">No app metadata</div>'}</div>
           ${repo.appCount > 24 ? `<div class="patch-item">+${repo.appCount - 24} more apps</div>` : ""}
           <div class="chips">
             <a class="chip" href="${repo.source}" target="_blank" rel="noreferrer">patches-bundle.json</a>
             <a class="chip" href="${repo.listUrl}" target="_blank" rel="noreferrer">patches-list.json</a>
           </div>
-        </details>`;
+        </div>`;
+      bindCardToggle(row);
       return row;
     }
 
@@ -1492,9 +1488,16 @@ HTML = """<!doctype html>
       return shown + more;
     }
 
+    function bindCardToggle(row) {
+      row.addEventListener("click", (event) => {
+        if (event.target.closest("a, button, input, select, textarea, .expandable")) return;
+        row.classList.toggle("open");
+      });
+    }
+
     function appRow(app) {
       const row = document.createElement("article");
-      row.className = "row";
+      row.className = "row has-expand";
       const sourceCards = app.sources.map((source) => {
         const sourcePatches = patchChips(source.patches, 16);
         const sourceVersions = source.versions.slice(0, 6).map((version) => `<span class="chip">${escapeHtml(version)}</span>`).join("");
@@ -1528,16 +1531,16 @@ HTML = """<!doctype html>
             </div>
           </div>
         </div>
-        <details>
-          <summary>${app.sources.length} source${app.sources.length === 1 ? "" : "s"}</summary>
+        <div class="expandable">
           <div class="source-grid">${sourceCards}</div>
-        </details>`;
+        </div>`;
+      bindCardToggle(row);
       return row;
     }
 
     function universalRow(source) {
       const row = document.createElement("article");
-      row.className = "row";
+      row.className = "row has-expand";
       row.innerHTML = `
         <div>
           <div class="title-line">
@@ -1555,10 +1558,10 @@ HTML = """<!doctype html>
             </div>
           </div>
         </div>
-        <details>
-          <summary>Universal patch set</summary>
+        <div class="expandable">
           <div class="patch-list">${patchChips(source.patches, 24) || '<div class="patch-item">No patch metadata</div>'}</div>
-        </details>`;
+        </div>`;
+      bindCardToggle(row);
       return row;
     }
 
