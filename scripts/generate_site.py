@@ -654,13 +654,12 @@ HTML = """<!doctype html>
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr));
       gap: 20px;
-      align-items: start;
+      align-items: stretch;
     }
     .row {
-      display: grid;
-      grid-template-columns: 1fr;
+      display: flex;
+      flex-direction: column;
       gap: 14px;
-      align-items: start;
       border: 1px solid var(--line);
       background: var(--panel);
       padding: 20px;
@@ -668,6 +667,9 @@ HTML = """<!doctype html>
       box-shadow: var(--shadow);
       min-height: 0;
       min-width: 0;
+    }
+    .row > details {
+      margin-top: auto;
     }
     .row:hover { border-color: #46505f; }
     .card-head {
@@ -715,6 +717,7 @@ HTML = """<!doctype html>
       background: var(--panel-2);
       color: var(--text);
       font-weight: 800;
+      position: relative;
     }
     .app-icon.fallback {
       background:
@@ -722,6 +725,8 @@ HTML = """<!doctype html>
         var(--icon-color, #2f3542);
     }
     .avatar img, .app-icon img {
+      position: absolute;
+      inset: 0;
       width: 100%;
       height: 100%;
       object-fit: cover;
@@ -751,18 +756,30 @@ HTML = """<!doctype html>
       justify-content: flex-start;
       margin-top: 10px;
     }
-    .source-actions {
+    .bundle-actions {
+      display: flex;
       align-items: center;
       flex-wrap: nowrap;
+      width: 100%;
+    }
+    .source-actions {
+      align-items: center;
+      flex-wrap: wrap;
     }
     .source-actions a.button {
       min-height: 38px;
-      padding: 8px 12px;
+      padding: 8px 11px;
       font-size: 14px;
     }
     .source-actions .obtainium {
-      flex-basis: auto;
-      max-width: none;
+      flex: 0 1 auto;
+      max-width: 100%;
+    }
+    .source-actions .obtainium span {
+      display: block;
+      max-width: 190px;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     a { color: var(--accent-2); }
     a.button {
@@ -812,7 +829,7 @@ HTML = """<!doctype html>
     }
     .source-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
       gap: 12px;
       margin-top: 10px;
     }
@@ -832,12 +849,14 @@ HTML = """<!doctype html>
       margin-bottom: 8px;
     }
     .source-card-head.card-head {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
     }
     .source-card-title {
       display: grid;
-      grid-template-columns: 56px minmax(0, 1fr) auto;
+      grid-template-columns: 56px minmax(0, 1fr);
       align-items: center;
       gap: 8px;
       width: 100%;
@@ -847,7 +866,13 @@ HTML = """<!doctype html>
     }
     .source-card-title span {
       min-width: 0;
-      overflow-wrap: anywhere;
+      overflow-wrap: normal;
+      word-break: normal;
+      hyphens: none;
+    }
+    .source-card-title .badge {
+      grid-column: 2;
+      justify-self: start;
     }
     .avatar.fallback {
       font-size: 16px;
@@ -1110,6 +1135,7 @@ HTML = """<!doctype html>
       }
       .actions { justify-content: flex-start; }
       .repo-actions { justify-content: flex-start; }
+      .bundle-actions { flex-wrap: wrap; }
       .row {
         padding: 14px;
         border-radius: 12px;
@@ -1320,13 +1346,13 @@ HTML = """<!doctype html>
     function avatarHtml(url, label) {
       const text = escapeHtml(initials(label));
       if (!url) return `<span class="avatar fallback">${text}</span>`;
-      return `<span class="avatar fallback"><img src="${url}" alt="" loading="lazy" onerror="this.remove(); this.parentElement.textContent='${text}'"></span>`;
+      return `<span class="avatar fallback">${text}<img src="${url}" alt="" loading="lazy" onerror="this.remove()"></span>`;
     }
 
     function appIconHtml(app) {
       const label = initials(app.name || app.packageName);
       const color = app.iconColor || "#2f3542";
-      if (app.iconUrl) return `<span class="app-icon fallback" style="--icon-color:${escapeHtml(color)}"><img src="${app.iconUrl}" alt="" loading="lazy" onerror="this.remove(); this.parentElement.textContent='${escapeHtml(label)}'"></span>`;
+      if (app.iconUrl) return `<span class="app-icon fallback" style="--icon-color:${escapeHtml(color)}">${escapeHtml(label)}<img src="${app.iconUrl}" alt="" loading="lazy" onerror="this.remove()"></span>`;
       return `<span class="app-icon fallback" style="--icon-color:${escapeHtml(color)}" title="Icon unavailable">${escapeHtml(label)}</span>`;
     }
 
@@ -1428,7 +1454,7 @@ HTML = """<!doctype html>
                 <span>${repo.patchCount} patches</span>
                 <span>${repo.appCount} apps</span>
               </div>
-              <div class="actions repo-actions">
+              <div class="actions repo-actions bundle-actions">
                 <a class="button" href="${repo.webUrl}" target="_blank" rel="noreferrer">Open</a>
                 <a class="button" href="${repo.source}" target="_blank" rel="noreferrer">Bundle</a>
                 <a class="button primary" href="${repo.addUrl}" target="_blank" rel="noreferrer">Add to Morphe</a>
@@ -1469,7 +1495,7 @@ HTML = """<!doctype html>
               <div class="actions source-actions">
                 <a class="button" href="${source.webUrl}" target="_blank" rel="noreferrer">Open</a>
                 <a class="button primary" href="${source.addUrl}" target="_blank" rel="noreferrer">Add Source</a>
-                <a class="button obtainium" href="${obtainiumUrl(app, source)}" target="_blank" rel="noreferrer">Install with Obtainium</a>
+                <a class="button obtainium" href="${obtainiumUrl(app, source)}" target="_blank" rel="noreferrer"><span>Install with Obtainium</span></a>
               </div>
             </div>
             <div class="chips">
@@ -1512,7 +1538,7 @@ HTML = """<!doctype html>
                 ${hostBadge(source.host)}
                 <span>${source.patchCount} universal patches</span>
               </div>
-              <div class="actions repo-actions">
+              <div class="actions repo-actions bundle-actions">
                 <a class="button" href="${source.webUrl}" target="_blank" rel="noreferrer">Open</a>
                 <a class="button primary" href="${source.addUrl}" target="_blank" rel="noreferrer">Add Source</a>
               </div>
