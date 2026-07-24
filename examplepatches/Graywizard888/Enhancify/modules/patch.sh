@@ -58,10 +58,6 @@ hasCustomKeystore() {
     [[ -d "$CUSTOM_KEYSTORE_DIR" ]]
 }
 
-isApp() {
-    [[ "${APP_NAME,,}" == *reddit* || "${APP_NAME,,}" == *instagram* ]]
-}
-
 hasMppPatches() {
     [[ ! -d "assets/$SOURCE" ]] && return 1
 
@@ -175,7 +171,6 @@ buildParallelGCArgs() {
     JAVA_ARGS=(
         "-Djava.awt.headless=true"
         "-Dfile.encoding=UTF-8"
-        "-Djava.io.tmpdir=$TMPDIR"
         "-Xmx${HEAP_SIZE}m"
         "-Xms${INITIAL_HEAP}m"
         "-Xss500k"
@@ -236,7 +231,6 @@ buildJavaArgs() {
         "-Djava.awt.headless=true"
         "-Xmx${HEAP_SIZE}m"
         "-Xms$((HEAP_SIZE / 2))m"
-        "-Djava.io.tmpdir=$TMPDIR"
         "-XX:-UsePerfData"
         "-Dfile.encoding=UTF-8"
     )
@@ -276,7 +270,6 @@ buildLightweightJavaArgs() {
         "-Xmx${HEAP_SIZE}m"
         "-Xms$((HEAP_SIZE / 2))m"
         "-Dfile.encoding=UTF-8"
-        "-Djava.io.tmpdir=$TMPDIR"
         "-XX:+UseSerialGC"
         "-XX:TieredStopAtLevel=1"
         "-XX:+UseCompressedOops"
@@ -382,8 +375,7 @@ writeLogHeader() {
     fi
 
     printf '%s\n' \
-        "║ Signature Verification    : $VERIFICATION_INFO" \
-        "║ Custom AAPT2              : $AAPT2_INFO" >&"$fd"
+        "║ Signature Verification    : $VERIFICATION_INFO" >&"$fd"
 
     printf '%s\n' \
         "╠═══════════════════════════════════════════════════════════════╣" \
@@ -447,6 +439,8 @@ writeLogHeader() {
 patchApp() {
     local INPUT_EXT INPUT_PATH OUTPUT_PATH FORMAT_INFO
     local PATCH_SUCCESS=0 GC_OVERRIDE_MSG="" LOW_MEM_OVERRIDE=false
+
+    trap 'rm -rf "$HOME/Enhancify/assets/morphe-data"' RETURN
 
     INPUT_EXT=$(getApkExtension)
     if [[ -z "$INPUT_EXT" ]]; then
@@ -537,21 +531,10 @@ patchApp() {
     fi
 
     local BYTECODE_MODE_ARGS=() BYTECODE_MODE_INFO="Disabled"
-    
+
     if hasMppPatches; then
-        case "$GC_TYPE" in
-            SerialGC)
-                BYTECODE_MODE_ARGS=("--bytecode-mode=STRIP_FAST")
-                BYTECODE_MODE_INFO="STRIP_FAST (SerialGC Optimized)"
-                ;;
-            ParallelGC|G1GC)
-                BYTECODE_MODE_ARGS=("--bytecode-mode=STRIP_SAFE")
-                BYTECODE_MODE_INFO="STRIP_SAFE ($GC_TYPE Optimized)"
-                ;;
-            *)
-                BYTECODE_MODE_INFO="Cli Default (Unknown GC Type)"
-                ;;
-        esac
+        BYTECODE_MODE_ARGS=("--bytecode-mode=STRIP_FAST")
+        BYTECODE_MODE_INFO="STRIP_FAST ($GC_TYPE)"
     else
         BYTECODE_MODE_INFO="Disabled (Not Morphe Compatible source)"
     fi
@@ -577,12 +560,6 @@ patchApp() {
     if [[ "$SOURCE" == "ReVanced" ]]; then
         VERIFICATION_ARGS=("--bypass-verification")
         VERIFICATION_INFO="Force Signature Verification Bypassed"
-    fi
-
-    local AAPT2_ARGS=() AAPT2_INFO="CLI aapt2"
-    if ! isApp; then
-        AAPT2_ARGS=("--custom-aapt2-binary=./bin/aapt2")
-        AAPT2_INFO="Inbuild aapt2"
     fi
 
     readarray -t ARGUMENTS < <(
@@ -619,13 +596,12 @@ patchApp() {
     java \
         "${JAVA_ARGS[@]}" \
         -jar "$CLI_FILE" patch \
-        --force --exclusive --purge --patches="$PATCHES_FILE" \
+        --force --exclusive --patches="$PATCHES_FILE" \
         --out="$OUTPUT_PATH" \
         "${SIGNING_ARGS[@]}" \
         "${VERIFICATION_ARGS[@]}" \
         "${LIB_OPTIMIZE_ARGS[@]}" \
         "${BYTECODE_MODE_ARGS[@]}" \
-        "${AAPT2_ARGS[@]}" \
         "${ARGUMENTS[@]}" \
         "$INPUT_PATH" 2>&1 |
         tee >(dd bs=64K >> "$STORAGE/patch_log.txt" 2>/dev/null) |
