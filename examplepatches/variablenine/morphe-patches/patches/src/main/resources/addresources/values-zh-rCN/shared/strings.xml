@@ -97,7 +97,7 @@ Second \"item\" text"</string>
   <string name="morphe_debug_export_logs_file">导出到文件</string>
   <string name="morphe_debug_export_logs_success">调试日志导出成功</string>
   <string name="morphe_debug_export_logs_failed">导出调试日志失败</string>
-  <string name="morphe_debug_logs_search_hint">搜索调试日志...</string>
+  <string name="morphe_debug_logs_search_hint">搜索调试日志…</string>
   <string name="morphe_debug_export_logs_clear">清除</string>
   <string name="morphe_debug_logs_disabled">调试日志记录已禁用</string>
   <string name="morphe_debug_logs_none_found">未找到调试日志</string>
@@ -108,7 +108,7 @@ Second \"item\" text"</string>
   <string name="morphe_debug_feature_flags_manager_summary">管理布尔功能标志</string>
   <string name="morphe_debug_feature_flags_manager_active_header">活动功能标志 (%d)</string>
   <string name="morphe_debug_feature_flags_manager_blocked_header">已阻止的功能标志 (%d)</string>
-  <string name="morphe_debug_feature_flags_manager_search_hint">搜索功能标志...</string>
+  <string name="morphe_debug_feature_flags_manager_search_hint">搜索功能标志…</string>
   <string name="morphe_debug_feature_flags_manager_toast_saved">功能标志已保存</string>
   <string name="morphe_debug_feature_flags_manager_toast_reset">功能标志已重置</string>
   <string name="morphe_debug_feature_flags_manager_toast_copied">功能标志已复制到剪贴板</string>

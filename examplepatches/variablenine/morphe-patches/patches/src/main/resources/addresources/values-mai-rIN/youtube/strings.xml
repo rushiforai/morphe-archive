@@ -301,7 +301,7 @@ Second \"item\" text"</string>
   <string name="morphe_hide_player_flyout_title">फ्लाईआउट मेनु</string>
   <!-- 'Audio track' should be translated using the same localized wording YouTube displays for the menu item. -->
   <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
-          'Android Reel' and 'TV' must be kept untranslated. -->
+          'Android Studio' must be kept untranslated. -->
   <!-- 'Captions' should be translated using the same localized wording YouTube displays for the menu item. -->
   <!-- 'Additional settings / More' should be translated using the same localized wording YouTube displays for the menu item. -->
   <!-- 'Sleep timer' should be translated using the same localized wording YouTube displays for the menu item. -->
@@ -390,35 +390,6 @@ Second \"item\" text"</string>
   <!-- layout.player.overlay.customPlayerOverlayOpacityPatch -->
   <string name="morphe_player_overlay_opacity_title">प्लेयर ओभरले अपारदर्शिता</string>
   <string name="morphe_player_overlay_opacity_invalid_toast">प्लेयर ओभरले अपारदर्शिता 0-100 बीचमा हुनुपर्छ</string>
-  <!-- layout.returnyoutubedislike.returnYouTubeDislikePatch -->
-  <!-- Brief notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
-  <string name="morphe_ryd_failure_connection_timeout">Dislikes अस्थायी रूपमा उपलब्ध छैन (API समय समाप्त भयो)</string>
-  <string name="morphe_ryd_failure_connection_status_code">Dislikes स्थिति %d मा उपलब्ध छैन</string>
-  <string name="morphe_ryd_failure_client_rate_limit_requested">Dislikes उपलब्ध छैन (क्लायन्ट API सीमा)</string>
-  <string name="morphe_ryd_failure_generic">Dislikes उपलब्ध छैन (%s)</string>
-  <!-- Brief notification (Toast) shown if the user enables RYD while a video is opened, and then tries to vote for the video. -->
-  <string name="morphe_ryd_failure_ryd_enabled_while_playing_video_then_user_voted">Return YouTube Dislike प्रयोग गरेर भोट दिन भिडियो पुन: लोड गर्नुहोस्</string>
-  <!-- Video likes have been set to hidden by the video uploader. -->
-  <string name="morphe_ryd_video_likes_hidden_by_video_owner">भिडियो मालिकद्वारा लुकाइएको</string>
-  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
-  <string name="morphe_ryd_estimated_like_title">अनुमानित लाइकहरू देखाउनुहोस्</string>
-  <!-- Statistic strings are shown in the settings only when Morphe debug mode is enabled. Typical users will never see these. -->
-  <string name="morphe_ryd_statistics_category_title">यस उपकरणको Return YouTube Dislike API तथ्याङ्क</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeAverage_title">API प्रतिक्रिया समय, औसत</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMin_title">API प्रतिक्रिया समय, न्यूनतम</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMax_title">API प्रतिक्रिया समय, अधिकतम</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_title">API प्रतिक्रिया समय, पछिल्लो भिडियो</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_rate_limit_summary">Dislikes अस्थायी रूपमा उपलब्ध छैन - क्लाइन्ट API दर सीमा प्रभावमा छ</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_title">API भोटहरू प्राप्त गर्नुहोस्, कलहरूको संख्या</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_zero_summary">नेटवर्क कलहरू गरिएको छैन</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_non_zero_summary">%d नेटवर्क कलहरू गरिए</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_title">API भोटहरू प्राप्त गर्नुहोस्, टाइमआउटहरूको संख्या</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_zero_summary">नेटवर्क कलहरू समयसीमा नाघेको छैन</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_non_zero_summary">%d नेटवर्क कलहरू समयसीमा नाघिए</string>
-  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_title">API क्लाइन्ट दर सीमाहरू</string>
-  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_zero_summary">क्लायन्ट दर सीमाहरू भेटिएन</string>
-  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_non_zero_summary">क्लायन्ट दर सीमा %d पटक भेटिएको</string>
-  <string name="morphe_ryd_statistics_millisecond_text">%d मिलिसेकन्ड</string>
   <!-- layout.searchbar.wideSearchbarPatch -->
   <string name="morphe_wide_searchbar_title">चौडो खोज बार सक्षम गर्नुहोस्</string>
   <!-- layout.sponsorblock.sponsorBlockPatch -->
@@ -578,7 +549,6 @@ Second \"item\" text"</string>
 
 AV1 को साथ भिडियो प्लेब्याक स्टटर हुन सक्छ वा फ्रेमहरू छाड्न सक्छ।"</string>
   <string name="morphe_spoof_video_streams_about_title">स्पूफिंग साइड इफेक्ट</string>
-  <string name="morphe_spoof_video_streams_about_experimental">• प्रायोगिक क्लाइंट अछि आ कभी भी काम करना बंद क सकैत अछि।</string>
   <string name="morphe_spoof_video_streams_about_playback_failure">• भिडियो १:०० मिनेटमा रोकिन सक्छ, वा केही क्षेत्रहरूमा उपलब्ध नहुन सक्छ</string>
   <string name="morphe_spoof_video_streams_about_no_audio_tracks">• ऑडियो ट्रैक मेनू गुम अछि।</string>
   <string name="morphe_spoof_video_streams_about_no_av1">• AV1 वीडियो कोडेक नहि अछि।</string>

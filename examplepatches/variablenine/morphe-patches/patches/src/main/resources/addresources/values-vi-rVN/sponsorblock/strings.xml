@@ -213,7 +213,7 @@ Nếu bạn chưa muốn gửi đoạn nổi bật, hãy bấm Hủy và đánh 
   <string name="morphe_sb_stats_title">Thống kê</string>
   <!-- Shown in the settings preferences, and translations can be any text length. -->
   <string name="morphe_sb_stats_connection_failure">Số liệu thống kê tạm thời không khả dụng (API ngừng hoạt động)</string>
-  <string name="morphe_sb_stats_loading">Đang tải...</string>
+  <string name="morphe_sb_stats_loading">Đang tải…</string>
   <string name="morphe_sb_stats_sb_disabled">SponsorBlock đã tắt</string>
   <string name="morphe_sb_stats_username">Tên người dùng của bạn: &lt;b&gt;%s&lt;/b&gt;</string>
   <string name="morphe_sb_stats_username_change">Chạm vào đây để thay đổi tên người dùng của bạn</string>

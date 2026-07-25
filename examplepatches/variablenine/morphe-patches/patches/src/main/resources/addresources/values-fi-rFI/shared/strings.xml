@@ -49,6 +49,7 @@ Second \"item\" text"</string>
   <string name="morphe_settings_search_empty_history_summary">Tallennaaksesi hakuhistorian, kirjoita hakukysely ja paina Enter-näppäintä</string>
   <string name="morphe_settings_search_history_title">Näytä asetusten hakuhistoria</string>
   <string name="morphe_show_menu_icons_title">Näytä Morphe-asetuskuvakkeet</string>
+  <string name="morphe_settings_menu_copy_path">Kopioitu: %s</string>
   <string name="morphe_language_title">Morphen kieli</string>
   <string name="morphe_language_user_dialog_message">"Joidenkin kielten käännökset saattavat puuttua tai olla puutteellisia.
 
@@ -81,7 +82,7 @@ Kääntääksesi uusia kieliä tai parantaaksesi olemassa olevia käännöksiä,
   <string name="morphe_settings_about_links_rv">2022 – 2025</string>
   <string name="morphe_settings_about_links_vanced">2019 – 2022</string>
   <string name="morphe_settings_about_links_licenses">Lisenssiehdot</string>
-  <string name="morphe_settings_about_licenses_loading">Ladataan...</string>
+  <string name="morphe_settings_about_licenses_loading">Ladataan…</string>
   <!-- misc.debugging.enableDebuggingPatch -->
   <string name="morphe_debug_screen_title">Virheenkorjaus</string>
   <string name="morphe_debug_screen_summary">Määritä kehittyneet kehittäjäasetukset ja diagnostiikkalokit</string>
@@ -108,7 +109,7 @@ Et saa ilmoituksia mistään odottamattomista tapahtumista."</string>
   <string name="morphe_debug_feature_flags_manager_summary">Hallitse totuusarvo-ominaisuuslippuja</string>
   <string name="morphe_debug_feature_flags_manager_active_header">Aktiiviset liput (%d)</string>
   <string name="morphe_debug_feature_flags_manager_blocked_header">Estetyt liput (%d)</string>
-  <string name="morphe_debug_feature_flags_manager_search_hint">Hae lippuja…</string>
+  <string name="morphe_debug_feature_flags_manager_search_hint">Hae ominaisuuslippuja…</string>
   <string name="morphe_debug_feature_flags_manager_toast_saved">Ominaisuuslippujen tallennus onnistui</string>
   <string name="morphe_debug_feature_flags_manager_toast_reset">Ominaisuuslippujen palautus</string>
   <string name="morphe_debug_feature_flags_manager_toast_copied">Liput kopioitu leikepöydälle</string>

@@ -33,7 +33,7 @@ Second \"item\" text"</string>
   <string name="morphe_settings_music_screen_1_ads_title">Reklamy</string>
   <string name="morphe_settings_music_screen_2_general_title">Obecné</string>
   <string name="morphe_settings_music_screen_3_player_title">Přehrávač</string>
-  <string name="morphe_settings_music_screen_6_misc_title">Různé</string>
+  <string name="morphe_settings_music_screen_7_misc_title">Různé</string>
   <!-- ad.hideAdsPatch -->
   <string name="morphe_music_hide_get_premium_label_title">Skrýt štítek „Získat Music Premium“</string>
   <string name="morphe_music_hide_video_ads_title">Skrýt reklamy ve videu</string>
@@ -241,7 +241,7 @@ YouTube Music 8.x – plynulé přecházení funguje pouze ve verzích 9.x a vy�
   <string name="morphe_music_listenbrainz_token_dialog_get_token">Získat token</string>
   <string name="morphe_music_listenbrainz_token_dialog_verify">Ověřit</string>
   <string name="morphe_music_listenbrainz_token_status_empty">Vložte, prosím, token</string>
-  <string name="morphe_music_listenbrainz_token_status_validating">Ověřování...</string>
+  <string name="morphe_music_listenbrainz_token_status_validating">Ověřuji…</string>
   <string name="morphe_music_listenbrainz_token_status_valid">Platný token! Uživatel: %s</string>
   <string name="morphe_music_listenbrainz_token_status_invalid">Neplatný token: %s</string>
   <string name="morphe_music_listenbrainz_token_status_invalid_unknown">neznámý</string>
@@ -258,7 +258,7 @@ YouTube Music 8.x – plynulé přecházení funguje pouze ve verzích 9.x a vy�
   <string name="morphe_music_lastfm_token_dialog_password_hint">Heslo</string>
   <string name="morphe_music_lastfm_token_dialog_login">Přihlásit se</string>
   <string name="morphe_music_lastfm_token_status_empty">Vložte, prosím, uživatelské jméno a heslo</string>
-  <string name="morphe_music_lastfm_token_status_logging_in">Přihlašuji se...</string>
+  <string name="morphe_music_lastfm_token_status_logging_in">Přihlašuji se…</string>
   <string name="morphe_music_lastfm_token_status_success">Přihlášení proběhlo úspěšně!</string>
   <string name="morphe_music_lastfm_token_status_no_session">Nepodařilo se získat relaci z Last.fm</string>
   <string name="morphe_music_lastfm_token_status_failed">Přihlášení selhalo: %s</string>

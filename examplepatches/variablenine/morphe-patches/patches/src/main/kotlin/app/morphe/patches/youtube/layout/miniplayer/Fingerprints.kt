@@ -48,7 +48,7 @@ internal object MiniplayerModernFeatureFingerprint : Fingerprint(
 internal object MiniplayerModernConstructorFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.CONSTRUCTOR),
     filters = listOf(
-        literal(MINIPLAYER_MODERN_TYPE_1_FEATURE_KEY)
+        literal(MINIPLAYER_DRAG_DROP_FEATURE_KEY)
     )
 )
 
@@ -265,7 +265,8 @@ internal object MiniplayerSetIconsFingerprint : Fingerprint(
         accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
         returnType = "Landroid/graphics/drawable/Drawable;",
         filters = listOf(
-            resourceLiteral(ResourceType.DRAWABLE, "floatybar_progress_circle_autonav")
+            resourceLiteral(ResourceType.DIMEN, "shadow_icon_offset_x"),
+            resourceLiteral(ResourceType.DIMEN, "shadow_icon_offset_y")
         )
     ),
     returnType = "V",

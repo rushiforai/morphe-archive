@@ -5,7 +5,6 @@ import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
 import app.morphe.patches.youtube.misc.playercontrols.addTopControl
 import app.morphe.patches.youtube.misc.playercontrols.initializeTopControl
-import app.morphe.patches.youtube.misc.playercontrols.injectVisibilityCheckCall
 import app.morphe.patches.youtube.misc.playercontrols.legacyPlayerControlsPatch
 import app.morphe.patches.youtube.misc.settings.PreferenceScreen
 import app.morphe.patches.youtube.misc.settings.settingsPatch
@@ -60,9 +59,8 @@ val catLockPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_YOUTUBE)
 
     execute {
-        // The button's click/visibility are handled entirely in the extension via
-        // LegacyPlayerControlButton, so only the initialize + visibility hooks are needed.
+        // The button's click and visibility are handled entirely in the extension via
+        // LegacyPlayerControlButton, so only the initialize hook is needed.
         initializeTopControl(EXTENSION_BUTTON)
-        injectVisibilityCheckCall(EXTENSION_BUTTON)
     }
 }

@@ -111,7 +111,7 @@ public class VideoQualityDialogButton {
                     "morphe_video_quality_dialog_button",
                     "morphe_video_quality_dialog_button_text",
                     null,
-                    Settings.VIDEO_QUALITY_DIALOG_BUTTON::get,
+                    Settings.VIDEO_QUALITY_DIALOG_BUTTON,
                     getOnClickListener(),
                     getOnLongClickListener()
             );
@@ -163,33 +163,6 @@ public class VideoQualityDialogButton {
             }
             return false;
         };
-    }
-
-    /**
-     * injection point.
-     */
-    public static void setVisibilityNegatedImmediate() {
-        if (legacy != null) {
-            legacy.setVisibilityNegatedImmediate();
-        }
-    }
-
-    /**
-     * Injection point.
-     */
-    public static void setVisibilityImmediate(boolean visible) {
-        if (legacy != null) {
-            legacy.setVisibilityImmediate(visible);
-        }
-    }
-
-    /**
-     * Injection point.
-     */
-    public static void setVisibility(boolean visible, boolean animated) {
-        if (legacy != null) {
-            legacy.setVisibility(visible, animated);
-        }
     }
 
     /**

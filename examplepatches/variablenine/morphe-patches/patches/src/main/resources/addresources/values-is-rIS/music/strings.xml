@@ -33,9 +33,10 @@ Second \"item\" text"</string>
   <string name="morphe_settings_music_screen_1_ads_title">Auglýsingar</string>
   <string name="morphe_settings_music_screen_2_general_title">Alhliða</string>
   <string name="morphe_settings_music_screen_3_player_title">Spilari</string>
-  <string name="morphe_settings_music_screen_6_misc_title">Ýmisslegt</string>
+  <string name="morphe_settings_music_screen_7_misc_title">Ýmisslegt</string>
   <!-- ad.hideAdsPatch -->
   <string name="morphe_music_hide_get_premium_label_title">Fela merkið \'Fá Morphe Premium\'</string>
+  <string name="morphe_music_hide_music_premium_promotions_title">Fela kynningar á Music Premium</string>
   <string name="morphe_music_hide_video_ads_title">Fela myndbandsaug lýsingar</string>
   <!-- interaction.crossfade.crossfadePatch -->
   <string name="morphe_music_crossfade_screen_title">Krossfade</string>
@@ -241,7 +242,7 @@ YouTube Music 8.x — crossfade virkar bara á 9.x og nýrri útgáfum"</string>
   <string name="morphe_music_listenbrainz_token_dialog_get_token">Skaffa Takkann</string>
   <string name="morphe_music_listenbrainz_token_dialog_verify">Staðfestu</string>
   <string name="morphe_music_listenbrainz_token_status_empty">Vinsamlegast sláðu inn takkann</string>
-  <string name="morphe_music_listenbrainz_token_status_validating">Staðfesting er í gangi...</string>
+  <string name="morphe_music_listenbrainz_token_status_validating">Staðfesting…</string>
   <string name="morphe_music_listenbrainz_token_status_valid">Gildur takki! Notandi: %s</string>
   <string name="morphe_music_listenbrainz_token_status_invalid">Ógildur takki: %s</string>
   <string name="morphe_music_listenbrainz_token_status_invalid_unknown">Óþekkt</string>
@@ -258,7 +259,7 @@ YouTube Music 8.x — crossfade virkar bara á 9.x og nýrri útgáfum"</string>
   <string name="morphe_music_lastfm_token_dialog_password_hint">Lykilorðið</string>
   <string name="morphe_music_lastfm_token_dialog_login">Skrá inn</string>
   <string name="morphe_music_lastfm_token_status_empty">Vinsamlegast sláðu inn notendanafnið og lykilorðið</string>
-  <string name="morphe_music_lastfm_token_status_logging_in">Er að skrá inn...</string>
+  <string name="morphe_music_lastfm_token_status_logging_in">Innskráning…</string>
   <string name="morphe_music_lastfm_token_status_success">Tókst að skrá inn!</string>
   <string name="morphe_music_lastfm_token_status_no_session">Tókst ekki að fá sessíu frá Last.fm</string>
   <string name="morphe_music_lastfm_token_status_failed">Innskráning mistókst: %s</string>

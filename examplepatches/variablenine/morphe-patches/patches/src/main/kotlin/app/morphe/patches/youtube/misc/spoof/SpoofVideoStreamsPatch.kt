@@ -19,9 +19,6 @@ import app.morphe.patches.youtube.shared.YouTubeActivityOnCreateFingerprint
 val spoofVideoStreamsPatch = spoofVideoStreamsPatch(
     extensionClass = "Lapp/morphe/extension/youtube/patches/spoof/SpoofVideoStreamsPatch;",
     mainActivityOnCreateFingerprint = YouTubeActivityOnCreateFingerprint,
-    fixMediaFetchHotConfig = {
-        true
-    },
     fixMediaFetchHotConfigAlternative = {
         // In 20.14 the flag was merged with 20.03 start playback flag.
         false
@@ -37,7 +34,6 @@ val spoofVideoStreamsPatch = spoofVideoStreamsPatch(
         // but only recently has been causing issues.
         is_20_31_or_greater
     },
-    hookAccountIdentity = { true },
     useNewRequestBuilderFingerprint = { is_21_21_or_greater },
 
     block = {

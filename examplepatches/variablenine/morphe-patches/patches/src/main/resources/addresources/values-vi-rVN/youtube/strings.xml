@@ -156,12 +156,14 @@ Ví dụ:
   <string name="morphe_hide_featured_places_section_title">Ẩn phần \"Địa điểm nổi bật\"</string>
   <string name="morphe_hide_featured_videos_section_title">Ẩn phần Video nổi bật</string>
   <string name="morphe_hide_gaming_section_title">Ẩn phần Trò chơi</string>
+  <string name="morphe_hide_hashtag_section_title">Ẩn phần Hashtag</string>
   <string name="morphe_hide_how_this_was_made_section_title">Ẩn phần \"Cách nội dung này được tạo ra\"</string>
   <string name="morphe_hide_hype_points_title">Ẩn Điểm khuấy động</string>
   <string name="morphe_hide_info_cards_section_title">Ẩn phần Thẻ thông tin</string>
   <string name="morphe_hide_key_concepts_section_title">Ẩn phần \"Khái niệm chính\"</string>
   <string name="morphe_hide_music_section_title">Ẩn phần Âm nhạc</string>
   <string name="morphe_hide_quizzes_section_title">Ẩn phần Câu hỏi</string>
+  <string name="morphe_hide_search_inside_this_video_section_title">Ẩn phần \'Tìm kiếm trong video này\'</string>
   <string name="morphe_hide_subscribe_button_title">Ẩn nút Đăng ký</string>
   <string name="morphe_hide_transcript_section_title">Ẩn phần Bản chép lời</string>
   <string name="morphe_hide_video_details_section_title">Ẩn phần \"Chi tiết video\"</string>
@@ -217,6 +219,8 @@ Ví dụ:
   <string name="morphe_hide_comments_preview_comment_title">Ẩn xem trước bình luận</string>
   <string name="morphe_hide_comments_preview_comment_summary">Ẩn phần xem trước nhận xét dưới video trước khi mở toàn bộ phần bình luận</string>
   <string name="morphe_hide_comments_thanks_button_title">Ẩn nút Cảm ơn</string>
+  <string name="morphe_sanitize_comments_highlighted_search_links_title">Làm sạch các liên kết tìm kiếm được tô sáng</string>
+  <string name="morphe_sanitize_comments_highlighted_search_links_summary">Làm sạch các liên kết tìm kiếm được tô sáng, chỉ giữ lại văn bản gốc</string>
   <string name="morphe_hide_keyword_content_screen_title">Bộ lọc từ khóa</string>
   <string name="morphe_hide_keyword_content_screen_summary">Chọn từ hoặc cụm từ cụ thể để ẩn video trong trang video và tìm kiếm</string>
   <string name="morphe_hide_keyword_content_home_title">Ẩn video Trang chủ theo từ khóa</string>
@@ -266,8 +270,10 @@ Hạn chế:
   <string name="morphe_hide_aislist_stats_hidden_breakdown">"• Trang chủ: %s
 • Tìm kiếm: %s
 • Tổng: %s"</string>
-  <string name="morphe_hide_aislist_stats_blocklist_title">Danh sách kênh chặn đã tải: %s</string>
-  <string name="morphe_hide_aislist_stats_warnlist_title">Danh sách kênh cảnh báo đã tải: %s</string>
+  <string name="morphe_hide_aislist_stats_blocklist_channels_title">Các kênh bị chặn</string>
+  <string name="morphe_hide_aislist_stats_warnlist_channels_title">Các kênh bị cảnh báo</string>
+  <string name="morphe_hide_aislist_stats_channels_disabled_summary">Bật bộ lọc để tải kênh</string>
+  <string name="morphe_hide_aislist_stats_channels_loading_summary">Đang tải kênh…</string>
   <string name="morphe_hide_aislist_about_summary">"Kết quả trên Trang chủ và tìm kiếm được lọc để ẩn video từ các kênh bị gắn cờ bởi AiSList
 
 Giới hạn:
@@ -447,15 +453,17 @@ Lưu ý: Có thể không hoạt động với video phát trực tiếp"</strin
   <string name="morphe_disable_precise_seeking_gesture_summary">Tắt chế độ tua chính xác được bật khi vuốt thanh tiến trình lên</string>
   <!-- interaction.seekbar.livestreamDVRPatch -->
   <string name="morphe_livestream_dvr_title">Bật DVR phát trực tiếp</string>
+  <string name="morphe_livestream_dvr_summary">Cho phép tua trên mọi các buổi phát trực tiếp, kể cả khi bình thường không được phép</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_livestream_dvr_summary">"Mở khóa tính năng tua trên tất cả các video phát trực tiếp, ngay cả khi video đó không hỗ trợ tua
+  <string name="morphe_livestream_dvr_not_available">"'Bật DVR phát trực tiếp' có thể không khả dụng
 
-Lưu ý: Nếu bạn chưa bật \"Giả mạo luồng phát video\", tính năng tua có thể không hoạt động ổn định"</string>
+Để khắc phục điều này, hãy bật 'Giả mạo luồng phát video' và thay đổi 'Khách hàng mặc định' thành 'TV'"</string>
   <string name="morphe_expand_livestream_dvr_duration_title">Tăng thời lượng DVR phát trực tiếp</string>
+  <string name="morphe_expand_livestream_dvr_duration_summary">Cho phép tua lại các buổi phát trực tiếp tối đa 7 ngày trước</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_expand_livestream_dvr_duration_summary">"Xem lại các video phát trực tiếp trong tối đa 7 ngày qua
+  <string name="morphe_expand_livestream_dvr_duration_not_available">"'Mở rộng thời lượng DVR phát trực tiếp' có thể không khả dụng
 
-Lưu ý: Nếu bạn chưa bật \"Giả mạo luồng phát video\", tính năng tua có thể không hoạt động ổn định"</string>
+Để khắc phục điều này, hãy bật 'Giả mạo luồng phát video' và thay đổi 'Khách hàng mặc định' thành 'TV'"</string>
   <!-- interaction.seekbar.enableSlideToSeekPatch -->
   <string name="morphe_slide_to_seek_title">Bật vuốt để tua</string>
   <string name="morphe_slide_to_seek_summary">Bật vuốt để tua thay vì phát video 2x khi bấm giữ trong trình phát</string>
@@ -660,10 +668,10 @@ Cần cung cấp \"Cookie phụ đề\""</string>
   <!-- 'Audio track' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_player_flyout_audio_track_title">Ẩn menu \"Bản âm thanh\"</string>
   <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
-          'Android Reel' and 'TV' must be kept untranslated. -->
+          'Android Studio' must be kept untranslated. -->
   <string name="morphe_hide_player_flyout_audio_track_not_available">"Menu 'Bản âm thanh' đã bị ẩn
 
-Để hiển thị menu 'Bản âm thanh', hãy chuyển 'Giả mạo luồng phát video' thành 'Android Reel' hoặc 'TV'."</string>
+Để hiển thị menu 'Bản âm thanh', hãy chuyển 'Giả mạo luồng phát video' thành bất kỳ máy khách nào ngoại trừ 'Android Studio'"</string>
   <string name="morphe_hide_player_flyout_audio_track_footer_title">Ẩn chân menu \"Bản âm thanh\"</string>
   <!-- 'Captions' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_player_flyout_captions_title">Ẩn menu Phụ đề</string>
@@ -814,46 +822,6 @@ Cài đặt → Phát (hoặc Tự động phát) → tự động phát video t
   <string name="morphe_player_overlay_opacity_title">Độ mờ của lớp phủ trình phát</string>
   <string name="morphe_player_overlay_opacity_summary">Điều chỉnh độ trong suốt (0 là trong suốt, 100 là mờ)</string>
   <string name="morphe_player_overlay_opacity_invalid_toast">Độ phủ mờ trình phát phải nằm giữa 0-100</string>
-  <!-- layout.returnyoutubedislike.returnYouTubeDislikePatch -->
-  <!-- Brief notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
-  <string name="morphe_ryd_failure_connection_timeout">Không thể hiện số Dislike (API hết thời gian chờ)</string>
-  <string name="morphe_ryd_failure_connection_status_code">Lượt không thích không khả dụng ( trạng thái %d)</string>
-  <string name="morphe_ryd_failure_client_rate_limit_requested">Không thể hiện số dislike (đạt giới hạn API ứng dụng)</string>
-  <string name="morphe_ryd_failure_generic">Số lượt không thích không khả dụng (%s)</string>
-  <!-- Brief notification (Toast) shown if the user enables RYD while a video is opened, and then tries to vote for the video. -->
-  <string name="morphe_ryd_failure_ryd_enabled_while_playing_video_then_user_voted">Tải lại video để bỏ phiếu bằng ReturnYouTubeDislike</string>
-  <!-- Video likes have been set to hidden by the video uploader. -->
-  <string name="morphe_ryd_video_likes_hidden_by_video_owner">Đã ẩn bởi chủ sở hữu</string>
-  <string name="morphe_ryd_enabled_title">Bật Return YouTube Dislike</string>
-  <string name="morphe_ryd_dislike_percentage_title">Hiện số lượt không thích dưới dạng phần trăm</string>
-  <string name="morphe_ryd_dislike_percentage_summary">Hiển thị số lượt không thích dưới dạng phần trăm thay vì một con số</string>
-  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
-  <string name="morphe_ryd_compact_layout_title">Dùng nút Thích thu gọn</string>
-  <string name="morphe_ryd_compact_layout_summary">Giảm chiều rộng của nút Thích để tiết kiệm không gian</string>
-  <string name="morphe_ryd_estimated_like_title">Hiện lượt thích ước tính</string>
-  <string name="morphe_ryd_estimated_like_summary">Hiển thị số lượt thích ước tính trên các video mà người sáng tạo đã ẩn lượt thích</string>
-  <string name="morphe_ryd_toast_on_connection_error_title">Hiện cảnh báo lỗi kết nối</string>
-  <string name="morphe_ryd_toast_on_connection_error_summary">Hiển thị thông báo khi máy chủ Return YouTube Dislike không khả dụng</string>
-  <string name="morphe_ryd_attribution_summary">"Dữ liệu được cung cấp bởi API Return YouTube Dislike
-
-Bấm vào đây để mở ReturnYouTubeDislike.com"</string>
-  <!-- Statistic strings are shown in the settings only when Morphe debug mode is enabled. Typical users will never see these. -->
-  <string name="morphe_ryd_statistics_category_title">Thống kê API ReturnYouTubeDislike của thiết bị này</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeAverage_title">Thời gian phản hồi API, trung binh</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMin_title">Thời gian phản hồi API, tối thiểu</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMax_title">Thời gian phản hồi API, tối đa</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_title">Thời gian phản hồi API, video gần nhất</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_rate_limit_summary">Tạm thời không thể hiển thị số lượt không thích - Đang bị giới hạn API ứng dụng</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_title">Số lượt truy vấn API, số lần gọi</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_zero_summary">Không gọi mạng lần nào</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_non_zero_summary">%d lần gọi mạng</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_title">Số lượt truy vấn API, số lần hết hạn</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_zero_summary">Không gọi mạng lần nào bị hết hạn</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_non_zero_summary">%d lần gọi mạng bị hết hạn</string>
-  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_title">Giới hạn truy cập API ứng dụng</string>
-  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_zero_summary">Chưa từng bị giới hạn API</string>
-  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_non_zero_summary">Đã bị giới hạn API %d lần</string>
-  <string name="morphe_ryd_statistics_millisecond_text">%d mili-giây</string>
   <!-- layout.searchbar.wideSearchbarPatch -->
   <string name="morphe_wide_searchbar_title">Phóng to thanh tìm kiếm</string>
   <!-- layout.sponsorblock.sponsorBlockPatch -->
@@ -938,6 +906,7 @@ Hạn chế: Nếu tùy chọn \"Khôi phục thanh thao tác video cũ\" bị t
   <string name="morphe_miniplayer_disable_resuming_summary">Ngăn không cho trình phát thu nhỏ \"tiếp tục xem\" khi mở ứng dụng (một tính năng Premium)</string>
   <string name="morphe_miniplayer_screen_title">Trình phát thu nhỏ</string>
   <string name="morphe_miniplayer_screen_summary">Tùy chỉnh giao diện và hành vi của trình phát thu nhỏ</string>
+  <string name="morphe_miniplayer_not_available_summary">YouTube đã loại bỏ tất cả miniplayer bổ sung. Để thay đổi loại miniplayer, hãy vá YouTube phiên bản 21.28.207 trở xuống</string>
   <string name="morphe_miniplayer_type_title">Loại trình phát thu nhỏ</string>
   <string name="morphe_miniplayer_type_entry_0">Tắt</string>
   <string name="morphe_miniplayer_type_entry_1">Mặc định</string>
@@ -1121,7 +1090,6 @@ Hạn chế:
 
 Phát video bằng AV1 có thể bị giật hoặc tụt khung hình."</string>
   <string name="morphe_spoof_video_streams_about_title">Hạn chế khi giả mạo</string>
-  <string name="morphe_spoof_video_streams_about_experimental">• Client đang trong giai đoạn thử nghiệm và có thể ngừng hoạt động bất cứ lúc nào</string>
   <string name="morphe_spoof_video_streams_about_playback_failure">• Video có thể dừng ở 1:00, hoặc có thể không khả dụng ở một số khu vực</string>
   <string name="morphe_spoof_video_streams_about_no_audio_tracks">• Menu bản âm thanh bị thiếu</string>
   <string name="morphe_spoof_video_streams_about_no_av1">• Không có codec video AV1</string>

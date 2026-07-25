@@ -14,6 +14,8 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.all.misc.resources.resourceMappingPatch
 import app.morphe.patches.music.misc.extension.sharedExtensionPatch
+import app.morphe.patches.music.misc.playservice.is_9_28_or_greater
+import app.morphe.patches.music.misc.playservice.versionCheckPatch
 import app.morphe.patches.music.misc.settings.PreferenceScreen
 import app.morphe.patches.music.misc.settings.settingsPatch
 import app.morphe.patches.music.shared.Constants.COMPATIBILITY_YOUTUBE_MUSIC
@@ -32,7 +34,21 @@ private const val IMAGE_VIEW_TAG =
 private val miniplayerButtonsResourcePatch = resourcePatch(
     description = "Injects previous and next button views into the miniplayer layout."
 ) {
+    dependsOn(versionCheckPatch)
+
     execute {
+        val prevDrawable = if (is_9_28_or_greater) {
+            "@drawable/yt_fill_experimental_skip_previous_vd_theme_36"
+        } else {
+            "@drawable/music_player_prev"
+        }
+
+        val nextDrawable = if (is_9_28_or_greater) {
+            "@drawable/yt_fill_experimental_skip_next_vd_theme_36"
+        } else {
+            "@drawable/music_player_next"
+        }
+
         // Inject previous button before play/pause, next button as last child of mini_player.
         var previousButtonInserted = false
 
@@ -50,7 +66,7 @@ private val miniplayerButtonsResourcePatch = resourcePatch(
                         setAttribute("android:padding", "@dimen/item_medium_spacing")
                         setAttribute("android:layout_width", "@dimen/remix_generic_button_size")
                         setAttribute("android:layout_height", "@dimen/remix_generic_button_size")
-                        setAttribute("android:src", "@drawable/music_player_prev")
+                        setAttribute("android:src", prevDrawable)
                         setAttribute("android:scaleType", "fitCenter")
                         setAttribute("android:contentDescription", "@string/accessibility_previous")
                         setAttribute("style", "@style/MusicPlayerButton")
@@ -65,7 +81,7 @@ private val miniplayerButtonsResourcePatch = resourcePatch(
                         setAttribute("android:padding", "@dimen/item_medium_spacing")
                         setAttribute("android:layout_width", "@dimen/remix_generic_button_size")
                         setAttribute("android:layout_height", "@dimen/remix_generic_button_size")
-                        setAttribute("android:src", "@drawable/music_player_next")
+                        setAttribute("android:src", nextDrawable)
                         setAttribute("android:scaleType", "fitCenter")
                         setAttribute("android:contentDescription", "@string/accessibility_next")
                         setAttribute("style", "@style/MusicPlayerButton")

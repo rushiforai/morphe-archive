@@ -33,7 +33,7 @@ Second \"item\" text"</string>
   <string name="morphe_settings_music_screen_1_ads_title">Oglasi</string>
   <string name="morphe_settings_music_screen_2_general_title">Splošno</string>
   <string name="morphe_settings_music_screen_3_player_title">Predvajalnik</string>
-  <string name="morphe_settings_music_screen_6_misc_title">Razno</string>
+  <string name="morphe_settings_music_screen_7_misc_title">Razno</string>
   <!-- ad.hideAdsPatch -->
   <string name="morphe_music_hide_get_premium_label_title">Skrij oznako \'Get Music Premium\'</string>
   <string name="morphe_music_hide_video_ads_title">Skrij video oglase</string>
@@ -241,7 +241,7 @@ YouTube Music 8.x – prehod deluje samo v 9.x in novejših različicah."</strin
   <string name="morphe_music_listenbrainz_token_dialog_get_token">Pridobi žeton</string>
   <string name="morphe_music_listenbrainz_token_dialog_verify">Preveri</string>
   <string name="morphe_music_listenbrainz_token_status_empty">Vnesite žeton</string>
-  <string name="morphe_music_listenbrainz_token_status_validating">Preverjanje...</string>
+  <string name="morphe_music_listenbrainz_token_status_validating">Preverjanje…</string>
   <string name="morphe_music_listenbrainz_token_status_valid">Veljaven žeton! Uporabnik: %s</string>
   <string name="morphe_music_listenbrainz_token_status_invalid">Neveljaven žeton: %s</string>
   <string name="morphe_music_listenbrainz_token_status_invalid_unknown">neznano</string>
@@ -258,7 +258,7 @@ YouTube Music 8.x – prehod deluje samo v 9.x in novejših različicah."</strin
   <string name="morphe_music_lastfm_token_dialog_password_hint">Geslo</string>
   <string name="morphe_music_lastfm_token_dialog_login">Prijava</string>
   <string name="morphe_music_lastfm_token_status_empty">Vnesite uporabniško ime in geslo</string>
-  <string name="morphe_music_lastfm_token_status_logging_in">Prijavam se...</string>
+  <string name="morphe_music_lastfm_token_status_logging_in">Prijava…</string>
   <string name="morphe_music_lastfm_token_status_success">Uspešno ste se prijavili!</string>
   <string name="morphe_music_lastfm_token_status_no_session">Neuspešno pridobivanje seje iz Last.fm</string>
   <string name="morphe_music_lastfm_token_status_failed">Prijava je spodletela: %s</string>

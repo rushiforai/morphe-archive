@@ -156,14 +156,17 @@ Guherînan têne xistine:
   <string name="morphe_hide_featured_channels_section_title">Bêdengkirina beşê kanalên taybet</string>
   <string name="morphe_hide_featured_links_section_title">Bêjeya \'Cihên taybet\' veşêrin</string>
   <string name="morphe_hide_featured_places_section_title">Bêjeya Vîdyoyên Taybet veşêrin</string>
+  <string name="morphe_hide_featured_playlists_section_title">Li ser şûşeyê veşêre jinavkirina stranlisteyên taybet</string>
   <string name="morphe_hide_featured_videos_section_title">Bêjeya Lîstik veşêrin</string>
   <string name="morphe_hide_gaming_section_title">Bêjeya \'Çawa ev hat çêkirin\' veşêrin</string>
+  <string name="morphe_hide_hashtag_section_title">Bêjê rêja hashtagê veşêre</string>
   <string name="morphe_hide_how_this_was_made_section_title">Bêjeya Kartên Agahî veşêrin</string>
   <string name="morphe_hide_hype_points_title">Zorîyên Heyecan ve nebînîne.</string>
   <string name="morphe_hide_info_cards_section_title">Bêjeya \'Dîtinên sereke\' veşêrin</string>
   <string name="morphe_hide_key_concepts_section_title">Bêjeya Muzîk veşêrin</string>
   <string name="morphe_hide_music_section_title">Bêjeya Pêşbaziyên veşêrin</string>
   <string name="morphe_hide_quizzes_section_title">Bêjeya Transkrîpsiyon veşêrin</string>
+  <string name="morphe_hide_search_inside_this_video_section_title">Vê beşa \'Li vê vîdyoyê têkeve\' veşêrin</string>
   <string name="morphe_hide_subscribe_button_title">Bişîniya butona \'Subscribe\' veşêrin</string>
   <string name="morphe_hide_transcript_section_title">Bêjeya \'Detalên Vîdyoyê\' veşêrin</string>
   <string name="morphe_hide_video_details_section_title">Hilbijêrin ku çi di çîpên kategoriyê de veşêrin</string>
@@ -270,8 +273,10 @@ Sînorkirin:
   <string name="morphe_hide_aislist_stats_hidden_breakdown">"• Rûpela Sereke: %s
 • Lêgerîn: %s
 • Hemû: %s"</string>
-  <string name="morphe_hide_aislist_stats_blocklist_title">Kanalên lîsteya blokkirinê bar kirin: %s</string>
-  <string name="morphe_hide_aislist_stats_warnlist_title">Kanalên lîsteya hişyarîyê bar kirin: %s</string>
+  <string name="morphe_hide_aislist_stats_blocklist_channels_title">Kanalên di lîsteya reş de</string>
+  <string name="morphe_hide_aislist_stats_warnlist_channels_title">Kanalên di lîsteya hişyarî de</string>
+  <string name="morphe_hide_aislist_stats_channels_disabled_summary">Çalakkirina fîlterekê da ku kanal bar bike</string>
+  <string name="morphe_hide_aislist_stats_channels_loading_summary">Kanala bar dikirin…</string>
   <string name="morphe_hide_aislist_about_summary">"Encamên ser rûpela sereke û lêgerînê hatine fîlterkirin da ku vîdyoyên ji kanalên ku ji hêla AiSListê ve hatine nîşandan veşêrin.
 
 Sînorkirin:
@@ -451,15 +456,17 @@ Info: May not work on live streams"</string>
   <string name="morphe_disable_precise_seeking_gesture_summary">Disables the precise seeking mode that activates when pulling up the seekbar</string>
   <!-- interaction.seekbar.livestreamDVRPatch -->
   <string name="morphe_livestream_dvr_title">Stêrkirina DVR-ya pêşandanê serdest bike</string>
+  <string name="morphe_livestream_dvr_summary">Hêlî dibe ku li ser hemû weşînên zindî lêgerînê bike, tewra yên ku normal têkbirinê qedexe dikin</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_livestream_dvr_summary">"Hêlîkirinê li ser hemû şîrvanên zindî, tewra yên ku normalî astengî lê hene, destûr dide
+  <string name="morphe_livestream_dvr_not_available">"'Zêdekirina DVR-a livestreamek' neyê bikar anîn
 
-Not: Ger 'Herikînên vîdyoyê' nebe, vekirina vê dikare têkiliyên nehevdîtî bi şîrvanên zindî re çêbike"</string>
+Bo çareserkirina vê, vekirina 'Perçêkirina herikên vîdyoyê' û guherîna 'Serê pelaxê' bo 'TV'"</string>
   <string name="morphe_expand_livestream_dvr_duration_title">Dîmendera destûra rêzê ya DVR-ê zêde bike</string>
+  <string name="morphe_expand_livestream_dvr_duration_summary">Têde bi tehiye dike da ku hûn pê veşêrin înîsiyatora livestreaman heta 7 rojan paşê veguherînin</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_expand_livestream_dvr_duration_summary">"Hêlîkirina şîrvanên zindî heta 7 rojan di paşê de destûr dide
+  <string name="morphe_expand_livestream_dvr_duration_not_available">"'Zêdekirina duratiya DVR-a livestreamê' neyê bikar anîn
 
-Not: Ger 'Herikînên vîdyoyê' nebe, vekirina vê dikare têkiliyên nehevdîtî bi şîrvanên zindî re çêbike"</string>
+Bo çareserkirina vê, vekirina 'Perçêkirina herikên vîdyoyê' û guherîna 'Serê pelaxê' bo 'TV'"</string>
   <!-- interaction.seekbar.enableSlideToSeekPatch -->
   <string name="morphe_slide_to_seek_title">Slide to seek çalak bike</string>
   <string name="morphe_slide_to_seek_summary">Enables slide to seek instead of playing at 2x speed when pressing and holding the video player</string>
@@ -665,10 +672,10 @@ Ji bo ku derfetên sazkarî pêşero, rêzika 'Settings' zivirînin bi General �
   <!-- 'Audio track' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_player_flyout_audio_track_title">Butona nivîskê veşêre</string>
   <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
-          'Android Reel' and 'TV' must be kept untranslated. -->
-  <string name="morphe_hide_player_flyout_audio_track_not_available">"Menûya 'Şêwaza Deng' veşartî ye
+          'Android Studio' must be kept untranslated. -->
+  <string name="morphe_hide_player_flyout_audio_track_not_available">"'Menuya Şêwazê Deng' veşartin e
 
-Ji bo nîşandana menûya 'Şêwaza Deng', 'Şêwazên vîdyoyê yên sexnetî' biguhezîne 'Android Reel' an 'TV'."</string>
+Bo nîşandina 'Menuya Şêwazê Deng', guherîna 'Perçêkirina herikên vîdyoyê' bo her kîşerekê ji bilî 'Android Studio'"</string>
   <string name="morphe_hide_player_flyout_audio_track_footer_title">Butona paşveveşêrî veşêre</string>
   <!-- 'Captions' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_player_flyout_captions_title">Butona rêjeya deng veşêre</string>
@@ -819,46 +826,6 @@ Settings → Playback (an Autoplay) → Autoplay next video"</string>
   <string name="morphe_player_overlay_opacity_title">Şewitîya zeviyayê pêşandanê.</string>
   <string name="morphe_player_overlay_opacity_summary">Astê şeffafiyê bistîne (0 şeffaf e, 100 neşeffaf e)</string>
   <string name="morphe_player_overlay_opacity_invalid_toast">Şewitîya zeviyayê pêşandanê divê di navbera 0-100an de be.</string>
-  <!-- layout.returnyoutubedislike.returnYouTubeDislikePatch -->
-  <!-- Brief notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
-  <string name="morphe_ryd_failure_connection_timeout">Nexweşîyên ji aliyê xalîbazbûnê ve qeyd nêrîn. (API demdar bû).</string>
-  <string name="morphe_ryd_failure_connection_status_code">Nezrêyan niçeber (status %d)</string>
-  <string name="morphe_ryd_failure_client_rate_limit_requested">Nexweşî ji aliyê malperavê ve qeyd nêrîn (sînorê malperavê ji xalîbazbûna rêzgirtî).</string>
-  <string name="morphe_ryd_failure_generic">Nexweşî ji aliyê xalîbazbûnê ve nêrîn (%s).</string>
-  <!-- Brief notification (Toast) shown if the user enables RYD while a video is opened, and then tries to vote for the video. -->
-  <string name="morphe_ryd_failure_ryd_enabled_while_playing_video_then_user_voted">Videoyê ji bo dengdanê vegere wek ji aliyê Return YouTube Dislike ve.</string>
-  <!-- Video likes have been set to hidden by the video uploader. -->
-  <string name="morphe_ryd_video_likes_hidden_by_video_owner">Ji aliyê xwediyê videoyê ve veşêra.</string>
-  <string name="morphe_ryd_enabled_title">Return YouTube Dislike bidar bike</string>
-  <string name="morphe_ryd_dislike_percentage_title">Dislike wekî ji sedî nîşan bide</string>
-  <string name="morphe_ryd_dislike_percentage_summary">Dislike wekî ji sedîya hezkirinê nîşan dide, ne wekî hejmarê</string>
-  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
-  <string name="morphe_ryd_compact_layout_title">Butona Hezkirinê ya kompakt bikar bîne</string>
-  <string name="morphe_ryd_compact_layout_summary">Firehiya Butona Hezkirinê kêm bike da ku cî bigire</string>
-  <string name="morphe_ryd_estimated_like_title">Daneyên rêz bûne nîşan tê.</string>
-  <string name="morphe_ryd_estimated_like_summary">Hejmara hezkirî ya tê texmîn kirin li ser vîdeoyên ku afirîner hezkirinê dezaktîv kirine nîşan bide</string>
-  <string name="morphe_ryd_toast_on_connection_error_title">Îşaretên xeletêya têkiliyê nîşan bide</string>
-  <string name="morphe_ryd_toast_on_connection_error_summary">Îşaretê nîşan dide gava ku servera Return YouTube Dislike hewîr be</string>
-  <string name="morphe_ryd_attribution_summary">"Daneyê ji aliyê Return YouTube Dislike API ve tê peydakirin.
-
-Virê bikirin da ku ReturnYouTubeDislike.com vekin."</string>
-  <!-- Statistic strings are shown in the settings only when Morphe debug mode is enabled. Typical users will never see these. -->
-  <string name="morphe_ryd_statistics_category_title">Statîstîkên API-ya Return YouTube Dislike ji vê alavê re.</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeAverage_title">Demerê bersiva API, seraverî</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMin_title">Demerê bersiva API, herî kêm</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMax_title">Demerê bersiva API, herî zêde</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_title">Demerê bersiva API, vîdyoya paşîn</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_rate_limit_summary">Dislike\'an ji nişaneyan ve qels nêzin - Sînyala ratebiyê ya Klient API tê bikar anîn</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_title">Hejmara serîna serketî kontrol bikin.</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_zero_summary">Serîna netûkirî ne çêkirin</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_non_zero_summary">%d serîna netûkirî çêkirin</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_title">Hejmara serîna kontrolê, hejmara qelskirina serîna kontrolê</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_zero_summary">Serîna netûkirî qels nebûn</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_non_zero_summary">%d serîna netûkirî qels kirin</string>
-  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_title">Sînyala ratebiyê ya Klient</string>
-  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_zero_summary">Sînyala ratebiyê ya Klient nedest kerin</string>
-  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_non_zero_summary">Sînyala ratebiyê ya Klient %d caran destwer kirin</string>
-  <string name="morphe_ryd_statistics_millisecond_text">%d mîlîkêsecond</string>
   <!-- layout.searchbar.wideSearchbarPatch -->
   <string name="morphe_wide_searchbar_title">Barê lêgerînê vêrendar çêkin</string>
   <!-- layout.sponsorblock.sponsorBlockPatch -->
@@ -943,6 +910,7 @@ Sînordarî: Ger 'Restore old video action bar' veqetandibe, 'More videos' dîti
   <string name="morphe_miniplayer_disable_resuming_summary">Mînîlîstê \'Devamkirina dîkirinê\' asteng dike, fektorek premîum a YouTube ku di destpêka sepanê de xuya dibe</string>
   <string name="morphe_miniplayer_screen_title">Minileýner</string>
   <string name="morphe_miniplayer_screen_summary">Sazkirina şeffafiyê (0 şeffaf e, 100 neşeffaf e)</string>
+  <string name="morphe_miniplayer_not_available_summary">YouTubeê hemû lîstikvanên biçûk ên din derxist. Ji bo guheztina cureyê lîstikvanê biçûk, YouTube 21.28.207 an jê pirr kêhn pêşniyar dikin.</string>
   <string name="morphe_miniplayer_type_title">Minileýner</string>
   <string name="morphe_miniplayer_type_entry_0">Vemirandî</string>
   <string name="morphe_miniplayer_type_entry_1">Bixweber</string>
@@ -1126,7 +1094,6 @@ Sînergirên:
 
 Lêxistina video bi AV1 dikare kîzbirin an kêmuçêkî framean bike."</string>
   <string name="morphe_spoof_video_streams_about_title">Efectê spoofingê</string>
-  <string name="morphe_spoof_video_streams_about_experimental">• Klient eksperîmental e û dibe ku her demî biqewime</string>
   <string name="morphe_spoof_video_streams_about_playback_failure">• Vîdyo dikare di 1:00 de raweste, an jî di hin herêmên cuda de nedibe.</string>
   <string name="morphe_spoof_video_streams_about_no_audio_tracks">• Menuya rêgirên audio kêman e </string>
   <string name="morphe_spoof_video_streams_about_no_av1">• Kodeka vîdyoyê ya AV1 tune</string>

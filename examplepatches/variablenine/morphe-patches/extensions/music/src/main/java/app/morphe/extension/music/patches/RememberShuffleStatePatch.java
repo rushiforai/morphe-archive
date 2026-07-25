@@ -9,7 +9,6 @@ package app.morphe.extension.music.patches;
 
 import android.util.Log;
 import app.morphe.extension.music.settings.Settings;
-import app.morphe.extension.shared.Logger;
 
 @SuppressWarnings("unused")
 public class RememberShuffleStatePatch {
@@ -21,16 +20,6 @@ public class RememberShuffleStatePatch {
         if (Settings.REMEMBER_SHUFFLE_STATE.get()) {
             Settings.SAVED_SHUFFLE_STATE.save(shuffleState.ordinal() == 1);
         }
-    }
-
-    /**
-     * Injection point.
-     */
-    public static boolean overrideShuffleButton(boolean original) {
-        if (!Settings.REMEMBER_SHUFFLE_STATE.get()) {
-            return original;
-        }
-        return Settings.SAVED_SHUFFLE_STATE.get();
     }
 
     /**

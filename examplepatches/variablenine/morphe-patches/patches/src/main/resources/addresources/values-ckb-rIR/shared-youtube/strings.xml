@@ -22,6 +22,7 @@ Second \"item\" text"</string>
   <string name="morphe_custom_branding_name_title">ناوی ئەپ</string>
   <!-- interaction.downloads.downloadsPatch -->
   <string name="morphe_external_downloader_screen_title">دانه‌کانی دەرەکی</string>
+  <string name="morphe_external_downloader_name_title">Downloader package name</string>
   <string name="morphe_external_downloader_other_item">دوان</string>
   <!-- Translations of this should be identical to morphe_custom_branding_icon_entry_7 -->
   <string name="morphe_custom_branding_name_entry_5">باو</string>
@@ -96,8 +97,8 @@ Da te'îl bikin, li ser berdewam bikin xwarê"</string>
   <!-- misc.proxy.networkProxyPatch -->
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">شاردنەوەی ڕیکلامەکانی پڕ شاشە</string>
-  <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_force_original_audio_not_available">Da vê taybetmendariya bikarînin, \'Pêlvedanên dîmenan\' heta Android Reel an TV biguhêrin</string>
+  <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
+          'Android Studio' must be kept untranslated. -->
   <!-- misc.privacy.sanitizeSharingLinksPatch -->
   <string name="morphe_sanitize_sharing_links_title">خەڵەتەکانی هەڵواسانی دەړووستن</string>
   <string name="morphe_sanitize_sharing_links_summary">پارامیتەرەکانی بەدواکەوتنی پرس لە لینکە هاوبەشەکان لادەبات</string>
@@ -113,6 +114,20 @@ Da te'îl bikin, li ser berdewam bikin xwarê"</string>
   <!-- Custom filter -->
   <!-- 'Component path builder strings' is the technical name for identifying the Litho UI layout items to hide. This is an advanced feature and most users will never use this. -->
   <string name="morphe_custom_filter_strings_summary">List of component path builder strings to filter, separated by new lines</string>
+  <!-- Settings menu filter -->
   <!-- misc.spoof.appversion.spoofAppVersionPatch -->
   <string name="morphe_spoof_app_version_summary">Tricks the server into thinking you are using an older app version to restore legacy UI features</string>
+  <!-- layout.returnyoutubedislike.returnYouTubeDislikePatch -->
+  <!-- Brief notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
+  <!-- Video likes have been set to hidden by the video uploader. -->
+  <string name="morphe_ryd_enabled_title">Enable Return YouTube Dislike</string>
+  <string name="morphe_ryd_dislike_percentage_title">Show dislikes as percentage</string>
+  <string name="morphe_ryd_dislike_percentage_summary">Shows dislikes as a percentage of likes instead of a number</string>
+  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
+  <string name="morphe_ryd_compact_layout_title">Use compact Like button</string>
+  <string name="morphe_ryd_compact_layout_summary">Reduces the width of the Like button to save space</string>
+  <string name="morphe_ryd_estimated_like_summary">Shows an estimated like count on videos where the creator has disabled likes</string>
+  <string name="morphe_ryd_toast_on_connection_error_title">نشان دادن ڕێنمایەکانی هەڵە یەکباری پەیوەندیمان</string>
+  <string name="morphe_ryd_toast_on_connection_error_summary">Shows a notification when the Return YouTube Dislike server is unavailable</string>
+  <!-- Statistic strings are shown in the settings only when Morphe debug mode is enabled. Typical users will never see these. -->
 </resources>

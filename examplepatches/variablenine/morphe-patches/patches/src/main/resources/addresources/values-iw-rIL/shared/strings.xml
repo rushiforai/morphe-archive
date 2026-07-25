@@ -81,7 +81,7 @@ Second \"item\" text"</string>
   <string name="morphe_settings_about_links_rv">2022 – 2025</string>
   <string name="morphe_settings_about_links_vanced">2019 – 2022</string>
   <string name="morphe_settings_about_links_licenses">הודעות רישיון</string>
-  <string name="morphe_settings_about_licenses_loading">טוען...</string>
+  <string name="morphe_settings_about_licenses_loading">טוען…</string>
   <!-- misc.debugging.enableDebuggingPatch -->
   <string name="morphe_debug_screen_title">איתור באגים</string>
   <string name="morphe_debug_screen_summary">הגדרת אפשרויות מפתחים ודיאגנוסטיקה</string>
@@ -97,7 +97,7 @@ Second \"item\" text"</string>
   <string name="morphe_debug_export_logs_file">ייצוא לקובץ</string>
   <string name="morphe_debug_export_logs_success">יומני איתור באגים יובאו בהצלחה</string>
   <string name="morphe_debug_export_logs_failed">נכשל לייצא יומני איתור באגים: %s</string>
-  <string name="morphe_debug_logs_search_hint">חיפוש יומני איתור באגים...</string>
+  <string name="morphe_debug_logs_search_hint">חפש ביומני איתור באגים…</string>
   <string name="morphe_debug_export_logs_clear">נקה</string>
   <string name="morphe_debug_logs_disabled">תיעוד איתור באגים מושבת</string>
   <string name="morphe_debug_logs_none_found">לא נמצאו יומני איתור באגים</string>
@@ -108,7 +108,7 @@ Second \"item\" text"</string>
   <string name="morphe_debug_feature_flags_manager_summary">נהל דגלי תכונות בוליאניים</string>
   <string name="morphe_debug_feature_flags_manager_active_header">דגלים פעילים (%d)</string>
   <string name="morphe_debug_feature_flags_manager_blocked_header">דגלים חסומים (%d)</string>
-  <string name="morphe_debug_feature_flags_manager_search_hint">חיפוש דגלים...</string>
+  <string name="morphe_debug_feature_flags_manager_search_hint">חפש דגלי תכונה…</string>
   <string name="morphe_debug_feature_flags_manager_toast_saved">דגלי תכונות נשמרו</string>
   <string name="morphe_debug_feature_flags_manager_toast_reset">דגלי תכונות הוחזרו</string>
   <string name="morphe_debug_feature_flags_manager_toast_copied">הדגלים הועתקו ללוח</string>

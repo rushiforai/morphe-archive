@@ -12,8 +12,6 @@ package app.morphe.extension.youtube.videoplayer;
 
 import android.view.View;
 
-import androidx.annotation.Nullable;
-
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.youtube.patches.LoadVideoPatch;
 import app.morphe.extension.youtube.settings.Settings;
@@ -27,46 +25,22 @@ public class ReloadVideoButton {
         }
     }
 
-    @Nullable
-    private static LegacyPlayerControlButton instance;
-
     /**
      * Injection point.
      */
     public static void initializeLegacyButton(View controlsView) {
         try {
-            instance = new LegacyPlayerControlButton(
+            new LegacyPlayerControlButton(
                     controlsView,
                     "morphe_reload_video_button",
                     null,
                     "morphe_reload_video_button",
-                    Settings.RELOAD_VIDEO_BUTTON::get,
+                    Settings.RELOAD_VIDEO_BUTTON,
                     v -> LoadVideoPatch.initializeReloadVideo(),
                     null
             );
         } catch (Exception ex) {
             Logger.printException(() -> "initialize failure", ex);
         }
-    }
-
-    /**
-     * injection point.
-     */
-    public static void setVisibilityNegatedImmediate() {
-        if (instance != null) instance.setVisibilityNegatedImmediate();
-    }
-
-    /**
-     * injection point.
-     */
-    public static void setVisibilityImmediate(boolean visible) {
-        if (instance != null) instance.setVisibilityImmediate(visible);
-    }
-
-    /**
-     * injection point.
-     */
-    public static void setVisibility(boolean visible, boolean animated) {
-        if (instance != null) instance.setVisibility(visible, animated);
     }
 }

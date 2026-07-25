@@ -8,11 +8,9 @@
 package app.morphe.patches.music.interaction.remember.shufflestate
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.OpcodesFilter
 import app.morphe.patcher.literal
 import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.Opcode
 
 internal object ShuffleOnClickFingerprint : Fingerprint(
     name = "onClick",
@@ -32,17 +30,5 @@ internal object ShuffleEnumFingerprint : Fingerprint(
         string("SHUFFLE_OFF"),
         string("SHUFFLE_ALL"),
         string("SHUFFLE_DISABLED")
-    )
-)
-
-internal object MusicPlaybackControlsFingerprint : Fingerprint(
-    definingClass = "/MusicPlaybackControls;",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    returnType = "V",
-    parameters = listOf("Z"),
-    filters = OpcodesFilter.opcodesToFilters(
-        Opcode.IPUT_BOOLEAN,
-        Opcode.INVOKE_VIRTUAL,
-        Opcode.RETURN_VOID
     )
 )

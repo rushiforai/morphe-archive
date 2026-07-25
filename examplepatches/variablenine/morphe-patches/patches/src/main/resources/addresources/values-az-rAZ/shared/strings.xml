@@ -49,6 +49,7 @@ Second \"item\" text"</string>
   <string name="morphe_settings_search_empty_history_summary">Axtarış tarixçəsini saxlamaq üçün axtarış sorğusu yazın və Daxil Et-ə basın</string>
   <string name="morphe_settings_search_history_title">Tənzimləmə axtarış tarixçəsin göstər</string>
   <string name="morphe_show_menu_icons_title">Morphe tənzimləmə nişanların göstər</string>
+  <string name="morphe_settings_menu_copy_path">Köçürüldü: %s</string>
   <string name="morphe_language_title">Morphe dili</string>
   <string name="morphe_language_user_dialog_message">"Bəzi dillər üçün tərcümələr yarımçıq və ya qüsurlu ola bilər.
 
@@ -97,7 +98,7 @@ Gözlənilməz hallardan xəbərdar olmayacaqsınız."</string>
   <string name="morphe_debug_export_logs_file">Fayla köçür</string>
   <string name="morphe_debug_export_logs_success">Sazlama qeydləri uğurla köçürüldü</string>
   <string name="morphe_debug_export_logs_failed">Sazlama qeydlərin ixrac etmək olmadı</string>
-  <string name="morphe_debug_logs_search_hint">Sazlama qeydlərini axtar...</string>
+  <string name="morphe_debug_logs_search_hint">Sazlama qeydlərini axtar…</string>
   <string name="morphe_debug_export_logs_clear">Təmizlə</string>
   <string name="morphe_debug_logs_disabled">Sazlama qeydi qapalıdır</string>
   <string name="morphe_debug_logs_none_found">Sazlanma qeydləri tapılmadı</string>
@@ -108,7 +109,7 @@ Gözlənilməz hallardan xəbərdar olmayacaqsınız."</string>
   <string name="morphe_debug_feature_flags_manager_summary">Boolean xüsusiyyət nişançıların idarə et</string>
   <string name="morphe_debug_feature_flags_manager_active_header">İşlək xüsusiyyət nişançıları (%d)</string>
   <string name="morphe_debug_feature_flags_manager_blocked_header">Əngəllənən xüsusiyyət nişançıları (%d)</string>
-  <string name="morphe_debug_feature_flags_manager_search_hint">Xüsusiyyət nişançıları axtar...</string>
+  <string name="morphe_debug_feature_flags_manager_search_hint">Xüsusiyyət nişançıların axtar…</string>
   <string name="morphe_debug_feature_flags_manager_toast_saved">Xüsusiyyət nişançıları saxlanıldı</string>
   <string name="morphe_debug_feature_flags_manager_toast_reset">Xüsusiyyət nişançıları sıfırlandı</string>
   <string name="morphe_debug_feature_flags_manager_toast_copied">Xüsusiyyət nişançıları buferə köçürüldü</string>

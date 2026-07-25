@@ -142,8 +142,9 @@ Second \"item\" text"</string>
   <string name="morphe_proxy_allow_direct_fallback_summary">התחבר ישירות אם הפרוקסי נכשל</string>
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">הסתר מודעות מסך מלא</string>
-  <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_force_original_audio_not_available">כדי להשתמש בתכונה זו, שנה \'זיוף זרמי וידאו\' ל-Android Reel או TV</string>
+  <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
+          'Android Studio' must be kept untranslated. -->
+  <string name="morphe_force_original_audio_not_available">כדי להשתמש בתכונה זו, שנה את \'זיוף זרמי וידאו\' לכל לקוח מלבד Android Studio\'</string>
   <!-- misc.privacy.sanitizeSharingLinksPatch -->
   <string name="morphe_sanitize_sharing_links_title">טיהור קישורי שיתוף</string>
   <string name="morphe_sanitize_sharing_links_summary">מסיר פרמטרים של שאילתות מעקב מקישורי שיתוף</string>
@@ -167,6 +168,10 @@ Second \"item\" text"</string>
   <!-- 'Component path builder strings' is the technical name for identifying the Litho UI layout items to hide. This is an advanced feature and most users will never use this. -->
   <string name="morphe_custom_filter_strings_summary">רשימה של מחרוזות בונה נתיב רכיבים לסינון מופרדות על ידי שורות חדשות</string>
   <string name="morphe_custom_filter_toast_invalid_syntax">מסנן מותאם אישית לא חוקי: %s</string>
+  <!-- Settings menu filter -->
+  <string name="morphe_settings_menu_filter_screen_title">מסנן תפריט הגדרות</string>
+  <string name="morphe_settings_menu_filter_screen_summary">הסתר פריטים ממסך ההגדרות הסטנדרטי של האפליקציה לפי השם הגלוי שלהם</string>
+  <string name="morphe_settings_menu_filter_picker_empty">פתח את מסך ההגדרות הסטנדרטי של האפליקציה פעם אחת כדי לאכלס את הרשימה</string>
   <!-- misc.spoof.appversion.spoofAppVersionPatch -->
   <string name="morphe_spoof_app_version_title">זייף גרסת אפליקציה</string>
   <string name="morphe_spoof_app_version_summary">מרמה את השרת לחשוב שאתה משתמש בגרסת אפליקציה ישנה יותר כדי לשחזר תכונות ממשק משתמש מדור קודם</string>
@@ -176,4 +181,42 @@ Second \"item\" text"</string>
 
 אם נכבה מאוחר יותר, מומלץ לנקות את נתוני האפליקציה כדי למנוע באגים בממשק המשתמש."</string>
   <string name="morphe_spoof_app_version_target_title">יעד גרסת יישום מזויפת</string>
+  <!-- layout.returnyoutubedislike.returnYouTubeDislikePatch -->
+  <!-- Brief notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
+  <string name="morphe_ryd_failure_connection_timeout">דיסלייקים אינם זמינים באופן זמני (תם פסק הזמן של ה-API)</string>
+  <string name="morphe_ryd_failure_connection_status_code">דיסלייקים אינם זמינים (מצב %d)</string>
+  <string name="morphe_ryd_failure_client_rate_limit_requested">דיסלייקים אינם זמינים (מגבלה של לקוח API)</string>
+  <string name="morphe_ryd_failure_generic">דיסלייקים אינם זמינים (%s)</string>
+  <!-- Video likes have been set to hidden by the video uploader. -->
+  <string name="morphe_ryd_video_likes_hidden_by_video_owner">מוסתר על ידי הבעלים</string>
+  <string name="morphe_ryd_enabled_title">הפעל החזרת לייקים ל-YouTube</string>
+  <string name="morphe_ryd_dislike_percentage_title">הצג דיסלייקים כאחוזים</string>
+  <string name="morphe_ryd_dislike_percentage_summary">מציג דיסלייקים כאחוז מהלייקים ולא כמספר</string>
+  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
+  <string name="morphe_ryd_compact_layout_title">השתמש בכפתור לייק קומפקטי</string>
+  <string name="morphe_ryd_compact_layout_summary">מקטין את רוחב כפתור הלייק כדי לחסוך מקום</string>
+  <string name="morphe_ryd_estimated_like_title">הצג סימוני \'אהבתי\' משוערים</string>
+  <string name="morphe_ryd_estimated_like_summary">מציג ספירת לייקים משוערת בסרטונים שהיוצר השבית את הלייקים בהם</string>
+  <string name="morphe_ryd_toast_on_connection_error_title">הצג התראות שגיאת חיבור</string>
+  <string name="morphe_ryd_toast_on_connection_error_summary">מציג התראה כאשר שרת Return YouTube Dislike אינו זמין</string>
+  <string name="morphe_ryd_attribution_summary">"הנתונים מסופקים על ידי ה-Return YouTube Dislike API
+
+הקש כאן כדי לפתוח את ReturnYouTubeDislike.com"</string>
+  <!-- Statistic strings are shown in the settings only when Morphe debug mode is enabled. Typical users will never see these. -->
+  <string name="morphe_ryd_statistics_category_title">סטטיסטיקות API של Return YouTube Dislike במכשיר זה</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeAverage_title">זמן תגובת API, ממוצע</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMin_title">זמן תגובת API, מינימום</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMax_title">זמן תגובת API, מקסימום</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_title">זמן תגובת API, מדיה אחרונה</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_rate_limit_summary">דיסלייקים אינם זמינים באופן זמני - מגבלת קצב לקוח API בתוקף</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_title">ממשק API להבאת הצבעות, מספר קריאות</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_zero_summary">לא נעשו קריאות רשת</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_non_zero_summary">%d קריאות רשת בוצעו</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_title">ממשק API להבאת הצבעות, מספר פסק זמן</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_zero_summary">לא נעשו קריאות רשת שפג תוקפן</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_non_zero_summary">%d קריאות רשת פג תוקפן</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_title">מגבלות קצב לקוח API</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_zero_summary">לא נתקלו במגבלות קצב לקוח</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_non_zero_summary">נתקלו במגבלת קצב לקוח %d פעמים</string>
+  <string name="morphe_ryd_statistics_millisecond_text">%d אלפיות שנייה</string>
 </resources>

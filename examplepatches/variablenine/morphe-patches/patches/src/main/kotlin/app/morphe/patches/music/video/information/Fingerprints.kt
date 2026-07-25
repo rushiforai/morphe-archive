@@ -10,7 +10,6 @@ package app.morphe.patches.music.video.information
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.parametersMatch
 import app.morphe.patcher.string
-import com.android.tools.smali.dexlib2.AccessFlags
 
 /**
  * Matches the player class that exposes a seek method.
@@ -29,9 +28,8 @@ internal object VideoEndFingerprint : Fingerprint(
  * Parameters are (playerResponseModel, videoId).
  */
 internal object VideoIdFingerprint : Fingerprint(
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     filters = listOf(
-      string("Null initialPlayabilityStatus")
+        string("Null initialPlayabilityStatus")
     ),
     custom = { method, _ ->
         parametersMatch(
@@ -41,5 +39,5 @@ internal object VideoIdFingerprint : Fingerprint(
             method.parameters,
             listOf("L", "Ljava/lang/String;", "Z") // 9.24 only
         )
-    },
+    }
 )

@@ -18,34 +18,37 @@ import android.graphics.Color;
 import android.graphics.drawable.AnimatedVectorDrawable;
 import android.graphics.drawable.Drawable;
 import android.view.View;
-import android.view.ViewPropertyAnimator;
+import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
 
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.ResourceType;
 import app.morphe.extension.shared.ResourceUtils;
 import app.morphe.extension.shared.Utils;
-import app.morphe.extension.youtube.shared.PlayerControlsVisibility;
-import app.morphe.extension.youtube.shared.PlayerType;
-import kotlin.Unit;
+import app.morphe.extension.shared.settings.BooleanSetting;
 
 public class LegacyPlayerControlButton {
 
-    public interface PlayerControlButtonStatus {
-        /**
-         * @return If the button should be shown when the player overlay is visible.
-         */
-        boolean buttonEnabled();
+    public enum ButtonVisibility {
+        ENABLED,
+        DISABLED,
+        FORCE_SHOW
     }
 
-    public static final int buttonWidth = (int) ResourceUtils.getDimension("controls_overlay_action_button_size");
+    public interface PlayerControlButtonStatus {
+        ButtonVisibility status();
+    }
+
     public static final int fadeInDuration = ResourceUtils.getInteger("fade_duration_fast");
-    private static final int fadeOutDuration = ResourceUtils.getInteger("fade_duration_scheduled");
+
+    private static final List<ViewTreeObserver.OnPreDrawListener> pendingListeners = new ArrayList<>();
 
     /**
      * Number of Morphe legacy upper buttons that are enabled.
@@ -60,12 +63,38 @@ public class LegacyPlayerControlButton {
         return totalUpperButtonCount;
     }
 
-    private final WeakReference<View> containerRef;
+    /**
+     * Returns the appropriate dialog background color depending on the current theme.
+     */
+    public static int getDialogBackgroundColor() {
+        return ResourceUtils.getColor(Utils.isDarkModeEnabled() ? "yt_black1" : "yt_white1");
+    }
+
     private final WeakReference<View> buttonRef;
     private final WeakReference<TextView> textOverlayRef;
+
+    private static WeakReference<View> ytSourceButtonRef = new WeakReference<>(null);
     private final PlayerControlButtonStatus enabledStatus;
-    private boolean isVisible;
-    private long lastTimeSetVisible;
+    private final WeakReference<View> containerRef;
+
+    public LegacyPlayerControlButton(View controlsViewGroup,
+                                     String buttonId,
+                                     @Nullable String textOverlayId,
+                                     @Nullable String imageResourceName,
+                                     BooleanSetting setting,
+                                     View.OnClickListener onClickListener,
+                                     @Nullable View.OnLongClickListener longClickListener) {
+        this(
+                controlsViewGroup,
+                buttonId,
+                buttonId,
+                textOverlayId,
+                imageResourceName,
+                setting,
+                onClickListener,
+                longClickListener
+        );
+    }
 
     public LegacyPlayerControlButton(View controlsViewGroup,
                                      String buttonId,
@@ -91,12 +120,66 @@ public class LegacyPlayerControlButton {
                                      String buttonId,
                                      @Nullable String textOverlayId,
                                      @Nullable String imageResourceName,
+                                     BooleanSetting enabledStatus,
+                                     View.OnClickListener onClickListener,
+                                     @Nullable View.OnLongClickListener longClickListener) {
+        this(
+                controlsViewGroup,
+                viewToHide,
+                buttonId,
+                textOverlayId,
+                imageResourceName,
+                () -> enabledStatus.get()
+                        ? ButtonVisibility.ENABLED
+                        : ButtonVisibility.DISABLED,
+                onClickListener,
+                longClickListener
+        );
+    }
+
+    public LegacyPlayerControlButton(View controlsViewGroup,
+                                     String viewToHide,
+                                     String buttonId,
+                                     @Nullable String textOverlayId,
+                                     @Nullable String imageResourceName,
                                      PlayerControlButtonStatus enabledStatus,
                                      View.OnClickListener onClickListener,
                                      @Nullable View.OnLongClickListener longClickListener) {
+        this.enabledStatus = enabledStatus;
+
         View containerView = Utils.getChildViewByResourceName(controlsViewGroup, viewToHide);
         containerView.setVisibility(View.GONE);
         containerRef = new WeakReference<>(containerView);
+
+        ViewTreeObserver.OnPreDrawListener onPreDrawListener = () -> {
+            updateLayoutFromSourceButton();
+            return true;
+        };
+
+        View ytButton = ytSourceButtonRef.get();
+        // This check will ensure the destruction of the old button instance after the app enters onResume() mode.
+        if (ytButton != null && !ytButton.isAttachedToWindow()) {
+            ytButton = null;
+            ytSourceButtonRef = new WeakReference<>(null);
+        }
+        if (ytButton == null) {
+            ytButton = Utils.getChildViewByResourceName(controlsViewGroup, "player_overflow_button");
+            if (ytButton == null) {
+                // Currently only happens with SB skip button.
+                Logger.printDebug(() -> "Adding pending listener from an already initialized button");
+                pendingListeners.add(onPreDrawListener);
+            } else {
+                ytSourceButtonRef = new WeakReference<>(ytButton);
+            }
+        }
+        if (ytButton != null) {
+            ViewTreeObserver viewTreeObserver = ytButton.getViewTreeObserver();
+            viewTreeObserver.addOnPreDrawListener(onPreDrawListener);
+            for (ViewTreeObserver.OnPreDrawListener pendingListener : pendingListeners) {
+                viewTreeObserver.addOnPreDrawListener(pendingListener);
+            }
+            pendingListeners.clear();
+        }
 
         View button = Utils.getChildViewByResourceName(controlsViewGroup, buttonId);
 
@@ -132,19 +215,48 @@ public class LegacyPlayerControlButton {
             tempTextOverlay = Utils.getChildViewByResourceName(controlsViewGroup, textOverlayId);
         }
         textOverlayRef = new WeakReference<>(tempTextOverlay);
+    }
 
-        this.enabledStatus = enabledStatus;
-        isVisible = false;
+    private void updateLayoutFromSourceButton() {
+        View source = ytSourceButtonRef.get();
+        View container = containerRef.get();
 
-        // Update the visibility after the player type changes.
-        // This ensures that button animations are cleared and their states are updated correctly
-        // when switching between states like minimized, maximized, or fullscreen, preventing
-        // "stuck" animations or incorrect visibility.  Without this fix the issue is most noticeable
-        // when maximizing type 3 miniplayer.
-        PlayerType.getOnChange().addObserver((PlayerType type) -> {
-            playerTypeChanged(type);
-            return Unit.INSTANCE;
-        });
+        if (source == null || container == null) {
+            Logger.printDebug(() -> "Button views are null, source: " + source + " container: " + container);
+            return;
+        }
+
+        // Ensure to call this method to ensure the correct initialization of the container
+        // field, necessary for the logic that updates the fullscreen title bar margin.
+        initializeHeadingFromUpperButton(container);
+
+        final float sourceButtonAlpha;
+        final int sourceButtonVisibility;
+        switch (enabledStatus.status()) {
+            case ENABLED -> {
+                sourceButtonAlpha = source.getAlpha();
+                sourceButtonVisibility = source.getVisibility();
+            }
+            case DISABLED -> {
+                sourceButtonAlpha = 0.0f;
+                sourceButtonVisibility = View.GONE;
+            }
+            case FORCE_SHOW -> {
+                sourceButtonAlpha = 1.0f;
+                sourceButtonVisibility = View.VISIBLE;
+            }
+            default -> {
+                throw new IllegalStateException("Unknown status: " + enabledStatus.status());
+            }
+        };
+
+        if (container.getAlpha() != sourceButtonAlpha) {
+            container.setAlpha(sourceButtonAlpha);
+        }
+
+        if (container.getVisibility() != sourceButtonVisibility) {
+            container.setVisibility(sourceButtonVisibility);
+        }
     }
 
     /**
@@ -162,149 +274,6 @@ public class LegacyPlayerControlButton {
         } catch (Exception ex) {
             Logger.printException(() -> "animateIcon failure", ex);
         }
-    }
-
-    public void setVisibilityNegatedImmediate() {
-        try {
-            Utils.verifyOnMainThread();
-            if (PlayerControlsVisibility.getCurrent() != PlayerControlsVisibility.PLAYER_CONTROLS_VISIBILITY_HIDDEN) {
-                return;
-            }
-
-            final boolean buttonEnabled = enabledStatus.buttonEnabled();
-            if (!buttonEnabled) {
-                return;
-            }
-
-            View container = containerRef.get();
-            if (container == null) {
-                return;
-            }
-
-            isVisible = false;
-
-            ViewPropertyAnimator animate = container.animate();
-            animate.cancel();
-
-            // If the overlay is tapped to display then immediately tapped to dismiss
-            // before the fade in animation finishes, then the fade out animation is
-            // the time between when the fade in started and now.
-            final long animationDuration = Math.min(fadeInDuration,
-                    System.currentTimeMillis() - lastTimeSetVisible);
-            if (animationDuration <= 0) {
-                // Should never happen, but handle just in case.
-                container.setVisibility(View.GONE);
-                return;
-            }
-
-            animate.alpha(0)
-                    .setDuration(animationDuration)
-                    .withEndAction(() -> container.setVisibility(View.GONE))
-                    .start();
-        } catch (Exception ex) {
-            Logger.printException(() -> "setVisibilityNegatedImmediate failure", ex);
-        }
-    }
-
-    public void setVisibilityImmediate(boolean visible) {
-        if (visible) {
-            // Fix button flickering, by pushing this call to the back of
-            // the main thread and letting other layout code run first.
-            Utils.runOnMainThread(() -> privateSetVisibility(true, false));
-        } else {
-            privateSetVisibility(false, false);
-        }
-    }
-
-    public void setVisibility(boolean visible, boolean animated) {
-        // Ignore this call, otherwise with full screen thumbnails the buttons are visible while seeking.
-        if (visible && !animated) return;
-        privateSetVisibility(visible, animated);
-    }
-
-    private void privateSetVisibility(boolean visible, boolean animated) {
-        try {
-            Utils.verifyOnMainThread();
-
-            if (isVisible == visible) return;
-            isVisible = visible;
-
-            if (visible) {
-                lastTimeSetVisible = System.currentTimeMillis();
-            }
-
-            View container = containerRef.get();
-            if (container == null) {
-                return;
-            }
-
-            if (visible && enabledStatus.buttonEnabled()) {
-                initializeHeadingFromUpperButton(container);
-
-                ViewPropertyAnimator animate = container.animate();
-                animate.cancel();
-                container.setVisibility(View.VISIBLE);
-
-                if (animated) {
-                    container.setAlpha(0);
-                    animate.alpha(1)
-                            .setDuration(fadeInDuration)
-                            .start();
-                } else {
-                    container.setAlpha(1);
-                }
-            } else if (container.getVisibility() == View.VISIBLE) {
-                ViewPropertyAnimator animate = container.animate();
-                animate.cancel();
-
-                if (animated) {
-                    animate.alpha(0)
-                            .setDuration(fadeOutDuration)
-                            .withEndAction(() -> container.setVisibility(View.GONE))
-                            .start();
-                } else {
-                    container.setVisibility(View.GONE);
-                }
-            }
-        } catch (Exception ex) {
-            Logger.printException(() -> "privateSetVisibility failure", ex);
-        }
-    }
-
-    /**
-     * Synchronizes the button state after the player state changes.
-     */
-    private void playerTypeChanged(PlayerType newType) {
-        Utils.verifyOnMainThread();
-        if (newType != PlayerType.WATCH_WHILE_MINIMIZED && !newType.isMaximizedOrFullscreen()) {
-            return;
-        }
-
-        View container = containerRef.get();
-        if (container == null) {
-            return;
-        }
-
-        container.animate().cancel();
-
-        if (isVisible && enabledStatus.buttonEnabled()) {
-            container.setVisibility(View.VISIBLE);
-            container.setAlpha(1);
-        } else {
-            container.setVisibility(View.GONE);
-        }
-    }
-
-    public void hide() {
-        Utils.verifyOnMainThread();
-        if (!isVisible) {
-            return;
-        }
-        isVisible = false;
-
-        View view = containerRef.get();
-        if (view == null) return;
-        view.setVisibility(View.GONE);
     }
 
     /**
@@ -347,12 +316,11 @@ public class LegacyPlayerControlButton {
         }
     }
 
-    /**
-     * Returns the appropriate dialog background color depending on the current theme.
-     */
-    public static int getDialogBackgroundColor() {
-        return ResourceUtils.getColor(
-                Utils.isDarkModeEnabled() ? "yt_black1" : "yt_white1"
-        );
+    public void setVisibility(int visiblity) {
+        Utils.verifyOnMainThread();
+        View button = buttonRef.get();
+        if (button != null) {
+            button.setVisibility(visiblity);
+        }
     }
 }

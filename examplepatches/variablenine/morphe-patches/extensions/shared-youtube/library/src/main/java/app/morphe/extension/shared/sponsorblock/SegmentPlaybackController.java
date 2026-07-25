@@ -865,11 +865,13 @@ public class SegmentPlaybackController {
         return segmentCurrentlyPlaying != null || !hiddenSkipSegmentsForCurrentVideoTime.isEmpty();
     }
 
-    public static boolean shouldNotFadeOutPlayerOverlaySkipButton() {
-        // Only fade out overlay if auto hide is enabled and a scheduled button auto hide is not scheduled.
+    public static boolean forceShowSkipButton() {
         BooleanSetting autoHide = settings().autoHideSkipButton();
-        return skipSegmentButtonEndTime != 0
-                || !(autoHide != null && autoHide.get());
+        if (autoHide == null || !autoHide.get()) {
+            // Auto hide is off. Force show only if inside a segment.
+            return segmentCurrentlyPlaying != null;
+        }
+        return skipSegmentButtonEndTime != 0;
     }
 
     private static void showSkippedSegmentToast(SponsorSegment segment) {

@@ -155,14 +155,17 @@ Nogle server-side layouts kan ikke vende tilbage.
   <string name="morphe_hide_featured_channels_section_title">Skjul fremhævede kanaler</string>
   <string name="morphe_hide_featured_links_section_title">Skjul Fremhævede links sektionen</string>
   <string name="morphe_hide_featured_places_section_title">Skjul sektionen \'Fremhævede steder\'</string>
+  <string name="morphe_hide_featured_playlists_section_title">Skjul sektionen \'Fremhævede afspilningslister\'</string>
   <string name="morphe_hide_featured_videos_section_title">Skjul Fremhævede videoer sektionen</string>
   <string name="morphe_hide_gaming_section_title">Skjul Gaming sektionen</string>
+  <string name="morphe_hide_hashtag_section_title">Skjul Hashtag sektionen</string>
   <string name="morphe_hide_how_this_was_made_section_title">Skjul sektionen \'Sådan er dette indhold blevet lavet\'</string>
   <string name="morphe_hide_hype_points_title">Skjul Hype-point</string>
   <string name="morphe_hide_info_cards_section_title">Skjul Info cards sektionen</string>
   <string name="morphe_hide_key_concepts_section_title">Skjul \'Nøglebegreber\' sektionen</string>
   <string name="morphe_hide_music_section_title">Skjul Musik sektionen</string>
   <string name="morphe_hide_quizzes_section_title">Skjul Quizzes sektionen</string>
+  <string name="morphe_hide_search_inside_this_video_section_title">Skjul afsnittet \'Søg i denne video\'</string>
   <string name="morphe_hide_subscribe_button_title">Skjul knappen Abonnér</string>
   <string name="morphe_hide_transcript_section_title">Skjul Transcript sektionen</string>
   <string name="morphe_hide_video_details_section_title">Skjul sektionen \'Videodetajler\'</string>
@@ -269,8 +272,10 @@ Begrænsninger:
   <string name="morphe_hide_aislist_stats_hidden_breakdown">"• Startskærm: %s
 • Søgning: %s
 • Total: %s"</string>
-  <string name="morphe_hide_aislist_stats_blocklist_title">Blokeringslister over kanaler indlæst: %s</string>
-  <string name="morphe_hide_aislist_stats_warnlist_title">Advarselslister over kanaler indlæst: %s</string>
+  <string name="morphe_hide_aislist_stats_blocklist_channels_title">Blokeringsliste-kanaler</string>
+  <string name="morphe_hide_aislist_stats_warnlist_channels_title">Advarselsliste-kanaler</string>
+  <string name="morphe_hide_aislist_stats_channels_disabled_summary">Aktivér et filter for at indlæse kanaler</string>
+  <string name="morphe_hide_aislist_stats_channels_loading_summary">Indlæser kanaler…</string>
   <string name="morphe_hide_aislist_about_summary">"Startskærm og søgeresultater filtreres for at skjule videoer fra kanaler, der er markeret af AiSList
 
 Begrænsninger:
@@ -450,15 +455,17 @@ Info: Virker muligvis ikke på live streams"</string>
   <string name="morphe_disable_precise_seeking_gesture_summary">Deaktiverer den præcise søgetilstand, der aktiveres, når du trækker i søgelinjen op</string>
   <!-- interaction.seekbar.livestreamDVRPatch -->
   <string name="morphe_livestream_dvr_title">Aktivér livestream DVR</string>
+  <string name="morphe_livestream_dvr_summary">Giver mulighed for at spole i alle livestreams, selv dem der normalt begrænser det</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_livestream_dvr_summary">"Giver mulighed for at spole i alle livestreams, selv dem der normalt begrænser det
+  <string name="morphe_livestream_dvr_not_available">"'Aktiver optagelse af livestream' er muligvis ikke tilgængelig
 
-Bemærk: Hvis 'Spoof video streams' ikke er aktiveret, kan aktivering af denne funktion forårsage uventet livestream-spoleadfærd"</string>
+For at løse dette skal du aktivere 'Forfalsk videostreams' og ændre 'Standardklient' til 'TV'"</string>
   <string name="morphe_expand_livestream_dvr_duration_title">Udvid livestream DVR-varighed</string>
+  <string name="morphe_expand_livestream_dvr_duration_summary">Giver dig mulighed for at spole direkte udsendelser op til 7 dage tilbage i tiden</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_expand_livestream_dvr_duration_summary">"Giver dig mulighed for at spole liveudsendelser op til 7 dage tilbage i tiden
+  <string name="morphe_expand_livestream_dvr_duration_not_available">"'Udvid optagelsestiden for livestream' er muligvis ikke tilgængelig
 
-Bemærk: Hvis 'Spoof video streams' ikke er aktiveret, kan aktivering af denne funktion forårsage uventet livestream-spoleadfærd"</string>
+For at løse dette skal du aktivere 'Forfalsk videostreams' og ændre 'Standardklient' til 'TV'"</string>
   <!-- interaction.seekbar.enableSlideToSeekPatch -->
   <string name="morphe_slide_to_seek_title">Aktivér dias for at søge</string>
   <string name="morphe_slide_to_seek_summary">Aktiverer strygning for at søge i stedet for at afspille med 2x hastighed, når du trykker og holder på videoplayeren</string>
@@ -663,10 +670,10 @@ For at få adgang til Indstillinger skal du aktivere knappen Indstillinger via G
   <!-- 'Audio track' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_player_flyout_audio_track_title">Skjul \'Lydspor\'-menuen</string>
   <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
-          'Android Reel' and 'TV' must be kept untranslated. -->
-  <string name="morphe_hide_player_flyout_audio_track_not_available">"'Audio Track'-menuen er skjult
+          'Android Studio' must be kept untranslated. -->
+  <string name="morphe_hide_player_flyout_audio_track_not_available">"'Lydspor'-menuen er skjult
 
-For at vise 'Audio Track'-menuen skal du ændre 'Spoof video streams' til 'Android Reel' eller 'TV'"</string>
+For at vise 'Lydspor'-menuen skal du ændre 'Forfalsk videostreams' til enhver klient undtagen 'Android Studio'"</string>
   <string name="morphe_hide_player_flyout_audio_track_footer_title">Skjul \'Lydspor\'-menuens sidefod</string>
   <!-- 'Captions' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_player_flyout_captions_title">Skjul Undertekster-menuen</string>
@@ -817,46 +824,6 @@ Indstillinger → Afspilning (eller Automatisk afspilning) → Afspil næste vid
   <string name="morphe_player_overlay_opacity_title">Spiller overlay gennemsigtighed</string>
   <string name="morphe_player_overlay_opacity_summary">Juster gennemsigtighedsniveauet (0 er gennemsigtigt, 100 er uigennemsigtigt)</string>
   <string name="morphe_player_overlay_opacity_invalid_toast">Spiller overlay gennemsigtighed skal være mellem 0-100</string>
-  <!-- layout.returnyoutubedislike.returnYouTubeDislikePatch -->
-  <!-- Brief notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
-  <string name="morphe_ryd_failure_connection_timeout">Dislikes midlertidigt utilgængelige (API-timeout)</string>
-  <string name="morphe_ryd_failure_connection_status_code">Dislikes er ikke tilgængelige (status %d)</string>
-  <string name="morphe_ryd_failure_client_rate_limit_requested">Dislikes er ikke tilgængelige (klient API-grænse)</string>
-  <string name="morphe_ryd_failure_generic">Dislikes er ikke tilgængelige (%s)</string>
-  <!-- Brief notification (Toast) shown if the user enables RYD while a video is opened, and then tries to vote for the video. -->
-  <string name="morphe_ryd_failure_ryd_enabled_while_playing_video_then_user_voted">Genindlæs video for at stemme ved hjælp af Return YouTube Dislike</string>
-  <!-- Video likes have been set to hidden by the video uploader. -->
-  <string name="morphe_ryd_video_likes_hidden_by_video_owner">Skjult af ejer</string>
-  <string name="morphe_ryd_enabled_title">Aktivér Return YouTube Dislike</string>
-  <string name="morphe_ryd_dislike_percentage_title">Vis dislikes som procent</string>
-  <string name="morphe_ryd_dislike_percentage_summary">Viser dislikes som en procentdel af likes i stedet for et antal</string>
-  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
-  <string name="morphe_ryd_compact_layout_title">Brug kompakt Like-knap</string>
-  <string name="morphe_ryd_compact_layout_summary">Reducerer bredden på Like-knappen for at spare plads</string>
-  <string name="morphe_ryd_estimated_like_title">Vis anslåede Likes</string>
-  <string name="morphe_ryd_estimated_like_summary">Viser et estimeret antal likes på videoer, hvor skaberen har deaktiveret likes</string>
-  <string name="morphe_ryd_toast_on_connection_error_title">Vis forbindelsesfejlmeddelelser</string>
-  <string name="morphe_ryd_toast_on_connection_error_summary">Viser en notifikation, når Return YouTube Dislike-serveren er utilgængelig</string>
-  <string name="morphe_ryd_attribution_summary">"Data er leveret af Return YouTube Dislike API
-
-Tryk her for at åbne ReturnYouTubeDislike.com"</string>
-  <!-- Statistic strings are shown in the settings only when Morphe debug mode is enabled. Typical users will never see these. -->
-  <string name="morphe_ryd_statistics_category_title">Return YouTube Dislike API statistikker for denne enhed</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeAverage_title">API svartid, gennemsnit</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMin_title">API svartid, minimum</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMax_title">API svartid, maksimum</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_title">API svartid, sidste video</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_rate_limit_summary">Dislikes midlertidigt ikke tilgængelige - Client API rate begrænsning i effekt</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_title">API henter stemmer, antal kald</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_zero_summary">Ingen netværksopkald foretaget</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_non_zero_summary">%d netværksopkald foretaget</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_title">API henter stemmer, antal timeouts</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_zero_summary">Ingen netværksopkald udløb</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_non_zero_summary">%d netværksopkald udløb</string>
-  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_title">API client rate grænser</string>
-  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_zero_summary">Ingen client rate grænser mødt</string>
-  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_non_zero_summary">Client rate grænse mødt %d gange</string>
-  <string name="morphe_ryd_statistics_millisecond_text">%d millisekunder</string>
   <!-- layout.searchbar.wideSearchbarPatch -->
   <string name="morphe_wide_searchbar_title">Aktiver bred søgelinje</string>
   <!-- layout.sponsorblock.sponsorBlockPatch -->
@@ -941,6 +908,7 @@ Begrænsning: Hvis 'Gendan gammel video-handlingslinje' er slået fra, er 'Flere
   <string name="morphe_miniplayer_disable_resuming_summary">Deaktiverer \'Fortsæt med at se\'-miniafspilleren, en YouTube Premium-funktion, der vises, når appen startes</string>
   <string name="morphe_miniplayer_screen_title">Mini-afspiller</string>
   <string name="morphe_miniplayer_screen_summary">Tilpas udseendet og adfærden af den minimerede videoplayer</string>
+  <string name="morphe_miniplayer_not_available_summary">YouTube har fjernet alle yderligere miniafspillere. For at ændre typen af miniafspiller, skal du patche YouTube 21.28.207 eller en ældre version</string>
   <string name="morphe_miniplayer_type_title">Type af miniplayer</string>
   <string name="morphe_miniplayer_type_entry_0">Deaktiveret</string>
   <string name="morphe_miniplayer_type_entry_1">Standard</string>
@@ -1124,7 +1092,6 @@ Begrænsninger:
 
 Videoafspilning med AV1 kan hakke eller tabe billeder."</string>
   <string name="morphe_spoof_video_streams_about_title">Bivirkninger ved spoofing</string>
-  <string name="morphe_spoof_video_streams_about_experimental">• Eksperimentel klient og kan stoppe med at fungere når som helst</string>
   <string name="morphe_spoof_video_streams_about_playback_failure">• Videoen kan stoppe ved 1:00, eller er muligvis ikke tilgængelig i visse regioner</string>
   <string name="morphe_spoof_video_streams_about_no_audio_tracks">• Lydspormenu mangler</string>
   <string name="morphe_spoof_video_streams_about_no_av1">• Intet AV1-videocodec</string>

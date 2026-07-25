@@ -142,8 +142,9 @@ Toisto epäonnistuu, jos pelaajan JavaScript-hash on vanhentunut."</string>
   <string name="morphe_proxy_allow_direct_fallback_summary">Yhdistä suoraan, jos proxy epäonnistuu</string>
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">Piilota koko näytön mainokset</string>
-  <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_force_original_audio_not_available">Käyttääksesi tätä ominaisuutta, muuta \'Naamioi videovirrat\' Android Reel tai TV:ksi</string>
+  <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
+          'Android Studio' must be kept untranslated. -->
+  <string name="morphe_force_original_audio_not_available">Käyttääksesi tätä ominaisuutta, muuta \"Naamioi videovirrat\" mihin tahansa asiakasohjelmaan paitsi Android Studioon</string>
   <!-- misc.privacy.sanitizeSharingLinksPatch -->
   <string name="morphe_sanitize_sharing_links_title">Puhdista jakamislinkit</string>
   <string name="morphe_sanitize_sharing_links_summary">Poistaa seuranta-kyselyparametrit jaetuista linkeistä</string>
@@ -167,6 +168,10 @@ Tämän käyttöönotto kirjaa myös joitakin käyttäjätietoja, kuten IP-osoit
   <!-- 'Component path builder strings' is the technical name for identifying the Litho UI layout items to hide. This is an advanced feature and most users will never use this. -->
   <string name="morphe_custom_filter_strings_summary">Luettelo komponentin polun rakentajan merkkijonoista suodatettavaksi, erotettuna uudella rivillä</string>
   <string name="morphe_custom_filter_toast_invalid_syntax">Virheellinen mukautettu suodatin: %s</string>
+  <!-- Settings menu filter -->
+  <string name="morphe_settings_menu_filter_screen_title">Asetusten valikon suodatin</string>
+  <string name="morphe_settings_menu_filter_screen_summary">Piilota kohteet vakiosovellusten asetusten näytöltä niiden näkyvän nimen perusteella</string>
+  <string name="morphe_settings_menu_filter_picker_empty">Avaa vakiosovellusten asetusten näyttö kerran luettelon täyttämiseksi</string>
   <!-- misc.spoof.appversion.spoofAppVersionPatch -->
   <string name="morphe_spoof_app_version_title">Sovellusversio naamioidaan</string>
   <string name="morphe_spoof_app_version_summary">Huijaa palvelinta luulemaan, että käytät vanhempaa sovellusversiota palauttaaksesi vanhat käyttöliittymäelementit.</string>
@@ -176,4 +181,42 @@ Tämä muuttaa sovelluksen ulkoasua ja ominaisuuksia, mutta tuntemattomia sivuva
 
 Jos tämä poistetaan myöhemmin käytöstä, on suositeltavaa tyhjentää sovelluksen tiedot käyttöliittymävirheiden välttämiseksi."</string>
   <string name="morphe_spoof_app_version_target_title">Naamioitava kohdeversio</string>
+  <!-- layout.returnyoutubedislike.returnYouTubeDislikePatch -->
+  <!-- Brief notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
+  <string name="morphe_ryd_failure_connection_timeout">Ei-tykkäykset eivät ole tilapäisesti käytettävissä (API-aikakatkaisu)</string>
+  <string name="morphe_ryd_failure_connection_status_code">Ei-tykkäykset eivät ole saatavilla (tila %d)</string>
+  <string name="morphe_ryd_failure_client_rate_limit_requested">Ei-tykkäykset eivät ole saatavilla (asiakkaan API-raja)</string>
+  <string name="morphe_ryd_failure_generic">Ei-tykkäykset eivät ole saatavilla (%s)</string>
+  <!-- Video likes have been set to hidden by the video uploader. -->
+  <string name="morphe_ryd_video_likes_hidden_by_video_owner">Omistajan piilottama</string>
+  <string name="morphe_ryd_enabled_title">Ota Return YouTube Dislike käyttöön</string>
+  <string name="morphe_ryd_dislike_percentage_title">Näytä ei-tykkäykset prosentteina</string>
+  <string name="morphe_ryd_dislike_percentage_summary">Näyttää ei-tykkäykset tykkäysten prosenttiosuutena numeron sijaan</string>
+  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
+  <string name="morphe_ryd_compact_layout_title">Käytä kompaktia tykkäyspainiketta</string>
+  <string name="morphe_ryd_compact_layout_summary">Pienentää tykkäyspainikkeen leveyttä tilan säästämiseksi</string>
+  <string name="morphe_ryd_estimated_like_title">Näytä arvioidut tykkäykset</string>
+  <string name="morphe_ryd_estimated_like_summary">Näyttää arvioidun tykkäysmäärän videoissa, joissa luoja on poistanut tykkäykset käytöstä</string>
+  <string name="morphe_ryd_toast_on_connection_error_title">Näytä yhteysvirheilmoitukset</string>
+  <string name="morphe_ryd_toast_on_connection_error_summary">Näyttää ilmoituksen, kun Return YouTube Dislike -palvelin ei ole käytettävissä</string>
+  <string name="morphe_ryd_attribution_summary">"Data on tarjotaan Return YouTube Dislike API:n avulla
+
+Napauta tästä avataksesi ReturnYouTubeDislike.com"</string>
+  <!-- Statistic strings are shown in the settings only when Morphe debug mode is enabled. Typical users will never see these. -->
+  <string name="morphe_ryd_statistics_category_title">Return YouTube Dislike -sovelluksen API-tilastot tällä laitteella</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeAverage_title">API-vastausajan keskiarvo</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMin_title">API-vastausajan minimi</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMax_title">API-vastausajan maksimi</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_title">API-vastausaika, viimeisin media</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_rate_limit_summary">Ei-tykkäykset eivät ole tilapäisesti käytettävissä – asiakkaan API-nopeusrajoitus on voimassa</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_title">API noutaa äänet, puhelujen määrä</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_zero_summary">Verkkokutsuja ei ole tehty</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_non_zero_summary">%d verkkopyyntöä tehty</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_title">API noutaa äänet, aikakatkaisujen määrä</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_zero_summary">Verkkopyyntöjä ei ole aikakatkaistu</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_non_zero_summary">%d verkkopyyntöä aikakatkaistu</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_title">Asiakkaan API-nopeusrajoitukset</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_zero_summary">Asiakkaan nopeusrajoituksia ei havaittu</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_non_zero_summary">Asiakkaan nopeusrajoitus havaittu %d kertaa</string>
+  <string name="morphe_ryd_statistics_millisecond_text">%d millisekuntia</string>
 </resources>

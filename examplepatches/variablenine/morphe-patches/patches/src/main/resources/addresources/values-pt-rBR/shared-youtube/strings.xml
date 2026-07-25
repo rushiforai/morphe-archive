@@ -142,8 +142,9 @@ A reprodução falhará se o hash do JavaScript do player estiver desatualizado.
   <string name="morphe_proxy_allow_direct_fallback_summary">Conectar diretamente se o proxy falhar</string>
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">Ocultar anúncios em tela cheia</string>
-  <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_force_original_audio_not_available">Para usar este recurso, altere \'Falsificar fluxos de vídeo\' para Android Reel ou TV</string>
+  <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
+          'Android Studio' must be kept untranslated. -->
+  <string name="morphe_force_original_audio_not_available">Para usar este recurso, mude \'Falsificar fluxos de vídeo\' para qualquer cliente, exceto o Android Studio\'</string>
   <!-- misc.privacy.sanitizeSharingLinksPatch -->
   <string name="morphe_sanitize_sharing_links_title">Higienizar links de compartilhamento</string>
   <string name="morphe_sanitize_sharing_links_summary">Remove parâmetros de consulta de rastreamento de links compartilhados</string>
@@ -167,6 +168,10 @@ No entanto, ativar isso também registrará alguns dados do usuário, como seu e
   <!-- 'Component path builder strings' is the technical name for identifying the Litho UI layout items to hide. This is an advanced feature and most users will never use this. -->
   <string name="morphe_custom_filter_strings_summary">Lista de strings de componente de construção de caminhos para filtrar, separadas por novas linhas</string>
   <string name="morphe_custom_filter_toast_invalid_syntax">Filtro personalizado inválido: %s</string>
+  <!-- Settings menu filter -->
+  <string name="morphe_settings_menu_filter_screen_title">Filtro do menu de configurações</string>
+  <string name="morphe_settings_menu_filter_screen_summary">Ocultar itens na tela de configurações do aplicativo padrão pelo nome visível</string>
+  <string name="morphe_settings_menu_filter_picker_empty">Abra a tela de configurações do aplicativo padrão uma vez para preencher a lista</string>
   <!-- misc.spoof.appversion.spoofAppVersionPatch -->
   <string name="morphe_spoof_app_version_title">Falsificação da versão do aplicativo</string>
   <string name="morphe_spoof_app_version_summary">Engana o servidor para que ele pense que você está usando uma versão mais antiga do aplicativo para restaurar recursos de IU legados.</string>
@@ -176,4 +181,42 @@ Isso mudará a aparência e os recursos do aplicativo, mas podem ocorrer efeitos
 
 Se posteriormente desativado, é recomendável limpar os dados do aplicativo para evitar bugs na IU."</string>
   <string name="morphe_spoof_app_version_target_title">Versão de spoofing alvo</string>
+  <!-- layout.returnyoutubedislike.returnYouTubeDislikePatch -->
+  <!-- Brief notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
+  <string name="morphe_ryd_failure_connection_timeout">Não gostei indisponível por um tempo (API expirou)</string>
+  <string name="morphe_ryd_failure_connection_status_code">Dislikes indisponível (status %d)</string>
+  <string name="morphe_ryd_failure_client_rate_limit_requested">\"Não gostei\" não estão disponíveis (limite da API do cliente)</string>
+  <string name="morphe_ryd_failure_generic">Não gostei indisponível (%s)</string>
+  <!-- Video likes have been set to hidden by the video uploader. -->
+  <string name="morphe_ryd_video_likes_hidden_by_video_owner">Oculto pelo proprietário</string>
+  <string name="morphe_ryd_enabled_title">Ativar Contagem Regressiva do Deslike do YouTube</string>
+  <string name="morphe_ryd_dislike_percentage_title">Mostrar não gostei como porcentagem</string>
+  <string name="morphe_ryd_dislike_percentage_summary">Exibe não gostei como porcentagem, substituindo o número convencional</string>
+  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
+  <string name="morphe_ryd_compact_layout_title">Usar botão Curtir compacto</string>
+  <string name="morphe_ryd_compact_layout_summary">Reduz a largura do botão Curtir para economizar espaço</string>
+  <string name="morphe_ryd_estimated_like_title">Mostrar estimativa de \"gostei\"</string>
+  <string name="morphe_ryd_estimated_like_summary">Exibe uma contagem de likes estimada em vídeos onde o criador desativou likes</string>
+  <string name="morphe_ryd_toast_on_connection_error_title">Mostrar alertas de erro de conexão</string>
+  <string name="morphe_ryd_toast_on_connection_error_summary">Mostra uma notificação quando o servidor Return YouTube Dislike estiver indisponível</string>
+  <string name="morphe_ryd_attribution_summary">"Dados fornecidos pela API Return YouTube Dislike
+
+Toque aqui para abrir ReturnYouTubeDislike.com"</string>
+  <!-- Statistic strings are shown in the settings only when Morphe debug mode is enabled. Typical users will never see these. -->
+  <string name="morphe_ryd_statistics_category_title">Estatísticas da API do Return YouTube Dislike deste dispositivo</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeAverage_title">Tempo de resposta da API, média</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMin_title">Tempo de resposta da API, mínimo</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMax_title">Tempo de resposta da API, máximo</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_title">Tempo de resposta da API, mídia mais recente</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_rate_limit_summary">Deslikes temporariamente indisponíveis - Limite de taxa da API do cliente em efeito</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_title">API de busca de votos, número de chamadas</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_zero_summary">Nenhuma chamada de rede feita</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_non_zero_summary">%d chamadas de rede realizadas</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_title">Número de timeouts na busca de votos da API</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_zero_summary">Nenhuma chamada de rede com timeout</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_non_zero_summary">%d chamadas de rede com timeout</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_title">Limites de taxa do cliente da API</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_zero_summary">Nenhum limite de taxa do cliente encontrado</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_non_zero_summary">Limite de taxa do cliente encontrado %d vezes</string>
+  <string name="morphe_ryd_statistics_millisecond_text">%d milisegundos</string>
 </resources>

@@ -33,7 +33,7 @@ Second \"item\" text"</string>
   <string name="morphe_settings_music_screen_1_ads_title">Anunțuri</string>
   <string name="morphe_settings_music_screen_2_general_title">Generalități</string>
   <string name="morphe_settings_music_screen_3_player_title">Jucător</string>
-  <string name="morphe_settings_music_screen_6_misc_title">Diverse</string>
+  <string name="morphe_settings_music_screen_7_misc_title">Diverse</string>
   <!-- ad.hideAdsPatch -->
   <string name="morphe_music_hide_get_premium_label_title">Ascunde eticheta „Obține Music Premium”</string>
   <string name="morphe_music_hide_video_ads_title">Ascunde anunțurile video</string>
@@ -107,6 +107,8 @@ YouTube Music 8.x — estomparea încrucișată funcționează doar pe 9.x și v
   <!-- interaction.remember.shufflestate.rememberShuffleStatePatch -->
   <string name="morphe_music_remember_shuffle_state_title">Reține starea de amestecare</string>
   <!-- interaction.dislikeredirection.disableDislikeRedirectionPatch -->
+  <string name="morphe_music_disable_dislike_redirection_title">Dezactivează redirecționarea dislike</string>
+  <string name="morphe_music_disable_dislike_redirection_summary">Împiedică trecerea la următoarea melodie când este apăsat butonul dislike</string>
   <!-- layout.buttons.hideButtonsPatch -->
   <string name="morphe_music_hide_cast_button_title">Ascunde butonul de transmisie</string>
   <string name="morphe_music_hide_history_button_title">Ascunde butonul de istoric</string>
@@ -239,7 +241,7 @@ YouTube Music 8.x — estomparea încrucișată funcționează doar pe 9.x și v
   <string name="morphe_music_listenbrainz_token_dialog_get_token">Obține token</string>
   <string name="morphe_music_listenbrainz_token_dialog_verify">Verificare</string>
   <string name="morphe_music_listenbrainz_token_status_empty">Vă rugăm să introduceți un token</string>
-  <string name="morphe_music_listenbrainz_token_status_validating">Validare...</string>
+  <string name="morphe_music_listenbrainz_token_status_validating">Se validează…</string>
   <string name="morphe_music_listenbrainz_token_status_valid">Token valid! Utilizator: %s</string>
   <string name="morphe_music_listenbrainz_token_status_invalid">Token invalid: %s</string>
   <string name="morphe_music_listenbrainz_token_status_invalid_unknown">necunoscut</string>
@@ -256,7 +258,7 @@ YouTube Music 8.x — estomparea încrucișată funcționează doar pe 9.x și v
   <string name="morphe_music_lastfm_token_dialog_password_hint">Parolă</string>
   <string name="morphe_music_lastfm_token_dialog_login">Conectare</string>
   <string name="morphe_music_lastfm_token_status_empty">Vă rugăm să introduceți nume de utilizator și parolă</string>
-  <string name="morphe_music_lastfm_token_status_logging_in">Se conectează...</string>
+  <string name="morphe_music_lastfm_token_status_logging_in">Se conectează…</string>
   <string name="morphe_music_lastfm_token_status_success">Conectare reușită!</string>
   <string name="morphe_music_lastfm_token_status_no_session">Nu s-a putut obține o sesiune de la Last.fm</string>
   <string name="morphe_music_lastfm_token_status_failed">Conectare eșuată: %s</string>

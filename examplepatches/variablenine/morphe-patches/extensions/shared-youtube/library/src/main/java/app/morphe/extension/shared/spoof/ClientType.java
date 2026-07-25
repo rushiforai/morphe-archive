@@ -22,14 +22,11 @@ import java.util.Locale;
 import java.util.Objects;
 
 import app.morphe.extension.shared.Logger;
-import app.morphe.extension.shared.requests.Route;
-import app.morphe.extension.shared.spoof.requests.PlayerRoutes;
 
-@SuppressWarnings("ConstantLocale")
+@SuppressWarnings({"ConstantLocale", "deprecation"})
 public enum ClientType {
     /**
-     * Video not playable: Paid, Movie, Private, Age-restricted.
-     * Uses non-adaptive bitrate.
+     * Video not playable: None.
      * AV1 codec available.
      */
     ANDROID_REEL_AUTH(
@@ -43,20 +40,21 @@ public enum ClientType {
             String.valueOf(Build.VERSION.SDK_INT),
             Build.ID,
             // A hardcoded client version is used for YouTube Music.
-            "20.26.46",
+            "20.47.62",
             null,
-            // This client has been used by most open-source YouTube stream extraction tools since 2024, including NewPipe Extractor, SmartTube, and Grayjay.
-            // This client can log in, but if an access token is used in the request, GVS can more easily identify the request as coming from Morphe.
-            // This means that the GVS server can strengthen its validation of the ANDROID_REEL client.
-            // For this reason, ANDROID_REEL is used as a logout client.
             IS_YOUTUBE,
             IS_YOUTUBE,
             true,
             false,
+            true,
+            true,
             false,
-            PlayerRoutes.GET_REEL_STREAMING_DATA,
             "Android Reel auth"
     ),
+    /**
+     * Video not playable: Paid, Movie, Private, Age-restricted.
+     * AV1 codec available.
+     */
     ANDROID_REEL_NO_AUTH(
             ANDROID_REEL_AUTH.id,
             ANDROID_REEL_AUTH.clientName,
@@ -73,40 +71,42 @@ public enum ClientType {
             false,
             ANDROID_REEL_AUTH.supportsMultiAudioTracks,
             ANDROID_REEL_AUTH.supportsOAuth2,
-            ANDROID_REEL_AUTH.requireJS,
-            ANDROID_REEL_AUTH.endpoint,
+            ANDROID_REEL_AUTH.supportsVRImmersiveMode,
+            ANDROID_REEL_AUTH.requireSABR,
+            ANDROID_REEL_AUTH.usePlayerEndpoint,
             "Android Reel no auth"
     ),
     /**
-     * Video not playable in YouTube: All videos (This client requires login, but cannot log in with YouTube's access token).
-     * Video not playable in YouTube Music: None.
-     * Uses non-adaptive bitrate.
+     * Video not playable: None.
+     * For YouTube Music only.
      */
-    ANDROID_MUSIC_NO_SDK(
+    ANDROID_MUSIC_REEL(
             21,
             "ANDROID_MUSIC",
-            ANDROID_REEL_AUTH.deviceMake,
-            ANDROID_REEL_AUTH.deviceModel,
-            ANDROID_REEL_AUTH.osName,
-            ANDROID_REEL_AUTH.osVersion,
-            "7.12.52",
+            "com.google.android.apps.youtube.music",
+            Build.MANUFACTURER,
+            Build.MODEL,
+            "Android",
+            Build.VERSION.RELEASE,
+            String.valueOf(Build.VERSION.SDK_INT),
+            Build.ID,
+            "9.05.52",
             null,
-            "com.google.android.apps.youtube.music/7.12.52 (Linux; U; Android " + Build.VERSION.RELEASE + ") gzip",
             IS_YOUTUBE_MUSIC,
+            IS_YOUTUBE_MUSIC,
+            false,
+            false,
+            false,
             true,
             false,
-            false,
-            false,
-            PlayerRoutes.GET_PLAYER_STREAMING_DATA,
-            "Android Music No SDK"
+            "Android Music Reel"
     ),
     /**
-     * Video not playable: Kids, Paid, Movie, Private, Age-restricted.
-     * Uses non-adaptive bitrate.
+     * Video not playable: Kids.
      * AV1 codec available.
      */
     // https://dumps.tadiphone.dev/dumps/oculus/eureka
-    ANDROID_VR_1_65(
+    ANDROID_VR_1_74(
             28,
             "ANDROID_VR",
             "com.google.android.apps.youtube.vr.oculus",
@@ -116,44 +116,45 @@ public enum ClientType {
             "14",
             "34",
             "UP1A.231005.007.A1",
-            "1.65.10",
+            "1.74.19",
             null,
             false,
             false,
-            false,
             true,
-            false,
-            PlayerRoutes.GET_PLAYER_STREAMING_DATA,
-            "Android VR 1.65"
+            true,
+            true,
+            true,
+            true,
+            "Android VR 1.74"
     ),
     /**
-     * Uses non adaptive bitrate.
+     * Video not playable: Kids.
      * AV1 codec not available.
      */
     // https://dumps.tadiphone.dev/dumps/oculus/monterey
-    ANDROID_VR_1_64(
-            ANDROID_VR_1_65.id,
-            ANDROID_VR_1_65.clientName,
-            Objects.requireNonNull(ANDROID_VR_1_65.packageName),
-            ANDROID_VR_1_65.deviceMake,
+    ANDROID_VR_1_73(
+            ANDROID_VR_1_74.id,
+            ANDROID_VR_1_74.clientName,
+            Objects.requireNonNull(ANDROID_VR_1_74.packageName),
+            ANDROID_VR_1_74.deviceMake,
             "Quest",
-            ANDROID_VR_1_65.osName,
+            ANDROID_VR_1_74.osName,
             "10",
             "29",
             "QQ3A.200805.001",
-            "1.64.34",
-            ANDROID_VR_1_65.clientPlatform,
-            ANDROID_VR_1_65.canLogin,
-            ANDROID_VR_1_65.requireLogin,
-            ANDROID_VR_1_65.supportsMultiAudioTracks,
-            ANDROID_VR_1_65.supportsOAuth2,
-            ANDROID_VR_1_65.requireJS,
-            ANDROID_VR_1_65.endpoint,
-            "Android VR 1.64"
+            "1.73.24",
+            ANDROID_VR_1_74.clientPlatform,
+            ANDROID_VR_1_74.canLogin,
+            ANDROID_VR_1_74.requireLogin,
+            ANDROID_VR_1_74.supportsMultiAudioTracks,
+            ANDROID_VR_1_74.supportsOAuth2,
+            ANDROID_VR_1_74.supportsVRImmersiveMode,
+            ANDROID_VR_1_74.requireSABR,
+            ANDROID_VR_1_74.usePlayerEndpoint,
+            "Android VR 1.73"
     ),
     /**
      * Video not playable: Livestream.
-     * Uses non-adaptive bitrate.
      * AV1 codec and HDR codec are not available, and the maximum resolution is 720p.
      */
     // https://dumps.tadiphone.dev/dumps/google/mustang
@@ -174,12 +175,12 @@ public enum ClientType {
             false,
             false,
             false,
-            PlayerRoutes.GET_PLAYER_STREAMING_DATA,
+            false,
+            true,
             "Android Studio"
     ),
     /**
      * Video not playable: None.
-     * Uses non adaptive bitrate.
      * AV1 codec available.
      */
     TV(7,
@@ -197,68 +198,28 @@ public enum ClientType {
             true,
             false,
             true,
-            PlayerRoutes.GET_PLAYER_STREAMING_DATA,
             "TV"
     ),
     /**
+     * Video not playable: Kids, Paid, Movie, Private, Age-restricted.
+     * AV1 codec available.
      * May stop working at any time.
      */
     VISIONOS(101,
             "VISIONOS",
             "Apple",
-            "RealityDevice14,1",
+            "RealityDevice17,1",
             "visionOS",
-            "1.3.21O771",
-            "0.1",
+            "26.5.23O471",
+            "1.03",
             null,
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 15_7_3) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Safari/605.1.15",
             false,
             false,
+            true,
+            true,
             false,
-            false,
-            false,
-            PlayerRoutes.GET_PLAYER_STREAMING_DATA,
             "visionOS"
-    ),
-    GET_CHANNEL_FROM_ID(
-            ANDROID_REEL_AUTH.id,
-            ANDROID_REEL_AUTH.clientName,
-            Objects.requireNonNull(ANDROID_REEL_AUTH.packageName),
-            ANDROID_REEL_AUTH.deviceMake,
-            ANDROID_REEL_AUTH.deviceModel,
-            ANDROID_REEL_AUTH.osName,
-            ANDROID_REEL_AUTH.osVersion,
-            Objects.requireNonNull(ANDROID_REEL_AUTH.androidSdkVersion),
-            ANDROID_REEL_AUTH.buildID,
-            ANDROID_REEL_AUTH.clientVersion,
-            ANDROID_REEL_AUTH.clientPlatform,
-            false,
-            false,
-            false,
-            ANDROID_REEL_AUTH.supportsOAuth2,
-            ANDROID_REEL_AUTH.requireJS,
-            PlayerRoutes.GET_CHANNEL_FROM_ID,
-            "Get Channel From ID"
-    ),
-    SAVE_TO_WATCH_LATER(
-            ANDROID_REEL_AUTH.id,
-            ANDROID_REEL_AUTH.clientName,
-            Objects.requireNonNull(ANDROID_REEL_AUTH.packageName),
-            ANDROID_REEL_AUTH.deviceMake,
-            ANDROID_REEL_AUTH.deviceModel,
-            ANDROID_REEL_AUTH.osName,
-            ANDROID_REEL_AUTH.osVersion,
-            Objects.requireNonNull(ANDROID_REEL_AUTH.androidSdkVersion),
-            ANDROID_REEL_AUTH.buildID,
-            ANDROID_REEL_AUTH.clientVersion,
-            ANDROID_REEL_AUTH.clientPlatform,
-            true,
-            true,
-            false,
-            ANDROID_REEL_AUTH.supportsOAuth2,
-            ANDROID_REEL_AUTH.requireJS,
-            PlayerRoutes.SEND_SAVE_VIDEO_TO_WATCH_LATER,
-            "Save To Watch Later"
     );
 
     /**
@@ -343,15 +304,25 @@ public enum ClientType {
     public final boolean supportsMultiAudioTracks;
 
     /**
+     * If the client supports 360° VR immersive mode.
+     */
+    public final boolean supportsVRImmersiveMode;
+
+    /**
      * The streaming url has an obfuscated 'n' parameter.
      * If true, JavaScript must be fetched to decrypt the 'n' parameter.
      */
     public final boolean requireJS;
 
     /**
+     * If the client require SABR.
+     */
+    public final boolean requireSABR;
+
+    /**
      * Whether to use the '/player' endpoint.
      */
-    public final Route.CompiledRoute endpoint;
+    public final boolean usePlayerEndpoint;
 
     /**
      * Friendly name displayed in stats for nerds.
@@ -376,8 +347,9 @@ public enum ClientType {
                boolean requireLogin,
                boolean supportsMultiAudioTracks,
                boolean supportsOAuth2,
-               boolean requireJS,
-               Route.CompiledRoute endpoint,
+               boolean supportsVRImmersiveMode,
+               boolean requireSABR,
+               boolean usePlayerEndpoint,
                String friendlyName) {
         this.id = id;
         this.clientName = clientName;
@@ -392,10 +364,11 @@ public enum ClientType {
         this.clientPlatform = clientPlatform;
         this.canLogin = canLogin;
         this.requireLogin = requireLogin;
+        this.requireSABR = requireSABR;
         this.supportsMultiAudioTracks = supportsMultiAudioTracks;
         this.supportsOAuth2 = supportsOAuth2;
-        this.requireJS = requireJS;
-        this.endpoint = endpoint;
+        this.supportsVRImmersiveMode = supportsVRImmersiveMode;
+        this.usePlayerEndpoint = usePlayerEndpoint;
         this.friendlyName = friendlyName;
 
         Locale defaultLocale = Locale.getDefault();
@@ -409,6 +382,8 @@ public enum ClientType {
                 buildId
         );
         Logger.printDebug(() -> "userAgent: " + this.userAgent);
+
+        requireJS = false;
     }
 
     ClientType(int id,
@@ -423,9 +398,8 @@ public enum ClientType {
                boolean canLogin,
                boolean requireLogin,
                boolean supportsMultiAudioTracks,
-               boolean supportsOAuth2,
+               boolean supportsVRImmersiveMode,
                boolean requireJS,
-               Route.CompiledRoute endpoint,
                String friendlyName) {
         this.id = id;
         this.clientName = clientName;
@@ -433,19 +407,21 @@ public enum ClientType {
         this.deviceModel = deviceModel;
         this.osName = osName;
         this.osVersion = osVersion;
-        buildID = null;
         this.clientVersion = clientVersion;
         this.clientPlatform = clientPlatform;
         this.userAgent = userAgent;
         this.canLogin = canLogin;
         this.requireLogin = requireLogin;
         this.supportsMultiAudioTracks = supportsMultiAudioTracks;
-        this.supportsOAuth2 = supportsOAuth2;
+        this.supportsVRImmersiveMode = supportsVRImmersiveMode;
         this.requireJS = requireJS;
-        this.endpoint = endpoint;
         this.friendlyName = friendlyName;
 
-        packageName = null;
         androidSdkVersion = null;
+        buildID = null;
+        packageName = null;
+        requireSABR = false;
+        supportsOAuth2 = false;
+        usePlayerEndpoint = true;
     }
 }

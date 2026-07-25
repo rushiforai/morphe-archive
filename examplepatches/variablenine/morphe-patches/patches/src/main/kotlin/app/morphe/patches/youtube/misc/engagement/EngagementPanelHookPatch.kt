@@ -1,7 +1,5 @@
 package app.morphe.patches.youtube.misc.engagement
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
@@ -12,15 +10,15 @@ import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import java.lang.ref.WeakReference
-import kotlin.properties.Delegates
 
 private const val EXTENSION_CLASS =
     "Lapp/morphe/extension/youtube/shared/EngagementPanel;"
 
-lateinit var panelControllerMethodRef: WeakReference<MutableMethod>
+private var panelIdField: FieldReference? = null
 private var panelIdIndex = -1
-private var panelIdRegister = -1
-private lateinit var panelIdSmaliInstruction : String
+private var panelIdRegister = ""
+private var panelRegister = ""
+lateinit var panelControllerMethodRef: WeakReference<MutableMethod>
 
 val engagementPanelHookPatch = bytecodePatch(
     description = "Hook to get the current engagement panel state.",
@@ -30,48 +28,69 @@ val engagementPanelHookPatch = bytecodePatch(
     execute {
         EngagementPanelControllerFingerprint.let {
             it.method.apply {
-                val panelIdField = it.instructionMatches.last().instruction.getReference<FieldReference>()!!
-                val insertIndex = it.instructionMatches[5].index
+                panelIdField = it.instructionMatches.last().instruction.getReference<FieldReference>()!!
+                panelIdIndex = it.instructionMatches[5].index
 
-                val (freeRegister, panelRegister) =
-                    with (getInstruction<TwoRegisterInstruction>(insertIndex)) {
-                        registerA to registerB
-                    }
+                with(getInstruction<TwoRegisterInstruction>(panelIdIndex)) {
+                    panelIdRegister = "v$registerA"
+                    panelRegister = "v$registerB"
+                }
 
                 panelControllerMethodRef = WeakReference(this)
-                panelIdIndex = insertIndex
-                panelIdRegister = freeRegister
-                panelIdSmaliInstruction =
-                    "iget-object v$panelIdRegister, v$panelRegister, $panelIdField"
 
-                addInstructions(
-                    insertIndex,
-                    """
-                        $panelIdSmaliInstruction
-                        invoke-static { v$panelIdRegister }, $EXTENSION_CLASS->open(Ljava/lang/String;)V
-                    """
-                )
+                listOf(
+                    this,
+                    EngagementPanelUpdateFingerprint.method
+                ).forEachIndexed { index, method ->
+                    var targetInstructionIndex = 0
+                    var smaliIntructionPanelIdRegister = ""
+                    var smaliIntructionPanelRegister = ""
+                    var integrationMethodName = ""
+
+                    if (index == 0) {
+                        targetInstructionIndex = panelIdIndex
+                        smaliIntructionPanelIdRegister = panelIdRegister
+                        smaliIntructionPanelRegister = panelRegister
+                        integrationMethodName = "open"
+                    } else {
+                        targetInstructionIndex = 0
+                        smaliIntructionPanelIdRegister = "v0"
+                        smaliIntructionPanelRegister = "p1"
+                        integrationMethodName = "close"
+                    }
+
+                    method.addInstructionsWithLabels(
+                        targetInstructionIndex,
+                        """
+                            if-eqz $smaliIntructionPanelRegister, :null_check
+                            ${panelIdSmaliInstruction(smaliIntructionPanelIdRegister,  smaliIntructionPanelRegister)}
+                            invoke-static { $smaliIntructionPanelIdRegister }, $EXTENSION_CLASS->$integrationMethodName(Ljava/lang/String;)V
+                            :null_check
+                            nop
+                        """
+                    )
+                }
             }
         }
-
-        EngagementPanelUpdateFingerprint.method.addInstruction(
-            0,
-            "invoke-static { }, $EXTENSION_CLASS->close()V"
-        )
     }
 }
+
+fun panelIdSmaliInstruction(panelIdRegister: String, panelRegister: String) =
+    "iget-object $panelIdRegister, $panelRegister, $panelIdField"
 
 fun addEngagementPanelIdHook(descriptor: String) =
     panelControllerMethodRef.get()!!.addInstructionsWithLabels(
         panelIdIndex,
         """
-            $panelIdSmaliInstruction
-            invoke-static { v$panelIdRegister }, $descriptor
-            move-result v$panelIdRegister
-            if-eqz v$panelIdRegister, :shown
-            const/4 v$panelIdRegister, 0x0
-            return-object v$panelIdRegister
+            if-eqz $panelRegister, :null_check
+            ${panelIdSmaliInstruction(panelIdRegister, panelRegister)}
+            invoke-static { $panelIdRegister }, $descriptor
+            move-result $panelIdRegister
+            if-eqz $panelIdRegister, :shown
+            const/4 $panelIdRegister, 0x0
+            return-object $panelIdRegister
             :shown
+            :null_check
             nop
         """
     )

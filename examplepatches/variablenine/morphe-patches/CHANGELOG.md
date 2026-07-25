@@ -1,3 +1,13 @@
+## [1.1.5](https://github.com/variablenine/morphe-patches/compare/v1.1.4...v1.1.5) (2026-07-24)
+
+### 🐛 Bug Fixes
+
+* Adapt cat lock button to upstream v1.36.0 player control API ([c55539b](https://github.com/variablenine/morphe-patches/commit/c55539bd2b55a772ab7e190c425c30385ce13a84))
+
+### 🚀 Updated App Support
+
+* Sync upstream Morphe patches v1.36.0 ([5d0327b](https://github.com/variablenine/morphe-patches/commit/5d0327beb4d948955fc2af739ff76069a5161c99))
+
 ## [1.1.4](https://github.com/variablenine/morphe-patches/compare/v1.1.3...v1.1.4) (2026-07-18)
 
 ## [1.1.3](https://github.com/variablenine/morphe-patches/compare/v1.1.2...v1.1.3) (2026-07-18)

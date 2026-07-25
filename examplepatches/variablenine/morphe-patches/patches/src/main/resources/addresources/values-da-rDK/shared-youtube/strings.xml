@@ -142,8 +142,9 @@ Afspilningen vil mislykkes, hvis hashen for afspiller JavaScript er forældet."<
   <string name="morphe_proxy_allow_direct_fallback_summary">Opret forbindelse direkte, hvis proxyen fejler</string>
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">Skjul fuldskærmsannoncer</string>
-  <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_force_original_audio_not_available">For at bruge denne funktion, skal du ændre \'Spoof video streams\' til Android Reel eller TV</string>
+  <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
+          'Android Studio' must be kept untranslated. -->
+  <string name="morphe_force_original_audio_not_available">For at bruge denne funktion skal du ændre \"Forfalsk videostreams\" til en hvilken som helst klient undtagen Android Studio\'</string>
   <!-- misc.privacy.sanitizeSharingLinksPatch -->
   <string name="morphe_sanitize_sharing_links_title">Rens delingslinks</string>
   <string name="morphe_sanitize_sharing_links_summary">Fjerner sporing af forespørgselsparametre fra delte links</string>
@@ -167,6 +168,10 @@ Det logger dog også brugerdata som din IP-adresse."</string>
   <!-- 'Component path builder strings' is the technical name for identifying the Litho UI layout items to hide. This is an advanced feature and most users will never use this. -->
   <string name="morphe_custom_filter_strings_summary">Liste over komponentsti-strengbyggere til filtrering, adskilt af nye linjer</string>
   <string name="morphe_custom_filter_toast_invalid_syntax">Ugyldigt brugerdefineret filter: %s</string>
+  <!-- Settings menu filter -->
+  <string name="morphe_settings_menu_filter_screen_title">Indstillingsmenu filter</string>
+  <string name="morphe_settings_menu_filter_screen_summary">Skjul elementer på standard app-indstillingsskærmen efter deres synlige navn</string>
+  <string name="morphe_settings_menu_filter_picker_empty">Åbn standard app-indstillingsskærmen én gang for at udfylde listen</string>
   <!-- misc.spoof.appversion.spoofAppVersionPatch -->
   <string name="morphe_spoof_app_version_title">Spoof app-version</string>
   <string name="morphe_spoof_app_version_summary">Snyder serveren til at tro, at du bruger en ældre app-version for at gendanne tidligere brugergrænsefladefunktioner.</string>
@@ -176,4 +181,42 @@ Dette ændrer appens udseende og funktioner, men ukendte bivirkninger kan foreko
 
 Hvis det senere slås fra, anbefales det at rydde app-data for at forhindre UI-fejl."</string>
   <string name="morphe_spoof_app_version_target_title">Spoof app version mål</string>
+  <!-- layout.returnyoutubedislike.returnYouTubeDislikePatch -->
+  <!-- Brief notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
+  <string name="morphe_ryd_failure_connection_timeout">Disliker er midlertidigt ikke tilgængelig (API-timeout ud)</string>
+  <string name="morphe_ryd_failure_connection_status_code">Dislikes er ikke tilgængelige (status %d)</string>
+  <string name="morphe_ryd_failure_client_rate_limit_requested">Dislikes er ikke tilgængelige (klient API-grænse)</string>
+  <string name="morphe_ryd_failure_generic">Dislikes er ikke tilgængelige (%s)</string>
+  <!-- Video likes have been set to hidden by the video uploader. -->
+  <string name="morphe_ryd_video_likes_hidden_by_video_owner">Skjult af ejer</string>
+  <string name="morphe_ryd_enabled_title">Aktivér Return YouTube Dislike</string>
+  <string name="morphe_ryd_dislike_percentage_title">Vis dislikes som procent</string>
+  <string name="morphe_ryd_dislike_percentage_summary">Viser dislikes som en procentdel af likes i stedet for et tal</string>
+  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
+  <string name="morphe_ryd_compact_layout_title">Brug kompakt Like-knap</string>
+  <string name="morphe_ryd_compact_layout_summary">Reducerer bredden af Like-knappen for at spare plads</string>
+  <string name="morphe_ryd_estimated_like_title">Vis anslåede Likes</string>
+  <string name="morphe_ryd_estimated_like_summary">Viser et estimeret like-antal på videoer, hvor skaberen har deaktiveret likes</string>
+  <string name="morphe_ryd_toast_on_connection_error_title">Vis forbindelsesfejlmeddelelser</string>
+  <string name="morphe_ryd_toast_on_connection_error_summary">Viser en notifikation, når Return YouTube Dislike-serveren ikke er tilgængelig</string>
+  <string name="morphe_ryd_attribution_summary">"Data er leveret af Return YouTube Dislike API
+
+Tryk her for at åbne ReturnYouTubeDislike.com"</string>
+  <!-- Statistic strings are shown in the settings only when Morphe debug mode is enabled. Typical users will never see these. -->
+  <string name="morphe_ryd_statistics_category_title">Return YouTube Dislike API-statistik for denne enhed</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeAverage_title">API-responstid, gennemsnit</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMin_title">API-responstid, minimum</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMax_title">API-responstid, maksimum</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_title">API-responstid, seneste medie</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_rate_limit_summary">Disliker er midlertidigt ikke tilgængelige - Klient-API-hastighedsbegrænsning er i kraft</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_title">API henter stemmer, antal kald</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_zero_summary">Ingen netværksopkald foretaget</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_non_zero_summary">%d netværkskald foretaget</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_title">API henter stemmer, antal fejl</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_zero_summary">Ingen netværkskald timed ud</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_non_zero_summary">%d netværkskald timed ud</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_title">API-klientens hastighedsbegrænsninger</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_zero_summary">Ingen klienthastighedsbegrænsninger fundet</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_non_zero_summary">Klienthastighedsbegrænsning fundet %d gange</string>
+  <string name="morphe_ryd_statistics_millisecond_text">%d millisekunder</string>
 </resources>

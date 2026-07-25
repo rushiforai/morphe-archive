@@ -142,8 +142,9 @@ Redarea va eșua dacă hash-ul scriptului JavaScript al playerului este depăși
   <string name="morphe_proxy_allow_direct_fallback_summary">Conectează-te direct dacă proxy-ul eșuează</string>
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">Ascunde reclame pe tot ecranul</string>
-  <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_force_original_audio_not_available">Pentru a utiliza această funcție, modificați \"Falsificare fluxuri video\" la Android Reel sau TV</string>
+  <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
+          'Android Studio' must be kept untranslated. -->
+  <string name="morphe_force_original_audio_not_available">Pentru a utiliza această funcție, modificați \"Falsificare fluxuri video\" la orice client, cu excepția Android Studio\'</string>
   <!-- misc.privacy.sanitizeSharingLinksPatch -->
   <string name="morphe_sanitize_sharing_links_title">Igienizează linkurile de partajare</string>
   <string name="morphe_sanitize_sharing_links_summary">Elimină parametrii de interogare de urmărire din linkurile partajate</string>
@@ -167,6 +168,10 @@ Cu toate acestea, activarea acestei opțiuni va înregistra și unele date ale u
   <!-- 'Component path builder strings' is the technical name for identifying the Litho UI layout items to hide. This is an advanced feature and most users will never use this. -->
   <string name="morphe_custom_filter_strings_summary">Listă de șiruri ale constructorului de cale pentru componente pentru a filtra, separate prin linii noi</string>
   <string name="morphe_custom_filter_toast_invalid_syntax">Filtru personalizat nevalid: %s</string>
+  <!-- Settings menu filter -->
+  <string name="morphe_settings_menu_filter_screen_title">Filtru meniu setări</string>
+  <string name="morphe_settings_menu_filter_screen_summary">Ascunde elementele din ecranul de setări al aplicației, după numele lor vizibil</string>
+  <string name="morphe_settings_menu_filter_picker_empty">Deschide o singură dată ecranul de setări al aplicației pentru a popula lista</string>
   <!-- misc.spoof.appversion.spoofAppVersionPatch -->
   <string name="morphe_spoof_app_version_title">Falsifică versiunea aplicației</string>
   <string name="morphe_spoof_app_version_summary">Păcălește serverul să creadă că folosești o versiune mai veche a aplicației pentru a restabili funcționalități UI vechi</string>
@@ -176,4 +181,42 @@ Acest lucru va schimba aspectul și caracteristicile aplicației, dar pot apăre
 
 Dacă este dezactivat ulterior, se recomandă să ștergeți datele aplicației pentru a preveni erorile UI."</string>
   <string name="morphe_spoof_app_version_target_title">Țintă versiune falsificată a aplicației</string>
+  <!-- layout.returnyoutubedislike.returnYouTubeDislikePatch -->
+  <!-- Brief notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
+  <string name="morphe_ryd_failure_connection_timeout">Dislike-uri temporar indisponibile (API a expirat)</string>
+  <string name="morphe_ryd_failure_connection_status_code">Dislike-uri indisponibile (status %d)</string>
+  <string name="morphe_ryd_failure_client_rate_limit_requested">Nu există aprecieri negative disponibile (limită API client)</string>
+  <string name="morphe_ryd_failure_generic">Dislike-uri indisponibile (%s)</string>
+  <!-- Video likes have been set to hidden by the video uploader. -->
+  <string name="morphe_ryd_video_likes_hidden_by_video_owner">Ascuns de proprietar</string>
+  <string name="morphe_ryd_enabled_title">Activează Return YouTube Dislike</string>
+  <string name="morphe_ryd_dislike_percentage_title">Afișează dislike-uri ca procentaj</string>
+  <string name="morphe_ryd_dislike_percentage_summary">Afișează dislike-uri ca procentaj din numărul de like-uri, în loc de un număr</string>
+  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
+  <string name="morphe_ryd_compact_layout_title">Utilizează butonul Like compact</string>
+  <string name="morphe_ryd_compact_layout_summary">Reduce lățimea butonului Like pentru a economisi spațiu</string>
+  <string name="morphe_ryd_estimated_like_title">Afișați aprecierile estimate</string>
+  <string name="morphe_ryd_estimated_like_summary">Afișează un număr estimativ de like-uri pe videoclipurile unde creatorul a dezactivat like-urile</string>
+  <string name="morphe_ryd_toast_on_connection_error_title">Afișează alerte de eroare de conexiune</string>
+  <string name="morphe_ryd_toast_on_connection_error_summary">Afișează o notificare atunci când serverul Return YouTube Dislike este indisponibil</string>
+  <string name="morphe_ryd_attribution_summary">"Datele sunt furnizate de API-ul Return YouTube Dislike
+
+Atinge aici pentru a deschide ReturnYouTubeDislike.com"</string>
+  <!-- Statistic strings are shown in the settings only when Morphe debug mode is enabled. Typical users will never see these. -->
+  <string name="morphe_ryd_statistics_category_title">Statisticile API Return YouTube Dislike pentru acest dispozitiv</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeAverage_title">Timpul de răspuns al API-ului, medie</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMin_title">Timpul de răspuns al API-ului, minim</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMax_title">Timpul de răspuns al API-ului, maxim</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_title">Timpul de răspuns al API-ului, ultima media</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_rate_limit_summary">Dislike-uri temporar indisponibile - Limită de rată API client în vigoare</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_title">Preluarea de voturi API, numărul de apeluri</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_zero_summary">Nu s-au efectuat apeluri în rețea</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_non_zero_summary">%d apeluri de rețea efectuate</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_title">Preluarea de voturi API, numărul de încercări eșuate</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_zero_summary">Niciun apel de rețea nu a expirat</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_non_zero_summary">%d apeluri de rețea au expirat</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_title">Limite de rată client API</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_zero_summary">Nici o limită de rată client întâlnită</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_non_zero_summary">Limita de rată client întâlnită de %d ori</string>
+  <string name="morphe_ryd_statistics_millisecond_text">%d milisecunde</string>
 </resources>

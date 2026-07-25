@@ -81,7 +81,7 @@ Pentru a traduce limbi noi sau pentru a îmbunătăți traducerile existente, vi
   <string name="morphe_settings_about_links_rv">2022 – 2025</string>
   <string name="morphe_settings_about_links_vanced">2019 – 2022</string>
   <string name="morphe_settings_about_links_licenses">Avertismente licen</string>
-  <string name="morphe_settings_about_licenses_loading">Se încarcă...</string>
+  <string name="morphe_settings_about_licenses_loading">Se încarcă</string>
   <!-- misc.debugging.enableDebuggingPatch -->
   <string name="morphe_debug_screen_title">Depanare</string>
   <string name="morphe_debug_screen_summary">Configurați opțiuni avansate pentru dezvoltatori și jurnale de diagnostic</string>
@@ -97,7 +97,7 @@ Nu veți fi notificat de niciun eveniment neașteptat."</string>
   <string name="morphe_debug_export_logs_file">Exportă în fișier</string>
   <string name="morphe_debug_export_logs_success">Jurnalele de depanare au fost exportate cu succes</string>
   <string name="morphe_debug_export_logs_failed">Eșec la exportarea jurnalelor de depanare</string>
-  <string name="morphe_debug_logs_search_hint">Caută jurnalele de depanare...</string>
+  <string name="morphe_debug_logs_search_hint">Caută în jurnalele de depanare…</string>
   <string name="morphe_debug_export_logs_clear">Golește</string>
   <string name="morphe_debug_logs_disabled">Înregistrarea în jurnal de depanare este dezactivată</string>
   <string name="morphe_debug_logs_none_found">Nu s-au găsit jurnale de depanare</string>
@@ -108,7 +108,7 @@ Nu veți fi notificat de niciun eveniment neașteptat."</string>
   <string name="morphe_debug_feature_flags_manager_summary">Gestionați funcțiile booleene</string>
   <string name="morphe_debug_feature_flags_manager_active_header">Steaguri active (%d)</string>
   <string name="morphe_debug_feature_flags_manager_blocked_header">Steaguri blocate (%d)</string>
-  <string name="morphe_debug_feature_flags_manager_search_hint">Caută steagurile...</string>
+  <string name="morphe_debug_feature_flags_manager_search_hint">Caută funcții experimentale…</string>
   <string name="morphe_debug_feature_flags_manager_toast_saved">Steagurile au fost salvate</string>
   <string name="morphe_debug_feature_flags_manager_toast_reset">Steagurile au fost resetați</string>
   <string name="morphe_debug_feature_flags_manager_toast_copied">Steagurile au fost copiate în clipboard</string>

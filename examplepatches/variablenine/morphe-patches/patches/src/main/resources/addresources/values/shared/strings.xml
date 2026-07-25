@@ -49,6 +49,7 @@ Second \"item\" text"</string>
     <string name="morphe_settings_search_empty_history_summary">To save search history, type a search query and press Enter</string>
     <string name="morphe_settings_search_history_title">Show settings search history</string>
     <string name="morphe_show_menu_icons_title">Show Morphe setting icons</string>
+    <string name="morphe_settings_menu_copy_path">Copied: %s</string>
     <string name="morphe_language_title">Morphe language</string>
     <string name="morphe_language_user_dialog_message">"Translations for some languages may be missing or incomplete.
 
@@ -82,7 +83,7 @@ To translate new languages or improve the existing translations, visit morphe.so
     <string name="morphe_settings_about_links_rv">2022 &#8209; 2025</string>
     <string name="morphe_settings_about_links_vanced">2019 &#8209; 2022</string>
     <string name="morphe_settings_about_links_licenses">License notices</string>
-    <string name="morphe_settings_about_licenses_loading">Loading...</string>
+    <string name="morphe_settings_about_licenses_loading">Loading…</string>
 
     <!-- misc.debugging.enableDebuggingPatch -->
     <string name="morphe_debug_screen_title">Debugging</string>
@@ -99,7 +100,7 @@ You will not be notified of any unexpected events."</string>
     <string name="morphe_debug_export_logs_file">Export to file</string>
     <string name="morphe_debug_export_logs_success">Debug logs exported successfully</string>
     <string name="morphe_debug_export_logs_failed">Failed to export debug logs</string>
-    <string name="morphe_debug_logs_search_hint">Search debug logs...</string>
+    <string name="morphe_debug_logs_search_hint">Search debug logs…</string>
     <string name="morphe_debug_export_logs_clear">Clear</string>
     <string name="morphe_debug_logs_disabled">Debug logging is disabled</string>
     <string name="morphe_debug_logs_none_found">No debug logs found</string>
@@ -110,7 +111,7 @@ You will not be notified of any unexpected events."</string>
     <string name="morphe_debug_feature_flags_manager_summary">Manage boolean feature flags</string>
     <string name="morphe_debug_feature_flags_manager_active_header">Active feature flags (%d)</string>
     <string name="morphe_debug_feature_flags_manager_blocked_header">Blocked feature flags (%d)</string>
-    <string name="morphe_debug_feature_flags_manager_search_hint">Search feature flags...</string>
+    <string name="morphe_debug_feature_flags_manager_search_hint">Search feature flags…</string>
     <string name="morphe_debug_feature_flags_manager_toast_saved">Feature flags saved</string>
     <string name="morphe_debug_feature_flags_manager_toast_reset">Feature flags reset</string>
     <string name="morphe_debug_feature_flags_manager_toast_copied">Feature flags copied to clipboard</string>

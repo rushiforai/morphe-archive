@@ -26,42 +26,7 @@ internal object PlayerControlsVisibilityEntityModelFingerprint : Fingerprint(
     )
 )
 
-private object YoutubeControlsOverlayFingerprint : Fingerprint(
-    returnType = "V",
-    parameters = listOf(),
-    filters = listOf(
-        methodCall(name = "setFocusableInTouchMode"),
-        resourceLiteral(ResourceType.ID, "inset_overlay_view_layout"),
-        resourceLiteral(ResourceType.ID, "scrim_overlay"),
-    )
-)
-
-internal object MotionEventFingerprint : Fingerprint(
-    classFingerprint = YoutubeControlsOverlayFingerprint,
-    returnType = "V",
-    parameters = listOf("Landroid/view/MotionEvent;"),
-    filters = listOf(
-        methodCall(name = "setTranslationY")
-    )
-)
-
-internal object PlayerControlsExtensionHookListenersExistFingerprint : Fingerprint(
-    definingClass = EXTENSION_CLASS,
-    name = "fullscreenButtonVisibilityCallbacksExist",
-    accessFlags = listOf(AccessFlags.PRIVATE, AccessFlags.STATIC),
-    returnType = "Z",
-    parameters = listOf()
-)
-
-internal object PlayerControlsExtensionHookFingerprint : Fingerprint(
-    definingClass = EXTENSION_CLASS,
-    name = "fullscreenButtonVisibilityChanged",
-    accessFlags = listOf(AccessFlags.PRIVATE, AccessFlags.STATIC),
-    returnType = "V",
-    parameters = listOf("Z"),
-)
-
-internal object PlayerTopControlsInflateFingerprint : Fingerprint(
+ internal object PlayerTopControlsInflateFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "V",
     parameters = listOf(),
@@ -96,27 +61,6 @@ internal object PlayerBottomGradientScrimFingerprint : Fingerprint(
         opcode(Opcode.IPUT_OBJECT, MatchAfterImmediately()),
         opcode(Opcode.IPUT_OBJECT, MatchAfterImmediately()),
     )
-)
-
-internal object OverlayViewInflateFingerprint : Fingerprint(
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    returnType = "V",
-    parameters = listOf("Landroid/view/View;"),
-    filters = listOf(
-        resourceLiteral(ResourceType.ID, "heatseeker_viewstub"),
-        resourceLiteral(ResourceType.ID, "fullscreen_button"),
-        checkCast("Landroid/widget/ImageView;")
-    )
-)
-
-/**
- * Resolves to the class found in [PlayerTopControlsInflateFingerprint].
- */
-internal object ControlsOverlayVisibilityFingerprint : Fingerprint(
-    classFingerprint = PlayerTopControlsInflateFingerprint,
-    accessFlags = listOf(AccessFlags.PRIVATE, AccessFlags.FINAL),
-    returnType = "V",
-    parameters = listOf("Z", "Z"),
 )
 
 internal object PlayerBottomControlsExploderFeatureFlagFingerprint : Fingerprint(

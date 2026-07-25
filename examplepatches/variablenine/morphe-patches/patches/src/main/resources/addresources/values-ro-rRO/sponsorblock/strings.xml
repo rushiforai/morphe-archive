@@ -214,7 +214,7 @@ Dacă nu trimiteți o evidențiere, apăsați Anulare și marcați a doua locaț
   <string name="morphe_sb_stats_title">Statistici</string>
   <!-- Shown in the settings preferences, and translations can be any text length. -->
   <string name="morphe_sb_stats_connection_failure">Statisticile nu sunt disponibile temporar (API este defect)</string>
-  <string name="morphe_sb_stats_loading">Se încarcă...</string>
+  <string name="morphe_sb_stats_loading">Se încarcă</string>
   <string name="morphe_sb_stats_sb_disabled">SponsorBlock este dezactivat</string>
   <string name="morphe_sb_stats_username">Numele de utilizator: &lt;b&gt;%s&lt;/b&gt;</string>
   <string name="morphe_sb_stats_username_change">Apasă aici pentru a-ți schimba numele de utilizator</string>

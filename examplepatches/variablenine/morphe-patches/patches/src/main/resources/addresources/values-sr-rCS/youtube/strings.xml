@@ -157,6 +157,7 @@ Promene uključuju:
   <string name="morphe_hide_featured_places_section_title">Sakrij odeljak „Istaknuta mesta”</string>
   <string name="morphe_hide_featured_videos_section_title">Sakrij odeljak „Istaknuti video zapisi”</string>
   <string name="morphe_hide_gaming_section_title">Sakrij odeljak „Igre”</string>
+  <string name="morphe_hide_hashtag_section_title">Sakrij sekciju heš-oznaka</string>
   <string name="morphe_hide_how_this_was_made_section_title">Sakrij odeljak „Kako je napravljen ovaj sadržaj”</string>
   <string name="morphe_hide_hype_points_title">Sakrij hajp poene</string>
   <string name="morphe_hide_info_cards_section_title">Sakrij odeljak „Info kartice”</string>
@@ -269,8 +270,10 @@ Ograničenja:
   <string name="morphe_hide_aislist_stats_hidden_breakdown">"• Početak: %s
 • Pretraga: %s
 • Ukupno: %s"</string>
-  <string name="morphe_hide_aislist_stats_blocklist_title">Učitane crne liste kanala: %s</string>
-  <string name="morphe_hide_aislist_stats_warnlist_title">Učitane liste upozorenja kanala: %s</string>
+  <string name="morphe_hide_aislist_stats_blocklist_channels_title">Liste blokiranih kanala</string>
+  <string name="morphe_hide_aislist_stats_warnlist_channels_title">Liste upozorenja kanala</string>
+  <string name="morphe_hide_aislist_stats_channels_disabled_summary">Omogući filter za učitavanje kanala</string>
+  <string name="morphe_hide_aislist_stats_channels_loading_summary">Učitavanje kanala…</string>
   <string name="morphe_hide_aislist_about_summary">"Početna stranica i rezultati pretrage su filtrirani da sakriju video snimke sa kanala koje je AiSList označio.
 
 Ograničenja:
@@ -450,15 +453,17 @@ Napomena: Možda neće raditi na direktnim prenosima"</string>
   <string name="morphe_disable_precise_seeking_gesture_summary">Onemogućava precizan način podešavanja koji se aktivira kada povučete traku za podešavanje</string>
   <!-- interaction.seekbar.livestreamDVRPatch -->
   <string name="morphe_livestream_dvr_title">Uključi livestream DVR</string>
+  <string name="morphe_livestream_dvr_summary">Omogućava preskakanje na svim prenosima uživo, čak i na onima koji to normalno ograničavaju</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_livestream_dvr_summary">"Omogućava preskakanje na svim direktnim prenosima, čak i na onima koji normalno to ograničavaju
+  <string name="morphe_livestream_dvr_not_available">"'Omogući DVR za direktan prenos' možda nije dostupno
 
-Napomena: Ako \"Lažiranje video tokova\" nije omogućeno, omogućavanje ovog može uzrokovati neočekivano ponašanje pri preskakanju direktnog prenosa"</string>
+Da biste to rešili, uključite opciju 'Lažirani video strimovi' i promenite 'Podrazumevani klijent' na 'TV'"</string>
   <string name="morphe_expand_livestream_dvr_duration_title">Proširivanje trajanja DVR snimaka uživo</string>
+  <string name="morphe_expand_livestream_dvr_duration_summary">Omogućava vam da se vratite unazad do 7 dana u prošlost tokom direktnih prenosa</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_expand_livestream_dvr_duration_summary">"Omogućava vam vraćanje live broadcasta do 7 dana u prošlost
+  <string name="morphe_expand_livestream_dvr_duration_not_available">"'Proširi trajanje DVR-a za direktan prenos' možda nije dostupno
 
-Napomena: Ako \"Lažiranje video tokova\" nije omogućeno, omogućavanje ovog može uzrokovati neočekivano ponašanje pri preskakanju direktnog prenosa"</string>
+Da biste to rešili, uključite 'Lažirani video strimovi' i promenite 'Podrazumevani klijent' na 'TV'"</string>
   <!-- interaction.seekbar.enableSlideToSeekPatch -->
   <string name="morphe_slide_to_seek_title">Omogući prevlačenje za premotavanje</string>
   <string name="morphe_slide_to_seek_summary">Omogućava klizanje za podešavanje umesto reprodukovanja brzinom od 2x kada pritisnete i zadržite plejer videa</string>
@@ -663,10 +668,10 @@ Da biste pristupili Podešavanjima, omogućite dugme Podešavanja preko Opšte �
   <!-- 'Audio track' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_player_flyout_audio_track_title">Sakrij meni „Audio snimak”</string>
   <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
-          'Android Reel' and 'TV' must be kept untranslated. -->
-  <string name="morphe_hide_player_flyout_audio_track_not_available">"Meni 'Audio Track' je sakriven
+          'Android Studio' must be kept untranslated. -->
+  <string name="morphe_hide_player_flyout_audio_track_not_available">"'Meni za audio trake' je sakriven
 
-Da biste prikazali meni 'Audio Track', promenite 'Spoof video streams' u 'Android Reel' ili 'TV'"</string>
+Da biste prikazali 'Meni za audio trake', promenite 'Lažirani video strimovi' na bilo koji klijent osim 'Android Studio'"</string>
   <string name="morphe_hide_player_flyout_audio_track_footer_title">Sakrij meni „Titlovi”</string>
   <!-- 'Captions' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_player_flyout_captions_title">Sakrij podnožje menija „Titlovi”</string>
@@ -817,46 +822,6 @@ Postavke → Reprodukcija (ili Automatsko puštanje) → Automatski pusti slede�
   <string name="morphe_player_overlay_opacity_title">Neprozirnost preklopa plejera</string>
   <string name="morphe_player_overlay_opacity_summary">Podesi nivo prozirnosti (0 je providno, 100 je neprovidno)</string>
   <string name="morphe_player_overlay_opacity_invalid_toast">Neprozirnost preklopa plejera mora biti između 0 i 100</string>
-  <!-- layout.returnyoutubedislike.returnYouTubeDislikePatch -->
-  <!-- Brief notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
-  <string name="morphe_ryd_failure_connection_timeout">Nesviđanja privremeno nisu dostupna (API istekao)</string>
-  <string name="morphe_ryd_failure_connection_status_code">Nesviđanja nisu dostupna (status %d)</string>
-  <string name="morphe_ryd_failure_client_rate_limit_requested">Nesviđanja nisu dostupna (ograničenje klijenta API-ja)</string>
-  <string name="morphe_ryd_failure_generic">Nesviđanja nisu dostupna (%s)</string>
-  <!-- Brief notification (Toast) shown if the user enables RYD while a video is opened, and then tries to vote for the video. -->
-  <string name="morphe_ryd_failure_ryd_enabled_while_playing_video_then_user_voted">Osvežite video da biste glasali pomoću ReturnYouTubeDislike</string>
-  <!-- Video likes have been set to hidden by the video uploader. -->
-  <string name="morphe_ryd_video_likes_hidden_by_video_owner">Skriveno od strane vlasnika</string>
-  <string name="morphe_ryd_enabled_title">Omogući Return YouTube Dislike</string>
-  <string name="morphe_ryd_dislike_percentage_title">Prikaži lajkove kao procenat</string>
-  <string name="morphe_ryd_dislike_percentage_summary">Prikazuje lajkove kao procenat lajkova umesto broja</string>
-  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
-  <string name="morphe_ryd_compact_layout_title">Koristi kompaktno dugme „Sviđa se”</string>
-  <string name="morphe_ryd_compact_layout_summary">Smanjuje širinu dugmeta „Sviđa se” radi uštede prostora</string>
-  <string name="morphe_ryd_estimated_like_title">Prikaži procenjeni broj sviđanja</string>
-  <string name="morphe_ryd_estimated_like_summary">Prikazuje procenjeni broj lajkova na video zapisima na kojima je kreator onemogućio lajkove</string>
-  <string name="morphe_ryd_toast_on_connection_error_title">Prikaži upozorenja o grešci u vezi</string>
-  <string name="morphe_ryd_toast_on_connection_error_summary">Prikazuje obaveštenje kada je server Return YouTube Dislike nedostupan</string>
-  <string name="morphe_ryd_attribution_summary">"Podatke obezbeđuje Return YouTube Dislike API
-
-Dodirnite ovde da otvorite ReturnYouTubeDislike.com"</string>
-  <!-- Statistic strings are shown in the settings only when Morphe debug mode is enabled. Typical users will never see these. -->
-  <string name="morphe_ryd_statistics_category_title">Statistike ReturnYouTubeDislike API-ja za ovaj uređaj</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeAverage_title">Vreme odgovora API-ja, prosečno</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMin_title">Vreme odgovora API-ja, minimalno</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMax_title">Vreme odgovora API-ja, maksimalno</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_title">Vreme odgovora API-ja, poslednji video</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_rate_limit_summary">Nesviđanja privremeno nisu dostupna – na snazi je ograničenje stope API klijenta</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_title">API prikupljanje glasova, broj poziva</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_zero_summary">Nije ostvaren nijedan mrežni poziv</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_non_zero_summary">Broj ostvarenih mrežnih poziva: %d</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_title">API prikupljanje glasova, broj isteka</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_zero_summary">Nije istekao nijedan mrežni poziv</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_non_zero_summary">Broj isteklih mrežnih poziva: %d</string>
-  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_title">Ograničenje stope klijenta API-ja</string>
-  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_zero_summary">Nije ostvareno nijedno ograničenje stope klijenta</string>
-  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_non_zero_summary">Broj ostvarenih ograničenja stope klijenta: %d</string>
-  <string name="morphe_ryd_statistics_millisecond_text">%d milisekundi</string>
   <!-- layout.searchbar.wideSearchbarPatch -->
   <string name="morphe_wide_searchbar_title">Omogući široku traku za pretragu</string>
   <!-- layout.sponsorblock.sponsorBlockPatch -->
@@ -1124,7 +1089,6 @@ Ograničenja:
 
 Reprodukcija videa s AV1 može zastajkivati ili preskakati kadrove."</string>
   <string name="morphe_spoof_video_streams_about_title">Neželjeni efekti lažiranja</string>
-  <string name="morphe_spoof_video_streams_about_experimental">• Eksperimentalni klijent i može prestati da radi bilo kada</string>
   <string name="morphe_spoof_video_streams_about_playback_failure">• Video se može zaustaviti u 1:00 ili možda neće biti dostupan u nekim regionima</string>
   <string name="morphe_spoof_video_streams_about_no_audio_tracks">• Meni „Audio snimak” nedostaje</string>
   <string name="morphe_spoof_video_streams_about_no_av1">• Nema video kodeka AV1</string>

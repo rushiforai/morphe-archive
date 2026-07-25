@@ -155,14 +155,17 @@ A változások a következőket tartalmazzák:
   <string name="morphe_hide_featured_channels_section_title">Kiemelt csatornák szekció elrejtése</string>
   <string name="morphe_hide_featured_links_section_title">Kiemelt hivatkozások szekció elrejtése</string>
   <string name="morphe_hide_featured_places_section_title">Kiemelt helyek szekció elrejtése</string>
+  <string name="morphe_hide_featured_playlists_section_title">Kiemelt lejálisták szakasz elrejtése</string>
   <string name="morphe_hide_featured_videos_section_title">Kiemelt videók szekció elrejtése</string>
   <string name="morphe_hide_gaming_section_title">Játékok szekció elrejtése</string>
+  <string name="morphe_hide_hashtag_section_title">Hashtag szekció elrejtése</string>
   <string name="morphe_hide_how_this_was_made_section_title">A „Hogyan készült ez a tartalom?” szekció elrejtése</string>
   <string name="morphe_hide_hype_points_title">Hájp pontok elrejtése</string>
   <string name="morphe_hide_info_cards_section_title">Információs kártyák szekció elrejtése</string>
   <string name="morphe_hide_key_concepts_section_title">Kulcsfogalmak szekció elrejtése</string>
   <string name="morphe_hide_music_section_title">Zene szekció elrejtése</string>
   <string name="morphe_hide_quizzes_section_title">Kvízek szekció elrejtése</string>
+  <string name="morphe_hide_search_inside_this_video_section_title">Rejtse el a \"Keresés a videón belül\" szakaszt</string>
   <string name="morphe_hide_subscribe_button_title">Feliratkozás gomb elrejtése</string>
   <string name="morphe_hide_transcript_section_title">Átirat szekció elrejtése</string>
   <string name="morphe_hide_video_details_section_title">Videó részletei szekció elrejtése</string>
@@ -269,8 +272,10 @@ Korlátozások:
   <string name="morphe_hide_aislist_stats_hidden_breakdown">"• Főoldal: %s
 • Keresés: %s
 • Összesen: %s"</string>
-  <string name="morphe_hide_aislist_stats_blocklist_title">Betöltött tiltólistás csatornák: %s</string>
-  <string name="morphe_hide_aislist_stats_warnlist_title">Betöltött figyelőlistás csatornák: %s</string>
+  <string name="morphe_hide_aislist_stats_blocklist_channels_title">Blokkolt csatornák</string>
+  <string name="morphe_hide_aislist_stats_warnlist_channels_title">Figyelmeztetésre került csatornák</string>
+  <string name="morphe_hide_aislist_stats_channels_disabled_summary">Engedélyezzen egy szűrőt a csatornák betöltéséhez</string>
+  <string name="morphe_hide_aislist_stats_channels_loading_summary">Csatornák betöltése…</string>
   <string name="morphe_hide_aislist_about_summary">"A főoldal és a keresési eredmények szűrése az AiSList által jelölt csatornák videóinak elrejtése érdekében
 
 Korlátozások:
@@ -450,15 +455,11 @@ Figyelem: Lehet, hogy az élő közvetítéseknél nem működik"</string>
   <string name="morphe_disable_precise_seeking_gesture_summary">Letiltja a pontos pozíciókeresési módot, amely a lejátszósáv felhúzásakor aktiválódik</string>
   <!-- interaction.seekbar.livestreamDVRPatch -->
   <string name="morphe_livestream_dvr_title">Engedélyezze az élsőségi DVR-t</string>
+  <string name="morphe_livestream_dvr_summary">Lehetővé teszi a keresést minden élő streamen, még azoknál is, amelyek normál esetben korlátozzák azt.</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_livestream_dvr_summary">"Lehetővé teszi a minden élő közvetítés visszatekerését, még azokét is, amelyek egyébként korlátozzák azt.
-
-Megjegyzés: Ha a „Videófolyamok hamisítása” nincs engedélyezve, akkor ez a funkció váratlan élő közvetítés visszakeresési viselkedést okozhat."</string>
   <string name="morphe_expand_livestream_dvr_duration_title">Bővítsd a közvetítés DVR idejét</string>
+  <string name="morphe_expand_livestream_dvr_duration_summary">Lehetővé teszi élő adások visszatekerését a múltba maximum 7 nappal</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_expand_livestream_dvr_duration_summary">"Lehetővé teszi az élő adások visszajátszását akár 7 nappal a múltba.
-
-Megjegyzés: Ha a „Videófolyamok hamisítása” nincs engedélyezve, akkor ez a funkció váratlan élő közvetítés visszakeresési viselkedést okozhat."</string>
   <!-- interaction.seekbar.enableSlideToSeekPatch -->
   <string name="morphe_slide_to_seek_title">Csúsztatás engedélyezése a kereséshez</string>
   <string name="morphe_slide_to_seek_summary">Engedélyezi a videólejátszó megnyomása és tartása közbeni csúsztatást a kétszeres sebességű lejátszás helyett</string>
@@ -663,10 +664,7 @@ A Beállítások eléréséhez engedje a Beállítások gombot a Általános →
   <!-- 'Audio track' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_player_flyout_audio_track_title">Hangszám menü elrejtése</string>
   <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
-          'Android Reel' and 'TV' must be kept untranslated. -->
-  <string name="morphe_hide_player_flyout_audio_track_not_available">"Az \"Audio Track\" menü el van rejtve
-
-Az \"Audio Track\" menü megjelenítéséhez módosítsa a \"Spoof video streams\" beállítást \"Android Reel\" vagy \"TV\" értékre."</string>
+          'Android Studio' must be kept untranslated. -->
   <string name="morphe_hide_player_flyout_audio_track_footer_title">Hangszám menü lábléc elrejtése</string>
   <!-- 'Captions' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_player_flyout_captions_title">Feliratok menü elrejtése</string>
@@ -817,46 +815,6 @@ Beállítások → Lejátszás (vagy Automatikus lejátszás) → Következő vi
   <string name="morphe_player_overlay_opacity_title">Lejátszó fedőrétegének átlátszatlansága</string>
   <string name="morphe_player_overlay_opacity_summary">Állítsa be az átlátszó szintet (0 átlátszó, 100 opák)</string>
   <string name="morphe_player_overlay_opacity_invalid_toast">A lejátszó fedvény átlátszatlanságának 0 és 100 között kell lennie</string>
-  <!-- layout.returnyoutubedislike.returnYouTubeDislikePatch -->
-  <!-- Brief notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
-  <string name="morphe_ryd_failure_connection_timeout">A nem kedvelések jelenleg nem elérhetők (API időtúllépés)</string>
-  <string name="morphe_ryd_failure_connection_status_code">A nem tetszik funkció nem elérhető (állapot: %d)</string>
-  <string name="morphe_ryd_failure_client_rate_limit_requested">A nem tetszések nem érhetők el (ügyfél API korlát)</string>
-  <string name="morphe_ryd_failure_generic">A nem tetszik funkció nem elérhető (%s)</string>
-  <!-- Brief notification (Toast) shown if the user enables RYD while a video is opened, and then tries to vote for the video. -->
-  <string name="morphe_ryd_failure_ryd_enabled_while_playing_video_then_user_voted">Töltse újra a videót a Return YouTube Dislike-hoz</string>
-  <!-- Video likes have been set to hidden by the video uploader. -->
-  <string name="morphe_ryd_video_likes_hidden_by_video_owner">A tulajdonos elrejtette</string>
-  <string name="morphe_ryd_enabled_title">Engedélyezze a Return YouTube Dislike funkciót</string>
-  <string name="morphe_ryd_dislike_percentage_title">A lájkok százalékos arányban megjelenítése</string>
-  <string name="morphe_ryd_dislike_percentage_summary">A nem tetszéseket a lájkok százalékos arányaként mutatja a szám helyett</string>
-  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
-  <string name="morphe_ryd_compact_layout_title">Kompakt lájkgomb használata</string>
-  <string name="morphe_ryd_compact_layout_summary">Csökkenti a lájkgomb szélességét a hely megtakarítása érdekében</string>
-  <string name="morphe_ryd_estimated_like_title">Becsült kedvelések mutatása</string>
-  <string name="morphe_ryd_estimated_like_summary">Megmutatja a becsült lájkok számát azon videókon, ahol a készítő letiltotta a lájkokat</string>
-  <string name="morphe_ryd_toast_on_connection_error_title">Kapcsolati hibaüzenetek megjelenítése</string>
-  <string name="morphe_ryd_toast_on_connection_error_summary">Értesítést jelenít meg, ha a Return YouTube Dislike szerver nem érhető el</string>
-  <string name="morphe_ryd_attribution_summary">"Az adatokat a Return YouTube Dislike API szolgáltatja
-
-Érintse meg ide a ReturnYouTubeDislike.com megnyitásához"</string>
-  <!-- Statistic strings are shown in the settings only when Morphe debug mode is enabled. Typical users will never see these. -->
-  <string name="morphe_ryd_statistics_category_title">ReturnYouTubeDislike API statisztika az eszközön</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeAverage_title">API válaszidő, átlagos</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMin_title">API válaszidő, minimális</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMax_title">API válaszidő, maximális</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_title">API válaszidő, legutóbbi videó</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_rate_limit_summary">A nem tetszések átmenetileg nem érhetőek el – Az Ügyfél API sebességkorlátja van érvényben</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_title">API lekérési szavazatok, hívások száma</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_zero_summary">Nem kezdeményezett hálózati hívás</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_non_zero_summary">%d kezdeményezett hálózati hívás</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_title">API lekérési szavazatok, időtúllépések száma</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_zero_summary">Nincsenek hálózati hívások időtúllépésben</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_non_zero_summary">%d hálózati hívás időtúllépés</string>
-  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_title">API kliens korlátok</string>
-  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_zero_summary">Nem történtek kliens korlátozások</string>
-  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_non_zero_summary">Kliens korlátozás %d alkalommal történt</string>
-  <string name="morphe_ryd_statistics_millisecond_text">%d ezredmásodperc</string>
   <!-- layout.searchbar.wideSearchbarPatch -->
   <string name="morphe_wide_searchbar_title">Széles keresősáv bekapcsolása</string>
   <!-- layout.sponsorblock.sponsorBlockPatch -->
@@ -941,6 +899,7 @@ Korlátozás: Ha a „Régi videós eszköztár visszaállítása” ki van kapc
   <string name="morphe_miniplayer_disable_resuming_summary">Letiltja a „Folytatás” minilejátszót, a YouTube Premium funkciót, amely az alkalmazás indításakor jelenik meg.</string>
   <string name="morphe_miniplayer_screen_title">Minilejátszó</string>
   <string name="morphe_miniplayer_screen_summary">A minimalizált videólejátszó megjelenésének és viselkedésének testreszabása</string>
+  <string name="morphe_miniplayer_not_available_summary">A YouTube eltávolították az összes kiegyszítő miniablakot. A miniablak típusa változtatásához a YouTube 21.28.207-es vagy annál ösibb verziójavítását kell alkalmazni.</string>
   <string name="morphe_miniplayer_type_title">Minilejátszó típus</string>
   <string name="morphe_miniplayer_type_entry_0">Kikapcsolva</string>
   <string name="morphe_miniplayer_type_entry_1">Alapértelmezett</string>
@@ -1124,7 +1083,6 @@ Korlátozások:
 
 Az AV1-es videólejátszás akadozhat vagy képkockákat ejthet."</string>
   <string name="morphe_spoof_video_streams_about_title">Hamisítás mellékhatásai</string>
-  <string name="morphe_spoof_video_streams_about_experimental">• Kísérleti kliens, és bármikor leállhat</string>
   <string name="morphe_spoof_video_streams_about_playback_failure">• A videó megállhat 1:00-nál, vagy előfordulhat, hogy egyes régiókban nem elérhető</string>
   <string name="morphe_spoof_video_streams_about_no_audio_tracks">• Hiányzik az hangsáv menü</string>
   <string name="morphe_spoof_video_streams_about_no_av1">• Nincs AV1 videokodek</string>

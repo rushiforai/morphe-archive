@@ -81,7 +81,7 @@ Chcete-li přeložit nové jazyky nebo zlepšit stávající překlady, navštiv
   <string name="morphe_settings_about_links_rv">2022 – 2025</string>
   <string name="morphe_settings_about_links_vanced">2019 – 2022</string>
   <string name="morphe_settings_about_links_licenses">Licenční upozornění</string>
-  <string name="morphe_settings_about_licenses_loading">Načítání...</string>
+  <string name="morphe_settings_about_licenses_loading">Načítám…</string>
   <!-- misc.debugging.enableDebuggingPatch -->
   <string name="morphe_debug_screen_title">Ladění</string>
   <string name="morphe_debug_screen_summary">Konfigurace pokročilých voleb pro vývojáře a diagnostických protokolů</string>
@@ -97,7 +97,7 @@ Nebudete informováni o žádné neočekávané události."</string>
   <string name="morphe_debug_export_logs_file">Exportovat do souboru</string>
   <string name="morphe_debug_export_logs_success">Protokoly ladění byly úspěšně exportovány</string>
   <string name="morphe_debug_export_logs_failed">Nepodařilo se exportovat protokoly ladění: %s</string>
-  <string name="morphe_debug_logs_search_hint">Vyhledat protokoly ladění...</string>
+  <string name="morphe_debug_logs_search_hint">Hledat v ladicích protokolech…</string>
   <string name="morphe_debug_export_logs_clear">Vymazat</string>
   <string name="morphe_debug_logs_disabled">Ladění je vypnuto</string>
   <string name="morphe_debug_logs_none_found">Nebyla nalezena žádná protokola ladění</string>
@@ -108,7 +108,7 @@ Nebudete informováni o žádné neočekávané události."</string>
   <string name="morphe_debug_feature_flags_manager_summary">Spravovat logické příznaky funkcí</string>
   <string name="morphe_debug_feature_flags_manager_active_header">Aktivní příznaky funkcí (%d)</string>
   <string name="morphe_debug_feature_flags_manager_blocked_header">Zablokované příznaky funkcí (%d)</string>
-  <string name="morphe_debug_feature_flags_manager_search_hint">Vyhledat příznaky funkcí...</string>
+  <string name="morphe_debug_feature_flags_manager_search_hint">Hledat funkce…</string>
   <string name="morphe_debug_feature_flags_manager_toast_saved">Příznaky funkcí uloženy</string>
   <string name="morphe_debug_feature_flags_manager_toast_reset">Příznaky funkcí resetovány</string>
   <string name="morphe_debug_feature_flags_manager_toast_copied">Příznaky funkcí zkopírovány do schránky</string>

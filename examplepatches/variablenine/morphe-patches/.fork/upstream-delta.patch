@@ -1,5 +1,5 @@
 diff --git a/.github/workflows/open_pull_request.yml b/.github/workflows/open_pull_request.yml
-index 2006f78..8cf51f8 100644
+index 2006f78c..8cf51f87 100644
 --- a/.github/workflows/open_pull_request.yml
 +++ b/.github/workflows/open_pull_request.yml
 @@ -9,6 +9,10 @@ on:
@@ -14,7 +14,7 @@ index 2006f78..8cf51f8 100644
    pull-request:
      name: Open pull request
 diff --git a/.github/workflows/release.yml b/.github/workflows/release.yml
-index 6f1aa35..b3c122d 100644
+index e970ffea..82090308 100644
 --- a/.github/workflows/release.yml
 +++ b/.github/workflows/release.yml
 @@ -20,6 +20,8 @@ jobs:
@@ -87,7 +87,7 @@ index 6f1aa35..b3c122d 100644
 +      # out on every upstream sync (see .fork/SYNC.md).
 diff --git a/extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/catlock/AlternatingTapUnlock.java b/extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/catlock/AlternatingTapUnlock.java
 new file mode 100644
-index 0000000..b82ffb0
+index 00000000..b82ffb0a
 --- /dev/null
 +++ b/extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/catlock/AlternatingTapUnlock.java
 @@ -0,0 +1,100 @@
@@ -193,7 +193,7 @@ index 0000000..b82ffb0
 +}
 diff --git a/extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/catlock/CatLockOverlay.java b/extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/catlock/CatLockOverlay.java
 new file mode 100644
-index 0000000..2edf469
+index 00000000..2edf469f
 --- /dev/null
 +++ b/extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/catlock/CatLockOverlay.java
 @@ -0,0 +1,154 @@
@@ -353,7 +353,7 @@ index 0000000..2edf469
 +}
 diff --git a/extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/components/BrainrotCommentFilter.java b/extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/components/BrainrotCommentFilter.java
 new file mode 100644
-index 0000000..787f73f
+index 00000000..787f73fb
 --- /dev/null
 +++ b/extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/components/BrainrotCommentFilter.java
 @@ -0,0 +1,51 @@
@@ -410,7 +410,7 @@ index 0000000..787f73f
 +}
 diff --git a/extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/components/BrainrotDetector.java b/extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/components/BrainrotDetector.java
 new file mode 100644
-index 0000000..ede7d41
+index 00000000..ede7d41a
 --- /dev/null
 +++ b/extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/components/BrainrotDetector.java
 @@ -0,0 +1,333 @@
@@ -748,10 +748,10 @@ index 0000000..ede7d41
 +    }
 +}
 diff --git a/extensions/youtube/src/main/java/app/morphe/extension/youtube/settings/Settings.java b/extensions/youtube/src/main/java/app/morphe/extension/youtube/settings/Settings.java
-index 17a2a2e..5b5be41 100644
+index 5855fd4c..4a1c81d2 100644
 --- a/extensions/youtube/src/main/java/app/morphe/extension/youtube/settings/Settings.java
 +++ b/extensions/youtube/src/main/java/app/morphe/extension/youtube/settings/Settings.java
-@@ -222,6 +222,7 @@ public class Settings extends SharedYouTubeSettings {
+@@ -221,6 +221,7 @@ public class Settings extends SharedYouTubeSettings {
      public static final BooleanSetting SANITIZE_VIDEO_SUBTITLE = new BooleanSetting("morphe_sanitize_video_subtitle", FALSE);
  
      // Overlay buttons
@@ -759,7 +759,7 @@ index 17a2a2e..5b5be41 100644
      public static final BooleanSetting COPY_VIDEO_LINK_BUTTON = new BooleanSetting("morphe_copy_video_link_button", FALSE, true);
      public static final BooleanSetting COPY_VIDEO_LINK_WITH_TIMESTAMP_BUTTON = new BooleanSetting("morphe_copy_video_link_with_timestamp_button", TRUE, true, parent(COPY_VIDEO_LINK_BUTTON));
      public static final BooleanSetting HIDE_AUTOPLAY_BUTTON = new BooleanSetting("morphe_hide_autoplay_button", TRUE, true);
-@@ -299,6 +300,7 @@ public class Settings extends SharedYouTubeSettings {
+@@ -298,6 +299,7 @@ public class Settings extends SharedYouTubeSettings {
      public static final BooleanSetting HIDE_COMMENTS_GIFT_ANIMATION_AND_CARDS = new BooleanSetting("morphe_hide_comments_gift_animation_and_cards", FALSE);
      public static final BooleanSetting HIDE_COMMENTS_GIFT_BUTTON = new BooleanSetting("morphe_hide_comments_gift_button", TRUE, true);
      public static final BooleanSetting HIDE_COMMENTS_INFO_BUTTON = new BooleanSetting("morphe_hide_comments_info_button", FALSE, true);
@@ -768,7 +768,7 @@ index 17a2a2e..5b5be41 100644
      public static final BooleanSetting HIDE_COMMENTS_PREVIEW_COMMENT = new BooleanSetting("morphe_hide_comments_preview_comment", FALSE);
      public static final BooleanSetting HIDE_COMMENTS_PROMPTS = new BooleanSetting("morphe_hide_comments_prompts", FALSE);
 diff --git a/extensions/youtube/src/main/java/app/morphe/extension/youtube/swipecontrols/SwipeControlsHostActivity.kt b/extensions/youtube/src/main/java/app/morphe/extension/youtube/swipecontrols/SwipeControlsHostActivity.kt
-index 9c78b57..b73db02 100644
+index 9c78b574..b73db021 100644
 --- a/extensions/youtube/src/main/java/app/morphe/extension/youtube/swipecontrols/SwipeControlsHostActivity.kt
 +++ b/extensions/youtube/src/main/java/app/morphe/extension/youtube/swipecontrols/SwipeControlsHostActivity.kt
 @@ -10,6 +10,7 @@ import android.view.WindowInsets
@@ -793,15 +793,13 @@ index 9c78b57..b73db02 100644
              super.dispatchTouchEvent(ev)
 diff --git a/extensions/youtube/src/main/java/app/morphe/extension/youtube/videoplayer/CatLockButton.java b/extensions/youtube/src/main/java/app/morphe/extension/youtube/videoplayer/CatLockButton.java
 new file mode 100644
-index 0000000..3c366d0
+index 00000000..7c0c98e5
 --- /dev/null
 +++ b/extensions/youtube/src/main/java/app/morphe/extension/youtube/videoplayer/CatLockButton.java
-@@ -0,0 +1,71 @@
+@@ -0,0 +1,46 @@
 +package app.morphe.extension.youtube.videoplayer;
 +
 +import android.view.View;
-+
-+import androidx.annotation.Nullable;
 +
 +import app.morphe.extension.shared.Logger;
 +import app.morphe.extension.youtube.patches.catlock.CatLockOverlay;
@@ -809,8 +807,9 @@ index 0000000..3c366d0
 +
 +/**
 + * Top player-controls button that engages {@link CatLockOverlay}. Mirrors the other Morphe
-+ * player-overlay buttons (e.g. ExternalDownloadButton) so it rides the same initialize/visibility
-+ * injection points.
++ * player-overlay buttons (e.g. ExternalDownloadButton) so it rides the same initialize
++ * injection point. {@link LegacyPlayerControlButton} derives its own visibility from the
++ * setting, so no separate visibility injection points are needed.
 + */
 +@SuppressWarnings("unused")
 +public class CatLockButton {
@@ -821,20 +820,17 @@ index 0000000..3c366d0
 +        }
 +    }
 +
-+    @Nullable
-+    private static LegacyPlayerControlButton legacy;
-+
 +    /**
 +     * Injection point.
 +     */
 +    public static void initializeLegacyButton(View controlsView) {
 +        try {
-+            legacy = new LegacyPlayerControlButton(
++            new LegacyPlayerControlButton(
 +                    controlsView,
 +                    "morphe_cat_lock_button",
 +                    null,
 +                    "morphe_yt_cat_lock_button",
-+                    Settings.CAT_LOCK_BUTTON::get,
++                    Settings.CAT_LOCK_BUTTON,
 +                    CatLockButton::onClick,
 +                    null
 +            );
@@ -843,34 +839,13 @@ index 0000000..3c366d0
 +        }
 +    }
 +
-+    /**
-+     * Injection point.
-+     */
-+    public static void setVisibilityNegatedImmediate() {
-+        if (legacy != null) legacy.setVisibilityNegatedImmediate();
-+    }
-+
-+    /**
-+     * Injection point.
-+     */
-+    public static void setVisibilityImmediate(boolean visible) {
-+        if (legacy != null) legacy.setVisibilityImmediate(visible);
-+    }
-+
-+    /**
-+     * Injection point.
-+     */
-+    public static void setVisibility(boolean visible, boolean animated) {
-+        if (legacy != null) legacy.setVisibility(visible, animated);
-+    }
-+
 +    private static void onClick(View view) {
 +        CatLockOverlay.engage(view);
 +    }
 +}
 diff --git a/extensions/youtube/src/test/java/app/morphe/extension/youtube/patches/catlock/AlternatingTapUnlockSelfTest.java b/extensions/youtube/src/test/java/app/morphe/extension/youtube/patches/catlock/AlternatingTapUnlockSelfTest.java
 new file mode 100644
-index 0000000..ecccdb9
+index 00000000..ecccdb97
 --- /dev/null
 +++ b/extensions/youtube/src/test/java/app/morphe/extension/youtube/patches/catlock/AlternatingTapUnlockSelfTest.java
 @@ -0,0 +1,65 @@
@@ -941,7 +916,7 @@ index 0000000..ecccdb9
 +}
 diff --git a/extensions/youtube/src/test/java/app/morphe/extension/youtube/patches/components/BrainrotDetectorSelfTest.java b/extensions/youtube/src/test/java/app/morphe/extension/youtube/patches/components/BrainrotDetectorSelfTest.java
 new file mode 100644
-index 0000000..1f8946a
+index 00000000..1f8946a5
 --- /dev/null
 +++ b/extensions/youtube/src/test/java/app/morphe/extension/youtube/patches/components/BrainrotDetectorSelfTest.java
 @@ -0,0 +1,89 @@
@@ -1035,7 +1010,7 @@ index 0000000..1f8946a
 +    }
 +}
 diff --git a/patches/build.gradle.kts b/patches/build.gradle.kts
-index 392e0e5..2b6a57f 100644
+index 392e0e54..2b6a57f0 100644
 --- a/patches/build.gradle.kts
 +++ b/patches/build.gradle.kts
 @@ -2,12 +2,12 @@ group = "app.morphe"
@@ -1058,10 +1033,10 @@ index 392e0e5..2b6a57f 100644
  }
 diff --git a/patches/src/main/kotlin/app/morphe/patches/youtube/interaction/catlock/CatLockPatch.kt b/patches/src/main/kotlin/app/morphe/patches/youtube/interaction/catlock/CatLockPatch.kt
 new file mode 100644
-index 0000000..0e0013f
+index 00000000..9810429f
 --- /dev/null
 +++ b/patches/src/main/kotlin/app/morphe/patches/youtube/interaction/catlock/CatLockPatch.kt
-@@ -0,0 +1,68 @@
+@@ -0,0 +1,66 @@
 +package app.morphe.patches.youtube.interaction.catlock
 +
 +import app.morphe.patcher.patch.bytecodePatch
@@ -1069,7 +1044,6 @@ index 0000000..0e0013f
 +import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
 +import app.morphe.patches.youtube.misc.playercontrols.addTopControl
 +import app.morphe.patches.youtube.misc.playercontrols.initializeTopControl
-+import app.morphe.patches.youtube.misc.playercontrols.injectVisibilityCheckCall
 +import app.morphe.patches.youtube.misc.playercontrols.legacyPlayerControlsPatch
 +import app.morphe.patches.youtube.misc.settings.PreferenceScreen
 +import app.morphe.patches.youtube.misc.settings.settingsPatch
@@ -1124,17 +1098,16 @@ index 0000000..0e0013f
 +    compatibleWith(COMPATIBILITY_YOUTUBE)
 +
 +    execute {
-+        // The button's click/visibility are handled entirely in the extension via
-+        // LegacyPlayerControlButton, so only the initialize + visibility hooks are needed.
++        // The button's click and visibility are handled entirely in the extension via
++        // LegacyPlayerControlButton, so only the initialize hook is needed.
 +        initializeTopControl(EXTENSION_BUTTON)
-+        injectVisibilityCheckCall(EXTENSION_BUTTON)
 +    }
 +}
 diff --git a/patches/src/main/kotlin/app/morphe/patches/youtube/layout/hide/general/HideLayoutComponentsPatch.kt b/patches/src/main/kotlin/app/morphe/patches/youtube/layout/hide/general/HideLayoutComponentsPatch.kt
-index eb10e7e..76b6fa5 100644
+index 36f5d8ae..e46d1088 100644
 --- a/patches/src/main/kotlin/app/morphe/patches/youtube/layout/hide/general/HideLayoutComponentsPatch.kt
 +++ b/patches/src/main/kotlin/app/morphe/patches/youtube/layout/hide/general/HideLayoutComponentsPatch.kt
-@@ -78,6 +78,8 @@ private const val DESCRIPTION_COMPONENTS_FILTER =
+@@ -77,6 +77,8 @@ private const val DESCRIPTION_COMPONENTS_FILTER =
      "Lapp/morphe/extension/youtube/patches/components/DescriptionComponentsFilter;"
  private const val COMMENTS_FILTER =
      "Lapp/morphe/extension/youtube/patches/components/CommentsFilter;"
@@ -1143,7 +1116,7 @@ index eb10e7e..76b6fa5 100644
  private const val CUSTOM_FILTER =
      "Lapp/morphe/extension/youtube/patches/components/CustomFilter;"
  private const val KEYWORD_FILTER =
-@@ -155,6 +157,7 @@ val hideLayoutComponentsPatch = bytecodePatch(
+@@ -157,6 +159,7 @@ val hideLayoutComponentsPatch = bytecodePatch(
                              inputType = InputType.TEXT_MULTI_LINE
                          )
                      ),
@@ -1151,7 +1124,7 @@ index eb10e7e..76b6fa5 100644
                      SwitchPreference("morphe_hide_comments_ai_chat_summary"),
                      SwitchPreference("morphe_hide_comments_channel_guidelines"),
                      SwitchPreference("morphe_hide_comments_prompts", summary = true),
-@@ -392,6 +395,7 @@ val hideLayoutComponentsPatch = bytecodePatch(
+@@ -394,6 +397,7 @@ val hideLayoutComponentsPatch = bytecodePatch(
          addLithoFilter(LAYOUT_COMPONENTS_FILTER)
          addLithoFilter(DESCRIPTION_COMPONENTS_FILTER)
          addLithoFilter(COMMENTS_FILTER)
@@ -1160,10 +1133,10 @@ index eb10e7e..76b6fa5 100644
          addLithoFilter(AISLIST_FILTER)
          addLithoFilter(CUSTOM_FILTER)
 diff --git a/patches/src/main/resources/addresources/values/youtube/strings.xml b/patches/src/main/resources/addresources/values/youtube/strings.xml
-index 3acb2ad..46f138e 100644
+index edbb6263..8aa38f7e 100644
 --- a/patches/src/main/resources/addresources/values/youtube/strings.xml
 +++ b/patches/src/main/resources/addresources/values/youtube/strings.xml
-@@ -208,6 +208,8 @@ Changes include:
+@@ -211,6 +211,8 @@ Changes include:
  • If all carousel items are hidden, the entire comments section will also be hidden"</string>
      <string name="morphe_hide_comments_carousel_filter_strings_title">Comments carousel filter</string>
      <string name="morphe_hide_comments_carousel_filter_strings_summary">Enter the comments carousel names to filter by, separated by new lines</string>
@@ -1172,7 +1145,7 @@ index 3acb2ad..46f138e 100644
      <string name="morphe_hide_comments_ai_chat_summary_title">Hide AI chat summary</string>
      <string name="morphe_hide_comments_channel_guidelines_title">Hide channel guidelines</string>
      <string name="morphe_hide_comments_prompts_title">Hide comment prompts</string>
-@@ -321,6 +323,8 @@ Tap here to open AiSlopList.com and see downloads for other platforms"</string>
+@@ -326,6 +328,8 @@ Tap here to open AiSlopList.com and see downloads for other platforms"</string>
      <!-- interaction.copyvideolink.copyVideoLinkButtonPatch -->
      <string name="morphe_share_copy_link_button_success">Link copied to clipboard</string>
      <string name="morphe_share_copy_link_with_timestamp_button_success">Link with timestamp copied to clipboard</string>
@@ -1183,7 +1156,7 @@ index 3acb2ad..46f138e 100644
      <string name="morphe_copy_video_link_with_timestamp_button_title">Copy timestamp by default</string>
 diff --git a/patches/src/main/resources/catlock/drawable/morphe_yt_cat_lock_button.xml b/patches/src/main/resources/catlock/drawable/morphe_yt_cat_lock_button.xml
 new file mode 100644
-index 0000000..8629ca8
+index 00000000..8629ca86
 --- /dev/null
 +++ b/patches/src/main/resources/catlock/drawable/morphe_yt_cat_lock_button.xml
 @@ -0,0 +1,39 @@
@@ -1228,7 +1201,7 @@ index 0000000..8629ca8
 +</vector>
 diff --git a/patches/src/main/resources/catlock/drawable/morphe_yt_cat_lock_button_bold.xml b/patches/src/main/resources/catlock/drawable/morphe_yt_cat_lock_button_bold.xml
 new file mode 100644
-index 0000000..c320a0f
+index 00000000..c320a0f5
 --- /dev/null
 +++ b/patches/src/main/resources/catlock/drawable/morphe_yt_cat_lock_button_bold.xml
 @@ -0,0 +1,39 @@
@@ -1273,7 +1246,7 @@ index 0000000..c320a0f
 +</vector>
 diff --git a/patches/src/main/resources/catlock/host/layout/youtube_controls_layout.xml b/patches/src/main/resources/catlock/host/layout/youtube_controls_layout.xml
 new file mode 100644
-index 0000000..33814e4
+index 00000000..33814e4a
 --- /dev/null
 +++ b/patches/src/main/resources/catlock/host/layout/youtube_controls_layout.xml
 @@ -0,0 +1,15 @@

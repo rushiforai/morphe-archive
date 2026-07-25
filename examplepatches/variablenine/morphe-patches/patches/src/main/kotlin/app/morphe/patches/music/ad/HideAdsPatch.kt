@@ -16,6 +16,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLa
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patches.all.misc.resources.resourceMappingPatch
 import app.morphe.patches.music.misc.extension.sharedExtensionPatch
 import app.morphe.patches.music.misc.settings.PreferenceScreen
 import app.morphe.patches.music.misc.settings.settingsPatch
@@ -23,6 +24,7 @@ import app.morphe.patches.music.shared.Constants.COMPATIBILITY_YOUTUBE_MUSIC
 import app.morphe.patches.shared.ad.hideFullscreenAdsPatch
 import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
 private const val EXTENSION_CLASS = "Lapp/morphe/extension/music/patches/HideAdsPatch;"
 
@@ -35,6 +37,7 @@ val hideAdsPatch = bytecodePatch(
         sharedExtensionPatch,
         hideFullscreenAdsPatch(PreferenceScreen.ADS),
         settingsPatch,
+        resourceMappingPatch
     )
 
     compatibleWith(COMPATIBILITY_YOUTUBE_MUSIC)
@@ -42,6 +45,7 @@ val hideAdsPatch = bytecodePatch(
     execute {
         PreferenceScreen.ADS.addPreferences(
             SwitchPreference("morphe_music_hide_get_premium_label"),
+            SwitchPreference("morphe_music_hide_music_premium_promotions"),
             SwitchPreference("morphe_music_hide_video_ads"),
         )
 
@@ -86,5 +90,17 @@ val hideAdsPatch = bytecodePatch(
                 move-result p1
             """
         )
+
+        // Hide Music Premium promotions
+        FloatingLayoutFingerprint.method.apply {
+            val insertIndex = FloatingLayoutFingerprint.instructionMatches.last().index
+            val viewRegister = getInstruction<OneRegisterInstruction>(insertIndex).registerA
+
+            addInstruction(
+                insertIndex + 1,
+                "invoke-static { v$viewRegister }, $EXTENSION_CLASS->" +
+                        "hidePremiumPromotionBottomSheet(Landroid/view/View;)V"
+            )
+        }
     }
 }

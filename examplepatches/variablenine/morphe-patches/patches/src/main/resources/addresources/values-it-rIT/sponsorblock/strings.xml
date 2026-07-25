@@ -214,7 +214,7 @@ Se non stai inviando un momento saliente, tocca Annulla e contrassegna la second
   <string name="morphe_sb_stats_title">Statistiche</string>
   <!-- Shown in the settings preferences, and translations can be any text length. -->
   <string name="morphe_sb_stats_connection_failure">Le statistiche non sono temporaneamente disponibili (l\'API non è attiva)</string>
-  <string name="morphe_sb_stats_loading">Caricamento...</string>
+  <string name="morphe_sb_stats_loading">Caricamento…</string>
   <string name="morphe_sb_stats_sb_disabled">SponsorBlock è disabilitato</string>
   <string name="morphe_sb_stats_username">Il tuo nome utente: &lt;b&gt;%s&lt;/b&gt;</string>
   <string name="morphe_sb_stats_username_change">Tocca qui per cambiare il tuo nome utente</string>

@@ -22,10 +22,12 @@ import app.morphe.patches.youtube.misc.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.misc.playertype.playerTypeHookPatch
 import app.morphe.patches.youtube.misc.playservice.versionCheckPatch
 import app.morphe.patches.youtube.misc.settings.settingsPatch
+import app.morphe.patches.youtube.shared.PlatypusVideoQualityFlagFingerprint
 import app.morphe.patches.youtube.shared.VideoQualityChangedFingerprint
 import app.morphe.patches.youtube.video.information.onCreateHook
 import app.morphe.patches.youtube.video.information.videoInformationPatch
 import app.morphe.util.findFieldFromToString
+import app.morphe.util.insertLiteralOverride
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 
@@ -116,6 +118,13 @@ val rememberVideoQualityPatch = bytecodePatch {
                     "invoke-static { v$register }, $EXTENSION_CLASS->userChangedQuality(I)V",
                 )
             }
+        }
+
+        PlatypusVideoQualityFlagFingerprint.let {
+            it.method.insertLiteralOverride(
+                it.instructionMatches.last().index,
+                "$EXTENSION_CLASS->overridePlatypusVideoQualityFlag(Z)Z"
+            )
         }
     }
 }

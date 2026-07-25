@@ -265,8 +265,10 @@ Vissa layouter på serversidan kanske inte återställs.
   <string name="morphe_disable_precise_seeking_gesture_title">Inaktivera gest för exakt sökning</string>
   <!-- interaction.seekbar.livestreamDVRPatch -->
   <string name="morphe_livestream_dvr_title">Aktivera DVR för livestreamar</string>
+  <string name="morphe_livestream_dvr_summary">Gör det möjligt att söka i alla livestreamar, även de som normalt sett begränsar det</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
   <string name="morphe_expand_livestream_dvr_duration_title">Förläng varaktighet för DVR för livestreamar</string>
+  <string name="morphe_expand_livestream_dvr_duration_summary">Gör det möjligt att spola tillbaka livesändningar upp till 7 dagar bakåt i tiden</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
   <!-- interaction.seekbar.enableSlideToSeekPatch -->
   <string name="morphe_slide_to_seek_title">Aktivera Dra för att söka</string>
@@ -441,10 +443,7 @@ Om du vill komma åt inställningarna aktiverar du knappen Inställningar via Al
   <!-- 'Audio track' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_player_flyout_audio_track_title">Dölj menyn Ljudspår</string>
   <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
-          'Android Reel' and 'TV' must be kept untranslated. -->
-  <string name="morphe_hide_player_flyout_audio_track_not_available">"Menyn Ljudspår är dold
-
-Om du vill att menyn Ljudspår ska visas ändrar du Förfalska videostreamar till Android Reel eller TV"</string>
+          'Android Studio' must be kept untranslated. -->
   <string name="morphe_hide_player_flyout_audio_track_footer_title">Dölj sidfot för menyn Ljudspår</string>
   <!-- 'Captions' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_player_flyout_captions_title">Dölj menyn Textning</string>
@@ -582,43 +581,6 @@ Om du vill att menyn Ljudspår ska visas ändrar du Förfalska videostreamar til
   <string name="morphe_player_overlay_opacity_title">Spelaröverläggets opacitet</string>
   <string name="morphe_player_overlay_opacity_summary">Justera genomskinlighetsnivån (0 är genomskinligt, 100 är ogenomskinligt)</string>
   <string name="morphe_player_overlay_opacity_invalid_toast">Spelaröverläggets opacitet måste vara mellan 0 och 100</string>
-  <!-- layout.returnyoutubedislike.returnYouTubeDislikePatch -->
-  <!-- Brief notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
-  <string name="morphe_ryd_failure_connection_timeout">Ogilla-markeringar är inte tillgängliga just nu (API-tidsgräns nådd)</string>
-  <string name="morphe_ryd_failure_connection_status_code">Ogilla-markeringar är inte tillgängliga (status %d)</string>
-  <string name="morphe_ryd_failure_client_rate_limit_requested">Ogilla-markeringar är inte tillgängliga (API-gräns för klienten)</string>
-  <string name="morphe_ryd_failure_generic">Ogilla-markeringar är inte tillgängliga (%s)</string>
-  <!-- Brief notification (Toast) shown if the user enables RYD while a video is opened, and then tries to vote for the video. -->
-  <string name="morphe_ryd_failure_ryd_enabled_while_playing_video_then_user_voted">Läs in video igen för att rösta med Return YouTube Dislike</string>
-  <!-- Video likes have been set to hidden by the video uploader. -->
-  <string name="morphe_ryd_video_likes_hidden_by_video_owner">Dolda av ägaren</string>
-  <string name="morphe_ryd_enabled_title">Aktivera Return YouTube Dislike</string>
-  <string name="morphe_ryd_dislike_percentage_title">Visa ogilla-markeringar som procentandel</string>
-  <string name="morphe_ryd_dislike_percentage_summary">Visa ogilla-markeringar som procentandelen av antalet gilla-markeringar istället för som ett tal</string>
-  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
-  <string name="morphe_ryd_compact_layout_title">Använd kompakt Gilla-knapp</string>
-  <string name="morphe_ryd_compact_layout_summary">Minskar bredden på Gilla-knappen för att spara utrymme</string>
-  <string name="morphe_ryd_estimated_like_title">Visa uppskattade gilla-markeringar</string>
-  <string name="morphe_ryd_estimated_like_summary">Visar ett uppskattat antal gilla-markeringar för videor där kreatören har inaktiverat gilla-markeringar</string>
-  <string name="morphe_ryd_toast_on_connection_error_title">Visa meddelanden om anslutningsfel</string>
-  <string name="morphe_ryd_toast_on_connection_error_summary">Visar ett meddelande när Return YouTube Dislike-servern inte är tillgänglig</string>
-  <!-- Statistic strings are shown in the settings only when Morphe debug mode is enabled. Typical users will never see these. -->
-  <string name="morphe_ryd_statistics_category_title">Return YouTube Dislike-API-statistik för denna enhet</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeAverage_title">API-svarstid, genomsnittlig</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMin_title">API-svarstid, minsta</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMax_title">API-svarstid, längsta</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_title">API-svarstid, senaste videon</string>
-  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_rate_limit_summary">Ogilla-markeringar är för tillfället inte tillgängliga – API-frekvensgräns för klienten gäller</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_title">API-rösthämtning, antal anrop</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_zero_summary">Inga nätverksanrop har gjorts</string>
-  <string name="morphe_ryd_statistics_getFetchCallCount_non_zero_summary">%d nätverksanrop har gjorts</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_title">API-rösthämtning, antal gånger tidsgränsen har överskridits</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_zero_summary">Inga nätverksanrop har överskridit tidsgränsen</string>
-  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_non_zero_summary">%d nätverksanrop har överskridit tidsgränsen</string>
-  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_title">API-frekvensgränser för klienten</string>
-  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_zero_summary">Inga frekvensgränser för klienten har påträffats</string>
-  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_non_zero_summary">Frekvensgräns för klienten har påträffats %d gånger</string>
-  <string name="morphe_ryd_statistics_millisecond_text">%d millisekunder</string>
   <!-- layout.searchbar.wideSearchbarPatch -->
   <string name="morphe_wide_searchbar_title">Aktivera brett sökfält</string>
   <!-- layout.sponsorblock.sponsorBlockPatch -->
@@ -839,7 +801,6 @@ Begränsningar:
 
 Videouppspelning med AV1 kan hacka eller tappa bildrutor."</string>
   <string name="morphe_spoof_video_streams_about_title">Bieffekter av förfalskning</string>
-  <string name="morphe_spoof_video_streams_about_experimental">• Experimentell klient och kan sluta fungera när som helst</string>
   <string name="morphe_spoof_video_streams_about_playback_failure">• Videor kan stanna vid 1:00 eller kanske inte är tillgängliga i vissa regioner</string>
   <string name="morphe_spoof_video_streams_about_no_audio_tracks">• Menyn Ljudspår saknas</string>
   <string name="morphe_spoof_video_streams_about_no_av1">• Ingen AV1-videokodek</string>

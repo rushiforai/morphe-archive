@@ -18,6 +18,8 @@ public final class DescriptionComponentsFilter extends Filter {
 
     private static final String INFOCARDS_SECTION_PATH = "infocards_section.e";
 
+    private final StringFilterGroup hashtagSection;
+    private final ByteArrayFilterGroup hashtagSectionBuffer;
     private final StringFilterGroup macroMarkersCarousel;
     private final ByteArrayFilterGroupList macroMarkersCarouselGroupList = new ByteArrayFilterGroupList();
     private final StringFilterGroup playlistSection;
@@ -41,6 +43,16 @@ public final class DescriptionComponentsFilter extends Filter {
                 "youchat_entrypoint.e"
         );
 
+        final StringFilterGroup correctionsSection = new StringFilterGroup(
+                Settings.HIDE_CORRECTIONS_SECTION,
+                "error_corrections_section"
+        );
+
+        final StringFilterGroup courseProgressSection = new StringFilterGroup(
+                Settings.HIDE_COURSE_PROGRESS_SECTION,
+                "course_progress"
+        );
+
         featuredSection = new StringFilterGroup(
                 null,
                 "compact_infocard.e"
@@ -56,8 +68,61 @@ public final class DescriptionComponentsFilter extends Filter {
                         "media_lockup"
                 ),
                 new ByteArrayFilterGroup(
+                        Settings.HIDE_FEATURED_PLAYLISTS_SECTION,
+                        "structured_description_playlist_lockup"
+                ),
+                new ByteArrayFilterGroup(
                         Settings.HIDE_FEATURED_VIDEOS_SECTION,
                         "structured_description_video_lockup"
+                )
+        );
+
+        hashtagSection = new StringFilterGroup(
+                Settings.HIDE_HASHTAG_SECTION,
+                "|CellType|ScrollableContainerType|"
+        );
+
+        hashtagSectionBuffer = new ByteArrayFilterGroup(
+                null,
+                "FEhashtag"
+        );
+
+        final StringFilterGroup howThisWasMadeSection = new StringFilterGroup(
+                Settings.HIDE_HOW_THIS_WAS_MADE_SECTION,
+                "how_this_was_made_section"
+        );
+
+        final StringFilterGroup hypePoints = new StringFilterGroup(
+                Settings.HIDE_HYPE_POINTS,
+                "hype_points_factoid"
+        );
+
+        final StringFilterGroup infoCardsSection = new StringFilterGroup(
+                Settings.HIDE_INFO_CARDS_SECTION,
+                INFOCARDS_SECTION_PATH
+        );
+
+        final StringFilterGroup lensSection = new StringFilterGroup(
+                Settings.HIDE_SEARCH_INSIDE_THIS_VIDEO_SECTION,
+                "lens_section.e"
+        );
+
+        macroMarkersCarousel = new StringFilterGroup(
+                null,
+                "macro_markers_carousel.e"
+        );
+
+        macroMarkersCarouselGroupList.addAll(
+                new ByteArrayFilterGroup(
+                        Settings.HIDE_CHAPTERS_SECTION,
+                        "chapters_horizontal_shelf",
+                        "auto-chapters",
+                        "description-chapters"
+                ),
+                new ByteArrayFilterGroup(
+                        Settings.HIDE_KEY_CONCEPTS_SECTION,
+                        "learning_concept_macro_markers_carousel_shelf",
+                        "learning-concept"
                 )
         );
 
@@ -81,9 +146,10 @@ public final class DescriptionComponentsFilter extends Filter {
                 )
         );
 
-        final StringFilterGroup correctionsSection = new StringFilterGroup(
-                Settings.HIDE_CORRECTIONS_SECTION,
-                "error_corrections_section"
+        shortsHowThisWasMadeSection = new StringFilterGroup(
+                Settings.HIDE_HOW_THIS_WAS_MADE_SECTION,
+                "shelf_header.e",
+                "cell_video_attribute.e"
         );
 
         final StringFilterGroup transcriptSection = new StringFilterGroup(
@@ -91,54 +157,9 @@ public final class DescriptionComponentsFilter extends Filter {
                 "transcript_section"
         );
 
-        final StringFilterGroup howThisWasMadeSection = new StringFilterGroup(
-                Settings.HIDE_HOW_THIS_WAS_MADE_SECTION,
-                "how_this_was_made_section"
-        );
-
-        final StringFilterGroup courseProgressSection = new StringFilterGroup(
-                Settings.HIDE_COURSE_PROGRESS_SECTION,
-                "course_progress"
-        );
-
-        final StringFilterGroup hypePoints = new StringFilterGroup(
-                Settings.HIDE_HYPE_POINTS,
-                "hype_points_factoid"
-        );
-
-        final StringFilterGroup infoCardsSection = new StringFilterGroup(
-                Settings.HIDE_INFO_CARDS_SECTION,
-                INFOCARDS_SECTION_PATH
-        );
-
         subscribeButton = new StringFilterGroup(
                 Settings.HIDE_SUBSCRIBE_BUTTON,
                 "subscribe_button"
-        );
-
-        macroMarkersCarousel = new StringFilterGroup(
-                null,
-                "macro_markers_carousel.e"
-        );
-
-        macroMarkersCarouselGroupList.addAll(
-                new ByteArrayFilterGroup(
-                        Settings.HIDE_CHAPTERS_SECTION,
-                        "chapters_horizontal_shelf",
-                        "auto-chapters",
-                        "description-chapters"
-                ),
-                new ByteArrayFilterGroup(
-                        Settings.HIDE_KEY_CONCEPTS_SECTION,
-                        "learning_concept_macro_markers_carousel_shelf",
-                        "learning-concept"
-                )
-        );
-
-        shortsHowThisWasMadeSection = new StringFilterGroup(
-                Settings.HIDE_HOW_THIS_WAS_MADE_SECTION,
-                "shelf_header.e",
-                "cell_video_attribute.e"
         );
 
         videoDetails = new StringFilterGroup(
@@ -157,9 +178,11 @@ public final class DescriptionComponentsFilter extends Filter {
                 correctionsSection,
                 courseProgressSection,
                 featuredSection,
+                hashtagSection,
                 howThisWasMadeSection,
                 hypePoints,
                 infoCardsSection,
+                lensSection,
                 macroMarkersCarousel,
                 playlistSection,
                 shortsHowThisWasMadeSection,
@@ -185,12 +208,16 @@ public final class DescriptionComponentsFilter extends Filter {
             return false;
         }
 
-        if (matchedGroup == subscribeButton) {
-            return path.startsWith(INFOCARDS_SECTION_PATH);
-        }
-
         if (matchedGroup == featuredSection) {
             return featuredSectionGroupList.check(buffer).isFiltered();
+        }
+
+        if (matchedGroup == hashtagSection) {
+            return hashtagSectionBuffer.check(buffer).isFiltered();
+        }
+
+        if (matchedGroup == macroMarkersCarousel) {
+            return contentIndex == 0 && macroMarkersCarouselGroupList.check(buffer).isFiltered();
         }
 
         if (matchedGroup == playlistSection) {
@@ -198,12 +225,12 @@ public final class DescriptionComponentsFilter extends Filter {
             return Settings.HIDE_EXPLORE_SECTION.get() || playlistSectionGroupList.check(buffer).isFiltered();
         }
 
-        if (matchedGroup == macroMarkersCarousel) {
-            return contentIndex == 0 && macroMarkersCarouselGroupList.check(buffer).isFiltered();
-        }
-
         if (matchedGroup == shortsHowThisWasMadeSection) {
             return ShortsPlayerState.isOpen() && EngagementPanel.isDescription();
+        }
+
+        if (matchedGroup == subscribeButton) {
+            return path.startsWith(INFOCARDS_SECTION_PATH);
         }
 
         if (matchedGroup == videoDetails) {

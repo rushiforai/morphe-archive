@@ -97,7 +97,7 @@ Second \"item\" text"</string>
   <string name="morphe_debug_export_logs_file">匯出至檔案</string>
   <string name="morphe_debug_export_logs_success">Debug 記錄已成功匯出</string>
   <string name="morphe_debug_export_logs_failed">匯出 Debug 記錄失敗</string>
-  <string name="morphe_debug_logs_search_hint">搜尋 Debug 記錄...</string>
+  <string name="morphe_debug_logs_search_hint">搜尋偵錯記錄…</string>
   <string name="morphe_debug_export_logs_clear">清除</string>
   <string name="morphe_debug_logs_disabled">已停用偵錯記錄</string>
   <string name="morphe_debug_logs_none_found">未找到 Debug 記錄</string>
@@ -108,7 +108,7 @@ Second \"item\" text"</string>
   <string name="morphe_debug_feature_flags_manager_summary">管理布林功能標記</string>
   <string name="morphe_debug_feature_flags_manager_active_header">已啟用功能標籤 (%d)</string>
   <string name="morphe_debug_feature_flags_manager_blocked_header">已封鎖功能標籤 (%d)</string>
-  <string name="morphe_debug_feature_flags_manager_search_hint">搜尋功能標籤...</string>
+  <string name="morphe_debug_feature_flags_manager_search_hint">搜尋功能標籤…</string>
   <string name="morphe_debug_feature_flags_manager_toast_saved">功能標籤已儲存</string>
   <string name="morphe_debug_feature_flags_manager_toast_reset">功能標籤已重設</string>
   <string name="morphe_debug_feature_flags_manager_toast_copied">功能標籤已複製到剪貼簿</string>

@@ -59,7 +59,6 @@ import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.indexOfFirstInstructionReversedOrThrow
 import app.morphe.util.injectHideViewCall
-import app.morphe.util.insertLiteralOverride
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
@@ -130,14 +129,17 @@ val hideLayoutComponentsPatch = bytecodePatch(
                     SwitchPreference("morphe_hide_featured_channels_section"),
                     SwitchPreference("morphe_hide_featured_links_section"),
                     SwitchPreference("morphe_hide_featured_places_section"),
+                    SwitchPreference("morphe_hide_featured_playlists_section"),
                     SwitchPreference("morphe_hide_featured_videos_section"),
                     SwitchPreference("morphe_hide_gaming_section"),
+                    SwitchPreference("morphe_hide_hashtag_section"),
                     SwitchPreference("morphe_hide_how_this_was_made_section"),
                     SwitchPreference("morphe_hide_hype_points"),
                     SwitchPreference("morphe_hide_info_cards_section"),
                     SwitchPreference("morphe_hide_key_concepts_section"),
                     SwitchPreference("morphe_hide_music_section"),
                     SwitchPreference("morphe_hide_quizzes_section"),
+                    SwitchPreference("morphe_hide_search_inside_this_video_section"),
                     SwitchPreference("morphe_hide_subscribe_button"),
                     SwitchPreference("morphe_hide_transcript_section"),
                     SwitchPreference("morphe_hide_video_details_section")
@@ -692,8 +694,7 @@ val hideLayoutComponentsPatch = bytecodePatch(
 
         arrayOf(
             FilterBarHeightFingerprint to "hideInFeed",
-            SearchResultsChipBarFingerprint to "hideInSearch",
-            RelatedChipCloudFingerprint to "hideInRelatedVideos"
+            SearchResultsChipBarFingerprint to "hideInSearch"
         ).forEach { (fingerprint, methodName) ->
             fingerprint.method.apply {
                 val moveIndex = fingerprint.instructionMatches.last().index
@@ -709,27 +710,17 @@ val hideLayoutComponentsPatch = bytecodePatch(
             }
         }
 
-        RelatedChipCloudFingerprint.let {
-            it.clearMatch()
-            it.method.apply {
-                insertLiteralOverride(
-                    it.instructionMatches[2].index,
-                    "$LAYOUT_COMPONENTS_FILTER->hideInRelatedVideos(Z)Z"
-                )
-            }
-        }
+        arrayOf(
+            RelatedChipCloudFingerprint to RelatedChipCloudFingerprint.instructionMatches[2].index,
+            RelatedChipCloudMirrorClassFingerprint to RelatedChipCloudMirrorClassFingerprint.instructionMatches.last().index,
+            RelatedChipCloudMirrorClassFingerprint to RelatedChipCloudMirrorClassFingerprint.instructionMatches[2].index
+        ).forEach { (fingerprint, recyclerViewIndex) ->
+            fingerprint.method.apply {
+                val recyclerViewRegister = getInstruction<OneRegisterInstruction>(recyclerViewIndex).registerA
 
-        RelatedChipCloudFingerprint.let {
-            it.clearMatch()
-            it.method.apply {
-                val viewIndex = it.instructionMatches[1].index
-                val viewRegister = getInstruction<FiveRegisterInstruction>(viewIndex).registerC
-
-                injectHideViewCall(
-                    viewIndex,
-                    viewRegister,
-                    LAYOUT_COMPONENTS_FILTER,
-                    "hideInRelatedVideos"
+                addInstruction(
+                    recyclerViewIndex + 1,
+                    "invoke-static { v$recyclerViewRegister }, $LAYOUT_COMPONENTS_FILTER->hideInRelatedVideos(Landroid/support/v7/widget/RecyclerView;)V"
                 )
             }
         }
@@ -966,20 +957,24 @@ val hideLayoutComponentsPatch = bytecodePatch(
 
         CreateSearchSuggestionsFingerprint.let {
             it.method.apply {
-                val insertIndex = it.instructionMatches[2].index - 1
-                val freeRegister = findFreeRegister(insertIndex)
-                val jumpIndex = it.instructionMatches.last().index
+                val methodCalls = findInstructionIndicesReversedOrThrow {
+                    (opcode == Opcode.INVOKE_INTERFACE || opcode == Opcode.INVOKE_VIRTUAL) &&
+                            (getReference<MethodReference>()?.parameterTypes == listOf("Landroid/widget/ImageView;", "Landroid/net/Uri;"))
+                }
 
-                addInstructionsWithLabels(
-                    insertIndex,
-                    """
-                        invoke-static { }, $LAYOUT_COMPONENTS_FILTER->hideSearchTermThumbnails()Z
-                        move-result v$freeRegister
-                        
-                        if-nez v$freeRegister, :hidden
-                    """,
-                    ExternalLabel("hidden", getInstruction(jumpIndex))
-                )
+                methodCalls.forEach { insertIndex ->
+                    val invokeInstruction = getInstruction<FiveRegisterInstruction>(insertIndex)
+                    val imageViewRegister = invokeInstruction.registerD
+                    val uriRegister = invokeInstruction.registerE
+
+                    addInstructions(
+                        insertIndex,
+                        """
+                            invoke-static { v$imageViewRegister, v$uriRegister }, $LAYOUT_COMPONENTS_FILTER->hideSearchTermThumbnails(Landroid/view/View;Landroid/net/Uri;)Landroid/net/Uri;
+                            move-result-object v$uriRegister
+                        """
+                    )
+                }
             }
         }
 

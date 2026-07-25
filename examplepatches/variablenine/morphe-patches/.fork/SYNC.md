@@ -9,8 +9,8 @@ it too.
 
 ## State markers (update on every sync)
 
-- **Upstream baseline:** stable tag `v1.35.0` (commit `e12088c89942`)
-- **Last synced upstream release:** v1.35.0 (2026-07-18)
+- **Upstream baseline:** stable tag `v1.36.0` (commit `88296f185f54`)
+- **Last synced upstream release:** v1.36.0 (2026-07-24)
 
 ## What is fork-local
 
@@ -77,12 +77,42 @@ patch no longer applies cleanly):
 5. Verify locally: run the self-tests with plain `javac`/`java` (BrainrotDetectorSelfTest 27/27, AlternatingTapUnlockSelfTest 11/11).
 6. Update the state markers in this file. Commit everything as
    `bump: Sync upstream Morphe patches vX.Y.Z` (the `bump:` type produces a patch release), push to `dev`.
+   If the push to `dev` is rejected with 403 / a branch restriction, see **Automation (routine) setup**
+   below — commit first regardless, then fall back to a `claude/`-prefixed branch + PR into `dev`.
 7. CI is the compatibility gate: the `Build pull request` workflow must compile the bundle
    (`./gradlew :patches:buildAndroid`). If it fails, diagnose and fix; do not proceed while red.
+   **A clean delta apply and passing self-tests do NOT imply the bundle builds** — upstream refactors
+   APIs the fork's extension code calls. (v1.36.0 reworked `LegacyPlayerControlButton`: the constructor
+   started taking a `BooleanSetting`/`PlayerControlButtonStatus`, `setVisibility*` overloads were removed,
+   and `injectVisibilityCheckCall` disappeared from `LegacyPlayerControlsPatch` — `CatLockButton` and
+   `CatLockPatch` had to be adapted.) When CI is red, read the job logs and diff the fork's usage against
+   upstream's own equivalent code in the new tree (e.g. `ExternalDownloadButton`, `DownloadsPatch`).
 8. When CI is green: mark the auto-opened `dev → main` PR ready and **merge it (merge commit, never
    squash)**. The Release workflow on `main` then publishes the new bundle automatically.
 9. If the delta cannot be re-applied confidently or CI cannot be made green, STOP: leave the `dev → main`
    PR as draft with a comment explaining exactly what upstream changed and where the sync is stuck.
+
+## Automation (routine) setup
+
+The sync runs unattended as a claude.ai **Routine** ("Daily Morphe upstream sync", daily 09:00 UTC),
+which fires a fresh cloud session each time. Two things must be configured on the *routine itself*
+at [claude.ai/code/routines](https://claude.ai/code/routines) → edit routine — **not** on the cloud
+environment (the environment dialog only controls network access, env vars, and the setup script,
+and has no repository settings at all):
+
+1. **Repositories** — `variablenine/morphe-patches` must be attached, otherwise the session has no
+   push credentials. Note the fork is *public*, so `git clone`/`fetch` succeed even with no repo
+   attached; only the push reveals the problem. A routine created through the CLI/MCP
+   (`create_trigger`) has no repositories field, so it starts with none attached.
+2. **Permissions → Allow unrestricted branch pushes** — without this a routine may only push to
+   `claude/`-prefixed branches, and this procedure pushes to `dev`.
+
+If (2) is unavailable or off, the sync still completes via the documented fallback: commit locally,
+push to `claude/sync-vX.Y.Z`, and open a PR into `dev` (then the normal `dev → main` flow follows).
+Prefer fixing the setting over relying on the fallback, since the fallback adds a second PR per sync.
+
+An interactive session started from the repo already has push access, so a stuck automated sync can
+always be finished by hand from a normal session — that is how the v1.36.0 sync landed.
 
 ## Hard rules
 

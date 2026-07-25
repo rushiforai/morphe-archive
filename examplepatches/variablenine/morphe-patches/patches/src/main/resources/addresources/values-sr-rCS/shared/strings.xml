@@ -49,6 +49,7 @@ Second \"item\" text"</string>
   <string name="morphe_settings_search_empty_history_summary">Da biste sačuvali istoriju pretrage, unesite upit za pretragu i pritisnite Enter</string>
   <string name="morphe_settings_search_history_title">Prikaži istoriju pretrage podešavanja</string>
   <string name="morphe_show_menu_icons_title">Prikaži ikonice podešavanja Morphea</string>
+  <string name="morphe_settings_menu_copy_path">Kopirano: %s</string>
   <string name="morphe_language_title">Jezik Morphea</string>
   <string name="morphe_language_user_dialog_message">"Prevodi za neke jezike mogu nedostajati ili biti nepotpuni.
 
@@ -97,7 +98,7 @@ Nećete biti obavešteni ni o kakvim neočekivanim događajima."</string>
   <string name="morphe_debug_export_logs_file">Izvezi u datoteku</string>
   <string name="morphe_debug_export_logs_success">Beleške o ispravljanju grešaka uspešno izvežene</string>
   <string name="morphe_debug_export_logs_failed">Nije uspelo izvođenje beležaka o ispravljanju grešaka</string>
-  <string name="morphe_debug_logs_search_hint">Pretražite beleške o ispravljanju grešaka...</string>
+  <string name="morphe_debug_logs_search_hint">Pretražite evidencije otklanjanja grešaka…</string>
   <string name="morphe_debug_export_logs_clear">Obriši</string>
   <string name="morphe_debug_logs_disabled">Evidentiranje otklanjanja grešaka je onemogućeno</string>
   <string name="morphe_debug_logs_none_found">Nisu pronađene beleške o ispravljanju grešaka</string>
@@ -108,7 +109,7 @@ Nećete biti obavešteni ni o kakvim neočekivanim događajima."</string>
   <string name="morphe_debug_feature_flags_manager_summary">Upravljajte bulovim zastavicama funkcija</string>
   <string name="morphe_debug_feature_flags_manager_active_header">Aktivne karakteristike ( %d )</string>
   <string name="morphe_debug_feature_flags_manager_blocked_header">Blokirane karakteristike ( %d )</string>
-  <string name="morphe_debug_feature_flags_manager_search_hint">Pretražite karakteristike...</string>
+  <string name="morphe_debug_feature_flags_manager_search_hint">Pretražite funkcije…</string>
   <string name="morphe_debug_feature_flags_manager_toast_saved">Karakteristike su sačuvane</string>
   <string name="morphe_debug_feature_flags_manager_toast_reset">Karakteristike su resetovane</string>
   <string name="morphe_debug_feature_flags_manager_toast_copied">Karakteristike kopirane u međumemoriju</string>

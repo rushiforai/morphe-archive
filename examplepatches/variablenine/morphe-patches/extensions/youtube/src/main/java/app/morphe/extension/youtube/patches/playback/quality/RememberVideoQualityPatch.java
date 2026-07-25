@@ -137,4 +137,16 @@ public class RememberVideoQualityPatch {
     public static void newVideoStarted(VideoInformation.PlaybackController ignoredPlayerController) {
         VideoInformation.setDesiredVideoResolution(getDefaultQualityResolution());
     }
+
+    /**
+     * Injection point.
+     */
+    public static boolean overridePlatypusVideoQualityFlag(boolean originalValue) {
+        int preferredQuality = getDefaultQualityResolution();
+        if (preferredQuality != VideoInformation.AUTOMATIC_VIDEO_QUALITY_VALUE && originalValue) {
+            Logger.printDebug(() -> "overridePlatypusVideoQualityFlag new value: " + false);
+            return false;
+        }
+        return originalValue;
+    }
 }

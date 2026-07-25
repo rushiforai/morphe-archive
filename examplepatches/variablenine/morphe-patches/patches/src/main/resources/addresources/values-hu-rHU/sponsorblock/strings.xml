@@ -213,7 +213,7 @@ Ha nem szeretne kiemelést küldeni, nyomja meg a Mégse gombot, és jelölje me
   <string name="morphe_sb_stats_title">Statisztikák</string>
   <!-- Shown in the settings preferences, and translations can be any text length. -->
   <string name="morphe_sb_stats_connection_failure">A statisztikák átmenetileg nem érhetők el (az API nem működik)</string>
-  <string name="morphe_sb_stats_loading">Betöltés...</string>
+  <string name="morphe_sb_stats_loading">Betöltés…</string>
   <string name="morphe_sb_stats_sb_disabled">A SponsorBlock ki van kapcsolva</string>
   <string name="morphe_sb_stats_username">Az ön felhasználóneve: &lt;b&gt;%s&lt;/b&gt;</string>
   <string name="morphe_sb_stats_username_change">Koppintson ide a felhasználónév megváltoztatásához</string>

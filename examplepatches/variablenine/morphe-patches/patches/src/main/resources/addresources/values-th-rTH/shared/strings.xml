@@ -81,7 +81,7 @@ Second \"item\" text"</string>
   <string name="morphe_settings_about_links_rv">2022 – 2025</string>
   <string name="morphe_settings_about_links_vanced">2019 – 2022</string>
   <string name="morphe_settings_about_links_licenses">ข้อความแจ้งลิขสิทธิ์</string>
-  <string name="morphe_settings_about_licenses_loading">กำลังโหลด...</string>
+  <string name="morphe_settings_about_licenses_loading">กำลังโหลด</string>
   <!-- misc.debugging.enableDebuggingPatch -->
   <string name="morphe_debug_screen_title">ดีบัก</string>
   <string name="morphe_debug_screen_summary">กำหนดค่าตัวเลือกขั้นสูงสำหรับนักพัฒนาและบันทึกการวินิจฉัย</string>
@@ -97,7 +97,7 @@ Second \"item\" text"</string>
   <string name="morphe_debug_export_logs_file">Export to file</string>
   <string name="morphe_debug_export_logs_success">Debug logs exported successfully</string>
   <string name="morphe_debug_export_logs_failed">Failed to export debug logs</string>
-  <string name="morphe_debug_logs_search_hint">Search debug logs...</string>
+  <string name="morphe_debug_logs_search_hint">ค้นหาบันทึกการแก้ไขข้อบกพร่อง…</string>
   <string name="morphe_debug_export_logs_clear">Clear</string>
   <string name="morphe_debug_logs_disabled">ปิดใช้งานการบันทึกการแก้ไขข้อบกพร่อง</string>
   <string name="morphe_debug_logs_none_found">No debug logs found</string>
@@ -108,7 +108,7 @@ Second \"item\" text"</string>
   <string name="morphe_debug_feature_flags_manager_summary">จัดการแฟล็กคุณสมบัติบูลีน</string>
   <string name="morphe_debug_feature_flags_manager_active_header">Active feature flags (%d)</string>
   <string name="morphe_debug_feature_flags_manager_blocked_header">Blocked feature flags (%d)</string>
-  <string name="morphe_debug_feature_flags_manager_search_hint">Search feature flags...</string>
+  <string name="morphe_debug_feature_flags_manager_search_hint">ค้นหาฟีเจอร์แฟล็ก…</string>
   <string name="morphe_debug_feature_flags_manager_toast_saved">Feature flags saved</string>
   <string name="morphe_debug_feature_flags_manager_toast_reset">Feature flags reset</string>
   <string name="morphe_debug_feature_flags_manager_toast_copied">Feature flags copied to clipboard</string>

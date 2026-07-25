@@ -33,9 +33,10 @@ Second \"item\" text"</string>
   <string name="morphe_settings_music_screen_1_ads_title">Publicités</string>
   <string name="morphe_settings_music_screen_2_general_title">Général</string>
   <string name="morphe_settings_music_screen_3_player_title">Lecteur</string>
-  <string name="morphe_settings_music_screen_6_misc_title">Divers</string>
+  <string name="morphe_settings_music_screen_7_misc_title">Divers</string>
   <!-- ad.hideAdsPatch -->
   <string name="morphe_music_hide_get_premium_label_title">Masquer le libellé \'S\'abonner à Music Premium\'</string>
+  <string name="morphe_music_hide_music_premium_promotions_title">Masquer les promotions Music Premium</string>
   <string name="morphe_music_hide_video_ads_title">Masquer les publicités vidéo</string>
   <!-- interaction.crossfade.crossfadePatch -->
   <string name="morphe_music_crossfade_screen_title">Fondu enchaîné</string>
@@ -119,8 +120,8 @@ YouTube Music 8.x — le fondu enchaîné ne fonctionne que sur les versions 9.x
   <string name="morphe_music_hide_lyrics_share_button_title">Masquer le bouton \'Partager\'</string>
   <string name="morphe_music_hide_lyrics_translate_button_title">Masquer le bouton \'Traduire\'</string>
   <!-- layout.hide.actionbuttons.hideActionButtonsPatch -->
-  <string name="morphe_music_action_buttons_screen_title">Boutons d’action</string>
-  <string name="morphe_music_action_buttons_screen_summary">Choisissez les boutons d’action à afficher sous le lecteur</string>
+  <string name="morphe_music_action_buttons_screen_title">Boutons d\'action</string>
+  <string name="morphe_music_action_buttons_screen_summary">Choisissez les boutons d\'action à afficher sous le lecteur</string>
   <string name="morphe_music_hide_action_bar_title">Masquer la barre d\'actions</string>
   <string name="morphe_music_hide_like_dislike_button_title">Masquer les boutons \'J\'aime\' et \'Je n\'aime pas\'</string>
   <string name="morphe_music_hide_comments_button_title">Masquer le bouton \'Commentaires\'</string>
@@ -186,7 +187,7 @@ YouTube Music 8.x — le fondu enchaîné ne fonctionne que sur les versions 9.x
   <!-- layout.compactheader.hideFilterBarPatch -->
   <string name="morphe_music_hide_filter_bar_title">Masquer la barre de filtres</string>
   <!-- layout.miniplayer.changeMiniplayerColorPatch -->
-  <string name="morphe_music_change_miniplayer_color_title">Modifier la couleur du mini-lecteur</string>
+  <string name="morphe_music_change_miniplayer_color_title">Changer la couleur du mini-lecteur</string>
   <string name="morphe_music_change_miniplayer_color_summary">Adapte la couleur du mini-lecteur à celle du lecteur en plein écran</string>
   <string name="morphe_music_change_navigation_bar_color_title">Changer la couleur de la barre de navigation</string>
   <string name="morphe_music_change_navigation_bar_color_summary">Adapte la couleur de la barre de navigation à celle du lecteur en plein écran</string>
@@ -241,7 +242,7 @@ YouTube Music 8.x — le fondu enchaîné ne fonctionne que sur les versions 9.x
   <string name="morphe_music_listenbrainz_token_dialog_get_token">Obtenir un jeton</string>
   <string name="morphe_music_listenbrainz_token_dialog_verify">Vérifier</string>
   <string name="morphe_music_listenbrainz_token_status_empty">Veuillez entrer un jeton</string>
-  <string name="morphe_music_listenbrainz_token_status_validating">Validation...</string>
+  <string name="morphe_music_listenbrainz_token_status_validating">Validation…</string>
   <string name="morphe_music_listenbrainz_token_status_valid">Jeton valide ! Utilisateur : %s</string>
   <string name="morphe_music_listenbrainz_token_status_invalid">Jeton invalide : %s</string>
   <string name="morphe_music_listenbrainz_token_status_invalid_unknown">inconnu</string>
@@ -258,7 +259,7 @@ YouTube Music 8.x — le fondu enchaîné ne fonctionne que sur les versions 9.x
   <string name="morphe_music_lastfm_token_dialog_password_hint">Mot de passe</string>
   <string name="morphe_music_lastfm_token_dialog_login">Se connecter</string>
   <string name="morphe_music_lastfm_token_status_empty">Veuillez entrer votre nom d\'utilisateur et votre mot de passe</string>
-  <string name="morphe_music_lastfm_token_status_logging_in">Connexion en cours...</string>
+  <string name="morphe_music_lastfm_token_status_logging_in">Connexion en cours…</string>
   <string name="morphe_music_lastfm_token_status_success">Connecté avec succès !</string>
   <string name="morphe_music_lastfm_token_status_no_session">Échec de récupération de la session depuis Last.fm</string>
   <string name="morphe_music_lastfm_token_status_failed">Échec de la connexion : %s</string>

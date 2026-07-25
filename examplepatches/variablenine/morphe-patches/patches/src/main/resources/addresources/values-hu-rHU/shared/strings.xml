@@ -49,6 +49,7 @@ Second \"item\" text"</string>
   <string name="morphe_settings_search_empty_history_summary">A keresési előzmények mentéséhez írjon be egy keresési lekérdezést, majd nyomja meg az Entert</string>
   <string name="morphe_settings_search_history_title">Beállítások keresési előzményeinek megjelenítése</string>
   <string name="morphe_show_menu_icons_title">Morphe beállításikonok megjelenítése</string>
+  <string name="morphe_settings_menu_copy_path">Másolva: %s</string>
   <string name="morphe_language_title">Morphe nyelve</string>
   <string name="morphe_language_user_dialog_message">"Egyes nyelvek fordításai hiányozhatnak vagy hiányosak lehetnek.
 
@@ -81,7 +82,7 @@ Second \"item\" text"</string>
   <string name="morphe_settings_about_links_rv">2022 – 2025</string>
   <string name="morphe_settings_about_links_vanced">2019 – 2022</string>
   <string name="morphe_settings_about_links_licenses">Licencmegjegyzések</string>
-  <string name="morphe_settings_about_licenses_loading">Betöltés...</string>
+  <string name="morphe_settings_about_licenses_loading">Betöltés…</string>
   <!-- misc.debugging.enableDebuggingPatch -->
   <string name="morphe_debug_screen_title">Hibakeresés</string>
   <string name="morphe_debug_screen_summary">Konfigurálja a fejlett fejlesztői beállításokat és a részletes naplókat</string>
@@ -97,7 +98,7 @@ Nem fog értesülni semmilyen váratlan eseményről."</string>
   <string name="morphe_debug_export_logs_file">Exportálás fájlba</string>
   <string name="morphe_debug_export_logs_success">A hibakeresési naplók sikeresen exportálva</string>
   <string name="morphe_debug_export_logs_failed">Nem sikerült exportálni a hibakeresési naplókat</string>
-  <string name="morphe_debug_logs_search_hint">Hibakeresési naplók keresése...</string>
+  <string name="morphe_debug_logs_search_hint">Keresés a hibakeresési naplókban…</string>
   <string name="morphe_debug_export_logs_clear">Törlés</string>
   <string name="morphe_debug_logs_disabled">A hibakeresési naplózás ki van kapcsolva</string>
   <string name="morphe_debug_logs_none_found">Nincs hibakeresési napló</string>
@@ -108,7 +109,7 @@ Nem fog értesülni semmilyen váratlan eseményről."</string>
   <string name="morphe_debug_feature_flags_manager_summary">Logikai funkciójelzők kezelése</string>
   <string name="morphe_debug_feature_flags_manager_active_header">Aktív funkciójelzők (%d)</string>
   <string name="morphe_debug_feature_flags_manager_blocked_header">Blokkolt funkciójelzők (%d)</string>
-  <string name="morphe_debug_feature_flags_manager_search_hint">Funkciójelzők keresése...</string>
+  <string name="morphe_debug_feature_flags_manager_search_hint">Keresés a funkciójelzőkben…</string>
   <string name="morphe_debug_feature_flags_manager_toast_saved">Funkciójelzők mentve</string>
   <string name="morphe_debug_feature_flags_manager_toast_reset">Funkciójelzők visszaállítva</string>
   <string name="morphe_debug_feature_flags_manager_toast_copied">Funkciójelzők a vágólapra másolva</string>
