@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-07-24 09:40 UTC",
+  "generatedAt": "2026-07-25 02:52 UTC",
   "configFile": "morphe_archive_config_v5.json",
   "configVersion": 5,
   "repoCount": 103,
   "appCount": 508,
-  "patchCount": 2005,
+  "patchCount": 2015,
   "universalPatchCount": 157,
   "hostCounts": {
     "github.com": 99,
@@ -1760,47 +1760,47 @@
       "webUrl": "https://github.com/crimera/piko",
       "addUrl": "https://morphe.software/add-source?github=crimera/piko",
       "avatarUrl": "https://github.com/crimera.png?size=96",
-      "patchCount": 122,
+      "patchCount": 127,
       "appCount": 2,
       "createdAt": 1784836032884,
       "updatedAt": 1784836032884,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "3.7.0 (2026-06-27)",
-        "date": "2026-06-27",
+        "title": "3.8.0 (2026-07-24)",
+        "date": "2026-07-24",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**Instagram:** Fix Allow user network certificate being shown on Settings even without including"
+            "text": "**Instagram:** Fix app crash on comment media download(#1568)"
           },
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**Instagram:** Fix Change like animation enum class injection issue"
+            "text": "**Instagram:** Fix chat action bar function name"
           },
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**Instagram:** Fix Disable typing status on v435"
+            "text": "**Instagram:** Fix opening links"
           },
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**Instagram:** Fix User profile action bar logic"
+            "text": "**Instagram:** Fix Piko settings color issues"
           },
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**Instagram:** Fix button press key check"
+            "text": "**Instagram:** match piko settings background to amoled patch (#1543)"
           },
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**Instagram:** Fix button press key check (again)"
+            "text": "**Instagram:** Match piko settings highlight to theme (#1548)"
           },
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**Instagram:** Fix ghost eye icon position on DM action bar"
+            "text": "**Instagram:** Match story mention dialog to Instagram theme (#1554)"
           },
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**Instagram:** Fix inverse issue of Hide reshare button"
+            "text": "**instagram:** preserve settings fragment on recreation (#1546)"
           }
         ]
       },
@@ -1808,14 +1808,14 @@
         {
           "name": "Instagram",
           "packageName": "com.instagram.android",
-          "patchCount": 51,
+          "patchCount": 54,
           "iconUrl": "https://play-lh.googleusercontent.com/yHi59jmO_lVamcyJ1i3rM1_E8bAiAspShnGjjURq05ipQQSUksO3QVEsXTegRSqul038-4YNA7O644XAcx251Q",
           "iconColor": "#FC483C"
         },
         {
           "name": "X",
           "packageName": "com.twitter.android",
-          "patchCount": 72,
+          "patchCount": 74,
           "iconUrl": "https://play-lh.googleusercontent.com/IsLsCD4eLC2CYvlkgTI6Z5TROj0BJIBgUF7BZ5eliTzyyTjqG_mbofeG4kw2s7oG_JZMSi5ErLz_qsDi169C8w",
           "iconColor": "#000000"
         }
@@ -2251,12 +2251,12 @@
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.3.0 (2026-07-14)",
-        "date": "2026-07-14",
+        "title": "1.3.1 (2026-07-24)",
+        "date": "2026-07-24",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "add Hamro Patro Remove Ads patch"
+            "category": "\ud83d\ude80 Updated App Support",
+            "text": "update JellyWatch premium patch for v2.0.REV-1710 obfuscation changes"
           }
         ]
       },
@@ -7309,19 +7309,23 @@
       "webUrl": "https://github.com/variablenine/morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=variablenine/morphe-patches",
       "avatarUrl": "https://github.com/variablenine.png?size=96",
-      "patchCount": 127,
+      "patchCount": 132,
       "appCount": 3,
       "createdAt": 1784837695652,
       "updatedAt": 1784837695652,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.1.4 (2026-07-18)",
-        "date": "2026-07-18",
+        "title": "1.1.5 (2026-07-24)",
+        "date": "2026-07-24",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "Add Cat lock player button for YouTube"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Adapt cat lock button to upstream v1.36.0 player control API"
+          },
+          {
+            "category": "\ud83d\ude80 Updated App Support",
+            "text": "Sync upstream Morphe patches v1.36.0"
           }
         ]
       },
@@ -7329,21 +7333,21 @@
         {
           "name": "Reddit",
           "packageName": "com.reddit.frontpage",
-          "patchCount": 16,
+          "patchCount": 18,
           "iconUrl": "https://play-lh.googleusercontent.com/8FVS0kvM60JwqZWRNzBIlwrZZxJa8vpli8IWaaTo8QXRe1PHmCNJ8UpWoXkGPV3jKEaTY2OVAeYoisOnGJXY",
           "iconColor": "#FF4500"
         },
         {
           "name": "YouTube",
           "packageName": "com.google.android.youtube",
-          "patchCount": 73,
+          "patchCount": 74,
           "iconUrl": "https://play-lh.googleusercontent.com/QNmuZQc9I6Zbe3mWnSr0hycnENqGFCI5p3yE29Hkxtf22T0IWS6zTrpxULLyyjWpB7ONAXDsDQXnXcVWokl3eg",
           "iconColor": "#FF0033"
         },
         {
           "name": "YouTube Music",
           "packageName": "com.google.android.apps.youtube.music",
-          "patchCount": 35,
+          "patchCount": 37,
           "iconUrl": "https://play-lh.googleusercontent.com/MyptZXmcCyF59phIWPsNCfHq6zSO_ojEdw_4rMYYWPOGdikSjqeOXcoszBZ053VYpINe5K7ZR9KV1nkFWgxdOw",
           "iconColor": "#FF0000"
         }
@@ -7800,12 +7804,20 @@
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.8.0 (2026-07-24)",
+        "title": "1.9.0 (2026-07-24)",
         "date": "2026-07-24",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "**avito:** filter professional sellers by review count"
+            "text": "**avito:** add configurable profile promo controls"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "**avito:** add offer recommendations toggle"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "**avito:** restructure Morphe settings menu"
           }
         ]
       },
@@ -10060,12 +10072,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.0 (2026-07-14)",
-            "date": "2026-07-14",
+            "title": "1.3.1 (2026-07-24)",
+            "date": "2026-07-24",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "add Hamro Patro Remove Ads patch"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "update JellyWatch premium patch for v2.0.REV-1710 obfuscation changes"
               }
             ]
           },
@@ -10487,12 +10499,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.8.0 (2026-07-24)",
+            "title": "1.9.0 (2026-07-24)",
             "date": "2026-07-24",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**avito:** filter professional sellers by review count"
+                "text": "**avito:** add configurable profile promo controls"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**avito:** add offer recommendations toggle"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**avito:** restructure Morphe settings menu"
               }
             ]
           },
@@ -10534,7 +10554,7 @@
             },
             {
               "name": "UI tweaks",
-              "description": "Optional interface tweaks, each toggleable in \u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438 Morphe: single-row home categories, hide the \"\u041f\u043e\u0434\u043f\u0438\u0441\u043a\u0438\" tab in \u0418\u0437\u0431\u0440\u0430\u043d\u043d\u043e\u0435, hide installments (\u0420\u0430\u0441\u0441\u0440\u043e\u0447\u043a\u0430) and the \"\u0421\u043f\u0440\u043e\u0441\u0438\u0442\u0435 \u0443 \u043f\u0440\u043e\u0434\u0430\u0432\u0446\u0430\" block on offers, expand descriptions by default (no \"\u0427\u0438\u0442\u0430\u0442\u044c \u0434\u0430\u043b\u0435\u0435\"), and hide the Avi assistant tab in the bottom navigation."
+              "description": "Optional interface tweaks, each toggleable in \u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438 Morphe: single-row home categories, hide the \"\u041f\u043e\u0434\u043f\u0438\u0441\u043a\u0438\" tab in \u0418\u0437\u0431\u0440\u0430\u043d\u043d\u043e\u0435, hide installments (\u0420\u0430\u0441\u0441\u0440\u043e\u0447\u043a\u0430) and the \"\u0421\u043f\u0440\u043e\u0441\u0438\u0442\u0435 \u0443 \u043f\u0440\u043e\u0434\u0430\u0432\u0446\u0430\" block on offers, expand descriptions by default (no \"\u0427\u0438\u0442\u0430\u0442\u044c \u0434\u0430\u043b\u0435\u0435\"), hide offer recommendations, hide profile raffle, referral and Avito Pro promos, and hide the Avi assistant tab in the bottom navigation."
             }
           ],
           "versions": [
@@ -10588,7 +10608,7 @@
         },
         {
           "name": "UI tweaks",
-          "description": "Optional interface tweaks, each toggleable in \u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438 Morphe: single-row home categories, hide the \"\u041f\u043e\u0434\u043f\u0438\u0441\u043a\u0438\" tab in \u0418\u0437\u0431\u0440\u0430\u043d\u043d\u043e\u0435, hide installments (\u0420\u0430\u0441\u0441\u0440\u043e\u0447\u043a\u0430) and the \"\u0421\u043f\u0440\u043e\u0441\u0438\u0442\u0435 \u0443 \u043f\u0440\u043e\u0434\u0430\u0432\u0446\u0430\" block on offers, expand descriptions by default (no \"\u0427\u0438\u0442\u0430\u0442\u044c \u0434\u0430\u043b\u0435\u0435\"), and hide the Avi assistant tab in the bottom navigation."
+          "description": "Optional interface tweaks, each toggleable in \u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438 Morphe: single-row home categories, hide the \"\u041f\u043e\u0434\u043f\u0438\u0441\u043a\u0438\" tab in \u0418\u0437\u0431\u0440\u0430\u043d\u043d\u043e\u0435, hide installments (\u0420\u0430\u0441\u0441\u0440\u043e\u0447\u043a\u0430) and the \"\u0421\u043f\u0440\u043e\u0441\u0438\u0442\u0435 \u0443 \u043f\u0440\u043e\u0434\u0430\u0432\u0446\u0430\" block on offers, expand descriptions by default (no \"\u0427\u0438\u0442\u0430\u0442\u044c \u0434\u0430\u043b\u0435\u0435\"), hide offer recommendations, hide profile raffle, referral and Avito Pro promos, and hide the Avi assistant tab in the bottom navigation."
         }
       ],
       "versions": [
@@ -12413,12 +12433,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.0 (2026-07-14)",
-            "date": "2026-07-14",
+            "title": "1.3.1 (2026-07-24)",
+            "date": "2026-07-24",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "add Hamro Patro Remove Ads patch"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "update JellyWatch premium patch for v2.0.REV-1710 obfuscation changes"
               }
             ]
           },
@@ -20707,40 +20727,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/crimera/piko/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/crimera.png?size=96",
           "latestChanges": {
-            "title": "3.7.0 (2026-06-27)",
-            "date": "2026-06-27",
+            "title": "3.8.0 (2026-07-24)",
+            "date": "2026-07-24",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Instagram:** Fix Allow user network certificate being shown on Settings even without including"
+                "text": "**Instagram:** Fix app crash on comment media download(#1568)"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Instagram:** Fix Change like animation enum class injection issue"
+                "text": "**Instagram:** Fix chat action bar function name"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Instagram:** Fix Disable typing status on v435"
+                "text": "**Instagram:** Fix opening links"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Instagram:** Fix User profile action bar logic"
+                "text": "**Instagram:** Fix Piko settings color issues"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Instagram:** Fix button press key check"
+                "text": "**Instagram:** match piko settings background to amoled patch (#1543)"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Instagram:** Fix button press key check (again)"
+                "text": "**Instagram:** Match piko settings highlight to theme (#1548)"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Instagram:** Fix ghost eye icon position on DM action bar"
+                "text": "**Instagram:** Match story mention dialog to Instagram theme (#1554)"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Instagram:** Fix inverse issue of Hide reshare button"
+                "text": "**instagram:** preserve settings fragment on recreation (#1546)"
               }
             ]
           },
@@ -20763,10 +20783,6 @@
             {
               "name": "Bring back twitter",
               "description": "Bring back old twitter logo and name"
-            },
-            {
-              "name": "Browse tweet object",
-              "description": "Adds an option to browse the tweet object in the share menu."
             },
             {
               "name": "Change app icon",
@@ -20795,6 +20811,10 @@
             {
               "name": "Custom font",
               "description": "Customise font style"
+            },
+            {
+              "name": "Custom share menu",
+              "description": "Overrides existing share menu and adds a new one"
             },
             {
               "name": "Custom sharing domain",
@@ -20977,6 +20997,10 @@
               "description": "Log json responses received from server"
             },
             {
+              "name": "More information on profile",
+              "description": "Adds more details on the profile page"
+            },
+            {
               "name": "Native downloader",
               "description": "Requires X 11.0.0-release.0 or higher."
             },
@@ -21039,14 +21063,15 @@
             {
               "name": "Show sensitive media",
               "description": ""
+            },
+            {
+              "name": "Support external downloader",
+              "description": ""
             }
           ],
           "versions": [
             "11.69.0-release.0",
-            "11.81.0-release.0",
-            "11.99.0-release-ripped.1",
-            "12.0.0-release.0",
-            "12.2.0-release.0"
+            "12.7.1-release.0"
           ]
         },
         {
@@ -21136,7 +21161,6 @@
         "Add ability to copy media link",
         "Block redirecting to X Lite",
         "Bring back twitter",
-        "Browse tweet object",
         "Change app icon",
         "Change Twitter share domain",
         "Change version code",
@@ -21145,6 +21169,7 @@
         "Custom download folder",
         "Custom emoji font",
         "Custom font",
+        "Custom share menu",
         "Custom sharing domain",
         "Customise post font size",
         "Customize default reply sorting",
@@ -21191,6 +21216,7 @@
         "Import/Export login token",
         "Legacy share links",
         "Log server response",
+        "More information on profile",
         "Native downloader",
         "Native reader mode",
         "Native translator",
@@ -21209,7 +21235,8 @@
         "Show changelogs",
         "Show poll results",
         "Show post source label",
-        "Show sensitive media"
+        "Show sensitive media",
+        "Support external downloader"
       ],
       "patchDetails": [
         {
@@ -21235,10 +21262,6 @@
         {
           "name": "Bring back twitter",
           "description": "Bring back old twitter logo and name"
-        },
-        {
-          "name": "Browse tweet object",
-          "description": "Adds an option to browse the tweet object in the share menu."
         },
         {
           "name": "Change app icon",
@@ -21271,6 +21294,10 @@
         {
           "name": "Custom font",
           "description": "Customise font style"
+        },
+        {
+          "name": "Custom share menu",
+          "description": "Overrides existing share menu and adds a new one"
         },
         {
           "name": "Custom sharing domain",
@@ -21457,6 +21484,10 @@
           "description": "Log json responses received from server"
         },
         {
+          "name": "More information on profile",
+          "description": "Adds more details on the profile page"
+        },
+        {
           "name": "Native downloader",
           "description": "Requires X 11.0.0-release.0 or higher."
         },
@@ -21531,15 +21562,16 @@
         {
           "name": "Show sensitive media",
           "description": ""
+        },
+        {
+          "name": "Support external downloader",
+          "description": ""
         }
       ],
       "versions": [
         "11.69.0-release.0",
-        "11.81.0-release.0",
         "11.86.0-release.0",
-        "11.99.0-release-ripped.1",
-        "12.0.0-release.0",
-        "12.2.0-release.0"
+        "12.7.1-release.0"
       ],
       "iconColor": "#000000",
       "iconUrl": "https://play-lh.googleusercontent.com/IsLsCD4eLC2CYvlkgTI6Z5TROj0BJIBgUF7BZ5eliTzyyTjqG_mbofeG4kw2s7oG_JZMSi5ErLz_qsDi169C8w"
@@ -26665,12 +26697,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.0 (2026-07-14)",
-            "date": "2026-07-14",
+            "title": "1.3.1 (2026-07-24)",
+            "date": "2026-07-24",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "add Hamro Patro Remove Ads patch"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "update JellyWatch premium patch for v2.0.REV-1710 obfuscation changes"
               }
             ]
           },
@@ -28628,40 +28660,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/crimera/piko/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/crimera.png?size=96",
           "latestChanges": {
-            "title": "3.7.0 (2026-06-27)",
-            "date": "2026-06-27",
+            "title": "3.8.0 (2026-07-24)",
+            "date": "2026-07-24",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Instagram:** Fix Allow user network certificate being shown on Settings even without including"
+                "text": "**Instagram:** Fix app crash on comment media download(#1568)"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Instagram:** Fix Change like animation enum class injection issue"
+                "text": "**Instagram:** Fix chat action bar function name"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Instagram:** Fix Disable typing status on v435"
+                "text": "**Instagram:** Fix opening links"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Instagram:** Fix User profile action bar logic"
+                "text": "**Instagram:** Fix Piko settings color issues"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Instagram:** Fix button press key check"
+                "text": "**Instagram:** match piko settings background to amoled patch (#1543)"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Instagram:** Fix button press key check (again)"
+                "text": "**Instagram:** Match piko settings highlight to theme (#1548)"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Instagram:** Fix ghost eye icon position on DM action bar"
+                "text": "**Instagram:** Match story mention dialog to Instagram theme (#1554)"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Instagram:** Fix inverse issue of Hide reshare button"
+                "text": "**instagram:** preserve settings fragment on recreation (#1546)"
               }
             ]
           },
@@ -28680,10 +28712,6 @@
             {
               "name": "Allow user network certificate",
               "description": "Allows user network certificate for whitehat testing"
-            },
-            {
-              "name": "Amoled theme",
-              "description": "Replaces Instagram's dark-mode background greys with pure black for AMOLED displays."
             },
             {
               "name": "Change like animation",
@@ -28754,6 +28782,10 @@
               "description": "Disable automatic flipping/moving to next story"
             },
             {
+              "name": "Disable swipe to create",
+              "description": "Prevents opening the creation screen by swiping right on the home tab."
+            },
+            {
               "name": "Disable typing status",
               "description": ""
             },
@@ -28772,6 +28804,10 @@
             {
               "name": "External downloader",
               "description": "Adds support to share post links directly to external downloader"
+            },
+            {
+              "name": "Filter stories",
+              "description": "Filter stories to hide based on different categories"
             },
             {
               "name": "Friendship status indicator",
@@ -28814,6 +28850,10 @@
               "description": "Changes unexpired view once, view twice media to permanent view."
             },
             {
+              "name": "Mark chat as read manually",
+              "description": "Adds option to mark a thread aka message as read manually"
+            },
+            {
               "name": "More options on post",
               "description": "Adds an overflow menu button to get more options on post/reels, like copy description, copy username etc"
             },
@@ -28844,6 +28884,10 @@
             {
               "name": "Stories audio autoplay",
               "description": ""
+            },
+            {
+              "name": "Theme",
+              "description": "Applies either amoled or material you theme for Instagram at patch time. [default = material you]"
             },
             {
               "name": "Unlock developer options",
@@ -28916,7 +28960,6 @@
       "patches": [
         "Add settings",
         "Allow user network certificate",
-        "Amoled theme",
         "Bypass signature check",
         "Change Instagram share domain",
         "Change like animation",
@@ -28937,11 +28980,13 @@
         "Disable stories",
         "Disable story auto flipping",
         "Disable story flipping",
+        "Disable swipe to create",
         "Disable typing status",
         "Disable video autoplay",
         "Download media",
         "Download voice message",
         "External downloader",
+        "Filter stories",
         "Friendship status indicator",
         "Hide ads",
         "Hide all stories",
@@ -28960,6 +29005,7 @@
         "InstagramHideReelsCompletely (STUB)",
         "Limit feed to following profiles",
         "Make ephemeral media permanent",
+        "Mark chat as read manually",
         "More options on post",
         "More options on profile",
         "Open links externally",
@@ -28968,6 +29014,7 @@
         "Sanitize share links",
         "Save media comment",
         "Stories audio autoplay",
+        "Theme",
         "Unlock developer options",
         "Unlock employee options",
         "Unlock Plus benefits",
@@ -28985,10 +29032,6 @@
         {
           "name": "Allow user network certificate",
           "description": "Allows user network certificate for whitehat testing"
-        },
-        {
-          "name": "Amoled theme",
-          "description": "Replaces Instagram's dark-mode background greys with pure black for AMOLED displays."
         },
         {
           "name": "Bypass signature check",
@@ -29071,6 +29114,10 @@
           "description": "Disable automatic flipping/moving to next story"
         },
         {
+          "name": "Disable swipe to create",
+          "description": "Prevents opening the creation screen by swiping right on the home tab."
+        },
+        {
           "name": "Disable typing status",
           "description": ""
         },
@@ -29089,6 +29136,10 @@
         {
           "name": "External downloader",
           "description": "Adds support to share post links directly to external downloader"
+        },
+        {
+          "name": "Filter stories",
+          "description": "Filter stories to hide based on different categories"
         },
         {
           "name": "Friendship status indicator",
@@ -29163,6 +29214,10 @@
           "description": "Changes unexpired view once, view twice media to permanent view."
         },
         {
+          "name": "Mark chat as read manually",
+          "description": "Adds option to mark a thread aka message as read manually"
+        },
+        {
           "name": "More options on post",
           "description": "Adds an overflow menu button to get more options on post/reels, like copy description, copy username etc"
         },
@@ -29193,6 +29248,10 @@
         {
           "name": "Stories audio autoplay",
           "description": ""
+        },
+        {
+          "name": "Theme",
+          "description": "Applies either amoled or material you theme for Instagram at patch time. [default = material you]"
         },
         {
           "name": "Unlock developer options",
@@ -29677,12 +29736,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.0 (2026-07-14)",
-            "date": "2026-07-14",
+            "title": "1.3.1 (2026-07-24)",
+            "date": "2026-07-24",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "add Hamro Patro Remove Ads patch"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "update JellyWatch premium patch for v2.0.REV-1710 obfuscation changes"
               }
             ]
           },
@@ -33256,12 +33315,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.0 (2026-07-14)",
-            "date": "2026-07-14",
+            "title": "1.3.1 (2026-07-24)",
+            "date": "2026-07-24",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "add Hamro Patro Remove Ads patch"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "update JellyWatch premium patch for v2.0.REV-1710 obfuscation changes"
               }
             ]
           },
@@ -35547,12 +35606,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.0 (2026-07-14)",
-            "date": "2026-07-14",
+            "title": "1.3.1 (2026-07-24)",
+            "date": "2026-07-24",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "add Hamro Patro Remove Ads patch"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "update JellyWatch premium patch for v2.0.REV-1710 obfuscation changes"
               }
             ]
           },
@@ -37296,12 +37355,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.8.0 (2026-07-24)",
+            "title": "1.9.0 (2026-07-24)",
             "date": "2026-07-24",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**avito:** filter professional sellers by review count"
+                "text": "**avito:** add configurable profile promo controls"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**avito:** add offer recommendations toggle"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**avito:** restructure Morphe settings menu"
               }
             ]
           },
@@ -40272,12 +40339,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.0 (2026-07-14)",
-            "date": "2026-07-14",
+            "title": "1.3.1 (2026-07-24)",
+            "date": "2026-07-24",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "add Hamro Patro Remove Ads patch"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "update JellyWatch premium patch for v2.0.REV-1710 obfuscation changes"
               }
             ]
           },
@@ -40918,12 +40985,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.0 (2026-07-14)",
-            "date": "2026-07-14",
+            "title": "1.3.1 (2026-07-24)",
+            "date": "2026-07-24",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "add Hamro Patro Remove Ads patch"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "update JellyWatch premium patch for v2.0.REV-1710 obfuscation changes"
               }
             ]
           },
@@ -41778,12 +41845,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/variablenine/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/variablenine.png?size=96",
           "latestChanges": {
-            "title": "1.1.4 (2026-07-18)",
-            "date": "2026-07-18",
+            "title": "1.1.5 (2026-07-24)",
+            "date": "2026-07-24",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "Add Cat lock player button for YouTube"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Adapt cat lock button to upstream v1.36.0 player control API"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "Sync upstream Morphe patches v1.36.0"
               }
             ]
           },
@@ -41800,12 +41871,20 @@
               "description": "Changes the Reddit app name to the name specified in patch options."
             },
             {
+              "name": "Custom font",
+              "description": "Adds an option to replace Reddit Sans / Roboto with a custom TTF or OTF font file at runtime."
+            },
+            {
               "name": "Disable modern home",
               "description": "Adds an option to disable the modern home UI. This patch works with Reddit 2026.24.0 and earlier."
             },
             {
               "name": "Disable screenshot popup",
               "description": "Adds an option to disable the popup that appears when taking a screenshot."
+            },
+            {
+              "name": "Force system font",
+              "description": "Adds an option that renders Reddit with the device system font instead of Reddit Sans / Roboto."
             },
             {
               "name": "Hide ads",
@@ -41864,8 +41943,8 @@
             "2026.04.0",
             "2026.14.0",
             "2026.24.0",
-            "2026.27.0",
-            "2026.28.0"
+            "2026.28.0",
+            "2026.29.0"
           ]
         }
       ],
@@ -42074,7 +42153,6 @@
         "2026.14.0",
         "2026.17.0",
         "2026.24.0",
-        "2026.27.0",
         "2026.28.0",
         "2026.29.0"
       ],
@@ -47187,12 +47265,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.8.0 (2026-07-24)",
+            "title": "1.9.0 (2026-07-24)",
             "date": "2026-07-24",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**avito:** filter professional sellers by review count"
+                "text": "**avito:** add configurable profile promo controls"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**avito:** add offer recommendations toggle"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**avito:** restructure Morphe settings menu"
               }
             ]
           },
@@ -51971,12 +52057,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.8.0 (2026-07-24)",
+            "title": "1.9.0 (2026-07-24)",
             "date": "2026-07-24",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**avito:** filter professional sellers by review count"
+                "text": "**avito:** add configurable profile promo controls"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**avito:** add offer recommendations toggle"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**avito:** restructure Morphe settings menu"
               }
             ]
           },
@@ -53727,12 +53821,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/variablenine/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/variablenine.png?size=96",
           "latestChanges": {
-            "title": "1.1.4 (2026-07-18)",
-            "date": "2026-07-18",
+            "title": "1.1.5 (2026-07-24)",
+            "date": "2026-07-24",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "Add Cat lock player button for YouTube"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Adapt cat lock button to upstream v1.36.0 player control API"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "Sync upstream Morphe patches v1.36.0"
               }
             ]
           },
@@ -53930,7 +54028,7 @@
             },
             {
               "name": "Miniplayer",
-              "description": "Adds options to change the in-app minimized player."
+              "description": "Adds options to change the in-app minimized player. Patching 21.28.206 and lower has more miniplayer types to choose from."
             },
             {
               "name": "Navigation bar",
@@ -54001,6 +54099,10 @@
               "description": "Adds options to disable precise seeking when swiping up on the seekbar, slide to seek instead of playing at 2x speed when pressing and holding, tapping the player seekbar to seek, hiding the video player seekbar, enabling seeking in livestreams, and expanding the livestream DVR duration."
             },
             {
+              "name": "Settings menu filter",
+              "description": "Adds an option to hide items on the standard YouTube settings screen by their visible name."
+            },
+            {
               "name": "Shorts autoplay",
               "description": "Adds options to automatically play the next Short."
             },
@@ -54043,9 +54145,9 @@
             "20.51.39",
             "21.04.223",
             "21.05.265",
-            "21.24.360",
-            "21.25.523",
-            "21.26.360"
+            "21.26.360",
+            "21.28.204",
+            "21.29.366"
           ]
         },
         {
@@ -54463,8 +54565,8 @@
         "Save to watch later",
         "Seekbar",
         "Seekbar components",
-        "Set transcript cookies",
         "Set Transcript Cookies",
+        "Set transcript cookies",
         "Settings for YouTube",
         "Settings menu filter",
         "Shorts autoplay",
@@ -54819,7 +54921,7 @@
         },
         {
           "name": "Miniplayer",
-          "description": "Adds options to change the in-app minimized player."
+          "description": "Adds options to change the in-app minimized player. Patching 21.28.206 and lower has more miniplayer types to choose from."
         },
         {
           "name": "Navigation bar",
@@ -54910,11 +55012,11 @@
           "description": "Adds options to hide or change components related to the seekbar."
         },
         {
-          "name": "Set transcript cookies",
+          "name": "Set Transcript Cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {
-          "name": "Set Transcript Cookies",
+          "name": "Set transcript cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {
@@ -55609,12 +55711,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/variablenine/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/variablenine.png?size=96",
           "latestChanges": {
-            "title": "1.1.4 (2026-07-18)",
-            "date": "2026-07-18",
+            "title": "1.1.5 (2026-07-24)",
+            "date": "2026-07-24",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "Add Cat lock player button for YouTube"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Adapt cat lock button to upstream v1.36.0 player control API"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "Sync upstream Morphe patches v1.36.0"
               }
             ]
           },
@@ -55645,6 +55751,10 @@
             {
               "name": "Check watch history domain name resolution",
               "description": "Checks if the device DNS server is preventing user watch history from being saved."
+            },
+            {
+              "name": "Crossfade",
+              "description": "Adds a true dual-player crossfade between consecutive tracks. Requires YouTube Music 9.00 or newer; on older versions the patch is a no-op."
             },
             {
               "name": "Custom branding",
@@ -55739,12 +55849,20 @@
               "description": "Removes restrictions on background playback, including playing kids videos in the background."
             },
             {
+              "name": "Return YouTube Dislike",
+              "description": "Adds an option to show the dislike count of tracks with Return YouTube Dislike."
+            },
+            {
               "name": "Sanitize sharing links",
               "description": "Removes the tracking query parameters from shared links."
             },
             {
               "name": "Scrobbling",
               "description": "Adds options to add played tracks to Last.fm and ListenBrainz."
+            },
+            {
+              "name": "Settings menu filter",
+              "description": "Adds an option to hide items on the standard YouTube Music settings screen by their visible name."
             },
             {
               "name": "SponsorBlock",
@@ -55761,19 +55879,15 @@
             {
               "name": "Theme",
               "description": "Adds options for theming and applies a custom background theme (dark background theme defaults to pure black)."
-            },
-            {
-              "name": "Track crossfade",
-              "description": "Adds a true dual-player crossfade between consecutive tracks. Requires YouTube Music 9.00 or newer; on older versions the patch is a no-op."
             }
           ],
           "versions": [
             "7.29.52",
             "8.51.51",
             "9.15.51",
-            "9.24.51",
             "9.25.50",
-            "9.26.51"
+            "9.26.51",
+            "9.28.51"
           ]
         },
         {
@@ -56046,7 +56160,6 @@
         "Spoof app version for lyrics",
         "Spoof video streams",
         "Theme",
-        "Track crossfade",
         "Translations for YouTube Music",
         "Video playback",
         "Visual preferences icons for YouTube Music",
@@ -56272,7 +56385,7 @@
         },
         {
           "name": "Return YouTube Dislike",
-          "description": "Adds an option to show the dislike count of songs using the Return YouTube Dislike API."
+          "description": "Adds an option to show the dislike count of tracks with Return YouTube Dislike."
         },
         {
           "name": "Return YouTube Username",
@@ -56313,10 +56426,6 @@
         {
           "name": "Theme",
           "description": "Adds options for theming and applies a custom background theme (dark background theme defaults to pure black)."
-        },
-        {
-          "name": "Track crossfade",
-          "description": "Adds a true dual-player crossfade between consecutive tracks. Requires YouTube Music 9.00 or newer; on older versions the patch is a no-op."
         },
         {
           "name": "Translations for YouTube Music",
@@ -58055,12 +58164,16 @@
       "avatarUrl": "https://github.com/variablenine.png?size=96",
       "patchCount": 3,
       "latestChanges": {
-        "title": "1.1.4 (2026-07-18)",
-        "date": "2026-07-18",
+        "title": "1.1.5 (2026-07-24)",
+        "date": "2026-07-24",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "Add Cat lock player button for YouTube"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Adapt cat lock button to upstream v1.36.0 player control API"
+          },
+          {
+            "category": "\ud83d\ude80 Updated App Support",
+            "text": "Sync upstream Morphe patches v1.36.0"
           }
         ]
       },
@@ -58187,12 +58300,20 @@
       "avatarUrl": "https://github.com/xob0t.png?size=96",
       "patchCount": 13,
       "latestChanges": {
-        "title": "1.8.0 (2026-07-24)",
+        "title": "1.9.0 (2026-07-24)",
         "date": "2026-07-24",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "**avito:** filter professional sellers by review count"
+            "text": "**avito:** add configurable profile promo controls"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "**avito:** add offer recommendations toggle"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "**avito:** restructure Morphe settings menu"
           }
         ]
       },
@@ -58372,19 +58493,23 @@
       "webUrl": "https://github.com/variablenine/morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=variablenine/morphe-patches",
       "avatarUrl": "https://github.com/variablenine.png?size=96",
-      "patchCount": 127,
+      "patchCount": 132,
       "appCount": 3,
       "createdAt": 1784837695652,
       "updatedAt": 1784837695652,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.1.4 (2026-07-18)",
-        "date": "2026-07-18",
+        "title": "1.1.5 (2026-07-24)",
+        "date": "2026-07-24",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "Add Cat lock player button for YouTube"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Adapt cat lock button to upstream v1.36.0 player control API"
+          },
+          {
+            "category": "\ud83d\ude80 Updated App Support",
+            "text": "Sync upstream Morphe patches v1.36.0"
           }
         ]
       },
@@ -58392,21 +58517,21 @@
         {
           "name": "Reddit",
           "packageName": "com.reddit.frontpage",
-          "patchCount": 16,
+          "patchCount": 18,
           "iconUrl": "https://play-lh.googleusercontent.com/8FVS0kvM60JwqZWRNzBIlwrZZxJa8vpli8IWaaTo8QXRe1PHmCNJ8UpWoXkGPV3jKEaTY2OVAeYoisOnGJXY",
           "iconColor": "#FF4500"
         },
         {
           "name": "YouTube",
           "packageName": "com.google.android.youtube",
-          "patchCount": 73,
+          "patchCount": 74,
           "iconUrl": "https://play-lh.googleusercontent.com/QNmuZQc9I6Zbe3mWnSr0hycnENqGFCI5p3yE29Hkxtf22T0IWS6zTrpxULLyyjWpB7ONAXDsDQXnXcVWokl3eg",
           "iconColor": "#FF0033"
         },
         {
           "name": "YouTube Music",
           "packageName": "com.google.android.apps.youtube.music",
-          "patchCount": 35,
+          "patchCount": 37,
           "iconUrl": "https://play-lh.googleusercontent.com/MyptZXmcCyF59phIWPsNCfHq6zSO_ojEdw_4rMYYWPOGdikSjqeOXcoszBZ053VYpINe5K7ZR9KV1nkFWgxdOw",
           "iconColor": "#FF0000"
         }
