@@ -3,6 +3,7 @@ AlexNaga/android-patches
 Almewty/my-morphe-patches
 AmpleReVanced/revanced-patches
 BholeyKaBhakt/android-patches-xtra
+Entree3k/Morning-Entree-Patches
 Graywizard888/Enhancify
 HellveticaStandard/HellveticaPatches
 HvQ/eksi-morphe
@@ -16,6 +17,7 @@ Joristdh/Platypatch
 Joussflls10/Jouss-Patches
 LaKakaReal/LaKakaShitPatches
 Lynx6319/patch-youtube-scroll-block
+MarcaDian/morphe-patches-yavot
 MiguelNinja19/miguel-morphe-patches
 MoonShadowKeeper/Telegram-patchesMorphe
 MorpheApp/morphe-patches
@@ -46,6 +48,7 @@ alejandrobellver/pichiwa-patches
 ameenalasady/ameen-morphe
 ameenalasady/photogrid-morphe
 anddea/revanced-patches
+andrewliang25/morphe-patches
 andronedev/morphe-patches
 andronedev/morphe-portal-patch
 arandomhooman/hoomans-morphe-patches
@@ -63,8 +66,10 @@ byehi98/okish-morphe-patches
 cesbar/zpatches
 ch3thanhs/stylus
 chirag127/morphe-patches
+ciraolone/morphe-watch-later
 crimera/piko
 dexnis-dev/morphe-patches
+dh6k/morphe-patches
 docbt/patched-up
 drosoCode/morphe-patches
 dumb-software/T2C-App-Patch-Morphe
@@ -103,6 +108,7 @@ nvbangg/builder-for-morphe
 osirisad/teamsnap-patches
 osirisad/ts-patches
 polka-bear/morphe-patches
+pseudofractal/morphe-patches
 quantavil/edge-morphe-patches
 rushiranpise/RI-Vanced-Universal-Morphe-Patches
 rushiranpise/Ri-Vanced-Universal-Morphe-Patches

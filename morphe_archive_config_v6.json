@@ -873,6 +873,54 @@
                 "sortOrder": 103,
                 "createdAt": 1784840718648,
                 "updatedAt": 1784840718648
+            },
+            {
+                "name": "Morning-Entree-Patches",
+                "source": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 104,
+                "createdAt": 1785034851561,
+                "updatedAt": 1785034851561
+            },
+            {
+                "name": "morphe-patches-yavot",
+                "source": "https://raw.githubusercontent.com/MarcaDian/morphe-patches-yavot/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 105,
+                "createdAt": 1785034851803,
+                "updatedAt": 1785034851803
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/andrewliang25/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 106,
+                "createdAt": 1785034852052,
+                "updatedAt": 1785034852052
+            },
+            {
+                "name": "morphe-watch-later",
+                "source": "https://raw.githubusercontent.com/ciraolone/morphe-watch-later/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 107,
+                "createdAt": 1785034852247,
+                "updatedAt": 1785034852247
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/dh6k/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 108,
+                "createdAt": 1785034852274,
+                "updatedAt": 1785034852274
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/pseudofractal/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 109,
+                "createdAt": 1785034852630,
+                "updatedAt": 1785034852630
             }
         ]
     }

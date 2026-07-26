@@ -1,13 +1,13 @@
 {
-  "generatedAt": "2026-07-25 02:52 UTC",
-  "configFile": "morphe_archive_config_v5.json",
-  "configVersion": 5,
-  "repoCount": 103,
-  "appCount": 508,
-  "patchCount": 2015,
-  "universalPatchCount": 157,
+  "generatedAt": "2026-07-26 03:01 UTC",
+  "configFile": "morphe_archive_config_v6.json",
+  "configVersion": 6,
+  "repoCount": 109,
+  "appCount": 515,
+  "patchCount": 2052,
+  "universalPatchCount": 159,
   "hostCounts": {
-    "github.com": 99,
+    "github.com": 105,
     "gitlab.com": 4
   },
   "repos": [
@@ -327,8 +327,8 @@
       "webUrl": "https://github.com/AmpleReVanced/revanced-patches",
       "addUrl": "https://morphe.software/add-source?github=AmpleReVanced/revanced-patches",
       "avatarUrl": "https://github.com/AmpleReVanced.png?size=96",
-      "patchCount": 80,
-      "appCount": 4,
+      "patchCount": 99,
+      "appCount": 5,
       "createdAt": 1784836018996,
       "updatedAt": 1784836018996,
       "createdDate": "2026-07-23",
@@ -375,30 +375,37 @@
         {
           "name": "Chzzk",
           "packageName": "com.navercorp.game.android.community",
-          "patchCount": 2,
+          "patchCount": 5,
           "iconUrl": "https://play-lh.googleusercontent.com/X9wOAI11HK3M4WyhYq4k4fmNcT4Fi8Gd1WRwU3s4IR4YGl1k7hKic9teHN2cnsURsUNm26MC9NHnyS-nMKRr",
           "iconColor": "#00FFA3"
         },
         {
           "name": "dcinside",
           "packageName": "com.dcinside.app.android",
-          "patchCount": 20,
+          "patchCount": 23,
           "iconUrl": "https://play-lh.googleusercontent.com/3wsShIT-BhtperkPcnd0wcEz4M0ajLQn2jokq7oPnrimnazOcDJt3wC9fxt68P-jeiabWPsPkWMnkPgWNqJpoA",
           "iconColor": "#3D4491"
         },
         {
           "name": "Flexcil",
           "packageName": "com.flexcil.flexcilnote",
-          "patchCount": 1,
+          "patchCount": 2,
           "iconUrl": "https://play-lh.googleusercontent.com/Jfrzp1yaMjP2EDdMn5TtPAfpbjkGOnXRMFUvK9gc-28ZI3BM3X1yXbRDcjkCsigoGBg2PnZk94dNgtT5TPLV",
           "iconColor": "#0096FA"
         },
         {
           "name": "Kakao Talk",
           "packageName": "com.kakao.talk",
-          "patchCount": 55,
+          "patchCount": 57,
           "iconUrl": "https://play-lh.googleusercontent.com/VaxoIL0V83FKXsQ5fOR0XJ3CQ7Q_eOt_WXuKFtnuK3nWUH_SOll1_LRK5AlXE7b8sUg4iHNKBVof1zV1haQRyw",
           "iconColor": "#FEE500"
+        },
+        {
+          "name": "SOOP",
+          "packageName": "kr.co.nowcom.mobile.afreeca",
+          "patchCount": 10,
+          "iconUrl": "",
+          "iconColor": "#0068FF"
         }
       ]
     },
@@ -470,6 +477,70 @@
           "patchCount": 68,
           "iconUrl": "https://play-lh.googleusercontent.com/QNmuZQc9I6Zbe3mWnSr0hycnENqGFCI5p3yE29Hkxtf22T0IWS6zTrpxULLyyjWpB7ONAXDsDQXnXcVWokl3eg",
           "iconColor": ""
+        }
+      ]
+    },
+    {
+      "name": "morphe-patches",
+      "repo": "andrewliang25/morphe-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/andrewliang25/morphe-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/andrewliang25/morphe-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/andrewliang25/morphe-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/andrewliang25/morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=andrewliang25/morphe-patches",
+      "avatarUrl": "https://github.com/andrewliang25.png?size=96",
+      "patchCount": 12,
+      "appCount": 1,
+      "createdAt": 1785034852052,
+      "updatedAt": 1785034852052,
+      "createdDate": "2026-07-26",
+      "updatedDate": "2026-07-26",
+      "latestChanges": {
+        "title": "1.0.0 (2026-07-25)",
+        "date": "2026-07-25",
+        "items": [
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Disambiguate chat-header button fingerprints"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Drop the rename-package patch"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Fix read-receipts, hide-ad-views, and external-browser on device"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Hide Home modules crashed on open (VerifyError)"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Home modules blocklist \u2014 add FLEX for \u5373\u6642\u592f\u8a71\u984c (test round)"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Retarget Hide Home modules to the feed state (x72.h$a)"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "Add experimental Hide Home modules patch"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "Add hide-calendar-button and hide-community-button patches"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "LINE",
+          "packageName": "jp.naver.line.android",
+          "patchCount": 12,
+          "iconUrl": "",
+          "iconColor": "#06C755"
         }
       ]
     },
@@ -1480,19 +1551,19 @@
       "webUrl": "https://github.com/cesbar/zpatches",
       "addUrl": "https://morphe.software/add-source?github=cesbar/zpatches",
       "avatarUrl": "https://github.com/cesbar.png?size=96",
-      "patchCount": 7,
-      "appCount": 3,
+      "patchCount": 8,
+      "appCount": 4,
       "createdAt": 1784836032428,
       "updatedAt": 1784836032428,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.6.0 (2026-07-19)",
-        "date": "2026-07-19",
+        "title": "1.7.0 (2026-07-25)",
+        "date": "2026-07-25",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "**Minesweeper / Solitaire The Clean One:** Enable Premium, Disable Internet and Telemetry"
+            "text": "**Sudoku The Clean One:** Enable Premium, Disable Internet and Telemetry, Bypass PairIp"
           }
         ]
       },
@@ -1502,6 +1573,13 @@
           "packageName": "com.jcdecaux.vls.lyon",
           "patchCount": 4,
           "iconUrl": "https://play-lh.googleusercontent.com/XC_XcRVkg55F_UTglnTJ8lLJkz3GueyDGpmw5-ygNKTcFRDK_xIRPs-5I8_nWf00PnnTgJ88xGCojWE0vBABEA",
+          "iconColor": ""
+        },
+        {
+          "name": "ee.dustland.android.dustlandsudoku",
+          "packageName": "ee.dustland.android.dustlandsudoku",
+          "patchCount": 3,
+          "iconUrl": "",
           "iconColor": ""
         },
         {
@@ -1751,6 +1829,42 @@
       ]
     },
     {
+      "name": "morphe-watch-later",
+      "repo": "ciraolone/morphe-watch-later",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/ciraolone/morphe-watch-later/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/ciraolone/morphe-watch-later/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/ciraolone/morphe-watch-later/main/CHANGELOG.md",
+      "webUrl": "https://github.com/ciraolone/morphe-watch-later",
+      "addUrl": "https://morphe.software/add-source?github=ciraolone/morphe-watch-later",
+      "avatarUrl": "https://github.com/ciraolone.png?size=96",
+      "patchCount": 1,
+      "appCount": 1,
+      "createdAt": 1785034852247,
+      "updatedAt": 1785034852247,
+      "createdDate": "2026-07-26",
+      "updatedDate": "2026-07-26",
+      "latestChanges": {
+        "title": "1.1.0 (2026-07-24)",
+        "date": "2026-07-24",
+        "items": [
+          {
+            "category": "\u2728 New Features",
+            "text": "add link navigation, clock icon, Later label and position before profile"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "YouTube",
+          "packageName": "com.google.android.youtube",
+          "patchCount": 1,
+          "iconUrl": "https://play-lh.googleusercontent.com/QNmuZQc9I6Zbe3mWnSr0hycnENqGFCI5p3yE29Hkxtf22T0IWS6zTrpxULLyyjWpB7ONAXDsDQXnXcVWokl3eg",
+          "iconColor": "#FF0033"
+        }
+      ]
+    },
+    {
       "name": "piko",
       "repo": "crimera/piko",
       "host": "github.com",
@@ -1854,6 +1968,72 @@
           "patchCount": 1,
           "iconUrl": "https://play-lh.googleusercontent.com/o7vo7iZJg82nRkas3Snx6mDS95d3bX__PJfTfAKdjcofF-lYBL72_NAfMik1x7RBx-pKHqD5uL_e5UX9iTe9Gg",
           "iconColor": "#9FC5E8"
+        }
+      ]
+    },
+    {
+      "name": "morphe-patches",
+      "repo": "dh6k/morphe-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/dh6k/morphe-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/dh6k/morphe-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/dh6k/morphe-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/dh6k/morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=dh6k/morphe-patches",
+      "avatarUrl": "https://github.com/dh6k.png?size=96",
+      "patchCount": 3,
+      "appCount": 3,
+      "createdAt": 1785034852274,
+      "updatedAt": 1785034852274,
+      "createdDate": "2026-07-26",
+      "updatedDate": "2026-07-26",
+      "latestChanges": {
+        "title": "1.1.0 (2026-07-25)",
+        "date": "2026-07-25",
+        "items": [
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**build:** keep generator dependencies out of patch dex"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**release:** publish appName option on main"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**universal:** release bundle-specific app name option"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**universal:** restore appName option key"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "**universal:** add custom app icon patch"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Brave Beta",
+          "packageName": "com.brave.browser_beta",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#FF4500"
+        },
+        {
+          "name": "Brave Browser",
+          "packageName": "com.brave.browser",
+          "patchCount": 1,
+          "iconUrl": "https://play-lh.googleusercontent.com/UBrZnuXGb-QACU0uUdF5r_n5nx5oBbdfPyEbtsr0xXv00RN7rpaTVu3GjLeE90aHFmNlbaCmm8vNcmY0eE98U9E",
+          "iconColor": "#FF4500"
+        },
+        {
+          "name": "Brave Nightly",
+          "packageName": "com.brave.browser_nightly",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#FF4500"
         }
       ]
     },
@@ -2169,6 +2349,56 @@
           "patchCount": 1,
           "iconUrl": "https://play-lh.googleusercontent.com/2mC3PYKQAaLdu_0u8u__eL5kxjBdOXf476B3CtMTg0mhBwrOlD8ODP2DmiyCMXXfhF4Yx7JjjRZ6cauxkJmh5A",
           "iconColor": "#5EA15A"
+        }
+      ]
+    },
+    {
+      "name": "Morning-Entree-Patches",
+      "repo": "Entree3k/Morning-Entree-Patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/Entree3k/Morning-Entree-Patches",
+      "addUrl": "https://morphe.software/add-source?github=Entree3k/Morning-Entree-Patches",
+      "avatarUrl": "https://github.com/Entree3k.png?size=96",
+      "patchCount": 3,
+      "appCount": 3,
+      "createdAt": 1785034851561,
+      "updatedAt": 1785034851561,
+      "createdDate": "2026-07-26",
+      "updatedDate": "2026-07-26",
+      "latestChanges": {
+        "title": "1.2.0 (2026-07-25)",
+        "date": "2026-07-25",
+        "items": [
+          {
+            "category": "\u2728 New Features",
+            "text": "added lifesum"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Lifesum",
+          "packageName": "com.sillens.shapeupclub",
+          "patchCount": 1,
+          "iconUrl": "https://play-lh.googleusercontent.com/gMeT8cxzZOnlrCKwYIOPHT90C9kb9pPbE0mHlk2gixDIadJ_B9QmslnPkQ3Sc0y9KuS8KMxPDxFgsL_GLnXbsg",
+          "iconColor": "#41CD8C"
+        },
+        {
+          "name": "Ling",
+          "packageName": "com.simyasolutions.ling.universal",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#F8485E"
+        },
+        {
+          "name": "Sponge",
+          "packageName": "com.prismtree.sponge",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#2AB7A9"
         }
       ]
     },
@@ -3238,23 +3468,31 @@
       "webUrl": "https://github.com/jasonwu1994/Gboard-patches",
       "addUrl": "https://morphe.software/add-source?github=jasonwu1994/Gboard-patches",
       "avatarUrl": "https://github.com/jasonwu1994.png?size=96",
-      "patchCount": 22,
+      "patchCount": 18,
       "appCount": 1,
       "createdAt": 1784836037428,
       "updatedAt": 1784836037428,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.14.0 (2026-06-30)",
-        "date": "2026-06-30",
+        "title": "2.0.0 (2026-07-24)",
+        "date": "2026-07-24",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "**Gboard:** add Zhuyin Bottom Row Key Sizes so you can adjust the seven bottom-row slot sizes on the Zhuyin keyboard, including ?123, \uff0c, the globe key, space, \u3126, backspace, and the IME action key."
+            "text": "**Gboard:** update the supported Gboard version to 17.7.7.932364120-release-arm64-v8a."
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "**Gboard:** remove the Chinese Online Voice Input, Clipboard Entity Extraction, Clipboard Item Edit, and Enable Undo/Redo feature patches because these features are built into the new Gboard version."
           },
           {
             "category": "\u2728 \u65b0\u529f\u80fd",
-            "text": "**Gboard:** \u65b0\u589e Zhuyin Bottom Row Key Sizes\uff0c\u53ef\u8abf\u6574\u6ce8\u97f3\u9375\u76e4\u5e95\u6392 7 \u500b\u6b04\u4f4d\u7684\u6309\u9375\u5927\u5c0f\uff0c\u5305\u542b ?123\u3001\uff0c\u3001\u5730\u7403\u9375\u3001\u7a7a\u767d\u9375\u3001\u3126\u3001\u522a\u9664\u9375\uff0c\u4ee5\u53ca\u641c\u5c0b / \u9001\u51fa / Enter \u9375\u3002"
+            "text": "**Gboard:** \u66f4\u65b0\u652f\u63f4\u7684 Gboard \u7248\u672c\u81f3 17.7.7.932364120-release-arm64-v8a\u3002"
+          },
+          {
+            "category": "\u2728 \u65b0\u529f\u80fd",
+            "text": "**Gboard:** \u79fb\u9664 Chinese Online Voice Input\u3001Clipboard Entity Extraction\u3001Clipboard Item Edit \u8207 Enable Undo/Redo \u529f\u80fd Patch\uff0c\u56e0\u70ba\u65b0\u7248 Gboard \u5df2\u5167\u5efa\u9019\u4e9b\u529f\u80fd\u3002"
           }
         ]
       },
@@ -3262,7 +3500,7 @@
         {
           "name": "com.google.android.inputmethod.latin",
           "packageName": "com.google.android.inputmethod.latin",
-          "patchCount": 22,
+          "patchCount": 18,
           "iconUrl": "https://play-lh.googleusercontent.com/J4vZ82VsZjnsRsI6ckQFXlO36_52QJerqG5-HfLgHffS34I4EfoAFfNdbf6s4wBAsUEf8DOJVEDEHh5tzWbrnA",
           "iconColor": ""
         }
@@ -4234,6 +4472,42 @@
       ]
     },
     {
+      "name": "morphe-patches-yavot",
+      "repo": "MarcaDian/morphe-patches-yavot",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/MarcaDian/morphe-patches-yavot/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/MarcaDian/morphe-patches-yavot/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/MarcaDian/morphe-patches-yavot/main/CHANGELOG.md",
+      "webUrl": "https://github.com/MarcaDian/morphe-patches-yavot",
+      "addUrl": "https://morphe.software/add-source?github=MarcaDian/morphe-patches-yavot",
+      "avatarUrl": "https://github.com/MarcaDian.png?size=96",
+      "patchCount": 1,
+      "appCount": 1,
+      "createdAt": 1785034851803,
+      "updatedAt": 1785034851803,
+      "createdDate": "2026-07-26",
+      "updatedDate": "2026-07-26",
+      "latestChanges": {
+        "title": "1.0.0 (2026-07-24)",
+        "date": "2026-07-24",
+        "items": [
+          {
+            "category": "\u2728 New Features",
+            "text": "add Yandex VoT as add-on for Morphe Patches"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "YouTube",
+          "packageName": "com.google.android.youtube",
+          "patchCount": 1,
+          "iconUrl": "https://play-lh.googleusercontent.com/QNmuZQc9I6Zbe3mWnSr0hycnENqGFCI5p3yE29Hkxtf22T0IWS6zTrpxULLyyjWpB7ONAXDsDQXnXcVWokl3eg",
+          "iconColor": "#FF0033"
+        }
+      ]
+    },
+    {
       "name": "morphe-meta-patches",
       "repo": "meridianfresco/morphe-meta-patches",
       "host": "github.com",
@@ -5075,6 +5349,42 @@
           "patchCount": 2,
           "iconUrl": "https://play-lh.googleusercontent.com/MyptZXmcCyF59phIWPsNCfHq6zSO_ojEdw_4rMYYWPOGdikSjqeOXcoszBZ053VYpINe5K7ZR9KV1nkFWgxdOw",
           "iconColor": "#FF0000"
+        }
+      ]
+    },
+    {
+      "name": "morphe-patches",
+      "repo": "pseudofractal/morphe-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/pseudofractal/morphe-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/pseudofractal/morphe-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/pseudofractal/morphe-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/pseudofractal/morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=pseudofractal/morphe-patches",
+      "avatarUrl": "https://github.com/pseudofractal.png?size=96",
+      "patchCount": 1,
+      "appCount": 1,
+      "createdAt": 1785034852630,
+      "updatedAt": 1785034852630,
+      "createdDate": "2026-07-26",
+      "updatedDate": "2026-07-26",
+      "latestChanges": {
+        "title": "1.0.0 (2026-07-25)",
+        "date": "2026-07-25",
+        "items": [
+          {
+            "category": "\u2728 New Features",
+            "text": "**nix:** flake start and direnv"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "XYZ app",
+          "packageName": "com.example.app",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#FF0045"
         }
       ]
     },
@@ -7804,20 +8114,12 @@
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.9.0 (2026-07-24)",
-        "date": "2026-07-24",
+        "title": "1.10.0 (2026-07-25)",
+        "date": "2026-07-25",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "**avito:** add configurable profile promo controls"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "**avito:** add offer recommendations toggle"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "**avito:** restructure Morphe settings menu"
+            "text": "**wildberries:** remove profile + big-sale banners, fix 7.7.2001 matcher drift"
           }
         ]
       },
@@ -10499,20 +10801,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-07-24)",
-            "date": "2026-07-24",
+            "title": "1.10.0 (2026-07-25)",
+            "date": "2026-07-25",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**avito:** add configurable profile promo controls"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "**avito:** add offer recommendations toggle"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "**avito:** restructure Morphe settings menu"
+                "text": "**wildberries:** remove profile + big-sale banners, fix 7.7.2001 matcher drift"
               }
             ]
           },
@@ -12079,10 +12373,81 @@
       "iconUrl": "https://play-lh.googleusercontent.com/kfxcsV5RmByTSzDnSnbwiRIOQ_rq6kUG6Fvmg_zoPtTAjKA9_y9Sy7cMSi39x7UKkosKHe_Ddu_MiVOtlDeRwQ"
     },
     {
+      "packageName": "com.brave.browser_beta",
+      "name": "Brave Beta",
+      "repos": [
+        "dh6k/morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "dh6k/morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/dh6k/morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=dh6k/morphe-patches",
+          "source": "https://raw.githubusercontent.com/dh6k/morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/dh6k/morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/dh6k.png?size=96",
+          "latestChanges": {
+            "title": "1.1.0 (2026-07-25)",
+            "date": "2026-07-25",
+            "items": [
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**build:** keep generator dependencies out of patch dex"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**release:** publish appName option on main"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**universal:** release bundle-specific app name option"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**universal:** restore appName option key"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**universal:** add custom app icon patch"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-brave-browser-beta-dh6k-morphe-patches",
+            "releaseTag": "app-com-brave-browser-beta-dh6k-morphe-patches",
+            "assetName": "brave-beta-dh6k-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Brave Origin",
+              "description": "Unlocks Brave Origin and enables feature toggle controls."
+            }
+          ],
+          "versions": []
+        }
+      ],
+      "patches": [
+        "Brave Origin"
+      ],
+      "patchDetails": [
+        {
+          "name": "Brave Origin",
+          "description": "Unlocks Brave Origin and enables feature toggle controls."
+        }
+      ],
+      "versions": [],
+      "iconColor": "#FF4500",
+      "iconUrl": ""
+    },
+    {
       "packageName": "com.brave.browser",
       "name": "Brave Browser",
       "repos": [
-        "bufferk/morphe-patches"
+        "bufferk/morphe-patches",
+        "dh6k/morphe-patches"
       ],
       "sources": [
         {
@@ -12119,6 +12484,57 @@
           "versions": [
             "1.92.140"
           ]
+        },
+        {
+          "repo": "dh6k/morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/dh6k/morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=dh6k/morphe-patches",
+          "source": "https://raw.githubusercontent.com/dh6k/morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/dh6k/morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/dh6k.png?size=96",
+          "latestChanges": {
+            "title": "1.1.0 (2026-07-25)",
+            "date": "2026-07-25",
+            "items": [
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**build:** keep generator dependencies out of patch dex"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**release:** publish appName option on main"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**universal:** release bundle-specific app name option"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**universal:** restore appName option key"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**universal:** add custom app icon patch"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-brave-browser-dh6k-morphe-patches",
+            "releaseTag": "app-com-brave-browser-dh6k-morphe-patches",
+            "assetName": "brave-browser-dh6k-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Brave Origin",
+              "description": "Unlocks Brave Origin and enables feature toggle controls."
+            }
+          ],
+          "versions": [
+            "1.92.140"
+          ]
         }
       ],
       "patches": [
@@ -12135,6 +12551,76 @@
       ],
       "iconColor": "#FF4500",
       "iconUrl": "https://play-lh.googleusercontent.com/UBrZnuXGb-QACU0uUdF5r_n5nx5oBbdfPyEbtsr0xXv00RN7rpaTVu3GjLeE90aHFmNlbaCmm8vNcmY0eE98U9E"
+    },
+    {
+      "packageName": "com.brave.browser_nightly",
+      "name": "Brave Nightly",
+      "repos": [
+        "dh6k/morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "dh6k/morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/dh6k/morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=dh6k/morphe-patches",
+          "source": "https://raw.githubusercontent.com/dh6k/morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/dh6k/morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/dh6k.png?size=96",
+          "latestChanges": {
+            "title": "1.1.0 (2026-07-25)",
+            "date": "2026-07-25",
+            "items": [
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**build:** keep generator dependencies out of patch dex"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**release:** publish appName option on main"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**universal:** release bundle-specific app name option"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**universal:** restore appName option key"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**universal:** add custom app icon patch"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-brave-browser-nightly-dh6k-morphe-patches",
+            "releaseTag": "app-com-brave-browser-nightly-dh6k-morphe-patches",
+            "assetName": "brave-nightly-dh6k-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Brave Origin",
+              "description": "Unlocks Brave Origin and enables feature toggle controls."
+            }
+          ],
+          "versions": []
+        }
+      ],
+      "patches": [
+        "Brave Origin"
+      ],
+      "patchDetails": [
+        {
+          "name": "Brave Origin",
+          "description": "Unlocks Brave Origin and enables feature toggle controls."
+        }
+      ],
+      "versions": [],
+      "iconColor": "#FF4500",
+      "iconUrl": ""
     },
     {
       "packageName": "com.bws.appv2",
@@ -13853,18 +14339,33 @@
               "description": "Automatically claims CHZZK TongPow rewards when they become available while watching streams."
             },
             {
+              "name": "Disable ads",
+              "description": "Disables CHZZK advertisements, including live stream pre-roll, mid-roll and post-roll ads and clip feed ads."
+            },
+            {
               "name": "Disable P2P",
               "description": "Disables CHZZK peer-assisted grid streaming and forces CDN playback."
+            },
+            {
+              "name": "Hide home banners",
+              "description": "Hides promotional banners on the CHZZK home recommend tab, including the top banner carousel and the in-feed event and image banners."
+            },
+            {
+              "name": "Unlock cheat key",
+              "description": "Unlocks CHZZK cheat key subscription benefits without an active subscription."
             }
           ],
           "versions": [
-            "3.6.0"
+            "3.9.0"
           ]
         }
       ],
       "patches": [
         "Auto claim TongPow",
-        "Disable P2P"
+        "Disable ads",
+        "Disable P2P",
+        "Hide home banners",
+        "Unlock cheat key"
       ],
       "patchDetails": [
         {
@@ -13872,12 +14373,24 @@
           "description": "Automatically claims CHZZK TongPow rewards when they become available while watching streams."
         },
         {
+          "name": "Disable ads",
+          "description": "Disables CHZZK advertisements, including live stream pre-roll, mid-roll and post-roll ads and clip feed ads."
+        },
+        {
           "name": "Disable P2P",
           "description": "Disables CHZZK peer-assisted grid streaming and forces CDN playback."
+        },
+        {
+          "name": "Hide home banners",
+          "description": "Hides promotional banners on the CHZZK home recommend tab, including the top banner carousel and the in-feed event and image banners."
+        },
+        {
+          "name": "Unlock cheat key",
+          "description": "Unlocks CHZZK cheat key subscription benefits without an active subscription."
         }
       ],
       "versions": [
-        "3.6.0"
+        "3.9.0"
       ],
       "iconColor": "#00FFA3",
       "iconUrl": "https://play-lh.googleusercontent.com/X9wOAI11HK3M4WyhYq4k4fmNcT4Fi8Gd1WRwU3s4IR4YGl1k7hKic9teHN2cnsURsUNm26MC9NHnyS-nMKRr"
@@ -17664,16 +18177,24 @@
           "changelogUrl": "https://raw.githubusercontent.com/jasonwu1994/Gboard-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/jasonwu1994.png?size=96",
           "latestChanges": {
-            "title": "1.14.0 (2026-06-30)",
-            "date": "2026-06-30",
+            "title": "2.0.0 (2026-07-24)",
+            "date": "2026-07-24",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**Gboard:** add Zhuyin Bottom Row Key Sizes so you can adjust the seven bottom-row slot sizes on the Zhuyin keyboard, including ?123, \uff0c, the globe key, space, \u3126, backspace, and the IME action key."
+                "text": "**Gboard:** update the supported Gboard version to 17.7.7.932364120-release-arm64-v8a."
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**Gboard:** remove the Chinese Online Voice Input, Clipboard Entity Extraction, Clipboard Item Edit, and Enable Undo/Redo feature patches because these features are built into the new Gboard version."
               },
               {
                 "category": "\u2728 \u65b0\u529f\u80fd",
-                "text": "**Gboard:** \u65b0\u589e Zhuyin Bottom Row Key Sizes\uff0c\u53ef\u8abf\u6574\u6ce8\u97f3\u9375\u76e4\u5e95\u6392 7 \u500b\u6b04\u4f4d\u7684\u6309\u9375\u5927\u5c0f\uff0c\u5305\u542b ?123\u3001\uff0c\u3001\u5730\u7403\u9375\u3001\u7a7a\u767d\u9375\u3001\u3126\u3001\u522a\u9664\u9375\uff0c\u4ee5\u53ca\u641c\u5c0b / \u9001\u51fa / Enter \u9375\u3002"
+                "text": "**Gboard:** \u66f4\u65b0\u652f\u63f4\u7684 Gboard \u7248\u672c\u81f3 17.7.7.932364120-release-arm64-v8a\u3002"
+              },
+              {
+                "category": "\u2728 \u65b0\u529f\u80fd",
+                "text": "**Gboard:** \u79fb\u9664 Chinese Online Voice Input\u3001Clipboard Entity Extraction\u3001Clipboard Item Edit \u8207 Enable Undo/Redo \u529f\u80fd Patch\uff0c\u56e0\u70ba\u65b0\u7248 Gboard \u5df2\u5167\u5efa\u9019\u4e9b\u529f\u80fd\u3002"
               }
             ]
           },
@@ -17694,20 +18215,8 @@
               "description": "\u555f\u7528 AI \u64b0\u5beb\u5de5\u5177\uff0c\u652f\u63f4\u6240\u6709\u8a9e\u8a00\nEnable AI writing tools with support for all languages."
             },
             {
-              "name": "Chinese Online Voice Input",
-              "description": "\u5f37\u5236\u555f\u7528\u4e2d\u6587\u8a9e\u97f3\nForce-enable Chinese voice input."
-            },
-            {
               "name": "Clipboard Enhancements",
               "description": "\u589e\u5f37\u526a\u8cbc\u7c3f\u7684\u4fdd\u7559\u6642\u9593\u3001\u6578\u91cf\u4e0a\u9650\u3001\u9810\u89bd\u884c\u6578\u3001\u5012\u6578/\u5efa\u7acb\u6642\u9593\u3001\u9806\u5e8f\u7de8\u865f\u8207\u6b04\u6578\nEnhance clipboard retention time, item count limit, preview lines, countdown/creation time labels, order index, and column count."
-            },
-            {
-              "name": "Clipboard Entity Extraction",
-              "description": "\u555f\u7528 \u526a\u8cbc\u7c3f > \u986f\u793a\u5f9e\u6700\u8fd1\u8907\u88fd\u6587\u5b57\u4e2d\u651d\u53d6\u7684\u8cc7\u8a0a\uff0c\u4f8b\u5982\u5730\u5740\u3001\u96fb\u8a71\u865f\u78bc\u548c\u5176\u4ed6\u9805\u76ee\nEnable Clipboard > Show addresses, phone numbers, and other items pulled from recently copied text."
-            },
-            {
-              "name": "Clipboard Item Edit",
-              "description": "\u9577\u6309 \u526a\u8cbc\u7c3f \u986f\u793a\u7de8\u8f2f\nEnable Edit when long-pressing a clipboard item."
             },
             {
               "name": "Custom Symbols",
@@ -17719,11 +18228,7 @@
             },
             {
               "name": "Enable Inline Autofill Suggestions",
-              "description": "\u555f\u7528\u5167\u5d4c\u81ea\u52d5\u586b\u5165\u5efa\u8b70 / Enable Inline Autofill Suggestions"
-            },
-            {
-              "name": "Enable Undo/Redo feature",
-              "description": "\u555f\u7528 Undo/Redo \u529f\u80fd\nEnable the Undo/Redo feature."
+              "description": "\u555f\u7528\u5167\u5d4c\u81ea\u52d5\u586b\u5165\u5efa\u8b70\nEnable Inline Autofill Suggestions"
             },
             {
               "name": "English QWERTY Up-Flick Uppercase",
@@ -17775,7 +18280,7 @@
             }
           ],
           "versions": [
-            "17.0.10.880768217-release-arm64-v8a"
+            "17.7.7.932364120-release-arm64-v8a"
           ]
         },
         {
@@ -17868,10 +18373,7 @@
         "Add Gboard Signature Bypass",
         "AI Writing Tools",
         "Always-incognito mode",
-        "Chinese Online Voice Input",
         "Clipboard Enhancements",
-        "Clipboard Entity Extraction",
-        "Clipboard Item Edit",
         "Custom Symbols",
         "Emojis, stickers & GIFs Tab Order",
         "Enable clipboard in incognito",
@@ -17879,7 +18381,6 @@
         "Enable key shape selection",
         "Enable OCR feature",
         "Enable Undo feature",
-        "Enable Undo/Redo feature",
         "Enable voice typing in incognito",
         "English QWERTY Up-Flick Uppercase",
         "Grammar Checker",
@@ -17909,20 +18410,8 @@
           "description": "Always opens Gboard in incognito mode to disable typing history collection and personalization."
         },
         {
-          "name": "Chinese Online Voice Input",
-          "description": "\u5f37\u5236\u555f\u7528\u4e2d\u6587\u8a9e\u97f3\nForce-enable Chinese voice input."
-        },
-        {
           "name": "Clipboard Enhancements",
           "description": "\u589e\u5f37\u526a\u8cbc\u7c3f\u7684\u4fdd\u7559\u6642\u9593\u3001\u6578\u91cf\u4e0a\u9650\u3001\u9810\u89bd\u884c\u6578\u3001\u5012\u6578/\u5efa\u7acb\u6642\u9593\u3001\u9806\u5e8f\u7de8\u865f\u8207\u6b04\u6578\nEnhance clipboard retention time, item count limit, preview lines, countdown/creation time labels, order index, and column count."
-        },
-        {
-          "name": "Clipboard Entity Extraction",
-          "description": "\u555f\u7528 \u526a\u8cbc\u7c3f > \u986f\u793a\u5f9e\u6700\u8fd1\u8907\u88fd\u6587\u5b57\u4e2d\u651d\u53d6\u7684\u8cc7\u8a0a\uff0c\u4f8b\u5982\u5730\u5740\u3001\u96fb\u8a71\u865f\u78bc\u548c\u5176\u4ed6\u9805\u76ee\nEnable Clipboard > Show addresses, phone numbers, and other items pulled from recently copied text."
-        },
-        {
-          "name": "Clipboard Item Edit",
-          "description": "\u9577\u6309 \u526a\u8cbc\u7c3f \u986f\u793a\u7de8\u8f2f\nEnable Edit when long-pressing a clipboard item."
         },
         {
           "name": "Custom Symbols",
@@ -17938,7 +18427,7 @@
         },
         {
           "name": "Enable Inline Autofill Suggestions",
-          "description": "\u555f\u7528\u5167\u5d4c\u81ea\u52d5\u586b\u5165\u5efa\u8b70 / Enable Inline Autofill Suggestions"
+          "description": "\u555f\u7528\u5167\u5d4c\u81ea\u52d5\u586b\u5165\u5efa\u8b70\nEnable Inline Autofill Suggestions"
         },
         {
           "name": "Enable key shape selection",
@@ -17951,10 +18440,6 @@
         {
           "name": "Enable Undo feature",
           "description": "Enables undo feature to quickly undo or correct typing mistakes."
-        },
-        {
-          "name": "Enable Undo/Redo feature",
-          "description": "\u555f\u7528 Undo/Redo \u529f\u80fd\nEnable the Undo/Redo feature."
         },
         {
           "name": "Enable voice typing in incognito",
@@ -18014,7 +18499,7 @@
         }
       ],
       "versions": [
-        "17.0.10.880768217-release-arm64-v8a"
+        "17.7.7.932364120-release-arm64-v8a"
       ],
       "iconColor": "",
       "iconUrl": "https://play-lh.googleusercontent.com/J4vZ82VsZjnsRsI6ckQFXlO36_52QJerqG5-HfLgHffS34I4EfoAFfNdbf6s4wBAsUEf8DOJVEDEHh5tzWbrnA"
@@ -18328,12 +18813,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/cesbar/zpatches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/cesbar.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-19)",
-            "date": "2026-07-19",
+            "title": "1.7.0 (2026-07-25)",
+            "date": "2026-07-25",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**Minesweeper / Solitaire The Clean One:** Enable Premium, Disable Internet and Telemetry"
+                "text": "**Sudoku The Clean One:** Enable Premium, Disable Internet and Telemetry, Bypass PairIp"
               }
             ]
           },
@@ -20608,8 +21093,8 @@
         }
       ],
       "patches": [
-        "Disable ad-free banner",
         "Disable Ad-Free Banner",
+        "Disable ad-free banner",
         "Disable blog notification reminder",
         "Disable dashboard ads",
         "Disable gift message popup",
@@ -20621,12 +21106,12 @@
       ],
       "patchDetails": [
         {
-          "name": "Disable ad-free banner",
-          "description": "Hides the banner with the frog that prompts you to buy Tumblr Ad-Free."
-        },
-        {
           "name": "Disable Ad-Free Banner",
           "description": "Disables the banner with a frog, prompting you to buy Tumblr Ad-Free."
+        },
+        {
+          "name": "Disable ad-free banner",
+          "description": "Hides the banner with the frog that prompts you to buy Tumblr Ad-Free."
         },
         {
           "name": "Disable blog notification reminder",
@@ -23701,6 +24186,10 @@
               "description": "Hides the main ad in the app."
             },
             {
+              "name": "Hide mini gallery cover image",
+              "description": "Adds a setting to hide the mini gallery cover image above post lists."
+            },
+            {
               "name": "Register settings activity",
               "description": "Registers the Morphe settings activity in the app manifest."
             },
@@ -23709,12 +24198,20 @@
               "description": "Adds a setting to render big DCCon at normal DCCon size."
             },
             {
+              "name": "Restore old post icons",
+              "description": "Adds a setting to restore DCInside 4.7.x post list and read footer icons."
+            },
+            {
+              "name": "Show author identifier",
+              "description": "Adds options to show the author identifier next to the nickname in posts, post lists, and the recently-viewed posts list. The recently-viewed list only shows it for posts opened after this patch is installed."
+            },
+            {
               "name": "Spoof Signature",
               "description": "Spoofs the app signature to bypass integrity checks."
             }
           ],
           "versions": [
-            "5.2.9"
+            "5.3.0"
           ]
         }
       ],
@@ -23736,8 +24233,11 @@
         "Hide DC official notices",
         "Hide home components",
         "Hide Main Ad",
+        "Hide mini gallery cover image",
         "Register settings activity",
         "Render big DCCon as normal size",
+        "Restore old post icons",
+        "Show author identifier",
         "Spoof Signature"
       ],
       "patchDetails": [
@@ -23810,6 +24310,10 @@
           "description": "Hides the main ad in the app."
         },
         {
+          "name": "Hide mini gallery cover image",
+          "description": "Adds a setting to hide the mini gallery cover image above post lists."
+        },
+        {
           "name": "Register settings activity",
           "description": "Registers the Morphe settings activity in the app manifest."
         },
@@ -23818,12 +24322,20 @@
           "description": "Adds a setting to render big DCCon at normal DCCon size."
         },
         {
+          "name": "Restore old post icons",
+          "description": "Adds a setting to restore DCInside 4.7.x post list and read footer icons."
+        },
+        {
+          "name": "Show author identifier",
+          "description": "Adds options to show the author identifier next to the nickname in posts, post lists, and the recently-viewed posts list. The recently-viewed list only shows it for posts opened after this patch is installed."
+        },
+        {
           "name": "Spoof Signature",
           "description": "Spoofs the app signature to bypass integrity checks."
         }
       ],
       "versions": [
-        "5.2.9"
+        "5.3.0"
       ],
       "iconColor": "#3D4491",
       "iconUrl": "https://play-lh.googleusercontent.com/3wsShIT-BhtperkPcnd0wcEz4M0ajLQn2jokq7oPnrimnazOcDJt3wC9fxt68P-jeiabWPsPkWMnkPgWNqJpoA"
@@ -24254,6 +24766,78 @@
       "iconUrl": "https://play-lh.googleusercontent.com/NgntHB7Nm-9GSfkq8vu60toy_tZRKwFse_LpyeY7DLj838-oGfmAEizTtFckgE1cQghVR788lJCImDzgHdHdld4"
     },
     {
+      "packageName": "ee.dustland.android.dustlandsudoku",
+      "name": "ee.dustland.android.dustlandsudoku",
+      "repos": [
+        "cesbar/zpatches"
+      ],
+      "sources": [
+        {
+          "repo": "cesbar/zpatches",
+          "host": "github.com",
+          "webUrl": "https://github.com/cesbar/zpatches",
+          "addUrl": "https://morphe.software/add-source?github=cesbar/zpatches",
+          "source": "https://raw.githubusercontent.com/cesbar/zpatches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/cesbar/zpatches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/cesbar.png?size=96",
+          "latestChanges": {
+            "title": "1.7.0 (2026-07-25)",
+            "date": "2026-07-25",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "**Sudoku The Clean One:** Enable Premium, Disable Internet and Telemetry, Bypass PairIp"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "ee-dustland-android-dustlandsudoku-cesbar-zpatches",
+            "releaseTag": "app-ee-dustland-android-dustlandsudoku-cesbar-zpatches",
+            "assetName": "ee-dustland-android-dustlandsudoku-cesbar-zpatches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Bypass PairIp",
+              "description": "Bypass the PairIp license check preventing app modification"
+            },
+            {
+              "name": "Disable Internet and Telemetry",
+              "description": "Disable Internet and Telemetry by removing all non-necessary permissions from the manifest"
+            },
+            {
+              "name": "Enable Premium",
+              "description": "Unlock all purchasables options"
+            }
+          ],
+          "versions": []
+        }
+      ],
+      "patches": [
+        "Bypass PairIp",
+        "Disable Internet and Telemetry",
+        "Enable Premium"
+      ],
+      "patchDetails": [
+        {
+          "name": "Bypass PairIp",
+          "description": "Bypass the PairIp license check preventing app modification"
+        },
+        {
+          "name": "Disable Internet and Telemetry",
+          "description": "Disable Internet and Telemetry by removing all non-necessary permissions from the manifest"
+        },
+        {
+          "name": "Enable Premium",
+          "description": "Unlock all purchasables options"
+        }
+      ],
+      "versions": [],
+      "iconColor": "",
+      "iconUrl": ""
+    },
+    {
       "packageName": "ee.dustland.android.minesweeper",
       "name": "ee.dustland.android.minesweeper",
       "repos": [
@@ -24269,12 +24853,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/cesbar/zpatches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/cesbar.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-19)",
-            "date": "2026-07-19",
+            "title": "1.7.0 (2026-07-25)",
+            "date": "2026-07-25",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**Minesweeper / Solitaire The Clean One:** Enable Premium, Disable Internet and Telemetry"
+                "text": "**Sudoku The Clean One:** Enable Premium, Disable Internet and Telemetry, Bypass PairIp"
               }
             ]
           },
@@ -24332,12 +24916,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/cesbar/zpatches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/cesbar.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-19)",
-            "date": "2026-07-19",
+            "title": "1.7.0 (2026-07-25)",
+            "date": "2026-07-25",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**Minesweeper / Solitaire The Clean One:** Enable Premium, Disable Internet and Telemetry"
+                "text": "**Sudoku The Clean One:** Enable Premium, Disable Internet and Telemetry, Bypass PairIp"
               }
             ]
           },
@@ -25425,26 +26009,35 @@
           },
           "patches": [
             {
+              "name": "Bypass login",
+              "description": "Skips the mandatory account sign-in on launch and opens the app directly."
+            },
+            {
               "name": "Unlock Premium features",
               "description": "Enables app features locked behind the subscription paywall."
             }
           ],
           "versions": [
-            "1.4.3.30"
+            "1.4.4.9"
           ]
         }
       ],
       "patches": [
+        "Bypass login",
         "Unlock Premium features"
       ],
       "patchDetails": [
+        {
+          "name": "Bypass login",
+          "description": "Skips the mandatory account sign-in on launch and opens the app directly."
+        },
         {
           "name": "Unlock Premium features",
           "description": "Enables app features locked behind the subscription paywall."
         }
       ],
       "versions": [
-        "1.4.3.30"
+        "1.4.4.9"
       ],
       "iconColor": "#0096FA",
       "iconUrl": "https://play-lh.googleusercontent.com/Jfrzp1yaMjP2EDdMn5TtPAfpbjkGOnXRMFUvK9gc-28ZI3BM3X1yXbRDcjkCsigoGBg2PnZk94dNgtT5TPLV"
@@ -30584,10 +31177,6 @@
               "description": "Enables the reaction mention flag in KakaoTalk chat logs."
             },
             {
-              "name": "Enable recording pause/resume feature",
-              "description": "Enable recording pause/resume feature in KakaoTalk"
-            },
-            {
               "name": "Enable send big text",
               "description": "Allows sending big text messages in KakaoTalk."
             },
@@ -30604,16 +31193,24 @@
               "description": "Don't expose your typing status to the other party."
             },
             {
+              "name": "Hide More tab components",
+              "description": "Adds options to hide components from the More tab."
+            },
+            {
+              "name": "Hide More tab Game tab",
+              "description": "Hides the Game tab from the More tab."
+            },
+            {
               "name": "Hook Package Manager",
               "description": "Hooks the Package Manager to bypass integrity checks."
             },
             {
-              "name": "Override feature flag",
-              "description": "Overrides the feature flag to enable the feature."
+              "name": "Open profile from open chat feed",
+              "description": "Opens open chat member profiles from join and leave feed messages."
             },
             {
-              "name": "Play YouTube player in chat room",
-              "description": "Allows playing YouTube videos in KakaoTalk chat rooms."
+              "name": "Override feature flag",
+              "description": "Overrides the feature flag to enable the feature."
             },
             {
               "name": "Register settings activity",
@@ -30656,8 +31253,12 @@
               "description": "Shows the channel ID in chatroom settings and copies it when tapping the chat side title."
             },
             {
-              "name": "Show deleted or hidden messages",
-              "description": "Allows you to see deleted/hidden messages in chat logs."
+              "name": "Show deleted, hidden, or edited messages",
+              "description": "Allows you to see deleted, hidden, and edited message history in chat logs."
+            },
+            {
+              "name": "Show message read receipts",
+              "description": "Shows the members who have or have not read each chat message."
             },
             {
               "name": "Spoof apk checksums",
@@ -30677,7 +31278,7 @@
             }
           ],
           "versions": [
-            "26.4.2"
+            "26.6.1"
           ]
         }
       ],
@@ -30714,14 +31315,15 @@
         "Disable verifying signature",
         "Enable Markdown",
         "Enable reaction mention flag",
-        "Enable recording pause/resume feature",
         "Enable send big text",
         "Force enable debug mode",
         "Force enable emoticon plus feature",
         "Ghost Mode",
+        "Hide More tab components",
+        "Hide More tab Game tab",
         "Hook Package Manager",
+        "Open profile from open chat feed",
         "Override feature flag",
-        "Play YouTube player in chat room",
         "Register settings activity",
         "Remove BizBoard ads",
         "Remove feed ad",
@@ -30732,7 +31334,8 @@
         "Remove shop tab",
         "Remove Short-form Tab",
         "Show chatroom channel ID",
-        "Show deleted or hidden messages",
+        "Show deleted, hidden, or edited messages",
+        "Show message read receipts",
         "Spoof apk checksums",
         "Spoof App ID",
         "Spoof signature",
@@ -30868,10 +31471,6 @@
           "description": "Enables the reaction mention flag in KakaoTalk chat logs."
         },
         {
-          "name": "Enable recording pause/resume feature",
-          "description": "Enable recording pause/resume feature in KakaoTalk"
-        },
-        {
           "name": "Enable send big text",
           "description": "Allows sending big text messages in KakaoTalk."
         },
@@ -30888,16 +31487,24 @@
           "description": "Don't expose your typing status to the other party."
         },
         {
+          "name": "Hide More tab components",
+          "description": "Adds options to hide components from the More tab."
+        },
+        {
+          "name": "Hide More tab Game tab",
+          "description": "Hides the Game tab from the More tab."
+        },
+        {
           "name": "Hook Package Manager",
           "description": "Hooks the Package Manager to bypass integrity checks."
         },
         {
-          "name": "Override feature flag",
-          "description": "Overrides the feature flag to enable the feature."
+          "name": "Open profile from open chat feed",
+          "description": "Opens open chat member profiles from join and leave feed messages."
         },
         {
-          "name": "Play YouTube player in chat room",
-          "description": "Allows playing YouTube videos in KakaoTalk chat rooms."
+          "name": "Override feature flag",
+          "description": "Overrides the feature flag to enable the feature."
         },
         {
           "name": "Register settings activity",
@@ -30940,8 +31547,12 @@
           "description": "Shows the channel ID in chatroom settings and copies it when tapping the chat side title."
         },
         {
-          "name": "Show deleted or hidden messages",
-          "description": "Allows you to see deleted/hidden messages in chat logs."
+          "name": "Show deleted, hidden, or edited messages",
+          "description": "Allows you to see deleted, hidden, and edited message history in chat logs."
+        },
+        {
+          "name": "Show message read receipts",
+          "description": "Shows the members who have or have not read each chat message."
         },
         {
           "name": "Spoof apk checksums",
@@ -30961,7 +31572,7 @@
         }
       ],
       "versions": [
-        "26.4.2"
+        "26.6.1"
       ],
       "iconColor": "#FEE500",
       "iconUrl": "https://play-lh.googleusercontent.com/VaxoIL0V83FKXsQ5fOR0XJ3CQ7Q_eOt_WXuKFtnuK3nWUH_SOll1_LRK5AlXE7b8sUg4iHNKBVof1zV1haQRyw"
@@ -31589,9 +32200,45 @@
       "packageName": "com.sillens.shapeupclub",
       "name": "Lifesum",
       "repos": [
+        "Entree3k/Morning-Entree-Patches",
         "kondratjev/morphe-patches"
       ],
       "sources": [
+        {
+          "repo": "Entree3k/Morning-Entree-Patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/Entree3k/Morning-Entree-Patches",
+          "addUrl": "https://morphe.software/add-source?github=Entree3k/Morning-Entree-Patches",
+          "source": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/Entree3k.png?size=96",
+          "latestChanges": {
+            "title": "1.2.0 (2026-07-25)",
+            "date": "2026-07-25",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "added lifesum"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-sillens-shapeupclub-entree3k-morning-entree-patches",
+            "releaseTag": "app-com-sillens-shapeupclub-entree3k-morning-entree-patches",
+            "assetName": "lifesum-entree3k-morning-entree-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Enable Premium",
+              "description": "Unlock Lifesum Premium"
+            }
+          ],
+          "versions": [
+            "20.8.0"
+          ]
+        },
         {
           "repo": "kondratjev/morphe-patches",
           "host": "github.com",
@@ -31629,19 +32276,268 @@
         }
       ],
       "patches": [
+        "Enable Premium",
         "Unlock Premium"
       ],
       "patchDetails": [
+        {
+          "name": "Enable Premium",
+          "description": "Unlock Lifesum Premium"
+        },
         {
           "name": "Unlock Premium",
           "description": "Unlocks all premium features."
         }
       ],
       "versions": [
-        "20.6.1"
+        "20.6.1",
+        "20.8.0"
       ],
       "iconColor": "#00C853",
       "iconUrl": "https://play-lh.googleusercontent.com/gMeT8cxzZOnlrCKwYIOPHT90C9kb9pPbE0mHlk2gixDIadJ_B9QmslnPkQ3Sc0y9KuS8KMxPDxFgsL_GLnXbsg"
+    },
+    {
+      "packageName": "jp.naver.line.android",
+      "name": "LINE",
+      "repos": [
+        "andrewliang25/morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "andrewliang25/morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/andrewliang25/morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=andrewliang25/morphe-patches",
+          "source": "https://raw.githubusercontent.com/andrewliang25/morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/andrewliang25/morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/andrewliang25.png?size=96",
+          "latestChanges": {
+            "title": "1.0.0 (2026-07-25)",
+            "date": "2026-07-25",
+            "items": [
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Disambiguate chat-header button fingerprints"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Drop the rename-package patch"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Fix read-receipts, hide-ad-views, and external-browser on device"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Hide Home modules crashed on open (VerifyError)"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Home modules blocklist \u2014 add FLEX for \u5373\u6642\u592f\u8a71\u984c (test round)"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Retarget Hide Home modules to the feed state (x72.h$a)"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "Add experimental Hide Home modules patch"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "Add hide-calendar-button and hide-community-button patches"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "jp-naver-line-android-andrewliang25-morphe-patches",
+            "releaseTag": "app-jp-naver-line-android-andrewliang25-morphe-patches",
+            "assetName": "line-andrewliang25-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Disable LINE Pay",
+              "description": "Closes any LINE Pay screen immediately on open, so Pay flows (and their device-integrity check) never run. Messaging is unaffected."
+            },
+            {
+              "name": "Disable VOOM",
+              "description": "Neutralizes VOOM entry points: VOOM deep links, shares, and notifications (line://home/*) do nothing, and the standalone VOOM feed closes on open. Also disables VOOM LIVE, the birthday board, and share-to-VOOM. Messaging, friend profiles, and other tabs are unaffected."
+            },
+            {
+              "name": "Hide ad views",
+              "description": "Hides LINE display ad views \u2014 the LINE Ads SDK containers across the app, the chat-list Smart Channel banner, and Google AdManager ads."
+            },
+            {
+              "name": "Hide calendar button",
+              "description": "Removes the calendar button from the top of the Chats tab header."
+            },
+            {
+              "name": "Hide community button",
+              "description": "Removes the community (OpenChat) button from the top of the Chats tab header."
+            },
+            {
+              "name": "Hide Home modules",
+              "description": "Hides Home-tab clutter modules: the recommended stickers/content section, the real-time hot-topics (\u5373\u6642\u592f\u8a71\u984c) block, and Home feed ads."
+            },
+            {
+              "name": "Hide LINE TODAY tab",
+              "description": "Removes the LINE TODAY (News) tab from the main bottom navigation, in both the news-tab and news-row layouts."
+            },
+            {
+              "name": "Hide VOOM tab",
+              "description": "Removes the VOOM (formerly Timeline) tab from the main bottom navigation."
+            },
+            {
+              "name": "Hide Wallet tab",
+              "description": "Removes the Wallet (LINE Pay) tab from the main bottom navigation, in both the normal and mini-tab layouts."
+            },
+            {
+              "name": "Keep chats unread",
+              "description": "Opening a 1:1 or group chat no longer marks it read \u2014 it stays unread and no read receipt is sent. Manually using \"Mark as read\" / \"Mark all as read\" still marks the chat read and sends the receipt as normal."
+            },
+            {
+              "name": "Open links in external browser",
+              "description": "Opens tapped web links (http/https) in your default browser instead of LINE's in-app browser. LIFF mini-apps and LINE deep links are unaffected."
+            },
+            {
+              "name": "Remove banner ads",
+              "description": "Stops LINE from loading Smart Channel banner ads (neutralizes the getBanners and getPrefetchableBanners responses)."
+            }
+          ],
+          "versions": [
+            "26.11.0"
+          ]
+        }
+      ],
+      "patches": [
+        "Disable LINE Pay",
+        "Disable VOOM",
+        "Hide ad views",
+        "Hide calendar button",
+        "Hide community button",
+        "Hide Home modules",
+        "Hide LINE TODAY tab",
+        "Hide VOOM tab",
+        "Hide Wallet tab",
+        "Keep chats unread",
+        "Open links in external browser",
+        "Remove banner ads"
+      ],
+      "patchDetails": [
+        {
+          "name": "Disable LINE Pay",
+          "description": "Closes any LINE Pay screen immediately on open, so Pay flows (and their device-integrity check) never run. Messaging is unaffected."
+        },
+        {
+          "name": "Disable VOOM",
+          "description": "Neutralizes VOOM entry points: VOOM deep links, shares, and notifications (line://home/*) do nothing, and the standalone VOOM feed closes on open. Also disables VOOM LIVE, the birthday board, and share-to-VOOM. Messaging, friend profiles, and other tabs are unaffected."
+        },
+        {
+          "name": "Hide ad views",
+          "description": "Hides LINE display ad views \u2014 the LINE Ads SDK containers across the app, the chat-list Smart Channel banner, and Google AdManager ads."
+        },
+        {
+          "name": "Hide calendar button",
+          "description": "Removes the calendar button from the top of the Chats tab header."
+        },
+        {
+          "name": "Hide community button",
+          "description": "Removes the community (OpenChat) button from the top of the Chats tab header."
+        },
+        {
+          "name": "Hide Home modules",
+          "description": "Hides Home-tab clutter modules: the recommended stickers/content section, the real-time hot-topics (\u5373\u6642\u592f\u8a71\u984c) block, and Home feed ads."
+        },
+        {
+          "name": "Hide LINE TODAY tab",
+          "description": "Removes the LINE TODAY (News) tab from the main bottom navigation, in both the news-tab and news-row layouts."
+        },
+        {
+          "name": "Hide VOOM tab",
+          "description": "Removes the VOOM (formerly Timeline) tab from the main bottom navigation."
+        },
+        {
+          "name": "Hide Wallet tab",
+          "description": "Removes the Wallet (LINE Pay) tab from the main bottom navigation, in both the normal and mini-tab layouts."
+        },
+        {
+          "name": "Keep chats unread",
+          "description": "Opening a 1:1 or group chat no longer marks it read \u2014 it stays unread and no read receipt is sent. Manually using \"Mark as read\" / \"Mark all as read\" still marks the chat read and sends the receipt as normal."
+        },
+        {
+          "name": "Open links in external browser",
+          "description": "Opens tapped web links (http/https) in your default browser instead of LINE's in-app browser. LIFF mini-apps and LINE deep links are unaffected."
+        },
+        {
+          "name": "Remove banner ads",
+          "description": "Stops LINE from loading Smart Channel banner ads (neutralizes the getBanners and getPrefetchableBanners responses)."
+        }
+      ],
+      "versions": [
+        "26.11.0"
+      ],
+      "iconColor": "#06C755",
+      "iconUrl": ""
+    },
+    {
+      "packageName": "com.simyasolutions.ling.universal",
+      "name": "Ling",
+      "repos": [
+        "Entree3k/Morning-Entree-Patches"
+      ],
+      "sources": [
+        {
+          "repo": "Entree3k/Morning-Entree-Patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/Entree3k/Morning-Entree-Patches",
+          "addUrl": "https://morphe.software/add-source?github=Entree3k/Morning-Entree-Patches",
+          "source": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/Entree3k.png?size=96",
+          "latestChanges": {
+            "title": "1.2.0 (2026-07-25)",
+            "date": "2026-07-25",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "added lifesum"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-simyasolutions-ling-universal-entree3k-morning-entree-patches",
+            "releaseTag": "app-com-simyasolutions-ling-universal-entree3k-morning-entree-patches",
+            "assetName": "ling-entree3k-morning-entree-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Enable Premium",
+              "description": "Unlocks Ling Pro"
+            }
+          ],
+          "versions": [
+            "8.4.4"
+          ]
+        }
+      ],
+      "patches": [
+        "Enable Premium"
+      ],
+      "patchDetails": [
+        {
+          "name": "Enable Premium",
+          "description": "Unlocks Ling Pro"
+        }
+      ],
+      "versions": [
+        "8.4.4"
+      ],
+      "iconColor": "#F8485E",
+      "iconUrl": ""
     },
     {
       "packageName": "org.languageapp.lingory",
@@ -37355,20 +38251,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-07-24)",
-            "date": "2026-07-24",
+            "title": "1.10.0 (2026-07-25)",
+            "date": "2026-07-25",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**avito:** add configurable profile promo controls"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "**avito:** add offer recommendations toggle"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "**avito:** restructure Morphe settings menu"
+                "text": "**wildberries:** remove profile + big-sale banners, fix 7.7.2001 matcher drift"
               }
             ]
           },
@@ -44816,6 +45704,173 @@
       "iconUrl": "https://play-lh.googleusercontent.com/OSPwLdQHHx16DNvMT8GxkBvpzj5x9WG9_DmJoTMS1YKKbg1YsQlfzTLzc-XTkCLaF9FT7-I-kX9RvSUxSAwYRA"
     },
     {
+      "packageName": "kr.co.nowcom.mobile.afreeca",
+      "name": "SOOP",
+      "repos": [
+        "AmpleReVanced/revanced-patches"
+      ],
+      "sources": [
+        {
+          "repo": "AmpleReVanced/revanced-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/AmpleReVanced/revanced-patches",
+          "addUrl": "https://morphe.software/add-source?github=AmpleReVanced/revanced-patches",
+          "source": "https://raw.githubusercontent.com/AmpleReVanced/revanced-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/AmpleReVanced/revanced-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/AmpleReVanced.png?size=96",
+          "latestChanges": {
+            "title": "1.0.1 (2026-05-06)",
+            "date": "2026-05-06",
+            "items": [
+              {
+                "category": "Bug Fixes",
+                "text": "**releaserc:** add releaseNotes to GitHub release configuration"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**dcinside:** disable DCCon blocker by default"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**dcinside:** fix update check not being disabled"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**dcinside:** fixed an issue finding invalid extensions"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**dcinside:** fixed can't install clone variant"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**dcinside:** restore in-app YouTube video search (594bdaf), closes #72"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**dcinside:** target image download menu padding wrapper"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**dcinside:** Update compatibility check for DisableUpdateCheckPatch to use correct package name"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "kr-co-nowcom-mobile-afreeca-amplerevanced-revanced-patches",
+            "releaseTag": "app-kr-co-nowcom-mobile-afreeca-amplerevanced-revanced-patches",
+            "assetName": "soop-amplerevanced-revanced-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Disable P2P",
+              "description": "Disables SOOP peer-assisted grid streaming."
+            },
+            {
+              "name": "Remove banner ads",
+              "description": "Removes the VOD companion and search banner ads."
+            },
+            {
+              "name": "Remove Catch ads",
+              "description": "Removes the ads inserted between clips in the Catch feed by reporting no ad slots."
+            },
+            {
+              "name": "Remove exit dialog ad",
+              "description": "Removes the ad area shown in the app-exit confirmation dialog, keeping the dialog itself."
+            },
+            {
+              "name": "Remove intro ads",
+              "description": "Removes the image, video and cinema intro ad banners shown on launch."
+            },
+            {
+              "name": "Remove list banner ads",
+              "description": "Removes the native banner ads under the live player and in feeds by stopping their ad request, so no banner is fetched or shown."
+            },
+            {
+              "name": "Remove live ads",
+              "description": "Removes the live pre-roll ad by routing every ad decision into the app's own no-video path so the stream starts immediately."
+            },
+            {
+              "name": "Remove live banner ads",
+              "description": "Removes the banner ads shown under the live player by stopping their driver from attaching the banner fragments."
+            },
+            {
+              "name": "Remove main board ads",
+              "description": "Removes the native \"main board\" banner ad shown in feeds and under the live player."
+            },
+            {
+              "name": "Remove VOD ads",
+              "description": "Removes VOD pre-roll ads by reporting every stream as QuickView Plus to the player's own ad-skip check."
+            }
+          ],
+          "versions": [
+            "8.28.3"
+          ]
+        }
+      ],
+      "patches": [
+        "Disable P2P",
+        "Remove banner ads",
+        "Remove Catch ads",
+        "Remove exit dialog ad",
+        "Remove intro ads",
+        "Remove list banner ads",
+        "Remove live ads",
+        "Remove live banner ads",
+        "Remove main board ads",
+        "Remove VOD ads"
+      ],
+      "patchDetails": [
+        {
+          "name": "Disable P2P",
+          "description": "Disables SOOP peer-assisted grid streaming."
+        },
+        {
+          "name": "Remove banner ads",
+          "description": "Removes the VOD companion and search banner ads."
+        },
+        {
+          "name": "Remove Catch ads",
+          "description": "Removes the ads inserted between clips in the Catch feed by reporting no ad slots."
+        },
+        {
+          "name": "Remove exit dialog ad",
+          "description": "Removes the ad area shown in the app-exit confirmation dialog, keeping the dialog itself."
+        },
+        {
+          "name": "Remove intro ads",
+          "description": "Removes the image, video and cinema intro ad banners shown on launch."
+        },
+        {
+          "name": "Remove list banner ads",
+          "description": "Removes the native banner ads under the live player and in feeds by stopping their ad request, so no banner is fetched or shown."
+        },
+        {
+          "name": "Remove live ads",
+          "description": "Removes the live pre-roll ad by routing every ad decision into the app's own no-video path so the stream starts immediately."
+        },
+        {
+          "name": "Remove live banner ads",
+          "description": "Removes the banner ads shown under the live player by stopping their driver from attaching the banner fragments."
+        },
+        {
+          "name": "Remove main board ads",
+          "description": "Removes the native \"main board\" banner ad shown in feeds and under the live player."
+        },
+        {
+          "name": "Remove VOD ads",
+          "description": "Removes VOD pre-roll ads by reporting every stream as QuickView Plus to the player's own ad-skip check."
+        }
+      ],
+      "versions": [
+        "8.28.3"
+      ],
+      "iconColor": "#0068FF",
+      "iconUrl": ""
+    },
+    {
       "packageName": "com.soundbrenner.pulse",
       "name": "Soundbrenner",
       "repos": [
@@ -45228,6 +46283,64 @@
       ],
       "iconColor": "#FF0045",
       "iconUrl": "https://play-lh.googleusercontent.com/0H4UbwiIienhLb6jn_zs7wZ06Oqw2DtqZmoUw6puac1F5ZalD_Jja14N7gGk1seq78403uGUvdmtiVxqckMw"
+    },
+    {
+      "packageName": "com.prismtree.sponge",
+      "name": "Sponge",
+      "repos": [
+        "Entree3k/Morning-Entree-Patches"
+      ],
+      "sources": [
+        {
+          "repo": "Entree3k/Morning-Entree-Patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/Entree3k/Morning-Entree-Patches",
+          "addUrl": "https://morphe.software/add-source?github=Entree3k/Morning-Entree-Patches",
+          "source": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/Entree3k.png?size=96",
+          "latestChanges": {
+            "title": "1.2.0 (2026-07-25)",
+            "date": "2026-07-25",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "added lifesum"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-prismtree-sponge-entree3k-morning-entree-patches",
+            "releaseTag": "app-com-prismtree-sponge-entree3k-morning-entree-patches",
+            "assetName": "sponge-entree3k-morning-entree-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Enable Premium",
+              "description": "Unlock Sponge Premium"
+            }
+          ],
+          "versions": [
+            "2.8.0"
+          ]
+        }
+      ],
+      "patches": [
+        "Enable Premium"
+      ],
+      "patchDetails": [
+        {
+          "name": "Enable Premium",
+          "description": "Unlock Sponge Premium"
+        }
+      ],
+      "versions": [
+        "2.8.0"
+      ],
+      "iconColor": "#2AB7A9",
+      "iconUrl": ""
     },
     {
       "packageName": "com.spotangels.android",
@@ -47265,20 +48378,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-07-24)",
-            "date": "2026-07-24",
+            "title": "1.10.0 (2026-07-25)",
+            "date": "2026-07-25",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**avito:** add configurable profile promo controls"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "**avito:** add offer recommendations toggle"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "**avito:** restructure Morphe settings menu"
+                "text": "**wildberries:** remove profile + big-sale banners, fix 7.7.2001 matcher drift"
               }
             ]
           },
@@ -52057,20 +53162,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-07-24)",
-            "date": "2026-07-24",
+            "title": "1.10.0 (2026-07-25)",
+            "date": "2026-07-25",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**avito:** add configurable profile promo controls"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "**avito:** add offer recommendations toggle"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "**avito:** restructure Morphe settings menu"
+                "text": "**wildberries:** remove profile + big-sale banners, fix 7.7.2001 matcher drift"
               }
             ]
           },
@@ -52084,7 +53181,7 @@
           "patches": [
             {
               "name": "Remove Wildberries ads",
-              "description": "Removes Wildberries home banners, grid banners, promo headers, product recommendations, and lottery popups."
+              "description": "Removes Wildberries home banners, grid banners, profile banners, promo headers, product recommendations, and lottery popups."
             }
           ],
           "versions": [
@@ -52101,7 +53198,7 @@
       "patchDetails": [
         {
           "name": "Remove Wildberries ads",
-          "description": "Removes Wildberries home banners, grid banners, promo headers, product recommendations, and lottery popups."
+          "description": "Removes Wildberries home banners, grid banners, profile banners, promo headers, product recommendations, and lottery popups."
         }
       ],
       "versions": [
@@ -52726,7 +53823,8 @@
       "name": "XYZ app",
       "repos": [
         "ARHCOS/arhcos-patches",
-        "ImmortalZeus/ImmortalZeus-Morphe-Patches"
+        "ImmortalZeus/ImmortalZeus-Morphe-Patches",
+        "pseudofractal/morphe-patches"
       ],
       "sources": [
         {
@@ -52790,6 +53888,42 @@
             "buildId": "com-example-app-immortalzeus-immortalzeus-morphe-patches",
             "releaseTag": "app-com-example-app-immortalzeus-immortalzeus-morphe-patches",
             "assetName": "xyz-app-immortalzeus-immortalzeus-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Example Patch",
+              "description": "Example patch to start with."
+            }
+          ],
+          "versions": [
+            "1.0.2",
+            "2.0.0"
+          ]
+        },
+        {
+          "repo": "pseudofractal/morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/pseudofractal/morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=pseudofractal/morphe-patches",
+          "source": "https://raw.githubusercontent.com/pseudofractal/morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/pseudofractal/morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/pseudofractal.png?size=96",
+          "latestChanges": {
+            "title": "1.0.0 (2026-07-25)",
+            "date": "2026-07-25",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "**nix:** flake start and direnv"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-example-app-pseudofractal-morphe-patches",
+            "releaseTag": "app-com-example-app-pseudofractal-morphe-patches",
+            "assetName": "xyz-app-pseudofractal-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -52947,8 +54081,10 @@
       "repos": [
         "anddea/revanced-patches",
         "chirag127/morphe-patches",
+        "ciraolone/morphe-watch-later",
         "loskutov/youtube-domain-fronting-patch",
         "Lynx6319/patch-youtube-scroll-block",
+        "MarcaDian/morphe-patches-yavot",
         "MorpheApp/morphe-patches",
         "skulldogged/cobalt-morphe",
         "variablenine/morphe-patches",
@@ -53335,6 +54471,48 @@
           "versions": []
         },
         {
+          "repo": "ciraolone/morphe-watch-later",
+          "host": "github.com",
+          "webUrl": "https://github.com/ciraolone/morphe-watch-later",
+          "addUrl": "https://morphe.software/add-source?github=ciraolone/morphe-watch-later",
+          "source": "https://raw.githubusercontent.com/ciraolone/morphe-watch-later/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/ciraolone/morphe-watch-later/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/ciraolone.png?size=96",
+          "latestChanges": {
+            "title": "1.1.0 (2026-07-24)",
+            "date": "2026-07-24",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "add link navigation, clock icon, Later label and position before profile"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-google-android-youtube-ciraolone-morphe-watch-later",
+            "releaseTag": "app-com-google-android-youtube-ciraolone-morphe-watch-later",
+            "assetName": "youtube-ciraolone-morphe-watch-later.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Watch later button",
+              "description": "Aggiunge un pulsante 'Later' alla barra di navigazione in basso, che apre la playlist Guarda piu tardi."
+            }
+          ],
+          "versions": [
+            "20.21.37",
+            "20.31.42",
+            "20.51.39",
+            "21.04.223",
+            "21.05.265",
+            "21.26.360",
+            "21.28.204",
+            "21.29.366"
+          ]
+        },
+        {
           "repo": "loskutov/youtube-domain-fronting-patch",
           "host": "github.com",
           "webUrl": "https://github.com/loskutov/youtube-domain-fronting-patch",
@@ -53411,6 +54589,48 @@
             "19.16.39",
             "19.25.37",
             "20.47.62"
+          ]
+        },
+        {
+          "repo": "MarcaDian/morphe-patches-yavot",
+          "host": "github.com",
+          "webUrl": "https://github.com/MarcaDian/morphe-patches-yavot",
+          "addUrl": "https://morphe.software/add-source?github=MarcaDian/morphe-patches-yavot",
+          "source": "https://raw.githubusercontent.com/MarcaDian/morphe-patches-yavot/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/MarcaDian/morphe-patches-yavot/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/MarcaDian.png?size=96",
+          "latestChanges": {
+            "title": "1.0.0 (2026-07-24)",
+            "date": "2026-07-24",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "add Yandex VoT as add-on for Morphe Patches"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-google-android-youtube-marcadian-morphe-patches-yavot",
+            "releaseTag": "app-com-google-android-youtube-marcadian-morphe-patches-yavot",
+            "assetName": "youtube-marcadian-morphe-patches-yavot.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Voice Over Translation (Yandex)",
+              "description": "Adds an option to enable Yandex voice-over translation of video audio tracks."
+            }
+          ],
+          "versions": [
+            "20.21.37",
+            "20.31.42",
+            "20.51.39",
+            "21.04.223",
+            "21.05.265",
+            "21.26.360",
+            "21.28.204",
+            "21.29.366"
           ]
         },
         {
@@ -54565,8 +55785,8 @@
         "Save to watch later",
         "Seekbar",
         "Seekbar components",
-        "Set Transcript Cookies",
         "Set transcript cookies",
+        "Set Transcript Cookies",
         "Settings for YouTube",
         "Settings menu filter",
         "Shorts autoplay",
@@ -54586,7 +55806,9 @@
         "Visual preferences icons for YouTube",
         "Voice Over Translation",
         "Voice over translation",
+        "Voice Over Translation (Yandex)",
         "Watch history",
+        "Watch later button",
         "YouTubeDislikeAutoNext (STUB)",
         "YouTubeLikeAutoNext (STUB)"
       ],
@@ -55012,11 +56234,11 @@
           "description": "Adds options to hide or change components related to the seekbar."
         },
         {
-          "name": "Set Transcript Cookies",
+          "name": "Set transcript cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {
-          "name": "Set transcript cookies",
+          "name": "Set Transcript Cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {
@@ -55096,8 +56318,16 @@
           "description": "Adds additional voice over languages using text-to-speech synchronized to the video playback."
         },
         {
+          "name": "Voice Over Translation (Yandex)",
+          "description": "Adds an option to enable Yandex voice-over translation of video audio tracks."
+        },
+        {
           "name": "Watch history",
           "description": "Adds an option to change the domain of the watch history or check its status."
+        },
+        {
+          "name": "Watch later button",
+          "description": "Aggiunge un pulsante 'Later' alla barra di navigazione in basso, che apre la playlist Guarda piu tardi."
         },
         {
           "name": "YouTubeDislikeAutoNext (STUB)",
@@ -56919,12 +58149,12 @@
       "avatarUrl": "https://github.com/cesbar.png?size=96",
       "patchCount": 1,
       "latestChanges": {
-        "title": "1.6.0 (2026-07-19)",
-        "date": "2026-07-19",
+        "title": "1.7.0 (2026-07-25)",
+        "date": "2026-07-25",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "**Minesweeper / Solitaire The Clean One:** Enable Premium, Disable Internet and Telemetry"
+            "text": "**Sudoku The Clean One:** Enable Premium, Disable Internet and Telemetry, Bypass PairIp"
           }
         ]
       },
@@ -56973,6 +58203,54 @@
         {
           "name": "Strip root detection (narrow)",
           "description": "Force public static boolean methods referencing \"Magisk\" to return false. Narrow-scoped.",
+          "default": false
+        }
+      ]
+    },
+    {
+      "repo": "dh6k/morphe-patches",
+      "host": "github.com",
+      "webUrl": "https://github.com/dh6k/morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=dh6k/morphe-patches",
+      "source": "https://raw.githubusercontent.com/dh6k/morphe-patches/main/patches-bundle.json",
+      "changelogUrl": "https://raw.githubusercontent.com/dh6k/morphe-patches/main/CHANGELOG.md",
+      "avatarUrl": "https://github.com/dh6k.png?size=96",
+      "patchCount": 2,
+      "latestChanges": {
+        "title": "1.1.0 (2026-07-25)",
+        "date": "2026-07-25",
+        "items": [
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**build:** keep generator dependencies out of patch dex"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**release:** publish appName option on main"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**universal:** release bundle-specific app name option"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**universal:** restore appName option key"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "**universal:** add custom app icon patch"
+          }
+        ]
+      },
+      "patches": [
+        {
+          "name": "Change app icon",
+          "description": "Changes the Android launcher icon using a custom PNG image. Use a square image with transparent adaptive-icon padding.",
+          "default": false
+        },
+        {
+          "name": "Change app name",
+          "description": "Changes the app name shown by Android launchers. Set the desired name in the patch options.",
           "default": false
         }
       ]
@@ -58300,20 +59578,12 @@
       "avatarUrl": "https://github.com/xob0t.png?size=96",
       "patchCount": 13,
       "latestChanges": {
-        "title": "1.9.0 (2026-07-24)",
-        "date": "2026-07-24",
+        "title": "1.10.0 (2026-07-25)",
+        "date": "2026-07-25",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "**avito:** add configurable profile promo controls"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "**avito:** add offer recommendations toggle"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "**avito:** restructure Morphe settings menu"
+            "text": "**wildberries:** remove profile + big-sale banners, fix 7.7.2001 matcher drift"
           }
         ]
       },
@@ -58387,6 +59657,294 @@
     }
   ],
   "recentSources": [
+    {
+      "name": "morphe-patches",
+      "repo": "pseudofractal/morphe-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/pseudofractal/morphe-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/pseudofractal/morphe-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/pseudofractal/morphe-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/pseudofractal/morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=pseudofractal/morphe-patches",
+      "avatarUrl": "https://github.com/pseudofractal.png?size=96",
+      "patchCount": 1,
+      "appCount": 1,
+      "createdAt": 1785034852630,
+      "updatedAt": 1785034852630,
+      "createdDate": "2026-07-26",
+      "updatedDate": "2026-07-26",
+      "latestChanges": {
+        "title": "1.0.0 (2026-07-25)",
+        "date": "2026-07-25",
+        "items": [
+          {
+            "category": "\u2728 New Features",
+            "text": "**nix:** flake start and direnv"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "XYZ app",
+          "packageName": "com.example.app",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#FF0045"
+        }
+      ]
+    },
+    {
+      "name": "morphe-patches",
+      "repo": "dh6k/morphe-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/dh6k/morphe-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/dh6k/morphe-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/dh6k/morphe-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/dh6k/morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=dh6k/morphe-patches",
+      "avatarUrl": "https://github.com/dh6k.png?size=96",
+      "patchCount": 3,
+      "appCount": 3,
+      "createdAt": 1785034852274,
+      "updatedAt": 1785034852274,
+      "createdDate": "2026-07-26",
+      "updatedDate": "2026-07-26",
+      "latestChanges": {
+        "title": "1.1.0 (2026-07-25)",
+        "date": "2026-07-25",
+        "items": [
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**build:** keep generator dependencies out of patch dex"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**release:** publish appName option on main"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**universal:** release bundle-specific app name option"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**universal:** restore appName option key"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "**universal:** add custom app icon patch"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Brave Beta",
+          "packageName": "com.brave.browser_beta",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#FF4500"
+        },
+        {
+          "name": "Brave Browser",
+          "packageName": "com.brave.browser",
+          "patchCount": 1,
+          "iconUrl": "https://play-lh.googleusercontent.com/UBrZnuXGb-QACU0uUdF5r_n5nx5oBbdfPyEbtsr0xXv00RN7rpaTVu3GjLeE90aHFmNlbaCmm8vNcmY0eE98U9E",
+          "iconColor": "#FF4500"
+        },
+        {
+          "name": "Brave Nightly",
+          "packageName": "com.brave.browser_nightly",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#FF4500"
+        }
+      ]
+    },
+    {
+      "name": "morphe-watch-later",
+      "repo": "ciraolone/morphe-watch-later",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/ciraolone/morphe-watch-later/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/ciraolone/morphe-watch-later/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/ciraolone/morphe-watch-later/main/CHANGELOG.md",
+      "webUrl": "https://github.com/ciraolone/morphe-watch-later",
+      "addUrl": "https://morphe.software/add-source?github=ciraolone/morphe-watch-later",
+      "avatarUrl": "https://github.com/ciraolone.png?size=96",
+      "patchCount": 1,
+      "appCount": 1,
+      "createdAt": 1785034852247,
+      "updatedAt": 1785034852247,
+      "createdDate": "2026-07-26",
+      "updatedDate": "2026-07-26",
+      "latestChanges": {
+        "title": "1.1.0 (2026-07-24)",
+        "date": "2026-07-24",
+        "items": [
+          {
+            "category": "\u2728 New Features",
+            "text": "add link navigation, clock icon, Later label and position before profile"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "YouTube",
+          "packageName": "com.google.android.youtube",
+          "patchCount": 1,
+          "iconUrl": "https://play-lh.googleusercontent.com/QNmuZQc9I6Zbe3mWnSr0hycnENqGFCI5p3yE29Hkxtf22T0IWS6zTrpxULLyyjWpB7ONAXDsDQXnXcVWokl3eg",
+          "iconColor": "#FF0033"
+        }
+      ]
+    },
+    {
+      "name": "morphe-patches",
+      "repo": "andrewliang25/morphe-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/andrewliang25/morphe-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/andrewliang25/morphe-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/andrewliang25/morphe-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/andrewliang25/morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=andrewliang25/morphe-patches",
+      "avatarUrl": "https://github.com/andrewliang25.png?size=96",
+      "patchCount": 12,
+      "appCount": 1,
+      "createdAt": 1785034852052,
+      "updatedAt": 1785034852052,
+      "createdDate": "2026-07-26",
+      "updatedDate": "2026-07-26",
+      "latestChanges": {
+        "title": "1.0.0 (2026-07-25)",
+        "date": "2026-07-25",
+        "items": [
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Disambiguate chat-header button fingerprints"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Drop the rename-package patch"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Fix read-receipts, hide-ad-views, and external-browser on device"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Hide Home modules crashed on open (VerifyError)"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Home modules blocklist \u2014 add FLEX for \u5373\u6642\u592f\u8a71\u984c (test round)"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Retarget Hide Home modules to the feed state (x72.h$a)"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "Add experimental Hide Home modules patch"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "Add hide-calendar-button and hide-community-button patches"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "LINE",
+          "packageName": "jp.naver.line.android",
+          "patchCount": 12,
+          "iconUrl": "",
+          "iconColor": "#06C755"
+        }
+      ]
+    },
+    {
+      "name": "morphe-patches-yavot",
+      "repo": "MarcaDian/morphe-patches-yavot",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/MarcaDian/morphe-patches-yavot/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/MarcaDian/morphe-patches-yavot/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/MarcaDian/morphe-patches-yavot/main/CHANGELOG.md",
+      "webUrl": "https://github.com/MarcaDian/morphe-patches-yavot",
+      "addUrl": "https://morphe.software/add-source?github=MarcaDian/morphe-patches-yavot",
+      "avatarUrl": "https://github.com/MarcaDian.png?size=96",
+      "patchCount": 1,
+      "appCount": 1,
+      "createdAt": 1785034851803,
+      "updatedAt": 1785034851803,
+      "createdDate": "2026-07-26",
+      "updatedDate": "2026-07-26",
+      "latestChanges": {
+        "title": "1.0.0 (2026-07-24)",
+        "date": "2026-07-24",
+        "items": [
+          {
+            "category": "\u2728 New Features",
+            "text": "add Yandex VoT as add-on for Morphe Patches"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "YouTube",
+          "packageName": "com.google.android.youtube",
+          "patchCount": 1,
+          "iconUrl": "https://play-lh.googleusercontent.com/QNmuZQc9I6Zbe3mWnSr0hycnENqGFCI5p3yE29Hkxtf22T0IWS6zTrpxULLyyjWpB7ONAXDsDQXnXcVWokl3eg",
+          "iconColor": "#FF0033"
+        }
+      ]
+    },
+    {
+      "name": "Morning-Entree-Patches",
+      "repo": "Entree3k/Morning-Entree-Patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/Entree3k/Morning-Entree-Patches",
+      "addUrl": "https://morphe.software/add-source?github=Entree3k/Morning-Entree-Patches",
+      "avatarUrl": "https://github.com/Entree3k.png?size=96",
+      "patchCount": 3,
+      "appCount": 3,
+      "createdAt": 1785034851561,
+      "updatedAt": 1785034851561,
+      "createdDate": "2026-07-26",
+      "updatedDate": "2026-07-26",
+      "latestChanges": {
+        "title": "1.2.0 (2026-07-25)",
+        "date": "2026-07-25",
+        "items": [
+          {
+            "category": "\u2728 New Features",
+            "text": "added lifesum"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Lifesum",
+          "packageName": "com.sillens.shapeupclub",
+          "patchCount": 1,
+          "iconUrl": "https://play-lh.googleusercontent.com/gMeT8cxzZOnlrCKwYIOPHT90C9kb9pPbE0mHlk2gixDIadJ_B9QmslnPkQ3Sc0y9KuS8KMxPDxFgsL_GLnXbsg",
+          "iconColor": "#41CD8C"
+        },
+        {
+          "name": "Ling",
+          "packageName": "com.simyasolutions.ling.universal",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#F8485E"
+        },
+        {
+          "name": "Sponge",
+          "packageName": "com.prismtree.sponge",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#2AB7A9"
+        }
+      ]
+    },
     {
       "name": "vocacolle-morphe-patches",
       "repo": "ilikeadofai/vocacolle-morphe-patches",
@@ -58695,256 +60253,6 @@
           {
             "category": "\ud83d\udc1b Bug Fixes",
             "text": "remove npm cache (no package-lock.json)"
-          }
-        ]
-      },
-      "apps": []
-    },
-    {
-      "name": "morphe-patches",
-      "repo": "hxreborn/morphe-patches",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
-      "webUrl": "https://github.com/hxreborn/morphe-patches",
-      "addUrl": "https://morphe.software/add-source?github=hxreborn/morphe-patches",
-      "avatarUrl": "https://github.com/hxreborn.png?size=96",
-      "patchCount": 4,
-      "appCount": 3,
-      "createdAt": 1784837695114,
-      "updatedAt": 1784837695114,
-      "createdDate": "2026-07-23",
-      "updatedDate": "2026-07-23",
-      "latestChanges": {
-        "title": "1.0.1 (2026-07-17)",
-        "date": "2026-07-17",
-        "items": [
-          {
-            "category": "Bug Fixes",
-            "text": "**compat:** add app metadata, drop template patches"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "ForusApp",
-          "packageName": "com.myvitale.forus",
-          "patchCount": 1,
-          "iconUrl": "https://play-lh.googleusercontent.com/HQl7wIZjPOMZHojduQcS9jOnT_vsDIYp3ydapBQzBbuVpAsqtkcaxUP24VXmDAa4CM3q2AaqbG0EGYawBFVf-_M",
-          "iconColor": "#0772BA"
-        },
-        {
-          "name": "Projectivy Launcher",
-          "packageName": "com.spocky.projengmenu",
-          "patchCount": 2,
-          "iconUrl": "https://play-lh.googleusercontent.com/Qo3kWBOmNFWGcGxiBHs-tR2_0uVcrGGUzKXb_e_JwpbwwzsYHAs-qvNhE-QDr2c8B4_8w0bq8yl5uo88pTdb",
-          "iconColor": "#F08029"
-        },
-        {
-          "name": "Showly",
-          "packageName": "com.michaldrabik.showly2",
-          "patchCount": 1,
-          "iconUrl": "https://play-lh.googleusercontent.com/MVI1pUoJSh7hnO-8BSb67Ojq9wh8r9V0Imqm-AC5gdT-ohOaPnQ4JexvUy6a-gFZadTV27usj2bwQJlnntnJJQ",
-          "iconColor": "#F44336"
-        }
-      ]
-    },
-    {
-      "name": "morphe-patches",
-      "repo": "dexnis-dev/morphe-patches",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/dexnis-dev/morphe-patches/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/dexnis-dev/morphe-patches/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/dexnis-dev/morphe-patches/main/CHANGELOG.md",
-      "webUrl": "https://github.com/dexnis-dev/morphe-patches",
-      "addUrl": "https://morphe.software/add-source?github=dexnis-dev/morphe-patches",
-      "avatarUrl": "https://github.com/dexnis-dev.png?size=96",
-      "patchCount": 1,
-      "appCount": 1,
-      "createdAt": 1784837694892,
-      "updatedAt": 1784837694892,
-      "createdDate": "2026-07-23",
-      "updatedDate": "2026-07-23",
-      "latestChanges": {
-        "title": "1.0.0 (2026-07-17)",
-        "date": "2026-07-17",
-        "items": [
-          {
-            "category": "\u2728 New Features",
-            "text": "IDOS Premium Patch"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "IDOS",
-          "packageName": "cz.mafra.jizdnirady",
-          "patchCount": 1,
-          "iconUrl": "https://play-lh.googleusercontent.com/o7vo7iZJg82nRkas3Snx6mDS95d3bX__PJfTfAKdjcofF-lYBL72_NAfMik1x7RBx-pKHqD5uL_e5UX9iTe9Gg",
-          "iconColor": "#9FC5E8"
-        }
-      ]
-    },
-    {
-      "name": "stylus",
-      "repo": "ch3thanhs/stylus",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/ch3thanhs/stylus/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/ch3thanhs/stylus/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/ch3thanhs/stylus/main/CHANGELOG.md",
-      "webUrl": "https://github.com/ch3thanhs/stylus",
-      "addUrl": "https://morphe.software/add-source?github=ch3thanhs/stylus",
-      "avatarUrl": "https://github.com/ch3thanhs.png?size=96",
-      "patchCount": 1,
-      "appCount": 1,
-      "createdAt": 1784837694852,
-      "updatedAt": 1784837694852,
-      "createdDate": "2026-07-23",
-      "updatedDate": "2026-07-23",
-      "latestChanges": {
-        "title": "1.2.0 (2026-07-23)",
-        "date": "2026-07-23",
-        "items": [
-          {
-            "category": "\u2728 New Features",
-            "text": "**reddit:** remove stylus reddit font patches"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "Bitwarden",
-          "packageName": "com.x8bit.bitwarden",
-          "patchCount": 1,
-          "iconUrl": "https://play-lh.googleusercontent.com/ezsPZ5JtRMkMd6DtbUOZghm4m-EbYcZSzXAIxJMumYOaDP9sI8o-DN8-tZpds0HJUXb-ur7F-oB9rFH78Jy2lA",
-          "iconColor": "#175DDC"
-        }
-      ]
-    },
-    {
-      "name": "morphe-patches",
-      "repo": "WZSE/morphe-patches",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/WZSE/morphe-patches/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/WZSE/morphe-patches/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/WZSE/morphe-patches/main/CHANGELOG.md",
-      "webUrl": "https://github.com/WZSE/morphe-patches",
-      "addUrl": "https://morphe.software/add-source?github=WZSE/morphe-patches",
-      "avatarUrl": "https://github.com/WZSE.png?size=96",
-      "patchCount": 4,
-      "appCount": 1,
-      "createdAt": 1784837694404,
-      "updatedAt": 1784837694404,
-      "createdDate": "2026-07-23",
-      "updatedDate": "2026-07-23",
-      "latestChanges": {
-        "title": "1.34.0 (2026-07-10)",
-        "date": "2026-07-10",
-        "items": [
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**GmsCore support:** Use custom provider package name when Change package name is used"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**Reddit - Settings:** Morphe language does not change after restarting (#1950)"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**Spoof video streams:** Change default client to 'TV'"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**YouTube - Add to queue:** Allows tablet patches for versions 21.xx"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**YouTube - Add to queue:** Prevents the flyout video id reset blocking"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**YouTube - Miniplayer/Disable automatic reposition:** Support vertical position lock"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**YouTube - Return YouTube Dislike:** Remove RYD Shorts due to YT removing Shorts dislike and RYD API no longer providing reliable Shorts dislikes data (#1924)"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**YouTube - Spoof video streams:** Mention Android Studio 720p limitation in settings UI"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "ZEE5",
-          "packageName": "com.graymatrix.did",
-          "patchCount": 4,
-          "iconUrl": "https://play-lh.googleusercontent.com/NyMT3ByjkBG1FhdFX9GSj_0mXLNIAuz_IZO8Xr9Noow6D4IQs-Srai9Hklad5gDasSv6F5tHYwsquk1mXErQ5A",
-          "iconColor": "#1C1C28"
-        }
-      ]
-    },
-    {
-      "name": "abeja-morphe-patches",
-      "repo": "TheRealCrazyfuy/abeja-morphe-patches",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/TheRealCrazyfuy/abeja-morphe-patches/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/TheRealCrazyfuy/abeja-morphe-patches/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/TheRealCrazyfuy/abeja-morphe-patches/main/CHANGELOG.md",
-      "webUrl": "https://github.com/TheRealCrazyfuy/abeja-morphe-patches",
-      "addUrl": "https://morphe.software/add-source?github=TheRealCrazyfuy/abeja-morphe-patches",
-      "avatarUrl": "https://github.com/TheRealCrazyfuy.png?size=96",
-      "patchCount": 2,
-      "appCount": 1,
-      "createdAt": 1784837694280,
-      "updatedAt": 1784837694280,
-      "createdDate": "2026-07-23",
-      "updatedDate": "2026-07-23",
-      "latestChanges": {
-        "title": "1.0.0 (2026-07-14)",
-        "date": "2026-07-14",
-        "items": [
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "remove unused internal patch"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "ZTE Gallery",
-          "packageName": "com.android.gallery3d",
-          "patchCount": 2,
-          "iconUrl": "",
-          "iconColor": "#FF0045"
-        }
-      ]
-    },
-    {
-      "name": "ikura-patches",
-      "repo": "Ikuradachi/ikura-patches",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/Ikuradachi/ikura-patches/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/Ikuradachi/ikura-patches/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/Ikuradachi/ikura-patches/main/CHANGELOG.md",
-      "webUrl": "https://github.com/Ikuradachi/ikura-patches",
-      "addUrl": "https://morphe.software/add-source?github=Ikuradachi/ikura-patches",
-      "avatarUrl": "https://github.com/Ikuradachi.png?size=96",
-      "patchCount": 0,
-      "appCount": 0,
-      "createdAt": 1784837693824,
-      "updatedAt": 1784837693824,
-      "createdDate": "2026-07-23",
-      "updatedDate": "2026-07-23",
-      "latestChanges": {
-        "title": "1.0.0 (2026-07-20)",
-        "date": "2026-07-20",
-        "items": [
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "remove example app"
           }
         ]
       },
