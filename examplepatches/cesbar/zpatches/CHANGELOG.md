@@ -1,3 +1,9 @@
+## [1.7.0](https://github.com/cesbar/zpatches/compare/v1.6.0...v1.7.0) (2026-07-25)
+
+### ✨ New Features
+
+* **Sudoku The Clean One:** Enable Premium, Disable Internet and Telemetry, Bypass PairIp ([c6ea9f7](https://github.com/cesbar/zpatches/commit/c6ea9f734e748f5446ee4899b517879bee38381c))
+
 ## [1.6.0](https://github.com/cesbar/zpatches/compare/v1.5.1...v1.6.0) (2026-07-19)
 
 ### ✨ New Features

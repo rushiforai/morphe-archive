@@ -1,0 +1,65 @@
+// Descrizione parziale del formato dati con cui YouTube rappresenta una voce della barra di
+// navigazione (PivotBarItemRenderer). Sono dichiarati solo i campi che questa patch legge o
+// riscrive: identificatore, destinazione, etichetta accessibile, titolo visibile e icona.
+// I campi non dichiarati non vanno persi: protobuf-lite conserva i campi sconosciuti quando il
+// messaggio viene riletto e riserializzato, quindi la copia mantiene tutto il resto della voce Home.
+// I numeri dei campi e i valori delle icone NON sono arbitrari: arrivano dal formato interno di
+// YouTube e sono ricopiati da morphe-patches ufficiale. Cambiarli rompe la lettura.
+
+syntax = "proto3";
+
+package app.ciraolone.extension.watchlater;
+
+option optimize_for = LITE_RUNTIME;
+option java_package = "app.ciraolone.extension.watchlater";
+option java_outer_classname = "WatchLaterOuterClass";
+
+message PivotBarItemRenderer {
+    string pivotIdentifier = 1;
+    NavigationEndpoint navigationEndpoint = 2;
+    Accessibility accessibility = 3;
+    Title title = 4;
+    Icon icon = 5;
+    string targetId = 10;
+}
+
+message NavigationEndpoint {
+    optional BrowseEndpoint browseEndpoint = 48687626;
+}
+
+message BrowseEndpoint {
+    string browseId = 2;
+}
+
+message Accessibility {
+    oneof data {
+        AccessibilityData accessibilityData = 1;
+    }
+}
+
+message AccessibilityData {
+    string label = 1;
+}
+
+message Title {
+    oneof data {
+        Runs runs = 75730170;
+    }
+}
+
+message Runs {
+    string text = 2;
+}
+
+message Icon {
+    YTIconType ytIconType = 1;
+}
+
+// Sottoinsieme dell'enum delle icone di YouTube: servono solo quelle della voce Home
+// (per riconoscerla) e quella dell'orologio del Guarda piu' tardi (per applicarla).
+enum YTIconType {
+    UNKNOWN = 0;
+    PIVOT_HOME = 406;
+    TAB_HOME_CAIRO = 1154;
+    WATCH_LATER_CAIRO = 1191;
+}

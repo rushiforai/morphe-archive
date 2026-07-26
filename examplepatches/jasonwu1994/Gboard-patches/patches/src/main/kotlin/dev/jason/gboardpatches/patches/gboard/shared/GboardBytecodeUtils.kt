@@ -2,6 +2,7 @@ package dev.jason.gboardpatches.patches.gboard.shared
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.util.proxy.mutableTypes.MutableField
 import app.morphe.patcher.util.proxy.mutableTypes.MutableField.Companion.toMutable
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
@@ -14,6 +15,8 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableField
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+import dev.jason.gboardpatches.patches.gboard.shared.generated.GboardFieldBinding
+import dev.jason.gboardpatches.patches.gboard.shared.generated.GboardMethodBinding
 
 private fun String.normalizedOpcodeName(): String =
     uppercase().replace('-', '_')
@@ -53,6 +56,21 @@ internal fun BytecodePatchContext.findMutableMethodOrThrow(
         it.name == name && it.returnType == returnType && it.parameterTypes == parameterTypes
     } ?: error("Could not find $classType->$name(${parameterTypes.joinToString("")})$returnType")
 }
+
+internal fun BytecodePatchContext.findMutableMethodOrThrow(
+    binding: GboardMethodBinding,
+): MutableMethod = findMutableMethodOrThrow(
+    classType = binding.classType,
+    name = binding.name,
+    returnType = binding.returnType,
+    parameterTypes = binding.parameterTypes,
+)
+
+internal fun BytecodePatchContext.mutableFieldOrThrow(
+    binding: GboardFieldBinding,
+): MutableField = mutableClass(binding.classType).fields.firstOrNull {
+    it.name == binding.name && it.type == binding.type
+} ?: error("Could not find ${binding.classType}->${binding.name}:${binding.type}")
 
 internal fun BytecodePatchContext.addHelperMethodIfMissing(
     classType: String,

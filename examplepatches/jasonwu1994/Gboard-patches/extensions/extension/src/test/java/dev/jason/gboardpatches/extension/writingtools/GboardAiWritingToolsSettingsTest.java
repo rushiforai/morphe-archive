@@ -23,6 +23,9 @@ public final class GboardAiWritingToolsSettingsTest {
         Assert.assertEquals(
                 Boolean.FALSE,
                 preferences.values.get(GboardAiWritingToolsSettings.PREF_KEY_ALL_KEYBOARDS));
+        Assert.assertEquals(
+                GboardAiWritingToolsSettings.BACKEND_GBOARD_SERVER,
+                preferences.values.get(GboardAiWritingToolsSettings.PREF_KEY_BACKEND_TYPE));
     }
 
     @Test
@@ -33,9 +36,58 @@ public final class GboardAiWritingToolsSettingsTest {
         Assert.assertTrue(GboardAiWritingToolsSettings.writeAllKeyboardsEnabled(
                 preferences,
                 true));
+        Assert.assertTrue(GboardAiWritingToolsSettings.writeBackendType(
+                preferences,
+                GboardAiWritingToolsSettings.BACKEND_PRIVATE_INFERENCE_ASTREA));
 
         Assert.assertTrue(GboardAiWritingToolsSettings.readEnabled(preferences));
         Assert.assertTrue(GboardAiWritingToolsSettings.readAllKeyboardsEnabled(preferences));
+        Assert.assertEquals(
+                GboardAiWritingToolsSettings.BACKEND_PRIVATE_INFERENCE_ASTREA,
+                GboardAiWritingToolsSettings.readBackendType(preferences));
+    }
+
+    @Test
+    public void backendTypeSanitizesMissingInvalidAndLegacyBooleanValuesToServer() {
+        InMemorySharedPreferences preferences = new InMemorySharedPreferences();
+
+        preferences.edit()
+                .putBoolean("pref_ai_writing_tools_use_google_servers", false)
+                .apply();
+        Assert.assertEquals(
+                GboardAiWritingToolsSettings.BACKEND_GBOARD_SERVER,
+                GboardAiWritingToolsSettings.readBackendType(preferences));
+
+        preferences.edit()
+                .putString(GboardAiWritingToolsSettings.PREF_KEY_BACKEND_TYPE, "INVALID")
+                .apply();
+        Assert.assertEquals(
+                GboardAiWritingToolsSettings.BACKEND_GBOARD_SERVER,
+                GboardAiWritingToolsSettings.readBackendType(preferences));
+
+        preferences.edit()
+                .putString(
+                        GboardAiWritingToolsSettings.PREF_KEY_BACKEND_TYPE,
+                        GboardAiWritingToolsSettings.BACKEND_PRIVATE_INFERENCE_AICORE)
+                .apply();
+        Assert.assertEquals(
+                GboardAiWritingToolsSettings.BACKEND_PRIVATE_INFERENCE_AICORE,
+                GboardAiWritingToolsSettings.readBackendType(preferences));
+    }
+
+    @Test
+    public void snapshotCarriesSanitizedBackendAndMasksAllKeyboardsWhileDisabled() {
+        GboardAiWritingToolsSettings.Snapshot snapshot =
+                new GboardAiWritingToolsSettings.Snapshot(
+                        false,
+                        true,
+                        GboardAiWritingToolsSettings.BACKEND_PRIVATE_INFERENCE_AICORE);
+
+        Assert.assertFalse(snapshot.featureEnabled);
+        Assert.assertFalse(snapshot.allKeyboardsEnabled);
+        Assert.assertEquals(
+                GboardAiWritingToolsSettings.BACKEND_PRIVATE_INFERENCE_AICORE,
+                snapshot.backendType);
     }
 
     private static final class InMemorySharedPreferences implements SharedPreferences {

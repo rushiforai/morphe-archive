@@ -99,6 +99,52 @@ public final class GboardSettingsGroupingTest {
         Assert.assertTrue(keyboardGroupSource.contains("new GboardSymbolFooterOrderSettingsFeature("));
         Assert.assertTrue(keyboardGroupSource.contains(
                 "new GboardZhuyinBottomRowWeightSettingsFeature("));
+        Assert.assertTrue(keyboardGroupSource.contains(
+                "new GboardBluetoothMicrophoneSettingsFeature("));
+    }
+
+    @Test
+    public void keyboardGroupKeepsRequestedRowOrder() throws Exception {
+        String source = readSource(
+                "src/main/java/dev/jason/gboardpatches/extension/keyboard/"
+                        + "GboardKeyboardSettingsGroupFeature.java");
+        String featureList = source.substring(source.indexOf("Arrays.asList("));
+
+        assertInOrder(featureList,
+                "new GboardAiWritingToolsSettingsFeature(context)",
+                "new GboardAdvancedVoiceSettingsFeature(context)",
+                "new GboardTopRowSwipeSettingsFeature(context)",
+                "new GboardLongPressQuickActionsSettingsFeature(context)",
+                "new GboardLatinGlobeKeyIgnoreIntervalSettingsFeature(context)",
+                "new GboardEnglishUppercaseToggleSettingsFeature(context)",
+                "new GboardZhuyinBottomRowWeightSettingsFeature(context)",
+                "new GboardSymbolFooterOrderSettingsFeature(context)",
+                "new GboardBluetoothMicrophoneSettingsFeature(context)");
+        Assert.assertFalse(featureList.contains("GboardOcrEngineSettingsFeature"));
+    }
+
+    @Test
+    public void bluetoothMicrophoneUsesIndependentMarkerAndExactLocalizedCopy()
+            throws Exception {
+        String availabilitySource = readSource(
+                "src/main/java/dev/jason/gboardpatches/extension/settings/"
+                        + "GboardPatchesFeatureAvailability.java");
+        String englishStrings = readSource(
+                "src/main/res/values/gboard_settings_strings.xml");
+        String traditionalChineseStrings = readSource(
+                "src/main/res/values-b+zh+Hant/gboard_settings_strings.xml");
+
+        Assert.assertTrue(availabilitySource.contains("FEATURE_BLUETOOTH_MICROPHONE"));
+        Assert.assertTrue(availabilitySource.contains(
+                "dev.jason.gboardpatches.feature.bluetooth_microphone"));
+        Assert.assertTrue(englishStrings.contains(
+                ">Use Bluetooth microphone</string>"));
+        Assert.assertTrue(englishStrings.contains(
+                ">Voice typing -&gt; Use Bluetooth microphone</string>"));
+        Assert.assertTrue(traditionalChineseStrings.contains(
+                ">使用藍芽麥克風</string>"));
+        Assert.assertTrue(traditionalChineseStrings.contains(
+                ">語音輸入-&gt;使用藍芽麥克風</string>"));
     }
 
     @Test
@@ -174,6 +220,16 @@ public final class GboardSettingsGroupingTest {
 
     private static String readSource(String path) throws Exception {
         return new String(Files.readAllBytes(Path.of(path)), StandardCharsets.UTF_8);
+    }
+
+    private static void assertInOrder(String source, String... needles) {
+        int previousIndex = -1;
+        for (String needle : needles) {
+            int index = source.indexOf(needle);
+            Assert.assertTrue("Missing expected row: " + needle, index >= 0);
+            Assert.assertTrue("Row is out of order: " + needle, index > previousIndex);
+            previousIndex = index;
+        }
     }
 
     private static Object findItem(GboardPatchesSettingsContract.Screen screen, String titlePrefix)

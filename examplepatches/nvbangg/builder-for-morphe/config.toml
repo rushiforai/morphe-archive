@@ -67,7 +67,6 @@ uptodown-dlurl = "https://twitter.en.uptodown.com/android"
 
 [X-Twitter.patches]
 "github:crimera/piko" = ["Browse tweet object", "Dynamic color"]
-"gitlab:inotia00/x-shim" = []
 
 [Instagram]
 enabled = true
@@ -76,6 +75,7 @@ github-dlurl = "https://github.com/krvstek/uni-storage/releases/tag/instagram"
 # apkmirror-dlurl = "https://www.apkmirror.com/apk/instagram/instagram-instagram"
 # uptodown-dlurl = "https://instagram.en.uptodown.com/android"
 arch = "arm64-v8a"
+patcher-args = "-e 'Theme' -Oamoled=true"
 
 [Instagram.patches]
 "github:crimera/piko" = []

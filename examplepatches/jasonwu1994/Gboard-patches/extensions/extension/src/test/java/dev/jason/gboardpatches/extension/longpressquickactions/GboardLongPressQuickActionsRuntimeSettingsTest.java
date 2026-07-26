@@ -1,0 +1,59 @@
+package dev.jason.gboardpatches.extension.longpressquickactions;
+
+import org.junit.Assert;
+import org.junit.Test;
+
+public final class GboardLongPressQuickActionsRuntimeSettingsTest {
+    @Test
+    public void localSnapshotHonorsDisabledValue() {
+        TestSharedPreferences preferences = new TestSharedPreferences();
+        preferences.values.put(
+                GboardLongPressQuickActionsSettings.PREF_KEY_ENABLED,
+                "false");
+
+        GboardLongPressQuickActionsRuntimeSettings.Snapshot snapshot =
+                GboardLongPressQuickActionsRuntimeSettings.snapshotFromPreferences(
+                        preferences,
+                        123L);
+
+        Assert.assertEquals(123L, snapshot.loadedAtElapsedMs);
+        Assert.assertFalse(snapshot.enabled);
+        Assert.assertEquals("local", snapshot.source);
+    }
+
+    @Test
+    public void nullSnapshotFailsDisabled() {
+        GboardLongPressQuickActionsRuntimeSettings.Snapshot snapshot =
+                GboardLongPressQuickActionsRuntimeSettings.snapshotFromPreferences(
+                        null,
+                        456L);
+
+        Assert.assertEquals(456L, snapshot.loadedAtElapsedMs);
+        Assert.assertFalse(snapshot.enabled);
+        Assert.assertEquals("unavailable", snapshot.source);
+    }
+
+    @Test
+    public void publicAccessorFailsDisabledWhenRuntimeSettingsAreUnavailable() {
+        GboardLongPressQuickActionsRuntimeSettings.clearEnabledOverrideForTest();
+        try {
+            Assert.assertFalse(GboardLongPressQuickActionsRuntimeSettings.isEnabled());
+        } finally {
+            GboardLongPressQuickActionsRuntimeSettings.clearEnabledOverrideForTest();
+        }
+    }
+
+    @Test
+    public void publicAccessorHonorsTestOverride() {
+        GboardLongPressQuickActionsRuntimeSettings.clearEnabledOverrideForTest();
+        try {
+            GboardLongPressQuickActionsRuntimeSettings.setEnabledOverrideForTest(false);
+            Assert.assertFalse(GboardLongPressQuickActionsRuntimeSettings.isEnabled());
+
+            GboardLongPressQuickActionsRuntimeSettings.setEnabledOverrideForTest(true);
+            Assert.assertTrue(GboardLongPressQuickActionsRuntimeSettings.isEnabled());
+        } finally {
+            GboardLongPressQuickActionsRuntimeSettings.clearEnabledOverrideForTest();
+        }
+    }
+}

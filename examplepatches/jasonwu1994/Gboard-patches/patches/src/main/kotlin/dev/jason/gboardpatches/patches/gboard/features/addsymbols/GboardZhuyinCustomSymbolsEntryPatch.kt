@@ -4,9 +4,9 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import dev.jason.gboardpatches.patches.gboard.shared.findMutableMethodOrThrow
+import dev.jason.gboardpatches.patches.gboard.shared.generated.GboardVersionBindings
 
-private const val SOFT_KEY_VIEW_CLASS =
-    "Lcom/google/android/libraries/inputmethod/widgets/SoftKeyView;"
+private val softKeyMetadataType = GboardVersionBindings.softKeyBind.parameterTypes[0]
 
 internal val gboardZhuyinCustomSymbolsEntryPatch = bytecodePatch(
     description = "對注音逗號長按 popup 注入 jasondev_symbol 入口。"
@@ -14,12 +14,7 @@ internal val gboardZhuyinCustomSymbolsEntryPatch = bytecodePatch(
     dependsOn(gboardZhuyinCustomSymbolsExtensionPatch)
 
     execute {
-        val mutableMethod = findMutableMethodOrThrow(
-            classType = SOFT_KEY_VIEW_CLASS,
-            name = "p",
-            returnType = "Z",
-            parameterTypes = listOf("Loaa;", "J")
-        )
+        val mutableMethod = findMutableMethodOrThrow(GboardVersionBindings.softKeyBind)
 
         mutableMethod.addInstructions(0, ENTRY_METADATA_DELEGATE)
     }
@@ -30,5 +25,5 @@ private val ENTRY_METADATA_DELEGATE = """
 
     move-result-object p1
 
-    check-cast p1, Loaa;
+    check-cast p1, $softKeyMetadataType
 """.trimIndent()

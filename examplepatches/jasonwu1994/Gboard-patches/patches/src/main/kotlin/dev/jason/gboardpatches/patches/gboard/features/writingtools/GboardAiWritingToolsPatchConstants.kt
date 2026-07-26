@@ -6,12 +6,11 @@ internal const val AI_WRITING_TOOLS_RUNTIME_CLASS =
     "Ldev/jason/gboardpatches/extension/writingtools/GboardAiWritingToolsRuntime;"
 internal const val AI_WRITING_TOOLS_OFFICIAL_PREFS_CLASS =
     "Ldev/jason/gboardpatches/extension/writingtools/GboardAiWritingToolsOfficialPreferences;"
-internal const val AI_WRITING_TOOLS_DEPENDENCY_RUNTIME_CLASS =
-    "Ldev/jason/gboardpatches/extension/writingtools/GboardAiWritingToolsDependencyRuntime;"
-internal const val FLAG_VALUE_CLASS = "Lmky;"
-internal const val SIGNAL_GATE_CLASS = "Loil;"
-internal const val SIGNAL_MARKER_CLASS = "Loii;"
-internal const val PREFERENCE_MANAGER_CLASS = "Loql;"
-internal const val SHARED_PREFERENCES_CLASS = "Lbze;"
-internal const val PREFERENCE_WRAPPER_CLASS = "Lovc;"
-internal const val DEPENDENCY_MONITOR_CLASS = "Lhcv;"
+internal const val AI_WRITING_TOOLS_BACKEND_FACTORY_RUNTIME_CLASS =
+    "Ldev/jason/gboardpatches/extension/writingtools/GboardAiWritingToolsBackendFactoryRuntime;"
+internal const val SIGNAL_GATE_CLASS = "Lpel;"
+internal const val SIGNAL_MARKER_CLASS = "Lpei;"
+internal const val PREFERENCE_MANAGER_CLASS = "Lpnp;"
+internal const val SETTINGS_CONTROLLER_CLASS = "Leqn;"
+internal const val PREFERENCE_WRAPPER_CLASS = "Lptc;"
+internal const val BACKEND_FACTORY_CLASS = "Lgyc;"

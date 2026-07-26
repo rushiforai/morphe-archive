@@ -22,13 +22,16 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 @SuppressWarnings({"unused", "unchecked"})
@@ -72,11 +75,9 @@ public final class GboardAddSymbolsRuntime {
             "com.google.android.apps.inputmethod.libs.expression.extension.IEmoticonExtension";
 
     private static final int SWITCH_KEYBOARD_KEYCODE = -0x2714;
-    private static final int RICH_SYMBOL_TAB_NAME_RES_ID = 0x7f140423;
-    private static final int RICH_SYMBOL_TAB_ICON_RES_ID = 0x7f0804d2;
-    private static final int CUSTOM_EMOTICON_RECENTS_HEADER_ICON_RES_ID = 0x7f08048d;
+    private static final int CUSTOM_EMOTICON_RECENTS_HEADER_ICON_RES_ID = 0x7f0804ac;
     private static final int CUSTOM_EMOTICON_RECENTS_HEADER_CONTENT_DESCRIPTION_RES_ID =
-            0x7f140502;
+            0x7f140511;
 
     private static final String STOCK_RICH_SYMBOL_KEYBOARD_DATA = "rich_symbol";
     private static final String STOCK_EMOTICON_KEYBOARD_DATA = "emoticon";
@@ -90,7 +91,7 @@ public final class GboardAddSymbolsRuntime {
 
     private static final int CUSTOM_EMOTICON_SPAN_COUNT = 8;
     private static final int CUSTOM_EMOTICON_ITEM_VIEW_TYPE = 0x4843;
-    private static final int STOCK_EMOTICON_ITEM_LAYOUT_RES_ID = 0x7f0e00db;
+    private static final int STOCK_EMOTICON_ITEM_LAYOUT_RES_ID = 0x7f0e00df;
     private static final int STOCK_EMOTICON_ITEM_TEXT_COLOR_ATTR_RES_ID = 0x7f0404ed;
     private static final int CUSTOM_EMOTICON_ITEM_MARGIN_DP = 0;
     private static final int CUSTOM_EMOTICON_ITEM_PADDING_HORIZONTAL_DP = 0;
@@ -100,7 +101,7 @@ public final class GboardAddSymbolsRuntime {
     private static final float CUSTOM_EMOTICON_ITEM_GLYPH_HORIZONTAL_MARGIN_RATIO = 0.04f;
     private static final float CUSTOM_EMOTICON_ITEM_GLYPH_VERTICAL_MARGIN_RATIO = 0.02f;
     private static final float CUSTOM_EMOTICON_ITEM_GLYPH_TEXT_SCALE_X = 0.92f;
-    private static final int CUSTOM_EMOTICON_HEADER_START_EDGE_VIEW_ID = 0x7f0b05ef;
+    private static final int CUSTOM_EMOTICON_HEADER_START_EDGE_VIEW_ID = 0x7f0b0613;
 
     private static final Map<ClassLoader, Handles> REFLECTION_BY_LOADER =
             Collections.synchronizedMap(new WeakHashMap<>());
@@ -118,12 +119,6 @@ public final class GboardAddSymbolsRuntime {
             STOCK_EMOTICON_TEXT_COLORS_BY_THEME =
             Collections.synchronizedMap(new WeakHashMap<>());
 
-    private static final ThreadLocal<Object> ACTIVE_CUSTOM_EMOTICON_HISTORY_WRITE_KEYBOARD =
-            new ThreadLocal<>();
-    private static final ThreadLocal<Object> ACTIVE_CUSTOM_EMOTICON_HEADER_CALLBACK_RECEIVER =
-            new ThreadLocal<>();
-    private static final ThreadLocal<Boolean> CUSTOM_EMOTICON_ADAPTER_CONSTRUCTION =
-            new ThreadLocal<>();
     private static final AtomicBoolean ACTIVE_CUSTOM_EMOTICON_SESSION =
             new AtomicBoolean(false);
     private static final AtomicReference<Object> CURRENT_CUSTOM_EMOTICON_SESSION_KEYBOARD =
@@ -136,6 +131,8 @@ public final class GboardAddSymbolsRuntime {
             new AtomicBoolean(false);
     private static final AtomicReference<String> LAST_NON_RECENTS_CUSTOM_EMOTICON_CATEGORY =
             new AtomicReference<>(GboardAddSymbolsDataset.defaultCategoryKey());
+    private static final Map<String, AtomicInteger> WARNING_LOG_COUNTS =
+            new ConcurrentHashMap<>();
 
     private static long pendingCustomFlowUntilUptimeMs;
     private static long pendingStockEmoticonTabSwitchUntilUptimeMs;
@@ -205,8 +202,8 @@ public final class GboardAddSymbolsRuntime {
             injectExtensionProviderMapping(handles, extensionManager, requestedType, providerClass);
             logInfo("ensureExtensionProviderMapping: injected mapping for "
                     + requestedTypeName + " -> " + providerClass.getName());
-        } catch (Throwable ignored) {
-            // Ignore drift.
+        } catch (Throwable throwable) {
+            logWarn("ensureExtensionProviderMapping failed", throwable);
         }
     }
 
@@ -233,6 +230,7 @@ public final class GboardAddSymbolsRuntime {
                     + STOCK_EMOTICON_KEYBOARD_DATA);
             return handles.buildKeyboardType(STOCK_EMOTICON_KEYBOARD_DATA);
         } catch (Throwable throwable) {
+            logWarn("rewriteProviderRequestType failed", throwable);
             return requestedType;
         }
     }
@@ -266,6 +264,7 @@ public final class GboardAddSymbolsRuntime {
                     new Class<?>[] { handles.keyboardProviderReceiverInterfaceClass },
                     handler);
         } catch (Throwable throwable) {
+            logWarn("bridgeProviderReceiver failed", throwable);
             return receiver;
         }
     }
@@ -312,6 +311,7 @@ public final class GboardAddSymbolsRuntime {
                     + ", activeCustomSession=" + ACTIVE_CUSTOM_EMOTICON_SESSION.get());
             return rewrittenKeyboardType;
         } catch (Throwable throwable) {
+            logWarn("rewriteNavigationKeyboardType failed", throwable);
             return keyboardType;
         }
     }
@@ -343,8 +343,8 @@ public final class GboardAddSymbolsRuntime {
                     + ", activeCustomSession=" + ACTIVE_CUSTOM_EMOTICON_SESSION.get()
                     + ", pendingSourceKeyboard="
                     + (PENDING_STOCK_EMOTICON_TAB_SWITCH_KEYBOARD.get() != null));
-        } catch (Throwable ignored) {
-            // Ignore drift.
+        } catch (Throwable throwable) {
+            logWarn("onExpressionCorpusFooterTabClick failed", throwable);
         }
     }
 
@@ -384,12 +384,12 @@ public final class GboardAddSymbolsRuntime {
             if (isEmoticonKeyboardInstance(handles, keyboard)) {
                 restoreStockEmoticonRecyclerLayout(handles, keyboard);
             }
-        } catch (Throwable ignored) {
-            // Ignore drift.
+        } catch (Throwable throwable) {
+            logWarn("onKeyboardReady failed", throwable);
         }
     }
 
-    public static void onEmoticonKeyboardConstructed(Object keyboard, Object keyboardType) {
+    public static void onEmoticonKeyboardConstructed(Object keyboard) {
         if (keyboard == null || !hasPendingCustomFlow()) {
             return;
         }
@@ -415,8 +415,8 @@ public final class GboardAddSymbolsRuntime {
             } else {
                 restoreStockEmoticonRecyclerLayout(handles, keyboard);
             }
-        } catch (Throwable ignored) {
-            // Ignore drift.
+        } catch (Throwable throwable) {
+            logWarn("onEmoticonBodyReady failed", throwable);
         }
     }
 
@@ -432,6 +432,7 @@ public final class GboardAddSymbolsRuntime {
             Handles handles = handles(classLoader);
             return clampCustomEmoticonCategoryIndex(resolveCustomEmoticonSelectedIndex(handles, keyboard));
         } catch (Throwable throwable) {
+            logWarn("resolveSelectedCategoryIndex failed", throwable);
             return -1;
         }
     }
@@ -459,6 +460,7 @@ public final class GboardAddSymbolsRuntime {
             rememberCustomEmoticonCategory(handles, keyboard, CUSTOM_EMOTICON_CATEGORY_KEYS[index]);
             return true;
         } catch (Throwable throwable) {
+            logWarn("handleCategoryChange failed", throwable);
             return false;
         }
     }
@@ -500,6 +502,7 @@ public final class GboardAddSymbolsRuntime {
             }
             return true;
         } catch (Throwable throwable) {
+            logWarn("handleCategoryBind failed", throwable);
             return false;
         }
     }
@@ -554,6 +557,7 @@ public final class GboardAddSymbolsRuntime {
             tightenCustomEmoticonItemView(handles, viewHolder);
             return true;
         } catch (Throwable throwable) {
+            logWarn("bindCustomViewHolder failed", throwable);
             return false;
         }
     }
@@ -587,6 +591,7 @@ public final class GboardAddSymbolsRuntime {
             tightenCustomEmoticonItemView(handles, itemViewHolder);
             return itemViewHolder;
         } catch (Throwable throwable) {
+            logWarn("createCustomViewHolder failed", throwable);
             return null;
         }
     }
@@ -609,41 +614,6 @@ public final class GboardAddSymbolsRuntime {
         rememberCustomEmoticonCategory(handles, keyboard, customCategoryKey);
     }
 
-    public static void onHeaderCallbackBefore(Object callback) {
-        if (callback == null) {
-            ACTIVE_CUSTOM_EMOTICON_HEADER_CALLBACK_RECEIVER.remove();
-            return;
-        }
-        try {
-            ClassLoader classLoader = callback.getClass().getClassLoader();
-            if (classLoader == null) {
-                ACTIVE_CUSTOM_EMOTICON_HEADER_CALLBACK_RECEIVER.remove();
-                return;
-            }
-            Handles handles = handles(classLoader);
-            if (!handles.emoticonHeaderCallbackClass.isInstance(callback)) {
-                ACTIVE_CUSTOM_EMOTICON_HEADER_CALLBACK_RECEIVER.remove();
-                return;
-            }
-            Integer callbackCase = (Integer) handles.emoticonHeaderCallbackCaseField.get(callback);
-            if (callbackCase == null || callbackCase.intValue() != 13) {
-                ACTIVE_CUSTOM_EMOTICON_HEADER_CALLBACK_RECEIVER.remove();
-                return;
-            }
-            Object receiver = handles.emoticonHeaderCallbackReceiverField.get(callback);
-            if (!isActiveCustomEmoticonKeyboard(receiver)) {
-                ACTIVE_CUSTOM_EMOTICON_HEADER_CALLBACK_RECEIVER.remove();
-                return;
-            }
-            rememberCurrentCustomEmoticonSessionKeyboard(receiver);
-            ACTIVE_CUSTOM_EMOTICON_HEADER_CALLBACK_RECEIVER.set(receiver);
-            CUSTOM_EMOTICON_ADAPTER_CONSTRUCTION.set(Boolean.TRUE);
-        } catch (Throwable ignored) {
-            ACTIVE_CUSTOM_EMOTICON_HEADER_CALLBACK_RECEIVER.remove();
-            // Ignore drift.
-        }
-    }
-
     private static void ensureCustomEmoticonRecyclerAdapterAttached(
             Handles handles,
             Object keyboard,
@@ -659,14 +629,9 @@ public final class GboardAddSymbolsRuntime {
         }
         Object descriptionProvider = handles.emoticonDescriptionProviderField.get(keyboard);
         Object itemClickConsumer = handles.emoticonItemClickConsumerConstructor.newInstance(
-                keyboard, Integer.valueOf(5));
-        CUSTOM_EMOTICON_ADAPTER_CONSTRUCTION.set(Boolean.TRUE);
-        try {
-            handles.emoticonRecyclerAttachAdapterMethod.invoke(
-                    recyclerView, descriptionProvider, itemClickConsumer);
-        } finally {
-            CUSTOM_EMOTICON_ADAPTER_CONSTRUCTION.remove();
-        }
+                keyboard, Integer.valueOf(9));
+        handles.emoticonRecyclerAttachAdapterMethod.invoke(
+                recyclerView, descriptionProvider, itemClickConsumer);
         markCustomEmoticonRecyclerAdapter(handles, recyclerView, true);
     }
 
@@ -998,15 +963,13 @@ public final class GboardAddSymbolsRuntime {
         }
         try {
             handles.consumerAcceptMethod.invoke(consumer, value);
-        } catch (Throwable ignored) {
-            // Ignore drift.
+        } catch (Throwable throwable) {
+            logWarn("invokeConsumerAccept failed", throwable);
         }
     }
 
-    public static void onHeaderCallbackAfter() {
-        Object receiver = ACTIVE_CUSTOM_EMOTICON_HEADER_CALLBACK_RECEIVER.get();
+    public static void onHeaderCallbackAfter(Object receiver) {
         if (receiver == null) {
-            CUSTOM_EMOTICON_ADAPTER_CONSTRUCTION.remove();
             return;
         }
         try {
@@ -1026,11 +989,8 @@ public final class GboardAddSymbolsRuntime {
                 configureCustomEmoticonRecyclerLayout(handles, recyclerView);
             }
             applyCustomEmoticonHeader(handles, receiver);
-        } catch (Throwable ignored) {
-            // Ignore drift.
-        } finally {
-            ACTIVE_CUSTOM_EMOTICON_HEADER_CALLBACK_RECEIVER.remove();
-            CUSTOM_EMOTICON_ADAPTER_CONSTRUCTION.remove();
+        } catch (Throwable throwable) {
+            logWarn("onHeaderCallbackAfter failed", throwable);
         }
     }
 
@@ -1061,53 +1021,46 @@ public final class GboardAddSymbolsRuntime {
         return true;
     }
 
-    public static void onEmoticonRecyclerAdapterConstructed(Object adapter) {
-        if (adapter == null || !Boolean.TRUE.equals(CUSTOM_EMOTICON_ADAPTER_CONSTRUCTION.get())) {
-            return;
-        }
-        CUSTOM_EMOTICON_RECYCLER_ADAPTERS.put(adapter, Boolean.TRUE);
-    }
-
-    public static void onEmoticonItemClick(Object consumer) {
-        if (consumer == null) {
+    public static void onEmoticonRecyclerAdapterConstructed(
+            Object adapter, Object clickConsumer) {
+        if (adapter == null || clickConsumer == null) {
             return;
         }
         try {
-            ClassLoader classLoader = consumer.getClass().getClassLoader();
+            ClassLoader classLoader = clickConsumer.getClass().getClassLoader();
             if (classLoader == null) {
                 return;
             }
             Handles handles = handles(classLoader);
-            Object keyboard = resolveCustomEmoticonHistoryWriteKeyboard(handles, consumer);
+            Object keyboard = resolveCustomEmoticonHistoryWriteKeyboard(handles, clickConsumer);
             if (keyboard != null) {
-                ACTIVE_CUSTOM_EMOTICON_HISTORY_WRITE_KEYBOARD.set(keyboard);
-            } else {
-                ACTIVE_CUSTOM_EMOTICON_HISTORY_WRITE_KEYBOARD.remove();
+                CUSTOM_EMOTICON_RECYCLER_ADAPTERS.put(adapter, Boolean.TRUE);
             }
-        } catch (Throwable ignored) {
-            ACTIVE_CUSTOM_EMOTICON_HISTORY_WRITE_KEYBOARD.remove();
+        } catch (Throwable throwable) {
+            logWarn("onEmoticonRecyclerAdapterConstructed failed", throwable);
         }
     }
 
-    public static boolean interceptHistoryWrite(Object historyManager, String symbol) {
-        Object keyboard = ACTIVE_CUSTOM_EMOTICON_HISTORY_WRITE_KEYBOARD.get();
-        ACTIVE_CUSTOM_EMOTICON_HISTORY_WRITE_KEYBOARD.remove();
-        if (keyboard == null || symbol == null || symbol.isBlank()) {
+    public static boolean interceptHistoryWrite(
+            Object consumer, Object historyManager, String symbol) {
+        if (consumer == null || historyManager == null || symbol == null || symbol.isBlank()) {
             return false;
         }
         try {
-            ClassLoader classLoader = keyboard.getClass().getClassLoader();
+            ClassLoader classLoader = consumer.getClass().getClassLoader();
             if (classLoader == null) {
                 return false;
             }
             Handles handles = handles(classLoader);
-            if (!isCustomEmoticonRenderMode(keyboard)) {
+            Object keyboard = resolveCustomEmoticonHistoryWriteKeyboard(handles, consumer);
+            if (keyboard == null) {
                 return false;
             }
             Context context = extractCustomEmoticonContext(handles, keyboard);
             storeCustomRecentSymbol(context, symbol);
             return true;
         } catch (Throwable throwable) {
+            logWarn("interceptHistoryWrite failed", throwable);
             return false;
         }
     }
@@ -1159,6 +1112,7 @@ public final class GboardAddSymbolsRuntime {
             }
             return keyboardType;
         } catch (Throwable throwable) {
+            logWarn("rewriteKeyboardTypeIfNeeded failed", throwable);
             return keyboardType;
         }
     }
@@ -1178,6 +1132,7 @@ public final class GboardAddSymbolsRuntime {
             }
             return handles.buildKeyboardType(JASONDEV_SYMBOL_KEYBOARD_DATA);
         } catch (Throwable throwable) {
+            logWarn("rewriteKeyboardTypeToCustom failed", throwable);
             return keyboardType;
         }
     }
@@ -1371,12 +1326,6 @@ public final class GboardAddSymbolsRuntime {
             return;
         }
         handles.headerScrollSelectedIndexField.set(startBehavior, Integer.valueOf(selectedIndex));
-        Object recyclerView = handles.headerScrollRecyclerViewField.get(startBehavior);
-        if (recyclerView != null) {
-            Method scrollToPositionMethod = recyclerView.getClass().getMethod("ad", int.class);
-            scrollToPositionMethod.setAccessible(true);
-            scrollToPositionMethod.invoke(recyclerView, Integer.valueOf(selectedIndex));
-        }
     }
 
     private static List<String> resolveCustomEmoticonCategorySymbols(
@@ -1519,7 +1468,7 @@ public final class GboardAddSymbolsRuntime {
             return null;
         }
         Object callbackCase = handles.emoticonItemClickConsumerCaseField.get(consumer);
-        if (!(callbackCase instanceof Integer) || ((Integer) callbackCase).intValue() != 5) {
+        if (!(callbackCase instanceof Integer) || ((Integer) callbackCase).intValue() != 9) {
             return null;
         }
         Object keyboard = handles.emoticonItemClickConsumerReceiverField.get(consumer);
@@ -1593,7 +1542,7 @@ public final class GboardAddSymbolsRuntime {
         if (!(corpusList instanceof Iterable<?>)) {
             return corpusList;
         }
-        Object builder = handles.immutableListBuilderConstructor.newInstance();
+        ArrayList<Object> updated = new ArrayList<>();
         boolean removed = false;
         for (Object corpusItem : (Iterable<?>) corpusList) {
             if (corpusItem != null && handles.expressionCorpusItemClass.isInstance(corpusItem)) {
@@ -1604,13 +1553,12 @@ public final class GboardAddSymbolsRuntime {
                     continue;
                 }
             }
-            handles.immutableListBuilderAddMethod.invoke(builder, corpusItem);
+            updated.add(corpusItem);
         }
         if (!removed) {
             return corpusList;
         }
-        Object builtSet = handles.immutableListBuilderBuildMethod.invoke(builder);
-        return handles.immutableSetToListMethod.invoke(builtSet);
+        return handles.immutableListCopyMethod.invoke(null, updated);
     }
 
     private static Object buildCustomExpressionCorpusItem(
@@ -1619,33 +1567,29 @@ public final class GboardAddSymbolsRuntime {
             ClassLoader classLoader) throws Throwable {
         Class<?> emoticonExtensionClass = Class.forName(
                 EMOTICON_EXTENSION_INTERFACE_CLASS, false, classLoader);
-        Object builder = handles.expressionCorpusItemBuilderFactoryMethod.invoke(null);
-        handles.expressionCorpusItemBuilderNameResMethod.invoke(
-                builder, Integer.valueOf(RICH_SYMBOL_TAB_NAME_RES_ID));
+        Object template = handles.richSymbolCorpusProviderItemField.get(null);
+        if (template == null || !handles.expressionCorpusItemClass.isInstance(template)) {
+            throw new IllegalStateException("Missing target rich-symbol corpus template");
+        }
+        Object builder = handles.expressionCorpusItemBuilderCopyConstructor.newInstance(template);
         handles.expressionCorpusItemBuilderDefaultKeyboardTypeMethod.invoke(builder, customKeyboardType);
-        handles.expressionCorpusItemBuilderIconResMethod.invoke(
-                builder, Integer.valueOf(RICH_SYMBOL_TAB_ICON_RES_ID));
-        Object keyboardTypesBuilder = handles.immutableListBuilderConstructor.newInstance();
-        handles.immutableListBuilderAddMethod.invoke(keyboardTypesBuilder, customKeyboardType);
-        Object keyboardTypesSet = handles.immutableListBuilderBuildMethod.invoke(keyboardTypesBuilder);
-        Object eligibleKeyboardTypes = handles.immutableSetToListMethod.invoke(keyboardTypesSet);
+        Object eligibleKeyboardTypes = handles.immutableListCopyMethod.invoke(
+                null, Collections.singletonList(customKeyboardType));
         handles.expressionCorpusItemBuilderEligibleKeyboardTypesField.set(builder, eligibleKeyboardTypes);
         handles.expressionCorpusItemBuilderExtensionClassField.set(builder, emoticonExtensionClass);
-        handles.expressionCorpusItemBuilderSupportsInternalEditorsMethod.invoke(builder, Boolean.TRUE);
         return handles.expressionCorpusItemBuilderBuildMethod.invoke(builder);
     }
 
     private static Object appendImmutableList(Handles handles, Object source, Object appended)
             throws Throwable {
-        Object builder = handles.immutableListBuilderConstructor.newInstance();
+        ArrayList<Object> updated = new ArrayList<>();
         if (source instanceof Iterable<?>) {
             for (Object item : (Iterable<?>) source) {
-                handles.immutableListBuilderAddMethod.invoke(builder, item);
+                updated.add(item);
             }
         }
-        handles.immutableListBuilderAddMethod.invoke(builder, appended);
-        Object builtSet = handles.immutableListBuilderBuildMethod.invoke(builder);
-        return handles.immutableSetToListMethod.invoke(builtSet);
+        updated.add(appended);
+        return handles.immutableListCopyMethod.invoke(null, updated);
     }
 
     private static Object lookupExtensionProviderClass(
@@ -1877,7 +1821,8 @@ public final class GboardAddSymbolsRuntime {
         try {
             Object name = handles.keyboardTypeNameField.get(keyboardType);
             return name instanceof String ? (String) name : null;
-        } catch (Throwable ignored) {
+        } catch (Throwable throwable) {
+            logWarn("extractKeyboardTypeName failed", throwable);
             return null;
         }
     }
@@ -2065,7 +2010,26 @@ public final class GboardAddSymbolsRuntime {
     }
 
     private static void logWarn(String message, Throwable throwable) {
-        Log.w(TAG, message, throwable);
+        AtomicInteger count = WARNING_LOG_COUNTS.computeIfAbsent(
+                message, ignored -> new AtomicInteger(0));
+        if (count.getAndIncrement() < 3) {
+            Log.w(TAG, message, throwable);
+        }
+    }
+
+    private static Field findFieldInHierarchy(Class<?> owner, String name)
+            throws NoSuchFieldException {
+        Class<?> current = owner;
+        while (current != null) {
+            try {
+                Field field = current.getDeclaredField(name);
+                field.setAccessible(true);
+                return field;
+            } catch (NoSuchFieldException ignored) {
+                current = current.getSuperclass();
+            }
+        }
+        throw new NoSuchFieldException(owner.getName() + "#" + name);
     }
 
     private static final class Handles {
@@ -2083,20 +2047,15 @@ public final class GboardAddSymbolsRuntime {
         final Field keyboardTypeNameField;
         final Field extensionManagerKeyboardProviderMapField;
         final Class<?> expressionCorpusItemClass;
+        final Field richSymbolCorpusProviderItemField;
         final Field expressionCorpusItemExtensionClassField;
         final Field expressionCorpusItemKeyboardTypeField;
-        final Method expressionCorpusItemBuilderFactoryMethod;
+        final Constructor<?> expressionCorpusItemBuilderCopyConstructor;
         final Method expressionCorpusItemBuilderDefaultKeyboardTypeMethod;
-        final Method expressionCorpusItemBuilderIconResMethod;
-        final Method expressionCorpusItemBuilderNameResMethod;
-        final Method expressionCorpusItemBuilderSupportsInternalEditorsMethod;
         final Method expressionCorpusItemBuilderBuildMethod;
         final Field expressionCorpusItemBuilderEligibleKeyboardTypesField;
         final Field expressionCorpusItemBuilderExtensionClassField;
-        final Constructor<?> immutableListBuilderConstructor;
-        final Method immutableListBuilderAddMethod;
-        final Method immutableListBuilderBuildMethod;
-        final Method immutableSetToListMethod;
+        final Method immutableListCopyMethod;
         final Constructor<?> integerStringMapConstructor;
         final Field emoticonDescriptionProviderField;
         final Field emoticonBodyRecyclerField;
@@ -2124,9 +2083,6 @@ public final class GboardAddSymbolsRuntime {
         final Field emoticonHeaderControllerField;
         final Field emoticonHeaderScrollControllerField;
         final Method headerControllerSetModelMethod;
-        final Class<?> emoticonHeaderCallbackClass;
-        final Field emoticonHeaderCallbackCaseField;
-        final Field emoticonHeaderCallbackReceiverField;
         final Method headerModelBuilderFactoryMethod;
         final Method headerModelBuilderAddMiddleItemMethod;
         final Method headerModelBuilderBuildMethod;
@@ -2155,65 +2111,62 @@ public final class GboardAddSymbolsRuntime {
         final Object headerImageSizeSmallEnum;
         final Field headerScrollBehaviorField;
         final Field headerScrollSelectedIndexField;
-        final Field headerScrollRecyclerViewField;
         final Method gridLayoutManagerSetSpanCountMethod;
 
         Handles(ClassLoader classLoader) throws Throwable {
-            Class<?> keyboardTypeClass = Class.forName("nzd", false, classLoader);
-            keyboardProviderReceiverInterfaceClass = Class.forName("nio", false, classLoader);
+            Class<?> keyboardTypeClass = Class.forName("ovf", false, classLoader);
+            keyboardProviderReceiverInterfaceClass = Class.forName("odz", false, classLoader);
             supportRecyclerViewClass = Class.forName(
                     "android.support.v7.widget.RecyclerView", false, classLoader);
-            recyclerViewViewHolderClass = Class.forName("km", false, classLoader);
+            recyclerViewViewHolderClass = Class.forName("kl", false, classLoader);
             gridLayoutManagerClass = Class.forName(
                     "android.support.v7.widget.GridLayoutManager", false, classLoader);
-            Class<?> immutableMapBuilderClass = Class.forName("tvj", false, classLoader);
-            Class<?> immutableListBuilderClass = Class.forName("twm", false, classLoader);
-            Class<?> immutableSetClass = Class.forName("two", false, classLoader);
-            Class<?> integerStringMapClass = Class.forName("ual", false, classLoader);
+            Class<?> immutableMapBuilderClass = Class.forName("val", false, classLoader);
+            Class<?> immutableListClass = Class.forName("vai", false, classLoader);
+            Class<?> integerStringMapClass = Class.forName("vfn", false, classLoader);
             emoticonKeyboardClass = Class.forName(
                     "com.google.android.apps.inputmethod.libs.search.emoticon.EmoticonKeyboardM2",
                     false, classLoader);
             emoticonRecyclerViewClass = Class.forName(
                     "com.google.android.apps.inputmethod.libs.search.emoticon.EmoticonRecyclerView",
                     false, classLoader);
-            emoticonRecyclerAdapterClass = Class.forName("hvx", false, classLoader);
-            Class<?> emoticonDescriptionProviderClass = Class.forName("hwe", false, classLoader);
-            emoticonItemClickConsumerClass = Class.forName("huo", false, classLoader);
+            emoticonRecyclerAdapterClass = Class.forName("ils", false, classLoader);
+            Class<?> emoticonDescriptionProviderClass = Class.forName("ily", false, classLoader);
+            emoticonItemClickConsumerClass = Class.forName("iju", false, classLoader);
             consumerClass = Class.forName("java.util.function.Consumer", false, classLoader);
-            Class<?> emoticonHeaderControllerClass = Class.forName("fiy", false, classLoader);
-            Class<?> emoticonHeaderScrollControllerClass = Class.forName("fjm", false, classLoader);
-            Class<?> emoticonHeaderModelClass = Class.forName("fiz", false, classLoader);
-            Class<?> emoticonHeaderModelBuilderClass = Class.forName("iid", false, classLoader);
-            Class<?> emoticonHeaderItemClass = Class.forName("fiu", false, classLoader);
-            Class<?> emoticonHeaderItemBuilderClass = Class.forName("wqt", false, classLoader);
-            Class<?> emoticonHeaderTextClass = Class.forName("fis", false, classLoader);
-            Class<?> emoticonHeaderTextBuilderClass = Class.forName("wdw", false, classLoader);
-            Class<?> emoticonHeaderImageClass = Class.forName("fiq", false, classLoader);
-            Class<?> emoticonHeaderImageBuilderClass = Class.forName("lvk", false, classLoader);
-            Class<?> emoticonHeaderSelectionClass = Class.forName("fjb", false, classLoader);
-            Class<?> emoticonHeaderSelectionTypeClass = Class.forName("fja", false, classLoader);
-            Class<?> emoticonHeaderContentTypeClass = Class.forName("fio", false, classLoader);
-            Class<?> emoticonHeaderCallbackInfoClass = Class.forName("fin", false, classLoader);
-            Class<?> emoticonHeaderImageSizeClass = Class.forName("fir", false, classLoader);
+            Class<?> emoticonHeaderControllerClass = Class.forName("frk", false, classLoader);
+            Class<?> emoticonHeaderScrollControllerClass = Class.forName("fry", false, classLoader);
+            Class<?> emoticonHeaderModelClass = Class.forName("frl", false, classLoader);
+            Class<?> emoticonHeaderModelBuilderClass = Class.forName("qbv", false, classLoader);
+            Class<?> emoticonHeaderItemClass = Class.forName("frg", false, classLoader);
+            Class<?> emoticonHeaderItemBuilderClass = Class.forName("yks", false, classLoader);
+            Class<?> emoticonHeaderTextClass = Class.forName("fre", false, classLoader);
+            Class<?> emoticonHeaderTextBuilderClass = Class.forName("xxr", false, classLoader);
+            Class<?> emoticonHeaderImageClass = Class.forName("frc", false, classLoader);
+            Class<?> emoticonHeaderImageBuilderClass = Class.forName("mof", false, classLoader);
+            Class<?> emoticonHeaderSelectionClass = Class.forName("frn", false, classLoader);
+            Class<?> emoticonHeaderSelectionTypeClass = Class.forName("frm", false, classLoader);
+            Class<?> emoticonHeaderContentTypeClass = Class.forName("fra", false, classLoader);
+            Class<?> emoticonHeaderCallbackInfoClass = Class.forName("fqz", false, classLoader);
+            Class<?> emoticonHeaderImageSizeClass = Class.forName("frd", false, classLoader);
             Class<?> startElementScrollBehaviorClass = Class.forName(
                     "com.google.android.apps.inputmethod.libs.expression.header.StartElementScrollBehavior",
                     false, classLoader);
-            emoticonHeaderCallbackClass = Class.forName("fhj", false, classLoader);
-            Class<?> extensionManagerClass = Class.forName("miu", false, classLoader);
-            expressionCorpusItemClass = Class.forName("mik", false, classLoader);
-            Class<?> expressionCorpusItemBuilderClass = Class.forName("mii", false, classLoader);
+            Class<?> extensionManagerClass = Class.forName("ncc", false, classLoader);
+            expressionCorpusItemClass = Class.forName("nbs", false, classLoader);
+            Class<?> expressionCorpusItemBuilderClass = Class.forName("nbq", false, classLoader);
+            Class<?> richSymbolCorpusProviderClass = Class.forName("iru", false, classLoader);
 
             immutableMapBuilderConstructor = immutableMapBuilderClass.getDeclaredConstructor();
             immutableMapBuilderConstructor.setAccessible(true);
-            immutableMapBuilderPutMethod = immutableMapBuilderClass.getDeclaredMethod(
-                    "a", Object.class, Object.class);
+            immutableMapBuilderPutMethod = immutableMapBuilderClass.getDeclaredMethod("a", Object.class, Object.class);
             immutableMapBuilderPutMethod.setAccessible(true);
             immutableMapBuilderBuildMethod = immutableMapBuilderClass.getDeclaredMethod("n");
             immutableMapBuilderBuildMethod.setAccessible(true);
 
-            keyboardTypeFromStringMethod = keyboardTypeClass.getDeclaredMethod("a", String.class);
+            keyboardTypeFromStringMethod = keyboardTypeClass.getDeclaredMethod("a", Object.class);
             keyboardTypeFromStringMethod.setAccessible(true);
-            keyboardTypeNameField = keyboardTypeClass.getDeclaredField("k");
+            keyboardTypeNameField = keyboardTypeClass.getDeclaredField("m");
             keyboardTypeNameField.setAccessible(true);
 
             extensionManagerKeyboardProviderMapField = extensionManagerClass.getDeclaredField("c");
@@ -2223,21 +2176,16 @@ public final class GboardAddSymbolsRuntime {
             expressionCorpusItemKeyboardTypeField.setAccessible(true);
             expressionCorpusItemExtensionClassField = expressionCorpusItemClass.getDeclaredField("g");
             expressionCorpusItemExtensionClassField.setAccessible(true);
+            richSymbolCorpusProviderItemField =
+                    richSymbolCorpusProviderClass.getDeclaredField("a");
+            richSymbolCorpusProviderItemField.setAccessible(true);
 
-            expressionCorpusItemBuilderFactoryMethod = expressionCorpusItemClass.getDeclaredMethod("a");
-            expressionCorpusItemBuilderFactoryMethod.setAccessible(true);
+            expressionCorpusItemBuilderCopyConstructor =
+                    expressionCorpusItemBuilderClass.getDeclaredConstructor(expressionCorpusItemClass);
+            expressionCorpusItemBuilderCopyConstructor.setAccessible(true);
             expressionCorpusItemBuilderDefaultKeyboardTypeMethod =
                     expressionCorpusItemBuilderClass.getDeclaredMethod("b", keyboardTypeClass);
             expressionCorpusItemBuilderDefaultKeyboardTypeMethod.setAccessible(true);
-            expressionCorpusItemBuilderIconResMethod =
-                    expressionCorpusItemBuilderClass.getDeclaredMethod("c", int.class);
-            expressionCorpusItemBuilderIconResMethod.setAccessible(true);
-            expressionCorpusItemBuilderNameResMethod =
-                    expressionCorpusItemBuilderClass.getDeclaredMethod("e", int.class);
-            expressionCorpusItemBuilderNameResMethod.setAccessible(true);
-            expressionCorpusItemBuilderSupportsInternalEditorsMethod =
-                    expressionCorpusItemBuilderClass.getDeclaredMethod("g", boolean.class);
-            expressionCorpusItemBuilderSupportsInternalEditorsMethod.setAccessible(true);
             expressionCorpusItemBuilderBuildMethod =
                     expressionCorpusItemBuilderClass.getDeclaredMethod("a");
             expressionCorpusItemBuilderBuildMethod.setAccessible(true);
@@ -2248,14 +2196,8 @@ public final class GboardAddSymbolsRuntime {
                     expressionCorpusItemBuilderClass.getDeclaredField("b");
             expressionCorpusItemBuilderExtensionClassField.setAccessible(true);
 
-            immutableListBuilderConstructor = immutableListBuilderClass.getDeclaredConstructor();
-            immutableListBuilderConstructor.setAccessible(true);
-            immutableListBuilderAddMethod = immutableListBuilderClass.getDeclaredMethod("h", Object.class);
-            immutableListBuilderAddMethod.setAccessible(true);
-            immutableListBuilderBuildMethod = immutableListBuilderClass.getDeclaredMethod("g");
-            immutableListBuilderBuildMethod.setAccessible(true);
-            immutableSetToListMethod = immutableSetClass.getMethod("g");
-            immutableSetToListMethod.setAccessible(true);
+            immutableListCopyMethod = immutableListClass.getDeclaredMethod("k", Collection.class);
+            immutableListCopyMethod.setAccessible(true);
 
             integerStringMapConstructor = integerStringMapClass.getDeclaredConstructor(
                     Object[].class, int.class);
@@ -2267,9 +2209,7 @@ public final class GboardAddSymbolsRuntime {
             emoticonBodyRecyclerField.setAccessible(true);
             emoticonEmptyStateField = emoticonKeyboardClass.getDeclaredField("r");
             emoticonEmptyStateField.setAccessible(true);
-            emoticonKeyboardContextField =
-                    emoticonKeyboardClass.getSuperclass().getSuperclass().getSuperclass()
-                            .getDeclaredField("y");
+            emoticonKeyboardContextField = findFieldInHierarchy(emoticonKeyboardClass, "w");
             emoticonKeyboardContextField.setAccessible(true);
 
             consumerAcceptMethod = consumerClass.getDeclaredMethod("accept", Object.class);
@@ -2281,7 +2221,7 @@ public final class GboardAddSymbolsRuntime {
                     "a", List.class);
             emoticonRecyclerSetItemsMethod.setAccessible(true);
             emoticonSetEmoticonsMethod = emoticonKeyboardClass.getDeclaredMethod(
-                    "A", emoticonRecyclerViewClass, String.class);
+                    "y", emoticonRecyclerViewClass, String.class);
             emoticonSetEmoticonsMethod.setAccessible(true);
 
             emoticonItemClickConsumerConstructor =
@@ -2307,14 +2247,14 @@ public final class GboardAddSymbolsRuntime {
                     emoticonRecyclerAdapterClass.getDeclaredField("d");
             emoticonRecyclerAdapterItemsField.setAccessible(true);
 
-            recyclerViewAdapterField = supportRecyclerViewClass.getDeclaredField("k");
+            recyclerViewAdapterField = supportRecyclerViewClass.getDeclaredField("j");
             recyclerViewAdapterField.setAccessible(true);
             recyclerViewViewHolderConstructor =
                     recyclerViewViewHolderClass.getDeclaredConstructor(View.class);
             recyclerViewViewHolderConstructor.setAccessible(true);
             emoticonRecyclerSpanCountField = emoticonRecyclerViewClass.getDeclaredField("aa");
             emoticonRecyclerSpanCountField.setAccessible(true);
-            recyclerViewLayoutManagerField = supportRecyclerViewClass.getDeclaredField("l");
+            recyclerViewLayoutManagerField = supportRecyclerViewClass.getDeclaredField("k");
             recyclerViewLayoutManagerField.setAccessible(true);
             recyclerViewViewHolderItemViewField =
                     recyclerViewViewHolderClass.getDeclaredField("a");
@@ -2330,11 +2270,6 @@ public final class GboardAddSymbolsRuntime {
             headerControllerSetModelMethod = emoticonHeaderControllerClass.getDeclaredMethod(
                     "j", emoticonHeaderModelClass);
             headerControllerSetModelMethod.setAccessible(true);
-            emoticonHeaderCallbackCaseField = emoticonHeaderCallbackClass.getDeclaredField("c");
-            emoticonHeaderCallbackCaseField.setAccessible(true);
-            emoticonHeaderCallbackReceiverField = emoticonHeaderCallbackClass.getDeclaredField("b");
-            emoticonHeaderCallbackReceiverField.setAccessible(true);
-
             headerModelBuilderFactoryMethod = emoticonHeaderModelClass.getDeclaredMethod("a");
             headerModelBuilderFactoryMethod.setAccessible(true);
             headerModelBuilderAddMiddleItemMethod =
@@ -2344,7 +2279,7 @@ public final class GboardAddSymbolsRuntime {
                     emoticonHeaderModelBuilderClass.getDeclaredMethod("h");
             headerModelBuilderBuildMethod.setAccessible(true);
             headerModelBuilderSelectedPositionField =
-                    emoticonHeaderModelBuilderClass.getDeclaredField("e");
+                    emoticonHeaderModelBuilderClass.getDeclaredField("a");
             headerModelBuilderSelectedPositionField.setAccessible(true);
             headerModelBuilderStartItemField =
                     emoticonHeaderModelBuilderClass.getDeclaredField("f");
@@ -2353,16 +2288,16 @@ public final class GboardAddSymbolsRuntime {
             headerItemBuilderFactoryMethod = emoticonHeaderItemClass.getDeclaredMethod("a");
             headerItemBuilderFactoryMethod.setAccessible(true);
             headerItemBuilderSetContentTypeMethod =
-                    emoticonHeaderItemBuilderClass.getDeclaredMethod("n", emoticonHeaderContentTypeClass);
+                    emoticonHeaderItemBuilderClass.getDeclaredMethod("r", emoticonHeaderContentTypeClass);
             headerItemBuilderSetContentTypeMethod.setAccessible(true);
             headerItemBuilderBuildMethod =
-                    emoticonHeaderItemBuilderClass.getDeclaredMethod("m");
+                    emoticonHeaderItemBuilderClass.getDeclaredMethod("q");
             headerItemBuilderBuildMethod.setAccessible(true);
-            headerItemBuilderImageField = emoticonHeaderItemBuilderClass.getDeclaredField("a");
+            headerItemBuilderImageField = emoticonHeaderItemBuilderClass.getDeclaredField("e");
             headerItemBuilderImageField.setAccessible(true);
-            headerItemBuilderContentField = emoticonHeaderItemBuilderClass.getDeclaredField("b");
+            headerItemBuilderContentField = emoticonHeaderItemBuilderClass.getDeclaredField("a");
             headerItemBuilderContentField.setAccessible(true);
-            headerItemBuilderCallbackField = emoticonHeaderItemBuilderClass.getDeclaredField("d");
+            headerItemBuilderCallbackField = emoticonHeaderItemBuilderClass.getDeclaredField("b");
             headerItemBuilderCallbackField.setAccessible(true);
 
             headerImageBuilderFactoryMethod = emoticonHeaderImageClass.getDeclaredMethod("a");
@@ -2383,13 +2318,13 @@ public final class GboardAddSymbolsRuntime {
             headerTextBuilderFactoryMethod = emoticonHeaderTextClass.getDeclaredMethod("a");
             headerTextBuilderFactoryMethod.setAccessible(true);
             headerTextBuilderSetTextMethod =
-                    emoticonHeaderTextBuilderClass.getDeclaredMethod("k", String.class);
+                    emoticonHeaderTextBuilderClass.getDeclaredMethod("i", String.class);
             headerTextBuilderSetTextMethod.setAccessible(true);
             headerTextBuilderSetContentDescriptionMethod =
-                    emoticonHeaderTextBuilderClass.getDeclaredMethod("h", String.class);
+                    emoticonHeaderTextBuilderClass.getDeclaredMethod("f", String.class);
             headerTextBuilderSetContentDescriptionMethod.setAccessible(true);
             headerTextBuilderBuildMethod =
-                    emoticonHeaderTextBuilderClass.getDeclaredMethod("g");
+                    emoticonHeaderTextBuilderClass.getDeclaredMethod("e");
             headerTextBuilderBuildMethod.setAccessible(true);
 
             headerCallbackInfoConstructor =
@@ -2421,9 +2356,6 @@ public final class GboardAddSymbolsRuntime {
             headerScrollSelectedIndexField =
                     startElementScrollBehaviorClass.getDeclaredField("h");
             headerScrollSelectedIndexField.setAccessible(true);
-            headerScrollRecyclerViewField =
-                    startElementScrollBehaviorClass.getDeclaredField("f");
-            headerScrollRecyclerViewField.setAccessible(true);
 
             gridLayoutManagerSetSpanCountMethod =
                     gridLayoutManagerClass.getDeclaredMethod("y", int.class);

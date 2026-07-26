@@ -256,6 +256,9 @@ public final class GboardSettingsText {
         templates.put(R.string.gboard_patches_group_keyboard_empty_title, "沒有可用的鍵盤設定");
         templates.put(R.string.gboard_patches_group_keyboard_empty_summary,
                 "這個 build 沒有包含任何鍵盤設定功能。");
+        templates.put(R.string.gboard_patches_developer_options_title, "開發人員選項");
+        templates.put(R.string.gboard_patches_developer_options_summary,
+                "開啟 開發人員選項 與 Flag 編輯器。");
         templates.put(R.string.gboard_patches_top_row_title, "自訂第一排按鍵");
         templates.put(R.string.gboard_patches_top_row_summary,
                 "左右滑動第一排，打開可自訂文字與 JavaScript slot 的列。");
@@ -483,6 +486,77 @@ public final class GboardSettingsText {
                 "小寫字母上滑會輸出大寫，大寫字母上滑會輸出小寫。");
         templates.put(R.string.gboard_patches_english_uppercase_toggle_section_behavior,
                 "行為");
+        templates.put(R.string.gboard_patches_long_press_quick_actions_title,
+                "長按編輯快捷鍵");
+        templates.put(R.string.gboard_patches_long_press_quick_actions_summary,
+                "長按指定字母鍵，顯示全選、復原、複製、剪下、貼上與重做操作。");
+        templates.put(R.string.gboard_patches_long_press_quick_actions_error_title,
+                "長按編輯快捷鍵無法使用");
+        templates.put(R.string.gboard_patches_long_press_quick_actions_error_summary,
+                "長按編輯快捷鍵設定畫面載入失敗。請重新開啟 Gboard 設定再試一次。");
+        templates.put(R.string.gboard_patches_long_press_quick_actions_enabled_title,
+                "啟用長按編輯快捷鍵");
+        templates.put(R.string.gboard_patches_long_press_quick_actions_enabled_summary,
+                "重新叫出鍵盤或切換鍵盤版面後會完整套用變更。");
+        templates.put(R.string.gboard_patches_long_press_quick_actions_section_feature, "功能");
+        templates.put(R.string.gboard_patches_long_press_quick_actions_section_mappings, "說明");
+        templates.put(R.string.gboard_patches_long_press_quick_actions_action_select_all, "全選");
+        templates.put(R.string.gboard_patches_long_press_quick_actions_action_undo, "復原");
+        templates.put(R.string.gboard_patches_long_press_quick_actions_action_copy, "複製");
+        templates.put(R.string.gboard_patches_long_press_quick_actions_action_cut, "剪下");
+        templates.put(R.string.gboard_patches_long_press_quick_actions_action_paste, "貼上");
+        templates.put(R.string.gboard_patches_long_press_quick_actions_action_redo, "重做");
+        templates.put(R.string.gboard_patches_advanced_voice_title, "進階語音輸入");
+        templates.put(R.string.gboard_patches_advanced_voice_summary,
+                "控制是否強制啟用進階語音輸入。");
+        templates.put(R.string.gboard_patches_advanced_voice_header_summary,
+                "語音輸入 -> 進階功能、 加入標點符號");
+        templates.put(R.string.gboard_patches_advanced_voice_error_title,
+                "進階語音輸入無法使用");
+        templates.put(R.string.gboard_patches_advanced_voice_error_summary,
+                "進階語音輸入設定畫面載入失敗。請重新開啟 Gboard 設定再試一次。");
+        templates.put(R.string.gboard_patches_advanced_voice_enabled_title,
+                "啟用進階語音輸入");
+        templates.put(R.string.gboard_patches_advanced_voice_enabled_summary,
+                "使用進階語音輸入功能時，畫面上會顯示彩色麥克風圖示，需要強制停止並重新啟動才會生效。");
+        templates.put(R.string.gboard_patches_advanced_voice_zh_tw_punctuation_title,
+                "中文輸入自動添加標點符號");
+        templates.put(R.string.gboard_patches_advanced_voice_zh_tw_punctuation_summary,
+                "必須啟用 語音輸入 -> 進階功能；需要強制停止並重新啟動 Gboard 才會生效。");
+        templates.put(R.string.gboard_patches_advanced_voice_section_behavior, "行為");
+        templates.put(R.string.gboard_patches_advanced_voice_section_information, "說明");
+        templates.put(R.string.gboard_patches_advanced_voice_payload_present_title,
+                "已偵測到 Dictation payload");
+        templates.put(R.string.gboard_patches_advanced_voice_payload_present_summary,
+                "目前安裝的 %1$s 已符合進階語音輸入的 APK payload 需求。");
+        templates.put(R.string.gboard_patches_advanced_voice_payload_present_requirement_title,
+                "安裝檔需求（目前已符合）");
+        templates.put(R.string.gboard_patches_advanced_voice_payload_present_requirement_summary,
+                "目前不需要重新下載。日後更新或重新安裝時，仍必須使用 bundle 或 split APKM，並在 Morphe 中套用 patch；standalone APK 無法生效。\n點此查看 APKMirror 下載頁");
+        templates.put(R.string.gboard_patches_advanced_voice_payload_absent_title,
+                "未偵測到 Dictation payload");
+        templates.put(R.string.gboard_patches_advanced_voice_payload_absent_summary,
+                "目前安裝的 %1$s 不包含進階語音輸入需要的 libdictation_jni.so。");
+        templates.put(R.string.gboard_patches_advanced_voice_payload_absent_requirement_title,
+                "需要使用 bundle 或 split APKM");
+        templates.put(R.string.gboard_patches_advanced_voice_payload_absent_requirement_summary,
+                "請重新取得 bundle 或 split APKM，並在 Morphe 中套用 patch；standalone APK 無法生效。\n點此開啟 APKMirror 下載頁");
+        templates.put(R.string.gboard_patches_advanced_voice_payload_unknown_title,
+                "無法確認 Dictation payload");
+        templates.put(R.string.gboard_patches_advanced_voice_payload_unknown_summary,
+                "無法檢查目前選取 Gboard package 的安裝 APK。");
+        templates.put(R.string.gboard_patches_advanced_voice_payload_unknown_requirement_title,
+                "請確認安裝檔來源");
+        templates.put(R.string.gboard_patches_advanced_voice_payload_unknown_requirement_summary,
+                "目前無法判斷是否需要重新下載。請確認使用 bundle 或 split APKM，並在 Morphe 中套用 patch；standalone APK 無法生效。\n點此查看 APKMirror 下載頁");
+        templates.put(R.string.gboard_patches_bluetooth_microphone_title, "使用藍芽麥克風");
+        templates.put(R.string.gboard_patches_bluetooth_microphone_summary,
+                "語音輸入->使用藍芽麥克風");
+        templates.put(R.string.gboard_patches_bluetooth_microphone_error_title,
+                "藍芽麥克風無法使用");
+        templates.put(R.string.gboard_patches_bluetooth_microphone_error_summary,
+                "藍芽麥克風設定畫面載入失敗。請重新開啟 Gboard 設定再試一次。");
+        templates.put(R.string.gboard_patches_bluetooth_microphone_section_behavior, "行為");
         templates.put(R.string.gboard_patches_zhuyin_bottom_row_title, "注音底排按鍵大小");
         templates.put(R.string.gboard_patches_zhuyin_bottom_row_summary,
                 "調整注音鍵盤底排 7 個按鍵 slot 的權重。");
@@ -534,7 +608,7 @@ public final class GboardSettingsText {
                 "搜尋 / 送出鍵");
         templates.put(R.string.gboard_patches_ai_writing_tools_title, "AI 撰寫工具");
         templates.put(R.string.gboard_patches_ai_writing_tools_summary,
-                "控制是否強制顯示官方 AI 撰寫工具開關。");
+                "控制 Gboard AI 撰寫工具的可用性、鍵盤支援與後端路由。");
         templates.put(R.string.gboard_patches_ai_writing_tools_header_summary, "");
         templates.put(R.string.gboard_patches_ai_writing_tools_error_title,
                 "AI 撰寫工具無法使用");
@@ -542,11 +616,17 @@ public final class GboardSettingsText {
                 "AI 撰寫工具設定畫面載入失敗。請重新開啟 Gboard 設定再試一次。");
         templates.put(R.string.gboard_patches_ai_writing_tools_enabled_title, "啟用 AI 撰寫工具");
         templates.put(R.string.gboard_patches_ai_writing_tools_enabled_summary,
-                "強制顯示「修正和建議」->「撰寫工具」中的官方 4 個開關；手機沒有 AI Core 時，需要開啟「使用 Google 伺服器」才會生效。");
+                "強制顯示 修正和建議 -> 撰寫工具 中的2個開關。");
         templates.put(R.string.gboard_patches_ai_writing_tools_all_keyboards_title,
                 "支援所有鍵盤");
         templates.put(R.string.gboard_patches_ai_writing_tools_all_keyboards_summary,
                 "開啟後，會強制把撰寫工具在所有鍵盤生效。需要強制停止並重新啟動 Gboard 才會生效。");
+        templates.put(R.string.gboard_patches_ai_writing_tools_backend_type_title,
+                "後端類型");
+        templates.put(R.string.gboard_patches_ai_writing_tools_backend_type_summary,
+                "變更後端後，需要強制停止並重新啟動 Gboard 才會生效。如果選擇 AICORE，需要有資格才能下載模型。");
+        templates.put(R.string.gboard_patches_ai_writing_tools_backend_type_dialog_title,
+                "後端類型");
         templates.put(R.string.gboard_patches_ai_writing_tools_section_behavior, "行為");
         templates.put(R.string.gboard_patches_symbol_footer_title, "表情符號、貼圖與 GIF 分頁順序");
         templates.put(R.string.gboard_patches_symbol_footer_summary,

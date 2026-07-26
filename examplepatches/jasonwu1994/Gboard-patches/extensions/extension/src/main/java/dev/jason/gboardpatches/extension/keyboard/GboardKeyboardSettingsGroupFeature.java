@@ -5,6 +5,9 @@ import android.content.Context;
 import java.util.Arrays;
 
 import dev.jason.gboardpatches.extension.R;
+import dev.jason.gboardpatches.extension.advancedvoice.GboardAdvancedVoiceSettingsFeature;
+import dev.jason.gboardpatches.extension.bluetoothmicrophone.GboardBluetoothMicrophoneSettingsFeature;
+import dev.jason.gboardpatches.extension.longpressquickactions.GboardLongPressQuickActionsSettingsFeature;
 import dev.jason.gboardpatches.extension.settings.GboardFeatureGroup;
 import dev.jason.gboardpatches.extension.settings.GboardPatchesSettingsContract;
 import dev.jason.gboardpatches.extension.settings.GboardSettingsText;
@@ -35,12 +38,15 @@ public final class GboardKeyboardSettingsGroupFeature
                         R.string.gboard_patches_group_keyboard_empty_summary,
                         "This build does not include any keyboard settings features."),
                 Arrays.asList(
+                        new GboardAiWritingToolsSettingsFeature(context),
+                        new GboardAdvancedVoiceSettingsFeature(context),
                         new GboardTopRowSwipeSettingsFeature(context),
+                        new GboardLongPressQuickActionsSettingsFeature(context),
                         new GboardLatinGlobeKeyIgnoreIntervalSettingsFeature(context),
                         new GboardEnglishUppercaseToggleSettingsFeature(context),
                         new GboardZhuyinBottomRowWeightSettingsFeature(context),
-                        new GboardAiWritingToolsSettingsFeature(context),
-                        new GboardSymbolFooterOrderSettingsFeature(context)));
+                        new GboardSymbolFooterOrderSettingsFeature(context),
+                        new GboardBluetoothMicrophoneSettingsFeature(context)));
     }
 
     @Override

@@ -1,0 +1,26 @@
+{
+  "targetPackage": "com.google.android.inputmethod.latin",
+  "targetVersion": "17.7.7.932364120-release-arm64-v8a",
+  "targetApk": "official-gboard-17.7.7.932364120-release-arm64-v8a.apk",
+  "targetApkSha256": "549680C31A0ADCDC324FA7B8AB2EEACC108A312E9F2FEF1D956F5FC2D56C3FF9",
+  "decodedManifest": "decoded-target/AndroidManifest.xml",
+  "decodedManifestSha256": "C5F279BA3B46A101E72AF7725983013023282B1C196F2BF193174097B3A2BB1E",
+  "manifestFixture": "AndroidManifest.normalized.xml",
+  "manifestFixtureNormalization": "UTF-8 without BOM; CRLF normalized to LF; XML content otherwise verbatim",
+  "manifestFixtureSha256": "F9288448C6035764BBB0BE3C279AA725DB7551CF2124F43EB3D0B9E97B84CC1E",
+  "selectedManifestAttributeCount": 15,
+  "resourceSources": [
+    {
+      "path": "res/values/arrays.xml",
+      "sha256": "6FF58A0069D315CC1CD926A7216B25ABC68AD97442DCE8546A8AC54CD848A14E"
+    },
+    {
+      "path": "res/values/strings.xml",
+      "sha256": "449FB31BB55270812E2EA5FCD00AC0D93BDC632948D4F09AA69322A1D69BEF38"
+    },
+    {
+      "path": "res/xml/APKTOOL_RENAMED_0x7f170033.xml",
+      "sha256": "6637D8037933B4BBDA35719F72DAF1181F0B5BB5BCD5F2AAD33B670CF3FA0CB0"
+    }
+  ]
+}

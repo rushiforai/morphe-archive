@@ -8,7 +8,9 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.lang.ref.Reference;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,11 +43,136 @@ public final class GboardEnglishUppercaseToggleRuntimeBehaviorTest {
         Assert.assertTrue(GboardEnglishUppercaseToggleRuntime.isEnabled());
     }
 
+    @Test
+    public void patchedMetadataMarkersAreIdentityScoped() throws Exception {
+        Method isPatched = GboardEnglishUppercaseToggleRuntime.class.getMethod(
+                "isPatchedMetadata", Object.class);
+        Method markPatched = GboardEnglishUppercaseToggleRuntime.class.getMethod(
+                "markPatchedMetadata", Object.class);
+        Object patched = new EqualValue("same");
+        Object equalButDistinctStock = new EqualValue("same");
+
+        Assert.assertFalse((Boolean) isPatched.invoke(null, patched));
+        markPatched.invoke(null, patched);
+        Assert.assertTrue((Boolean) isPatched.invoke(null, patched));
+        Assert.assertFalse((Boolean) isPatched.invoke(null, equalButDistinctStock));
+        Assert.assertFalse((Boolean) isPatched.invoke(null, new Object[] {null}));
+    }
+
+    @Test
+    public void patchedMetadataCacheUsesOriginalIdentityAndReturnsCanonicalInstance()
+            throws Exception {
+        Method getCached = GboardEnglishUppercaseToggleRuntime.class.getMethod(
+                "getCachedPatchedMetadata", Object.class);
+        Method cachePatched = GboardEnglishUppercaseToggleRuntime.class.getMethod(
+                "cachePatchedMetadata", Object.class, Object.class);
+        Method isPatched = GboardEnglishUppercaseToggleRuntime.class.getMethod(
+                "isPatchedMetadata", Object.class);
+        Object original = new EqualValue("original");
+        Object equalButDistinctOriginal = new EqualValue("original");
+        Object patched = new EqualValue("patched");
+        Object losingRacePatched = new EqualValue("patched");
+
+        Assert.assertNull(getCached.invoke(null, original));
+        Assert.assertSame(patched, cachePatched.invoke(null, original, patched));
+        Assert.assertSame(patched, getCached.invoke(null, original));
+        Assert.assertSame(patched, cachePatched.invoke(null, original, losingRacePatched));
+        Assert.assertTrue((Boolean) isPatched.invoke(null, patched));
+        Assert.assertFalse((Boolean) isPatched.invoke(null, losingRacePatched));
+
+        Assert.assertNull(getCached.invoke(null, equalButDistinctOriginal));
+        Object distinctPatched = new EqualValue("patched");
+        Assert.assertSame(
+                distinctPatched,
+                cachePatched.invoke(null, equalButDistinctOriginal, distinctPatched));
+        Assert.assertSame(distinctPatched, getCached.invoke(null, equalButDistinctOriginal));
+    }
+
+    @Test
+    public void cacheNullInputsDoNotCreateEntriesOrMarkers() throws Exception {
+        Method getCached = GboardEnglishUppercaseToggleRuntime.class.getMethod(
+                "getCachedPatchedMetadata", Object.class);
+        Method cachePatched = GboardEnglishUppercaseToggleRuntime.class.getMethod(
+                "cachePatchedMetadata", Object.class, Object.class);
+        Method isPatched = GboardEnglishUppercaseToggleRuntime.class.getMethod(
+                "isPatchedMetadata", Object.class);
+        Object patchedWithoutOriginal = new Object();
+        Object originalWithoutPatched = new Object();
+
+        Assert.assertNull(getCached.invoke(null, new Object[] {null}));
+        Assert.assertSame(
+                patchedWithoutOriginal,
+                cachePatched.invoke(null, new Object[] {null, patchedWithoutOriginal}));
+        Assert.assertFalse((Boolean) isPatched.invoke(null, patchedWithoutOriginal));
+        Assert.assertNull(
+                cachePatched.invoke(null, new Object[] {originalWithoutPatched, null}));
+        Assert.assertNull(getCached.invoke(null, originalWithoutPatched));
+    }
+
+    @Test
+    public void queuedOriginalIdentityRemovesItsCacheEntryAfterReferentClears()
+            throws Exception {
+        Method getCached = GboardEnglishUppercaseToggleRuntime.class.getMethod(
+                "getCachedPatchedMetadata", Object.class);
+        Method cachePatched = GboardEnglishUppercaseToggleRuntime.class.getMethod(
+                "cachePatchedMetadata", Object.class, Object.class);
+        Object original = new Object();
+        Object patched = new Object();
+        cachePatched.invoke(null, original, patched);
+
+        Field stateField = GboardEnglishUppercaseToggleRuntime.class.getDeclaredField(
+                "METADATA_IDENTITY_STATE");
+        stateField.setAccessible(true);
+        Object state = stateField.get(null);
+        Field cacheField = state.getClass().getDeclaredField("patchedMetadataByOriginal");
+        cacheField.setAccessible(true);
+        Object weakIdentityMap = cacheField.get(state);
+        Field entriesField = weakIdentityMap.getClass().getDeclaredField("entries");
+        entriesField.setAccessible(true);
+        Map<?, ?> entries = (Map<?, ?>) entriesField.get(weakIdentityMap);
+
+        Reference<?> storedKey = null;
+        for (Object candidate : entries.keySet()) {
+            Reference<?> reference = (Reference<?>) candidate;
+            if (reference.get() == original) {
+                storedKey = reference;
+                break;
+            }
+        }
+        Assert.assertNotNull(storedKey);
+        Assert.assertSame(patched, entries.get(storedKey));
+
+        storedKey.clear();
+        Assert.assertTrue(storedKey.equals(storedKey));
+        Assert.assertTrue(storedKey.enqueue());
+        getCached.invoke(null, new Object());
+
+        Assert.assertFalse(entries.containsKey(storedKey));
+    }
+
     private static void setApplicationContext(Context context) throws Exception {
         Field field = GboardEnglishUppercaseToggleRuntime.class
                 .getDeclaredField("applicationContext");
         field.setAccessible(true);
         field.set(null, context);
+    }
+
+    private static final class EqualValue {
+        private final String value;
+
+        private EqualValue(String value) {
+            this.value = value;
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            return other instanceof EqualValue equalValue && value.equals(equalValue.value);
+        }
+
+        @Override
+        public int hashCode() {
+            return value.hashCode();
+        }
     }
 
     private static final class SharedPreferencesContext extends ContextWrapper {

@@ -77,6 +77,28 @@ public final class WebClipboardPreferencesBehaviorTest {
                 WebClipboardPreferences.readExplicitEnabledState(preferences));
     }
 
+    @Test
+    public void remotePortReaderPreservesNumberAndNumericStringCompatibilityWithoutWrites() {
+        SnapshotBackedSharedPreferences preferences = new SnapshotBackedSharedPreferences();
+
+        preferences.values.put(WebClipboardPreferences.PREF_KEY_PORT, Integer.valueOf(9000));
+        Assert.assertEquals(9000, WebClipboardPreferences.readPort(preferences));
+
+        preferences.values.put(WebClipboardPreferences.PREF_KEY_PORT, Long.valueOf(9001L));
+        Assert.assertEquals(9001, WebClipboardPreferences.readPort(preferences));
+
+        preferences.values.put(WebClipboardPreferences.PREF_KEY_PORT, "9002");
+        Assert.assertEquals(9002, WebClipboardPreferences.readPort(preferences));
+
+        preferences.values.put(WebClipboardPreferences.PREF_KEY_PORT, "not-a-port");
+        Assert.assertEquals(WebClipboardPreferences.DEFAULT_PORT,
+                WebClipboardPreferences.readPort(preferences));
+
+        preferences.values.put(WebClipboardPreferences.PREF_KEY_PORT, "65536");
+        Assert.assertEquals(WebClipboardPreferences.DEFAULT_PORT,
+                WebClipboardPreferences.readPort(preferences));
+    }
+
     private static final class CountingSharedPreferences implements SharedPreferences {
         private final Map<String, Object> values = new HashMap<>();
         int commitCount;

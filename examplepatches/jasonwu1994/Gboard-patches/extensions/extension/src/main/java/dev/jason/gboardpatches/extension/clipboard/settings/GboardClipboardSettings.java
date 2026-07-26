@@ -215,7 +215,6 @@ public final class GboardClipboardSettings {
     }
 
     public static int readClipboardTtlCustomMinutes(SharedPreferences preferences) {
-        ensureDefaults(preferences);
         return sanitizePositiveInt(
                 readIntPreference(preferences, PREF_KEY_CLIPBOARD_TTL_CUSTOM_MINUTES,
                         DEFAULT_CLIPBOARD_TTL_CUSTOM_MINUTES),
@@ -223,7 +222,6 @@ public final class GboardClipboardSettings {
     }
 
     public static int readClipboardMaxCountCustomValue(SharedPreferences preferences) {
-        ensureDefaults(preferences);
         return sanitizePositiveInt(
                 readIntPreference(preferences, PREF_KEY_CLIPBOARD_MAX_COUNT_CUSTOM,
                         DEFAULT_CLIPBOARD_MAX_COUNT_CUSTOM),
@@ -231,7 +229,6 @@ public final class GboardClipboardSettings {
     }
 
     public static int readClipboardContentMaxLinesCustomValue(SharedPreferences preferences) {
-        ensureDefaults(preferences);
         return sanitizePositiveInt(
                 readIntPreference(preferences, PREF_KEY_CLIPBOARD_CONTENT_MAX_LINES_CUSTOM,
                         DEFAULT_CLIPBOARD_CONTENT_MAX_LINES_CUSTOM),

@@ -2,6 +2,7 @@ package dev.jason.gboardpatches.extension.clipboard;
 
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.util.Log;
@@ -28,10 +29,10 @@ final class GboardClipboardRuntimeSupport {
     static final String TAG = "GboardClipboard";
     static final String LOG_PREFIX = "[gboard-clipboard]";
 
-    static final String CLIPBOARD_LOADER_CALLABLE_CLASS = "eln";
-    static final String CLIPBOARD_PRUNE_CALLABLE_CLASS = "emr";
-    static final String CLIPBOARD_ADAPTER_CLASS = "emk";
-    static final String CLIPBOARD_VIEW_HOLDER_CLASS = "emi";
+    static final String CLIPBOARD_LOADER_CALLABLE_CLASS = "eun";
+    static final String CLIPBOARD_PRUNE_CALLABLE_CLASS = "evu";
+    static final String CLIPBOARD_ADAPTER_CLASS = "evn";
+    static final String CLIPBOARD_VIEW_HOLDER_CLASS = "evl";
 
     static final long MINUTE_MS = 60_000L;
     static final long INFINITE_TTL_MS = -1L;
@@ -46,7 +47,7 @@ final class GboardClipboardRuntimeSupport {
     static final int STOCK_CLIPBOARD_PRUNE_TRIGGER = 120;
     static final int STOCK_CLIPBOARD_GROUP_LIMIT = 5;
     static final int STOCK_CLIPBOARD_CONTENT_MAX_LINES = 5;
-    static final int LAST_VISIBLE_TIMESTAMP_PREF_RES_ID = 0x7f140928;
+    static final int LAST_VISIBLE_TIMESTAMP_PREF_RES_ID = 0x7f14094c;
     static final String[] CURSOR_COUNT_PROJECTION =
             new String[] { "_id", "timestamp", "item_type", "uri" };
     static final String STOCK_SELECTION_RECENT_PINNED_SPECIAL =
@@ -94,21 +95,24 @@ final class GboardClipboardRuntimeSupport {
 
     boolean isClipboardEnabled() {
         Context context = applicationContext();
-        return context == null || GboardClipboardSettings.readClipboardEnabled(context);
+        return context == null || GboardClipboardSettings.readClipboardEnabled(
+                clipboardPreferences(context));
     }
 
     boolean shouldShowExpiryCountdown() {
         Context context = applicationContext();
         return context == null
                 ? GboardClipboardSettings.DEFAULT_CLIPBOARD_SHOW_COUNTDOWN
-                : GboardClipboardSettings.readClipboardShowCountdown(context);
+                : GboardClipboardSettings.readClipboardShowCountdown(
+                        clipboardPreferences(context));
     }
 
     boolean shouldShowCreationTime() {
         Context context = applicationContext();
         return context == null
                 ? GboardClipboardSettings.DEFAULT_CLIPBOARD_SHOW_CREATION_TIME
-                : GboardClipboardSettings.readClipboardShowCreationTime(context);
+                : GboardClipboardSettings.readClipboardShowCreationTime(
+                        clipboardPreferences(context));
     }
 
     int configuredRetentionTtlMinutes() {
@@ -116,7 +120,7 @@ final class GboardClipboardRuntimeSupport {
         if (context == null) {
             return DEFAULT_TTL_MINUTES;
         }
-        long ttlMs = GboardClipboardSettings.readClipboardTtlMs(context);
+        long ttlMs = GboardClipboardSettings.readClipboardTtlMs(clipboardPreferences(context));
         if (ttlMs == INFINITE_TTL_MS) {
             return INFINITE_TTL_MINUTES;
         }
@@ -127,7 +131,8 @@ final class GboardClipboardRuntimeSupport {
         Context context = applicationContext();
         return context == null
                 ? DEFAULT_MAX_COUNT
-                : sanitizeMaxCount(GboardClipboardSettings.readClipboardMaxCount(context));
+                : sanitizeMaxCount(GboardClipboardSettings.readClipboardMaxCount(
+                        clipboardPreferences(context)));
     }
 
     int configuredPreviewLines() {
@@ -135,7 +140,8 @@ final class GboardClipboardRuntimeSupport {
         return context == null
                 ? DEFAULT_PREVIEW_LINES
                 : sanitizeContentMaxLines(
-                        GboardClipboardSettings.readClipboardContentMaxLines(context));
+                        GboardClipboardSettings.readClipboardContentMaxLines(
+                                clipboardPreferences(context)));
     }
 
     int configuredColumnCount() {
@@ -143,7 +149,8 @@ final class GboardClipboardRuntimeSupport {
         return context == null
                 ? GboardClipboardSettings.DEFAULT_CLIPBOARD_COLUMN_COUNT
                 : sanitizeClipboardColumnCount(
-                        GboardClipboardSettings.readClipboardColumnCount(context));
+                        GboardClipboardSettings.readClipboardColumnCount(
+                                clipboardPreferences(context)));
     }
 
     void registerApplicationContext(Context context) {
@@ -162,23 +169,23 @@ final class GboardClipboardRuntimeSupport {
             return RuntimeSettings.stockDefaults(true);
         }
 
-        GboardClipboardSettings.ensureDefaults(context);
-        boolean enabled = GboardClipboardSettings.readClipboardEnabled(context);
+        SharedPreferences preferences = clipboardPreferences(context);
+        boolean enabled = GboardClipboardSettings.readClipboardEnabled(preferences);
         if (!enabled) {
             return RuntimeSettings.stockDefaults(false);
         }
 
         return new RuntimeSettings(
                 true,
-                GboardClipboardSettings.readClipboardShowCountdown(context),
-                GboardClipboardSettings.readClipboardShowCreationTime(context),
-                GboardClipboardSettings.readClipboardShowOrderIndex(context),
+                GboardClipboardSettings.readClipboardShowCountdown(preferences),
+                GboardClipboardSettings.readClipboardShowCreationTime(preferences),
+                GboardClipboardSettings.readClipboardShowOrderIndex(preferences),
                 sanitizeOrderIndexMode(
-                        GboardClipboardSettings.readClipboardOrderIndexMode(context)),
-                GboardClipboardSettings.readClipboardTtlMs(context),
-                sanitizeMaxCount(GboardClipboardSettings.readClipboardMaxCount(context)),
+                        GboardClipboardSettings.readClipboardOrderIndexMode(preferences)),
+                GboardClipboardSettings.readClipboardTtlMs(preferences),
+                sanitizeMaxCount(GboardClipboardSettings.readClipboardMaxCount(preferences)),
                 sanitizeContentMaxLines(
-                        GboardClipboardSettings.readClipboardContentMaxLines(context)));
+                        GboardClipboardSettings.readClipboardContentMaxLines(preferences)));
     }
 
     void registerContextFromReceiver(Object receiver) throws Throwable {
@@ -202,7 +209,7 @@ final class GboardClipboardRuntimeSupport {
         }
         Field field = clipboardKeyboardContextField;
         if (field == null || !field.getDeclaringClass().isInstance(receiver)) {
-            field = findDeclaredFieldInHierarchy(receiver.getClass(), "y");
+            field = findDeclaredFieldInHierarchy(receiver.getClass(), "w");
             if (field == null) {
                 return null;
             }
@@ -280,6 +287,12 @@ final class GboardClipboardRuntimeSupport {
             applicationContext = context;
         }
         return context;
+    }
+
+    private SharedPreferences clipboardPreferences(Context context) {
+        return context.getSharedPreferences(
+                GboardClipboardSettings.PREF_FILE,
+                Context.MODE_PRIVATE);
     }
 
     long readLastVisibleTimestamp(ReflectionHandles handles, Context context) throws Throwable {
@@ -369,7 +382,24 @@ final class GboardClipboardRuntimeSupport {
     }
 
     long clipTimestamp(ReflectionHandles handles, Object clip) throws Throwable {
-        return handles.clipTimestampField.getLong(clip);
+        return timestampToEpochMillis(handles.clipTimestampField.get(clip));
+    }
+
+    static long timestampToEpochMillis(Object value) throws Throwable {
+        if (value instanceof Number) {
+            return ((Number) value).longValue();
+        }
+        if (value == null) {
+            throw new ReflectiveOperationException("clipboard timestamp is null");
+        }
+        Method method = value.getClass().getDeclaredMethod("toEpochMilli");
+        method.setAccessible(true);
+        Object result = method.invoke(value);
+        if (result instanceof Number) {
+            return ((Number) result).longValue();
+        }
+        throw new ReflectiveOperationException(
+                "clipboard timestamp is not epoch-millis compatible");
     }
 
     int clipItemType(ReflectionHandles handles, Object clip) throws Throwable {
@@ -543,6 +573,7 @@ final class GboardClipboardRuntimeSupport {
         final boolean special;
         final long clipboardTtlMs;
         int clipOrder;
+        String renderedText;
 
         CountdownBinding(GboardClipboardUiHookAdapter module, ReflectionHandles handles,
                 TextView textView, String originalText, long clipId, long clipTimestamp,
@@ -607,29 +638,29 @@ final class GboardClipboardRuntimeSupport {
         ReflectionHandles(ClassLoader classLoader) throws Throwable {
             Class<?> loaderCallableClass = resolveClass(classLoader,
                     CLIPBOARD_LOADER_CALLABLE_CLASS);
-            Class<?> loaderClass = resolveClass(classLoader, "elo");
+            Class<?> loaderClass = resolveClass(classLoader, "euo");
             Class<?> pruneCallableClass = resolveClass(classLoader,
                     CLIPBOARD_PRUNE_CALLABLE_CLASS);
-            Class<?> dataHandlerClass = resolveClass(classLoader, "emy");
+            Class<?> dataHandlerClass = resolveClass(classLoader, "ewb");
             Class<?> adapterClass = resolveClass(classLoader, CLIPBOARD_ADAPTER_CLASS);
             Class<?> clipItemViewHolderClass = resolveClass(classLoader,
                     CLIPBOARD_VIEW_HOLDER_CLASS);
-            Class<?> clipClass = resolveClass(classLoader, "elk");
-            Class<?> clipModelClass = resolveClass(classLoader, "elm");
-            Class<?> queryUtilsClass = resolveClass(classLoader, "emo");
-            Class<?> preferencesClass = resolveClass(classLoader, "oql");
-            Class<?> preferenceBaseClass = resolveClass(classLoader, "bze");
+            Class<?> clipClass = resolveClass(classLoader, "euk");
+            Class<?> clipModelClass = resolveClass(classLoader, "eum");
+            Class<?> queryUtilsClass = resolveClass(classLoader, "evr");
+            Class<?> preferencesClass = resolveClass(classLoader, "pnp");
+            Class<?> preferenceBaseClass = resolveClass(classLoader, "cbv");
 
             loaderCallableOwnerField = declaredField(loaderCallableClass, "a");
             loaderContextField = declaredField(loaderClass, "b");
             pruneCallableOwnerField = declaredField(pruneCallableClass, "a");
             dataHandlerContextField = declaredField(dataHandlerClass, "c");
-            dataHandlerDisabledField = declaredField(dataHandlerClass, "g");
-            dataHandlerCountField = declaredField(dataHandlerClass, "h");
-            adapterContextField = declaredField(adapterClass, "d");
-            adapterItemsField = declaredField(adapterClass, "m");
-            adapterRecentCountField = declaredField(adapterClass, "n");
-            adapterPinnedVisibleCountField = declaredField(adapterClass, "x");
+            dataHandlerDisabledField = declaredField(dataHandlerClass, "f");
+            dataHandlerCountField = declaredField(dataHandlerClass, "g");
+            adapterContextField = declaredField(adapterClass, "e");
+            adapterItemsField = declaredField(adapterClass, "n");
+            adapterRecentCountField = declaredField(adapterClass, "o");
+            adapterPinnedVisibleCountField = declaredField(adapterClass, "y");
             clipItemViewHolderTextField = declaredField(clipItemViewHolderClass, "t");
             clipIdField = declaredField(clipClass, "d");
             clipTimestampField = declaredField(clipClass, "e");
@@ -647,12 +678,12 @@ final class GboardClipboardRuntimeSupport {
                     Context.class);
             dataHandlerQueryByItemTypeMethod = declaredMethod(dataHandlerClass, "b",
                     Uri.class, int.class);
-            dataHandlerCleanupCursorMethod = declaredMethod(dataHandlerClass, "k",
+            dataHandlerCleanupCursorMethod = declaredMethod(dataHandlerClass, "l",
                     Cursor.class);
-            preferencesAccessorMethod = declaredMethod(preferencesClass, "O", Context.class);
+            preferencesAccessorMethod = declaredMethod(preferencesClass, "N", Context.class);
             preferenceReadLongMethod = declaredMethod(preferenceBaseClass, "m",
                     int.class, long.class);
-            preferenceWriteLongMethod = declaredMethod(preferenceBaseClass, "r",
+            preferenceWriteLongMethod = declaredMethod(preferenceBaseClass, "s",
                     int.class, long.class);
             adapterNotifyItemRemovedMethod = declaredMethod(adapterClass.getSuperclass(),
                     "n", int.class);

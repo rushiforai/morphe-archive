@@ -1,0 +1,40 @@
+# Compila il bundle di patch e lo pubblica come artifact scaricabile, senza passare dalla
+# release firmata. Serve per provare una modifica sul telefono prima di rilasciarla davvero:
+# si lancia a mano (workflow_dispatch) o pushando su dev. Il GITHUB_TOKEN e' necessario perche'
+# le dipendenze del motore Morphe stanno su GitHub Packages, che richiede autenticazione.
+
+name: Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - dev
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Cache Gradle
+        uses: burrunan/gradle-cache-action@v3
+
+      - name: Build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:buildAndroid --no-daemon
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: patches-bundle
+          path: patches/build/libs/*.mpp

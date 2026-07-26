@@ -9,7 +9,7 @@ This repository does not distribute Google Maps APKs, whether original or patche
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.6](https://github.com/fangkampanat/gmaps-patches/releases/tag/v1.0.6)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patch total
+> **[v1.0.7](https://github.com/fangkampanat/gmaps-patches/releases/tag/v1.0.7)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patch total
 <details open>
 <summary>📦 Google Maps&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -82,6 +82,20 @@ Only tested Stable bundles are published by this repository.
 
 To patch an app from another source later, click the patch source button at the top center and select that source using the circle on the right. The other source does not need to be removed.
 
+## Troubleshooting
+
+### `VerifyException` at Rebuilding APK (Windows)
+
+Cause: With some Windows locales, Java uses a Buddhist-calendar year that exceeds the ZIP timestamp range during rebuilding.
+
+If Morphe Desktop fails with `com.google.common.base.VerifyException`:
+
+1. Download [`_Start-Morphe.cmd`](./_Start-Morphe.cmd).
+2. Put the script in the same folder as `morphe-desktop-*-all.jar`.
+3. Double-click the script and patch the APK again.
+
+The script finds the Morphe Desktop JAR automatically and applies the `en-US` locale only to that process. It does not change the Windows system locale.
+
 ## Credits
 
 - [Morphe](https://github.com/MorpheApp) for Morphe Desktop, patching tools, and the upstream patch code this project builds upon.
@@ -91,5 +105,6 @@ To patch an app from another source later, click the patch source button at the 
 
 - A `.mpp` file is a patch bundle, not an installable APK.
 - The patched app uses package name `app.morphe.android.apps.maps`.
+- The patch preserves Google Maps' original picture-in-picture declaration.
 - The project is unofficial and is not supported or endorsed by Google, BYD, ReVanced, or Morphe.
 - Source code is licensed under [GPL-3.0](LICENSE). Preserve [NOTICE](NOTICE) in source and derivative distributions.

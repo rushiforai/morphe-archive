@@ -26,30 +26,6 @@ Gboard Patches is a public Morphe source for a curated set of Gboard enhancement
 </details>
 
 <details>
-  <summary><code>Package Rename</code></summary>
-
-  Renames the patched package so it can be installed alongside the official Gboard app.
-</details>
-
-<details>
-  <summary><code>Custom Symbols</code></summary>
-
-  Adds a dedicated symbols tab and a quick access entry from the comma long-press popup.
-</details>
-
-<details>
-  <summary><code>English QWERTY Up-Flick Uppercase</code></summary>
-
-  On the English QWERTY keyboard, flick up to toggle letters between uppercase and lowercase without switching layers.
-</details>
-
-<details>
-  <summary><code>Enable Undo/Redo feature</code></summary>
-
-  Enables Gboard's Undo and Redo entry points.
-</details>
-
-<details>
   <summary><code>Clipboard Enhancements</code></summary>
 
   Lets you enhance clipboard retention time, item count limits, preview lines, countdown and creation-time labels, order index, and grid columns.
@@ -65,18 +41,31 @@ Gboard Patches is a public Morphe source for a curated set of Gboard enhancement
   <img alt="Web Clipboard pairing gate" src="docs/assets/features/web-clipboard/01-pairing-gate.png" width="720">
 
   <img alt="Web Clipboard conversation view" src="docs/assets/features/web-clipboard/02-conversation-view.png" width="720">
+
 </details>
 
 <details>
-  <summary><code>Clipboard Entity Extraction</code></summary>
+  <summary><code>Custom Symbols</code></summary>
 
-  Enables Clipboard settings that show information extracted from recently copied text, such as addresses, phone numbers, and similar items.
+  Adds a dedicated symbols tab and a quick access entry from the comma long-press popup.
 </details>
 
 <details>
-  <summary><code>Clipboard Item Edit</code></summary>
+  <summary><code>Swipeable Custom Top Row</code></summary>
 
-  Enables the <code>Edit</code> action when long-pressing a clipboard item, subject to Gboard's remaining stock item gates.
+  Lets you swipe the keyboard top row horizontally to open customizable text and JavaScript slots.
+</details>
+
+<details>
+  <summary><code>Emojis, stickers & GIFs Tab Order</code></summary>
+
+Customize the bottom tab order in Gboard's Emojis, stickers & GIFs panel with drag-and-drop reordering.
+</details>
+
+<details>
+  <summary><code>English QWERTY Up-Flick Uppercase</code></summary>
+
+  Flick up on the English QWERTY keyboard to toggle uppercase and lowercase.
 </details>
 
 <details>
@@ -104,15 +93,21 @@ Gboard Patches is a public Morphe source for a curated set of Gboard enhancement
 </details>
 
 <details>
+  <summary><code>Latin Globe Key Ignore Interval</code></summary>
+
+  Add an independent English globe key ignore interval override for post-typing language-switch delay.
+</details>
+
+<details>
   <summary><code>Settings Homepage Override</code></summary>
 
   Lets you switch between the new and legacy Gboard settings homepage styles.
 </details>
 
 <details>
-  <summary><code>Swipeable Custom Top Row</code></summary>
+  <summary><code>Package Rename</code></summary>
 
-  Lets you swipe the keyboard top row horizontally to open customizable text and JavaScript slots.
+  Renames the patched package so it can be installed alongside the official Gboard app.
 </details>
 
 ### Taiwan Users
@@ -133,12 +128,6 @@ Gboard Patches is a public Morphe source for a curated set of Gboard enhancement
   <summary><code>Zhuyin Bottom Row Key Sizes</code></summary>
 
   Adjusts the seven bottom-row slot sizes on the Zhuyin keyboard, including <code>?123</code>, <code>，</code>, the globe key, space, <code>ㄦ</code>, backspace, and the IME action key.
-</details>
-
-<details>
-  <summary><code>Chinese Online Voice Input</code></summary>
-
-  Forces Gboard to use the built-in Chinese voice input flow.
 </details>
 
 ## Install

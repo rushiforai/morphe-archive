@@ -3,6 +3,7 @@ package dev.jason.gboardpatches.patches.gboard.registry
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -26,7 +27,7 @@ class GboardEnglishQwertyPatchRegistrySourceTest {
     }
 
     @Test
-    fun englishPatchStillUsesExistingEnglishResourceAndSoftKeyImplementation() {
+    fun englishPatchUsesBindTimeSoftKeyAndPointerImplementationWithoutResourceMutation() {
         val source = readSource()
 
         val patchStart = source.indexOf("val gboardEnglishQwertySlideUppercaseTogglePatch")
@@ -38,9 +39,25 @@ class GboardEnglishQwertyPatchRegistrySourceTest {
         assertTrue(patchBlock.contains("gboardAboutPageResourcePatch"))
         assertTrue(patchBlock.contains("gboardPatchesSettingsPatch"))
         assertTrue(patchBlock.contains("gboardEnglishUppercaseToggleFeatureMarkerPatch"))
-        assertTrue(patchBlock.contains("gboardEnglishQwertySlideResourcePatch"))
         assertTrue(patchBlock.contains("gboardEnglishQwertySoftKeyPatch"))
+        assertTrue(patchBlock.contains("gboardEnglishQwertyPointerPatch"))
         assertFalse(patchBlock.contains("gboardZhuyin"))
+
+        val dependencyBlock = patchBlock.substringAfter("dependsOn(").substringBefore(")")
+        val dependencies = Regex("""gboard[A-Za-z0-9]+Patch""")
+            .findAll(dependencyBlock)
+            .map { match -> match.value }
+            .toSet()
+        assertEquals(
+            setOf(
+                "gboardAboutPageResourcePatch",
+                "gboardPatchesSettingsPatch",
+                "gboardEnglishUppercaseToggleFeatureMarkerPatch",
+                "gboardEnglishQwertySoftKeyPatch",
+                "gboardEnglishQwertyPointerPatch"
+            ),
+            dependencies
+        )
     }
 
     @Test

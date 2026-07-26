@@ -4,7 +4,19 @@ A collection of [Morphe](https://github.com/MorpheApp) patches useful to me
 
 ## Patch list
 <!-- PATCHES_START -->
-> **[v1.6.0](https://github.com/cesbar/zpatches/releases/tag/v1.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;9 patches total
+> **[v1.7.0](https://github.com/cesbar/zpatches/releases/tag/v1.7.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;12 patches total
+<details open>
+<summary>📦 ee.dustland.android.dustlandsudoku&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Bypass PairIp](#bypass-pairip) | Bypass the PairIp license check preventing app modification |  |
+| [Disable Internet and Telemetry](#disable-internet-and-telemetry) | Disable Internet and Telemetry by removing all non-necessary permissions from the manifest |  |
+| [Enable Premium](#enable-premium) | Unlock all purchasables options |  |
+
+</details>
+
 <details open>
 <summary>📦 com.jcdecaux.vls.lyon&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>

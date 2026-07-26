@@ -1,6 +1,14 @@
 package dev.jason.gboardpatches.patches.gboard.registry
 
 import app.morphe.patcher.patch.resourcePatch
+import dev.jason.gboardpatches.patches.gboard.features.advancedvoice.gboardAdvancedVoiceFeatureMarkerPatch
+import dev.jason.gboardpatches.patches.gboard.features.advancedvoice.gboardAdvancedVoiceFlagValuePatch
+import dev.jason.gboardpatches.patches.gboard.features.advancedvoice.gboardAdvancedVoiceFormatterPatch
+import dev.jason.gboardpatches.patches.gboard.features.advancedvoice.gboardAdvancedVoiceInitialSettingsPatch
+import dev.jason.gboardpatches.patches.gboard.features.advancedvoice.gboardAdvancedVoiceMddProvisioningPatch
+import dev.jason.gboardpatches.patches.gboard.features.advancedvoice.gboardAdvancedVoiceNativeReadinessPatch
+import dev.jason.gboardpatches.patches.gboard.features.bluetoothmicrophone.gboardBluetoothMicrophoneFeatureMarkerPatch
+import dev.jason.gboardpatches.patches.gboard.features.bluetoothmicrophone.gboardBluetoothMicrophoneFlagValuePatch
 import dev.jason.gboardpatches.patches.gboard.features.about.gboardAboutPageResourcePatch
 import dev.jason.gboardpatches.patches.gboard.features.addsymbols.gboardZhuyinCustomSymbolsCorpusPatch
 import dev.jason.gboardpatches.patches.gboard.features.addsymbols.gboardZhuyinCustomSymbolsEmoticonStatePatch
@@ -9,23 +17,20 @@ import dev.jason.gboardpatches.patches.gboard.features.addsymbols.gboardCustomSy
 import dev.jason.gboardpatches.patches.gboard.features.addsymbols.gboardZhuyinCustomSymbolsHistoryPatch
 import dev.jason.gboardpatches.patches.gboard.features.addsymbols.gboardZhuyinCustomSymbolsRecyclerPatch
 import dev.jason.gboardpatches.patches.gboard.features.addsymbols.gboardZhuyinCustomSymbolsRoutingPatch
-import dev.jason.gboardpatches.patches.gboard.features.chinesevoice.gboardChineseOnlineVoiceBytecodePatch
-import dev.jason.gboardpatches.patches.gboard.features.chinesevoice.gboardChineseOnlineVoiceResourcePatch
 import dev.jason.gboardpatches.patches.gboard.features.clipboard.gboardClipboardFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.clipboard.gboardClipboardAdapterTrimPatch
 import dev.jason.gboardpatches.patches.gboard.features.clipboard.gboardClipboardColumnCountPatch
 import dev.jason.gboardpatches.patches.gboard.features.clipboard.gboardClipboardItemBindPatch
 import dev.jason.gboardpatches.patches.gboard.features.clipboard.gboardClipboardLoaderPatch
 import dev.jason.gboardpatches.patches.gboard.features.clipboard.gboardClipboardPrunePatch
+import dev.jason.gboardpatches.patches.gboard.features.developeroptions.gboardDeveloperOptionsFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.webclipboard.gboardWebClipboardAssetsPatch
 import dev.jason.gboardpatches.patches.gboard.features.webclipboard.gboardWebClipboardCapturePatch
 import dev.jason.gboardpatches.patches.gboard.features.webclipboard.gboardWebClipboardFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.webclipboard.gboardWebClipboardManifestPatch
 import dev.jason.gboardpatches.patches.gboard.features.englishqwerty.gboardEnglishUppercaseToggleFeatureMarkerPatch
-import dev.jason.gboardpatches.patches.gboard.features.englishqwerty.gboardEnglishQwertySlideResourcePatch
+import dev.jason.gboardpatches.patches.gboard.features.englishqwerty.gboardEnglishQwertyPointerPatch
 import dev.jason.gboardpatches.patches.gboard.features.englishqwerty.gboardEnglishQwertySoftKeyPatch
-import dev.jason.gboardpatches.patches.gboard.features.featureflags.gboardClipboardEntityExtractionFeatureMarkerPatch
-import dev.jason.gboardpatches.patches.gboard.features.featureflags.gboardClipboardItemEditFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.featureflags.gboardDeviceIntelligenceFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.featureflags.gboardFeatureFlagsBytecodePatch
 import dev.jason.gboardpatches.patches.gboard.features.featureflags.gboardGrammarCheckerFeatureMarkerPatch
@@ -33,6 +38,10 @@ import dev.jason.gboardpatches.patches.gboard.features.featureflags.gboardInline
 import dev.jason.gboardpatches.patches.gboard.features.featureflags.gboardKeyShapeSelectionFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.latinglobe.gboardLatinGlobeKeyIgnoreIntervalBytecodePatch
 import dev.jason.gboardpatches.patches.gboard.features.latinglobe.gboardLatinGlobeKeyIgnoreIntervalFeatureMarkerPatch
+import dev.jason.gboardpatches.patches.gboard.features.longpressquickactions.gboardLongPressQuickActionsFeatureMarkerPatch
+import dev.jason.gboardpatches.patches.gboard.features.longpressquickactions.gboardLongPressQuickActionsInputEventPatch
+import dev.jason.gboardpatches.patches.gboard.features.longpressquickactions.gboardLongPressQuickActionsPointerOwnerPatch
+import dev.jason.gboardpatches.patches.gboard.features.longpressquickactions.gboardLongPressQuickActionsSoftKeyPatch
 import dev.jason.gboardpatches.patches.gboard.features.packagerename.gboardPackageRenameResourcePatch
 import dev.jason.gboardpatches.patches.gboard.features.settingshomepage.gboardSettingsHomepageBytecodePatch
 import dev.jason.gboardpatches.patches.gboard.features.settingshomepage.gboardSettingsHomepageFeatureMarkerPatch
@@ -43,19 +52,18 @@ import dev.jason.gboardpatches.patches.gboard.features.toprowswipe.gboardTopRowS
 import dev.jason.gboardpatches.patches.gboard.features.toprowswipe.gboardTopRowSwipeGesturePatch
 import dev.jason.gboardpatches.patches.gboard.features.toprowswipe.gboardTopRowSwipePointerPatch
 import dev.jason.gboardpatches.patches.gboard.features.toprowswipe.gboardTopRowSwipeSoftKeyPatch
-import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWritingToolsDependencyPatch
 import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWritingToolsFeatureMarkerPatch
+import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWritingToolsBackendFactoryPatch
 import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWritingToolsFlagValuePatch
 import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWritingToolsOfficialPreferencesPatch
 import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWritingToolsSettingsVisibilityPatch
 import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWritingToolsSignalPatch
 import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesExtensionCarrierPatch
 import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesSettingsPatch
-import dev.jason.gboardpatches.patches.gboard.features.undoredoaccesspoint.gboardUndoRedoAccessPointBytecodePatch
 import dev.jason.gboardpatches.patches.gboard.features.zhuyinbottomrow.gboardZhuyinBottomRowWeightFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.zhuyinbottomrow.gboardZhuyinBottomRowWeightSoftKeyPatch
 import dev.jason.gboardpatches.patches.gboard.features.zhuyinslide.gboardZhuyinSlidePointerAnchorPatch
-import dev.jason.gboardpatches.patches.gboard.features.zhuyinslide.gboardZhuyinSlideResourcePatch
+import dev.jason.gboardpatches.patches.gboard.features.zhuyinslide.gboardZhuyinSlideSoftKeyPatch
 import dev.jason.gboardpatches.patches.gboard.features.zhuyintraditionalsimplifiedtoggle.gboardZhuyinTraditionalSimplifiedToggleRuntimePatch
 import dev.jason.gboardpatches.patches.gboard.features.zhuyintraditionalsimplifiedtoggle.gboardZhuyinTraditionalSimplifiedToggleSoftKeyPatch
 import dev.jason.gboardpatches.patches.shared.Constants.COMPATIBILITY_GBOARD
@@ -70,7 +78,8 @@ val gboardZhuyinSlideInputPatch = resourcePatch(
 
     dependsOn(
         gboardAboutPageResourcePatch,
-        gboardZhuyinSlideResourcePatch,
+        gboardPatchesExtensionCarrierPatch,
+        gboardZhuyinSlideSoftKeyPatch,
         gboardZhuyinSlidePointerAnchorPatch
     )
 }
@@ -87,10 +96,71 @@ val gboardEnglishQwertySlideUppercaseTogglePatch = resourcePatch(
         gboardAboutPageResourcePatch,
         gboardPatchesSettingsPatch,
         gboardEnglishUppercaseToggleFeatureMarkerPatch,
-        gboardEnglishQwertySlideResourcePatch,
-        gboardEnglishQwertySoftKeyPatch
+        gboardEnglishQwertySoftKeyPatch,
+        gboardEnglishQwertyPointerPatch
     )
 }
+
+/*
+@Suppress("unused")
+val gboardLongPressQuickActionsPatch = resourcePatch(
+    name = "Long-Press Editing Shortcuts",
+    description = "在英文 QWERTY 與注音鍵盤加入全選、復原、複製、剪下、貼上與重做長按快捷鍵\n" +
+        "Add Select all, Undo, Copy, Cut, Paste, and Redo long-press shortcuts " +
+        "to English QWERTY and Zhuyin.",
+    default = true,
+) {
+    compatibleWith(COMPATIBILITY_GBOARD)
+
+    dependsOn(
+        gboardPatchesSettingsPatch,
+        gboardLongPressQuickActionsFeatureMarkerPatch,
+        gboardLongPressQuickActionsSoftKeyPatch,
+        gboardLongPressQuickActionsInputEventPatch,
+        gboardLongPressQuickActionsPointerOwnerPatch,
+    )
+}
+*/
+
+/*
+@Suppress("unused")
+val gboardAdvancedVoiceTypingPatch = resourcePatch(
+    name = "Advanced Voice Typing",
+    description = "啟用 進階語音輸入、繁體中文語音自動標點符號\n" +
+        "Enable Advanced Voice Typing and automatic punctuation for Traditional Chinese voice typing.",
+    default = true,
+) {
+    compatibleWith(COMPATIBILITY_GBOARD)
+
+    dependsOn(
+        gboardPatchesSettingsPatch,
+        gboardAdvancedVoiceFeatureMarkerPatch,
+        gboardAdvancedVoiceFlagValuePatch,
+        gboardAdvancedVoiceNativeReadinessPatch,
+        gboardAdvancedVoiceInitialSettingsPatch,
+        gboardAdvancedVoiceMddProvisioningPatch,
+        gboardAdvancedVoiceFormatterPatch,
+    )
+}
+*/
+
+/*
+@Suppress("unused")
+val gboardBluetoothMicrophonePatch = resourcePatch(
+    name = "Use Bluetooth Microphone",
+    description = "啟用 語音輸入 -> 使用藍芽麥克風\n" +
+        "Enable Voice typing -> Use Bluetooth microphone.",
+    default = true,
+) {
+    compatibleWith(COMPATIBILITY_GBOARD)
+
+    dependsOn(
+        gboardPatchesSettingsPatch,
+        gboardBluetoothMicrophoneFeatureMarkerPatch,
+        gboardBluetoothMicrophoneFlagValuePatch,
+    )
+}
+*/
 
 @Suppress("unused")
 val gboardZhuyinQuickTraditionalSimplifiedTogglePatch = resourcePatch(
@@ -145,6 +215,22 @@ val gboardCustomTopRowSwipePatch = resourcePatch(
     )
 }
 
+/*
+@Suppress("unused")
+val gboardDeveloperOptionsPatch = resourcePatch(
+    name = "Developer options",
+    description = "啟用 開發人員選項 與 Flag 編輯器，你可以自己修改Flag的值\nEnable Developer options and the Flag Editor, allowing you to modify flag values.",
+    default = true
+) {
+    compatibleWith(COMPATIBILITY_GBOARD)
+
+    dependsOn(
+        gboardPatchesSettingsPatch,
+        gboardDeveloperOptionsFeatureMarkerPatch
+    )
+}
+*/
+
 @Suppress("unused")
 val gboardSymbolsFooterOrderPatch = resourcePatch(
     name = "Emojis, stickers & GIFs Tab Order",
@@ -157,34 +243,6 @@ val gboardSymbolsFooterOrderPatch = resourcePatch(
         gboardPatchesSettingsPatch,
         gboardSymbolFooterOrderFeatureMarkerPatch,
         gboardSymbolFooterOrderBytecodePatch
-    )
-}
-
-@Suppress("unused")
-val gboardUndoRedoAccessPointPatch = resourcePatch(
-    name = "Enable Undo/Redo feature",
-    description = "啟用 Undo/Redo 功能\nEnable the Undo/Redo feature.",
-    default = true
-) {
-    compatibleWith(COMPATIBILITY_GBOARD)
-
-    dependsOn(
-        gboardUndoRedoAccessPointBytecodePatch
-    )
-}
-
-@Suppress("unused")
-val gboardChineseOnlineVoiceInputPatch = resourcePatch(
-    name = "Chinese Online Voice Input",
-    description = "強制啟用中文語音\nForce-enable Chinese voice input.",
-    default = true
-) {
-    compatibleWith(COMPATIBILITY_GBOARD)
-
-    dependsOn(
-        gboardAboutPageResourcePatch,
-        gboardChineseOnlineVoiceResourcePatch,
-        gboardChineseOnlineVoiceBytecodePatch
     )
 }
 
@@ -226,39 +284,9 @@ val gboardWebClipboardPatch = resourcePatch(
 }
 
 @Suppress("unused")
-val gboardClipboardEntityExtractionFlagPatch = resourcePatch(
-    name = "Clipboard Entity Extraction",
-    description = "啟用 剪貼簿 > 顯示從最近複製文字中攝取的資訊，例如地址、電話號碼和其他項目\nEnable Clipboard > Show addresses, phone numbers, and other items pulled from recently copied text.",
-    default = true
-) {
-    compatibleWith(COMPATIBILITY_GBOARD)
-
-    dependsOn(
-        gboardPatchesExtensionCarrierPatch,
-        gboardFeatureFlagsBytecodePatch,
-        gboardClipboardEntityExtractionFeatureMarkerPatch
-    )
-}
-
-@Suppress("unused")
-val gboardClipboardItemEditFlagPatch = resourcePatch(
-    name = "Clipboard Item Edit",
-    description = "長按 剪貼簿 顯示編輯\nEnable Edit when long-pressing a clipboard item.",
-    default = true
-) {
-    compatibleWith(COMPATIBILITY_GBOARD)
-
-    dependsOn(
-        gboardPatchesExtensionCarrierPatch,
-        gboardFeatureFlagsBytecodePatch,
-        gboardClipboardItemEditFeatureMarkerPatch
-    )
-}
-
-@Suppress("unused")
 val gboardDeviceIntelligencePatch = resourcePatch(
     name = "Enable Inline Autofill Suggestions",
-    description = "啟用內嵌自動填入建議 / Enable Inline Autofill Suggestions",
+    description = "啟用內嵌自動填入建議\nEnable Inline Autofill Suggestions",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_GBOARD)
@@ -330,7 +358,7 @@ val gboardAiWritingToolsPatch = resourcePatch(
         gboardAiWritingToolsFlagValuePatch,
         gboardAiWritingToolsSignalPatch,
         gboardAiWritingToolsOfficialPreferencesPatch,
-        gboardAiWritingToolsDependencyPatch
+        gboardAiWritingToolsBackendFactoryPatch
     )
 }
 

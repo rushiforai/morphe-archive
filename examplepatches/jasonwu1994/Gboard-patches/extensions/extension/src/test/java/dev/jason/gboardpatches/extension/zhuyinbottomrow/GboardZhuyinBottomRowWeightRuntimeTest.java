@@ -13,6 +13,46 @@ import java.util.Set;
 
 public final class GboardZhuyinBottomRowWeightRuntimeTest {
     @Test
+    public void classifierAcceptsZhuyinPressTextWhenSlideActionExists() {
+        Assert.assertTrue(GboardZhuyinBottomRowWeightRuntimeSupport.isZhuyinMetadata(
+                "A",
+                "ㄅ",
+                new String[0],
+                true,
+                false));
+    }
+
+    @Test
+    public void classifierAcceptsSingleZhuyinLongPressTokenWhenSlideActionExists() {
+        Assert.assertTrue(GboardZhuyinBottomRowWeightRuntimeSupport.isZhuyinMetadata(
+                "A",
+                "a",
+                new String[] {"ㄦ"},
+                false,
+                true));
+    }
+
+    @Test
+    public void classifierRejectsZhuyinMetadataWithoutSlideActions() {
+        Assert.assertFalse(GboardZhuyinBottomRowWeightRuntimeSupport.isZhuyinMetadata(
+                "ㄅ",
+                "ㄅ",
+                new String[] {"ㄦ"},
+                false,
+                false));
+    }
+
+    @Test
+    public void classifierRejectsEnglishMetadataWithSlideAction() {
+        Assert.assertFalse(GboardZhuyinBottomRowWeightRuntimeSupport.isZhuyinMetadata(
+                "q",
+                "q",
+                new String[] {"Q"},
+                true,
+                false));
+    }
+
+    @Test
     public void normalFooterGuardRequiresDeleteSlotShapeAndZhuyinLabels() {
         Assert.assertTrue(GboardZhuyinBottomRowWeightRuntime.isNormalZhuyinFooter(
                 new String[] {

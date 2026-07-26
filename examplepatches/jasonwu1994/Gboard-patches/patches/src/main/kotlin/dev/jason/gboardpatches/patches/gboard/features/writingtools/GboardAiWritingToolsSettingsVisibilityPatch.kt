@@ -1,35 +1,122 @@
 package dev.jason.gboardpatches.patches.gboard.features.writingtools
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import dev.jason.gboardpatches.patches.gboard.shared.findMutableMethodOrThrow
 import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesExtensionCarrierPatch
+import dev.jason.gboardpatches.patches.gboard.shared.returnInstructionIndices
 import dev.jason.gboardpatches.patches.shared.Constants.COMPATIBILITY_GBOARD
 
 internal val gboardAiWritingToolsSettingsVisibilityPatch = bytecodePatch(
-    description = "在 runtime 啟用時固定保留官方四顆 Writing tools settings rows。"
+    description = "只在 17.7.7 Writing Tools controller scope 內保留兩顆官方 rows 與 category。"
 ) {
     compatibleWith(COMPATIBILITY_GBOARD)
 
     dependsOn(gboardPatchesExtensionCarrierPatch)
 
     execute {
-        injectSettingsRemovalBypass()
+        findMutableMethodOrThrow(
+            classType = SETTINGS_CONTROLLER_CLASS,
+            name = "b",
+            returnType = "V",
+            parameterTypes = listOf("Landroid/content/Context;", PREFERENCE_WRAPPER_CLASS),
+        ).applyWritingToolsSettingsControllerScope()
+        findMutableMethodOrThrow(
+            classType = PREFERENCE_WRAPPER_CLASS,
+            name = "g",
+            returnType = "V",
+            parameterTypes = listOf("I"),
+        ).applyWritingToolsSettingsRemovalBypass()
     }
 }
 
-context(context: BytecodePatchContext)
-private fun injectSettingsRemovalBypass() = with(context) {
-    val mutableMethod = findMutableMethodOrThrow(
-        classType = PREFERENCE_WRAPPER_CLASS,
-        name = "g",
-        returnType = "V",
-        parameterTypes = listOf("I")
-    )
+internal fun MutableMethod.applyWritingToolsSettingsControllerScope() {
+    val instructions = implementation?.instructions
+        ?: error("No instructions available in $definingClass->$name")
+    val returnIndices = returnInstructionIndices()
+    check(returnIndices.isNotEmpty()) { "Missing RETURN_VOID in $definingClass->$name" }
+    val enterCount = instructions.countMethodDescriptor(SCOPE_ENTER_DESCRIPTOR)
+    val exitCount = instructions.countMethodDescriptor(SCOPE_EXIT_DESCRIPTOR)
+    val handlerIndices = instructions.indices.filter { index ->
+        instructions.isScopeExceptionHandlerAt(index)
+    }
+    val handlerIndex = handlerIndices.singleOrNull()
+    val complete = enterCount == 1 &&
+        instructions.firstOrNull()?.isExactStaticNoArgInvoke(SCOPE_ENTER_DESCRIPTOR) == true &&
+        exitCount == returnIndices.size + 1 &&
+        returnIndices.all { index ->
+            index > 0 && instructions[index - 1].isExactStaticNoArgInvoke(SCOPE_EXIT_DESCRIPTOR)
+        } &&
+        handlerIndex != null &&
+        implementation!!.hasScopeCatchAll(handlerIndex)
+    if (enterCount > 0 || exitCount > 0 || handlerIndices.isNotEmpty() ||
+        implementation!!.hasCatchAllHandler()) {
+        check(complete) { "Malformed partial Writing Tools settings scope in $definingClass->$name" }
+        return
+    }
 
-    mutableMethod.addInstructions(0, SETTINGS_REMOVAL_BYPASS_DELEGATE)
+    returnIndices.asReversed().forEach { returnIndex ->
+        addInstructions(returnIndex, SCOPE_EXIT_DELEGATE)
+    }
+    addInstructions(0, SCOPE_ENTER_DELEGATE)
+    val handlerStartIndex = implementation!!.instructions.size
+    addInstructions(handlerStartIndex, SCOPE_EXCEPTION_HANDLER)
+    val tryStart = implementation!!.newLabelForIndex(1)
+    val handler = implementation!!.newLabelForIndex(handlerStartIndex)
+    implementation!!.addCatch(tryStart, handler, handler)
 }
+
+internal fun MutableMethod.applyWritingToolsSettingsRemovalBypass() {
+    val instructions = implementation?.instructions
+        ?: error("No instructions available in $definingClass->$name")
+    check(returnInstructionIndices().isNotEmpty()) {
+        "Missing RETURN_VOID in $definingClass->$name"
+    }
+    val delegateCount = instructions.countMethodDescriptor(SHOULD_BYPASS_DESCRIPTOR)
+    if (delegateCount > 0) {
+        val moveResult = instructions.getOrNull(1) as? OneRegisterInstruction
+        val branch = instructions.getOrNull(2) as? OffsetInstruction
+        val complete = delegateCount == 1 &&
+            instructions.size > 4 &&
+            instructions[0].isExactWritingToolsStaticInvoke(
+                SHOULD_BYPASS_DESCRIPTOR,
+                implementation!!.registerCount - 1,
+            ) &&
+            instructions[1].normalizedOpcode() == "MOVE_RESULT" &&
+            moveResult?.registerA == 0 &&
+            instructions[2].normalizedOpcode() == "IF_EQZ" &&
+            (instructions[2] as? OneRegisterInstruction)?.registerA == 0 &&
+            branch != null &&
+            instructions.codeAddressOf(2) + branch.codeOffset == instructions.codeAddressOf(4) &&
+            instructions[3].normalizedOpcode() == "RETURN_VOID"
+        check(complete) {
+            "Malformed partial Writing Tools settings bypass in $definingClass->$name"
+        }
+        return
+    }
+    addInstructions(0, SETTINGS_REMOVAL_BYPASS_DELEGATE)
+}
+
+private val SCOPE_ENTER_DELEGATE = """
+    invoke-static {}, $AI_WRITING_TOOLS_RUNTIME_CLASS->enterSettingsControllerScope()V
+""".trimIndent()
+
+private val SCOPE_EXIT_DELEGATE = """
+    invoke-static {}, $AI_WRITING_TOOLS_RUNTIME_CLASS->exitSettingsControllerScope()V
+""".trimIndent()
+
+private val SCOPE_EXCEPTION_HANDLER = """
+    move-exception p0
+
+    invoke-static {}, $AI_WRITING_TOOLS_RUNTIME_CLASS->exitSettingsControllerScope()V
+
+    throw p0
+""".trimIndent()
 
 private val SETTINGS_REMOVAL_BYPASS_DELEGATE = """
     invoke-static {p1}, $AI_WRITING_TOOLS_RUNTIME_CLASS->shouldBypassSettingsRemoval(I)Z
@@ -42,3 +129,86 @@ private val SETTINGS_REMOVAL_BYPASS_DELEGATE = """
 
     :cond_jasondev_continue_original
 """.trimIndent()
+
+private const val SCOPE_ENTER_DESCRIPTOR =
+    "$AI_WRITING_TOOLS_RUNTIME_CLASS->enterSettingsControllerScope()V"
+private const val SCOPE_EXIT_DESCRIPTOR =
+    "$AI_WRITING_TOOLS_RUNTIME_CLASS->exitSettingsControllerScope()V"
+private const val SHOULD_BYPASS_DESCRIPTOR =
+    "$AI_WRITING_TOOLS_RUNTIME_CLASS->shouldBypassSettingsRemoval(I)Z"
+
+private fun List<com.android.tools.smali.dexlib2.iface.instruction.Instruction>
+    .countMethodDescriptor(descriptor: String): Int = count {
+        it.settingsMethodDescriptor() == descriptor
+    }
+
+private fun List<com.android.tools.smali.dexlib2.iface.instruction.Instruction>
+    .isScopeExceptionHandlerAt(index: Int): Boolean {
+    if (index + 2 >= size || get(index).normalizedOpcode() != "MOVE_EXCEPTION") {
+        return false
+    }
+    val moved = get(index) as? OneRegisterInstruction ?: return false
+    val thrown = get(index + 2) as? OneRegisterInstruction ?: return false
+    return get(index + 1).isExactStaticNoArgInvoke(SCOPE_EXIT_DESCRIPTOR) &&
+        get(index + 2).normalizedOpcode() == "THROW" &&
+        moved.registerA == thrown.registerA
+}
+
+private fun com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
+    .hasScopeCatchAll(handlerIndex: Int): Boolean {
+    val instructions = instructions
+    val tryStartAddress = instructions.first().codeUnits
+    val handlerAddress = instructions.take(handlerIndex).sumOf { it.codeUnits }
+    val catchAllRanges = mutableListOf<Pair<Int, Int>>()
+    for (tryBlock in tryBlocks) {
+        for (handler in tryBlock.exceptionHandlers) {
+            if (handler.exceptionType == null) {
+                if (handler.handlerCodeAddress != handlerAddress) {
+                    return false
+                }
+                val rangeStart = tryBlock.startCodeAddress
+                val rangeEnd = rangeStart + tryBlock.codeUnitCount
+                if (rangeStart < tryStartAddress || rangeEnd > handlerAddress ||
+                    rangeStart >= rangeEnd) {
+                    return false
+                }
+                catchAllRanges += rangeStart to rangeEnd
+            }
+        }
+    }
+    if (catchAllRanges.isEmpty()) {
+        return false
+    }
+    var coveredUntil = tryStartAddress
+    while (coveredUntil < handlerAddress) {
+        var nextCoveredUntil = coveredUntil
+        for ((rangeStart, rangeEnd) in catchAllRanges) {
+            if (rangeStart <= coveredUntil && rangeEnd > nextCoveredUntil) {
+                nextCoveredUntil = rangeEnd
+            }
+        }
+        if (nextCoveredUntil == coveredUntil) {
+            return false
+        }
+        coveredUntil = nextCoveredUntil
+    }
+    return coveredUntil == handlerAddress
+}
+
+private fun com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
+    .hasCatchAllHandler(): Boolean = tryBlocks.any { tryBlock ->
+    tryBlock.exceptionHandlers.any { handler -> handler.exceptionType == null }
+}
+
+private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction
+    .isExactStaticNoArgInvoke(descriptor: String): Boolean =
+    isExactWritingToolsStaticInvoke(descriptor)
+
+private fun List<com.android.tools.smali.dexlib2.iface.instruction.Instruction>
+    .codeAddressOf(index: Int): Int = take(index).sumOf { instruction -> instruction.codeUnits }
+
+private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction.settingsMethodDescriptor(): String? =
+    ((this as? ReferenceInstruction)?.reference as? MethodReference)?.toString()
+
+private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction
+    .normalizedOpcode(): String = opcode.name.uppercase().replace('-', '_')

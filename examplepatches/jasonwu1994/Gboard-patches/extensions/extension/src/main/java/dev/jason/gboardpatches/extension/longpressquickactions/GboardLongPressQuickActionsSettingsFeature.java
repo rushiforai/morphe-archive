@@ -1,0 +1,211 @@
+package dev.jason.gboardpatches.extension.longpressquickactions;
+
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.util.Log;
+
+import java.util.Arrays;
+import java.util.Collections;
+
+import dev.jason.gboardpatches.extension.R;
+import dev.jason.gboardpatches.extension.settings.GboardPatchesSettingsContract;
+import dev.jason.gboardpatches.extension.settings.GboardPatchesSettings;
+import dev.jason.gboardpatches.extension.settings.GboardPatchesFeatureAvailability;
+import dev.jason.gboardpatches.extension.settings.GboardSettingsText;
+
+public final class GboardLongPressQuickActionsSettingsFeature
+        implements GboardPatchesSettingsContract.Feature {
+    private static final String TAG = "GboardPatches";
+    private static final String PREVIEW_VIDEO_ENABLED_ASSET =
+            "settings-previews/keyboard/"
+                    + "gboard_long_press_quick_actions_enabled_preview.mp4";
+
+    private final String entryTitle;
+    private final String entrySummary;
+    private final String headerBadge;
+    private final String errorTitle;
+    private final String errorSummary;
+    private final String enabledTitle;
+    private final String enabledSummary;
+    private final String featureSectionTitle;
+    private final String mappingsSectionTitle;
+    private final String[] actionLabels;
+
+    public GboardLongPressQuickActionsSettingsFeature(Context context) {
+        this(
+                GboardSettingsText.get(context,
+                        R.string.gboard_patches_long_press_quick_actions_title,
+                        "Long-Press Editing Shortcuts"),
+                GboardSettingsText.get(context,
+                        R.string.gboard_patches_long_press_quick_actions_summary,
+                        "Long-press designated letter keys to show Select all, Undo, Copy, Cut, "
+                                + "Paste, and Redo actions."),
+                GboardSettingsText.get(context,
+                        R.string.gboard_patches_header_badge,
+                        "Gboard"),
+                GboardSettingsText.get(context,
+                        R.string.gboard_patches_long_press_quick_actions_error_title,
+                        "Long-Press Editing Shortcuts unavailable"),
+                GboardSettingsText.get(context,
+                        R.string.gboard_patches_long_press_quick_actions_error_summary,
+                        "The Long-Press Editing Shortcuts settings screen failed to load. "
+                                + "Reopen Gboard settings and try again."),
+                GboardSettingsText.get(context,
+                        R.string.gboard_patches_long_press_quick_actions_enabled_title,
+                        "Enable Long-Press Editing Shortcuts"),
+                GboardSettingsText.get(context,
+                        R.string.gboard_patches_long_press_quick_actions_enabled_summary,
+                        "Reopen the keyboard or switch layouts to fully apply changes."),
+                GboardSettingsText.get(context,
+                        R.string.gboard_patches_long_press_quick_actions_section_feature,
+                        "Feature"),
+                GboardSettingsText.get(context,
+                        R.string.gboard_patches_long_press_quick_actions_section_mappings,
+                        "Mappings"),
+                new String[] {
+                        GboardSettingsText.get(context,
+                                R.string.gboard_patches_long_press_quick_actions_action_select_all,
+                                "Select all"),
+                        GboardSettingsText.get(context,
+                                R.string.gboard_patches_long_press_quick_actions_action_undo,
+                                "Undo"),
+                        GboardSettingsText.get(context,
+                                R.string.gboard_patches_long_press_quick_actions_action_copy,
+                                "Copy"),
+                        GboardSettingsText.get(context,
+                                R.string.gboard_patches_long_press_quick_actions_action_cut,
+                                "Cut"),
+                        GboardSettingsText.get(context,
+                                R.string.gboard_patches_long_press_quick_actions_action_paste,
+                                "Paste"),
+                        GboardSettingsText.get(context,
+                                R.string.gboard_patches_long_press_quick_actions_action_redo,
+                                "Redo")
+                });
+    }
+
+    GboardLongPressQuickActionsSettingsFeature(String entryTitle, String entrySummary,
+            String headerBadge, String errorTitle, String errorSummary, String enabledTitle,
+            String enabledSummary, String featureSectionTitle, String mappingsSectionTitle,
+            String[] actionLabels) {
+        this.entryTitle = entryTitle;
+        this.entrySummary = entrySummary;
+        this.headerBadge = headerBadge;
+        this.errorTitle = errorTitle;
+        this.errorSummary = errorSummary;
+        this.enabledTitle = enabledTitle;
+        this.enabledSummary = enabledSummary;
+        this.featureSectionTitle = featureSectionTitle;
+        this.mappingsSectionTitle = mappingsSectionTitle;
+        this.actionLabels = actionLabels == null ? new String[0] : actionLabels.clone();
+    }
+
+    @Override
+    public String getEntryTitle() {
+        return entryTitle;
+    }
+
+    @Override
+    public String getEntrySummary() {
+        return entrySummary;
+    }
+
+    @Override
+    public boolean isAvailable(Context context) {
+        return GboardPatchesFeatureAvailability.hasFeature(
+                context,
+                GboardPatchesFeatureAvailability.FEATURE_LONG_PRESS_QUICK_ACTIONS);
+    }
+
+    @Override
+    public GboardPatchesSettingsContract.Screen buildScreen(
+            GboardPatchesSettingsContract.Host host) {
+        try {
+            if (host == null || host.getContext() == null) {
+                return buildErrorScreen();
+            }
+            Context context = host.getContext();
+            SharedPreferences preferences = GboardPatchesSettings.preferences(context);
+            GboardLongPressQuickActionsSettings.ensureDefault(preferences);
+            boolean enabled = GboardLongPressQuickActionsSettings.readEnabled(preferences);
+            return buildScreenForState(
+                    enabled,
+                    value -> GboardLongPressQuickActionsSettings.writeEnabled(context, value));
+        } catch (Throwable throwable) {
+            Log.w(TAG, "Failed to render long-press quick action settings", throwable);
+            return buildErrorScreen();
+        }
+    }
+
+    GboardPatchesSettingsContract.Screen buildScreenForState(boolean enabled,
+            GboardPatchesSettingsContract.ToggleAction toggleAction) {
+        String[] labels = normalizedActionLabels();
+        return new GboardPatchesSettingsContract.Screen(
+                entryTitle,
+                headerBadge,
+                entryTitle,
+                "",
+                Collections.emptyList(),
+                Arrays.asList(
+                        new GboardPatchesSettingsContract.Section(
+                                featureSectionTitle,
+                                Collections.singletonList(
+                                        new GboardPatchesSettingsContract.ToggleRow(
+                                                enabledTitle,
+                                                enabledSummary,
+                                                true,
+                                                enabled,
+                                                toggleAction,
+                                                buildEnabledPreview()))),
+                        new GboardPatchesSettingsContract.Section(
+                                mappingsSectionTitle,
+                                Arrays.asList(
+                                        new GboardPatchesSettingsContract.InfoRow(
+                                                "A", labels[0], true),
+                                        new GboardPatchesSettingsContract.InfoRow(
+                                                "Z", labels[1], true),
+                                        new GboardPatchesSettingsContract.InfoRow(
+                                                "C", labels[2], true),
+                                        new GboardPatchesSettingsContract.InfoRow(
+                                                "X", labels[3], true),
+                                        new GboardPatchesSettingsContract.InfoRow(
+                                                "V", labels[4], true),
+                                        new GboardPatchesSettingsContract.InfoRow(
+                                                "Y", labels[5], true)))),
+                GboardPatchesSettingsContract.RefreshPolicy.none(),
+                GboardPatchesSettingsContract.PanelStyle.FLAT);
+    }
+
+    private GboardPatchesSettingsContract.PreviewSpec buildEnabledPreview() {
+        return new GboardPatchesSettingsContract.PreviewSpec(
+                entryTitle,
+                "",
+                GboardPatchesSettingsContract.PreviewLayout.STACKED,
+                GboardPatchesSettingsContract.PreviewVideo.fromAsset(
+                        PREVIEW_VIDEO_ENABLED_ASSET,
+                        ""));
+    }
+
+    private GboardPatchesSettingsContract.Screen buildErrorScreen() {
+        return new GboardPatchesSettingsContract.Screen(
+                entryTitle,
+                headerBadge,
+                entryTitle,
+                "",
+                Collections.singletonList(new GboardPatchesSettingsContract.StatusBlock(
+                        errorTitle,
+                        errorSummary,
+                        GboardPatchesSettingsContract.StatusTone.WARNING)),
+                Collections.emptyList());
+    }
+
+    private String[] normalizedActionLabels() {
+        String[] labels = new String[6];
+        for (int index = 0; index < labels.length; index++) {
+            labels[index] = index < actionLabels.length && actionLabels[index] != null
+                    ? actionLabels[index]
+                    : "";
+        }
+        return labels;
+    }
+}

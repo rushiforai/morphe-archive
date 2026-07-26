@@ -1,372 +1,294 @@
 package dev.jason.gboardpatches.extension.writingtools;
 
-import android.content.Context;
-import android.content.ContextWrapper;
-import android.content.SharedPreferences;
-
-import java.lang.reflect.Field;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
 public final class GboardAiWritingToolsRuntimeTest {
-    @After
-    public void tearDown() throws Exception {
-        GboardAiWritingToolsOfficialPreferences.clearForTest();
-        Class.forName("oql").getMethod("reset").invoke(null);
-        Field applicationContextField = GboardAiWritingToolsRuntime.class
-                .getDeclaredField("applicationContext");
-        applicationContextField.setAccessible(true);
-        applicationContextField.set(null, null);
+    @Test
+    public void masterOffPreservesEveryStockResultIdentity() {
+        Object original = Long.valueOf(3L);
+
+        Assert.assertSame(original, GboardAiWritingToolsRuntime.computeOverrideValue(
+                GboardAiWritingToolsRuntime.FLAG_BACKEND_TYPE,
+                original,
+                settings(false, true,
+                        GboardAiWritingToolsSettings.BACKEND_PRIVATE_INFERENCE_ASTREA),
+                official(true, true)));
     }
 
     @Test
-    public void computeOverrideValueReturnsNullWhenFeatureDisabled() {
-        Object overrideValue = GboardAiWritingToolsRuntime.computeOverrideValue(
-                GboardAiWritingToolsRuntime.FLAG_WRITING_TOOLS,
-                false,
-                false,
-                GboardAiWritingToolsOfficialPreferences.snapshot());
-
-        Assert.assertNull(overrideValue);
-    }
-
-    @Test
-    public void computeOverrideValueRespectsOfficialFourSwitches() {
-        GboardAiWritingToolsOfficialPreferences.Snapshot snapshot =
-                new GboardAiWritingToolsOfficialPreferences.Snapshot(
-                        Boolean.FALSE,
-                        Boolean.FALSE,
-                        Boolean.TRUE,
-                        Boolean.FALSE);
-
-        Assert.assertEquals(
-                Boolean.FALSE,
-                GboardAiWritingToolsRuntime.computeOverrideValue(
-                        GboardAiWritingToolsRuntime.FLAG_CONFIG_PROOFREAD,
-                        true,
-                        false,
-                        snapshot));
-        Assert.assertEquals(
-                Boolean.FALSE,
-                GboardAiWritingToolsRuntime.computeOverrideValue(
-                        GboardAiWritingToolsRuntime.FLAG_WRITING_TOOLS,
-                        true,
-                        false,
-                        snapshot));
-        Assert.assertEquals(
-                Boolean.FALSE,
-                GboardAiWritingToolsRuntime.computeOverrideValue(
-                        GboardAiWritingToolsRuntime.FLAG_ALLOW_GEN_AI_SERVER,
-                        true,
-                        false,
-                        snapshot));
-    }
-
-    @Test
-    public void computeOverrideValueReturnsNullWhenRequiredOfficialSwitchIsUnknown() {
-        GboardAiWritingToolsOfficialPreferences.Snapshot snapshot =
-                new GboardAiWritingToolsOfficialPreferences.Snapshot(
-                        null,
-                        null,
-                        null,
-                        null);
-
-        Assert.assertNull(GboardAiWritingToolsRuntime.computeOverrideValue(
+    public void targetBooleanFlagsFollowOnlyTheTwoObservedOfficialPreferences() {
+        GboardAiWritingToolsSettings.Snapshot settings = serverSettings(false);
+        GboardAiWritingToolsOfficialPreferences.Snapshot proofreadOff = official(false, true);
+        Assert.assertSame(Boolean.FALSE, GboardAiWritingToolsRuntime.computeOverrideValue(
                 GboardAiWritingToolsRuntime.FLAG_CONFIG_PROOFREAD,
-                true,
-                false,
-                snapshot));
-        Assert.assertNull(GboardAiWritingToolsRuntime.computeOverrideValue(
+                Boolean.TRUE,
+                settings,
+                proofreadOff));
+        Assert.assertSame(Boolean.TRUE, GboardAiWritingToolsRuntime.computeOverrideValue(
                 GboardAiWritingToolsRuntime.FLAG_WRITING_TOOLS,
-                true,
-                false,
-                snapshot));
-        Assert.assertNull(GboardAiWritingToolsRuntime.computeOverrideValue(
+                Boolean.FALSE,
+                settings,
+                proofreadOff));
+
+        GboardAiWritingToolsOfficialPreferences.Snapshot writingToolsOff = official(true, false);
+        String[] editingFlags = new String[]{
+                GboardAiWritingToolsRuntime.FLAG_WRITING_TOOLS,
+                GboardAiWritingToolsRuntime.FLAG_ENABLE_WRITING_TOOLS_COOPERATIVE_MODE,
+                GboardAiWritingToolsRuntime.FLAG_WRITING_HELPER_ON_SELECTED_TEXT,
+                GboardAiWritingToolsRuntime
+                        .FLAG_WRITING_HELPER_ENABLE_TEXT_STYLIZATION_INTERNAL
+        };
+        for (String flag : editingFlags) {
+            Assert.assertSame(flag, Boolean.FALSE,
+                    GboardAiWritingToolsRuntime.computeOverrideValue(
+                            flag,
+                            Boolean.TRUE,
+                            settings,
+                            writingToolsOff));
+        }
+        Assert.assertSame(Boolean.TRUE, GboardAiWritingToolsRuntime.computeOverrideValue(
                 GboardAiWritingToolsRuntime.FLAG_WRITING_HELPER,
-                true,
-                false,
-                snapshot));
-        Assert.assertNull(GboardAiWritingToolsRuntime.computeOverrideValue(
-                GboardAiWritingToolsRuntime.FLAG_ALLOW_GEN_AI_SERVER,
-                true,
-                false,
-                snapshot));
+                Boolean.FALSE,
+                settings,
+                writingToolsOff));
+        Assert.assertSame(Boolean.TRUE, GboardAiWritingToolsRuntime.computeOverrideValue(
+                GboardAiWritingToolsRuntime.FLAG_ENABLE_WRITING_TOOLS_FOR_MINORS,
+                Boolean.FALSE,
+                settings,
+                writingToolsOff));
     }
 
     @Test
-    public void computeOverrideValueAllowsKnownCompositeOutcomeWithoutFullObservation() {
-        GboardAiWritingToolsOfficialPreferences.Snapshot snapshot =
-                new GboardAiWritingToolsOfficialPreferences.Snapshot(
-                        Boolean.FALSE,
-                        null,
-                        Boolean.TRUE,
-                        Boolean.TRUE);
+    public void unknownOfficialValuesStayEnabledForReachability() {
+        GboardAiWritingToolsOfficialPreferences.Snapshot unknown = official(null, null);
 
-        Assert.assertEquals(
-                Boolean.TRUE,
-                GboardAiWritingToolsRuntime.computeOverrideValue(
-                        GboardAiWritingToolsRuntime.FLAG_WRITING_HELPER,
-                        true,
-                        false,
-                        snapshot));
-        Assert.assertEquals(
-                Boolean.TRUE,
-                GboardAiWritingToolsRuntime.computeOverrideValue(
-                        GboardAiWritingToolsRuntime.FLAG_ALLOW_GEN_AI_SERVER,
-                        true,
-                        false,
-                        snapshot));
+        Assert.assertSame(Boolean.TRUE, GboardAiWritingToolsRuntime.computeOverrideValue(
+                GboardAiWritingToolsRuntime.FLAG_CONFIG_PROOFREAD,
+                Boolean.FALSE,
+                serverSettings(false),
+                unknown));
+        Assert.assertSame(Boolean.TRUE, GboardAiWritingToolsRuntime.computeOverrideValue(
+                GboardAiWritingToolsRuntime.FLAG_WRITING_TOOLS,
+                Boolean.FALSE,
+                serverSettings(false),
+                unknown));
     }
 
     @Test
-    public void computeOverrideValueForcesAllLanguageAllowlistsOnlyWhenRequested() {
-        Assert.assertEquals(
-                GboardAiWritingToolsRuntime.ALL_LANGUAGES_ALLOWLIST_VALUE,
-                GboardAiWritingToolsRuntime.computeOverrideValue(
-                        GboardAiWritingToolsRuntime.FLAG_WRITING_HELPER_SUPPORTED_LANGUAGE_TAGS,
-                        true,
-                        true,
-                        GboardAiWritingToolsOfficialPreferences.snapshot()));
-        Assert.assertNull(GboardAiWritingToolsRuntime.computeOverrideValue(
-                GboardAiWritingToolsRuntime.FLAG_LLM_PC_SUPPORTED_LANGUAGE_TAGS,
-                true,
-                false,
-                GboardAiWritingToolsOfficialPreferences.snapshot()));
-    }
-
-    @Test
-    public void computeOverrideValueOverridesProofreadModelVersion() {
-        Assert.assertEquals(
-                "202408051448_prod_sd_config",
-                GboardAiWritingToolsRuntime.computeOverrideValue(
-                        "writing_helper_model_version",
-                        true,
-                        false,
-                        GboardAiWritingToolsOfficialPreferences.snapshot()));
-    }
-
-    @Test
-    public void computeOverrideValueOverridesStylizationModelVersion() {
-        Assert.assertEquals(
-                "202504090000_writing_tools_config",
-                GboardAiWritingToolsRuntime.computeOverrideValue(
-                        "writing_helper_text_stylization_model_version",
-                        true,
-                        false,
-                        GboardAiWritingToolsOfficialPreferences.snapshot()));
-    }
-
-    @Test
-    public void flagOverrideLogIncludesFeatureAndAllowlistState() {
-        String message = GboardAiWritingToolsRuntime.buildFlagOverrideLog(
+    public void allKeyboardsChangesOnlyTwoStringAllowlists() {
+        GboardAiWritingToolsSettings.Snapshot enabled = serverSettings(true);
+        Assert.assertEquals("*", GboardAiWritingToolsRuntime.computeOverrideValue(
                 GboardAiWritingToolsRuntime.FLAG_WRITING_HELPER_SUPPORTED_LANGUAGE_TAGS,
                 "en-US",
-                "*",
+                enabled,
+                official(true, true)));
+        Assert.assertEquals("*", GboardAiWritingToolsRuntime.computeOverrideValue(
+                GboardAiWritingToolsRuntime.FLAG_LLM_PC_SUPPORTED_LANGUAGE_TAGS,
+                "en-US",
+                enabled,
+                official(true, true)));
+
+        Object wrongType = Integer.valueOf(7);
+        Assert.assertSame(wrongType, GboardAiWritingToolsRuntime.computeOverrideValue(
+                GboardAiWritingToolsRuntime.FLAG_WRITING_HELPER_SUPPORTED_LANGUAGE_TAGS,
+                wrongType,
+                enabled,
+                official(true, true)));
+    }
+
+    @Test
+    public void serverModelConfigsCompensateForMissingRepackagedPhenotype() {
+        GboardAiWritingToolsSettings.Snapshot settings = serverSettings(false);
+
+        Assert.assertEquals(GboardAiWritingToolsRuntime.PROOFREAD_MODEL_VERSION_OVERRIDE,
+                GboardAiWritingToolsRuntime.computeOverrideValue(
+                        GboardAiWritingToolsRuntime.FLAG_WRITING_HELPER_MODEL_VERSION,
+                        "202406101250_prod_sd_config",
+                        settings,
+                        official(true, true)));
+        Assert.assertEquals(GboardAiWritingToolsRuntime.STYLIZATION_MODEL_VERSION_OVERRIDE,
+                GboardAiWritingToolsRuntime.computeOverrideValue(
+                        GboardAiWritingToolsRuntime
+                                .FLAG_WRITING_HELPER_TEXT_STYLIZATION_MODEL_VERSION,
+                        "composer_stylization_base",
+                        settings,
+                        official(true, true)));
+    }
+
+    @Test
+    public void serverModelConfigsPreserveWrongTypeIdentity() {
+        Object wrongType = Integer.valueOf(7);
+
+        Assert.assertSame(wrongType, GboardAiWritingToolsRuntime.computeOverrideValue(
+                GboardAiWritingToolsRuntime.FLAG_WRITING_HELPER_MODEL_VERSION,
+                wrongType,
+                serverSettings(false),
+                official(true, true)));
+    }
+
+    @Test
+    public void privateBackendsPreserveTheirStockModelConfigs() {
+        String stockModel = "private-stock-model";
+
+        Assert.assertSame(stockModel, GboardAiWritingToolsRuntime.computeOverrideValue(
+                GboardAiWritingToolsRuntime.FLAG_WRITING_HELPER_MODEL_VERSION,
+                stockModel,
+                settings(
+                        true,
+                        false,
+                        GboardAiWritingToolsSettings.BACKEND_PRIVATE_INFERENCE_AICORE),
+                official(true, true)));
+    }
+
+    @Test
+    public void unrelatedAndWrongTypesStayUnchanged() {
+        Object unrelated = new Object();
+        Assert.assertSame(unrelated, GboardAiWritingToolsRuntime.computeOverrideValue(
+                "unrelated_flag",
+                unrelated,
+                serverSettings(false),
+                official(true, true)));
+
+        Object wrongType = "false";
+        Assert.assertSame(wrongType, GboardAiWritingToolsRuntime.computeOverrideValue(
+                GboardAiWritingToolsRuntime.FLAG_CONFIG_PROOFREAD,
+                wrongType,
+                serverSettings(false),
+                official(false, false)));
+
+    }
+
+    @Test
+    public void distinctFalseOfficialBooleanIsOverridden() throws Exception {
+        Boolean distinctFalse = distinctBoolean(false);
+        Assert.assertSame(Boolean.TRUE, GboardAiWritingToolsRuntime.computeOverrideValue(
+                GboardAiWritingToolsRuntime.FLAG_CONFIG_PROOFREAD,
+                distinctFalse,
+                serverSettings(false),
+                official(true, true)));
+    }
+
+    @Test
+    public void distinctTrueOfficialBooleanIsOverridden() throws Exception {
+        Boolean distinctTrue = distinctBoolean(true);
+        Assert.assertSame(Boolean.FALSE, GboardAiWritingToolsRuntime.computeOverrideValue(
+                GboardAiWritingToolsRuntime.FLAG_WRITING_TOOLS,
+                distinctTrue,
+                serverSettings(false),
+                official(true, false)));
+    }
+
+    @Test
+    public void backendDecisionReturnsOneAtomicThreeValueTuple() {
+        assertBackend(
+                GboardAiWritingToolsSettings.BACKEND_GBOARD_SERVER,
+                1L,
+                false,
+                false);
+        assertBackend(
+                GboardAiWritingToolsSettings.BACKEND_PRIVATE_INFERENCE_AICORE,
+                2L,
                 true,
                 true);
-
-        Assert.assertTrue(message.contains("flag=writing_helper_supported_language_tags"));
-        Assert.assertTrue(message.contains("original=en-US"));
-        Assert.assertTrue(message.contains("override=*"));
-        Assert.assertTrue(message.contains("featureEnabled=true"));
-        Assert.assertTrue(message.contains("allKeyboardsEnabled=true"));
+        assertBackend(
+                GboardAiWritingToolsSettings.BACKEND_PRIVATE_INFERENCE_ASTREA,
+                3L,
+                true,
+                false);
+        assertBackend("INVALID", 1L, false, false);
     }
 
     @Test
-    public void signalOverrideLogIncludesSignalDescriptionAndFeatureState() {
-        String message = GboardAiWritingToolsRuntime.buildSignalOverrideLog(
-                "gjz$a",
-                true);
+    public void backendFlagsPreserveWrongTypeIdentity() {
+        GboardAiWritingToolsSettings.Snapshot astrea = settings(
+                true,
+                false,
+                GboardAiWritingToolsSettings.BACKEND_PRIVATE_INFERENCE_ASTREA);
+        Assert.assertEquals(Long.valueOf(3L), GboardAiWritingToolsRuntime.computeOverrideValue(
+                GboardAiWritingToolsRuntime.FLAG_BACKEND_TYPE,
+                Long.valueOf(1L),
+                astrea,
+                official(true, true)));
+        Assert.assertSame(Boolean.TRUE, GboardAiWritingToolsRuntime.computeOverrideValue(
+                GboardAiWritingToolsRuntime.FLAG_HYBRID,
+                Boolean.FALSE,
+                astrea,
+                official(true, true)));
+        Assert.assertSame(Boolean.FALSE, GboardAiWritingToolsRuntime.computeOverrideValue(
+                GboardAiWritingToolsRuntime.FLAG_ON_DEVICE_PROOFREAD,
+                Boolean.FALSE,
+                astrea,
+                official(true, true)));
 
-        Assert.assertTrue(message.contains("signal=gjz$a"));
-        Assert.assertTrue(message.contains("featureEnabled=true"));
+        Integer wrongLongType = Integer.valueOf(1);
+        Assert.assertSame(wrongLongType, GboardAiWritingToolsRuntime.computeOverrideValue(
+                GboardAiWritingToolsRuntime.FLAG_BACKEND_TYPE,
+                wrongLongType,
+                astrea,
+                official(true, true)));
     }
 
     @Test
-    public void forcedSignalTargetsStayScopedToWritingToolsMarker() {
-        Assert.assertArrayEquals(
-                new String[] { "gjz#a" },
-                GboardAiWritingToolsRuntime.forcedSignalTargetSpecsForTesting());
+    public void distinctFalseBackendBooleanIsOverridden() throws Exception {
+        Boolean distinctFalse = distinctBoolean(false);
+        Assert.assertSame(Boolean.TRUE, GboardAiWritingToolsRuntime.computeOverrideValue(
+                GboardAiWritingToolsRuntime.FLAG_HYBRID,
+                distinctFalse,
+                settings(
+                        true,
+                        false,
+                        GboardAiWritingToolsSettings.BACKEND_PRIVATE_INFERENCE_ASTREA),
+                official(true, true)));
     }
 
     @Test
-    public void getOverriddenFlagValueSeedsUnknownOfficialPrefsFromPreferenceManager()
-            throws Exception {
-        Class<?> oqlClass = Class.forName("oql");
-        oqlClass.getMethod("setBoolean", int.class, boolean.class).invoke(
-                null,
-                GboardAiWritingToolsOfficialPreferences.WRITING_TOOLS_COOPERATIVE_MODE_PREF_KEY,
-                true);
-
-        Field applicationContextField = GboardAiWritingToolsRuntime.class
-                .getDeclaredField("applicationContext");
-        applicationContextField.setAccessible(true);
-        applicationContextField.set(null, new ContextWrapper(null) {
-            private final SharedPreferences preferences = new InMemorySharedPreferences();
-
-            @Override
-            public Context getApplicationContext() {
-                return this;
-            }
-
-            @Override
-            public SharedPreferences getSharedPreferences(String name, int mode) {
-                return preferences;
-            }
-        });
-
-        Object overrideValue = GboardAiWritingToolsRuntime.getOverriddenFlagValue(
-                new FakeFlagReceiver(GboardAiWritingToolsRuntime.FLAG_WRITING_TOOLS));
-
-        Assert.assertEquals(Boolean.TRUE, overrideValue);
+    public void distinctTrueBackendBooleanIsOverridden() throws Exception {
+        Boolean distinctTrue = distinctBoolean(true);
+        Assert.assertSame(Boolean.FALSE, GboardAiWritingToolsRuntime.computeOverrideValue(
+                GboardAiWritingToolsRuntime.FLAG_ON_DEVICE_PROOFREAD,
+                distinctTrue,
+                settings(
+                        true,
+                        false,
+                        GboardAiWritingToolsSettings.BACKEND_PRIVATE_INFERENCE_ASTREA),
+                official(true, true)));
     }
 
-    private static final class FakeFlagReceiver {
-        @SuppressWarnings("unused")
-        private final String a;
-
-        private FakeFlagReceiver(String flagName) {
-            this.a = flagName;
-        }
+    private static Boolean distinctBoolean(boolean value) throws Exception {
+        return Boolean.class.getDeclaredConstructor(boolean.class).newInstance(value);
     }
 
-    private static final class InMemorySharedPreferences implements SharedPreferences {
-        private final Map<String, Object> values = new HashMap<String, Object>();
+    private static void assertBackend(String backend, long type, boolean hybrid,
+            boolean onDeviceProofread) {
+        GboardAiWritingToolsRuntime.BackendDecision decision =
+                GboardAiWritingToolsRuntime.backendDecision(backend);
+        Assert.assertEquals(Long.valueOf(type), decision.backendType);
+        Assert.assertEquals(Boolean.valueOf(hybrid), decision.hybridEnabled);
+        Assert.assertEquals(Boolean.valueOf(onDeviceProofread),
+                decision.onDeviceProofreadEnabled);
+    }
 
-        @Override
-        public Map<String, ?> getAll() {
-            return Collections.unmodifiableMap(new HashMap<String, Object>(values));
-        }
+    private static GboardAiWritingToolsSettings.Snapshot serverSettings(
+            boolean allKeyboardsEnabled) {
+        return settings(
+                true,
+                allKeyboardsEnabled,
+                GboardAiWritingToolsSettings.BACKEND_GBOARD_SERVER);
+    }
 
-        @Override
-        public String getString(String key, String defValue) {
-            Object value = values.get(key);
-            return value instanceof String ? (String) value : defValue;
-        }
+    private static GboardAiWritingToolsSettings.Snapshot settings(boolean featureEnabled,
+            boolean allKeyboardsEnabled, String backendType) {
+        return new GboardAiWritingToolsSettings.Snapshot(
+                featureEnabled,
+                allKeyboardsEnabled,
+                backendType);
+    }
 
-        @Override
-        @SuppressWarnings("unchecked")
-        public Set<String> getStringSet(String key, Set<String> defValues) {
-            Object value = values.get(key);
-            return value instanceof Set ? (Set<String>) value : defValues;
-        }
-
-        @Override
-        public int getInt(String key, int defValue) {
-            Object value = values.get(key);
-            return value instanceof Number ? ((Number) value).intValue() : defValue;
-        }
-
-        @Override
-        public long getLong(String key, long defValue) {
-            Object value = values.get(key);
-            return value instanceof Number ? ((Number) value).longValue() : defValue;
-        }
-
-        @Override
-        public float getFloat(String key, float defValue) {
-            Object value = values.get(key);
-            return value instanceof Number ? ((Number) value).floatValue() : defValue;
-        }
-
-        @Override
-        public boolean getBoolean(String key, boolean defValue) {
-            Object value = values.get(key);
-            return value instanceof Boolean ? (Boolean) value : defValue;
-        }
-
-        @Override
-        public boolean contains(String key) {
-            return values.containsKey(key);
-        }
-
-        @Override
-        public Editor edit() {
-            return new Editor() {
-                private final Map<String, Object> pending = new HashMap<String, Object>();
-
-                @Override
-                public Editor putString(String key, String value) {
-                    pending.put(key, value);
-                    return this;
-                }
-
-                @Override
-                public Editor putStringSet(String key, Set<String> values) {
-                    pending.put(key, values);
-                    return this;
-                }
-
-                @Override
-                public Editor putInt(String key, int value) {
-                    pending.put(key, Integer.valueOf(value));
-                    return this;
-                }
-
-                @Override
-                public Editor putLong(String key, long value) {
-                    pending.put(key, Long.valueOf(value));
-                    return this;
-                }
-
-                @Override
-                public Editor putFloat(String key, float value) {
-                    pending.put(key, Float.valueOf(value));
-                    return this;
-                }
-
-                @Override
-                public Editor putBoolean(String key, boolean value) {
-                    pending.put(key, Boolean.valueOf(value));
-                    return this;
-                }
-
-                @Override
-                public Editor remove(String key) {
-                    pending.put(key, null);
-                    return this;
-                }
-
-                @Override
-                public Editor clear() {
-                    values.clear();
-                    pending.clear();
-                    return this;
-                }
-
-                @Override
-                public boolean commit() {
-                    apply();
-                    return true;
-                }
-
-                @Override
-                public void apply() {
-                    for (Map.Entry<String, Object> entry : pending.entrySet()) {
-                        if (entry.getValue() == null) {
-                            values.remove(entry.getKey());
-                        } else {
-                            values.put(entry.getKey(), entry.getValue());
-                        }
-                    }
-                }
-            };
-        }
-
-        @Override
-        public void registerOnSharedPreferenceChangeListener(
-                OnSharedPreferenceChangeListener listener) {
-        }
-
-        @Override
-        public void unregisterOnSharedPreferenceChangeListener(
-                OnSharedPreferenceChangeListener listener) {
-        }
+    private static GboardAiWritingToolsOfficialPreferences.Snapshot official(
+            Boolean proofreadEnabled, Boolean writingToolsEnabled) {
+        return new GboardAiWritingToolsOfficialPreferences.Snapshot(
+                proofreadEnabled,
+                writingToolsEnabled);
     }
 }

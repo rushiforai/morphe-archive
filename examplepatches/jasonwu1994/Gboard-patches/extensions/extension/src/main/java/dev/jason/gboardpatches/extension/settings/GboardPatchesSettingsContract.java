@@ -13,6 +13,10 @@ public final class GboardPatchesSettingsContract {
 
         String getEntrySummary();
 
+        default void openRootEntry(Host host) {
+            host.openFeature(this);
+        }
+
         default boolean isAvailable(Context context) {
             return true;
         }
@@ -26,6 +30,10 @@ public final class GboardPatchesSettingsContract {
         void refresh();
 
         void openFeature(Feature feature);
+
+        default void openTargetSettingsHeader(int headerKeyResourceId) {
+            throw new UnsupportedOperationException("Target settings navigation is unavailable");
+        }
 
         void showChoiceDialog(String title, String[] labels, String[] values,
                 String currentValue, String customValue, Runnable customAction,

@@ -1,0 +1,21 @@
+[versions]
+morphe-patcher = "1.7.0"
+# Libreria di utilita' per scrivere patch (getFreeRegisterProvider, addInstructionsAtControlFlowLabel,
+# getReference, cloneMutable). Allineata a morphe-patches ufficiale: sta sul registro GitHub di Morphe.
+morphe-patches-library = "1.5.1-dev.2"
+#noinspection GradleDependency
+smali = "d92701d947"
+gson = "2.14.0"
+# Allineate a morphe-patches ufficiale: l'estensione legge gli stessi formati dati di
+# YouTube, quindi non conviene divergere sulla versione di protobuf.
+protoc = "4.35.1"
+protobuf = "0.10.0"
+
+[libraries]
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+morphe-patches-library = { module = "app.morphe:morphe-patches-library", version.ref = "morphe-patches-library" }
+protobuf-javalite = { module = "com.google.protobuf:protobuf-javalite", version.ref = "protoc" }
+protobuf-protoc = { module = "com.google.protobuf:protoc", version.ref = "protoc" }
+
+[plugins]
+protobuf = { id = "com.google.protobuf", version.ref = "protobuf" }

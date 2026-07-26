@@ -1,0 +1,109 @@
+package dev.jason.gboardpatches.extension.advancedvoice;
+
+import android.content.Context;
+import android.content.SharedPreferences;
+
+import java.util.Map;
+
+import dev.jason.gboardpatches.extension.settings.GboardPatchesSettings;
+
+public final class GboardAdvancedVoiceSettings {
+    public static final String PREF_KEY_ENABLED =
+            "pref_advanced_voice_typing_enabled";
+    public static final String PREF_KEY_ZH_TW_PUNCTUATION_ENABLED =
+            "pref_advanced_voice_zh_tw_punctuation_enabled";
+    public static final boolean DEFAULT_ENABLED = false;
+    public static final boolean DEFAULT_ZH_TW_PUNCTUATION_ENABLED = false;
+
+    private GboardAdvancedVoiceSettings() {
+    }
+
+    public static SharedPreferences preferences(Context context) {
+        return GboardPatchesSettings.preferences(context);
+    }
+
+    public static void ensureDefaults(SharedPreferences preferences) {
+        if (preferences == null) {
+            return;
+        }
+        SharedPreferences.Editor editor = preferences.edit();
+        boolean changed = false;
+        if (!preferences.contains(PREF_KEY_ENABLED)) {
+            editor.putBoolean(PREF_KEY_ENABLED, DEFAULT_ENABLED);
+            changed = true;
+        }
+        if (!preferences.contains(PREF_KEY_ZH_TW_PUNCTUATION_ENABLED)) {
+            editor.putBoolean(
+                    PREF_KEY_ZH_TW_PUNCTUATION_ENABLED,
+                    DEFAULT_ZH_TW_PUNCTUATION_ENABLED);
+            changed = true;
+        }
+        if (changed) {
+            editor.commit();
+        }
+    }
+
+    public static boolean readEnabled(SharedPreferences preferences) {
+        return readBooleanStrict(preferences, PREF_KEY_ENABLED, DEFAULT_ENABLED);
+    }
+
+    public static boolean readZhTwPunctuationEnabled(SharedPreferences preferences) {
+        return readBooleanStrict(
+                preferences,
+                PREF_KEY_ZH_TW_PUNCTUATION_ENABLED,
+                DEFAULT_ZH_TW_PUNCTUATION_ENABLED);
+    }
+
+    public static boolean writeEnabled(Context context, boolean enabled) {
+        return context != null && writeEnabled(preferences(context), enabled);
+    }
+
+    public static boolean writeEnabled(SharedPreferences preferences, boolean enabled) {
+        return writeBoolean(preferences, PREF_KEY_ENABLED, enabled);
+    }
+
+    public static boolean writeZhTwPunctuationEnabled(Context context, boolean enabled) {
+        return context != null
+                && writeZhTwPunctuationEnabled(preferences(context), enabled);
+    }
+
+    public static boolean writeZhTwPunctuationEnabled(
+            SharedPreferences preferences,
+            boolean enabled) {
+        return writeBoolean(
+                preferences,
+                PREF_KEY_ZH_TW_PUNCTUATION_ENABLED,
+                enabled);
+    }
+
+    private static boolean readBooleanStrict(
+            SharedPreferences preferences,
+            String key,
+            boolean defaultValue) {
+        if (preferences == null) {
+            return defaultValue;
+        }
+        Map<String, ?> values = preferences.getAll();
+        Object raw = values.get(key);
+        if (raw instanceof Boolean) {
+            return ((Boolean) raw).booleanValue();
+        }
+        if (raw instanceof String) {
+            if ("true".equalsIgnoreCase((String) raw)) {
+                return true;
+            }
+            if ("false".equalsIgnoreCase((String) raw)) {
+                return false;
+            }
+        }
+        return defaultValue;
+    }
+
+    private static boolean writeBoolean(
+            SharedPreferences preferences,
+            String key,
+            boolean value) {
+        return preferences != null
+                && preferences.edit().putBoolean(key, value).commit();
+    }
+}

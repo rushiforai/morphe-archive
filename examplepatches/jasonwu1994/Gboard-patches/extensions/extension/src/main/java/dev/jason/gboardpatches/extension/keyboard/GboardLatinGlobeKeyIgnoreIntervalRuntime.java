@@ -4,80 +4,115 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.Map;
+import java.util.WeakHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public final class GboardLatinGlobeKeyIgnoreIntervalRuntime {
     private static final String TAG = "GboardPatches";
-    private static final String LOG_PREFIX = "[gboard-latin-globe] ";
-    private static final String GLOBE_KEY_IGNORE_INTERVAL_FIELD = "h";
+    private static final String LOG_PREFIX = "[gboard-latin-globe-17.7.7] ";
+    private static final String TARGET_CLASS_NAME = "xdj";
+    private static final String TARGET_FIELD_NAME = "h";
+    private static final int MAX_FAILURE_LOGS = 3;
+    private static final Map<ClassLoader, WeakReference<Handles>> HANDLES_BY_LOADER =
+            new WeakHashMap<ClassLoader, WeakReference<Handles>>();
+    private static final AtomicInteger FAILURE_LOGS = new AtomicInteger();
+    private static final SettingsSnapshot DISABLED_SETTINGS =
+            new SettingsSnapshot(
+                    false,
+                    GboardLatinGlobeKeyIgnoreIntervalSettings.DEFAULT_INTERVAL_MS);
 
-    private static volatile Field globeKeyIgnoreIntervalField;
     private static volatile Context applicationContext;
 
     private GboardLatinGlobeKeyIgnoreIntervalRuntime() {
     }
 
     public static Object applyOverride(Object runtimeParams) {
-        try {
-            Context context = resolveContext();
-            if (context == null || runtimeParams == null) {
-                return runtimeParams;
-            }
-            SharedPreferences preferences =
-                    GboardLatinGlobeKeyIgnoreIntervalSettings.preferences(context);
-            GboardLatinGlobeKeyIgnoreIntervalSettings.ensureDefaults(preferences);
-            if (!GboardLatinGlobeKeyIgnoreIntervalSettings.readEnabled(preferences)) {
-                return runtimeParams;
-            }
-            int intervalMs =
-                    GboardLatinGlobeKeyIgnoreIntervalSettings.readIntervalMs(preferences);
-            if (forceGlobeKeyIgnoreInterval(runtimeParams, intervalMs)) {
-                Log.i(TAG, LOG_PREFIX + "forced LatinIme.U() globe key ignore interval to "
-                        + intervalMs + "ms");
-            }
+        return applyOverride(runtimeParams, resolveContext());
+    }
+
+    static Object applyOverride(Object runtimeParams, Context context) {
+        if (runtimeParams == null || context == null) {
             return runtimeParams;
-        } catch (Throwable throwable) {
-            Log.w(TAG, LOG_PREFIX + "failed to override Latin globe key ignore interval",
-                    throwable);
+        }
+        try {
+            SettingsSnapshot settings = loadSettingsFailClosed(context);
+            if (!settings.enabled) {
+                return runtimeParams;
+            }
+
+            ClassLoader targetLoader = context.getClassLoader();
+            if (targetLoader == null) {
+                return runtimeParams;
+            }
+            Handles handles = handles(targetLoader);
+            if (runtimeParams.getClass() != handles.targetClass) {
+                return runtimeParams;
+            }
+
+            float configuredIntervalMs = (float) settings.intervalMs;
+            float currentValue = handles.globeKeyIgnoreIntervalField.getFloat(runtimeParams);
+            if (Float.compare(currentValue, configuredIntervalMs) == 0) {
+                return runtimeParams;
+            }
+            handles.globeKeyIgnoreIntervalField.setFloat(runtimeParams, configuredIntervalMs);
+            Log.i(TAG, LOG_PREFIX + "forced LatinIme.U() xdj.h globe key ignore interval to "
+                    + settings.intervalMs + "ms");
+            return runtimeParams;
+        } catch (Throwable failure) {
+            logFailure("failed to override Latin globe key ignore interval", failure);
             return runtimeParams;
         }
     }
 
-    static boolean forceGlobeKeyIgnoreInterval(Object runtimeParams, int intervalMs)
-            throws IllegalAccessException {
-        if (runtimeParams == null) {
-            return false;
-        }
-        float configuredIntervalMs =
-                (float) GboardLatinGlobeKeyIgnoreIntervalSettings.sanitizeIntervalMs(intervalMs);
-
-        Field field = globeKeyIgnoreIntervalField;
-        if (field == null || !field.getDeclaringClass().isInstance(runtimeParams)) {
-            field = findDeclaredFieldInHierarchy(
-                    runtimeParams.getClass(), GLOBE_KEY_IGNORE_INTERVAL_FIELD);
-            if (field == null) {
-                return false;
+    private static SettingsSnapshot loadSettingsFailClosed(Context context) {
+        try {
+            SharedPreferences preferences =
+                    GboardLatinGlobeKeyIgnoreIntervalSettings.preferences(context);
+            if (preferences == null) {
+                return DISABLED_SETTINGS;
             }
-            Class<?> fieldType = field.getType();
-            if (fieldType != Float.TYPE && fieldType != Float.class) {
-                return false;
+            GboardLatinGlobeKeyIgnoreIntervalSettings.ensureDefaults(preferences);
+            Map<String, ?> values = preferences.getAll();
+            Object enabledValue = values.get(
+                    GboardLatinGlobeKeyIgnoreIntervalSettings.PREF_KEY_ENABLED);
+            Object intervalValue = values.get(
+                    GboardLatinGlobeKeyIgnoreIntervalSettings.PREF_KEY_INTERVAL_MS);
+            if (!(enabledValue instanceof Boolean)) {
+                logFailure("invalid enabled setting type; using disabled/500", null);
+                return DISABLED_SETTINGS;
             }
-            globeKeyIgnoreIntervalField = field;
+            if (!((Boolean) enabledValue).booleanValue()) {
+                return DISABLED_SETTINGS;
+            }
+            if (!(intervalValue instanceof Integer)) {
+                logFailure("invalid interval setting type; using disabled/500", null);
+                return DISABLED_SETTINGS;
+            }
+            int intervalMs = GboardLatinGlobeKeyIgnoreIntervalSettings.sanitizeIntervalMs(
+                    ((Integer) intervalValue).intValue());
+            return new SettingsSnapshot(true, intervalMs);
+        } catch (Throwable failure) {
+            logFailure("failed to read settings; using disabled/500", failure);
+            return DISABLED_SETTINGS;
         }
+    }
 
-        float currentValue = field.getType() == Float.TYPE
-                ? field.getFloat(runtimeParams)
-                : readBoxedFloat(field, runtimeParams);
-        if (Float.compare(currentValue, configuredIntervalMs) == 0) {
-            return false;
+    private static Handles handles(ClassLoader targetLoader) throws Exception {
+        synchronized (HANDLES_BY_LOADER) {
+            WeakReference<Handles> reference = HANDLES_BY_LOADER.get(targetLoader);
+            Handles cached = reference != null ? reference.get() : null;
+            if (cached != null) {
+                return cached;
+            }
+            Handles created = new Handles(targetLoader);
+            HANDLES_BY_LOADER.put(targetLoader, new WeakReference<Handles>(created));
+            return created;
         }
-
-        if (field.getType() == Float.TYPE) {
-            field.setFloat(runtimeParams, configuredIntervalMs);
-        } else {
-            field.set(runtimeParams, Float.valueOf(configuredIntervalMs));
-        }
-        return true;
     }
 
     private static Context resolveContext() {
@@ -85,54 +120,101 @@ public final class GboardLatinGlobeKeyIgnoreIntervalRuntime {
         if (cached != null) {
             return cached;
         }
-        Context reflected = reflectedApplicationContext(
-                "android.app.ActivityThread",
-                "currentApplication");
-        if (reflected != null) {
-            applicationContext = reflected;
-            return reflected;
-        }
-        reflected = reflectedApplicationContext(
-                "android.app.AppGlobals",
-                "getInitialApplication");
-        if (reflected != null) {
-            applicationContext = reflected;
-            return reflected;
-        }
-        return null;
-    }
 
-    private static float readBoxedFloat(Field field, Object runtimeParams)
-            throws IllegalAccessException {
-        Object value = field.get(runtimeParams);
-        return value instanceof Number number ? number.floatValue() : Float.NaN;
-    }
-
-    private static Field findDeclaredFieldInHierarchy(Class<?> type, String fieldName) {
-        Class<?> current = type;
-        while (current != null) {
-            try {
-                Field field = current.getDeclaredField(fieldName);
-                field.setAccessible(true);
-                return field;
-            } catch (NoSuchFieldException ignored) {
-                current = current.getSuperclass();
-            }
-        }
-        return null;
-    }
-
-    private static Context reflectedApplicationContext(String className, String methodName) {
+        Throwable activityThreadFailure = null;
         try {
-            Class<?> owner = Class.forName(className);
-            Object application = owner.getMethod(methodName).invoke(null);
-            if (!(application instanceof Context context)) {
-                return null;
+            Context reflected = reflectedApplicationContext(
+                    "android.app.ActivityThread",
+                    "currentApplication");
+            if (reflected != null) {
+                applicationContext = reflected;
+                return reflected;
             }
-            Context resolvedContext = context.getApplicationContext();
-            return resolvedContext != null ? resolvedContext : context;
-        } catch (Throwable ignored) {
+        } catch (Throwable failure) {
+            activityThreadFailure = failure;
+        }
+
+        try {
+            Context reflected = reflectedApplicationContext(
+                    "android.app.AppGlobals",
+                    "getInitialApplication");
+            if (reflected != null) {
+                applicationContext = reflected;
+                return reflected;
+            }
+        } catch (Throwable failure) {
+            if (activityThreadFailure != null) {
+                failure.addSuppressed(activityThreadFailure);
+            }
+            logFailure("failed to resolve target application context", failure);
             return null;
+        }
+
+        if (activityThreadFailure != null) {
+            logFailure("failed to resolve target application context", activityThreadFailure);
+        }
+        return null;
+    }
+
+    private static Context reflectedApplicationContext(String className, String methodName)
+            throws Exception {
+        Class<?> owner = Class.forName(className);
+        Method method = owner.getMethod(methodName);
+        Object application = method.invoke(null);
+        if (!(application instanceof Context)) {
+            return null;
+        }
+        Context context = (Context) application;
+        Context resolved = context.getApplicationContext();
+        return resolved != null ? resolved : context;
+    }
+
+    private static void logFailure(String message, Throwable failure) {
+        int count = FAILURE_LOGS.incrementAndGet();
+        if (count <= MAX_FAILURE_LOGS) {
+            if (failure != null) {
+                Log.w(TAG, LOG_PREFIX + message, failure);
+            } else {
+                Log.w(TAG, LOG_PREFIX + message);
+            }
+        } else if (count == MAX_FAILURE_LOGS + 1) {
+            Log.w(TAG, LOG_PREFIX + "further runtime failures suppressed");
+        }
+    }
+
+    private static final class Handles {
+        final Class<?> targetClass;
+        final Field globeKeyIgnoreIntervalField;
+
+        Handles(ClassLoader targetLoader) throws Exception {
+            targetClass = Class.forName(TARGET_CLASS_NAME, false, targetLoader);
+            int classModifiers = targetClass.getModifiers();
+            if (classModifiers != (Modifier.PUBLIC | Modifier.FINAL)) {
+                throw new IllegalStateException(
+                        "Expected exact public final xdj, modifiers=" + classModifiers);
+            }
+
+            globeKeyIgnoreIntervalField = targetClass.getDeclaredField(TARGET_FIELD_NAME);
+            int fieldModifiers = globeKeyIgnoreIntervalField.getModifiers();
+            if (globeKeyIgnoreIntervalField.getDeclaringClass() != targetClass
+                    || globeKeyIgnoreIntervalField.getType() != Float.TYPE
+                    || fieldModifiers != Modifier.PUBLIC) {
+                throw new IllegalStateException(
+                        "Expected exact declared public primitive-float xdj.h, modifiers="
+                                + fieldModifiers
+                                + ", type="
+                                + globeKeyIgnoreIntervalField.getType().getName());
+            }
+        }
+    }
+
+    private static final class SettingsSnapshot {
+        final boolean enabled;
+        final int intervalMs;
+
+        SettingsSnapshot(boolean enabled, int intervalMs) {
+            this.enabled = enabled;
+            this.intervalMs = intervalMs;
         }
     }
 }

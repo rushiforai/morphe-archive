@@ -16,17 +16,27 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
+import java.lang.ref.Reference;
+import java.lang.ref.ReferenceQueue;
+import java.lang.ref.WeakReference;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import dev.jason.gboardpatches.extension.settings.GboardPatchesSettingsProvider;
+import dev.jason.gboardpatches.extension.zhuyinslide.GboardZhuyinSlideRuntime;
 
 @SuppressWarnings("unused")
 public final class GboardTopRowSwipeRuntime {
@@ -60,10 +70,13 @@ public final class GboardTopRowSwipeRuntime {
     static final Map<Object, VisibleTopRowKey> VISIBLE_TOP_ROW_KEYS =
             Collections.synchronizedMap(new WeakHashMap<Object, VisibleTopRowKey>());
     static final Map<Object, Object> ORIGINAL_KEY_METADATA_BY_PATCHED =
-            Collections.synchronizedMap(new WeakHashMap<Object, Object>());
+            new WeakIdentityMap<Object>();
     static final Map<Object, PatchedTopRowMetadataState> TOP_ROW_CUSTOM_PATCHED_METADATA_MARKERS =
-            Collections.synchronizedMap(
-                    new WeakHashMap<Object, PatchedTopRowMetadataState>());
+            new WeakIdentityMap<PatchedTopRowMetadataState>();
+    private static final ThreadLocal<Map<View, VisibleTopRowKey>>
+            PREVALIDATED_ENGLISH_REFRESH = new ThreadLocal<Map<View, VisibleTopRowKey>>();
+    private static final Map<View, Runnable> ROW_TRANSITION_OVERLAY_CLEANUPS =
+            Collections.synchronizedMap(new WeakHashMap<View, Runnable>());
 
     private static final Map<TopRowLayoutKind, TopRowPage> CURRENT_PAGE_BY_LAYOUT_KIND =
             Collections.synchronizedMap(new EnumMap<TopRowLayoutKind, TopRowPage>(
@@ -279,6 +292,7 @@ public final class GboardTopRowSwipeRuntime {
                     pressAction);
             Object patched = handles.buildKeyMetadataMethod.invoke(builder);
             if (patched != null) {
+                GboardZhuyinSlideRuntime.inheritPatchedMetadata(originalMetadata, patched);
                 ORIGINAL_KEY_METADATA_BY_PATCHED.put(patched, originalMetadata);
                 TOP_ROW_CUSTOM_PATCHED_METADATA_MARKERS.put(
                         patched,
@@ -294,16 +308,14 @@ public final class GboardTopRowSwipeRuntime {
         return keyMetadata;
     }
 
-    public static void afterSoftKeyBound(Object receiver, Object keyMetadata) {
+    public static void afterSoftKeyBound(Object receiver) {
         if (!(receiver instanceof View view)) {
             return;
         }
+        if (isPrevalidatedEnglishRefreshView(view)) {
+            return;
+        }
         try {
-            Object originalMetadata = resolveOriginalKeyMetadata(keyMetadata);
-            if (originalMetadata == null) {
-                VISIBLE_TOP_ROW_KEYS.remove(receiver);
-                return;
-            }
             ClassLoader classLoader = receiver.getClass().getClassLoader();
             if (classLoader == null) {
                 VISIBLE_TOP_ROW_KEYS.remove(receiver);
@@ -311,6 +323,12 @@ public final class GboardTopRowSwipeRuntime {
             }
             GboardTopRowSwipeRuntimeSupport.ReflectionHandles handles =
                     GboardTopRowSwipeRuntimeSupport.reflectionHandles(classLoader);
+            Object boundMetadata = handles.softKeyMetadataField.get(receiver);
+            Object originalMetadata = resolveOriginalKeyMetadata(boundMetadata);
+            if (originalMetadata == null) {
+                VISIBLE_TOP_ROW_KEYS.remove(receiver);
+                return;
+            }
             GboardTopRowSwipeRuntimeSupport.KeyBehavior behavior =
                     GboardTopRowSwipeRuntimeSupport.inspectKeyBehavior(handles, originalMetadata);
             TopRowSlot slot = topRowSlotForViewAndBehavior(view, behavior);
@@ -367,13 +385,13 @@ public final class GboardTopRowSwipeRuntime {
                 }
                 GboardTopRowSwipeRuntimeSupport.ReflectionHandles handles =
                         GboardTopRowSwipeRuntimeSupport.reflectionHandles(classLoader);
+                Object currentKeyMetadata = handles.softKeyMetadataField.get(candidateOwner);
+                Object originalKeyMetadata = resolveOriginalKeyMetadata(currentKeyMetadata);
+                GboardTopRowSwipeRuntimeSupport.KeyBehavior behavior =
+                        GboardTopRowSwipeRuntimeSupport.inspectKeyBehavior(
+                                handles, originalKeyMetadata);
                 TopRowSlot slot = topRowSlotFromVisibleCache(candidateOwner);
-                GboardTopRowSwipeRuntimeSupport.KeyBehavior behavior = null;
                 if (slot == null) {
-                    Object currentKeyMetadata = handles.softKeyMetadataField.get(candidateOwner);
-                    Object originalKeyMetadata = resolveOriginalKeyMetadata(currentKeyMetadata);
-                    behavior = GboardTopRowSwipeRuntimeSupport.inspectKeyBehavior(handles,
-                            originalKeyMetadata);
                     slot = topRowSlotForViewAndBehavior(candidateView, behavior);
                 } else {
                     logLimited(SESSION_CACHE_HIT_LOG_COUNT,
@@ -382,8 +400,25 @@ public final class GboardTopRowSwipeRuntime {
                                     + " rowIndex=" + slot.rowIndex
                                     + " layout=" + slot.layoutKind);
                 }
+                if (slot == null) {
+                    slot = recoverMarkerSlot(
+                            topRowSlotFromVisibleState(candidateOwner),
+                            viewSlotIndex(candidateView),
+                            hasQuickJsMarkerPayload(handles, null, currentKeyMetadata),
+                            inferLayoutKind(candidateView, handles),
+                            snapshot);
+                }
                 if (slot == null || !isLayoutEnabled(snapshot, slot.layoutKind)) {
                     maybeLogEnglishCandidateMiss(candidateView, behavior, snapshot);
+                    return incomingSoftKeyView;
+                }
+                int hydratedRowIndex = switch (slot.layoutKind) {
+                    case ZHUYIN -> hydrateConfirmedZhuyinRow(handles, candidateView);
+                    case ENGLISH_QWERTY ->
+                            hydrateConfirmedEnglishQwertyRow(handles, candidateView);
+                    case NONE -> -1;
+                };
+                if (hydratedRowIndex != slot.rowIndex) {
                     return incomingSoftKeyView;
                 }
                 SESSIONS.put(tracker, new SwipeSession(
@@ -432,6 +467,14 @@ public final class GboardTopRowSwipeRuntime {
         }
     }
 
+    public static void finishSwipeSession(Object tracker) {
+        SwipeSession session = SESSIONS.get(tracker);
+        if (session == null || (!session.consumed && session.pendingPage == null)) {
+            return;
+        }
+        clearSwipeSession(tracker);
+    }
+
     public static boolean maybeConsumeTopRowSwipe(Object gestureDispatcher, Object tracker,
             Object action, Object keyMetadata) {
         if (isTopRowCustomPatchedMetadata(keyMetadata)) {
@@ -461,9 +504,15 @@ public final class GboardTopRowSwipeRuntime {
         if (!isLayoutEnabled(context, session.layoutKind)) {
             return false;
         }
+        TopRowPage visiblePage = currentPage(session.layoutKind);
+        if (keyMetadata != null) {
+            visiblePage = isTopRowCustomPatchedMetadata(keyMetadata)
+                    ? TopRowPage.CUSTOM : TopRowPage.STOCK;
+            setCurrentPage(session.layoutKind, visiblePage);
+        }
         session.consumed = true;
         session.consumedAtElapsedMs = SystemClock.elapsedRealtime();
-        session.pendingPage = toggledPage(currentPage(session.layoutKind));
+        session.pendingPage = toggledPage(visiblePage);
         logLimited(SESSION_CONSUME_LOG_COUNT,
                 "consume"
                         + " tracker=" + trackerId(tracker)
@@ -633,7 +682,9 @@ public final class GboardTopRowSwipeRuntime {
             return TopRowLayoutKind.NONE;
         }
         if (legacyKeyboardKind == GboardTopRowSwipeRuntimeSupport.LegacyKeyboardKind.ZHUYIN) {
-            return TopRowLayoutKind.ZHUYIN;
+            return GboardTopRowSwipeRuntimeSupport.matchesZhuyinTopRowLabel(
+                    rowIndex, primaryLabel)
+                    ? TopRowLayoutKind.ZHUYIN : TopRowLayoutKind.NONE;
         }
         String normalizedLabel =
                 GboardTopRowSwipeRuntimeSupport.asciiLowercase(primaryLabel);
@@ -649,19 +700,36 @@ public final class GboardTopRowSwipeRuntime {
         if (view == null || behavior == null || isDisallowedTopRowSurface(view)) {
             return null;
         }
-        String englishDetectionLabel = englishQwertyDetectionLabel(behavior);
-        int rowIndex = GboardTopRowSwipeRuntimeSupport.topRowSlotIndexForView(view);
-        if (rowIndex >= 0) {
-            TopRowLayoutKind layoutKind = topRowLayoutKindForSlot(
-                    rowIndex, behavior.legacyKeyboardKind, englishDetectionLabel);
-            if (layoutKind != TopRowLayoutKind.NONE) {
-                return new TopRowSlot(rowIndex, layoutKind);
-            }
+        if (behavior.legacyKeyboardKind
+                == GboardTopRowSwipeRuntimeSupport.LegacyKeyboardKind.ZHUYIN) {
+            int rowIndex = GboardTopRowSwipeRuntimeSupport.topRowSlotIndexForView(view);
+            return topRowLayoutKindForSlot(
+                    rowIndex, behavior.legacyKeyboardKind,
+                    englishQwertyDetectionLabel(behavior)) == TopRowLayoutKind.ZHUYIN
+                    ? new TopRowSlot(rowIndex, TopRowLayoutKind.ZHUYIN) : null;
         }
         if (behavior.legacyKeyboardKind
-                == GboardTopRowSwipeRuntimeSupport.LegacyKeyboardKind.ENGLISH_QWERTY) {
-            return topRowSlotForEnglishQwertyLabelFallback(isConfirmedVisualFirstRow(view),
-                    behavior);
+                != GboardTopRowSwipeRuntimeSupport.LegacyKeyboardKind.ENGLISH_QWERTY) {
+            return null;
+        }
+        TopRowSlot prevalidated = prevalidatedEnglishSlot(view, behavior);
+        if (prevalidated != null) {
+            return prevalidated;
+        }
+        try {
+            ClassLoader classLoader = view.getClass().getClassLoader();
+            if (classLoader == null) {
+                return null;
+            }
+            GboardTopRowSwipeRuntimeSupport.ReflectionHandles handles =
+                    GboardTopRowSwipeRuntimeSupport.reflectionHandles(classLoader);
+            List<View> rowViews = confirmedEnglishQwertyRow(view, handles);
+            int rowIndex = confirmedRowIndex(rowViews, view);
+            if (rowIndex >= 0) {
+                return new TopRowSlot(rowIndex, TopRowLayoutKind.ENGLISH_QWERTY);
+            }
+        } catch (Throwable ignored) {
+            return null;
         }
         return null;
     }
@@ -705,15 +773,357 @@ public final class GboardTopRowSwipeRuntime {
     }
 
     static TopRowSlot topRowSlotFromVisibleCache(Object softKeyView) {
+        TopRowSlot slot = topRowSlotFromVisibleState(softKeyView);
+        if (slot == null || currentPage(slot.layoutKind) != TopRowPage.CUSTOM) {
+            return null;
+        }
+        return slot;
+    }
+
+    private static TopRowSlot topRowSlotFromVisibleState(Object softKeyView) {
         VisibleTopRowKey visible = VISIBLE_TOP_ROW_KEYS.get(softKeyView);
         if (visible == null || visible.layoutKind == null
                 || visible.layoutKind == TopRowLayoutKind.NONE) {
             return null;
         }
-        if (currentPage(visible.layoutKind) != TopRowPage.CUSTOM) {
+        return new TopRowSlot(visible.rowIndex, visible.layoutKind);
+    }
+
+    private static TopRowSlot recoverMarkerSlot(TopRowSlot rememberedSlot,
+            int viewSlotIndex,
+            boolean markerPress,
+            TopRowLayoutKind inferredLayoutKind,
+            SettingsSnapshot snapshot) {
+        if (rememberedSlot != null) {
+            return rememberedSlot;
+        }
+        if (!markerPress || snapshot == null
+                || viewSlotIndex < 0
+                || viewSlotIndex >= GboardTopRowSwipeRuntimeSupport.TOP_ROW_SLOT_VIEW_NAMES.length) {
             return null;
         }
-        return new TopRowSlot(visible.rowIndex, visible.layoutKind);
+        boolean zhuyinCustomPage = snapshot.zhuyinEnabled
+                && currentPage(TopRowLayoutKind.ZHUYIN) == TopRowPage.CUSTOM;
+        boolean englishCustomPage = snapshot.englishQwertyEnabled
+                && currentPage(TopRowLayoutKind.ENGLISH_QWERTY) == TopRowPage.CUSTOM;
+        if (inferredLayoutKind != null && inferredLayoutKind != TopRowLayoutKind.NONE) {
+            boolean inferredLayoutActive = switch (inferredLayoutKind) {
+                case ZHUYIN -> zhuyinCustomPage;
+                case ENGLISH_QWERTY -> englishCustomPage;
+                case NONE -> false;
+            };
+            return inferredLayoutActive
+                    ? new TopRowSlot(viewSlotIndex, inferredLayoutKind) : null;
+        }
+        if (zhuyinCustomPage == englishCustomPage) {
+            return null;
+        }
+        return new TopRowSlot(
+                viewSlotIndex,
+                zhuyinCustomPage
+                        ? TopRowLayoutKind.ZHUYIN : TopRowLayoutKind.ENGLISH_QWERTY);
+    }
+
+    private static int viewSlotIndex(View view) {
+        int namedIndex = GboardTopRowSwipeRuntimeSupport.topRowSlotIndexForView(view);
+        return namedIndex >= 0 ? namedIndex : visualRowIndex(view);
+    }
+
+    private static TopRowLayoutKind inferLayoutKind(View candidateView,
+            GboardTopRowSwipeRuntimeSupport.ReflectionHandles handles) {
+        if (candidateView == null || handles == null
+                || !(candidateView.getRootView() instanceof ViewGroup rootGroup)) {
+            return TopRowLayoutKind.NONE;
+        }
+        List<View> sameClassViews = new ArrayList<View>();
+        collectUsableSameClassViews(rootGroup, candidateView.getClass(), sameClassViews);
+        TopRowLayoutKind inferred = TopRowLayoutKind.NONE;
+        for (View view : sameClassViews) {
+            if (view == candidateView) {
+                continue;
+            }
+            try {
+                Object metadata = handles.softKeyMetadataField.get(view);
+                Object original = rowGuardOriginalMetadata(handles, view, metadata);
+                GboardTopRowSwipeRuntimeSupport.KeyBehavior behavior =
+                        GboardTopRowSwipeRuntimeSupport.inspectKeyBehavior(handles, original);
+                TopRowLayoutKind detected = switch (behavior.legacyKeyboardKind) {
+                    case ZHUYIN -> TopRowLayoutKind.ZHUYIN;
+                    case ENGLISH_QWERTY -> TopRowLayoutKind.ENGLISH_QWERTY;
+                    case NONE -> TopRowLayoutKind.NONE;
+                };
+                if (detected == TopRowLayoutKind.NONE) {
+                    continue;
+                }
+                if (inferred != TopRowLayoutKind.NONE && inferred != detected) {
+                    return TopRowLayoutKind.NONE;
+                }
+                inferred = detected;
+            } catch (Throwable ignored) {
+                // Ignore unrelated or transient sibling Views.
+            }
+        }
+        return inferred;
+    }
+
+    private static int hydrateConfirmedEnglishQwertyRow(
+            GboardTopRowSwipeRuntimeSupport.ReflectionHandles handles,
+            View candidateView) throws Throwable {
+        List<View> rowViews = confirmedEnglishQwertyRow(candidateView, handles);
+        int candidateIndex = confirmedRowIndex(rowViews, candidateView);
+        if (candidateIndex < 0) {
+            return -1;
+        }
+        Map<View, VisibleTopRowKey> hydrated = new HashMap<View, VisibleTopRowKey>();
+        for (int rowIndex = 0; rowIndex < rowViews.size(); rowIndex++) {
+            View rowView = rowViews.get(rowIndex);
+            Object original = rowGuardOriginalMetadata(handles, rowView);
+            if (original == null) {
+                return -1;
+            }
+            hydrated.put(rowView, new VisibleTopRowKey(
+                    original, rowIndex, TopRowLayoutKind.ENGLISH_QWERTY));
+        }
+        VISIBLE_TOP_ROW_KEYS.putAll(hydrated);
+        return candidateIndex;
+    }
+
+    private static int hydrateConfirmedZhuyinRow(
+            GboardTopRowSwipeRuntimeSupport.ReflectionHandles handles,
+            View candidateView) throws Throwable {
+        if (handles == null || !isTopRowCacheEligibleView(candidateView, null)
+                || !(candidateView.getRootView() instanceof ViewGroup rootGroup)) {
+            return -1;
+        }
+        List<View> rowViews = new ArrayList<View>();
+        collectSameClassVisualRow(rootGroup, candidateView, candidateView.getClass(), rowViews);
+        sortViewsLeftToRight(rowViews);
+        if (rowViews.size() != GboardTopRowSwipeRuntimeSupport.TOP_ROW_SLOT_VIEW_NAMES.length) {
+            return -1;
+        }
+        int candidateIndex = confirmedRowIndex(rowViews, candidateView);
+        if (candidateIndex < 0) {
+            return -1;
+        }
+        Map<View, VisibleTopRowKey> hydrated = new HashMap<View, VisibleTopRowKey>();
+        for (int rowIndex = 0; rowIndex < rowViews.size(); rowIndex++) {
+            View rowView = rowViews.get(rowIndex);
+            Object original = rowGuardOriginalMetadata(handles, rowView);
+            if (original == null) {
+                return -1;
+            }
+            GboardTopRowSwipeRuntimeSupport.KeyBehavior behavior =
+                    GboardTopRowSwipeRuntimeSupport.inspectKeyBehavior(handles, original);
+            if (topRowLayoutKindForSlot(
+                    rowIndex,
+                    behavior.legacyKeyboardKind,
+                    englishQwertyDetectionLabel(behavior)) != TopRowLayoutKind.ZHUYIN) {
+                return -1;
+            }
+            hydrated.put(rowView, new VisibleTopRowKey(
+                    original, rowIndex, TopRowLayoutKind.ZHUYIN));
+        }
+        VISIBLE_TOP_ROW_KEYS.putAll(hydrated);
+        return candidateIndex;
+    }
+
+    private static List<View> confirmedEnglishQwertyRow(View candidateView,
+            GboardTopRowSwipeRuntimeSupport.ReflectionHandles handles) {
+        if (candidateView == null || handles == null || isDisallowedTopRowSurface(candidateView)
+                || !(candidateView.getRootView() instanceof ViewGroup rootGroup)) {
+            return Collections.emptyList();
+        }
+        List<View> rowViews = namedEnglishRow(rootGroup, candidateView);
+        if (!hasEnglishQwertyMetadataSequence(rowViews, handles)) {
+            if (!isTopRowCacheEligibleView(candidateView, null)) {
+                return Collections.emptyList();
+            }
+            rowViews = new ArrayList<View>();
+            collectSameClassVisualRow(
+                    rootGroup, candidateView, candidateView.getClass(), rowViews);
+            sortViewsLeftToRight(rowViews);
+            if (!hasEnglishQwertyMetadataSequence(rowViews, handles)) {
+                return Collections.emptyList();
+            }
+        }
+        return confirmedRowIndex(rowViews, candidateView) >= 0
+                ? rowViews : Collections.emptyList();
+    }
+
+    private static List<View> namedEnglishRow(ViewGroup rootGroup, View candidateView) {
+        View[] slots = new View[GboardTopRowSwipeRuntimeSupport.TOP_ROW_SLOT_VIEW_NAMES.length];
+        if (!collectNamedEnglishRow(rootGroup, candidateView.getClass(), slots)) {
+            return Collections.emptyList();
+        }
+        List<View> rowViews = new ArrayList<View>(slots.length);
+        for (View slot : slots) {
+            if (slot == null) {
+                return Collections.emptyList();
+            }
+            rowViews.add(slot);
+        }
+        return confirmedRowIndex(rowViews, candidateView) >= 0
+                ? rowViews : Collections.emptyList();
+    }
+
+    private static boolean collectNamedEnglishRow(View current,
+            Class<?> candidateClass,
+            View[] slots) {
+        if (current == null) {
+            return true;
+        }
+        if (current.getClass() == candidateClass
+                && current.getVisibility() == View.VISIBLE
+                && !isDisallowedTopRowSurface(current)) {
+            int slotIndex = namedTopRowIndex(current);
+            if (slotIndex >= 0) {
+                if (slots[slotIndex] != null && slots[slotIndex] != current) {
+                    return false;
+                }
+                slots[slotIndex] = current;
+            }
+        }
+        if (!(current instanceof ViewGroup group)) {
+            return true;
+        }
+        for (int index = 0; index < group.getChildCount(); index++) {
+            if (!collectNamedEnglishRow(group.getChildAt(index), candidateClass, slots)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static int namedTopRowIndex(View view) {
+        if (view == null || view.getId() == View.NO_ID) {
+            return -1;
+        }
+        return GboardTopRowSwipeRuntimeSupport.topRowSlotIndexForView(view);
+    }
+
+    private static boolean hasEnglishQwertyMetadataSequence(
+            List<View> rowViews,
+            GboardTopRowSwipeRuntimeSupport.ReflectionHandles handles) {
+        if (rowViews == null
+                || rowViews.size()
+                        != GboardTopRowSwipeRuntimeSupport.TOP_ROW_SLOT_VIEW_NAMES.length) {
+            return false;
+        }
+        try {
+            List<String> labels = new ArrayList<String>(rowViews.size());
+            for (View rowView : rowViews) {
+                Object original = rowGuardOriginalMetadata(handles, rowView);
+                GboardTopRowSwipeRuntimeSupport.KeyBehavior behavior =
+                        GboardTopRowSwipeRuntimeSupport.inspectKeyBehavior(handles, original);
+                labels.add(englishQwertyDetectionLabel(behavior));
+            }
+            return GboardTopRowSwipeRuntimeSupport.isEnglishQwertyTopRowLabels(labels);
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
+    private static Object rowGuardOriginalMetadata(
+            GboardTopRowSwipeRuntimeSupport.ReflectionHandles handles,
+            View rowView) throws Throwable {
+        return rowGuardOriginalMetadata(
+                handles, rowView, handles.softKeyMetadataField.get(rowView));
+    }
+
+    private static Object rowGuardOriginalMetadata(
+            GboardTopRowSwipeRuntimeSupport.ReflectionHandles handles,
+            View rowView,
+            Object currentMetadata) throws Throwable {
+        Object original = resolveOriginalKeyMetadata(currentMetadata);
+        if (currentMetadata == null || original != currentMetadata
+                || !hasQuickJsMarkerPayload(handles, null, currentMetadata)) {
+            return original;
+        }
+        VisibleTopRowKey remembered = VISIBLE_TOP_ROW_KEYS.get(rowView);
+        return remembered != null && remembered.originalMetadata != null
+                ? remembered.originalMetadata : original;
+    }
+
+    private static TopRowSlot prevalidatedEnglishSlot(View view,
+            GboardTopRowSwipeRuntimeSupport.KeyBehavior behavior) {
+        if (view == null || behavior == null
+                || behavior.legacyKeyboardKind
+                        != GboardTopRowSwipeRuntimeSupport.LegacyKeyboardKind.ENGLISH_QWERTY) {
+            return null;
+        }
+        Map<View, VisibleTopRowKey> visible = PREVALIDATED_ENGLISH_REFRESH.get();
+        VisibleTopRowKey state = visible != null ? visible.get(view) : null;
+        if (state == null || state.layoutKind != TopRowLayoutKind.ENGLISH_QWERTY
+                || state.rowIndex < 0
+                || state.rowIndex >= GboardTopRowSwipeRuntimeSupport.TOP_ROW_SLOT_VIEW_NAMES.length) {
+            return null;
+        }
+        return new TopRowSlot(state.rowIndex, TopRowLayoutKind.ENGLISH_QWERTY);
+    }
+
+    private static boolean isPrevalidatedEnglishRefreshView(View view) {
+        Map<View, VisibleTopRowKey> visible = PREVALIDATED_ENGLISH_REFRESH.get();
+        VisibleTopRowKey state = visible != null ? visible.get(view) : null;
+        return state != null && state.layoutKind == TopRowLayoutKind.ENGLISH_QWERTY;
+    }
+
+    private static int confirmedRowIndex(List<?> row, Object candidate) {
+        if (row == null || candidate == null) {
+            return -1;
+        }
+        for (int index = 0; index < row.size(); index++) {
+            if (row.get(index) == candidate) {
+                return index;
+            }
+        }
+        return -1;
+    }
+
+    private static int visualRowIndex(View candidateView) {
+        if (!isTopRowCacheEligibleView(candidateView, null)
+                || !(candidateView.getRootView() instanceof ViewGroup rootGroup)) {
+            return -1;
+        }
+        List<View> sameRowViews = new ArrayList<View>();
+        collectSameClassVisualRow(
+                rootGroup, candidateView, candidateView.getClass(), sameRowViews);
+        if (sameRowViews.size()
+                != GboardTopRowSwipeRuntimeSupport.TOP_ROW_SLOT_VIEW_NAMES.length) {
+            return -1;
+        }
+        sortViewsLeftToRight(sameRowViews);
+        return confirmedRowIndex(sameRowViews, candidateView);
+    }
+
+    private static void collectSameClassVisualRow(View current,
+            View candidateView,
+            Class<?> candidateClass,
+            List<View> result) {
+        if (current == null || candidateView == null || candidateClass == null) {
+            return;
+        }
+        if (current.getClass() == candidateClass
+                && isTopRowCacheEligibleView(current, candidateView.getRootView())
+                && isSameVisualRow(current, candidateView)) {
+            result.add(current);
+        }
+        if (!(current instanceof ViewGroup group)) {
+            return;
+        }
+        for (int index = 0; index < group.getChildCount(); index++) {
+            collectSameClassVisualRow(
+                    group.getChildAt(index), candidateView, candidateClass, result);
+        }
+    }
+
+    private static void sortViewsLeftToRight(List<View> views) {
+        views.sort((left, right) -> {
+            int[] leftLocation = new int[2];
+            int[] rightLocation = new int[2];
+            left.getLocationOnScreen(leftLocation);
+            right.getLocationOnScreen(rightLocation);
+            return Integer.compare(leftLocation[0], rightLocation[0]);
+        });
     }
 
     static boolean shouldRecycleConsumedSession(long now, SwipeSession session) {
@@ -897,6 +1307,21 @@ public final class GboardTopRowSwipeRuntime {
     public static Object resolveOriginalKeyMetadataForPatchInterop(Object keyMetadata) {
         Object originalMetadata = ORIGINAL_KEY_METADATA_BY_PATCHED.get(keyMetadata);
         return originalMetadata != null ? originalMetadata : keyMetadata;
+    }
+
+    public static void inheritPatchedMetadataForPatchInterop(Object source, Object target) {
+        if (source == null || target == null || source == target) {
+            return;
+        }
+        Object originalMetadata = ORIGINAL_KEY_METADATA_BY_PATCHED.get(source);
+        if (originalMetadata != null) {
+            ORIGINAL_KEY_METADATA_BY_PATCHED.put(target, originalMetadata);
+        }
+        PatchedTopRowMetadataState metadataState =
+                TOP_ROW_CUSTOM_PATCHED_METADATA_MARKERS.get(source);
+        if (metadataState != null) {
+            TOP_ROW_CUSTOM_PATCHED_METADATA_MARKERS.put(target, metadataState);
+        }
     }
 
     private static Object resolveOriginalKeyMetadata(Object keyMetadata) {
@@ -1280,21 +1705,96 @@ public final class GboardTopRowSwipeRuntime {
             }
             GboardTopRowSwipeRuntimeSupport.ReflectionHandles handles =
                     GboardTopRowSwipeRuntimeSupport.reflectionHandles(classLoader);
-            Map<View, VisibleTopRowKey> visibleTopRowKeys =
-                    copyVisibleTopRowKeys(session.layoutKind, anchorView);
-            RowSnapshot beforeSnapshot = captureTopRowSnapshot(visibleTopRowKeys);
-            setCurrentPage(session.layoutKind, session.pendingPage);
-            refreshVisibleTopRowKeyMetadata(handles, visibleTopRowKeys);
-            RowSnapshot afterSnapshot = captureTopRowSnapshot(visibleTopRowKeys);
-            maybeAnimateTopRowTransition(visibleTopRowKeys, beforeSnapshot, afterSnapshot,
-                    session.swipeDirectionSign);
-            logLimited(SESSION_APPLY_LOG_COUNT,
-                    "apply"
-                            + " layout=" + session.layoutKind
-                            + " page=" + session.pendingPage
-                            + " visibleKeys=" + visibleTopRowKeys.size());
+            TopRowPage previousPage = currentPage(session.layoutKind);
+            AtomicInteger visibleCount = new AtomicInteger(0);
+            boolean applied = applyTopRowPageTransition(
+                    anchorView,
+                    session.layoutKind,
+                    previousPage,
+                    session.pendingPage,
+                    session.swipeDirectionSign,
+                    GboardTopRowSwipeRuntime::captureTopRowSnapshot,
+                    page -> setCurrentPage(session.layoutKind, page),
+                    visibleTopRowKeys -> {
+                        visibleCount.set(visibleTopRowKeys.size());
+                        try {
+                            refreshVisibleTopRowKeyMetadata(handles, visibleTopRowKeys);
+                        } catch (Throwable throwable) {
+                            throw new IllegalStateException(
+                                    "Top Row metadata rebind failed", throwable);
+                        }
+                    });
+            if (applied) {
+                logLimited(SESSION_APPLY_LOG_COUNT,
+                        "apply"
+                                + " layout=" + session.layoutKind
+                                + " page=" + session.pendingPage
+                                + " visibleKeys=" + visibleCount.get());
+            }
         } catch (Throwable ignored) {
             // Keep host alive; stale view state is preferable to crash.
+        }
+    }
+
+    static boolean applyTopRowPageTransition(
+            View anchorView,
+            TopRowLayoutKind layoutKind,
+            TopRowPage previousPage,
+            TopRowPage pendingPage,
+            int swipeDirectionSign,
+            Function<Map<View, VisibleTopRowKey>, RowSnapshot> snapshotter,
+            Consumer<TopRowPage> pageSetter,
+            Consumer<Map<View, VisibleTopRowKey>> rebinder) {
+        Map<View, VisibleTopRowKey> visibleTopRowKeys = Collections.emptyMap();
+        RowSnapshot beforeSnapshot = null;
+        RowSnapshot afterSnapshot = null;
+        boolean pageChangeStarted = false;
+        try {
+            cleanupOwnedTopRowTransition(anchorView);
+            visibleTopRowKeys = copyVisibleTopRowKeys(layoutKind, anchorView);
+            beforeSnapshot = snapshotter.apply(visibleTopRowKeys);
+            pageChangeStarted = true;
+            pageSetter.accept(pendingPage);
+            rebinder.accept(visibleTopRowKeys);
+            afterSnapshot = snapshotter.apply(visibleTopRowKeys);
+            maybeAnimateTopRowTransition(
+                    visibleTopRowKeys,
+                    beforeSnapshot,
+                    afterSnapshot,
+                    swipeDirectionSign);
+            beforeSnapshot = null;
+            afterSnapshot = null;
+            return true;
+        } catch (Throwable ignored) {
+            cleanupOwnedTopRowTransition(anchorView);
+            recycleSnapshot(beforeSnapshot);
+            recycleSnapshot(afterSnapshot);
+            setTopRowAlpha(visibleTopRowKeys, 1f);
+            if (pageChangeStarted) {
+                try {
+                    pageSetter.accept(previousPage);
+                } catch (Throwable rollbackPageFailure) {
+                    // Continue with best-effort metadata restoration.
+                }
+                try {
+                    rebinder.accept(visibleTopRowKeys);
+                } catch (Throwable rollbackRebindFailure) {
+                    // The previous page remains authoritative even if rebind cannot complete.
+                }
+            }
+            cleanupOwnedTopRowTransition(anchorView);
+            setTopRowAlpha(visibleTopRowKeys, 1f);
+            return false;
+        }
+    }
+
+    private static void cleanupOwnedTopRowTransition(View anchorView) {
+        if (anchorView == null) {
+            return;
+        }
+        View rootView = anchorView.getRootView();
+        if (rootView instanceof ViewGroup host) {
+            removeExistingOverlay(host);
         }
     }
 
@@ -1302,19 +1802,44 @@ public final class GboardTopRowSwipeRuntime {
             GboardTopRowSwipeRuntimeSupport.ReflectionHandles handles,
             Map<View, VisibleTopRowKey> visibleTopRowKeys) throws Throwable {
         clearSettingsSnapshotCache();
-        for (Map.Entry<View, VisibleTopRowKey> entry : visibleTopRowKeys.entrySet()) {
-            View softKeyView = entry.getKey();
-            VisibleTopRowKey visible = entry.getValue();
-            if (softKeyView == null || visible == null || visible.originalMetadata == null) {
-                continue;
+        boolean englishRefresh = containsLayout(
+                visibleTopRowKeys, TopRowLayoutKind.ENGLISH_QWERTY);
+        if (englishRefresh) {
+            PREVALIDATED_ENGLISH_REFRESH.set(visibleTopRowKeys);
+        }
+        try {
+            for (Map.Entry<View, VisibleTopRowKey> entry : visibleTopRowKeys.entrySet()) {
+                View softKeyView = entry.getKey();
+                VisibleTopRowKey visible = entry.getValue();
+                if (softKeyView == null || visible == null || visible.originalMetadata == null) {
+                    continue;
+                }
+                Object rebuilt = patchIncomingSoftKeyMetadata(
+                        softKeyView, visible.originalMetadata);
+                if (rebuilt != null) {
+                    handles.rebindSoftKeyView(softKeyView, rebuilt);
+                    softKeyView.invalidate();
+                    softKeyView.requestLayout();
+                }
             }
-            Object rebuilt = patchIncomingSoftKeyMetadata(softKeyView, visible.originalMetadata);
-            if (rebuilt != null) {
-                handles.rebindSoftKeyView(softKeyView, rebuilt);
-                softKeyView.invalidate();
-                softKeyView.requestLayout();
+        } finally {
+            if (englishRefresh) {
+                PREVALIDATED_ENGLISH_REFRESH.remove();
             }
         }
+    }
+
+    private static boolean containsLayout(Map<View, VisibleTopRowKey> visibleTopRowKeys,
+            TopRowLayoutKind layoutKind) {
+        if (visibleTopRowKeys == null || visibleTopRowKeys.isEmpty()) {
+            return false;
+        }
+        for (VisibleTopRowKey state : visibleTopRowKeys.values()) {
+            if (state != null && state.layoutKind == layoutKind) {
+                return true;
+            }
+        }
+        return false;
     }
 
     static Map<View, VisibleTopRowKey> copyVisibleTopRowKeys(TopRowLayoutKind layoutKind) {
@@ -1513,8 +2038,11 @@ public final class GboardTopRowSwipeRuntime {
             RowSnapshot afterSnapshot,
             int swipeDirectionSign) {
         if (beforeSnapshot == null || afterSnapshot == null
-                || beforeSnapshot.host == null || beforeSnapshot.bitmap == null
-                || afterSnapshot.bitmap == null) {
+                || beforeSnapshot.host == null
+                || beforeSnapshot.bounds == null || afterSnapshot.bounds == null
+                || beforeSnapshot.bitmap == null || afterSnapshot.bitmap == null) {
+            recycleSnapshot(beforeSnapshot);
+            recycleSnapshot(afterSnapshot);
             return;
         }
         ViewGroup host = beforeSnapshot.host;
@@ -1530,54 +2058,88 @@ public final class GboardTopRowSwipeRuntime {
         overlay.setClipChildren(true);
         overlay.setClipToPadding(true);
 
-        ImageView oldImage = new ImageView(host.getContext());
-        oldImage.setImageBitmap(beforeSnapshot.bitmap);
-        oldImage.setScaleType(ImageView.ScaleType.FIT_XY);
-        oldImage.setLayoutParams(new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT));
-
-        ImageView newImage = new ImageView(host.getContext());
-        newImage.setImageBitmap(afterSnapshot.bitmap);
-        newImage.setScaleType(ImageView.ScaleType.FIT_XY);
-        newImage.setLayoutParams(new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT));
-
+        ImageView oldImage = transitionImage(host, beforeSnapshot.bitmap);
+        ImageView newImage = transitionImage(host, afterSnapshot.bitmap);
         float offset = beforeSnapshot.bounds.width();
         float animationDirection = swipeDirectionSign >= 0 ? 1f : -1f;
-        float newStart = -offset * animationDirection;
-        float oldEnd = offset * animationDirection;
-        newImage.setTranslationX(newStart);
-
+        newImage.setTranslationX(-offset * animationDirection);
         overlay.addView(oldImage);
         overlay.addView(newImage);
-        host.addView(overlay);
-        setTopRowAlpha(visibleTopRowKeys, 0f);
 
-        oldImage.animate()
-                .translationX(oldEnd)
-                .setDuration(ROW_TRANSITION_DURATION_MS)
-                .start();
-        newImage.animate()
-                .translationX(0f)
-                .setDuration(ROW_TRANSITION_DURATION_MS)
-                .setListener(new AnimatorListenerAdapter() {
-                    @Override
-                    public void onAnimationEnd(Animator animation) {
-                        setTopRowAlpha(visibleTopRowKeys, 1f);
-                        removeExistingOverlay(host);
-                        beforeSnapshot.bitmap.recycle();
-                        afterSnapshot.bitmap.recycle();
-                    }
-                })
-                .start();
+        AtomicBoolean cleaned = new AtomicBoolean(false);
+        Runnable cleanup = () -> cleanupTopRowTransition(
+                visibleTopRowKeys,
+                host,
+                overlay,
+                beforeSnapshot,
+                afterSnapshot,
+                cleaned);
+        ROW_TRANSITION_OVERLAY_CLEANUPS.put(overlay, cleanup);
+        runTopRowTransitionStartup(() -> {
+            host.addView(overlay);
+            setTopRowAlpha(visibleTopRowKeys, 0f);
+            oldImage.animate()
+                    .translationX(offset * animationDirection)
+                    .setDuration(ROW_TRANSITION_DURATION_MS)
+                    .start();
+            newImage.animate()
+                    .translationX(0f)
+                    .setDuration(ROW_TRANSITION_DURATION_MS)
+                    .setListener(new AnimatorListenerAdapter() {
+                        @Override
+                        public void onAnimationCancel(Animator animation) {
+                            cleanup.run();
+                        }
+
+                        @Override
+                        public void onAnimationEnd(Animator animation) {
+                            cleanup.run();
+                        }
+                    })
+                    .start();
+        }, cleanup);
+    }
+
+    private static ImageView transitionImage(ViewGroup host, Bitmap bitmap) {
+        ImageView image = new ImageView(host.getContext());
+        image.setImageBitmap(bitmap);
+        image.setScaleType(ImageView.ScaleType.FIT_XY);
+        image.setLayoutParams(new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT));
+        return image;
+    }
+
+    private static void cleanupTopRowTransition(
+            Map<View, VisibleTopRowKey> visibleTopRowKeys,
+            ViewGroup host,
+            View overlay,
+            RowSnapshot beforeSnapshot,
+            RowSnapshot afterSnapshot,
+            AtomicBoolean cleaned) {
+        if (!cleaned.compareAndSet(false, true)) {
+            return;
+        }
+        setTopRowAlpha(visibleTopRowKeys, 1f);
+        removeOverlay(host, overlay);
+        recycleSnapshot(beforeSnapshot);
+        recycleSnapshot(afterSnapshot);
     }
 
     private static void setTopRowAlpha(Map<View, VisibleTopRowKey> visibleTopRowKeys,
             float alpha) {
         for (View view : visibleTopRowKeys.keySet()) {
-            view.setAlpha(alpha);
+            if (view != null) {
+                view.setAlpha(alpha);
+            }
+        }
+    }
+
+    private static void runTopRowTransitionStartup(Runnable startup, Runnable cleanup) {
+        try {
+            startup.run();
+        } catch (Throwable ignored) {
+            cleanup.run();
         }
     }
 
@@ -1586,8 +2148,144 @@ public final class GboardTopRowSwipeRuntime {
             return;
         }
         View existingOverlay = host.findViewWithTag(ROW_TRANSITION_OVERLAY_TAG);
-        if (existingOverlay != null) {
-            host.removeView(existingOverlay);
+        if (existingOverlay == null) {
+            return;
+        }
+        Runnable cleanup = ROW_TRANSITION_OVERLAY_CLEANUPS.remove(existingOverlay);
+        if (cleanup != null) {
+            cleanup.run();
+        } else {
+            removeOverlay(host, existingOverlay);
+        }
+    }
+
+    private static void removeOverlay(ViewGroup host, View overlay) {
+        ROW_TRANSITION_OVERLAY_CLEANUPS.remove(overlay);
+        ViewGroup parent = overlay != null && overlay.getParent() instanceof ViewGroup group
+                ? group : host;
+        if (parent != null && overlay != null) {
+            parent.removeView(overlay);
+        }
+    }
+
+    private static void recycleSnapshot(RowSnapshot snapshot) {
+        if (snapshot == null || snapshot.bitmap == null) {
+            return;
+        }
+        try {
+            if (!snapshot.bitmap.isRecycled()) {
+                snapshot.bitmap.recycle();
+            }
+        } catch (Throwable ignored) {
+            // Cleanup is best-effort and must not crash the keyboard.
+        }
+    }
+
+    private static final class WeakIdentityMap<V> extends AbstractMap<Object, V> {
+        private final ReferenceQueue<Object> referenceQueue = new ReferenceQueue<Object>();
+        private final Map<IdentityWeakReference, V> values =
+                new HashMap<IdentityWeakReference, V>();
+
+        @Override
+        public synchronized V get(Object key) {
+            if (key == null) {
+                return null;
+            }
+            removeCollectedKeys();
+            return values.get(new IdentityWeakReference(key));
+        }
+
+        @Override
+        public synchronized boolean containsKey(Object key) {
+            if (key == null) {
+                return false;
+            }
+            removeCollectedKeys();
+            return values.containsKey(new IdentityWeakReference(key));
+        }
+
+        @Override
+        public synchronized V put(Object key, V value) {
+            if (key == null) {
+                return null;
+            }
+            removeCollectedKeys();
+            return values.put(new IdentityWeakReference(key, referenceQueue), value);
+        }
+
+        @Override
+        public synchronized V remove(Object key) {
+            if (key == null) {
+                return null;
+            }
+            removeCollectedKeys();
+            return values.remove(new IdentityWeakReference(key));
+        }
+
+        @Override
+        public synchronized void clear() {
+            values.clear();
+            while (referenceQueue.poll() != null) {
+                // Drain queued references after clearing the backing map.
+            }
+        }
+
+        @Override
+        public synchronized int size() {
+            removeCollectedKeys();
+            return values.size();
+        }
+
+        @Override
+        public synchronized Set<Entry<Object, V>> entrySet() {
+            removeCollectedKeys();
+            Set<Entry<Object, V>> entries = new HashSet<Entry<Object, V>>();
+            for (Map.Entry<IdentityWeakReference, V> entry : values.entrySet()) {
+                Object key = entry.getKey().get();
+                if (key != null) {
+                    entries.add(new SimpleImmutableEntry<Object, V>(key, entry.getValue()));
+                }
+            }
+            return Collections.unmodifiableSet(entries);
+        }
+
+        private void removeCollectedKeys() {
+            Reference<?> reference;
+            while ((reference = referenceQueue.poll()) != null) {
+                values.remove(reference);
+            }
+        }
+    }
+
+    private static final class IdentityWeakReference extends WeakReference<Object> {
+        private final int identityHashCode;
+
+        IdentityWeakReference(Object referent) {
+            super(referent);
+            identityHashCode = System.identityHashCode(referent);
+        }
+
+        IdentityWeakReference(Object referent, ReferenceQueue<Object> referenceQueue) {
+            super(referent, referenceQueue);
+            identityHashCode = System.identityHashCode(referent);
+        }
+
+        @Override
+        public int hashCode() {
+            return identityHashCode;
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            if (this == other) {
+                return true;
+            }
+            if (!(other instanceof IdentityWeakReference)) {
+                return false;
+            }
+            Object referent = get();
+            return referent != null
+                    && referent == ((IdentityWeakReference) other).get();
         }
     }
 }

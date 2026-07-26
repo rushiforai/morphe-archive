@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 final class GboardTopRowSwipeRuntimeSupport {
-    static final int PRIMARY_LABEL_VIEW_ID = 0x7f0b0607;
+    static final int PRIMARY_LABEL_VIEW_ID = 0x7f0b062a;
     static final int PLAIN_TEXT_KEYCODE = -0x2719;
     static final String[] TOP_ROW_SLOT_VIEW_NAMES = {
             "E01", "E02", "E03", "E04", "E05",
@@ -24,18 +24,22 @@ final class GboardTopRowSwipeRuntimeSupport {
             "q", "w", "e", "r", "t",
             "y", "u", "i", "o", "p"
     };
+    static final String[] ZHUYIN_TOP_ROW_LABELS = {
+            "ㄅ", "ㄉ", "ˇ", "ˋ", "ㄓ",
+            "ˊ", "˙", "ㄚ", "ㄞ", "ㄢ"
+    };
 
     private static final String SOFT_KEY_VIEW_CLASS =
             "com.google.android.libraries.inputmethod.widgets.SoftKeyView";
-    private static final String ACTION_TYPE_CLASS = "nxi";
-    private static final String ACTION_SET_CLASS = "oaa";
-    private static final String ACTION_DEF_CLASS = "nxl";
-    private static final String ACTION_DATA_CLASS = "nyf";
-    private static final String ACTION_DEF_BUILDER_CLASS = "nxj";
-    private static final String ACTION_SET_BUILDER_CLASS = "nzv";
-    private static final String INTENTION_CLASS = "nye";
-    private static final String KEYBOARD_TYPE_CLASS = "nzd";
-    private static final String GESTURE_DISPATCHER_CLASS = "ofi";
+    private static final String ACTION_TYPE_CLASS = "oth";
+    private static final String ACTION_SET_CLASS = "owd";
+    private static final String ACTION_DEF_CLASS = "otk";
+    private static final String ACTION_DATA_CLASS = "oud";
+    private static final String ACTION_DEF_BUILDER_CLASS = "oti";
+    private static final String ACTION_SET_BUILDER_CLASS = "ovv";
+    private static final String INTENTION_CLASS = "ouc";
+    private static final String POINTER_TRACKER_CLASS = "pbl";
+    private static final String GESTURE_DISPATCHER_CLASS = "pbj";
 
     private static final String ACTION_NAME_PRESS = "PRESS";
     private static final String ACTION_NAME_LONG_PRESS = "LONG_PRESS";
@@ -184,6 +188,28 @@ final class GboardTopRowSwipeRuntimeSupport {
             }
         }
         return -1;
+    }
+
+    static boolean isEnglishQwertyTopRowLabels(List<String> labels) {
+        if (labels == null || labels.size() != ENGLISH_QWERTY_TOP_ROW_LABELS.length) {
+            return false;
+        }
+        for (int index = 0; index < ENGLISH_QWERTY_TOP_ROW_LABELS.length; index++) {
+            if (!ENGLISH_QWERTY_TOP_ROW_LABELS[index]
+                    .equals(asciiLowercase(labels.get(index)))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    static boolean matchesZhuyinTopRowLabel(int rowIndex, String label) {
+        if (rowIndex < 0 || rowIndex >= ZHUYIN_TOP_ROW_LABELS.length) {
+            return false;
+        }
+        String expected = ZHUYIN_TOP_ROW_LABELS[rowIndex];
+        return expected.equals(label)
+                || ("˙".equals(expected) && "·".equals(label));
     }
 
     static boolean isLegacyZhuyinSlideCandidate(String primaryLabel, String[] tokens) {
@@ -336,7 +362,7 @@ final class GboardTopRowSwipeRuntimeSupport {
         final Constructor<?> keyMetadataBuilderConstructor;
         final Method copyKeyMetadataMethod;
         final Method buildKeyMetadataMethod;
-        final Field keyMetadataBuilderActionsField;
+        final Method putActionMethod;
         final Method setKeyLabelTextsMethod;
         final Field gestureDispatcherContextField;
         final Object commitIntention;
@@ -355,7 +381,7 @@ final class GboardTopRowSwipeRuntimeSupport {
             Class<?> intentionClass = resolveClass(classLoader, INTENTION_CLASS);
             Class<?> gestureDispatcherClass = resolveClass(classLoader, GESTURE_DISPATCHER_CLASS);
             resolveClass(classLoader, ACTION_DATA_CLASS);
-            resolveClass(classLoader, KEYBOARD_TYPE_CLASS);
+            resolveClass(classLoader, POINTER_TRACKER_CLASS);
 
             softKeyMetadataField = softKeyViewClass.getDeclaredField("e");
             softKeyMetadataField.setAccessible(true);
@@ -363,20 +389,20 @@ final class GboardTopRowSwipeRuntimeSupport {
             softKeyBindTokenField = softKeyViewClass.getDeclaredField("f");
             softKeyBindTokenField.setAccessible(true);
 
-            bindSoftKeyMethod = softKeyViewClass.getDeclaredMethod("p", actionSetClass,
+            bindSoftKeyMethod = softKeyViewClass.getDeclaredMethod("q", actionSetClass,
                     long.class);
             bindSoftKeyMethod.setAccessible(true);
 
-            actionDefsField = actionSetClass.getDeclaredField("m");
+            actionDefsField = actionSetClass.getDeclaredField("f");
             actionDefsField.setAccessible(true);
 
-            keyLabelTextsField = actionSetClass.getDeclaredField("n");
+            keyLabelTextsField = actionSetClass.getDeclaredField("g");
             keyLabelTextsField.setAccessible(true);
 
-            keyLabelIdsField = actionSetClass.getDeclaredField("o");
+            keyLabelIdsField = actionSetClass.getDeclaredField("h");
             keyLabelIdsField.setAccessible(true);
 
-            exactActionLookupMethod = actionSetClass.getDeclaredMethod("a", actionTypeClass);
+            exactActionLookupMethod = actionSetClass.getDeclaredMethod("h", actionTypeClass);
             exactActionLookupMethod.setAccessible(true);
 
             actionDefTypeField = actionDefClass.getDeclaredField("c");
@@ -398,7 +424,7 @@ final class GboardTopRowSwipeRuntimeSupport {
             popupLabelField = actionDefBuilderClass.getDeclaredField("c");
             popupLabelField.setAccessible(true);
 
-            setSingleActionMethod = actionDefBuilderClass.getDeclaredMethod("p", int.class,
+            setSingleActionMethod = actionDefBuilderClass.getDeclaredMethod("q", int.class,
                     intentionClass, Object.class);
             setSingleActionMethod.setAccessible(true);
 
@@ -414,8 +440,8 @@ final class GboardTopRowSwipeRuntimeSupport {
             buildKeyMetadataMethod = actionSetBuilderClass.getDeclaredMethod("d");
             buildKeyMetadataMethod.setAccessible(true);
 
-            keyMetadataBuilderActionsField = actionSetBuilderClass.getDeclaredField("b");
-            keyMetadataBuilderActionsField.setAccessible(true);
+            putActionMethod = actionSetBuilderClass.getDeclaredMethod("q", actionDefClass);
+            putActionMethod.setAccessible(true);
 
             setKeyLabelTextsMethod = actionSetBuilderClass.getDeclaredMethod("t", int[].class,
                     CharSequence[].class);
@@ -553,12 +579,7 @@ final class GboardTopRowSwipeRuntimeSupport {
             if (builder == null || actionType == null || actionDef == null) {
                 return;
             }
-            Object actionsObject = keyMetadataBuilderActionsField.get(builder);
-            if (actionsObject instanceof Map<?, ?>) {
-                @SuppressWarnings("unchecked")
-                Map<Object, Object> actionMap = (Map<Object, Object>) actionsObject;
-                actionMap.put(actionType, actionDef);
-            }
+            putActionMethod.invoke(builder, actionDef);
         }
     }
 }

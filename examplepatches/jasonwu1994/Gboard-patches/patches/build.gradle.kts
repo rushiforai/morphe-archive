@@ -97,6 +97,7 @@ sourceSets.named("main") {
 
 dependencies {
     add(patchMetadataSourceSet.implementationConfigurationName, libs.gson)
+    testImplementation(libs.gson)
     testImplementation("junit:junit:4.13.2")
 }
 

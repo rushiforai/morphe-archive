@@ -9,10 +9,10 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 final class GboardZhuyinBottomRowWeightRuntimeSupport {
-    private static final String ACTION_TYPE_CLASS = "nxi";
-    private static final String ACTION_SET_CLASS = "oaa";
-    private static final String ACTION_DEF_CLASS = "nxl";
-    private static final String ACTION_DATA_CLASS = "nyf";
+    private static final String ACTION_TYPE_CLASS = "oth";
+    private static final String ACTION_SET_CLASS = "owd";
+    private static final String ACTION_DEF_CLASS = "otk";
+    private static final String ACTION_DATA_CLASS = "oud";
     private static final String ACTION_NAME_PRESS = "PRESS";
     private static final String ACTION_NAME_LONG_PRESS = "LONG_PRESS";
     private static final String ACTION_NAME_SLIDE_UP = "SLIDE_UP";
@@ -64,24 +64,22 @@ final class GboardZhuyinBottomRowWeightRuntimeSupport {
                 handles.findExactAction(keyMetadata, handles.slideUpActionType) != null;
         boolean hasSlideDownAction =
                 handles.findExactAction(keyMetadata, handles.slideDownActionType) != null;
-        boolean legacyZhuyinCandidate =
-                isLegacyZhuyinSlideCandidate(primaryLabel, tokens, hasSlideUpAction,
+        boolean zhuyin =
+                isZhuyinMetadata(primaryLabel, pressText, tokens, hasSlideUpAction,
                         hasSlideDownAction);
         return new KeyBehavior(primaryLabel, pressText,
-                legacyZhuyinCandidate ? LegacyKeyboardKind.ZHUYIN : LegacyKeyboardKind.NONE);
+                zhuyin ? LegacyKeyboardKind.ZHUYIN : LegacyKeyboardKind.NONE);
     }
 
-    private static boolean isLegacyZhuyinSlideCandidate(String primaryLabel, String[] tokens,
+    static boolean isZhuyinMetadata(String primaryLabel, String pressText, String[] tokens,
             boolean hasSlideUpAction, boolean hasSlideDownAction) {
-        if (primaryLabel != null && isZhuyinSymbolToken(primaryLabel)) {
-            return hasSlideUpAction || hasSlideDownAction;
-        }
-        if (tokens == null || tokens.length < 2) {
+        if (!hasSlideUpAction && !hasSlideDownAction) {
             return false;
         }
-        String primaryToken = firstNonBlankToken(tokens);
-        return primaryToken != null && isZhuyinSymbolToken(primaryToken)
-                && (hasSlideUpAction || hasSlideDownAction);
+        if (isZhuyinSymbolToken(primaryLabel) || isZhuyinSymbolToken(pressText)) {
+            return true;
+        }
+        return isZhuyinSymbolToken(firstNonBlankToken(tokens));
     }
 
     private static String firstNonBlankToken(String[] tokens) {
@@ -133,10 +131,10 @@ final class GboardZhuyinBottomRowWeightRuntimeSupport {
             softKeyMetadataField = softKeyViewClass.getDeclaredField("e");
             softKeyMetadataField.setAccessible(true);
 
-            keyLabelTextsField = actionSetClass.getDeclaredField("n");
+            keyLabelTextsField = actionSetClass.getDeclaredField("g");
             keyLabelTextsField.setAccessible(true);
 
-            exactActionLookupMethod = actionSetClass.getDeclaredMethod("a", actionTypeClass);
+            exactActionLookupMethod = actionSetClass.getDeclaredMethod("h", actionTypeClass);
             exactActionLookupMethod.setAccessible(true);
 
             actionEntriesField = actionDefClass.getDeclaredField("d");

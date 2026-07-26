@@ -11,10 +11,6 @@ public final class GboardPatchesFeatureAvailability {
             "dev.jason.gboardpatches.feature.clipboard_enhancements";
     public static final String FEATURE_WEB_CLIPBOARD =
             "dev.jason.gboardpatches.feature.web_clipboard";
-    public static final String FEATURE_CLIPBOARD_ENTITY_EXTRACTION =
-            "dev.jason.gboardpatches.feature.clipboard_entity_extraction";
-    public static final String FEATURE_CLIPBOARD_ITEM_EDIT =
-            "dev.jason.gboardpatches.feature.clipboard_item_edit";
     public static final String FEATURE_DEVICE_INTELLIGENCE =
             "dev.jason.gboardpatches.feature.device_intelligence";
     public static final String FEATURE_GRAMMAR_CHECKER =
@@ -39,6 +35,14 @@ public final class GboardPatchesFeatureAvailability {
             "dev.jason.gboardpatches.feature.ai_writing_tools";
     public static final String FEATURE_TOP_ROW_SWIPE =
             "dev.jason.gboardpatches.feature.top_row_swipe";
+    public static final String FEATURE_DEVELOPER_OPTIONS =
+            "dev.jason.gboardpatches.feature.developer_options";
+    public static final String FEATURE_LONG_PRESS_QUICK_ACTIONS =
+            "dev.jason.gboardpatches.feature.long_press_quick_actions";
+    public static final String FEATURE_ADVANCED_VOICE_TYPING =
+            "dev.jason.gboardpatches.feature.advanced_voice_typing";
+    public static final String FEATURE_BLUETOOTH_MICROPHONE =
+            "dev.jason.gboardpatches.feature.bluetooth_microphone";
 
     private static final String TAG = "GboardPatches";
 
@@ -62,9 +66,9 @@ public final class GboardPatchesFeatureAvailability {
             }
         }
 
-        Context applicationContext = context.getApplicationContext();
-        Context lookupContext = applicationContext != null ? applicationContext : context;
         try {
+            Context applicationContext = context.getApplicationContext();
+            Context lookupContext = applicationContext != null ? applicationContext : context;
             PackageManager packageManager = lookupContext.getPackageManager();
             if (packageManager == null) {
                 return false;

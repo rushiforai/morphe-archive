@@ -11,10 +11,6 @@ import dev.jason.gboardpatches.extension.settings.GboardPatchesFeatureAvailabili
 
 @SuppressWarnings("unused")
 public final class GboardFeatureFlagsRuntime {
-    public static final String FLAG_CLIPBOARD_ENTITY_EXTRACTION =
-            "enable_clipboard_entity_extraction";
-    public static final String FLAG_CLIPBOARD_ITEM_EDIT =
-            "enable_clipboard_text_editor";
     public static final String FLAG_DEVICE_INTELLIGENCE =
             "enable_device_intelligence";
     public static final String FLAG_GRAMMAR_CHECKER =
@@ -34,7 +30,15 @@ public final class GboardFeatureFlagsRuntime {
     private GboardFeatureFlagsRuntime() {
     }
 
-    public static boolean shouldForceFlagTrue(String flagName) {
+    public static Object applyOverriddenFlagValue(String flagName, Object original) {
+        if (original != Boolean.FALSE) {
+            return original;
+        }
+
+        return isActiveRecognizedFlag(flagName) ? Boolean.TRUE : original;
+    }
+
+    private static boolean isActiveRecognizedFlag(String flagName) {
         if (flagName == null || flagName.isEmpty()) {
             return false;
         }
@@ -61,12 +65,6 @@ public final class GboardFeatureFlagsRuntime {
 
     private static Map<String, String> createFlagToFeatureKeyMap() {
         Map<String, String> featureKeys = new HashMap<String, String>();
-        featureKeys.put(
-                FLAG_CLIPBOARD_ENTITY_EXTRACTION,
-                GboardPatchesFeatureAvailability.FEATURE_CLIPBOARD_ENTITY_EXTRACTION);
-        featureKeys.put(
-                FLAG_CLIPBOARD_ITEM_EDIT,
-                GboardPatchesFeatureAvailability.FEATURE_CLIPBOARD_ITEM_EDIT);
         featureKeys.put(
                 FLAG_DEVICE_INTELLIGENCE,
                 GboardPatchesFeatureAvailability.FEATURE_DEVICE_INTELLIGENCE);

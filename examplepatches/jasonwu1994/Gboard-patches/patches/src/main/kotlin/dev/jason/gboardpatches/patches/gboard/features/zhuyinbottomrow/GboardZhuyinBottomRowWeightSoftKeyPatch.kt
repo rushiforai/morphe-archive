@@ -4,12 +4,10 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import dev.jason.gboardpatches.patches.gboard.shared.findMutableMethodOrThrow
+import dev.jason.gboardpatches.patches.gboard.shared.generated.GboardVersionBindings
 import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesExtensionCarrierPatch
 import dev.jason.gboardpatches.patches.gboard.shared.returnInstructionIndices
 import dev.jason.gboardpatches.patches.shared.Constants.COMPATIBILITY_GBOARD
-
-private const val SOFT_KEY_VIEW_CLASS =
-    "Lcom/google/android/libraries/inputmethod/widgets/SoftKeyView;"
 
 internal const val ZHUYIN_BOTTOM_ROW_RUNTIME_CLASS =
     "Ldev/jason/gboardpatches/extension/zhuyinbottomrow/GboardZhuyinBottomRowWeightRuntime;"
@@ -34,12 +32,7 @@ internal val gboardZhuyinBottomRowWeightSoftKeyPatch = bytecodePatch(
 
 context(context: BytecodePatchContext)
 private fun injectAfterBindDelegate() = with(context) {
-    val mutableMethod = findMutableMethodOrThrow(
-        classType = SOFT_KEY_VIEW_CLASS,
-        name = "p",
-        returnType = "Z",
-        parameterTypes = listOf("Loaa;", "J")
-    )
+    val mutableMethod = findMutableMethodOrThrow(GboardVersionBindings.softKeyBind)
 
     mutableMethod.returnInstructionIndices()
         .asReversed()

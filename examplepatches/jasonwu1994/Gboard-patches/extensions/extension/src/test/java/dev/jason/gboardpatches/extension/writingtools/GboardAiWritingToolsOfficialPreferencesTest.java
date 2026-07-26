@@ -11,77 +11,51 @@ public final class GboardAiWritingToolsOfficialPreferencesTest {
     }
 
     @Test
-    public void snapshotDefaultsToUnknownOverrideSemanticsWhenNothingObservedYet() {
-        GboardAiWritingToolsOfficialPreferences.Snapshot snapshot =
-                GboardAiWritingToolsOfficialPreferences.snapshot();
-
-        Assert.assertNull(snapshot.overrideProofreadFlagValue());
-        Assert.assertNull(snapshot.overrideEditTextWithAiFlagValue());
-        Assert.assertNull(snapshot.overrideAnyFeatureFlagValue());
-        Assert.assertNull(snapshot.overrideAllowAnyServerFlagValue());
-    }
-
-    @Test
-    public void notedOfficialPreferenceValuesDriveRuntimeSemantics() {
+    public void observesOnlyTargetNativeWritingToolsPreferences() {
         GboardAiWritingToolsOfficialPreferences.notePreferenceValue(
-                GboardAiWritingToolsOfficialPreferences.SHOW_FIX_IT_BUTTON_PREF_KEY,
-                false);
-        GboardAiWritingToolsOfficialPreferences.notePreferenceValue(
-                GboardAiWritingToolsOfficialPreferences.SERVER_PROOFREAD_PREF_KEY,
-                false);
-        GboardAiWritingToolsOfficialPreferences.notePreferenceValue(
-                GboardAiWritingToolsOfficialPreferences.SERVER_WRITING_TOOLS_PREF_KEY,
+                GboardAiWritingToolsOfficialPreferences.PROOFREAD_PREF_KEY,
                 true);
         GboardAiWritingToolsOfficialPreferences.notePreferenceValue(
-                GboardAiWritingToolsOfficialPreferences.WRITING_TOOLS_COOPERATIVE_MODE_PREF_KEY,
-                true);
+                GboardAiWritingToolsOfficialPreferences.WRITING_TOOLS_PREF_KEY,
+                false);
+        GboardAiWritingToolsOfficialPreferences.notePreferenceValue(0x7f140001, true);
 
         GboardAiWritingToolsOfficialPreferences.Snapshot snapshot =
                 GboardAiWritingToolsOfficialPreferences.snapshot();
 
-        Assert.assertEquals(Boolean.FALSE, snapshot.overrideProofreadFlagValue());
-        Assert.assertEquals(Boolean.TRUE, snapshot.overrideEditTextWithAiFlagValue());
-        Assert.assertEquals(Boolean.TRUE, snapshot.overrideAnyFeatureFlagValue());
-        Assert.assertEquals(Boolean.TRUE, snapshot.overrideAllowAnyServerFlagValue());
+        Assert.assertEquals(Boolean.TRUE, snapshot.proofreadEnabled);
+        Assert.assertEquals(Boolean.FALSE, snapshot.writingToolsEnabled);
+        Assert.assertTrue(snapshot.shouldEnableProofread());
+        Assert.assertFalse(snapshot.shouldEnableWritingTools());
+        Assert.assertTrue(snapshot.shouldEnableAnyFeature());
     }
 
     @Test
-    public void denyingBothServerSwitchesDisablesServerFallback() {
+    public void unknownValuesStayReachableAndBothFalseDisableSharedHelper() {
+        GboardAiWritingToolsOfficialPreferences.Snapshot unknown =
+                GboardAiWritingToolsOfficialPreferences.snapshot();
+        Assert.assertTrue(unknown.shouldEnableProofread());
+        Assert.assertTrue(unknown.shouldEnableWritingTools());
+        Assert.assertTrue(unknown.shouldEnableAnyFeature());
+
         GboardAiWritingToolsOfficialPreferences.notePreferenceValue(
-                GboardAiWritingToolsOfficialPreferences.SERVER_PROOFREAD_PREF_KEY,
+                GboardAiWritingToolsOfficialPreferences.PROOFREAD_PREF_KEY,
                 false);
         GboardAiWritingToolsOfficialPreferences.notePreferenceValue(
-                GboardAiWritingToolsOfficialPreferences.SERVER_WRITING_TOOLS_PREF_KEY,
+                GboardAiWritingToolsOfficialPreferences.WRITING_TOOLS_PREF_KEY,
                 false);
 
-        Assert.assertEquals(
-                Boolean.FALSE,
-                GboardAiWritingToolsOfficialPreferences.snapshot().overrideAllowAnyServerFlagValue());
+        Assert.assertFalse(GboardAiWritingToolsOfficialPreferences.snapshot()
+                .shouldEnableAnyFeature());
     }
 
     @Test
-    public void compositeOverridesStayUnknownUntilOutcomeIsProvable() {
-        GboardAiWritingToolsOfficialPreferences.Snapshot snapshot =
-                new GboardAiWritingToolsOfficialPreferences.Snapshot(
-                        Boolean.FALSE,
-                        null,
-                        null,
-                        null);
-
-        Assert.assertNull(snapshot.overrideAnyFeatureFlagValue());
-        Assert.assertNull(snapshot.overrideAllowAnyServerFlagValue());
-    }
-
-    @Test
-    public void compositeOverridesResolveWhenOnePathIsKnownTrue() {
-        GboardAiWritingToolsOfficialPreferences.Snapshot snapshot =
-                new GboardAiWritingToolsOfficialPreferences.Snapshot(
-                        Boolean.FALSE,
-                        null,
-                        Boolean.TRUE,
-                        Boolean.TRUE);
-
-        Assert.assertEquals(Boolean.TRUE, snapshot.overrideAnyFeatureFlagValue());
-        Assert.assertEquals(Boolean.TRUE, snapshot.overrideAllowAnyServerFlagValue());
+    public void exposesOnlyTargetNativeKeys() {
+        Assert.assertEquals(0x7f1409e7,
+                GboardAiWritingToolsOfficialPreferences.PROOFREAD_PREF_KEY);
+        Assert.assertEquals(0x7f140b0f,
+                GboardAiWritingToolsOfficialPreferences.WRITING_TOOLS_PREF_KEY);
+        Assert.assertEquals(0x7f140d0b,
+                GboardAiWritingToolsOfficialPreferences.WRITING_TOOLS_CATEGORY_KEY);
     }
 }

@@ -1,6 +1,6 @@
 package dev.jason.gboardpatches.extension.addsymbols;
 
-import android.content.Context;
+import android.util.Log;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
@@ -8,635 +8,436 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @SuppressWarnings("unused")
 public final class GboardAddSymbolsSoftKeyRuntime {
-    private static final String SOFT_KEY_VIEW_CLASS =
-            "com.google.android.libraries.inputmethod.widgets.SoftKeyView";
-    private static final String POINTER_TRACKER_CLASS = "ofk";
-    private static final String ACTION_TYPE_CLASS = "nxi";
-    private static final String ACTION_SET_CLASS = "oaa";
-    private static final String ACTION_DEF_CLASS = "nxl";
-    private static final String ACTION_DATA_CLASS = "nyf";
-    private static final String ACTION_DEF_BUILDER_CLASS = "nxj";
-    private static final String ACTION_SET_BUILDER_CLASS = "nzv";
-    private static final String INTENTION_CLASS = "nye";
-    private static final String KEYBOARD_TYPE_CLASS = "nzd";
-    private static final String GESTURE_DISPATCHER_CLASS = "ofi";
-    private static final String PREFERENCE_MANAGER_CLASS = "oql";
+    private static final String TAG = "GboardAddSymbols";
+    private static final String ACTION_SET_CLASS = "owd";
+    private static final String ACTION_TYPE_CLASS = "oth";
+    private static final String ACTION_DEF_CLASS = "otk";
+    private static final String ACTION_ENTRY_CLASS = "oud";
+    private static final String ACTION_BUILDER_CLASS = "oti";
+    private static final String METADATA_BUILDER_CLASS = "ovv";
+    private static final String INTENTION_CLASS = "ouc";
+    private static final String KEYBOARD_TYPE_CLASS = "ovf";
 
-    private static final String ACTION_NAME_PRESS = "PRESS";
-    private static final String ACTION_NAME_LONG_PRESS = "LONG_PRESS";
-    private static final String ACTION_NAME_SLIDE_UP = "SLIDE_UP";
-    private static final String ACTION_NAME_SLIDE_DOWN = "SLIDE_DOWN";
-    private static final String INTENTION_NAME_COMMIT = "COMMIT";
-
+    private static final int POPUP_LAYOUT_ATTRIBUTE_RES_ID = 0x7f0402aa;
     private static final int SWITCH_KEYBOARD_KEYCODE = -0x2714;
     private static final int SWITCH_TO_ONE_HANDED_MODE_KEYCODE = -0x2749;
     private static final int OPEN_EXTENSION_KEYCODE = -0x274a;
     private static final int LAUNCH_PREFERENCE_ACTIVITY_KEYCODE = -0x2723;
     private static final int SWITCH_KEYBOARD_FROM_ACCESS_POINT_KEYCODE = -0x278b;
-    private static final int SWITCH_KEYBOARD_FROM_ACCESS_POINT_AND_CLOSE_EXTENSION_KEYCODE = -0x2791;
-    private static final int ZHTW_SYMBOL_SHORTCUT_POPUP_ICON_RES_ID = 0x7f080576;
-    private static final int ZHUYIN_COMMA_POPUP_LAYOUT_RES_ID = 0x7f0e05fd;
-    private static final String ZHTW_SYMBOL_SHORTCUT_POPUP_LABEL = "♥";
-    private static final String JASONDEV_SYMBOL_KEYBOARD_DATA = "jasondev_symbol";
+    private static final int SWITCH_KEYBOARD_FROM_ACCESS_POINT_AND_CLOSE_EXTENSION_KEYCODE =
+            -0x2791;
+    private static final String CUSTOM_POPUP_LABEL = "♥";
+    private static final String CUSTOM_KEYBOARD_TYPE = "jasondev_symbol";
     private static final String EMOJI_OR_GIF_EXTENSION_INTERFACE_CLASS =
             "com.google.android.apps.inputmethod.libs.expression.extension.IEmojiOrGifExtension";
 
-    private static final Map<ClassLoader, ReflectionHandles> REFLECTION_BY_LOADER =
+    private static final Map<ClassLoader, ReflectionHandles> HANDLES_BY_CLASS_LOADER =
             new WeakHashMap<>();
+    private static final AtomicInteger PATCH_LOG_COUNT = new AtomicInteger(0);
+    private static final AtomicInteger ERROR_LOG_COUNT = new AtomicInteger(0);
 
     private GboardAddSymbolsSoftKeyRuntime() {
     }
 
-    public static Object patchSoftKeyMetadata(Object softKeyView, Object keyMetadata) {
-        if (softKeyView == null || keyMetadata == null) {
-            return keyMetadata;
+    private enum Decision {
+        NONE,
+        REPLACE,
+        APPEND
+    }
+
+    private static Decision plan(boolean commaLike, boolean hasExpressionTemplate,
+            int customEntryIndex, boolean alreadyContainsCustom) {
+        if (!commaLike || !hasExpressionTemplate || alreadyContainsCustom) {
+            return Decision.NONE;
+        }
+        return customEntryIndex >= 0 ? Decision.REPLACE : Decision.APPEND;
+    }
+
+    private static void logSoftKeyPatch(Decision decision) {
+        if (PATCH_LOG_COUNT.getAndIncrement() < 12) {
+            Log.i(TAG, "comma shortcut patched decision=" + decision
+                    + ", popupAttr=0x"
+                    + Integer.toHexString(POPUP_LAYOUT_ATTRIBUTE_RES_ID));
+        }
+    }
+
+    private static void logSoftKeyFailure(Throwable throwable) {
+        if (ERROR_LOG_COUNT.getAndIncrement() < 3) {
+            Log.w(TAG, "soft-key patch failed", throwable);
+        }
+    }
+
+    public static Object patchSoftKeyMetadata(Object softKeyView, Object metadata) {
+        if (softKeyView == null || metadata == null) {
+            return metadata;
         }
         try {
             ClassLoader classLoader = softKeyView.getClass().getClassLoader();
             if (classLoader == null) {
-                return keyMetadata;
+                return metadata;
             }
             ReflectionHandles handles = reflectionHandles(classLoader);
-            if (!isCommaLikeKey(handles, keyMetadata)) {
-                return keyMetadata;
-            }
-            Object templateAction = findShortcutTemplateAction(handles, keyMetadata);
-            if (templateAction == null || hasCustomSymbolShortcut(handles, keyMetadata)) {
-                return keyMetadata;
+            boolean commaLike = isCommaLikeKey(handles, metadata);
+            Object template = commaLike ? findExpressionTemplate(handles, metadata) : null;
+            boolean alreadyContainsCustom = hasCustomShortcut(handles, metadata);
+            int xdIndex = findXdEntryIndex(handles, template);
+            Decision decision = plan(
+                    commaLike, template != null, xdIndex, alreadyContainsCustom);
+            if (decision == Decision.NONE) {
+                return metadata;
             }
 
-            int replaceIndex = findXdShortcutEntryIndex(handles, templateAction);
-            if (!isZhuyinCommaTemplateAction(handles, templateAction)) {
-                replaceIndex = -1;
-            }
-            Object customKeyboardType = handles.buildKeyboardType(JASONDEV_SYMBOL_KEYBOARD_DATA);
-            Object patchedLongPress = replaceIndex >= 0
-                    ? handles.buildLongPressShortcutActionByReplacingEntry(
-                    templateAction,
-                    replaceIndex,
-                    SWITCH_KEYBOARD_FROM_ACCESS_POINT_AND_CLOSE_EXTENSION_KEYCODE,
-                    customKeyboardType,
-                    ZHTW_SYMBOL_SHORTCUT_POPUP_LABEL,
-                    ZHTW_SYMBOL_SHORTCUT_POPUP_ICON_RES_ID)
-                    : handles.buildLongPressShortcutActionByAppendingEntry(
-                    templateAction,
-                    SWITCH_KEYBOARD_FROM_ACCESS_POINT_AND_CLOSE_EXTENSION_KEYCODE,
-                    customKeyboardType,
-                    ZHTW_SYMBOL_SHORTCUT_POPUP_LABEL,
-                    ZHTW_SYMBOL_SHORTCUT_POPUP_ICON_RES_ID);
+            Object customType = handles.keyboardTypeFactory.invoke(null, CUSTOM_KEYBOARD_TYPE);
+            Object patchedLongPress = decision == Decision.REPLACE
+                    ? handles.replaceEntry(template, xdIndex, customType)
+                    : handles.appendEntry(template, customType);
             if (patchedLongPress == null) {
-                return keyMetadata;
+                return metadata;
             }
 
-            Object builder = handles.keyMetadataBuilderConstructor.newInstance();
-            handles.copyKeyMetadataMethod.invoke(builder, keyMetadata);
-            handles.replaceActionOnKeyMetadataBuilder(builder, handles.longPressActionType, patchedLongPress);
-            return handles.buildKeyMetadataMethod.invoke(builder);
+            Object builder = handles.metadataBuilderConstructor.newInstance();
+            handles.copyMetadataMethod.invoke(builder, metadata);
+            handles.replaceAction(builder, handles.longPressActionType, patchedLongPress);
+            Object patched = handles.buildMetadataMethod.invoke(builder);
+            logSoftKeyPatch(decision);
+            return patched != null ? patched : metadata;
         } catch (Throwable throwable) {
-            return keyMetadata;
+            logSoftKeyFailure(throwable);
+            return metadata;
         }
     }
 
-    private static boolean isCommaLikeKey(
-            ReflectionHandles handles,
-            Object keyMetadata) throws Throwable {
-        Object pressAction = handles.findExactAction(keyMetadata, handles.pressActionType);
-        String pressText = handles.extractSinglePayloadToken(pressAction);
-        String primaryLabel = handles.extractPrimaryLabel(keyMetadata);
+    private static boolean isCommaLikeKey(ReflectionHandles handles, Object metadata)
+            throws Throwable {
+        Object pressAction = handles.exactActionLookupMethod.invoke(
+                metadata, handles.pressActionType);
+        String pressText = handles.extractSinglePayload(pressAction);
+        String primaryLabel = handles.extractPrimaryLabel(metadata);
         return "，".equals(pressText) || "，".equals(primaryLabel)
                 || ",".equals(pressText) || ",".equals(primaryLabel);
     }
 
-    private static boolean hasCustomSymbolShortcut(
-            ReflectionHandles handles,
-            Object keyMetadata) throws Throwable {
-        for (Object actionDef : handles.extractActionDefs(keyMetadata)) {
-            if (!handles.isActionType(actionDef, handles.longPressActionType)) {
-                continue;
-            }
-            for (Object actionEntry : handles.extractActionEntries(actionDef)) {
-                Integer keycode = handles.extractActionEntryKeycode(actionEntry);
-                if (keycode == null) {
-                    continue;
-                }
-                int numericKeycode = keycode.intValue();
-                if (numericKeycode != SWITCH_KEYBOARD_FROM_ACCESS_POINT_AND_CLOSE_EXTENSION_KEYCODE
-                        && numericKeycode != SWITCH_KEYBOARD_KEYCODE) {
-                    continue;
-                }
-                String data = handles.extractActionEntryPayload(actionEntry);
-                if (JASONDEV_SYMBOL_KEYBOARD_DATA.equals(data)) {
-                    return true;
-                }
+    private static Object findExpressionTemplate(ReflectionHandles handles, Object metadata)
+            throws Throwable {
+        for (Object action : handles.extractActionDefs(metadata)) {
+            if (handles.isLongPress(action) && findXdEntryIndex(handles, action) >= 0) {
+                return action;
             }
         }
-        return false;
-    }
-
-    private static Object findShortcutTemplateAction(
-            ReflectionHandles handles,
-            Object keyMetadata) throws Throwable {
-        if (!isCommaLikeKey(handles, keyMetadata)) {
-            return null;
-        }
-        for (Object actionDef : handles.extractActionDefs(keyMetadata)) {
-            if (!handles.isActionType(actionDef, handles.longPressActionType)) {
+        for (Object action : handles.extractActionDefs(metadata)) {
+            if (!handles.isLongPress(action) || handles.popupLayout(action) == 0) {
                 continue;
             }
-            if (!isZhuyinCommaTemplateAction(handles, actionDef)) {
-                continue;
-            }
-            if (findXdShortcutEntryIndex(handles, actionDef) >= 0) {
-                return actionDef;
-            }
-        }
-        for (Object actionDef : handles.extractActionDefs(keyMetadata)) {
-            if (!handles.isActionType(actionDef, handles.longPressActionType)) {
-                continue;
-            }
-            if (isExpressionAccessPointTemplateAction(handles, actionDef)) {
-                return actionDef;
+            for (Object entry : handles.extractEntries(action)) {
+                Integer keycode = handles.entryKeycode(entry);
+                if (keycode != null && isExpressionAccessPointKeycode(keycode.intValue())) {
+                    return action;
+                }
+                if (EMOJI_OR_GIF_EXTENSION_INTERFACE_CLASS.equals(
+                        handles.entryPayload(entry))) {
+                    return action;
+                }
             }
         }
         return null;
     }
 
-    private static boolean isZhuyinCommaTemplateAction(
-            ReflectionHandles handles,
-            Object actionDef) throws Throwable {
-        return actionDef != null
-                && handles.extractPopupLayoutRes(actionDef) == ZHUYIN_COMMA_POPUP_LAYOUT_RES_ID;
-    }
-
-    private static boolean isExpressionAccessPointTemplateAction(
-            ReflectionHandles handles,
-            Object actionDef) throws Throwable {
-        if (actionDef == null || handles.extractPopupLayoutRes(actionDef) == 0) {
-            return false;
-        }
-        if (findXdShortcutEntryIndex(handles, actionDef) >= 0) {
-            return true;
-        }
-        for (Object actionEntry : handles.extractActionEntries(actionDef)) {
-            if (actionEntry == null) {
+    private static boolean hasCustomShortcut(ReflectionHandles handles, Object metadata)
+            throws Throwable {
+        for (Object action : handles.extractActionDefs(metadata)) {
+            if (!handles.isLongPress(action)) {
                 continue;
             }
-            Integer keycode = handles.extractActionEntryKeycode(actionEntry);
-            if (keycode != null) {
-                int numericKeycode = keycode.intValue();
-                if (numericKeycode == OPEN_EXTENSION_KEYCODE
-                        || numericKeycode == LAUNCH_PREFERENCE_ACTIVITY_KEYCODE
-                        || numericKeycode == SWITCH_TO_ONE_HANDED_MODE_KEYCODE
-                        || numericKeycode == SWITCH_KEYBOARD_FROM_ACCESS_POINT_KEYCODE
-                        || numericKeycode
-                        == SWITCH_KEYBOARD_FROM_ACCESS_POINT_AND_CLOSE_EXTENSION_KEYCODE) {
+            for (Object entry : handles.extractEntries(action)) {
+                Integer keycode = handles.entryKeycode(entry);
+                if (keycode == null || (keycode.intValue() != SWITCH_KEYBOARD_KEYCODE
+                        && keycode.intValue()
+                        != SWITCH_KEYBOARD_FROM_ACCESS_POINT_AND_CLOSE_EXTENSION_KEYCODE)) {
+                    continue;
+                }
+                if (CUSTOM_KEYBOARD_TYPE.equals(handles.entryPayload(entry))) {
                     return true;
                 }
-            }
-            String payload = handles.extractActionEntryPayload(actionEntry);
-            if (EMOJI_OR_GIF_EXTENSION_INTERFACE_CLASS.equals(payload)) {
-                return true;
             }
         }
         return false;
     }
 
-    private static int findXdShortcutEntryIndex(
-            ReflectionHandles handles,
-            Object actionDef) throws Throwable {
-        if (actionDef == null) {
-            return -1;
-        }
-        Object[] actionEntries = handles.extractActionEntries(actionDef);
-        String[] popupLabels = handles.extractPopupLabels(actionDef);
-        for (int index = 0; index < actionEntries.length; index++) {
-            String popupLabel = index < popupLabels.length ? popupLabels[index] : null;
-            if ("XD".equals(popupLabel)) {
+    private static int findXdEntryIndex(ReflectionHandles handles, Object action)
+            throws Throwable {
+        Object[] entries = handles.extractEntries(action);
+        String[] labels = handles.popupLabels(action);
+        for (int index = 0; index < entries.length; index++) {
+            if (index < labels.length && "XD".equals(labels[index])) {
                 return index;
             }
         }
         return -1;
     }
 
+    private static boolean isExpressionAccessPointKeycode(int keycode) {
+        return keycode == OPEN_EXTENSION_KEYCODE
+                || keycode == LAUNCH_PREFERENCE_ACTIVITY_KEYCODE
+                || keycode == SWITCH_TO_ONE_HANDED_MODE_KEYCODE
+                || keycode == SWITCH_KEYBOARD_FROM_ACCESS_POINT_KEYCODE
+                || keycode == SWITCH_KEYBOARD_FROM_ACCESS_POINT_AND_CLOSE_EXTENSION_KEYCODE;
+    }
+
     private static ReflectionHandles reflectionHandles(ClassLoader classLoader) throws Throwable {
-        synchronized (REFLECTION_BY_LOADER) {
-            ReflectionHandles cached = REFLECTION_BY_LOADER.get(classLoader);
+        synchronized (HANDLES_BY_CLASS_LOADER) {
+            ReflectionHandles cached = HANDLES_BY_CLASS_LOADER.get(classLoader);
             if (cached != null) {
                 return cached;
             }
             ReflectionHandles created = new ReflectionHandles(classLoader);
-            REFLECTION_BY_LOADER.put(classLoader, created);
+            HANDLES_BY_CLASS_LOADER.put(classLoader, created);
             return created;
         }
     }
 
-    private static Class<?> resolveClass(ClassLoader classLoader, String className)
-            throws ClassNotFoundException {
-        return Class.forName(className, false, classLoader);
-    }
-
     private static final class ReflectionHandles {
         final Field actionDefsField;
-        final Field keyLabelTextsField;
-        final Field keyLabelIdsField;
+        final Field keyLabelsField;
         final Method exactActionLookupMethod;
-        final Field actionDefTypeField;
+        final Field actionTypeField;
         final Field actionEntriesField;
-        final Field actionPopupLayoutField;
-        final Field actionPopupLabelsField;
-        final Field actionPopupIconsField;
-        final Field actionPayloadField;
-        final Field actionKeycodeField;
-        final Field actionIntentionField;
-        final Constructor<?> actionDataConstructor;
-        final Method keyboardTypeFromStringMethod;
+        final Field popupLayoutField;
+        final Field popupLabelsField;
+        final Field popupIconsField;
+        final Field entryKeycodeField;
+        final Field entryPayloadField;
+        final Constructor<?> entryConstructor;
+        final Method keyboardTypeFactory;
         final Field keyboardTypeNameField;
         final Constructor<?> actionBuilderConstructor;
-        final Field actionTypeField;
+        final Field actionBuilderTypeField;
         final Field actionBuilderEntriesField;
-        final Field popupIconField;
-        final Field popupLabelField;
-        final Field contentDescriptionField;
-        final Method setSingleActionMethod;
-        final Method buildActionMethod;
+        final Field actionBuilderLabelsField;
+        final Field actionBuilderIconsField;
         final Method copyActionMethod;
-        final Constructor<?> keyMetadataBuilderConstructor;
-        final Field keyMetadataBuilderActionsField;
-        final Method copyKeyMetadataMethod;
-        final Method buildKeyMetadataMethod;
-        final Object commitIntention;
-        final Object longPressActionType;
-        final Object slideUpActionType;
-        final Object slideDownActionType;
+        final Method buildActionMethod;
+        final Constructor<?> metadataBuilderConstructor;
+        final Field metadataActionsField;
+        final Method copyMetadataMethod;
+        final Method buildMetadataMethod;
         final Object pressActionType;
+        final Object longPressActionType;
 
         ReflectionHandles(ClassLoader classLoader) throws Throwable {
-            Class<?> softKeyViewClass = resolveClass(classLoader, SOFT_KEY_VIEW_CLASS);
-            Class<?> pointerTrackerClass = resolveClass(classLoader, POINTER_TRACKER_CLASS);
-            Class<?> actionTypeClass = resolveClass(classLoader, ACTION_TYPE_CLASS);
-            Class<?> actionSetClass = resolveClass(classLoader, ACTION_SET_CLASS);
-            Class<?> actionDefClass = resolveClass(classLoader, ACTION_DEF_CLASS);
-            Class<?> actionDataClass = resolveClass(classLoader, ACTION_DATA_CLASS);
-            Class<?> actionDefBuilderClass = resolveClass(classLoader, ACTION_DEF_BUILDER_CLASS);
-            Class<?> actionSetBuilderClass = resolveClass(classLoader, ACTION_SET_BUILDER_CLASS);
-            Class<?> intentionClass = resolveClass(classLoader, INTENTION_CLASS);
-            Class<?> keyboardTypeClass = resolveClass(classLoader, KEYBOARD_TYPE_CLASS);
-            Class<?> gestureDispatcherClass = resolveClass(classLoader, GESTURE_DISPATCHER_CLASS);
-            Class<?> preferenceManagerClass = resolveClass(classLoader, PREFERENCE_MANAGER_CLASS);
+            Class<?> actionSetClass = resolve(classLoader, ACTION_SET_CLASS);
+            Class<?> actionTypeClass = resolve(classLoader, ACTION_TYPE_CLASS);
+            Class<?> actionDefClass = resolve(classLoader, ACTION_DEF_CLASS);
+            Class<?> actionEntryClass = resolve(classLoader, ACTION_ENTRY_CLASS);
+            Class<?> actionBuilderClass = resolve(classLoader, ACTION_BUILDER_CLASS);
+            Class<?> metadataBuilderClass = resolve(classLoader, METADATA_BUILDER_CLASS);
+            Class<?> intentionClass = resolve(classLoader, INTENTION_CLASS);
+            Class<?> keyboardTypeClass = resolve(classLoader, KEYBOARD_TYPE_CLASS);
 
-            softKeyViewClass.getDeclaredField("e").setAccessible(true);
-            actionDefsField = actionSetClass.getDeclaredField("m");
-            actionDefsField.setAccessible(true);
-            keyLabelTextsField = actionSetClass.getDeclaredField("n");
-            keyLabelTextsField.setAccessible(true);
-            keyLabelIdsField = actionSetClass.getDeclaredField("o");
-            keyLabelIdsField.setAccessible(true);
-
-            pointerTrackerClass.getDeclaredMethod("i").setAccessible(true);
-            pointerTrackerClass.getDeclaredMethod("h", float.class, float.class, actionTypeClass)
-                    .setAccessible(true);
-
-            exactActionLookupMethod = actionSetClass.getDeclaredMethod("a", actionTypeClass);
-            exactActionLookupMethod.setAccessible(true);
-
-            actionDefTypeField = actionDefClass.getDeclaredField("c");
-            actionDefTypeField.setAccessible(true);
-            actionEntriesField = actionDefClass.getDeclaredField("d");
-            actionEntriesField.setAccessible(true);
-            actionPopupLayoutField = actionDefClass.getDeclaredField("g");
-            actionPopupLayoutField.setAccessible(true);
-            actionPopupLabelsField = actionDefClass.getDeclaredField("n");
-            actionPopupLabelsField.setAccessible(true);
-            actionPopupIconsField = actionDefClass.getDeclaredField("o");
-            actionPopupIconsField.setAccessible(true);
-
-            actionPayloadField = actionDataClass.getDeclaredField("e");
-            actionPayloadField.setAccessible(true);
-            actionKeycodeField = actionDataClass.getDeclaredField("c");
-            actionKeycodeField.setAccessible(true);
-            actionIntentionField = actionDataClass.getDeclaredField("d");
-            actionIntentionField.setAccessible(true);
-            actionDataConstructor = actionDataClass.getDeclaredConstructor(
-                    int.class, intentionClass, Object.class);
-            actionDataConstructor.setAccessible(true);
-
-            keyboardTypeFromStringMethod = keyboardTypeClass.getDeclaredMethod("a", String.class);
-            keyboardTypeFromStringMethod.setAccessible(true);
-            keyboardTypeNameField = keyboardTypeClass.getDeclaredField("k");
-            keyboardTypeNameField.setAccessible(true);
-
-            actionBuilderConstructor = actionDefBuilderClass.getDeclaredConstructor();
-            actionBuilderConstructor.setAccessible(true);
-            actionTypeField = actionDefBuilderClass.getDeclaredField("a");
-            actionTypeField.setAccessible(true);
-            actionBuilderEntriesField = actionDefBuilderClass.getDeclaredField("b");
-            actionBuilderEntriesField.setAccessible(true);
-            popupIconField = actionDefBuilderClass.getDeclaredField("d");
-            popupIconField.setAccessible(true);
-            popupLabelField = actionDefBuilderClass.getDeclaredField("c");
-            popupLabelField.setAccessible(true);
-            contentDescriptionField = actionDefBuilderClass.getDeclaredField("m");
-            contentDescriptionField.setAccessible(true);
-            setSingleActionMethod = actionDefBuilderClass.getDeclaredMethod(
-                    "p", int.class, intentionClass, Object.class);
-            setSingleActionMethod.setAccessible(true);
-            buildActionMethod = actionDefBuilderClass.getDeclaredMethod("c");
-            buildActionMethod.setAccessible(true);
-            copyActionMethod = actionDefBuilderClass.getDeclaredMethod("j", actionDefClass);
-            copyActionMethod.setAccessible(true);
-
-            keyMetadataBuilderConstructor = actionSetBuilderClass.getDeclaredConstructor();
-            keyMetadataBuilderConstructor.setAccessible(true);
-            keyMetadataBuilderActionsField = actionSetBuilderClass.getDeclaredField("b");
-            keyMetadataBuilderActionsField.setAccessible(true);
-            actionSetBuilderClass.getDeclaredField("g").setAccessible(true);
-            actionSetBuilderClass.getDeclaredField("h").setAccessible(true);
-            actionSetBuilderClass.getDeclaredField("z").setAccessible(true);
-            copyKeyMetadataMethod = actionSetBuilderClass.getDeclaredMethod("j", actionSetClass);
-            copyKeyMetadataMethod.setAccessible(true);
-            actionSetBuilderClass.getDeclaredMethod("q", actionDefClass).setAccessible(true);
-            buildKeyMetadataMethod = actionSetBuilderClass.getDeclaredMethod("d");
-            buildKeyMetadataMethod.setAccessible(true);
-            actionSetBuilderClass.getDeclaredMethod("t", int[].class, CharSequence[].class)
-                    .setAccessible(true);
-
-            gestureDispatcherClass.getDeclaredField("c").setAccessible(true);
-            preferenceManagerClass.getDeclaredMethod("O", Context.class).setAccessible(true);
-            preferenceManagerClass.getDeclaredMethod("au", String.class).setAccessible(true);
-            preferenceManagerClass.getDeclaredMethod("f", String.class, boolean.class)
-                    .setAccessible(true);
-
-            commitIntention = Enum.valueOf(intentionClass.asSubclass(Enum.class),
-                    INTENTION_NAME_COMMIT);
-            pressActionType = Enum.valueOf(actionTypeClass.asSubclass(Enum.class),
-                    ACTION_NAME_PRESS);
-            longPressActionType = Enum.valueOf(actionTypeClass.asSubclass(Enum.class),
-                    ACTION_NAME_LONG_PRESS);
-            slideUpActionType = Enum.valueOf(actionTypeClass.asSubclass(Enum.class),
-                    ACTION_NAME_SLIDE_UP);
-            slideDownActionType = Enum.valueOf(actionTypeClass.asSubclass(Enum.class),
-                    ACTION_NAME_SLIDE_DOWN);
+            actionDefsField = field(actionSetClass, "f");
+            keyLabelsField = field(actionSetClass, "g");
+            exactActionLookupMethod = method(actionSetClass, "h", actionTypeClass);
+            actionTypeField = field(actionDefClass, "c");
+            actionEntriesField = field(actionDefClass, "d");
+            popupLayoutField = field(actionDefClass, "g");
+            popupLabelsField = field(actionDefClass, "n");
+            popupIconsField = field(actionDefClass, "o");
+            entryKeycodeField = field(actionEntryClass, "c");
+            entryPayloadField = field(actionEntryClass, "e");
+            entryConstructor = constructor(
+                    actionEntryClass, int.class, intentionClass, Object.class);
+            keyboardTypeFactory = method(keyboardTypeClass, "a", Object.class);
+            keyboardTypeNameField = field(keyboardTypeClass, "m");
+            actionBuilderConstructor = constructor(actionBuilderClass);
+            actionBuilderTypeField = field(actionBuilderClass, "a");
+            actionBuilderEntriesField = field(actionBuilderClass, "b");
+            actionBuilderLabelsField = field(actionBuilderClass, "c");
+            actionBuilderIconsField = field(actionBuilderClass, "d");
+            copyActionMethod = method(actionBuilderClass, "j", actionDefClass);
+            buildActionMethod = method(actionBuilderClass, "c");
+            metadataBuilderConstructor = constructor(metadataBuilderClass);
+            metadataActionsField = field(metadataBuilderClass, "b");
+            copyMetadataMethod = method(metadataBuilderClass, "j", actionSetClass);
+            buildMetadataMethod = method(metadataBuilderClass, "d");
+            pressActionType = enumValue(actionTypeClass, "PRESS");
+            longPressActionType = enumValue(actionTypeClass, "LONG_PRESS");
         }
 
-        Object findExactAction(Object keyMetadata, Object actionType) throws Throwable {
-            return exactActionLookupMethod.invoke(keyMetadata, actionType);
+        Object[] extractActionDefs(Object metadata) throws IllegalAccessException {
+            Object value = metadata == null ? null : actionDefsField.get(metadata);
+            return value instanceof Object[] ? (Object[]) value : new Object[0];
         }
 
-        Object[] extractActionDefs(Object keyMetadata) throws Throwable {
-            if (keyMetadata == null) {
-                return new Object[0];
-            }
-            Object actionDefsObject = actionDefsField.get(keyMetadata);
-            return actionDefsObject instanceof Object[] ? (Object[]) actionDefsObject
-                    : new Object[0];
+        Object[] extractEntries(Object action) throws IllegalAccessException {
+            Object value = action == null ? null : actionEntriesField.get(action);
+            return value instanceof Object[] ? (Object[]) value : new Object[0];
         }
 
-        boolean isActionType(Object actionDef, Object actionType) throws Throwable {
-            if (actionDef == null || actionType == null) {
-                return false;
-            }
-            return actionType.equals(actionDefTypeField.get(actionDef));
+        boolean isLongPress(Object action) throws IllegalAccessException {
+            return action != null && longPressActionType.equals(actionTypeField.get(action));
         }
 
-        int extractPopupLayoutRes(Object actionDef) throws Throwable {
-            if (actionDef == null) {
-                return 0;
-            }
-            Object popupLayout = actionPopupLayoutField.get(actionDef);
-            return popupLayout instanceof Integer ? ((Integer) popupLayout).intValue() : 0;
+        int popupLayout(Object action) throws IllegalAccessException {
+            return action == null ? 0 : popupLayoutField.getInt(action);
         }
 
-        String[] extractPopupLabels(Object actionDef) throws Throwable {
-            if (actionDef == null) {
-                return new String[0];
-            }
-            Object popupLabels = actionPopupLabelsField.get(actionDef);
-            return popupLabels instanceof String[] ? (String[]) popupLabels : new String[0];
+        String[] popupLabels(Object action) throws IllegalAccessException {
+            Object value = action == null ? null : popupLabelsField.get(action);
+            return value instanceof String[] ? (String[]) value : new String[0];
         }
 
-        int[] extractPopupIcons(Object actionDef) throws Throwable {
-            if (actionDef == null) {
-                return new int[0];
-            }
-            Object popupIcons = actionPopupIconsField.get(actionDef);
-            return popupIcons instanceof int[] ? (int[]) popupIcons : new int[0];
+        int[] popupIcons(Object action) throws IllegalAccessException {
+            Object value = action == null ? null : popupIconsField.get(action);
+            return value instanceof int[] ? (int[]) value : new int[0];
         }
 
-        Object[] extractActionEntries(Object actionDef) throws Throwable {
-            if (actionDef == null) {
-                return new Object[0];
-            }
-            Object actionsObject = actionEntriesField.get(actionDef);
-            return actionsObject instanceof Object[] ? (Object[]) actionsObject : new Object[0];
+        Integer entryKeycode(Object entry) throws IllegalAccessException {
+            return entry == null ? null : Integer.valueOf(entryKeycodeField.getInt(entry));
         }
 
-        Integer extractActionEntryKeycode(Object actionEntry) throws Throwable {
-            if (actionEntry == null) {
+        String entryPayload(Object entry) throws IllegalAccessException {
+            if (entry == null) {
                 return null;
             }
-            Object keycode = actionKeycodeField.get(actionEntry);
-            return keycode instanceof Integer ? (Integer) keycode : null;
-        }
-
-        String extractActionEntryPayload(Object actionEntry) throws Throwable {
-            if (actionEntry == null) {
-                return null;
-            }
-            Object payload = actionPayloadField.get(actionEntry);
+            Object payload = entryPayloadField.get(entry);
             if (payload instanceof CharSequence) {
                 return payload.toString();
             }
             if (payload != null && keyboardTypeNameField.getDeclaringClass().isInstance(payload)) {
-                Object value = keyboardTypeNameField.get(payload);
-                return value instanceof String ? (String) value : null;
+                Object name = keyboardTypeNameField.get(payload);
+                return name instanceof String ? (String) name : null;
             }
             return null;
         }
 
-        String extractSinglePayloadToken(Object actionDef) throws Throwable {
-            Object[] actionEntries = extractActionEntries(actionDef);
-            if (actionEntries.length == 0) {
-                return null;
-            }
-            return extractActionEntryPayload(actionEntries[0]);
+        String extractSinglePayload(Object action) throws IllegalAccessException {
+            Object[] entries = extractEntries(action);
+            return entries.length == 0 ? null : entryPayload(entries[0]);
         }
 
-        String extractPrimaryLabel(Object keyMetadata) throws Throwable {
-            if (keyMetadata == null) {
+        String extractPrimaryLabel(Object metadata) throws IllegalAccessException {
+            Object value = metadata == null ? null : keyLabelsField.get(metadata);
+            if (!(value instanceof CharSequence[] labels)) {
                 return null;
             }
-            Object labelsObject = keyLabelTextsField.get(keyMetadata);
-            if (!(labelsObject instanceof CharSequence[])) {
-                return null;
-            }
-            CharSequence[] labels = (CharSequence[]) labelsObject;
             for (CharSequence label : labels) {
-                if (label == null) {
-                    continue;
-                }
-                String value = label.toString();
-                if (!value.isBlank()) {
-                    return value;
+                if (label != null && !label.toString().isBlank()) {
+                    return label.toString();
                 }
             }
             return null;
         }
 
-        Object buildKeyboardType(String keyboardType) throws Throwable {
-            return keyboardTypeFromStringMethod.invoke(null, keyboardType);
-        }
-
-        void replaceActionOnKeyMetadataBuilder(Object builder, Object actionType, Object actionDef)
-                throws Throwable {
-            if (builder == null || actionType == null || actionDef == null) {
-                return;
-            }
-            Object actionsObject = keyMetadataBuilderActionsField.get(builder);
-            if (actionsObject instanceof Map<?, ?>) {
-                @SuppressWarnings("unchecked")
-                Map<Object, Object> actionMap = (Map<Object, Object>) actionsObject;
-                actionMap.put(actionType, actionDef);
-            }
-        }
-
-        Object buildLongPressShortcutActionByAppendingEntry(Object templateAction,
-                int keycode, Object data, String popupLabel, int popupIconResId)
-                throws Throwable {
-            if (templateAction == null) {
+        Object replaceEntry(Object template, int index, Object customType) throws Throwable {
+            Object[] entries = extractEntries(template);
+            if (index < 0 || index >= entries.length) {
                 return null;
             }
-
-            Object builder = actionBuilderConstructor.newInstance();
-            copyActionMethod.invoke(builder, templateAction);
-            actionTypeField.set(builder, longPressActionType);
-
-            Object[] existingEntries = extractActionEntries(templateAction);
+            Object builder = copiedActionBuilder(template);
             Object updatedEntries = Array.newInstance(
-                    actionDataConstructor.getDeclaringClass(), existingEntries.length + 1);
-            System.arraycopy(existingEntries, 0, updatedEntries, 0, existingEntries.length);
-            Array.set(updatedEntries, existingEntries.length,
-                    actionDataConstructor.newInstance(keycode, null, data));
+                    entryConstructor.getDeclaringClass(), entries.length);
+            System.arraycopy(entries, 0, updatedEntries, 0, entries.length);
+            Array.set(updatedEntries, index, entryConstructor.newInstance(
+                    SWITCH_KEYBOARD_FROM_ACCESS_POINT_AND_CLOSE_EXTENSION_KEYCODE,
+                    null, customType));
             actionBuilderEntriesField.set(builder, updatedEntries);
-
-            popupLabelField.set(builder, appendPopupLabels(
-                    extractPopupLabels(templateAction),
-                    existingEntries.length, popupLabel));
-            popupIconField.set(builder, appendPopupIcons(
-                    extractPopupIcons(templateAction),
-                    existingEntries.length, popupIconResId));
+            String[] labels = normalizeLabels(popupLabels(template), entries.length);
+            labels[index] = CUSTOM_POPUP_LABEL;
+            actionBuilderLabelsField.set(builder, labels);
+            actionBuilderIconsField.set(builder,
+                    normalizeIcons(popupIcons(template), entries.length));
             return buildActionMethod.invoke(builder);
         }
 
-        Object buildLongPressShortcutActionByReplacingEntry(Object templateAction,
-                int targetEntryIndex, int keycode, Object data, String popupLabel,
-                int popupIconResId) throws Throwable {
-            if (templateAction == null || targetEntryIndex < 0) {
-                return null;
-            }
-
-            Object[] existingEntries = extractActionEntries(templateAction);
-            if (targetEntryIndex >= existingEntries.length) {
-                return null;
-            }
-
-            Object builder = actionBuilderConstructor.newInstance();
-            copyActionMethod.invoke(builder, templateAction);
-            actionTypeField.set(builder, longPressActionType);
-
+        Object appendEntry(Object template, Object customType) throws Throwable {
+            Object[] entries = extractEntries(template);
+            Object builder = copiedActionBuilder(template);
             Object updatedEntries = Array.newInstance(
-                    actionDataConstructor.getDeclaringClass(), existingEntries.length);
-            System.arraycopy(existingEntries, 0, updatedEntries, 0, existingEntries.length);
-            Array.set(updatedEntries, targetEntryIndex,
-                    actionDataConstructor.newInstance(keycode, null, data));
+                    entryConstructor.getDeclaringClass(), entries.length + 1);
+            System.arraycopy(entries, 0, updatedEntries, 0, entries.length);
+            Array.set(updatedEntries, entries.length, entryConstructor.newInstance(
+                    SWITCH_KEYBOARD_FROM_ACCESS_POINT_AND_CLOSE_EXTENSION_KEYCODE,
+                    null, customType));
             actionBuilderEntriesField.set(builder, updatedEntries);
-
-            popupLabelField.set(builder, replacePopupLabel(
-                    extractPopupLabels(templateAction), existingEntries.length,
-                    targetEntryIndex, popupLabel));
-            popupIconField.set(builder, replacePopupIcon(
-                    extractPopupIcons(templateAction), existingEntries.length,
-                    targetEntryIndex, popupIconResId));
+            String[] labels = normalizeLabels(popupLabels(template), entries.length + 1);
+            labels[entries.length] = CUSTOM_POPUP_LABEL;
+            actionBuilderLabelsField.set(builder, labels);
+            actionBuilderIconsField.set(builder,
+                    normalizeIcons(popupIcons(template), entries.length + 1));
             return buildActionMethod.invoke(builder);
         }
 
-        private String[] appendPopupLabels(String[] source, int existingEntryCount,
-                String appendedLabel) {
-            String[] safeSource = source != null ? source : new String[0];
-            String[] result = new String[existingEntryCount + 1];
-            if (safeSource.length == 1 && existingEntryCount > 1) {
-                for (int index = 0; index < existingEntryCount; index++) {
-                    result[index] = safeSource[0];
+        @SuppressWarnings("unchecked")
+        void replaceAction(Object metadataBuilder, Object actionType, Object action)
+                throws IllegalAccessException {
+            Object value = metadataActionsField.get(metadataBuilder);
+            if (value instanceof Map<?, ?>) {
+                ((Map<Object, Object>) value).put(actionType, action);
+            }
+        }
+
+        private Object copiedActionBuilder(Object template) throws Throwable {
+            Object builder = actionBuilderConstructor.newInstance();
+            copyActionMethod.invoke(builder, template);
+            actionBuilderTypeField.set(builder, longPressActionType);
+            return builder;
+        }
+
+        private static String[] normalizeLabels(String[] source, int size) {
+            String[] result = new String[size];
+            if (source != null && source.length == 1 && size > 1) {
+                for (int index = 0; index < size; index++) {
+                    result[index] = source[0];
                 }
-            } else if (safeSource.length > 0) {
-                System.arraycopy(safeSource, 0, result, 0,
-                        Math.min(safeSource.length, existingEntryCount));
+            } else if (source != null) {
+                System.arraycopy(source, 0, result, 0, Math.min(source.length, size));
             }
-            result[existingEntryCount] = appendedLabel;
             return result;
         }
 
-        private int[] appendPopupIcons(int[] source, int existingEntryCount, int appendedIcon) {
-            int[] safeSource = source != null ? source : new int[0];
-            int[] result = new int[existingEntryCount + 1];
-            if (safeSource.length == 1 && existingEntryCount > 1) {
-                for (int index = 0; index < existingEntryCount; index++) {
-                    result[index] = safeSource[0];
+        private static int[] normalizeIcons(int[] source, int size) {
+            int[] result = new int[size];
+            if (source != null && source.length == 1 && size > 1) {
+                for (int index = 0; index < size; index++) {
+                    result[index] = source[0];
                 }
-            } else if (safeSource.length > 0) {
-                System.arraycopy(safeSource, 0, result, 0,
-                        Math.min(safeSource.length, existingEntryCount));
+            } else if (source != null) {
+                System.arraycopy(source, 0, result, 0, Math.min(source.length, size));
             }
-            result[existingEntryCount] = appendedIcon;
             return result;
         }
+    }
 
-        private String[] replacePopupLabel(String[] source, int entryCount, int targetEntryIndex,
-                String replacementLabel) {
-            String[] result = normalizePopupLabels(source, entryCount);
-            result[targetEntryIndex] = replacementLabel;
-            return result;
-        }
+    private static Class<?> resolve(ClassLoader classLoader, String name)
+            throws ClassNotFoundException {
+        return Class.forName(name, false, classLoader);
+    }
 
-        private int[] replacePopupIcon(int[] source, int entryCount, int targetEntryIndex,
-                int replacementIcon) {
-            int[] result = normalizePopupIcons(source, entryCount);
-            result[targetEntryIndex] = replacementIcon;
-            return result;
-        }
+    private static Method method(Class<?> owner, String name, Class<?>... parameterTypes)
+            throws NoSuchMethodException {
+        Method method = owner.getDeclaredMethod(name, parameterTypes);
+        method.setAccessible(true);
+        return method;
+    }
 
-        private String[] normalizePopupLabels(String[] source, int entryCount) {
-            String[] safeSource = source != null ? source : new String[0];
-            String[] result = new String[entryCount];
-            if (safeSource.length == 1 && entryCount > 1) {
-                for (int index = 0; index < entryCount; index++) {
-                    result[index] = safeSource[0];
-                }
-                return result;
-            }
-            if (safeSource.length > 0) {
-                System.arraycopy(safeSource, 0, result, 0,
-                        Math.min(safeSource.length, entryCount));
-            }
-            return result;
-        }
+    private static Field field(Class<?> owner, String name) throws NoSuchFieldException {
+        Field field = owner.getDeclaredField(name);
+        field.setAccessible(true);
+        return field;
+    }
 
-        private int[] normalizePopupIcons(int[] source, int entryCount) {
-            int[] safeSource = source != null ? source : new int[0];
-            int[] result = new int[entryCount];
-            if (safeSource.length == 1 && entryCount > 1) {
-                for (int index = 0; index < entryCount; index++) {
-                    result[index] = safeSource[0];
-                }
-                return result;
-            }
-            if (safeSource.length > 0) {
-                System.arraycopy(safeSource, 0, result, 0,
-                        Math.min(safeSource.length, entryCount));
-            }
-            return result;
-        }
+    private static Constructor<?> constructor(Class<?> owner, Class<?>... parameterTypes)
+            throws NoSuchMethodException {
+        Constructor<?> constructor = owner.getDeclaredConstructor(parameterTypes);
+        constructor.setAccessible(true);
+        return constructor;
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static Object enumValue(Class<?> enumClass, String name) {
+        return Enum.valueOf((Class<? extends Enum>) enumClass.asSubclass(Enum.class), name);
     }
 }

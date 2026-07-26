@@ -157,8 +157,8 @@ final class GboardClipboardPruneHookAdapter {
             if (kept < retainCount || timestamp == primaryTimestamp) {
                 kept++;
             } else {
-                out.add(Long.valueOf(cursor.getLong(idColumn)));
                 handles.dataHandlerCleanupCursorMethod.invoke(dataHandler, cursor);
+                out.add(Long.valueOf(cursor.getLong(idColumn)));
             }
             cursor.moveToNext();
         }

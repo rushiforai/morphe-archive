@@ -1,13 +1,26 @@
 package dev.jason.gboardpatches.patches.gboard.features.zhuyinbottomrow
 
+import dev.jason.gboardpatches.patches.gboard.shared.generated.GboardVersionBindings
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
-import org.junit.Assert.assertTrue
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class GboardZhuyinBottomRowWeightPatchShapeTest {
+    @Test
+    fun `softkey patch uses exact 1777 shared bind descriptor`() {
+        assertEquals(
+            "Lcom/google/android/libraries/inputmethod/widgets/SoftKeyView;",
+            GboardVersionBindings.softKeyBind.classType
+        )
+        assertEquals("q", GboardVersionBindings.softKeyBind.name)
+        assertEquals(listOf("Lowd;", "J"), GboardVersionBindings.softKeyBind.parameterTypes)
+        assertEquals("Z", GboardVersionBindings.softKeyBind.returnType)
+    }
+
     @Test
     fun `softkey patch delegates after bind work to runtime helper`() {
         assertTrue(

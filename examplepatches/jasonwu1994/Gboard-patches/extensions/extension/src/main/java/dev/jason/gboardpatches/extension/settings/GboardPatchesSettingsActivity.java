@@ -4,9 +4,12 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.annotation.SuppressLint;
 import android.content.ActivityNotFoundException;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -52,8 +55,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.lang.reflect.Proxy;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -70,6 +75,17 @@ public final class GboardPatchesSettingsActivity extends Activity
             "android.service.quicksettings.action.QS_TILE_PREFERENCES";
     private static final String EXTRA_OPEN_WEB_CLIPBOARD =
             "dev.jason.gboardpatches.extension.extra.OPEN_WEB_CLIPBOARD";
+    private static final String ENTER_PREF_HEADER_EXTRA = "ENTER_PREF_HEADER";
+    private static final String GBOARD_SETTINGS_ACTIVITY_CLASS =
+            "com.google.android.apps.inputmethod.latin.preference.SettingsActivity";
+    private static final String SUPPORTED_DEVELOPER_OPTIONS_TARGET_VERSION =
+            "17.7.7.932364120-release-arm64-v8a";
+    private static final String GBOARD_PACKAGE_STABLE =
+            "com.google.android.inputmethod.latin";
+    private static final String GBOARD_PACKAGE_JASON_DEV =
+            "com.google.android.inputmethod.latin.jason.dev";
+    private static final String GBOARD_PACKAGE_REVERSED_DEV =
+            "dev.jason.com.google.android.inputmethod.latin";
     private static final int REQUEST_CREATE_TEXT_DOCUMENT = 0x4742;
     private static final int REQUEST_OPEN_TEXT_DOCUMENT = 0x4743;
     private static final int TOOLBAR_HEIGHT_DP = 56;
@@ -273,6 +289,68 @@ public final class GboardPatchesSettingsActivity extends Activity
         currentFeature = feature;
         requestScrollToTopOnNextScreenApply();
         initializeFeaturesAndRenderSafely();
+    }
+
+    @Override
+    public void openTargetSettingsHeader(int headerKeyResourceId) {
+        if (headerKeyResourceId == 0) {
+            return;
+        }
+        for (String packageName : targetSettingsPackages()) {
+            if (tryLaunchTargetSettingsHeader(packageName, headerKeyResourceId)) {
+                return;
+            }
+        }
+        throw new ActivityNotFoundException(
+                "No supported Gboard Developer options entry is available");
+    }
+
+    private boolean tryLaunchTargetSettingsHeader(String packageName, int headerKeyResourceId) {
+        String targetVersionName = targetPackageVersionName(packageName);
+        if (!isSupportedDeveloperOptionsTargetVersion(targetVersionName)) {
+            return false;
+        }
+
+        Intent intent = new Intent();
+        intent.setComponent(new ComponentName(packageName, GBOARD_SETTINGS_ACTIVITY_CLASS));
+        intent.putExtra(ENTER_PREF_HEADER_EXTRA, headerKeyResourceId);
+        try {
+            startActivity(intent);
+            return true;
+        } catch (ActivityNotFoundException | SecurityException exception) {
+            return false;
+        }
+    }
+
+    private String targetPackageVersionName(String packageName) {
+        try {
+            PackageInfo packageInfo = getPackageManager().getPackageInfo(packageName, 0);
+            return packageInfo.versionName;
+        } catch (PackageManager.NameNotFoundException | SecurityException exception) {
+            return null;
+        }
+    }
+
+    private List<String> targetSettingsPackages() {
+        Set<String> packageNames = new LinkedHashSet<String>();
+        String currentPackage = getPackageName();
+        if (isSupportedTargetPackage(currentPackage)) {
+            packageNames.add(currentPackage);
+        }
+        packageNames.add(GBOARD_PACKAGE_STABLE);
+        packageNames.add(GBOARD_PACKAGE_JASON_DEV);
+        packageNames.add(GBOARD_PACKAGE_REVERSED_DEV);
+        return new ArrayList<String>(packageNames);
+    }
+
+    static boolean isSupportedDeveloperOptionsTargetVersion(String versionName) {
+        return SUPPORTED_DEVELOPER_OPTIONS_TARGET_VERSION.equals(versionName);
+    }
+
+    private static boolean isSupportedTargetPackage(String packageName) {
+        return GBOARD_PACKAGE_STABLE.equals(packageName)
+                || GBOARD_PACKAGE_JASON_DEV.equals(packageName)
+                || GBOARD_PACKAGE_REVERSED_DEV.equals(packageName);
     }
 
     @Override
@@ -1596,7 +1674,7 @@ public final class GboardPatchesSettingsActivity extends Activity
                     feature.getEntryTitle(),
                     feature.getEntrySummary(),
                     true,
-                    () -> host.openFeature(feature)));
+                    () -> feature.openRootEntry(host)));
         }
         List<GboardPatchesSettingsContract.Row> preferenceRows =
                 new ArrayList<GboardPatchesSettingsContract.Row>();

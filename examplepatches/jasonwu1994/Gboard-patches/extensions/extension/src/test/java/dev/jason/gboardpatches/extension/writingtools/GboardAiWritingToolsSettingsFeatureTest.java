@@ -17,7 +17,7 @@ import dev.jason.gboardpatches.extension.settings.GboardPatchesSettingsContract;
 
 public final class GboardAiWritingToolsSettingsFeatureTest {
     @Test
-    public void buildScreenShowsRuntimeToggleAndAllowlistOverride() {
+    public void buildScreenShowsExactlyMasterAllKeyboardsAndBackendRows() {
         InMemorySharedPreferences preferences = new InMemorySharedPreferences();
         GboardAiWritingToolsSettings.ensureDefaults(preferences);
         CapturingHost host = new CapturingHost(preferences);
@@ -33,21 +33,29 @@ public final class GboardAiWritingToolsSettingsFeatureTest {
                 findToggleRow(screen.getRows(), "Enable AI Writing Tools");
         GboardPatchesSettingsContract.ToggleRow allKeyboardsRow =
                 findToggleRow(screen.getRows(), "Support All Keyboards");
+        GboardPatchesSettingsContract.SelectorRow backendRow =
+                findSelectorRow(screen.getRows(), "Backend type");
 
         Assert.assertNotNull(enabledRow);
         Assert.assertNotNull(allKeyboardsRow);
+        Assert.assertNotNull(backendRow);
+        Assert.assertEquals(3, screen.getRows().size());
         Assert.assertEquals(
-                "Force-shows the stock four switches in \"Corrections & suggestions\" -> "
-                        + "\"Writing tools\". If your phone does not have AI Core, turn on "
-                        + "\"Use Google servers\" for it to work.",
+                "Force-show the two switches under Corrections & suggestions -> Writing tools.",
                 enabledRow.getSummary());
         Assert.assertEquals(
                 "When enabled, force writing tools to work on every keyboard. Force-stop "
                         + "and restart Gboard for the change to take effect.",
                 allKeyboardsRow.getSummary());
+        Assert.assertEquals(
+                "Force-stop and restart Gboard after changing the backend. If you select "
+                        + "AICORE, you must be eligible to download the model.",
+                backendRow.getSummary());
         Assert.assertTrue(enabledRow.isChecked());
         Assert.assertFalse(allKeyboardsRow.isChecked());
         Assert.assertTrue(allKeyboardsRow.isEnabled());
+        Assert.assertTrue(backendRow.isEnabled());
+        Assert.assertEquals("GBOARD_SERVER", backendRow.getCurrentValue());
     }
 
     @Test
@@ -72,6 +80,48 @@ public final class GboardAiWritingToolsSettingsFeatureTest {
         Assert.assertTrue(GboardAiWritingToolsSettings.readAllKeyboardsEnabled(preferences));
     }
 
+    @Test
+    public void masterOffDisablesAllKeyboardsAndBackendSelector() {
+        InMemorySharedPreferences preferences = new InMemorySharedPreferences();
+        GboardAiWritingToolsSettings.ensureDefaults(preferences);
+        GboardAiWritingToolsSettings.writeEnabled(preferences, false);
+        CapturingHost host = new CapturingHost(preferences);
+
+        GboardPatchesSettingsContract.Screen screen =
+                new GboardAiWritingToolsSettingsFeature(null).buildScreen(host);
+
+        Assert.assertFalse(findToggleRow(
+                screen.getRows(), "Support All Keyboards").isEnabled());
+        Assert.assertFalse(findSelectorRow(
+                screen.getRows(), "Backend type").isEnabled());
+    }
+
+    @Test
+    public void backendSelectorOffersExactValuesPersistsChoiceAndRefreshes() {
+        InMemorySharedPreferences preferences = new InMemorySharedPreferences();
+        GboardAiWritingToolsSettings.ensureDefaults(preferences);
+        CapturingHost host = new CapturingHost(preferences);
+        GboardPatchesSettingsContract.SelectorRow backendRow = findSelectorRow(
+                new GboardAiWritingToolsSettingsFeature(null).buildScreen(host).getRows(),
+                "Backend type");
+
+        backendRow.getAction().run();
+
+        Assert.assertArrayEquals(
+                new String[]{
+                        "GBOARD_SERVER",
+                        "PRIVATE_INFERENCE_AICORE",
+                        "PRIVATE_INFERENCE_ASTREA"
+                },
+                host.choiceValues);
+        Assert.assertEquals("GBOARD_SERVER", host.choiceCurrentValue);
+        host.choiceConsumer.accept("PRIVATE_INFERENCE_ASTREA");
+        Assert.assertEquals(
+                "PRIVATE_INFERENCE_ASTREA",
+                GboardAiWritingToolsSettings.readBackendType(preferences));
+        Assert.assertEquals(1, host.refreshCount);
+    }
+
     private static GboardPatchesSettingsContract.ToggleRow findToggleRow(
             List<GboardPatchesSettingsContract.Row> rows,
             String title) {
@@ -84,9 +134,25 @@ public final class GboardAiWritingToolsSettingsFeatureTest {
         return null;
     }
 
+    private static GboardPatchesSettingsContract.SelectorRow findSelectorRow(
+            List<GboardPatchesSettingsContract.Row> rows,
+            String title) {
+        for (GboardPatchesSettingsContract.Row row : rows) {
+            if (row instanceof GboardPatchesSettingsContract.SelectorRow selectorRow
+                    && title.contentEquals(selectorRow.getTitle())) {
+                return selectorRow;
+            }
+        }
+        return null;
+    }
+
     private static final class CapturingHost implements GboardPatchesSettingsContract.Host {
         private final SharedPreferences preferences;
         private final Context context;
+        private String[] choiceValues;
+        private String choiceCurrentValue;
+        private GboardPatchesSettingsContract.StringValueConsumer choiceConsumer;
+        private int refreshCount;
 
         private CapturingHost(SharedPreferences preferences) {
             this.preferences = preferences;
@@ -115,6 +181,7 @@ public final class GboardAiWritingToolsSettingsFeatureTest {
 
         @Override
         public void refresh() {
+            refreshCount++;
         }
 
         @Override
@@ -125,6 +192,9 @@ public final class GboardAiWritingToolsSettingsFeatureTest {
         public void showChoiceDialog(String title, String[] labels, String[] values,
                 String currentValue, String customValue, Runnable customAction,
                 GboardPatchesSettingsContract.StringValueConsumer valueConsumer) {
+            choiceValues = values;
+            choiceCurrentValue = currentValue;
+            choiceConsumer = valueConsumer;
         }
 
         @Override

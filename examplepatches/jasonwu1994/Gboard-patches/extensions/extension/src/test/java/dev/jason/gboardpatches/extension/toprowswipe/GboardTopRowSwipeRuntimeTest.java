@@ -2,6 +2,9 @@ package dev.jason.gboardpatches.extension.toprowswipe;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import android.view.View;
@@ -13,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import org.junit.After;
 import org.junit.Test;
@@ -65,6 +69,56 @@ public final class GboardTopRowSwipeRuntimeTest {
                         9,
                         GboardTopRowSwipeRuntimeSupport.LegacyKeyboardKind.ENGLISH_QWERTY,
                         "m"));
+    }
+
+    @Test
+    public void zhuyinRepeatedSlotIdsRequireExactFirstRowLabels() {
+        String[] topRow = {"ㄅ", "ㄉ", "ˇ", "ˋ", "ㄓ", "ˊ", "˙", "ㄚ", "ㄞ", "ㄢ"};
+        String[][] lowerRows = {
+                {"ㄆ", "ㄊ", "ㄍ", "ㄐ", "ㄔ", "ㄗ", "ㄧ", "ㄛ", "ㄟ", "ㄣ"},
+                {"ㄇ", "ㄋ", "ㄎ", "ㄑ", "ㄕ", "ㄘ", "ㄨ", "ㄜ", "ㄠ", "ㄤ"},
+                {"ㄈ", "ㄌ", "ㄏ", "ㄒ", "ㄖ", "ㄙ", "ㄩ", "ㄝ", "ㄡ", "ㄥ"}
+        };
+
+        for (int slot = 0; slot < topRow.length; slot++) {
+            assertEquals(GboardTopRowSwipeRuntime.TopRowLayoutKind.ZHUYIN,
+                    GboardTopRowSwipeRuntime.topRowLayoutKindForSlot(
+                            slot,
+                            GboardTopRowSwipeRuntimeSupport.LegacyKeyboardKind.ZHUYIN,
+                            topRow[slot]));
+            for (String[] lowerRow : lowerRows) {
+                assertEquals(GboardTopRowSwipeRuntime.TopRowLayoutKind.NONE,
+                        GboardTopRowSwipeRuntime.topRowLayoutKindForSlot(
+                                slot,
+                                GboardTopRowSwipeRuntimeSupport.LegacyKeyboardKind.ZHUYIN,
+                                lowerRow[slot]));
+            }
+        }
+
+        assertEquals(GboardTopRowSwipeRuntime.TopRowLayoutKind.ZHUYIN,
+                GboardTopRowSwipeRuntime.topRowLayoutKindForSlot(
+                        6,
+                        GboardTopRowSwipeRuntimeSupport.LegacyKeyboardKind.ZHUYIN,
+                        "·"));
+    }
+
+    @Test
+    public void completeQwertyRowGuardRejectsVariantsAndPartialRows() throws Exception {
+        Method method = GboardTopRowSwipeRuntimeSupport.class.getDeclaredMethod(
+                "isEnglishQwertyTopRowLabels", List.class);
+        method.setAccessible(true);
+
+        assertTrue((Boolean) method.invoke(null,
+                List.of("q", "w", "e", "r", "t", "y", "u", "i", "o", "p")));
+        assertFalse((Boolean) method.invoke(null,
+                List.of("a", "z", "e", "r", "t", "y", "u", "i", "o", "p")));
+        assertFalse((Boolean) method.invoke(null,
+                List.of("q", "w", "e", "r", "t", "z", "u", "i", "o", "p")));
+        assertFalse((Boolean) method.invoke(null,
+                List.of("q", "w", "e", "r", "t", "y", "u", "i", "o")));
+        assertFalse((Boolean) method.invoke(null,
+                List.of("w", "q", "e", "r", "t", "y", "u", "i", "o", "p")));
+        assertFalse((Boolean) method.invoke(null, new Object[] {null}));
     }
 
     @Test
@@ -139,6 +193,54 @@ public final class GboardTopRowSwipeRuntimeTest {
             assertFalse("VisibleTopRowKey must not strongly retain the WeakHashMap key",
                     "softKeyView".equals(field.getName()));
         }
+    }
+
+    @Test
+    public void metadataLineageCachesKeepEqualRebindGenerationsSeparateByIdentity() {
+        EqualMetadataKey staleGeneration = new EqualMetadataKey("same-slot");
+        EqualMetadataKey currentGeneration = new EqualMetadataKey("same-slot");
+        Object staleOriginal = new Object();
+        Object currentOriginal = new Object();
+        GboardTopRowSwipeRuntime.ORIGINAL_KEY_METADATA_BY_PATCHED.put(
+                staleGeneration, staleOriginal);
+        GboardTopRowSwipeRuntime.ORIGINAL_KEY_METADATA_BY_PATCHED.put(
+                currentGeneration, currentOriginal);
+        GboardTopRowSwipeRuntime.TOP_ROW_CUSTOM_PATCHED_METADATA_MARKERS.put(
+                staleGeneration,
+                new GboardTopRowSwipeRuntime.PatchedTopRowMetadataState(
+                        GboardTopRowSwipeRuntime.TopRowLayoutKind.ZHUYIN,
+                        2,
+                        new GboardTopRowSwipeRuntime.TopRowItem(
+                                "old", "", true, "return 'old';", 1_000)));
+        GboardTopRowSwipeRuntime.TOP_ROW_CUSTOM_PATCHED_METADATA_MARKERS.put(
+                currentGeneration,
+                new GboardTopRowSwipeRuntime.PatchedTopRowMetadataState(
+                        GboardTopRowSwipeRuntime.TopRowLayoutKind.ZHUYIN,
+                        7,
+                        new GboardTopRowSwipeRuntime.TopRowItem(
+                                "new", "", true, "return 'new';", 2_000)));
+
+        assertSame(staleOriginal,
+                GboardTopRowSwipeRuntime.resolveOriginalKeyMetadataForPatchInterop(
+                        staleGeneration));
+        assertSame(currentOriginal,
+                GboardTopRowSwipeRuntime.resolveOriginalKeyMetadataForPatchInterop(
+                        currentGeneration));
+        GboardTopRowSwipeRuntime.QuickJsSlotConfig staleConfig =
+                GboardTopRowSwipeRuntime.quickJsSlotConfig(staleGeneration);
+        GboardTopRowSwipeRuntime.QuickJsSlotConfig currentConfig =
+                GboardTopRowSwipeRuntime.quickJsSlotConfig(currentGeneration);
+        assertNotNull(staleConfig);
+        assertNotNull(currentConfig);
+        assertEquals(2, staleConfig.rowIndex);
+        assertEquals(7, currentConfig.rowIndex);
+
+        GboardTopRowSwipeRuntime.ORIGINAL_KEY_METADATA_BY_PATCHED.remove(staleGeneration);
+        GboardTopRowSwipeRuntime.TOP_ROW_CUSTOM_PATCHED_METADATA_MARKERS.remove(staleGeneration);
+        assertSame(currentOriginal,
+                GboardTopRowSwipeRuntime.resolveOriginalKeyMetadataForPatchInterop(
+                        currentGeneration));
+        assertNotNull(GboardTopRowSwipeRuntime.quickJsSlotConfig(currentGeneration));
     }
 
     @Test
@@ -292,6 +394,160 @@ public final class GboardTopRowSwipeRuntimeTest {
     }
 
     @Test
+    public void unresolvedQuickJsMarkerConsumesFailClosed() {
+        assertTrue(GboardQuickJsFeature.maybeConsumeQuickJsTopRowPress(
+                null,
+                null,
+                null,
+                null,
+                true));
+    }
+
+    @Test
+    public void pointerFinishOnlyClearsConsumedOrPendingSessions() throws Exception {
+        Method finishMethod = GboardTopRowSwipeRuntime.class.getDeclaredMethod(
+                "finishSwipeSession", Object.class);
+        finishMethod.setAccessible(true);
+
+        Object tracker = new Object();
+        GboardTopRowSwipeRuntime.SwipeSession session =
+                new GboardTopRowSwipeRuntime.SwipeSession(
+                        new Object(),
+                        0f,
+                        0f,
+                        GboardTopRowSwipeRuntime.TopRowLayoutKind.ZHUYIN);
+        GboardTopRowSwipeRuntime.SESSIONS.put(tracker, session);
+
+        finishMethod.invoke(null, tracker);
+        assertTrue(GboardTopRowSwipeRuntime.SESSIONS.containsKey(tracker));
+
+        session.pendingPage = GboardTopRowSwipeRuntime.TopRowPage.CUSTOM;
+        finishMethod.invoke(null, tracker);
+        assertNull(GboardTopRowSwipeRuntime.SESSIONS.get(tracker));
+    }
+
+    @Test
+    public void targetRuntimeSourceUsesOnly1777ReflectionMappings() throws Exception {
+        String source = readSource(
+                "src/main/java/dev/jason/gboardpatches/extension/toprowswipe/"
+                        + "GboardTopRowSwipeRuntimeSupport.java");
+
+        assertTrue(source.contains("PRIMARY_LABEL_VIEW_ID = 0x7f0b062a"));
+        for (String targetType : List.of(
+                "oth", "oud", "otk", "owd", "oti", "ovv", "ouc", "pbl", "pbj")) {
+            assertTrue("missing target type " + targetType,
+                    source.contains("\"" + targetType + "\""));
+        }
+        for (String baselineType : List.of(
+                "nxi", "nyf", "nxl", "oaa", "nxj", "nzv", "nye", "ofk", "ofi")) {
+            assertFalse("stale baseline type remains active: " + baselineType,
+                    source.contains("\"" + baselineType + "\""));
+        }
+        assertFalse(source.contains("0x7f0b0607"));
+        assertTrue(source.contains("getDeclaredMethod(\"q\", actionSetClass"));
+        assertTrue(source.contains("getDeclaredField(\"f\")"));
+        assertTrue(source.contains("getDeclaredField(\"g\")"));
+        assertTrue(source.contains("getDeclaredField(\"h\")"));
+        assertTrue(source.contains("getDeclaredMethod(\"h\", actionTypeClass)"));
+        assertTrue(source.replaceAll("\\s+", " ").contains(
+                "getDeclaredMethod(\"q\", int.class, intentionClass, Object.class)"));
+    }
+
+    @Test
+    public void runtimeSourceHydratesExactlyTenSupportedRowKeysBeforeSessionStorage()
+            throws Exception {
+        String source = readSource(
+                "src/main/java/dev/jason/gboardpatches/extension/toprowswipe/"
+                        + "GboardTopRowSwipeRuntime.java");
+
+        assertTrue(source.contains("hydrateConfirmedEnglishQwertyRow"));
+        assertTrue(source.contains("hydrateConfirmedZhuyinRow"));
+        assertTrue(source.contains("confirmedEnglishQwertyRow"));
+        assertTrue(source.contains("PREVALIDATED_ENGLISH_REFRESH"));
+        assertTrue(source.contains("isEnglishQwertyTopRowLabels"));
+
+        int armStart = source.indexOf("public static Object maybeArmAndResolveTopRowOwner");
+        int clearStart = source.indexOf("public static void clearSwipeSession", armStart);
+        String arm = source.substring(armStart, clearStart);
+        int zhuyinHydrate = arm.indexOf("hydrateConfirmedZhuyinRow(handles, candidateView)");
+        int englishHydrate = arm.indexOf(
+                "hydrateConfirmedEnglishQwertyRow(handles, candidateView)");
+        int store = arm.indexOf("SESSIONS.put(tracker");
+        assertTrue(zhuyinHydrate >= 0 && store > zhuyinHydrate);
+        assertTrue(englishHydrate >= 0 && store > englishHydrate);
+    }
+
+    @Test
+    public void afterBindTrackingReadsInstalledSoftKeyMetadataInsteadOfIncomingArgument()
+            throws Exception {
+        String source = readSource(
+                "src/main/java/dev/jason/gboardpatches/extension/toprowswipe/"
+                        + "GboardTopRowSwipeRuntime.java");
+        int trackingStart = source.indexOf("public static void afterSoftKeyBound");
+        int pointerStart = source.indexOf(
+                "public static Object maybeArmAndResolveTopRowOwner", trackingStart);
+        assertTrue(trackingStart >= 0 && pointerStart > trackingStart);
+        String tracking = source.substring(trackingStart, pointerStart)
+                .replaceAll("\\s+", " ");
+
+        assertTrue(tracking.contains("afterSoftKeyBound(Object receiver)"));
+        assertTrue(tracking.contains("handles.softKeyMetadataField.get(receiver)"));
+        assertTrue(tracking.contains("resolveOriginalKeyMetadata(boundMetadata)"));
+        assertFalse(tracking.contains("afterSoftKeyBound(Object receiver, Object keyMetadata)"));
+        assertFalse(tracking.contains("resolveOriginalKeyMetadata(keyMetadata)"));
+        assertFalse(tracking.contains("isTopRowCacheEligibleView("));
+    }
+
+    @Test
+    public void everyTopRowMetadataBuildInheritsSlideIdentityBeforeInteropCaching()
+            throws Exception {
+        String source = readSource(
+                "src/main/java/dev/jason/gboardpatches/extension/toprowswipe/"
+                        + "GboardTopRowSwipeRuntime.java");
+        int patchStart = source.indexOf("public static Object patchIncomingSoftKeyMetadata");
+        int afterBindStart = source.indexOf("public static void afterSoftKeyBound", patchStart);
+        assertTrue(patchStart >= 0 && afterBindStart > patchStart);
+        String patchMethod = source.substring(patchStart, afterBindStart);
+
+        int build = patchMethod.indexOf("buildKeyMetadataMethod.invoke(builder)");
+        int inherit = patchMethod.indexOf(
+                "GboardZhuyinSlideRuntime.inheritPatchedMetadata(originalMetadata, patched)");
+        int originalCache = patchMethod.indexOf("ORIGINAL_KEY_METADATA_BY_PATCHED.put(");
+        int customMarker = patchMethod.indexOf("TOP_ROW_CUSTOM_PATCHED_METADATA_MARKERS.put(");
+        assertTrue(build >= 0);
+        assertTrue(inherit > build);
+        assertTrue(originalCache > inherit);
+        assertTrue(customMarker > originalCache);
+        assertEquals(1, countOccurrences(source, "buildKeyMetadataMethod.invoke(builder)"));
+
+        int refreshStart = source.indexOf("private static void refreshVisibleTopRowKeyMetadata");
+        String refresh = source.substring(refreshStart);
+        assertTrue(refresh.contains("patchIncomingSoftKeyMetadata("));
+    }
+
+    @Test
+    public void pageApplyTransactionCleansOwnedTransitionBeforeStrictVisibleCopyAndRollsBack()
+            throws Exception {
+        String source = readSource(
+                "src/main/java/dev/jason/gboardpatches/extension/toprowswipe/"
+                        + "GboardTopRowSwipeRuntime.java");
+        int applyStart = source.indexOf("static boolean applyTopRowPageTransition");
+        int refreshStart = source.indexOf(
+                "private static void refreshVisibleTopRowKeyMetadata", applyStart);
+        assertTrue(applyStart >= 0 && refreshStart > applyStart);
+        String apply = source.substring(applyStart, refreshStart);
+
+        int cleanup = apply.indexOf("cleanupOwnedTopRowTransition(anchorView)");
+        int copy = apply.indexOf("copyVisibleTopRowKeys(layoutKind, anchorView)");
+        assertTrue(cleanup >= 0 && copy > cleanup);
+        assertTrue(apply.contains("recycleSnapshot(beforeSnapshot)"));
+        assertTrue(apply.contains("recycleSnapshot(afterSnapshot)"));
+        assertTrue(apply.contains("pageSetter.accept(previousPage)"));
+        assertTrue(apply.contains("rebinder.accept(visibleTopRowKeys)"));
+        assertTrue(apply.contains("setTopRowAlpha(visibleTopRowKeys, 1f)"));
+    }
+
+    @Test
     public void consumedSessionRecyclesOnlyAfterRecycleWindow() throws Exception {
         Method recycleMethod = GboardTopRowSwipeRuntime.class.getDeclaredMethod(
                 "shouldRecycleConsumedSession",
@@ -394,5 +650,34 @@ public final class GboardTopRowSwipeRuntimeTest {
 
     private static String readSource(String path) throws Exception {
         return new String(Files.readAllBytes(Path.of(path)), StandardCharsets.UTF_8);
+    }
+
+    private static final class EqualMetadataKey {
+        private final String value;
+
+        EqualMetadataKey(String value) {
+            this.value = value;
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            return other instanceof EqualMetadataKey
+                    && value.equals(((EqualMetadataKey) other).value);
+        }
+
+        @Override
+        public int hashCode() {
+            return value.hashCode();
+        }
+    }
+
+    private static int countOccurrences(String source, String needle) {
+        int count = 0;
+        int index = 0;
+        while ((index = source.indexOf(needle, index)) >= 0) {
+            count++;
+            index += needle.length();
+        }
+        return count;
     }
 }

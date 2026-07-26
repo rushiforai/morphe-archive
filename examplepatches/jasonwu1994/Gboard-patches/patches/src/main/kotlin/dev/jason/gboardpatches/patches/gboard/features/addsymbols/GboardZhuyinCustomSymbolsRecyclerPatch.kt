@@ -4,9 +4,10 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import dev.jason.gboardpatches.patches.gboard.shared.findMutableMethodOrThrow
+import dev.jason.gboardpatches.patches.gboard.shared.instructionIndices
 
-private const val BASE_RECYCLER_ADAPTER_CLASS = "Ljp;"
-private const val EMOTICON_RECYCLER_ADAPTER_CLASS = "Lhvx;"
+private const val BASE_RECYCLER_ADAPTER_CLASS = "Ljn;"
+private const val EMOTICON_RECYCLER_ADAPTER_CLASS = "Lils;"
 
 internal val gboardZhuyinCustomSymbolsRecyclerPatch = bytecodePatch(
     description = "移植 add-symbols 的 custom recycler bind rendering。"
@@ -29,19 +30,19 @@ private fun patchConstructor() = with(context) {
         returnType = "V",
         parameterTypes = listOf(
             "Landroid/content/Context;",
-            "Lhwe;",
+            "Lily;",
             "Ljava/util/function/Consumer;",
             "I",
             "I"
         )
     )
-    val superConstructorIndex = mutableMethod.indexOfMethodCallOrThrow(
-        definingClass = BASE_RECYCLER_ADAPTER_CLASS,
-        name = "<init>",
-        returnType = "V",
-        parameterTypes = emptyList()
-    )
-    mutableMethod.addInstructions(superConstructorIndex + 1, CONSTRUCTOR_DELEGATE)
+    val returnIndices = mutableMethod.instructionIndices("RETURN_VOID")
+    check(returnIndices.isNotEmpty()) {
+        "Could not resolve return-void instructions in ils.<init>()"
+    }
+    returnIndices.sortedDescending().forEach { returnIndex ->
+        mutableMethod.addInstructions(returnIndex, CONSTRUCTOR_DELEGATE)
+    }
 }
 
 context(context: BytecodePatchContext)
@@ -50,7 +51,7 @@ private fun patchBindViewHolder() = with(context) {
         classType = EMOTICON_RECYCLER_ADAPTER_CLASS,
         name = "p",
         returnType = "V",
-        parameterTypes = listOf("Lkm;", "I")
+        parameterTypes = listOf("Lkl;", "I")
     )
     mutableMethod.addInstructions(0, BIND_VIEW_HOLDER_DELEGATE)
 }
@@ -59,7 +60,7 @@ context(context: BytecodePatchContext)
 private fun patchViewType() = with(context) {
     val mutableMethod = findMutableMethodOrThrow(
         classType = BASE_RECYCLER_ADAPTER_CLASS,
-        name = "fW",
+        name = "gp",
         returnType = "I",
         parameterTypes = listOf("I")
     )
@@ -71,14 +72,14 @@ private fun patchCreateViewHolder() = with(context) {
     val mutableMethod = findMutableMethodOrThrow(
         classType = EMOTICON_RECYCLER_ADAPTER_CLASS,
         name = "d",
-        returnType = "Lkm;",
+        returnType = "Lkl;",
         parameterTypes = listOf("Landroid/view/ViewGroup;", "I")
     )
     mutableMethod.addInstructions(0, CREATE_VIEW_HOLDER_DELEGATE)
 }
 
 private val CONSTRUCTOR_DELEGATE = """
-    invoke-static {p0}, Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->onEmoticonRecyclerAdapterConstructed(Ljava/lang/Object;)V
+    invoke-static {p0, p3}, Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->onEmoticonRecyclerAdapterConstructed(Ljava/lang/Object;Ljava/lang/Object;)V
 """.trimIndent()
 
 private val BIND_VIEW_HOLDER_DELEGATE = """
@@ -114,7 +115,7 @@ private val CREATE_VIEW_HOLDER_DELEGATE = """
 
     if-eqz v0, :jasondev_continue
 
-    check-cast v0, Lkm;
+    check-cast v0, Lkl;
 
     return-object v0
 

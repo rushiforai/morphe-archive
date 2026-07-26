@@ -51,6 +51,34 @@ public final class GboardSettingsTextTest {
     }
 
     @Test
+    public void stableCopyOwnsBluetoothMicrophoneStringsInsteadOfTargetResourceIds() {
+        Assert.assertEquals(
+                "使用藍芽麥克風",
+                GboardSettingsText.resolveStableTextForTesting(
+                        R.string.gboard_patches_bluetooth_microphone_title,
+                        "zh-Hant",
+                        "Use Bluetooth microphone"));
+        Assert.assertEquals(
+                "語音輸入->使用藍芽麥克風",
+                GboardSettingsText.resolveStableTextForTesting(
+                        R.string.gboard_patches_bluetooth_microphone_summary,
+                        "zh-Hant",
+                        "Voice typing -> Use Bluetooth microphone"));
+        Assert.assertEquals(
+                "Use Bluetooth microphone",
+                GboardSettingsText.resolveStableTextForTesting(
+                        R.string.gboard_patches_bluetooth_microphone_title,
+                        "en",
+                        "Use Bluetooth microphone"));
+        Assert.assertEquals(
+                "Behavior",
+                GboardSettingsText.resolveStableTextForTesting(
+                        R.string.gboard_patches_bluetooth_microphone_section_behavior,
+                        "en",
+                        "Behavior"));
+    }
+
+    @Test
     public void stableCopyFormatsLanguageAndLatinGlobeValues() {
         Assert.assertEquals(
                 "跟隨系統（繁體中文）",
@@ -77,6 +105,18 @@ public final class GboardSettingsTextTest {
 
     @Test
     public void stableCopyReturnsTraditionalChineseForClipboardAndSettingsHomepageStrings() {
+        Assert.assertEquals(
+                "開發人員選項",
+                GboardSettingsText.resolveStableTextForTesting(
+                        R.string.gboard_patches_developer_options_title,
+                        "zh-Hant",
+                        "Developer options"));
+        Assert.assertEquals(
+                "開啟 開發人員選項 與 Flag 編輯器。",
+                GboardSettingsText.resolveStableTextForTesting(
+                        R.string.gboard_patches_developer_options_summary,
+                        "zh-Hant",
+                        "Open Developer options and the Flag Editor."));
         Assert.assertEquals(
                 "剪貼簿",
                 GboardSettingsText.resolveStableTextForTesting(
@@ -114,11 +154,11 @@ public final class GboardSettingsTextTest {
                         "zh-Hant",
                         "AI Writing Tools"));
         Assert.assertEquals(
-                "控制是否強制顯示官方 AI 撰寫工具開關。",
+                "控制 Gboard AI 撰寫工具的可用性、鍵盤支援與後端路由。",
                 GboardSettingsText.resolveStableTextForTesting(
                         R.string.gboard_patches_ai_writing_tools_summary,
                         "zh-Hant",
-                        "Controls whether to force-show the stock AI Writing Tools switches."));
+                        "Controls Gboard AI Writing Tools availability, keyboard support, and backend routing."));
         Assert.assertEquals(
                 "支援所有鍵盤",
                 GboardSettingsText.resolveStableTextForTesting(
@@ -132,16 +172,29 @@ public final class GboardSettingsTextTest {
                         "zh-Hant",
                         "Enable AI Writing Tools"));
         Assert.assertEquals(
-                "強制顯示「修正和建議」->「撰寫工具」中的官方 4 個開關；手機沒有 AI Core 時，需要開啟「使用 Google 伺服器」才會生效。",
+                "強制顯示 修正和建議 -> 撰寫工具 中的2個開關。",
                 GboardSettingsText.resolveStableTextForTesting(
                         R.string.gboard_patches_ai_writing_tools_enabled_summary,
                         "zh-Hant",
-                        "Force-shows the stock four switches in \"Corrections & suggestions\" -> \"Writing tools\". If your phone does not have AI Core, turn on \"Use Google servers\" for it to work."));
+                        "Force-show the two switches under Corrections & suggestions -> Writing tools."));
         Assert.assertEquals(
                 "開啟後，會強制把撰寫工具在所有鍵盤生效。需要強制停止並重新啟動 Gboard 才會生效。",
                 GboardSettingsText.resolveStableTextForTesting(
                         R.string.gboard_patches_ai_writing_tools_all_keyboards_summary,
                         "zh-Hant",
                         "When enabled, force writing tools to work on every keyboard. Force-stop and restart Gboard for the change to take effect."));
+        Assert.assertEquals(
+                "後端類型",
+                GboardSettingsText.resolveStableTextForTesting(
+                        R.string.gboard_patches_ai_writing_tools_backend_type_title,
+                        "zh-Hant",
+                        "Backend type"));
+        Assert.assertEquals(
+                "變更後端後，需要強制停止並重新啟動 Gboard 才會生效。如果選擇 AICORE，需要有資格才能下載模型。",
+                GboardSettingsText.resolveStableTextForTesting(
+                        R.string.gboard_patches_ai_writing_tools_backend_type_summary,
+                        "zh-Hant",
+                        "Force-stop and restart Gboard after changing the backend. If you select "
+                                + "AICORE, you must be eligible to download the model."));
     }
 }

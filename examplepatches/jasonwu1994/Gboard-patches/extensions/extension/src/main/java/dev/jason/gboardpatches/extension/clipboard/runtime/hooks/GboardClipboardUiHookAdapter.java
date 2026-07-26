@@ -131,27 +131,28 @@ final class GboardClipboardUiHookAdapter {
             return;
         }
         TextView textView = (TextView) labelViewObject;
-        detachCountdownBinding(textView);
 
         List<Object> items = adapterItems(handles, receiver);
         if (items == null || position < 0 || position >= items.size()) {
+            clearCountdownBinding(textView, null);
             return;
         }
 
         Object clip = items.get(position);
         if (clip == null || clip == handles.recentHeader || clip == handles.pinnedHeader
                 || clip == handles.specialHeader) {
+            clearCountdownBinding(textView, null);
             return;
         }
 
+        long clipId = support.clipId(handles, clip);
+        clearCountdownBinding(textView, Long.valueOf(clipId));
         GboardClipboardRuntimeSupport.RuntimeSettings settings = support.runtimeSettings();
         if (!settings.enabled) {
             previewLinesFeature.restoreStockMaxLines(textView);
-            clearCountdownBinding(textView);
             return;
         }
         previewLinesFeature.applyConfiguredMaxLines(textView, position, settings);
-        long clipId = support.clipId(handles, clip);
         int clipOrder = settings.showOrderIndex
                 ? orderIndexFeature.computeClipOrder(
                         handles,
@@ -160,7 +161,6 @@ final class GboardClipboardUiHookAdapter {
                         settings.clipboardOrderIndexMode)
                 : -1;
         if (!settings.showExpiryCountdown && !settings.showCreationTime && clipOrder <= 0) {
-            clearCountdownBinding(textView);
             return;
         }
 
@@ -212,13 +212,16 @@ final class GboardClipboardUiHookAdapter {
         }
 
         String metadataLine = formatMetadataLine(binding.handles, binding, settings);
+        String renderedText;
         if (metadataLine == null || metadataLine.isEmpty()) {
-            binding.textView.setText(binding.originalText);
+            renderedText = binding.originalText;
         } else if (binding.originalText.isEmpty()) {
-            binding.textView.setText(metadataLine);
+            renderedText = metadataLine;
         } else {
-            binding.textView.setText(metadataLine + "\n" + binding.originalText);
+            renderedText = metadataLine + "\n" + binding.originalText;
         }
+        binding.renderedText = renderedText;
+        binding.textView.setText(renderedText);
 
         binding.textView.removeCallbacks(binding);
         if (countdownFeature.shouldContinueUpdates(binding, settings)) {
@@ -330,10 +333,25 @@ final class GboardClipboardUiHookAdapter {
 
     private void clearCountdownBinding(TextView textView) {
         GboardClipboardRuntimeSupport.CountdownBinding previousBinding =
+                support.activeCountdownByTextView.get(textView);
+        clearCountdownBinding(textView, previousBinding == null
+                ? null
+                : Long.valueOf(previousBinding.clipId));
+    }
+
+    private void clearCountdownBinding(TextView textView, Long nextClipId) {
+        GboardClipboardRuntimeSupport.CountdownBinding previousBinding =
                 support.activeCountdownByTextView.remove(textView);
         if (previousBinding != null) {
             textView.removeCallbacks(previousBinding);
-            textView.setText(previousBinding.originalText);
+            CharSequence currentText = textView.getText();
+            // An after-bind callback cannot distinguish a same-ID stock rewrite to identical
+            // bytes from a repeated callback. Same-ID restoration keeps repeated binds idempotent.
+            if (nextClipId != null && previousBinding.clipId == nextClipId.longValue()
+                    && previousBinding.renderedText != null && currentText != null
+                    && currentText.toString().contentEquals(previousBinding.renderedText)) {
+                textView.setText(previousBinding.originalText);
+            }
             return;
         }
 
@@ -341,14 +359,6 @@ final class GboardClipboardUiHookAdapter {
         String strippedText = stripMetadataPrefix(currentText);
         if (currentText != null && !currentText.toString().contentEquals(strippedText)) {
             textView.setText(strippedText);
-        }
-    }
-
-    private void detachCountdownBinding(TextView textView) {
-        GboardClipboardRuntimeSupport.CountdownBinding previousBinding =
-                support.activeCountdownByTextView.remove(textView);
-        if (previousBinding != null) {
-            textView.removeCallbacks(previousBinding);
         }
     }
 
@@ -509,9 +519,13 @@ final class GboardClipboardUiHookAdapter {
             return;
         }
 
-        boolean shouldRestore = assembly.visibleRecentCount > currentRecentCount
-                || assembly.visiblePinnedCount > currentPinnedVisibleCount
-                || assembly.result.size() > items.size();
+        boolean shouldRestore = shouldRestoreAfterStockTrim(
+                assembly.visibleRecentCount,
+                currentRecentCount,
+                assembly.visiblePinnedCount,
+                currentPinnedVisibleCount,
+                assembly.result.size(),
+                items.size());
         if (!shouldRestore) {
             return;
         }
@@ -527,6 +541,15 @@ final class GboardClipboardUiHookAdapter {
                 + ", pinnedVisibleCount=" + currentPinnedVisibleCount
                 + " -> " + assembly.visiblePinnedCount
                 + ", itemCount=" + items.size());
+    }
+
+    static boolean shouldRestoreAfterStockTrim(
+            int expectedRecent, int currentRecent,
+            int expectedPinned, int currentPinned,
+            int expectedSize, int currentSize) {
+        return expectedRecent != currentRecent
+                || expectedPinned != currentPinned
+                || expectedSize != currentSize;
     }
 
     private int distinctTimestampCountForAdapter(

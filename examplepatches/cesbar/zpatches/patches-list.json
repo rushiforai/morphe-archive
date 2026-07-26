@@ -1,6 +1,16 @@
 {
-  "version": "1.6.0",
+  "version": "1.7.0",
   "patches": [
+    {
+      "name": "Bypass PairIp",
+      "description": "Bypass the PairIp license check preventing app modification",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "ee.dustland.android.dustlandsudoku": null
+      },
+      "options": []
+    },
     {
       "name": "Custom Maps API Key",
       "description": "Replace Velo'v Google Maps key with your own to fix it",
@@ -29,6 +39,7 @@
       "use": true,
       "dependencies": [],
       "compatiblePackages": {
+        "ee.dustland.android.dustlandsudoku": null,
         "ee.dustland.android.minesweeper": null,
         "ee.dustland.android.solitaire": null
       },
@@ -52,6 +63,7 @@
       "use": true,
       "dependencies": [],
       "compatiblePackages": {
+        "ee.dustland.android.dustlandsudoku": null,
         "ee.dustland.android.minesweeper": null,
         "ee.dustland.android.solitaire": null
       },

@@ -9,36 +9,39 @@ import org.junit.Test
 
 class GboardEnglishQwertyToggleRuntimeSourceTest {
     @Test
-    fun softKeyPatchConsultsRuntimeToggleAndRemovesSlideUpActionWhenDisabled() {
-        val source = readSource(
-            "src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/englishqwerty/" +
-                "GboardEnglishQwertySoftKeyPatch.kt"
-        )
+    fun disabledToggleReturnsIncomingMetadataWithoutStrippingStockActions() {
+        val source = readSource()
+        val patchBody = helperBody(source, "PATCH_INCOMING_METADATA_BODY")
 
-        assertTrue(source.contains("GboardEnglishUppercaseToggleRuntime"))
-        assertTrue(source.contains("jasondevIsEnglishUppercaseToggleEnabled"))
-        assertTrue(source.contains("jasondevStripSlideUpAction"))
-        assertTrue(source.contains("Ljava/util/EnumMap;->remove(Ljava/lang/Object;)Ljava/lang/Object;"))
-        assertTrue(source.contains("sget-object v6, Lnxi;->c:Lnxi;"))
+        assertTrue(patchBody.contains("->isEnabled()Z"))
+        assertTrue(patchBody.contains("if-eqz v0, :cond_return_original_safe"))
+        assertFalse(source.contains("jasondevStripSlideUpAction"))
+        assertFalse(source.contains("STRIP_SLIDE_UP_ACTION_BODY"))
+        assertFalse(source.contains("Ljava/util/EnumMap;->remove"))
     }
 
     @Test
-    fun staticToggleHelperUsesLocalRegisterForRuntimeFlag() {
-        val source = readSource(
-            "src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/englishqwerty/" +
-                "GboardEnglishQwertySoftKeyPatch.kt"
-        )
-        val helperBody = Regex(
-            """private val IS_ENGLISH_UPPERCASE_TOGGLE_ENABLED_BODY = """ + "\"\"\"" + """(.*?)""" + "\"\"\"",
-            setOf(RegexOption.DOT_MATCHES_ALL)
-        ).find(source)?.groupValues?.get(1) ?: error("toggle helper body not found")
+    fun softKeyPatchDoesNotInstallARedundantRuntimeToggleWrapper() {
+        val source = readSource()
 
-        assertTrue(helperBody.contains("move-result v0"))
-        assertTrue(helperBody.contains("return v0"))
-        assertFalse(helperBody.contains("move-result p0"))
-        assertFalse(helperBody.contains("return p0"))
+        assertFalse(source.contains("jasondevIsEnglishUppercaseToggleEnabled"))
+        assertFalse(source.contains("IS_ENGLISH_UPPERCASE_TOGGLE_ENABLED_BODY"))
     }
 
-    private fun readSource(relativePath: String): String =
-        String(Files.readAllBytes(Path.of(relativePath)), StandardCharsets.UTF_8)
+    private fun helperBody(source: String, name: String): String =
+        Regex(
+            "private val $name = " + "\"\"\"" + "(.*?)" + "\"\"\"",
+            setOf(RegexOption.DOT_MATCHES_ALL)
+        ).find(source)?.groupValues?.get(1) ?: error("$name body not found")
+
+    private fun readSource(): String =
+        String(
+            Files.readAllBytes(
+                Path.of(
+                    "src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/englishqwerty/" +
+                        "GboardEnglishQwertySoftKeyPatch.kt"
+                )
+            ),
+            StandardCharsets.UTF_8
+        )
 }

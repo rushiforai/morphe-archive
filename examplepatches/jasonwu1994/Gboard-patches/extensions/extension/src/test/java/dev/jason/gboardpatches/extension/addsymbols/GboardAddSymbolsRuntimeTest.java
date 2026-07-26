@@ -6,11 +6,16 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.shadows.ShadowLog;
 import org.robolectric.shadows.ShadowSystemClock;
 
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.time.Duration;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -30,6 +35,8 @@ public final class GboardAddSymbolsRuntimeTest {
         pendingStockEmoticonTabSwitchActiveSession().set(false);
         setStaticLong("pendingCustomFlowUntilUptimeMs", 0L);
         setStaticLong("pendingStockEmoticonTabSwitchUntilUptimeMs", 0L);
+        ShadowLog.clear();
+        clearWarningLogCountsIfPresent();
     }
 
     @Test
@@ -131,6 +138,86 @@ public final class GboardAddSymbolsRuntimeTest {
         }
     }
 
+    @Test
+    public void runtimeUsesOnlyGboard1777ReflectionHandles() throws Exception {
+        String source = runtimeSource();
+        List<String> targetClasses = List.of(
+                "ovf", "odz", "val", "ncc", "nbs", "nbq", "iru", "vai", "vfn",
+                "ils", "ily", "iju", "kl", "frk", "fry", "frl", "qbv", "frg",
+                "yks", "fre", "xxr", "frc", "mof", "fqz", "frn", "frm", "fra",
+                "frd");
+        for (String className : targetClasses) {
+            Assert.assertTrue(
+                    "Missing Gboard 17.7.7 runtime handle: " + className,
+                    source.contains("Class.forName(\"" + className + "\", false, classLoader)"));
+        }
+
+        List<String> baselineClasses = List.of(
+                "nzd", "nio", "km", "tvj", "twm", "two", "ual", "hvx", "hwe",
+                "huo", "fiy", "fjm", "fiz", "iid", "fiu", "wqt", "fis", "wdw",
+                "fiq", "lvk", "fjb", "fja", "fio", "fin", "fir", "fhj", "miu",
+                "mik", "mii");
+        for (String className : baselineClasses) {
+            Assert.assertFalse(
+                    "Stale Gboard 17.0.10 runtime handle remains active: " + className,
+                    source.contains("Class.forName(\"" + className + "\", false, classLoader)"));
+        }
+
+        Assert.assertTrue(source.contains(
+                "keyboardTypeClass.getDeclaredMethod(\"a\", Object.class)"));
+        Assert.assertTrue(source.contains(
+                "keyboardTypeNameField = keyboardTypeClass.getDeclaredField(\"m\")"));
+        Assert.assertTrue(source.contains(
+                "immutableMapBuilderClass.getDeclaredMethod(\"a\", Object.class, Object.class)"));
+        Assert.assertTrue(source.contains(
+                "immutableMapBuilderClass.getDeclaredMethod(\"n\")"));
+        Assert.assertTrue(source.contains(
+                "\"y\", emoticonRecyclerViewClass, String.class"));
+        Assert.assertFalse(source.contains(
+                "\"A\", emoticonRecyclerViewClass, String.class"));
+        Assert.assertFalse(source.contains("getMethod(\"ad\", int.class)"));
+    }
+
+    @Test
+    public void activeReflectionFailuresAreLoggedInsteadOfSilentlyIgnored() throws Exception {
+        String source = runtimeSource();
+        assertMethodLogsFailure(source, "ensureExtensionProviderMapping",
+                "ensureExtensionProviderMapping failed");
+        assertMethodLogsFailure(source, "rewriteProviderRequestType",
+                "rewriteProviderRequestType failed");
+        assertMethodLogsFailure(source, "bridgeProviderReceiver",
+                "bridgeProviderReceiver failed");
+        assertMethodLogsFailure(source, "rewriteNavigationKeyboardType",
+                "rewriteNavigationKeyboardType failed");
+        assertMethodLogsFailure(source, "onExpressionCorpusFooterTabClick",
+                "onExpressionCorpusFooterTabClick failed");
+        assertMethodLogsFailure(source, "onKeyboardReady", "onKeyboardReady failed");
+        assertMethodLogsFailure(source, "onEmoticonBodyReady", "onEmoticonBodyReady failed");
+        assertMethodLogsFailure(source, "handleCategoryBind", "handleCategoryBind failed");
+        assertMethodLogsFailure(source, "bindCustomViewHolder", "bindCustomViewHolder failed");
+        assertMethodLogsFailure(source, "createCustomViewHolder", "createCustomViewHolder failed");
+        assertMethodLogsFailure(source, "onHeaderCallbackAfter", "onHeaderCallbackAfter failed");
+        assertMethodLogsFailure(source, "onEmoticonRecyclerAdapterConstructed",
+                "onEmoticonRecyclerAdapterConstructed failed");
+        assertMethodLogsFailure(source, "interceptHistoryWrite", "interceptHistoryWrite failed");
+    }
+
+    @Test
+    public void persistentReflectionFailureLoggingIsBoundedPerSite() throws Exception {
+        Method logWarn = GboardAddSymbolsRuntime.class.getDeclaredMethod(
+                "logWarn", String.class, Throwable.class);
+        logWarn.setAccessible(true);
+        for (int index = 0; index < 5; index++) {
+            logWarn.invoke(null, "persistent reflection drift", new IllegalStateException("drift"));
+        }
+
+        long warningCount = ShadowLog.getLogsForTag("GboardAddSymbols").stream()
+                .filter(item -> item.type == android.util.Log.WARN)
+                .filter(item -> "persistent reflection drift".equals(item.msg))
+                .count();
+        Assert.assertEquals(3L, warningCount);
+    }
+
     @SuppressWarnings("unchecked")
     private static Map<Object, Boolean> activeCustomEmoticonKeyboards() throws Exception {
         return (Map<Object, Boolean>) staticField("ACTIVE_CUSTOM_EMOTICON_KEYBOARDS").get(null);
@@ -174,6 +261,15 @@ public final class GboardAddSymbolsRuntimeTest {
         staticField(fieldName).setLong(null, value);
     }
 
+    @SuppressWarnings("unchecked")
+    private static void clearWarningLogCountsIfPresent() throws Exception {
+        try {
+            ((Map<String, ?>) staticField("WARNING_LOG_COUNTS").get(null)).clear();
+        } catch (NoSuchFieldException ignored) {
+            // RED compatibility: the bounded warning map does not exist yet.
+        }
+    }
+
     private static Field staticField(String fieldName) throws Exception {
         Field field = GboardAddSymbolsRuntime.class.getDeclaredField(fieldName);
         field.setAccessible(true);
@@ -194,5 +290,48 @@ public final class GboardAddSymbolsRuntimeTest {
                 Locale.class);
         method.setAccessible(true);
         return (String) method.invoke(null, categoryKey, locale);
+    }
+
+    private static String runtimeSource() throws Exception {
+        Path path = Path.of(
+                "src/main/java/dev/jason/gboardpatches/extension/addsymbols/"
+                        + "GboardAddSymbolsRuntime.java");
+        return new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
+    }
+
+    private static void assertMethodLogsFailure(
+            String source,
+            String methodName,
+            String warningMessage) {
+        String method = methodSource(source, methodName);
+        Assert.assertTrue(
+                methodName + " must catch active reflection failures",
+                method.contains("catch (Throwable"));
+        Assert.assertTrue(
+                methodName + " must log active reflection failures",
+                method.contains("logWarn(\"" + warningMessage + "\", throwable)"));
+        Assert.assertFalse(
+                methodName + " must not catch-and-ignore active reflection failures",
+                method.contains("catch (Throwable ignored)"));
+    }
+
+    private static String methodSource(String source, String methodName) {
+        int nameIndex = source.indexOf(methodName + "(");
+        Assert.assertTrue("Missing method source: " + methodName, nameIndex >= 0);
+        int bodyStart = source.indexOf('{', nameIndex);
+        Assert.assertTrue("Missing method body: " + methodName, bodyStart >= 0);
+        int depth = 0;
+        for (int index = bodyStart; index < source.length(); index++) {
+            char current = source.charAt(index);
+            if (current == '{') {
+                depth++;
+            } else if (current == '}') {
+                depth--;
+                if (depth == 0) {
+                    return source.substring(bodyStart, index + 1);
+                }
+            }
+        }
+        throw new AssertionError("Unterminated method body: " + methodName);
     }
 }

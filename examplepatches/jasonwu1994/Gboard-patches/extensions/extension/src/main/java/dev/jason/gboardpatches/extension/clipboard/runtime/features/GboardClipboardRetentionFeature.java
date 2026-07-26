@@ -59,8 +59,8 @@ final class GboardClipboardRetentionFeature {
         while (!cursor.isAfterLast()) {
             long timestamp = cursor.getLong(timestampColumn);
             if (timestamp < overrideCutoff && timestamp != primaryTimestamp) {
-                out.add(Long.valueOf(cursor.getLong(idColumn)));
                 handles.dataHandlerCleanupCursorMethod.invoke(dataHandler, cursor);
+                out.add(Long.valueOf(cursor.getLong(idColumn)));
             }
             cursor.moveToNext();
         }

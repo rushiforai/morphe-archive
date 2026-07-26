@@ -81,7 +81,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Perplexity-STT](#-perplexity-stt-bundle-patch-list) | 1 | 1 | Generated |
 | [Browzomje](#-browzomje-bundle-patch-list) | 5 | 1 | Generated |
 | [Morphe-Portal](#-morphe-portal-bundle-patch-list) | 3 | 2 | Generated |
-| [Zpatches](#-zpatches-bundle-patch-list) | 7 | 4 | Generated |
+| [Zpatches](#-zpatches-bundle-patch-list) | 8 | 5 | Generated |
 | [iHealth-Morphe](#-ihealth-morphe-bundle-patch-list) | 6 | 2 | Generated |
 | [Hoomans-Morphe](#-hoomans-morphe-bundle-patch-list) | 53 | 40 | Generated |
 | [Realme-Link](#-realme-link-bundle-patch-list) | 1 | 1 | Generated |
@@ -102,7 +102,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Pepper-Morphe](#-pepper-morphe-bundle-patch-list) | 17 | 10 | Generated |
 | [Fin-Tweaks](#-fin-tweaks-bundle-patch-list) | - | - | Pending patch list |
 | [Kondratjev](#-kondratjev-bundle-patch-list) | 25 | 13 | Generated |
-| [Hoo-dles](#-hoo-dles-bundle-patch-list) | 79 | 54 | Generated |
+| [Hoo-dles](#-hoo-dles-bundle-patch-list) | 76 | 53 | Generated |
 | [AmpleReVanced](#-amplerevanced-bundle-patch-list) | 99 | 6 | Generated |
 | [Morphe](#-morphe-bundle-patch-list) | 131 | 4 | Generated |
 | [Patcheddit](#-patcheddit-bundle-patch-list) | 39 | 19 | Generated |
@@ -115,7 +115,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Docbt](#-docbt-bundle-patch-list) | 6 | 3 | Generated |
 | [PixelPusher247](#-pixelpusher247-bundle-patch-list) | 1 | 1 | Generated |
 | [Rabilrbl](#-rabilrbl-bundle-patch-list) | 2 | 1 | Generated |
-| [Jasonwu1994](#-jasonwu1994-bundle-patch-list) | 18 | 1 | Generated |
+| [Jasonwu1994](#-jasonwu1994-bundle-patch-list) | 19 | 1 | Generated |
 | [RealCyberwash](#-realcyberwash-bundle-patch-list) | 1 | 1 | Generated |
 | [Paresh-Maheshwari](#-paresh-maheshwari-bundle-patch-list) | 57 | 22 | Generated |
 | [Binarymend](#-binarymend-bundle-patch-list) | 11 | 7 | Generated |
@@ -147,6 +147,13 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Stylus](#-stylus-bundle-patch-list) | 1 | 1 | Generated |
 | [HXReborn](#-hxreborn-bundle-patch-list) | 7 | 4 | Generated |
 | [Ikura](#-ikura-bundle-patch-list) | 4 | 2 | Generated |
+| [DH6K](#-dh6k-bundle-patch-list) | 3 | 4 | Generated |
+| [AndrewLiang25](#-andrewliang25-bundle-patch-list) | 12 | 1 | Generated |
+| [Morning-Entree](#-morning-entree-bundle-patch-list) | 3 | 3 | Generated |
+| [VocaColle](#-vocacolle-bundle-patch-list) | 6 | 1 | Generated |
+| [DBTCoach](#-dbtcoach-bundle-patch-list) | 1 | 1 | Generated |
+| [Yandex-VoT](#-yandex-vot-bundle-patch-list) | 1 | 1 | Generated |
+| [Watch-Later](#-watch-later-bundle-patch-list) | 1 | 1 | Generated |
 
 ### Legacy
 | Bundle | Patches | Apps | Status |
@@ -844,7 +851,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 ### 🧩 Zpatches Bundle Patch List:
 [?? Zpatches-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-zpatches-patches-bundle-morphe)
 <details>
-<summary><b>Zpatches</b> - 7 patches, 4 apps</summary>
+<summary><b>Zpatches</b> - 8 patches, 5 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -852,8 +859,9 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | ```Disable map animations``` | ```Disable the map zoom-in animation``` | ```com.jcdecaux.vls.lyon``` | ```3.1.1``` |
 | ```No geolocalisation check``` | ```Allows you to unlock a bike even if you're not near the station.``` | ```com.jcdecaux.vls.lyon``` | ```3.1.1``` |
 | ```Spoof package signature``` | ```Spoofs the package signature required for Firebase, fixes notifications``` | ```com.jcdecaux.vls.lyon``` | ```3.1.1``` |
-| ```Disable Internet and Telemetry``` | ```Disable Internet and Telemetry by removing all non-necessary permissions from the manifest``` | ```ee.dustland.android.minesweeper, ee.dustland.android.solitaire``` | ```All versions``` |
-| ```Enable Premium``` | ```Unlock all purchasables options``` | ```ee.dustland.android.minesweeper, ee.dustland.android.solitaire``` | ```All versions``` |
+| ```Bypass PairIp``` | ```Bypass the PairIp license check preventing app modification``` | ```ee.dustland.android.dustlandsudoku``` | ```All versions``` |
+| ```Disable Internet and Telemetry``` | ```Disable Internet and Telemetry by removing all non-necessary permissions from the manifest``` | ```ee.dustland.android.dustlandsudoku, ee.dustland.android.minesweeper, ee.dustland.android.solitaire``` | ```All versions``` |
+| ```Enable Premium``` | ```Unlock all purchasables options``` | ```ee.dustland.android.dustlandsudoku, ee.dustland.android.minesweeper, ee.dustland.android.solitaire``` | ```All versions``` |
 | ```Export all activities``` | ```Makes all activities launchable externally by setting android:exported="true" in the manifest``` | ```Universal``` | ```All versions``` |
 
 </details>
@@ -2980,7 +2988,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Hoo-dles Bundle Patch List:
 [📦 Hoo-dles-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-hoo-dles-patches-bundle-morphe)
 <details>
-<summary><b>Hoo-dles</b> - 79 patches, 54 apps</summary>
+<summary><b>Hoo-dles</b> - 76 patches, 53 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -3047,9 +3055,6 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Enable SoundCloud Go``` | ```Enables app features locked behind the subscription paywall.``` | ```SoundCloud``` | ```All versions``` |
 | ```Disable telemetry``` | ```Blocks SuperChinese's custom telemetry reporting.``` | ```SuperChinese``` | ```All versions``` |
 | ```Unlock all lessons``` | ```Only unlocks lessons on the client UI! This is useful for pre-downloading content during free trial periods.``` | ```SuperChinese``` | ```All versions``` |
-| ```Block update nag``` | ```Blocks the nag that forces a required update from the Play Store.``` | ```Teuida``` | ```All versions``` |
-| ```Enable Premium``` | ```Enables app features locked behind the subscription paywall.``` | ```Teuida``` | ```All versions``` |
-| ```MicroG integration``` | ```Allows the app to work without root by using MicroG instead of Google Play Services.``` | ```Teuida``` | ```All versions``` |
 | ```Enable Premium``` | ```Enables app features locked behind the subscription paywall. There is a strict version requirement for this patch.``` | ```TTMIK Stories``` | ```All versions``` |
 | ```Change package name``` | ```Appends ".morphe" to the package name by default. Changing the package name of the app can lead to unexpected issues.``` | ```Universal``` | ```All versions``` |
 | ```Disable Pairip license check``` | ```Disables Play Integrity API (pairip) client-side license check. This patch does not bypass Play Integrity attestation or pairipcore virtualization.``` | ```Universal``` | ```All versions``` |
@@ -4014,7 +4019,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Jasonwu1994 Bundle Patch List:
 [📦 Jasonwu1994-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-jasonwu1994-patches-bundle-morphe)
 <details>
-<summary><b>Jasonwu1994</b> - 18 patches, 1 app</summary>
+<summary><b>Jasonwu1994</b> - 19 patches, 1 app</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -4022,6 +4027,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```AI Writing Tools``` | ```啟用 AI 撰寫工具，支援所有語言 Enable AI writing tools with support for all languages.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
 | ```Clipboard Enhancements``` | ```增強剪貼簿的保留時間、數量上限、預覽行數、倒數/建立時間、順序編號與欄數 Enhance clipboard retention time, item count limit, preview lines, countdown/creation time labels, order index, and column count.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
 | ```Custom Symbols``` | ```新增獨立的特殊符號分頁，長按逗號->愛心 Add a dedicated custom symbols tab and replace the long-press comma entry with a heart shortcut.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
+| ```Developer options``` | ```啟用 開發人員選項 與 Flag 編輯器，你可以自己修改Flag的值 Enable Developer options and the Flag Editor, allowing you to modify flag values.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
 | ```Emojis, stickers & GIFs Tab Order``` | ```自訂 Gboard「Emojis, stickers & GIFs」底部 tabs 的排序，支援拖曳調整 Customize the bottom tab order in Gboard's Emojis, stickers & GIFs panel with drag-and-drop reordering.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
 | ```Enable Inline Autofill Suggestions``` | ```啟用內嵌自動填入建議 Enable Inline Autofill Suggestions``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
 | ```English QWERTY Up-Flick Uppercase``` | ```英文 QWERTY 鍵盤上滑大小寫 Flick up on the English QWERTY keyboard to toggle uppercase and lowercase.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
@@ -4374,7 +4380,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Spoof install source``` | ```Spoofs package installer checks to report Google Play as the install source.``` | ```Universal``` | ```All versions``` |
 | ```Spoof USB debugging status``` | ```Spoofs USB debugging and related developer settings through common Android APIs.``` | ```Universal``` | ```All versions``` |
 | ```Spoof VPN status``` | ```Spoofs VPN state through common Android network APIs.``` | ```Universal``` | ```All versions``` |
-| ```Remove Wildberries ads``` | ```Removes Wildberries home banners, grid banners, promo headers, product recommendations, and lottery popups.``` | ```Wildberries``` | ```All versions``` |
+| ```Remove Wildberries ads``` | ```Removes Wildberries home banners, grid banners, profile banners, promo headers, product recommendations, and lottery popups.``` | ```Wildberries``` | ```All versions``` |
 
 </details>
 
@@ -5078,5 +5084,109 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```CarbitLink Login Bypass``` | ```Bypasses Google account login for Google Maps, Mapbox, and Spotify dashboard cards.``` | ```CarbitLink``` | ```All versions``` |
 | ```CarbitLink Premium``` | ```Unlocks Google Maps, Mapbox, Spotify, and Twin Space premium features and shows supported dashboard cards.``` | ```CarbitLink``` | ```All versions``` |
 | ```Example Patch``` | ```Example patch to start with.``` | ```XYZ app``` | ```All versions``` |
+
+</details>
+
+---
+### 🧩 DH6K Bundle Patch List:
+[📦 DH6K-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-dh6k-patches-bundle-morphe)
+<details>
+<summary><b>DH6K</b> - 3 patches, 4 apps</summary>
+
+| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
+|----------|---------------|---------------------|-------------------------|
+| ```Brave Origin``` | ```Unlocks Brave Origin and enables feature toggle controls.``` | ```Brave Browser, Brave Beta, Brave Nightly``` | ```All versions``` |
+| ```Change app icon``` | ```Changes the Android launcher icon using a custom PNG image. Use a square image with transparent adaptive-icon padding.``` | ```Universal``` | ```All versions``` |
+| ```Change app name``` | ```Changes the app name shown by Android launchers. Set the desired name in the patch options.``` | ```Universal``` | ```All versions``` |
+
+</details>
+
+---
+### 🧩 AndrewLiang25 Bundle Patch List:
+[📦 AndrewLiang25-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-andrewliang25-patches-bundle-morphe)
+<details>
+<summary><b>AndrewLiang25</b> - 12 patches, 1 app</summary>
+
+| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
+|----------|---------------|---------------------|-------------------------|
+| ```Disable LINE Pay``` | ```Closes any LINE Pay screen immediately on open, so Pay flows (and their device-integrity check) never run. Messaging is unaffected.``` | ```LINE``` | ```All versions``` |
+| ```Disable VOOM``` | ```Neutralizes VOOM entry points: VOOM deep links, shares, and notifications (line://home/*) do nothing, and the standalone VOOM feed closes on open. Also disables VOOM LIVE, the birthday board, and share-to-VOOM. Messaging, friend profiles, and other tabs are unaffected.``` | ```LINE``` | ```All versions``` |
+| ```Hide ad views``` | ```Hides LINE display ad views — the LINE Ads SDK containers across the app, the chat-list Smart Channel banner, and Google AdManager ads.``` | ```LINE``` | ```All versions``` |
+| ```Hide calendar button``` | ```Removes the calendar button from the top of the Chats tab header.``` | ```LINE``` | ```All versions``` |
+| ```Hide community button``` | ```Removes the community (OpenChat) button from the top of the Chats tab header.``` | ```LINE``` | ```All versions``` |
+| ```Hide Home modules``` | ```Hides Home-tab clutter modules: the recommended stickers/content section, the real-time hot-topics (即時夯話題) block, and Home feed ads.``` | ```LINE``` | ```All versions``` |
+| ```Hide LINE TODAY tab``` | ```Removes the LINE TODAY (News) tab from the main bottom navigation, in both the news-tab and news-row layouts.``` | ```LINE``` | ```All versions``` |
+| ```Hide VOOM tab``` | ```Removes the VOOM (formerly Timeline) tab from the main bottom navigation.``` | ```LINE``` | ```All versions``` |
+| ```Hide Wallet tab``` | ```Removes the Wallet (LINE Pay) tab from the main bottom navigation, in both the normal and mini-tab layouts.``` | ```LINE``` | ```All versions``` |
+| ```Keep chats unread``` | ```Opening a 1:1 or group chat no longer marks it read — it stays unread and no read receipt is sent. Manually using "Mark as read" / "Mark all as read" still marks the chat read and sends the receipt as normal.``` | ```LINE``` | ```All versions``` |
+| ```Open links in external browser``` | ```Opens tapped web links (http/https) in your default browser instead of LINE's in-app browser. LIFF mini-apps and LINE deep links are unaffected.``` | ```LINE``` | ```All versions``` |
+| ```Remove banner ads``` | ```Stops LINE from loading Smart Channel banner ads (neutralizes the getBanners and getPrefetchableBanners responses).``` | ```LINE``` | ```All versions``` |
+
+</details>
+
+---
+### 🧩 Morning-Entree Bundle Patch List:
+[📦 Morning-Entree-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-morning-entree-patches-bundle-morphe)
+<details>
+<summary><b>Morning-Entree</b> - 3 patches, 3 apps</summary>
+
+| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
+|----------|---------------|---------------------|-------------------------|
+| ```Enable Premium``` | ```Unlock Lifesum Premium``` | ```Lifesum``` | ```All versions``` |
+| ```Enable Premium``` | ```Unlocks Ling Pro``` | ```Ling``` | ```All versions``` |
+| ```Enable Premium``` | ```Unlock Sponge Premium``` | ```Sponge``` | ```All versions``` |
+
+</details>
+
+---
+### 🧩 VocaColle Bundle Patch List:
+[📦 VocaColle-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-vocacolle-patches-bundle-morphe)
+<details>
+<summary><b>VocaColle</b> - 6 patches, 1 app</summary>
+
+| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
+|----------|---------------|---------------------|-------------------------|
+| ```Customize VocaColle branding``` | ```Optionally changes the launcher name and icon while preserving the original Japanese branding by default.``` | ```VocaColle``` | ```All versions``` |
+| ```English UI``` | ```Adds complete English static, hardcoded, and server-provided UI localization.``` | ```VocaColle``` | ```All versions``` |
+| ```Korean UI``` | ```Adds complete Korean static, hardcoded, and server-provided UI localization.``` | ```VocaColle``` | ```All versions``` |
+| ```VocaColle ad control``` | ```Adds opt-in controls for VocaColle advertising surfaces.``` | ```VocaColle``` | ```All versions``` |
+| ```VocaColle compatibility probe``` | ```Verifies that VocaColle 7.40.0 can be decoded, rebuilt, and signed without changing app behavior.``` | ```VocaColle``` | ```All versions``` |
+| ```VocaColle Morphe settings``` | ```Adds display-language, cache, diagnostic, and patch-version controls to native Morphe settings.``` | ```VocaColle``` | ```All versions``` |
+
+</details>
+
+---
+### 🧩 DBTCoach Bundle Patch List:
+[📦 DBTCoach-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-dbtcoach-patches-bundle-morphe)
+<details>
+<summary><b>DBTCoach</b> - 1 patch, 1 app</summary>
+
+| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
+|----------|---------------|---------------------|-------------------------|
+| ```Unlock premium``` | ```Déverrouille toutes les fonctionnalités premium de DBT Coach en court-circuitant la vérification d'abonnement RevenueCat.``` | ```DBT Coach``` | ```6.4.2, 6.4.1, 6.4.0, 6.1.3``` |
+
+</details>
+
+---
+### 🧩 Yandex-VoT Bundle Patch List:
+[📦 Yandex-VoT-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-yandex-vot-patches-bundle-morphe)
+<details>
+<summary><b>Yandex-VoT</b> - 1 patch, 1 app</summary>
+
+| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
+|----------|---------------|---------------------|-------------------------|
+| ```Voice Over Translation (Yandex)``` | ```Adds an option to enable Yandex voice-over translation of video audio tracks.``` | ```YouTube``` | ```All versions``` |
+
+</details>
+
+---
+### 🧩 Watch-Later Bundle Patch List:
+[📦 Watch-Later-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-watch-later-patches-bundle-morphe)
+<details>
+<summary><b>Watch-Later</b> - 1 patch, 1 app</summary>
+
+| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
+|----------|---------------|---------------------|-------------------------|
+| ```Watch later button``` | ```Aggiunge un pulsante 'Later' alla barra di navigazione in basso, che apre la playlist Guarda piu tardi.``` | ```YouTube``` | ```All versions``` |
 
 </details>

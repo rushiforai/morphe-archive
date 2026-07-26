@@ -7,6 +7,9 @@ import android.content.res.Resources;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,6 +21,8 @@ import java.util.Set;
 
 import dev.jason.gboardpatches.extension.settings.GboardPatchesSettingsContract;
 
+@RunWith(RobolectricTestRunner.class)
+@Config(sdk = 35)
 public final class GboardSettingsHomepageSettingsFeatureTest {
     @Test
     public void forceNewModeUsesLsposedSectionsAndStatusBlocks() {
@@ -45,6 +50,87 @@ public final class GboardSettingsHomepageSettingsFeatureTest {
                 screen.getStatusBlocks().get(0).getTitle());
     }
 
+    @Test
+    public void screenPreservesAutoNewLegacyLabelsPreviewsAndPersistentSelection() {
+        InMemorySharedPreferences preferences = new InMemorySharedPreferences();
+        CapturingHost host = new CapturingHost(preferences);
+
+        GboardPatchesSettingsContract.Screen screen =
+                new GboardSettingsHomepageSettingsFeature().buildScreen(host);
+        GboardPatchesSettingsContract.SelectorRow selector =
+                (GboardPatchesSettingsContract.SelectorRow)
+                        screen.getSections().get(0).getItems().get(0);
+
+        Assert.assertEquals("Auto", selector.getCurrentValue());
+        Assert.assertEquals(GboardPatchesSettingsContract.PreviewLayout.STACKED,
+                selector.getPreviewSpec().getLayout());
+        Assert.assertEquals(2, selector.getPreviewSpec().getMediaItems().size());
+        Assert.assertEquals(
+                "settings-previews/settingshomepage/settings_style_new.jpg",
+                ((GboardPatchesSettingsContract.PreviewImage)
+                        selector.getPreviewSpec().getMediaItems().get(0)).getAssetPath());
+        Assert.assertEquals("New style",
+                selector.getPreviewSpec().getMediaItems().get(0).getCaption());
+        Assert.assertEquals(
+                "settings-previews/settingshomepage/settings_style_legacy.jpg",
+                ((GboardPatchesSettingsContract.PreviewImage)
+                        selector.getPreviewSpec().getMediaItems().get(1)).getAssetPath());
+        Assert.assertEquals("Legacy style",
+                selector.getPreviewSpec().getMediaItems().get(1).getCaption());
+
+        selector.getAction().run();
+        Assert.assertArrayEquals(new String[] { "Auto", "New", "Legacy" }, host.choiceLabels);
+        Assert.assertArrayEquals(new String[] {
+                GboardSettingsHomepageSettings.MODE_AUTO,
+                GboardSettingsHomepageSettings.MODE_FORCE_NEW,
+                GboardSettingsHomepageSettings.MODE_FORCE_LEGACY
+        }, host.choiceValues);
+        host.choiceConsumer.accept(GboardSettingsHomepageSettings.MODE_FORCE_LEGACY);
+
+        Assert.assertEquals(
+                GboardSettingsHomepageSettings.MODE_FORCE_LEGACY,
+                preferences.getString(GboardSettingsHomepageSettings.PREF_KEY_MODE, null));
+        GboardPatchesSettingsContract.Screen rebuilt =
+                new GboardSettingsHomepageSettingsFeature().buildScreen(host);
+        GboardPatchesSettingsContract.SelectorRow rebuiltSelector =
+                (GboardPatchesSettingsContract.SelectorRow)
+                        rebuilt.getSections().get(0).getItems().get(0);
+        Assert.assertEquals("Legacy", rebuiltSelector.getCurrentValue());
+    }
+
+    @Test
+    public void newSelectionArmsTheExistingTenSecondWindowAndPersistsItsMode() {
+        InMemorySharedPreferences preferences = new InMemorySharedPreferences();
+        CapturingHost host = new CapturingHost(preferences);
+        GboardPatchesSettingsContract.Screen screen =
+                new GboardSettingsHomepageSettingsFeature().buildScreen(host);
+        GboardPatchesSettingsContract.SelectorRow selector =
+                (GboardPatchesSettingsContract.SelectorRow)
+                        screen.getSections().get(0).getItems().get(0);
+        long before = System.currentTimeMillis();
+
+        selector.getAction().run();
+        host.choiceConsumer.accept(GboardSettingsHomepageSettings.MODE_FORCE_NEW);
+
+        long expiresAt = preferences.getLong(
+                GboardSettingsHomepageSettings.PREF_KEY_FORCE_NEW_TRIAL_EXPIRES_AT,
+                0L);
+        Assert.assertEquals(
+                GboardSettingsHomepageSettings.MODE_FORCE_NEW,
+                preferences.getString(GboardSettingsHomepageSettings.PREF_KEY_MODE, null));
+        Assert.assertTrue(preferences.getBoolean(
+                GboardSettingsHomepageSettings.PREF_KEY_FORCE_NEW_TRIAL_ARMED,
+                false));
+        Assert.assertFalse(preferences.getBoolean(
+                GboardSettingsHomepageSettings.PREF_KEY_FORCE_NEW_TRIAL_EXPIRED,
+                true));
+        Assert.assertTrue(expiresAt >= before + 9_900L);
+        Assert.assertTrue(expiresAt <= System.currentTimeMillis() + 10_000L);
+        Assert.assertFalse(preferences.getBoolean(
+                GboardSettingsHomepageSettings.PREF_KEY_FORCE_NEW_GUARD_PENDING,
+                true));
+    }
+
     private static List<String> sectionTitles(List<GboardPatchesSettingsContract.Section> sections) {
         List<String> titles = new ArrayList<>();
         for (GboardPatchesSettingsContract.Section section : sections) {
@@ -56,6 +142,9 @@ public final class GboardSettingsHomepageSettingsFeatureTest {
     private static final class CapturingHost implements GboardPatchesSettingsContract.Host {
         private final SharedPreferences preferences;
         private final Context context;
+        private String[] choiceLabels;
+        private String[] choiceValues;
+        private GboardPatchesSettingsContract.StringValueConsumer choiceConsumer;
 
         private CapturingHost(SharedPreferences preferences) {
             this.preferences = preferences;
@@ -99,6 +188,9 @@ public final class GboardSettingsHomepageSettingsFeatureTest {
         public void showChoiceDialog(String title, String[] labels, String[] values,
                 String currentValue, String customValue, Runnable customAction,
                 GboardPatchesSettingsContract.StringValueConsumer valueConsumer) {
+            choiceLabels = labels;
+            choiceValues = values;
+            choiceConsumer = valueConsumer;
         }
 
         @Override

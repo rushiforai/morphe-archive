@@ -55,20 +55,14 @@ public final class GboardSettingsHomepageSettings {
     }
 
     public static void ensureDefaults(SharedPreferences preferences) {
-        if (preferences == null) {
-            return;
-        }
-        String storedMode = preferences.getString(PREF_KEY_MODE, MODE_AUTO);
-        String sanitizedMode = sanitizeMode(storedMode);
-        if (!preferences.contains(PREF_KEY_MODE) || !sanitizedMode.equals(storedMode)) {
-            preferences.edit().putString(PREF_KEY_MODE, sanitizedMode).apply();
-        }
+        readModeAndEnsureDefaults(preferences);
     }
 
     public static String readMode(Context context) {
-        SharedPreferences preferences = preferences(context);
-        ensureDefaults(preferences);
-        return readMode(preferences);
+        if (context == null) {
+            return MODE_AUTO;
+        }
+        return readModeAndEnsureDefaults(preferences(context));
     }
 
     public static String readMode(SharedPreferences preferences) {
@@ -76,6 +70,18 @@ public final class GboardSettingsHomepageSettings {
             return MODE_AUTO;
         }
         return sanitizeMode(preferences.getString(PREF_KEY_MODE, MODE_AUTO));
+    }
+
+    static String readModeAndEnsureDefaults(SharedPreferences preferences) {
+        if (preferences == null) {
+            return MODE_AUTO;
+        }
+        String storedMode = preferences.getString(PREF_KEY_MODE, MODE_AUTO);
+        String sanitizedMode = sanitizeMode(storedMode);
+        if (!preferences.contains(PREF_KEY_MODE) || !sanitizedMode.equals(storedMode)) {
+            preferences.edit().putString(PREF_KEY_MODE, sanitizedMode).apply();
+        }
+        return sanitizedMode;
     }
 
     public static void writeMode(Context context, String mode) {
@@ -139,19 +145,6 @@ public final class GboardSettingsHomepageSettings {
         return resolveAutoUseNew(context);
     }
 
-    public static boolean shouldUseNewSettingsStyle(Context context) {
-        String mode = readMode(context);
-        if (MODE_FORCE_NEW.equals(mode)) {
-            SharedPreferences preferences = preferences(context);
-            ensureDefaults(preferences);
-            return resolveForceNewSettingsStyle(context, preferences);
-        }
-        if (MODE_FORCE_LEGACY.equals(mode)) {
-            return false;
-        }
-        return resolveAutoUseNew(context);
-    }
-
     public static boolean isForceNewSupported(Context context) {
         if (context == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             return false;
@@ -185,8 +178,34 @@ public final class GboardSettingsHomepageSettings {
             } else {
                 Log.w(TAG, reason);
             }
-        } catch (Throwable ignored) {
-            // Never let recovery logic crash Gboard.
+        } catch (Throwable recoveryFailure) {
+            try {
+                Log.w(TAG, "Failed to persist settings homepage recovery state", recoveryFailure);
+            } catch (Throwable ignored) {
+                // Logging must never let recovery logic crash Gboard.
+            }
+        }
+    }
+
+    static void recoverForceNewPolicyFailure(Context context, SharedPreferences preferences,
+            String reason, Throwable throwable) {
+        try {
+            SharedPreferences recoveryPreferences = preferences;
+            if (recoveryPreferences == null && context != null) {
+                recoveryPreferences = preferences(context);
+            }
+            markForceNewCrashRecovery(recoveryPreferences);
+            if (throwable != null) {
+                Log.w(TAG, reason, throwable);
+            } else {
+                Log.w(TAG, reason);
+            }
+        } catch (Throwable recoveryFailure) {
+            try {
+                Log.w(TAG, "Failed to persist settings homepage recovery state", recoveryFailure);
+            } catch (Throwable ignored) {
+                // Logging must never let recovery logic crash Gboard.
+            }
         }
     }
 
@@ -273,7 +292,7 @@ public final class GboardSettingsHomepageSettings {
         }
     }
 
-    private static boolean resolveForceNewSettingsStyle(Context context,
+    static boolean resolveForceNewSettingsStyle(Context context,
             SharedPreferences preferences) {
         if (isForceNewCrashRecoveryActive(preferences)) {
             return false;

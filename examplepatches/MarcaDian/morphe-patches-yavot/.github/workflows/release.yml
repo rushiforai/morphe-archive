@@ -1,0 +1,76 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    name: Release
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout yavot
+        uses: actions/checkout@v5
+        with:
+          path: morphe-patches-yavot
+          fetch-depth: 0
+
+      - name: Checkout base morphe-patches
+        uses: actions/checkout@v5
+        with:
+          repository: MorpheApp/morphe-patches
+          path: morphe-patches
+
+      - name: Checkout morphe-patcher
+        uses: actions/checkout@v5
+        with:
+          repository: MorpheApp/morphe-patcher
+          path: morphe-patcher
+
+      - name: Checkout morphe-patches-library
+        uses: actions/checkout@v5
+        with:
+          repository: MorpheApp/morphe-patches-library
+          path: morphe-patches-library
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Cache Gradle
+        uses: burrunan/gradle-cache-action@v3
+        with:
+          build-root-directory: morphe-patches-yavot
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
+      - name: Install npm dependencies
+        working-directory: morphe-patches-yavot
+        run: npm install
+
+      # Populate base's intermediates dirs that yavot compileOnly's against.
+      - name: Precompile base morphe-patches classes
+        working-directory: morphe-patches
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ./gradlew :patches:compileKotlin \
+                    :extensions:youtube:compileReleaseKotlin \
+                    :extensions:youtube:compileReleaseJavaWithJavac \
+                    --no-daemon --stacktrace
+
+      - name: Release
+        working-directory: morphe-patches-yavot
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release

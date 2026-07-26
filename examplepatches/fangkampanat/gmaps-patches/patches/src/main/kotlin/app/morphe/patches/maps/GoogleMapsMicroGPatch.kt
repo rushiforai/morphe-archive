@@ -92,20 +92,8 @@ private fun patchManifest(document: Document) {
     manifest.setAttribute("package", PATCHED_PACKAGE_NAME)
 
     rewriteManifestAttributes(manifest)
-    disablePictureInPicture(manifest)
     ensureQueryPackage(document, manifest)
     ensureSpoofMetadata(document)
-}
-
-private fun disablePictureInPicture(manifest: Element) {
-    val activities = manifest.getElementsByTagName("activity")
-
-    for (index in 0 until activities.length) {
-        val activity = activities.item(index) as? Element ?: continue
-        if (activity.hasAttribute("android:supportsPictureInPicture")) {
-            activity.setAttribute("android:supportsPictureInPicture", "false")
-        }
-    }
 }
 
 private fun rewriteManifestAttributes(node: Node) {
