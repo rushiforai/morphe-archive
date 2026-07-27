@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-07-26 03:01 UTC",
+  "generatedAt": "2026-07-27 03:27 UTC",
   "configFile": "morphe_archive_config_v6.json",
   "configVersion": 6,
   "repoCount": 109,
   "appCount": 515,
-  "patchCount": 2052,
+  "patchCount": 2061,
   "universalPatchCount": 159,
   "hostCounts": {
     "github.com": 105,
@@ -1551,23 +1551,30 @@
       "webUrl": "https://github.com/cesbar/zpatches",
       "addUrl": "https://morphe.software/add-source?github=cesbar/zpatches",
       "avatarUrl": "https://github.com/cesbar.png?size=96",
-      "patchCount": 8,
-      "appCount": 4,
+      "patchCount": 9,
+      "appCount": 5,
       "createdAt": 1784836032428,
       "updatedAt": 1784836032428,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.7.0 (2026-07-25)",
-        "date": "2026-07-25",
+        "title": "1.8.0 (2026-07-26)",
+        "date": "2026-07-26",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "**Sudoku The Clean One:** Enable Premium, Disable Internet and Telemetry, Bypass PairIp"
+            "text": "**Citymapper:** Enable Club"
           }
         ]
       },
       "apps": [
+        {
+          "name": "com.citymapper.app.release",
+          "packageName": "com.citymapper.app.release",
+          "patchCount": 2,
+          "iconUrl": "https://play-lh.googleusercontent.com/U0baiS5SFsdl6hU6WW2Rq94xd5lIscxgwVZNw0rsN2G7Tqlg3m86KieOuhgR9GTQZMYngD_ilppCeot9lBuBPQ",
+          "iconColor": ""
+        },
         {
           "name": "com.jcdecaux.vls.lyon",
           "packageName": "com.jcdecaux.vls.lyon",
@@ -3198,19 +3205,47 @@
       "webUrl": "https://github.com/icysymmetra/tiktok-patches-for-morphe",
       "addUrl": "https://morphe.software/add-source?github=icysymmetra/tiktok-patches-for-morphe",
       "avatarUrl": "https://github.com/icysymmetra.png?size=96",
-      "patchCount": 15,
+      "patchCount": 22,
       "appCount": 1,
       "createdAt": 1784836037034,
       "updatedAt": 1784836037034,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "0.3.1 (2026-06-17)",
-        "date": "2026-06-17",
+        "title": "0.4.0",
+        "date": "",
         "items": [
           {
-            "category": "Bug Fixes",
-            "text": "avoid concurrent feed list iteration crash"
+            "category": "Features",
+            "text": "**tiktok:** add feature gate lab and UI suppressors"
+          },
+          {
+            "category": "Features",
+            "text": "**tiktok:** add translation language exclusions"
+          },
+          {
+            "category": "Features",
+            "text": "**tiktok:** enable Feature Gate Lab by default"
+          },
+          {
+            "category": "Features",
+            "text": "**tiktok:** enable hold-and-slide 2x lock"
+          },
+          {
+            "category": "Features",
+            "text": "**tiktok:** improve feature gate lab search"
+          },
+          {
+            "category": "Features",
+            "text": "**tiktok:** port external browser patch from lyyako"
+          },
+          {
+            "category": "Features",
+            "text": "**tiktok:** port publish date patch from lyyako"
+          },
+          {
+            "category": "Features",
+            "text": "**tiktok:** redesign support row"
           }
         ]
       },
@@ -3218,7 +3253,7 @@
         {
           "name": "com.zhiliaoapp.musically",
           "packageName": "com.zhiliaoapp.musically",
-          "patchCount": 15,
+          "patchCount": 22,
           "iconUrl": "https://play-lh.googleusercontent.com/2o7iuqPe-0msP3DvNhzoOgNo4eZ6GkL_RtGVeKyBn5UBQAW5cw-GW5V3wDOHB1yTQuqWzrFLFOv2u4_5ea1uhg",
           "iconColor": ""
         }
@@ -3468,31 +3503,23 @@
       "webUrl": "https://github.com/jasonwu1994/Gboard-patches",
       "addUrl": "https://morphe.software/add-source?github=jasonwu1994/Gboard-patches",
       "avatarUrl": "https://github.com/jasonwu1994.png?size=96",
-      "patchCount": 18,
+      "patchCount": 19,
       "appCount": 1,
       "createdAt": 1784836037428,
       "updatedAt": 1784836037428,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "2.0.0 (2026-07-24)",
-        "date": "2026-07-24",
+        "title": "2.1.0 (2026-07-26)",
+        "date": "2026-07-26",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "**Gboard:** update the supported Gboard version to 17.7.7.932364120-release-arm64-v8a."
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "**Gboard:** remove the Chinese Online Voice Input, Clipboard Entity Extraction, Clipboard Item Edit, and Enable Undo/Redo feature patches because these features are built into the new Gboard version."
+            "text": "**Gboard:** add Developer options, allowing you to modify flag values at any time."
           },
           {
             "category": "\u2728 \u65b0\u529f\u80fd",
-            "text": "**Gboard:** \u66f4\u65b0\u652f\u63f4\u7684 Gboard \u7248\u672c\u81f3 17.7.7.932364120-release-arm64-v8a\u3002"
-          },
-          {
-            "category": "\u2728 \u65b0\u529f\u80fd",
-            "text": "**Gboard:** \u79fb\u9664 Chinese Online Voice Input\u3001Clipboard Entity Extraction\u3001Clipboard Item Edit \u8207 Enable Undo/Redo \u529f\u80fd Patch\uff0c\u56e0\u70ba\u65b0\u7248 Gboard \u5df2\u5167\u5efa\u9019\u4e9b\u529f\u80fd\u3002"
+            "text": "**Gboard:** \u65b0\u589e Developer options\uff0c\u53ef\u96a8\u6642\u4fee\u6539 Flag \u503c\u3002"
           }
         ]
       },
@@ -3500,7 +3527,7 @@
         {
           "name": "com.google.android.inputmethod.latin",
           "packageName": "com.google.android.inputmethod.latin",
-          "patchCount": 18,
+          "patchCount": 19,
           "iconUrl": "https://play-lh.googleusercontent.com/J4vZ82VsZjnsRsI6ckQFXlO36_52QJerqG5-HfLgHffS34I4EfoAFfNdbf6s4wBAsUEf8DOJVEDEHh5tzWbrnA",
           "iconColor": ""
         }
@@ -4693,40 +4720,40 @@
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.36.0 (2026-07-23)",
-        "date": "2026-07-23",
+        "title": "1.37.0 (2026-07-26)",
+        "date": "2026-07-26",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**Force original audio:** Not working in SABR playback (#2117)"
+            "text": "**YouTube - Copy video link:** Use correct timestamp query delimiter when link shortener is disabled (#2172)"
           },
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**YouTube - AI channel filter:** Skip list fetch and parse while all toggles are off"
+            "text": "**YouTube - Playback speed:** \"Use normal speed for music\" does not work when default playback speed is \"Auto\" (#2171)"
           },
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**YouTube - Engagement Panel:** Implemented a queue of open panels"
+            "text": "**YouTube - Playback speed:** Playback speed button sometimes does not update (#2206)"
           },
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**YouTube - FlyoutUtils:** Added compatibility with other video shelf types"
+            "text": "**YouTube - Remember video quality:** Added new buffering quality flag override"
           },
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**YouTube - Force original audio track:** Disable setting toggle for Android Creator only"
+            "text": "**YouTube - Remember video quality:** Improved platypus quality flag override logic"
           },
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**YouTube - Hide filter bar:** Related videos filter bar is not correctly hidden"
+            "category": "\u2728 New Features",
+            "text": "**Spoof video streams:** Default client maintenance (#2208)"
           },
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**YouTube - Hide layout components:** Hide all the thumbnails when using \"Hide search term thumbnails\" (#2108)"
+            "category": "\u2728 New Features",
+            "text": "**YouTube - Seekbar:** Add \"Enable seekbar thumbnails\" setting (#2182)"
           },
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**YouTube - Hide layout components:** Hide new type of community post"
+            "category": "\u2728 New Features",
+            "text": "**YouTube - Seekbar:** Show video chapter title below seekbar thumbnail (#2214)"
           }
         ]
       },
@@ -7626,16 +7653,12 @@
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.1.5 (2026-07-24)",
-        "date": "2026-07-24",
+        "title": "1.1.6 (2026-07-26)",
+        "date": "2026-07-26",
         "items": [
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "Adapt cat lock button to upstream v1.36.0 player control API"
-          },
-          {
             "category": "\ud83d\ude80 Updated App Support",
-            "text": "Sync upstream Morphe patches v1.36.0"
+            "text": "Sync upstream Morphe patches v1.37.0"
           }
         ]
       },
@@ -8114,12 +8137,12 @@
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.10.0 (2026-07-25)",
-        "date": "2026-07-25",
+        "title": "1.10.1 (2026-07-26)",
+        "date": "2026-07-26",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "**wildberries:** remove profile + big-sale banners, fix 7.7.2001 matcher drift"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**avito:** hide referral widget on Profile Pro"
           }
         ]
       },
@@ -10801,12 +10824,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.10.0 (2026-07-25)",
-            "date": "2026-07-25",
+            "title": "1.10.1 (2026-07-26)",
+            "date": "2026-07-26",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**wildberries:** remove profile + big-sale banners, fix 7.7.2001 matcher drift"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**avito:** hide referral widget on Profile Pro"
               }
             ]
           },
@@ -14553,68 +14576,6 @@
       "iconUrl": "https://play-lh.googleusercontent.com/WI55Qb1VObnbMnWXtYHSibC2n4dSD3ZRQc1bIjn61nBG-RWP1sBWD2WGhW_BdZwGp68u6OThbaEh8uWrkO3t_A"
     },
     {
-      "packageName": "com.citymapper.app.release",
-      "name": "Citymapper",
-      "repos": [
-        "rushiranpise/morphe-patches"
-      ],
-      "sources": [
-        {
-          "repo": "rushiranpise/morphe-patches",
-          "host": "github.com",
-          "webUrl": "https://github.com/rushiranpise/morphe-patches",
-          "addUrl": "https://morphe.software/add-source?github=rushiranpise/morphe-patches",
-          "source": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/patches-bundle.json",
-          "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
-          "avatarUrl": "https://github.com/rushiranpise.png?size=96",
-          "latestChanges": {
-            "title": "1.15.1 (2026-07-23)",
-            "date": "2026-07-23",
-            "items": [
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "photos"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "trading view"
-              }
-            ]
-          },
-          "builder": {
-            "buildId": "com-citymapper-app-release-rushiranpise-morphe-patches",
-            "releaseTag": "app-com-citymapper-app-release-rushiranpise-morphe-patches",
-            "assetName": "citymapper-rushiranpise-morphe-patches.apk",
-            "repo": "rushiforai/morphe-builder",
-            "webUrl": "https://github.com/rushiforai/morphe-builder"
-          },
-          "patches": [
-            {
-              "name": "Unlock Club",
-              "description": "Unlocks Citymapper Club Membership Note: Need to manually Purchase inside APP!."
-            }
-          ],
-          "versions": [
-            "11.55.2"
-          ]
-        }
-      ],
-      "patches": [
-        "Unlock Club"
-      ],
-      "patchDetails": [
-        {
-          "name": "Unlock Club",
-          "description": "Unlocks Citymapper Club Membership Note: Need to manually Purchase inside APP!."
-        }
-      ],
-      "versions": [
-        "11.55.2"
-      ],
-      "iconColor": "#00A862",
-      "iconUrl": "https://play-lh.googleusercontent.com/U0baiS5SFsdl6hU6WW2Rq94xd5lIscxgwVZNw0rsN2G7Tqlg3m86KieOuhgR9GTQZMYngD_ilppCeot9lBuBPQ"
-    },
-    {
       "packageName": "com.inscode.autoclicker",
       "name": "Clickmate",
       "repos": [
@@ -16118,6 +16079,116 @@
       ],
       "iconColor": "",
       "iconUrl": "https://play-lh.googleusercontent.com/O5QHZxy2pkxwHrjU3Omd_1jdIYk_pZQexy2VVEDBDhaXgNhvZV7wjhfN_0kLUrQfCKFsaGbQbVm8usyrc-yBGhI"
+    },
+    {
+      "packageName": "com.citymapper.app.release",
+      "name": "com.citymapper.app.release",
+      "repos": [
+        "cesbar/zpatches",
+        "rushiranpise/morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "cesbar/zpatches",
+          "host": "github.com",
+          "webUrl": "https://github.com/cesbar/zpatches",
+          "addUrl": "https://morphe.software/add-source?github=cesbar/zpatches",
+          "source": "https://raw.githubusercontent.com/cesbar/zpatches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/cesbar/zpatches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/cesbar.png?size=96",
+          "latestChanges": {
+            "title": "1.8.0 (2026-07-26)",
+            "date": "2026-07-26",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "**Citymapper:** Enable Club"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-citymapper-app-release-cesbar-zpatches",
+            "releaseTag": "app-com-citymapper-app-release-cesbar-zpatches",
+            "assetName": "com-citymapper-app-release-cesbar-zpatches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Enable Club",
+              "description": "Enable Citymapper Club subscription"
+            },
+            {
+              "name": "Google Maps API key",
+              "description": "Use a different Google Maps API key to fix modified apps"
+            }
+          ],
+          "versions": []
+        },
+        {
+          "repo": "rushiranpise/morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/rushiranpise/morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=rushiranpise/morphe-patches",
+          "source": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/rushiranpise.png?size=96",
+          "latestChanges": {
+            "title": "1.15.1 (2026-07-23)",
+            "date": "2026-07-23",
+            "items": [
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "photos"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "trading view"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-citymapper-app-release-rushiranpise-morphe-patches",
+            "releaseTag": "app-com-citymapper-app-release-rushiranpise-morphe-patches",
+            "assetName": "com-citymapper-app-release-rushiranpise-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Unlock Club",
+              "description": "Unlocks Citymapper Club Membership Note: Need to manually Purchase inside APP!."
+            }
+          ],
+          "versions": [
+            "11.55.2"
+          ]
+        }
+      ],
+      "patches": [
+        "Enable Club",
+        "Google Maps API key",
+        "Unlock Club"
+      ],
+      "patchDetails": [
+        {
+          "name": "Enable Club",
+          "description": "Enable Citymapper Club subscription"
+        },
+        {
+          "name": "Google Maps API key",
+          "description": "Use a different Google Maps API key to fix modified apps"
+        },
+        {
+          "name": "Unlock Club",
+          "description": "Unlocks Citymapper Club Membership Note: Need to manually Purchase inside APP!."
+        }
+      ],
+      "versions": [
+        "11.55.2"
+      ],
+      "iconColor": "#00A862",
+      "iconUrl": "https://play-lh.googleusercontent.com/U0baiS5SFsdl6hU6WW2Rq94xd5lIscxgwVZNw0rsN2G7Tqlg3m86KieOuhgR9GTQZMYngD_ilppCeot9lBuBPQ"
     },
     {
       "packageName": "com.disney.disneyplus",
@@ -18177,24 +18248,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/jasonwu1994/Gboard-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/jasonwu1994.png?size=96",
           "latestChanges": {
-            "title": "2.0.0 (2026-07-24)",
-            "date": "2026-07-24",
+            "title": "2.1.0 (2026-07-26)",
+            "date": "2026-07-26",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**Gboard:** update the supported Gboard version to 17.7.7.932364120-release-arm64-v8a."
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "**Gboard:** remove the Chinese Online Voice Input, Clipboard Entity Extraction, Clipboard Item Edit, and Enable Undo/Redo feature patches because these features are built into the new Gboard version."
+                "text": "**Gboard:** add Developer options, allowing you to modify flag values at any time."
               },
               {
                 "category": "\u2728 \u65b0\u529f\u80fd",
-                "text": "**Gboard:** \u66f4\u65b0\u652f\u63f4\u7684 Gboard \u7248\u672c\u81f3 17.7.7.932364120-release-arm64-v8a\u3002"
-              },
-              {
-                "category": "\u2728 \u65b0\u529f\u80fd",
-                "text": "**Gboard:** \u79fb\u9664 Chinese Online Voice Input\u3001Clipboard Entity Extraction\u3001Clipboard Item Edit \u8207 Enable Undo/Redo \u529f\u80fd Patch\uff0c\u56e0\u70ba\u65b0\u7248 Gboard \u5df2\u5167\u5efa\u9019\u4e9b\u529f\u80fd\u3002"
+                "text": "**Gboard:** \u65b0\u589e Developer options\uff0c\u53ef\u96a8\u6642\u4fee\u6539 Flag \u503c\u3002"
               }
             ]
           },
@@ -18221,6 +18284,10 @@
             {
               "name": "Custom Symbols",
               "description": "\u65b0\u589e\u7368\u7acb\u7684\u7279\u6b8a\u7b26\u865f\u5206\u9801\uff0c\u9577\u6309\u9017\u865f->\u611b\u5fc3\nAdd a dedicated custom symbols tab and replace the long-press comma entry with a heart shortcut."
+            },
+            {
+              "name": "Developer options",
+              "description": "\u555f\u7528 \u958b\u767c\u4eba\u54e1\u9078\u9805 \u8207 Flag \u7de8\u8f2f\u5668\uff0c\u4f60\u53ef\u4ee5\u81ea\u5df1\u4fee\u6539Flag\u7684\u503c\nEnable Developer options and the Flag Editor, allowing you to modify flag values."
             },
             {
               "name": "Emojis, stickers & GIFs Tab Order",
@@ -18375,6 +18442,7 @@
         "Always-incognito mode",
         "Clipboard Enhancements",
         "Custom Symbols",
+        "Developer options",
         "Emojis, stickers & GIFs Tab Order",
         "Enable clipboard in incognito",
         "Enable Inline Autofill Suggestions",
@@ -18416,6 +18484,10 @@
         {
           "name": "Custom Symbols",
           "description": "\u65b0\u589e\u7368\u7acb\u7684\u7279\u6b8a\u7b26\u865f\u5206\u9801\uff0c\u9577\u6309\u9017\u865f->\u611b\u5fc3\nAdd a dedicated custom symbols tab and replace the long-press comma entry with a heart shortcut."
+        },
+        {
+          "name": "Developer options",
+          "description": "\u555f\u7528 \u958b\u767c\u4eba\u54e1\u9078\u9805 \u8207 Flag \u7de8\u8f2f\u5668\uff0c\u4f60\u53ef\u4ee5\u81ea\u5df1\u4fee\u6539Flag\u7684\u503c\nEnable Developer options and the Flag Editor, allowing you to modify flag values."
         },
         {
           "name": "Emojis, stickers & GIFs Tab Order",
@@ -18813,12 +18885,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/cesbar/zpatches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/cesbar.png?size=96",
           "latestChanges": {
-            "title": "1.7.0 (2026-07-25)",
-            "date": "2026-07-25",
+            "title": "1.8.0 (2026-07-26)",
+            "date": "2026-07-26",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**Sudoku The Clean One:** Enable Premium, Disable Internet and Telemetry, Bypass PairIp"
+                "text": "**Citymapper:** Enable Club"
               }
             ]
           },
@@ -18831,12 +18903,12 @@
           },
           "patches": [
             {
-              "name": "Custom Maps API Key",
-              "description": "Replace Velo'v Google Maps key with your own to fix it"
-            },
-            {
               "name": "Disable map animations",
               "description": "Disable the map zoom-in animation"
+            },
+            {
+              "name": "Google Maps API key",
+              "description": "Use a different Google Maps API key to fix modified apps"
             },
             {
               "name": "No geolocalisation check",
@@ -18853,19 +18925,19 @@
         }
       ],
       "patches": [
-        "Custom Maps API Key",
         "Disable map animations",
+        "Google Maps API key",
         "No geolocalisation check",
         "Spoof package signature"
       ],
       "patchDetails": [
         {
-          "name": "Custom Maps API Key",
-          "description": "Replace Velo'v Google Maps key with your own to fix it"
-        },
-        {
           "name": "Disable map animations",
           "description": "Disable the map zoom-in animation"
+        },
+        {
+          "name": "Google Maps API key",
+          "description": "Use a different Google Maps API key to fix modified apps"
         },
         {
           "name": "No geolocalisation check",
@@ -22679,12 +22751,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/icysymmetra/tiktok-patches-for-morphe/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/icysymmetra.png?size=96",
           "latestChanges": {
-            "title": "0.3.1 (2026-06-17)",
-            "date": "2026-06-17",
+            "title": "0.4.0",
+            "date": "",
             "items": [
               {
-                "category": "Bug Fixes",
-                "text": "avoid concurrent feed list iteration crash"
+                "category": "Features",
+                "text": "**tiktok:** add feature gate lab and UI suppressors"
+              },
+              {
+                "category": "Features",
+                "text": "**tiktok:** add translation language exclusions"
+              },
+              {
+                "category": "Features",
+                "text": "**tiktok:** enable Feature Gate Lab by default"
+              },
+              {
+                "category": "Features",
+                "text": "**tiktok:** enable hold-and-slide 2x lock"
+              },
+              {
+                "category": "Features",
+                "text": "**tiktok:** improve feature gate lab search"
+              },
+              {
+                "category": "Features",
+                "text": "**tiktok:** port external browser patch from lyyako"
+              },
+              {
+                "category": "Features",
+                "text": "**tiktok:** port publish date patch from lyyako"
+              },
+              {
+                "category": "Features",
+                "text": "**tiktok:** redesign support row"
               }
             ]
           },
@@ -22697,64 +22797,92 @@
           },
           "patches": [
             {
-              "name": "Auto Translate comments",
-              "description": "Adds Auto comment translation controls that translates all non default langauge comments that are loaded. Supports TikTok 43.8.3."
+              "name": "Always show publish date",
+              "description": "Always shows the publish date in video author information. Thanks to lyyako for the original implementation."
             },
             {
               "name": "Copy comments without username",
-              "description": "Copies only the comment text when copying TikTok comments. (Supports TikTok 43.8.3.)"
+              "description": "Copies only the comment text without including the creator's username."
             },
             {
               "name": "Custom offline videos limit",
-              "description": "Adds a configurable custom option to TikTok's offline videos menu. (Supports TikTok 43.8.3.)"
+              "description": "Adds a custom entry to TikTok's offline videos menu with a configurable limit of up to 500 videos."
             },
             {
               "name": "Disable login requirement",
-              "description": "Disables mandatory login for TikTok. (Supports TikTok 43.8.3.)"
+              "description": "Removes TikTok's mandatory login gate from supported flows."
+            },
+            {
+              "name": "Disable screen capture detection",
+              "description": "Prevents TikTok from detecting screenshots and screen recordings."
             },
             {
               "name": "Downloads",
-              "description": "Downloads videos and images without watermark, saves comment stickers/images, and adds download-related controls. (Supports TikTok 43.8.3.)"
+              "description": "Adds watermark-free video and photo downloads, comment sticker saving, and configurable download-folder controls."
             },
             {
               "name": "Enable Open Debug",
               "description": "Uses TikTok's hidden Open Debug settings cell as the entry point for Morphe settings. Required for the Morphe settings menu to appear. Supports TikTok 43.8.3."
             },
             {
+              "name": "Feature Gate Lab",
+              "description": "Adds a menu for viewing and overriding supported TikTok feature flags and configuration values."
+            },
+            {
               "name": "Feed filter",
-              "description": "Removes ads, livestreams, stories, image videos and videos with a specific amount of views or likes from the feed. (Supports TikTok 43.8.3.)"
+              "description": "Hides feed ads, TikTok Shop items, livestreams, stories, photo posts, and videos outside configured view or like ranges."
             },
             {
               "name": "Feed tab navigation",
-              "description": "Adds controls to choose which top feed tabs are visible. For You stays enabled for stability. Supports TikTok 43.8.3."
+              "description": "Controls which loaded top and bottom navigation tabs remain visible, blocks newly added tabs when requested, and can hide the Tako AI bubble."
             },
             {
               "name": "Fix Google login",
-              "description": "Allows logging in with a Google account. (Supports TikTok 43.8.3.)"
+              "description": "Restores Google account sign-in after patching."
+            },
+            {
+              "name": "Hide CAPTCHA popups",
+              "description": "Prevents client-side verification puzzle dialogs from opening, including those shown while browsing LIVE. This does not bypass server-side checks."
+            },
+            {
+              "name": "Hide floating promotions",
+              "description": "Removes floating promotional badges, coin icons, and timer banners from the Home feed."
+            },
+            {
+              "name": "Hold-and-slide 2x lock",
+              "description": "Enables TikTok's native hold, slide down, and release gesture to lock 2x speed."
+            },
+            {
+              "name": "Open external links directly",
+              "description": "Opens profile and story website links in the system browser instead of TikTok's in-app browser. Thanks to lyyako for the original implementation."
             },
             {
               "name": "Playback speed",
-              "description": "Enables the playback speed option for all videos and retains the speed configurations in between videos. (Supports TikTok 43.8.3.)"
+              "description": "Enables playback-speed controls for all videos and remembers the selected speed between videos."
             },
             {
               "name": "Remember clear display",
-              "description": "Remembers the clear display configurations in between videos. (Supports TikTok 43.8.3.)"
+              "description": "Remembers TikTok's clear-display state between videos."
             },
             {
               "name": "Sanitize sharing links",
-              "description": "Removes tracking parameters from shared links. (Supports TikTok 43.8.3.)"
+              "description": "Removes tracking parameters from TikTok links before they are shared."
             },
             {
               "name": "Settings",
-              "description": "Adds Morphe settings to TikTok. Supports TikTok 43.8.3."
+              "description": "Adds the Morphe settings screen inside TikTok."
             },
             {
               "name": "Show seekbar",
-              "description": "Shows a progress bar for all videos. (Supports TikTok 43.8.3.)"
+              "description": "Shows TikTok's native video seekbar where it would normally be hidden."
             },
             {
               "name": "SIM spoof",
               "description": "Spoofs SIM country and operator information retrieved by TikTok, with country presets for easier setup."
+            },
+            {
+              "name": "Translate comments",
+              "description": "Adds comment translation controls using TikTok's translation system, with selectable language exclusions."
             }
           ],
           "versions": [
@@ -22889,28 +23017,35 @@
         }
       ],
       "patches": [
-        "Auto Translate comments",
+        "Always show publish date",
         "Change TikTok share domain",
         "Copy comments without username",
         "Custom offline videos limit",
         "Disable login requirement",
+        "Disable screen capture detection",
         "Downloads",
         "Enable Open Debug",
+        "Feature Gate Lab",
         "Feed filter",
         "Feed tab navigation",
         "Fix Google login",
+        "Hide CAPTCHA popups",
+        "Hide floating promotions",
+        "Hold-and-slide 2x lock",
+        "Open external links directly",
         "Playback speed",
         "Remember clear display",
         "Sanitize sharing links",
         "Settings",
         "Show seekbar",
         "SIM spoof",
-        "TikTokIndiaRegionUnlock (STUB)"
+        "TikTokIndiaRegionUnlock (STUB)",
+        "Translate comments"
       ],
       "patchDetails": [
         {
-          "name": "Auto Translate comments",
-          "description": "Adds Auto comment translation controls that translates all non default langauge comments that are loaded. Supports TikTok 43.8.3."
+          "name": "Always show publish date",
+          "description": "Always shows the publish date in video author information. Thanks to lyyako for the original implementation."
         },
         {
           "name": "Change TikTok share domain",
@@ -22918,55 +23053,79 @@
         },
         {
           "name": "Copy comments without username",
-          "description": "Copies only the comment text when copying TikTok comments. (Supports TikTok 43.8.3.)"
+          "description": "Copies only the comment text without including the creator's username."
         },
         {
           "name": "Custom offline videos limit",
-          "description": "Adds a configurable custom option to TikTok's offline videos menu. (Supports TikTok 43.8.3.)"
+          "description": "Adds a custom entry to TikTok's offline videos menu with a configurable limit of up to 500 videos."
         },
         {
           "name": "Disable login requirement",
-          "description": "Disables mandatory login for TikTok. (Supports TikTok 43.8.3.)"
+          "description": "Removes TikTok's mandatory login gate from supported flows."
+        },
+        {
+          "name": "Disable screen capture detection",
+          "description": "Prevents TikTok from detecting screenshots and screen recordings."
         },
         {
           "name": "Downloads",
-          "description": "Downloads videos and images without watermark, saves comment stickers/images, and adds download-related controls. (Supports TikTok 43.8.3.)"
+          "description": "Adds watermark-free video and photo downloads, comment sticker saving, and configurable download-folder controls."
         },
         {
           "name": "Enable Open Debug",
           "description": "Uses TikTok's hidden Open Debug settings cell as the entry point for Morphe settings. Required for the Morphe settings menu to appear. Supports TikTok 43.8.3."
         },
         {
+          "name": "Feature Gate Lab",
+          "description": "Adds a menu for viewing and overriding supported TikTok feature flags and configuration values."
+        },
+        {
           "name": "Feed filter",
-          "description": "Removes ads, livestreams, stories, image videos and videos with a specific amount of views or likes from the feed. (Supports TikTok 43.8.3.)"
+          "description": "Hides feed ads, TikTok Shop items, livestreams, stories, photo posts, and videos outside configured view or like ranges."
         },
         {
           "name": "Feed tab navigation",
-          "description": "Adds controls to choose which top feed tabs are visible. For You stays enabled for stability. Supports TikTok 43.8.3."
+          "description": "Controls which loaded top and bottom navigation tabs remain visible, blocks newly added tabs when requested, and can hide the Tako AI bubble."
         },
         {
           "name": "Fix Google login",
-          "description": "Allows logging in with a Google account. (Supports TikTok 43.8.3.)"
+          "description": "Restores Google account sign-in after patching."
+        },
+        {
+          "name": "Hide CAPTCHA popups",
+          "description": "Prevents client-side verification puzzle dialogs from opening, including those shown while browsing LIVE. This does not bypass server-side checks."
+        },
+        {
+          "name": "Hide floating promotions",
+          "description": "Removes floating promotional badges, coin icons, and timer banners from the Home feed."
+        },
+        {
+          "name": "Hold-and-slide 2x lock",
+          "description": "Enables TikTok's native hold, slide down, and release gesture to lock 2x speed."
+        },
+        {
+          "name": "Open external links directly",
+          "description": "Opens profile and story website links in the system browser instead of TikTok's in-app browser. Thanks to lyyako for the original implementation."
         },
         {
           "name": "Playback speed",
-          "description": "Enables the playback speed option for all videos and retains the speed configurations in between videos. (Supports TikTok 43.8.3.)"
+          "description": "Enables playback-speed controls for all videos and remembers the selected speed between videos."
         },
         {
           "name": "Remember clear display",
-          "description": "Remembers the clear display configurations in between videos. (Supports TikTok 43.8.3.)"
+          "description": "Remembers TikTok's clear-display state between videos."
         },
         {
           "name": "Sanitize sharing links",
-          "description": "Removes tracking parameters from shared links. (Supports TikTok 43.8.3.)"
+          "description": "Removes tracking parameters from TikTok links before they are shared."
         },
         {
           "name": "Settings",
-          "description": "Adds Morphe settings to TikTok. Supports TikTok 43.8.3."
+          "description": "Adds the Morphe settings screen inside TikTok."
         },
         {
           "name": "Show seekbar",
-          "description": "Shows a progress bar for all videos. (Supports TikTok 43.8.3.)"
+          "description": "Shows TikTok's native video seekbar where it would normally be hidden."
         },
         {
           "name": "SIM spoof",
@@ -22975,6 +23134,10 @@
         {
           "name": "TikTokIndiaRegionUnlock (STUB)",
           "description": "STUB placeholder. Real behavior authored after disassemble.yml runs on com.zhiliaoapp.musically."
+        },
+        {
+          "name": "Translate comments",
+          "description": "Adds comment translation controls using TikTok's translation system, with selectable language exclusions."
         }
       ],
       "versions": [
@@ -24781,12 +24944,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/cesbar/zpatches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/cesbar.png?size=96",
           "latestChanges": {
-            "title": "1.7.0 (2026-07-25)",
-            "date": "2026-07-25",
+            "title": "1.8.0 (2026-07-26)",
+            "date": "2026-07-26",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**Sudoku The Clean One:** Enable Premium, Disable Internet and Telemetry, Bypass PairIp"
+                "text": "**Citymapper:** Enable Club"
               }
             ]
           },
@@ -24853,12 +25016,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/cesbar/zpatches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/cesbar.png?size=96",
           "latestChanges": {
-            "title": "1.7.0 (2026-07-25)",
-            "date": "2026-07-25",
+            "title": "1.8.0 (2026-07-26)",
+            "date": "2026-07-26",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**Sudoku The Clean One:** Enable Premium, Disable Internet and Telemetry, Bypass PairIp"
+                "text": "**Citymapper:** Enable Club"
               }
             ]
           },
@@ -24916,12 +25079,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/cesbar/zpatches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/cesbar.png?size=96",
           "latestChanges": {
-            "title": "1.7.0 (2026-07-25)",
-            "date": "2026-07-25",
+            "title": "1.8.0 (2026-07-26)",
+            "date": "2026-07-26",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**Sudoku The Clean One:** Enable Premium, Disable Internet and Telemetry, Bypass PairIp"
+                "text": "**Citymapper:** Enable Club"
               }
             ]
           },
@@ -38251,12 +38414,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.10.0 (2026-07-25)",
-            "date": "2026-07-25",
+            "title": "1.10.1 (2026-07-26)",
+            "date": "2026-07-26",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**wildberries:** remove profile + big-sale banners, fix 7.7.2001 matcher drift"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**avito:** hide referral widget on Profile Pro"
               }
             ]
           },
@@ -42598,40 +42761,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/MorpheApp/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/MorpheApp.png?size=96",
           "latestChanges": {
-            "title": "1.36.0 (2026-07-23)",
-            "date": "2026-07-23",
+            "title": "1.37.0 (2026-07-26)",
+            "date": "2026-07-26",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Force original audio:** Not working in SABR playback (#2117)"
+                "text": "**YouTube - Copy video link:** Use correct timestamp query delimiter when link shortener is disabled (#2172)"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**YouTube - AI channel filter:** Skip list fetch and parse while all toggles are off"
+                "text": "**YouTube - Playback speed:** \"Use normal speed for music\" does not work when default playback speed is \"Auto\" (#2171)"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**YouTube - Engagement Panel:** Implemented a queue of open panels"
+                "text": "**YouTube - Playback speed:** Playback speed button sometimes does not update (#2206)"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**YouTube - FlyoutUtils:** Added compatibility with other video shelf types"
+                "text": "**YouTube - Remember video quality:** Added new buffering quality flag override"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**YouTube - Force original audio track:** Disable setting toggle for Android Creator only"
+                "text": "**YouTube - Remember video quality:** Improved platypus quality flag override logic"
               },
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**YouTube - Hide filter bar:** Related videos filter bar is not correctly hidden"
+                "category": "\u2728 New Features",
+                "text": "**Spoof video streams:** Default client maintenance (#2208)"
               },
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**YouTube - Hide layout components:** Hide all the thumbnails when using \"Hide search term thumbnails\" (#2108)"
+                "category": "\u2728 New Features",
+                "text": "**YouTube - Seekbar:** Add \"Enable seekbar thumbnails\" setting (#2182)"
               },
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**YouTube - Hide layout components:** Hide new type of community post"
+                "category": "\u2728 New Features",
+                "text": "**YouTube - Seekbar:** Show video chapter title below seekbar thumbnail (#2214)"
               }
             ]
           },
@@ -42733,16 +42896,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/variablenine/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/variablenine.png?size=96",
           "latestChanges": {
-            "title": "1.1.5 (2026-07-24)",
-            "date": "2026-07-24",
+            "title": "1.1.6 (2026-07-26)",
+            "date": "2026-07-26",
             "items": [
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "Adapt cat lock button to upstream v1.36.0 player control API"
-              },
-              {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "Sync upstream Morphe patches v1.36.0"
+                "text": "Sync upstream Morphe patches v1.37.0"
               }
             ]
           },
@@ -48378,12 +48537,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.10.0 (2026-07-25)",
-            "date": "2026-07-25",
+            "title": "1.10.1 (2026-07-26)",
+            "date": "2026-07-26",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**wildberries:** remove profile + big-sale banners, fix 7.7.2001 matcher drift"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**avito:** hide referral widget on Profile Pro"
               }
             ]
           },
@@ -50949,8 +51108,8 @@
       ],
       "patches": [
         "Disable analytics",
-        "Disable Telemetry",
         "Disable telemetry",
+        "Disable Telemetry",
         "Disable update check",
         "Enable premium features",
         "GMS sign-in bypass",
@@ -50994,11 +51153,11 @@
           "description": "Suppresses Truecaller's CleverTap behavioural event tracking to prevent user-activity telemetry."
         },
         {
-          "name": "Disable Telemetry",
+          "name": "Disable telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
-          "name": "Disable telemetry",
+          "name": "Disable Telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
@@ -53162,12 +53321,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.10.0 (2026-07-25)",
-            "date": "2026-07-25",
+            "title": "1.10.1 (2026-07-26)",
+            "date": "2026-07-26",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**wildberries:** remove profile + big-sale banners, fix 7.7.2001 matcher drift"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**avito:** hide referral widget on Profile Pro"
               }
             ]
           },
@@ -54642,40 +54801,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/MorpheApp/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/MorpheApp.png?size=96",
           "latestChanges": {
-            "title": "1.36.0 (2026-07-23)",
-            "date": "2026-07-23",
+            "title": "1.37.0 (2026-07-26)",
+            "date": "2026-07-26",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Force original audio:** Not working in SABR playback (#2117)"
+                "text": "**YouTube - Copy video link:** Use correct timestamp query delimiter when link shortener is disabled (#2172)"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**YouTube - AI channel filter:** Skip list fetch and parse while all toggles are off"
+                "text": "**YouTube - Playback speed:** \"Use normal speed for music\" does not work when default playback speed is \"Auto\" (#2171)"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**YouTube - Engagement Panel:** Implemented a queue of open panels"
+                "text": "**YouTube - Playback speed:** Playback speed button sometimes does not update (#2206)"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**YouTube - FlyoutUtils:** Added compatibility with other video shelf types"
+                "text": "**YouTube - Remember video quality:** Added new buffering quality flag override"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**YouTube - Force original audio track:** Disable setting toggle for Android Creator only"
+                "text": "**YouTube - Remember video quality:** Improved platypus quality flag override logic"
               },
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**YouTube - Hide filter bar:** Related videos filter bar is not correctly hidden"
+                "category": "\u2728 New Features",
+                "text": "**Spoof video streams:** Default client maintenance (#2208)"
               },
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**YouTube - Hide layout components:** Hide all the thumbnails when using \"Hide search term thumbnails\" (#2108)"
+                "category": "\u2728 New Features",
+                "text": "**YouTube - Seekbar:** Add \"Enable seekbar thumbnails\" setting (#2182)"
               },
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**YouTube - Hide layout components:** Hide new type of community post"
+                "category": "\u2728 New Features",
+                "text": "**YouTube - Seekbar:** Show video chapter title below seekbar thumbnail (#2214)"
               }
             ]
           },
@@ -54937,7 +55096,7 @@
             },
             {
               "name": "Seekbar",
-              "description": "Adds options to disable precise seeking when swiping up on the seekbar, slide to seek instead of playing at 2x speed when pressing and holding, tapping the player seekbar to seek, hiding the video player seekbar, enabling seeking in livestreams, and expanding the livestream DVR duration."
+              "description": "Adds options to show old seekbar thumbnails, disable precise seeking when swiping up on the seekbar, slide to seek instead of playing at 2x speed when pressing and holding, tapping the player seekbar to seek, hiding the video player seekbar, enabling seeking in livestreams, and expanding the livestream DVR duration."
             },
             {
               "name": "Settings menu filter",
@@ -55041,16 +55200,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/variablenine/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/variablenine.png?size=96",
           "latestChanges": {
-            "title": "1.1.5 (2026-07-24)",
-            "date": "2026-07-24",
+            "title": "1.1.6 (2026-07-26)",
+            "date": "2026-07-26",
             "items": [
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "Adapt cat lock button to upstream v1.36.0 player control API"
-              },
-              {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "Sync upstream Morphe patches v1.36.0"
+                "text": "Sync upstream Morphe patches v1.37.0"
               }
             ]
           },
@@ -55316,7 +55471,7 @@
             },
             {
               "name": "Seekbar",
-              "description": "Adds options to disable precise seeking when swiping up on the seekbar, slide to seek instead of playing at 2x speed when pressing and holding, tapping the player seekbar to seek, hiding the video player seekbar, enabling seeking in livestreams, and expanding the livestream DVR duration."
+              "description": "Adds options to show old seekbar thumbnails, disable precise seeking when swiping up on the seekbar, slide to seek instead of playing at 2x speed when pressing and holding, tapping the player seekbar to seek, hiding the video player seekbar, enabling seeking in livestreams, and expanding the livestream DVR duration."
             },
             {
               "name": "Settings menu filter",
@@ -55785,8 +55940,8 @@
         "Save to watch later",
         "Seekbar",
         "Seekbar components",
-        "Set transcript cookies",
         "Set Transcript Cookies",
+        "Set transcript cookies",
         "Settings for YouTube",
         "Settings menu filter",
         "Shorts autoplay",
@@ -55804,8 +55959,8 @@
         "Video playback",
         "Video quality",
         "Visual preferences icons for YouTube",
-        "Voice Over Translation",
         "Voice over translation",
+        "Voice Over Translation",
         "Voice Over Translation (Yandex)",
         "Watch history",
         "Watch later button",
@@ -56227,18 +56382,18 @@
         },
         {
           "name": "Seekbar",
-          "description": "Adds options to disable precise seeking when swiping up on the seekbar, slide to seek instead of playing at 2x speed when pressing and holding, tapping the player seekbar to seek, hiding the video player seekbar, enabling seeking in livestreams, and expanding the livestream DVR duration."
+          "description": "Adds options to show old seekbar thumbnails, disable precise seeking when swiping up on the seekbar, slide to seek instead of playing at 2x speed when pressing and holding, tapping the player seekbar to seek, hiding the video player seekbar, enabling seeking in livestreams, and expanding the livestream DVR duration."
         },
         {
           "name": "Seekbar components",
           "description": "Adds options to hide or change components related to the seekbar."
         },
         {
-          "name": "Set transcript cookies",
+          "name": "Set Transcript Cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {
-          "name": "Set Transcript Cookies",
+          "name": "Set transcript cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {
@@ -56310,12 +56465,12 @@
           "description": "Adds icons to specific preferences in the settings."
         },
         {
-          "name": "Voice Over Translation",
-          "description": "Adds an option to enable Yandex voice-over translation of video audio tracks."
-        },
-        {
           "name": "Voice over translation",
           "description": "Adds additional voice over languages using text-to-speech synchronized to the video playback."
+        },
+        {
+          "name": "Voice Over Translation",
+          "description": "Adds an option to enable Yandex voice-over translation of video audio tracks."
         },
         {
           "name": "Voice Over Translation (Yandex)",
@@ -56685,40 +56840,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/MorpheApp/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/MorpheApp.png?size=96",
           "latestChanges": {
-            "title": "1.36.0 (2026-07-23)",
-            "date": "2026-07-23",
+            "title": "1.37.0 (2026-07-26)",
+            "date": "2026-07-26",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Force original audio:** Not working in SABR playback (#2117)"
+                "text": "**YouTube - Copy video link:** Use correct timestamp query delimiter when link shortener is disabled (#2172)"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**YouTube - AI channel filter:** Skip list fetch and parse while all toggles are off"
+                "text": "**YouTube - Playback speed:** \"Use normal speed for music\" does not work when default playback speed is \"Auto\" (#2171)"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**YouTube - Engagement Panel:** Implemented a queue of open panels"
+                "text": "**YouTube - Playback speed:** Playback speed button sometimes does not update (#2206)"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**YouTube - FlyoutUtils:** Added compatibility with other video shelf types"
+                "text": "**YouTube - Remember video quality:** Added new buffering quality flag override"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**YouTube - Force original audio track:** Disable setting toggle for Android Creator only"
+                "text": "**YouTube - Remember video quality:** Improved platypus quality flag override logic"
               },
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**YouTube - Hide filter bar:** Related videos filter bar is not correctly hidden"
+                "category": "\u2728 New Features",
+                "text": "**Spoof video streams:** Default client maintenance (#2208)"
               },
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**YouTube - Hide layout components:** Hide all the thumbnails when using \"Hide search term thumbnails\" (#2108)"
+                "category": "\u2728 New Features",
+                "text": "**YouTube - Seekbar:** Add \"Enable seekbar thumbnails\" setting (#2182)"
               },
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**YouTube - Hide layout components:** Hide new type of community post"
+                "category": "\u2728 New Features",
+                "text": "**YouTube - Seekbar:** Show video chapter title below seekbar thumbnail (#2214)"
               }
             ]
           },
@@ -56941,16 +57096,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/variablenine/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/variablenine.png?size=96",
           "latestChanges": {
-            "title": "1.1.5 (2026-07-24)",
-            "date": "2026-07-24",
+            "title": "1.1.6 (2026-07-26)",
+            "date": "2026-07-26",
             "items": [
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "Adapt cat lock button to upstream v1.36.0 player control API"
-              },
-              {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "Sync upstream Morphe patches v1.36.0"
+                "text": "Sync upstream Morphe patches v1.37.0"
               }
             ]
           },
@@ -58149,12 +58300,12 @@
       "avatarUrl": "https://github.com/cesbar.png?size=96",
       "patchCount": 1,
       "latestChanges": {
-        "title": "1.7.0 (2026-07-25)",
-        "date": "2026-07-25",
+        "title": "1.8.0 (2026-07-26)",
+        "date": "2026-07-26",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "**Sudoku The Clean One:** Enable Premium, Disable Internet and Telemetry, Bypass PairIp"
+            "text": "**Citymapper:** Enable Club"
           }
         ]
       },
@@ -58773,40 +58924,40 @@
       "avatarUrl": "https://github.com/MorpheApp.png?size=96",
       "patchCount": 3,
       "latestChanges": {
-        "title": "1.36.0 (2026-07-23)",
-        "date": "2026-07-23",
+        "title": "1.37.0 (2026-07-26)",
+        "date": "2026-07-26",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**Force original audio:** Not working in SABR playback (#2117)"
+            "text": "**YouTube - Copy video link:** Use correct timestamp query delimiter when link shortener is disabled (#2172)"
           },
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**YouTube - AI channel filter:** Skip list fetch and parse while all toggles are off"
+            "text": "**YouTube - Playback speed:** \"Use normal speed for music\" does not work when default playback speed is \"Auto\" (#2171)"
           },
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**YouTube - Engagement Panel:** Implemented a queue of open panels"
+            "text": "**YouTube - Playback speed:** Playback speed button sometimes does not update (#2206)"
           },
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**YouTube - FlyoutUtils:** Added compatibility with other video shelf types"
+            "text": "**YouTube - Remember video quality:** Added new buffering quality flag override"
           },
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**YouTube - Force original audio track:** Disable setting toggle for Android Creator only"
+            "text": "**YouTube - Remember video quality:** Improved platypus quality flag override logic"
           },
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**YouTube - Hide filter bar:** Related videos filter bar is not correctly hidden"
+            "category": "\u2728 New Features",
+            "text": "**Spoof video streams:** Default client maintenance (#2208)"
           },
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**YouTube - Hide layout components:** Hide all the thumbnails when using \"Hide search term thumbnails\" (#2108)"
+            "category": "\u2728 New Features",
+            "text": "**YouTube - Seekbar:** Add \"Enable seekbar thumbnails\" setting (#2182)"
           },
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**YouTube - Hide layout components:** Hide new type of community post"
+            "category": "\u2728 New Features",
+            "text": "**YouTube - Seekbar:** Show video chapter title below seekbar thumbnail (#2214)"
           }
         ]
       },
@@ -59442,16 +59593,12 @@
       "avatarUrl": "https://github.com/variablenine.png?size=96",
       "patchCount": 3,
       "latestChanges": {
-        "title": "1.1.5 (2026-07-24)",
-        "date": "2026-07-24",
+        "title": "1.1.6 (2026-07-26)",
+        "date": "2026-07-26",
         "items": [
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "Adapt cat lock button to upstream v1.36.0 player control API"
-          },
-          {
             "category": "\ud83d\ude80 Updated App Support",
-            "text": "Sync upstream Morphe patches v1.36.0"
+            "text": "Sync upstream Morphe patches v1.37.0"
           }
         ]
       },
@@ -59578,12 +59725,12 @@
       "avatarUrl": "https://github.com/xob0t.png?size=96",
       "patchCount": 13,
       "latestChanges": {
-        "title": "1.10.0 (2026-07-25)",
-        "date": "2026-07-25",
+        "title": "1.10.1 (2026-07-26)",
+        "date": "2026-07-26",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "**wildberries:** remove profile + big-sale banners, fix 7.7.2001 matcher drift"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**avito:** hide referral widget on Profile Pro"
           }
         ]
       },
@@ -60058,16 +60205,12 @@
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.1.5 (2026-07-24)",
-        "date": "2026-07-24",
+        "title": "1.1.6 (2026-07-26)",
+        "date": "2026-07-26",
         "items": [
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "Adapt cat lock button to upstream v1.36.0 player control API"
-          },
-          {
             "category": "\ud83d\ude80 Updated App Support",
-            "text": "Sync upstream Morphe patches v1.36.0"
+            "text": "Sync upstream Morphe patches v1.37.0"
           }
         ]
       },
