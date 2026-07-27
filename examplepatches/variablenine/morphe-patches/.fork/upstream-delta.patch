@@ -1,5 +1,5 @@
 diff --git a/.github/workflows/open_pull_request.yml b/.github/workflows/open_pull_request.yml
-index 2006f78c..8cf51f87 100644
+index 2006f78..8cf51f8 100644
 --- a/.github/workflows/open_pull_request.yml
 +++ b/.github/workflows/open_pull_request.yml
 @@ -9,6 +9,10 @@ on:
@@ -14,7 +14,7 @@ index 2006f78c..8cf51f87 100644
    pull-request:
      name: Open pull request
 diff --git a/.github/workflows/release.yml b/.github/workflows/release.yml
-index e970ffea..82090308 100644
+index 05495c2..8209030 100644
 --- a/.github/workflows/release.yml
 +++ b/.github/workflows/release.yml
 @@ -20,6 +20,8 @@ jobs:
@@ -64,7 +64,7 @@ index e970ffea..82090308 100644
 -
 -      - name: Setup Python for FCM
 -        if: steps.release.outputs.new_release_published == 'true' && (github.event_name == 'push' || inputs.send_fcm == true)
--        uses: actions/setup-python@v6
+-        uses: actions/setup-python@v7
 -        with:
 -          python-version: '3.12'
 -
@@ -87,7 +87,7 @@ index e970ffea..82090308 100644
 +      # out on every upstream sync (see .fork/SYNC.md).
 diff --git a/extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/catlock/AlternatingTapUnlock.java b/extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/catlock/AlternatingTapUnlock.java
 new file mode 100644
-index 00000000..b82ffb0a
+index 0000000..b82ffb0
 --- /dev/null
 +++ b/extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/catlock/AlternatingTapUnlock.java
 @@ -0,0 +1,100 @@
@@ -193,7 +193,7 @@ index 00000000..b82ffb0a
 +}
 diff --git a/extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/catlock/CatLockOverlay.java b/extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/catlock/CatLockOverlay.java
 new file mode 100644
-index 00000000..2edf469f
+index 0000000..2edf469
 --- /dev/null
 +++ b/extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/catlock/CatLockOverlay.java
 @@ -0,0 +1,154 @@
@@ -353,7 +353,7 @@ index 00000000..2edf469f
 +}
 diff --git a/extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/components/BrainrotCommentFilter.java b/extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/components/BrainrotCommentFilter.java
 new file mode 100644
-index 00000000..787f73fb
+index 0000000..787f73f
 --- /dev/null
 +++ b/extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/components/BrainrotCommentFilter.java
 @@ -0,0 +1,51 @@
@@ -410,7 +410,7 @@ index 00000000..787f73fb
 +}
 diff --git a/extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/components/BrainrotDetector.java b/extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/components/BrainrotDetector.java
 new file mode 100644
-index 00000000..ede7d41a
+index 0000000..ede7d41
 --- /dev/null
 +++ b/extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/components/BrainrotDetector.java
 @@ -0,0 +1,333 @@
@@ -748,7 +748,7 @@ index 00000000..ede7d41a
 +    }
 +}
 diff --git a/extensions/youtube/src/main/java/app/morphe/extension/youtube/settings/Settings.java b/extensions/youtube/src/main/java/app/morphe/extension/youtube/settings/Settings.java
-index 5855fd4c..4a1c81d2 100644
+index 2f59302..dbfd10b 100644
 --- a/extensions/youtube/src/main/java/app/morphe/extension/youtube/settings/Settings.java
 +++ b/extensions/youtube/src/main/java/app/morphe/extension/youtube/settings/Settings.java
 @@ -221,6 +221,7 @@ public class Settings extends SharedYouTubeSettings {
@@ -768,7 +768,7 @@ index 5855fd4c..4a1c81d2 100644
      public static final BooleanSetting HIDE_COMMENTS_PREVIEW_COMMENT = new BooleanSetting("morphe_hide_comments_preview_comment", FALSE);
      public static final BooleanSetting HIDE_COMMENTS_PROMPTS = new BooleanSetting("morphe_hide_comments_prompts", FALSE);
 diff --git a/extensions/youtube/src/main/java/app/morphe/extension/youtube/swipecontrols/SwipeControlsHostActivity.kt b/extensions/youtube/src/main/java/app/morphe/extension/youtube/swipecontrols/SwipeControlsHostActivity.kt
-index 9c78b574..b73db021 100644
+index 9c78b57..b73db02 100644
 --- a/extensions/youtube/src/main/java/app/morphe/extension/youtube/swipecontrols/SwipeControlsHostActivity.kt
 +++ b/extensions/youtube/src/main/java/app/morphe/extension/youtube/swipecontrols/SwipeControlsHostActivity.kt
 @@ -10,6 +10,7 @@ import android.view.WindowInsets
@@ -793,7 +793,7 @@ index 9c78b574..b73db021 100644
              super.dispatchTouchEvent(ev)
 diff --git a/extensions/youtube/src/main/java/app/morphe/extension/youtube/videoplayer/CatLockButton.java b/extensions/youtube/src/main/java/app/morphe/extension/youtube/videoplayer/CatLockButton.java
 new file mode 100644
-index 00000000..7c0c98e5
+index 0000000..7c0c98e
 --- /dev/null
 +++ b/extensions/youtube/src/main/java/app/morphe/extension/youtube/videoplayer/CatLockButton.java
 @@ -0,0 +1,46 @@
@@ -845,7 +845,7 @@ index 00000000..7c0c98e5
 +}
 diff --git a/extensions/youtube/src/test/java/app/morphe/extension/youtube/patches/catlock/AlternatingTapUnlockSelfTest.java b/extensions/youtube/src/test/java/app/morphe/extension/youtube/patches/catlock/AlternatingTapUnlockSelfTest.java
 new file mode 100644
-index 00000000..ecccdb97
+index 0000000..ecccdb9
 --- /dev/null
 +++ b/extensions/youtube/src/test/java/app/morphe/extension/youtube/patches/catlock/AlternatingTapUnlockSelfTest.java
 @@ -0,0 +1,65 @@
@@ -916,7 +916,7 @@ index 00000000..ecccdb97
 +}
 diff --git a/extensions/youtube/src/test/java/app/morphe/extension/youtube/patches/components/BrainrotDetectorSelfTest.java b/extensions/youtube/src/test/java/app/morphe/extension/youtube/patches/components/BrainrotDetectorSelfTest.java
 new file mode 100644
-index 00000000..1f8946a5
+index 0000000..1f8946a
 --- /dev/null
 +++ b/extensions/youtube/src/test/java/app/morphe/extension/youtube/patches/components/BrainrotDetectorSelfTest.java
 @@ -0,0 +1,89 @@
@@ -1010,7 +1010,7 @@ index 00000000..1f8946a5
 +    }
 +}
 diff --git a/patches/build.gradle.kts b/patches/build.gradle.kts
-index 392e0e54..2b6a57f0 100644
+index 392e0e5..2b6a57f 100644
 --- a/patches/build.gradle.kts
 +++ b/patches/build.gradle.kts
 @@ -2,12 +2,12 @@ group = "app.morphe"
@@ -1033,7 +1033,7 @@ index 392e0e54..2b6a57f0 100644
  }
 diff --git a/patches/src/main/kotlin/app/morphe/patches/youtube/interaction/catlock/CatLockPatch.kt b/patches/src/main/kotlin/app/morphe/patches/youtube/interaction/catlock/CatLockPatch.kt
 new file mode 100644
-index 00000000..9810429f
+index 0000000..9810429
 --- /dev/null
 +++ b/patches/src/main/kotlin/app/morphe/patches/youtube/interaction/catlock/CatLockPatch.kt
 @@ -0,0 +1,66 @@
@@ -1104,7 +1104,7 @@ index 00000000..9810429f
 +    }
 +}
 diff --git a/patches/src/main/kotlin/app/morphe/patches/youtube/layout/hide/general/HideLayoutComponentsPatch.kt b/patches/src/main/kotlin/app/morphe/patches/youtube/layout/hide/general/HideLayoutComponentsPatch.kt
-index 36f5d8ae..e46d1088 100644
+index 36f5d8a..e46d108 100644
 --- a/patches/src/main/kotlin/app/morphe/patches/youtube/layout/hide/general/HideLayoutComponentsPatch.kt
 +++ b/patches/src/main/kotlin/app/morphe/patches/youtube/layout/hide/general/HideLayoutComponentsPatch.kt
 @@ -77,6 +77,8 @@ private const val DESCRIPTION_COMPONENTS_FILTER =
@@ -1133,7 +1133,7 @@ index 36f5d8ae..e46d1088 100644
          addLithoFilter(AISLIST_FILTER)
          addLithoFilter(CUSTOM_FILTER)
 diff --git a/patches/src/main/resources/addresources/values/youtube/strings.xml b/patches/src/main/resources/addresources/values/youtube/strings.xml
-index edbb6263..8aa38f7e 100644
+index c3f371c..e6336c8 100644
 --- a/patches/src/main/resources/addresources/values/youtube/strings.xml
 +++ b/patches/src/main/resources/addresources/values/youtube/strings.xml
 @@ -211,6 +211,8 @@ Changes include:
@@ -1156,7 +1156,7 @@ index edbb6263..8aa38f7e 100644
      <string name="morphe_copy_video_link_with_timestamp_button_title">Copy timestamp by default</string>
 diff --git a/patches/src/main/resources/catlock/drawable/morphe_yt_cat_lock_button.xml b/patches/src/main/resources/catlock/drawable/morphe_yt_cat_lock_button.xml
 new file mode 100644
-index 00000000..8629ca86
+index 0000000..8629ca8
 --- /dev/null
 +++ b/patches/src/main/resources/catlock/drawable/morphe_yt_cat_lock_button.xml
 @@ -0,0 +1,39 @@
@@ -1201,7 +1201,7 @@ index 00000000..8629ca86
 +</vector>
 diff --git a/patches/src/main/resources/catlock/drawable/morphe_yt_cat_lock_button_bold.xml b/patches/src/main/resources/catlock/drawable/morphe_yt_cat_lock_button_bold.xml
 new file mode 100644
-index 00000000..c320a0f5
+index 0000000..c320a0f
 --- /dev/null
 +++ b/patches/src/main/resources/catlock/drawable/morphe_yt_cat_lock_button_bold.xml
 @@ -0,0 +1,39 @@
@@ -1246,7 +1246,7 @@ index 00000000..c320a0f5
 +</vector>
 diff --git a/patches/src/main/resources/catlock/host/layout/youtube_controls_layout.xml b/patches/src/main/resources/catlock/host/layout/youtube_controls_layout.xml
 new file mode 100644
-index 00000000..33814e4a
+index 0000000..33814e4
 --- /dev/null
 +++ b/patches/src/main/resources/catlock/host/layout/youtube_controls_layout.xml
 @@ -0,0 +1,15 @@

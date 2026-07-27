@@ -4,7 +4,7 @@ A collection of [Morphe](https://github.com/MorpheApp) patches useful to me
 
 ## Patch list
 <!-- PATCHES_START -->
-> **[v1.7.0](https://github.com/cesbar/zpatches/releases/tag/v1.7.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;12 patches total
+> **[v1.8.0](https://github.com/cesbar/zpatches/releases/tag/v1.8.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;14 patches total
 <details open>
 <summary>📦 ee.dustland.android.dustlandsudoku&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
@@ -14,19 +14,6 @@ A collection of [Morphe](https://github.com/MorpheApp) patches useful to me
 | [Bypass PairIp](#bypass-pairip) | Bypass the PairIp license check preventing app modification |  |
 | [Disable Internet and Telemetry](#disable-internet-and-telemetry) | Disable Internet and Telemetry by removing all non-necessary permissions from the manifest |  |
 | [Enable Premium](#enable-premium) | Unlock all purchasables options |  |
-
-</details>
-
-<details open>
-<summary>📦 com.jcdecaux.vls.lyon&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
-<br>
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Custom Maps API Key](#custom-maps-api-key) | Replace Velo'v Google Maps key with your own to fix it | • Google Maps API key |
-| [Disable map animations](#disable-map-animations) | Disable the map zoom-in animation |  |
-| [No geolocalisation check](#no-geolocalisation-check) | Allows you to unlock a bike even if you're not near the station. |  |
-| [Spoof package signature](#spoof-package-signature) | Spoofs the package signature required for Firebase, fixes notifications |  |
 
 </details>
 
@@ -49,6 +36,30 @@ A collection of [Morphe](https://github.com/MorpheApp) patches useful to me
 |----------|----------------|-----------|
 | [Disable Internet and Telemetry](#disable-internet-and-telemetry) | Disable Internet and Telemetry by removing all non-necessary permissions from the manifest |  |
 | [Enable Premium](#enable-premium) | Unlock all purchasables options |  |
+
+</details>
+
+<details open>
+<summary>📦 com.jcdecaux.vls.lyon&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Disable map animations](#disable-map-animations) | Disable the map zoom-in animation |  |
+| [Google Maps API key](#google-maps-api-key) | Use a different Google Maps API key to fix modified apps | • Google Maps API key |
+| [No geolocalisation check](#no-geolocalisation-check) | Allows you to unlock a bike even if you're not near the station. |  |
+| [Spoof package signature](#spoof-package-signature) | Spoofs the package signature required for Firebase, fixes notifications |  |
+
+</details>
+
+<details open>
+<summary>📦 com.citymapper.app.release&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Enable Club](#enable-club) | Enable Citymapper Club subscription |  |
+| [Google Maps API key](#google-maps-api-key) | Use a different Google Maps API key to fix modified apps | • Google Maps API key |
 
 </details>
 

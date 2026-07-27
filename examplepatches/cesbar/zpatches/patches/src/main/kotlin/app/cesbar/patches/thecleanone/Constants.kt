@@ -1,4 +1,4 @@
-package app.cesbar.patches.minesweeperthecleanone
+package app.cesbar.patches.thecleanone
 
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility

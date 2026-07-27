@@ -9,14 +9,14 @@ it too.
 
 ## State markers (update on every sync)
 
-- **Upstream baseline:** stable tag `v1.36.0` (commit `88296f185f54`)
-- **Last synced upstream release:** v1.36.0 (2026-07-24)
+- **Upstream baseline:** stable tag `v1.37.0` (commit `ac3a2416f982`)
+- **Last synced upstream release:** v1.37.0 (2026-07-26)
 
 ## What is fork-local
 
 ### 1. The delta patch — `.fork/upstream-delta.patch`
 
-17 files, re-applied onto each new upstream tree. Semantics (for manual re-application when the
+18 files, re-applied onto each new upstream tree. Semantics (for manual re-application when the
 patch no longer applies cleanly):
 
 **Feature: Hide brainrot comments (YouTube)**
@@ -36,9 +36,9 @@ patch no longer applies cleanly):
 |---|---|
 | `extensions/youtube/.../patches/catlock/AlternatingTapUnlock.java` | **New file.** Pure unlock-gesture recognizer (alternating L/R fast taps). |
 | `extensions/youtube/.../patches/catlock/CatLockOverlay.java` | **New file.** Full-window transparent overlay on the Activity decor view; consumes touches; unlock via `AlternatingTapUnlock`; keep-screen-on + fading hint. |
-| `extensions/youtube/.../videoplayer/CatLockButton.java` | **New file.** Top player-control button (mirrors `ExternalDownloadButton`); `onClick` calls `CatLockOverlay.engage(view)`; gated by `Settings.CAT_LOCK_BUTTON`. |
+| `extensions/youtube/.../videoplayer/CatLockButton.java` | **New file.** Top player-control button (mirrors `ExternalDownloadButton` — keep it mirroring whatever that file currently does); constructs `LegacyPlayerControlButton` passing `Settings.CAT_LOCK_BUTTON` itself (not `::get`), `onClick` calls `CatLockOverlay.engage(view)`. Holds no button reference and exposes no visibility injection points. |
 | `extensions/youtube/src/test/.../catlock/AlternatingTapUnlockSelfTest.java` | **New file.** Plain-javac self-test; must print `11 passed, 0 failed`. |
-| `patches/.../youtube/interaction/catlock/CatLockPatch.kt` | **New file.** Mirrors `DownloadsPatch`: `SwitchPreference("morphe_cat_lock_button")`, `copyResources("catlock", ...)`, `addTopControl("catlock", ...)`, `initializeTopControl`/`injectVisibilityCheckCall(CatLockButton)`. |
+| `patches/.../youtube/interaction/catlock/CatLockPatch.kt` | **New file.** Mirrors `DownloadsPatch`: `SwitchPreference("morphe_cat_lock_button")`, `copyResources("catlock", ...)`, `addTopControl("catlock", ...)`, `initializeTopControl(CatLockButton)`. Only the initialize hook — the button derives its own visibility from the setting (upstream removed `injectVisibilityCheckCall` in v1.36.0). |
 | `extensions/youtube/.../settings/Settings.java` | Add `CAT_LOCK_BUTTON = new BooleanSetting("morphe_cat_lock_button", FALSE, true)` among the overlay buttons. (Same file as brainrot above.) |
 | `patches/src/main/resources/catlock/host/layout/youtube_controls_layout.xml` | **New file.** Top-controls button, anchored `toStartOf @id/morphe_external_download_button`. |
 | `patches/src/main/resources/catlock/drawable/morphe_yt_cat_lock_button{,_bold}.xml` | **New files.** Cat-face vector icon. |
@@ -67,9 +67,21 @@ patch no longer applies cleanly):
 2. Determine the latest **stable** tag `vX.Y.Z` (semver tags, no prerelease suffix). Decide staleness in
    the UPSTREAM clone: sync only if the baseline/last-synced commit above is an **ancestor** of the tag's
    commit. If the tag is an ancestor of the marker (older than what we ship), stop — nothing to do.
-3. In the fork, branch from `dev`. Remove all tracked files except fork-owned ones, copy in the upstream
-   tree at the tag (exclude its `.git`), restore fork-owned files (`git checkout` them back), keep
-   `patches-bundle.png` deleted.
+3. In the fork, branch from `dev`, then overlay the upstream tree **with git plumbing — never with
+   `rm`**. `git read-tree -u --reset` makes the working tree exactly match the upstream tag (adding,
+   overwriting and deleting files as needed, including renames) and cannot touch `.git`:
+
+   ```sh
+   git fetch https://github.com/MorpheApp/morphe-patches.git refs/tags/vX.Y.Z
+   git read-tree -u --reset FETCH_HEAD                     # worktree == upstream tree
+   git checkout HEAD -- README.md CHANGELOG.md gradle.properties \
+       patches-list.json patches-bundle.json .fork          # restore fork-owned files
+   git rm -q -f --ignore-unmatch patches-bundle.png \
+       .github/workflows/crowdin_pull.yml .github/workflows/crowdin_push.yml
+   ```
+
+   Do **not** hand-roll this as "delete everything, then copy the tree in": that is how `.git` gets
+   destroyed, and a manual copy loop also mishandles upstream renames.
 4. Apply the delta: `git apply -3 .fork/upstream-delta.patch`; on failure `git apply --reject` and repair
    the `.rej` hunks manually using the semantics table above (upstream may have refactored the touched
    files). **Regenerate `.fork/upstream-delta.patch`** against the new tree afterwards so the next sync
@@ -120,6 +132,11 @@ always be finished by hand from a normal session — that is how the v1.36.0 syn
   no suffix. NEVER sync to a `-dev`, `-rc`, `-beta`, `-alpha`, or any other prerelease tag, and
   never to an untagged `dev`-branch commit. (The initial fork baseline `v1.35.0-dev.3` is the one
   historical exception — from the first sync onward the baseline must always be a stable tag.)
+- **Never delete the repository.** Do not run `rm -rf` on `.git`, on the repo root, or on any glob that
+  could expand to include them. The overlay in step 3 is done with `git read-tree`/`git rm`, so no
+  recursive delete is ever needed. If `.git` is missing or damaged, STOP and report it — do not
+  `git init` a replacement or re-clone over the working copy; the fix is a fresh clone in a new
+  directory, and any uncommitted sync work should be re-derived rather than guessed at.
 - Never force-push `main` or rewrite semantic-release commits/tags.
 - Never reintroduce Morphe branding (logo files, "Morphe" as the bundle name).
 - `chore:` commits do not trigger releases; use `bump:` for syncs so a release is cut.

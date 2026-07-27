@@ -1,3 +1,9 @@
+## [1.8.0](https://github.com/cesbar/zpatches/compare/v1.7.0...v1.8.0) (2026-07-26)
+
+### ✨ New Features
+
+* **Citymapper:** Enable Club ([f2182d7](https://github.com/cesbar/zpatches/commit/f2182d79086e8fadfb682bd77818e47465bb065c))
+
 ## [1.7.0](https://github.com/cesbar/zpatches/compare/v1.6.0...v1.7.0) (2026-07-25)
 
 ### ✨ New Features

@@ -8,14 +8,46 @@
 
 ## Changes from upstream
 
-This bundle is the upstream Morphe patches **plus**:
+This bundle is the upstream Morphe patches **plus** two YouTube features:
 
-- **Hide brainrot comments** (YouTube) — hides low-effort meme spam comments
-  ("anti spiral viral", "anti anti spiral", "fix mojang bedrock" and obfuscated variants:
-  leetspeak, homoglyphs, letter-spacing, concatenations) while keeping genuine comments that
-  merely mention those words. Implemented as `BrainrotCommentFilter` + `BrainrotDetector`
-  (a de-obfuscating, meme-lexicon density scorer, not a keyword blacklist), registered in the
-  *Hide layout components* patch with a "Hide brainrot comments" switch (on by default).
+### 🧠 Hide brainrot comments
+
+Hides low-effort meme spam comments — "anti spiral viral", "anti anti spiral", "fix mojang
+bedrock" and their reshuffles — while **keeping** genuine comments that merely mention those
+words (an Anti-Spiral anime discussion, or real Bedrock parity feedback, both survive).
+
+It is not a keyword blacklist. `BrainrotDetector` normalizes the text (Unicode NFKD, leetspeak
+and homoglyph folding, letter-spacing collapse, repeat collapse, concatenation splitting) and
+then scores *meme-lexicon density*, so `f1x m0jang b3dr0ck`, `s p i r a l`, and `antiiii
+spiraaaal` are all caught, while a comment with real content around the same words is not.
+`BrainrotCommentFilter` applies it to both the expanded comment list and the collapsed
+preview teaser, scoring each buffer segment separately so surrounding UI strings can't dilute
+a short spam comment.
+
+Registered in the *Hide layout components* patch. Setting: **Comments → Hide brainrot
+comments** (on by default).
+
+### 🐱 Cat lock
+
+Adds a cat button to the top of the video player that locks the screen, so a pet can watch
+bird videos without swiping the video away, pausing, or hitting anything else. A transparent
+full-window overlay swallows every touch; player swipe controls (brightness/volume) are
+suppressed too, and the screen is kept awake while locked.
+
+To unlock, quickly tap **alternating opposite sides** of the screen — 6 alternating taps, each
+within 700 ms of the last. Repeated taps on the same side (what a cat actually does) never
+unlock it, and taps in the middle third are ignored.
+
+Its own patch. Setting: **Player → Cat lock button** (off by default — turn it on to show the
+button).
+
+### Fork infrastructure
+
+- Rebranded bundle (`app.variablenine`, "variablenine Patches") — GPLv3 §7 requires derivative
+  works to carry their own branding, so the Morphe name and logo are not reused.
+- Removed upstream's release steps that drive Morphe's own infrastructure (a deploy dispatch to
+  `MorpheApp/morphe-website` and an FCM push to Morphe's users) and the Crowdin translation-sync
+  workflows — all of them need Morphe's secrets and only ever failed here.
 - CI workflow permission fixes for running the release automation in this repository.
 
 All modifications and their dates can be found in the Git history, per GPLv3 §5(a).
@@ -28,14 +60,26 @@ Add this repository as a patch source in Morphe:
 https://github.com/variablenine/morphe-patches
 ```
 
-Patch YouTube with the **Hide layout components** patch enabled. To rely only on the brainrot
-filter, leave upstream's *Hide comments by keywords* setting off.
+Then patch YouTube as usual:
+
+- **Hide brainrot comments** requires the **Hide layout components** patch. It works alongside
+  upstream's *Hide comments by keywords* — leave that off to rely on the filter alone.
+- **Cat lock** is its own patch; after patching, enable **Player → Cat lock button** in Morphe
+  settings to show the button.
+
+## Staying current with upstream
+
+The fork has no shared history with upstream, so it tracks it by overlaying each new upstream
+**stable** release and re-applying a fork delta patch. The procedure, state markers, and rules
+live in [`.fork/SYNC.md`](.fork/SYNC.md); a scheduled routine runs it daily and only acts when
+upstream cuts a new stable release. CI compiling the bundle is the compatibility gate — a sync
+is never released on a red build.
 
 &nbsp;
 ## 🩹 Patches list
 
 <!-- PATCHES_START -->
-> **[v1.1.5](https://github.com/variablenine/morphe-patches/releases/tag/v1.1.5)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;132 patches total
+> **[v1.1.6](https://github.com/variablenine/morphe-patches/releases/tag/v1.1.6)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;132 patches total
 <details>
 <summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;74 patches</summary>
 <br>
@@ -110,7 +154,7 @@ filter, leave upstream's *Hide comments by keywords* setting off.
 | [Return YouTube Dislike](#return-youtube-dislike) | Adds an option to show the dislike count of videos with Return YouTube Dislike. |  |
 | [Sanitize sharing links](#sanitize-sharing-links) | Removes the tracking query parameters from shared links. |  |
 | [Save to watch later](#save-to-watch-later) | Adds an option to display save to watch later button in the video player. |  |
-| [Seekbar](#seekbar) | Adds options to disable precise seeking when swiping up on the seekbar, slide to seek instead of playing at 2x speed when pressing and holding, tapping the player seekbar to seek, hiding the video player seekbar, enabling seeking in livestreams, and expanding the livestream DVR duration. |  |
+| [Seekbar](#seekbar) | Adds options to show old seekbar thumbnails, disable precise seeking when swiping up on the seekbar, slide to seek instead of playing at 2x speed when pressing and holding, tapping the player seekbar to seek, hiding the video player seekbar, enabling seeking in livestreams, and expanding the livestream DVR duration. |  |
 | [Settings menu filter](#settings-menu-filter) | Adds an option to hide items on the standard YouTube settings screen by their visible name. |  |
 | [Shorts autoplay](#shorts-autoplay) | Adds options to automatically play the next Short. |  |
 | [SponsorBlock](#sponsorblock) | Adds options to enable and configure SponsorBlock, which can skip undesired video segments such as sponsored content. |  |

@@ -215,7 +215,6 @@ val gboardCustomTopRowSwipePatch = resourcePatch(
     )
 }
 
-/*
 @Suppress("unused")
 val gboardDeveloperOptionsPatch = resourcePatch(
     name = "Developer options",
@@ -229,7 +228,6 @@ val gboardDeveloperOptionsPatch = resourcePatch(
         gboardDeveloperOptionsFeatureMarkerPatch
     )
 }
-*/
 
 @Suppress("unused")
 val gboardSymbolsFooterOrderPatch = resourcePatch(

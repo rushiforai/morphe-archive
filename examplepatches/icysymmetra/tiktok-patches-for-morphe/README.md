@@ -33,25 +33,30 @@ The goal is to keep the existing patch set usable while adding more TikTok-focus
 
 ## Available Patches
 
-- `Settings`: Adds the Morphe settings screen inside TikTok.
-- `Enable Open Debug`: Uses TikTok's hidden Open Debug settings cell as the entry point for Morphe settings.
-- `Disable login requirement`: Lets supported TikTok flows load without the normal login wall first.
-- `Fix Google login`: Restores Google sign-in behavior after patching.
-- `Feed filter`: Filters feed items such as ads, livestreams, stories, shop content, image videos, and videos outside configured view or like ranges.
-- `Feed tab navigation`: Adds controls for choosing which loaded top and bottom feed tabs stay visible, with an option to block tabs TikTok adds later.
-- `Downloads`: Adds download-related controls.
-  - Downloads videos without watermark.
-  - Downloads images without watermark.
-  - Saves comment sticker videos/images to the device gallery.
-  - Lets you choose a relative internal-storage download folder with a simple browse helper.
-  - Adds an optional custom offline video limit entry, configurable up to 500 videos.
-- `Playback speed`: Adds playback speed controls.
-- `Remember clear display`: Keeps the clear-display state across videos.
-- `SIM spoof`: Spoofs SIM-related values used by TikTok region logic, with popular country/operator presets for easier setup. TikTok may still use other region signals such as IP, account history, and language.
-- `Sanitize sharing links`: Cleans TikTok share links before they leave the app.
-- `Copy comments without username`: Copies only the comment text when using TikTok's copy comment action.
-- `Auto Translate comments`: Automatically translates loaded and expanded comment batches using TikTok's translation system, while skipping comments that already match the device language when TikTok exposes that language clearly.
-- `Show seekbar`: Shows the video seekbar where TikTok would normally hide it.
+| Patch | Description |
+|---|---|
+| `Always show publish date` | Keeps the video's publish date visible in its author information. |
+| `Copy comments without username` | Copies only the comment text without including the creator's username. |
+| `Custom offline videos limit` | Adds a custom entry to TikTok's offline videos menu with a configurable limit of up to 500 videos. |
+| `Disable login requirement` | Removes TikTok's mandatory login gate from supported flows. |
+| `Disable screen capture detection` | Prevents TikTok from detecting screenshots and screen recordings. |
+| `Downloads` | Adds watermark-free video and photo downloads, comment sticker saving, and configurable download-folder controls. |
+| `Enable Open Debug` | Repurposes TikTok's hidden Open Debug row as the entry point for Morphe settings. Required for the settings menu to appear. |
+| `Feature Gate Lab` | Adds a searchable menu for viewing and overriding supported TikTok feature flags and configuration values. Client-side overrides cannot bypass server enforcement. |
+| `Feed filter` | Hides feed ads, TikTok Shop items, livestreams, stories, photo posts, and videos outside configured view or like ranges. |
+| `Feed tab navigation` | Controls which loaded top and bottom navigation tabs remain visible, blocks newly added tabs when requested, and can hide the Tako AI bubble. |
+| `Fix Google login` | Restores Google account sign-in after patching. |
+| `Hide CAPTCHA popups` | Prevents client-side verification puzzle dialogs from opening, including those shown while browsing LIVE. It does not bypass server-side checks. |
+| `Hide floating promotions` | Removes floating promotional badges, coin icons, and timer banners from the Home feed. |
+| `Hold-and-slide 2x lock` | Enables TikTok's native hold, slide down, and release gesture for locking playback at 2x speed. |
+| `Open external links directly` | Opens profile and story website links in the system browser instead of TikTok's in-app browser. |
+| `Playback speed` | Enables playback-speed controls for all videos and remembers the selected speed between videos. |
+| `Remember clear display` | Remembers TikTok's clear-display state between videos. |
+| `SIM spoof` | Replaces SIM country and operator values reported to TikTok and provides country presets. TikTok may still use IP address, account history, language, and other region signals. |
+| `Sanitize sharing links` | Removes tracking parameters from TikTok links before they are shared. |
+| `Settings` | Adds the Morphe settings screen inside TikTok. |
+| `Show seekbar` | Shows TikTok's native video seekbar where it would normally be hidden. |
+| `Translate comments` | Adds comment translation controls using TikTok's translation system, with selectable language exclusions. |
 
 <br>
 
@@ -71,12 +76,7 @@ You can also copy this repository URL and paste it into Morphe's add source fiel
 
 ### In Progress
 
-- [~] Drama mini series feed video filter
-
-### Planned
-
-- [ ] Add comments section sorting options
-
+- [~] Update patch compatibility and bytecode hooks for a newer TikTok version.
 
 <br>
 
@@ -115,7 +115,7 @@ Morphe reads `patches-bundle.json` from this repository, downloads the `.mpp` re
 
 ## Credits
 
-- Thanks to [@lyyako](https://github.com/lyyako) for the original contributions behind the simplified sanitize sharing links hook, show seekbar patch, and anti-recording patch.
+- Thanks to [@lyyako](https://github.com/lyyako) for the original contributions behind the simplified sanitize sharing links hook, show seekbar patch, anti-recording patch, `Open external links directly`, and `Always show publish date`.
 
 ## Notes
 

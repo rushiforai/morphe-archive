@@ -12,12 +12,12 @@ class GboardDeveloperOptionsPatchContractSourceTest {
     private val repositoryRoot = findRepositoryRoot()
 
     @Test
-    fun publicPatchIsStagedWhileMarkerImplementationRemainsAvailable() {
+    fun publicPatchIsActiveWhileMarkerImplementationRemainsAvailable() {
         val registry = readSource(REGISTRY_PATH)
         val activeRegistry = registry.replace(Regex("(?s)/\\*.*?\\*/"), "")
 
         assertTrue(registry.contains("val gboardDeveloperOptionsPatch = resourcePatch("))
-        assertFalse(activeRegistry.contains("val gboardDeveloperOptionsPatch = resourcePatch("))
+        assertTrue(activeRegistry.contains("val gboardDeveloperOptionsPatch = resourcePatch("))
         assertEquals(1, registry.countOccurrences("name = \"Developer options\""))
         assertTrue(registry.contains("gboardPatchesSettingsPatch"))
         assertTrue(registry.contains("gboardDeveloperOptionsFeatureMarkerPatch"))

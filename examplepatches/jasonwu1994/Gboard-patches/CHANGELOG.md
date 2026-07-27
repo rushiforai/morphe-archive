@@ -1,3 +1,23 @@
+## [2.1.0](https://github.com/jasonwu1994/Gboard-patches/compare/v2.0.0...v2.1.0) (2026-07-26)
+
+### ✨ New Features
+
+* **Gboard:** add `Developer options`, allowing you to modify flag values at any time.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Developer options`，可隨時修改 Flag 值。
+
+## [2.1.0-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v2.0.0...v2.1.0-dev.1) (2026-07-25)
+
+### ✨ New Features
+
+* **Gboard:** add `Developer options`, allowing you to modify flag values at any time.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Developer options`，可隨時修改 Flag 值。
+
 ## [2.0.0](https://github.com/jasonwu1994/Gboard-patches/compare/v1.14.0...v2.0.0) (2026-07-24)
 
 ### ✨ New Features

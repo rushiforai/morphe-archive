@@ -3,7 +3,7 @@ group = "app.cesbar.patches"
 patches {
     about {
         name = "zPatches"
-        description = "Patches for apps I like"
+        description = "morphe patches by cesbar"
         source = "git@github.com:cesbar/zpatches.git"
         author = "cesbar"
         contact = "na"

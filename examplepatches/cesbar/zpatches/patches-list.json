@@ -1,5 +1,5 @@
 {
-  "version": "1.7.0",
+  "version": "1.8.0",
   "patches": [
     {
       "name": "Bypass PairIp",
@@ -10,28 +10,6 @@
         "ee.dustland.android.dustlandsudoku": null
       },
       "options": []
-    },
-    {
-      "name": "Custom Maps API Key",
-      "description": "Replace Velo'v Google Maps key with your own to fix it",
-      "use": true,
-      "dependencies": [],
-      "compatiblePackages": {
-        "com.jcdecaux.vls.lyon": [
-          "3.1.1"
-        ]
-      },
-      "options": [
-        {
-          "key": "mapApiKey",
-          "title": "Google Maps API key",
-          "description": "Google Maps API key",
-          "required": true,
-          "type": "kotlin.String",
-          "default": "",
-          "values": null
-        }
-      ]
     },
     {
       "name": "Disable Internet and Telemetry",
@@ -58,6 +36,16 @@
       "options": []
     },
     {
+      "name": "Enable Club",
+      "description": "Enable Citymapper Club subscription",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "com.citymapper.app.release": null
+      },
+      "options": []
+    },
+    {
       "name": "Enable Premium",
       "description": "Unlock all purchasables options",
       "use": true,
@@ -76,6 +64,29 @@
       "dependencies": [],
       "compatiblePackages": null,
       "options": []
+    },
+    {
+      "name": "Google Maps API key",
+      "description": "Use a different Google Maps API key to fix modified apps",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "com.citymapper.app.release": null,
+        "com.jcdecaux.vls.lyon": [
+          "3.1.1"
+        ]
+      },
+      "options": [
+        {
+          "key": "mapApiKey",
+          "title": "Google Maps API key",
+          "description": "Google Maps API key",
+          "required": true,
+          "type": "kotlin.String",
+          "default": "",
+          "values": null
+        }
+      ]
     },
     {
       "name": "No geolocalisation check",

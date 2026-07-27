@@ -1,4 +1,4 @@
-package app.cesbar.patches.minesweeperthecleanone
+package app.cesbar.patches.thecleanone
 
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.util.returnEarly

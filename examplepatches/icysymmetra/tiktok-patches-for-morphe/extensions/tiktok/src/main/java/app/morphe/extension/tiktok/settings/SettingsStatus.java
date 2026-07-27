@@ -11,6 +11,11 @@ public class SettingsStatus {
     public static boolean commentTranslationEnabled = false;
     public static boolean downloadEnabled = false;
     public static boolean simSpoofEnabled = false;
+    public static boolean captchaPopupSuppressionEnabled = false;
+    public static boolean promotionalBannersEnabled = false;
+    public static boolean longPressSpeedLockEnabled = false;
+    public static boolean externalBrowserEnabled = false;
+    public static boolean alwaysShowPublishDateEnabled = false;
 
     public static void enableFeedFilter() {
         feedFilterEnabled = true;
@@ -30,6 +35,26 @@ public class SettingsStatus {
 
     public static void enableSimSpoof() {
         simSpoofEnabled = true;
+    }
+
+    public static void enableCaptchaPopupSuppression() {
+        captchaPopupSuppressionEnabled = true;
+    }
+
+    public static void enablePromotionalBanners() {
+        promotionalBannersEnabled = true;
+    }
+
+    public static void enableLongPressSpeedLock() {
+        longPressSpeedLockEnabled = true;
+    }
+
+    public static void enableExternalBrowser() {
+        externalBrowserEnabled = true;
+    }
+
+    public static void enableAlwaysShowPublishDate() {
+        alwaysShowPublishDateEnabled = true;
     }
 
     public static void load() {

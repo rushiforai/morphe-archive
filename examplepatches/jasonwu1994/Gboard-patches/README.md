@@ -105,6 +105,12 @@ Customize the bottom tab order in Gboard's Emojis, stickers & GIFs panel with dr
 </details>
 
 <details>
+  <summary><code>Developer options</code></summary>
+
+  Enable Developer options and the Flag Editor, allowing you to modify flag values.
+</details>
+
+<details>
   <summary><code>Package Rename</code></summary>
 
   Renames the patched package so it can be installed alongside the official Gboard app.

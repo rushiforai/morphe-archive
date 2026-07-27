@@ -6,7 +6,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 ### API v4
 | Bundle | Patches | Apps | Status |
 | --- | ---: | ---: | --- |
-| [Coronenic](#-coronenic-bundle-patch-list) | 4 | 1 | Generated |
+| [Coronenic](#-coronenic-bundle-patch-list) | 6 | 1 | Generated |
 | [AppleMusic](#-applemusic-bundle-patch-list) | 2 | 1 | Generated |
 | [ReVanced](#-revanced-bundle-patch-list) | 288 | 89 | Generated |
 | [Inotia00](#-inotia00-bundle-patch-list) | 127 | 4 | Generated |
@@ -81,7 +81,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Perplexity-STT](#-perplexity-stt-bundle-patch-list) | 1 | 1 | Generated |
 | [Browzomje](#-browzomje-bundle-patch-list) | 5 | 1 | Generated |
 | [Morphe-Portal](#-morphe-portal-bundle-patch-list) | 3 | 2 | Generated |
-| [Zpatches](#-zpatches-bundle-patch-list) | 8 | 5 | Generated |
+| [Zpatches](#-zpatches-bundle-patch-list) | 9 | 6 | Generated |
 | [iHealth-Morphe](#-ihealth-morphe-bundle-patch-list) | 6 | 2 | Generated |
 | [Hoomans-Morphe](#-hoomans-morphe-bundle-patch-list) | 53 | 40 | Generated |
 | [Realme-Link](#-realme-link-bundle-patch-list) | 1 | 1 | Generated |
@@ -138,7 +138,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Kolaron](#-kolaron-bundle-patch-list) | 1 | 1 | Generated |
 | [ImmortalZeus](#-immortalzeus-bundle-patch-list) | 2 | 2 | Generated |
 | [Ajstrick81-AndroidTV](#-ajstrick81-androidtv-bundle-patch-list) | 20 | 10 | Generated |
-| [Icysymmetra-TikTok](#-icysymmetra-tiktok-bundle-patch-list) | 15 | 1 | Generated |
+| [Icysymmetra-TikTok](#-icysymmetra-tiktok-bundle-patch-list) | 22 | 1 | Generated |
 | [AlexNaga](#-alexnaga-bundle-patch-list) | 2 | 1 | Generated |
 | [Rushiranpise](#-rushiranpise-bundle-patch-list) | 247 | 191 | Generated |
 | [Sjshb57-PairIP](#-sjshb57-pairip-bundle-patch-list) | 4 | 1 | Generated |
@@ -474,11 +474,13 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 ### 🧩 Coronenic Bundle Patch List:
 [📦 Coronenic-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-coronenic-patches-bundle-api-v4)
 <details>
-<summary><b>Coronenic</b> - 4 patches, 1 app</summary>
+<summary><b>Coronenic</b> - 6 patches, 1 app</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
 | ```Add ReVanced patch version field``` | ```Adds a 'Revanced 패치 버전' field below the current and latest version in Settings > About.``` | ```com.dcinside.app.android``` | ```All versions``` |
+| ```Remove advertisements``` | ```Removes all advertisements: banners, native ads, in-feed ad rows, DCInside's own script ads and Naver PowerLink. No ad SDK is initialised and no ad is ever requested.``` | ```com.dcinside.app.android``` | ```All versions``` |
+| ```Remove advertisements resources``` | ```Collapses the empty quick-menu banner slot at the bottom of the post list.``` | ```com.dcinside.app.android``` | ```All versions``` |
 | ```Spoof signature``` | ```Presents the original signing certificate to the app's own tamper checks so the re-signed build passes client- and server-side verification (fixes the blank 실시간 베스트 feed, error 2109, and the intermittent "error" popup on post submission).``` | ```com.dcinside.app.android``` | ```All versions``` |
 | ```Voice reply file upload``` | ```Adds an upload button to the voice-reply record tab so an existing .m4a (AAC) audio file can be sent as a voice reply, like a recording.``` | ```com.dcinside.app.android``` | ```All versions``` |
 | ```Voice reply file upload resources``` | ```Layout + manifest changes for the voice-reply audio file picker.``` | ```com.dcinside.app.android``` | ```All versions``` |
@@ -851,11 +853,12 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 ### 🧩 Zpatches Bundle Patch List:
 [?? Zpatches-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-zpatches-patches-bundle-morphe)
 <details>
-<summary><b>Zpatches</b> - 8 patches, 5 apps</summary>
+<summary><b>Zpatches</b> - 9 patches, 6 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Custom Maps API Key``` | ```Replace Velo'v Google Maps key with your own to fix it``` | ```com.jcdecaux.vls.lyon``` | ```3.1.1``` |
+| ```Enable Club``` | ```Enable Citymapper Club subscription``` | ```com.citymapper.app.release``` | ```All versions``` |
+| ```Google Maps API key``` | ```Use a different Google Maps API key to fix modified apps``` | ```com.citymapper.app.release, com.jcdecaux.vls.lyon``` | ```3.1.1``` |
 | ```Disable map animations``` | ```Disable the map zoom-in animation``` | ```com.jcdecaux.vls.lyon``` | ```3.1.1``` |
 | ```No geolocalisation check``` | ```Allows you to unlock a bike even if you're not near the station.``` | ```com.jcdecaux.vls.lyon``` | ```3.1.1``` |
 | ```Spoof package signature``` | ```Spoofs the package signature required for Firebase, fixes notifications``` | ```com.jcdecaux.vls.lyon``` | ```3.1.1``` |
@@ -1664,6 +1667,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | ```Disable double tap like``` | ```Disable double tap like on post, reel, comment and message``` | ```Instagram``` | ```All versions``` |
 | ```Disable explore``` | ```N/A``` | ```Instagram``` | ```All versions``` |
 | ```Disable highlights``` | ```N/A``` | ```Instagram``` | ```All versions``` |
+| ```Disable onboarding permission prompts``` | ```Prevents contacts and location permission onboarding prompts from appearing on launch.``` | ```Instagram``` | ```All versions``` |
 | ```Disable Reels scrolling``` | ```Disables the endless scrolling behavior in Instagram Reels, preventing swiping to the next Reel. Note: On a clean install, the 'Tip' animation may appear but will stop on its own after a few seconds.``` | ```Instagram``` | ```All versions``` |
 | ```Disable screenshot detection``` | ```Disables screenshots detection in DM``` | ```Instagram``` | ```All versions``` |
 | ```Disable stories``` | ```N/A``` | ```Instagram``` | ```All versions``` |
@@ -1728,7 +1732,6 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | ```Delete from database``` | ```Delete entries from database(cache)``` | ```X``` | ```All versions``` |
 | ```Disable auto timeline scroll on launch``` | ```N/A``` | ```X``` | ```All versions``` |
 | ```Disable chirp font``` | ```N/A``` | ```X``` | ```All versions``` |
-| ```Disunify xchat system``` | ```Bring back legacy features like messages and share sheet.``` | ```X``` | ```All versions``` |
 | ```Download patch``` | ```Unlocks the ability to download videos and gifs from Twitter/X``` | ```X``` | ```All versions``` |
 | ```Dynamic color``` | ```Replaces the default Twitter Blue with the user's Material You palette.``` | ```X``` | ```All versions``` |
 | ```Enable debug menu for posts``` | ```N/A``` | ```X``` | ```All versions``` |
@@ -1765,7 +1768,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | ```No shortened URL``` | ```Get rid of t.co short urls.``` | ```X``` | ```All versions``` |
 | ```Pause search suggestions``` | ```Search suggestions will not be saved locally``` | ```X``` | ```All versions``` |
 | ```Remove Ads``` | ```Removed promoted posts, trends and google ads``` | ```X``` | ```All versions``` |
-| ```Remove premium upsell``` | ```Removes premium upsell in home timeline``` | ```X``` | ```All versions``` |
+| ```Remove premium upsell``` | ```Removes premium upsells``` | ```X``` | ```All versions``` |
 | ```Remove search suggestions``` | ```Hide/Remove search suggestion in explore section``` | ```X``` | ```All versions``` |
 | ```Remove view count``` | ```Removes the view count from the bottom of tweets``` | ```X``` | ```All versions``` |
 | ```Round off numbers``` | ```Enable or disable rounding off numbers``` | ```X``` | ```All versions``` |
@@ -4540,25 +4543,32 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Icysymmetra-TikTok Bundle Patch List:
 [📦 Icysymmetra-TikTok-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-icysymmetra-tiktok-patches-bundle-morphe)
 <details>
-<summary><b>Icysymmetra-TikTok</b> - 15 patches, 1 app</summary>
+<summary><b>Icysymmetra-TikTok</b> - 22 patches, 1 app</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Auto Translate comments``` | ```Adds Auto comment translation controls that translates all non default langauge comments that are loaded. Supports TikTok 43.8.3.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
-| ```Copy comments without username``` | ```Copies only the comment text when copying TikTok comments. (Supports TikTok 43.8.3.)``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
-| ```Custom offline videos limit``` | ```Adds a configurable custom option to TikTok's offline videos menu. (Supports TikTok 43.8.3.)``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
-| ```Disable login requirement``` | ```Disables mandatory login for TikTok. (Supports TikTok 43.8.3.)``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
-| ```Downloads``` | ```Downloads videos and images without watermark, saves comment stickers/images, and adds download-related controls. (Supports TikTok 43.8.3.)``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
+| ```Always show publish date``` | ```Always shows the publish date in video author information. Thanks to lyyako for the original implementation.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
+| ```Copy comments without username``` | ```Copies only the comment text without including the creator's username.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
+| ```Custom offline videos limit``` | ```Adds a custom entry to TikTok's offline videos menu with a configurable limit of up to 500 videos.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
+| ```Disable login requirement``` | ```Removes TikTok's mandatory login gate from supported flows.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
+| ```Disable screen capture detection``` | ```Prevents TikTok from detecting screenshots and screen recordings.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
+| ```Downloads``` | ```Adds watermark-free video and photo downloads, comment sticker saving, and configurable download-folder controls.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
 | ```Enable Open Debug``` | ```Uses TikTok's hidden Open Debug settings cell as the entry point for Morphe settings. Required for the Morphe settings menu to appear. Supports TikTok 43.8.3.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
-| ```Feed filter``` | ```Removes ads, livestreams, stories, image videos and videos with a specific amount of views or likes from the feed. (Supports TikTok 43.8.3.)``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
-| ```Feed tab navigation``` | ```Adds controls to choose which top feed tabs are visible. For You stays enabled for stability. Supports TikTok 43.8.3.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
-| ```Fix Google login``` | ```Allows logging in with a Google account. (Supports TikTok 43.8.3.)``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
-| ```Playback speed``` | ```Enables the playback speed option for all videos and retains the speed configurations in between videos. (Supports TikTok 43.8.3.)``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
-| ```Remember clear display``` | ```Remembers the clear display configurations in between videos. (Supports TikTok 43.8.3.)``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
-| ```Sanitize sharing links``` | ```Removes tracking parameters from shared links. (Supports TikTok 43.8.3.)``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
-| ```Settings``` | ```Adds Morphe settings to TikTok. Supports TikTok 43.8.3.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
-| ```Show seekbar``` | ```Shows a progress bar for all videos. (Supports TikTok 43.8.3.)``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
+| ```Feature Gate Lab``` | ```Adds a menu for viewing and overriding supported TikTok feature flags and configuration values.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
+| ```Feed filter``` | ```Hides feed ads, TikTok Shop items, livestreams, stories, photo posts, and videos outside configured view or like ranges.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
+| ```Feed tab navigation``` | ```Controls which loaded top and bottom navigation tabs remain visible, blocks newly added tabs when requested, and can hide the Tako AI bubble.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
+| ```Fix Google login``` | ```Restores Google account sign-in after patching.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
+| ```Hide CAPTCHA popups``` | ```Prevents client-side verification puzzle dialogs from opening, including those shown while browsing LIVE. This does not bypass server-side checks.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
+| ```Hide floating promotions``` | ```Removes floating promotional badges, coin icons, and timer banners from the Home feed.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
+| ```Hold-and-slide 2x lock``` | ```Enables TikTok's native hold, slide down, and release gesture to lock 2x speed.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
+| ```Open external links directly``` | ```Opens profile and story website links in the system browser instead of TikTok's in-app browser. Thanks to lyyako for the original implementation.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
+| ```Playback speed``` | ```Enables playback-speed controls for all videos and remembers the selected speed between videos.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
+| ```Remember clear display``` | ```Remembers TikTok's clear-display state between videos.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
+| ```Sanitize sharing links``` | ```Removes tracking parameters from TikTok links before they are shared.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
+| ```Settings``` | ```Adds the Morphe settings screen inside TikTok.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
+| ```Show seekbar``` | ```Shows TikTok's native video seekbar where it would normally be hidden.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
 | ```SIM spoof``` | ```Spoofs SIM country and operator information retrieved by TikTok, with country presets for easier setup.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
+| ```Translate comments``` | ```Adds comment translation controls using TikTok's translation system, with selectable language exclusions.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
 
 </details>
 
@@ -4991,7 +5001,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Return YouTube Dislike``` | ```Adds an option to show the dislike count of videos with Return YouTube Dislike.``` | ```YouTube``` | ```All versions``` |
 | ```Sanitize sharing links``` | ```Removes the tracking query parameters from shared links.``` | ```YouTube``` | ```All versions``` |
 | ```Save to watch later``` | ```Adds an option to display save to watch later button in the video player.``` | ```YouTube``` | ```All versions``` |
-| ```Seekbar``` | ```Adds options to disable precise seeking when swiping up on the seekbar, slide to seek instead of playing at 2x speed when pressing and holding, tapping the player seekbar to seek, hiding the video player seekbar, enabling seeking in livestreams, and expanding the livestream DVR duration.``` | ```YouTube``` | ```All versions``` |
+| ```Seekbar``` | ```Adds options to show old seekbar thumbnails, disable precise seeking when swiping up on the seekbar, slide to seek instead of playing at 2x speed when pressing and holding, tapping the player seekbar to seek, hiding the video player seekbar, enabling seeking in livestreams, and expanding the livestream DVR duration.``` | ```YouTube``` | ```All versions``` |
 | ```Settings menu filter``` | ```Adds an option to hide items on the standard YouTube settings screen by their visible name.``` | ```YouTube``` | ```All versions``` |
 | ```Shorts autoplay``` | ```Adds options to automatically play the next Short.``` | ```YouTube``` | ```All versions``` |
 | ```SponsorBlock``` | ```Adds options to enable and configure SponsorBlock, which can skip undesired video segments such as sponsored content.``` | ```YouTube``` | ```All versions``` |
