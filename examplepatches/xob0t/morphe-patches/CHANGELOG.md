@@ -1,3 +1,39 @@
+## [1.11.0](https://github.com/xob0t/morphe-patches/compare/v1.10.3...v1.11.0) (2026-07-27)
+
+### ✨ New Features
+
+* **automation:** promote qualified app targets ([0c0e410](https://github.com/xob0t/morphe-patches/commit/0c0e4105bad72c0a4e1a7a7ae1c2e500072affc2))
+
+## [1.11.0-dev.1](https://github.com/xob0t/morphe-patches/compare/v1.10.3...v1.11.0-dev.1) (2026-07-27)
+
+### ✨ New Features
+
+* **automation:** promote qualified app targets ([0c0e410](https://github.com/xob0t/morphe-patches/commit/0c0e4105bad72c0a4e1a7a7ae1c2e500072affc2))
+
+## [1.10.3](https://github.com/xob0t/morphe-patches/compare/v1.10.2...v1.10.3) (2026-07-27)
+
+### 🐛 Bug Fixes
+
+* **tbank:** target RuStore version 7.39.0 ([043f15a](https://github.com/xob0t/morphe-patches/commit/043f15adfb82a80878bf91fc1b6e259af47ab14b))
+
+## [1.10.3-dev.1](https://github.com/xob0t/morphe-patches/compare/v1.10.2...v1.10.3-dev.1) (2026-07-27)
+
+### 🐛 Bug Fixes
+
+* **tbank:** target RuStore version 7.39.0 ([043f15a](https://github.com/xob0t/morphe-patches/commit/043f15adfb82a80878bf91fc1b6e259af47ab14b))
+
+## [1.10.2](https://github.com/xob0t/morphe-patches/compare/v1.10.1...v1.10.2) (2026-07-27)
+
+### 🐛 Bug Fixes
+
+* enforce latest-target patch validation ([16a9aa3](https://github.com/xob0t/morphe-patches/commit/16a9aa352a29a407dd3732184ac7b7b6c18dbf1c))
+
+## [1.10.2-dev.1](https://github.com/xob0t/morphe-patches/compare/v1.10.1...v1.10.2-dev.1) (2026-07-27)
+
+### 🐛 Bug Fixes
+
+* enforce latest-target patch validation ([16a9aa3](https://github.com/xob0t/morphe-patches/commit/16a9aa352a29a407dd3732184ac7b7b6c18dbf1c))
+
 ## [1.10.1](https://github.com/xob0t/morphe-patches/compare/v1.10.0...v1.10.1) (2026-07-26)
 
 ### 🐛 Bug Fixes

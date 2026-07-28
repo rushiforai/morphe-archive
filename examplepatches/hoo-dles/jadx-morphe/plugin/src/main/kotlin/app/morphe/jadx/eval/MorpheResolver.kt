@@ -15,22 +15,17 @@ import java.io.File
 import java.util.UUID
 
 object MorpheResolver {
-    private lateinit var patcher: Patcher
+    private lateinit var sourceApk: File
+    private lateinit var temp: File
 
     @OptIn(DelicateCoroutinesApi::class)
     fun init(
         sourceApk: File,
         temp: File,
     ) {
-        val tempFilesPath = File(temp, UUID.randomUUID().toString())
-        patcher = Patcher(
-            PatcherConfig(
-                sourceApk,
-                tempFilesPath,
-                null,
-                temp.absolutePath,
-            ),
-        )
+        this.sourceApk = sourceApk
+        // Add a random suffix to the temporary files path
+        this.temp = File(temp, UUID.randomUUID().toString())
 
         GlobalScope.launch(Dispatchers.IO) {
             ScriptingHost.preload()
@@ -49,6 +44,16 @@ object MorpheResolver {
             }
         }
 
+        // New Patcher instance must be created on each evaluation
+        val patcher = Patcher(
+            PatcherConfig(
+                this.sourceApk,
+                this.temp,
+                null,
+                this.temp.absolutePath,
+            ),
+        )
+
         patcher.use {
             it += setOf(tempPatch)
             runBlocking {
@@ -58,9 +63,6 @@ object MorpheResolver {
                     }
                 }
             }
-
-            // Calling this method will clear the Fingerprints and patches, which is desirable for each evaluation.
-            it.get()
         }
 
         return matches

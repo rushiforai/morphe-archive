@@ -1,0 +1,4 @@
+interface:
+  display_name: "Morphe: анализ APK"
+  short_description: "Поиск patch targets через JADX без RASP"
+  default_prompt: "Используй $morphe-analyze-apk, чтобы найти устойчивую точку для Morphe patch в APK."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Morphe: тест на Pixel"
+  short_description: "Root-mount тестирование на личном Pixel"
+  default_prompt: "Используй $morphe-test-on-pixel, чтобы подготовить или выполнить локальный Morphe root-mount test на моём Pixel."

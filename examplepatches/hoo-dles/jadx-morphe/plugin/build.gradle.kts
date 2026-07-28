@@ -53,7 +53,6 @@ sourceSets {
 }
 
 tasks {
-
     test {
         useJUnitPlatform()
         testLogging {
@@ -62,8 +61,7 @@ tasks {
     }
 
     shadowJar {
-        archiveBaseName.set(rootProject.name)
-        archiveClassifier.set("")
+        archiveFileName.set("${rootProject.name}.jar")
 
         configurations = listOf(project.configurations["toRelocate"])
 

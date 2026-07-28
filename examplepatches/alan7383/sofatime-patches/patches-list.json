@@ -1,0 +1,58 @@
+{
+  "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
+  "version": "1.0.1",
+  "patches": [
+    {
+      "name": "SofaTime License Check Bypass",
+      "description": "Bypasses PairIP license verification.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.theclashsoft.sofatime",
+          "name": "SofaTime",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#1E1E2E",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.1.2",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "SofaTime Premium",
+      "description": "Unlocks all premium features.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.theclashsoft.sofatime",
+          "name": "SofaTime",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#1E1E2E",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.1.2",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    }
+  ]
+}

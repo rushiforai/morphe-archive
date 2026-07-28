@@ -1,5 +1,5 @@
 {
-  "version": "1.10.1",
+  "version": "1.11.0",
   "patches": [
     {
       "name": "AMOLED dark theme",
@@ -17,43 +17,8 @@
           "targets": [
             {
               "version": "229.1",
+              "versionCode": 3444,
               "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "228.0",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "227.0",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "226.5",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "225.5",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "224.6",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": null,
-              "isExperimental": true,
               "minSdk": 28,
               "description": null
             }
@@ -81,43 +46,8 @@
           "targets": [
             {
               "version": "229.1",
+              "versionCode": 3444,
               "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "228.0",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "227.0",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "226.5",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "225.5",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "224.6",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": null,
-              "isExperimental": true,
               "minSdk": 28,
               "description": null
             }
@@ -141,37 +71,16 @@
           "signatures": null,
           "targets": [
             {
-              "version": "7.40.0",
+              "version": "7.39.0",
+              "versionCode": 12782,
               "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "7.36.0",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": null,
-              "isExperimental": true,
               "minSdk": 28,
               "description": null
             }
           ]
         }
       ],
-      "options": [
-        {
-          "key": "strictTargets",
-          "title": "Require all current targets",
-          "description": "Fails when a current integrity-check target no longer matches. Intended for automated builds.",
-          "required": false,
-          "type": "kotlin.Boolean",
-          "default": false,
-          "values": null
-        }
-      ]
+      "options": []
     },
     {
       "name": "Disable Adjust",
@@ -263,60 +172,15 @@
           "targets": [
             {
               "version": "229.1",
+              "versionCode": 3444,
               "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "228.0",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "227.0",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "226.5",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "225.5",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "224.6",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": null,
-              "isExperimental": true,
               "minSdk": 28,
               "description": null
             }
           ]
         }
       ],
-      "options": [
-        {
-          "key": "strictTargets",
-          "title": "Strict telemetry target validation",
-          "description": "Fail patching when a known Avito telemetry entry point cannot be found.",
-          "required": false,
-          "type": "kotlin.Boolean",
-          "default": false,
-          "values": null
-        }
-      ]
+      "options": []
     },
     {
       "name": "Disable update prompts",
@@ -336,43 +200,8 @@
           "targets": [
             {
               "version": "229.1",
+              "versionCode": 3444,
               "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "228.0",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "227.0",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "226.5",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "225.5",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "224.6",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": null,
-              "isExperimental": true,
               "minSdk": 28,
               "description": null
             }
@@ -399,43 +228,8 @@
           "targets": [
             {
               "version": "229.1",
+              "versionCode": 3444,
               "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "228.0",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "227.0",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "226.5",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "225.5",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "224.6",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": null,
-              "isExperimental": true,
               "minSdk": 28,
               "description": null
             }
@@ -462,60 +256,15 @@
           "targets": [
             {
               "version": "229.1",
+              "versionCode": 3444,
               "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "228.0",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "227.0",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "226.5",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "225.5",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "224.6",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": null,
-              "isExperimental": true,
               "minSdk": 28,
               "description": null
             }
           ]
         }
       ],
-      "options": [
-        {
-          "key": "strictHooks",
-          "title": "Strict settings hook validation",
-          "description": "Fail patching when the Avito settings entry or Konveyor bind hook cannot be applied.",
-          "required": false,
-          "type": "kotlin.Boolean",
-          "default": false,
-          "values": null
-        }
-      ]
+      "options": []
     },
     {
       "name": "Remove Ozon ads",
@@ -535,31 +284,8 @@
           "targets": [
             {
               "version": "19.27.0",
+              "versionCode": 2697,
               "isExperimental": false,
-              "minSdk": 26,
-              "description": null
-            },
-            {
-              "version": "19.22.0",
-              "isExperimental": false,
-              "minSdk": 26,
-              "description": null
-            },
-            {
-              "version": "19.16.0",
-              "isExperimental": false,
-              "minSdk": 26,
-              "description": null
-            },
-            {
-              "version": "18.37.0",
-              "isExperimental": false,
-              "minSdk": 26,
-              "description": null
-            },
-            {
-              "version": null,
-              "isExperimental": true,
               "minSdk": 26,
               "description": null
             }
@@ -574,15 +300,6 @@
           "required": false,
           "type": "kotlin.Boolean",
           "default": true,
-          "values": null
-        },
-        {
-          "key": "strictTargets",
-          "title": "Require all current targets",
-          "description": "Fails when a current ad surface no longer matches. Intended for automated builds.",
-          "required": false,
-          "type": "kotlin.Boolean",
-          "default": false,
           "values": null
         }
       ]
@@ -604,37 +321,16 @@
           "signatures": null,
           "targets": [
             {
-              "version": "7.40.0",
+              "version": "7.39.0",
+              "versionCode": 12782,
               "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "7.36.0",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": null,
-              "isExperimental": true,
               "minSdk": 28,
               "description": null
             }
           ]
         }
       ],
-      "options": [
-        {
-          "key": "strictTargets",
-          "title": "Require all current targets",
-          "description": "Fails when a current promotional surface no longer matches. Intended for automated builds.",
-          "required": false,
-          "type": "kotlin.Boolean",
-          "default": false,
-          "values": null
-        }
-      ]
+      "options": []
     },
     {
       "name": "Remove Wildberries ads",
@@ -652,31 +348,8 @@
           "targets": [
             {
               "version": "7.7.2001-rustore",
+              "versionCode": 61050,
               "isExperimental": false,
-              "minSdk": 26,
-              "description": null
-            },
-            {
-              "version": "7.6.8001",
-              "isExperimental": false,
-              "minSdk": 26,
-              "description": null
-            },
-            {
-              "version": "7.6.1000-rustore",
-              "isExperimental": false,
-              "minSdk": 26,
-              "description": null
-            },
-            {
-              "version": "7.0.6000",
-              "isExperimental": false,
-              "minSdk": 26,
-              "description": null
-            },
-            {
-              "version": null,
-              "isExperimental": true,
               "minSdk": 26,
               "description": null
             }
@@ -691,15 +364,6 @@
           "required": false,
           "type": "kotlin.Boolean",
           "default": true,
-          "values": null
-        },
-        {
-          "key": "strictTargets",
-          "title": "Require all current targets",
-          "description": "Fails when a current banner or recommendation surface no longer matches. Intended for automated builds.",
-          "required": false,
-          "type": "kotlin.Boolean",
-          "default": false,
           "values": null
         }
       ]
@@ -722,43 +386,8 @@
           "targets": [
             {
               "version": "229.1",
+              "versionCode": 3444,
               "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "228.0",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "227.0",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "226.5",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "225.5",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "224.6",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": null,
-              "isExperimental": true,
               "minSdk": 28,
               "description": null
             }
@@ -817,60 +446,15 @@
           "targets": [
             {
               "version": "229.1",
+              "versionCode": 3444,
               "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "228.0",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "227.0",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "226.5",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "225.5",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": "224.6",
-              "isExperimental": false,
-              "minSdk": 28,
-              "description": null
-            },
-            {
-              "version": null,
-              "isExperimental": true,
               "minSdk": 28,
               "description": null
             }
           ]
         }
       ],
-      "options": [
-        {
-          "key": "strictFavoritesTabs",
-          "title": "Strict Favorites tab validation",
-          "description": "Fail patching when the Favorites-tab filtering hook cannot be applied.",
-          "required": false,
-          "type": "kotlin.Boolean",
-          "default": false,
-          "values": null
-        }
-      ]
+      "options": []
     }
   ]
 }

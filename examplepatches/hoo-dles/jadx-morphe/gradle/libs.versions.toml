@@ -14,7 +14,7 @@ flatlaf-extras = "3.7"
 rsyntaxtextarea = "3.6.1"
 autocomplete = "3.3.3"
 
-morphe-patcher = "1.5.2"
+morphe-patcher = "1.7.0"
 smali = "d856bad65f"
 xpp3 = "1.1.4c"
 

@@ -45,7 +45,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 ### Morphe
 | Bundle | Patches | Apps | Status |
 | --- | ---: | ---: | --- |
-| [ItsTheJoker](#-itsthejoker-bundle-patch-list) | 6 | 1 | Generated |
+| [ItsTheJoker](#-itsthejoker-bundle-patch-list) | 7 | 1 | Generated |
 | [Gmaps](#-gmaps-bundle-patch-list) | 1 | 1 | Generated |
 | [Seobject](#-seobject-bundle-patch-list) | 1 | 1 | Generated |
 | [Abeja](#-abeja-bundle-patch-list) | 3 | 1 | Generated |
@@ -56,7 +56,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Pichiwa](#-pichiwa-bundle-patch-list) | 19 | 1 | Generated |
 | [Saiesh](#-saiesh-bundle-patch-list) | 10 | 4 | Generated |
 | [Letterboxd-Stremio](#-letterboxd-stremio-bundle-patch-list) | 3 | 1 | Generated |
-| [Miguel](#-miguel-bundle-patch-list) | 18 | 9 | Generated |
+| [Miguel](#-miguel-bundle-patch-list) | 15 | 8 | Generated |
 | [Pinterest-Morphed](#-pinterest-morphed-bundle-patch-list) | 14 | 1 | Generated |
 | [Movistar-Block-Ads](#-movistar-block-ads-bundle-patch-list) | 1 | 1 | Generated |
 | [Shaun-Sheep](#-shaun-sheep-bundle-patch-list) | 4 | 4 | Generated |
@@ -137,7 +137,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Ameen-Morphe](#-ameen-morphe-bundle-patch-list) | 2 | 2 | Generated |
 | [Kolaron](#-kolaron-bundle-patch-list) | 1 | 1 | Generated |
 | [ImmortalZeus](#-immortalzeus-bundle-patch-list) | 2 | 2 | Generated |
-| [Ajstrick81-AndroidTV](#-ajstrick81-androidtv-bundle-patch-list) | 20 | 10 | Generated |
+| [Ajstrick81-AndroidTV](#-ajstrick81-androidtv-bundle-patch-list) | 22 | 10 | Generated |
 | [Icysymmetra-TikTok](#-icysymmetra-tiktok-bundle-patch-list) | 22 | 1 | Generated |
 | [AlexNaga](#-alexnaga-bundle-patch-list) | 2 | 1 | Generated |
 | [Rushiranpise](#-rushiranpise-bundle-patch-list) | 247 | 191 | Generated |
@@ -149,11 +149,14 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Ikura](#-ikura-bundle-patch-list) | 4 | 2 | Generated |
 | [DH6K](#-dh6k-bundle-patch-list) | 3 | 4 | Generated |
 | [AndrewLiang25](#-andrewliang25-bundle-patch-list) | 12 | 1 | Generated |
-| [Morning-Entree](#-morning-entree-bundle-patch-list) | 3 | 3 | Generated |
+| [Morning-Entree](#-morning-entree-bundle-patch-list) | 5 | 54 | Generated |
 | [VocaColle](#-vocacolle-bundle-patch-list) | 6 | 1 | Generated |
 | [DBTCoach](#-dbtcoach-bundle-patch-list) | 1 | 1 | Generated |
 | [Yandex-VoT](#-yandex-vot-bundle-patch-list) | 1 | 1 | Generated |
 | [Watch-Later](#-watch-later-bundle-patch-list) | 1 | 1 | Generated |
+| [SofaTime](#-sofatime-bundle-patch-list) | 2 | 1 | Generated |
+| [Hiosdra](#-hiosdra-bundle-patch-list) | 4 | 2 | Generated |
+| [Jl4cTuk](#-jl4ctuk-bundle-patch-list) | 16 | 2 | Generated |
 
 ### Legacy
 | Bundle | Patches | Apps | Status |
@@ -172,13 +175,14 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 ### 🧩 ItsTheJoker Bundle Patch List:
 [📦 ItsTheJoker-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-itsthejoker-patches-bundle-morphe)
 <details>
-<summary><b>ItsTheJoker</b> - 6 patches, 1 app</summary>
+<summary><b>ItsTheJoker</b> - 7 patches, 1 app</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
 | ```10x Bullet Damage``` | ```Multiplies the player's bullet damage by 10 in the Bullet Hell minigame (damage 1 -> 10), applied to both enemies and bosses.``` | ```Roost``` | ```All versions``` |
-| ```Beam of Death (10x Fire Rate)``` | ```Multiplies the player's firing speed by 10 in the Bullet Hell minigame (fire interval 0.15 -> 0.015, and rapid-fire 0.1 -> 0.01) for a near-continuous beam.``` | ```Roost``` | ```All versions``` |
+| ```Beam of Death (10x Fire Rate)``` | ```Multiplies the player's firing speed by 10 in the Bullet Hell minigame (fire interval 0.15 -> 0.015) for a near-continuous beam.``` | ```Roost``` | ```All versions``` |
 | ```Bypass Play Store license check``` | ```Disables the PairIP Play-license check so a non-Play (e.g. patched/sideloaded) install no longer redirects to the "get it on Google Play" wall on launch.``` | ```Roost``` | ```All versions``` |
+| ```Free Nest Egg (bypass claim cooldown)``` | ```Removes the client-side cooldown timer check on the nest-egg free-bird claim button so the claim request is sent to the server on every tap. The server still controls eligibility; this only stops the client from blocking the request.``` | ```Roost``` | ```All versions``` |
 | ```Redirect Google login to microG``` | ```Routes Roost's Google Play Services calls to microG RE so a patched install can sign in with Google. Requires microG RE (app.revanced.android.gms) installed.``` | ```Roost``` | ```All versions``` |
 | ```Skip Play Integrity (fix microG Firebase delay)``` | ```Makes Play Integrity attestation fail fast instead of hanging ~60s under microG, removing the delay before Firebase logins, leaderboards, and other backend calls.``` | ```Roost``` | ```All versions``` |
 | ```Triple Bullet Size``` | ```Triples the on-screen size of the player's bullets in the Bullet Hell minigame (sizePx 6.0 -> 18.0).``` | ```Roost``` | ```All versions``` |
@@ -408,7 +412,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 ### 🧩 Miguel Bundle Patch List:
 [📦 Miguel-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-miguel-patches-bundle-morphe)
 <details>
-<summary><b>Miguel</b> - 18 patches, 9 apps</summary>
+<summary><b>Miguel</b> - 15 patches, 8 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -418,7 +422,6 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | ```Unlock premium``` | ```Unlocks all premium-gated features (Advanced Solver / Kociemba, custom color schemes, VIP support, no relaunch screens). Returns true from PremiumHelper.hasActivePurchase() so the entire app behaves as if a premium subscription is active.``` | ```CubeX Solver``` | ```All versions``` |
 | ```Auto reward ads``` | ```When a rewarded ad is closed, the game always thinks you watched the entire ad. You get the reward even if you skip or close the ad immediately.``` | ```Hunter Assassin``` | ```All versions``` |
 | ```Unlimited gems, rubies & unlock all``` | ```Sets gems, rubies (diamonds), keys and tickets to 9999999. Unlocks VIP (removes ads + VIP rewards + Ninja Assassin VIP character), all assassin characters (2-44), including all Legendary characters (Scarecrow, Dracula, Thor, Wolverine, Myers, Santa, Grinch, Nutcracker, Cricket Player), and all special knives.``` | ```Hunter Assassin``` | ```All versions``` |
-| ```Disable Google Play Games sign-in prompt when already signed in``` | ```Suppresses the Google Play Games sign-in popup ONLY when the user has already signed in before. On first launch (or after signing out) the popup still appears so the user can authenticate and get cloud saves. On subsequent launches the popup is suppressed because getAccount() returns the cached GoogleSignInAccount. Cloud saves, leaderboards and achievements continue to work normally. The in-game Sign In button is unaffected. Fixes the issue where the popup reappeared on every launch even after the user had already signed in.``` | ```Oddmar``` | ```All versions``` |
 | ```Free in-app purchases``` | ```Makes every IAP purchase succeed instantly without contacting Google Play Billing. When the user taps 'Buy' on any in-app product, the game credits the purchase immediately and skips the Play Store dialog. For Oddmar 0.111 the only IAP product is 'unlock_all_levels', so this patch gives a free full-game unlock on demand. Note: literal 'unlimited coins' (the in-game currency counter) requires native libil2cpp.so patching and is NOT covered by this Java patch.``` | ```Oddmar``` | ```All versions``` |
 | ```Unlock full game``` | ```Unlocks the full game (all levels, all worlds) by intercepting the IAP 'has product been purchased' check. Oddmar's only IAP product is 'unlock_all_levels' — this patch makes the game think it has already been purchased, so every level is unlocked from the start. No Google Play Billing connection is required. Also disables the startup 'acknowledge all purchases' query so the patch doesn't try to reach Google Play at boot.``` | ```Oddmar``` | ```All versions``` |
 | ```Free in-app purchases``` | ```When you try to buy something, the purchase is immediately marked as successful without contacting Google Play. The EA Nimble MTX system receives a null error (success) and grants the item.``` | ```Plants vs. Zombies FREE``` | ```All versions``` |
@@ -428,8 +431,6 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | ```Unlock all tribes``` | ```Unlocks all 20 tribes (Xinxi, Imperius, Bardur, Oumaji, Kickoo, Hoodrick, Luxidoor, Vengir, Zebasi, Aimo, Aquarion, Elyrion, Polaris, Magma, Yadakk, Quetzali, Cymanti, Swamp, Ikarus, Urkaz) and all skins by patching the native IL2CPP library (libil2cpp.so). Makes IsProductUnlocked return true, skips the purchase flow, and suppresses the 'Purchase error' dialog. Pure ARM64 hex patching, no smali, no extension.``` | ```The Battle of Polytopia``` | ```All versions``` |
 | ```Billing bypass``` | ```Attempts to credit purchases by scanning the app for billing code and applying the appropriate bypass. Runs 5 phases: (1) Cocos2d-x helper, (2) GameMaker verifyPurchase, (3) Google Play Billing, (4) Unity billing bridge, (5) Fallback. Also depends on Unity IL2CPP hex patch.``` | ```Universal``` | ```All versions``` |
 | ```Unity IL2CPP hex patch``` | ```Patches libil2cpp.so to bypass Unity IL2CPP billing validation.``` | ```Universal``` | ```All versions``` |
-| ```Unlock all``` | ```Removes PairIP StartupLauncher from ComponentFactory and depends on hex patch for manifest + .so patching.``` | ```Zombie Catchers``` | ```All versions``` |
-| ```ZC hex patch``` | ```Changes manifest and hex patches libcocos2dcpp.so``` | ```Zombie Catchers``` | ```All versions``` |
 
 </details>
 
@@ -4512,12 +4513,14 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Ajstrick81-AndroidTV Bundle Patch List:
 [📦 Ajstrick81-AndroidTV-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-ajstrick81-androidtv-patches-bundle-morphe)
 <details>
-<summary><b>Ajstrick81-AndroidTV</b> - 20 patches, 10 apps</summary>
+<summary><b>Ajstrick81-AndroidTV</b> - 22 patches, 10 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
+| ```Bundle native ad-strip hook``` | ```Packages libpvhook.so into the APK's native lib dir for the in-process PRS Remote-item strip (libignite memcpy/memmove GOT/PLT import hook).``` | ```com.amazon.amazonvideo.livingroom``` | ```6.23.23+v15.5.0.70-armv7a``` |
 | ```Clone Prime Video``` | ```Renames the package to <original>.mod (and its provider authorities / custom permissions) so the patched app installs side-by-side with a non-removable system Prime Video. Opt-in.``` | ```com.amazon.amazonvideo.livingroom``` | ```6.23.23+v15.5.0.70-armv7a``` |
 | ```Disable auto-updates``` | ```Prevents Google Play Store from automatically replacing the patched APK with the official unpatched version.``` | ```com.amazon.amazonvideo.livingroom``` | ```6.23.23+v15.5.0.70-armv7a``` |
+| ```Load native ad-strip hook``` | ```Loads libpvhook.so at startup to blank Remote (ad) items from the PRS intraTitlePlaylist in-process (libignite memcpy/memmove GOT/PLT import hook).``` | ```com.amazon.amazonvideo.livingroom``` | ```6.23.23+v15.5.0.70-armv7a``` |
 | ```Override certificate pinning``` | ```Adds a network_security_config trusting user CAs (no pin sets) so AdGuard Premium can inspect the app's platform-stack HTTPS. Optional adjunct: Prime Video's ad plane is largely native libcurl, so DNS blocking is the primary tool.``` | ```com.amazon.amazonvideo.livingroom``` | ```6.23.23+v15.5.0.70-armv7a``` |
 | ```Prime Video extension``` | ```Integrates the Prime Video ATV extension for ad group skipping.``` | ```com.amazon.amazonvideo.livingroom``` | ```6.23.23+v15.5.0.70-armv7a``` |
 | ```Skip ads``` | ```Multi-layer ad suppression targeting the SSAI schedule, impression reporting, and the Volley network chokepoint.``` | ```com.amazon.amazonvideo.livingroom``` | ```6.23.23+v15.5.0.70-armv7a``` |
@@ -5138,13 +5141,15 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Morning-Entree Bundle Patch List:
 [📦 Morning-Entree-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-morning-entree-patches-bundle-morphe)
 <details>
-<summary><b>Morning-Entree</b> - 3 patches, 3 apps</summary>
+<summary><b>Morning-Entree</b> - 5 patches, 54 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
+| ```Unlock all questions``` | ```Unlocks all exam questions``` | ```CCNA 200-301, ServiceNow CSA, SC-900, AWS SAA-C02, ISTQB Foundation, AZ-104, PCEP-30-02, CompTIA A+ Core 1, CCNP 350-401, SC-200, CISM, AWS SCS-C01, AI-900, Salesforce Admin, SnowPro Core, CCNP SCOR 350-701, CompTIA A+ Core 2, AZ-900, CEH v11, AWS CLF-C01, CompTIA Security+, CompTIA Server+, CompTIA CySA+, AZ-500, CompTIA SecurityX, CompTIA PenTest+, AWS MLA-C01, DASM, CAPM, AZ-400, DP-203, PSPO I, AWS SOA-C02, AWS DOP-C01, PSM II, AZ-700, AWS SAP-C01, GCP Associate Cloud Engineer, DP-900, CompTIA Linux+, AWS AIF-C01, PMI-ACP, CompTIA ITF+, AWS DVA-C01, AZ-204, DP-300, CISSP, Tableau Desktop, CompTIA SecAI, Terraform Associate``` | ```All versions``` |
 | ```Enable Premium``` | ```Unlock Lifesum Premium``` | ```Lifesum``` | ```All versions``` |
 | ```Enable Premium``` | ```Unlocks Ling Pro``` | ```Ling``` | ```All versions``` |
 | ```Enable Premium``` | ```Unlock Sponge Premium``` | ```Sponge``` | ```All versions``` |
+| ```Enable Premium``` | ```Unlocks Vocabulary Premium``` | ```Vocabulary``` | ```All versions``` |
 
 </details>
 
@@ -5198,5 +5203,60 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
 | ```Watch later button``` | ```Aggiunge un pulsante 'Later' alla barra di navigazione in basso, che apre la playlist Guarda piu tardi.``` | ```YouTube``` | ```All versions``` |
+
+</details>
+
+---
+### 🧩 SofaTime Bundle Patch List:
+[📦 SofaTime-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-sofatime-patches-bundle-morphe)
+<details>
+<summary><b>SofaTime</b> - 2 patches, 1 app</summary>
+
+| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
+|----------|---------------|---------------------|-------------------------|
+| ```SofaTime License Check Bypass``` | ```Bypasses PairIP license verification.``` | ```SofaTime``` | ```All versions``` |
+| ```SofaTime Premium``` | ```Unlocks all premium features.``` | ```SofaTime``` | ```All versions``` |
+
+</details>
+
+---
+### 🧩 Hiosdra Bundle Patch List:
+[📦 Hiosdra-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-hiosdra-patches-bundle-morphe)
+<details>
+<summary><b>Hiosdra</b> - 4 patches, 2 apps</summary>
+
+| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
+|----------|---------------|---------------------|-------------------------|
+| ```F1 TV - Background playback``` | ```Keeps the F1 TV player alive when the activity goes to the background or the screen turns off.``` | ```F1 TV``` | ```All versions``` |
+| ```F1 TV - Foreground playback service``` | ```Keeps background F1 TV playback alive with an Android media playback notification and playback/PiP controls.``` | ```F1 TV``` | ```All versions``` |
+| ```F1 TV - Picture-in-Picture``` | ```Keeps F1 TV playback alive while entering Android Picture-in-Picture mode.``` | ```F1 TV``` | ```All versions``` |
+| ```Compile-only example``` | ```Provides a no-op patch for validating the project build.``` | ```Universal``` | ```All versions``` |
+
+</details>
+
+---
+### 🧩 Jl4cTuk Bundle Patch List:
+[📦 Jl4cTuk-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-jl4ctuk-patches-bundle-morphe)
+<details>
+<summary><b>Jl4cTuk</b> - 16 patches, 2 apps</summary>
+
+| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
+|----------|---------------|---------------------|-------------------------|
+| ```Disable checkout tips``` | ```Removes courier tips UI and prevents tip IDs or tip API calls from being submitted.``` | ```Ozon``` | ```All versions``` |
+| ```Disable lottery and in-app pushes``` | ```Disables lottery onboarding and the in-app push SDK used for reward popups.``` | ```Ozon``` | ```All versions``` |
+| ```Disable telemetry``` | ```Disables Ozon analytics, attribution, crash reporting, and telemetry uploads.``` | ```Ozon``` | ```All versions``` |
+| ```Hide account lottery and review feed``` | ```Removes the lottery entry banner and review feed shortcut from the account screen.``` | ```Ozon``` | ```All versions``` |
+| ```Hide Ozon Bank ad banner``` | ```Removes the advertising banner carousel from the Ozon Bank screen.``` | ```Ozon``` | ```All versions``` |
+| ```Hide seller rating prompt``` | ```Removes the post-purchase seller rating prompt.``` | ```Ozon``` | ```All versions``` |
+| ```Remove Ozon ads``` | ```Removes Ozon ad widgets, checkout promotions, floating promotions, banner carousels, and PDP promo blocks.``` | ```Ozon``` | ```All versions``` |
+| ```Show final prices only``` | ```Hides crossed-out prices, discount percentages, and redundant price rows in the cart total.``` | ```Ozon``` | ```All versions``` |
+| ```Disable ads``` | ```Removes advertisements and recommendations from search.``` | ```RuStore``` | ```All versions``` |
+| ```Disable analytics``` | ```Disables analytics and tracking in RuStore.``` | ```RuStore``` | ```All versions``` |
+| ```Disable background scan``` | ```Disables the periodic Kaspersky background device scan.``` | ```RuStore``` | ```All versions``` |
+| ```Disable gaming profile``` | ```Removes the Game Profile section from the Mine screen, including the button and the usage statistics screen.``` | ```RuStore``` | ```All versions``` |
+| ```Disable Mine redesign``` | ```Reverts the Mine screen to the classic layout, disabling the redesigned V2/V3 interface.``` | ```RuStore``` | ```All versions``` |
+| ```Hide Featured and Games tabs``` | ```Removes the Featured and Games tabs and opens Apps by default.``` | ```RuStore``` | ```All versions``` |
+| ```Hide notification buttons``` | ```Removes notification buttons from the search bar and Mine screen.``` | ```RuStore``` | ```All versions``` |
+| ```Skip update auth``` | ```Removes the login requirement when updating apps.``` | ```RuStore``` | ```All versions``` |
 
 </details>

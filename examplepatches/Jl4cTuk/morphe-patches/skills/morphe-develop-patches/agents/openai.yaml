@@ -1,0 +1,4 @@
+interface:
+  display_name: "Morphe: разработка patches"
+  short_description: "Разработка устойчивых Morphe patches"
+  default_prompt: "Используй $morphe-develop-patches, чтобы реализовать и проверить Morphe patch в этом repository."
