@@ -6,10 +6,12 @@ BholeyKaBhakt/android-patches-xtra
 Entree3k/Morning-Entree-Patches
 Graywizard888/Enhancify
 HellveticaStandard/HellveticaPatches
+Hiosdra/morphe-patches
 HvQ/eksi-morphe
 IMXEren/mix-patches
 Ikuradachi/ikura-patches
 ImmortalZeus/ImmortalZeus-Morphe-Patches
+Jl4cTuk/morphe-patches
 Jman-Github/Awesome-ReVanced
 Jman-Github/ReVanced-Patch-Bundles
 Jman-Github/Universal-ReVanced-Manager
@@ -44,6 +46,7 @@ Xhehab/Xhehab-Patches
 Xisrr1/Revancify-Xisr
 abhis1n/Morphe-Patches
 ajstrick81/morphe-androidtv-patches
+alan7383/sofatime-patches
 alejandrobellver/pichiwa-patches
 ameenalasady/ameen-morphe
 ameenalasady/photogrid-morphe

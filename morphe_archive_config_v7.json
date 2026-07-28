@@ -921,6 +921,38 @@
                 "sortOrder": 109,
                 "createdAt": 1785034852630,
                 "updatedAt": 1785034852630
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/Hiosdra/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 110,
+                "createdAt": 1785206625424,
+                "updatedAt": 1785206625424
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/Jl4cTuk/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 111,
+                "createdAt": 1785206625562,
+                "updatedAt": 1785206625562
+            },
+            {
+                "name": "sofatime-patches",
+                "source": "https://raw.githubusercontent.com/alan7383/sofatime-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 112,
+                "createdAt": 1785206626877,
+                "updatedAt": 1785206626877
+            },
+            {
+                "name": "itsthejoker-patches",
+                "source": "https://raw.githubusercontent.com/itsthejoker/itsthejoker-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 113,
+                "createdAt": 1785206628042,
+                "updatedAt": 1785206628042
             }
         ]
     }
