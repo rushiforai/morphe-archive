@@ -147,14 +147,6 @@
                 "updatedAt": 1784836022537
             },
             {
-                "name": "patch-youtube-scroll-block",
-                "source": "https://raw.githubusercontent.com/Lynx6319/patch-youtube-scroll-block/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 13,
-                "createdAt": 1784836022778,
-                "updatedAt": 1784836022778
-            },
-            {
                 "name": "miguel-morphe-patches",
                 "source": "https://raw.githubusercontent.com/MiguelNinja19/miguel-morphe-patches/main/patches-bundle.json",
                 "autoUpdate": true,

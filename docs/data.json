@@ -1,13 +1,13 @@
 {
-  "generatedAt": "2026-07-28 02:44 UTC",
-  "configFile": "morphe_archive_config_v7.json",
-  "configVersion": 7,
-  "repoCount": 113,
-  "appCount": 569,
-  "patchCount": 2096,
+  "generatedAt": "2026-07-29 02:49 UTC",
+  "configFile": "morphe_archive_config_v8.json",
+  "configVersion": 8,
+  "repoCount": 112,
+  "appCount": 570,
+  "patchCount": 2099,
   "universalPatchCount": 161,
   "hostCounts": {
-    "github.com": 109,
+    "github.com": 108,
     "gitlab.com": 4
   },
   "repos": [
@@ -160,23 +160,19 @@
       "webUrl": "https://github.com/alan7383/sofatime-patches",
       "addUrl": "https://morphe.software/add-source?github=alan7383/sofatime-patches",
       "avatarUrl": "https://github.com/alan7383.png?size=96",
-      "patchCount": 2,
+      "patchCount": 4,
       "appCount": 1,
       "createdAt": 1785206626877,
       "updatedAt": 1785206626877,
       "createdDate": "2026-07-28",
       "updatedDate": "2026-07-28",
       "latestChanges": {
-        "title": "1.0.1 (2026-07-26)",
-        "date": "2026-07-26",
+        "title": "1.3.0 (2026-07-29)",
+        "date": "2026-07-29",
         "items": [
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "update apkFileType to APKM to support split APKs"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "use stable fingerprints without obfuscated names"
+            "category": "\u2728 New Features",
+            "text": "add Disable Telemetry patch (Firebase Crashlytics + Sessions)"
           }
         ]
       },
@@ -184,7 +180,7 @@
         {
           "name": "SofaTime",
           "packageName": "com.theclashsoft.sofatime",
-          "patchCount": 2,
+          "patchCount": 4,
           "iconUrl": "",
           "iconColor": "#1E1E2E"
         }
@@ -2892,19 +2888,19 @@
       "webUrl": "https://github.com/franticg33k/morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=franticg33k/morphe-patches",
       "avatarUrl": "https://github.com/franticg33k.png?size=96",
-      "patchCount": 16,
-      "appCount": 8,
+      "patchCount": 17,
+      "appCount": 9,
       "createdAt": 1784836034684,
       "updatedAt": 1784836034684,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.3.1 (2026-07-24)",
-        "date": "2026-07-24",
+        "title": "1.3.5 (2026-07-28)",
+        "date": "2026-07-28",
         "items": [
           {
             "category": "\ud83d\ude80 Updated App Support",
-            "text": "update JellyWatch premium patch for v2.0.REV-1710 obfuscation changes"
+            "text": "remove overly broad getBoolean patch causing crashes"
           }
         ]
       },
@@ -2950,6 +2946,13 @@
           "patchCount": 1,
           "iconUrl": "https://play-lh.googleusercontent.com/cZ9_hY4QA2qnDZrHFvcgJgL1su8EDhEUMIMDvQvTkkTJJtQQo5807PoTss6zx7kYks2CCqXax5PWtJF7xV03pg",
           "iconColor": "#E53935"
+        },
+        {
+          "name": "OldRoll",
+          "packageName": "com.accordion.analogcam",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#FF6B35"
         },
         {
           "name": "Prismatica Pro",
@@ -3659,40 +3662,12 @@
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "0.4.0",
-        "date": "",
+        "title": "0.4.1 (2026-07-28)",
+        "date": "2026-07-28",
         "items": [
           {
-            "category": "Features",
-            "text": "**tiktok:** add feature gate lab and UI suppressors"
-          },
-          {
-            "category": "Features",
-            "text": "**tiktok:** add translation language exclusions"
-          },
-          {
-            "category": "Features",
-            "text": "**tiktok:** enable Feature Gate Lab by default"
-          },
-          {
-            "category": "Features",
-            "text": "**tiktok:** enable hold-and-slide 2x lock"
-          },
-          {
-            "category": "Features",
-            "text": "**tiktok:** improve feature gate lab search"
-          },
-          {
-            "category": "Features",
-            "text": "**tiktok:** port external browser patch from lyyako"
-          },
-          {
-            "category": "Features",
-            "text": "**tiktok:** port publish date patch from lyyako"
-          },
-          {
-            "category": "Features",
-            "text": "**tiktok:** redesign support row"
+            "category": "Bug Fixes",
+            "text": "**tiktok:** prevent seekbar recursion on stories"
           }
         ]
       },
@@ -3990,23 +3965,23 @@
       "webUrl": "https://github.com/jasonwu1994/Gboard-patches",
       "addUrl": "https://morphe.software/add-source?github=jasonwu1994/Gboard-patches",
       "avatarUrl": "https://github.com/jasonwu1994.png?size=96",
-      "patchCount": 19,
+      "patchCount": 20,
       "appCount": 1,
       "createdAt": 1784836037428,
       "updatedAt": 1784836037428,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "2.1.0 (2026-07-26)",
-        "date": "2026-07-26",
+        "title": "2.2.0 (2026-07-29)",
+        "date": "2026-07-29",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "**Gboard:** add Developer options, allowing you to modify flag values at any time."
+            "text": "**Gboard:** add the Use Bluetooth Microphone patch."
           },
           {
             "category": "\u2728 \u65b0\u529f\u80fd",
-            "text": "**Gboard:** \u65b0\u589e Developer options\uff0c\u53ef\u96a8\u6642\u4fee\u6539 Flag \u503c\u3002"
+            "text": "**Gboard:** \u65b0\u589e Use Bluetooth Microphone Patch\u3002"
           }
         ]
       },
@@ -4014,7 +3989,7 @@
         {
           "name": "com.google.android.inputmethod.latin",
           "packageName": "com.google.android.inputmethod.latin",
-          "patchCount": 19,
+          "patchCount": 20,
           "iconUrl": "https://play-lh.googleusercontent.com/J4vZ82VsZjnsRsI6ckQFXlO36_52QJerqG5-HfLgHffS34I4EfoAFfNdbf6s4wBAsUEf8DOJVEDEHh5tzWbrnA",
           "iconColor": ""
         }
@@ -4981,42 +4956,6 @@
           "patchCount": 1,
           "iconUrl": "https://play-lh.googleusercontent.com/MyptZXmcCyF59phIWPsNCfHq6zSO_ojEdw_4rMYYWPOGdikSjqeOXcoszBZ053VYpINe5K7ZR9KV1nkFWgxdOw",
           "iconColor": "#FF0033"
-        }
-      ]
-    },
-    {
-      "name": "patch-youtube-scroll-block",
-      "repo": "Lynx6319/patch-youtube-scroll-block",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/Lynx6319/patch-youtube-scroll-block/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/Lynx6319/patch-youtube-scroll-block/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/Lynx6319/patch-youtube-scroll-block/main/CHANGELOG.md",
-      "webUrl": "https://github.com/Lynx6319/patch-youtube-scroll-block",
-      "addUrl": "https://morphe.software/add-source?github=Lynx6319/patch-youtube-scroll-block",
-      "avatarUrl": "https://github.com/Lynx6319.png?size=96",
-      "patchCount": 1,
-      "appCount": 1,
-      "createdAt": 1784836022778,
-      "updatedAt": 1784836022778,
-      "createdDate": "2026-07-23",
-      "updatedDate": "2026-07-23",
-      "latestChanges": {
-        "title": "1.0.8 (2026-05-05)",
-        "date": "2026-05-05",
-        "items": [
-          {
-            "category": "Bug Fixes",
-            "text": "update fingerprints for YouTube 20.47.62 ReelRecyclerView architecture"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "YouTube",
-          "packageName": "com.google.android.youtube",
-          "patchCount": 1,
-          "iconUrl": "https://play-lh.googleusercontent.com/QNmuZQc9I6Zbe3mWnSr0hycnENqGFCI5p3yE29Hkxtf22T0IWS6zTrpxULLyyjWpB7ONAXDsDQXnXcVWokl3eg",
-          "iconColor": "#FF0000"
         }
       ]
     },
@@ -10959,8 +10898,8 @@
       ],
       "patches": [
         "Disable PairIP DRM",
-        "Unlock Premium",
-        "Unlock premium"
+        "Unlock premium",
+        "Unlock Premium"
       ],
       "patchDetails": [
         {
@@ -10968,12 +10907,12 @@
           "description": "Disables PairIP signature verification and Google Play LVL license check. Required for the app to launch after re-signing."
         },
         {
-          "name": "Unlock Premium",
-          "description": "Unlocks all premium features by forcing the premium state to true in the purchase manager."
-        },
-        {
           "name": "Unlock premium",
           "description": "Unlocks all AT4K premium features by forcing the premium status to true."
+        },
+        {
+          "name": "Unlock Premium",
+          "description": "Unlocks all premium features by forcing the premium state to true in the purchase manager."
         }
       ],
       "versions": [
@@ -10998,12 +10937,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.1 (2026-07-24)",
-            "date": "2026-07-24",
+            "title": "1.3.5 (2026-07-28)",
+            "date": "2026-07-28",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "update JellyWatch premium patch for v2.0.REV-1710 obfuscation changes"
+                "text": "remove overly broad getBoolean patch causing crashes"
               }
             ]
           },
@@ -14403,12 +14342,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.1 (2026-07-24)",
-            "date": "2026-07-24",
+            "title": "1.3.5 (2026-07-28)",
+            "date": "2026-07-28",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "update JellyWatch premium patch for v2.0.REV-1710 obfuscation changes"
+                "text": "remove overly broad getBoolean patch causing crashes"
               }
             ]
           },
@@ -20171,16 +20110,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/jasonwu1994/Gboard-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/jasonwu1994.png?size=96",
           "latestChanges": {
-            "title": "2.1.0 (2026-07-26)",
-            "date": "2026-07-26",
+            "title": "2.2.0 (2026-07-29)",
+            "date": "2026-07-29",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**Gboard:** add Developer options, allowing you to modify flag values at any time."
+                "text": "**Gboard:** add the Use Bluetooth Microphone patch."
               },
               {
                 "category": "\u2728 \u65b0\u529f\u80fd",
-                "text": "**Gboard:** \u65b0\u589e Developer options\uff0c\u53ef\u96a8\u6642\u4fee\u6539 Flag \u503c\u3002"
+                "text": "**Gboard:** \u65b0\u589e Use Bluetooth Microphone Patch\u3002"
               }
             ]
           },
@@ -20251,6 +20190,10 @@
             {
               "name": "Swipeable Custom Top Row",
               "description": "\u6ed1\u52d5\u9375\u76e4\u7b2c\u4e00\u6392\uff0c\u5728\u539f\u751f\u5217\u8207\u53ef\u81ea\u8a02\u6587\u5b57/JavaScript \u5217\u4e4b\u9593\u5207\u63db\nSwipe the keyboard top row to switch between the stock row and a customizable text/JavaScript row."
+            },
+            {
+              "name": "Use Bluetooth Microphone",
+              "description": "\u555f\u7528 \u8a9e\u97f3\u8f38\u5165 -> \u4f7f\u7528\u85cd\u82bd\u9ea5\u514b\u98a8\nEnable Voice typing -> Use Bluetooth microphone."
             },
             {
               "name": "Web Clipboard",
@@ -20385,6 +20328,7 @@
         "Settings Homepage Override",
         "Swipeable Custom Top Row",
         "Toggle feature flags",
+        "Use Bluetooth Microphone",
         "Web Clipboard",
         "Zhuyin Bottom Row Key Sizes",
         "Zhuyin Quick Traditional/Simplified Toggle",
@@ -20490,6 +20434,10 @@
         {
           "name": "Toggle feature flags",
           "description": "Toggles Gboard feature flags to enable or disable experimental or hidden features."
+        },
+        {
+          "name": "Use Bluetooth Microphone",
+          "description": "\u555f\u7528 \u8a9e\u97f3\u8f38\u5165 -> \u4f7f\u7528\u85cd\u82bd\u9ea5\u514b\u98a8\nEnable Voice typing -> Use Bluetooth microphone."
         },
         {
           "name": "Web Clipboard",
@@ -24689,40 +24637,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/icysymmetra/tiktok-patches-for-morphe/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/icysymmetra.png?size=96",
           "latestChanges": {
-            "title": "0.4.0",
-            "date": "",
+            "title": "0.4.1 (2026-07-28)",
+            "date": "2026-07-28",
             "items": [
               {
-                "category": "Features",
-                "text": "**tiktok:** add feature gate lab and UI suppressors"
-              },
-              {
-                "category": "Features",
-                "text": "**tiktok:** add translation language exclusions"
-              },
-              {
-                "category": "Features",
-                "text": "**tiktok:** enable Feature Gate Lab by default"
-              },
-              {
-                "category": "Features",
-                "text": "**tiktok:** enable hold-and-slide 2x lock"
-              },
-              {
-                "category": "Features",
-                "text": "**tiktok:** improve feature gate lab search"
-              },
-              {
-                "category": "Features",
-                "text": "**tiktok:** port external browser patch from lyyako"
-              },
-              {
-                "category": "Features",
-                "text": "**tiktok:** port publish date patch from lyyako"
-              },
-              {
-                "category": "Features",
-                "text": "**tiktok:** redesign support row"
+                "category": "Bug Fixes",
+                "text": "**tiktok:** prevent seekbar recursion on stories"
               }
             ]
           },
@@ -30391,12 +30311,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.1 (2026-07-24)",
-            "date": "2026-07-24",
+            "title": "1.3.5 (2026-07-28)",
+            "date": "2026-07-28",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "update JellyWatch premium patch for v2.0.REV-1710 obfuscation changes"
+                "text": "remove overly broad getBoolean patch causing crashes"
               }
             ]
           },
@@ -33484,12 +33404,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.1 (2026-07-24)",
-            "date": "2026-07-24",
+            "title": "1.3.5 (2026-07-28)",
+            "date": "2026-07-28",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "update JellyWatch premium patch for v2.0.REV-1710 obfuscation changes"
+                "text": "remove overly broad getBoolean patch causing crashes"
               }
             ]
           },
@@ -37366,12 +37286,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.1 (2026-07-24)",
-            "date": "2026-07-24",
+            "title": "1.3.5 (2026-07-28)",
+            "date": "2026-07-28",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "update JellyWatch premium patch for v2.0.REV-1710 obfuscation changes"
+                "text": "remove overly broad getBoolean patch causing crashes"
               }
             ]
           },
@@ -39657,12 +39577,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.1 (2026-07-24)",
-            "date": "2026-07-24",
+            "title": "1.3.5 (2026-07-28)",
+            "date": "2026-07-28",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "update JellyWatch premium patch for v2.0.REV-1710 obfuscation changes"
+                "text": "remove overly broad getBoolean patch causing crashes"
               }
             ]
           },
@@ -41132,6 +41052,60 @@
       ],
       "iconColor": "#C2185B",
       "iconUrl": "https://play-lh.googleusercontent.com/b9_EyCfljqMQpodvUGUHVni68pG3irH4M_a167nO0FMCY7EKJXrEUX64xXwPPIo3eJEqhN3hh4hrAiUWD8ihdQ"
+    },
+    {
+      "packageName": "com.accordion.analogcam",
+      "name": "OldRoll",
+      "repos": [
+        "franticg33k/morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "franticg33k/morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/franticg33k/morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=franticg33k/morphe-patches",
+          "source": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/franticg33k.png?size=96",
+          "latestChanges": {
+            "title": "1.3.5 (2026-07-28)",
+            "date": "2026-07-28",
+            "items": [
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "remove overly broad getBoolean patch causing crashes"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-accordion-analogcam-franticg33k-morphe-patches",
+            "releaseTag": "app-com-accordion-analogcam-franticg33k-morphe-patches",
+            "assetName": "oldroll-franticg33k-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Enable Pro",
+              "description": "Unlocks all pro/premium features by bypassing purchase validation and SharedPreferences checks."
+            }
+          ],
+          "versions": []
+        }
+      ],
+      "patches": [
+        "Enable Pro"
+      ],
+      "patchDetails": [
+        {
+          "name": "Enable Pro",
+          "description": "Unlocks all pro/premium features by bypassing purchase validation and SharedPreferences checks."
+        }
+      ],
+      "versions": [],
+      "iconColor": "#FF6B35",
+      "iconUrl": ""
     },
     {
       "packageName": "com.opera.app.news",
@@ -44603,12 +44577,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.1 (2026-07-24)",
-            "date": "2026-07-24",
+            "title": "1.3.5 (2026-07-28)",
+            "date": "2026-07-28",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "update JellyWatch premium patch for v2.0.REV-1710 obfuscation changes"
+                "text": "remove overly broad getBoolean patch causing crashes"
               }
             ]
           },
@@ -44779,8 +44753,8 @@
       ],
       "patches": [
         "Disable tracking",
-        "Unlock Premium",
-        "Unlock premium"
+        "Unlock premium",
+        "Unlock Premium"
       ],
       "patchDetails": [
         {
@@ -44788,12 +44762,12 @@
           "description": "Disables analytics and crash reporting."
         },
         {
-          "name": "Unlock Premium",
-          "description": "Unlocks all premium features by bypassing the native library premium check."
-        },
-        {
           "name": "Unlock premium",
           "description": "Unlocks all premium features."
+        },
+        {
+          "name": "Unlock Premium",
+          "description": "Unlocks all premium features by bypassing the native library premium check."
         }
       ],
       "versions": [
@@ -45249,12 +45223,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.1 (2026-07-24)",
-            "date": "2026-07-24",
+            "title": "1.3.5 (2026-07-28)",
+            "date": "2026-07-28",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "update JellyWatch premium patch for v2.0.REV-1710 obfuscation changes"
+                "text": "remove overly broad getBoolean patch causing crashes"
               }
             ]
           },
@@ -49453,16 +49427,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/alan7383/sofatime-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/alan7383.png?size=96",
           "latestChanges": {
-            "title": "1.0.1 (2026-07-26)",
-            "date": "2026-07-26",
+            "title": "1.3.0 (2026-07-29)",
+            "date": "2026-07-29",
             "items": [
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "update apkFileType to APKM to support split APKs"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "use stable fingerprints without obfuscated names"
+                "category": "\u2728 New Features",
+                "text": "add Disable Telemetry patch (Firebase Crashlytics + Sessions)"
               }
             ]
           },
@@ -49475,35 +49445,53 @@
           },
           "patches": [
             {
-              "name": "SofaTime License Check Bypass",
+              "name": "Bypass Google Sign-In",
+              "description": "Bypasses SHA-1 check by using embedded WebView OAuth for Google Sign-In."
+            },
+            {
+              "name": "Bypass license check",
               "description": "Bypasses PairIP license verification."
             },
             {
-              "name": "SofaTime Premium",
-              "description": "Unlocks all premium features."
+              "name": "Disable telemetry",
+              "description": "Disables Firebase Crashlytics, Sessions, and Analytics."
+            },
+            {
+              "name": "Unlock premium features",
+              "description": "Unlocks all premium capabilities."
             }
           ],
           "versions": [
-            "1.1.2"
+            "1.1.4"
           ]
         }
       ],
       "patches": [
-        "SofaTime License Check Bypass",
-        "SofaTime Premium"
+        "Bypass Google Sign-In",
+        "Bypass license check",
+        "Disable telemetry",
+        "Unlock premium features"
       ],
       "patchDetails": [
         {
-          "name": "SofaTime License Check Bypass",
+          "name": "Bypass Google Sign-In",
+          "description": "Bypasses SHA-1 check by using embedded WebView OAuth for Google Sign-In."
+        },
+        {
+          "name": "Bypass license check",
           "description": "Bypasses PairIP license verification."
         },
         {
-          "name": "SofaTime Premium",
-          "description": "Unlocks all premium features."
+          "name": "Disable telemetry",
+          "description": "Disables Firebase Crashlytics, Sessions, and Analytics."
+        },
+        {
+          "name": "Unlock premium features",
+          "description": "Unlocks all premium capabilities."
         }
       ],
       "versions": [
-        "1.1.2"
+        "1.1.4"
       ],
       "iconColor": "#1E1E2E",
       "iconUrl": ""
@@ -55127,8 +55115,8 @@
       ],
       "patches": [
         "Disable analytics",
-        "Disable Telemetry",
         "Disable telemetry",
+        "Disable Telemetry",
         "Disable update check",
         "Enable premium features",
         "GMS sign-in bypass",
@@ -55172,11 +55160,11 @@
           "description": "Suppresses Truecaller's CleverTap behavioural event tracking to prevent user-activity telemetry."
         },
         {
-          "name": "Disable Telemetry",
+          "name": "Disable telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
-          "name": "Disable telemetry",
+          "name": "Disable Telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
@@ -58313,7 +58301,6 @@
         "chirag127/morphe-patches",
         "ciraolone/morphe-watch-later",
         "loskutov/youtube-domain-fronting-patch",
-        "Lynx6319/patch-youtube-scroll-block",
         "MarcaDian/morphe-patches-yavot",
         "MorpheApp/morphe-patches",
         "skulldogged/cobalt-morphe",
@@ -58782,43 +58769,6 @@
             "21.14.482",
             "21.15.282",
             "21.16.240"
-          ]
-        },
-        {
-          "repo": "Lynx6319/patch-youtube-scroll-block",
-          "host": "github.com",
-          "webUrl": "https://github.com/Lynx6319/patch-youtube-scroll-block",
-          "addUrl": "https://morphe.software/add-source?github=Lynx6319/patch-youtube-scroll-block",
-          "source": "https://raw.githubusercontent.com/Lynx6319/patch-youtube-scroll-block/main/patches-bundle.json",
-          "changelogUrl": "https://raw.githubusercontent.com/Lynx6319/patch-youtube-scroll-block/main/CHANGELOG.md",
-          "avatarUrl": "https://github.com/Lynx6319.png?size=96",
-          "latestChanges": {
-            "title": "1.0.8 (2026-05-05)",
-            "date": "2026-05-05",
-            "items": [
-              {
-                "category": "Bug Fixes",
-                "text": "update fingerprints for YouTube 20.47.62 ReelRecyclerView architecture"
-              }
-            ]
-          },
-          "builder": {
-            "buildId": "com-google-android-youtube-lynx6319-patch-youtube-scroll-block",
-            "releaseTag": "app-com-google-android-youtube-lynx6319-patch-youtube-scroll-block",
-            "assetName": "youtube-lynx6319-patch-youtube-scroll-block.apk",
-            "repo": "rushiforai/morphe-builder",
-            "webUrl": "https://github.com/rushiforai/morphe-builder"
-          },
-          "patches": [
-            {
-              "name": "Disable Shorts scroll",
-              "description": "Disables swiping up/down between Shorts while still allowing a single Short to be opened and watched normally."
-            }
-          ],
-          "versions": [
-            "19.16.39",
-            "19.25.37",
-            "20.47.62"
           ]
         },
         {
@@ -59945,7 +59895,6 @@
         "Disable resuming Shorts on startup",
         "Disable rolling number animations",
         "Disable Shorts resuming on startup",
-        "Disable Shorts scroll",
         "Disable sign in to TV popup",
         "Disable splash animation",
         "Disable video codecs",
@@ -60011,8 +59960,8 @@
         "Save to watch later",
         "Seekbar",
         "Seekbar components",
-        "Set Transcript Cookies",
         "Set transcript cookies",
+        "Set Transcript Cookies",
         "Settings for YouTube",
         "Settings menu filter",
         "Shorts autoplay",
@@ -60030,8 +59979,8 @@
         "Video playback",
         "Video quality",
         "Visual preferences icons for YouTube",
-        "Voice Over Translation",
         "Voice over translation",
+        "Voice Over Translation",
         "Voice Over Translation (Yandex)",
         "Watch history",
         "Watch later button",
@@ -60194,10 +60143,6 @@
         {
           "name": "Disable Shorts resuming on startup",
           "description": "Adds an option to disable Shorts from resuming on app startup when Shorts were last being watched."
-        },
-        {
-          "name": "Disable Shorts scroll",
-          "description": "Disables swiping up/down between Shorts while still allowing a single Short to be opened and watched normally."
         },
         {
           "name": "Disable sign in to TV popup",
@@ -60460,11 +60405,11 @@
           "description": "Adds options to hide or change components related to the seekbar."
         },
         {
-          "name": "Set Transcript Cookies",
+          "name": "Set transcript cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {
-          "name": "Set transcript cookies",
+          "name": "Set Transcript Cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {
@@ -60536,12 +60481,12 @@
           "description": "Adds icons to specific preferences in the settings."
         },
         {
-          "name": "Voice Over Translation",
-          "description": "Adds an option to enable Yandex voice-over translation of video audio tracks."
-        },
-        {
           "name": "Voice over translation",
           "description": "Adds additional voice over languages using text-to-speech synchronized to the video playback."
+        },
+        {
+          "name": "Voice Over Translation",
+          "description": "Adds an option to enable Yandex voice-over translation of video audio tracks."
         },
         {
           "name": "Voice Over Translation (Yandex)",
@@ -60567,7 +60512,6 @@
       "versions": [
         "19.05.36",
         "19.16.39",
-        "19.25.37",
         "19.43.41",
         "19.44.39",
         "19.47.53",
@@ -60588,7 +60532,7 @@
         "21.28.204",
         "21.29.366"
       ],
-      "iconColor": "#FF0000",
+      "iconColor": "#FF0033",
       "iconUrl": "https://play-lh.googleusercontent.com/QNmuZQc9I6Zbe3mWnSr0hycnENqGFCI5p3yE29Hkxtf22T0IWS6zTrpxULLyyjWpB7ONAXDsDQXnXcVWokl3eg"
     },
     {
@@ -63904,23 +63848,19 @@
       "webUrl": "https://github.com/alan7383/sofatime-patches",
       "addUrl": "https://morphe.software/add-source?github=alan7383/sofatime-patches",
       "avatarUrl": "https://github.com/alan7383.png?size=96",
-      "patchCount": 2,
+      "patchCount": 4,
       "appCount": 1,
       "createdAt": 1785206626877,
       "updatedAt": 1785206626877,
       "createdDate": "2026-07-28",
       "updatedDate": "2026-07-28",
       "latestChanges": {
-        "title": "1.0.1 (2026-07-26)",
-        "date": "2026-07-26",
+        "title": "1.3.0 (2026-07-29)",
+        "date": "2026-07-29",
         "items": [
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "update apkFileType to APKM to support split APKs"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "use stable fingerprints without obfuscated names"
+            "category": "\u2728 New Features",
+            "text": "add Disable Telemetry patch (Firebase Crashlytics + Sessions)"
           }
         ]
       },
@@ -63928,7 +63868,7 @@
         {
           "name": "SofaTime",
           "packageName": "com.theclashsoft.sofatime",
-          "patchCount": 2,
+          "patchCount": 4,
           "iconUrl": "",
           "iconColor": "#1E1E2E"
         }
