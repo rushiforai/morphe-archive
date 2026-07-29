@@ -7,7 +7,7 @@ import app.sofatime.shared.Constants.SOFATIME_COMPATIBILITY
 
 @Suppress("unused")
 val licenseCheckPatch = bytecodePatch(
-    name = "SofaTime License Check Bypass",
+    name = "Bypass license check",
     description = "Bypasses PairIP license verification.",
 ) {
     compatibleWith(SOFATIME_COMPATIBILITY)

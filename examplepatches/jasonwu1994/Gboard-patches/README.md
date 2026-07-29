@@ -99,6 +99,12 @@ Customize the bottom tab order in Gboard's Emojis, stickers & GIFs panel with dr
 </details>
 
 <details>
+  <summary><code>Use Bluetooth Microphone</code></summary>
+
+  Enables the <code>Voice typing &gt; Use Bluetooth microphone</code> setting and its related rollout gate.
+</details>
+
+<details>
   <summary><code>Settings Homepage Override</code></summary>
 
   Lets you switch between the new and legacy Gboard settings homepage styles.

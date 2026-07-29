@@ -1,3 +1,36 @@
+## [1.3.0](https://github.com/alan7383/sofatime-patches/compare/v1.2.1...v1.3.0) (2026-07-29)
+
+### ✨ New Features
+
+* add Disable Telemetry patch (Firebase Crashlytics + Sessions) ([4a620b5](https://github.com/alan7383/sofatime-patches/commit/4a620b52519c67b9cb37ce579a0a03b5fb973f9e))
+
+## [1.2.1](https://github.com/alan7383/sofatime-patches/compare/v1.2.0...v1.2.1) (2026-07-28)
+
+### 🐛 Bug Fixes
+
+* update README to clarify ZIP backup archive export and restore format ([af0cc9b](https://github.com/alan7383/sofatime-patches/commit/af0cc9be8294a7bf64d9c92d495b2b591d0f03e6))
+* update README with verified backup UI instructions from Smali analysis ([be28afa](https://github.com/alan7383/sofatime-patches/commit/be28afad5abc5501abd627200fb96da9d9099003))
+
+## [1.2.0](https://github.com/alan7383/sofatime-patches/compare/v1.1.0...v1.2.0) (2026-07-28)
+
+### 🐛 Bug Fixes
+
+* add dependencyResolutionManagement and Gradle property env vars for READ_PACKAGES auth ([ac552ed](https://github.com/alan7383/sofatime-patches/commit/ac552ed6fadbfa488f43f29352867b659140861d))
+* authenticate MorpheApp GPR registry via READ_PACKAGES secret ([60dbdfd](https://github.com/alan7383/sofatime-patches/commit/60dbdfd687977896348b84c690d86ba9372a26d7))
+* configure GPR_USER as alan7383 for GitHub Package authentication ([d5f5a7f](https://github.com/alan7383/sofatime-patches/commit/d5f5a7ff22bb9befa6b03120dca32eafee2925e3))
+* inject gpr.user and gpr.key into ~/.gradle/gradle.properties per Morphe setup doc ([c231ed4](https://github.com/alan7383/sofatime-patches/commit/c231ed40de517a17a693237c10afb118bd848a94))
+* pass READ_PACKAGES secret correctly to Gradle for GPR authentication ([e7cd0a4](https://github.com/alan7383/sofatime-patches/commit/e7cd0a4f5309f8c63c33445f6e2e53cd026e85cb))
+
+### ✨ New Features
+
+* add Google Sign-In bypass patch with Kotlin extension ([949f28d](https://github.com/alan7383/sofatime-patches/commit/949f28d2a43d21b12942084e02dafe8863766de5))
+
+## [1.1.0](https://github.com/alan7383/sofatime-patches/compare/v1.0.1...v1.1.0) (2026-07-28)
+
+### ✨ New Features
+
+* update patches for Sofatime v1.1.4 compatibility ([19a00c7](https://github.com/alan7383/sofatime-patches/commit/19a00c7380e6d3fb7fc3ae42013c120a4c9162db))
+
 ## [1.0.1](https://github.com/alan7383/sofatime-patches/compare/v1.0.0...v1.0.1) (2026-07-26)
 
 ### 🐛 Bug Fixes

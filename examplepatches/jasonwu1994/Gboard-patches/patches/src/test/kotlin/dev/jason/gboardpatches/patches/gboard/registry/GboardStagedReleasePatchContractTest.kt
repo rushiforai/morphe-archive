@@ -21,7 +21,7 @@ class GboardStagedReleasePatchContractTest {
         val names = inventory.getAsJsonArray("patches")
             .map { it.asJsonObject.get("name").asString }
 
-        assertEquals(19, names.size)
+        assertEquals(20, names.size)
         STAGED_PATCHES.forEach { staged ->
             assertTrue(registry.contains("val ${staged.declaration} = resourcePatch("))
             assertFalse(activeRegistry.contains("val ${staged.declaration} = resourcePatch("))
@@ -50,7 +50,6 @@ class GboardStagedReleasePatchContractTest {
                 "GboardPatchRegistry.kt"
 
         val STAGED_PATCHES = listOf(
-            StagedPatch("Use Bluetooth Microphone", "gboardBluetoothMicrophonePatch"),
             StagedPatch(
                 "Long-Press Editing Shortcuts",
                 "gboardLongPressQuickActionsPatch",

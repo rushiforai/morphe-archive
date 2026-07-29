@@ -6,7 +6,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 ### API v4
 | Bundle | Patches | Apps | Status |
 | --- | ---: | ---: | --- |
-| [Coronenic](#-coronenic-bundle-patch-list) | 6 | 1 | Generated |
+| [Coronenic](#-coronenic-bundle-patch-list) | 7 | 1 | Generated |
 | [AppleMusic](#-applemusic-bundle-patch-list) | 2 | 1 | Generated |
 | [ReVanced](#-revanced-bundle-patch-list) | 288 | 89 | Generated |
 | [Inotia00](#-inotia00-bundle-patch-list) | 127 | 4 | Generated |
@@ -115,7 +115,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Docbt](#-docbt-bundle-patch-list) | 6 | 3 | Generated |
 | [PixelPusher247](#-pixelpusher247-bundle-patch-list) | 1 | 1 | Generated |
 | [Rabilrbl](#-rabilrbl-bundle-patch-list) | 2 | 1 | Generated |
-| [Jasonwu1994](#-jasonwu1994-bundle-patch-list) | 19 | 1 | Generated |
+| [Jasonwu1994](#-jasonwu1994-bundle-patch-list) | 20 | 1 | Generated |
 | [RealCyberwash](#-realcyberwash-bundle-patch-list) | 1 | 1 | Generated |
 | [Paresh-Maheshwari](#-paresh-maheshwari-bundle-patch-list) | 57 | 22 | Generated |
 | [Binarymend](#-binarymend-bundle-patch-list) | 11 | 7 | Generated |
@@ -149,12 +149,12 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Ikura](#-ikura-bundle-patch-list) | 4 | 2 | Generated |
 | [DH6K](#-dh6k-bundle-patch-list) | 3 | 4 | Generated |
 | [AndrewLiang25](#-andrewliang25-bundle-patch-list) | 12 | 1 | Generated |
-| [Morning-Entree](#-morning-entree-bundle-patch-list) | 5 | 54 | Generated |
+| [Morning-Entree](#-morning-entree-bundle-patch-list) | 10 | 57 | Generated |
 | [VocaColle](#-vocacolle-bundle-patch-list) | 6 | 1 | Generated |
 | [DBTCoach](#-dbtcoach-bundle-patch-list) | 1 | 1 | Generated |
 | [Yandex-VoT](#-yandex-vot-bundle-patch-list) | 1 | 1 | Generated |
 | [Watch-Later](#-watch-later-bundle-patch-list) | 1 | 1 | Generated |
-| [SofaTime](#-sofatime-bundle-patch-list) | 2 | 1 | Generated |
+| [SofaTime](#-sofatime-bundle-patch-list) | 3 | 1 | Generated |
 | [Hiosdra](#-hiosdra-bundle-patch-list) | 4 | 2 | Generated |
 | [Jl4cTuk](#-jl4ctuk-bundle-patch-list) | 16 | 2 | Generated |
 
@@ -475,15 +475,16 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 ### 🧩 Coronenic Bundle Patch List:
 [📦 Coronenic-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-coronenic-patches-bundle-api-v4)
 <details>
-<summary><b>Coronenic</b> - 6 patches, 1 app</summary>
+<summary><b>Coronenic</b> - 7 patches, 1 app</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Add ReVanced patch version field``` | ```Adds a 'Revanced 패치 버전' field below the current and latest version in Settings > About.``` | ```com.dcinside.app.android``` | ```All versions``` |
 | ```Remove advertisements``` | ```Removes all advertisements: banners, native ads, in-feed ad rows, DCInside's own script ads and Naver PowerLink. No ad SDK is initialised and no ad is ever requested.``` | ```com.dcinside.app.android``` | ```All versions``` |
 | ```Remove advertisements resources``` | ```Collapses the empty quick-menu banner slot at the bottom of the post list.``` | ```com.dcinside.app.android``` | ```All versions``` |
+| ```ReVanced settings``` | ```Makes the 'ReVanced 패치 버전' field in Settings > About open a ReVanced settings page, which lists the settings of the applied patches.``` | ```com.dcinside.app.android``` | ```All versions``` |
+| ```ReVanced settings resources``` | ```Layout + manifest changes for the ReVanced settings page.``` | ```com.dcinside.app.android``` | ```All versions``` |
 | ```Spoof signature``` | ```Presents the original signing certificate to the app's own tamper checks so the re-signed build passes client- and server-side verification (fixes the blank 실시간 베스트 feed, error 2109, and the intermittent "error" popup on post submission).``` | ```com.dcinside.app.android``` | ```All versions``` |
-| ```Voice reply file upload``` | ```Adds an upload button to the voice-reply record tab so an existing .m4a (AAC) audio file can be sent as a voice reply, like a recording.``` | ```com.dcinside.app.android``` | ```All versions``` |
+| ```Voice reply file upload``` | ```Adds an upload button to the voice-reply record tab so an existing audio file can be sent as a voice reply, like a recording. Audio that is not already the MPEG-4/AAC the recorder writes is converted, unless the ReVanced settings say to keep it as-is.``` | ```com.dcinside.app.android``` | ```All versions``` |
 | ```Voice reply file upload resources``` | ```Layout + manifest changes for the voice-reply audio file picker.``` | ```com.dcinside.app.android``` | ```All versions``` |
 
 </details>
@@ -4023,7 +4024,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Jasonwu1994 Bundle Patch List:
 [📦 Jasonwu1994-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-jasonwu1994-patches-bundle-morphe)
 <details>
-<summary><b>Jasonwu1994</b> - 19 patches, 1 app</summary>
+<summary><b>Jasonwu1994</b> - 20 patches, 1 app</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -4042,6 +4043,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Package Rename``` | ```將套件名稱改成 dev.jason.com.google.android.inputmethod.latin 以便共存安裝 Rename the package to dev.jason.com.google.android.inputmethod.latin so it can be installed alongside the official Gboard.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
 | ```Settings Homepage Override``` | ```允許切換新版或舊版 Gboard 設定頁面 Allow switching between the new and legacy Gboard settings pages.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
 | ```Swipeable Custom Top Row``` | ```滑動鍵盤第一排，在原生列與可自訂文字/JavaScript 列之間切換 Swipe the keyboard top row to switch between the stock row and a customizable text/JavaScript row.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
+| ```Use Bluetooth Microphone``` | ```啟用 語音輸入 -> 使用藍芽麥克風 Enable Voice typing -> Use Bluetooth microphone.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
 | ```Web Clipboard``` | ```新增手機自架的 Web Clipboard，支援瀏覽器同步、配對碼與快速設定開關 Add the phone-hosted Web Clipboard with browser sync, pairing, and a Quick Settings Tile.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
 | ```Zhuyin Bottom Row Key Sizes``` | ```調整注音鍵盤底排按鍵大小 Adjust Zhuyin keyboard bottom-row key sizes.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
 | ```Zhuyin Quick Traditional/Simplified Toggle``` | ```注音 ㄥ 上滑快速切換繁簡 Swipe up on Zhuyin ㄥ to quickly toggle Traditional and Simplified Chinese.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
@@ -5141,14 +5143,19 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Morning-Entree Bundle Patch List:
 [📦 Morning-Entree-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-morning-entree-patches-bundle-morphe)
 <details>
-<summary><b>Morning-Entree</b> - 5 patches, 54 apps</summary>
+<summary><b>Morning-Entree</b> - 10 patches, 57 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
 | ```Unlock all questions``` | ```Unlocks all exam questions``` | ```CCNA 200-301, ServiceNow CSA, SC-900, AWS SAA-C02, ISTQB Foundation, AZ-104, PCEP-30-02, CompTIA A+ Core 1, CCNP 350-401, SC-200, CISM, AWS SCS-C01, AI-900, Salesforce Admin, SnowPro Core, CCNP SCOR 350-701, CompTIA A+ Core 2, AZ-900, CEH v11, AWS CLF-C01, CompTIA Security+, CompTIA Server+, CompTIA CySA+, AZ-500, CompTIA SecurityX, CompTIA PenTest+, AWS MLA-C01, DASM, CAPM, AZ-400, DP-203, PSPO I, AWS SOA-C02, AWS DOP-C01, PSM II, AZ-700, AWS SAP-C01, GCP Associate Cloud Engineer, DP-900, CompTIA Linux+, AWS AIF-C01, PMI-ACP, CompTIA ITF+, AWS DVA-C01, AZ-204, DP-300, CISSP, Tableau Desktop, CompTIA SecAI, Terraform Associate``` | ```All versions``` |
+| ```Always incognito mode``` | ```Always opens Gboard in incognito mode to disable typing-history collection and personalization, while keeping clipboard and voice typing working in incognito.``` | ```Gboard``` | ```All versions``` |
+| ```Block tracking and analytics``` | ```Redirects Gboard's known tracking, analytics, and ad host literals to 0.0.0.0 using a built-in blocklist. Note: telemetry sent through Google Play Services is not affected; use the always-incognito patch for that.``` | ```Gboard``` | ```All versions``` |
+| ```Change package name``` | ```Installs Gboard as a clone by appending ".clone" to the package name (configurable), so it installs next to the stock Gboard. Changing an app's package name can lead to unexpected issues.``` | ```Gboard``` | ```All versions``` |
+| ```Enable Premium``` | ```Unlocks Gradient Weather Premium (forces the paid Lifetime tier).``` | ```Gradient Weather``` | ```All versions``` |
 | ```Enable Premium``` | ```Unlock Lifesum Premium``` | ```Lifesum``` | ```All versions``` |
 | ```Enable Premium``` | ```Unlocks Ling Pro``` | ```Ling``` | ```All versions``` |
 | ```Enable Premium``` | ```Unlock Sponge Premium``` | ```Sponge``` | ```All versions``` |
+| ```Spoof install source``` | ```Makes the app think it was installed from a specific store (default: Google Play). Useful when an app blocks features or errors because it detects it was not installed from the Play Store. Only affects what the app sees, not the real system record.``` | ```Universal``` | ```All versions``` |
 | ```Enable Premium``` | ```Unlocks Vocabulary Premium``` | ```Vocabulary``` | ```All versions``` |
 
 </details>
@@ -5210,12 +5217,13 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 SofaTime Bundle Patch List:
 [📦 SofaTime-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-sofatime-patches-bundle-morphe)
 <details>
-<summary><b>SofaTime</b> - 2 patches, 1 app</summary>
+<summary><b>SofaTime</b> - 3 patches, 1 app</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
+| ```SofaTime Google Sign-In Bypass``` | ```Bypasses SHA-1 check by using embedded WebView OAuth for Google Sign-In.``` | ```SofaTime``` | ```All versions``` |
 | ```SofaTime License Check Bypass``` | ```Bypasses PairIP license verification.``` | ```SofaTime``` | ```All versions``` |
-| ```SofaTime Premium``` | ```Unlocks all premium features.``` | ```SofaTime``` | ```All versions``` |
+| ```SofaTime Premium``` | ```Unlocks all premium capabilities.``` | ```SofaTime``` | ```All versions``` |
 
 </details>
 

@@ -53,10 +53,10 @@ class GboardWebClipboardPatchRegistrySourceTest {
     }
 
     @Test
-    fun generatedInventoryHasNineteenRowsAndExactlyOneWebClipboard() {
+    fun generatedInventoryHasTwentyRowsAndExactlyOneWebClipboard() {
         val inventory = JsonParser.parseString(readSource(PATCHES_LIST_PATH)).asJsonObject
         val patches = inventory.getAsJsonArray("patches").map { it.asJsonObject }
-        assertEquals(19, patches.size)
+        assertEquals(20, patches.size)
 
         val rows = patches.filter { it.get("name").asString == "Web Clipboard" }
         assertEquals(1, rows.size)

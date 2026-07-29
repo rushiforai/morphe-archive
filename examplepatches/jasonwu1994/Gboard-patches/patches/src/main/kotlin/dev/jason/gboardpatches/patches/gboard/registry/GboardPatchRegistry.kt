@@ -144,7 +144,6 @@ val gboardAdvancedVoiceTypingPatch = resourcePatch(
 }
 */
 
-/*
 @Suppress("unused")
 val gboardBluetoothMicrophonePatch = resourcePatch(
     name = "Use Bluetooth Microphone",
@@ -160,7 +159,6 @@ val gboardBluetoothMicrophonePatch = resourcePatch(
         gboardBluetoothMicrophoneFlagValuePatch,
     )
 }
-*/
 
 @Suppress("unused")
 val gboardZhuyinQuickTraditionalSimplifiedTogglePatch = resourcePatch(

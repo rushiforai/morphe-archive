@@ -11,7 +11,7 @@ import org.junit.Test
 
 class GboardDeveloperOptionsGeneratedInventoryTest {
     @Test
-    fun generatedInventoryContainsNineteenPublishedPatchesAndNoStagedRows() {
+    fun generatedInventoryContainsTwentyPublishedPatchesAndNoStagedRows() {
         val repositoryRoot = findRepositoryRoot()
         val inventory = JsonParser.parseString(
             String(
@@ -22,7 +22,7 @@ class GboardDeveloperOptionsGeneratedInventoryTest {
         val patches = inventory.getAsJsonArray("patches")
         val names = patches.map { it.asJsonObject.get("name").asString }
 
-        assertEquals(19, patches.size())
+        assertEquals(20, patches.size())
         STAGED_PATCH_NAMES.forEach { stagedName ->
             assertFalse("Staged patch must stay unpublished: $stagedName", names.contains(stagedName))
         }
@@ -53,7 +53,6 @@ class GboardDeveloperOptionsGeneratedInventoryTest {
             "Enable Undo/Redo feature",
         )
         val STAGED_PATCH_NAMES = listOf(
-            "Use Bluetooth Microphone",
             "Long-Press Editing Shortcuts",
             "Advanced Voice Typing",
         )

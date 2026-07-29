@@ -72,7 +72,7 @@ class GboardAiWritingToolsPatchRegistrySourceTest {
         ).asJsonObject
         val patches = inventory.getAsJsonArray("patches")
             .map { element -> element.asJsonObject }
-        assertEquals(19, patches.size)
+        assertEquals(20, patches.size)
         val writingTools = patches.single { patch ->
             patch.get("name").asString == "AI Writing Tools"
         }

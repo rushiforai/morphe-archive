@@ -1,3 +1,51 @@
+## [1.3.5](https://github.com/franticg33k/morphe-patches/compare/v1.3.4...v1.3.5) (2026-07-28)
+
+### 🚀 Updated App Support
+
+* remove overly broad getBoolean patch causing crashes ([df410c6](https://github.com/franticg33k/morphe-patches/commit/df410c6f3a5a168e07aef65161a9c6726a35f6d4))
+
+## [1.3.5-dev.1](https://github.com/franticg33k/morphe-patches/compare/v1.3.4...v1.3.5-dev.1) (2026-07-28)
+
+### 🚀 Updated App Support
+
+* remove overly broad getBoolean patch causing crashes ([df410c6](https://github.com/franticg33k/morphe-patches/commit/df410c6f3a5a168e07aef65161a9c6726a35f6d4))
+
+## [1.3.4](https://github.com/franticg33k/morphe-patches/compare/v1.3.3...v1.3.4) (2026-07-28)
+
+### 🚀 Updated App Support
+
+* fix fingerprints to use smali class paths ([3888e3f](https://github.com/franticg33k/morphe-patches/commit/3888e3f11105c5a67aeb1c5229724284353cfee5))
+
+## [1.3.4-dev.1](https://github.com/franticg33k/morphe-patches/compare/v1.3.3...v1.3.4-dev.1) (2026-07-28)
+
+### 🚀 Updated App Support
+
+* fix fingerprints to use smali class paths ([3888e3f](https://github.com/franticg33k/morphe-patches/commit/3888e3f11105c5a67aeb1c5229724284353cfee5))
+
+## [1.3.3](https://github.com/franticg33k/morphe-patches/compare/v1.3.2...v1.3.3) (2026-07-28)
+
+### 🚀 Updated App Support
+
+* fix oldroll package name to com.accordion.analogcam ([b201d70](https://github.com/franticg33k/morphe-patches/commit/b201d7075d0ca492231f5b60a655e5667d9e7f22))
+
+## [1.3.3-dev.1](https://github.com/franticg33k/morphe-patches/compare/v1.3.2...v1.3.3-dev.1) (2026-07-28)
+
+### 🚀 Updated App Support
+
+* fix oldroll package name to com.accordion.analogcam ([b201d70](https://github.com/franticg33k/morphe-patches/commit/b201d7075d0ca492231f5b60a655e5667d9e7f22))
+
+## [1.3.2](https://github.com/franticg33k/morphe-patches/compare/v1.3.1...v1.3.2) (2026-07-28)
+
+### 🚀 Updated App Support
+
+* add oldroll pro unlock patches ([37aa696](https://github.com/franticg33k/morphe-patches/commit/37aa696c2982594350bdfa307987743df8e02374))
+
+## [1.3.2-dev.1](https://github.com/franticg33k/morphe-patches/compare/v1.3.1...v1.3.2-dev.1) (2026-07-28)
+
+### 🚀 Updated App Support
+
+* add oldroll pro unlock patches ([37aa696](https://github.com/franticg33k/morphe-patches/commit/37aa696c2982594350bdfa307987743df8e02374))
+
 ## [1.3.1](https://github.com/franticg33k/morphe-patches/compare/v1.3.0...v1.3.1) (2026-07-24)
 
 ### 🚀 Updated App Support

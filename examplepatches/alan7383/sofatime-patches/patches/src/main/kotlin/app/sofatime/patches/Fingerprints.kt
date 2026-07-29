@@ -1,4 +1,4 @@
-package app.sofatime.fingerprints
+package app.sofatime.patches
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.fieldAccess
@@ -26,8 +26,20 @@ val isPremiumPurchasedFingerprint = Fingerprint(
     returnType = "Z",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     parameters = emptyList(),
-    filters = listOf(
-        fieldAccess(opcode = Opcode.IGET_BOOLEAN),
-        fieldAccess(opcode = Opcode.IGET_BOOLEAN)
-    )
+    custom = custom@{ method, _ ->
+        val impl = method.implementation ?: return@custom false
+        !impl.instructions.any { it.opcode?.name?.startsWith("invoke") == true }
+    }
+)
+
+val crashlyticsRegistrarGetComponents = Fingerprint(
+    definingClass = "Lcom/google/firebase/crashlytics/CrashlyticsRegistrar;",
+    name = "getComponents",
+    returnType = "Ljava/util/List;"
+)
+
+val sessionsRegistrarGetComponents = Fingerprint(
+    definingClass = "Lcom/google/firebase/sessions/FirebaseSessionsRegistrar;",
+    name = "getComponents",
+    returnType = "Ljava/util/List;"
 )
