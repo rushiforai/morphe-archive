@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-07-29 02:49 UTC",
+  "generatedAt": "2026-07-30 02:35 UTC",
   "configFile": "morphe_archive_config_v8.json",
   "configVersion": 8,
   "repoCount": 112,
-  "appCount": 570,
-  "patchCount": 2099,
-  "universalPatchCount": 161,
+  "appCount": 572,
+  "patchCount": 2121,
+  "universalPatchCount": 165,
   "hostCounts": {
     "github.com": 108,
     "gitlab.com": 4
@@ -167,12 +167,12 @@
       "createdDate": "2026-07-28",
       "updatedDate": "2026-07-28",
       "latestChanges": {
-        "title": "1.3.0 (2026-07-29)",
+        "title": "1.3.1 (2026-07-29)",
         "date": "2026-07-29",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "add Disable Telemetry patch (Firebase Crashlytics + Sessions)"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "update Google Sign-In patch for SofaTime 1.1.5 compatibility"
           }
         ]
       },
@@ -526,47 +526,35 @@
       "webUrl": "https://github.com/andrewliang25/morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=andrewliang25/morphe-patches",
       "avatarUrl": "https://github.com/andrewliang25.png?size=96",
-      "patchCount": 12,
+      "patchCount": 16,
       "appCount": 1,
       "createdAt": 1785034852052,
       "updatedAt": 1785034852052,
       "createdDate": "2026-07-26",
       "updatedDate": "2026-07-26",
       "latestChanges": {
-        "title": "1.0.0 (2026-07-25)",
-        "date": "2026-07-25",
+        "title": "1.1.0 (2026-07-29)",
+        "date": "2026-07-29",
         "items": [
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "Disambiguate chat-header button fingerprints"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "Drop the rename-package patch"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "Fix read-receipts, hide-ad-views, and external-browser on device"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "Hide Home modules crashed on open (VerifyError)"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "Home modules blocklist \u2014 add FLEX for \u5373\u6642\u592f\u8a71\u984c (test round)"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "Retarget Hide Home modules to the feed state (x72.h$a)"
+            "category": "\u2728 New Features",
+            "text": "also hide the chat-menu \"Events\" row"
           },
           {
             "category": "\u2728 New Features",
-            "text": "Add experimental Hide Home modules patch"
+            "text": "hide all server-driven extra tools in the + attach menu"
           },
           {
             "category": "\u2728 New Features",
-            "text": "Add hide-calendar-button and hide-community-button patches"
+            "text": "hide in-chat-room calendar buttons"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "hide the Transfer and LINE GIFT buttons in the + attach menu"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "split Events into its own patch; rename calendar patch to \"Hide LINE Calendar\""
           }
         ]
       },
@@ -574,7 +562,7 @@
         {
           "name": "LINE",
           "packageName": "jp.naver.line.android",
-          "patchCount": 12,
+          "patchCount": 16,
           "iconUrl": "",
           "iconColor": "#06C755"
         }
@@ -1421,19 +1409,43 @@
       "webUrl": "https://github.com/browzomje/browzomje-patches",
       "addUrl": "https://morphe.software/add-source?github=browzomje/browzomje-patches",
       "avatarUrl": "https://github.com/browzomje.png?size=96",
-      "patchCount": 5,
+      "patchCount": 14,
       "appCount": 1,
       "createdAt": 1784836031836,
       "updatedAt": 1784836031836,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.3.2 (2026-07-01)",
-        "date": "2026-07-01",
+        "title": "1.4.0 (2026-07-29)",
+        "date": "2026-07-29",
         "items": [
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**pinterest:** fixed snackbar using again the same system of other pinterest features instead of stock android snackbars"
+            "category": "\u2728 New Features",
+            "text": "**pinterest:** add support for 14.28.0"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "**pinterest:** add the Morphe settings screen"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "**pinterest:** download every pin of a board"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "**pinterest:** hide the search history"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "**pinterest:** mark 14.28.0 stable and drop 14.24.0"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "**pinterest:** translate patch descriptions to English"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "**pinterest:** translate patcher log and feedback messages to English"
           }
         ]
       },
@@ -1441,7 +1453,7 @@
         {
           "name": "Pinterest",
           "packageName": "com.pinterest",
-          "patchCount": 5,
+          "patchCount": 14,
           "iconUrl": "https://play-lh.googleusercontent.com/VExMwhu9Fe5kz72YnPWP6mHrNA5WfgZ-PJMnBnQmXFpLncTAOaaHtK4b8w7b2xxGxtqycDatYslVyNSLucl9QA",
           "iconColor": "#E60023"
         }
@@ -1535,15 +1547,15 @@
       "webUrl": "https://github.com/byehi98/okish-morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=byehi98/okish-morphe-patches",
       "avatarUrl": "https://github.com/byehi98.png?size=96",
-      "patchCount": 1,
-      "appCount": 1,
+      "patchCount": 3,
+      "appCount": 2,
       "createdAt": 1784836032190,
       "updatedAt": 1784836032190,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.0.0 (2026-07-04)",
-        "date": "2026-07-04",
+        "title": "1.1.0 (2026-07-29)",
+        "date": "2026-07-29",
         "items": [
           {
             "category": "\u2728 New Features",
@@ -1568,6 +1580,13 @@
         ]
       },
       "apps": [
+        {
+          "name": "FreeJobAlert",
+          "packageName": "com.freejobalert",
+          "patchCount": 2,
+          "iconUrl": "",
+          "iconColor": "#1565C0"
+        },
         {
           "name": "TrueCloud",
           "packageName": "com.generalcomp.truecloud",
@@ -5077,19 +5096,31 @@
       "webUrl": "https://github.com/MiguelNinja19/miguel-morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=MiguelNinja19/miguel-morphe-patches",
       "avatarUrl": "https://github.com/MiguelNinja19.png?size=96",
-      "patchCount": 15,
-      "appCount": 7,
+      "patchCount": 18,
+      "appCount": 8,
       "createdAt": 1784836022970,
       "updatedAt": 1784836022970,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.12.4 (2026-07-27)",
-        "date": "2026-07-27",
+        "title": "1.13.3 (2026-07-30)",
+        "date": "2026-07-30",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "delete DisableSighInPromptPatch.kt"
+            "text": "**cubesolver:** fix compile error and add initializeLicenseCheck hook"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**cubesolver:** fix compile error and add initializeLicenseCheck hook"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**cubesolver:** improve PairIP bypass"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**cubesolver:** improve PairIP bypass"
           }
         ]
       },
@@ -5107,6 +5138,13 @@
           "patchCount": 2,
           "iconUrl": "https://play-lh.googleusercontent.com/VK0AYuzpuiYdeqrDPE0o9PoYCh-pP44Q6rj3pLxsEWwWXCQ26oc6ceFfNESC-VPvYwknfhVGs6l5EtgqkdDuikA",
           "iconColor": "#4CAF50"
+        },
+        {
+          "name": "Cube Solver",
+          "packageName": "com.jeffprod.cubesolver",
+          "patchCount": 3,
+          "iconUrl": "",
+          "iconColor": "#F57C00"
         },
         {
           "name": "CubeX Solver",
@@ -5333,19 +5371,35 @@
       "webUrl": "https://github.com/Nai64/Nai64Patches",
       "addUrl": "https://morphe.software/add-source?github=Nai64/Nai64Patches",
       "avatarUrl": "https://github.com/Nai64.png?size=96",
-      "patchCount": 4,
+      "patchCount": 8,
       "appCount": 0,
       "createdAt": 1784836023539,
       "updatedAt": 1784836023539,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.13.1 (2026-07-22)",
-        "date": "2026-07-22",
+        "title": "1.15.0 (2026-07-30)",
+        "date": "2026-07-30",
         "items": [
           {
             "category": "Bug Fixes",
-            "text": "remove patch descriptions"
+            "text": "custom patch order in Morphe"
+          },
+          {
+            "category": "New Features",
+            "text": "add Disable Telemetry universal patch"
+          },
+          {
+            "category": "New Features",
+            "text": "add onAdHidden safety net to Ads Free Rewards"
+          },
+          {
+            "category": "New Features",
+            "text": "add Unlock RevenueCat Entitlements universal patch"
+          },
+          {
+            "category": "New Features",
+            "text": "register Disable Telemetry patch in order + README"
           }
         ]
       },
@@ -8623,12 +8677,12 @@
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.11.0 (2026-07-27)",
-        "date": "2026-07-27",
+        "title": "1.11.2 (2026-07-29)",
+        "date": "2026-07-29",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "**automation:** promote qualified app targets"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**ozon:** support version 19.28.0"
           }
         ]
       },
@@ -10357,12 +10411,24 @@
           "changelogUrl": "https://raw.githubusercontent.com/MiguelNinja19/miguel-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/MiguelNinja19.png?size=96",
           "latestChanges": {
-            "title": "1.12.4 (2026-07-27)",
-            "date": "2026-07-27",
+            "title": "1.13.3 (2026-07-30)",
+            "date": "2026-07-30",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "delete DisableSighInPromptPatch.kt"
+                "text": "**cubesolver:** fix compile error and add initializeLicenseCheck hook"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** fix compile error and add initializeLicenseCheck hook"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** improve PairIP bypass"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** improve PairIP bypass"
               }
             ]
           },
@@ -11364,12 +11430,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.11.0 (2026-07-27)",
-            "date": "2026-07-27",
+            "title": "1.11.2 (2026-07-29)",
+            "date": "2026-07-29",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**automation:** promote qualified app targets"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**ozon:** support version 19.28.0"
               }
             ]
           },
@@ -16459,12 +16525,24 @@
           "changelogUrl": "https://raw.githubusercontent.com/MiguelNinja19/miguel-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/MiguelNinja19.png?size=96",
           "latestChanges": {
-            "title": "1.12.4 (2026-07-27)",
-            "date": "2026-07-27",
+            "title": "1.13.3 (2026-07-30)",
+            "date": "2026-07-30",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "delete DisableSighInPromptPatch.kt"
+                "text": "**cubesolver:** fix compile error and add initializeLicenseCheck hook"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** fix compile error and add initializeLicenseCheck hook"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** improve PairIP bypass"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** improve PairIP bypass"
               }
             ]
           },
@@ -23051,8 +23129,8 @@
         }
       ],
       "patches": [
-        "Disable Ad-Free Banner",
         "Disable ad-free banner",
+        "Disable Ad-Free Banner",
         "Disable blog notification reminder",
         "Disable dashboard ads",
         "Disable gift message popup",
@@ -23064,12 +23142,12 @@
       ],
       "patchDetails": [
         {
-          "name": "Disable Ad-Free Banner",
-          "description": "Disables the banner with a frog, prompting you to buy Tumblr Ad-Free."
-        },
-        {
           "name": "Disable ad-free banner",
           "description": "Hides the banner with the frog that prompts you to buy Tumblr Ad-Free."
+        },
+        {
+          "name": "Disable Ad-Free Banner",
+          "description": "Disables the banner with a frog, prompting you to buy Tumblr Ad-Free."
         },
         {
           "name": "Disable blog notification reminder",
@@ -26461,6 +26539,94 @@
       "iconUrl": "https://play-lh.googleusercontent.com/dJwOASgiOu0tCod_WeCDjX9d_oJI9SuZpmtFlSP6ATA63hXM8pUxnTp1HCI9YK1jD5v2lQw3JSKEWatwDzPMQg"
     },
     {
+      "packageName": "com.jeffprod.cubesolver",
+      "name": "Cube Solver",
+      "repos": [
+        "MiguelNinja19/miguel-morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "MiguelNinja19/miguel-morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/MiguelNinja19/miguel-morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=MiguelNinja19/miguel-morphe-patches",
+          "source": "https://raw.githubusercontent.com/MiguelNinja19/miguel-morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/MiguelNinja19/miguel-morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/MiguelNinja19.png?size=96",
+          "latestChanges": {
+            "title": "1.13.3 (2026-07-30)",
+            "date": "2026-07-30",
+            "items": [
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** fix compile error and add initializeLicenseCheck hook"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** fix compile error and add initializeLicenseCheck hook"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** improve PairIP bypass"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** improve PairIP bypass"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-jeffprod-cubesolver-miguelninja19-miguel-morphe-patches",
+            "releaseTag": "app-com-jeffprod-cubesolver-miguelninja19-miguel-morphe-patches",
+            "assetName": "cube-solver-miguelninja19-miguel-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Bypass PairIP integrity check",
+              "description": "Bypasses Google Play's PairIP by disabling the APK signature check and the Google Play licensing check. Without this patch, the app crashes on launch (signature mismatch) or redirects to the Play Store (license check failure). The license check has TWO entry points that must both be blocked: checkLicense (from attachBaseContext) and initializeLicenseCheck (from ContentProvider, which runs before attachBaseContext). REQUIRED for all other patches."
+            },
+            {
+              "name": "Remove ads",
+              "description": "Removes all advertisements (rewarded ads and interstitial ads) from the app. When the user taps 'Watch ad to unlock' on a locked design, the ad is skipped and the design is unlocked instantly \u2014 the reward is granted without showing any ad. Also disables rewarded ad preloading to save bandwidth. Note: this patch does NOT automatically unlock designs \u2014 the user must still tap each locked design to unlock it (the ad is just skipped). For automatic unlock of ALL designs at startup, enable the 'Unlock all designs' patch. Requires the 'Bypass PairIP integrity check' patch."
+            },
+            {
+              "name": "Unlock all designs",
+              "description": "Unlocks all puzzle designs (kilominx, mirror 2x2x2, and all other premium designs) by injecting localStorage[\"ulcsall\"] = \"ok\" into the WebView when the app starts. The JS-side isPaidUser() function checks this key and, when it returns true, treats every design as unlocked. Also skips the GDPR consent popup. Note: setting ulcsall=ok also removes all ads as a side effect (because the JS ad functions check isPaidUser first), so this patch is a superset of the 'Remove ads' patch. If you only want to remove ads without unlocking everything, use only the 'Remove ads' patch. Requires the 'Bypass PairIP integrity check' patch."
+            }
+          ],
+          "versions": [
+            "5.0.3"
+          ]
+        }
+      ],
+      "patches": [
+        "Bypass PairIP integrity check",
+        "Remove ads",
+        "Unlock all designs"
+      ],
+      "patchDetails": [
+        {
+          "name": "Bypass PairIP integrity check",
+          "description": "Bypasses Google Play's PairIP by disabling the APK signature check and the Google Play licensing check. Without this patch, the app crashes on launch (signature mismatch) or redirects to the Play Store (license check failure). The license check has TWO entry points that must both be blocked: checkLicense (from attachBaseContext) and initializeLicenseCheck (from ContentProvider, which runs before attachBaseContext). REQUIRED for all other patches."
+        },
+        {
+          "name": "Remove ads",
+          "description": "Removes all advertisements (rewarded ads and interstitial ads) from the app. When the user taps 'Watch ad to unlock' on a locked design, the ad is skipped and the design is unlocked instantly \u2014 the reward is granted without showing any ad. Also disables rewarded ad preloading to save bandwidth. Note: this patch does NOT automatically unlock designs \u2014 the user must still tap each locked design to unlock it (the ad is just skipped). For automatic unlock of ALL designs at startup, enable the 'Unlock all designs' patch. Requires the 'Bypass PairIP integrity check' patch."
+        },
+        {
+          "name": "Unlock all designs",
+          "description": "Unlocks all puzzle designs (kilominx, mirror 2x2x2, and all other premium designs) by injecting localStorage[\"ulcsall\"] = \"ok\" into the WebView when the app starts. The JS-side isPaidUser() function checks this key and, when it returns true, treats every design as unlocked. Also skips the GDPR consent popup. Note: setting ulcsall=ok also removes all ads as a side effect (because the JS ad functions check isPaidUser first), so this patch is a superset of the 'Remove ads' patch. If you only want to remove ads without unlocking everything, use only the 'Remove ads' patch. Requires the 'Bypass PairIP integrity check' patch."
+        }
+      ],
+      "versions": [
+        "5.0.3"
+      ],
+      "iconColor": "#F57C00",
+      "iconUrl": ""
+    },
+    {
       "packageName": "diozz.cubex",
       "name": "CubeX Solver",
       "repos": [
@@ -26476,12 +26642,24 @@
           "changelogUrl": "https://raw.githubusercontent.com/MiguelNinja19/miguel-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/MiguelNinja19.png?size=96",
           "latestChanges": {
-            "title": "1.12.4 (2026-07-27)",
-            "date": "2026-07-27",
+            "title": "1.13.3 (2026-07-30)",
+            "date": "2026-07-30",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "delete DisableSighInPromptPatch.kt"
+                "text": "**cubesolver:** fix compile error and add initializeLicenseCheck hook"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** fix compile error and add initializeLicenseCheck hook"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** improve PairIP bypass"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** improve PairIP bypass"
               }
             ]
           },
@@ -29686,6 +29864,89 @@
       "iconUrl": ""
     },
     {
+      "packageName": "com.freejobalert",
+      "name": "FreeJobAlert",
+      "repos": [
+        "byehi98/okish-morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "byehi98/okish-morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/byehi98/okish-morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=byehi98/okish-morphe-patches",
+          "source": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/byehi98.png?size=96",
+          "latestChanges": {
+            "title": "1.1.0 (2026-07-29)",
+            "date": "2026-07-29",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "add TrueCloud remove ads patch, setup Nix dev environment"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**truecloud:** add ad removal patches"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**truecloud:** add patch to remove cloud boot page"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**truecloud:** add patch to remove event cloud popup"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**truecloud:** remove help center robot icon"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-freejobalert-byehi98-okish-morphe-patches",
+            "releaseTag": "app-com-freejobalert-byehi98-okish-morphe-patches",
+            "assetName": "freejobalert-byehi98-okish-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "FreeJobAlert Ad Removal",
+              "description": "Removes all Google AdMob ads (banner, interstitial, rewarded, app open, native)."
+            },
+            {
+              "name": "FreeJobAlert License Bypass",
+              "description": "Bypasses the Pairip Play Store installation check so the app launches normally."
+            }
+          ],
+          "versions": [
+            "1.0.0"
+          ]
+        }
+      ],
+      "patches": [
+        "FreeJobAlert Ad Removal",
+        "FreeJobAlert License Bypass"
+      ],
+      "patchDetails": [
+        {
+          "name": "FreeJobAlert Ad Removal",
+          "description": "Removes all Google AdMob ads (banner, interstitial, rewarded, app open, native)."
+        },
+        {
+          "name": "FreeJobAlert License Bypass",
+          "description": "Bypasses the Pairip Play Store installation check so the app launches normally."
+        }
+      ],
+      "versions": [
+        "1.0.0"
+      ],
+      "iconColor": "#1565C0",
+      "iconUrl": ""
+    },
+    {
       "packageName": "com.influencers.fst7",
       "name": "FST-7",
       "repos": [
@@ -30905,12 +31166,24 @@
           "changelogUrl": "https://raw.githubusercontent.com/MiguelNinja19/miguel-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/MiguelNinja19.png?size=96",
           "latestChanges": {
-            "title": "1.12.4 (2026-07-27)",
-            "date": "2026-07-27",
+            "title": "1.13.3 (2026-07-30)",
+            "date": "2026-07-30",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "delete DisableSighInPromptPatch.kt"
+                "text": "**cubesolver:** fix compile error and add initializeLicenseCheck hook"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** fix compile error and add initializeLicenseCheck hook"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** improve PairIP bypass"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** improve PairIP bypass"
               }
             ]
           },
@@ -35387,40 +35660,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/andrewliang25/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/andrewliang25.png?size=96",
           "latestChanges": {
-            "title": "1.0.0 (2026-07-25)",
-            "date": "2026-07-25",
+            "title": "1.1.0 (2026-07-29)",
+            "date": "2026-07-29",
             "items": [
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "Disambiguate chat-header button fingerprints"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "Drop the rename-package patch"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "Fix read-receipts, hide-ad-views, and external-browser on device"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "Hide Home modules crashed on open (VerifyError)"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "Home modules blocklist \u2014 add FLEX for \u5373\u6642\u592f\u8a71\u984c (test round)"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "Retarget Hide Home modules to the feed state (x72.h$a)"
+                "category": "\u2728 New Features",
+                "text": "also hide the chat-menu \"Events\" row"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "Add experimental Hide Home modules patch"
+                "text": "hide all server-driven extra tools in the + attach menu"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "Add hide-calendar-button and hide-community-button patches"
+                "text": "hide in-chat-room calendar buttons"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "hide the Transfer and LINE GIFT buttons in the + attach menu"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "split Events into its own patch; rename calendar patch to \"Hide LINE Calendar\""
               }
             ]
           },
@@ -35445,20 +35706,36 @@
               "description": "Hides LINE display ad views \u2014 the LINE Ads SDK containers across the app, the chat-list Smart Channel banner, and Google AdManager ads."
             },
             {
-              "name": "Hide calendar button",
-              "description": "Removes the calendar button from the top of the Chats tab header."
+              "name": "Hide attach menu extra tools",
+              "description": "Removes all the server-provided extra tools from a chat room's + attach menu (Poll, Reservation, Schedule, Ladder shuffle, and any others). The built-in tiles (camera, gallery, files, contact, etc.) are unaffected."
+            },
+            {
+              "name": "Hide calendar buttons",
+              "description": "Removes every LINE Calendar button inside the messenger: the one in the Chats-tab header, and the four inside a chat room \u2014 the top toolbar, the + attach menu, the slide-out chat menu, and the message long-press menu."
             },
             {
               "name": "Hide community button",
               "description": "Removes the community (OpenChat) button from the top of the Chats tab header."
             },
             {
+              "name": "Hide Events button",
+              "description": "Removes the \"Events\" row from a chat room's slide-out menu. (Events is a separate feature from LINE Calendar \u2014 it opens a server-hosted page.)"
+            },
+            {
               "name": "Hide Home modules",
               "description": "Hides Home-tab clutter modules: the recommended stickers/content section, the real-time hot-topics (\u5373\u6642\u592f\u8a71\u984c) block, and Home feed ads."
             },
             {
+              "name": "Hide LINE GIFT button",
+              "description": "Removes the LINE GIFT tile from a chat room's + attach menu."
+            },
+            {
               "name": "Hide LINE TODAY tab",
               "description": "Removes the LINE TODAY (News) tab from the main bottom navigation, in both the news-tab and news-row layouts."
+            },
+            {
+              "name": "Hide Transfer button",
+              "description": "Removes the Transfer (LINE Pay) tile from a chat room's + attach menu."
             },
             {
               "name": "Hide VOOM tab",
@@ -35490,10 +35767,14 @@
         "Disable LINE Pay",
         "Disable VOOM",
         "Hide ad views",
-        "Hide calendar button",
+        "Hide attach menu extra tools",
+        "Hide calendar buttons",
         "Hide community button",
+        "Hide Events button",
         "Hide Home modules",
+        "Hide LINE GIFT button",
         "Hide LINE TODAY tab",
+        "Hide Transfer button",
         "Hide VOOM tab",
         "Hide Wallet tab",
         "Keep chats unread",
@@ -35514,20 +35795,36 @@
           "description": "Hides LINE display ad views \u2014 the LINE Ads SDK containers across the app, the chat-list Smart Channel banner, and Google AdManager ads."
         },
         {
-          "name": "Hide calendar button",
-          "description": "Removes the calendar button from the top of the Chats tab header."
+          "name": "Hide attach menu extra tools",
+          "description": "Removes all the server-provided extra tools from a chat room's + attach menu (Poll, Reservation, Schedule, Ladder shuffle, and any others). The built-in tiles (camera, gallery, files, contact, etc.) are unaffected."
+        },
+        {
+          "name": "Hide calendar buttons",
+          "description": "Removes every LINE Calendar button inside the messenger: the one in the Chats-tab header, and the four inside a chat room \u2014 the top toolbar, the + attach menu, the slide-out chat menu, and the message long-press menu."
         },
         {
           "name": "Hide community button",
           "description": "Removes the community (OpenChat) button from the top of the Chats tab header."
         },
         {
+          "name": "Hide Events button",
+          "description": "Removes the \"Events\" row from a chat room's slide-out menu. (Events is a separate feature from LINE Calendar \u2014 it opens a server-hosted page.)"
+        },
+        {
           "name": "Hide Home modules",
           "description": "Hides Home-tab clutter modules: the recommended stickers/content section, the real-time hot-topics (\u5373\u6642\u592f\u8a71\u984c) block, and Home feed ads."
         },
         {
+          "name": "Hide LINE GIFT button",
+          "description": "Removes the LINE GIFT tile from a chat room's + attach menu."
+        },
+        {
           "name": "Hide LINE TODAY tab",
           "description": "Removes the LINE TODAY (News) tab from the main bottom navigation, in both the news-tab and news-row layouts."
+        },
+        {
+          "name": "Hide Transfer button",
+          "description": "Removes the Transfer (LINE Pay) tile from a chat room's + attach menu."
         },
         {
           "name": "Hide VOOM tab",
@@ -41002,12 +41299,24 @@
           "changelogUrl": "https://raw.githubusercontent.com/MiguelNinja19/miguel-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/MiguelNinja19.png?size=96",
           "latestChanges": {
-            "title": "1.12.4 (2026-07-27)",
-            "date": "2026-07-27",
+            "title": "1.13.3 (2026-07-30)",
+            "date": "2026-07-30",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "delete DisableSighInPromptPatch.kt"
+                "text": "**cubesolver:** fix compile error and add initializeLicenseCheck hook"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** fix compile error and add initializeLicenseCheck hook"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** improve PairIP bypass"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** improve PairIP bypass"
               }
             ]
           },
@@ -41459,12 +41768,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.11.0 (2026-07-27)",
-            "date": "2026-07-27",
+            "title": "1.11.2 (2026-07-29)",
+            "date": "2026-07-29",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**automation:** promote qualified app targets"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**ozon:** support version 19.28.0"
               }
             ]
           },
@@ -41482,7 +41791,8 @@
             }
           ],
           "versions": [
-            "19.27.0"
+            "19.27.0",
+            "19.28.0"
           ]
         }
       ],
@@ -42575,12 +42885,36 @@
           "changelogUrl": "https://raw.githubusercontent.com/browzomje/browzomje-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/browzomje.png?size=96",
           "latestChanges": {
-            "title": "1.3.2 (2026-07-01)",
-            "date": "2026-07-01",
+            "title": "1.4.0 (2026-07-29)",
+            "date": "2026-07-29",
             "items": [
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**pinterest:** fixed snackbar using again the same system of other pinterest features instead of stock android snackbars"
+                "category": "\u2728 New Features",
+                "text": "**pinterest:** add support for 14.28.0"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**pinterest:** add the Morphe settings screen"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**pinterest:** download every pin of a board"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**pinterest:** hide the search history"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**pinterest:** mark 14.28.0 stable and drop 14.24.0"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**pinterest:** translate patch descriptions to English"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**pinterest:** translate patcher log and feedback messages to English"
               }
             ]
           },
@@ -42601,8 +42935,44 @@
               "description": "Removes sponsored (promoted) pins from the home feed and from search/related/board feeds."
             },
             {
+              "name": "Disable email confirmation dialog",
+              "description": "Immediately closes the \"confirm your email\" modal (and similar ones: connect Google, etc.) if enabled in Morphe settings."
+            },
+            {
+              "name": "Download board",
+              "description": "Adds an option to the board's \"\u2026\" menu to bulk download images and videos from already loaded pins. Streaming-only videos are reported and skipped."
+            },
+            {
               "name": "Download video",
               "description": "Adds a 'Download video' option to the pin menu for video pins, saving the clip to the Downloads folder."
+            },
+            {
+              "name": "Hide Create nav button",
+              "description": "Hooks the '+' (create Pin) navigation bar button: hidden if enabled in Morphe settings."
+            },
+            {
+              "name": "Hide Notifications nav button",
+              "description": "Hooks the notifications button: hidden if enabled in Morphe settings."
+            },
+            {
+              "name": "Hide search history",
+              "description": "Hides the \"Recent searches\" section both on the search screen and in the carousel below the search bar. It does not prevent Pinterest from logging searches (server-side), but stops them from being shown anywhere in the app."
+            },
+            {
+              "name": "Hide Search nav button",
+              "description": "Hooks the search button: hidden if enabled in Morphe settings."
+            },
+            {
+              "name": "Morphe settings entry",
+              "description": "Adds the \"Morphe\" item to the Account Settings list to open the toggle screen."
+            },
+            {
+              "name": "Morphe settings screen (label)",
+              "description": "Renames the reused string resource for the \"Morphe\" entry in Settings, across all languages."
+            },
+            {
+              "name": "Morphe settings screen (manifest)",
+              "description": "Registers the Morphe settings Activity in the manifest, with an intent-filter for the morphe:// scheme."
             },
             {
               "name": "Neutralize advertising ID",
@@ -42615,7 +42985,7 @@
           ],
           "versions": [
             "14.23.0",
-            "14.24.0"
+            "14.28.0"
           ]
         },
         {
@@ -42720,14 +43090,23 @@
         "Disable AppsFlyer tracking",
         "Disable Bugsnag crash tracking",
         "Disable Bugsnag Telemetry",
+        "Disable email confirmation dialog",
         "Disable Firebase services",
         "Disable General Telemetry",
         "Disable Google Ads SDK",
         "Disable Google Engage integration",
         "Disable Google Engage worker",
+        "Download board",
         "Download video",
         "Hide ad views",
+        "Hide Create nav button",
+        "Hide Notifications nav button",
         "Hide promoted pins",
+        "Hide search history",
+        "Hide Search nav button",
+        "Morphe settings entry",
+        "Morphe settings screen (label)",
+        "Morphe settings screen (manifest)",
         "Neutralize advertising ID",
         "Opt out of Google Analytics",
         "Remove Advertising ID permission",
@@ -42762,6 +43141,10 @@
           "description": "Disables Bugsnag crash reporting and analytics."
         },
         {
+          "name": "Disable email confirmation dialog",
+          "description": "Immediately closes the \"confirm your email\" modal (and similar ones: connect Google, etc.) if enabled in Morphe settings."
+        },
+        {
           "name": "Disable Firebase services",
           "description": "Adds the officially documented Firebase off-switches (`firebase_analytics_collection_deactivated`, `firebase_crashlytics_collection_enabled=false`, `firebase_performance_collection_deactivated`, `google_analytics_adid_collection_enabled=false`) so the Firebase Analytics, Crashlytics and Performance SDKs go dormant."
         },
@@ -42782,6 +43165,10 @@
           "description": "Rewrites GoogleEngageWorker.createWork() to return null so WorkManager fails the periodic job and no content recommendations are ever published to Google."
         },
         {
+          "name": "Download board",
+          "description": "Adds an option to the board's \"\u2026\" menu to bulk download images and videos from already loaded pins. Streaming-only videos are reported and skipped."
+        },
+        {
           "name": "Download video",
           "description": "Adds a 'Download video' option to the pin menu for video pins, saving the clip to the Downloads folder."
         },
@@ -42790,8 +43177,36 @@
           "description": "Collapses Pinterest's ad-specific views (TextAdView, promoted closeup action bars, board sponsor headers, \u2026) to zero-size on construction, so ad chrome never draws even if the feed adapter tries to render one."
         },
         {
+          "name": "Hide Create nav button",
+          "description": "Hooks the '+' (create Pin) navigation bar button: hidden if enabled in Morphe settings."
+        },
+        {
+          "name": "Hide Notifications nav button",
+          "description": "Hooks the notifications button: hidden if enabled in Morphe settings."
+        },
+        {
           "name": "Hide promoted pins",
           "description": "Neutralises every ad-indicator field on the Pinterest pin/story models (is_promoted, promoted_is_*, is_native, ad_data, ...) so Promoted Pins, shopping-carousel ads, native-content ads and click-out CTAs are never rendered or fired."
+        },
+        {
+          "name": "Hide search history",
+          "description": "Hides the \"Recent searches\" section both on the search screen and in the carousel below the search bar. It does not prevent Pinterest from logging searches (server-side), but stops them from being shown anywhere in the app."
+        },
+        {
+          "name": "Hide Search nav button",
+          "description": "Hooks the search button: hidden if enabled in Morphe settings."
+        },
+        {
+          "name": "Morphe settings entry",
+          "description": "Adds the \"Morphe\" item to the Account Settings list to open the toggle screen."
+        },
+        {
+          "name": "Morphe settings screen (label)",
+          "description": "Renames the reused string resource for the \"Morphe\" entry in Settings, across all languages."
+        },
+        {
+          "name": "Morphe settings screen (manifest)",
+          "description": "Registers the Morphe settings Activity in the manifest, with an intent-filter for the morphe:// scheme."
         },
         {
           "name": "Neutralize advertising ID",
@@ -42831,7 +43246,8 @@
         "14.24.0",
         "14.25.0",
         "14.26.0",
-        "14.27.0"
+        "14.27.0",
+        "14.28.0"
       ],
       "iconColor": "#E60023",
       "iconUrl": "https://play-lh.googleusercontent.com/VExMwhu9Fe5kz72YnPWP6mHrNA5WfgZ-PJMnBnQmXFpLncTAOaaHtK4b8w7b2xxGxtqycDatYslVyNSLucl9QA"
@@ -43086,12 +43502,24 @@
           "changelogUrl": "https://raw.githubusercontent.com/MiguelNinja19/miguel-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/MiguelNinja19.png?size=96",
           "latestChanges": {
-            "title": "1.12.4 (2026-07-27)",
-            "date": "2026-07-27",
+            "title": "1.13.3 (2026-07-30)",
+            "date": "2026-07-30",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "delete DisableSighInPromptPatch.kt"
+                "text": "**cubesolver:** fix compile error and add initializeLicenseCheck hook"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** fix compile error and add initializeLicenseCheck hook"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** improve PairIP bypass"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** improve PairIP bypass"
               }
             ]
           },
@@ -49427,12 +49855,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/alan7383/sofatime-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/alan7383.png?size=96",
           "latestChanges": {
-            "title": "1.3.0 (2026-07-29)",
+            "title": "1.3.1 (2026-07-29)",
             "date": "2026-07-29",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "add Disable Telemetry patch (Firebase Crashlytics + Sessions)"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "update Google Sign-In patch for SofaTime 1.1.5 compatibility"
               }
             ]
           },
@@ -49462,7 +49890,7 @@
             }
           ],
           "versions": [
-            "1.1.4"
+            "1.1.5"
           ]
         }
       ],
@@ -49491,7 +49919,7 @@
         }
       ],
       "versions": [
-        "1.1.4"
+        "1.1.5"
       ],
       "iconColor": "#1E1E2E",
       "iconUrl": ""
@@ -52492,12 +52920,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.11.0 (2026-07-27)",
-            "date": "2026-07-27",
+            "title": "1.11.2 (2026-07-29)",
+            "date": "2026-07-29",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**automation:** promote qualified app targets"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**ozon:** support version 19.28.0"
               }
             ]
           },
@@ -53242,12 +53670,24 @@
           "changelogUrl": "https://raw.githubusercontent.com/MiguelNinja19/miguel-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/MiguelNinja19.png?size=96",
           "latestChanges": {
-            "title": "1.12.4 (2026-07-27)",
-            "date": "2026-07-27",
+            "title": "1.13.3 (2026-07-30)",
+            "date": "2026-07-30",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "delete DisableSighInPromptPatch.kt"
+                "text": "**cubesolver:** fix compile error and add initializeLicenseCheck hook"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** fix compile error and add initializeLicenseCheck hook"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** improve PairIP bypass"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** improve PairIP bypass"
               }
             ]
           },
@@ -55115,8 +55555,8 @@
       ],
       "patches": [
         "Disable analytics",
-        "Disable telemetry",
         "Disable Telemetry",
+        "Disable telemetry",
         "Disable update check",
         "Enable premium features",
         "GMS sign-in bypass",
@@ -55160,11 +55600,11 @@
           "description": "Suppresses Truecaller's CleverTap behavioural event tracking to prevent user-activity telemetry."
         },
         {
-          "name": "Disable telemetry",
+          "name": "Disable Telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
-          "name": "Disable Telemetry",
+          "name": "Disable telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
@@ -55335,8 +55775,8 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.0.0 (2026-07-04)",
-            "date": "2026-07-04",
+            "title": "1.1.0 (2026-07-29)",
+            "date": "2026-07-29",
             "items": [
               {
                 "category": "\u2728 New Features",
@@ -57386,12 +57826,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.11.0 (2026-07-27)",
-            "date": "2026-07-27",
+            "title": "1.11.2 (2026-07-29)",
+            "date": "2026-07-29",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**automation:** promote qualified app targets"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**ozon:** support version 19.28.0"
               }
             ]
           },
@@ -57409,7 +57849,8 @@
             }
           ],
           "versions": [
-            "7.7.2001-rustore"
+            "7.7.2001-rustore",
+            "7.7.3001-rustore"
           ]
         }
       ],
@@ -57423,7 +57864,8 @@
         }
       ],
       "versions": [
-        "7.7.2001-rustore"
+        "7.7.2001-rustore",
+        "7.7.3001-rustore"
       ],
       "iconColor": "#A73AFD",
       "iconUrl": "https://play-lh.googleusercontent.com/_3OFXp7p3aaOt6lJdqOPNS8frRjGW7SrlgUELTcxMZNbvQtBN0ez_lrXtMk-X9Yk_kfdesM7fOcRpMl3Ebhgpg"
@@ -59979,8 +60421,8 @@
         "Video playback",
         "Video quality",
         "Visual preferences icons for YouTube",
-        "Voice over translation",
         "Voice Over Translation",
+        "Voice over translation",
         "Voice Over Translation (Yandex)",
         "Watch history",
         "Watch later button",
@@ -60481,12 +60923,12 @@
           "description": "Adds icons to specific preferences in the settings."
         },
         {
-          "name": "Voice over translation",
-          "description": "Adds additional voice over languages using text-to-speech synchronized to the video playback."
-        },
-        {
           "name": "Voice Over Translation",
           "description": "Adds an option to enable Yandex voice-over translation of video audio tracks."
+        },
+        {
+          "name": "Voice over translation",
+          "description": "Adds additional voice over languages using text-to-speech synchronized to the video playback."
         },
         {
           "name": "Voice Over Translation (Yandex)",
@@ -62886,12 +63328,24 @@
       "avatarUrl": "https://github.com/MiguelNinja19.png?size=96",
       "patchCount": 2,
       "latestChanges": {
-        "title": "1.12.4 (2026-07-27)",
-        "date": "2026-07-27",
+        "title": "1.13.3 (2026-07-30)",
+        "date": "2026-07-30",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "delete DisableSighInPromptPatch.kt"
+            "text": "**cubesolver:** fix compile error and add initializeLicenseCheck hook"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**cubesolver:** fix compile error and add initializeLicenseCheck hook"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**cubesolver:** improve PairIP bypass"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**cubesolver:** improve PairIP bypass"
           }
         ]
       },
@@ -62981,20 +63435,51 @@
       "source": "https://raw.githubusercontent.com/Nai64/Nai64Patches/main/patches-bundle.json",
       "changelogUrl": "https://raw.githubusercontent.com/Nai64/Nai64Patches/main/CHANGELOG.md",
       "avatarUrl": "https://github.com/Nai64.png?size=96",
-      "patchCount": 4,
+      "patchCount": 8,
       "latestChanges": {
-        "title": "1.13.1 (2026-07-22)",
-        "date": "2026-07-22",
+        "title": "1.15.0 (2026-07-30)",
+        "date": "2026-07-30",
         "items": [
           {
             "category": "Bug Fixes",
-            "text": "remove patch descriptions"
+            "text": "custom patch order in Morphe"
+          },
+          {
+            "category": "New Features",
+            "text": "add Disable Telemetry universal patch"
+          },
+          {
+            "category": "New Features",
+            "text": "add onAdHidden safety net to Ads Free Rewards"
+          },
+          {
+            "category": "New Features",
+            "text": "add Unlock RevenueCat Entitlements universal patch"
+          },
+          {
+            "category": "New Features",
+            "text": "register Disable Telemetry patch in order + README"
           }
         ]
       },
       "patches": [
         {
           "name": "Ads Free Rewards",
+          "description": "",
+          "default": false
+        },
+        {
+          "name": "Disable Root Checks",
+          "description": "",
+          "default": false
+        },
+        {
+          "name": "Disable Telemetry",
+          "description": "",
+          "default": false
+        },
+        {
+          "name": "Disable Update Checks",
           "description": "",
           "default": false
         },
@@ -63010,6 +63495,11 @@
         },
         {
           "name": "Spoof Play Store Install Source",
+          "description": "",
+          "default": false
+        },
+        {
+          "name": "Unlock RevenueCat Entitlements",
           "description": "",
           "default": false
         }
@@ -63719,12 +64209,12 @@
       "avatarUrl": "https://github.com/xob0t.png?size=96",
       "patchCount": 13,
       "latestChanges": {
-        "title": "1.11.0 (2026-07-27)",
-        "date": "2026-07-27",
+        "title": "1.11.2 (2026-07-29)",
+        "date": "2026-07-29",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "**automation:** promote qualified app targets"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**ozon:** support version 19.28.0"
           }
         ]
       },
@@ -63855,12 +64345,12 @@
       "createdDate": "2026-07-28",
       "updatedDate": "2026-07-28",
       "latestChanges": {
-        "title": "1.3.0 (2026-07-29)",
+        "title": "1.3.1 (2026-07-29)",
         "date": "2026-07-29",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "add Disable Telemetry patch (Firebase Crashlytics + Sessions)"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "update Google Sign-In patch for SofaTime 1.1.5 compatibility"
           }
         ]
       },
@@ -64129,47 +64619,35 @@
       "webUrl": "https://github.com/andrewliang25/morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=andrewliang25/morphe-patches",
       "avatarUrl": "https://github.com/andrewliang25.png?size=96",
-      "patchCount": 12,
+      "patchCount": 16,
       "appCount": 1,
       "createdAt": 1785034852052,
       "updatedAt": 1785034852052,
       "createdDate": "2026-07-26",
       "updatedDate": "2026-07-26",
       "latestChanges": {
-        "title": "1.0.0 (2026-07-25)",
-        "date": "2026-07-25",
+        "title": "1.1.0 (2026-07-29)",
+        "date": "2026-07-29",
         "items": [
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "Disambiguate chat-header button fingerprints"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "Drop the rename-package patch"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "Fix read-receipts, hide-ad-views, and external-browser on device"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "Hide Home modules crashed on open (VerifyError)"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "Home modules blocklist \u2014 add FLEX for \u5373\u6642\u592f\u8a71\u984c (test round)"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "Retarget Hide Home modules to the feed state (x72.h$a)"
+            "category": "\u2728 New Features",
+            "text": "also hide the chat-menu \"Events\" row"
           },
           {
             "category": "\u2728 New Features",
-            "text": "Add experimental Hide Home modules patch"
+            "text": "hide all server-driven extra tools in the + attach menu"
           },
           {
             "category": "\u2728 New Features",
-            "text": "Add hide-calendar-button and hide-community-button patches"
+            "text": "hide in-chat-room calendar buttons"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "hide the Transfer and LINE GIFT buttons in the + attach menu"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "split Events into its own patch; rename calendar patch to \"Hide LINE Calendar\""
           }
         ]
       },
@@ -64177,7 +64655,7 @@
         {
           "name": "LINE",
           "packageName": "jp.naver.line.android",
-          "patchCount": 12,
+          "patchCount": 16,
           "iconUrl": "",
           "iconColor": "#06C755"
         }
