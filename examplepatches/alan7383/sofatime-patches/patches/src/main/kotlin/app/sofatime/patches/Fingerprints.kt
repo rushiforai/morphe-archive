@@ -43,3 +43,11 @@ val sessionsRegistrarGetComponents = Fingerprint(
     name = "getComponents",
     returnType = "Ljava/util/List;"
 )
+
+val googleSignInMethodFingerprint = Fingerprint(
+    returnType = "Ljava/io/Serializable;",
+    strings = listOf(
+        "com.google.android.libraries.identity.googleid.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL"
+    )
+)
+

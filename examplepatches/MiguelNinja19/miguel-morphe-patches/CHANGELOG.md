@@ -1,3 +1,37 @@
+## [1.13.3](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.13.2...v1.13.3) (2026-07-30)
+
+### 🐛 Bug Fixes
+
+* **cubesolver:** fix compile error and add initializeLicenseCheck hook ([ed1d17d](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/ed1d17d7fcc13c931d9eae71f86ede723be50754))
+* **cubesolver:** fix compile error and add initializeLicenseCheck hook ([683b18c](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/683b18c34a15c2da43e050399f1dd4a272ab5821))
+* **cubesolver:** improve PairIP bypass ([f2f16f7](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/f2f16f70e9610078f09d495f97679aaff246230c))
+* **cubesolver:** improve PairIP bypass ([66ae6f4](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/66ae6f4394e72798eb92d54ff65dd85da49e591c))
+
+## [1.13.2](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.13.1...v1.13.2) (2026-07-30)
+
+### 🐛 Bug Fixes
+
+* **cubesolver:** improve PairIP bypass with single attachBaseContext hook ([cc19bbd](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/cc19bbdf08045a76d530ed66d33038b5bbdc2575))
+* **cubesolver:** improve PairIP bypass with single attachBaseContext hook ([5ff103a](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/5ff103a90d09f3d0bc542f811be6f32865d13566))
+
+## [1.13.1](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.13.0...v1.13.1) (2026-07-30)
+
+### 🐛 Bug Fixes
+
+* **cubesolver:** add PairIP bypass patch (fixes app crash on patched APK) ([e0ff35c](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/e0ff35c32bb6c5e9e47ad16c24f1460e17b851d7))
+* **cubesolver:** add PairIP bypass patch (fixes app crash on patched APK) ([f4d0fa3](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/f4d0fa3b445ccb2d920914ce626d5b60ccd5948c))
+* **cubesolver:** add PairIP bypass patch (fixes app crash on patched APK) ([ddf136e](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/ddf136eb52be8377f326e812daa14e0c3b27cff0))
+* **cubesolver:** add PairIP bypass patch (fixes app crash on patched APK) ([d80d792](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/d80d79200736a8878856d96d59ed58a451f49772))
+
+## [1.13.0](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.12.4...v1.13.0) (2026-07-29)
+
+### ✨ New Features
+
+* **cubesolver:** add remove ads and unlock all designs patches for v5.0.3 ([bf35143](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/bf35143010fb72a408b25d5d09f701a1133280d4))
+* **cubesolver:** add remove ads and unlock all designs patches for v5.0.3 ([0d9f9a8](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/0d9f9a830de99c100a442f37de973949d423f8b2))
+* **cubesolver:** add remove ads and unlock all designs patches for v5.0.3 ([fd235bf](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/fd235bf36aaee062ef1df578cd2acd545b1920ed))
+* **cubesolver:** add remove ads and unlock all designs patches for v5.0.3 ([f88932e](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/f88932eb49b877328580dc9e749eb477a57a06a0))
+
 ## [1.12.4](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.12.3...v1.12.4) (2026-07-27)
 
 ### 🐛 Bug Fixes

@@ -216,31 +216,57 @@ object GoogleSignInHelper {
         }
     }
 
+    private fun createResultObject(tokenOrError: String): Any {
+        val isSuccess = tokenOrError.isNotEmpty()
+        val valueToBox: Any = if (isSuccess) {
+            tokenOrError
+        } else {
+            val exception = IllegalStateException("Google sign-in failed or was cancelled.")
+            try {
+                val gl5Class = Class.forName("gl5")
+                val gl5Constructor = gl5Class.getDeclaredConstructor(Throwable::class.java)
+                gl5Constructor.isAccessible = true
+                gl5Constructor.newInstance(exception)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to instantiate gl5", e)
+                exception
+            }
+        }
+
+        return try {
+            val hl5Class = Class.forName("hl5")
+            val hl5Constructor = hl5Class.getDeclaredConstructor(Any::class.java)
+            hl5Constructor.isAccessible = true
+            hl5Constructor.newInstance(valueToBox)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to instantiate hl5", e)
+            valueToBox
+        }
+    }
+
     private fun resumeCoroutine(continuationObj: Any, resumed: AtomicBoolean, result: String) {
         if (resumed.compareAndSet(false, true)) {
             Log.d(TAG, "Resuming coroutine with result token (length: ${result.length})")
             try {
-                var wrappedResult: Any = result
+                var target = continuationObj
                 try {
-                    val classLoader = continuationObj.javaClass.classLoader
-                    val resultClass = classLoader?.loadClass("uk5") ?: Class.forName("uk5")
-                    val cons = resultClass.getDeclaredConstructor(Any::class.java)
-                    cons.isAccessible = true
-                    wrappedResult = cons.newInstance(result)
-                    Log.d(TAG, "Successfully wrapped result in uk5 (kotlin.Result) object!")
-                } catch (e: Exception) {
-                    Log.w(TAG, "Could not wrap result in uk5", e)
+                    val interceptedMethod = continuationObj.javaClass.getMethod("intercepted")
+                    val intercepted = interceptedMethod.invoke(continuationObj)
+                    if (intercepted != null) {
+                        target = intercepted
+                    }
+                } catch (_: Exception) {
                 }
 
                 var resumeMethod: Method? = null
-                for (m in continuationObj.javaClass.methods) {
+                for (m in target.javaClass.methods) {
                     if (m.name == "resumeWith" && m.parameterTypes.size == 1) {
                         resumeMethod = m
                         break
                     }
                 }
                 if (resumeMethod == null) {
-                    var cur: Class<*>? = continuationObj.javaClass
+                    var cur: Class<*>? = target.javaClass
                     while (cur != null && resumeMethod == null) {
                         for (m in cur.declaredMethods) {
                             if (m.name == "resumeWith" && m.parameterTypes.size == 1) {
@@ -253,15 +279,17 @@ object GoogleSignInHelper {
                     }
                 }
                 if (resumeMethod != null) {
-                    resumeMethod.invoke(continuationObj, wrappedResult)
+                    val resultObject = createResultObject(result)
+                    resumeMethod.invoke(target, resultObject)
                 } else {
-                    Log.e(TAG, "Could not find resumeWith method on ${continuationObj.javaClass.name}")
+                    Log.e(TAG, "Could not find resumeWith method on ${target.javaClass.name}")
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Error resuming coroutine via reflection", e)
             }
         }
     }
+
 
     private fun exchangeCodeForFirebaseToken(authCode: String): String {
         val requestUrl = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithIdp?key=$FIREBASE_API_KEY"

@@ -38,6 +38,13 @@ internal object ShowAppOpenAdFingerprint : Fingerprint(
     parameters = listOf("Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/String;"),
 )
 
+internal object MaxUnityAdManagerOnAdHiddenFingerprint : Fingerprint(
+    name = "onAdHidden",
+    accessFlags = listOf(AccessFlags.PUBLIC),
+    returnType = "V",
+    parameters = listOf("Lcom/applovin/mediation/MaxAd;"),
+)
+
 internal object ShowBannerFingerprint : Fingerprint(
     name = "showBanner",
     accessFlags = listOf(AccessFlags.PUBLIC),
@@ -271,4 +278,41 @@ internal object IronSourceLevelPlayFullScreenShowAdFingerprint : Fingerprint(
         "Landroid/app/Activity;",
         "Ljava/lang/String;",
     ),
+)
+
+// ── Play In-app Updates ──
+
+internal object AppUpdateManagerImplStartUpdateFlowFingerprint : Fingerprint(
+    definingClass = "Lcom/google/android/play/core/appupdate/AppUpdateManagerImpl;",
+    name = "startUpdateFlowForResult",
+    returnType = "Lcom/google/android/play/core/tasks/Task;",
+)
+
+// ── RootBeer root detection ──
+
+internal object RootBeerIsRootedFingerprint : Fingerprint(
+    definingClass = "Lcom/scottyab/rootbeer/RootBeer;",
+    name = "isRooted",
+    returnType = "Z",
+)
+
+internal object RootBeerDetectSuBinaryFingerprint : Fingerprint(
+    definingClass = "Lcom/scottyab/rootbeer/RootBeer;",
+    name = "detectSuBinary",
+    returnType = "Z",
+)
+
+internal object RootBeerDetectTestKeysFingerprint : Fingerprint(
+    definingClass = "Lcom/scottyab/rootbeer/RootBeer;",
+    name = "detectTestKeys",
+    returnType = "Z",
+)
+
+// ── RevenueCat ──
+
+internal object EntitlementInfoIsActiveFingerprint : Fingerprint(
+    definingClass = "Lcom/revenuecat/purchases/EntitlementInfo;",
+    name = "isActive",
+    returnType = "Z",
+    parameters = emptyList(),
 )

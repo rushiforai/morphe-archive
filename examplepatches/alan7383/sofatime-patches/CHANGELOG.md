@@ -1,3 +1,9 @@
+## [1.3.1](https://github.com/alan7383/sofatime-patches/compare/v1.3.0...v1.3.1) (2026-07-29)
+
+### 🐛 Bug Fixes
+
+* update Google Sign-In patch for SofaTime 1.1.5 compatibility ([60f706c](https://github.com/alan7383/sofatime-patches/commit/60f706cbac56780ce30038f41718503defbba262))
+
 ## [1.3.0](https://github.com/alan7383/sofatime-patches/compare/v1.2.1...v1.3.0) (2026-07-29)
 
 ### ✨ New Features
