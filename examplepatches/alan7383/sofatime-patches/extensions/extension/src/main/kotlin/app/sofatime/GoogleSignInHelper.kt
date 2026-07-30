@@ -223,7 +223,7 @@ object GoogleSignInHelper {
         } else {
             val exception = IllegalStateException("Google sign-in failed or was cancelled.")
             try {
-                val gl5Class = Class.forName("gl5")
+                val gl5Class = Class.forName("fm5")
                 val gl5Constructor = gl5Class.getDeclaredConstructor(Throwable::class.java)
                 gl5Constructor.isAccessible = true
                 gl5Constructor.newInstance(exception)
@@ -234,7 +234,7 @@ object GoogleSignInHelper {
         }
 
         return try {
-            val hl5Class = Class.forName("hl5")
+            val hl5Class = Class.forName("gm5")
             val hl5Constructor = hl5Class.getDeclaredConstructor(Any::class.java)
             hl5Constructor.isAccessible = true
             hl5Constructor.newInstance(valueToBox)

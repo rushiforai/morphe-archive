@@ -17,7 +17,25 @@ identify each app. They are not covered by this repository's licence. See
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.1](https://github.com/hxreborn/morphe-patches/releases/tag/v1.0.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
+> **[v1.1.0](https://github.com/hxreborn/morphe-patches/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;8 patches total
+<details open>
+<summary>Proton Mail&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<br>
+
+**Supported versions:**
+
+| 7.10.4 |
+| :---: |
+
+| Patch | Description |
+|----------|----------------|
+| <a id="proton-mail-amoled-dark-theme"></a>[AMOLED dark theme](#proton-mail-amoled-dark-theme) | Replaces the dark theme background with pure black. |
+| <a id="proton-mail-hide-upgrade-upselling"></a>[Hide upgrade upselling](#proton-mail-hide-upgrade-upselling) | Hides the top-bar upgrade button and promotional sidebar rows. |
+| <a id="proton-mail-remove-sent-from-signature"></a>[Remove 'Sent from' signature](#proton-mail-remove-sent-from-signature) | Removes the 'Sent from Proton Mail' signature from emails. |
+| <a id="proton-mail-remove-free-accounts-limit"></a>[Remove free accounts limit](#proton-mail-remove-free-accounts-limit) | Removes the limit for maximum free accounts logged in. |
+
+</details>
+
 <details open>
 <summary><img src=".github/assets/icons/projectivy.png" width="18" align="top">&nbsp;&nbsp;Projectivy Launcher&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -63,9 +81,7 @@ identify each app. They are not covered by this repository's licence. See
 
 #### How to use these patches
 
-Click here to add these patches to Morphe: https://morphe.software/add-source?github=hxreborn/morphe-patches
-
-Or manually add this repository url as a patch source in Morphe: https://github.com/hxreborn/morphe-patches
+<a href="https://morphe.software/add-source?github=hxreborn/morphe-patches"><img alt="Add to Morphe" src="https://img.shields.io/badge/Morphe-Add%20Source-00A8FF?style=for-the-badge"></a>
 
 ### 🛠️ Building
 

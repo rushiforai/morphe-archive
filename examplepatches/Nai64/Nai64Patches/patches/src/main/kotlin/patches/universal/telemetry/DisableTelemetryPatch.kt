@@ -14,67 +14,67 @@ val disableTelemetryPatch = bytecodePatch(
         title = "Block Firebase Analytics",
         default = true,
         key = "blockFirebase",
-        description = "Blocks Firebase Analytics and Crashlytics.",
+        description = "",
     )
     val blockAppsFlyer by booleanOption(
         title = "Block AppsFlyer",
         default = true,
         key = "blockAppsFlyer",
-        description = "Blocks AppsFlyer SDK.",
+        description = "",
     )
     val blockAdjust by booleanOption(
         title = "Block Adjust",
         default = true,
         key = "blockAdjust",
-        description = "Blocks Adjust SDK.",
+        description = "",
     )
     val blockAmplitude by booleanOption(
         title = "Block Amplitude",
         default = true,
         key = "blockAmplitude",
-        description = "Blocks Amplitude.",
+        description = "",
     )
     val blockMixpanel by booleanOption(
         title = "Block Mixpanel",
         default = true,
         key = "blockMixpanel",
-        description = "Blocks Mixpanel.",
+        description = "",
     )
     val blockCleverTap by booleanOption(
         title = "Block CleverTap",
         default = true,
         key = "blockCleverTap",
-        description = "Blocks CleverTap.",
+        description = "",
     )
     val blockSegment by booleanOption(
         title = "Block Segment",
         default = true,
         key = "blockSegment",
-        description = "Blocks Segment.",
+        description = "",
     )
     val blockFacebook by booleanOption(
         title = "Block Facebook Analytics",
         default = true,
         key = "blockFacebook",
-        description = "Blocks Facebook Analytics.",
+        description = "",
     )
     val blockBranch by booleanOption(
         title = "Block Branch.io",
         default = true,
         key = "blockBranch",
-        description = "Blocks Branch.io.",
+        description = "",
     )
     val blockUnity by booleanOption(
         title = "Block Unity Analytics",
         default = true,
         key = "blockUnity",
-        description = "Blocks Unity Analytics.",
+        description = "",
     )
     val blockFlurry by booleanOption(
         title = "Block Flurry",
         default = true,
         key = "blockFlurry",
-        description = "Blocks Flurry.",
+        description = "",
     )
 
     execute {
@@ -142,5 +142,20 @@ val disableTelemetryPatch = bytecodePatch(
         if (blockFlurry == true) {
             FlurryLogEventFingerprint.methodOrNull?.let { it.addInstruction(0, "return-void") }
         }
+
+        val blocked = buildList {
+            if (blockFirebase == true && FirebaseInitializeFingerprint.methodOrNull != null) add("Firebase")
+            if (blockAppsFlyer == true && AppsFlyerStartFingerprint.methodOrNull != null) add("AppsFlyer")
+            if (blockAdjust == true && AdjustOnCreateFingerprint.methodOrNull != null) add("Adjust")
+            if (blockBranch == true && BranchInitFingerprint.methodOrNull != null) add("Branch")
+            if (blockAmplitude == true && AmplitudeLogEventFingerprint.methodOrNull != null) add("Amplitude")
+            if (blockMixpanel == true && MixpanelTrackFingerprint.methodOrNull != null) add("Mixpanel")
+            if (blockCleverTap == true && CleverTapPushEventFingerprint.methodOrNull != null) add("CleverTap")
+            if (blockSegment == true && SegmentTrackFingerprint.methodOrNull != null) add("Segment")
+            if (blockFacebook == true && FacebookLogEventFingerprint.methodOrNull != null) add("Facebook")
+            if (blockUnity == true && UnityAnalyticsTransactionFingerprint.methodOrNull != null) add("Unity")
+            if (blockFlurry == true && FlurryLogEventFingerprint.methodOrNull != null) add("Flurry")
+        }
+        logger.info("Disable Telemetry patch succeeded — ${blocked.size} SDK/SDKs blocked: ${blocked.joinToString(", ")}")
     }
 }

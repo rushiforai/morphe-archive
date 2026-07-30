@@ -15,7 +15,7 @@ fun main() {
             !fileName.contains("javadoc") &&
                     !fileName.contains("sources") &&
                     fileName.endsWith(".mpp")
-        }!!.first()
+        }!!.maxBy { it.lastModified() }
     )
     val loadedPatches = loadPatchesFromJar(patchFiles)
     val patchClassLoader = URLClassLoader(patchFiles.map { it.toURI().toURL() }.toTypedArray())
@@ -39,7 +39,11 @@ private fun generatePatchList(version: String, patches: Set<Patch<*>>) {
         "Ads Free Rewards",
         "No Ads",
         "Spoof Play Store Install Source",
+        "Pairip Bypass (Experimental)",
         "Unlock RevenueCat Entitlements",
+        "Custom App Resolution (Experimental)",
+        "Disable Root Checks",
+        "Disable Update Checks",
         "Disable Telemetry",
     )
     val orderMap = patchOrder.withIndex().associate { (i, name) -> name to i }

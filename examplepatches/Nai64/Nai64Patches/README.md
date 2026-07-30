@@ -1,8 +1,8 @@
 # Nai's Patches
 
-Universal Morphe patches for Android games.
+Universal Morphe patches for Android apps and games.
 
-## Add to Morphe
+## Install Source
 
 | Method | URL |
 |--------|-----|
@@ -16,8 +16,9 @@ Universal Morphe patches for Android games.
 | **Ads Free Rewards** | None |
 | **No Ads** | None |
 | **Spoof Play Store Install Source** | None |
+| **Pairip Bypass (Experimental)** | None |
 | **Unlock RevenueCat Entitlements** | None |
-| **Disable Telemetry** | None |
+| **Custom App Resolution (Experimental)** | None |
 | **Disable Root Checks** | None |
 | **Disable Update Checks** | None |
-| **Pairip Application Redirect** | None |
+| **Disable Telemetry** | None |

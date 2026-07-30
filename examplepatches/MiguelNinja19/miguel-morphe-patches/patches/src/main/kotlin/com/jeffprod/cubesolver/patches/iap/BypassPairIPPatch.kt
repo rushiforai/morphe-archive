@@ -1,52 +1,60 @@
 /*
  * Bypass PairIP patch for Cube Solver.
  *
- * WHY THIS PATCH EXISTS:
+ * ROOT CAUSE (found after deep analysis):
  *
- * Cube Solver uses Google Play's PairIP (Play Automatic Integrity Protection).
- * There are THREE protection layers, and the license check has TWO entry
- * points that must both be blocked:
+ * The app has TWO problems caused by PairIP when the APK is patched:
  *
- *   1. SignatureCheck.verifyIntegrity(Context)
- *      Checks APK signing certificate hash. Crashes on patched APK.
- *      Called from Application.attachBaseContext.
+ *   1. CRASH on launch: Application.attachBaseContext calls
+ *      SignatureCheck.verifyIntegrity which throws
+ *      SignatureTamperedException because the Morphe-signed APK has a
+ *      different signing certificate.
  *
- *   2. LicenseClient.checkLicense(Context) [STATIC]
- *      Entry point #1 for license check. Called from
- *      Application.attachBaseContext. We no-op this.
+ *   2. PLAY STORE REDIRECT on launch: The JS code detects the app was
+ *      not installed from the Play Store (no valid installer signature)
+ *      and calls Android.openPlayStore(), which creates a jl1 runnable
+ *      with case=5 that opens "market://details?id=<package>".
  *
- *   3. LicenseClient.initializeLicenseCheck() [INSTANCE]
- *      Entry point #2 for license check. Called DIRECTLY by
- *      LicenseContentProvider.onCreate(), which runs BEFORE
- *      Application.attachBaseContext in the Android lifecycle.
- *      This bypasses our checkLicense no-op! The PairIP VM bytecode
- *      might also call this directly.
- *      When the check fails, it calls handleError ->
- *      startErrorDialogActivity -> createCloseAppIntentOrExitIfAppInBackground
- *      -> LicenseActivity, which redirects to the Play Store.
- *      THIS IS THE REDIRECT THE USER SEES.
+ * THE PATCH (2 parts: manifest modification + bytecode hook):
  *
- * THE PATCH (4 hooks):
+ *   PART 1 (manifest): Change android:name from
+ *   "com.pairip.application.Application" to "com.jeffprod.cubesolver.App"
+ *   in AndroidManifest.xml.
  *
- *   HOOK 1: SignatureCheck.verifyIntegrity(Context) -> return-void
- *     Skips APK signature hash check. Prevents crash.
+ *   This completely bypasses com.pairip.application.Application, so
+ *   attachBaseContext (with SignatureCheck.verifyIntegrity and
+ *   LicenseClient.checkLicense) is NEVER called. The app uses App
+ *   directly, which inherits attachBaseContext from
+ *   android.app.Application (the default, no PairIP checks).
  *
- *   HOOK 2: SignatureCheck.verifySignatureMatches(String) -> return true
- *     Belt-and-suspenders: always says "signature OK".
+ *   App.<clinit> still calls StartupLauncher.launch() which starts the
+ *   PairIP VM. The VM provides the real onCreate/onDestroy implementations
+ *   via reflection (aFGUz). So the app functions normally.
  *
- *   HOOK 3: LicenseClient.checkLicense(Context) -> return-void
- *     Skips license check entry point #1 (from attachBaseContext).
+ *   Also remove LicenseActivity from the manifest so even if the license
+ *   check somehow runs, it can't redirect to the Play Store.
  *
- *   HOOK 4: LicenseClient.initializeLicenseCheck() -> return-void
- *     Skips license check entry point #2 (from ContentProvider/VM).
- *     THIS IS THE FIX for the Play Store redirect — without this hook,
- *     the license check runs via the ContentProvider path and redirects
- *     to the Play Store even though checkLicense is no-oped.
+ *   Also remove the CHECK_LICENSE permission since it's no longer needed.
  *
- * We do NOT disable:
- *   - VMRunner.setContext (VM needs context)
- *   - StartupLauncher.launch (VM provides real onCreate via reflection)
- *   - libpairipcore.so (native VM executor, no integrity checks in it)
+ *   PART 2 (bytecode): No-op k93.openPlayStore() to prevent the
+ *   Play Store redirect that the JS code triggers when it detects
+ *   the app was sideloaded.
+ *
+ *   The JS code calls Android.openPlayStore() when it detects the app
+ *   was not installed from the Play Store. This creates a jl1 runnable
+ *   with case=5, which falls through to the DEFAULT case in jl1.run()
+ *   and opens "market://details?id=<package>" or
+ *   "https://play.google.com/store/apps/details?id=<package>".
+ *
+ *   By no-oping openPlayStore(), the redirect never happens.
+ *
+ * Analysis confirming this is safe:
+ *   - VM bytecode (asset PAvdaIa2xHwL2BZt) does NOT contain any
+ *     integrity/license check strings (verified with `strings`)
+ *   - VM bytecode only contains onCreate implementation (WebView setup,
+ *     loadUrl, addJavascriptInterface)
+ *   - libpairipcore.so has NO anti-debug, NO native integrity checks
+ *   - The VM is purely a bytecode executor, not an integrity checker
  *
  * This patch is REQUIRED for all other Cube Solver patches to work.
  */
@@ -56,71 +64,78 @@ package com.jeffprod.cubesolver.patches.iap
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import com.jeffprod.cubesolver.patches.shared.CUBE_SOLVER
-import com.jeffprod.cubesolver.patches.shared.SignatureCheckFingerprint
-import com.jeffprod.cubesolver.patches.shared.VerifySignatureMatchesFingerprint
-import com.jeffprod.cubesolver.patches.shared.LicenseCheckFingerprint
-import com.jeffprod.cubesolver.patches.shared.InitializeLicenseCheckFingerprint
+import com.jeffprod.cubesolver.patches.shared.OpenPlayStoreFingerprint
+import org.w3c.dom.Element
 
 @Suppress("unused")
 val bypassPairIPPatch = bytecodePatch(
     name = "Bypass PairIP integrity check",
-    description = "Bypasses Google Play's PairIP by disabling the APK " +
-        "signature check and the Google Play licensing check. Without " +
-        "this patch, the app crashes on launch (signature mismatch) or " +
-        "redirects to the Play Store (license check failure). The " +
-        "license check has TWO entry points that must both be blocked: " +
-        "checkLicense (from attachBaseContext) and " +
-        "initializeLicenseCheck (from ContentProvider, which runs " +
-        "before attachBaseContext). REQUIRED for all other patches.",
+    description = "Bypasses Google Play's PairIP by (1) changing the " +
+        "application class in AndroidManifest.xml from " +
+        "com.pairip.application.Application to com.jeffprod.cubesolver.App " +
+        "(skips signature check + license check in attachBaseContext), " +
+        "(2) removing LicenseActivity and CHECK_LICENSE permission from " +
+        "the manifest, and (3) no-oping k93.openPlayStore() to prevent " +
+        "the Play Store redirect that the JS code triggers when it " +
+        "detects the app was sideloaded. The PairIP VM is NOT disabled " +
+        "— it provides real onCreate implementations via reflection. " +
+        "REQUIRED for all other Cube Solver patches.",
     default = true,
 ) {
     compatibleWith(CUBE_SOLVER)
 
     execute {
         // ============================================================
-        // HOOK 1: SignatureCheck.verifyIntegrity -> no-op
+        // PART 1: Manifest modifications (resource patching)
         // ============================================================
-        SignatureCheckFingerprint.method.addInstructions(0, """
-            return-void
-        """.trimIndent())
+
+        document("AndroidManifest.xml").use { document ->
+            // HOOK 1: Change application class to skip PairIP Application
+            val applicationElement =
+                document.getElementsByTagName("application").item(0) as Element
+
+            applicationElement.setAttribute(
+                "android:name",
+                "com.jeffprod.cubesolver.App",
+            )
+
+            // HOOK 2: Remove LicenseActivity from manifest
+            val activities = document.getElementsByTagName("activity")
+            for (i in activities.length - 1 downTo 0) {
+                val activity = activities.item(i) as Element
+                if (activity.getAttribute("android:name")
+                        .contains("LicenseActivity")
+                ) {
+                    activity.parentNode.removeChild(activity)
+                }
+            }
+
+            // HOOK 3: Remove CHECK_LICENSE permission
+            val permissions = document.getElementsByTagName("uses-permission")
+            for (i in permissions.length - 1 downTo 0) {
+                val permission = permissions.item(i) as Element
+                if (permission.getAttribute("android:name")
+                        .contains("CHECK_LICENSE")
+                ) {
+                    permission.parentNode.removeChild(permission)
+                }
+            }
+        }
+
 
         // ============================================================
-        // HOOK 2: SignatureCheck.verifySignatureMatches -> return true
+        // PART 2: Bytecode hook to prevent Play Store redirect
         // ============================================================
-        VerifySignatureMatchesFingerprint.method.addInstructions(0, """
-            const/4 v0, 0x1
-            return v0
-        """.trimIndent())
-
-        // ============================================================
-        // HOOK 3: LicenseClient.checkLicense -> no-op
-        // ============================================================
-        // This blocks license check entry point #1 (from attachBaseContext).
-        // ============================================================
-        LicenseCheckFingerprint.method.addInstructions(0, """
-            return-void
-        """.trimIndent())
-
-        // ============================================================
-        // HOOK 4: LicenseClient.initializeLicenseCheck -> no-op
-        // ============================================================
-        // THIS IS THE FIX for the Play Store redirect!
+        // HOOK 4: k93.openPlayStore() -> return-void (no-op)
         //
-        // LicenseContentProvider.onCreate() creates a new LicenseClient
-        // and calls initializeLicenseCheck() DIRECTLY, bypassing our
-        // checkLicense no-op. ContentProviders run BEFORE
-        // Application.attachBaseContext, so this path triggers the
-        // license check before our other patches take effect.
+        // The JS code calls Android.openPlayStore() when it detects the
+        // app was not installed from the Play Store. This creates a jl1
+        // runnable with case=5, which falls through to the DEFAULT case
+        // in jl1.run() and opens "market://details?id=<package>".
         //
-        // When the check fails, it calls handleError ->
-        // startErrorDialogActivity -> LicenseActivity, which redirects
-        // to the Play Store. This is exactly what the user sees.
-        //
-        // By no-oping initializeLicenseCheck(), we block BOTH entry
-        // points: the ContentProvider path AND any VM bytecode that
-        // might call it directly.
+        // By no-oping openPlayStore(), the redirect never happens.
         // ============================================================
-        InitializeLicenseCheckFingerprint.method.addInstructions(0, """
+        OpenPlayStoreFingerprint.method.addInstructions(0, """
             return-void
         """.trimIndent())
     }

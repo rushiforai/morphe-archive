@@ -38,13 +38,6 @@ internal object ShowAppOpenAdFingerprint : Fingerprint(
     parameters = listOf("Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/String;"),
 )
 
-internal object MaxUnityAdManagerOnAdHiddenFingerprint : Fingerprint(
-    name = "onAdHidden",
-    accessFlags = listOf(AccessFlags.PUBLIC),
-    returnType = "V",
-    parameters = listOf("Lcom/applovin/mediation/MaxAd;"),
-)
-
 internal object ShowBannerFingerprint : Fingerprint(
     name = "showBanner",
     accessFlags = listOf(AccessFlags.PUBLIC),
@@ -315,4 +308,92 @@ internal object EntitlementInfoIsActiveFingerprint : Fingerprint(
     name = "isActive",
     returnType = "Z",
     parameters = emptyList(),
+)
+
+// ── Pairip LicenseClient.checkLicense root kill ──
+
+internal object PairipLicenseClientCheckLicenseFingerprint : Fingerprint(
+    definingClass = "Lcom/pairip/licensecheck/LicenseClient;",
+    name = "checkLicense",
+    returnType = "V",
+    parameters = listOf("Landroid/content/Context;"),
+)
+
+// ── Pairip LicenseContentProvider lifecycle neuter ──
+
+internal object PairipLicenseContentProviderOnCreateFingerprint : Fingerprint(
+    definingClass = "Lcom/pairip/licensecheck/LicenseContentProvider;",
+    name = "onCreate",
+    returnType = "Z",
+    parameters = emptyList(),
+)
+
+internal object PairipLicenseContentProviderQueryFingerprint : Fingerprint(
+    definingClass = "Lcom/pairip/licensecheck/LicenseContentProvider;",
+    name = "query",
+    returnType = "Landroid/database/Cursor;",
+    parameters = listOf(
+        "Landroid/net/Uri;",
+        "[Ljava/lang/String;",
+        "Ljava/lang/String;",
+        "[Ljava/lang/String;",
+        "Ljava/lang/String;",
+    ),
+)
+
+// ── Pairip InitContextProvider ──
+
+internal object PairipInitContextProviderGetContextFingerprint : Fingerprint(
+    definingClass = "Lcom/pairip/InitContextProvider;",
+    name = "getContext",
+    returnType = "Landroid/content/Context;",
+    parameters = emptyList(),
+)
+
+// ── Pairip LicenseResponseHelper (response validation sink) ──
+
+internal object PairipLicenseResponseHelperValidateResponseFingerprint : Fingerprint(
+    definingClass = "Lcom/pairip/licensecheck/LicenseResponseHelper;",
+    name = "validateResponse",
+    returnType = "V",
+    parameters = listOf("Landroid/os/Bundle;", "Ljava/lang/String;"),
+)
+
+internal object PairipLicenseResponseHelperGetRepeatedCheckMetadataFingerprint : Fingerprint(
+    definingClass = "Lcom/pairip/licensecheck/LicenseResponseHelper;",
+    name = "getRepeatedCheckMetadata",
+    returnType = "Landroid/os/Bundle;",
+    parameters = listOf("Landroid/os/Bundle;"),
+)
+
+internal object PairipLicenseResponseHelperVerifySignatureFingerprint : Fingerprint(
+    definingClass = "Lcom/pairip/licensecheck/LicenseResponseHelper;",
+    name = "verifySignature",
+    returnType = "Z",
+    parameters = listOf("Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/String;", "Ljava/security/PublicKey;"),
+)
+
+// ── Pairip ResponseValidator (older response validation path) ──
+
+internal object PairipResponseValidatorValidateResponseFingerprint : Fingerprint(
+    definingClass = "Lcom/pairip/licensecheck/ResponseValidator;",
+    name = "validateResponse",
+    returnType = "V",
+    parameters = listOf("Landroid/os/Bundle;", "Ljava/lang/String;"),
+)
+
+internal object PairipResponseValidatorVerifySignatureFingerprint : Fingerprint(
+    definingClass = "Lcom/pairip/licensecheck/ResponseValidator;",
+    name = "verifySignature",
+    returnType = "Z",
+    parameters = listOf("Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/String;", "Ljava/security/PublicKey;"),
+)
+
+// ── Pairip licensecheck3 ResponseValidator (V3 response validation path) ──
+
+internal object PairipResponseValidatorV3ValidateResponseFingerprint : Fingerprint(
+    definingClass = "Lcom/pairip/licensecheck3/ResponseValidator;",
+    name = "validateResponse",
+    returnType = "V",
+    parameters = listOf("Landroid/os/Bundle;", "Ljava/lang/String;"),
 )

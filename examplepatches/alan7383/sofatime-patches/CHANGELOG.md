@@ -1,3 +1,21 @@
+## [1.3.4](https://github.com/alan7383/sofatime-patches/compare/v1.3.3...v1.3.4) (2026-07-30)
+
+### 🐛 Bug Fixes
+
+* remove 1.1.5 target, only 1.1.6 supported ([60a7495](https://github.com/alan7383/sofatime-patches/commit/60a7495ad011f60197b1035bf2945a74d3018fda))
+
+## [1.3.3](https://github.com/alan7383/sofatime-patches/compare/v1.3.2...v1.3.3) (2026-07-30)
+
+### 🐛 Bug Fixes
+
+* update obfuscated Result class names for 1.1.6 compatibility ([9f9cc0a](https://github.com/alan7383/sofatime-patches/commit/9f9cc0a7b1f96aadb611e43071d9d0face420f6c))
+
+## [1.3.2](https://github.com/alan7383/sofatime-patches/compare/v1.3.1...v1.3.2) (2026-07-30)
+
+### 🐛 Bug Fixes
+
+* add 1.1.6 compatibility target ([22cac29](https://github.com/alan7383/sofatime-patches/commit/22cac29d9f9b86c1cecb70afd4a02aa4786c27e6))
+
 ## [1.3.1](https://github.com/alan7383/sofatime-patches/compare/v1.3.0...v1.3.1) (2026-07-29)
 
 ### 🐛 Bug Fixes

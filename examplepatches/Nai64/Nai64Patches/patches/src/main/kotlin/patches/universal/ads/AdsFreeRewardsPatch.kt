@@ -22,9 +22,8 @@ val adsFreeRewardsPatch = bytecodePatch(
         val hasLevelPlay = LevelPlayRewardedAdIsReadyFingerprint.methodOrNull != null
         val hasIronSourceUnityBridge = IronSourceUnityRewardedAdIsReadyFingerprint.methodOrNull != null &&
             IronSourceLevelPlayFullScreenShowAdFingerprint.methodOrNull != null
-        val hasOnAdHidden = MaxUnityAdManagerOnAdHiddenFingerprint.methodOrNull != null
 
-        if (!hasMaxUnity && !hasNativeMax && !hasUnityAds && !hasLevelPlay && !hasIronSourceUnityBridge && !hasOnAdHidden) {
+        if (!hasMaxUnity && !hasNativeMax && !hasUnityAds && !hasLevelPlay && !hasIronSourceUnityBridge) {
             return@execute
         }
 
@@ -42,8 +41,8 @@ val adsFreeRewardsPatch = bytecodePatch(
             // Replace showRewardedAd with JSONObject + forwardUnityEvent.
             // Uses JsonUtils.putString (avoids JSONException), then calls
             // forwardUnityEvent to push through the MAX SDK callback pipeline.
-            // Register layout: registers=5, ins=4 → p0=v1(this), p1=v2(adUnitId), p2=v3, p3=v4.
-            // Save p1 to v0 first so v2 can be used for string temps without corrupting adUnitId.
+            // Register layout: registers=5, ins=3 → p0=v2(this), p1=v3(adUnitId), p2=v4(context).
+            // Save p1 to v0 first so v2/v3 can be used as string temps without corrupting adUnitId.
             unityShow.addInstructions(0, """
                 move-object v0, p1
                 new-instance v1, Lorg/json/JSONObject;
@@ -87,40 +86,33 @@ val adsFreeRewardsPatch = bytecodePatch(
                 invoke-static {v1}, Lcom/applovin/mediation/unity/MaxUnityAdManager;->forwardUnityEvent(Lorg/json/JSONObject;)V
                 return-void
             """.trimIndent())
-        }
 
-        // ── Strategy 1b: MAX Unity onAdHidden safety net ──
-        // Fires the reward event when a rewarded ad is dismissed, regardless
-        // of whether the ad network's reward verification succeeded. This
-        // catches cases where the adapter-level reward callback is never
-        // fired (e.g. server-side verification failure), ensuring Unity C#
-        // always receives OnRewardedAdReceivedRewardEvent.
-        val onAdHidden = MaxUnityAdManagerOnAdHiddenFingerprint.methodOrNull
-        if (onAdHidden != null) {
-            logger.info("MAX Unity onAdHidden safety net active")
-            onAdHidden.addInstructions(0, """
-                invoke-interface {p1}, Lcom/applovin/mediation/MaxAd;->getFormat()Lcom/applovin/mediation/MaxAdFormat;
-                move-result-object v0
-                sget-object v1, Lcom/applovin/mediation/MaxAdFormat;->REWARDED:Lcom/applovin/mediation/MaxAdFormat;
-                if-ne v0, v1, :morphe_ah_skip
-                new-instance v0, Lorg/json/JSONObject;
-                invoke-direct {v0}, Lorg/json/JSONObject;-><init>()V
-                const-string v1, "name"
-                const-string v2, "OnRewardedAdReceivedRewardEvent"
-                invoke-static {v0, v1, v2}, Lcom/applovin/impl/sdk/utils/JsonUtils;->putString(Lorg/json/JSONObject;Ljava/lang/String;Ljava/lang/String;)V
-                const-string v1, "adUnitId"
-                invoke-interface {p1}, Lcom/applovin/mediation/MaxAd;->getAdUnitId()Ljava/lang/String;
-                move-result-object v2
-                invoke-static {v0, v1, v2}, Lcom/applovin/impl/sdk/utils/JsonUtils;->putString(Lorg/json/JSONObject;Ljava/lang/String;Ljava/lang/String;)V
-                const-string v1, "rewardLabel"
-                const-string v2, "reward"
-                invoke-static {v0, v1, v2}, Lcom/applovin/impl/sdk/utils/JsonUtils;->putString(Lorg/json/JSONObject;Ljava/lang/String;Ljava/lang/String;)V
-                const-string v1, "rewardAmount"
-                const-string v2, "1"
-                invoke-static {v0, v1, v2}, Lcom/applovin/impl/sdk/utils/JsonUtils;->putString(Lorg/json/JSONObject;Ljava/lang/String;Ljava/lang/String;)V
-                invoke-static {v0}, Lcom/applovin/mediation/unity/MaxUnityAdManager;->forwardUnityEvent(Lorg/json/JSONObject;)V
-                :morphe_ah_skip
-            """.trimIndent())
+            // Patch loadRewardedAd to fire OnRewardedAdLoadedEvent via forwardUnityEvent.
+            // When the game C# IL2CPP side calls MaxSdk.LoadRewardedAd() and subscribes to
+            // OnRewardedAdLoadedEvent, this synthetic event transitions the reward state
+            // machine from "loading" to "loaded", enabling the reward button to work.
+            // Register layout: loadRewardedAd uses registers=5, ins=2.
+            // p0=v3(this), p1=v4(adUnitId). Save p1 to v0; v1=JSONObject, v2/v3=temps.
+            val unityLoad = LoadRewardedAdFingerprint.methodOrNull
+            if (unityLoad != null) {
+                logger.info("MAX Unity loadRewardedAd patching")
+                unityLoad.addInstructions(0, """
+                    move-object v0, p1
+                    new-instance v1, Lorg/json/JSONObject;
+                    invoke-direct {v1}, Lorg/json/JSONObject;-><init>()V
+                    const-string v2, "name"
+                    const-string v3, "OnRewardedAdLoadedEvent"
+                    invoke-static {v1, v2, v3}, Lcom/applovin/impl/sdk/utils/JsonUtils;->putString(Lorg/json/JSONObject;Ljava/lang/String;Ljava/lang/String;)V
+                    const-string v2, "adUnitId"
+                    invoke-static {v1, v2, v0}, Lcom/applovin/impl/sdk/utils/JsonUtils;->putString(Lorg/json/JSONObject;Ljava/lang/String;Ljava/lang/String;)V
+                    const-string v2, "adFormat"
+                    const-string v3, "rewarded"
+                    invoke-static {v1, v2, v3}, Lcom/applovin/impl/sdk/utils/JsonUtils;->putString(Lorg/json/JSONObject;Ljava/lang/String;Ljava/lang/String;)V
+                    invoke-static {v1}, Lcom/applovin/mediation/unity/MaxUnityAdManager;->forwardUnityEvent(Lorg/json/JSONObject;)V
+                    return-void
+                """.trimIndent())
+            }
+            return@execute
         }
 
         // ── Strategy 2: Native MAX (non-Unity) ──
