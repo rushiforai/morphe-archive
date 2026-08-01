@@ -17,6 +17,7 @@ Jman-Github/ReVanced-Patch-Bundles
 Jman-Github/Universal-ReVanced-Manager
 Joristdh/Platypatch
 Joussflls10/Jouss-Patches
+LaBlazer/morphe-patches
 LaKakaReal/LaKakaShitPatches
 Lynx6319/patch-youtube-scroll-block
 MarcaDian/morphe-patches-yavot
@@ -69,8 +70,11 @@ byehi98/okish-morphe-patches
 cesbar/zpatches
 ch3thanhs/stylus
 chirag127/morphe-patches
+chukfinley/tidal-patches
 ciraolone/morphe-watch-later
+claviola/morphe-patches-nl
 crimera/piko
+d0nj/morphe-patches
 dexnis-dev/morphe-patches
 dh6k/morphe-patches
 docbt/patched-up

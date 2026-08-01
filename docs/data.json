@@ -1,13 +1,13 @@
 {
-  "generatedAt": "2026-07-31 02:59 UTC",
-  "configFile": "morphe_archive_config_v8.json",
-  "configVersion": 8,
-  "repoCount": 112,
-  "appCount": 576,
-  "patchCount": 2135,
+  "generatedAt": "2026-08-01 03:01 UTC",
+  "configFile": "morphe_archive_config_v9.json",
+  "configVersion": 9,
+  "repoCount": 115,
+  "appCount": 581,
+  "patchCount": 2144,
   "universalPatchCount": 167,
   "hostCounts": {
-    "github.com": 108,
+    "github.com": 111,
     "gitlab.com": 4
   },
   "repos": [
@@ -526,35 +526,43 @@
       "webUrl": "https://github.com/andrewliang25/morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=andrewliang25/morphe-patches",
       "avatarUrl": "https://github.com/andrewliang25.png?size=96",
-      "patchCount": 16,
+      "patchCount": 18,
       "appCount": 1,
       "createdAt": 1785034852052,
       "updatedAt": 1785034852052,
       "createdDate": "2026-07-26",
       "updatedDate": "2026-07-26",
       "latestChanges": {
-        "title": "1.1.0 (2026-07-29)",
-        "date": "2026-07-29",
+        "title": "1.2.0 (2026-07-31)",
+        "date": "2026-07-31",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "also hide the chat-menu \"Events\" row"
+            "category": "\u26a0 BREAKING CHANGES",
+            "text": "drop non-functional unlock patch; enable Disable LINE Premium by default"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "also hide the green \"Unsend discreetly\" button, not just its label"
           },
           {
             "category": "\u2728 New Features",
-            "text": "hide all server-driven extra tools in the + attach menu"
+            "text": "add Disable LINE Premium patch (hide all LYP upsells & entry points)"
           },
           {
             "category": "\u2728 New Features",
-            "text": "hide in-chat-room calendar buttons"
+            "text": "add experimental LYP premium unlock patch + premium gating doc"
           },
           {
             "category": "\u2728 New Features",
-            "text": "hide the Transfer and LINE GIFT buttons in the + attach menu"
+            "text": "add Hide premium unsend upsells patch"
           },
           {
             "category": "\u2728 New Features",
-            "text": "split Events into its own patch; rename calendar patch to \"Hide LINE Calendar\""
+            "text": "drop non-functional unlock patch; enable Disable LINE Premium by default"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "enable Hide premium unsend upsells by default"
           }
         ]
       },
@@ -562,7 +570,7 @@
         {
           "name": "LINE",
           "packageName": "jp.naver.line.android",
-          "patchCount": 16,
+          "patchCount": 18,
           "iconUrl": "",
           "iconColor": "#06C755"
         }
@@ -1416,36 +1424,12 @@
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.4.0 (2026-07-29)",
-        "date": "2026-07-29",
+        "title": "1.4.1 (2026-07-31)",
+        "date": "2026-07-31",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "**pinterest:** add support for 14.28.0"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "**pinterest:** add the Morphe settings screen"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "**pinterest:** download every pin of a board"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "**pinterest:** hide the search history"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "**pinterest:** mark 14.28.0 stable and drop 14.24.0"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "**pinterest:** translate patch descriptions to English"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "**pinterest:** translate patcher log and feedback messages to English"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "polished morphe section, ad detecting logic and import/export of settings"
           }
         ]
       },
@@ -1547,15 +1531,15 @@
       "webUrl": "https://github.com/byehi98/okish-morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=byehi98/okish-morphe-patches",
       "avatarUrl": "https://github.com/byehi98.png?size=96",
-      "patchCount": 3,
-      "appCount": 2,
+      "patchCount": 4,
+      "appCount": 3,
       "createdAt": 1784836032190,
       "updatedAt": 1784836032190,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.1.0 (2026-07-29)",
-        "date": "2026-07-29",
+        "title": "1.2.0 (2026-07-31)",
+        "date": "2026-07-31",
         "items": [
           {
             "category": "\u2728 New Features",
@@ -1586,6 +1570,13 @@
           "patchCount": 2,
           "iconUrl": "",
           "iconColor": "#1565C0"
+        },
+        {
+          "name": "Smash Hit",
+          "packageName": "com.mediocre.smashhit",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#1E88E5"
         },
         {
           "name": "TrueCloud",
@@ -1891,6 +1882,42 @@
       ]
     },
     {
+      "name": "tidal-patches",
+      "repo": "chukfinley/tidal-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/chukfinley/tidal-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/chukfinley/tidal-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/chukfinley/tidal-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/chukfinley/tidal-patches",
+      "addUrl": "https://morphe.software/add-source?github=chukfinley/tidal-patches",
+      "avatarUrl": "https://github.com/chukfinley.png?size=96",
+      "patchCount": 1,
+      "appCount": 1,
+      "createdAt": 1785553245917,
+      "updatedAt": 1785553245917,
+      "createdDate": "2026-08-01",
+      "updatedDate": "2026-08-01",
+      "latestChanges": {
+        "title": "1.6.0 (2026-07-28)",
+        "date": "2026-07-28",
+        "items": [
+          {
+            "category": "\u2728 New Features",
+            "text": "Let a fast flick count like a full swipe"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "TIDAL",
+          "packageName": "com.aspiro.tidal",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#000000"
+        }
+      ]
+    },
+    {
       "name": "morphe-watch-later",
       "repo": "ciraolone/morphe-watch-later",
       "host": "github.com",
@@ -1994,6 +2021,42 @@
           "patchCount": 74,
           "iconUrl": "https://play-lh.googleusercontent.com/IsLsCD4eLC2CYvlkgTI6Z5TROj0BJIBgUF7BZ5eliTzyyTjqG_mbofeG4kw2s7oG_JZMSi5ErLz_qsDi169C8w",
           "iconColor": "#000000"
+        }
+      ]
+    },
+    {
+      "name": "morphe-patches",
+      "repo": "d0nj/morphe-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/d0nj/morphe-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/d0nj/morphe-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/d0nj/morphe-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/d0nj/morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=d0nj/morphe-patches",
+      "avatarUrl": "https://github.com/d0nj.png?size=96",
+      "patchCount": 1,
+      "appCount": 1,
+      "createdAt": 1785553246080,
+      "updatedAt": 1785553246080,
+      "createdDate": "2026-08-01",
+      "updatedDate": "2026-08-01",
+      "latestChanges": {
+        "title": "1.1.0 (2026-07-29)",
+        "date": "2026-07-29",
+        "items": [
+          {
+            "category": "\u2728 New Features",
+            "text": "add unlock premium patch for AI Audio Novel Reader"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "AI Audio Novel Reader",
+          "packageName": "com.thien.novelreader",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#6200EE"
         }
       ]
     },
@@ -2424,19 +2487,19 @@
       "webUrl": "https://github.com/Entree3k/Morning-Entree-Patches",
       "addUrl": "https://morphe.software/add-source?github=Entree3k/Morning-Entree-Patches",
       "avatarUrl": "https://github.com/Entree3k.png?size=96",
-      "patchCount": 19,
-      "appCount": 62,
+      "patchCount": 20,
+      "appCount": 63,
       "createdAt": 1785034851561,
       "updatedAt": 1785034851561,
       "createdDate": "2026-07-26",
       "updatedDate": "2026-07-26",
       "latestChanges": {
-        "title": "1.5.0 (2026-07-30)",
-        "date": "2026-07-30",
+        "title": "1.6.0 (2026-07-31)",
+        "date": "2026-07-31",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "Added New Support"
+            "text": "Added Phi Launcher"
           }
         ]
       },
@@ -2778,6 +2841,13 @@
           "iconColor": "#023C69"
         },
         {
+          "name": "Phi Launcher",
+          "packageName": "com.launcher.hype",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#6C63FF"
+        },
+        {
           "name": "Pinnit",
           "packageName": "dev.sasikanth.pinnit2",
           "patchCount": 1,
@@ -2956,12 +3026,16 @@
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.3.5 (2026-07-28)",
-        "date": "2026-07-28",
+        "title": "1.3.6 (2026-07-31)",
+        "date": "2026-07-31",
         "items": [
           {
             "category": "\ud83d\ude80 Updated App Support",
-            "text": "remove overly broad getBoolean patch causing crashes"
+            "text": "add native camera premium unlock patch"
+          },
+          {
+            "category": "\ud83d\ude80 Updated App Support",
+            "text": "remove oldroll patches"
           }
         ]
       },
@@ -3002,18 +3076,18 @@
           "iconColor": "#1565C0"
         },
         {
+          "name": "Native Camera",
+          "packageName": "com.rawcam.app",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#D0BCFF"
+        },
+        {
           "name": "Nepalipatro",
           "packageName": "np.com.nepalipatro",
           "patchCount": 1,
           "iconUrl": "https://play-lh.googleusercontent.com/cZ9_hY4QA2qnDZrHFvcgJgL1su8EDhEUMIMDvQvTkkTJJtQQo5807PoTss6zx7kYks2CCqXax5PWtJF7xV03pg",
           "iconColor": "#E53935"
-        },
-        {
-          "name": "OldRoll",
-          "packageName": "com.accordion.analogcam",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#FF6B35"
         },
         {
           "name": "Prismatica Pro",
@@ -4057,23 +4131,23 @@
       "webUrl": "https://github.com/jasonwu1994/Gboard-patches",
       "addUrl": "https://morphe.software/add-source?github=jasonwu1994/Gboard-patches",
       "avatarUrl": "https://github.com/jasonwu1994.png?size=96",
-      "patchCount": 20,
+      "patchCount": 21,
       "appCount": 1,
       "createdAt": 1784836037428,
       "updatedAt": 1784836037428,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "2.2.0 (2026-07-29)",
-        "date": "2026-07-29",
+        "title": "2.3.0 (2026-07-30)",
+        "date": "2026-07-30",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "**Gboard:** add the Use Bluetooth Microphone patch."
+            "text": "**Gboard:** add the Long-Press Editing Shortcuts patch."
           },
           {
             "category": "\u2728 \u65b0\u529f\u80fd",
-            "text": "**Gboard:** \u65b0\u589e Use Bluetooth Microphone Patch\u3002"
+            "text": "**Gboard:** \u65b0\u589e Long-Press Editing Shortcuts Patch\u3002"
           }
         ]
       },
@@ -4081,7 +4155,7 @@
         {
           "name": "com.google.android.inputmethod.latin",
           "packageName": "com.google.android.inputmethod.latin",
-          "patchCount": 20,
+          "patchCount": 21,
           "iconUrl": "https://play-lh.googleusercontent.com/J4vZ82VsZjnsRsI6ckQFXlO36_52QJerqG5-HfLgHffS34I4EfoAFfNdbf6s4wBAsUEf8DOJVEDEHh5tzWbrnA",
           "iconColor": ""
         }
@@ -4959,6 +5033,50 @@
       ]
     },
     {
+      "name": "morphe-patches",
+      "repo": "LaBlazer/morphe-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/LaBlazer/morphe-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/LaBlazer/morphe-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/LaBlazer/morphe-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/LaBlazer/morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=LaBlazer/morphe-patches",
+      "avatarUrl": "https://github.com/LaBlazer.png?size=96",
+      "patchCount": 1,
+      "appCount": 1,
+      "createdAt": 1785553244549,
+      "updatedAt": 1785553244549,
+      "createdDate": "2026-08-01",
+      "updatedDate": "2026-08-01",
+      "latestChanges": {
+        "title": "1.0.0 (2026-07-29)",
+        "date": "2026-07-29",
+        "items": [
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Add patchlistgenerator back"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Update folder structure"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "update patches author"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "eTesty Auto\u0161kola",
+          "packageName": "cz.etesty.autoskola",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#FF6B35"
+        }
+      ]
+    },
+    {
       "name": "LaKakaShitPatches",
       "repo": "LaKakaReal/LaKakaShitPatches",
       "host": "github.com",
@@ -5169,23 +5287,35 @@
       "webUrl": "https://github.com/MiguelNinja19/miguel-morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=MiguelNinja19/miguel-morphe-patches",
       "avatarUrl": "https://github.com/MiguelNinja19.png?size=96",
-      "patchCount": 18,
+      "patchCount": 19,
       "appCount": 8,
       "createdAt": 1784836022970,
       "updatedAt": 1784836022970,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.13.4 (2026-07-30)",
-        "date": "2026-07-30",
+        "title": "1.13.5 (2026-07-31)",
+        "date": "2026-07-31",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**cubesolver:** bypass PairIP via manifest modification instead of bytecode no-ops"
+            "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
           },
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**cubesolver:** bypass PairIP via manifest modification instead of bytecode no-ops"
+            "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**cubesolver:** move openPlayStore no-op to BypassPairIPPatch"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
           }
         ]
       },
@@ -5207,7 +5337,7 @@
         {
           "name": "Cube Solver",
           "packageName": "com.jeffprod.cubesolver",
-          "patchCount": 3,
+          "patchCount": 4,
           "iconUrl": "",
           "iconColor": "#F57C00"
         },
@@ -9506,6 +9636,64 @@
       "iconUrl": "https://play-lh.googleusercontent.com/GjXwl-IZQGNRt8ip8WqYxVRKtwxgDrbrHEozttQuKh55gh6uWkgxC0gULBq3ATJi6Bmb-v_9_SI2SeHAlLjB"
     },
     {
+      "packageName": "com.thien.novelreader",
+      "name": "AI Audio Novel Reader",
+      "repos": [
+        "d0nj/morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "d0nj/morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/d0nj/morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=d0nj/morphe-patches",
+          "source": "https://raw.githubusercontent.com/d0nj/morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/d0nj/morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/d0nj.png?size=96",
+          "latestChanges": {
+            "title": "1.1.0 (2026-07-29)",
+            "date": "2026-07-29",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "add unlock premium patch for AI Audio Novel Reader"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-thien-novelreader-d0nj-morphe-patches",
+            "releaseTag": "app-com-thien-novelreader-d0nj-morphe-patches",
+            "assetName": "ai-audio-novel-reader-d0nj-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Unlock premium",
+              "description": "Makes isPremium() always return true in AI Audio Novel Reader. Unlocks all premium features and disables the 10-hour trial countdown."
+            }
+          ],
+          "versions": [
+            "3.3.23"
+          ]
+        }
+      ],
+      "patches": [
+        "Unlock premium"
+      ],
+      "patchDetails": [
+        {
+          "name": "Unlock premium",
+          "description": "Makes isPremium() always return true in AI Audio Novel Reader. Unlocks all premium features and disables the 10-hour trial countdown."
+        }
+      ],
+      "versions": [
+        "3.3.23"
+      ],
+      "iconColor": "#6200EE",
+      "iconUrl": ""
+    },
+    {
       "packageName": "com.trieudadlovestun.ai900exam",
       "name": "AI-900",
       "repos": [
@@ -9521,12 +9709,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -10472,16 +10660,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/MiguelNinja19/miguel-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/MiguelNinja19.png?size=96",
           "latestChanges": {
-            "title": "1.13.4 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.13.5 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** bypass PairIP via manifest modification instead of bytecode no-ops"
+                "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** bypass PairIP via manifest modification instead of bytecode no-ops"
+                "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** move openPlayStore no-op to BypassPairIPPatch"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
               }
             ]
           },
@@ -11017,8 +11217,8 @@
       ],
       "patches": [
         "Disable PairIP DRM",
-        "Unlock premium",
-        "Unlock Premium"
+        "Unlock Premium",
+        "Unlock premium"
       ],
       "patchDetails": [
         {
@@ -11026,12 +11226,12 @@
           "description": "Disables PairIP signature verification and Google Play LVL license check. Required for the app to launch after re-signing."
         },
         {
-          "name": "Unlock premium",
-          "description": "Unlocks all AT4K premium features by forcing the premium status to true."
-        },
-        {
           "name": "Unlock Premium",
           "description": "Unlocks all premium features by forcing the premium state to true in the purchase manager."
+        },
+        {
+          "name": "Unlock premium",
+          "description": "Unlocks all AT4K premium features by forcing the premium status to true."
         }
       ],
       "versions": [
@@ -11056,12 +11256,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.5 (2026-07-28)",
-            "date": "2026-07-28",
+            "title": "1.3.6 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "remove overly broad getBoolean patch causing crashes"
+                "text": "add native camera premium unlock patch"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "remove oldroll patches"
               }
             ]
           },
@@ -11367,12 +11571,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -11541,12 +11745,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -11782,12 +11986,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -11840,12 +12044,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -11898,12 +12102,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -11956,12 +12160,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -12014,12 +12218,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -12072,12 +12276,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -12130,12 +12334,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -12188,12 +12392,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -12246,12 +12450,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -12362,12 +12566,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -12420,12 +12624,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -12478,12 +12682,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -12536,12 +12740,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -12594,12 +12798,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -12652,12 +12856,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -14577,12 +14781,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.5 (2026-07-28)",
-            "date": "2026-07-28",
+            "title": "1.3.6 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "remove overly broad getBoolean patch causing crashes"
+                "text": "add native camera premium unlock patch"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "remove oldroll patches"
               }
             ]
           },
@@ -15177,12 +15385,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -15520,12 +15728,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -15578,12 +15786,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -15636,12 +15844,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -15694,12 +15902,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -16537,12 +16745,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -16595,12 +16803,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -16777,16 +16985,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/MiguelNinja19/miguel-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/MiguelNinja19.png?size=96",
           "latestChanges": {
-            "title": "1.13.4 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.13.5 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** bypass PairIP via manifest modification instead of bytecode no-ops"
+                "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** bypass PairIP via manifest modification instead of bytecode no-ops"
+                "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** move openPlayStore no-op to BypassPairIPPatch"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
               }
             ]
           },
@@ -19864,7 +20084,8 @@
             "26.26.04.935742811",
             "26.27.05.941319029",
             "26.28.03.942936911",
-            "26.29.02.946673643"
+            "26.29.02.946673643",
+            "26.30.09.950492155"
           ]
         }
       ],
@@ -19891,7 +20112,8 @@
         "26.26.04.935742811",
         "26.27.05.941319029",
         "26.28.03.942936911",
-        "26.29.02.946673643"
+        "26.29.02.946673643",
+        "26.30.09.950492155"
       ],
       "iconColor": "#4285F4",
       "iconUrl": "https://play-lh.googleusercontent.com/B8pdO_2K5nBsF0g1h6dKwV_jQFLP-XombGDEQGtJT-mw1EUKCKJpa9lBGCF4rP_MwCsozSXyvI3z19g9R3J4"
@@ -20391,12 +20613,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -20432,16 +20654,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/jasonwu1994/Gboard-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/jasonwu1994.png?size=96",
           "latestChanges": {
-            "title": "2.2.0 (2026-07-29)",
-            "date": "2026-07-29",
+            "title": "2.3.0 (2026-07-30)",
+            "date": "2026-07-30",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**Gboard:** add the Use Bluetooth Microphone patch."
+                "text": "**Gboard:** add the Long-Press Editing Shortcuts patch."
               },
               {
                 "category": "\u2728 \u65b0\u529f\u80fd",
-                "text": "**Gboard:** \u65b0\u589e Use Bluetooth Microphone Patch\u3002"
+                "text": "**Gboard:** \u65b0\u589e Long-Press Editing Shortcuts Patch\u3002"
               }
             ]
           },
@@ -20500,6 +20722,10 @@
             {
               "name": "Latin Globe Key Ignore Interval",
               "description": "\u65b0\u589e\u82f1\u6587\u9375\u76e4\u5730\u7403\u9375\u5ffd\u7565\u6642\u9593\u8986\u5beb\uff0c\u53ef\u7368\u7acb\u63a7\u5236\u8f38\u5165\u5f8c\u5207\u8a9e\u8a00\u5ef6\u9072\nAdd an independent English globe key ignore interval override for post-typing language-switch delay."
+            },
+            {
+              "name": "Long-Press Editing Shortcuts",
+              "description": "\u5728\u82f1\u6587 QWERTY \u8207\u6ce8\u97f3\u9375\u76e4\u52a0\u5165\u5168\u9078\u3001\u5fa9\u539f\u3001\u8907\u88fd\u3001\u526a\u4e0b\u3001\u8cbc\u4e0a\u8207\u91cd\u505a\u9577\u6309\u5feb\u6377\u9375\nAdd Select all, Undo, Copy, Cut, Paste, and Redo long-press shortcuts to English QWERTY and Zhuyin."
             },
             {
               "name": "Package Rename",
@@ -20646,6 +20872,7 @@
         "Inline Suggestions",
         "Key Shape Selection",
         "Latin Globe Key Ignore Interval",
+        "Long-Press Editing Shortcuts",
         "Package Rename",
         "Settings Homepage Override",
         "Swipeable Custom Top Row",
@@ -20740,6 +20967,10 @@
         {
           "name": "Latin Globe Key Ignore Interval",
           "description": "\u65b0\u589e\u82f1\u6587\u9375\u76e4\u5730\u7403\u9375\u5ffd\u7565\u6642\u9593\u8986\u5beb\uff0c\u53ef\u7368\u7acb\u63a7\u5236\u8f38\u5165\u5f8c\u5207\u8a9e\u8a00\u5ef6\u9072\nAdd an independent English globe key ignore interval override for post-typing language-switch delay."
+        },
+        {
+          "name": "Long-Press Editing Shortcuts",
+          "description": "\u5728\u82f1\u6587 QWERTY \u8207\u6ce8\u97f3\u9375\u76e4\u52a0\u5165\u5168\u9078\u3001\u5fa9\u539f\u3001\u8907\u88fd\u3001\u526a\u4e0b\u3001\u8cbc\u4e0a\u8207\u91cd\u505a\u9577\u6309\u5feb\u6377\u9375\nAdd Select all, Undo, Copy, Cut, Paste, and Redo long-press shortcuts to English QWERTY and Zhuyin."
         },
         {
           "name": "Package Rename",
@@ -25344,12 +25575,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -25402,12 +25633,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -25460,12 +25691,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -25518,12 +25749,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -25576,12 +25807,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -25634,12 +25865,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -25692,12 +25923,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -25750,12 +25981,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -25808,12 +26039,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -25866,12 +26097,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -26798,16 +27029,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/MiguelNinja19/miguel-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/MiguelNinja19.png?size=96",
           "latestChanges": {
-            "title": "1.13.4 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.13.5 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** bypass PairIP via manifest modification instead of bytecode no-ops"
+                "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** bypass PairIP via manifest modification instead of bytecode no-ops"
+                "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** move openPlayStore no-op to BypassPairIPPatch"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
               }
             ]
           },
@@ -26821,7 +27064,11 @@
           "patches": [
             {
               "name": "Bypass PairIP integrity check",
-              "description": "Bypasses Google Play's PairIP by changing the application class in AndroidManifest.xml from com.pairip.application.Application to com.jeffprod.cubesolver.App. This completely skips the PairIP attachBaseContext which runs the APK signature check (crashes on patched APK) and the Google Play licensing check (redirects to Play Store). Also removes LicenseActivity and CHECK_LICENSE permission from the manifest. The PairIP VM is NOT disabled \u2014 it provides real onCreate implementations via reflection. REQUIRED for all other patches."
+              "description": "Completely bypasses Google Play's PairIP by (1) disabling the PairIP VM (prevents native integrity checks and Play Store redirects from libpairipcore.so), (2) replacing MainActivity.onCreate with direct WebView setup (no VM needed), and (3) no-oping openPlayStore. The native library libpairipcore.so is never loaded, so it can't do JNI-based redirects. Also applies the manifest modifications from the companion 'Bypass PairIP manifest' patch. REQUIRED for all other patches."
+            },
+            {
+              "name": "Bypass PairIP manifest",
+              "description": "Modifies AndroidManifest.xml to skip the PairIP Application class, remove LicenseActivity, and remove CHECK_LICENSE permission. Part of the PairIP bypass."
             },
             {
               "name": "Remove ads",
@@ -26839,13 +27086,18 @@
       ],
       "patches": [
         "Bypass PairIP integrity check",
+        "Bypass PairIP manifest",
         "Remove ads",
         "Unlock all designs"
       ],
       "patchDetails": [
         {
           "name": "Bypass PairIP integrity check",
-          "description": "Bypasses Google Play's PairIP by changing the application class in AndroidManifest.xml from com.pairip.application.Application to com.jeffprod.cubesolver.App. This completely skips the PairIP attachBaseContext which runs the APK signature check (crashes on patched APK) and the Google Play licensing check (redirects to Play Store). Also removes LicenseActivity and CHECK_LICENSE permission from the manifest. The PairIP VM is NOT disabled \u2014 it provides real onCreate implementations via reflection. REQUIRED for all other patches."
+          "description": "Completely bypasses Google Play's PairIP by (1) disabling the PairIP VM (prevents native integrity checks and Play Store redirects from libpairipcore.so), (2) replacing MainActivity.onCreate with direct WebView setup (no VM needed), and (3) no-oping openPlayStore. The native library libpairipcore.so is never loaded, so it can't do JNI-based redirects. Also applies the manifest modifications from the companion 'Bypass PairIP manifest' patch. REQUIRED for all other patches."
+        },
+        {
+          "name": "Bypass PairIP manifest",
+          "description": "Modifies AndroidManifest.xml to skip the PairIP Application class, remove LicenseActivity, and remove CHECK_LICENSE permission. Part of the PairIP bypass."
         },
         {
           "name": "Remove ads",
@@ -26878,16 +27130,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/MiguelNinja19/miguel-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/MiguelNinja19.png?size=96",
           "latestChanges": {
-            "title": "1.13.4 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.13.5 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** bypass PairIP via manifest modification instead of bytecode no-ops"
+                "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** bypass PairIP via manifest modification instead of bytecode no-ops"
+                "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** move openPlayStore no-op to BypassPairIPPatch"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
               }
             ]
           },
@@ -27075,12 +27339,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -27842,12 +28106,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -27900,12 +28164,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -27958,12 +28222,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -28603,6 +28867,72 @@
       ],
       "iconColor": "#005030",
       "iconUrl": "https://play-lh.googleusercontent.com/4u6esDstTbJIet24X_6zkSn0I3e3OQcu6Ev5eEv6hh--DZ7C9Sc5aqPT-encPc1pTr2SBhljInJpzTfmNEdq"
+    },
+    {
+      "packageName": "cz.etesty.autoskola",
+      "name": "eTesty Auto\u0161kola",
+      "repos": [
+        "LaBlazer/morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "LaBlazer/morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/LaBlazer/morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=LaBlazer/morphe-patches",
+          "source": "https://raw.githubusercontent.com/LaBlazer/morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/LaBlazer/morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/LaBlazer.png?size=96",
+          "latestChanges": {
+            "title": "1.0.0 (2026-07-29)",
+            "date": "2026-07-29",
+            "items": [
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Add patchlistgenerator back"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Update folder structure"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "update patches author"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "cz-etesty-autoskola-lablazer-morphe-patches",
+            "releaseTag": "app-cz-etesty-autoskola-lablazer-morphe-patches",
+            "assetName": "etesty-auto-kola-lablazer-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Enable premium features",
+              "description": "Bypasses the premium/licence gate so premium content and unlimited tests become available."
+            }
+          ],
+          "versions": [
+            "2025.01"
+          ]
+        }
+      ],
+      "patches": [
+        "Enable premium features"
+      ],
+      "patchDetails": [
+        {
+          "name": "Enable premium features",
+          "description": "Bypasses the premium/licence gate so premium content and unlimited tests become available."
+        }
+      ],
+      "versions": [
+        "2025.01"
+      ],
+      "iconColor": "#FF6B35",
+      "iconUrl": ""
     },
     {
       "packageName": "com.microsoft.office.excel",
@@ -30131,8 +30461,8 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.1.0 (2026-07-29)",
-            "date": "2026-07-29",
+            "title": "1.2.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
@@ -30330,12 +30660,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -30704,12 +31034,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -30824,12 +31154,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.5 (2026-07-28)",
-            "date": "2026-07-28",
+            "title": "1.3.6 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "remove overly broad getBoolean patch causing crashes"
+                "text": "add native camera premium unlock patch"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "remove oldroll patches"
               }
             ]
           },
@@ -31418,16 +31752,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/MiguelNinja19/miguel-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/MiguelNinja19.png?size=96",
           "latestChanges": {
-            "title": "1.13.4 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.13.5 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** bypass PairIP via manifest modification instead of bytecode no-ops"
+                "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** bypass PairIP via manifest modification instead of bytecode no-ops"
+                "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** move openPlayStore no-op to BypassPairIPPatch"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
               }
             ]
           },
@@ -33743,12 +34089,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -33921,12 +34267,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.5 (2026-07-28)",
-            "date": "2026-07-28",
+            "title": "1.3.6 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "remove overly broad getBoolean patch causing crashes"
+                "text": "add native camera premium unlock patch"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "remove oldroll patches"
               }
             ]
           },
@@ -35805,12 +36155,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -35904,28 +36254,36 @@
           "changelogUrl": "https://raw.githubusercontent.com/andrewliang25/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/andrewliang25.png?size=96",
           "latestChanges": {
-            "title": "1.1.0 (2026-07-29)",
-            "date": "2026-07-29",
+            "title": "1.2.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "also hide the chat-menu \"Events\" row"
+                "category": "\u26a0 BREAKING CHANGES",
+                "text": "drop non-functional unlock patch; enable Disable LINE Premium by default"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "also hide the green \"Unsend discreetly\" button, not just its label"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "hide all server-driven extra tools in the + attach menu"
+                "text": "add Disable LINE Premium patch (hide all LYP upsells & entry points)"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "hide in-chat-room calendar buttons"
+                "text": "add experimental LYP premium unlock patch + premium gating doc"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "hide the Transfer and LINE GIFT buttons in the + attach menu"
+                "text": "add Hide premium unsend upsells patch"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "split Events into its own patch; rename calendar patch to \"Hide LINE Calendar\""
+                "text": "drop non-functional unlock patch; enable Disable LINE Premium by default"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "enable Hide premium unsend upsells by default"
               }
             ]
           },
@@ -35940,6 +36298,10 @@
             {
               "name": "Disable LINE Pay",
               "description": "Closes any LINE Pay screen immediately on open, so Pay flows (and their device-integrity check) never run. Messaging is unaffected."
+            },
+            {
+              "name": "Disable LINE Premium",
+              "description": "Hides all LINE Yahoo Premium (LYP) surfaces \u2014 upsell popups/banners, premium badges & locks, the \"LINE Premium\" settings page and its entry rows, and the subscribe/manage flows \u2014 by forcing the app's own \"premium available in this market\" flag off. The app then behaves exactly as it does in a region where LYP isn't offered. Does not unlock anything (premium is server-enforced); it only removes premium from view. A LYP subscriber would lose their in-app premium management UI."
             },
             {
               "name": "Disable VOOM",
@@ -35978,6 +36340,10 @@
               "description": "Removes the LINE TODAY (News) tab from the main bottom navigation, in both the news-tab and news-row layouts."
             },
             {
+              "name": "Hide premium unsend upsells",
+              "description": "Removes the two LYP premium-unsend upsells that survive \"Disable LINE Premium\" (they read config directly instead of the market-availability flag): the \"Unsend discreetly\" button in the unsend-message confirmation dialog, and the \"How to unsend discreetly\" promotion link shown after unsending. The dialog keeps its ordinary \"Unsend\" and \"Close\" buttons."
+            },
+            {
               "name": "Hide Transfer button",
               "description": "Removes the Transfer (LINE Pay) tile from a chat room's + attach menu."
             },
@@ -36009,6 +36375,7 @@
       ],
       "patches": [
         "Disable LINE Pay",
+        "Disable LINE Premium",
         "Disable VOOM",
         "Hide ad views",
         "Hide attach menu extra tools",
@@ -36018,6 +36385,7 @@
         "Hide Home modules",
         "Hide LINE GIFT button",
         "Hide LINE TODAY tab",
+        "Hide premium unsend upsells",
         "Hide Transfer button",
         "Hide VOOM tab",
         "Hide Wallet tab",
@@ -36029,6 +36397,10 @@
         {
           "name": "Disable LINE Pay",
           "description": "Closes any LINE Pay screen immediately on open, so Pay flows (and their device-integrity check) never run. Messaging is unaffected."
+        },
+        {
+          "name": "Disable LINE Premium",
+          "description": "Hides all LINE Yahoo Premium (LYP) surfaces \u2014 upsell popups/banners, premium badges & locks, the \"LINE Premium\" settings page and its entry rows, and the subscribe/manage flows \u2014 by forcing the app's own \"premium available in this market\" flag off. The app then behaves exactly as it does in a region where LYP isn't offered. Does not unlock anything (premium is server-enforced); it only removes premium from view. A LYP subscriber would lose their in-app premium management UI."
         },
         {
           "name": "Disable VOOM",
@@ -36065,6 +36437,10 @@
         {
           "name": "Hide LINE TODAY tab",
           "description": "Removes the LINE TODAY (News) tab from the main bottom navigation, in both the news-tab and news-row layouts."
+        },
+        {
+          "name": "Hide premium unsend upsells",
+          "description": "Removes the two LYP premium-unsend upsells that survive \"Disable LINE Premium\" (they read config directly instead of the market-availability flag): the \"Unsend discreetly\" button in the unsend-message confirmation dialog, and the \"How to unsend discreetly\" promotion link shown after unsending. The dialog keeps its ordinary \"Unsend\" and \"Close\" buttons."
         },
         {
           "name": "Hide Transfer button",
@@ -36113,12 +36489,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -37827,12 +38203,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.5 (2026-07-28)",
-            "date": "2026-07-28",
+            "title": "1.3.6 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "remove overly broad getBoolean patch causing crashes"
+                "text": "add native camera premium unlock patch"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "remove oldroll patches"
               }
             ]
           },
@@ -39937,6 +40317,64 @@
       "iconUrl": "https://play-lh.googleusercontent.com/DLt6nmeZ-ibGGaudFHT9dwkMN5IjNO64mdp26Ya4NsgiLlej3vE6jid8K1Ncw_TuyC4ShhTTfqYQgfMoyI1BTQ"
     },
     {
+      "packageName": "com.rawcam.app",
+      "name": "Native Camera",
+      "repos": [
+        "franticg33k/morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "franticg33k/morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/franticg33k/morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=franticg33k/morphe-patches",
+          "source": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/franticg33k.png?size=96",
+          "latestChanges": {
+            "title": "1.3.6 (2026-07-31)",
+            "date": "2026-07-31",
+            "items": [
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "add native camera premium unlock patch"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "remove oldroll patches"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-rawcam-app-franticg33k-morphe-patches",
+            "releaseTag": "app-com-rawcam-app-franticg33k-morphe-patches",
+            "assetName": "native-camera-franticg33k-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Unlock Premium",
+              "description": "Forces the premium entitlement in Native Camera. Premium status is a local 'is_premium' SharedPreferences flag read on startup behind PairIP's Play Store licensing, so this unlocks RAW DNG, 10-bit video, HLG/UHDR and the boosted-ISO seekbar."
+            }
+          ],
+          "versions": []
+        }
+      ],
+      "patches": [
+        "Unlock Premium"
+      ],
+      "patchDetails": [
+        {
+          "name": "Unlock Premium",
+          "description": "Forces the premium entitlement in Native Camera. Premium status is a local 'is_premium' SharedPreferences flag read on startup behind PairIP's Play Store licensing, so this unlocks RAW DNG, 10-bit video, HLG/UHDR and the boosted-ISO seekbar."
+        }
+      ],
+      "versions": [],
+      "iconColor": "#D0BCFF",
+      "iconUrl": ""
+    },
+    {
       "packageName": "com.navitime.inbound.walk",
       "name": "NAVITIME",
       "repos": [
@@ -40118,12 +40556,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.5 (2026-07-28)",
-            "date": "2026-07-28",
+            "title": "1.3.6 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "remove overly broad getBoolean patch causing crashes"
+                "text": "add native camera premium unlock patch"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "remove oldroll patches"
               }
             ]
           },
@@ -40888,12 +41330,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -41589,16 +42031,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/MiguelNinja19/miguel-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/MiguelNinja19.png?size=96",
           "latestChanges": {
-            "title": "1.13.4 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.13.5 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** bypass PairIP via manifest modification instead of bytecode no-ops"
+                "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** bypass PairIP via manifest modification instead of bytecode no-ops"
+                "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** move openPlayStore no-op to BypassPairIPPatch"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
               }
             ]
           },
@@ -41643,60 +42097,6 @@
       ],
       "iconColor": "#C2185B",
       "iconUrl": "https://play-lh.googleusercontent.com/b9_EyCfljqMQpodvUGUHVni68pG3irH4M_a167nO0FMCY7EKJXrEUX64xXwPPIo3eJEqhN3hh4hrAiUWD8ihdQ"
-    },
-    {
-      "packageName": "com.accordion.analogcam",
-      "name": "OldRoll",
-      "repos": [
-        "franticg33k/morphe-patches"
-      ],
-      "sources": [
-        {
-          "repo": "franticg33k/morphe-patches",
-          "host": "github.com",
-          "webUrl": "https://github.com/franticg33k/morphe-patches",
-          "addUrl": "https://morphe.software/add-source?github=franticg33k/morphe-patches",
-          "source": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/patches-bundle.json",
-          "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
-          "avatarUrl": "https://github.com/franticg33k.png?size=96",
-          "latestChanges": {
-            "title": "1.3.5 (2026-07-28)",
-            "date": "2026-07-28",
-            "items": [
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "remove overly broad getBoolean patch causing crashes"
-              }
-            ]
-          },
-          "builder": {
-            "buildId": "com-accordion-analogcam-franticg33k-morphe-patches",
-            "releaseTag": "app-com-accordion-analogcam-franticg33k-morphe-patches",
-            "assetName": "oldroll-franticg33k-morphe-patches.apk",
-            "repo": "rushiforai/morphe-builder",
-            "webUrl": "https://github.com/rushiforai/morphe-builder"
-          },
-          "patches": [
-            {
-              "name": "Enable Pro",
-              "description": "Unlocks all pro/premium features by bypassing purchase validation and SharedPreferences checks."
-            }
-          ],
-          "versions": []
-        }
-      ],
-      "patches": [
-        "Enable Pro"
-      ],
-      "patchDetails": [
-        {
-          "name": "Enable Pro",
-          "description": "Unlocks all pro/premium features by bypassing purchase validation and SharedPreferences checks."
-        }
-      ],
-      "versions": [],
-      "iconColor": "#FF6B35",
-      "iconUrl": ""
     },
     {
       "packageName": "com.opera.app.news",
@@ -42298,12 +42698,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -42661,12 +43061,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -42764,6 +43164,64 @@
       ],
       "iconColor": "#4CAF50",
       "iconUrl": "https://play-lh.googleusercontent.com/Avvq84tDNB49hhXn06aDd9TcqTH8b4VUw7VntAqcNoDgS8PFoDJS5dN0uiJ24pyEUtBxj5Pa14FqhEUdFMgi"
+    },
+    {
+      "packageName": "com.launcher.hype",
+      "name": "Phi Launcher",
+      "repos": [
+        "Entree3k/Morning-Entree-Patches"
+      ],
+      "sources": [
+        {
+          "repo": "Entree3k/Morning-Entree-Patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/Entree3k/Morning-Entree-Patches",
+          "addUrl": "https://morphe.software/add-source?github=Entree3k/Morning-Entree-Patches",
+          "source": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/Entree3k.png?size=96",
+          "latestChanges": {
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "Added Phi Launcher"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-launcher-hype-entree3k-morning-entree-patches",
+            "releaseTag": "app-com-launcher-hype-entree3k-morning-entree-patches",
+            "assetName": "phi-launcher-entree3k-morning-entree-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Enable Premium",
+              "description": "Unlocks Phi Launcher Pro"
+            }
+          ],
+          "versions": [
+            "3.5.1"
+          ]
+        }
+      ],
+      "patches": [
+        "Enable Premium"
+      ],
+      "patchDetails": [
+        {
+          "name": "Enable Premium",
+          "description": "Unlocks Phi Launcher Pro"
+        }
+      ],
+      "versions": [
+        "3.5.1"
+      ],
+      "iconColor": "#6C63FF",
+      "iconUrl": ""
     },
     {
       "packageName": "com.iudesk.android.photo.editor",
@@ -43185,12 +43643,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -43292,36 +43750,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/browzomje/browzomje-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/browzomje.png?size=96",
           "latestChanges": {
-            "title": "1.4.0 (2026-07-29)",
-            "date": "2026-07-29",
+            "title": "1.4.1 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**pinterest:** add support for 14.28.0"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "**pinterest:** add the Morphe settings screen"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "**pinterest:** download every pin of a board"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "**pinterest:** hide the search history"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "**pinterest:** mark 14.28.0 stable and drop 14.24.0"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "**pinterest:** translate patch descriptions to English"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "**pinterest:** translate patcher log and feedback messages to English"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "polished morphe section, ad detecting logic and import/export of settings"
               }
             ]
           },
@@ -43339,7 +43773,7 @@
             },
             {
               "name": "Disable ads",
-              "description": "Removes sponsored (promoted) pins from the home feed and from search/related/board feeds."
+              "description": "Removes sponsored (promoted) pins from the home feed and from search/related/board feeds. Also carries the optional \"Hide product pins\" filter, which is off by default and is turned on from the Morphe settings screen."
             },
             {
               "name": "Disable email confirmation dialog",
@@ -43529,7 +43963,7 @@
         },
         {
           "name": "Disable ads",
-          "description": "Removes sponsored (promoted) pins from the home feed and from search/related/board feeds."
+          "description": "Removes sponsored (promoted) pins from the home feed and from search/related/board feeds. Also carries the optional \"Hide product pins\" filter, which is off by default and is turned on from the Morphe settings screen."
         },
         {
           "name": "Disable Android Privacy Sandbox Ad Services",
@@ -43909,16 +44343,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/MiguelNinja19/miguel-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/MiguelNinja19.png?size=96",
           "latestChanges": {
-            "title": "1.13.4 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.13.5 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** bypass PairIP via manifest modification instead of bytecode no-ops"
+                "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** bypass PairIP via manifest modification instead of bytecode no-ops"
+                "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** move openPlayStore no-op to BypassPairIPPatch"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
               }
             ]
           },
@@ -44285,12 +44731,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -45404,12 +45850,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.5 (2026-07-28)",
-            "date": "2026-07-28",
+            "title": "1.3.6 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "remove overly broad getBoolean patch causing crashes"
+                "text": "add native camera premium unlock patch"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "remove oldroll patches"
               }
             ]
           },
@@ -45604,8 +46054,8 @@
       ],
       "patches": [
         "Disable tracking",
-        "Unlock premium",
-        "Unlock Premium"
+        "Unlock Premium",
+        "Unlock premium"
       ],
       "patchDetails": [
         {
@@ -45613,12 +46063,12 @@
           "description": "Disables analytics and crash reporting."
         },
         {
-          "name": "Unlock premium",
-          "description": "Unlocks all premium features."
-        },
-        {
           "name": "Unlock Premium",
           "description": "Unlocks all premium features by bypassing the native library premium check."
+        },
+        {
+          "name": "Unlock premium",
+          "description": "Unlocks all premium features."
         }
       ],
       "versions": [
@@ -46074,12 +46524,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.5 (2026-07-28)",
-            "date": "2026-07-28",
+            "title": "1.3.6 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "remove overly broad getBoolean patch causing crashes"
+                "text": "add native camera premium unlock patch"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "remove oldroll patches"
               }
             ]
           },
@@ -46270,12 +46724,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -46328,12 +46782,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -48461,12 +48915,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -48652,12 +49106,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -48710,12 +49164,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -49174,12 +49628,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -49877,6 +50331,80 @@
       "iconUrl": "https://play-lh.googleusercontent.com/AM7MidChVOk5Uj7Vf7xM0ZaOYnGBea4PZBH5O5wlllmksRKCdMgRzPnPSgg-K7bQ0DXv2Bb7F9-kfyCVyG3JNtQ"
     },
     {
+      "packageName": "com.mediocre.smashhit",
+      "name": "Smash Hit",
+      "repos": [
+        "byehi98/okish-morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "byehi98/okish-morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/byehi98/okish-morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=byehi98/okish-morphe-patches",
+          "source": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/byehi98.png?size=96",
+          "latestChanges": {
+            "title": "1.2.0 (2026-07-31)",
+            "date": "2026-07-31",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "add TrueCloud remove ads patch, setup Nix dev environment"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**truecloud:** add ad removal patches"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**truecloud:** add patch to remove cloud boot page"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**truecloud:** add patch to remove event cloud popup"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**truecloud:** remove help center robot icon"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-mediocre-smashhit-byehi98-okish-morphe-patches",
+            "releaseTag": "app-com-mediocre-smashhit-byehi98-okish-morphe-patches",
+            "assetName": "smash-hit-byehi98-okish-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Smash Hit Premium Unlock",
+              "description": "Unlocks premium and all game modes without purchase."
+            }
+          ],
+          "versions": [
+            "1.5.14"
+          ]
+        }
+      ],
+      "patches": [
+        "Smash Hit Premium Unlock"
+      ],
+      "patchDetails": [
+        {
+          "name": "Smash Hit Premium Unlock",
+          "description": "Unlocks premium and all game modes without purchase."
+        }
+      ],
+      "versions": [
+        "1.5.14"
+      ],
+      "iconColor": "#1E88E5",
+      "iconUrl": ""
+    },
+    {
       "packageName": "ai.topicfinder.podcastdiscovery",
       "name": "Snipd",
       "repos": [
@@ -50078,12 +50606,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -51231,12 +51759,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -53072,12 +53600,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -53928,12 +54456,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -54119,16 +54647,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/MiguelNinja19/miguel-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/MiguelNinja19.png?size=96",
           "latestChanges": {
-            "title": "1.13.4 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.13.5 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** bypass PairIP via manifest modification instead of bytecode no-ops"
+                "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** bypass PairIP via manifest modification instead of bytecode no-ops"
+                "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** move openPlayStore no-op to BypassPairIPPatch"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
               }
             ]
           },
@@ -54419,6 +54959,64 @@
       ],
       "iconColor": "#4870F8",
       "iconUrl": "https://play-lh.googleusercontent.com/cStkq8fqyxyFJc2mK1_MT8aNhsaU_Fy5cD5jd6-bsshZf-pC_WAdyR-iw7NIe99W5A2wNEXBGuzOtDorNcSSJIk"
+    },
+    {
+      "packageName": "com.aspiro.tidal",
+      "name": "TIDAL",
+      "repos": [
+        "chukfinley/tidal-patches"
+      ],
+      "sources": [
+        {
+          "repo": "chukfinley/tidal-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/chukfinley/tidal-patches",
+          "addUrl": "https://morphe.software/add-source?github=chukfinley/tidal-patches",
+          "source": "https://raw.githubusercontent.com/chukfinley/tidal-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/chukfinley/tidal-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/chukfinley.png?size=96",
+          "latestChanges": {
+            "title": "1.6.0 (2026-07-28)",
+            "date": "2026-07-28",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "Let a fast flick count like a full swipe"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-aspiro-tidal-chukfinley-tidal-patches",
+            "releaseTag": "app-com-aspiro-tidal-chukfinley-tidal-patches",
+            "assetName": "tidal-chukfinley-tidal-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Swipe to add to queue",
+              "description": "Adds a Spotify style swipe right gesture that adds the swiped item to the play queue, on every screen that lists tracks, albums, playlists or mixes."
+            }
+          ],
+          "versions": [
+            "2.202.0"
+          ]
+        }
+      ],
+      "patches": [
+        "Swipe to add to queue"
+      ],
+      "patchDetails": [
+        {
+          "name": "Swipe to add to queue",
+          "description": "Adds a Spotify style swipe right gesture that adds the swiped item to the play queue, on every screen that lists tracks, albums, playlists or mixes."
+        }
+      ],
+      "versions": [
+        "2.202.0"
+      ],
+      "iconColor": "#000000",
+      "iconUrl": ""
     },
     {
       "packageName": "com.jeyluta.timestampcamerafreeent",
@@ -56216,8 +56814,8 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.1.0 (2026-07-29)",
-            "date": "2026-07-29",
+            "title": "1.2.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
@@ -56445,7 +57043,7 @@
             },
             {
               "name": "Skip ads",
-              "description": "Suppresses Pluto TV's ads. Empties the client-side ad-break timeline (StitcherSession.adBreaks) \u2014 the same data AdGuard strips via jsonprune \u2014 which removes on-demand (VOD) ad breaks entirely: ad video, markers, overlays, and beacons. Also no-ops pause ads and clickable-ad overlays. LIVE TV ads are real broadcast time in the linear feed and are not removable. Validated on-device, 5.66.0-leanback."
+              "description": "Removes Pluto TV's on-demand (VOD) ads entirely \u2014 ad video, markers, overlays, and beacons. Two layers: (1) drops the ad <Period>s from the stitched DASH manifest at media3's parser and re-bases the content periods contiguous, so the ad VIDEO is never played (verified on-device: 2:49:58 -> 2:18:41, mid-rolls gone); (2) empties the client-side ad-break timeline (StitcherSession.adBreaks \u2014 the same data AdGuard strips via jsonprune) and no-ops pause ads and clickable-ad overlays, removing the markers/UI/beacons. Fail-open: a manifest it can't rewrite is passed through unchanged (ads remain, playback never breaks). LIVE TV ads are real broadcast time in the linear feed and are not removable. Validated on-device, 5.66.0-leanback."
             }
           ],
           "versions": [
@@ -56474,7 +57072,7 @@
         },
         {
           "name": "Skip ads",
-          "description": "Suppresses Pluto TV's ads. Empties the client-side ad-break timeline (StitcherSession.adBreaks) \u2014 the same data AdGuard strips via jsonprune \u2014 which removes on-demand (VOD) ad breaks entirely: ad video, markers, overlays, and beacons. Also no-ops pause ads and clickable-ad overlays. LIVE TV ads are real broadcast time in the linear feed and are not removable. Validated on-device, 5.66.0-leanback."
+          "description": "Removes Pluto TV's on-demand (VOD) ads entirely \u2014 ad video, markers, overlays, and beacons. Two layers: (1) drops the ad <Period>s from the stitched DASH manifest at media3's parser and re-bases the content periods contiguous, so the ad VIDEO is never played (verified on-device: 2:49:58 -> 2:18:41, mid-rolls gone); (2) empties the client-side ad-break timeline (StitcherSession.adBreaks \u2014 the same data AdGuard strips via jsonprune) and no-ops pause ads and clickable-ad overlays, removing the markers/UI/beacons. Fail-open: a manifest it can't rewrite is passed through unchanged (ads remain, playback never breaks). LIVE TV ads are real broadcast time in the linear feed and are not removable. Validated on-device, 5.66.0-leanback."
         }
       ],
       "versions": [
@@ -56688,12 +57286,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -57612,12 +58210,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.6.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added New Support"
+                "text": "Added Phi Launcher"
               }
             ]
           },
@@ -60885,8 +61483,8 @@
         "Save to watch later",
         "Seekbar",
         "Seekbar components",
-        "Set Transcript Cookies",
         "Set transcript cookies",
+        "Set Transcript Cookies",
         "Settings for YouTube",
         "Settings menu filter",
         "Shorts autoplay",
@@ -60904,8 +61502,8 @@
         "Video playback",
         "Video quality",
         "Visual preferences icons for YouTube",
-        "Voice over translation",
         "Voice Over Translation",
+        "Voice over translation",
         "Voice Over Translation (Yandex)",
         "Watch history",
         "Watch later button",
@@ -61330,11 +61928,11 @@
           "description": "Adds options to hide or change components related to the seekbar."
         },
         {
-          "name": "Set Transcript Cookies",
+          "name": "Set transcript cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {
-          "name": "Set transcript cookies",
+          "name": "Set Transcript Cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {
@@ -61406,12 +62004,12 @@
           "description": "Adds icons to specific preferences in the settings."
         },
         {
-          "name": "Voice over translation",
-          "description": "Adds additional voice over languages using text-to-speech synchronized to the video playback."
-        },
-        {
           "name": "Voice Over Translation",
           "description": "Adds an option to enable Yandex voice-over translation of video audio tracks."
+        },
+        {
+          "name": "Voice over translation",
+          "description": "Adds additional voice over languages using text-to-speech synchronized to the video playback."
         },
         {
           "name": "Voice Over Translation (Yandex)",
@@ -63387,12 +63985,12 @@
       "avatarUrl": "https://github.com/Entree3k.png?size=96",
       "patchCount": 2,
       "latestChanges": {
-        "title": "1.5.0 (2026-07-30)",
-        "date": "2026-07-30",
+        "title": "1.6.0 (2026-07-31)",
+        "date": "2026-07-31",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "Added New Support"
+            "text": "Added Phi Launcher"
           }
         ]
       },
@@ -63816,16 +64414,28 @@
       "avatarUrl": "https://github.com/MiguelNinja19.png?size=96",
       "patchCount": 2,
       "latestChanges": {
-        "title": "1.13.4 (2026-07-30)",
-        "date": "2026-07-30",
+        "title": "1.13.5 (2026-07-31)",
+        "date": "2026-07-31",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**cubesolver:** bypass PairIP via manifest modification instead of bytecode no-ops"
+            "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
           },
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**cubesolver:** bypass PairIP via manifest modification instead of bytecode no-ops"
+            "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**cubesolver:** move openPlayStore no-op to BypassPairIPPatch"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
           }
         ]
       },
@@ -64770,6 +65380,122 @@
   ],
   "recentSources": [
     {
+      "name": "morphe-patches",
+      "repo": "d0nj/morphe-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/d0nj/morphe-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/d0nj/morphe-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/d0nj/morphe-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/d0nj/morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=d0nj/morphe-patches",
+      "avatarUrl": "https://github.com/d0nj.png?size=96",
+      "patchCount": 1,
+      "appCount": 1,
+      "createdAt": 1785553246080,
+      "updatedAt": 1785553246080,
+      "createdDate": "2026-08-01",
+      "updatedDate": "2026-08-01",
+      "latestChanges": {
+        "title": "1.1.0 (2026-07-29)",
+        "date": "2026-07-29",
+        "items": [
+          {
+            "category": "\u2728 New Features",
+            "text": "add unlock premium patch for AI Audio Novel Reader"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "AI Audio Novel Reader",
+          "packageName": "com.thien.novelreader",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#6200EE"
+        }
+      ]
+    },
+    {
+      "name": "tidal-patches",
+      "repo": "chukfinley/tidal-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/chukfinley/tidal-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/chukfinley/tidal-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/chukfinley/tidal-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/chukfinley/tidal-patches",
+      "addUrl": "https://morphe.software/add-source?github=chukfinley/tidal-patches",
+      "avatarUrl": "https://github.com/chukfinley.png?size=96",
+      "patchCount": 1,
+      "appCount": 1,
+      "createdAt": 1785553245917,
+      "updatedAt": 1785553245917,
+      "createdDate": "2026-08-01",
+      "updatedDate": "2026-08-01",
+      "latestChanges": {
+        "title": "1.6.0 (2026-07-28)",
+        "date": "2026-07-28",
+        "items": [
+          {
+            "category": "\u2728 New Features",
+            "text": "Let a fast flick count like a full swipe"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "TIDAL",
+          "packageName": "com.aspiro.tidal",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#000000"
+        }
+      ]
+    },
+    {
+      "name": "morphe-patches",
+      "repo": "LaBlazer/morphe-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/LaBlazer/morphe-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/LaBlazer/morphe-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/LaBlazer/morphe-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/LaBlazer/morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=LaBlazer/morphe-patches",
+      "avatarUrl": "https://github.com/LaBlazer.png?size=96",
+      "patchCount": 1,
+      "appCount": 1,
+      "createdAt": 1785553244549,
+      "updatedAt": 1785553244549,
+      "createdDate": "2026-08-01",
+      "updatedDate": "2026-08-01",
+      "latestChanges": {
+        "title": "1.0.0 (2026-07-29)",
+        "date": "2026-07-29",
+        "items": [
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Add patchlistgenerator back"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Update folder structure"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "update patches author"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "eTesty Auto\u0161kola",
+          "packageName": "cz.etesty.autoskola",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#FF6B35"
+        }
+      ]
+    },
+    {
       "name": "itsthejoker-patches",
       "repo": "itsthejoker/itsthejoker-patches",
       "host": "github.com",
@@ -65100,35 +65826,43 @@
       "webUrl": "https://github.com/andrewliang25/morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=andrewliang25/morphe-patches",
       "avatarUrl": "https://github.com/andrewliang25.png?size=96",
-      "patchCount": 16,
+      "patchCount": 18,
       "appCount": 1,
       "createdAt": 1785034852052,
       "updatedAt": 1785034852052,
       "createdDate": "2026-07-26",
       "updatedDate": "2026-07-26",
       "latestChanges": {
-        "title": "1.1.0 (2026-07-29)",
-        "date": "2026-07-29",
+        "title": "1.2.0 (2026-07-31)",
+        "date": "2026-07-31",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "also hide the chat-menu \"Events\" row"
+            "category": "\u26a0 BREAKING CHANGES",
+            "text": "drop non-functional unlock patch; enable Disable LINE Premium by default"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "also hide the green \"Unsend discreetly\" button, not just its label"
           },
           {
             "category": "\u2728 New Features",
-            "text": "hide all server-driven extra tools in the + attach menu"
+            "text": "add Disable LINE Premium patch (hide all LYP upsells & entry points)"
           },
           {
             "category": "\u2728 New Features",
-            "text": "hide in-chat-room calendar buttons"
+            "text": "add experimental LYP premium unlock patch + premium gating doc"
           },
           {
             "category": "\u2728 New Features",
-            "text": "hide the Transfer and LINE GIFT buttons in the + attach menu"
+            "text": "add Hide premium unsend upsells patch"
           },
           {
             "category": "\u2728 New Features",
-            "text": "split Events into its own patch; rename calendar patch to \"Hide LINE Calendar\""
+            "text": "drop non-functional unlock patch; enable Disable LINE Premium by default"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "enable Hide premium unsend upsells by default"
           }
         ]
       },
@@ -65136,7 +65870,7 @@
         {
           "name": "LINE",
           "packageName": "jp.naver.line.android",
-          "patchCount": 16,
+          "patchCount": 18,
           "iconUrl": "",
           "iconColor": "#06C755"
         }
@@ -65175,565 +65909,6 @@
           "patchCount": 1,
           "iconUrl": "https://play-lh.googleusercontent.com/QNmuZQc9I6Zbe3mWnSr0hycnENqGFCI5p3yE29Hkxtf22T0IWS6zTrpxULLyyjWpB7ONAXDsDQXnXcVWokl3eg",
           "iconColor": "#FF0033"
-        }
-      ]
-    },
-    {
-      "name": "Morning-Entree-Patches",
-      "repo": "Entree3k/Morning-Entree-Patches",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
-      "webUrl": "https://github.com/Entree3k/Morning-Entree-Patches",
-      "addUrl": "https://morphe.software/add-source?github=Entree3k/Morning-Entree-Patches",
-      "avatarUrl": "https://github.com/Entree3k.png?size=96",
-      "patchCount": 19,
-      "appCount": 62,
-      "createdAt": 1785034851561,
-      "updatedAt": 1785034851561,
-      "createdDate": "2026-07-26",
-      "updatedDate": "2026-07-26",
-      "latestChanges": {
-        "title": "1.5.0 (2026-07-30)",
-        "date": "2026-07-30",
-        "items": [
-          {
-            "category": "\u2728 New Features",
-            "text": "Added New Support"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "AI-900",
-          "packageName": "com.trieudadlovestun.ai900exam",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "AutoLocation",
-          "packageName": "com.joaomgcd.autolocation",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#4CAF50"
-        },
-        {
-          "name": "AutoTools",
-          "packageName": "com.joaomgcd.autotools",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#FF9800"
-        },
-        {
-          "name": "AWS AIF-C01",
-          "packageName": "com.trieudadlovestun.aifc01exam",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "AWS CLF-C01",
-          "packageName": "com.trieudadlovestun.clfc01",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "AWS DOP-C01",
-          "packageName": "com.trieudadlovestun.dopc01",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "AWS DVA-C01",
-          "packageName": "com.trieudadlovestun.dvac01ver3",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "AWS MLA-C01",
-          "packageName": "com.trieudadlovestun.mlac01exam",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "AWS SAA-C02",
-          "packageName": "com.trieudadlovestun.saac02ver3",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "AWS SAP-C01",
-          "packageName": "com.trieudadlovestun.sapc01",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "AWS SCS-C01",
-          "packageName": "com.trieudadlovestun.scsc01",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "AWS SOA-C02",
-          "packageName": "com.trieudadlovestun.soac02",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "AZ-104",
-          "packageName": "com.trieudadlovestun.az104",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "AZ-204",
-          "packageName": "com.trieudadlovestun.az204ver2022",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "AZ-400",
-          "packageName": "com.trieudadlovestun.az400",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "AZ-500",
-          "packageName": "com.trieudadlovestun.az500",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "AZ-700",
-          "packageName": "com.trieudadlovestun.az700exam",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "AZ-900",
-          "packageName": "com.trieudadlovestun.az900ver3",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "CAPM",
-          "packageName": "com.trieudadlovestun.capm",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "CCNA 200-301",
-          "packageName": "com.trieudadlovestun.ccna200301",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "CCNP 350-401",
-          "packageName": "com.trieudadlovestun.ccnp350401",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "CCNP SCOR 350-701",
-          "packageName": "com.trieudadlovestun.scor350701",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "CEH v11",
-          "packageName": "com.trieudadlovestun.cehv11",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "CISM",
-          "packageName": "com.trieudadlovestun.cism",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "CISSP",
-          "packageName": "com.trieudadlovestun.cissp",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "CompTIA A+ Core 1",
-          "packageName": "com.trieudadlovestun.comptiacore1",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "CompTIA A+ Core 2",
-          "packageName": "com.trieudadlovestun.comptiacore2",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "CompTIA CySA+",
-          "packageName": "com.trieudadlovestun.comptiacysa",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "CompTIA ITF+",
-          "packageName": "com.trieudadlovestun.comptiaitf",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "CompTIA Linux+",
-          "packageName": "com.trieudadlovestun.comptialinuxplusexam",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "CompTIA PenTest+",
-          "packageName": "com.trieudadlovestun.pentestplusexam",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "CompTIA SecAI",
-          "packageName": "com.trieudadlovestun.comptiasecai",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "CompTIA Security+",
-          "packageName": "com.trieudadlovestun.comptiasecurityplus",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "CompTIA SecurityX",
-          "packageName": "com.trieudadlovestun.comptiasecux",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "CompTIA Server+",
-          "packageName": "com.trieudadlovestun.comptiaserverplus",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "DASM",
-          "packageName": "com.trieudadlovestun.dasm",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "DP-203",
-          "packageName": "com.trieudadlovestun.dp203",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "DP-300",
-          "packageName": "com.trieudadlovestun.dp300",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "DP-900",
-          "packageName": "com.trieudadlovestun.dp900",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "Gboard",
-          "packageName": "com.google.android.inputmethod.latin",
-          "patchCount": 3,
-          "iconUrl": "https://play-lh.googleusercontent.com/J4vZ82VsZjnsRsI6ckQFXlO36_52QJerqG5-HfLgHffS34I4EfoAFfNdbf6s4wBAsUEf8DOJVEDEHh5tzWbrnA",
-          "iconColor": ""
-        },
-        {
-          "name": "GCP Associate Cloud Engineer",
-          "packageName": "com.trieudadlovestun.gcpassociatecloudengineer",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "Gradient Weather",
-          "packageName": "com.subtlesignals.gradientweather",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#6C7BFF"
-        },
-        {
-          "name": "ISTQB Foundation",
-          "packageName": "com.trieudadlovestun.istqbfoundation",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "Lifesum",
-          "packageName": "com.sillens.shapeupclub",
-          "patchCount": 1,
-          "iconUrl": "https://play-lh.googleusercontent.com/gMeT8cxzZOnlrCKwYIOPHT90C9kb9pPbE0mHlk2gixDIadJ_B9QmslnPkQ3Sc0y9KuS8KMxPDxFgsL_GLnXbsg",
-          "iconColor": "#41CD8C"
-        },
-        {
-          "name": "Ling",
-          "packageName": "com.simyasolutions.ling.universal",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#F8485E"
-        },
-        {
-          "name": "Nova Launcher",
-          "packageName": "com.teslacoilsw.launcher",
-          "patchCount": 2,
-          "iconUrl": "https://play-lh.googleusercontent.com/EihoqDPSzditTLnmP-N0GjXmbvNdnZyW7YZKxRocA_kVIsaXhM9lBlfPrJmhBcSQmiydPXgise1ZTAlOOH7ZsQ",
-          "iconColor": "#DA4624"
-        },
-        {
-          "name": "Panels",
-          "packageName": "com.fossor.panels",
-          "patchCount": 2,
-          "iconUrl": "",
-          "iconColor": "#2196F3"
-        },
-        {
-          "name": "PCEP-30-02",
-          "packageName": "com.trieudadlovestun.pcep3002",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "Pinnit",
-          "packageName": "dev.sasikanth.pinnit2",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#E0563F"
-        },
-        {
-          "name": "PMI-ACP",
-          "packageName": "com.trieudadlovestun.pmiacp",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "PSM II",
-          "packageName": "com.trieudadlovestun.psm2",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "PSPO I",
-          "packageName": "com.trieudadlovestun.pspooneexam",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "Salesforce Admin",
-          "packageName": "com.trieudadlovestun.salesforceadmin",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "SC-200",
-          "packageName": "com.trieudadlovestun.sc200exam",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "SC-900",
-          "packageName": "com.trieudadlovestun.sc900",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "ServiceNow CSA",
-          "packageName": "com.trieudadlovestun.servicenowsystemadmin",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "SnowPro Core",
-          "packageName": "com.trieudadlovestun.snowprocore",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "Sponge",
-          "packageName": "com.prismtree.sponge",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#2AB7A9"
-        },
-        {
-          "name": "Tableau Desktop",
-          "packageName": "com.trieudadlovestun.tableaudesktop",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "Terraform Associate",
-          "packageName": "com.trieudadlovestun.terraform",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "UbikiTouch",
-          "packageName": "eu.toneiv.ubktouch",
-          "patchCount": 1,
-          "iconUrl": "https://play-lh.googleusercontent.com/mwINWGvA1fZZwTzDfYgl7FTTTj-iElnsWrRCjuwnVAtR62hJyZdcHgG1SRSSi5LiBjlcKINIchP-Ut0DRWPDfQ",
-          "iconColor": "#2196F3"
-        },
-        {
-          "name": "Vocabulary",
-          "packageName": "com.hrd.vocabulary",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#C7604F"
-        }
-      ]
-    },
-    {
-      "name": "vocacolle-morphe-patches",
-      "repo": "ilikeadofai/vocacolle-morphe-patches",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/ilikeadofai/vocacolle-morphe-patches/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/ilikeadofai/vocacolle-morphe-patches/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/ilikeadofai/vocacolle-morphe-patches/main/CHANGELOG.md",
-      "webUrl": "https://github.com/ilikeadofai/vocacolle-morphe-patches",
-      "addUrl": "https://morphe.software/add-source?github=ilikeadofai/vocacolle-morphe-patches",
-      "avatarUrl": "https://github.com/ilikeadofai.png?size=96",
-      "patchCount": 5,
-      "appCount": 1,
-      "createdAt": 1784840718648,
-      "updatedAt": 1784840718648,
-      "createdDate": "2026-07-23",
-      "updatedDate": "2026-07-23",
-      "latestChanges": {
-        "title": "1.1.0 (2026-07-23)",
-        "date": "2026-07-23",
-        "items": [
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "add native Morphe settings row"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "harden network and cache runtime safety"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "keep desktop image types out of patch metadata"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "redesign Morphe settings for native theming"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "select Korean localization patches by default"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "complete VocaColle Morphe v1.1"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "consolidate language patches"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "VocaColle",
-          "packageName": "jp.nicovideo.nicobox",
-          "patchCount": 5,
-          "iconUrl": "https://play-lh.googleusercontent.com/KebeLOyAcJvXyvUm-S7prz8gMMUqdNKq96lcSJrAtcLcGV6xrGPN9nwEC38nUmAIgdurDRLOksD10mL8WSThMQ",
-          "iconColor": ""
-        }
-      ]
-    },
-    {
-      "name": "tiaruebar-patches",
-      "repo": "tiaruebar1024/tiaruebar-patches",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/tiaruebar1024/tiaruebar-patches/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/tiaruebar1024/tiaruebar-patches/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/tiaruebar1024/tiaruebar-patches/main/CHANGELOG.md",
-      "webUrl": "https://github.com/tiaruebar1024/tiaruebar-patches",
-      "addUrl": "https://morphe.software/add-source?github=tiaruebar1024/tiaruebar-patches",
-      "avatarUrl": "https://github.com/tiaruebar1024.png?size=96",
-      "patchCount": 1,
-      "appCount": 1,
-      "createdAt": 1784838370843,
-      "updatedAt": 1784838370843,
-      "createdDate": "2026-07-23",
-      "updatedDate": "2026-07-23",
-      "latestChanges": {
-        "title": "1.3.2 (2026-07-22)",
-        "date": "2026-07-22",
-        "items": [
-          {
-            "category": "\ud83d\ude80 Updated App Support",
-            "text": "remove apps actually"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "Devices Tycoon",
-          "packageName": "com.roasterygames.devicestycoon",
-          "patchCount": 1,
-          "iconUrl": "https://play-lh.googleusercontent.com/D7ZeEeEbTOHre_sCohLA-jZ0anMOstAaSmS9Q1-tSRuclV29i5vg4tQfr_7RP5crq3e3bcZCt3wTthLGq-C35A",
-          "iconColor": "#1565C0"
         }
       ]
     }

@@ -945,6 +945,30 @@
                 "sortOrder": 113,
                 "createdAt": 1785206628042,
                 "updatedAt": 1785206628042
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/LaBlazer/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 114,
+                "createdAt": 1785553244549,
+                "updatedAt": 1785553244549
+            },
+            {
+                "name": "tidal-patches",
+                "source": "https://raw.githubusercontent.com/chukfinley/tidal-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 115,
+                "createdAt": 1785553245917,
+                "updatedAt": 1785553245917
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/d0nj/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 116,
+                "createdAt": 1785553246080,
+                "updatedAt": 1785553246080
             }
         ]
     }
