@@ -57,6 +57,10 @@ private val compatibility = Compatibility(
             version = "26.29.02.946673643",
             minSdk = 28,
         ),
+        AppTarget(
+            version = "26.30.09.950492155",
+            minSdk = 28,
+        ),
     ),
 )
 
@@ -369,6 +373,7 @@ private val mapsActivityOnCreateFingerprints = listOf(
     mapsActivityOnCreateFingerprint("Lnai;"),
     mapsActivityOnCreateFingerprint("Lmzk;"),
     mapsActivityOnCreateFingerprint("Lnaa;"),
+    mapsActivityOnCreateFingerprint("Lnap;"),
 )
 
 private fun mapsApplicationOnCreateFingerprint(definingClass: String) = Fingerprint(
@@ -383,6 +388,7 @@ private val mapsApplicationOnCreateFingerprints = listOf(
     mapsApplicationOnCreateFingerprint("Lnya;"),
     mapsApplicationOnCreateFingerprint("Lnxe;"),
     mapsApplicationOnCreateFingerprint("Lnxw;"),
+    mapsApplicationOnCreateFingerprint("Lnzo;"),
 )
 
 private val extensionVendorFingerprint = Fingerprint(
@@ -420,6 +426,7 @@ private val googlePlayUtilityFingerprints = listOf(
     googlePlayUtilityFingerprint("Lbjgy;", "n"),
     googlePlayUtilityFingerprint("Lbjhc;", "n"),
     googlePlayUtilityFingerprint("Lbjkw;", "n"),
+    googlePlayUtilityFingerprint("Lbjqa;", "o"),
 )
 
 private fun app.morphe.patcher.patch.BytecodePatchContext.patchExtensionRuntime() {

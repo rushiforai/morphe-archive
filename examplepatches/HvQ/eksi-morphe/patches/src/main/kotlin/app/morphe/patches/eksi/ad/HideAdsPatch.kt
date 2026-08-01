@@ -28,7 +28,20 @@ val hideAdsPatch = bytecodePatch(
             """,
         )
 
+        AdViewLoaderV2410Fingerprint.methodOrNull?.addInstructions(
+            0,
+            """
+                const/4 v0, 0x0
+                return-object v0
+            """,
+        )
+
         StartupAdLoaderFingerprint.methodOrNull?.addInstructions(
+            0,
+            "return-void",
+        )
+
+        StartupAdLoaderV2410Fingerprint.methodOrNull?.addInstructions(
             0,
             "return-void",
         )

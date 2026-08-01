@@ -24,13 +24,13 @@ class GboardCompatibilitySourceTest {
     }
 
     @Test
-    fun allTwentyPublishedPatchesUseTheSharedCompatibility() {
+    fun allTwentyOnePublishedPatchesUseTheSharedCompatibility() {
         val registry = readSource(REGISTRY_PATH)
         val activeRegistry = registry.replace(Regex("(?s)/\\*.*?\\*/"), "")
         val publicPatchBlocks = activeRegistry.split("@Suppress(\"unused\")")
             .filter { block -> block.contains("resourcePatch(") }
 
-        assertEquals(20, publicPatchBlocks.size)
+        assertEquals(21, publicPatchBlocks.size)
         publicPatchBlocks.forEach { block ->
             assertEquals(
                 1,

@@ -4,12 +4,12 @@ Morphe patch source for Ekşi Sözlük.
 
 ## Patches
 
-- **Hide ads**: removes Ekşi Sözlük ad placements and disables ad loading.
+- **Hide ads**: removes Ekşi Sözlük ad placements, including Ekşi Şeyler recommendations, and disables ad loading.
 
 ## Supported App
 
 - Package: `com.eksiteknoloji.eksisozluk`
-- Version: unpinned, tested on `2.4.9`
+- Version: unpinned, tested on `2.4.9` and `2.4.10`
 - APK type: regular APK
 
 ## Morphe Manager Source
@@ -41,6 +41,7 @@ git clone https://github.com/MorpheApp/morphe-patches-library.git
 cd eksi-morphe
 $env:GITHUB_ACTOR = "local"
 $env:GITHUB_TOKEN = "local"
+.\gradlew.bat --no-parallel :morphe-patcher:jar :morphe-patches-library:patch-library:jar
 .\gradlew.bat --no-parallel :patches:buildAndroid :patches:generatePatchesList
 ```
 

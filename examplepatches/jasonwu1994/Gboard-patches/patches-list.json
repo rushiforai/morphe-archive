@@ -1,5 +1,5 @@
 {
-  "version": "2.2.0",
+  "version": "2.3.0",
   "patches": [
     {
       "name": "AI Writing Tools",
@@ -136,6 +136,18 @@
     {
       "name": "Latin Globe Key Ignore Interval",
       "description": "新增英文鍵盤地球鍵忽略時間覆寫，可獨立控制輸入後切語言延遲\nAdd an independent English globe key ignore interval override for post-typing language-switch delay.",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "com.google.android.inputmethod.latin": [
+          "17.7.7.932364120-release-arm64-v8a"
+        ]
+      },
+      "options": []
+    },
+    {
+      "name": "Long-Press Editing Shortcuts",
+      "description": "在英文 QWERTY 與注音鍵盤加入全選、復原、複製、剪下、貼上與重做長按快捷鍵\nAdd Select all, Undo, Copy, Cut, Paste, and Redo long-press shortcuts to English QWERTY and Zhuyin.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {

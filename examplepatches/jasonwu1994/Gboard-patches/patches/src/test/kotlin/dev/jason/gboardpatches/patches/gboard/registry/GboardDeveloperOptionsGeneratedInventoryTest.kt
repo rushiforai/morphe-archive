@@ -11,7 +11,7 @@ import org.junit.Test
 
 class GboardDeveloperOptionsGeneratedInventoryTest {
     @Test
-    fun generatedInventoryContainsTwentyPublishedPatchesAndNoStagedRows() {
+    fun generatedInventoryContainsTwentyOnePublishedPatchesAndNoStagedRows() {
         val repositoryRoot = findRepositoryRoot()
         val inventory = JsonParser.parseString(
             String(
@@ -22,7 +22,7 @@ class GboardDeveloperOptionsGeneratedInventoryTest {
         val patches = inventory.getAsJsonArray("patches")
         val names = patches.map { it.asJsonObject.get("name").asString }
 
-        assertEquals(20, patches.size())
+        assertEquals(21, patches.size())
         STAGED_PATCH_NAMES.forEach { stagedName ->
             assertFalse("Staged patch must stay unpublished: $stagedName", names.contains(stagedName))
         }
@@ -53,7 +53,6 @@ class GboardDeveloperOptionsGeneratedInventoryTest {
             "Enable Undo/Redo feature",
         )
         val STAGED_PATCH_NAMES = listOf(
-            "Long-Press Editing Shortcuts",
             "Advanced Voice Typing",
         )
         val SURVIVING_PATCH_NAMES = listOf(
@@ -69,6 +68,7 @@ class GboardDeveloperOptionsGeneratedInventoryTest {
             "Inline Suggestions",
             "Key Shape Selection",
             "Latin Globe Key Ignore Interval",
+            "Long-Press Editing Shortcuts",
             "Package Rename",
             "Settings Homepage Override",
             "Swipeable Custom Top Row",

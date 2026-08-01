@@ -45,6 +45,12 @@ Gboard Patches is a public Morphe source for a curated set of Gboard enhancement
 </details>
 
 <details>
+  <summary><code>Long-Press Editing Shortcuts</code></summary>
+
+  Add Select all, Undo, Copy, Cut, Paste, and Redo long-press shortcuts to English QWERTY and Zhuyin.
+</details>
+
+<details>
   <summary><code>Custom Symbols</code></summary>
 
   Adds a dedicated symbols tab and a quick access entry from the comma long-press popup.

@@ -101,7 +101,6 @@ val gboardEnglishQwertySlideUppercaseTogglePatch = resourcePatch(
     )
 }
 
-/*
 @Suppress("unused")
 val gboardLongPressQuickActionsPatch = resourcePatch(
     name = "Long-Press Editing Shortcuts",
@@ -120,7 +119,6 @@ val gboardLongPressQuickActionsPatch = resourcePatch(
         gboardLongPressQuickActionsPointerOwnerPatch,
     )
 }
-*/
 
 /*
 @Suppress("unused")
