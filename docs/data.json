@@ -1,13 +1,13 @@
 {
-  "generatedAt": "2026-08-01 03:01 UTC",
-  "configFile": "morphe_archive_config_v9.json",
-  "configVersion": 9,
-  "repoCount": 115,
-  "appCount": 581,
-  "patchCount": 2144,
-  "universalPatchCount": 167,
+  "generatedAt": "2026-08-02 02:59 UTC",
+  "configFile": "morphe_archive_config_v10.json",
+  "configVersion": 10,
+  "repoCount": 114,
+  "appCount": 583,
+  "patchCount": 2149,
+  "universalPatchCount": 168,
   "hostCounts": {
-    "github.com": 111,
+    "github.com": 110,
     "gitlab.com": 4
   },
   "repos": [
@@ -61,8 +61,8 @@
       "webUrl": "https://github.com/ajstrick81/morphe-androidtv-patches",
       "addUrl": "https://morphe.software/add-source?github=ajstrick81/morphe-androidtv-patches",
       "avatarUrl": "https://github.com/ajstrick81.png?size=96",
-      "patchCount": 22,
-      "appCount": 10,
+      "patchCount": 23,
+      "appCount": 11,
       "createdAt": 1784836028108,
       "updatedAt": 1784836028108,
       "createdDate": "2026-07-23",
@@ -146,6 +146,13 @@
           "packageName": "tv.pluto.android",
           "patchCount": 4,
           "iconUrl": "https://play-lh.googleusercontent.com/O6MtMEvYNmr-I_cntqWT2Lq8L5Y5bG01V5udGLT8-8LcpNzeeOCDjgaX-mQEushfwrLjT74nVJMlmSgeIxtP",
+          "iconColor": ""
+        },
+        {
+          "name": "tv.twitch.android.app",
+          "packageName": "tv.twitch.android.app",
+          "patchCount": 1,
+          "iconUrl": "https://play-lh.googleusercontent.com/JHCM4AIyomRp6Lo2-5ugoznlGdsZmNnejVN8DLvtWFHShcz8YRgUE170f1CyOfrleYbtFL2g8tQ3VqlQNAgqoA",
           "iconColor": ""
         }
       ]
@@ -526,43 +533,19 @@
       "webUrl": "https://github.com/andrewliang25/morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=andrewliang25/morphe-patches",
       "avatarUrl": "https://github.com/andrewliang25.png?size=96",
-      "patchCount": 18,
+      "patchCount": 19,
       "appCount": 1,
       "createdAt": 1785034852052,
       "updatedAt": 1785034852052,
       "createdDate": "2026-07-26",
       "updatedDate": "2026-07-26",
       "latestChanges": {
-        "title": "1.2.0 (2026-07-31)",
-        "date": "2026-07-31",
+        "title": "1.4.0 (2026-08-02)",
+        "date": "2026-08-02",
         "items": [
           {
-            "category": "\u26a0 BREAKING CHANGES",
-            "text": "drop non-functional unlock patch; enable Disable LINE Premium by default"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "also hide the green \"Unsend discreetly\" button, not just its label"
-          },
-          {
             "category": "\u2728 New Features",
-            "text": "add Disable LINE Premium patch (hide all LYP upsells & entry points)"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "add experimental LYP premium unlock patch + premium gating doc"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "add Hide premium unsend upsells patch"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "drop non-functional unlock patch; enable Disable LINE Premium by default"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "enable Hide premium unsend upsells by default"
+            "text": "add \"Fix push notifications\" patch"
           }
         ]
       },
@@ -570,7 +553,7 @@
         {
           "name": "LINE",
           "packageName": "jp.naver.line.android",
-          "patchCount": 18,
+          "patchCount": 19,
           "iconUrl": "",
           "iconColor": "#06C755"
         }
@@ -1417,23 +1400,30 @@
       "webUrl": "https://github.com/browzomje/browzomje-patches",
       "addUrl": "https://morphe.software/add-source?github=browzomje/browzomje-patches",
       "avatarUrl": "https://github.com/browzomje.png?size=96",
-      "patchCount": 14,
-      "appCount": 1,
+      "patchCount": 19,
+      "appCount": 2,
       "createdAt": 1784836031836,
       "updatedAt": 1784836031836,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.4.1 (2026-07-31)",
-        "date": "2026-07-31",
+        "title": "1.5.0 (2026-08-01)",
+        "date": "2026-08-01",
         "items": [
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "polished morphe section, ad detecting logic and import/export of settings"
+            "category": "\u2728 New Features",
+            "text": "added easysudoku patch"
           }
         ]
       },
       "apps": [
+        {
+          "name": "Easy Sudoku",
+          "packageName": "easy.sudoku.puzzle.solver.free",
+          "patchCount": 5,
+          "iconUrl": "",
+          "iconColor": "#1E88E5"
+        },
         {
           "name": "Pinterest",
           "packageName": "com.pinterest",
@@ -1531,35 +1521,19 @@
       "webUrl": "https://github.com/byehi98/okish-morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=byehi98/okish-morphe-patches",
       "avatarUrl": "https://github.com/byehi98.png?size=96",
-      "patchCount": 4,
-      "appCount": 3,
+      "patchCount": 6,
+      "appCount": 5,
       "createdAt": 1784836032190,
       "updatedAt": 1784836032190,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.2.0 (2026-07-31)",
-        "date": "2026-07-31",
+        "title": "1.4.0 (2026-08-01)",
+        "date": "2026-08-01",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "add TrueCloud remove ads patch, setup Nix dev environment"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "**truecloud:** add ad removal patches"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "**truecloud:** add patch to remove cloud boot page"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "**truecloud:** add patch to remove event cloud popup"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "**truecloud:** remove help center robot icon"
+            "text": "add Jetpack Joyride billing bypass patch"
           }
         ]
       },
@@ -1572,11 +1546,25 @@
           "iconColor": "#1565C0"
         },
         {
+          "name": "Jetpack Joyride",
+          "packageName": "com.halfbrick.jetpackjoyride",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#F57F17"
+        },
+        {
           "name": "Smash Hit",
           "packageName": "com.mediocre.smashhit",
           "patchCount": 1,
           "iconUrl": "",
           "iconColor": "#1E88E5"
+        },
+        {
+          "name": "Swordigo",
+          "packageName": "com.touchfoo.swordigo",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#D32F2F"
         },
         {
           "name": "TrueCloud",
@@ -3747,36 +3735,12 @@
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.1.0 (2026-07-30)",
-        "date": "2026-07-30",
+        "title": "1.1.1 (2026-08-01)",
+        "date": "2026-08-01",
         "items": [
           {
             "category": "Bug Fixes",
-            "text": "**Proton Mail - Remove 'Sent from' signature:** support 7.10.4"
-          },
-          {
-            "category": "New Features",
-            "text": "**Proton Mail - AMOLED dark theme:** add patch"
-          },
-          {
-            "category": "New Features",
-            "text": "**Proton Mail - Hide sidebar upselling:** add patch"
-          },
-          {
-            "category": "New Features",
-            "text": "**Proton Mail - Hide upgrade upselling:** hide top-bar button and promotional sidebar rows"
-          },
-          {
-            "category": "New Features",
-            "text": "**Proton Mail - Remove 'Sent from' signature:** port patch"
-          },
-          {
-            "category": "New Features",
-            "text": "**Proton Mail - Remove free accounts limit:** port patch"
-          },
-          {
-            "category": "New Features",
-            "text": "**Proton Mail:** support 7.10.4"
+            "text": "**Proton Mail - Remove free accounts limit:** bypass the native post-login check"
           }
         ]
       },
@@ -4082,46 +4046,6 @@
       ]
     },
     {
-      "name": "itsthejoker-patches",
-      "repo": "itsthejoker/itsthejoker-patches",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/itsthejoker/itsthejoker-patches/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/itsthejoker/itsthejoker-patches/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/itsthejoker/itsthejoker-patches/main/CHANGELOG.md",
-      "webUrl": "https://github.com/itsthejoker/itsthejoker-patches",
-      "addUrl": "https://morphe.software/add-source?github=itsthejoker/itsthejoker-patches",
-      "avatarUrl": "https://github.com/itsthejoker.png?size=96",
-      "patchCount": 7,
-      "appCount": 1,
-      "createdAt": 1785206628042,
-      "updatedAt": 1785206628042,
-      "createdDate": "2026-07-28",
-      "updatedDate": "2026-07-28",
-      "latestChanges": {
-        "title": "1.5.0 (2026-07-28)",
-        "date": "2026-07-28",
-        "items": [
-          {
-            "category": "\u2728 New Features",
-            "text": "**roost:** add free nest egg patch"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "**roost:** force deploy"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "Roost",
-          "packageName": "com.rookery.courier",
-          "patchCount": 7,
-          "iconUrl": "",
-          "iconColor": "#2A1E9E"
-        }
-      ]
-    },
-    {
       "name": "Gboard-patches",
       "repo": "jasonwu1994/Gboard-patches",
       "host": "github.com",
@@ -4131,23 +4055,23 @@
       "webUrl": "https://github.com/jasonwu1994/Gboard-patches",
       "addUrl": "https://morphe.software/add-source?github=jasonwu1994/Gboard-patches",
       "avatarUrl": "https://github.com/jasonwu1994.png?size=96",
-      "patchCount": 21,
+      "patchCount": 22,
       "appCount": 1,
       "createdAt": 1784836037428,
       "updatedAt": 1784836037428,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "2.3.0 (2026-07-30)",
-        "date": "2026-07-30",
+        "title": "2.4.0 (2026-07-31)",
+        "date": "2026-07-31",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "**Gboard:** add the Long-Press Editing Shortcuts patch."
+            "text": "**Gboard:** add the Advanced Voice Typing patch. See Patches > Keyboard > Advanced Voice Typing for the requirements to enable it."
           },
           {
             "category": "\u2728 \u65b0\u529f\u80fd",
-            "text": "**Gboard:** \u65b0\u589e Long-Press Editing Shortcuts Patch\u3002"
+            "text": "**Gboard:** \u65b0\u589e Advanced Voice Typing Patch\uff1b\u8acb\u524d\u5f80 Patches > Keyboard > Advanced Voice Typing \u67e5\u770b\u555f\u7528\u6240\u9700\u689d\u4ef6\u3002"
           }
         ]
       },
@@ -4155,7 +4079,7 @@
         {
           "name": "com.google.android.inputmethod.latin",
           "packageName": "com.google.android.inputmethod.latin",
-          "patchCount": 21,
+          "patchCount": 22,
           "iconUrl": "https://play-lh.googleusercontent.com/J4vZ82VsZjnsRsI6ckQFXlO36_52QJerqG5-HfLgHffS34I4EfoAFfNdbf6s4wBAsUEf8DOJVEDEHh5tzWbrnA",
           "iconColor": ""
         }
@@ -5222,8 +5146,8 @@
       "createdDate": "2026-07-26",
       "updatedDate": "2026-07-26",
       "latestChanges": {
-        "title": "1.0.0 (2026-07-24)",
-        "date": "2026-07-24",
+        "title": "1.0.0 (2026-08-01)",
+        "date": "2026-08-01",
         "items": [
           {
             "category": "\u2728 New Features",
@@ -5432,47 +5356,47 @@
       "webUrl": "https://github.com/MorpheApp/morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=MorpheApp/morphe-patches",
       "avatarUrl": "https://github.com/MorpheApp.png?size=96",
-      "patchCount": 131,
+      "patchCount": 133,
       "appCount": 3,
       "createdAt": 1784836023316,
       "updatedAt": 1784836023316,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.37.0 (2026-07-26)",
-        "date": "2026-07-26",
+        "title": "1.38.0 (2026-08-01)",
+        "date": "2026-08-01",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**YouTube - Copy video link:** Use correct timestamp query delimiter when link shortener is disabled (#2172)"
+            "text": "Mirror in RTL locales and restyle to match the manager (#2273)"
           },
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**YouTube - Playback speed:** \"Use normal speed for music\" does not work when default playback speed is \"Auto\" (#2171)"
+            "text": "**Settings:** Hidden category title is included when copying a setting breadcrumb"
           },
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**YouTube - Playback speed:** Playback speed button sometimes does not update (#2206)"
+            "text": "**YouTube - Seekbar thumbnail:** Always show timestamp and chapter name"
           },
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**YouTube - Remember video quality:** Added new buffering quality flag override"
+            "text": "**YouTube - Swipe controls:** Evaluate swipe zone before recycling MotionEvent (#2238)"
           },
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**YouTube - Remember video quality:** Improved platypus quality flag override logic"
+            "text": "**YouTube - Swipe controls:** Resolve memory leaks in swipe controls (#2268)"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**YouTube Music - Bypass certificate checks:** Resolve Android Auto crash (#2239)"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**YouTube:** Resolve legacy app target crash"
           },
           {
             "category": "\u2728 New Features",
-            "text": "**Spoof video streams:** Default client maintenance (#2208)"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "**YouTube - Seekbar:** Add \"Enable seekbar thumbnails\" setting (#2182)"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "**YouTube - Seekbar:** Show video chapter title below seekbar thumbnail (#2214)"
+            "text": "Add Change installer source universal patch (#2257)"
           }
         ]
       },
@@ -5487,7 +5411,7 @@
         {
           "name": "YouTube",
           "packageName": "com.google.android.youtube",
-          "patchCount": 73,
+          "patchCount": 74,
           "iconUrl": "https://play-lh.googleusercontent.com/QNmuZQc9I6Zbe3mWnSr0hycnENqGFCI5p3yE29Hkxtf22T0IWS6zTrpxULLyyjWpB7ONAXDsDQXnXcVWokl3eg",
           "iconColor": "#FF0033"
         },
@@ -11217,8 +11141,8 @@
       ],
       "patches": [
         "Disable PairIP DRM",
-        "Unlock Premium",
-        "Unlock premium"
+        "Unlock premium",
+        "Unlock Premium"
       ],
       "patchDetails": [
         {
@@ -11226,12 +11150,12 @@
           "description": "Disables PairIP signature verification and Google Play LVL license check. Required for the app to launch after re-signing."
         },
         {
-          "name": "Unlock Premium",
-          "description": "Unlocks all premium features by forcing the premium state to true in the purchase manager."
-        },
-        {
           "name": "Unlock premium",
           "description": "Unlocks all AT4K premium features by forcing the premium status to true."
+        },
+        {
+          "name": "Unlock Premium",
+          "description": "Unlocks all premium features by forcing the premium state to true in the purchase manager."
         }
       ],
       "versions": [
@@ -15961,36 +15885,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.1.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.1.1 (2026-08-01)",
+            "date": "2026-08-01",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**Proton Mail - Remove 'Sent from' signature:** support 7.10.4"
-              },
-              {
-                "category": "New Features",
-                "text": "**Proton Mail - AMOLED dark theme:** add patch"
-              },
-              {
-                "category": "New Features",
-                "text": "**Proton Mail - Hide sidebar upselling:** add patch"
-              },
-              {
-                "category": "New Features",
-                "text": "**Proton Mail - Hide upgrade upselling:** hide top-bar button and promotional sidebar rows"
-              },
-              {
-                "category": "New Features",
-                "text": "**Proton Mail - Remove 'Sent from' signature:** port patch"
-              },
-              {
-                "category": "New Features",
-                "text": "**Proton Mail - Remove free accounts limit:** port patch"
-              },
-              {
-                "category": "New Features",
-                "text": "**Proton Mail:** support 7.10.4"
+                "text": "**Proton Mail - Remove free accounts limit:** bypass the native post-login check"
               }
             ]
           },
@@ -20654,16 +20554,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/jasonwu1994/Gboard-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/jasonwu1994.png?size=96",
           "latestChanges": {
-            "title": "2.3.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "2.4.0 (2026-07-31)",
+            "date": "2026-07-31",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**Gboard:** add the Long-Press Editing Shortcuts patch."
+                "text": "**Gboard:** add the Advanced Voice Typing patch. See Patches > Keyboard > Advanced Voice Typing for the requirements to enable it."
               },
               {
                 "category": "\u2728 \u65b0\u529f\u80fd",
-                "text": "**Gboard:** \u65b0\u589e Long-Press Editing Shortcuts Patch\u3002"
+                "text": "**Gboard:** \u65b0\u589e Advanced Voice Typing Patch\uff1b\u8acb\u524d\u5f80 Patches > Keyboard > Advanced Voice Typing \u67e5\u770b\u555f\u7528\u6240\u9700\u689d\u4ef6\u3002"
               }
             ]
           },
@@ -20678,6 +20578,10 @@
             {
               "name": "Add Gboard Signature Bypass",
               "description": "\u6514\u622a Gboard \u7684\u7c3d\u7ae0\u767d\u540d\u55ae\u6aa2\u67e5\u4e26\u5f37\u5236\u901a\u904e\nBypass Gboard signature whitelist checks and force them to pass."
+            },
+            {
+              "name": "Advanced Voice Typing",
+              "description": "\u555f\u7528\u9032\u968e\u8a9e\u97f3\u8f38\u5165\uff08\u5305\u542b\u81ea\u52d5\u6a19\u9ede\u529f\u80fd\uff09\uff0c\u4e26\u53e6\u5916\u70ba\u4e0d\u652f\u63f4\u9032\u968e\u8a9e\u97f3\u8f38\u5165\u7684\u7e41\u9ad4\u4e2d\u6587\u8a9e\u97f3\u555f\u7528\u81ea\u52d5\u6a19\u9ede\nEnable Advanced Voice Typing with automatic punctuation, and separately enable automatic punctuation for Traditional Chinese voice typing, which does not support Advanced Voice Typing."
             },
             {
               "name": "AI Writing Tools",
@@ -20852,6 +20756,7 @@
       ],
       "patches": [
         "Add Gboard Signature Bypass",
+        "Advanced Voice Typing",
         "AI Writing Tools",
         "Always incognito mode",
         "Always-incognito mode",
@@ -20887,6 +20792,10 @@
         {
           "name": "Add Gboard Signature Bypass",
           "description": "\u6514\u622a Gboard \u7684\u7c3d\u7ae0\u767d\u540d\u55ae\u6aa2\u67e5\u4e26\u5f37\u5236\u901a\u904e\nBypass Gboard signature whitelist checks and force them to pass."
+        },
+        {
+          "name": "Advanced Voice Typing",
+          "description": "\u555f\u7528\u9032\u968e\u8a9e\u97f3\u8f38\u5165\uff08\u5305\u542b\u81ea\u52d5\u6a19\u9ede\u529f\u80fd\uff09\uff0c\u4e26\u53e6\u5916\u70ba\u4e0d\u652f\u63f4\u9032\u968e\u8a9e\u97f3\u8f38\u5165\u7684\u7e41\u9ad4\u4e2d\u6587\u8a9e\u97f3\u555f\u7528\u81ea\u52d5\u6a19\u9ede\nEnable Advanced Voice Typing with automatic punctuation, and separately enable automatic punctuation for Traditional Chinese voice typing, which does not support Advanced Voice Typing."
         },
         {
           "name": "AI Writing Tools",
@@ -23604,8 +23513,8 @@
         }
       ],
       "patches": [
-        "Disable ad-free banner",
         "Disable Ad-Free Banner",
+        "Disable ad-free banner",
         "Disable blog notification reminder",
         "Disable dashboard ads",
         "Disable gift message popup",
@@ -23617,12 +23526,12 @@
       ],
       "patchDetails": [
         {
-          "name": "Disable ad-free banner",
-          "description": "Hides the banner with the frog that prompts you to buy Tumblr Ad-Free."
-        },
-        {
           "name": "Disable Ad-Free Banner",
           "description": "Disables the banner with a frog, prompting you to buy Tumblr Ad-Free."
+        },
+        {
+          "name": "Disable ad-free banner",
+          "description": "Hides the banner with the frog that prompts you to buy Tumblr Ad-Free."
         },
         {
           "name": "Disable blog notification reminder",
@@ -28265,6 +28174,100 @@
       "iconUrl": ""
     },
     {
+      "packageName": "easy.sudoku.puzzle.solver.free",
+      "name": "Easy Sudoku",
+      "repos": [
+        "browzomje/browzomje-patches"
+      ],
+      "sources": [
+        {
+          "repo": "browzomje/browzomje-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/browzomje/browzomje-patches",
+          "addUrl": "https://morphe.software/add-source?github=browzomje/browzomje-patches",
+          "source": "https://raw.githubusercontent.com/browzomje/browzomje-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/browzomje/browzomje-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/browzomje.png?size=96",
+          "latestChanges": {
+            "title": "1.5.0 (2026-08-01)",
+            "date": "2026-08-01",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "added easysudoku patch"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "easy-sudoku-puzzle-solver-free-browzomje-browzomje-patches",
+            "releaseTag": "app-easy-sudoku-puzzle-solver-free-browzomje-browzomje-patches",
+            "assetName": "easy-sudoku-browzomje-browzomje-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Disable ad SDK",
+              "description": "Stops the AppLovin MAX mediation stack \u2014 and with it Pangle, Amazon APS, Chartboost, InMobi, Mintegral, Fyber, Bigo and the rest \u2014 from ever initialising. The game starts faster and makes no ad-network requests at all. Requires \"Remove ads\": on its own it would only make the app fail to find ads, not stop asking for them."
+            },
+            {
+              "name": "Disable tracking",
+              "description": "Hands out an empty Google Advertising ID with \"limit ad tracking\" turned on, and stops AppsFlyer from sending install attribution and events. The game keeps working normally: nothing in it waits for attribution data."
+            },
+            {
+              "name": "Instant rewards",
+              "description": "Grants the reward of every \"watch an ad\" button \u2014 hints, streak repairs, extra puzzles \u2014 immediately, without playing a video. This is what keeps those buttons working once \"Remove ads\" is enabled: without it the game believes no video is available and hands out nothing."
+            },
+            {
+              "name": "Reclaim ad banner space",
+              "description": "Collapses the empty strip the banner used to occupy at the bottom of the board, so the puzzle gets the space back instead of staring at a blank rectangle. Only useful together with \"Remove ads\"."
+            },
+            {
+              "name": "Remove ads",
+              "description": "Turns off every ad Easy Sudoku shows: the home banner, the interstitials between puzzles, the app-open ad and all the background preloading. It works by telling the game its own \"ads removed\" purchase is already active, which also unlocks the Fun, Ice and Killer Sudoku modes that are otherwise gated behind watching ads. Keep \"Instant rewards\" enabled too, or the \"watch an ad for a hint\" buttons stop giving anything."
+            }
+          ],
+          "versions": [
+            "5.70.0"
+          ]
+        }
+      ],
+      "patches": [
+        "Disable ad SDK",
+        "Disable tracking",
+        "Instant rewards",
+        "Reclaim ad banner space",
+        "Remove ads"
+      ],
+      "patchDetails": [
+        {
+          "name": "Disable ad SDK",
+          "description": "Stops the AppLovin MAX mediation stack \u2014 and with it Pangle, Amazon APS, Chartboost, InMobi, Mintegral, Fyber, Bigo and the rest \u2014 from ever initialising. The game starts faster and makes no ad-network requests at all. Requires \"Remove ads\": on its own it would only make the app fail to find ads, not stop asking for them."
+        },
+        {
+          "name": "Disable tracking",
+          "description": "Hands out an empty Google Advertising ID with \"limit ad tracking\" turned on, and stops AppsFlyer from sending install attribution and events. The game keeps working normally: nothing in it waits for attribution data."
+        },
+        {
+          "name": "Instant rewards",
+          "description": "Grants the reward of every \"watch an ad\" button \u2014 hints, streak repairs, extra puzzles \u2014 immediately, without playing a video. This is what keeps those buttons working once \"Remove ads\" is enabled: without it the game believes no video is available and hands out nothing."
+        },
+        {
+          "name": "Reclaim ad banner space",
+          "description": "Collapses the empty strip the banner used to occupy at the bottom of the board, so the puzzle gets the space back instead of staring at a blank rectangle. Only useful together with \"Remove ads\"."
+        },
+        {
+          "name": "Remove ads",
+          "description": "Turns off every ad Easy Sudoku shows: the home banner, the interstitials between puzzles, the app-open ad and all the background preloading. It works by telling the game its own \"ads removed\" purchase is already active, which also unlocks the Fun, Ice and Killer Sudoku modes that are otherwise gated behind watching ads. Keep \"Instant rewards\" enabled too, or the \"watch an ad for a hint\" buttons stop giving anything."
+        }
+      ],
+      "versions": [
+        "5.70.0"
+      ],
+      "iconColor": "#1E88E5",
+      "iconUrl": ""
+    },
+    {
       "packageName": "ee.dustland.android.dustlandsudoku",
       "name": "ee.dustland.android.dustlandsudoku",
       "repos": [
@@ -30118,36 +30121,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.1.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.1.1 (2026-08-01)",
+            "date": "2026-08-01",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**Proton Mail - Remove 'Sent from' signature:** support 7.10.4"
-              },
-              {
-                "category": "New Features",
-                "text": "**Proton Mail - AMOLED dark theme:** add patch"
-              },
-              {
-                "category": "New Features",
-                "text": "**Proton Mail - Hide sidebar upselling:** add patch"
-              },
-              {
-                "category": "New Features",
-                "text": "**Proton Mail - Hide upgrade upselling:** hide top-bar button and promotional sidebar rows"
-              },
-              {
-                "category": "New Features",
-                "text": "**Proton Mail - Remove 'Sent from' signature:** port patch"
-              },
-              {
-                "category": "New Features",
-                "text": "**Proton Mail - Remove free accounts limit:** port patch"
-              },
-              {
-                "category": "New Features",
-                "text": "**Proton Mail:** support 7.10.4"
+                "text": "**Proton Mail - Remove free accounts limit:** bypass the native post-login check"
               }
             ]
           },
@@ -30461,28 +30440,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.2.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.4.0 (2026-08-01)",
+            "date": "2026-08-01",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add TrueCloud remove ads patch, setup Nix dev environment"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "**truecloud:** add ad removal patches"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "**truecloud:** add patch to remove cloud boot page"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "**truecloud:** add patch to remove event cloud popup"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "**truecloud:** remove help center robot icon"
+                "text": "add Jetpack Joyride billing bypass patch"
               }
             ]
           },
@@ -34319,6 +34282,64 @@
       "iconUrl": "https://play-lh.googleusercontent.com/7-Y4y44gnorJcG37GUeDzSDgh5HkqmgE07Il3D_tHficwAQw32a4A3CgBrdfUKgaRAZ9lsZTgwg2vWH6KEmQHw"
     },
     {
+      "packageName": "com.halfbrick.jetpackjoyride",
+      "name": "Jetpack Joyride",
+      "repos": [
+        "byehi98/okish-morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "byehi98/okish-morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/byehi98/okish-morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=byehi98/okish-morphe-patches",
+          "source": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/byehi98.png?size=96",
+          "latestChanges": {
+            "title": "1.4.0 (2026-08-01)",
+            "date": "2026-08-01",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "add Jetpack Joyride billing bypass patch"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-halfbrick-jetpackjoyride-byehi98-okish-morphe-patches",
+            "releaseTag": "app-com-halfbrick-jetpackjoyride-byehi98-okish-morphe-patches",
+            "assetName": "jetpack-joyride-byehi98-okish-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Jetpack Joyride Billing Bypass",
+              "description": "Intercepts all in-app purchases and reports instant success to the game engine."
+            }
+          ],
+          "versions": [
+            "1.104.1"
+          ]
+        }
+      ],
+      "patches": [
+        "Jetpack Joyride Billing Bypass"
+      ],
+      "patchDetails": [
+        {
+          "name": "Jetpack Joyride Billing Bypass",
+          "description": "Intercepts all in-app purchases and reports instant success to the game engine."
+        }
+      ],
+      "versions": [
+        "1.104.1"
+      ],
+      "iconColor": "#F57F17",
+      "iconUrl": ""
+    },
+    {
       "packageName": "in.startv.hotstar",
       "name": "JioHotstar",
       "repos": [
@@ -36254,36 +36275,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/andrewliang25/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/andrewliang25.png?size=96",
           "latestChanges": {
-            "title": "1.2.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.4.0 (2026-08-02)",
+            "date": "2026-08-02",
             "items": [
               {
-                "category": "\u26a0 BREAKING CHANGES",
-                "text": "drop non-functional unlock patch; enable Disable LINE Premium by default"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "also hide the green \"Unsend discreetly\" button, not just its label"
-              },
-              {
                 "category": "\u2728 New Features",
-                "text": "add Disable LINE Premium patch (hide all LYP upsells & entry points)"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "add experimental LYP premium unlock patch + premium gating doc"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "add Hide premium unsend upsells patch"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "drop non-functional unlock patch; enable Disable LINE Premium by default"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "enable Hide premium unsend upsells by default"
+                "text": "add \"Fix push notifications\" patch"
               }
             ]
           },
@@ -36296,16 +36293,16 @@
           },
           "patches": [
             {
-              "name": "Disable LINE Pay",
-              "description": "Closes any LINE Pay screen immediately on open, so Pay flows (and their device-integrity check) never run. Messaging is unaffected."
-            },
-            {
               "name": "Disable LINE Premium",
-              "description": "Hides all LINE Yahoo Premium (LYP) surfaces \u2014 upsell popups/banners, premium badges & locks, the \"LINE Premium\" settings page and its entry rows, and the subscribe/manage flows \u2014 by forcing the app's own \"premium available in this market\" flag off. The app then behaves exactly as it does in a region where LYP isn't offered. Does not unlock anything (premium is server-enforced); it only removes premium from view. A LYP subscriber would lose their in-app premium management UI."
+              "description": "Hides all LINE Yahoo Premium (LYP) surfaces \u2014 upsells, badges, the Premium settings page, and subscribe/manage flows. Doesn't unlock anything (premium is server-enforced)."
             },
             {
               "name": "Disable VOOM",
-              "description": "Neutralizes VOOM entry points: VOOM deep links, shares, and notifications (line://home/*) do nothing, and the standalone VOOM feed closes on open. Also disables VOOM LIVE, the birthday board, and share-to-VOOM. Messaging, friend profiles, and other tabs are unaffected."
+              "description": "Neutralizes VOOM entry points \u2014 deep links, shares, and notifications do nothing and the standalone VOOM feed closes on open. Messaging and other tabs are unaffected."
+            },
+            {
+              "name": "Fix push notifications",
+              "description": "Restores push notifications on re-signed builds when LINE is fully closed. Root Mount install does not need this patch."
             },
             {
               "name": "Hide ad views",
@@ -36341,7 +36338,7 @@
             },
             {
               "name": "Hide premium unsend upsells",
-              "description": "Removes the two LYP premium-unsend upsells that survive \"Disable LINE Premium\" (they read config directly instead of the market-availability flag): the \"Unsend discreetly\" button in the unsend-message confirmation dialog, and the \"How to unsend discreetly\" promotion link shown after unsending. The dialog keeps its ordinary \"Unsend\" and \"Close\" buttons."
+              "description": "Removes the LYP premium-unsend upsells that survive \"Disable LINE Premium\": the \"Unsend discreetly\" button, the post-unsend promo link, and the expired-window unsend upsell. Ordinary unsend still works."
             },
             {
               "name": "Hide Transfer button",
@@ -36364,6 +36361,10 @@
               "description": "Opens tapped web links (http/https) in your default browser instead of LINE's in-app browser. LIFF mini-apps and LINE deep links are unaffected."
             },
             {
+              "name": "Redirect LINE Pay",
+              "description": "Forwards LINE Pay flows to the standalone LINE Pay app instead of running them in-app, so the device-integrity check that fails on a re-signed build never runs. Messaging is unaffected."
+            },
+            {
               "name": "Remove banner ads",
               "description": "Stops LINE from loading Smart Channel banner ads (neutralizes the getBanners and getPrefetchableBanners responses)."
             }
@@ -36374,9 +36375,9 @@
         }
       ],
       "patches": [
-        "Disable LINE Pay",
         "Disable LINE Premium",
         "Disable VOOM",
+        "Fix push notifications",
         "Hide ad views",
         "Hide attach menu extra tools",
         "Hide calendar buttons",
@@ -36391,20 +36392,21 @@
         "Hide Wallet tab",
         "Keep chats unread",
         "Open links in external browser",
+        "Redirect LINE Pay",
         "Remove banner ads"
       ],
       "patchDetails": [
         {
-          "name": "Disable LINE Pay",
-          "description": "Closes any LINE Pay screen immediately on open, so Pay flows (and their device-integrity check) never run. Messaging is unaffected."
-        },
-        {
           "name": "Disable LINE Premium",
-          "description": "Hides all LINE Yahoo Premium (LYP) surfaces \u2014 upsell popups/banners, premium badges & locks, the \"LINE Premium\" settings page and its entry rows, and the subscribe/manage flows \u2014 by forcing the app's own \"premium available in this market\" flag off. The app then behaves exactly as it does in a region where LYP isn't offered. Does not unlock anything (premium is server-enforced); it only removes premium from view. A LYP subscriber would lose their in-app premium management UI."
+          "description": "Hides all LINE Yahoo Premium (LYP) surfaces \u2014 upsells, badges, the Premium settings page, and subscribe/manage flows. Doesn't unlock anything (premium is server-enforced)."
         },
         {
           "name": "Disable VOOM",
-          "description": "Neutralizes VOOM entry points: VOOM deep links, shares, and notifications (line://home/*) do nothing, and the standalone VOOM feed closes on open. Also disables VOOM LIVE, the birthday board, and share-to-VOOM. Messaging, friend profiles, and other tabs are unaffected."
+          "description": "Neutralizes VOOM entry points \u2014 deep links, shares, and notifications do nothing and the standalone VOOM feed closes on open. Messaging and other tabs are unaffected."
+        },
+        {
+          "name": "Fix push notifications",
+          "description": "Restores push notifications on re-signed builds when LINE is fully closed. Root Mount install does not need this patch."
         },
         {
           "name": "Hide ad views",
@@ -36440,7 +36442,7 @@
         },
         {
           "name": "Hide premium unsend upsells",
-          "description": "Removes the two LYP premium-unsend upsells that survive \"Disable LINE Premium\" (they read config directly instead of the market-availability flag): the \"Unsend discreetly\" button in the unsend-message confirmation dialog, and the \"How to unsend discreetly\" promotion link shown after unsending. The dialog keeps its ordinary \"Unsend\" and \"Close\" buttons."
+          "description": "Removes the LYP premium-unsend upsells that survive \"Disable LINE Premium\": the \"Unsend discreetly\" button, the post-unsend promo link, and the expired-window unsend upsell. Ordinary unsend still works."
         },
         {
           "name": "Hide Transfer button",
@@ -36461,6 +36463,10 @@
         {
           "name": "Open links in external browser",
           "description": "Opens tapped web links (http/https) in your default browser instead of LINE's in-app browser. LIFF mini-apps and LINE deep links are unaffected."
+        },
+        {
+          "name": "Redirect LINE Pay",
+          "description": "Forwards LINE Pay flows to the standalone LINE Pay app instead of running them in-app, so the device-integrity check that fails on a re-signed build never runs. Messaging is unaffected."
         },
         {
           "name": "Remove banner ads",
@@ -43750,12 +43756,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/browzomje/browzomje-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/browzomje.png?size=96",
           "latestChanges": {
-            "title": "1.4.1 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.5.0 (2026-08-01)",
+            "date": "2026-08-01",
             "items": [
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "polished morphe section, ad detecting logic and import/export of settings"
+                "category": "\u2728 New Features",
+                "text": "added easysudoku patch"
               }
             ]
           },
@@ -45964,36 +45970,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.1.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.1.1 (2026-08-01)",
+            "date": "2026-08-01",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**Proton Mail - Remove 'Sent from' signature:** support 7.10.4"
-              },
-              {
-                "category": "New Features",
-                "text": "**Proton Mail - AMOLED dark theme:** add patch"
-              },
-              {
-                "category": "New Features",
-                "text": "**Proton Mail - Hide sidebar upselling:** add patch"
-              },
-              {
-                "category": "New Features",
-                "text": "**Proton Mail - Hide upgrade upselling:** hide top-bar button and promotional sidebar rows"
-              },
-              {
-                "category": "New Features",
-                "text": "**Proton Mail - Remove 'Sent from' signature:** port patch"
-              },
-              {
-                "category": "New Features",
-                "text": "**Proton Mail - Remove free accounts limit:** port patch"
-              },
-              {
-                "category": "New Features",
-                "text": "**Proton Mail:** support 7.10.4"
+                "text": "**Proton Mail - Remove free accounts limit:** bypass the native post-login check"
               }
             ]
           },
@@ -46054,8 +46036,8 @@
       ],
       "patches": [
         "Disable tracking",
-        "Unlock Premium",
-        "Unlock premium"
+        "Unlock premium",
+        "Unlock Premium"
       ],
       "patchDetails": [
         {
@@ -46063,12 +46045,12 @@
           "description": "Disables analytics and crash reporting."
         },
         {
-          "name": "Unlock Premium",
-          "description": "Unlocks all premium features by bypassing the native library premium check."
-        },
-        {
           "name": "Unlock premium",
           "description": "Unlocks all premium features."
+        },
+        {
+          "name": "Unlock Premium",
+          "description": "Unlocks all premium features by bypassing the native library premium check."
         }
       ],
       "versions": [
@@ -47369,40 +47351,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/MorpheApp/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/MorpheApp.png?size=96",
           "latestChanges": {
-            "title": "1.37.0 (2026-07-26)",
-            "date": "2026-07-26",
+            "title": "1.38.0 (2026-08-01)",
+            "date": "2026-08-01",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**YouTube - Copy video link:** Use correct timestamp query delimiter when link shortener is disabled (#2172)"
+                "text": "Mirror in RTL locales and restyle to match the manager (#2273)"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**YouTube - Playback speed:** \"Use normal speed for music\" does not work when default playback speed is \"Auto\" (#2171)"
+                "text": "**Settings:** Hidden category title is included when copying a setting breadcrumb"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**YouTube - Playback speed:** Playback speed button sometimes does not update (#2206)"
+                "text": "**YouTube - Seekbar thumbnail:** Always show timestamp and chapter name"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**YouTube - Remember video quality:** Added new buffering quality flag override"
+                "text": "**YouTube - Swipe controls:** Evaluate swipe zone before recycling MotionEvent (#2238)"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**YouTube - Remember video quality:** Improved platypus quality flag override logic"
+                "text": "**YouTube - Swipe controls:** Resolve memory leaks in swipe controls (#2268)"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**YouTube Music - Bypass certificate checks:** Resolve Android Auto crash (#2239)"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**YouTube:** Resolve legacy app target crash"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "**Spoof video streams:** Default client maintenance (#2208)"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "**YouTube - Seekbar:** Add \"Enable seekbar thumbnails\" setting (#2182)"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "**YouTube - Seekbar:** Show video chapter title below seekbar thumbnail (#2214)"
+                "text": "Add Change installer source universal patch (#2257)"
               }
             ]
           },
@@ -48083,122 +48065,6 @@
       ],
       "iconColor": "#DE3341",
       "iconUrl": "https://play-lh.googleusercontent.com/1Vo_ixB4gB-cXR5MMr24xonI_6XVuvHzpDrmPJyZQaXBZUfv90OlxZmpAzthrm_hM64_ZCXbiQ0vgyKYhEYXxh8"
-    },
-    {
-      "packageName": "com.rookery.courier",
-      "name": "Roost",
-      "repos": [
-        "itsthejoker/itsthejoker-patches"
-      ],
-      "sources": [
-        {
-          "repo": "itsthejoker/itsthejoker-patches",
-          "host": "github.com",
-          "webUrl": "https://github.com/itsthejoker/itsthejoker-patches",
-          "addUrl": "https://morphe.software/add-source?github=itsthejoker/itsthejoker-patches",
-          "source": "https://raw.githubusercontent.com/itsthejoker/itsthejoker-patches/main/patches-bundle.json",
-          "changelogUrl": "https://raw.githubusercontent.com/itsthejoker/itsthejoker-patches/main/CHANGELOG.md",
-          "avatarUrl": "https://github.com/itsthejoker.png?size=96",
-          "latestChanges": {
-            "title": "1.5.0 (2026-07-28)",
-            "date": "2026-07-28",
-            "items": [
-              {
-                "category": "\u2728 New Features",
-                "text": "**roost:** add free nest egg patch"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "**roost:** force deploy"
-              }
-            ]
-          },
-          "builder": {
-            "buildId": "com-rookery-courier-itsthejoker-itsthejoker-patches",
-            "releaseTag": "app-com-rookery-courier-itsthejoker-itsthejoker-patches",
-            "assetName": "roost-itsthejoker-itsthejoker-patches.apk",
-            "repo": "rushiforai/morphe-builder",
-            "webUrl": "https://github.com/rushiforai/morphe-builder"
-          },
-          "patches": [
-            {
-              "name": "10x Bullet Damage",
-              "description": "Multiplies the player's bullet damage by 10 in the Bullet Hell minigame (damage 1 -> 10), applied to both enemies and bosses."
-            },
-            {
-              "name": "Beam of Death (10x Fire Rate)",
-              "description": "Multiplies the player's firing speed by 10 in the Bullet Hell minigame (fire interval 0.15 -> 0.015) for a near-continuous beam."
-            },
-            {
-              "name": "Bypass Play Store license check",
-              "description": "Disables the PairIP Play-license check so a non-Play (e.g. patched/sideloaded) install no longer redirects to the \"get it on Google Play\" wall on launch."
-            },
-            {
-              "name": "Free Nest Egg (bypass claim cooldown)",
-              "description": "Removes the client-side cooldown timer check on the nest-egg free-bird claim button so the claim request is sent to the server on every tap. The server still controls eligibility; this only stops the client from blocking the request."
-            },
-            {
-              "name": "Redirect Google login to microG",
-              "description": "Routes Roost's Google Play Services calls to microG RE so a patched install can sign in with Google. Requires microG RE (app.revanced.android.gms) installed."
-            },
-            {
-              "name": "Skip Play Integrity (fix microG Firebase delay)",
-              "description": "Makes Play Integrity attestation fail fast instead of hanging ~60s under microG, removing the delay before Firebase logins, leaderboards, and other backend calls."
-            },
-            {
-              "name": "Triple Bullet Size",
-              "description": "Triples the on-screen size of the player's bullets in the Bullet Hell minigame (sizePx 6.0 -> 18.0)."
-            }
-          ],
-          "versions": [
-            "1.4.12"
-          ]
-        }
-      ],
-      "patches": [
-        "10x Bullet Damage",
-        "Beam of Death (10x Fire Rate)",
-        "Bypass Play Store license check",
-        "Free Nest Egg (bypass claim cooldown)",
-        "Redirect Google login to microG",
-        "Skip Play Integrity (fix microG Firebase delay)",
-        "Triple Bullet Size"
-      ],
-      "patchDetails": [
-        {
-          "name": "10x Bullet Damage",
-          "description": "Multiplies the player's bullet damage by 10 in the Bullet Hell minigame (damage 1 -> 10), applied to both enemies and bosses."
-        },
-        {
-          "name": "Beam of Death (10x Fire Rate)",
-          "description": "Multiplies the player's firing speed by 10 in the Bullet Hell minigame (fire interval 0.15 -> 0.015) for a near-continuous beam."
-        },
-        {
-          "name": "Bypass Play Store license check",
-          "description": "Disables the PairIP Play-license check so a non-Play (e.g. patched/sideloaded) install no longer redirects to the \"get it on Google Play\" wall on launch."
-        },
-        {
-          "name": "Free Nest Egg (bypass claim cooldown)",
-          "description": "Removes the client-side cooldown timer check on the nest-egg free-bird claim button so the claim request is sent to the server on every tap. The server still controls eligibility; this only stops the client from blocking the request."
-        },
-        {
-          "name": "Redirect Google login to microG",
-          "description": "Routes Roost's Google Play Services calls to microG RE so a patched install can sign in with Google. Requires microG RE (app.revanced.android.gms) installed."
-        },
-        {
-          "name": "Skip Play Integrity (fix microG Firebase delay)",
-          "description": "Makes Play Integrity attestation fail fast instead of hanging ~60s under microG, removing the delay before Firebase logins, leaderboards, and other backend calls."
-        },
-        {
-          "name": "Triple Bullet Size",
-          "description": "Triples the on-screen size of the player's bullets in the Bullet Hell minigame (sizePx 6.0 -> 18.0)."
-        }
-      ],
-      "versions": [
-        "1.4.12"
-      ],
-      "iconColor": "#2A1E9E",
-      "iconUrl": ""
     },
     {
       "packageName": "com.rp.hypertrophy",
@@ -49788,36 +49654,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.1.0 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.1.1 (2026-08-01)",
+            "date": "2026-08-01",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**Proton Mail - Remove 'Sent from' signature:** support 7.10.4"
-              },
-              {
-                "category": "New Features",
-                "text": "**Proton Mail - AMOLED dark theme:** add patch"
-              },
-              {
-                "category": "New Features",
-                "text": "**Proton Mail - Hide sidebar upselling:** add patch"
-              },
-              {
-                "category": "New Features",
-                "text": "**Proton Mail - Hide upgrade upselling:** hide top-bar button and promotional sidebar rows"
-              },
-              {
-                "category": "New Features",
-                "text": "**Proton Mail - Remove 'Sent from' signature:** port patch"
-              },
-              {
-                "category": "New Features",
-                "text": "**Proton Mail - Remove free accounts limit:** port patch"
-              },
-              {
-                "category": "New Features",
-                "text": "**Proton Mail:** support 7.10.4"
+                "text": "**Proton Mail - Remove free accounts limit:** bypass the native post-login check"
               }
             ]
           },
@@ -50346,28 +50188,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.2.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.4.0 (2026-08-01)",
+            "date": "2026-08-01",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add TrueCloud remove ads patch, setup Nix dev environment"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "**truecloud:** add ad removal patches"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "**truecloud:** add patch to remove cloud boot page"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "**truecloud:** add patch to remove event cloud popup"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "**truecloud:** remove help center robot icon"
+                "text": "add Jetpack Joyride billing bypass patch"
               }
             ]
           },
@@ -52698,6 +52524,64 @@
       ],
       "iconColor": "#F79729",
       "iconUrl": "https://play-lh.googleusercontent.com/oqEWB9fLSMEayfQyRsGy88Ketkt7EdM5DGg5a43tprbki_m1W8IrU5OCdMXAuJAtPOIQ8VRrcFKcJFVgGnJTgw"
+    },
+    {
+      "packageName": "com.touchfoo.swordigo",
+      "name": "Swordigo",
+      "repos": [
+        "byehi98/okish-morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "byehi98/okish-morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/byehi98/okish-morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=byehi98/okish-morphe-patches",
+          "source": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/byehi98.png?size=96",
+          "latestChanges": {
+            "title": "1.4.0 (2026-08-01)",
+            "date": "2026-08-01",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "add Jetpack Joyride billing bypass patch"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-touchfoo-swordigo-byehi98-okish-morphe-patches",
+            "releaseTag": "app-com-touchfoo-swordigo-byehi98-okish-morphe-patches",
+            "assetName": "swordigo-byehi98-okish-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Swordigo Premium Unlock",
+              "description": "Enables ad-free, guiding compass, and coin doubler without purchase."
+            }
+          ],
+          "versions": [
+            "1.4.12"
+          ]
+        }
+      ],
+      "patches": [
+        "Swordigo Premium Unlock"
+      ],
+      "patchDetails": [
+        {
+          "name": "Swordigo Premium Unlock",
+          "description": "Enables ad-free, guiding compass, and coin doubler without purchase."
+        }
+      ],
+      "versions": [
+        "1.4.12"
+      ],
+      "iconColor": "#D32F2F",
+      "iconUrl": ""
     },
     {
       "packageName": "app.symfonik.music.player",
@@ -56594,8 +56478,8 @@
       ],
       "patches": [
         "Disable analytics",
-        "Disable Telemetry",
         "Disable telemetry",
+        "Disable Telemetry",
         "Disable update check",
         "Enable premium features",
         "GMS sign-in bypass",
@@ -56639,11 +56523,11 @@
           "description": "Suppresses Truecaller's CleverTap behavioural event tracking to prevent user-activity telemetry."
         },
         {
-          "name": "Disable Telemetry",
+          "name": "Disable telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
-          "name": "Disable telemetry",
+          "name": "Disable Telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
@@ -56814,28 +56698,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.2.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.4.0 (2026-08-01)",
+            "date": "2026-08-01",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add TrueCloud remove ads patch, setup Nix dev environment"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "**truecloud:** add ad removal patches"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "**truecloud:** add patch to remove cloud boot page"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "**truecloud:** add patch to remove event cloud popup"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "**truecloud:** remove help center robot icon"
+                "text": "add Jetpack Joyride billing bypass patch"
               }
             ]
           },
@@ -57085,10 +56953,46 @@
       "packageName": "tv.twitch.android.app",
       "name": "tv.twitch.android.app",
       "repos": [
+        "ajstrick81/morphe-androidtv-patches",
         "arandomhooman/hoomans-morphe-patches",
         "RookieEnough/De-Vanced"
       ],
       "sources": [
+        {
+          "repo": "ajstrick81/morphe-androidtv-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/ajstrick81/morphe-androidtv-patches",
+          "addUrl": "https://morphe.software/add-source?github=ajstrick81/morphe-androidtv-patches",
+          "source": "https://raw.githubusercontent.com/ajstrick81/morphe-androidtv-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/ajstrick81/morphe-androidtv-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/ajstrick81.png?size=96",
+          "latestChanges": {
+            "title": "1.12.3 (2026-07-18)",
+            "date": "2026-07-18",
+            "items": [
+              {
+                "category": "Bug Fixes",
+                "text": "**hbomax:** support 7.7.0.78 and derive Patch 2 register dynamically"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "tv-twitch-android-app-ajstrick81-morphe-androidtv-patches",
+            "releaseTag": "app-tv-twitch-android-app-ajstrick81-morphe-androidtv-patches",
+            "assetName": "tv-twitch-android-app-ajstrick81-morphe-androidtv-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Skip ads",
+              "description": "Reduces Twitch live ads: spoofs the stream access-token playerType to \"embed\" (usher serves an ad-free stream for that context \u2014 kills the long SSAI mid-rolls), forces the GrandDads ad-eligibility response to AdContextUnavailable, and forces the ExoPlayer stitched-ad (SSAI) metadata parser to treat every segment as non-ad (suppresses ad tracking/beacons). On-device (v30.2.2, Onn 4K): the long mid-roll ads are gone and the join pre-roll drops to ~15s; a residual short pre-roll remains because it is server-stitched in the native IVS path, which bytecode cannot reach."
+            }
+          ],
+          "versions": [
+            "30.2.2"
+          ]
+        },
         {
           "repo": "arandomhooman/hoomans-morphe-patches",
           "host": "github.com",
@@ -57225,7 +57129,8 @@
         "Block video ads",
         "Debug mode",
         "Hide display ads",
-        "Show deleted messages"
+        "Show deleted messages",
+        "Skip ads"
       ],
       "patchDetails": [
         {
@@ -57259,12 +57164,17 @@
         {
           "name": "Show deleted messages",
           "description": "Keeps deleted or moderated chat messages readable instead of replacing them with \"<message deleted>\". The message turns into a tappable spoiler: tap it to reveal the original text. Normally only moderators can do this; the patch grants that access to everyone."
+        },
+        {
+          "name": "Skip ads",
+          "description": "Reduces Twitch live ads: spoofs the stream access-token playerType to \"embed\" (usher serves an ad-free stream for that context \u2014 kills the long SSAI mid-rolls), forces the GrandDads ad-eligibility response to AdContextUnavailable, and forces the ExoPlayer stitched-ad (SSAI) metadata parser to treat every segment as non-ad (suppresses ad tracking/beacons). On-device (v30.2.2, Onn 4K): the long mid-roll ads are gone and the join pre-roll drops to ~15s; a residual short pre-roll remains because it is server-stitched in the native IVS path, which bytecode cannot reach."
         }
       ],
       "versions": [
         "16.9.1",
         "25.3.0",
-        "29.9.1"
+        "29.9.1",
+        "30.2.2"
       ],
       "iconColor": "#9147FF",
       "iconUrl": "https://play-lh.googleusercontent.com/JHCM4AIyomRp6Lo2-5ugoznlGdsZmNnejVN8DLvtWFHShcz8YRgUE170f1CyOfrleYbtFL2g8tQ3VqlQNAgqoA"
@@ -60303,8 +60213,8 @@
           "changelogUrl": "https://raw.githubusercontent.com/MarcaDian/morphe-patches-yavot/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/MarcaDian.png?size=96",
           "latestChanges": {
-            "title": "1.0.0 (2026-07-24)",
-            "date": "2026-07-24",
+            "title": "1.0.0 (2026-08-01)",
+            "date": "2026-08-01",
             "items": [
               {
                 "category": "\u2728 New Features",
@@ -60322,19 +60232,10 @@
           "patches": [
             {
               "name": "Voice Over Translation (Yandex)",
-              "description": "Adds an option to enable Yandex voice-over translation of video audio tracks."
+              "description": "Adds an option to enable Yandex voice-over translation of video audio tracks. Requires the \"Add-on support\" patch of Morphe Patches."
             }
           ],
-          "versions": [
-            "20.21.37",
-            "20.31.42",
-            "20.51.39",
-            "21.04.223",
-            "21.05.265",
-            "21.26.360",
-            "21.28.204",
-            "21.29.366"
-          ]
+          "versions": []
         },
         {
           "repo": "MorpheApp/morphe-patches",
@@ -60345,40 +60246,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/MorpheApp/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/MorpheApp.png?size=96",
           "latestChanges": {
-            "title": "1.37.0 (2026-07-26)",
-            "date": "2026-07-26",
+            "title": "1.38.0 (2026-08-01)",
+            "date": "2026-08-01",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**YouTube - Copy video link:** Use correct timestamp query delimiter when link shortener is disabled (#2172)"
+                "text": "Mirror in RTL locales and restyle to match the manager (#2273)"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**YouTube - Playback speed:** \"Use normal speed for music\" does not work when default playback speed is \"Auto\" (#2171)"
+                "text": "**Settings:** Hidden category title is included when copying a setting breadcrumb"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**YouTube - Playback speed:** Playback speed button sometimes does not update (#2206)"
+                "text": "**YouTube - Seekbar thumbnail:** Always show timestamp and chapter name"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**YouTube - Remember video quality:** Added new buffering quality flag override"
+                "text": "**YouTube - Swipe controls:** Evaluate swipe zone before recycling MotionEvent (#2238)"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**YouTube - Remember video quality:** Improved platypus quality flag override logic"
+                "text": "**YouTube - Swipe controls:** Resolve memory leaks in swipe controls (#2268)"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**YouTube Music - Bypass certificate checks:** Resolve Android Auto crash (#2239)"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**YouTube:** Resolve legacy app target crash"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "**Spoof video streams:** Default client maintenance (#2208)"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "**YouTube - Seekbar:** Add \"Enable seekbar thumbnails\" setting (#2182)"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "**YouTube - Seekbar:** Show video chapter title below seekbar thumbnail (#2214)"
+                "text": "Add Change installer source universal patch (#2257)"
               }
             ]
           },
@@ -60576,7 +60477,7 @@
             },
             {
               "name": "Navigation bar",
-              "description": "Adds options to hide and change the bottom navigation bar (such as the Shorts button)  and the upper navigation toolbar. Patching version 20.21.37 and lower also adds a setting to use a wide searchbar."
+              "description": "Adds options to hide and change the bottom navigation bar (such as the Shorts button)  and the upper navigation toolbar."
             },
             {
               "name": "Network proxy",
@@ -60681,6 +60582,10 @@
             {
               "name": "Voice over translation",
               "description": "Adds additional voice over languages using text-to-speech synchronized to the video playback."
+            },
+            {
+              "name": "Wide search bar",
+              "description": "Adds a wide search bar to the top of the home and subscription feed."
             }
           ],
           "versions": [
@@ -61507,6 +61412,7 @@
         "Voice Over Translation (Yandex)",
         "Watch history",
         "Watch later button",
+        "Wide search bar",
         "YouTubeDislikeAutoNext (STUB)",
         "YouTubeLikeAutoNext (STUB)"
       ],
@@ -62013,7 +61919,7 @@
         },
         {
           "name": "Voice Over Translation (Yandex)",
-          "description": "Adds an option to enable Yandex voice-over translation of video audio tracks."
+          "description": "Adds an option to enable Yandex voice-over translation of video audio tracks. Requires the \"Add-on support\" patch of Morphe Patches."
         },
         {
           "name": "Watch history",
@@ -62022,6 +61928,10 @@
         {
           "name": "Watch later button",
           "description": "Aggiunge un pulsante 'Later' alla barra di navigazione in basso, che apre la playlist Guarda piu tardi."
+        },
+        {
+          "name": "Wide search bar",
+          "description": "Adds a wide search bar to the top of the home and subscription feed."
         },
         {
           "name": "YouTubeDislikeAutoNext (STUB)",
@@ -62378,40 +62288,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/MorpheApp/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/MorpheApp.png?size=96",
           "latestChanges": {
-            "title": "1.37.0 (2026-07-26)",
-            "date": "2026-07-26",
+            "title": "1.38.0 (2026-08-01)",
+            "date": "2026-08-01",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**YouTube - Copy video link:** Use correct timestamp query delimiter when link shortener is disabled (#2172)"
+                "text": "Mirror in RTL locales and restyle to match the manager (#2273)"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**YouTube - Playback speed:** \"Use normal speed for music\" does not work when default playback speed is \"Auto\" (#2171)"
+                "text": "**Settings:** Hidden category title is included when copying a setting breadcrumb"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**YouTube - Playback speed:** Playback speed button sometimes does not update (#2206)"
+                "text": "**YouTube - Seekbar thumbnail:** Always show timestamp and chapter name"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**YouTube - Remember video quality:** Added new buffering quality flag override"
+                "text": "**YouTube - Swipe controls:** Evaluate swipe zone before recycling MotionEvent (#2238)"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**YouTube - Remember video quality:** Improved platypus quality flag override logic"
+                "text": "**YouTube - Swipe controls:** Resolve memory leaks in swipe controls (#2268)"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**YouTube Music - Bypass certificate checks:** Resolve Android Auto crash (#2239)"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**YouTube:** Resolve legacy app target crash"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "**Spoof video streams:** Default client maintenance (#2208)"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "**YouTube - Seekbar:** Add \"Enable seekbar thumbnails\" setting (#2182)"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "**YouTube - Seekbar:** Show video chapter title below seekbar thumbnail (#2214)"
+                "text": "Add Change installer source universal patch (#2257)"
               }
             ]
           },
@@ -62574,11 +62484,10 @@
           ],
           "versions": [
             "7.29.52",
-            "8.51.51",
             "9.15.51",
-            "9.25.50",
-            "9.26.51",
-            "9.28.51"
+            "9.28.51",
+            "9.29.54",
+            "9.30.52"
           ]
         },
         {
@@ -63393,7 +63302,9 @@
         "9.24.51",
         "9.25.50",
         "9.26.51",
-        "9.28.51"
+        "9.28.51",
+        "9.29.54",
+        "9.30.52"
       ],
       "iconColor": "#FF0000",
       "iconUrl": "https://play-lh.googleusercontent.com/MyptZXmcCyF59phIWPsNCfHq6zSO_ojEdw_4rMYYWPOGdikSjqeOXcoszBZ053VYpINe5K7ZR9KV1nkFWgxdOw"
@@ -64460,46 +64371,51 @@
       "source": "https://raw.githubusercontent.com/MorpheApp/morphe-patches/main/patches-bundle.json",
       "changelogUrl": "https://raw.githubusercontent.com/MorpheApp/morphe-patches/main/CHANGELOG.md",
       "avatarUrl": "https://github.com/MorpheApp.png?size=96",
-      "patchCount": 3,
+      "patchCount": 4,
       "latestChanges": {
-        "title": "1.37.0 (2026-07-26)",
-        "date": "2026-07-26",
+        "title": "1.38.0 (2026-08-01)",
+        "date": "2026-08-01",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**YouTube - Copy video link:** Use correct timestamp query delimiter when link shortener is disabled (#2172)"
+            "text": "Mirror in RTL locales and restyle to match the manager (#2273)"
           },
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**YouTube - Playback speed:** \"Use normal speed for music\" does not work when default playback speed is \"Auto\" (#2171)"
+            "text": "**Settings:** Hidden category title is included when copying a setting breadcrumb"
           },
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**YouTube - Playback speed:** Playback speed button sometimes does not update (#2206)"
+            "text": "**YouTube - Seekbar thumbnail:** Always show timestamp and chapter name"
           },
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**YouTube - Remember video quality:** Added new buffering quality flag override"
+            "text": "**YouTube - Swipe controls:** Evaluate swipe zone before recycling MotionEvent (#2238)"
           },
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**YouTube - Remember video quality:** Improved platypus quality flag override logic"
+            "text": "**YouTube - Swipe controls:** Resolve memory leaks in swipe controls (#2268)"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**YouTube Music - Bypass certificate checks:** Resolve Android Auto crash (#2239)"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**YouTube:** Resolve legacy app target crash"
           },
           {
             "category": "\u2728 New Features",
-            "text": "**Spoof video streams:** Default client maintenance (#2208)"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "**YouTube - Seekbar:** Add \"Enable seekbar thumbnails\" setting (#2182)"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "**YouTube - Seekbar:** Show video chapter title below seekbar thumbnail (#2214)"
+            "text": "Add Change installer source universal patch (#2257)"
           }
         ]
       },
       "patches": [
+        {
+          "name": "Change installer source",
+          "description": "Spoofs the installer source so the app appears to be installed from an app store.",
+          "default": false
+        },
         {
           "name": "Change package name",
           "description": "Appends \".morphe\" to the package name by default. Changing the package name of the app can lead to unexpected issues.",
@@ -65496,46 +65412,6 @@
       ]
     },
     {
-      "name": "itsthejoker-patches",
-      "repo": "itsthejoker/itsthejoker-patches",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/itsthejoker/itsthejoker-patches/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/itsthejoker/itsthejoker-patches/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/itsthejoker/itsthejoker-patches/main/CHANGELOG.md",
-      "webUrl": "https://github.com/itsthejoker/itsthejoker-patches",
-      "addUrl": "https://morphe.software/add-source?github=itsthejoker/itsthejoker-patches",
-      "avatarUrl": "https://github.com/itsthejoker.png?size=96",
-      "patchCount": 7,
-      "appCount": 1,
-      "createdAt": 1785206628042,
-      "updatedAt": 1785206628042,
-      "createdDate": "2026-07-28",
-      "updatedDate": "2026-07-28",
-      "latestChanges": {
-        "title": "1.5.0 (2026-07-28)",
-        "date": "2026-07-28",
-        "items": [
-          {
-            "category": "\u2728 New Features",
-            "text": "**roost:** add free nest egg patch"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "**roost:** force deploy"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "Roost",
-          "packageName": "com.rookery.courier",
-          "patchCount": 7,
-          "iconUrl": "",
-          "iconColor": "#2A1E9E"
-        }
-      ]
-    },
-    {
       "name": "sofatime-patches",
       "repo": "alan7383/sofatime-patches",
       "host": "github.com",
@@ -65826,43 +65702,19 @@
       "webUrl": "https://github.com/andrewliang25/morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=andrewliang25/morphe-patches",
       "avatarUrl": "https://github.com/andrewliang25.png?size=96",
-      "patchCount": 18,
+      "patchCount": 19,
       "appCount": 1,
       "createdAt": 1785034852052,
       "updatedAt": 1785034852052,
       "createdDate": "2026-07-26",
       "updatedDate": "2026-07-26",
       "latestChanges": {
-        "title": "1.2.0 (2026-07-31)",
-        "date": "2026-07-31",
+        "title": "1.4.0 (2026-08-02)",
+        "date": "2026-08-02",
         "items": [
           {
-            "category": "\u26a0 BREAKING CHANGES",
-            "text": "drop non-functional unlock patch; enable Disable LINE Premium by default"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "also hide the green \"Unsend discreetly\" button, not just its label"
-          },
-          {
             "category": "\u2728 New Features",
-            "text": "add Disable LINE Premium patch (hide all LYP upsells & entry points)"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "add experimental LYP premium unlock patch + premium gating doc"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "add Hide premium unsend upsells patch"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "drop non-functional unlock patch; enable Disable LINE Premium by default"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "enable Hide premium unsend upsells by default"
+            "text": "add \"Fix push notifications\" patch"
           }
         ]
       },
@@ -65870,7 +65722,7 @@
         {
           "name": "LINE",
           "packageName": "jp.naver.line.android",
-          "patchCount": 18,
+          "patchCount": 19,
           "iconUrl": "",
           "iconColor": "#06C755"
         }
@@ -65893,8 +65745,8 @@
       "createdDate": "2026-07-26",
       "updatedDate": "2026-07-26",
       "latestChanges": {
-        "title": "1.0.0 (2026-07-24)",
-        "date": "2026-07-24",
+        "title": "1.0.0 (2026-08-01)",
+        "date": "2026-08-01",
         "items": [
           {
             "category": "\u2728 New Features",
@@ -65909,6 +65761,476 @@
           "patchCount": 1,
           "iconUrl": "https://play-lh.googleusercontent.com/QNmuZQc9I6Zbe3mWnSr0hycnENqGFCI5p3yE29Hkxtf22T0IWS6zTrpxULLyyjWpB7ONAXDsDQXnXcVWokl3eg",
           "iconColor": "#FF0033"
+        }
+      ]
+    },
+    {
+      "name": "Morning-Entree-Patches",
+      "repo": "Entree3k/Morning-Entree-Patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/Entree3k/Morning-Entree-Patches",
+      "addUrl": "https://morphe.software/add-source?github=Entree3k/Morning-Entree-Patches",
+      "avatarUrl": "https://github.com/Entree3k.png?size=96",
+      "patchCount": 20,
+      "appCount": 63,
+      "createdAt": 1785034851561,
+      "updatedAt": 1785034851561,
+      "createdDate": "2026-07-26",
+      "updatedDate": "2026-07-26",
+      "latestChanges": {
+        "title": "1.6.0 (2026-07-31)",
+        "date": "2026-07-31",
+        "items": [
+          {
+            "category": "\u2728 New Features",
+            "text": "Added Phi Launcher"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "AI-900",
+          "packageName": "com.trieudadlovestun.ai900exam",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "AutoLocation",
+          "packageName": "com.joaomgcd.autolocation",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#4CAF50"
+        },
+        {
+          "name": "AutoTools",
+          "packageName": "com.joaomgcd.autotools",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#FF9800"
+        },
+        {
+          "name": "AWS AIF-C01",
+          "packageName": "com.trieudadlovestun.aifc01exam",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "AWS CLF-C01",
+          "packageName": "com.trieudadlovestun.clfc01",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "AWS DOP-C01",
+          "packageName": "com.trieudadlovestun.dopc01",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "AWS DVA-C01",
+          "packageName": "com.trieudadlovestun.dvac01ver3",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "AWS MLA-C01",
+          "packageName": "com.trieudadlovestun.mlac01exam",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "AWS SAA-C02",
+          "packageName": "com.trieudadlovestun.saac02ver3",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "AWS SAP-C01",
+          "packageName": "com.trieudadlovestun.sapc01",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "AWS SCS-C01",
+          "packageName": "com.trieudadlovestun.scsc01",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "AWS SOA-C02",
+          "packageName": "com.trieudadlovestun.soac02",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "AZ-104",
+          "packageName": "com.trieudadlovestun.az104",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "AZ-204",
+          "packageName": "com.trieudadlovestun.az204ver2022",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "AZ-400",
+          "packageName": "com.trieudadlovestun.az400",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "AZ-500",
+          "packageName": "com.trieudadlovestun.az500",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "AZ-700",
+          "packageName": "com.trieudadlovestun.az700exam",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "AZ-900",
+          "packageName": "com.trieudadlovestun.az900ver3",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "CAPM",
+          "packageName": "com.trieudadlovestun.capm",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "CCNA 200-301",
+          "packageName": "com.trieudadlovestun.ccna200301",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "CCNP 350-401",
+          "packageName": "com.trieudadlovestun.ccnp350401",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "CCNP SCOR 350-701",
+          "packageName": "com.trieudadlovestun.scor350701",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "CEH v11",
+          "packageName": "com.trieudadlovestun.cehv11",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "CISM",
+          "packageName": "com.trieudadlovestun.cism",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "CISSP",
+          "packageName": "com.trieudadlovestun.cissp",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "CompTIA A+ Core 1",
+          "packageName": "com.trieudadlovestun.comptiacore1",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "CompTIA A+ Core 2",
+          "packageName": "com.trieudadlovestun.comptiacore2",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "CompTIA CySA+",
+          "packageName": "com.trieudadlovestun.comptiacysa",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "CompTIA ITF+",
+          "packageName": "com.trieudadlovestun.comptiaitf",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "CompTIA Linux+",
+          "packageName": "com.trieudadlovestun.comptialinuxplusexam",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "CompTIA PenTest+",
+          "packageName": "com.trieudadlovestun.pentestplusexam",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "CompTIA SecAI",
+          "packageName": "com.trieudadlovestun.comptiasecai",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "CompTIA Security+",
+          "packageName": "com.trieudadlovestun.comptiasecurityplus",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "CompTIA SecurityX",
+          "packageName": "com.trieudadlovestun.comptiasecux",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "CompTIA Server+",
+          "packageName": "com.trieudadlovestun.comptiaserverplus",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "DASM",
+          "packageName": "com.trieudadlovestun.dasm",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "DP-203",
+          "packageName": "com.trieudadlovestun.dp203",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "DP-300",
+          "packageName": "com.trieudadlovestun.dp300",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "DP-900",
+          "packageName": "com.trieudadlovestun.dp900",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "Gboard",
+          "packageName": "com.google.android.inputmethod.latin",
+          "patchCount": 3,
+          "iconUrl": "https://play-lh.googleusercontent.com/J4vZ82VsZjnsRsI6ckQFXlO36_52QJerqG5-HfLgHffS34I4EfoAFfNdbf6s4wBAsUEf8DOJVEDEHh5tzWbrnA",
+          "iconColor": ""
+        },
+        {
+          "name": "GCP Associate Cloud Engineer",
+          "packageName": "com.trieudadlovestun.gcpassociatecloudengineer",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "Gradient Weather",
+          "packageName": "com.subtlesignals.gradientweather",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#6C7BFF"
+        },
+        {
+          "name": "ISTQB Foundation",
+          "packageName": "com.trieudadlovestun.istqbfoundation",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "Lifesum",
+          "packageName": "com.sillens.shapeupclub",
+          "patchCount": 1,
+          "iconUrl": "https://play-lh.googleusercontent.com/gMeT8cxzZOnlrCKwYIOPHT90C9kb9pPbE0mHlk2gixDIadJ_B9QmslnPkQ3Sc0y9KuS8KMxPDxFgsL_GLnXbsg",
+          "iconColor": "#41CD8C"
+        },
+        {
+          "name": "Ling",
+          "packageName": "com.simyasolutions.ling.universal",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#F8485E"
+        },
+        {
+          "name": "Nova Launcher",
+          "packageName": "com.teslacoilsw.launcher",
+          "patchCount": 2,
+          "iconUrl": "https://play-lh.googleusercontent.com/EihoqDPSzditTLnmP-N0GjXmbvNdnZyW7YZKxRocA_kVIsaXhM9lBlfPrJmhBcSQmiydPXgise1ZTAlOOH7ZsQ",
+          "iconColor": "#DA4624"
+        },
+        {
+          "name": "Panels",
+          "packageName": "com.fossor.panels",
+          "patchCount": 2,
+          "iconUrl": "",
+          "iconColor": "#2196F3"
+        },
+        {
+          "name": "PCEP-30-02",
+          "packageName": "com.trieudadlovestun.pcep3002",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "Phi Launcher",
+          "packageName": "com.launcher.hype",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#6C63FF"
+        },
+        {
+          "name": "Pinnit",
+          "packageName": "dev.sasikanth.pinnit2",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#E0563F"
+        },
+        {
+          "name": "PMI-ACP",
+          "packageName": "com.trieudadlovestun.pmiacp",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "PSM II",
+          "packageName": "com.trieudadlovestun.psm2",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "PSPO I",
+          "packageName": "com.trieudadlovestun.pspooneexam",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "Salesforce Admin",
+          "packageName": "com.trieudadlovestun.salesforceadmin",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "SC-200",
+          "packageName": "com.trieudadlovestun.sc200exam",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "SC-900",
+          "packageName": "com.trieudadlovestun.sc900",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "ServiceNow CSA",
+          "packageName": "com.trieudadlovestun.servicenowsystemadmin",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "SnowPro Core",
+          "packageName": "com.trieudadlovestun.snowprocore",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "Sponge",
+          "packageName": "com.prismtree.sponge",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#2AB7A9"
+        },
+        {
+          "name": "Tableau Desktop",
+          "packageName": "com.trieudadlovestun.tableaudesktop",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "Terraform Associate",
+          "packageName": "com.trieudadlovestun.terraform",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#023C69"
+        },
+        {
+          "name": "UbikiTouch",
+          "packageName": "eu.toneiv.ubktouch",
+          "patchCount": 1,
+          "iconUrl": "https://play-lh.googleusercontent.com/mwINWGvA1fZZwTzDfYgl7FTTTj-iElnsWrRCjuwnVAtR62hJyZdcHgG1SRSSi5LiBjlcKINIchP-Ut0DRWPDfQ",
+          "iconColor": "#2196F3"
+        },
+        {
+          "name": "Vocabulary",
+          "packageName": "com.hrd.vocabulary",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#C7604F"
         }
       ]
     }

@@ -939,14 +939,6 @@
                 "updatedAt": 1785206626877
             },
             {
-                "name": "itsthejoker-patches",
-                "source": "https://raw.githubusercontent.com/itsthejoker/itsthejoker-patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 113,
-                "createdAt": 1785206628042,
-                "updatedAt": 1785206628042
-            },
-            {
                 "name": "morphe-patches",
                 "source": "https://raw.githubusercontent.com/LaBlazer/morphe-patches/main/patches-bundle.json",
                 "autoUpdate": true,
