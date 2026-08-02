@@ -1392,9 +1392,7 @@ HTML = """<!doctype html>
       const repoOwner = source.repo.split("/")[0] || "source";
       const builder = source.builder || {};
       const hasMultipleSources = app.sources.length > 1;
-      const packageId = hasMultipleSources
-        ? `${app.packageName}.morphe.${slugify(repoOwner)}`
-        : app.packageName;
+      const packageId = app.packageName;
       const appName = hasMultipleSources
         ? `${app.name} (${repoOwner})`
         : app.name;
