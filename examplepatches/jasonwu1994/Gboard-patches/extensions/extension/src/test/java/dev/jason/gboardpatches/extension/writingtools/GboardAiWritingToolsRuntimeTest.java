@@ -60,6 +60,22 @@ public final class GboardAiWritingToolsRuntimeTest {
     }
 
     @Test
+    public void voiceCommandRolloutFlagIsEnabledWithoutChangingWrongTypes() {
+        Assert.assertSame(Boolean.TRUE, GboardAiWritingToolsRuntime.computeOverrideValue(
+                GboardAiWritingToolsRuntime.FLAG_ENABLE_WRITING_TOOLS_VOICE_COMMANDS,
+                Boolean.FALSE,
+                serverSettings(false),
+                official(false, false)));
+
+        Object wrongType = "false";
+        Assert.assertSame(wrongType, GboardAiWritingToolsRuntime.computeOverrideValue(
+                GboardAiWritingToolsRuntime.FLAG_ENABLE_WRITING_TOOLS_VOICE_COMMANDS,
+                wrongType,
+                serverSettings(false),
+                official(true, true)));
+    }
+
+    @Test
     public void unknownOfficialValuesStayEnabledForReachability() {
         GboardAiWritingToolsOfficialPreferences.Snapshot unknown = official(null, null);
 

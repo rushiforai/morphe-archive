@@ -10,10 +10,6 @@
 
 package app.morphe.extension.youtube.patches.components;
 
-import static app.morphe.extension.shared.ByteTrieSearch.convertStringsToBytes;
-import static app.morphe.extension.youtube.patches.LayoutReloadObserverPatch.isActionBarVisible;
-import static app.morphe.extension.youtube.shared.NavigationBar.NavigationButton;
-
 import android.view.View;
 import android.widget.FrameLayout;
 
@@ -32,6 +28,7 @@ import app.morphe.extension.shared.patches.components.ContextInterface;
 import app.morphe.extension.shared.patches.components.Filter;
 import app.morphe.extension.shared.patches.components.StringFilterGroup;
 import app.morphe.extension.shared.patches.components.StringFilterGroupList;
+import app.morphe.extension.youtube.patches.LayoutReloadObserverPatch;
 import app.morphe.extension.youtube.settings.Settings;
 import app.morphe.extension.youtube.shared.EngagementPanel;
 import app.morphe.extension.youtube.shared.NavigationBar;
@@ -41,8 +38,8 @@ import kotlin.Unit;
 
 @SuppressWarnings({"unused", "FieldCanBeLocal"})
 public final class ShortsFilter extends Filter {
-    private static final boolean HIDE_SHORTS_NAVIGATION_BAR = Settings.HIDE_SHORTS_NAVIGATION_BAR.get();
     private static final String COMPONENT_TYPE = "ComponentType";
+    private static final boolean HIDE_SHORTS_NAVIGATION_BAR = Settings.HIDE_SHORTS_NAVIGATION_BAR.get();
     private final String REEL_CHANNEL_BAR_PATH = "reel_channel_bar.e";
 
     /**
@@ -81,29 +78,24 @@ public final class ShortsFilter extends Filter {
     private static final FrameLayout.LayoutParams zeroLayoutParams = new FrameLayout.LayoutParams(0, 0);
     private static FrameLayout.LayoutParams originalLayoutParams;
 
-    private final StringFilterGroup shortsCompactFeedVideo;
-    private final ByteTrieSearch shortsCompactFeedVideoBuffer;
+    private final StringFilterGroup autoDubbedLabel;
     private final StringFilterGroup channelProfile;
     private final ByteArrayFilterGroup channelProfileShelfHeader;
-
-    private final StringFilterGroup autoDubbedLabel;
     private final StringFilterGroup joinButton;
-    private final StringFilterGroup shelfHeaderIdentifier;
-    private final StringFilterGroup shelfHeaderPath;
-    private final StringFilterGroup subscribeButton;
-
     private final StringFilterGroup reelCarousel;
     private final ByteArrayFilterGroupList reelCarouselBuffer = new ByteArrayFilterGroupList();
-
-    private final StringFilterGroup suggestedAction;
-    private final ByteArrayFilterGroupList suggestedActionsBuffer = new ByteArrayFilterGroupList();
-
-    private final StringFilterGroup useButtons;
-    private final ByteArrayFilterGroupList useButtonsBuffer = new ByteArrayFilterGroupList();
-
+    private final StringFilterGroup shelfHeaderIdentifier;
+    private final StringFilterGroup shelfHeaderPath;
     private final StringFilterGroup shortsActionBar;
     private final StringFilterGroup shortsActionButton;
     private final StringFilterGroupList shortsActionButtonGroupList = new StringFilterGroupList();
+    private final StringFilterGroup shortsCompactFeedVideo;
+    private final ByteTrieSearch shortsCompactFeedVideoBuffer;
+    private final StringFilterGroup subscribeButton;
+    private final StringFilterGroup suggestedAction;
+    private final ByteArrayFilterGroupList suggestedActionsBuffer = new ByteArrayFilterGroupList();
+    private final StringFilterGroup useButtons;
+    private final ByteArrayFilterGroupList useButtonsBuffer = new ByteArrayFilterGroupList();
 
     public ShortsFilter() {
         //
@@ -153,7 +145,8 @@ public final class ShortsFilter extends Filter {
         // Filter out items that use the 'frame0' thumbnail and other Shorts specific images.
         // 'frame0' is a valid thumbnail for both regular videos and Shorts,
         // but it appears these thumbnails are only used for Shorts.
-        shortsCompactFeedVideoBuffer = new ByteTrieSearch(convertStringsToBytes(
+        shortsCompactFeedVideoBuffer = new ByteTrieSearch(
+                ByteTrieSearch.convertStringsToBytes(
                 "/frame0.jpg",
                 "/oardefault.jpg", // Vertical orientation video.
                 "/oar1.jpg",
@@ -555,7 +548,7 @@ public final class ShortsFilter extends Filter {
         }
 
         // Must check player type first, as search bar can be active behind the player.
-        if (PlayerType.getCurrent().isMaximizedOrFullscreen() || isActionBarVisible.get()) {
+        if (PlayerType.getCurrent().isMaximizedOrFullscreen() || LayoutReloadObserverPatch.isActionBarVisible.get()) {
             return EngagementPanel.isDescription()
                     ? hideVideoDescription // Player video description panel opened.
                     : hideHome; // For now, consider Shorts under video player the same as the home feed.
@@ -572,7 +565,7 @@ public final class ShortsFilter extends Filter {
         }
 
         // Check navigation absolutely last since the check may block this thread.
-        NavigationButton selectedNavButton = NavigationButton.getSelectedNavigationButton();
+        NavigationBar.NavigationButton selectedNavButton = NavigationBar.NavigationButton.getSelectedNavigationButton();
         if (selectedNavButton == null) {
             return hideHome; // Unknown tab, treat the same as home.
         }
@@ -589,12 +582,45 @@ public final class ShortsFilter extends Filter {
     /**
      * Injection point.
      */
+    public static boolean allowDoubleTapToLike(boolean originalValue) {
+        return originalValue && !Settings.DISABLE_SHORTS_DOUBLE_TAP_TO_LIKE.get();
+    }
+
+    /**
+     * Injection point.
+     */
+    public static int getNavigationBarHeight(int original) {
+        return HIDE_SHORTS_NAVIGATION_BAR
+                ? HIDDEN_NAVIGATION_BAR_VERTICAL_HEIGHT
+                : original;
+    }
+
+    /**
+     * Injection point.
+     */
     public static int getSoundButtonSize(int original) {
         if (Settings.HIDE_SHORTS_SOUND_BUTTON.get()) {
             return 0;
         }
 
         return original;
+    }
+
+    /**
+     * Injection point.
+     */
+    public static void hidePivotBar(String tag) {
+        if (HIDE_SHORTS_NAVIGATION_BAR) {
+            if (REEL_WATCH_FRAGMENT_INIT_PLAYBACK.contains(tag)) {
+                PivotBar pivotBar = pivotBarRef.get();
+                if (pivotBar == null) return;
+
+                Logger.printDebug(() -> "Hiding pivot bar by setting to GONE");
+                pivotBar.setVisibility(View.GONE);
+            } else {
+                Logger.printDebug(() -> "Ignoring tag: " + tag);
+            }
+        }
     }
 
     /**
@@ -631,38 +657,5 @@ public final class ShortsFilter extends Filter {
         if (HIDE_SHORTS_NAVIGATION_BAR) {
             pivotBarRef = new WeakReference<>(view);
         }
-    }
-
-    /**
-     * Injection point.
-     */
-    public static void hidePivotBar(String tag) {
-        if (HIDE_SHORTS_NAVIGATION_BAR) {
-            if (REEL_WATCH_FRAGMENT_INIT_PLAYBACK.contains(tag)) {
-                PivotBar pivotBar = pivotBarRef.get();
-                if (pivotBar == null) return;
-
-                Logger.printDebug(() -> "Hiding pivot bar by setting to GONE");
-                pivotBar.setVisibility(View.GONE);
-            } else {
-                Logger.printDebug(() -> "Ignoring tag: " + tag);
-            }
-        }
-    }
-
-    /**
-     * Injection point.
-     */
-    public static int getNavigationBarHeight(int original) {
-        return HIDE_SHORTS_NAVIGATION_BAR
-                ? HIDDEN_NAVIGATION_BAR_VERTICAL_HEIGHT
-                : original;
-    }
-
-    /**
-     * Injection point.
-     */
-    public static boolean allowDoubleTapToLike(boolean originalValue) {
-        return originalValue && !Settings.DISABLE_SHORTS_DOUBLE_TAP_TO_LIKE.get();
     }
 }

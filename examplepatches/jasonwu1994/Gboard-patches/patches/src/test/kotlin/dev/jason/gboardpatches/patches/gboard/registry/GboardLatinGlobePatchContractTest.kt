@@ -51,10 +51,10 @@ class GboardLatinGlobePatchContractTest {
     }
 
     @Test
-    fun generatedInventoryContainsTwentyOneRowsAndExactlyOneLatinGlobe() {
+    fun generatedInventoryContainsTwentyTwoRowsAndExactlyOneLatinGlobe() {
         val inventory = JsonParser.parseString(readSource(PATCHES_LIST_PATH)).asJsonObject
         val patches = inventory.getAsJsonArray("patches").map { it.asJsonObject }
-        assertEquals(21, patches.size)
+        assertEquals(22, patches.size)
         val rows = patches.filter { row ->
             row.get("name").asString == "Latin Globe Key Ignore Interval"
         }

@@ -102,6 +102,10 @@ dependencies {
 }
 
 tasks {
+    named("test") {
+        inputs.file(rootProject.file("patches-list.json"))
+    }
+
     named("compileKotlin") {
         dependsOn(generatePatchBuildInfo)
     }

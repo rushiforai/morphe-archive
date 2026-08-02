@@ -11,10 +11,6 @@
 package app.morphe.extension.youtube.patches;
 
 import static app.morphe.extension.shared.StringRef.str;
-import static app.morphe.extension.shared.Utils.equalsAny;
-import static app.morphe.extension.shared.Utils.hideViewUnderCondition;
-import static app.morphe.extension.shared.settings.BaseActivityHook.MORPHE_SETTINGS_INTENT;
-import static app.morphe.extension.youtube.shared.NavigationBar.NavigationButton;
 
 import android.app.Activity;
 import android.content.Context;
@@ -41,8 +37,8 @@ import java.util.Map;
 
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.settings.BaseActivityHook;
 import app.morphe.extension.shared.settings.IntegerSetting;
-import app.morphe.extension.shared.ui.Dim;
 import app.morphe.extension.youtube.innertube.GuideResponseOuterClass.Accessibility;
 import app.morphe.extension.youtube.innertube.GuideResponseOuterClass.AccessibilityData;
 import app.morphe.extension.youtube.innertube.GuideResponseOuterClass.ButtonRenderer;
@@ -56,13 +52,14 @@ import app.morphe.extension.youtube.shared.NavigationBar;
 @SuppressWarnings("unused")
 public final class NavigationBarPatch {
 
-    private static final Map<NavigationButton, Boolean> shouldHideMap = new EnumMap<>(NavigationButton.class) {
+    private static final Map<NavigationBar.NavigationButton, Boolean> shouldHideMap =
+            new EnumMap<>(NavigationBar.NavigationButton.class) {
         {
-            put(NavigationButton.HOME, Settings.HIDE_HOME_BUTTON.get());
-            put(NavigationButton.CREATE, Settings.HIDE_CREATE_BUTTON.get());
-            put(NavigationButton.NOTIFICATIONS, Settings.HIDE_NOTIFICATIONS_BUTTON.get());
-            put(NavigationButton.SHORTS, Settings.HIDE_SHORTS_BUTTON.get());
-            put(NavigationButton.SUBSCRIPTIONS, Settings.HIDE_SUBSCRIPTIONS_BUTTON.get());
+            put(NavigationBar.NavigationButton.HOME, Settings.HIDE_HOME_BUTTON.get());
+            put(NavigationBar.NavigationButton.CREATE, Settings.HIDE_CREATE_BUTTON.get());
+            put(NavigationBar.NavigationButton.NOTIFICATIONS, Settings.HIDE_NOTIFICATIONS_BUTTON.get());
+            put(NavigationBar.NavigationButton.SHORTS, Settings.HIDE_SHORTS_BUTTON.get());
+            put(NavigationBar.NavigationButton.SUBSCRIPTIONS, Settings.HIDE_SUBSCRIPTIONS_BUTTON.get());
         }
     };
 
@@ -92,13 +89,13 @@ public final class NavigationBarPatch {
     /**
      * Injection point.
      */
-    public static void navigationTabCreated(NavigationButton button, View tabView) {
-        if (SHOW_SEARCH_BUTTON && button == NavigationButton.SEARCH) {
+    public static void navigationTabCreated(NavigationBar.NavigationButton button, View tabView) {
+        if (SHOW_SEARCH_BUTTON && button == NavigationBar.NavigationButton.SEARCH) {
             Utils.runOnMainThread(() -> tabView.setOnClickListener(openSearchBarOnClickListener));
             return;
         }
 
-        if (SHOW_SETTINGS_BUTTON && button == NavigationButton.SETTINGS) {
+        if (SHOW_SETTINGS_BUTTON && button == NavigationBar.NavigationButton.SETTINGS) {
             Utils.runOnMainThread(() -> tabView.setOnClickListener(v -> {
                 if (SHOW_SETTINGS_BUTTON_TYPE) {
                     openMorpheSettings(v);
@@ -118,7 +115,7 @@ public final class NavigationBarPatch {
      * Injection point.
      */
     public static void hideNavigationButtonLabels(TextView navigationLabelsView) {
-        hideViewUnderCondition(Settings.HIDE_NAVIGATION_BUTTON_LABELS, navigationLabelsView);
+        Utils.hideViewUnderCondition(Settings.HIDE_NAVIGATION_BUTTON_LABELS, navigationLabelsView);
     }
 
     /**
@@ -146,7 +143,7 @@ public final class NavigationBarPatch {
      * Injection point.
      */
     public static void hideNavigationBar(View view) {
-        hideViewUnderCondition(HIDE_NAVIGATION_BAR, view);
+        Utils.hideViewUnderCondition(HIDE_NAVIGATION_BAR, view);
     }
 
     /**
@@ -252,7 +249,7 @@ public final class NavigationBarPatch {
                     var iconName = buttonRenderer.getIcon().getYtIconType().name();
 
                     // Check the icon name to see if it is the OnClickListener of the search button.
-                    if (NavigationButton.SEARCH.ytEnumNames.contains(iconName)) {
+                    if (NavigationBar.NavigationButton.SEARCH.ytEnumNames.contains(iconName)) {
                         openSearchBar = listener;
                     }
                 }
@@ -276,7 +273,7 @@ public final class NavigationBarPatch {
 
                 // Check the icon name to see if it is the PivotBarItemRenderer of the home button.
                 // If other buttons besides the home button are used, the code becomes more complex.
-                if (NavigationButton.HOME.ytEnumNames.contains(iconName)) {
+                if (NavigationBar.NavigationButton.HOME.ytEnumNames.contains(iconName)) {
                     // Change the label and icon of the navigation button.
                     var newAccessibilityData = AccessibilityData.newBuilder().setLabel(str("menu_search")).build();
                     var newAccessibility = Accessibility.newBuilder().setAccessibilityData(newAccessibilityData).build();
@@ -350,7 +347,7 @@ public final class NavigationBarPatch {
                 var pivotBarItemBuilder = PivotBarItemRenderer.parseFrom(messageLite.toByteArray()).toBuilder();
                 var iconName = pivotBarItemBuilder.getIcon().getYtIconType().name();
 
-                if (NavigationButton.HOME.ytEnumNames.contains(iconName)) {
+                if (NavigationBar.NavigationButton.HOME.ytEnumNames.contains(iconName)) {
                     var newAccessibilityData = AccessibilityData.newBuilder().setLabel(str("menu_settings")).build();
                     var newAccessibility = Accessibility.newBuilder().setAccessibilityData(newAccessibilityData).build();
 
@@ -438,32 +435,32 @@ public final class NavigationBarPatch {
      * Injection point.
      */
     public static void hideChatButton(String enumName, View parentView, ImageView imageView) {
-        final boolean shouldHide = HIDE_TOOLBAR_CHAT_BUTTON && equalsAny(enumName, CHAT_BUTTON_ENUMS);
-        hideViewUnderCondition(shouldHide, parentView);
+        final boolean shouldHide = HIDE_TOOLBAR_CHAT_BUTTON && Utils.equalsAny(enumName, CHAT_BUTTON_ENUMS);
+        Utils.hideViewUnderCondition(shouldHide, parentView);
     }
 
     /**
      * Injection point.
      */
     public static void hideCreateButton(String enumName, View parentView, ImageView imageView) {
-        final boolean shouldHide = HIDE_TOOLBAR_CREATE_BUTTON && equalsAny(enumName, CREATE_BUTTON_ENUMS);
-        hideViewUnderCondition(shouldHide, parentView);
+        final boolean shouldHide = HIDE_TOOLBAR_CREATE_BUTTON && Utils.equalsAny(enumName, CREATE_BUTTON_ENUMS);
+        Utils.hideViewUnderCondition(shouldHide, parentView);
     }
 
     /**
      * Injection point.
      */
     public static void hideNotificationButton(String enumName, View parentView, ImageView imageView) {
-        boolean shouldHide = HIDE_TOOLBAR_NOTIFICATION_BUTTON && equalsAny(enumName, NOTIFICATION_BUTTON_ENUMS);
-        hideViewUnderCondition(shouldHide, parentView);
+        boolean shouldHide = HIDE_TOOLBAR_NOTIFICATION_BUTTON && Utils.equalsAny(enumName, NOTIFICATION_BUTTON_ENUMS);
+        Utils.hideViewUnderCondition(shouldHide, parentView);
     }
 
     /**
      * Injection point.
      */
     public static void hideSearchButton(String enumName, View parentView, ImageView imageView) {
-        boolean shouldHide = HIDE_TOOLBAR_SEARCH_BUTTON && NavigationButton.SEARCH.ytEnumNames.contains(enumName);
-        hideViewUnderCondition(shouldHide, parentView);
+        boolean shouldHide = HIDE_TOOLBAR_SEARCH_BUTTON && NavigationBar.NavigationButton.SEARCH.ytEnumNames.contains(enumName);
+        Utils.hideViewUnderCondition(shouldHide, parentView);
     }
 
     /**
@@ -478,7 +475,7 @@ public final class NavigationBarPatch {
      * Injection point.
      */
     public static void hideMicrophoneButton(View view) {
-        hideViewUnderCondition(HIDE_TOOLBAR_MICROPHONE_BUTTON, view);
+        Utils.hideViewUnderCondition(HIDE_TOOLBAR_MICROPHONE_BUTTON, view);
     }
 
     /**
@@ -513,7 +510,7 @@ public final class NavigationBarPatch {
 
                     boolean isCreate = Utils.equalsAny(iconName, CREATE_BUTTON_ENUMS);
                     boolean isNotification = Utils.equalsAny(iconName, NOTIFICATION_BUTTON_ENUMS);
-                    boolean isSearch = NavigationButton.SEARCH.ytEnumNames.contains(iconName);
+                    boolean isSearch = NavigationBar.NavigationButton.SEARCH.ytEnumNames.contains(iconName);
 
                     if ((HIDE_TOOLBAR_CREATE_BUTTON && isCreate) ||
                             (HIDE_TOOLBAR_NOTIFICATION_BUTTON && isNotification) ||
@@ -630,7 +627,7 @@ public final class NavigationBarPatch {
 
         try {
             Intent intent = new Intent(Intent.ACTION_MAIN);
-            intent.setData(Uri.parse(MORPHE_SETTINGS_INTENT));
+            intent.setData(Uri.parse(BaseActivityHook.MORPHE_SETTINGS_INTENT));
             intent.setPackage(context.getPackageName());
             intent.setClass(context, GoogleApiActivity.class);
 
@@ -641,41 +638,6 @@ public final class NavigationBarPatch {
             context.startActivity(intent);
         } catch (Exception e) {
             Logger.printException(() -> "Failed to open Morphe settings", e);
-        }
-    }
-
-    // Wide searchbar
-    private static final boolean WIDE_SEARCHBAR_ENABLED = Settings.WIDE_SEARCHBAR.get();
-
-    /**
-     * Injection point.
-     */
-    public static boolean enableWideSearchbar(boolean original) {
-        return WIDE_SEARCHBAR_ENABLED || original;
-    }
-
-    /**
-     * Injection point.
-     */
-    public static void setActionBar(View view) {
-        if (WIDE_SEARCHBAR_ENABLED) {
-            try {
-                View searchBarView = Utils.getChildViewByResourceName(view, "search_bar");
-
-                final int paddingLeft = searchBarView.getPaddingLeft();
-                final int paddingRight = searchBarView.getPaddingRight();
-                final int paddingTop = searchBarView.getPaddingTop();
-                final int paddingBottom = searchBarView.getPaddingBottom();
-                final int paddingStart = Dim.dp8;
-
-                if (Utils.isRightToLeftLocale()) {
-                    searchBarView.setPadding(paddingLeft, paddingTop, paddingStart, paddingBottom);
-                } else {
-                    searchBarView.setPadding(paddingStart, paddingTop, paddingRight, paddingBottom);
-                }
-            } catch (Exception ex) {
-                Logger.printException(() -> "setActionBar failure", ex);
-            }
         }
     }
 }

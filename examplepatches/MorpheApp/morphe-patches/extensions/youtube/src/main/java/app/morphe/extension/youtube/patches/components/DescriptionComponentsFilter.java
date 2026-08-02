@@ -1,6 +1,14 @@
-package app.morphe.extension.youtube.patches.components;
+/*
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
+ *
+ * Original hard forked code:
+ * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
+ *
+ * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ */
 
-import static app.morphe.extension.youtube.patches.LayoutReloadObserverPatch.isActionBarVisible;
+package app.morphe.extension.youtube.patches.components;
 
 import app.morphe.extension.shared.patches.components.BufferAsciiStrings;
 import app.morphe.extension.shared.patches.components.ByteArrayFilterGroup;
@@ -8,6 +16,7 @@ import app.morphe.extension.shared.patches.components.ByteArrayFilterGroupList;
 import app.morphe.extension.shared.patches.components.ContextInterface;
 import app.morphe.extension.shared.patches.components.Filter;
 import app.morphe.extension.shared.patches.components.StringFilterGroup;
+import app.morphe.extension.youtube.patches.LayoutReloadObserverPatch;
 import app.morphe.extension.youtube.settings.Settings;
 import app.morphe.extension.youtube.shared.EngagementPanel;
 import app.morphe.extension.youtube.shared.PlayerType;
@@ -18,16 +27,16 @@ public final class DescriptionComponentsFilter extends Filter {
 
     private static final String INFOCARDS_SECTION_PATH = "infocards_section.e";
 
+    private final StringFilterGroup featuredSection;
+    private final ByteArrayFilterGroupList featuredSectionGroupList = new ByteArrayFilterGroupList();
     private final StringFilterGroup hashtagSection;
     private final ByteArrayFilterGroup hashtagSectionBuffer;
     private final StringFilterGroup macroMarkersCarousel;
     private final ByteArrayFilterGroupList macroMarkersCarouselGroupList = new ByteArrayFilterGroupList();
     private final StringFilterGroup playlistSection;
     private final ByteArrayFilterGroupList playlistSectionGroupList = new ByteArrayFilterGroupList();
-    private final StringFilterGroup featuredSection;
-    private final ByteArrayFilterGroupList featuredSectionGroupList = new ByteArrayFilterGroupList();
-    private final StringFilterGroup subscribeButton;
     private final StringFilterGroup shortsHowThisWasMadeSection;
+    private final StringFilterGroup subscribeButton;
     private final StringFilterGroup videoDetails;
     private final ByteArrayFilterGroup videoDetailsBuffer;
 
@@ -204,7 +213,8 @@ public final class DescriptionComponentsFilter extends Filter {
                               int contentIndex) {
         // Immediately after the layout is refreshed, litho components are updated before the UI is drawn.
         // In this case, EngagementPanel.isDescription() cannot be used, and isActionBarVisible.get() should be used.
-        if (!EngagementPanel.isDescription() && !(PlayerType.getCurrent().isMaximizedOrFullscreen() || isActionBarVisible.get() || ShortsPlayerState.isOpen())) {
+        if (!EngagementPanel.isDescription() && !(PlayerType.getCurrent().isMaximizedOrFullscreen() ||
+                LayoutReloadObserverPatch.isActionBarVisible.get() || ShortsPlayerState.isOpen())) {
             return false;
         }
 

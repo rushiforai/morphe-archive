@@ -64,23 +64,6 @@ class GboardLongPressQuickActionsPatchContractTest {
         )
     }
 
-    @Test
-    fun readmeListsLongPressEditingShortcuts() {
-        val readme = Files.readString(
-            repositoryRoot().resolve("README.md"),
-            StandardCharsets.UTF_8,
-        )
-
-        assertTrue(readme.contains("<summary><code>Long-Press Editing Shortcuts</code></summary>"))
-        assertEquals(
-            "Add Select all, Undo, Copy, Cut, Paste, and Redo long-press shortcuts " +
-                "to English QWERTY and Zhuyin.",
-            readme.lineSequence()
-                .single { it.contains("Add Select all, Undo, Copy, Cut, Paste, and Redo") }
-                .trim(),
-        )
-    }
-
     private fun repositoryRoot(): Path {
         val workingDirectory = Path.of("").toAbsolutePath().normalize()
         return generateSequence(workingDirectory) { it.parent }

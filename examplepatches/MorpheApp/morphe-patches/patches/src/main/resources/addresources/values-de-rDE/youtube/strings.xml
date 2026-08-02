@@ -68,6 +68,7 @@ Folgende Änderungen werden vorgenommen:
   <string name="morphe_hide_expandable_card_entry_3">Alle ausblenden</string>
   <string name="morphe_hide_floating_microphone_button_title">Schwebende Mikrofon-Schaltfläche ausblenden</string>
   <string name="morphe_hide_floating_microphone_button_summary">Blendet die schwebende Mikrofon-Schaltfläche unten rechts in den Suchvorschlägen aus.</string>
+  <string name="morphe_hide_get_premium_button_title">\'Get Premium\'-Button ausblenden</string>
   <string name="morphe_hide_horizontal_shelves_title">Horizontale Reihen ausblenden</string>
   <string name="morphe_hide_horizontal_shelves_summary">Blendet horizontale Bereiche wie „Aktuelle Nachrichten“, „Community-Beiträge, die dir gefallen könnten“, „Weiter ansehen“, „Mehr Kanäle entdecken“, „Mehr Themen entdecken“, „Für dich“, „Neueste Videos“, „Am relevantesten“, „Beiträge aus der Community des Erstellers“, „Shopping“ und „Nochmal ansehen“ aus.</string>
   <string name="morphe_hide_hyped_label_title">Verstecke Hyped Label</string>
@@ -195,6 +196,28 @@ Folgende Änderungen werden vorgenommen:
   <string name="morphe_hide_store_button_title">Schaltfläche „Store“ ausblenden</string>
   <!-- 'Subscribe' should be translated using the same localized wording YouTube displays for the button. -->
   <string name="morphe_hide_subscribe_button_in_channel_page_title">Schaltfläche „Abonnieren“ ausblenden</string>
+  <string name="morphe_explore_menu_screen_title">Entdecken-Menü</string>
+  <string name="morphe_explore_menu_screen_summary">Wähle aus, welche Einträge im Entdecken-Menü angezeigt werden sollen</string>
+  <string name="morphe_hide_courses_menu_title">Eintrag „Kurse“ ausblenden</string>
+  <string name="morphe_hide_explore_button_title">Schaltfläche „Entdecken“ ausblenden</string>
+  <string name="morphe_hide_fashion_menu_title">Eintrag „Mode &amp; Beauty“ ausblenden</string>
+  <string name="morphe_hide_gaming_menu_title">Eintrag „Gaming“ ausblenden</string>
+  <string name="morphe_hide_hype_menu_title">Eintrag „Hype“ ausblenden</string>
+  <string name="morphe_hide_live_menu_title">Eintrag „Live“ ausblenden</string>
+  <string name="morphe_hide_memberships_menu_title">Eintrag „Mitgliedschaften“ ausblenden</string>
+  <string name="morphe_hide_movies_menu_title">Eintrag „Filme“ ausblenden</string>
+  <string name="morphe_hide_music_menu_title">Eintrag „Musik &amp; TV“ ausblenden</string>
+  <string name="morphe_hide_news_menu_title">Eintrag „Nachrichten“ ausblenden</string>
+  <string name="morphe_hide_playables_menu_title">Eintrag „Playables“ ausblenden</string>
+  <string name="morphe_hide_podcasts_menu_title">Eintrag „Podcasts“ ausblenden</string>
+  <string name="morphe_hide_shopping_menu_title">Eintrag „Shopping“ ausblenden</string>
+  <string name="morphe_hide_sports_menu_title">Eintrag „Sport“ ausblenden</string>
+  <string name="morphe_hide_youtube_premium_menu_title">Eintrag „YouTube Premium“ ausblenden</string>
+  <string name="morphe_hide_youtube_studio_menu_title">Eintrag „YouTube Studio“ ausblenden</string>
+  <string name="morphe_hide_youtube_music_menu_title">Eintrag „YouTube Music“ ausblenden</string>
+  <string name="morphe_hide_youtube_kids_menu_title">Eintrag „Youtube Kids“ ausblenden</string>
+  <string name="morphe_hide_youtube_create_menu_title">Eintrag „YouTube Create“ ausblenden</string>
+  <string name="morphe_hide_privacy_tos_footer_title">Fußleiste „Datenschutzerklärung • Nutzungsbedingungen“ ausblenden</string>
   <string name="morphe_comments_screen_title">Kommentare</string>
   <string name="morphe_comments_screen_summary">Wählen Sie aus, welche Komponenten im Kommentarbereich angezeigt werden sollen</string>
   <string name="morphe_hide_comments_carousel_title">Filter für Kommentar-Karussell aktivieren</string>
@@ -205,14 +228,13 @@ Folgende Änderungen werden vorgenommen:
   <string name="morphe_hide_comments_carousel_filter_strings_summary">Gib die Namen der Kommentar-Karussell-Elemente, nach denen gefiltert werden soll durch neue Zeilen getrennt ein</string>
   <string name="morphe_hide_comments_ai_chat_summary_title">KI-Chat-Zusammenfassung ausblenden</string>
   <string name="morphe_hide_comments_channel_guidelines_title">Kanalrichtlinien ausblenden</string>
-  <string name="morphe_hide_comments_prompts_title">Kommentarprompts ausblenden</string>
-  <string name="morphe_hide_comments_prompts_summary">Verbirgt kontextbezogene Informationsmeldungen im Kommentarbereich</string>
+  <string name="morphe_hide_comments_contexts_title">Kontextmeldungen ausblenden</string>
   <string name="morphe_hide_comments_by_members_header_title">Überschrift „Kommentare von Mitgliedern“ ausblenden</string>
   <string name="morphe_hide_comments_section_title">Kommentarbereich ausblenden</string>
   <string name="morphe_hide_comments_section_in_home_feed_title">Kommentarbereich im Starseiten-Feed ausblenden</string>
   <string name="morphe_hide_comments_community_guidelines_title">Community-Richtlinien ausblenden</string>
   <string name="morphe_hide_comments_create_a_short_button_title">Schaltfläche „Als Short erstellen“ ausblenden</string>
-  <string name="morphe_hide_comments_emoji_and_timestamp_buttons_title">Emoji- und Zeitstempel-Schaltflächen ausblenden</string>
+  <string name="morphe_hide_comments_emoji_button_title">Emoji-Schaltfläche ausblenden</string>
   <string name="morphe_hide_comments_filter_bar_options_title">Filterleistenoptionen ausblenden</string>
   <string name="morphe_hide_comments_filter_bar_options_summary">Blendet alle Filterleistenoptionen außer \"Top\" und \"Neueste\" aus</string>
   <string name="morphe_hide_comments_gift_animation_and_cards_title">Geschenkanimation und Karten ausblenden</string>
@@ -222,9 +244,10 @@ Folgende Änderungen werden vorgenommen:
   <string name="morphe_hide_comments_preview_comment_title">Vorschaukommentar ausblenden</string>
   <string name="morphe_hide_comments_preview_comment_summary">Verbirgt die Kommentarvorschau unter dem Video, bevor der vollständige Kommentarbereich geöffnet wird</string>
   <string name="morphe_hide_comments_thanks_button_title">Schaltfläche \'Dankeschön\' ausblenden</string>
+  <string name="morphe_hide_comments_timestamp_button_title">Zeitstempel-Schaltfläche ausblenden</string>
   <string name="morphe_sanitize_comments_highlighted_search_links_title">Hervorgehobene Suchlinks bereinigen</string>
   <string name="morphe_sanitize_comments_highlighted_search_links_summary">Bereinigt hervorgehobene Suchlinks und belässt nur den ursprünglichen Klartext</string>
-  <string name="morphe_hide_keyword_content_screen_title">Keyword-Filter</string>
+  <string name="morphe_hide_keyword_content_screen_title">Stichwortfilter</string>
   <string name="morphe_hide_keyword_content_screen_summary">Wähle bestimmte Stichwörter oder Ausdrücke aus, nach denen Videos in Feeds und Suchergebnissen ausgeblendet werden</string>
   <string name="morphe_hide_keyword_content_home_title">Videos auf der Startseite nach Stichwörtern ausblenden</string>
   <string name="morphe_hide_keyword_content_search_title">Suchergebnisse nach Stichwörtern ausblenden</string>
@@ -291,7 +314,7 @@ Tippen Sie hier, um AiSlopList.com zu öffnen und Downloads für andere Plattfor
   <string name="morphe_hide_general_ads_title">Allgemeine Werbung ausblenden</string>
   <string name="morphe_hide_merchandise_banners_title">Merchandise-Banner ausblenden</string>
   <!-- 'Includes paid promotion' should be translated using the same localized wording YouTube displays for the label. -->
-  <string name="morphe_hide_paid_promotion_label_title">\"Enthält bezahlte Werbung\"-Hinweis ausblenden</string>
+  <string name="morphe_hide_paid_promotion_labels_title">\"Enthält bezahlte Werbung\"-Hinweise ausblenden</string>
   <string name="morphe_hide_player_popup_ads_title">Popup-Anzeigen im Videoplayer ausblenden</string>
   <string name="morphe_hide_self_sponsor_ads_title">Selbst gesponserte Karten ausblenden</string>
   <string name="morphe_hide_shopping_links_title">Shopping-Links ausblenden</string>
@@ -309,7 +332,7 @@ Tippen Sie hier, um AiSlopList.com zu öffnen und Downloads für andere Plattfor
   <string name="morphe_remove_viewer_discretion_dialog_title">Hinweis zur Altersfreigabe entfernen</string>
   <string name="morphe_remove_viewer_discretion_dialog_summary">Dies umgeht nicht die Altersbeschränkung, sondern akzeptiert sie nur automatisch</string>
   <!-- layout.hide.signintotv.disableSignInToTVPopupPatch -->
-  <string name="morphe_disable_sign_in_to_tv_popup_title">Pop-up \"Bei TV anmelden\" deaktivieren</string>
+  <string name="morphe_disable_sign_in_to_tv_popup_title">Pop-up „Auf dem Fernseher anmelden“ deaktivieren</string>
   <!-- interaction.doubletap.disableDoubleTapActionsPatch -->
   <string name="morphe_disable_chapter_skip_double_tap_title">Doppeltippen zum Überspringen von Kapiteln deaktivieren</string>
   <string name="morphe_disable_chapter_skip_double_tap_summary">Deaktiviert die Zwei-Finger-Doppeltipp-Geste, die Kapitel überspringt, die versehentlich mit einem Finger ausgelöst werden kann</string>
@@ -803,7 +826,7 @@ Einstellungen → Wiedergabe (oder Automatische Wiedergabe) → Nächstes Video 
   <string name="morphe_hide_player_related_videos_overlay_title">„Mehr Videos“-Overlay ausblenden</string>
   <string name="morphe_hide_player_related_videos_overlay_summary">Blendet das „Mehr Videos“-Overlay aus, das beim Hochwischen im Vollbildmodus angezeigt wird</string>
   <!-- layout.hide.time.hideTimestampPatch -->
-  <string name="morphe_hide_timestamp_title">Verstecke Video-Zeitstempel</string>
+  <string name="morphe_hide_timestamp_title">Video-Zeitstempel ausblenden</string>
   <!-- layout.panels.popup.disablePlayerPopupPanelsPatch -->
   <string name="morphe_disable_player_popup_panels_title">Spieler-Popup-Panels deaktivieren</string>
   <string name="morphe_disable_player_popup_panels_summary">Deaktiviert das automatische Öffnen von Wiedergabelisten und Live-Chat-Panels</string>
@@ -1085,7 +1108,7 @@ Einschränkungen:
   <string name="morphe_advanced_video_quality_menu_title">Erweiterte Qualitätseinstellungen öffnen</string>
   <string name="morphe_advanced_video_quality_menu_summary">Überspringt das Menü zur Qualitätsauswahl und öffnet direkt die erweiterten Qualitätseinstellungen</string>
   <!-- video.quality.hidePremiumVideoQualityPatch -->
-  <string name="morphe_hide_premium_video_quality_title">Verstecken von Premium-Qualitätsoptionen</string>
+  <string name="morphe_hide_premium_video_quality_title">Premium-Qualitätsoptionen ausblenden</string>
   <!-- video.quality.prioritizeVideoQualityPatch -->
   <string name="morphe_video_quality_prioritize_title">Videoqualität priorisieren</string>
   <string name="morphe_video_quality_prioritize_summary">Priorisiert die höchstmögliche Videoqualität gegenüber der Codec-Effizienz</string>

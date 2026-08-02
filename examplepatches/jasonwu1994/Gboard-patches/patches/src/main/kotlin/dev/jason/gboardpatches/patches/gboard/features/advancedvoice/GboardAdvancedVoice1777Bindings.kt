@@ -35,6 +35,20 @@ internal object GboardAdvancedVoice1777Bindings {
         returnType = "Z",
     )
 
+    val asrSessionReset = GboardMethodBinding(
+        classType = "Lrpi;",
+        name = "a",
+        parameterTypes = listOf(
+            "Z",
+            "Z",
+            "Ljava/util/Locale;",
+            "Lqzo;",
+            "Laalb;",
+            "Ljus;",
+        ),
+        returnType = "Lwcz;",
+    )
+
     val initialVoiceSettings = GboardMethodBinding(
         classType = "Leqb;",
         name = "d",
@@ -69,6 +83,13 @@ internal object GboardAdvancedVoice1777Bindings {
             "Ljava/util/concurrent/Executor;",
         ),
         returnType = "V",
+    )
+
+    val s3NetworkAvailability = GboardMethodBinding(
+        classType = "Lrvv;",
+        name = "b",
+        parameterTypes = emptyList(),
+        returnType = "Z",
     )
 }
 

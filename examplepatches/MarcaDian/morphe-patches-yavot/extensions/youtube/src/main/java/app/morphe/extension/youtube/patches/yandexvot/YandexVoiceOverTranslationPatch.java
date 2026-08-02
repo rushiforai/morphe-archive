@@ -135,16 +135,19 @@ public class YandexVoiceOverTranslationPatch {
     /** Incremented on every new video or stop, invalidates in-flight async translation chains. */
     private static final AtomicLong translationGeneration = new AtomicLong(0);
 
-    public static void initialize(@SuppressWarnings("unused") VideoInformation.PlaybackController controller) {
-        VideoState.getOnChange().addObserver(state -> {
-            if (state == VideoState.PLAYING) {
-                resumeAudio(-1);
-            } else {
-                mainHandler.removeCallbacks(pauseCheckRunnable);
-                pauseAudio();
-            }
-            return kotlin.Unit.INSTANCE;
-        });
+    /**
+     * Called when the playback state of the video changes.
+     * <p>
+     * Subscribed with the add-on API and not with {@link VideoState#getOnChange()} directly,
+     * because a Java lambda of an add-on cannot implement the Kotlin event interface.
+     */
+    public static void videoStateChanged(VideoState state) {
+        if (state == VideoState.PLAYING) {
+            resumeAudio(-1);
+        } else {
+            mainHandler.removeCallbacks(pauseCheckRunnable);
+            pauseAudio();
+        }
         // Playback speed is synced on-demand inside videoTimeChanged.
     }
 

@@ -8,7 +8,8 @@ This bundle ships the `Voice Over Translation (Yandex)` patch for YouTube. It is
 
 1. Install/keep the base [morphe-patches](https://github.com/MorpheApp/morphe-patches) bundle in [Morphe Manager](https://github.com/MorpheApp/morphe-manager).
 2. Add this bundle as an additional source in Morphe Manager (`Patch sources → Add`).
-3. When patching YouTube, both patches are available:
+3. Keep the `Add-on support` patch of the base bundle enabled. It provides the hooks this bundle attaches to, and patching fails with a message if it is missing.
+4. When patching YouTube, both patches are available:
    - `Voice Over Translation` (base, Google/OpenRouter/MyMemory backends)
    - `Voice Over Translation (Yandex)` (this bundle)
 
@@ -23,15 +24,31 @@ Everything that would get baked into the patched YouTube APK uses a distinct nam
 - Settings constants: `YANDEX_VOT_ENABLED`, `YANDEX_VOT_SOURCE_LANGUAGE`, ...
 - SharedPreferences keys: `morphe_yandex_vot_*` (was `morphe_vot_*`)
 - Drawables: `morphe_yt_yandex_vot(_activated).xml`
-- Settings live under `Video → Voice Over Translation (Yandex)` sub-screen (`morphe_yandex_vot_screen`), same nesting as the base Google-VoT patch. No new root screen is added.
+- Settings sit directly next to the built in `Voice over translation` entry on the `Video` screen, under the key `morphe_vot_screen_yandex`, and are titled the same with `(Yandex)` appended.
 
-## Status
+## How the add-on attaches to the base bundle
 
-Delta bundle. The Kotlin patch tree contains only the two `yandexvot` patches; base morphe-patches classes (`videoInformationPatch`, `PreferenceScreen`, `sharedExtensionPatch`, etc.) are resolved at compile time via Gradle composite build pointing at `../morphe-patches`.
+Morphe Manager loads every patch bundle in its own class loader, so this bundle cannot reference
+any patch of morphe-patches. Everything goes through the patched app instead, using the hooks the
+`Add-on support` patch of morphe-patches provides:
+
+- The patch adds a call to `YandexVotAddOn.register()` to `AddOnManager.registerAddOns()` of the
+  base extension, in a finalize block.
+- `register()` subscribes to `AddOnApi`: player overlay buttons, legacy player controls, new video,
+  video id and video time.
+- The player button uses `PlayerOverlayButton.addButton()`, and in the old player layout one of the
+  legacy button slots the base bundle reserves for add-ons.
+- Preferences are declared in `morphe_addon_prefs.xml` with `after="morphe_vot_screen"`, so the
+  settings patch places them right next to the built in voice over translation entry. Strings,
+  arrays and drawables are written into the app resources by this bundle itself.
+
+Only the `AudioTrack.setVolume` hook that ducks the original audio is patched directly, using a
+fingerprint of this bundle.
 
 ## Build
 
-Requires a sibling checkout of `morphe-patches`, `morphe-patcher`, `morphe-patches-library`:
+Requires a sibling checkout of `morphe-patcher`, `morphe-patches-library`, and — for the extension
+code only — `morphe-patches`:
 
 ```
 StudioProjects/
@@ -41,23 +58,21 @@ StudioProjects/
 └── morphe-patches-yavot  ← this repo
 ```
 
-`settings.gradle.kts` uses `includeBuild("../morphe-patches")` with `dependencySubstitution` to substitute the fake maven coord `app.morphe:morphe-patches-base` with base's `:patches` project. `patches/build.gradle.kts` declares `compileOnly("app.morphe:morphe-patches-base")`.
+The patch code (`patches/`) depends on `morphe-patcher` and `morphe-patches-library` only. The
+extension code compiles against the compiled extension classes of morphe-patches with
+`compileOnly`, since all extensions end up in the same patched app. Build the base extension first:
 
-## What is bundled vs referenced from base
+```
+../morphe-patches/gradlew :extensions:youtube:compileReleaseKotlin :extensions:youtube:compileReleaseJavaWithJavac
+```
 
-Shipped in yavot bundle:
-- 2 Kotlin patches (`YandexVoiceOverTranslationPatch.kt`, `YandexVotOriginalVolumeBytecodePatch.kt`)
-- 8 Java extension classes (`YandexVot*`)
+## What is bundled
+
+- 1 Kotlin patch plus its add-on support helpers (`YandexVoiceOverTranslationPatch.kt`, `AddOn.kt`)
+- 9 Java extension classes (`YandexVot*`, including the add-on entry point `YandexVotAddOn`)
 - `YandexVotSettings.java` (9 setting fields, isolated from base's `Settings.java`)
-- `yandexvotbutton/` resources (2 drawables + host layout)
-- Filtered `strings.xml` and `arrays.xml` with only `morphe_yandex_vot_*` keys (en + ru)
-- Base `extensions/shared`, `extensions/shared-youtube`, `extensions/youtube` modules (kept for build; identical to base at fork time — DEX merger deduplicates)
-
-Referenced at compile time from base (not shipped):
-- All `app.morphe.patches.youtube.*` and `app.morphe.patches.shared.*` Kotlin patch declarations
-- All non-yavot Kotlin patches (390 files not shipped)
-- All non-yavot resources
-- Extension modules for music, reddit (not shipped)
+- `yandexvotbutton/` drawables
+- Filtered `strings.xml` and `arrays.xml` with only `morphe_yandex_vot_*` keys (en + ru + uk)
 
 ## Credits
 
@@ -75,14 +90,9 @@ Base bundle: [Morphe Patches](https://github.com/MorpheApp/morphe-patches), [Mor
 <summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
-**🎯 Supported versions:**
-
-| 🧪&nbsp;21.29.366 | 🧪&nbsp;21.28.204 | 🧪&nbsp;21.26.360 | 🧪&nbsp;21.05.265 | 21.04.223 | 20.51.39 | 20.31.42 | 20.21.37 |
-| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Voice Over Translation (Yandex)](#voice-over-translation-yandex) | Adds an option to enable Yandex voice-over translation of video audio tracks. |  |
+| [Voice Over Translation (Yandex)](#voice-over-translation-yandex) | Adds an option to enable Yandex voice-over translation of video audio tracks. Requires the "Add-on support" patch of Morphe Patches. |  |
 
 </details>
 

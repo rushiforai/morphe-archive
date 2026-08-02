@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="morphe_yandex_vot_screen_title">Закадровый перевод (Яндекс)</string>
+    <string name="morphe_yandex_vot_screen_title">Перевод озвучивания (Яндекс)</string>
     <string name="morphe_yandex_vot_enabled_title">Включить закадровый перевод</string>
     <string name="morphe_yandex_vot_enabled_summary">Закадровый перевод от Яндекса</string>
     <string name="morphe_yandex_vot_enabled_summary_on">Закадровый перевод от Яндекса включён</string>

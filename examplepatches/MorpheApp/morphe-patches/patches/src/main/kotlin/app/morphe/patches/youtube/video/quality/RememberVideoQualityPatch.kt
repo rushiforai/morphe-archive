@@ -22,6 +22,7 @@ import app.morphe.patches.youtube.misc.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.misc.playertype.playerTypeHookPatch
 import app.morphe.patches.youtube.misc.playservice.versionCheckPatch
 import app.morphe.patches.youtube.misc.settings.settingsPatch
+import app.morphe.patches.youtube.shared.PlatypusVideoQualityFlagFingerprint
 import app.morphe.patches.youtube.shared.VideoQualityBufferingFlagFingerprint
 import app.morphe.patches.youtube.shared.VideoQualityChangedFingerprint
 import app.morphe.patches.youtube.video.information.onCreateHook
@@ -120,7 +121,10 @@ val rememberVideoQualityPatch = bytecodePatch {
             }
         }
 
-        VideoQualityBufferingFlagFingerprint.forEach {
+        arrayOf(
+            PlatypusVideoQualityFlagFingerprint,
+            VideoQualityBufferingFlagFingerprint
+        ).forEach {
             it.method.insertLiteralOverride(
                 it.instructionMatches.last().index,
                 "$EXTENSION_CLASS->overrideBufferingVideoQualityFlag(Z)Z"

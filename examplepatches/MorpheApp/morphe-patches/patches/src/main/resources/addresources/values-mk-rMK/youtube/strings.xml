@@ -175,14 +175,10 @@ Second \"item\" text"</string>
   <string name="morphe_hide_comments_carousel_filter_strings_summary">Внесете ги имињата на каруселот со коментари за филтрирање, одделени со нови редови</string>
   <string name="morphe_hide_comments_ai_chat_summary_title">Скриј сумирање на AI разговор</string>
   <string name="morphe_hide_comments_channel_guidelines_title">Скриј ги правилата за канали</string>
-  <string name="morphe_hide_comments_prompts_title">Скриј ги прозорчињата за коментари</string>
-  <string name="morphe_hide_comments_prompts_summary">Прикри ги информативните пораки во делот со коментари</string>
   <string name="morphe_hide_comments_by_members_header_title">Скриј ги насловите „Коментари од членови“</string>
   <string name="morphe_hide_comments_section_title">Скриј дел со коментари</string>
   <string name="morphe_hide_comments_section_in_home_feed_title">Скриј дел за коментари во Feed</string>
-  <string name="morphe_hide_comments_community_guidelines_title">Скриј ги правилата за заедницата</string>
   <string name="morphe_hide_comments_create_a_short_button_title">Скриј го копчето „Креирај Shorts“</string>
-  <string name="morphe_hide_comments_emoji_and_timestamp_buttons_title">Скриј ги копчињата за емотикони и временска ознака</string>
   <string name="morphe_hide_comments_info_button_title">Скриј копче за информации</string>
   <string name="morphe_hide_comments_preview_comment_title">Скриј коментар за преглед</string>
   <string name="morphe_hide_comments_preview_comment_summary">Прикри го прегледот на коментари пред отворање на целиот дел со коментари</string>
@@ -215,7 +211,6 @@ Second \"item\" text"</string>
   <string name="morphe_hide_general_ads_title">Скриј општи реклами</string>
   <string name="morphe_hide_merchandise_banners_title">Скриј рекламни банери за стока</string>
   <!-- 'Includes paid promotion' should be translated using the same localized wording YouTube displays for the label. -->
-  <string name="morphe_hide_paid_promotion_label_title">Скријте ја ознаката „Вклучува платена промоција“</string>
   <string name="morphe_hide_player_popup_ads_title">Скриј реклами во прозорецот на плеер</string>
   <string name="morphe_hide_self_sponsor_ads_title">Скриј картички за само-спонзорирани реклами</string>
   <string name="morphe_hide_shopping_links_title">Скриј линкови за купување</string>

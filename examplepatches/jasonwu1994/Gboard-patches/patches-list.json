@@ -1,5 +1,5 @@
 {
-  "version": "2.3.0",
+  "version": "2.4.0",
   "patches": [
     {
       "name": "AI Writing Tools",
@@ -16,6 +16,18 @@
     {
       "name": "Add Gboard Signature Bypass",
       "description": "攔截 Gboard 的簽章白名單檢查並強制通過\nBypass Gboard signature whitelist checks and force them to pass.",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "com.google.android.inputmethod.latin": [
+          "17.7.7.932364120-release-arm64-v8a"
+        ]
+      },
+      "options": []
+    },
+    {
+      "name": "Advanced Voice Typing",
+      "description": "啟用進階語音輸入（包含自動標點功能），並另外為不支援進階語音輸入的繁體中文語音啟用自動標點\nEnable Advanced Voice Typing with automatic punctuation, and separately enable automatic punctuation for Traditional Chinese voice typing, which does not support Advanced Voice Typing.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {

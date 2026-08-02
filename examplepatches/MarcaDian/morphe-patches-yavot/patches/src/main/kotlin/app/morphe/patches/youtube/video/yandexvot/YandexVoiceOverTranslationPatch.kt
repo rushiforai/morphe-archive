@@ -46,29 +46,11 @@ package app.morphe.patches.youtube.video.yandexvot
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.methodCall
+import app.morphe.patcher.patch.ApkFileType
+import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
-import app.morphe.patches.shared.misc.settings.preference.InputType
-import app.morphe.patches.shared.misc.settings.preference.ListPreference
-import app.morphe.patches.shared.misc.settings.preference.NonInteractivePreference
-import app.morphe.patches.shared.misc.settings.preference.PreferenceCategory
-import app.morphe.patches.shared.misc.settings.preference.PreferenceScreenPreference
-import app.morphe.patches.shared.misc.settings.preference.PreferenceScreenPreference.Sorting
-import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
-import app.morphe.patches.shared.misc.settings.preference.TextPreference
-import app.morphe.patches.youtube.layout.player.buttons.addPlayerBottomButton
-import app.morphe.patches.youtube.layout.player.buttons.playerOverlayButtonsHookPatch
-import app.morphe.patches.youtube.misc.playercontrols.addLegacyBottomControl
-import app.morphe.patches.youtube.misc.playercontrols.initializeLegacyBottomControl
-import app.morphe.patches.youtube.misc.playercontrols.legacyPlayerControlsPatch
-import app.morphe.patches.youtube.misc.settings.PreferenceScreen
-import app.morphe.patches.youtube.shared.Constants.COMPATIBILITY_YOUTUBE
-import app.morphe.patches.youtube.video.information.onCreateHook
-import app.morphe.patches.youtube.video.information.videoInformationPatch
-import app.morphe.patches.youtube.video.information.videoTimeHook
-import app.morphe.patches.youtube.video.videoid.hookVideoId
-import app.morphe.patches.youtube.video.videoid.videoIdPatch
 import app.morphe.util.ResourceGroup
 import app.morphe.util.copyResources
 import app.morphe.util.getReference
@@ -80,14 +62,48 @@ import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstructio
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
-private const val EXTENSION_VOT_CLASS_DESCRIPTOR =
-    "Lapp/morphe/extension/youtube/patches/yandexvot/YandexVoiceOverTranslationPatch;"
-
-private const val EXTENSION_VOT_BUTTON =
-    "Lapp/morphe/extension/youtube/videoplayer/YandexVotButton;"
+/**
+ * Registration method of this add-on, called by the add-on manager of Morphe Patches.
+ */
+private const val EXTENSION_ADD_ON_REGISTER_METHOD =
+    "Lapp/morphe/extension/youtube/patches/yandexvot/YandexVotAddOn;->register()V"
 
 private const val EXTENSION_ORIGINAL_VOLUME_CLASS =
     "Lapp/morphe/extension/youtube/patches/yandexvot/YandexVotOriginalVolumePatch;"
+
+/**
+ * Key of the built in voice over translation preference of Morphe Patches.
+ * This add-on is shown right next to it.
+ */
+private const val VOICE_OVER_TRANSLATION_SCREEN_KEY = "morphe_vot_screen"
+
+/**
+ * Key of the preference of this add-on. Morphe settings screens sort their preferences by key,
+ * so the key has to sort right after the built in one to stay next to it.
+ */
+private const val YANDEX_SCREEN_KEY = "${VOICE_OVER_TRANSLATION_SCREEN_KEY}_yandex"
+
+/**
+ * Screen the preference is added to if the built in voice over translation patch is not applied.
+ */
+private const val VIDEO_SCREEN_KEY = "morphe_settings_screen_12_video"
+
+/**
+ * No app targets are declared, since the supported versions are whatever
+ * the Morphe Patches bundle this add-on is used with supports.
+ */
+private val COMPATIBILITY_YOUTUBE = Compatibility(
+    packageName = "com.google.android.youtube",
+    name = "YouTube",
+    apkFileType = ApkFileType.APK_REQUIRED,
+    appIconColor = 0xFF0033,
+    signatures = setOf(
+        // Android 13+
+        "5aad2bee6db95d17e05a08d7d1e64c10a1511879154483916b6ae6c7fd9cb0c6",
+        // Android 7+
+        "3d7a1223019aa39d9ea0e3436ab7c0896bfb4fb679f4de5fe7c23f326c8f994a"
+    )
+)
 
 private const val AUDIO_TRACK_CLASS = "Landroid/media/AudioTrack;"
 
@@ -123,20 +139,9 @@ private object AudioTrackSetVolumeMethodFingerprint : Fingerprint(
 )
 
 private val yandexVoiceOverTranslationBytecodePatch = bytecodePatch {
-    dependsOn(
-        videoInformationPatch,
-        videoIdPatch,
-        playerOverlayButtonsHookPatch,
-        legacyPlayerControlsPatch,
-    )
+    extendWith("extensions/youtube.mpe")
 
     execute {
-        videoTimeHook(EXTENSION_VOT_CLASS_DESCRIPTOR, "setVideoTime")
-        onCreateHook(EXTENSION_VOT_CLASS_DESCRIPTOR, "initialize")
-        hookVideoId("$EXTENSION_VOT_CLASS_DESCRIPTOR->onVideoIdChanged(Ljava/lang/String;)V")
-        addPlayerBottomButton(EXTENSION_VOT_BUTTON)
-        initializeLegacyBottomControl(EXTENSION_VOT_BUTTON)
-
         // Duck original audio: route every AudioTrack.setVolume through the extension multiplier.
         val method = AudioTrackSetVolumeMethodFingerprint.method
         val index = method.indexOfFirstInstructionOrThrow {
@@ -154,66 +159,57 @@ private val yandexVoiceOverTranslationBytecodePatch = bytecodePatch {
             """.trimIndent()
         )
     }
+
+    finalize {
+        // The player button and video hooks are subscribed to at runtime.
+        // Run in finalize, since the extension of Morphe Patches is merged while its patches execute.
+        registerAddOn(EXTENSION_ADD_ON_REGISTER_METHOD)
+    }
 }
 
 private val yandexVoiceOverTranslationResourcePatch = resourcePatch {
-    dependsOn(legacyPlayerControlsPatch)
-
     execute {
         copyResources("yandexvotbutton",
             ResourceGroup(resourceDirectoryName = "drawable",
                 "morphe_yt_yandex_vot.xml", "morphe_yt_yandex_vot_activated.xml"))
-        addLegacyBottomControl("yandexvotbutton")
 
-        PreferenceScreen.VIDEO.addPreferences(
-            PreferenceScreenPreference(
-                key = "morphe_yandex_vot_screen",
+        addBundledResources()
+
+        addAddOnPreferences(
+            preferenceScreen(
+                key = YANDEX_SCREEN_KEY,
+                titleKey = "morphe_yandex_vot_screen_title",
                 sorting = Sorting.UNSORTED,
-                preferences = setOf(
-                    PreferenceCategory(
+                preferences = listOf(
+                    noTitlePreferenceCategory(
                         key = "morphe_yandex_vot_general_category",
-                        titleKey = null,
-                        tag = "app.morphe.extension.shared.settings.preference.NoTitlePreferenceCategory",
-                        sorting = Sorting.UNSORTED,
-                        preferences = setOf(
-                            SwitchPreference("morphe_yandex_vot_enabled"),
-                            ListPreference(
-                                key = "morphe_yandex_vot_source_language",
-                                entriesKey = "morphe_yandex_vot_source_language_entries",
-                                entryValuesKey = "morphe_yandex_vot_source_language_entry_values",
-                            ),
-                            ListPreference(
-                                key = "morphe_yandex_vot_target_language",
-                                entriesKey = "morphe_yandex_vot_target_language_entries",
-                                entryValuesKey = "morphe_yandex_vot_target_language_entry_values",
-                            ),
-                            SwitchPreference("morphe_yandex_vot_use_live_voices"),
-                            NonInteractivePreference(
+                        preferences = listOf(
+                            switchPreference("morphe_yandex_vot_enabled"),
+                            listPreference("morphe_yandex_vot_source_language"),
+                            listPreference("morphe_yandex_vot_target_language"),
+                            switchPreference("morphe_yandex_vot_use_live_voices"),
+                            nonInteractivePreference(
                                 key = "morphe_yandex_vot_oauth_token",
                                 tag = "app.morphe.extension.youtube.settings.preference.YandexVotOAuthPreference",
                                 selectable = true,
                             ),
                         )
                     ),
-                    PreferenceCategory(
+                    noTitlePreferenceCategory(
                         key = "morphe_yandex_vot_proxy_category",
-                        titleKey = null,
-                        tag = "app.morphe.extension.shared.settings.preference.NoTitlePreferenceCategory",
-                        sorting = Sorting.UNSORTED,
-                        preferences = setOf(
-                            SwitchPreference(
+                        preferences = listOf(
+                            switchPreference(
                                 key = "morphe_yandex_vot_audio_proxy_enabled",
                                 titleKey = "morphe_yandex_vot_audio_proxy_title",
                                 summary = true,
                             ),
-                            TextPreference(
-                                key = "morphe_yandex_vot_proxy_url",
-                                inputType = InputType.TEXT,
-                            ),
+                            textPreference("morphe_yandex_vot_proxy_url"),
                         )
                     )
                 )
-            )
+            ),
+            afterKey = VOICE_OVER_TRANSLATION_SCREEN_KEY,
+            screenKey = VIDEO_SCREEN_KEY,
         )
     }
 }
@@ -221,7 +217,8 @@ private val yandexVoiceOverTranslationResourcePatch = resourcePatch {
 @Suppress("unused")
 val yandexVoiceOverTranslationPatch = bytecodePatch(
     name = "Voice Over Translation (Yandex)",
-    description = "Adds an option to enable Yandex voice-over translation of video audio tracks.",
+    description = "Adds an option to enable Yandex voice-over translation of video audio tracks. " +
+            "Requires the \"Add-on support\" patch of Morphe Patches.",
 ) {
     compatibleWith(COMPATIBILITY_YOUTUBE)
     dependsOn(yandexVoiceOverTranslationResourcePatch, yandexVoiceOverTranslationBytecodePatch)

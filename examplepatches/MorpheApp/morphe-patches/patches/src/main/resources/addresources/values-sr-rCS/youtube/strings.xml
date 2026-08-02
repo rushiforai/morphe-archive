@@ -68,6 +68,7 @@ Promene uključuju:
   <string name="morphe_hide_expandable_card_entry_3">Sakrij sve</string>
   <string name="morphe_hide_floating_microphone_button_title">Sakrij plutajuće dugme mikrofona</string>
   <string name="morphe_hide_floating_microphone_button_summary">Sakriva plutajuće dugme za mikrofon u donjem desnom uglu ekrana predloga pretrage</string>
+  <string name="morphe_hide_get_premium_button_title">Sakrij dugme \'Nabavite Premium\'</string>
   <string name="morphe_hide_horizontal_shelves_title">Sakrij horizontalne police</string>
   <string name="morphe_hide_horizontal_shelves_summary">Sakriva horizontalne police kao što su Najnovije vesti, Obaveštenja zajednice koje bi vam se dopale, Nastavi sa gledanjem, Istraži više kanala, Istraži više tema, Za vas, Najnoviji video snimci, Najrelevantniji, Obaveštenja od autora, Kupovina i Pogledaj ponovo.</string>
   <string name="morphe_hide_hyped_label_title">Sakrij popularni natpis</string>
@@ -155,6 +156,7 @@ Promene uključuju:
   <string name="morphe_hide_featured_channels_section_title">Sakrij odeljke sa istaknutim kanalima</string>
   <string name="morphe_hide_featured_links_section_title">Sakrij odeljak „Istaknuti linkovi”</string>
   <string name="morphe_hide_featured_places_section_title">Sakrij odeljak „Istaknuta mesta”</string>
+  <string name="morphe_hide_featured_playlists_section_title">Sakrij sekciju \"Istaknute liste za reprodukciju\"</string>
   <string name="morphe_hide_featured_videos_section_title">Sakrij odeljak „Istaknuti video zapisi”</string>
   <string name="morphe_hide_gaming_section_title">Sakrij odeljak „Igre”</string>
   <string name="morphe_hide_hashtag_section_title">Sakrij sekciju heš-oznaka</string>
@@ -164,6 +166,7 @@ Promene uključuju:
   <string name="morphe_hide_key_concepts_section_title">Sakrij odeljak „Ključni koncepti”</string>
   <string name="morphe_hide_music_section_title">Sakrij odeljak „Muzika”</string>
   <string name="morphe_hide_quizzes_section_title">Sakrij odeljak „Kvizovi”</string>
+  <string name="morphe_hide_search_inside_this_video_section_title">Sakrij sekciju \'Pretraga unutar ovog videa\'</string>
   <string name="morphe_hide_subscribe_button_title">Sakrij dugme „Zaprati”</string>
   <string name="morphe_hide_transcript_section_title">Sakrij odeljak „Transkript”</string>
   <string name="morphe_hide_video_details_section_title">Sakrij odeljak „Detalji videa”</string>
@@ -192,6 +195,28 @@ Promene uključuju:
   <string name="morphe_hide_store_button_title">Sakrij dugme „Deli”</string>
   <!-- 'Subscribe' should be translated using the same localized wording YouTube displays for the button. -->
   <string name="morphe_hide_subscribe_button_in_channel_page_title">Sakrij dugme „Zaprati”</string>
+  <string name="morphe_explore_menu_screen_title">Pregled menija</string>
+  <string name="morphe_explore_menu_screen_summary">Odaberite koje komponente da se pojave u meniju za pregled</string>
+  <string name="morphe_hide_courses_menu_title">Sakrij meni Kurseva</string>
+  <string name="morphe_hide_explore_button_title">Sakrij dugme „Pregled“</string>
+  <string name="morphe_hide_fashion_menu_title">Sakrij meni „Moda i lepota“</string>
+  <string name="morphe_hide_gaming_menu_title">Sakrij meni Igrice</string>
+  <string name="morphe_hide_hype_menu_title">Sakrij meni Hype</string>
+  <string name="morphe_hide_live_menu_title">Sakrij meni Uživao</string>
+  <string name="morphe_hide_memberships_menu_title">Sakrij meni Članstva</string>
+  <string name="morphe_hide_movies_menu_title">Sakrij meni Filmova</string>
+  <string name="morphe_hide_music_menu_title">Sakrij meni „Muzika i TV“</string>
+  <string name="morphe_hide_news_menu_title">Sakrij meni Vestı</string>
+  <string name="morphe_hide_playables_menu_title">Sakrij meni Materijala za reprodukciju</string>
+  <string name="morphe_hide_podcasts_menu_title">Sakrij meni Podcast-a</string>
+  <string name="morphe_hide_shopping_menu_title">Sakrij meni Kupovine</string>
+  <string name="morphe_hide_sports_menu_title">Sakrij meni Sporta</string>
+  <string name="morphe_hide_youtube_premium_menu_title">Sakrij meni YouTube Premium</string>
+  <string name="morphe_hide_youtube_studio_menu_title">Sakrij meni YouTube Studio</string>
+  <string name="morphe_hide_youtube_music_menu_title">Sakrij meni YouTube Music</string>
+  <string name="morphe_hide_youtube_kids_menu_title">Sakrij meni YouTube Kids</string>
+  <string name="morphe_hide_youtube_create_menu_title">Sakrij meni YouTube Create</string>
+  <string name="morphe_hide_privacy_tos_footer_title">Sakrij podnožje „Politika privatnosti • Uslovi korišćenja“</string>
   <string name="morphe_comments_screen_title">Komentari</string>
   <string name="morphe_comments_screen_summary">Izaberite koje komponente će se pojaviti u odeljku za komentare</string>
   <string name="morphe_hide_comments_carousel_title">Omogući filter karusela komentara</string>
@@ -202,14 +227,13 @@ Promene uključuju:
   <string name="morphe_hide_comments_carousel_filter_strings_summary">Unesite nazive karusela komentara po kojima želite da filtrirate, odvojene novim redovima</string>
   <string name="morphe_hide_comments_ai_chat_summary_title">Sakrij „Rezime ćaskanja koji je generisala veštačka inteligencija”</string>
   <string name="morphe_hide_comments_channel_guidelines_title">Sakrij smernice kanala</string>
-  <string name="morphe_hide_comments_prompts_title">Sakrij komentare</string>
-  <string name="morphe_hide_comments_prompts_summary">Sakriva informativne poruke konteksta u odeljku za komentare</string>
+  <string name="morphe_hide_comments_contexts_title">Sakrij poruke konteksta</string>
   <string name="morphe_hide_comments_by_members_header_title">Sakrij zaglavlje „Komentari od članova”</string>
   <string name="morphe_hide_comments_section_title">Sakrij odeljak za komentare</string>
   <string name="morphe_hide_comments_section_in_home_feed_title">Sakrij odeljak za komentare u Feed-u</string>
   <string name="morphe_hide_comments_community_guidelines_title">Sakrij smernice zajednice</string>
   <string name="morphe_hide_comments_create_a_short_button_title">Sakrij dugme „Napravi Short”</string>
-  <string name="morphe_hide_comments_emoji_and_timestamp_buttons_title">Sakrij dugmad emodžija i vremenske oznake</string>
+  <string name="morphe_hide_comments_emoji_button_title">Sakrij dugme za emoji</string>
   <string name="morphe_hide_comments_filter_bar_options_title">Sakrij opcije trake filtera</string>
   <string name="morphe_hide_comments_filter_bar_options_summary">Sakriva sve opcije trake filtera, osim \"Najbolje\" i \"Najnovije\"</string>
   <string name="morphe_hide_comments_gift_animation_and_cards_title">Sakrij animaciju poklona i kartice</string>
@@ -219,6 +243,7 @@ Promene uključuju:
   <string name="morphe_hide_comments_preview_comment_title">Sakrij komentar za pregled</string>
   <string name="morphe_hide_comments_preview_comment_summary">Sakriva pregled komentara ispod videa pre otvaranja celog odeljka za komentare</string>
   <string name="morphe_hide_comments_thanks_button_title">Sakrij dugme „Hvala”</string>
+  <string name="morphe_hide_comments_timestamp_button_title">Sakrij dugme za vremensku oznaku</string>
   <string name="morphe_sanitize_comments_highlighted_search_links_title">Dezinfikuje naglašene linkove za pretragu</string>
   <string name="morphe_sanitize_comments_highlighted_search_links_summary">Dezinfikuje naglašene linkove za pretragu, ostavljajući samo originalni tekst</string>
   <string name="morphe_hide_keyword_content_screen_title">Filtriranje po ključnim rečima</string>
@@ -288,7 +313,7 @@ Dodirnite ovde da biste otvorili AiSlopList.com i videli preuzimanja za druge pl
   <string name="morphe_hide_general_ads_title">Sakrij opšte oglase</string>
   <string name="morphe_hide_merchandise_banners_title">Sakrij banere za robu</string>
   <!-- 'Includes paid promotion' should be translated using the same localized wording YouTube displays for the label. -->
-  <string name="morphe_hide_paid_promotion_label_title">Sakrij oznaku \'Sadrži plaćenu promociju\'</string>
+  <string name="morphe_hide_paid_promotion_labels_title">Sakrij oznaku plaćene promocije</string>
   <string name="morphe_hide_player_popup_ads_title">Sakrij oglasne popupe u plejeru</string>
   <string name="morphe_hide_self_sponsor_ads_title">Sakrij kartice samosponzorstva</string>
   <string name="morphe_hide_shopping_links_title">Sakrij linkove za kupovinu</string>
@@ -455,6 +480,8 @@ Napomena: Možda neće raditi na direktnim prenosima"</string>
   <string name="morphe_livestream_dvr_title">Uključi livestream DVR</string>
   <string name="morphe_livestream_dvr_summary">Omogućava preskakanje na svim prenosima uživo, čak i na onima koji to normalno ograničavaju</string>
   <!-- interaction.seekbar.seekbarThumbnailPreviewPatch -->
+  <string name="morphe_seekbar_thumbnail_preview_title">Omogući sličice trake za premotavanje</string>
+  <string name="morphe_seekbar_thumbnail_preview_summary">Prikazuje sliku videa tokom povlačenja trake za premotavanje</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
   <string name="morphe_livestream_dvr_not_available">"'Omogući DVR za direktan prenos' možda nije dostupno
 
@@ -907,6 +934,7 @@ Ograničenje: Ako je \"Vrati staru traku sa akcijama za video\" isključen, prek
   <string name="morphe_miniplayer_disable_resuming_summary">Onemogućava \'Nastavi gledanje\' miniplayer, YouTube Premium funkciju koja se pojavljuje pri pokretanju aplikacije</string>
   <string name="morphe_miniplayer_screen_title">Mini-plejer</string>
   <string name="morphe_miniplayer_screen_summary">Prilagodi izgled i ponašanje smanjenog video plejera</string>
+  <string name="morphe_miniplayer_not_available_summary">YouTube je uklonio sve dodatne mini plejere. Da biste promenili tip mini plejera, zakrpajte YouTube 21.28.207 ili stariju verziju</string>
   <string name="morphe_miniplayer_type_title">Tip mini-plejera</string>
   <string name="morphe_miniplayer_type_entry_0">Onemogućen</string>
   <string name="morphe_miniplayer_type_entry_1">Podrazumevan</string>

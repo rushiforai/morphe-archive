@@ -1,15 +1,16 @@
 package dev.jason.gboardpatches.extension.advancedvoice;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
+import android.content.res.Configuration;
+import android.os.Build;
 import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 import dev.jason.gboardpatches.extension.R;
 import dev.jason.gboardpatches.extension.settings.GboardPatchesSettingsContract;
@@ -22,6 +23,8 @@ public final class GboardAdvancedVoiceSettingsFeature
     private static final String TAG = "GboardPatches";
     private static final String APKMIRROR_DOWNLOAD_URL =
             "https://www.apkmirror.com/apk/google-inc/gboard/gboard-the-google-keyboard-17-7-7-932364120-release/gboard-the-google-keyboard-17-7-7-932364120-release-arm64-v8a-android-apk-download/";
+    private static final String ADVANCED_VOICE_GITHUB_URL =
+            "https://github.com/jasonwu1994/Gboard-patches";
 
     private final String entryTitle;
     private final String entrySummary;
@@ -35,6 +38,25 @@ public final class GboardAdvancedVoiceSettingsFeature
     private final String zhTwPunctuationSummary;
     private final String sectionBehavior;
     private final String sectionInformation;
+    private final String sectionOfflineSpeechModel;
+    private final String sectionSupportedLanguages;
+    private final String supportedLanguagesTitle;
+    private final String supportedLanguagesSummary;
+    private final String githubStarTitle;
+    private final String githubStarSummary;
+    private final String speechServicesPresentTitle;
+    private final String speechServicesAbsentTitle;
+    private final String speechServicesUnknownTitle;
+    private final String speechServicesStatusSummary;
+    private final String downloadedLanguagesTitle;
+    private final String downloadedLanguagesLoadingSummary;
+    private final String downloadedLanguagesEmptySummary;
+    private final String downloadedLanguagesUnsupportedSummary;
+    private final String downloadedLanguagesUnavailableSummary;
+    private final String downloadedLanguagesErrorSummary;
+    private final String downloadedLanguagesSeparator;
+    private final String liveTranscribeManageTitle;
+    private final String liveTranscribeManageSummary;
     private final String payloadPresentTitle;
     private final String payloadPresentSummary;
     private final String payloadPresentRequirementTitle;
@@ -88,9 +110,77 @@ public final class GboardAdvancedVoiceSettingsFeature
         sectionInformation = GboardSettingsText.get(context,
                 R.string.gboard_patches_advanced_voice_section_information,
                 "Information");
+        sectionOfflineSpeechModel = GboardSettingsText.get(context,
+                R.string.gboard_patches_advanced_voice_section_offline_speech_model,
+                "Offline speech model");
+        sectionSupportedLanguages = GboardSettingsText.get(context,
+                R.string.gboard_patches_advanced_voice_section_supported_languages,
+                "Supported languages");
+        supportedLanguagesTitle = GboardSettingsText.get(context,
+                R.string.gboard_patches_advanced_voice_supported_languages_title,
+                "Supported languages");
+        supportedLanguagesSummary = GboardSettingsText.get(context,
+                R.string.gboard_patches_advanced_voice_supported_languages_summary,
+                "Only en-US supports the complete feature set.\n\n"
+                        + "English en-AU, en-CA, en-GB, en-IE, en-IN, en-SG, en-US\n"
+                        + "German de-AT, de-BE, de-CH, de-DE\n"
+                        + "French fr-BE, fr-CA, fr-CH, fr-FR\n"
+                        + "Italian it-CH, it-IT\nJapanese ja-JP\nSpanish es-ES, es-US");
+        githubStarTitle = GboardSettingsText.get(context,
+                R.string.gboard_patches_advanced_voice_github_star_title,
+                "Support this project on GitHub 😊");
+        githubStarSummary = GboardSettingsText.get(context,
+                R.string.gboard_patches_advanced_voice_github_star_summary,
+                "This feature took a significant amount of time to build. If it helps you, "
+                        + "please give the project a Star on GitHub.");
+        speechServicesPresentTitle = GboardSettingsText.get(context,
+                R.string.gboard_patches_advanced_voice_speech_services_present_title,
+                "Speech Recognition & Synthesis (Installed)");
+        speechServicesAbsentTitle = GboardSettingsText.get(context,
+                R.string.gboard_patches_advanced_voice_speech_services_absent_title,
+                "Speech Recognition & Synthesis (Not installed)");
+        speechServicesUnknownTitle = GboardSettingsText.get(context,
+                R.string.gboard_patches_advanced_voice_speech_services_unknown_title,
+                "Speech Recognition & Synthesis (Unable to verify)");
+        speechServicesStatusSummary = GboardSettingsText.get(context,
+                R.string.gboard_patches_advanced_voice_speech_services_status_summary,
+                "Package: com.google.android.tts. Required for Advanced Voice Typing: install "
+                        + "Speech Recognition & Synthesis and download the offline speech "
+                        + "recognition model for every language you use. Tap to open its "
+                        + "Google Play page.");
+        downloadedLanguagesTitle = GboardSettingsText.get(context,
+                R.string.gboard_patches_advanced_voice_downloaded_languages_title,
+                "Downloaded offline languages");
+        downloadedLanguagesLoadingSummary = GboardSettingsText.get(context,
+                R.string.gboard_patches_advanced_voice_downloaded_languages_loading_summary,
+                "Checking downloaded offline languages…");
+        downloadedLanguagesEmptySummary = GboardSettingsText.get(context,
+                R.string.gboard_patches_advanced_voice_downloaded_languages_empty_summary,
+                "No downloaded offline languages detected.");
+        downloadedLanguagesUnsupportedSummary = GboardSettingsText.get(context,
+                R.string.gboard_patches_advanced_voice_downloaded_languages_unsupported_summary,
+                "This Android version cannot query downloaded offline languages.");
+        downloadedLanguagesUnavailableSummary = GboardSettingsText.get(context,
+                R.string.gboard_patches_advanced_voice_downloaded_languages_unavailable_summary,
+                "No on-device speech recognition service is available.");
+        downloadedLanguagesErrorSummary = GboardSettingsText.get(context,
+                R.string.gboard_patches_advanced_voice_downloaded_languages_error_summary,
+                "Unable to read downloaded offline languages. Check them in Live Transcribe.");
+        downloadedLanguagesSeparator = GboardSettingsText.get(context,
+                R.string.gboard_patches_advanced_voice_downloaded_languages_separator,
+                ", ");
+        liveTranscribeManageTitle = GboardSettingsText.get(context,
+                R.string.gboard_patches_advanced_voice_live_transcribe_manage_title,
+                "Manage languages with Live Transcribe");
+        liveTranscribeManageSummary = GboardSettingsText.get(context,
+                R.string.gboard_patches_advanced_voice_live_transcribe_manage_summary,
+                "Use Google’s official Live Transcribe app to download the Speech Recognition "
+                        + "& Synthesis offline recognition models required for Advanced Voice "
+                        + "Typing. In Live Transcribe, open Settings → More settings → Primary "
+                        + "language.\nTap to open Live Transcribe.");
         payloadPresentTitle = GboardSettingsText.get(context,
                 R.string.gboard_patches_advanced_voice_payload_present_title,
-                "Dictation payload detected");
+                "Dictation payload (Installed)");
         payloadPresentSummary = GboardSettingsText.get(context,
                 R.string.gboard_patches_advanced_voice_payload_present_summary,
                 "The currently installed %1$s meets the APK payload requirement for "
@@ -105,7 +195,7 @@ public final class GboardAdvancedVoiceSettingsFeature
                         + "standalone APK cannot work.\nTap to view the APKMirror download page");
         payloadAbsentTitle = GboardSettingsText.get(context,
                 R.string.gboard_patches_advanced_voice_payload_absent_title,
-                "Dictation payload not detected");
+                "Dictation payload (Not installed)");
         payloadAbsentSummary = GboardSettingsText.get(context,
                 R.string.gboard_patches_advanced_voice_payload_absent_summary,
                 "The currently installed %1$s does not contain libdictation_jni.so, which "
@@ -119,7 +209,7 @@ public final class GboardAdvancedVoiceSettingsFeature
                         + "cannot work.\nTap to open the APKMirror download page");
         payloadUnknownTitle = GboardSettingsText.get(context,
                 R.string.gboard_patches_advanced_voice_payload_unknown_title,
-                "Unable to verify Dictation payload");
+                "Dictation payload (Unable to verify)");
         payloadUnknownSummary = GboardSettingsText.get(context,
                 R.string.gboard_patches_advanced_voice_payload_unknown_summary,
                 "The installed APK files for the selected Gboard package could not be "
@@ -152,6 +242,11 @@ public final class GboardAdvancedVoiceSettingsFeature
     }
 
     @Override
+    public boolean requiresOfflineSpeechLanguages() {
+        return true;
+    }
+
+    @Override
     public GboardPatchesSettingsContract.Screen buildScreen(
             GboardPatchesSettingsContract.Host host) {
         try {
@@ -169,10 +264,19 @@ public final class GboardAdvancedVoiceSettingsFeature
                     GboardDictationPayloadDetector.detect(
                             context,
                             targetPackageNames(context));
+            GboardSpeechServicesDetector.Status speechServicesStatus =
+                    GboardSpeechServicesDetector.detect(context);
+            GboardPatchesSettingsContract.OfflineSpeechLanguages offlineSpeechLanguages =
+                    host.getOfflineSpeechLanguages();
             Log.i(TAG, "Loaded Advanced Voice Typing enabled=" + enabled
                     + ", zhTwPunctuationEnabled=" + zhTwPunctuationEnabled
                     + ", payloadStatus=" + payloadDetection.getStatus()
-                    + ", payloadPackage=" + payloadDetection.getPackageName());
+                    + ", payloadPackage=" + payloadDetection.getPackageName()
+                    + ", speechServicesStatus=" + speechServicesStatus
+                    + ", offlineSpeechLanguagesStatus="
+                    + (offlineSpeechLanguages == null
+                    ? "null"
+                    : offlineSpeechLanguages.getStatus()));
 
             List<GboardPatchesSettingsContract.Row> behaviorRows =
                     new ArrayList<GboardPatchesSettingsContract.Row>();
@@ -208,7 +312,36 @@ public final class GboardAdvancedVoiceSettingsFeature
                     guidance.commandTitle,
                     guidance.commandSummary,
                     true,
-                    () -> openExternalUrl(context, APKMIRROR_DOWNLOAD_URL)));
+                    () -> host.openExternalUrl(APKMIRROR_DOWNLOAD_URL)));
+
+            List<GboardPatchesSettingsContract.Row> offlineSpeechModelRows =
+                    new ArrayList<GboardPatchesSettingsContract.Row>();
+            offlineSpeechModelRows.add(new GboardPatchesSettingsContract.CommandRow(
+                    speechServicesStatusTitle(speechServicesStatus),
+                    speechServicesStatusSummary,
+                    true,
+                    () -> host.openSpeechRecognitionAndSynthesisStoreListing()));
+            offlineSpeechModelRows.add(new GboardPatchesSettingsContract.DetailRow(
+                    downloadedLanguagesTitle,
+                    downloadedLanguagesSummary(context, offlineSpeechLanguages),
+                    true));
+            offlineSpeechModelRows.add(new GboardPatchesSettingsContract.CommandRow(
+                    liveTranscribeManageTitle,
+                    liveTranscribeManageSummary,
+                    true,
+                    () -> host.openLiveTranscribeLanguageManager()));
+
+            List<GboardPatchesSettingsContract.Row> supportedLocalesRows =
+                    Collections.singletonList(new GboardPatchesSettingsContract.DetailRow(
+                            supportedLanguagesTitle,
+                            supportedLanguagesSummary,
+                            true));
+            List<GboardPatchesSettingsContract.Row> githubStarRows =
+                    Collections.singletonList(new GboardPatchesSettingsContract.CommandRow(
+                            githubStarTitle,
+                            githubStarSummary,
+                            true,
+                            () -> host.openExternalUrl(ADVANCED_VOICE_GITHUB_URL)));
 
             return new GboardPatchesSettingsContract.Screen(
                     entryTitle,
@@ -222,7 +355,16 @@ public final class GboardAdvancedVoiceSettingsFeature
                                     behaviorRows),
                             new GboardPatchesSettingsContract.Section(
                                     sectionInformation,
-                                    informationRows)),
+                                    informationRows),
+                            new GboardPatchesSettingsContract.Section(
+                                    sectionOfflineSpeechModel,
+                                    offlineSpeechModelRows),
+                            new GboardPatchesSettingsContract.Section(
+                                    sectionSupportedLanguages,
+                                    supportedLocalesRows),
+                            new GboardPatchesSettingsContract.Section(
+                                    null,
+                                    githubStarRows)),
                     GboardPatchesSettingsContract.RefreshPolicy.none(),
                     GboardPatchesSettingsContract.PanelStyle.FLAT);
         } catch (Throwable throwable) {
@@ -274,6 +416,58 @@ public final class GboardAdvancedVoiceSettingsFeature
                 payloadUnknownRequirementSummary);
     }
 
+    private String speechServicesStatusTitle(GboardSpeechServicesDetector.Status status) {
+        if (status == GboardSpeechServicesDetector.Status.PRESENT) {
+            return speechServicesPresentTitle;
+        }
+        if (status == GboardSpeechServicesDetector.Status.ABSENT) {
+            return speechServicesAbsentTitle;
+        }
+        return speechServicesUnknownTitle;
+    }
+
+    private String downloadedLanguagesSummary(
+            Context context,
+            GboardPatchesSettingsContract.OfflineSpeechLanguages offlineSpeechLanguages) {
+        if (offlineSpeechLanguages == null) {
+            return downloadedLanguagesErrorSummary;
+        }
+        switch (offlineSpeechLanguages.getStatus()) {
+            case LOADING:
+                return downloadedLanguagesLoadingSummary;
+            case UNSUPPORTED:
+                return downloadedLanguagesUnsupportedSummary;
+            case UNAVAILABLE:
+                return downloadedLanguagesUnavailableSummary;
+            case ERROR:
+                return downloadedLanguagesErrorSummary;
+            case AVAILABLE:
+            default:
+                List<String> displayNames = GboardOfflineSpeechLanguageFormatter.format(
+                        offlineSpeechLanguages.getLanguageTags(),
+                        displayLocale(context));
+                if (displayNames.isEmpty()) {
+                    return downloadedLanguagesEmptySummary;
+                }
+                return String.join(downloadedLanguagesSeparator, displayNames);
+        }
+    }
+
+    private static Locale displayLocale(Context context) {
+        if (context == null || context.getResources() == null
+                || context.getResources().getConfiguration() == null) {
+            return Locale.getDefault();
+        }
+        Configuration configuration = context.getResources().getConfiguration();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            if (!configuration.getLocales().isEmpty()) {
+                return configuration.getLocales().get(0);
+            }
+            return Locale.getDefault();
+        }
+        return configuration.locale == null ? Locale.getDefault() : configuration.locale;
+    }
+
 
     private static List<String> targetPackageNames(Context context) {
         List<String> packageNames = new ArrayList<String>();
@@ -289,19 +483,6 @@ public final class GboardAdvancedVoiceSettingsFeature
                 && !packageName.isEmpty()
                 && !packageNames.contains(packageName)) {
             packageNames.add(packageName);
-        }
-    }
-
-    private static void openExternalUrl(Context context, String url) {
-        if (context == null || url == null || url.isEmpty()) {
-            return;
-        }
-        try {
-            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            context.startActivity(intent);
-        } catch (Throwable throwable) {
-            Log.w(TAG, "Failed to open Advanced Voice download URL", throwable);
         }
     }
 

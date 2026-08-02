@@ -11,7 +11,7 @@ import org.junit.Test
 
 class GboardDeveloperOptionsGeneratedInventoryTest {
     @Test
-    fun generatedInventoryContainsTwentyOnePublishedPatchesAndNoStagedRows() {
+    fun generatedInventoryContainsTwentyTwoPublishedPatchesAndNoRetiredRows() {
         val repositoryRoot = findRepositoryRoot()
         val inventory = JsonParser.parseString(
             String(
@@ -22,10 +22,7 @@ class GboardDeveloperOptionsGeneratedInventoryTest {
         val patches = inventory.getAsJsonArray("patches")
         val names = patches.map { it.asJsonObject.get("name").asString }
 
-        assertEquals(21, patches.size())
-        STAGED_PATCH_NAMES.forEach { stagedName ->
-            assertFalse("Staged patch must stay unpublished: $stagedName", names.contains(stagedName))
-        }
+        assertEquals(22, patches.size())
         RETIRED_PATCH_NAMES.forEach { retiredName ->
             assertFalse("Retired patch must stay absent: $retiredName", names.contains(retiredName))
         }
@@ -52,12 +49,10 @@ class GboardDeveloperOptionsGeneratedInventoryTest {
             "Chinese Online Voice Input",
             "Enable Undo/Redo feature",
         )
-        val STAGED_PATCH_NAMES = listOf(
-            "Advanced Voice Typing",
-        )
         val SURVIVING_PATCH_NAMES = listOf(
             "AI Writing Tools",
             "Add Gboard Signature Bypass",
+            "Advanced Voice Typing",
             "Clipboard Enhancements",
             "Custom Symbols",
             "Developer options",
@@ -72,6 +67,7 @@ class GboardDeveloperOptionsGeneratedInventoryTest {
             "Package Rename",
             "Settings Homepage Override",
             "Swipeable Custom Top Row",
+            "Use Bluetooth Microphone",
             "Web Clipboard",
             "Zhuyin Bottom Row Key Sizes",
             "Zhuyin Quick Traditional/Simplified Toggle",

@@ -29,6 +29,10 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.speech.RecognitionSupport;
+import android.speech.RecognitionSupportCallback;
+import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
@@ -86,6 +90,23 @@ public final class GboardPatchesSettingsActivity extends Activity
             "com.google.android.inputmethod.latin.jason.dev";
     private static final String GBOARD_PACKAGE_REVERSED_DEV =
             "dev.jason.com.google.android.inputmethod.latin";
+    private static final String LIVE_TRANSCRIBE_PACKAGE_NAME =
+            "com.google.audio.hearing.visualization.accessibility.scribe";
+    private static final String SPEECH_SERVICES_PACKAGE_NAME =
+            "com.google.android.tts";
+    private static final String SPEECH_SERVICES_RECOGNITION_SERVICE_CLASS_NAME =
+            "com.google.android.apps.speech.tts.googletts.service."
+                    + "GoogleTTSRecognitionService";
+    private static final String SPEECH_SERVICES_PLAY_STORE_URL =
+            "https://play.google.com/store/apps/details?id=com.google.android.tts";
+    private static final String LIVE_TRANSCRIBE_PLAY_STORE_URL =
+            "https://play.google.com/store/apps/details?id=com.google.audio.hearing.visualization.accessibility.scribe";
+    private static final String SPEECH_SERVICES_OPEN_FAILED =
+            "Unable to open the Speech Recognition & Synthesis Google Play page.";
+    private static final String LIVE_TRANSCRIBE_OPEN_FAILED =
+            "Unable to open Live Transcribe or its Google Play page.";
+    private static final String PLAY_STORE_PACKAGE_NAME = "com.android.vending";
+    private static final long OFFLINE_SPEECH_LANGUAGE_QUERY_TIMEOUT_MS = 10_000L;
     private static final int REQUEST_CREATE_TEXT_DOCUMENT = 0x4742;
     private static final int REQUEST_OPEN_TEXT_DOCUMENT = 0x4743;
     private static final int TOOLBAR_HEIGHT_DP = 56;
@@ -168,6 +189,11 @@ public final class GboardPatchesSettingsActivity extends Activity
     private boolean initialFeatureFromIntentHandled;
     private PendingTextDocumentWrite pendingTextDocumentWrite;
     private GboardPatchesSettingsContract.StringValueConsumer pendingTextDocumentReader;
+    private volatile GboardPatchesSettingsContract.OfflineSpeechLanguages offlineSpeechLanguages =
+            GboardPatchesSettingsContract.OfflineSpeechLanguages.loading();
+    private SpeechRecognizer offlineSpeechRecognizer;
+    private int offlineSpeechLanguageQueryGeneration;
+    private Runnable offlineSpeechLanguageQueryTimeoutRunnable;
 
     @Override
     protected void attachBaseContext(Context newBase) {
@@ -212,6 +238,7 @@ public final class GboardPatchesSettingsActivity extends Activity
     protected void onResume() {
         super.onResume();
         activityResumed = true;
+        refreshOfflineSpeechLanguagesForCurrentFeature();
         scheduleDeferredRender();
     }
 
@@ -221,6 +248,7 @@ public final class GboardPatchesSettingsActivity extends Activity
         invalidatePendingScreenBuilds();
         cancelDeferredRender();
         cancelScheduledScreenRefresh();
+        cancelOfflineSpeechLanguageQuery();
         super.onPause();
     }
 
@@ -229,6 +257,7 @@ public final class GboardPatchesSettingsActivity extends Activity
         activityResumed = false;
         cancelDeferredRender();
         cancelScheduledScreenRefresh();
+        cancelOfflineSpeechLanguageQuery();
         unregisterBackCallback();
         screenBuildExecutor.shutdownNow();
         backgroundStateExecutor.shutdownNow();
@@ -247,6 +276,11 @@ public final class GboardPatchesSettingsActivity extends Activity
     @Override
     public Context getContext() {
         return this;
+    }
+
+    @Override
+    public GboardPatchesSettingsContract.OfflineSpeechLanguages getOfflineSpeechLanguages() {
+        return offlineSpeechLanguages;
     }
 
     @Override
@@ -287,6 +321,7 @@ public final class GboardPatchesSettingsActivity extends Activity
             featureBackStack.add(currentFeature);
         }
         currentFeature = feature;
+        refreshOfflineSpeechLanguagesForCurrentFeature();
         requestScrollToTopOnNextScreenApply();
         initializeFeaturesAndRenderSafely();
     }
@@ -1191,7 +1226,8 @@ public final class GboardPatchesSettingsActivity extends Activity
         finish();
     }
 
-    private void openExternalUrl(String url) {
+    @Override
+    public void openExternalUrl(String url) {
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         try {
@@ -1200,6 +1236,234 @@ public final class GboardPatchesSettingsActivity extends Activity
             // Ignore devices without a visible browser handler.
         } catch (Throwable throwable) {
             Log.w(TAG, "Failed to open external URL: " + url, throwable);
+        }
+    }
+
+    @Override
+    public void openSpeechRecognitionAndSynthesisStoreListing() {
+        if (openGooglePlayListing(
+                SPEECH_SERVICES_PACKAGE_NAME,
+                SPEECH_SERVICES_PLAY_STORE_URL)) {
+            return;
+        }
+        showSafeToast(
+                R.string.gboard_patches_advanced_voice_speech_services_open_failed,
+                SPEECH_SERVICES_OPEN_FAILED);
+    }
+
+    @Override
+    public void openLiveTranscribeLanguageManager() {
+        Intent launchIntent = null;
+        try {
+            launchIntent = getPackageManager().getLaunchIntentForPackage(
+                    LIVE_TRANSCRIBE_PACKAGE_NAME);
+        } catch (Throwable throwable) {
+            Log.w(TAG, "Failed to resolve Live Transcribe launcher", throwable);
+        }
+        if (tryStartActivity(launchIntent)) {
+            return;
+        }
+        if (openGooglePlayListing(
+                LIVE_TRANSCRIBE_PACKAGE_NAME,
+                LIVE_TRANSCRIBE_PLAY_STORE_URL)) {
+            return;
+        }
+        showSafeToast(
+                R.string.gboard_patches_advanced_voice_live_transcribe_open_failed,
+                LIVE_TRANSCRIBE_OPEN_FAILED);
+    }
+
+    private void showSafeToast(int resourceId, String fallback) {
+        try {
+            String message = GboardSettingsText.get(this, resourceId, fallback);
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+        } catch (Throwable throwable) {
+            try {
+                Log.w(TAG, "Failed to show navigation error message", throwable);
+            } catch (Throwable ignored) {
+                // A patch error must never escape into the host app.
+            }
+        }
+    }
+
+    private boolean openGooglePlayListing(String packageName, String webUrl) {
+        Intent marketIntent = new Intent(
+                Intent.ACTION_VIEW,
+                Uri.parse("market://details?id=" + packageName));
+        marketIntent.setPackage(PLAY_STORE_PACKAGE_NAME);
+        if (tryStartActivity(marketIntent)) {
+            return true;
+        }
+        return tryStartActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(webUrl)));
+    }
+
+    private boolean tryStartActivity(Intent intent) {
+        if (intent == null) {
+            return false;
+        }
+        try {
+            startActivity(intent);
+            return true;
+        } catch (ActivityNotFoundException | SecurityException exception) {
+            Log.w(TAG, "Activity navigation attempt failed: " + intent, exception);
+            return false;
+        } catch (Throwable throwable) {
+            Log.w(TAG, "Unexpected activity navigation failure: " + intent, throwable);
+            return false;
+        }
+    }
+
+    private void refreshOfflineSpeechLanguagesForCurrentFeature() {
+        if (currentFeature != null && currentFeature.requiresOfflineSpeechLanguages()) {
+            queryOfflineSpeechLanguages();
+            return;
+        }
+        offlineSpeechLanguageQueryGeneration++;
+        cancelOfflineSpeechLanguageQueryTimeout();
+        destroyOfflineSpeechRecognizer();
+    }
+
+    private void queryOfflineSpeechLanguages() {
+        offlineSpeechLanguageQueryGeneration++;
+        cancelOfflineSpeechLanguageQueryTimeout();
+        destroyOfflineSpeechRecognizer();
+        offlineSpeechLanguages = GboardPatchesSettingsContract.OfflineSpeechLanguages.loading();
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            offlineSpeechLanguages =
+                    GboardPatchesSettingsContract.OfflineSpeechLanguages.unsupported();
+            renderCurrentScreenSafely();
+            return;
+        }
+        ComponentName recognitionService = new ComponentName(
+                SPEECH_SERVICES_PACKAGE_NAME,
+                SPEECH_SERVICES_RECOGNITION_SERVICE_CLASS_NAME);
+        if (!isRecognitionServiceAvailable(recognitionService)) {
+            offlineSpeechLanguages =
+                    GboardPatchesSettingsContract.OfflineSpeechLanguages.unavailable();
+            renderCurrentScreenSafely();
+            return;
+        }
+
+        final int queryGeneration = offlineSpeechLanguageQueryGeneration;
+        try {
+            offlineSpeechRecognizer = SpeechRecognizer.createSpeechRecognizer(
+                    this,
+                    recognitionService);
+            Intent recognitionIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+            recognitionIntent.putExtra(
+                    RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                    RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+            recognitionIntent.putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true);
+            offlineSpeechLanguageQueryTimeoutRunnable = () -> {
+                if (queryGeneration != offlineSpeechLanguageQueryGeneration) {
+                    return;
+                }
+                Log.w(TAG, "Speech Services recognition support query timed out");
+                completeOfflineSpeechLanguageQuery(
+                        queryGeneration,
+                        GboardPatchesSettingsContract.OfflineSpeechLanguages.error());
+            };
+            screenRefreshHandler.postDelayed(
+                    offlineSpeechLanguageQueryTimeoutRunnable,
+                    OFFLINE_SPEECH_LANGUAGE_QUERY_TIMEOUT_MS);
+            offlineSpeechRecognizer.checkRecognitionSupport(
+                    recognitionIntent,
+                    getMainExecutor(),
+                    new RecognitionSupportCallback() {
+                        @Override
+                        public void onSupportResult(RecognitionSupport recognitionSupport) {
+                            if (queryGeneration != offlineSpeechLanguageQueryGeneration) {
+                                return;
+                            }
+                            List<String> installedLanguages = recognitionSupport == null
+                                    ? Collections.emptyList()
+                                    : recognitionSupport.getInstalledOnDeviceLanguages();
+                            Log.i(TAG, "Speech Services installed offline languages from "
+                                    + recognitionService.flattenToShortString()
+                                    + ": " + installedLanguages);
+                            completeOfflineSpeechLanguageQuery(
+                                    queryGeneration,
+                                    GboardPatchesSettingsContract.OfflineSpeechLanguages.available(
+                                            installedLanguages));
+                        }
+
+                        @Override
+                        public void onError(int error) {
+                            if (queryGeneration != offlineSpeechLanguageQueryGeneration) {
+                                return;
+                            }
+                            Log.w(TAG,
+                                    "Speech Services recognition support callback reported error "
+                                            + error
+                                            + "; waiting for timeout or a later support result");
+                        }
+                    });
+        } catch (Throwable throwable) {
+            Log.w(TAG, "Failed to query installed on-device speech languages", throwable);
+            completeOfflineSpeechLanguageQuery(
+                    queryGeneration,
+                    GboardPatchesSettingsContract.OfflineSpeechLanguages.error());
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    private boolean isRecognitionServiceAvailable(ComponentName recognitionService) {
+        try {
+            android.content.pm.ServiceInfo serviceInfo = getPackageManager().getServiceInfo(
+                    recognitionService,
+                    0);
+            return serviceInfo.enabled
+                    && serviceInfo.applicationInfo != null
+                    && serviceInfo.applicationInfo.enabled;
+        } catch (PackageManager.NameNotFoundException exception) {
+            Log.w(TAG, "Speech Services recognition service is unavailable: "
+                    + recognitionService.flattenToShortString());
+            return false;
+        } catch (Throwable throwable) {
+            Log.w(TAG, "Failed to inspect Speech Services recognition service: "
+                    + recognitionService.flattenToShortString(), throwable);
+            return false;
+        }
+    }
+
+    private void completeOfflineSpeechLanguageQuery(
+            int queryGeneration,
+            GboardPatchesSettingsContract.OfflineSpeechLanguages result) {
+        if (queryGeneration != offlineSpeechLanguageQueryGeneration) {
+            return;
+        }
+        offlineSpeechLanguageQueryGeneration++;
+        cancelOfflineSpeechLanguageQueryTimeout();
+        offlineSpeechLanguages = result;
+        destroyOfflineSpeechRecognizer();
+        renderCurrentScreenSafely();
+    }
+
+    private void cancelOfflineSpeechLanguageQuery() {
+        offlineSpeechLanguageQueryGeneration++;
+        cancelOfflineSpeechLanguageQueryTimeout();
+        destroyOfflineSpeechRecognizer();
+    }
+
+    private void cancelOfflineSpeechLanguageQueryTimeout() {
+        if (offlineSpeechLanguageQueryTimeoutRunnable == null) {
+            return;
+        }
+        screenRefreshHandler.removeCallbacks(offlineSpeechLanguageQueryTimeoutRunnable);
+        offlineSpeechLanguageQueryTimeoutRunnable = null;
+    }
+
+    private void destroyOfflineSpeechRecognizer() {
+        if (offlineSpeechRecognizer == null) {
+            return;
+        }
+        try {
+            offlineSpeechRecognizer.destroy();
+        } catch (Throwable throwable) {
+            Log.w(TAG, "Failed to destroy on-device speech recognizer", throwable);
+        } finally {
+            offlineSpeechRecognizer = null;
         }
     }
 
@@ -1212,6 +1476,7 @@ public final class GboardPatchesSettingsActivity extends Activity
         } else {
             currentFeature = featureBackStack.remove(featureBackStack.size() - 1);
         }
+        refreshOfflineSpeechLanguagesForCurrentFeature();
         requestScrollToTopOnNextScreenApply();
         renderCurrentScreenSafely();
         return true;

@@ -5,13 +5,12 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class GboardStagedReleasePatchContractTest {
     @Test
-    fun unreleasedPatchesRemainCommentedAndOutOfInventory() {
+    fun formerlyStagedPatchesAreActiveAndPublishedExactlyOnce() {
         val root = repositoryRoot()
         val registry = Files.readString(root.resolve(REGISTRY_PATH), StandardCharsets.UTF_8)
         val activeRegistry = registry.replace(Regex("(?s)/\\*.*?\\*/"), "")
@@ -21,11 +20,11 @@ class GboardStagedReleasePatchContractTest {
         val names = inventory.getAsJsonArray("patches")
             .map { it.asJsonObject.get("name").asString }
 
-        assertEquals(21, names.size)
-        STAGED_PATCHES.forEach { staged ->
-            assertTrue(registry.contains("val ${staged.declaration} = resourcePatch("))
-            assertFalse(activeRegistry.contains("val ${staged.declaration} = resourcePatch("))
-            assertFalse(names.contains(staged.name))
+        assertEquals(22, names.size)
+        PUBLISHED_PATCHES.forEach { published ->
+            assertTrue(registry.contains("val ${published.declaration} = resourcePatch("))
+            assertTrue(activeRegistry.contains("val ${published.declaration} = resourcePatch("))
+            assertEquals(1, names.count { it == published.name })
         }
     }
 
@@ -39,7 +38,7 @@ class GboardStagedReleasePatchContractTest {
             ?: error("Could not locate repository root from $workingDirectory")
     }
 
-    private data class StagedPatch(
+    private data class PublishedPatch(
         val name: String,
         val declaration: String,
     )
@@ -49,8 +48,13 @@ class GboardStagedReleasePatchContractTest {
             "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/registry/" +
                 "GboardPatchRegistry.kt"
 
-        val STAGED_PATCHES = listOf(
-            StagedPatch("Advanced Voice Typing", "gboardAdvancedVoiceTypingPatch"),
+        val PUBLISHED_PATCHES = listOf(
+            PublishedPatch("Use Bluetooth Microphone", "gboardBluetoothMicrophonePatch"),
+            PublishedPatch(
+                "Long-Press Editing Shortcuts",
+                "gboardLongPressQuickActionsPatch",
+            ),
+            PublishedPatch("Advanced Voice Typing", "gboardAdvancedVoiceTypingPatch"),
         )
     }
 }

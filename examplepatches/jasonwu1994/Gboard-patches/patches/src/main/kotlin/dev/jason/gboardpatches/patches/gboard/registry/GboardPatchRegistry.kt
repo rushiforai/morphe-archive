@@ -2,11 +2,13 @@ package dev.jason.gboardpatches.patches.gboard.registry
 
 import app.morphe.patcher.patch.resourcePatch
 import dev.jason.gboardpatches.patches.gboard.features.advancedvoice.gboardAdvancedVoiceFeatureMarkerPatch
+import dev.jason.gboardpatches.patches.gboard.features.advancedvoice.gboardAdvancedVoiceAsrSessionPatch
 import dev.jason.gboardpatches.patches.gboard.features.advancedvoice.gboardAdvancedVoiceFlagValuePatch
 import dev.jason.gboardpatches.patches.gboard.features.advancedvoice.gboardAdvancedVoiceFormatterPatch
 import dev.jason.gboardpatches.patches.gboard.features.advancedvoice.gboardAdvancedVoiceInitialSettingsPatch
 import dev.jason.gboardpatches.patches.gboard.features.advancedvoice.gboardAdvancedVoiceMddProvisioningPatch
 import dev.jason.gboardpatches.patches.gboard.features.advancedvoice.gboardAdvancedVoiceNativeReadinessPatch
+import dev.jason.gboardpatches.patches.gboard.features.advancedvoice.gboardAdvancedVoiceS3AirplanePatch
 import dev.jason.gboardpatches.patches.gboard.features.bluetoothmicrophone.gboardBluetoothMicrophoneFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.bluetoothmicrophone.gboardBluetoothMicrophoneFlagValuePatch
 import dev.jason.gboardpatches.patches.gboard.features.about.gboardAboutPageResourcePatch
@@ -58,6 +60,7 @@ import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWrit
 import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWritingToolsOfficialPreferencesPatch
 import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWritingToolsSettingsVisibilityPatch
 import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWritingToolsSignalPatch
+import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWritingToolsVoiceCommandPatch
 import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesExtensionCarrierPatch
 import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesSettingsPatch
 import dev.jason.gboardpatches.patches.gboard.features.zhuyinbottomrow.gboardZhuyinBottomRowWeightFeatureMarkerPatch
@@ -120,12 +123,11 @@ val gboardLongPressQuickActionsPatch = resourcePatch(
     )
 }
 
-/*
 @Suppress("unused")
 val gboardAdvancedVoiceTypingPatch = resourcePatch(
     name = "Advanced Voice Typing",
-    description = "啟用 進階語音輸入、繁體中文語音自動標點符號\n" +
-        "Enable Advanced Voice Typing and automatic punctuation for Traditional Chinese voice typing.",
+    description = "啟用進階語音輸入（包含自動標點功能），並另外為不支援進階語音輸入的繁體中文語音啟用自動標點\n" +
+        "Enable Advanced Voice Typing with automatic punctuation, and separately enable automatic punctuation for Traditional Chinese voice typing, which does not support Advanced Voice Typing.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_GBOARD)
@@ -133,14 +135,15 @@ val gboardAdvancedVoiceTypingPatch = resourcePatch(
     dependsOn(
         gboardPatchesSettingsPatch,
         gboardAdvancedVoiceFeatureMarkerPatch,
+        gboardAdvancedVoiceAsrSessionPatch,
         gboardAdvancedVoiceFlagValuePatch,
         gboardAdvancedVoiceNativeReadinessPatch,
         gboardAdvancedVoiceInitialSettingsPatch,
         gboardAdvancedVoiceMddProvisioningPatch,
         gboardAdvancedVoiceFormatterPatch,
+        gboardAdvancedVoiceS3AirplanePatch,
     )
 }
-*/
 
 @Suppress("unused")
 val gboardBluetoothMicrophonePatch = resourcePatch(
@@ -351,6 +354,7 @@ val gboardAiWritingToolsPatch = resourcePatch(
         gboardAiWritingToolsSettingsVisibilityPatch,
         gboardAiWritingToolsFlagValuePatch,
         gboardAiWritingToolsSignalPatch,
+        gboardAiWritingToolsVoiceCommandPatch,
         gboardAiWritingToolsOfficialPreferencesPatch,
         gboardAiWritingToolsBackendFactoryPatch
     )

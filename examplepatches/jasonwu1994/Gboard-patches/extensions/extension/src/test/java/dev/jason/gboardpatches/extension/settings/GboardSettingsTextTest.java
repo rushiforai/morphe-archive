@@ -197,4 +197,71 @@ public final class GboardSettingsTextTest {
                         "Force-stop and restart Gboard after changing the backend. If you select "
                                 + "AICORE, you must be eligible to download the model."));
     }
+
+    @Test
+    public void advancedVoiceInformationalRowsNeverFallThroughToTargetResourceIds() {
+        int[] resourceIds = {
+                R.string.gboard_patches_advanced_voice_section_offline_speech_model,
+                R.string.gboard_patches_advanced_voice_section_supported_languages,
+                R.string.gboard_patches_advanced_voice_supported_languages_title,
+                R.string.gboard_patches_advanced_voice_supported_languages_summary,
+                R.string.gboard_patches_advanced_voice_github_star_title,
+                R.string.gboard_patches_advanced_voice_github_star_summary,
+                R.string.gboard_patches_advanced_voice_speech_services_present_title,
+                R.string.gboard_patches_advanced_voice_speech_services_absent_title,
+                R.string.gboard_patches_advanced_voice_speech_services_unknown_title,
+                R.string.gboard_patches_advanced_voice_speech_services_status_summary,
+                R.string.gboard_patches_advanced_voice_downloaded_languages_title,
+                R.string.gboard_patches_advanced_voice_downloaded_languages_loading_summary,
+                R.string.gboard_patches_advanced_voice_downloaded_languages_empty_summary,
+                R.string.gboard_patches_advanced_voice_downloaded_languages_unsupported_summary,
+                R.string.gboard_patches_advanced_voice_downloaded_languages_unavailable_summary,
+                R.string.gboard_patches_advanced_voice_downloaded_languages_error_summary,
+                R.string.gboard_patches_advanced_voice_downloaded_languages_separator,
+                R.string.gboard_patches_advanced_voice_live_transcribe_manage_title,
+                R.string.gboard_patches_advanced_voice_live_transcribe_manage_summary,
+                R.string.gboard_patches_advanced_voice_speech_services_open_failed,
+                R.string.gboard_patches_advanced_voice_live_transcribe_open_failed,
+        };
+        for (int resourceId : resourceIds) {
+            String fallback = "fallback-" + resourceId;
+            Assert.assertEquals(
+                    fallback,
+                    GboardSettingsText.resolveStableTextForTesting(
+                            resourceId,
+                            "en",
+                            fallback));
+        }
+
+        Assert.assertEquals(
+                "離線語音模型",
+                GboardSettingsText.resolveStableTextForTesting(
+                        R.string.gboard_patches_advanced_voice_section_offline_speech_model,
+                        "zh-Hant",
+                        "Offline speech model"));
+        Assert.assertEquals(
+                "支援的語言",
+                GboardSettingsText.resolveStableTextForTesting(
+                        R.string.gboard_patches_advanced_voice_section_supported_languages,
+                        "zh-Hant",
+                        "Supported languages"));
+        Assert.assertEquals(
+                "在 GitHub 上支持這個專案 😊",
+                GboardSettingsText.resolveStableTextForTesting(
+                        R.string.gboard_patches_advanced_voice_github_star_title,
+                        "zh-Hant",
+                        "Support this project on GitHub 😊"));
+        Assert.assertEquals(
+                "無法開啟 Speech Recognition & Synthesis 的 Google Play 頁面。",
+                GboardSettingsText.resolveStableTextForTesting(
+                        R.string.gboard_patches_advanced_voice_speech_services_open_failed,
+                        "zh-Hant",
+                        "Unable to open Speech Recognition & Synthesis in Google Play."));
+        Assert.assertEquals(
+                "無法開啟即時轉錄或其 Google Play 頁面。",
+                GboardSettingsText.resolveStableTextForTesting(
+                        R.string.gboard_patches_advanced_voice_live_transcribe_open_failed,
+                        "zh-Hant",
+                        "Unable to open Live Transcribe or its Google Play page."));
+    }
 }

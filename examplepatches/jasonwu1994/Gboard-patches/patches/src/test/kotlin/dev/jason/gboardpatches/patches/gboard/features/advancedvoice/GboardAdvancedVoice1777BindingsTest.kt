@@ -16,6 +16,10 @@ class GboardAdvancedVoice1777BindingsTest {
             GboardAdvancedVoice1777Bindings.nativeReadiness.descriptor(),
         )
         assertEquals(
+            "Lrpi;->a(ZZLjava/util/Locale;Lqzo;Laalb;Ljus;)Lwcz;",
+            GboardAdvancedVoice1777Bindings.asrSessionReset.descriptor(),
+        )
+        assertEquals(
             "Leqb;->d(Landroid/content/Context;Lptc;)V",
             GboardAdvancedVoice1777Bindings.initialVoiceSettings.descriptor(),
         )
@@ -27,6 +31,10 @@ class GboardAdvancedVoice1777BindingsTest {
             "Lrcb;-><init>(Ljava/util/Locale;Leed;Lros;Ledu;ZLrce;Lrud;Lsln;" +
                 "Ljava/util/concurrent/Executor;)V",
             GboardAdvancedVoice1777Bindings.formatterConstructor.descriptor(),
+        )
+        assertEquals(
+            "Lrvv;->b()Z",
+            GboardAdvancedVoice1777Bindings.s3NetworkAvailability.descriptor(),
         )
     }
 }

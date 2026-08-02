@@ -21,6 +21,10 @@ public final class GboardPatchesSettingsContract {
             return true;
         }
 
+        default boolean requiresOfflineSpeechLanguages() {
+            return false;
+        }
+
         Screen buildScreen(Host host);
     }
 
@@ -30,6 +34,24 @@ public final class GboardPatchesSettingsContract {
         void refresh();
 
         void openFeature(Feature feature);
+
+        default void openExternalUrl(String url) {
+            throw new UnsupportedOperationException("External URL navigation is unavailable");
+        }
+
+        default OfflineSpeechLanguages getOfflineSpeechLanguages() {
+            return OfflineSpeechLanguages.loading();
+        }
+
+        default void openSpeechRecognitionAndSynthesisStoreListing() {
+            throw new UnsupportedOperationException(
+                    "Speech Recognition & Synthesis store navigation is unavailable");
+        }
+
+        default void openLiveTranscribeLanguageManager() {
+            throw new UnsupportedOperationException(
+                    "Live Transcribe navigation is unavailable");
+        }
 
         default void openTargetSettingsHeader(int headerKeyResourceId) {
             throw new UnsupportedOperationException("Target settings navigation is unavailable");
@@ -51,6 +73,55 @@ public final class GboardPatchesSettingsContract {
                 Runnable completionAction);
 
         void openTextDocument(String[] mimeTypes, StringValueConsumer valueConsumer);
+    }
+
+    public static final class OfflineSpeechLanguages {
+        public enum Status {
+            LOADING,
+            AVAILABLE,
+            UNSUPPORTED,
+            UNAVAILABLE,
+            ERROR
+        }
+
+        private final Status status;
+        private final List<String> languageTags;
+
+        private OfflineSpeechLanguages(Status status, List<String> languageTags) {
+            this.status = status == null ? Status.ERROR : status;
+            List<String> safeLanguageTags = languageTags == null
+                    ? Collections.emptyList()
+                    : new ArrayList<String>(languageTags);
+            this.languageTags = Collections.unmodifiableList(safeLanguageTags);
+        }
+
+        public static OfflineSpeechLanguages loading() {
+            return new OfflineSpeechLanguages(Status.LOADING, Collections.emptyList());
+        }
+
+        public static OfflineSpeechLanguages available(List<String> languageTags) {
+            return new OfflineSpeechLanguages(Status.AVAILABLE, languageTags);
+        }
+
+        public static OfflineSpeechLanguages unsupported() {
+            return new OfflineSpeechLanguages(Status.UNSUPPORTED, Collections.emptyList());
+        }
+
+        public static OfflineSpeechLanguages unavailable() {
+            return new OfflineSpeechLanguages(Status.UNAVAILABLE, Collections.emptyList());
+        }
+
+        public static OfflineSpeechLanguages error() {
+            return new OfflineSpeechLanguages(Status.ERROR, Collections.emptyList());
+        }
+
+        public Status getStatus() {
+            return status;
+        }
+
+        public List<String> getLanguageTags() {
+            return languageTags;
+        }
     }
 
     public interface StringValueConsumer {

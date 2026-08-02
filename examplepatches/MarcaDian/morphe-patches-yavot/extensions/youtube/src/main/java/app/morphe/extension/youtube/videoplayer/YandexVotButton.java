@@ -54,8 +54,10 @@ import java.lang.ref.WeakReference;
 
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.youtube.addon.AddOnApi;
 import app.morphe.extension.youtube.patches.yandexvot.YandexVoiceOverTranslationBottomSheet;
 import app.morphe.extension.youtube.patches.yandexvot.YandexVoiceOverTranslationPatch;
+import app.morphe.extension.youtube.patches.yandexvot.YandexVotAddOn;
 import app.morphe.extension.youtube.settings.YandexVotSettings;
 
 @SuppressWarnings("unused")
@@ -67,7 +69,7 @@ public final class YandexVotButton {
     @Nullable
     private static WeakReference<ImageView> overlayButtonRef;
 
-    /** Injection point. */
+    /** Called by the add-on player overlay buttons listener. */
     public static void initializeButton(View controlsView) {
         try {
             if (RESTORE_OLD_PLAYER_BUTTONS || !YandexVotSettings.YANDEX_VOT_ENABLED.get()) return;
@@ -93,7 +95,7 @@ public final class YandexVotButton {
         }
     }
 
-    /** Injection point. */
+    /** Called by the add-on legacy player controls listener. */
     public static void initializeLegacyButton(View controlsView) {
         try {
             if (!RESTORE_OLD_PLAYER_BUTTONS) return;
@@ -101,10 +103,11 @@ public final class YandexVotButton {
             YandexVoiceOverTranslationPatch.setOnTranslationStateChangeCallback(
                     YandexVotButton::refreshActivatedState);
 
-            legacy = new LegacyPlayerControlButton(
+            // Uses one of the add-on button slots of the legacy player controls,
+            // since an add-on bundle cannot add its own views to the controls layout.
+            legacy = AddOnApi.createLegacyButton(
+                    YandexVotAddOn.ADD_ON_ID,
                     controlsView,
-                    "morphe_yandex_vot_button",
-                    null,
                     "morphe_yt_yandex_vot",
                     YandexVotSettings.YANDEX_VOT_ENABLED,
                     view -> {

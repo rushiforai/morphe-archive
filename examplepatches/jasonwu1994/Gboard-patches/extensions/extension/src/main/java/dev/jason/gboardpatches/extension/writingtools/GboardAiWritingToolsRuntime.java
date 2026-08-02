@@ -33,6 +33,8 @@ public final class GboardAiWritingToolsRuntime {
     static final String FLAG_BACKEND_TYPE = "writing_tools_v2_backend_type";
     static final String FLAG_HYBRID = "writing_tools_enable_hybrid";
     static final String FLAG_ON_DEVICE_PROOFREAD = "enable_on_device_proofread";
+    static final String FLAG_ENABLE_WRITING_TOOLS_VOICE_COMMANDS =
+            "enable_writing_tools_voice_commands";
     static final String ALL_LANGUAGES_ALLOWLIST_VALUE = "*";
     static final String PROOFREAD_MODEL_VERSION_OVERRIDE =
             "202408051448_prod_sd_config";
@@ -112,6 +114,9 @@ public final class GboardAiWritingToolsRuntime {
             return originalResult instanceof Boolean
                     ? backend.onDeviceProofreadEnabled
                     : originalResult;
+        }
+        if (FLAG_ENABLE_WRITING_TOOLS_VOICE_COMMANDS.equals(flagName)) {
+            return originalResult instanceof Boolean ? Boolean.TRUE : originalResult;
         }
 
         if (GboardAiWritingToolsSettings.BACKEND_GBOARD_SERVER.equals(settings.backendType)

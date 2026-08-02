@@ -1,5 +1,5 @@
 {
-    "version": "v1.2.0",
+    "version": "v1.4.0",
     "patches": [
         {
             "compatiblePackages": [
@@ -46,6 +46,27 @@
         {
             "compatiblePackages": [
                 {
+                    "apkFileType": "XAPK",
+                    "appIconColor": "#F57F17",
+                    "name": "Jetpack Joyride",
+                    "packageName": "com.halfbrick.jetpackjoyride",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "1.104.1"
+                        }
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Intercepts all in-app purchases and reports instant success to the game engine.",
+            "name": "Jetpack Joyride Billing Bypass",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
                     "apkFileType": "APK",
                     "appIconColor": "#1E88E5",
                     "name": "Smash Hit",
@@ -62,6 +83,27 @@
             "dependencies": [],
             "description": "Unlocks premium and all game modes without purchase.",
             "name": "Smash Hit Premium Unlock",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#D32F2F",
+                    "name": "Swordigo",
+                    "packageName": "com.touchfoo.swordigo",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "1.4.12"
+                        }
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Enables ad-free, guiding compass, and coin doubler without purchase.",
+            "name": "Swordigo Premium Unlock",
             "options": []
         },
         {
