@@ -33,25 +33,25 @@ Blocks Firebase Crashlytics and Sessions at the component registration level, di
 > [!IMPORTANT]
 > **Backup your data first!**
 > 
-> Please back up your progress before installing or updating patched builds.
+> Please back up your progress before installing or updating patched builds. Don't worry, your progress is normally already saved, this is just in case something goes wrong.
 > 
 > **How to back up:**
 > 
 > **Manual ZIP Backup (Safest)**: Open SofaTime > Profile > Settings > Data > **Export Sofa Time backup**. Keep this `.zip` safe! To restore, simply choose **Import Sofa Time backup**.
 > 
-> **Cloud Sync**: Ensure **Sofa Time Cloud** is connected in Settings > Sync.
+> **Cloud Sync**: Ensure **Sofa Time Cloud** is connected in Settings > Sync. To save your data to the cloud, just tap **Sync from this device**.
 
 ## Patches List
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.3.4](https://github.com/alan7383/sofatime-patches/releases/tag/v1.3.4)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
+> **[v1.3.5](https://github.com/alan7383/sofatime-patches/releases/tag/v1.3.5)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
 <details open>
 <summary>📦 SofaTime&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 1.1.6 |
+| 1.2.0 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -89,6 +89,14 @@ The easiest way is to add the source directly to Morphe:
 Alternatively, you can manually add this repository URL as a patch source in Morphe:  
 `https://github.com/alan7383/sofatime-patches`
 
+## Getting the SofaTime APKM
+
+Can't find the SofaTime APKM online? No worries, you can extract it straight from your own device. I've also requested SofaTime to be listed on APKMirror to make things easier for everyone.
+
+In the meantime, the easiest way is to use ML Manager. Install it from the Play Store, open it, find SofaTime in your app list, and export it. ML Manager will extract the full APKM into `Android/media/com.javiersantos.mlmanager`. Then in Morphe, just pick that `.apkm` file as the app to patch, and you're good to go.
+
+Since SofaTime is distributed as an APKM, extracting it this way gets you all the split APKs Morphe needs to apply the patches.
+
 ## Building locally
 
 If you want to build these patches yourself, check out the [Morphe documentation](https://github.com/MorpheApp/morphe-documentation).
@@ -96,6 +104,10 @@ If you want to build these patches yourself, check out the [Morphe documentation
 ```bash
 ./gradlew build
 ```
+
+## Support me
+
+If you enjoy these patches and want to support my work, you can buy me a coffee on [Ko-fi](https://ko-fi.com/alan7383). It means a lot, thanks!
 
 ## License
 

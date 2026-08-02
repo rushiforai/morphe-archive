@@ -58,4 +58,17 @@
     <string name="morphe_yandex_vot_oauth_invalid_token">Недействительный токен</string>
     <string name="morphe_yandex_vot_oauth_no_network">Нет подключения к интернету</string>
     <string name="morphe_yandex_vot_oauth_account_management_title">Яндекс OAuth токен</string>
+    <string name="morphe_yandex_vot_timer_position_title">Расположение таймера</string>
+    <string name="morphe_yandex_vot_timer_position_summary">Выберите, где показывать примерное оставшееся время на кнопке плеера</string>
+    <string name="morphe_yandex_vot_timer_position_entry_inside">Внутри иконки</string>
+    <string name="morphe_yandex_vot_timer_position_entry_below">Под иконкой</string>
+    <string name="morphe_yandex_vot_timer_position_entry_hidden">Не показывать</string>
+    <string name="morphe_yandex_vot_progress_ring_enabled_title">Показывать кольцо прогресса</string>
+    <string name="morphe_yandex_vot_progress_ring_enabled_summary">Отображать ход подготовки перевода вокруг кнопки Яндекса</string>
+    <string name="morphe_yandex_vot_progress_ring_color_title">Цвет кольца прогресса</string>
+    <string name="morphe_yandex_vot_progress_ring_color_summary">Цвет кольца во время подготовки перевода</string>
+    <string name="morphe_yandex_vot_progress_ring_thickness_title">Толщина кольца прогресса</string>
+    <string name="morphe_yandex_vot_progress_ring_thickness_summary">Толщина полосы вокруг кнопки плеера</string>
+    <string name="morphe_yandex_vot_audio_preparing">Подготовка оригинальной аудиодорожки…</string>
+    <string name="morphe_yandex_vot_audio_uploading">Отправка аудио в Яндекс… %1$d/%2$d</string>
 </resources>

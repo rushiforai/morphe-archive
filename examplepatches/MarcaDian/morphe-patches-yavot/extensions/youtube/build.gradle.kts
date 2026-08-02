@@ -27,6 +27,10 @@ val stageBaseClasses = tasks.register<Sync>("stageBaseClasses") {
 dependencies {
     compileOnly(libs.annotation)
     compileOnly(libs.morphe.extensions.library)
+
+    // Used by the audio downloader to read the player response of the video.
+    // Provided by the Morphe Patches extension at runtime, so it is never shipped here.
+    compileOnly(libs.protobuf.javalite)
 }
 
 // AGP's variant-aware compileClasspath drops raw file deps; inject staged classes into compile tasks directly.

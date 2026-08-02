@@ -22,6 +22,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.zip.ZipFile
 
 object GoogleSignInHelper {
     private const val TAG = "GoogleSignInHelper"
@@ -30,6 +31,9 @@ object GoogleSignInHelper {
     private const val API_KEY_P1 = "AIzaSyCConVG6aL3G"
     private const val API_KEY_P2 = "n4T3GCp7wAScdsNQLzqzPU"
     private val FIREBASE_API_KEY: String get() = API_KEY_P1 + API_KEY_P2
+
+    @Volatile
+    private var appContext: Context? = null
 
     private fun getActivity(context: Context?): Activity? {
         if (context == null) return getForegroundActivity()
@@ -86,6 +90,9 @@ object GoogleSignInHelper {
     fun startGoogleSignIn(context: Context?, continuationObj: Any?) {
         Log.d(TAG, "startGoogleSignIn called with Context: ${context?.javaClass?.name ?: "null"}, Continuation: ${continuationObj?.javaClass?.name ?: "null"}")
 
+        if (context != null && appContext == null) {
+            appContext = context.applicationContext
+        }
         val activity = getActivity(context)
         if (activity == null || continuationObj == null) {
             Log.e(TAG, "Failed to resolve Activity or Continuation object")
@@ -218,30 +225,56 @@ object GoogleSignInHelper {
 
     private fun createResultObject(tokenOrError: String): Any {
         val isSuccess = tokenOrError.isNotEmpty()
-        val valueToBox: Any = if (isSuccess) {
+        val valueToBox: Any? = if (isSuccess) {
             tokenOrError
         } else {
             val exception = IllegalStateException("Google sign-in failed or was cancelled.")
-            try {
-                val gl5Class = Class.forName("fm5")
-                val gl5Constructor = gl5Class.getDeclaredConstructor(Throwable::class.java)
-                gl5Constructor.isAccessible = true
-                gl5Constructor.newInstance(exception)
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to instantiate gl5", e)
-                exception
+            val failureClass = ResultClasses.failureClass(appContext)
+            if (failureClass != null) {
+                try {
+                    val ctor = failureClass.getDeclaredConstructor(Throwable::class.java)
+                    ctor.isAccessible = true
+                    ctor.newInstance(exception)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to instantiate Result.Failure (${failureClass.name})", e)
+                    null
+                }
+            } else {
+                null
             }
         }
 
-        return try {
-            val hl5Class = Class.forName("gm5")
-            val hl5Constructor = hl5Class.getDeclaredConstructor(Any::class.java)
-            hl5Constructor.isAccessible = true
-            hl5Constructor.newInstance(valueToBox)
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to instantiate hl5", e)
-            valueToBox
+        val resultClass = ResultClasses.resultClass(appContext)
+        val boxed: Any? = if (valueToBox != null && resultClass != null) {
+            try {
+                val ctor = resultClass.getDeclaredConstructor(Any::class.java)
+                ctor.isAccessible = true
+                ctor.newInstance(valueToBox)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to instantiate Result (${resultClass.name})", e)
+                null
+            }
+        } else {
+            null
         }
+
+        if (boxed != null) return boxed
+
+        if (isSuccess) {
+            Log.e(TAG, "Could not build a Result box; falling back to raw token")
+            return tokenOrError
+        }
+        val successClass = ResultClasses.resultClass(appContext)
+        if (successClass != null) {
+            try {
+                val ctor = successClass.getDeclaredConstructor(Any::class.java)
+                ctor.isAccessible = true
+                return ctor.newInstance(null)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to build fallback success Result", e)
+            }
+        }
+        return tokenOrError
     }
 
     private fun resumeCoroutine(continuationObj: Any, resumed: AtomicBoolean, result: String) {
@@ -330,6 +363,266 @@ object GoogleSignInHelper {
         } else {
             Log.e(TAG, "idToken missing: $responseStr")
             ""
+        }
+    }
+
+    private object ResultClasses {
+        private data class Proto(val returnType: String, val params: List<String>)
+
+        private class DexScan(private val data: ByteArray) {
+            private fun u16(off: Int): Int =
+                (data[off].toInt() and 0xFF) or ((data[off + 1].toInt() and 0xFF) shl 8)
+
+            private fun u32(off: Int): Int =
+                (data[off].toInt() and 0xFF) or ((data[off + 1].toInt() and 0xFF) shl 8) or
+                    ((data[off + 2].toInt() and 0xFF) shl 16) or ((data[off + 3].toInt() and 0xFF) shl 24)
+
+            private fun uleb128(start: Int): Pair<Int, Int> {
+                var result = 0
+                var shift = 0
+                var off = start
+                while (true) {
+                    val b = data[off].toInt() and 0xFF
+                    off++
+                    result = result or ((b and 0x7F) shl shift)
+                    if (b and 0x80 == 0) break
+                    shift += 7
+                }
+                return result to off
+            }
+
+            private fun string(idx: Int): String {
+                val off = u32(stringIdsOff + idx * 4)
+                val (_, p) = uleb128(off)
+                var i = p
+                while (data[i].toInt() != 0) i++
+                return String(data.copyOfRange(p, i), Charsets.UTF_8)
+            }
+
+            private fun type(idx: Int): String = string(u32(typeIdsOff + idx * 4))
+
+            private fun proto(idx: Int): Proto {
+                val base = protoIdsOff + idx * 12
+                val returnType = type(u32(base + 4))
+                val paramsOff = u32(base + 8)
+                if (paramsOff == 0) return Proto(returnType, emptyList())
+                val size = u32(paramsOff)
+                val params = (0 until size).map { type(u32(paramsOff + 4 + it * 4)) }
+                return Proto(returnType, params)
+            }
+
+            private val stringIdsSize = u32(0x38)
+            private val stringIdsOff = u32(0x3C)
+            private val typeIdsOff = u32(0x44)
+            private val protoIdsOff = u32(0x4C)
+            private val fieldIdsOff = u32(0x54)
+            private val methodIdsOff = u32(0x5C)
+            private val classDefsSize = u32(0x60)
+            private val classDefsOff = u32(0x64)
+
+            private fun fieldType(fieldIdx: Int): String =
+                type(u16(fieldIdsOff + fieldIdx * 8 + 2))
+
+            private fun methodProto(methodIdx: Int): Proto =
+                proto(u16(methodIdsOff + methodIdx * 8 + 2))
+
+            private fun methodName(methodIdx: Int): String {
+                val nameIdx = u32(methodIdsOff + methodIdx * 8 + 4)
+                return string(nameIdx)
+            }
+
+            fun findResultClasses(): Pair<String, String>? {
+                var resultClass: String? = null
+                var failureClass: String? = null
+
+                var cls = 0
+                while (cls < classDefsSize) {
+                    val defOff = classDefsOff + cls * 32
+                    val classIdx = u32(defOff)
+                    val superIdx = u32(defOff + 8)
+                    val interfacesOff = u32(defOff + 12)
+                    val classDataOff = u32(defOff + 24)
+
+                    val superName = if (superIdx == -1) "" else type(superIdx)
+                    var isSerializable = false
+                    if (interfacesOff != 0) {
+                        val count = u32(interfacesOff)
+                        var i = 0
+                        while (i < count) {
+                            if (type(u32(interfacesOff + 4 + i * 4)) == "Ljava/io/Serializable;") {
+                                isSerializable = true
+                                break
+                            }
+                            i++
+                        }
+                    }
+                    if (superName != "Ljava/lang/Object;" || !isSerializable || classDataOff == 0) {
+                        cls++
+                        continue
+                    }
+
+                    val (staticFieldsSize, p1) = uleb128(classDataOff)
+                    val (instanceFieldsSize, p2) = uleb128(p1)
+                    val (directMethodsSize, p3) = uleb128(p2)
+                    val (virtualMethodsSize, p4) = uleb128(p3)
+
+                    var fieldIdx = 0
+                    var i = 0
+                    var hasObjectField = false
+                    var hasThrowableField = false
+                    var i0 = p2
+                    while (i < staticFieldsSize) {
+                        val (diff, np) = uleb128(i0)
+                        i0 = np
+                        fieldIdx += diff
+                        i++
+                    }
+                    i = 0
+                    while (i < instanceFieldsSize) {
+                        val (diff, np) = uleb128(i0)
+                        i0 = np
+                        fieldIdx += diff
+                        when (fieldType(fieldIdx)) {
+                            "Ljava/lang/Object;" -> hasObjectField = true
+                            "Ljava/lang/Throwable;" -> hasThrowableField = true
+                        }
+                        i++
+                    }
+
+                    var methodIdx = 0
+                    i = 0
+                    var directHasCtorThrowable = false
+                    var directHasStaticThrowableOf = false
+                    var m0 = p3
+                    while (i < directMethodsSize) {
+                        val (diff, np1) = uleb128(m0)
+                        val (flags, np2) = uleb128(np1)
+                        val (_, np3) = uleb128(np2)
+                        m0 = np3
+                        methodIdx += diff
+                        val proto = methodProto(methodIdx)
+                        val name = methodName(methodIdx)
+                        if (name == "<init>" && proto.params.size == 1 && proto.params[0] == "Ljava/lang/Throwable;") {
+                            directHasCtorThrowable = true
+                        }
+                        if (proto.params.size == 1 && proto.params[0] == "Ljava/lang/Object;" && proto.returnType == "Ljava/lang/Throwable;") {
+                            directHasStaticThrowableOf = true
+                        }
+                        i++
+                    }
+                    methodIdx = 0
+                    i = 0
+                    var m1 = p4
+                    while (i < virtualMethodsSize) {
+                        val (diff, np1) = uleb128(m1)
+                        val (_, np2) = uleb128(np1)
+                        val (_, np3) = uleb128(np2)
+                        m1 = np3
+                        methodIdx += diff
+                        i++
+                    }
+
+                    val className = type(classIdx)
+                        .removePrefix("L")
+                        .removeSuffix(";")
+                    if (hasObjectField && directHasStaticThrowableOf && staticFieldsSize == 0) {
+                        resultClass = className
+                    }
+                    if (hasThrowableField && directHasCtorThrowable && staticFieldsSize == 0) {
+                        failureClass = className
+                    }
+                    if (resultClass != null && failureClass != null) break
+                    cls++
+                }
+
+                return if (resultClass != null && failureClass != null) {
+                    resultClass to failureClass
+                } else {
+                    null
+                }
+            }
+        }
+
+        @Volatile
+        private var cachedResult: Class<*>? = null
+        @Volatile
+        private var cachedFailure: Class<*>? = null
+        @Volatile
+        private var scanned = false
+
+        private val KNOWN = listOf(
+            "kn5" to "jn5",
+            "gm5" to "fm5",
+            "kotlin.Result" to "kotlin.Result\$Failure"
+        )
+
+        fun resultClass(context: Context?): Class<*>? = resolve(context)?.first
+        fun failureClass(context: Context?): Class<*>? = resolve(context)?.second
+
+        private fun load(name: String): Class<*>? = try {
+            Class.forName(name)
+        } catch (_: Throwable) {
+            null
+        }
+
+        private fun hasCtor(cls: Class<*>, param: Class<*>): Boolean = try {
+            cls.getDeclaredConstructor(param)
+            true
+        } catch (_: Throwable) {
+            false
+        }
+
+        private fun resolve(context: Context?): Pair<Class<*>, Class<*>>? {
+            cachedResult?.let { r -> cachedFailure?.let { f -> return r to f } }
+
+            synchronized(this) {
+                cachedResult?.let { r -> cachedFailure?.let { f -> return r to f } }
+
+                for ((rn, fn) in KNOWN) {
+                    val rc = load(rn)
+                    val fc = load(fn)
+                    if (rc != null && fc != null && hasCtor(rc, Any::class.java) && hasCtor(fc, Throwable::class.java)) {
+                        cachedResult = rc
+                        cachedFailure = fc
+                        return rc to fc
+                    }
+                }
+
+                if (!scanned) {
+                    scanned = true
+                    val sourceDir = try {
+                        context?.applicationInfo?.sourceDir
+                    } catch (_: Throwable) {
+                        null
+                    }
+                    if (sourceDir != null) {
+                        try {
+                            val dexFiles = ZipFile(sourceDir).use { zip ->
+                                zip.entries().asSequence()
+                                    .filter { it.name.startsWith("classes") && it.name.endsWith(".dex") }
+                                    .map { zip.getInputStream(it).readBytes() }
+                                    .toList()
+                            }
+                            for (dex in dexFiles) {
+                                val found = DexScan(dex).findResultClasses()
+                                if (found != null) {
+                                    val rc = load(found.first)
+                                    val fc = load(found.second)
+                                    if (rc != null && fc != null && hasCtor(rc, Any::class.java) && hasCtor(fc, Throwable::class.java)) {
+                                        cachedResult = rc
+                                        cachedFailure = fc
+                                        Log.i(TAG, "Discovered obfuscated Result classes via DEX scan: ${rc.name} / ${fc.name}")
+                                        return rc to fc
+                                    }
+                                }
+                            }
+                        } catch (e: Exception) {
+                            Log.e(TAG, "DEX scan failed", e)
+                        }
+                    }
+                }
+                return null
+            }
         }
     }
 }

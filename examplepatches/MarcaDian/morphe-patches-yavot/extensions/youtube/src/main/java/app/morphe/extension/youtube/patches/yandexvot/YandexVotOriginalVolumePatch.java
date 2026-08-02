@@ -42,97 +42,117 @@
  * or co-authors.
  */
 
+
 package app.morphe.extension.youtube.patches.yandexvot;
 
 import android.media.AudioTrack;
 
 import java.lang.ref.WeakReference;
 
-import app.morphe.extension.youtube.settings.YandexVotSettings;
+import app.morphe.extension.shared.Utils;
 
+/**
+ * Scales the volume of the original video audio while a translation is playing.
+ * <p>
+ * The multiplier is set explicitly by {@link YandexVoiceOverTranslationPatch}, so the original
+ * audio keeps its volume until the translation is actually playing, and is restored as soon as
+ * the translation stops.
+ */
 @SuppressWarnings("unused")
 public final class YandexVotOriginalVolumePatch {
-    private static volatile WeakReference<AudioTrack> lastAudioTrackRef = new WeakReference<>(null);
+    private static final long ENFORCE_INTERVAL_MS = 50;
+
+    private static volatile float currentMultiplier = 1.0f;
     private static volatile float lastBaseVolume = 1.0f;
+    private static volatile boolean enforceScheduled;
+    private static volatile WeakReference<AudioTrack> lastAudioTrackRef = new WeakReference<>(null);
 
     /**
-     * Guard flag — true while {@link #applyCurrentMultiplierNow(int)} is calling
-     * {@link AudioTrack#setVolume(float)}. Prevents the bytecode hook from
-     * double-applying the VOT multiplier (once in applyMultiplier, once in the hook).
+     * Guard flag, true while this class is calling {@link AudioTrack#setVolume(float)},
+     * so the bytecode hook does not apply the multiplier a second time.
      */
-    private static volatile boolean applyingNow = false;
+    private static volatile boolean applyingNow;
 
-    private static float applyMultiplier(float volume) {
-        return applyMultiplier(volume, YandexVotSettings.YANDEX_VOT_ORIGINAL_AUDIO_VOLUME.get());
-    }
-
-    private static float applyMultiplier(float volume, int volumePercent) {
-        if (!YandexVoiceOverTranslationPatch.isTranslationActive() && !YandexVoiceOverTranslationPatch.translationStarting) {
-            return volume;
-        }
-        float mult = volumePercent / 100.0f;
-        float result = volume * mult;
-        if (Float.isNaN(result) || result < 0f) return 0f;
-        return Math.min(result, 1f);
+    private static float clamp01(float value) {
+        if (Float.isNaN(value) || value < 0f) return 0f;
+        return Math.min(value, 1f);
     }
 
     /**
-     * Applies the VOT original volume multiplier to the given volume.
-     * Called from bytecode patch before AudioTrack.setVolume(F).
-     * Only when translation is actively playing, dims original audio so translation is audible.
-     * Clamps result to 0..1 and handles NaN.
+     * Injection point. Called before {@link AudioTrack#setVolume(float)} of the video player.
      *
-     * @param audioTrack current player audio track receiving setVolume
-     * @param volume original volume (0..1) from ExoPlayer
-     * @return volume * (YANDEX_VOT_ORIGINAL_AUDIO_VOLUME/100) when translation playing, else unchanged
+     * @param audioTrack Audio track receiving the volume.
+     * @param volume     Volume the player set, between 0 and 1.
+     * @return The volume to actually use.
      */
     public static float applyVolumeMultiplier(AudioTrack audioTrack, float volume) {
-        // Short-circuit: applyCurrentMultiplierNow is calling setVolume with an
-        // already-adjusted value — don't double-apply the multiplier.
         if (applyingNow) return volume;
 
         if (audioTrack != null) {
             lastAudioTrackRef = new WeakReference<>(audioTrack);
         }
-        if (!Float.isNaN(volume)) {
-            if (volume < 0f) {
-                lastBaseVolume = 0f;
-            } else lastBaseVolume = Math.min(volume, 1f);
-        }
-        return applyMultiplier(volume);
+        lastBaseVolume = clamp01(volume);
+
+        return clamp01(lastBaseVolume * currentMultiplier);
     }
 
     /**
-     * Applies current VOT original-audio setting immediately to the last known AudioTrack.
+     * Sets the multiplier of the original audio and applies it to the current audio track,
+     * without waiting for the player to set the volume again.
      *
-     * @return true if update was applied
+     * @param multiplier Multiplier between 0 and 1.
      */
-    public static boolean applyCurrentMultiplierNow() {
-        return applyCurrentMultiplierNow(YandexVotSettings.YANDEX_VOT_ORIGINAL_AUDIO_VOLUME.get());
+    public static void setAudioMultiplier(float multiplier) {
+        final float clamped = clamp01(multiplier);
+        if (clamped == currentMultiplier) return;
+
+        currentMultiplier = clamped;
+        applyToActiveTrack();
+
+        if (clamped != 1.0f) scheduleEnforce();
     }
 
     /**
-     * Applies the given VOT original-audio volume percent immediately to the last known AudioTrack.
-     *
-     * @param volumePercent volume in percent (0-100)
-     * @return true if update was applied
+     * Restores the original audio to its normal volume.
      */
-    public static boolean applyCurrentMultiplierNow(int volumePercent) {
+    public static void clearAudioMultiplier() {
+        setAudioMultiplier(1.0f);
+    }
+
+    /**
+     * The player sets the volume again on its own for various reasons, such as a new audio track,
+     * which would restore the original volume while a translation is playing.
+     * Reapply the multiplier as long as it is in use.
+     */
+    private static void scheduleEnforce() {
+        if (enforceScheduled) return;
+        enforceScheduled = true;
+        Utils.runOnMainThreadDelayed(YandexVotOriginalVolumePatch::enforceTick, ENFORCE_INTERVAL_MS);
+    }
+
+    private static void enforceTick() {
+        enforceScheduled = false;
+        // Stop the loop once the original volume is restored.
+        if (currentMultiplier == 1.0f) return;
+
+        applyToActiveTrack();
+        scheduleEnforce();
+    }
+
+    private static void applyToActiveTrack() {
         AudioTrack audioTrack = lastAudioTrackRef.get();
-        if (audioTrack == null) return false;
-        float base = lastBaseVolume;
-        if (Float.isNaN(base)) base = 1.0f;
-        if (base < 0f) base = 0f;
-        if (base > 1f) base = 1f;
-        float adjusted = applyMultiplier(base, volumePercent);
+        if (audioTrack == null) return;
+
         applyingNow = true;
         try {
-            audioTrack.setVolume(adjusted);
-            return true;
+            audioTrack.setVolume(clamp01(lastBaseVolume * currentMultiplier));
         } catch (Exception ignored) {
-            return false;
+            // Track is released.
         } finally {
             applyingNow = false;
         }
+    }
+
+    private YandexVotOriginalVolumePatch() {
     }
 }

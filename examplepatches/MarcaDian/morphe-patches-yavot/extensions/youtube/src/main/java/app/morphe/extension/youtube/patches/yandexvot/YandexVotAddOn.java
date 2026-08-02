@@ -1,9 +1,5 @@
 /*
- * Copyright (C) 2026 MarcaDian
- *
  * Add-on entry point of the Yandex VoT bundle.
- *
- * Licensed under the GNU General Public License v3.0.
  */
 
 package app.morphe.extension.youtube.patches.yandexvot;

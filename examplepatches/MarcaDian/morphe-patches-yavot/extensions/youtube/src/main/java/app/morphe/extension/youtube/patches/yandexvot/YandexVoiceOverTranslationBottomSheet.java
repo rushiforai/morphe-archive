@@ -10,6 +10,7 @@
  * Licensed under the GNU General Public License v3.0.
  */
 
+
 package app.morphe.extension.youtube.patches.yandexvot;
 
 import static app.morphe.extension.shared.StringRef.str;
@@ -27,6 +28,7 @@ import android.graphics.drawable.shapes.RoundRectShape;
 import android.view.Gravity;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -35,6 +37,9 @@ import java.lang.ref.WeakReference;
 
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.settings.IntegerSetting;
+import app.morphe.extension.shared.settings.preference.SeekBarPreference;
+import app.morphe.extension.shared.settings.preference.SeekBarPreference.SeekBarConfig;
 import app.morphe.extension.shared.ui.Dim;
 import app.morphe.extension.shared.ui.SheetBottomDialog;
 import app.morphe.extension.youtube.patches.playback.speed.CustomPlaybackSpeedPatch;
@@ -45,6 +50,11 @@ import kotlin.jvm.functions.Function1;
 
 @SuppressWarnings("unused")
 public class YandexVoiceOverTranslationBottomSheet {
+    private static final Runnable STATUS_REFRESH_CALLBACK =
+            YandexVoiceOverTranslationBottomSheet::refreshStatusIfVisible;
+    private static final Runnable STATUS_COUNTDOWN_TICK =
+            YandexVoiceOverTranslationBottomSheet::refreshStatusIfVisible;
+
 
     private static WeakReference<SheetBottomDialog.SlideDialog> currentDialog;
     private static WeakReference<TextView> currentStatusText;
@@ -69,7 +79,7 @@ public class YandexVoiceOverTranslationBottomSheet {
 
             // --- Title ---
             TextView titleText = new TextView(context);
-            titleText.setText(str("morphe_yandex_vot_enabled_title"));
+            titleText.setText(str("morphe_yandex_vot_screen_title"));
             titleText.setTextColor(fgColor);
             titleText.setTextSize(16);
             titleText.setTypeface(Typeface.DEFAULT_BOLD);
@@ -80,11 +90,24 @@ public class YandexVoiceOverTranslationBottomSheet {
             titleText.setLayoutParams(titleParams);
             mainLayout.addView(titleText);
 
+            // Keep the title and drag handle visible while allowing all controls to remain
+            // reachable on short landscape screens. This mirrors the official VoT sheet.
+            ScrollView scroll = new ScrollView(context);
+            scroll.setFillViewport(true);
+            scroll.setClipToPadding(false);
+
+            LinearLayout contentLayout = new LinearLayout(context);
+            contentLayout.setOrientation(LinearLayout.VERTICAL);
+            contentLayout.setPadding(0, 0, 0, Dim.dp16);
+            scroll.addView(contentLayout);
+
             // --- Status indicator ---
             TextView statusText = new TextView(context);
             updateStatusText(statusText);
             currentStatusText = new WeakReference<>(statusText);
-            YandexVoiceOverTranslationPatch.setOnTranslationStateChangeCallback(YandexVoiceOverTranslationBottomSheet::refreshStatusIfVisible);
+            YandexVoiceOverTranslationPatch.addOnTranslationStateChangeCallback(
+                    STATUS_REFRESH_CALLBACK);
+            refreshStatusIfVisible();
             statusText.setTextColor(fgColor);
             statusText.setTextSize(14);
             statusText.setGravity(Gravity.CENTER);
@@ -92,29 +115,31 @@ public class YandexVoiceOverTranslationBottomSheet {
                     LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
             statusParams.setMargins(0, 0, 0, Dim.dp12);
             statusText.setLayoutParams(statusParams);
-            mainLayout.addView(statusText);
+            contentLayout.addView(statusText);
 
             // --- Translation Volume ---
-            addVolumeControl(context, mainLayout,
+            addVolumeControl(context, contentLayout,
                     str("morphe_yandex_vot_translation_volume_title"),
                     YandexVotSettings.YANDEX_VOT_TRANSLATION_VOLUME,
                     YandexVoiceOverTranslationPatch::applyVolumeToCurrentPlayer);
 
             // --- Original Audio Volume ---
-            addVolumeControl(context, mainLayout,
+            addVolumeControl(context, contentLayout,
                     str("morphe_yandex_vot_original_audio_volume_title"),
                     YandexVotSettings.YANDEX_VOT_ORIGINAL_AUDIO_VOLUME,
                     YandexVoiceOverTranslationPatch::refreshOriginalAudioVolumeIfActive);
 
             // --- Voice style: segmented buttons (Standard | Live) ---
             LinearLayout voiceStyleRow = createVoiceStyleButtons(context);
-            mainLayout.addView(voiceStyleRow);
+            contentLayout.addView(voiceStyleRow);
 
             // --- Audio proxy: proper Switch row ---
-            LinearLayout proxyRow = createAudioProxySwitchRow(context,
+            LinearLayout proxyRow = createSwitchRow(context,
                     str("morphe_yandex_vot_audio_proxy_title"),
+                    YandexVotSettings.YANDEX_VOT_AUDIO_PROXY_ENABLED,
                     YandexVoiceOverTranslationPatch::restartTranslationIfActive);
-            mainLayout.addView(proxyRow);
+            contentLayout.addView(proxyRow);
+            mainLayout.addView(scroll);
 
             // Create dialog.
             SheetBottomDialog.SlideDialog dialog = SheetBottomDialog.createSlideDialog(
@@ -137,6 +162,8 @@ public class YandexVoiceOverTranslationBottomSheet {
             PlayerType.getOnChange().addObserver(playerTypeObserver);
             dialog.setOnDismissListener(d -> {
                 PlayerType.getOnChange().removeObserver(playerTypeObserver);
+                TextView current = currentStatusText != null ? currentStatusText.get() : null;
+                if (current != null) current.removeCallbacks(STATUS_COUNTDOWN_TICK);
                 currentStatusText = null;
                 standardVoiceButton = null;
                 liveVoiceButton = null;
@@ -151,7 +178,8 @@ public class YandexVoiceOverTranslationBottomSheet {
 
     private static void updateStatusText(TextView statusText) {
         if (YandexVoiceOverTranslationPatch.translationStarting) {
-            statusText.setText(str("morphe_yandex_vot_stream_waiting"));
+            statusText.setText(
+                    YandexVoiceOverTranslationPatch.getTranslationRequestStatusText());
             statusText.setTextColor(Color.parseColor("#FFC107"));
         } else if (YandexVoiceOverTranslationPatch.isTranslationActive()) {
             statusText.setText(str("morphe_yandex_vot_stream_ready"));
@@ -165,7 +193,11 @@ public class YandexVoiceOverTranslationBottomSheet {
     private static void refreshStatusIfVisible() {
         TextView st = currentStatusText != null ? currentStatusText.get() : null;
         if (st != null) {
+            st.removeCallbacks(STATUS_COUNTDOWN_TICK);
             updateStatusText(st);
+            if (YandexVoiceOverTranslationPatch.isWaitingCountdownActive()) {
+                st.postDelayed(STATUS_COUNTDOWN_TICK, 1000L);
+            }
         }
         updateVoiceButtonCacheIndicators();
     }
@@ -192,13 +224,16 @@ public class YandexVoiceOverTranslationBottomSheet {
      * @param setting the IntegerSetting backing this volume control (provides get/save)
      * @param onChanged called when the volume changes, with the new percent value
      */
-    @SuppressLint("SetTextI18n")
     private static void addVolumeControl(Context context, LinearLayout parent,
                                          String label,
-                                         app.morphe.extension.shared.settings.Setting<Integer> setting,
+                                         IntegerSetting setting,
                                          java.util.function.Consumer<Integer> onChanged) {
         final int fgColor = Utils.getAppForegroundColor();
         final int initialValue = setting.get();
+        final SeekBarConfig config = SeekBarPreference.configFor(setting);
+        if (config == null) {
+            throw new IllegalStateException("No SeekBarConfig registered for " + setting.key);
+        }
 
         // Label
         TextView labelView = new TextView(context);
@@ -224,8 +259,8 @@ public class YandexVoiceOverTranslationBottomSheet {
 
         // SeekBar
         SeekBar seekBar = new SeekBar(context);
-        seekBar.setMax(100);
-        seekBar.setProgress(initialValue);
+        seekBar.setMax((config.max() - config.min()) / config.step());
+        seekBar.setProgress(SeekBarPreference.valueToProgress(config, initialValue));
         seekBar.getProgressDrawable().setColorFilter(
                 new PorterDuffColorFilter(fgColor, PorterDuff.Mode.SRC_IN));
         seekBar.getThumb().setColorFilter(
@@ -256,9 +291,9 @@ public class YandexVoiceOverTranslationBottomSheet {
 
         // Volume change callback
         java.util.function.Consumer<Integer> applyVolume = vol -> {
-            vol = Math.max(0, Math.min(100, vol));
+            vol = Math.max(config.min(), Math.min(config.max(), vol));
             setting.save(vol);
-            seekBar.setProgress(vol);
+            seekBar.setProgress(SeekBarPreference.valueToProgress(config, vol));
             valueText.setText(vol + "%");
             labelView.setText(label + ": " + vol + "%");
             onChanged.accept(vol);
@@ -267,7 +302,9 @@ public class YandexVoiceOverTranslationBottomSheet {
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (fromUser) applyVolume.accept(progress);
+                if (fromUser) {
+                    applyVolume.accept(SeekBarPreference.progressToValue(config, progress));
+                }
             }
 
             @Override
@@ -277,8 +314,8 @@ public class YandexVoiceOverTranslationBottomSheet {
             public void onStopTrackingTouch(SeekBar seekBar) { }
         });
 
-        minusButton.setOnClickListener(v -> applyVolume.accept(setting.get() - 5));
-        plusButton.setOnClickListener(v -> applyVolume.accept(setting.get() + 5));
+        minusButton.setOnClickListener(v -> applyVolume.accept(setting.get() - config.step()));
+        plusButton.setOnClickListener(v -> applyVolume.accept(setting.get() + config.step()));
     }
 
     /**
@@ -394,10 +431,11 @@ public class YandexVoiceOverTranslationBottomSheet {
     }
 
     /**
-     * Row with title + Switch bound to YANDEX_VOT_AUDIO_PROXY_ENABLED.
+     * Creates a row with title and Switch for a boolean setting, styled like reference createVotSwitchItem.
      */
-    private static LinearLayout createAudioProxySwitchRow(Context context, String title,
-                                                          Runnable onChanged) {
+    private static LinearLayout createSwitchRow(Context context, String title,
+                                                 app.morphe.extension.shared.settings.Setting<Boolean> setting,
+                                                 Runnable onChanged) {
         LinearLayout row = new LinearLayout(context);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setPadding(Dim.dp16, Dim.dp12, Dim.dp16, Dim.dp12);
@@ -421,18 +459,19 @@ public class YandexVoiceOverTranslationBottomSheet {
                 0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
         row.addView(titleView, titleParams);
 
-        final int fg = Utils.getAppForegroundColor();
         Switch switchView = new Switch(context);
-        switchView.setChecked(YandexVotSettings.YANDEX_VOT_AUDIO_PROXY_ENABLED.get());
-        switchView.getThumbDrawable().setColorFilter(new PorterDuffColorFilter(fg, PorterDuff.Mode.SRC_ATOP));
-        switchView.getTrackDrawable().setColorFilter(new PorterDuffColorFilter(fg, PorterDuff.Mode.SRC_ATOP));
+        switchView.setChecked(setting.get());
+        switchView.getThumbDrawable().setColorFilter(
+                Utils.getAppForegroundColor(), PorterDuff.Mode.SRC_ATOP);
+        switchView.getTrackDrawable().setColorFilter(
+                Utils.getAppForegroundColor(), PorterDuff.Mode.SRC_ATOP);
         switchView.setOnCheckedChangeListener((v, isChecked) -> {
-            YandexVotSettings.YANDEX_VOT_AUDIO_PROXY_ENABLED.save(isChecked);
+            setting.save(isChecked);
             if (onChanged != null) onChanged.run();
         });
         row.addView(switchView);
 
-        row.setOnClickListener(v -> switchView.setChecked(!YandexVotSettings.YANDEX_VOT_AUDIO_PROXY_ENABLED.get()));
+        row.setOnClickListener(v -> switchView.setChecked(!setting.get()));
 
         return row;
     }

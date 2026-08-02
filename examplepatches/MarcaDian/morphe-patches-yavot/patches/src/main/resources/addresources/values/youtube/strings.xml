@@ -59,4 +59,17 @@
     <string name="morphe_yandex_vot_oauth_invalid_token">Invalid token</string>
     <string name="morphe_yandex_vot_oauth_no_network">No network connection</string>
     <string name="morphe_yandex_vot_oauth_account_management_title">Yandex OAuth token</string>
+    <string name="morphe_yandex_vot_timer_position_title">Countdown placement</string>
+    <string name="morphe_yandex_vot_timer_position_summary">Choose where the estimated remaining time appears on the player button</string>
+    <string name="morphe_yandex_vot_timer_position_entry_inside">Inside the icon</string>
+    <string name="morphe_yandex_vot_timer_position_entry_below">Below the icon</string>
+    <string name="morphe_yandex_vot_timer_position_entry_hidden">Hidden</string>
+    <string name="morphe_yandex_vot_progress_ring_enabled_title">Show progress ring</string>
+    <string name="morphe_yandex_vot_progress_ring_enabled_summary">Display translation progress around the Yandex player button</string>
+    <string name="morphe_yandex_vot_progress_ring_color_title">Progress ring color</string>
+    <string name="morphe_yandex_vot_progress_ring_color_summary">Color used while a translation is being prepared</string>
+    <string name="morphe_yandex_vot_progress_ring_thickness_title">Progress ring thickness</string>
+    <string name="morphe_yandex_vot_progress_ring_thickness_summary">Thickness of the progress ring around the player button</string>
+    <string name="morphe_yandex_vot_audio_preparing">Preparing the original audio…</string>
+    <string name="morphe_yandex_vot_audio_uploading">Sending audio to Yandex… %1$d/%2$d</string>
 </resources>

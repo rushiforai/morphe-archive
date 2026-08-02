@@ -214,7 +214,9 @@ public class YandexVotOAuthPreference extends Preference implements Preference.O
      */
     private void showManualTokenDialog(Context context) {
         EditText editText = new EditText(context);
-        editText.setInputType(InputType.TYPE_CLASS_TEXT);
+        // OAuth tokens are secrets: never expose a previously saved token in
+        // plain text while the user is editing or replacing it.
+        editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
         editText.setHint("y0_AgAAAAB...");
         // Pre-fill with current token if any
         String currentToken = YandexVotSettings.YANDEX_VOT_OAUTH_TOKEN.get();

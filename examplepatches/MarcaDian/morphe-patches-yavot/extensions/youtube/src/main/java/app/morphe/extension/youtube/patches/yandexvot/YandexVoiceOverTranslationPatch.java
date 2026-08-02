@@ -42,7 +42,9 @@
  * or co-authors.
  */
 
+
 package app.morphe.extension.youtube.patches.yandexvot;
+
 
 import android.content.Context;
 import android.media.AudioAttributes;
@@ -50,6 +52,7 @@ import android.media.MediaPlayer;
 import android.media.PlaybackParams;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -59,8 +62,9 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 
@@ -80,6 +84,7 @@ public class YandexVoiceOverTranslationPatch {
 
     private static final long PAUSE_DETECTION_TIMEOUT_MS = 1500;
     private static final long PROXY_PREPARE_TIMEOUT_MS = 15000;
+    private static final long ERROR_INDICATOR_DURATION_MS = 1800;
     private static final String PROXY_USER_AGENT =
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
             "(KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36";
@@ -100,22 +105,39 @@ public class YandexVoiceOverTranslationPatch {
     };
 
     private static Runnable proxyPrepareTimeoutRunnable = () -> {};
-    private static Runnable onTranslationStateChangeCallback;
+    private static final Set<Runnable> translationStateChangeCallbacks =
+            new CopyOnWriteArraySet<>();
+    private static volatile long translationErrorUntilMs = -1;
+    private static final Runnable errorIndicatorExpired =
+            YandexVoiceOverTranslationPatch::notifyTranslationStateChanged;
 
-    public static void setOnTranslationStateChangeCallback(Runnable r) {
-        onTranslationStateChangeCallback = r;
+    public static void addOnTranslationStateChangeCallback(Runnable callback) {
+        if (callback != null) translationStateChangeCallbacks.add(callback);
     }
 
     private static void notifyTranslationStateChanged() {
-        if (onTranslationStateChangeCallback != null) {
-            Utils.runOnMainThread(onTranslationStateChangeCallback);
+        for (Runnable callback : translationStateChangeCallbacks) {
+            Utils.runOnMainThread(callback);
         }
+    }
+
+    private static void showTranslationErrorToast(String message) {
+        translationErrorUntilMs =
+                SystemClock.elapsedRealtime() + ERROR_INDICATOR_DURATION_MS;
+        notifyTranslationStateChanged();
+        mainHandler.removeCallbacks(errorIndicatorExpired);
+        mainHandler.postDelayed(errorIndicatorExpired, ERROR_INDICATOR_DURATION_MS);
+        showToastShort(message);
+    }
+
+    public static boolean isTranslationErrorVisible() {
+        return SystemClock.elapsedRealtime() < translationErrorUntilMs;
     }
 
     /** Runs a Runnable on the main thread only if translation generation hasn't changed. */
     private static void runOnUiIfCurrentGen(long gen, Runnable r) {
         Utils.runOnMainThread(() -> {
-            if (translationGeneration.get() == gen) r.run();
+            if (translationGeneration == gen) r.run();
         });
     }
 
@@ -131,9 +153,86 @@ public class YandexVoiceOverTranslationPatch {
 
     /** Remaining seconds while waiting for translation. -1 when not waiting. Updated for BottomSheet countdown. */
     public static volatile int waitingTimeSeconds = -1;
+    private static volatile long waitingDeadlineMs = -1;
+    private static volatile int audioUploadPart = -1;
+    private static volatile int audioUploadTotalParts = -1;
+    private static volatile String lastAudioDownloadAttemptKey = "";
+    private static volatile String lastSuccessfulAudioUploadKey = "";
+    private static volatile String lastFailedAudioFallbackUrl = "";
+    private static volatile String lastEmptyAudioFallbackKey = "";
+
+    private static void setWaitingTimeSeconds(int seconds) {
+        waitingTimeSeconds = seconds;
+        waitingDeadlineMs = seconds < 0
+                ? -1
+                : SystemClock.elapsedRealtime() + seconds * 1000L;
+        if (seconds >= 0) {
+            audioUploadPart = -1;
+            audioUploadTotalParts = -1;
+        }
+    }
+
+    public static int getWaitingTimeSeconds() {
+        if (waitingTimeSeconds < 0 || waitingDeadlineMs < 0) return -1;
+        final long remainingMs = waitingDeadlineMs - SystemClock.elapsedRealtime();
+        return (int) Math.max(0, (remainingMs + 999L) / 1000L);
+    }
+
+    public static float getWaitingProgressFraction() {
+        if (waitingTimeSeconds <= 0 || waitingDeadlineMs < 0) return -1.0f;
+        final long remainingMs = waitingDeadlineMs - SystemClock.elapsedRealtime();
+        return Math.max(0.0f, Math.min(
+                1.0f,
+                remainingMs / (waitingTimeSeconds * 1000.0f)
+        ));
+    }
+
+    public static String getTranslationRequestStatusText() {
+        if (!translationStarting) return "";
+        if (audioUploadPart == 0) {
+            return str("morphe_yandex_vot_audio_preparing");
+        }
+        if (audioUploadPart > 0 && audioUploadTotalParts > 0) {
+            return str(
+                    "morphe_yandex_vot_audio_uploading",
+                    audioUploadPart,
+                    audioUploadTotalParts
+            );
+        }
+        int seconds = getWaitingTimeSeconds();
+        return seconds > 0
+                ? str("morphe_yandex_vot_stream_waiting", formatRemainingTime(seconds))
+                : str("morphe_yandex_vot_stream_waiting_status");
+    }
+
+    public static boolean isWaitingCountdownActive() {
+        return translationStarting && getWaitingTimeSeconds() > 0;
+    }
+
+    private static void setAudioUploadProgress(long generation, int part, int totalParts) {
+        if (translationGeneration != generation) return;
+        waitingTimeSeconds = -1;
+        waitingDeadlineMs = -1;
+        audioUploadPart = part;
+        audioUploadTotalParts = totalParts;
+        notifyTranslationStateChanged();
+    }
+
+    private static void clearAudioUploadProgress() {
+        audioUploadPart = -1;
+        audioUploadTotalParts = -1;
+    }
+
+    private static void resetAudioUploadRequestState() {
+        clearAudioUploadProgress();
+        lastAudioDownloadAttemptKey = "";
+        lastSuccessfulAudioUploadKey = "";
+        lastFailedAudioFallbackUrl = "";
+        lastEmptyAudioFallbackKey = "";
+    }
 
     /** Incremented on every new video or stop, invalidates in-flight async translation chains. */
-    private static final AtomicLong translationGeneration = new AtomicLong(0);
+    private static volatile long translationGeneration = 0;
 
     /**
      * Called when the playback state of the video changes.
@@ -143,18 +242,22 @@ public class YandexVoiceOverTranslationPatch {
      */
     public static void videoStateChanged(VideoState state) {
         if (state == VideoState.PLAYING) {
-            resumeAudio(-1);
+            Utils.runOnMainThread(() -> resumeAudio(-1));
         } else {
-            mainHandler.removeCallbacks(pauseCheckRunnable);
-            pauseAudio();
+            Utils.runOnMainThread(() -> {
+                mainHandler.removeCallbacks(pauseCheckRunnable);
+                pauseAudio();
+            });
         }
-        // Playback speed is synced on-demand inside videoTimeChanged.
     }
 
     public static void onVideoIdChanged(String videoId) {
         if (videoId == null || videoId.isEmpty()) return;
         long videoLength = VideoInformation.getVideoLength();
         boolean isLive = videoLength <= 0 || videoLength == Long.MAX_VALUE;
+        // Current Morphe no longer exposes the video title here. The Yandex
+        // endpoint accepts an empty title, while the id and duration remain
+        // sufficient to request a translation.
         newVideoStarted(videoId, "", videoLength, isLive);
     }
 
@@ -166,6 +269,8 @@ public class YandexVoiceOverTranslationPatch {
         String newId = videoId != null ? videoId : "";
         if (!newId.equals(pendingVideoId)) {
             translationStarting = false;
+            setWaitingTimeSeconds(-1);
+            resetAudioUploadRequestState();
         }
         if (!newId.equals(currentTranslatedVideoId.get())) {
             stopAudioPlayback();
@@ -175,7 +280,7 @@ public class YandexVoiceOverTranslationPatch {
         pendingVideoLength = videoLength;
         pendingIsLive = isLive;
         if (!newId.equals(currentTranslatedVideoId.get())) {
-            translationGeneration.incrementAndGet();
+            translationGeneration++;
         }
     }
 
@@ -184,7 +289,7 @@ public class YandexVoiceOverTranslationPatch {
 
         if (isTranslationActive()) {
             translationStarting = false;
-            waitingTimeSeconds = -1;
+            setWaitingTimeSeconds(-1);
             stopAudioPlayback();
             isTranslating.set(false);
             notifyTranslationStateChanged();
@@ -194,17 +299,17 @@ public class YandexVoiceOverTranslationPatch {
         }
 
         if (pendingIsLive) {
-            showToastShort(str("morphe_yandex_vot_unavailable_live"));
+            showTranslationErrorToast(str("morphe_yandex_vot_unavailable_live"));
             return;
         }
         if (pendingVideoLength > 4 * 60 * 60 * 1000L) {
-            showToastShort(str("morphe_yandex_vot_unavailable_too_long"));
+            showTranslationErrorToast(str("morphe_yandex_vot_unavailable_too_long"));
             return;
         }
         String sourceLang = normalizeLanguageCode(YandexVotSettings.YANDEX_VOT_SOURCE_LANGUAGE.get());
         String targetLang = normalizeLanguageCode(YandexVotSettings.YANDEX_VOT_TARGET_LANGUAGE.get());
         if (!sourceLang.isEmpty() && !"auto".equalsIgnoreCase(sourceLang) && sourceLang.equals(targetLang)) {
-            showToastShort(str("morphe_yandex_vot_unavailable_same_language"));
+            showTranslationErrorToast(str("morphe_yandex_vot_unavailable_same_language"));
             return;
         }
         if (pendingVideoId == null || pendingVideoId.isEmpty()) return;
@@ -212,6 +317,7 @@ public class YandexVoiceOverTranslationPatch {
         final String videoId = pendingVideoId;
         final String videoTitle = pendingVideoTitle;
         final double durationSeconds = pendingVideoLength / 1000.0;
+        resetAudioUploadRequestState();
         translationStarting = true;
         refreshOriginalAudioVolume();
         Utils.runOnBackgroundThread(() -> requestTranslation(
@@ -221,10 +327,27 @@ public class YandexVoiceOverTranslationPatch {
         ));
     }
 
+    /**
+     * Cancels playback and invalidates every in-flight network callback.
+     * The coordinator uses this before another voice-over engine starts.
+     */
+    public static void cancelTranslation() {
+        translationGeneration++;
+        translationStarting = false;
+        setWaitingTimeSeconds(-1);
+        resetAudioUploadRequestState();
+        stopAudioPlayback();
+        isTranslating.set(false);
+        YandexVotOriginalVolumePatch.clearAudioMultiplier();
+        notifyTranslationStateChanged();
+    }
+
     public static boolean isTranslationActive() {
         MediaPlayer mp = mediaPlayer.get();
         if (mp == null) return translationStarting;
-        if (isPaused) return false;
+        // A paused translated track is still the selected, ready session.
+        // Treating pause as inactive makes the coordinator clear the Yandex
+        // engine and leaves the player button gray after preparation finishes.
         return currentTranslatedVideoId.get() != null && !currentTranslatedVideoId.get().isEmpty();
     }
 
@@ -248,7 +371,7 @@ public class YandexVoiceOverTranslationPatch {
      */
     public static void refreshOriginalAudioVolumeIfActive() {
         if (!YandexVotSettings.YANDEX_VOT_ENABLED.get()) return;
-        if (!isTranslationActive() && !translationStarting) return;
+        if (mediaPlayer.get() == null || translationStarting) return;
         refreshOriginalAudioVolume();
     }
 
@@ -260,7 +383,7 @@ public class YandexVoiceOverTranslationPatch {
      */
     public static void refreshOriginalAudioVolumeIfActive(int volumePercent) {
         if (!YandexVotSettings.YANDEX_VOT_ENABLED.get()) return;
-        if (!isTranslationActive() && !translationStarting) return;
+        if (mediaPlayer.get() == null || translationStarting) return;
         refreshOriginalAudioVolume(volumePercent);
     }
 
@@ -276,8 +399,15 @@ public class YandexVoiceOverTranslationPatch {
      * @param volumePercent original audio volume in percent (0-100)
      */
     public static void refreshOriginalAudioVolume(int volumePercent) {
-        // If AudioTrack isn't captured yet, ducking applies on the next player restart.
-        YandexVotOriginalVolumePatch.applyCurrentMultiplierNow(volumePercent);
+        // A request being active is not the same as translated audio being
+        // playable. Keep the original video at its normal volume until the
+        // translation MediaPlayer has completed prepareAsync().
+        if (translationStarting || mediaPlayer.get() == null) {
+            YandexVotOriginalVolumePatch.clearAudioMultiplier();
+            return;
+        }
+        float multiplier = Math.max(0f, Math.min(1f, volumePercent / 100.0f));
+        YandexVotOriginalVolumePatch.setAudioMultiplier(multiplier);
     }
 
     /**
@@ -353,13 +483,6 @@ public class YandexVoiceOverTranslationPatch {
         return code.toLowerCase(java.util.Locale.US);
     }
 
-    /** Default poll wait when the API doesn't return a remainingTime hint. */
-    private static final int DEFAULT_POLL_WAIT_SECONDS = 63;
-
-    private static int pollWaitSecondsFrom(YandexVotApiClient.TranslationResult result) {
-        return result.remainingTime() > 0 ? result.remainingTime() : DEFAULT_POLL_WAIT_SECONDS;
-    }
-
     private static boolean isProxyUrl(String url) {
         if (url == null || url.isEmpty()) return false;
         try {
@@ -385,17 +508,17 @@ public class YandexVoiceOverTranslationPatch {
             double durationSeconds, boolean useLiveVoices
     ) {
         if (isTranslating.getAndSet(true)) return;
-        final long generation = translationGeneration.get();
+        final long generation = translationGeneration;
         try {
             String youtubeUrl = "https://youtu.be/" + videoId;
             YandexVotApiClient.TranslationResult result = YandexVotApiClient.requestTranslation(
                     youtubeUrl, durationSeconds, sourceLang, targetLang, videoTitle, useLiveVoices);
             if (result == null) {
                 runOnUiIfCurrentGen(generation, () -> {
-                    waitingTimeSeconds = -1;
+                    setWaitingTimeSeconds(-1);
                     translationStarting = false;
                     refreshOriginalAudioVolume();
-                    showToastShort(str("morphe_yandex_vot_playback_error"));
+                    showTranslationErrorToast(str("morphe_yandex_vot_playback_error"));
                 });
                 return;
             }
@@ -411,10 +534,10 @@ public class YandexVoiceOverTranslationPatch {
                     playAudioWithProxyFallback(videoId, result.audioUrl(), generation);
                 } else {
                     runOnUiIfCurrentGen(generation, () -> {
-                        waitingTimeSeconds = -1;
+                        setWaitingTimeSeconds(-1);
                         translationStarting = false;
                         refreshOriginalAudioVolume();
-                        showToastShort(str("morphe_yandex_vot_playback_error"));
+                        showTranslationErrorToast(str("morphe_yandex_vot_playback_error"));
                     });
                 }
             } else if (status == YandexVotApiClient.STATUS_FAILED) {
@@ -423,24 +546,24 @@ public class YandexVoiceOverTranslationPatch {
                     Logger.printDebug(() -> "VOT live voices unavailable, retrying with standard voices");
                     isTranslating.set(false);
                     Utils.runOnBackgroundThread(() -> {
-                        if (translationGeneration.get() != generation) return;
+                        if (translationGeneration != generation) return;
                         requestTranslation(videoId, videoTitle, sourceLang, targetLang, durationSeconds, false);
                     });
                     return;
                 }
                 runOnUiIfCurrentGen(generation, () -> {
-                    waitingTimeSeconds = -1;
+                    setWaitingTimeSeconds(-1);
                     translationStarting = false;
                     refreshOriginalAudioVolume();
-                    showToastShort(str("morphe_yandex_vot_playback_error"));
+                    showTranslationErrorToast(str("morphe_yandex_vot_playback_error"));
                 });
             } else if (status == YandexVotApiClient.STATUS_SESSION_REQUIRED) {
                 if (useLiveVoices) {
                     String oauthToken = YandexVotSettings.YANDEX_VOT_OAUTH_TOKEN.get();
-                    if (oauthToken.isEmpty()) {
+                    if (oauthToken == null || oauthToken.isEmpty()) {
                         // No OAuth token configured for live voices — tell user to add one.
                         runOnUiIfCurrentGen(generation, () -> {
-                            waitingTimeSeconds = -1;
+                            setWaitingTimeSeconds(-1);
                             translationStarting = false;
                             refreshOriginalAudioVolume();
                             showToastShort(str("morphe_yandex_vot_auth_required"));
@@ -448,35 +571,41 @@ public class YandexVoiceOverTranslationPatch {
                         return;
                     }
                     // Token is set but live voices session still failed — fallback to standard voices.
-                    Logger.printDebug(() -> "VOT live voices session failed, retrying with standard voices");
+                    Logger.printDebug(() -> "Yandex VoT live voices session failed, retrying with standard voices");
                     isTranslating.set(false);
                     Utils.runOnBackgroundThread(() -> {
-                        if (translationGeneration.get() != generation) return;
+                        if (translationGeneration != generation) return;
                         requestTranslation(videoId, videoTitle, sourceLang, targetLang, durationSeconds, false);
                     });
                     return;
                 }
-                // Standard voices session failed — cannot proceed
+                // Standard voices session failed — cannot proceed.
                 runOnUiIfCurrentGen(generation, () -> {
-                    waitingTimeSeconds = -1;
+                    setWaitingTimeSeconds(-1);
                     translationStarting = false;
                     refreshOriginalAudioVolume();
-                    showToastShort(str("morphe_yandex_vot_playback_error"));
+                    showTranslationErrorToast(str("morphe_yandex_vot_playback_error"));
                 });
             } else if (status == YandexVotApiClient.STATUS_AUDIO_REQUESTED) {
                 String translationId = result.translationId();
-                YandexVotApiClient.sendFailedAudio(youtubeUrl);
-                String oauth = useLiveVoices ? YandexVotSettings.YANDEX_VOT_OAUTH_TOKEN.get() : null;
-                YandexVotApiClient.sendEmptyAudio(youtubeUrl, translationId, oauth);
-                int pollWaitTime = pollWaitSecondsFrom(result);
-                waitingTimeSeconds = pollWaitTime;
+                sendAudioRequestedAudio(
+                        videoId,
+                        youtubeUrl,
+                        translationId,
+                        useLiveVoices,
+                        generation
+                );
+                if (translationGeneration != generation) return;
+                int pollWaitTime = result.remainingTime() > 0
+                        ? Math.min(result.remainingTime(), 60)
+                        : 10;
+                setWaitingTimeSeconds(pollWaitTime);
                 notifyTranslationStateChanged();
-                runOnUiIfCurrentGen(generation, () -> Utils.showToastLong(str("morphe_yandex_vot_stream_waiting", formatRemainingTime(pollWaitTime))));
                 pollTranslation(videoId, videoTitle, youtubeUrl, durationSeconds, sourceLang, targetLang,
                         pollWaitTime, useLiveVoices, generation, 0);
             } else {
-                int waitTime = pollWaitSecondsFrom(result);
-                waitingTimeSeconds = waitTime;
+                int waitTime = result.remainingTime() > 0 ? result.remainingTime() : 63;
+                setWaitingTimeSeconds(waitTime);
                 notifyTranslationStateChanged();
                 runOnUiIfCurrentGen(generation, () -> Utils.showToastLong(str("morphe_yandex_vot_stream_waiting", formatRemainingTime(waitTime))));
                 pollTranslation(videoId, videoTitle, youtubeUrl, durationSeconds, sourceLang, targetLang, waitTime, useLiveVoices, generation, 0);
@@ -486,7 +615,7 @@ public class YandexVoiceOverTranslationPatch {
             runOnUiIfCurrentGen(generation, () -> {
                 translationStarting = false;
                 refreshOriginalAudioVolume();
-                showToastShort(str("morphe_yandex_vot_playback_error"));
+                showTranslationErrorToast(str("morphe_yandex_vot_playback_error"));
             });
         } finally {
             isTranslating.set(false);
@@ -501,7 +630,7 @@ public class YandexVoiceOverTranslationPatch {
     }
 
     /**
-     * Polls the VOT API at intervals, showing remaining wait time.
+     * Polls the Yandex VoT API at intervals, showing remaining wait time.
      * @param generation capture from caller; aborts all actions if it changed
      */
     private static void pollTranslation(
@@ -516,12 +645,12 @@ public class YandexVoiceOverTranslationPatch {
             Thread.currentThread().interrupt();
             return;
         }
-        if (translationGeneration.get() != generation) return;
+        if (translationGeneration != generation) return;
         try {
             YandexVotApiClient.TranslationResult result = YandexVotApiClient.requestTranslation(
                     url, duration, sourceLang, targetLang, videoTitle, useLiveVoices, false);
             if (result == null) {
-                if (retryCount < 1 && translationGeneration.get() == generation) {
+                if (retryCount < 1 && translationGeneration == generation) {
                     // Network error — retry once with a short delay
                     pollTranslation(videoId, videoTitle, url, duration, sourceLang, targetLang,
                             Math.min(waitSeconds, 30), useLiveVoices, generation, retryCount + 1);
@@ -529,7 +658,7 @@ public class YandexVoiceOverTranslationPatch {
                     runOnUiIfCurrentGen(generation, () -> {
                         translationStarting = false;
                         refreshOriginalAudioVolume();
-                        showToastShort(str("morphe_yandex_vot_playback_error"));
+                        showTranslationErrorToast(str("morphe_yandex_vot_playback_error"));
                     });
                 }
                 return;
@@ -543,13 +672,14 @@ public class YandexVoiceOverTranslationPatch {
                 runOnUiIfCurrentGen(generation, () -> {
                     translationStarting = false;
                     refreshOriginalAudioVolume();
-                    showToastShort(str("morphe_yandex_vot_playback_error"));
+                    showTranslationErrorToast(str("morphe_yandex_vot_playback_error"));
                 });
+                return;
             } else if (status == YandexVotApiClient.STATUS_FAILED) {
                 if (useLiveVoices && YandexVotApiClient.isLivelyVoiceUnavailableError(result.message())) {
                     Logger.printDebug(() -> "VOT live voices unavailable (poll), retrying with standard voices");
                     Utils.runOnBackgroundThread(() -> {
-                        if (translationGeneration.get() != generation) return;
+                        if (translationGeneration != generation) return;
                         requestTranslation(videoId, videoTitle, sourceLang, targetLang, duration, false);
                     });
                     return;
@@ -557,12 +687,13 @@ public class YandexVoiceOverTranslationPatch {
                 runOnUiIfCurrentGen(generation, () -> {
                     translationStarting = false;
                     refreshOriginalAudioVolume();
-                    showToastShort(str("morphe_yandex_vot_playback_error"));
+                    showTranslationErrorToast(str("morphe_yandex_vot_playback_error"));
                 });
+                return;
             } else if (status == YandexVotApiClient.STATUS_SESSION_REQUIRED) {
                 if (useLiveVoices) {
                     String oauthToken = YandexVotSettings.YANDEX_VOT_OAUTH_TOKEN.get();
-                    if (oauthToken.isEmpty()) {
+                    if (oauthToken == null || oauthToken.isEmpty()) {
                         runOnUiIfCurrentGen(generation, () -> {
                             translationStarting = false;
                             refreshOriginalAudioVolume();
@@ -572,7 +703,7 @@ public class YandexVoiceOverTranslationPatch {
                     }
                     Logger.printDebug(() -> "VOT live voices session failed (poll), retrying with standard voices");
                     Utils.runOnBackgroundThread(() -> {
-                        if (translationGeneration.get() != generation) return;
+                        if (translationGeneration != generation) return;
                         requestTranslation(videoId, videoTitle, sourceLang, targetLang, duration, false);
                     });
                     return;
@@ -580,26 +711,38 @@ public class YandexVoiceOverTranslationPatch {
                 runOnUiIfCurrentGen(generation, () -> {
                     translationStarting = false;
                     refreshOriginalAudioVolume();
-                    showToastShort(str("morphe_yandex_vot_playback_error"));
+                    showTranslationErrorToast(str("morphe_yandex_vot_playback_error"));
                 });
+                return;
             } else if (status == YandexVotApiClient.STATUS_AUDIO_REQUESTED) {
-                // Audio was already sent in requestTranslation. Just wait — generation is in progress.
-                int pollWaitTime = pollWaitSecondsFrom(result);
-                Logger.printDebug(() -> "VOT audio requested (poll), waiting " + pollWaitTime + "s");
-                if (translationGeneration.get() != generation) return;
-                waitingTimeSeconds = pollWaitTime;
+                sendAudioRequestedAudio(
+                        videoId,
+                        url,
+                        result.translationId(),
+                        useLiveVoices,
+                        generation
+                );
+                if (translationGeneration != generation) return;
+                int pollWaitTime = result.remainingTime() > 0
+                        ? Math.min(result.remainingTime(), 60)
+                        : 10;
+                Logger.printDebug(() -> "VOT audio requested (poll), retrying in "
+                        + pollWaitTime + "s");
+                setWaitingTimeSeconds(pollWaitTime);
                 notifyTranslationStateChanged();
                 pollTranslation(videoId, videoTitle, url, duration, sourceLang, targetLang,
                         pollWaitTime, useLiveVoices, generation, 0);
+                return;
             } else {
-                int pollWaitTime = pollWaitSecondsFrom(result);
-                waitingTimeSeconds = pollWaitTime;
+                int pollWaitTime = result.remainingTime() > 0 ? result.remainingTime() : 63;
+                setWaitingTimeSeconds(pollWaitTime);
                 notifyTranslationStateChanged();
                 pollTranslation(videoId, videoTitle, url, duration, sourceLang, targetLang, pollWaitTime, useLiveVoices, generation, 0);
+                return;
             }
         } catch (Exception e) {
             Logger.printException(() -> "pollTranslation failure", e);
-            if (retryCount < 1 && translationGeneration.get() == generation) {
+            if (retryCount < 1 && translationGeneration == generation) {
                 // Retry once on exception
                 pollTranslation(videoId, videoTitle, url, duration, sourceLang, targetLang,
                         Math.min(waitSeconds, 30), useLiveVoices, generation, retryCount + 1);
@@ -607,15 +750,77 @@ public class YandexVoiceOverTranslationPatch {
                 runOnUiIfCurrentGen(generation, () -> {
                     translationStarting = false;
                     refreshOriginalAudioVolume();
-                    showToastShort(str("morphe_yandex_vot_playback_error"));
+                    showTranslationErrorToast(str("morphe_yandex_vot_playback_error"));
                 });
             }
         }
     }
 
+    private static boolean sendAudioRequestedAudio(
+            String videoId,
+            String url,
+            String translationId,
+            boolean useLiveVoices,
+            long generation
+    ) {
+        if (translationId == null || translationId.isEmpty()) return false;
+
+        String requestKey = url + "#" + translationId;
+        if (requestKey.equals(lastSuccessfulAudioUploadKey)) {
+            return true;
+        }
+
+        if (!requestKey.equals(lastAudioDownloadAttemptKey)) {
+            lastAudioDownloadAttemptKey = requestKey;
+            boolean uploaded = YandexVotAudioDownloader.downloadAndSend(
+                    videoId,
+                    url,
+                    translationId,
+                    new YandexVotAudioDownloader.ProgressListener() {
+                        @Override
+                        public boolean isCancelled() {
+                            return translationGeneration != generation;
+                        }
+
+                        @Override
+                        public void onPreparing() {
+                            setAudioUploadProgress(generation, 0, 0);
+                        }
+
+                        @Override
+                        public void onUploading(int part, int totalParts) {
+                            setAudioUploadProgress(generation, part, totalParts);
+                        }
+                    }
+            );
+            if (translationGeneration == generation) {
+                clearAudioUploadProgress();
+            }
+            if (uploaded) {
+                lastSuccessfulAudioUploadKey = requestKey;
+                Logger.printDebug(() -> "Yandex VOT audio uploaded for " + videoId);
+                return true;
+            }
+        }
+
+        if (translationGeneration != generation) return false;
+        if (!url.equals(lastFailedAudioFallbackUrl)) {
+            YandexVotApiClient.sendFailedAudio(url);
+            lastFailedAudioFallbackUrl = url;
+        }
+        if (!requestKey.equals(lastEmptyAudioFallbackKey)) {
+            String oauth = useLiveVoices
+                    ? YandexVotSettings.YANDEX_VOT_OAUTH_TOKEN.get()
+                    : null;
+            YandexVotApiClient.sendEmptyAudio(url, translationId, oauth);
+            lastEmptyAudioFallbackKey = requestKey;
+        }
+        return false;
+    }
+
     private static void startAudioPlayback(String videoId, String audioUrl, String fallbackUrl) {
         stopAudioPlayback();
-        waitingTimeSeconds = -1;
+        setWaitingTimeSeconds(-1);
         mainHandler.removeCallbacks(proxyPrepareTimeoutRunnable);
         if (isProxyUrl(audioUrl)) {
             Context ctx = Utils.getContext();
@@ -625,7 +830,7 @@ public class YandexVoiceOverTranslationPatch {
                 } else {
                     translationStarting = false;
                     refreshOriginalAudioVolume();
-                    showToastShort(str("morphe_yandex_vot_playback_error"));
+                    showTranslationErrorToast(str("morphe_yandex_vot_playback_error"));
                 }
                 return;
             }
@@ -640,7 +845,7 @@ public class YandexVoiceOverTranslationPatch {
                     } else {
                         translationStarting = false;
                         refreshOriginalAudioVolume();
-                        showToastShort(str("morphe_yandex_vot_playback_error"));
+                        showTranslationErrorToast(str("morphe_yandex_vot_playback_error"));
                     }
                 });
             });
@@ -727,6 +932,7 @@ public class YandexVoiceOverTranslationPatch {
             mp.setDataSource(filePath);
             mp.setOnPreparedListener(player -> Utils.runOnMainThread(() -> {
                 translationStarting = false;
+                clearAudioUploadProgress();
                 float vol = YandexVotSettings.YANDEX_VOT_TRANSLATION_VOLUME.get() / 100.0f;
                 player.setVolume(vol, vol);
                 long videoTime = VideoInformation.getVideoTime();
@@ -737,6 +943,11 @@ public class YandexVoiceOverTranslationPatch {
                 } else {
                     isPaused = true;
                 }
+                // startAudioPlayback() clears the shared multiplier while replacing
+                // MediaPlayer instances. Re-apply the selected Yandex ducking level
+                // once the translated track is actually ready.
+                refreshOriginalAudioVolume();
+                notifyTranslationStateChanged();
             }));
             mp.setOnErrorListener((p, what, extra) -> {
                 Logger.printDebug(() -> "VOT MediaPlayer error: what=" + what + " extra=" + extra);
@@ -744,7 +955,7 @@ public class YandexVoiceOverTranslationPatch {
                     stopAudioPlayback();
                     translationStarting = false;
                     refreshOriginalAudioVolume();
-                    showToastShort(str("morphe_yandex_vot_playback_error"));
+                    showTranslationErrorToast(str("morphe_yandex_vot_playback_error"));
                 });
                 return true;
             });
@@ -758,7 +969,7 @@ public class YandexVoiceOverTranslationPatch {
             deleteTempProxyFile();
             translationStarting = false;
             refreshOriginalAudioVolume();
-            showToastShort(str("morphe_yandex_vot_playback_error"));
+            showTranslationErrorToast(str("morphe_yandex_vot_playback_error"));
         }
     }
 
@@ -788,6 +999,7 @@ public class YandexVoiceOverTranslationPatch {
             final String fallback = fallbackUrl;
             mp.setOnPreparedListener(player -> Utils.runOnMainThread(() -> {
                 translationStarting = false;
+                clearAudioUploadProgress();
                 mainHandler.removeCallbacks(proxyPrepareTimeoutRunnable);
                 float vol = YandexVotSettings.YANDEX_VOT_TRANSLATION_VOLUME.get() / 100.0f;
                 player.setVolume(vol, vol);
@@ -800,6 +1012,8 @@ public class YandexVoiceOverTranslationPatch {
                 } else {
                     isPaused = true;
                 }
+                refreshOriginalAudioVolume();
+                notifyTranslationStateChanged();
             }));
             mp.setOnErrorListener((p, what, extra) -> {
                 Logger.printDebug(() -> "VOT MediaPlayer error: what=" + what + " extra=" + extra + " url=" + audioUrl);
@@ -810,7 +1024,7 @@ public class YandexVoiceOverTranslationPatch {
                     } else {
                         translationStarting = false;
                         refreshOriginalAudioVolume();
-                        showToastShort(str("morphe_yandex_vot_playback_error"));
+                        showTranslationErrorToast(str("morphe_yandex_vot_playback_error"));
                     }
                 });
                 return true;
@@ -840,7 +1054,7 @@ public class YandexVoiceOverTranslationPatch {
                 } else {
                     translationStarting = false;
                     refreshOriginalAudioVolume();
-                    showToastShort(str("morphe_yandex_vot_playback_error"));
+                    showTranslationErrorToast(str("morphe_yandex_vot_playback_error"));
                 }
             });
         }
@@ -849,8 +1063,8 @@ public class YandexVoiceOverTranslationPatch {
     public static void stopAudioPlayback() {
         mainHandler.removeCallbacks(pauseCheckRunnable);
         mainHandler.removeCallbacks(proxyPrepareTimeoutRunnable);
-        waitingTimeSeconds = -1;
-        translationGeneration.incrementAndGet();
+        setWaitingTimeSeconds(-1);
+        translationGeneration++;
         deleteTempProxyFile();
         MediaPlayer mp = mediaPlayer.getAndSet(null);
         if (mp != null) {
@@ -860,6 +1074,7 @@ public class YandexVoiceOverTranslationPatch {
             } catch (Exception ignored) { }
         }
         currentTranslatedVideoId.set("");
+        YandexVotOriginalVolumePatch.clearAudioMultiplier();
         notifyTranslationStateChanged();
         isPaused = false;
         lastVideoTimeMs = -1;
@@ -887,15 +1102,14 @@ public class YandexVoiceOverTranslationPatch {
             applyPlaybackSpeedToPlayer(mp);
             mp.start();
             isPaused = false;
-            // Re-apply VOT volume multiplier — during pause the original volume
-            // may have been reset to full by the player (isTranslationActive
-            // returns false while paused, so the setVolume hook doesn't duck).
+            // Re-apply VOT volume multiplier because the YouTube player can
+            // replace its AudioTrack while playback is paused.
             refreshOriginalAudioVolume();
         } catch (Exception ignored) { }
     }
 
     /**
-     * Applies the current YANDEX_VOT_TRANSLATION_VOLUME setting to the MediaPlayer if translation is playing.
+     * Applies the current VOT_TRANSLATION_VOLUME setting to the MediaPlayer if translation is playing.
      * Call this when the user changes the volume in the bottom sheet.
      */
     public static void applyVolumeToCurrentPlayer() {
@@ -909,7 +1123,7 @@ public class YandexVoiceOverTranslationPatch {
     public static void applyVolumeToCurrentPlayer(int volumePercent) {
         MediaPlayer mp = mediaPlayer.get();
         if (mp == null) return;
-        float vol = volumePercent / 100.0f;
+        float vol = Math.max(0, Math.min(100, volumePercent)) / 100.0f;
         try {
             mp.setVolume(vol, vol);
         } catch (Exception ignored) { }

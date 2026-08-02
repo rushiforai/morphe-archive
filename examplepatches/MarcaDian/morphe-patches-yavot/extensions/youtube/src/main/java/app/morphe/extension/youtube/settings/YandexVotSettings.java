@@ -13,6 +13,14 @@ import app.morphe.extension.shared.settings.preference.SeekBarPreference.SeekBar
 public final class YandexVotSettings {
     public static final BooleanSetting YANDEX_VOT_ENABLED =
             new BooleanSetting("morphe_yandex_vot_enabled", FALSE);
+    public static final StringSetting YANDEX_VOT_TIMER_POSITION =
+            new StringSetting("morphe_yandex_vot_timer_position", "inside", false, parent(YANDEX_VOT_ENABLED));
+    public static final BooleanSetting YANDEX_VOT_PROGRESS_RING_ENABLED =
+            new BooleanSetting("morphe_yandex_vot_progress_ring_enabled", TRUE, false, parent(YANDEX_VOT_ENABLED));
+    public static final StringSetting YANDEX_VOT_PROGRESS_RING_COLOR =
+            new StringSetting("morphe_yandex_vot_progress_ring_color", "#FFC107", false, parent(YANDEX_VOT_PROGRESS_RING_ENABLED));
+    public static final IntegerSetting YANDEX_VOT_PROGRESS_RING_THICKNESS =
+            new IntegerSetting("morphe_yandex_vot_progress_ring_thickness", 2, false, parent(YANDEX_VOT_PROGRESS_RING_ENABLED));
     public static final StringSetting YANDEX_VOT_SOURCE_LANGUAGE =
             new StringSetting("morphe_yandex_vot_source_language", "auto", false, parent(YANDEX_VOT_ENABLED));
     public static final StringSetting YANDEX_VOT_TARGET_LANGUAGE =
@@ -33,6 +41,7 @@ public final class YandexVotSettings {
     static {
         SeekBarPreference.register(new SeekBarConfig(YANDEX_VOT_TRANSLATION_VOLUME, 0, 100, 5, "%"));
         SeekBarPreference.register(new SeekBarConfig(YANDEX_VOT_ORIGINAL_AUDIO_VOLUME, 0, 100, 5, "%"));
+        SeekBarPreference.register(new SeekBarConfig(YANDEX_VOT_PROGRESS_RING_THICKNESS, 1, 6, 1, "dp"));
     }
 
     private YandexVotSettings() { }

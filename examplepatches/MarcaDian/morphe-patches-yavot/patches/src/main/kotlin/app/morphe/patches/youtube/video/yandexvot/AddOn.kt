@@ -1,6 +1,4 @@
 /*
- * Copyright (C) 2026 MarcaDian
- *
  * Add-on support code for the Yandex VoT bundle.
  *
  * An add-on bundle is loaded by the patcher in its own class loader, so it cannot reference
@@ -8,12 +6,10 @@
  * to the base bundle through the patched app only:
  *
  * - Bytecode: a call to the add-on registration method is added to `AddOnManager.registerAddOns()`,
- *   which the "Add-on support" patch of Morphe Patches provides.
+ *   which the Morphe Patches extension provides.
  * - Preferences: declared in the add-on preference file, which the Morphe settings patch merges
  *   into the Morphe settings and then removes.
  * - Strings, arrays and drawables: written into the app resources directly.
- *
- * Licensed under the GNU General Public License v3.0.
  */
 
 package app.morphe.patches.youtube.video.yandexvot
@@ -63,7 +59,7 @@ context(context: BytecodePatchContext)
 internal fun registerAddOn(registrationMethodDescriptor: String) {
     val addOnManagerClass = context.mutableClassDefByOrNull(ADD_ON_MANAGER_CLASS_DESCRIPTOR)
         ?: throw PatchException(
-            "Add-on support is missing. Enable the \"Add-on support\" patch of Morphe Patches."
+            "Add-on support is missing. The installed Morphe Patches version is too old for this add-on."
         )
 
     val registerMethod = addOnManagerClass.methods.firstOrNull {
@@ -237,6 +233,18 @@ internal fun textPreference(key: String, inputType: String = "text") = Preferenc
     key = key,
     summaryKey = "${key}_summary",
     extraAttributes = mapOf("android:inputType" to inputType),
+)
+
+internal fun seekBarPreference(key: String) = nonInteractivePreference(
+    key = key,
+    tag = "app.morphe.extension.shared.settings.preference.SeekBarPreference",
+    selectable = true,
+)
+
+internal fun colorPickerPreference(key: String) = nonInteractivePreference(
+    key = key,
+    tag = "app.morphe.extension.shared.settings.preference.ColorPickerPreference",
+    selectable = true,
 )
 
 internal fun nonInteractivePreference(

@@ -171,7 +171,7 @@ private val yandexVoiceOverTranslationResourcePatch = resourcePatch {
     execute {
         copyResources("yandexvotbutton",
             ResourceGroup(resourceDirectoryName = "drawable",
-                "morphe_yt_yandex_vot.xml", "morphe_yt_yandex_vot_activated.xml"))
+                "morphe_yt_yandex_vot.xml", "morphe_yt_yandex_vot_bold.xml"))
 
         addBundledResources()
 
@@ -188,11 +188,25 @@ private val yandexVoiceOverTranslationResourcePatch = resourcePatch {
                             listPreference("morphe_yandex_vot_source_language"),
                             listPreference("morphe_yandex_vot_target_language"),
                             switchPreference("morphe_yandex_vot_use_live_voices"),
+                            seekBarPreference("morphe_yandex_vot_translation_volume"),
+                            seekBarPreference("morphe_yandex_vot_original_audio_volume"),
                             nonInteractivePreference(
                                 key = "morphe_yandex_vot_oauth_token",
                                 tag = "app.morphe.extension.youtube.settings.preference.YandexVotOAuthPreference",
                                 selectable = true,
                             ),
+                        )
+                    ),
+                    noTitlePreferenceCategory(
+                        key = "morphe_yandex_vot_button_category",
+                        preferences = listOf(
+                            listPreference("morphe_yandex_vot_timer_position"),
+                            switchPreference(
+                                key = "morphe_yandex_vot_progress_ring_enabled",
+                                summary = true,
+                            ),
+                            colorPickerPreference("morphe_yandex_vot_progress_ring_color"),
+                            seekBarPreference("morphe_yandex_vot_progress_ring_thickness"),
                         )
                     ),
                     noTitlePreferenceCategory(
@@ -218,7 +232,7 @@ private val yandexVoiceOverTranslationResourcePatch = resourcePatch {
 val yandexVoiceOverTranslationPatch = bytecodePatch(
     name = "Voice Over Translation (Yandex)",
     description = "Adds an option to enable Yandex voice-over translation of video audio tracks. " +
-            "Requires the \"Add-on support\" patch of Morphe Patches.",
+            "Requires a Morphe Patches version with add-on support.",
 ) {
     compatibleWith(COMPATIBILITY_YOUTUBE)
     dependsOn(yandexVoiceOverTranslationResourcePatch, yandexVoiceOverTranslationBytecodePatch)

@@ -8,8 +8,7 @@ This bundle ships the `Voice Over Translation (Yandex)` patch for YouTube. It is
 
 1. Install/keep the base [morphe-patches](https://github.com/MorpheApp/morphe-patches) bundle in [Morphe Manager](https://github.com/MorpheApp/morphe-manager).
 2. Add this bundle as an additional source in Morphe Manager (`Patch sources → Add`).
-3. Keep the `Add-on support` patch of the base bundle enabled. It provides the hooks this bundle attaches to, and patching fails with a message if it is missing.
-4. When patching YouTube, both patches are available:
+3. When patching YouTube, both patches are available:
    - `Voice Over Translation` (base, Google/OpenRouter/MyMemory backends)
    - `Voice Over Translation (Yandex)` (this bundle)
 
@@ -92,7 +91,7 @@ Base bundle: [Morphe Patches](https://github.com/MorpheApp/morphe-patches), [Mor
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Voice Over Translation (Yandex)](#voice-over-translation-yandex) | Adds an option to enable Yandex voice-over translation of video audio tracks. Requires the "Add-on support" patch of Morphe Patches. |  |
+| [Voice Over Translation (Yandex)](#voice-over-translation-yandex) | Adds an option to enable Yandex voice-over translation of video audio tracks. Requires a Morphe Patches version with add-on support. |  |
 
 </details>
 
@@ -100,4 +99,4 @@ Base bundle: [Morphe Patches](https://github.com/MorpheApp/morphe-patches), [Mor
 
 ## License
 
-GNU General Public License v3.0, with additional GPL Section 7 attribution terms for portions authored by anddea/Jav1x. See `LICENSE` and `NOTICE`.
+GNU General Public License v3.0
