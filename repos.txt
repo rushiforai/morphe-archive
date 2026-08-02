@@ -81,6 +81,7 @@ docbt/patched-up
 drosoCode/morphe-patches
 dumb-software/T2C-App-Patch-Morphe
 durgesh0505/chiggi_morphe_patches
+eZ4RK0/morphe-patches
 ethanm6/letterboxd-stremio-morphe-patch
 eyalm2000/tidal-debug-menu
 fangkampanat/gmaps-patches

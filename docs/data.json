@@ -1,13 +1,13 @@
 {
-  "generatedAt": "2026-08-02 02:59 UTC",
-  "configFile": "morphe_archive_config_v10.json",
-  "configVersion": 10,
-  "repoCount": 114,
-  "appCount": 583,
-  "patchCount": 2149,
+  "generatedAt": "2026-08-02 18:11 UTC",
+  "configFile": "morphe_archive_config_v11.json",
+  "configVersion": 11,
+  "repoCount": 115,
+  "appCount": 585,
+  "patchCount": 2152,
   "universalPatchCount": 168,
   "hostCounts": {
-    "github.com": 110,
+    "github.com": 111,
     "gitlab.com": 4
   },
   "repos": [
@@ -174,12 +174,12 @@
       "createdDate": "2026-07-28",
       "updatedDate": "2026-07-28",
       "latestChanges": {
-        "title": "1.3.4 (2026-07-30)",
-        "date": "2026-07-30",
+        "title": "1.3.5 (2026-08-02)",
+        "date": "2026-08-02",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "remove 1.1.5 target, only 1.1.6 supported"
+            "text": "support SofaTime 1.2.0 and drop older versions"
           }
         ]
       },
@@ -1521,23 +1521,30 @@
       "webUrl": "https://github.com/byehi98/okish-morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=byehi98/okish-morphe-patches",
       "avatarUrl": "https://github.com/byehi98.png?size=96",
-      "patchCount": 6,
-      "appCount": 5,
+      "patchCount": 7,
+      "appCount": 6,
       "createdAt": 1784836032190,
       "updatedAt": 1784836032190,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.4.0 (2026-08-01)",
-        "date": "2026-08-01",
+        "title": "1.5.0 (2026-08-02)",
+        "date": "2026-08-02",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "add Jetpack Joyride billing bypass patch"
+            "text": "add Doodle Jump billing bypass patch"
           }
         ]
       },
       "apps": [
+        {
+          "name": "Doodle Jump",
+          "packageName": "com.lima.doodlejump",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#66BB6A"
+        },
         {
           "name": "FreeJobAlert",
           "packageName": "com.freejobalert",
@@ -2963,6 +2970,50 @@
           "patchCount": 3,
           "iconUrl": "https://play-lh.googleusercontent.com/2MmhfegR5NlTay7FQjgEfBR83-sBuGdyMVlNvpSKVmW3EjbI762_va69gxmoI0P5BfIGDWtlpXU7qYg_zxE2Kl0",
           "iconColor": "#7B5EA7"
+        }
+      ]
+    },
+    {
+      "name": "morphe-patches",
+      "repo": "eZ4RK0/morphe-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/eZ4RK0/morphe-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/eZ4RK0/morphe-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/eZ4RK0/morphe-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/eZ4RK0/morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=eZ4RK0/morphe-patches",
+      "avatarUrl": "https://github.com/eZ4RK0.png?size=96",
+      "patchCount": 2,
+      "appCount": 1,
+      "createdAt": 1785694261066,
+      "updatedAt": 1785694261066,
+      "createdDate": "2026-08-02",
+      "updatedDate": "2026-08-02",
+      "latestChanges": {
+        "title": "1.0.0 (2026-08-02)",
+        "date": "2026-08-02",
+        "items": [
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "point Dependabot gradle ecosystem at the actual gradle project directories"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "remove local testApply harness, it broke Gradle config eval and CI dexing"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "unlock premium and disable PairIP license check for Sunrise Alarm 1.3.8"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Sunrise Alarm: Wake-Up Light",
+          "packageName": "com.laironcorp.sunrisealarm",
+          "patchCount": 2,
+          "iconUrl": "",
+          "iconColor": "#FFA500"
         }
       ]
     },
@@ -5146,8 +5197,8 @@
       "createdDate": "2026-07-26",
       "updatedDate": "2026-07-26",
       "latestChanges": {
-        "title": "1.0.0 (2026-08-01)",
-        "date": "2026-08-01",
+        "title": "1.0.0 (2026-08-02)",
+        "date": "2026-08-02",
         "items": [
           {
             "category": "\u2728 New Features",
@@ -11141,8 +11192,8 @@
       ],
       "patches": [
         "Disable PairIP DRM",
-        "Unlock premium",
-        "Unlock Premium"
+        "Unlock Premium",
+        "Unlock premium"
       ],
       "patchDetails": [
         {
@@ -11150,12 +11201,12 @@
           "description": "Disables PairIP signature verification and Google Play LVL license check. Required for the app to launch after re-signing."
         },
         {
-          "name": "Unlock premium",
-          "description": "Unlocks all AT4K premium features by forcing the premium status to true."
-        },
-        {
           "name": "Unlock Premium",
           "description": "Unlocks all premium features by forcing the premium state to true in the purchase manager."
+        },
+        {
+          "name": "Unlock premium",
+          "description": "Unlocks all AT4K premium features by forcing the premium status to true."
         }
       ],
       "versions": [
@@ -28000,6 +28051,64 @@
       "iconUrl": "https://play-lh.googleusercontent.com/NgntHB7Nm-9GSfkq8vu60toy_tZRKwFse_LpyeY7DLj838-oGfmAEizTtFckgE1cQghVR788lJCImDzgHdHdld4"
     },
     {
+      "packageName": "com.lima.doodlejump",
+      "name": "Doodle Jump",
+      "repos": [
+        "byehi98/okish-morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "byehi98/okish-morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/byehi98/okish-morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=byehi98/okish-morphe-patches",
+          "source": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/byehi98.png?size=96",
+          "latestChanges": {
+            "title": "1.5.0 (2026-08-02)",
+            "date": "2026-08-02",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "add Doodle Jump billing bypass patch"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-lima-doodlejump-byehi98-okish-morphe-patches",
+            "releaseTag": "app-com-lima-doodlejump-byehi98-okish-morphe-patches",
+            "assetName": "doodle-jump-byehi98-okish-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Doodle Jump Billing Bypass",
+              "description": "Unlocks the full game by bypassing Google Play billing."
+            }
+          ],
+          "versions": [
+            "3.11.38"
+          ]
+        }
+      ],
+      "patches": [
+        "Doodle Jump Billing Bypass"
+      ],
+      "patchDetails": [
+        {
+          "name": "Doodle Jump Billing Bypass",
+          "description": "Unlocks the full game by bypassing Google Play billing."
+        }
+      ],
+      "versions": [
+        "3.11.38"
+      ],
+      "iconColor": "#66BB6A",
+      "iconUrl": ""
+    },
+    {
       "packageName": "com.trieudadlovestun.dp203",
       "name": "DP-203",
       "repos": [
@@ -30440,12 +30549,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.4.0 (2026-08-01)",
-            "date": "2026-08-01",
+            "title": "1.5.0 (2026-08-02)",
+            "date": "2026-08-02",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Jetpack Joyride billing bypass patch"
+                "text": "add Doodle Jump billing bypass patch"
               }
             ]
           },
@@ -34297,12 +34406,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.4.0 (2026-08-01)",
-            "date": "2026-08-01",
+            "title": "1.5.0 (2026-08-02)",
+            "date": "2026-08-02",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Jetpack Joyride billing bypass patch"
+                "text": "add Doodle Jump billing bypass patch"
               }
             ]
           },
@@ -46036,8 +46145,8 @@
       ],
       "patches": [
         "Disable tracking",
-        "Unlock premium",
-        "Unlock Premium"
+        "Unlock Premium",
+        "Unlock premium"
       ],
       "patchDetails": [
         {
@@ -46045,12 +46154,12 @@
           "description": "Disables analytics and crash reporting."
         },
         {
-          "name": "Unlock premium",
-          "description": "Unlocks all premium features."
-        },
-        {
           "name": "Unlock Premium",
           "description": "Unlocks all premium features by bypassing the native library premium check."
+        },
+        {
+          "name": "Unlock premium",
+          "description": "Unlocks all premium features."
         }
       ],
       "versions": [
@@ -50188,12 +50297,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.4.0 (2026-08-01)",
-            "date": "2026-08-01",
+            "title": "1.5.0 (2026-08-02)",
+            "date": "2026-08-02",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Jetpack Joyride billing bypass patch"
+                "text": "add Doodle Jump billing bypass patch"
               }
             ]
           },
@@ -50656,12 +50765,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/alan7383/sofatime-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/alan7383.png?size=96",
           "latestChanges": {
-            "title": "1.3.4 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.3.5 (2026-08-02)",
+            "date": "2026-08-02",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "remove 1.1.5 target, only 1.1.6 supported"
+                "text": "support SofaTime 1.2.0 and drop older versions"
               }
             ]
           },
@@ -50691,7 +50800,7 @@
             }
           ],
           "versions": [
-            "1.1.6"
+            "1.2.0"
           ]
         }
       ],
@@ -50720,7 +50829,7 @@
         }
       ],
       "versions": [
-        "1.1.6"
+        "1.2.0"
       ],
       "iconColor": "#1E1E2E",
       "iconUrl": ""
@@ -52307,6 +52416,81 @@
       "iconUrl": "https://play-lh.googleusercontent.com/av9eXXziNDbeT8eubEph_TIfLVB53bPcusIVnbF7aCjMEA6bX_y0HITrfk9039DeK3siiVGgCCSzYuDRIpFS"
     },
     {
+      "packageName": "com.laironcorp.sunrisealarm",
+      "name": "Sunrise Alarm: Wake-Up Light",
+      "repos": [
+        "eZ4RK0/morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "eZ4RK0/morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/eZ4RK0/morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=eZ4RK0/morphe-patches",
+          "source": "https://raw.githubusercontent.com/eZ4RK0/morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/eZ4RK0/morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/eZ4RK0.png?size=96",
+          "latestChanges": {
+            "title": "1.0.0 (2026-08-02)",
+            "date": "2026-08-02",
+            "items": [
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "point Dependabot gradle ecosystem at the actual gradle project directories"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "remove local testApply harness, it broke Gradle config eval and CI dexing"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "unlock premium and disable PairIP license check for Sunrise Alarm 1.3.8"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-laironcorp-sunrisealarm-ez4rk0-morphe-patches",
+            "releaseTag": "app-com-laironcorp-sunrisealarm-ez4rk0-morphe-patches",
+            "assetName": "sunrise-alarm-wake-up-light-ez4rk0-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Disable license check",
+              "description": "Removes the PairIP LicenseClient.checkLicense() call, which otherwise force-closes a re-signed/sideloaded patched APK a short while after launch."
+            },
+            {
+              "name": "Unlock premium",
+              "description": "Always report the 'remove_ads' and 'pro' in-app products as purchased, regardless of the real Play Billing purchase state."
+            }
+          ],
+          "versions": [
+            "1.3.8"
+          ]
+        }
+      ],
+      "patches": [
+        "Disable license check",
+        "Unlock premium"
+      ],
+      "patchDetails": [
+        {
+          "name": "Disable license check",
+          "description": "Removes the PairIP LicenseClient.checkLicense() call, which otherwise force-closes a re-signed/sideloaded patched APK a short while after launch."
+        },
+        {
+          "name": "Unlock premium",
+          "description": "Always report the 'remove_ads' and 'pro' in-app products as purchased, regardless of the real Play Billing purchase state."
+        }
+      ],
+      "versions": [
+        "1.3.8"
+      ],
+      "iconColor": "#FFA500",
+      "iconUrl": ""
+    },
+    {
       "packageName": "com.esuper.file.explorer",
       "name": "Super File",
       "repos": [
@@ -52541,12 +52725,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.4.0 (2026-08-01)",
-            "date": "2026-08-01",
+            "title": "1.5.0 (2026-08-02)",
+            "date": "2026-08-02",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Jetpack Joyride billing bypass patch"
+                "text": "add Doodle Jump billing bypass patch"
               }
             ]
           },
@@ -56698,12 +56882,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.4.0 (2026-08-01)",
-            "date": "2026-08-01",
+            "title": "1.5.0 (2026-08-02)",
+            "date": "2026-08-02",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Jetpack Joyride billing bypass patch"
+                "text": "add Doodle Jump billing bypass patch"
               }
             ]
           },
@@ -60213,8 +60397,8 @@
           "changelogUrl": "https://raw.githubusercontent.com/MarcaDian/morphe-patches-yavot/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/MarcaDian.png?size=96",
           "latestChanges": {
-            "title": "1.0.0 (2026-08-01)",
-            "date": "2026-08-01",
+            "title": "1.0.0 (2026-08-02)",
+            "date": "2026-08-02",
             "items": [
               {
                 "category": "\u2728 New Features",
@@ -60232,7 +60416,7 @@
           "patches": [
             {
               "name": "Voice Over Translation (Yandex)",
-              "description": "Adds an option to enable Yandex voice-over translation of video audio tracks. Requires the \"Add-on support\" patch of Morphe Patches."
+              "description": "Adds an option to enable Yandex voice-over translation of video audio tracks. Requires a Morphe Patches version with add-on support."
             }
           ],
           "versions": []
@@ -61388,8 +61572,8 @@
         "Save to watch later",
         "Seekbar",
         "Seekbar components",
-        "Set transcript cookies",
         "Set Transcript Cookies",
+        "Set transcript cookies",
         "Settings for YouTube",
         "Settings menu filter",
         "Shorts autoplay",
@@ -61407,8 +61591,8 @@
         "Video playback",
         "Video quality",
         "Visual preferences icons for YouTube",
-        "Voice Over Translation",
         "Voice over translation",
+        "Voice Over Translation",
         "Voice Over Translation (Yandex)",
         "Watch history",
         "Watch later button",
@@ -61834,11 +62018,11 @@
           "description": "Adds options to hide or change components related to the seekbar."
         },
         {
-          "name": "Set transcript cookies",
+          "name": "Set Transcript Cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {
-          "name": "Set Transcript Cookies",
+          "name": "Set transcript cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {
@@ -61910,16 +62094,16 @@
           "description": "Adds icons to specific preferences in the settings."
         },
         {
-          "name": "Voice Over Translation",
-          "description": "Adds an option to enable Yandex voice-over translation of video audio tracks."
-        },
-        {
           "name": "Voice over translation",
           "description": "Adds additional voice over languages using text-to-speech synchronized to the video playback."
         },
         {
+          "name": "Voice Over Translation",
+          "description": "Adds an option to enable Yandex voice-over translation of video audio tracks."
+        },
+        {
           "name": "Voice Over Translation (Yandex)",
-          "description": "Adds an option to enable Yandex voice-over translation of video audio tracks. Requires the \"Add-on support\" patch of Morphe Patches."
+          "description": "Adds an option to enable Yandex voice-over translation of video audio tracks. Requires a Morphe Patches version with add-on support."
         },
         {
           "name": "Watch history",
@@ -65297,6 +65481,50 @@
   "recentSources": [
     {
       "name": "morphe-patches",
+      "repo": "eZ4RK0/morphe-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/eZ4RK0/morphe-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/eZ4RK0/morphe-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/eZ4RK0/morphe-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/eZ4RK0/morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=eZ4RK0/morphe-patches",
+      "avatarUrl": "https://github.com/eZ4RK0.png?size=96",
+      "patchCount": 2,
+      "appCount": 1,
+      "createdAt": 1785694261066,
+      "updatedAt": 1785694261066,
+      "createdDate": "2026-08-02",
+      "updatedDate": "2026-08-02",
+      "latestChanges": {
+        "title": "1.0.0 (2026-08-02)",
+        "date": "2026-08-02",
+        "items": [
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "point Dependabot gradle ecosystem at the actual gradle project directories"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "remove local testApply harness, it broke Gradle config eval and CI dexing"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "unlock premium and disable PairIP license check for Sunrise Alarm 1.3.8"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Sunrise Alarm: Wake-Up Light",
+          "packageName": "com.laironcorp.sunrisealarm",
+          "patchCount": 2,
+          "iconUrl": "",
+          "iconColor": "#FFA500"
+        }
+      ]
+    },
+    {
+      "name": "morphe-patches",
       "repo": "d0nj/morphe-patches",
       "host": "github.com",
       "source": "https://raw.githubusercontent.com/d0nj/morphe-patches/main/patches-bundle.json",
@@ -65428,12 +65656,12 @@
       "createdDate": "2026-07-28",
       "updatedDate": "2026-07-28",
       "latestChanges": {
-        "title": "1.3.4 (2026-07-30)",
-        "date": "2026-07-30",
+        "title": "1.3.5 (2026-08-02)",
+        "date": "2026-08-02",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "remove 1.1.5 target, only 1.1.6 supported"
+            "text": "support SofaTime 1.2.0 and drop older versions"
           }
         ]
       },
@@ -65745,8 +65973,8 @@
       "createdDate": "2026-07-26",
       "updatedDate": "2026-07-26",
       "latestChanges": {
-        "title": "1.0.0 (2026-08-01)",
-        "date": "2026-08-01",
+        "title": "1.0.0 (2026-08-02)",
+        "date": "2026-08-02",
         "items": [
           {
             "category": "\u2728 New Features",
@@ -65761,476 +65989,6 @@
           "patchCount": 1,
           "iconUrl": "https://play-lh.googleusercontent.com/QNmuZQc9I6Zbe3mWnSr0hycnENqGFCI5p3yE29Hkxtf22T0IWS6zTrpxULLyyjWpB7ONAXDsDQXnXcVWokl3eg",
           "iconColor": "#FF0033"
-        }
-      ]
-    },
-    {
-      "name": "Morning-Entree-Patches",
-      "repo": "Entree3k/Morning-Entree-Patches",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
-      "webUrl": "https://github.com/Entree3k/Morning-Entree-Patches",
-      "addUrl": "https://morphe.software/add-source?github=Entree3k/Morning-Entree-Patches",
-      "avatarUrl": "https://github.com/Entree3k.png?size=96",
-      "patchCount": 20,
-      "appCount": 63,
-      "createdAt": 1785034851561,
-      "updatedAt": 1785034851561,
-      "createdDate": "2026-07-26",
-      "updatedDate": "2026-07-26",
-      "latestChanges": {
-        "title": "1.6.0 (2026-07-31)",
-        "date": "2026-07-31",
-        "items": [
-          {
-            "category": "\u2728 New Features",
-            "text": "Added Phi Launcher"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "AI-900",
-          "packageName": "com.trieudadlovestun.ai900exam",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "AutoLocation",
-          "packageName": "com.joaomgcd.autolocation",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#4CAF50"
-        },
-        {
-          "name": "AutoTools",
-          "packageName": "com.joaomgcd.autotools",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#FF9800"
-        },
-        {
-          "name": "AWS AIF-C01",
-          "packageName": "com.trieudadlovestun.aifc01exam",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "AWS CLF-C01",
-          "packageName": "com.trieudadlovestun.clfc01",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "AWS DOP-C01",
-          "packageName": "com.trieudadlovestun.dopc01",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "AWS DVA-C01",
-          "packageName": "com.trieudadlovestun.dvac01ver3",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "AWS MLA-C01",
-          "packageName": "com.trieudadlovestun.mlac01exam",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "AWS SAA-C02",
-          "packageName": "com.trieudadlovestun.saac02ver3",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "AWS SAP-C01",
-          "packageName": "com.trieudadlovestun.sapc01",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "AWS SCS-C01",
-          "packageName": "com.trieudadlovestun.scsc01",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "AWS SOA-C02",
-          "packageName": "com.trieudadlovestun.soac02",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "AZ-104",
-          "packageName": "com.trieudadlovestun.az104",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "AZ-204",
-          "packageName": "com.trieudadlovestun.az204ver2022",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "AZ-400",
-          "packageName": "com.trieudadlovestun.az400",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "AZ-500",
-          "packageName": "com.trieudadlovestun.az500",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "AZ-700",
-          "packageName": "com.trieudadlovestun.az700exam",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "AZ-900",
-          "packageName": "com.trieudadlovestun.az900ver3",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "CAPM",
-          "packageName": "com.trieudadlovestun.capm",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "CCNA 200-301",
-          "packageName": "com.trieudadlovestun.ccna200301",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "CCNP 350-401",
-          "packageName": "com.trieudadlovestun.ccnp350401",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "CCNP SCOR 350-701",
-          "packageName": "com.trieudadlovestun.scor350701",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "CEH v11",
-          "packageName": "com.trieudadlovestun.cehv11",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "CISM",
-          "packageName": "com.trieudadlovestun.cism",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "CISSP",
-          "packageName": "com.trieudadlovestun.cissp",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "CompTIA A+ Core 1",
-          "packageName": "com.trieudadlovestun.comptiacore1",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "CompTIA A+ Core 2",
-          "packageName": "com.trieudadlovestun.comptiacore2",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "CompTIA CySA+",
-          "packageName": "com.trieudadlovestun.comptiacysa",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "CompTIA ITF+",
-          "packageName": "com.trieudadlovestun.comptiaitf",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "CompTIA Linux+",
-          "packageName": "com.trieudadlovestun.comptialinuxplusexam",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "CompTIA PenTest+",
-          "packageName": "com.trieudadlovestun.pentestplusexam",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "CompTIA SecAI",
-          "packageName": "com.trieudadlovestun.comptiasecai",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "CompTIA Security+",
-          "packageName": "com.trieudadlovestun.comptiasecurityplus",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "CompTIA SecurityX",
-          "packageName": "com.trieudadlovestun.comptiasecux",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "CompTIA Server+",
-          "packageName": "com.trieudadlovestun.comptiaserverplus",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "DASM",
-          "packageName": "com.trieudadlovestun.dasm",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "DP-203",
-          "packageName": "com.trieudadlovestun.dp203",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "DP-300",
-          "packageName": "com.trieudadlovestun.dp300",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "DP-900",
-          "packageName": "com.trieudadlovestun.dp900",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "Gboard",
-          "packageName": "com.google.android.inputmethod.latin",
-          "patchCount": 3,
-          "iconUrl": "https://play-lh.googleusercontent.com/J4vZ82VsZjnsRsI6ckQFXlO36_52QJerqG5-HfLgHffS34I4EfoAFfNdbf6s4wBAsUEf8DOJVEDEHh5tzWbrnA",
-          "iconColor": ""
-        },
-        {
-          "name": "GCP Associate Cloud Engineer",
-          "packageName": "com.trieudadlovestun.gcpassociatecloudengineer",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "Gradient Weather",
-          "packageName": "com.subtlesignals.gradientweather",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#6C7BFF"
-        },
-        {
-          "name": "ISTQB Foundation",
-          "packageName": "com.trieudadlovestun.istqbfoundation",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "Lifesum",
-          "packageName": "com.sillens.shapeupclub",
-          "patchCount": 1,
-          "iconUrl": "https://play-lh.googleusercontent.com/gMeT8cxzZOnlrCKwYIOPHT90C9kb9pPbE0mHlk2gixDIadJ_B9QmslnPkQ3Sc0y9KuS8KMxPDxFgsL_GLnXbsg",
-          "iconColor": "#41CD8C"
-        },
-        {
-          "name": "Ling",
-          "packageName": "com.simyasolutions.ling.universal",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#F8485E"
-        },
-        {
-          "name": "Nova Launcher",
-          "packageName": "com.teslacoilsw.launcher",
-          "patchCount": 2,
-          "iconUrl": "https://play-lh.googleusercontent.com/EihoqDPSzditTLnmP-N0GjXmbvNdnZyW7YZKxRocA_kVIsaXhM9lBlfPrJmhBcSQmiydPXgise1ZTAlOOH7ZsQ",
-          "iconColor": "#DA4624"
-        },
-        {
-          "name": "Panels",
-          "packageName": "com.fossor.panels",
-          "patchCount": 2,
-          "iconUrl": "",
-          "iconColor": "#2196F3"
-        },
-        {
-          "name": "PCEP-30-02",
-          "packageName": "com.trieudadlovestun.pcep3002",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "Phi Launcher",
-          "packageName": "com.launcher.hype",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#6C63FF"
-        },
-        {
-          "name": "Pinnit",
-          "packageName": "dev.sasikanth.pinnit2",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#E0563F"
-        },
-        {
-          "name": "PMI-ACP",
-          "packageName": "com.trieudadlovestun.pmiacp",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "PSM II",
-          "packageName": "com.trieudadlovestun.psm2",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "PSPO I",
-          "packageName": "com.trieudadlovestun.pspooneexam",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "Salesforce Admin",
-          "packageName": "com.trieudadlovestun.salesforceadmin",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "SC-200",
-          "packageName": "com.trieudadlovestun.sc200exam",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "SC-900",
-          "packageName": "com.trieudadlovestun.sc900",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "ServiceNow CSA",
-          "packageName": "com.trieudadlovestun.servicenowsystemadmin",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "SnowPro Core",
-          "packageName": "com.trieudadlovestun.snowprocore",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "Sponge",
-          "packageName": "com.prismtree.sponge",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#2AB7A9"
-        },
-        {
-          "name": "Tableau Desktop",
-          "packageName": "com.trieudadlovestun.tableaudesktop",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "Terraform Associate",
-          "packageName": "com.trieudadlovestun.terraform",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        },
-        {
-          "name": "UbikiTouch",
-          "packageName": "eu.toneiv.ubktouch",
-          "patchCount": 1,
-          "iconUrl": "https://play-lh.googleusercontent.com/mwINWGvA1fZZwTzDfYgl7FTTTj-iElnsWrRCjuwnVAtR62hJyZdcHgG1SRSSi5LiBjlcKINIchP-Ut0DRWPDfQ",
-          "iconColor": "#2196F3"
-        },
-        {
-          "name": "Vocabulary",
-          "packageName": "com.hrd.vocabulary",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#C7604F"
         }
       ]
     }
