@@ -86,6 +86,7 @@ ethanm6/letterboxd-stremio-morphe-patch
 eyalm2000/tidal-debug-menu
 fangkampanat/gmaps-patches
 franticg33k/morphe-patches
+furkngld/tiktok-lite-patches-for-morphe
 gitlab.com/Paresh-Maheshwari/paresh-patches
 gitlab.com/early.egg3707/ee-morphe-patches
 gitlab.com/inotia00/proguard-patches

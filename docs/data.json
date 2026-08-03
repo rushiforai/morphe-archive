@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-08-02 18:11 UTC",
+  "generatedAt": "2026-08-03 02:59 UTC",
   "configFile": "morphe_archive_config_v11.json",
   "configVersion": 11,
   "repoCount": 115,
-  "appCount": 585,
-  "patchCount": 2152,
+  "appCount": 587,
+  "patchCount": 2154,
   "universalPatchCount": 168,
   "hostCounts": {
     "github.com": 111,
@@ -2482,19 +2482,19 @@
       "webUrl": "https://github.com/Entree3k/Morning-Entree-Patches",
       "addUrl": "https://morphe.software/add-source?github=Entree3k/Morning-Entree-Patches",
       "avatarUrl": "https://github.com/Entree3k.png?size=96",
-      "patchCount": 20,
-      "appCount": 63,
+      "patchCount": 22,
+      "appCount": 65,
       "createdAt": 1785034851561,
       "updatedAt": 1785034851561,
       "createdDate": "2026-07-26",
       "updatedDate": "2026-07-26",
       "latestChanges": {
-        "title": "1.6.0 (2026-07-31)",
-        "date": "2026-07-31",
+        "title": "1.7.0 (2026-08-03)",
+        "date": "2026-08-03",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "Added Phi Launcher"
+            "text": "Added Boosted and Todo Mate"
           }
         ]
       },
@@ -2624,6 +2624,13 @@
           "patchCount": 1,
           "iconUrl": "",
           "iconColor": "#023C69"
+        },
+        {
+          "name": "Boosted Productivity",
+          "packageName": "com.boostedproductivity.app",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#00C689"
         },
         {
           "name": "CAPM",
@@ -2925,6 +2932,13 @@
           "patchCount": 1,
           "iconUrl": "",
           "iconColor": "#023C69"
+        },
+        {
+          "name": "Todo Mate",
+          "packageName": "com.undefined.mate",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#00C9A7"
         },
         {
           "name": "UbikiTouch",
@@ -5548,24 +5562,12 @@
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.17.0 (2026-07-30)",
-        "date": "2026-07-30",
+        "title": "1.18.0 (2026-08-02)",
+        "date": "2026-08-02",
         "items": [
           {
-            "category": "Bug Fixes",
-            "text": "correct FLAG_LAYOUT_NO_LIMITS value, remove unused import"
-          },
-          {
             "category": "New Features",
-            "text": "add Custom App Resolution (Experimental) patch"
-          },
-          {
-            "category": "New Features",
-            "text": "add LicenseResponseHelper and ResponseValidator fingerprints to Pairip bypass"
-          },
-          {
-            "category": "New Features",
-            "text": "add loadRewardedAd patching to fire OnRewardedAdLoadedEvent"
+            "text": "add Unity Ads v4 support to Ads Free Rewards patch"
           }
         ]
       },
@@ -9684,12 +9686,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -11546,12 +11548,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -11720,12 +11722,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -11961,12 +11963,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -12019,12 +12021,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -12077,12 +12079,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -12135,12 +12137,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -12193,12 +12195,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -12251,12 +12253,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -12309,12 +12311,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -12367,12 +12369,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -12425,12 +12427,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -12541,12 +12543,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -12599,12 +12601,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -12657,12 +12659,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -12715,12 +12717,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -12773,12 +12775,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -12831,12 +12833,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -14052,6 +14054,64 @@
       ],
       "iconColor": "#2A2132",
       "iconUrl": "https://play-lh.googleusercontent.com/ngXzwC03EmpgxNO6IJuBkrrT7EXOlsKO0hv-GBCO-ND1QeamlxGsY9qmU3qHojoq0vmyQm8QKgvy5IygYTde"
+    },
+    {
+      "packageName": "com.boostedproductivity.app",
+      "name": "Boosted Productivity",
+      "repos": [
+        "Entree3k/Morning-Entree-Patches"
+      ],
+      "sources": [
+        {
+          "repo": "Entree3k/Morning-Entree-Patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/Entree3k/Morning-Entree-Patches",
+          "addUrl": "https://morphe.software/add-source?github=Entree3k/Morning-Entree-Patches",
+          "source": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/Entree3k.png?size=96",
+          "latestChanges": {
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "Added Boosted and Todo Mate"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-boostedproductivity-app-entree3k-morning-entree-patches",
+            "releaseTag": "app-com-boostedproductivity-app-entree3k-morning-entree-patches",
+            "assetName": "boosted-productivity-entree3k-morning-entree-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Enable Premium",
+              "description": "Unlocks Boosted Premium"
+            }
+          ],
+          "versions": [
+            "1.6.21"
+          ]
+        }
+      ],
+      "patches": [
+        "Enable Premium"
+      ],
+      "patchDetails": [
+        {
+          "name": "Enable Premium",
+          "description": "Unlocks Boosted Premium"
+        }
+      ],
+      "versions": [
+        "1.6.21"
+      ],
+      "iconColor": "#00C689",
+      "iconUrl": ""
     },
     {
       "packageName": "com.bounce.connect",
@@ -15360,12 +15420,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -15703,12 +15763,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -15761,12 +15821,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -15819,12 +15879,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -15877,12 +15937,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -16696,12 +16756,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -16754,12 +16814,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -20564,12 +20624,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -23564,8 +23624,8 @@
         }
       ],
       "patches": [
-        "Disable Ad-Free Banner",
         "Disable ad-free banner",
+        "Disable Ad-Free Banner",
         "Disable blog notification reminder",
         "Disable dashboard ads",
         "Disable gift message popup",
@@ -23577,12 +23637,12 @@
       ],
       "patchDetails": [
         {
-          "name": "Disable Ad-Free Banner",
-          "description": "Disables the banner with a frog, prompting you to buy Tumblr Ad-Free."
-        },
-        {
           "name": "Disable ad-free banner",
           "description": "Hides the banner with the frog that prompts you to buy Tumblr Ad-Free."
+        },
+        {
+          "name": "Disable Ad-Free Banner",
+          "description": "Disables the banner with a frog, prompting you to buy Tumblr Ad-Free."
         },
         {
           "name": "Disable blog notification reminder",
@@ -25535,12 +25595,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -25593,12 +25653,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -25651,12 +25711,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -25709,12 +25769,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -25767,12 +25827,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -25825,12 +25885,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -25883,12 +25943,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -25941,12 +26001,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -25999,12 +26059,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -26057,12 +26117,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -27299,12 +27359,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -28124,12 +28184,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -28182,12 +28242,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -28240,12 +28300,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -30732,12 +30792,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -31106,12 +31166,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -34161,12 +34221,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -36285,12 +36345,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -36604,12 +36664,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -41445,12 +41505,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -42813,12 +42873,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -43176,12 +43236,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -43296,12 +43356,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -43758,12 +43818,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -44846,12 +44906,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -46815,12 +46875,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -46873,12 +46933,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -48890,12 +48950,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -49081,12 +49141,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -49139,12 +49199,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -49603,12 +49663,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -50541,12 +50601,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -51694,12 +51754,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -53668,12 +53728,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -54524,12 +54584,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -55319,6 +55379,64 @@
       ],
       "iconColor": "#2196F3",
       "iconUrl": "https://play-lh.googleusercontent.com/zFBEG3LySRSOn0BrgmHF87oExCusVHOyTG1rLirsJzI0Ffv2sCtFTLpKnOFIdE4kLkd8LWiw9oc_HTFdRlGpQg"
+    },
+    {
+      "packageName": "com.undefined.mate",
+      "name": "Todo Mate",
+      "repos": [
+        "Entree3k/Morning-Entree-Patches"
+      ],
+      "sources": [
+        {
+          "repo": "Entree3k/Morning-Entree-Patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/Entree3k/Morning-Entree-Patches",
+          "addUrl": "https://morphe.software/add-source?github=Entree3k/Morning-Entree-Patches",
+          "source": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/Entree3k.png?size=96",
+          "latestChanges": {
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "Added Boosted and Todo Mate"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-undefined-mate-entree3k-morning-entree-patches",
+            "releaseTag": "app-com-undefined-mate-entree3k-morning-entree-patches",
+            "assetName": "todo-mate-entree3k-morning-entree-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Enable Premium",
+              "description": "Unlocks Todo Mate Premium. Use With Spoof Install Source"
+            }
+          ],
+          "versions": [
+            "5.15.8"
+          ]
+        }
+      ],
+      "patches": [
+        "Enable Premium"
+      ],
+      "patchDetails": [
+        {
+          "name": "Enable Premium",
+          "description": "Unlocks Todo Mate Premium. Use With Spoof Install Source"
+        }
+      ],
+      "versions": [
+        "5.15.8"
+      ],
+      "iconColor": "#00C9A7",
+      "iconUrl": ""
     },
     {
       "packageName": "com.todoist",
@@ -57380,12 +57498,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -58304,12 +58422,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.7.0 (2026-08-03)",
+            "date": "2026-08-03",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Added Phi Launcher"
+                "text": "Added Boosted and Todo Mate"
               }
             ]
           },
@@ -61591,8 +61709,8 @@
         "Video playback",
         "Video quality",
         "Visual preferences icons for YouTube",
-        "Voice over translation",
         "Voice Over Translation",
+        "Voice over translation",
         "Voice Over Translation (Yandex)",
         "Watch history",
         "Watch later button",
@@ -62094,12 +62212,12 @@
           "description": "Adds icons to specific preferences in the settings."
         },
         {
-          "name": "Voice over translation",
-          "description": "Adds additional voice over languages using text-to-speech synchronized to the video playback."
-        },
-        {
           "name": "Voice Over Translation",
           "description": "Adds an option to enable Yandex voice-over translation of video audio tracks."
+        },
+        {
+          "name": "Voice over translation",
+          "description": "Adds additional voice over languages using text-to-speech synchronized to the video playback."
         },
         {
           "name": "Voice Over Translation (Yandex)",
@@ -64080,12 +64198,12 @@
       "avatarUrl": "https://github.com/Entree3k.png?size=96",
       "patchCount": 2,
       "latestChanges": {
-        "title": "1.6.0 (2026-07-31)",
-        "date": "2026-07-31",
+        "title": "1.7.0 (2026-08-03)",
+        "date": "2026-08-03",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "Added Phi Launcher"
+            "text": "Added Boosted and Todo Mate"
           }
         ]
       },
@@ -64627,24 +64745,12 @@
       "avatarUrl": "https://github.com/Nai64.png?size=96",
       "patchCount": 9,
       "latestChanges": {
-        "title": "1.17.0 (2026-07-30)",
-        "date": "2026-07-30",
+        "title": "1.18.0 (2026-08-02)",
+        "date": "2026-08-02",
         "items": [
           {
-            "category": "Bug Fixes",
-            "text": "correct FLAG_LAYOUT_NO_LIMITS value, remove unused import"
-          },
-          {
             "category": "New Features",
-            "text": "add Custom App Resolution (Experimental) patch"
-          },
-          {
-            "category": "New Features",
-            "text": "add LicenseResponseHelper and ResponseValidator fingerprints to Pairip bypass"
-          },
-          {
-            "category": "New Features",
-            "text": "add loadRewardedAd patching to fire OnRewardedAdLoadedEvent"
+            "text": "add Unity Ads v4 support to Ads Free Rewards patch"
           }
         ]
       },

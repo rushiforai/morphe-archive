@@ -2,7 +2,7 @@
 
 An auto-generated, continuously updated index of every GitHub or GitLab repository that publishes a [Morphe](https://morphe.software) (`.mpp`) patch bundle.
 
-![Repos tracked](https://img.shields.io/badge/repos%20tracked-115-6366f1) ![Last updated](https://img.shields.io/badge/last%20updated-2026-08-02%2018:10%20UTC-555)
+![Repos tracked](https://img.shields.io/badge/repos%20tracked-115-6366f1) ![Last updated](https://img.shields.io/badge/last%20updated-2026-08-03%2002:59%20UTC-555)
 
 ---
 
@@ -176,6 +176,6 @@ This README is regenerated automatically by GitHub Actions whenever `repos.txt` 
 To add a repo manually, append it to `custom_repos.txt`. To remove one permanently, add it to `ignore_repos.txt`.
 Use `owner/repo` for GitHub, or `gitlab.com/group/project` for GitLab.
 
-20 approved repo entries were hidden because their bundle URL is currently invalid.
+21 approved repo entries were hidden because their bundle URL is currently invalid.
 
-*Last generated: 2026-08-02 18:10 UTC*
+*Last generated: 2026-08-03 02:59 UTC*
