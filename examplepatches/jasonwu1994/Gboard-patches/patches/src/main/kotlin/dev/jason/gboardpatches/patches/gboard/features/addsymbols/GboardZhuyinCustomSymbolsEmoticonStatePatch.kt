@@ -8,6 +8,8 @@ import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import dev.jason.gboardpatches.patches.gboard.shared.findMutableMethodOrThrow
 import dev.jason.gboardpatches.patches.gboard.shared.indexOfFirstFieldAccess
 import dev.jason.gboardpatches.patches.gboard.shared.instructionIndices
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 
 private const val EMOTICON_KEYBOARD_CLASS =
     "Lcom/google/android/apps/inputmethod/libs/search/emoticon/EmoticonKeyboardM2;"
@@ -195,15 +197,15 @@ private fun patchViewUtilTransformGuard() = with(context) {
 }
 
 private val CONSTRUCTOR_DELEGATE = """
-    invoke-static {p0}, Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->onEmoticonKeyboardConstructed(Ljava/lang/Object;)V
+    ${RuntimeCallEmitter.invoke(RuntimeCallId.ADD_SYMBOLS_RUNTIME_ON_EMOTICON_KEYBOARD_CONSTRUCTED, "p0")}
 """.trimIndent()
 
 private val BODY_READY_DELEGATE = """
-    invoke-static {p0}, Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->onEmoticonBodyReady(Ljava/lang/Object;)V
+    ${RuntimeCallEmitter.invoke(RuntimeCallId.ADD_SYMBOLS_RUNTIME_ON_EMOTICON_BODY_READY, "p0")}
 """.trimIndent()
 
 private val CATEGORY_NAME_LOOKUP_DELEGATE = """
-    invoke-static {p0, p1}, Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->overrideCategoryNameFromIndex(Ljava/lang/Object;I)Ljava/lang/String;
+    ${RuntimeCallEmitter.invoke(RuntimeCallId.ADD_SYMBOLS_RUNTIME_OVERRIDE_CATEGORY_NAME_FROM_INDEX, "p0, p1")}
 
     move-result-object v0
 
@@ -215,7 +217,7 @@ private val CATEGORY_NAME_LOOKUP_DELEGATE = """
 """.trimIndent()
 
 private val SELECTED_INDEX_DELEGATE = """
-    invoke-static {p0, p1}, Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->resolveSelectedCategoryIndex(Ljava/lang/Object;Ljava/lang/Object;)I
+    ${RuntimeCallEmitter.invoke(RuntimeCallId.ADD_SYMBOLS_RUNTIME_RESOLVE_SELECTED_CATEGORY_INDEX, "p0, p1")}
 
     move-result v0
 
@@ -229,7 +231,7 @@ private val SELECTED_INDEX_DELEGATE = """
 """.trimIndent()
 
 private val CATEGORY_CHANGE_DELEGATE = """
-    invoke-static {p0, p1, p2}, Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->handleCategoryChange(Ljava/lang/Object;II)Z
+    ${RuntimeCallEmitter.invoke(RuntimeCallId.ADD_SYMBOLS_RUNTIME_HANDLE_CATEGORY_CHANGE, "p0, p1, p2")}
 
     move-result v0
 
@@ -241,7 +243,7 @@ private val CATEGORY_CHANGE_DELEGATE = """
 """.trimIndent()
 
 private val CATEGORY_BIND_DELEGATE = """
-    invoke-static {p0, p1, p2}, Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->handleCategoryBind(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)Z
+    ${RuntimeCallEmitter.invoke(RuntimeCallId.ADD_SYMBOLS_RUNTIME_HANDLE_CATEGORY_BIND, "p0, p1, p2")}
 
     move-result v0
 
@@ -253,11 +255,11 @@ private val CATEGORY_BIND_DELEGATE = """
 """.trimIndent()
 
 private val HEADER_CALLBACK_DELEGATE = """
-    invoke-static {%s}, Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->onHeaderCallbackAfter(Ljava/lang/Object;)V
+    ${RuntimeCallEmitter.invoke(RuntimeCallId.ADD_SYMBOLS_RUNTIME_ON_HEADER_CALLBACK_AFTER, "%s")}
 """.trimIndent()
 
 private val HEADER_START_EDGE_GUARD_DELEGATE = """
-    invoke-static {p0}, Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->shouldSkipHeaderStartEdgeUpdate(Ljava/lang/Object;)Z
+    ${RuntimeCallEmitter.invoke(RuntimeCallId.ADD_SYMBOLS_RUNTIME_SHOULD_SKIP_HEADER_START_EDGE_UPDATE, "p0")}
 
     move-result v0
 
@@ -269,7 +271,7 @@ private val HEADER_START_EDGE_GUARD_DELEGATE = """
 """.trimIndent()
 
 private val VIEW_UTIL_TRANSFORM_GUARD_DELEGATE = """
-    invoke-static {p0, p1, p2}, Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->shouldSkipDetachedViewTransform(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Z
+    ${RuntimeCallEmitter.invoke(RuntimeCallId.ADD_SYMBOLS_RUNTIME_SHOULD_SKIP_DETACHED_VIEW_TRANSFORM, "p0, p1, p2")}
 
     move-result v0
 

@@ -1,5 +1,7 @@
 package dev.jason.gboardpatches.patches.gboard.features.advancedvoice
 
+import dev.jason.gboardpatches.patches.gboard.shared.generated.GboardVersionBindings
+
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -18,7 +20,7 @@ internal val gboardAdvancedVoiceAsrSessionPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_GBOARD)
 
     execute {
-        findMutableMethodOrThrow(GboardAdvancedVoice1777Bindings.asrSessionReset)
+        findMutableMethodOrThrow(GboardVersionBindings.advancedVoiceAsrSessionReset)
             .applyAdvancedVoiceAsrSessionReattachOverride()
     }
 }
@@ -35,7 +37,7 @@ internal fun MutableMethod.applyAdvancedVoiceAsrSessionReattachOverride() {
             field.type == "Lnea;"
     }
     check(flagReadIndices.size == 1) {
-        "Expected one qwz.Y ASR restart flag read in ${GboardAdvancedVoice1777Bindings.asrSessionReset.descriptor()}"
+        "Expected one qwz.Y ASR restart flag read in ${GboardVersionBindings.advancedVoiceAsrSessionReset.reference}"
     }
 
     val flagReadIndex = flagReadIndices.single()

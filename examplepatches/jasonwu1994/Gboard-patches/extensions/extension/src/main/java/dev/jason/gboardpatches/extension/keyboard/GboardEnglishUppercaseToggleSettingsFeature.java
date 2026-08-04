@@ -16,19 +16,6 @@ import dev.jason.gboardpatches.extension.settings.GboardSettingsText;
 public final class GboardEnglishUppercaseToggleSettingsFeature
         implements GboardPatchesSettingsContract.Feature {
     private static final String TAG = "GboardPatches";
-    private static final String HEADER_BADGE = "Gboard";
-    private static final String ENTRY_TITLE = "English Up-Flick Uppercase";
-    private static final String ENTRY_SUMMARY =
-            "Controls English keyboard letter-key up-flick uppercase behavior.";
-    private static final String ERROR_TITLE =
-            "English up-flick uppercase unavailable";
-    private static final String ERROR_SUMMARY =
-            "The English up-flick uppercase settings screen failed to load. Reopen Gboard settings and try again.";
-    private static final String ENABLED_TITLE = "Enable English Up-Flick Uppercase";
-    private static final String ENABLED_SUMMARY =
-            "Flicking up on lowercase letters outputs uppercase, and flicking up on uppercase letters outputs lowercase.";
-    private static final String SECTION_BEHAVIOR = "Behavior";
-
     private final String headerBadge;
     private final String entryTitle;
     private final String entrySummary;
@@ -39,29 +26,21 @@ public final class GboardEnglishUppercaseToggleSettingsFeature
     private final String sectionBehavior;
 
     public GboardEnglishUppercaseToggleSettingsFeature(Context context) {
-        headerBadge = GboardSettingsText.get(context, R.string.gboard_patches_header_badge,
-                HEADER_BADGE);
+        headerBadge = GboardSettingsText.get(context, R.string.gboard_patches_header_badge);
         entryTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_english_uppercase_toggle_title,
-                ENTRY_TITLE);
+                R.string.gboard_patches_english_uppercase_toggle_title);
         entrySummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_english_uppercase_toggle_summary,
-                ENTRY_SUMMARY);
+                R.string.gboard_patches_english_uppercase_toggle_summary);
         errorTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_english_uppercase_toggle_error_title,
-                ERROR_TITLE);
+                R.string.gboard_patches_english_uppercase_toggle_error_title);
         errorSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_english_uppercase_toggle_error_summary,
-                ERROR_SUMMARY);
+                R.string.gboard_patches_english_uppercase_toggle_error_summary);
         enabledTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_english_uppercase_toggle_enabled_title,
-                ENABLED_TITLE);
+                R.string.gboard_patches_english_uppercase_toggle_enabled_title);
         enabledSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_english_uppercase_toggle_enabled_summary,
-                ENABLED_SUMMARY);
+                R.string.gboard_patches_english_uppercase_toggle_enabled_summary);
         sectionBehavior = GboardSettingsText.get(context,
-                R.string.gboard_patches_english_uppercase_toggle_section_behavior,
-                SECTION_BEHAVIOR);
+                R.string.gboard_patches_english_uppercase_toggle_section_behavior);
     }
 
     @Override
@@ -83,7 +62,7 @@ public final class GboardEnglishUppercaseToggleSettingsFeature
 
     @Override
     public GboardPatchesSettingsContract.Screen buildScreen(
-            GboardPatchesSettingsContract.Host host) {
+            GboardPatchesSettingsContract.FeatureHost host) {
         try {
             if (host == null || host.getContext() == null) {
                 return buildErrorScreen();

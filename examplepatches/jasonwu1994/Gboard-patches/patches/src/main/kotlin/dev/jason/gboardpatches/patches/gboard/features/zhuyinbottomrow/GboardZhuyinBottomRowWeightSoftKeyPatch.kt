@@ -7,13 +7,20 @@ import dev.jason.gboardpatches.patches.gboard.shared.findMutableMethodOrThrow
 import dev.jason.gboardpatches.patches.gboard.shared.generated.GboardVersionBindings
 import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesExtensionCarrierPatch
 import dev.jason.gboardpatches.patches.gboard.shared.returnInstructionIndices
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeAbiCatalog
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 import dev.jason.gboardpatches.patches.shared.Constants.COMPATIBILITY_GBOARD
 
-internal const val ZHUYIN_BOTTOM_ROW_RUNTIME_CLASS =
-    "Ldev/jason/gboardpatches/extension/zhuyinbottomrow/GboardZhuyinBottomRowWeightRuntime;"
+internal val ZHUYIN_BOTTOM_ROW_RUNTIME_CLASS = RuntimeAbiCatalog.abi(
+    RuntimeCallId.ZHUYIN_BOTTOM_ROW_WEIGHT_RUNTIME_AFTER_SOFT_KEY_BOUND,
+).owner
 
 internal val ZHUYIN_BOTTOM_ROW_AFTER_BIND_DELEGATE = """
-    invoke-static {p0}, $ZHUYIN_BOTTOM_ROW_RUNTIME_CLASS->afterSoftKeyBound(Ljava/lang/Object;)V
+    ${RuntimeCallEmitter.invoke(
+        RuntimeCallId.ZHUYIN_BOTTOM_ROW_WEIGHT_RUNTIME_AFTER_SOFT_KEY_BOUND,
+        "p0",
+    )}
 """.trimIndent()
 
 internal const val ZHUYIN_BOTTOM_ROW_RETURN_INJECTION_MARKER = "returnInstructionIndices"

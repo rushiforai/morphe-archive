@@ -75,7 +75,7 @@ public final class GboardTopRowSwipeSettingsFeature
 
     @Override
     public GboardPatchesSettingsContract.Screen buildScreen(
-            GboardPatchesSettingsContract.Host host) {
+            GboardPatchesSettingsContract.FeatureHost host) {
         Context context = host != null ? host.getContext() : null;
         GboardTopRowSwipeStrings strings = GboardTopRowSwipeStrings.from(context);
         try {
@@ -291,11 +291,11 @@ public final class GboardTopRowSwipeSettingsFeature
     }
 
     private static final class ShowSlotEditorAction implements Runnable {
-        private final GboardPatchesSettingsContract.Host host;
+        private final GboardPatchesSettingsContract.FeatureHost host;
         private final int index;
         private final GboardTopRowSwipeSettings.SlotText slot;
 
-        ShowSlotEditorAction(GboardPatchesSettingsContract.Host host, int index,
+        ShowSlotEditorAction(GboardPatchesSettingsContract.FeatureHost host, int index,
                 GboardTopRowSwipeSettings.SlotText slot) {
             this.host = host;
             this.index = index;
@@ -312,14 +312,16 @@ public final class GboardTopRowSwipeSettingsFeature
                 return;
             }
             try {
-                GboardTopRowSwipeSlotEditorDialog.show(
-                        activity,
-                        index,
-                        slot,
-                        editedSlot -> {
-                            GboardTopRowSwipeSettings.writeSlot(context, index, editedSlot);
-                            safeRefresh(host);
-                        });
+                GboardPatchesSettingsContract.showManagedDialog(host, onDismiss ->
+                        GboardTopRowSwipeSlotEditorDialog.show(
+                                activity,
+                                index,
+                                slot,
+                                editedSlot -> {
+                                    GboardTopRowSwipeSettings.writeSlot(context, index, editedSlot);
+                                    safeRefresh(host);
+                                },
+                                onDismiss));
             } catch (Throwable throwable) {
                 Log.w(TAG, "Failed to show Top Row Swipe slot editor", throwable);
             }
@@ -327,11 +329,11 @@ public final class GboardTopRowSwipeSettingsFeature
     }
 
     private static final class ShowGlobalJavaScriptEditorAction implements Runnable {
-        private final GboardPatchesSettingsContract.Host host;
+        private final GboardPatchesSettingsContract.FeatureHost host;
         private final String globalJavaScript;
         private final GboardTopRowSwipeStrings strings;
 
-        ShowGlobalJavaScriptEditorAction(GboardPatchesSettingsContract.Host host,
+        ShowGlobalJavaScriptEditorAction(GboardPatchesSettingsContract.FeatureHost host,
                 String globalJavaScript,
                 GboardTopRowSwipeStrings strings) {
             this.host = host;
@@ -357,11 +359,11 @@ public final class GboardTopRowSwipeSettingsFeature
     }
 
     private static final class ShowJavaScriptRuntimeLimitsAction implements Runnable {
-        private final GboardPatchesSettingsContract.Host host;
+        private final GboardPatchesSettingsContract.FeatureHost host;
         private final GboardTopRowSwipeSettings.JavaScriptRuntimeLimits javaScriptRuntimeLimits;
         private final GboardTopRowSwipeStrings strings;
 
-        ShowJavaScriptRuntimeLimitsAction(GboardPatchesSettingsContract.Host host,
+        ShowJavaScriptRuntimeLimitsAction(GboardPatchesSettingsContract.FeatureHost host,
                 GboardTopRowSwipeSettings.JavaScriptRuntimeLimits javaScriptRuntimeLimits,
                 GboardTopRowSwipeStrings strings) {
             this.host = host;
@@ -388,12 +390,12 @@ public final class GboardTopRowSwipeSettingsFeature
     }
 
     private static final class ShowJavaScriptGuideDialogAction implements Runnable {
-        private final GboardPatchesSettingsContract.Host host;
+        private final GboardPatchesSettingsContract.FeatureHost host;
         private final String title;
         private final String message;
         private final GboardTopRowSwipeStrings strings;
 
-        ShowJavaScriptGuideDialogAction(GboardPatchesSettingsContract.Host host,
+        ShowJavaScriptGuideDialogAction(GboardPatchesSettingsContract.FeatureHost host,
                 String title,
                 String message,
                 GboardTopRowSwipeStrings strings) {
@@ -412,15 +414,15 @@ public final class GboardTopRowSwipeSettingsFeature
             if (!(context instanceof Activity activity) || activity.isFinishing()) {
                 return;
             }
-            showInfoDialog(activity, title, message, strings);
+            showInfoDialog(host, activity, title, message, strings);
         }
     }
 
     private static final class ShowJavaScriptExamplesDialogAction implements Runnable {
-        private final GboardPatchesSettingsContract.Host host;
+        private final GboardPatchesSettingsContract.FeatureHost host;
         private final GboardTopRowSwipeStrings strings;
 
-        ShowJavaScriptExamplesDialogAction(GboardPatchesSettingsContract.Host host,
+        ShowJavaScriptExamplesDialogAction(GboardPatchesSettingsContract.FeatureHost host,
                 GboardTopRowSwipeStrings strings) {
             this.host = host;
             this.strings = strings;
@@ -435,14 +437,14 @@ public final class GboardTopRowSwipeSettingsFeature
             if (!(context instanceof Activity activity) || activity.isFinishing()) {
                 return;
             }
-            showJavaScriptExamplesDialog(activity, strings);
+            showJavaScriptExamplesDialog(host, activity, strings);
         }
     }
 
     private static final class ResetSlotsAction implements Runnable {
-        private final GboardPatchesSettingsContract.Host host;
+        private final GboardPatchesSettingsContract.FeatureHost host;
 
-        ResetSlotsAction(GboardPatchesSettingsContract.Host host) {
+        ResetSlotsAction(GboardPatchesSettingsContract.FeatureHost host) {
             this.host = host;
         }
 
@@ -456,10 +458,10 @@ public final class GboardTopRowSwipeSettingsFeature
     }
 
     private static final class ExportSlotsAction implements Runnable {
-        private final GboardPatchesSettingsContract.Host host;
+        private final GboardPatchesSettingsContract.FeatureHost host;
         private final GboardTopRowSwipeStrings strings;
 
-        ExportSlotsAction(GboardPatchesSettingsContract.Host host,
+        ExportSlotsAction(GboardPatchesSettingsContract.FeatureHost host,
                 GboardTopRowSwipeStrings strings) {
             this.host = host;
             this.strings = strings;
@@ -477,7 +479,7 @@ public final class GboardTopRowSwipeSettingsFeature
                 String globalJavaScript = GboardTopRowSwipeSettings.readGlobalJavaScript(context);
                 GboardTopRowSwipeSettings.JavaScriptRuntimeLimits javaScriptRuntimeLimits =
                         GboardTopRowSwipeSettings.readJavaScriptRuntimeLimits(context);
-                host.createTextDocument(
+                GboardPatchesSettingsContract.createTextDocument(host,
                         EXPORT_FILE_NAME,
                         EXPORT_MIME_TYPE,
                         GboardTopRowSwipeSettings.exportSettings(globalJavaScript,
@@ -493,10 +495,10 @@ public final class GboardTopRowSwipeSettingsFeature
     }
 
     private static final class ImportSlotsAction implements Runnable {
-        private final GboardPatchesSettingsContract.Host host;
+        private final GboardPatchesSettingsContract.FeatureHost host;
         private final GboardTopRowSwipeStrings strings;
 
-        ImportSlotsAction(GboardPatchesSettingsContract.Host host,
+        ImportSlotsAction(GboardPatchesSettingsContract.FeatureHost host,
                 GboardTopRowSwipeStrings strings) {
             this.host = host;
             this.strings = strings;
@@ -512,7 +514,7 @@ public final class GboardTopRowSwipeSettingsFeature
                 return;
             }
             try {
-                host.openTextDocument(
+                GboardPatchesSettingsContract.openTextDocument(host,
                         IMPORT_MIME_TYPES,
                         text -> importSlotsFromText(activity, context, host, text, strings));
             } catch (Throwable throwable) {
@@ -521,18 +523,18 @@ public final class GboardTopRowSwipeSettingsFeature
         }
     }
 
-    private static void safeRefresh(GboardPatchesSettingsContract.Host host) {
+    private static void safeRefresh(GboardPatchesSettingsContract.FeatureHost host) {
         if (host == null) {
             return;
         }
         try {
-            host.refresh();
+            GboardPatchesSettingsContract.refresh(host);
         } catch (Throwable throwable) {
             Log.w(TAG, "Failed to refresh Top Row Swipe settings", throwable);
         }
     }
 
-    private static void resetAllSlots(Context context, GboardPatchesSettingsContract.Host host) {
+    private static void resetAllSlots(Context context, GboardPatchesSettingsContract.FeatureHost host) {
         try {
             GboardTopRowSwipeSettings.resetSlots(context);
         } catch (Throwable throwable) {
@@ -542,7 +544,7 @@ public final class GboardTopRowSwipeSettingsFeature
     }
 
     private static void importSlotsFromText(Activity activity, Context context,
-            GboardPatchesSettingsContract.Host host, String text,
+            GboardPatchesSettingsContract.FeatureHost host, String text,
             GboardTopRowSwipeStrings strings) {
         try {
             GboardTopRowSwipeSettings.ExportedSettings imported =
@@ -551,48 +553,43 @@ public final class GboardTopRowSwipeSettingsFeature
             Toast.makeText(context, strings.importDoneMessage, Toast.LENGTH_SHORT).show();
             safeRefresh(host);
         } catch (IllegalArgumentException exception) {
-            showImportError(activity, strings, strings.importInvalidSummary);
+            showImportError(host, activity, strings, strings.importInvalidSummary);
         } catch (Throwable throwable) {
             Log.w(TAG, "Failed to apply imported Top Row Swipe slots", throwable);
-            showImportError(activity, strings, strings.importFailedSummary);
+            showImportError(host, activity, strings, strings.importFailedSummary);
         }
     }
 
-    private static void showImportError(Activity activity,
+    private static void showImportError(GboardPatchesSettingsContract.FeatureHost host,
+            Activity activity,
             GboardTopRowSwipeStrings strings,
             String message) {
-        if (activity == null || activity.isFinishing()) {
-            return;
-        }
-        runUiActionSafely(activity, "show Top Row Swipe import error dialog", () ->
+        showManagedAlertDialog(host, activity, "show Top Row Swipe import error dialog", () ->
                 new AlertDialog.Builder(activity)
                         .setTitle(strings.importFailedTitle)
                         .setMessage(message)
                         .setPositiveButton(strings.closeButton, null)
-                        .show());
+                        .create());
     }
 
-    private static void showInfoDialog(Activity activity,
+    private static void showInfoDialog(GboardPatchesSettingsContract.FeatureHost host,
+            Activity activity,
             String title,
             String message,
             GboardTopRowSwipeStrings strings) {
-        if (activity == null || activity.isFinishing()) {
-            return;
-        }
-        runUiActionSafely(activity, "show info dialog", () ->
+        showManagedAlertDialog(host, activity, "show info dialog", () ->
                 new AlertDialog.Builder(activity)
                         .setTitle(title)
                         .setMessage(message)
                         .setPositiveButton(strings.closeButton, null)
-                        .show());
+                        .create());
     }
 
-    private static void showJavaScriptExamplesDialog(Activity activity,
+    private static void showJavaScriptExamplesDialog(
+            GboardPatchesSettingsContract.FeatureHost host,
+            Activity activity,
             GboardTopRowSwipeStrings strings) {
-        if (activity == null || activity.isFinishing()) {
-            return;
-        }
-        runUiActionSafely(activity, "show JavaScript examples dialog", () -> {
+        showManagedAlertDialog(host, activity, "show JavaScript examples dialog", () -> {
             LinearLayout content = new LinearLayout(activity);
             content.setOrientation(LinearLayout.VERTICAL);
             int horizontalPadding = dp(activity, 20);
@@ -609,11 +606,38 @@ public final class GboardTopRowSwipeSettingsFeature
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT));
 
-            new AlertDialog.Builder(activity)
+            return new AlertDialog.Builder(activity)
                     .setTitle(strings.javaScriptGuideExamplesDialogTitle)
                     .setView(scrollView)
                     .setPositiveButton(strings.closeButton, null)
-                    .show();
+                    .create();
+        });
+    }
+
+    private interface ManagedAlertDialogFactory {
+        AlertDialog create();
+    }
+
+    private static void showManagedAlertDialog(
+            GboardPatchesSettingsContract.FeatureHost host,
+            Activity activity,
+            String operationName,
+            ManagedAlertDialogFactory factory) {
+        GboardPatchesSettingsContract.showManagedDialog(host, onDismiss -> {
+            if (activity == null || activity.isFinishing() || factory == null) {
+                return false;
+            }
+            boolean[] shown = { false };
+            runUiActionSafely(activity, operationName, () -> {
+                AlertDialog dialog = factory.create();
+                if (dialog == null) {
+                    return;
+                }
+                dialog.setOnDismissListener(ignored -> onDismiss.run());
+                dialog.show();
+                shown[0] = true;
+            });
+            return shown[0];
         });
     }
 
@@ -883,10 +907,10 @@ public final class GboardTopRowSwipeSettingsFeature
 
     private static void showGlobalJavaScriptDialog(Activity activity,
             Context context,
-            GboardPatchesSettingsContract.Host host,
+            GboardPatchesSettingsContract.FeatureHost host,
             String initialValue,
             GboardTopRowSwipeStrings strings) {
-        runUiActionSafely(activity, "show global JavaScript dialog", () -> {
+        showManagedAlertDialog(host, activity, "show global JavaScript dialog", () -> {
             EditText input = new EditText(activity);
             input.setHint(strings.globalJavaScriptHint);
             input.setSingleLine(false);
@@ -990,16 +1014,16 @@ public final class GboardTopRowSwipeSettingsFeature
                                             }
                                         }));
                     }));
-            dialog.show();
+            return dialog;
         });
     }
 
     private static void showJavaScriptRuntimeLimitsDialog(Activity activity,
             Context context,
-            GboardPatchesSettingsContract.Host host,
+            GboardPatchesSettingsContract.FeatureHost host,
             GboardTopRowSwipeSettings.JavaScriptRuntimeLimits initialLimits,
             GboardTopRowSwipeStrings strings) {
-        runUiActionSafely(activity, "show JavaScript runtime limits dialog", () -> {
+        showManagedAlertDialog(host, activity, "show JavaScript runtime limits dialog", () -> {
             GboardTopRowSwipeSettings.JavaScriptRuntimeLimits limits = initialLimits != null
                     ? initialLimits : GboardTopRowSwipeSettings.defaultJavaScriptRuntimeLimits();
 
@@ -1091,7 +1115,7 @@ public final class GboardTopRowSwipeSettingsFeature
                                                 GboardTopRowSwipeSettings
                                                         .defaultJavaScriptRuntimeLimits())));
                     }));
-            dialog.show();
+            return dialog;
         });
     }
 

@@ -77,7 +77,7 @@ public final class GboardSettingsHomepageSettingsFeature
 
     @Override
     public GboardPatchesSettingsContract.Screen buildScreen(
-            GboardPatchesSettingsContract.Host host) {
+            GboardPatchesSettingsContract.FeatureHost host) {
         try {
             Context context = host.getContext();
             initializeText(context);
@@ -132,22 +132,16 @@ public final class GboardSettingsHomepageSettingsFeature
                         safetyTitle,
                         GboardSettingsText.get(
                                 context,
-                                R.string.gboard_patches_settings_homepage_safeguard_summary,
-                                "This Android version does not expose the expected expressive"
-                                        + " runtime. New still remains selectable, but it runs"
-                                        + " under crash recovery protection."),
+                                R.string.gboard_patches_settings_homepage_safeguard_summary),
                         GboardPatchesSettingsContract.StatusTone.WARNING));
             }
             if (GboardSettingsHomepageSettings.MODE_FORCE_NEW.equals(selectedMode)
                     && trialArmed) {
                 statusBlocks.add(new GboardPatchesSettingsContract.StatusBlock(
                         trialTitle,
-                        GboardSettingsText.get(
+                        GboardSettingsText.format(
                                 context,
                                 R.string.gboard_patches_settings_homepage_trial_armed_summary,
-                                "Open Gboard settings within %1$d seconds. If nothing launches"
-                                        + " in that window, it falls back to Legacy"
-                                        + " automatically.",
                                 trialRemainingSeconds),
                         GboardPatchesSettingsContract.StatusTone.WARNING));
             }
@@ -157,10 +151,7 @@ public final class GboardSettingsHomepageSettingsFeature
                         recoveryTitle,
                         GboardSettingsText.get(
                                 context,
-                                R.string.gboard_patches_settings_homepage_recovery_summary,
-                                "The previous New settings launch did not finish cleanly."
-                                        + " Legacy stays active so you can reopen settings and"
-                                        + " retry safely."),
+                                R.string.gboard_patches_settings_homepage_recovery_summary),
                         GboardPatchesSettingsContract.StatusTone.WARNING));
             }
             if (GboardSettingsHomepageSettings.MODE_FORCE_NEW.equals(selectedMode)
@@ -169,10 +160,7 @@ public final class GboardSettingsHomepageSettingsFeature
                         trialTitle,
                         GboardSettingsText.get(
                                 context,
-                                R.string.gboard_patches_settings_homepage_trial_expired_summary,
-                                "The New launch window expired before Gboard opened its"
-                                        + " settings page. Legacy stays active until you choose"
-                                        + " New again."),
+                                R.string.gboard_patches_settings_homepage_trial_expired_summary),
                         GboardPatchesSettingsContract.StatusTone.WARNING));
             }
 
@@ -213,9 +201,9 @@ public final class GboardSettingsHomepageSettingsFeature
                 Collections.emptyList());
     }
 
-    private void showModeDialog(GboardPatchesSettingsContract.Host host,
+    private void showModeDialog(GboardPatchesSettingsContract.FeatureHost host,
             SharedPreferences preferences) {
-        host.showChoiceDialog(
+        GboardPatchesSettingsContract.showChoiceDialog(host,
                 titleMode,
                 new String[] { labelAuto, labelNew, labelLegacy },
                 new String[] {
@@ -236,20 +224,17 @@ public final class GboardSettingsHomepageSettingsFeature
             if (crashRecoveryActive) {
                 return GboardSettingsText.get(
                         context,
-                        R.string.gboard_patches_settings_homepage_mode_new_recovered,
-                        "New (recovered)");
+                        R.string.gboard_patches_settings_homepage_mode_new_recovered);
             }
             if (trialExpired) {
                 return GboardSettingsText.get(
                         context,
-                        R.string.gboard_patches_settings_homepage_mode_new_expired,
-                        "New (expired)");
+                        R.string.gboard_patches_settings_homepage_mode_new_expired);
             }
             if (trialArmed) {
                 return GboardSettingsText.get(
                         context,
-                        R.string.gboard_patches_settings_homepage_mode_new_armed,
-                        "New (armed)");
+                        R.string.gboard_patches_settings_homepage_mode_new_armed);
             }
             return labelNew;
         }
@@ -265,48 +250,35 @@ public final class GboardSettingsHomepageSettingsFeature
             if (crashRecoveryActive) {
                 return GboardSettingsText.get(
                         context,
-                        R.string.gboard_patches_settings_homepage_mode_summary_new_recovered,
-                        "The previous New launch crashed. Legacy stays active until you switch"
-                                + " modes or choose New again to retry.");
+                        R.string.gboard_patches_settings_homepage_mode_summary_new_recovered);
             }
             if (trialExpired) {
                 return GboardSettingsText.get(
                         context,
-                        R.string.gboard_patches_settings_homepage_mode_summary_new_expired,
-                        "The New launch window expired. Choose New again, then open Gboard"
-                                + " settings within 10 seconds to retry.");
+                        R.string.gboard_patches_settings_homepage_mode_summary_new_expired);
             }
             if (trialArmed) {
                 return GboardSettingsText.get(
                         context,
-                        R.string.gboard_patches_settings_homepage_mode_summary_new_armed,
-                        "Open Gboard settings within 10 seconds. If the launch crashes or"
-                                + " never starts, it falls back to Legacy automatically.");
+                        R.string.gboard_patches_settings_homepage_mode_summary_new_armed);
             }
             if (!forceNewSupported) {
                 return GboardSettingsText.get(
                         context,
-                        R.string.gboard_patches_settings_homepage_mode_summary_new_guarded,
-                        "New stays available on this Android version, but it runs with"
-                                + " automatic fallback protection if the settings launch"
-                                + " fails.");
+                        R.string.gboard_patches_settings_homepage_mode_summary_new_guarded);
             }
             return GboardSettingsText.get(
                     context,
-                    R.string.gboard_patches_settings_homepage_mode_summary_new,
-                    "Always use the new settings style. Reopen Gboard settings to apply.");
+                    R.string.gboard_patches_settings_homepage_mode_summary_new);
         }
         if (GboardSettingsHomepageSettings.MODE_FORCE_LEGACY.equals(mode)) {
             return GboardSettingsText.get(
                     context,
-                    R.string.gboard_patches_settings_homepage_mode_summary_legacy,
-                    "Always use the legacy settings style. Reopen Gboard settings to apply.");
+                    R.string.gboard_patches_settings_homepage_mode_summary_legacy);
         }
         return GboardSettingsText.get(
                 context,
-                R.string.gboard_patches_settings_homepage_mode_summary_auto,
-                "Follow Gboard automatic selection. Reopen Gboard settings after switching"
-                        + " modes.");
+                R.string.gboard_patches_settings_homepage_mode_summary_auto);
     }
 
     private String currentHomepageSummary(Context context, String currentHomepageLabel,
@@ -316,28 +288,22 @@ public final class GboardSettingsHomepageSettingsFeature
                 && (crashRecoveryActive || trialExpired)) {
             return GboardSettingsText.get(
                     context,
-                    R.string.gboard_patches_settings_homepage_current_summary_guarded,
-                    "Legacy settings style is active right now because New is being held back"
-                            + " by the safety guard.");
+                    R.string.gboard_patches_settings_homepage_current_summary_guarded);
         }
         if (GboardSettingsHomepageSettings.MODE_FORCE_NEW.equals(selectedMode) && trialArmed) {
             return GboardSettingsText.get(
                     context,
-                    R.string.gboard_patches_settings_homepage_current_summary_queued,
-                    "New settings style is queued for the next Gboard settings launch.");
+                    R.string.gboard_patches_settings_homepage_current_summary_queued);
         }
         if (GboardSettingsHomepageSettings.MODE_FORCE_NEW.equals(selectedMode)
                 && !forceNewSupported) {
             return GboardSettingsText.get(
                     context,
-                    R.string.gboard_patches_settings_homepage_current_summary_protected,
-                    "New settings style is selected with crash recovery protection on this"
-                            + " Android version.");
+                    R.string.gboard_patches_settings_homepage_current_summary_protected);
         }
-        return GboardSettingsText.get(
+        return GboardSettingsText.format(
                 context,
                 R.string.gboard_patches_settings_homepage_current_summary_default,
-                "%1$s settings style is active right now.",
                 currentHomepageLabel);
     }
 
@@ -350,80 +316,62 @@ public final class GboardSettingsHomepageSettingsFeature
                         "settings-previews/settingshomepage/settings_style_new.jpg",
                         GboardSettingsText.get(
                                 context,
-                                R.string.gboard_patches_settings_homepage_preview_new,
-                                "New style")),
+                                R.string.gboard_patches_settings_homepage_preview_new)),
                 new GboardPatchesSettingsContract.PreviewImage(
                         "settings-previews/settingshomepage/settings_style_legacy.jpg",
                         GboardSettingsText.get(
                                 context,
-                                R.string.gboard_patches_settings_homepage_preview_legacy,
-                                "Legacy style")));
+                                R.string.gboard_patches_settings_homepage_preview_legacy)));
     }
 
     private void initializeText(Context context) {
         headerBadge = GboardSettingsText.get(
                 context,
-                R.string.gboard_patches_header_badge,
-                FALLBACK_HEADER_BADGE);
+                R.string.gboard_patches_header_badge);
         entryTitle = GboardSettingsText.get(
                 context,
-                R.string.gboard_patches_settings_homepage_title,
-                FALLBACK_ENTRY_TITLE);
+                R.string.gboard_patches_settings_homepage_title);
         entrySummary = GboardSettingsText.get(
                 context,
-                R.string.gboard_patches_settings_homepage_summary,
-                FALLBACK_ENTRY_SUMMARY);
+                R.string.gboard_patches_settings_homepage_summary);
         headerSummary = GboardSettingsText.get(
                 context,
-                R.string.gboard_patches_settings_homepage_header_summary,
-                FALLBACK_HEADER_SUMMARY);
+                R.string.gboard_patches_settings_homepage_header_summary);
         errorTitle = GboardSettingsText.get(
                 context,
-                R.string.gboard_patches_settings_homepage_error_title,
-                FALLBACK_ERROR_TITLE);
+                R.string.gboard_patches_settings_homepage_error_title);
         errorSummary = GboardSettingsText.get(
                 context,
-                R.string.gboard_patches_settings_homepage_error_summary,
-                FALLBACK_ERROR_SUMMARY);
+                R.string.gboard_patches_settings_homepage_error_summary);
         safetyTitle = GboardSettingsText.get(
                 context,
-                R.string.gboard_patches_settings_homepage_safeguard_title,
-                FALLBACK_SAFETY_TITLE);
+                R.string.gboard_patches_settings_homepage_safeguard_title);
         recoveryTitle = GboardSettingsText.get(
                 context,
-                R.string.gboard_patches_settings_homepage_recovery_title,
-                FALLBACK_RECOVERY_TITLE);
+                R.string.gboard_patches_settings_homepage_recovery_title);
         trialTitle = GboardSettingsText.get(
                 context,
-                R.string.gboard_patches_settings_homepage_trial_title,
-                FALLBACK_TRIAL_TITLE);
+                R.string.gboard_patches_settings_homepage_trial_title);
         titleMode = GboardSettingsText.get(
                 context,
-                R.string.gboard_patches_settings_homepage_mode_title,
-                FALLBACK_TITLE_MODE);
+                R.string.gboard_patches_settings_homepage_mode_title);
         titleCurrent = GboardSettingsText.get(
                 context,
-                R.string.gboard_patches_settings_homepage_current_title,
-                FALLBACK_TITLE_CURRENT);
+                R.string.gboard_patches_settings_homepage_current_title);
         labelAuto = GboardSettingsText.get(
                 context,
-                R.string.gboard_patches_settings_homepage_label_auto,
-                FALLBACK_LABEL_AUTO);
+                R.string.gboard_patches_settings_homepage_label_auto);
         labelNew = GboardSettingsText.get(
                 context,
-                R.string.gboard_patches_settings_homepage_label_new,
-                FALLBACK_LABEL_NEW);
+                R.string.gboard_patches_settings_homepage_label_new);
         labelLegacy = GboardSettingsText.get(
                 context,
-                R.string.gboard_patches_settings_homepage_label_legacy,
-                FALLBACK_LABEL_LEGACY);
+                R.string.gboard_patches_settings_homepage_label_legacy);
         sectionStyle = GboardSettingsText.get(
                 context,
-                R.string.gboard_patches_settings_homepage_section_style,
-                FALLBACK_SECTION_STYLE);
+                R.string.gboard_patches_settings_homepage_section_style);
         sectionCurrentState = GboardSettingsText.get(
                 context,
-                R.string.gboard_patches_settings_homepage_section_current_state,
-                FALLBACK_SECTION_CURRENT_STATE);
+                R.string.gboard_patches_settings_homepage_section_current_state);
     }
 }

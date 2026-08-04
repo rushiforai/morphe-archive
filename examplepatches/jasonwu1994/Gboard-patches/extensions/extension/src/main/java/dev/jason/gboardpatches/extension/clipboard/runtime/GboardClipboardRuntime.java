@@ -21,6 +21,8 @@ public final class GboardClipboardRuntime {
             new GboardClipboardOrderIndexFeature(SUPPORT);
     private static final GboardClipboardColumnCountFeature COLUMN_COUNT_FEATURE =
             new GboardClipboardColumnCountFeature(SUPPORT);
+    private static final GboardClipboardCardPreviewFeature CARD_PREVIEW_FEATURE =
+            new GboardClipboardCardPreviewFeature(SUPPORT);
     private static final GboardClipboardLoaderHookAdapter LOADER_HOOK_ADAPTER =
             new GboardClipboardLoaderHookAdapter(SUPPORT, RETENTION_FEATURE, MAX_COUNT_FEATURE);
     private static final GboardClipboardPruneHookAdapter PRUNE_HOOK_ADAPTER =
@@ -28,7 +30,7 @@ public final class GboardClipboardRuntime {
     private static final GboardClipboardUiHookAdapter UI_HOOK_ADAPTER =
             new GboardClipboardUiHookAdapter(SUPPORT, MAX_COUNT_FEATURE, PREVIEW_LINES_FEATURE,
                     COUNTDOWN_FEATURE, CREATION_TIME_FEATURE, ORDER_INDEX_FEATURE,
-                    LOADER_HOOK_ADAPTER);
+                    CARD_PREVIEW_FEATURE, LOADER_HOOK_ADAPTER);
     private static final GboardClipboardColumnCountHookAdapter COLUMN_COUNT_HOOK_ADAPTER =
             new GboardClipboardColumnCountHookAdapter(COLUMN_COUNT_FEATURE);
 
@@ -97,6 +99,10 @@ public final class GboardClipboardRuntime {
 
     public static void afterAdapterTrim(Object receiver) {
         UI_HOOK_ADAPTER.afterAdapterTrim(receiver);
+    }
+
+    public static void beforeItemBind(Object receiver, Object holderObject, int position) {
+        UI_HOOK_ADAPTER.beforeItemBind(receiver, holderObject, position);
     }
 
     public static void afterItemBind(Object receiver, Object holderObject, int position) {

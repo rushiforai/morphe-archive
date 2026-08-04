@@ -72,156 +72,91 @@ public final class GboardAdvancedVoiceSettingsFeature
 
     public GboardAdvancedVoiceSettingsFeature(Context context) {
         entryTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_title,
-                "Advanced Voice Typing");
+                R.string.gboard_patches_advanced_voice_title);
         entrySummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_summary,
-                "Controls whether Advanced Voice Typing is forced on.");
+                R.string.gboard_patches_advanced_voice_summary);
         headerBadge = GboardSettingsText.get(context,
-                R.string.gboard_patches_header_badge,
-                "Gboard");
+                R.string.gboard_patches_header_badge);
         headerSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_header_summary,
-                "Voice typing -> Advanced features、 Add punctuation");
+                R.string.gboard_patches_advanced_voice_header_summary);
         errorTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_error_title,
-                "Advanced Voice Typing unavailable");
+                R.string.gboard_patches_advanced_voice_error_title);
         errorSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_error_summary,
-                "The Advanced Voice Typing settings screen failed to load. "
-                        + "Reopen Gboard settings and try again.");
+                R.string.gboard_patches_advanced_voice_error_summary);
         enabledTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_enabled_title,
-                "Enable Advanced Voice Typing");
+                R.string.gboard_patches_advanced_voice_enabled_title);
         enabledSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_enabled_summary,
-                "When Advanced Voice Typing is active, a colorful microphone icon appears. "
-                        + "Force-stop and restart Gboard for changes to take effect.");
+                R.string.gboard_patches_advanced_voice_enabled_summary);
         zhTwPunctuationTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_zh_tw_punctuation_title,
-                "Automatically Add Punctuation to Chinese Input");
+                R.string.gboard_patches_advanced_voice_zh_tw_punctuation_title);
         zhTwPunctuationSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_zh_tw_punctuation_summary,
-                "Requires Voice typing -> Advanced features to be enabled. "
-                        + "Force-stop and restart Gboard for changes to take effect.");
+                R.string.gboard_patches_advanced_voice_zh_tw_punctuation_summary);
         sectionBehavior = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_section_behavior,
-                "Behavior");
+                R.string.gboard_patches_advanced_voice_section_behavior);
         sectionInformation = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_section_information,
-                "Information");
+                R.string.gboard_patches_advanced_voice_section_information);
         sectionOfflineSpeechModel = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_section_offline_speech_model,
-                "Offline speech model");
+                R.string.gboard_patches_advanced_voice_section_offline_speech_model);
         sectionSupportedLanguages = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_section_supported_languages,
-                "Supported languages");
+                R.string.gboard_patches_advanced_voice_section_supported_languages);
         supportedLanguagesTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_supported_languages_title,
-                "Supported languages");
+                R.string.gboard_patches_advanced_voice_supported_languages_title);
         supportedLanguagesSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_supported_languages_summary,
-                "Only en-US supports the complete feature set.\n\n"
-                        + "English en-AU, en-CA, en-GB, en-IE, en-IN, en-SG, en-US\n"
-                        + "German de-AT, de-BE, de-CH, de-DE\n"
-                        + "French fr-BE, fr-CA, fr-CH, fr-FR\n"
-                        + "Italian it-CH, it-IT\nJapanese ja-JP\nSpanish es-ES, es-US");
+                R.string.gboard_patches_advanced_voice_supported_languages_summary);
         githubStarTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_github_star_title,
-                "Support this project on GitHub 😊");
+                R.string.gboard_patches_advanced_voice_github_star_title);
         githubStarSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_github_star_summary,
-                "This feature took a significant amount of time to build. If it helps you, "
-                        + "please give the project a Star on GitHub.");
+                R.string.gboard_patches_advanced_voice_github_star_summary);
         speechServicesPresentTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_speech_services_present_title,
-                "Speech Recognition & Synthesis (Installed)");
+                R.string.gboard_patches_advanced_voice_speech_services_present_title);
         speechServicesAbsentTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_speech_services_absent_title,
-                "Speech Recognition & Synthesis (Not installed)");
+                R.string.gboard_patches_advanced_voice_speech_services_absent_title);
         speechServicesUnknownTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_speech_services_unknown_title,
-                "Speech Recognition & Synthesis (Unable to verify)");
+                R.string.gboard_patches_advanced_voice_speech_services_unknown_title);
         speechServicesStatusSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_speech_services_status_summary,
-                "Package: com.google.android.tts. Required for Advanced Voice Typing: install "
-                        + "Speech Recognition & Synthesis and download the offline speech "
-                        + "recognition model for every language you use. Tap to open its "
-                        + "Google Play page.");
+                R.string.gboard_patches_advanced_voice_speech_services_status_summary);
         downloadedLanguagesTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_downloaded_languages_title,
-                "Downloaded offline languages");
+                R.string.gboard_patches_advanced_voice_downloaded_languages_title);
         downloadedLanguagesLoadingSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_downloaded_languages_loading_summary,
-                "Checking downloaded offline languages…");
+                R.string.gboard_patches_advanced_voice_downloaded_languages_loading_summary);
         downloadedLanguagesEmptySummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_downloaded_languages_empty_summary,
-                "No downloaded offline languages detected.");
+                R.string.gboard_patches_advanced_voice_downloaded_languages_empty_summary);
         downloadedLanguagesUnsupportedSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_downloaded_languages_unsupported_summary,
-                "This Android version cannot query downloaded offline languages.");
+                R.string.gboard_patches_advanced_voice_downloaded_languages_unsupported_summary);
         downloadedLanguagesUnavailableSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_downloaded_languages_unavailable_summary,
-                "No on-device speech recognition service is available.");
+                R.string.gboard_patches_advanced_voice_downloaded_languages_unavailable_summary);
         downloadedLanguagesErrorSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_downloaded_languages_error_summary,
-                "Unable to read downloaded offline languages. Check them in Live Transcribe.");
+                R.string.gboard_patches_advanced_voice_downloaded_languages_error_summary);
         downloadedLanguagesSeparator = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_downloaded_languages_separator,
-                ", ");
+                R.string.gboard_patches_advanced_voice_downloaded_languages_separator);
         liveTranscribeManageTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_live_transcribe_manage_title,
-                "Manage languages with Live Transcribe");
+                R.string.gboard_patches_advanced_voice_live_transcribe_manage_title);
         liveTranscribeManageSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_live_transcribe_manage_summary,
-                "Use Google’s official Live Transcribe app to download the Speech Recognition "
-                        + "& Synthesis offline recognition models required for Advanced Voice "
-                        + "Typing. In Live Transcribe, open Settings → More settings → Primary "
-                        + "language.\nTap to open Live Transcribe.");
+                R.string.gboard_patches_advanced_voice_live_transcribe_manage_summary);
         payloadPresentTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_payload_present_title,
-                "Dictation payload (Installed)");
+                R.string.gboard_patches_advanced_voice_payload_present_title);
         payloadPresentSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_payload_present_summary,
-                "The currently installed %1$s meets the APK payload requirement for "
-                        + "Advanced Voice Typing.");
+                R.string.gboard_patches_advanced_voice_payload_present_summary);
         payloadPresentRequirementTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_payload_present_requirement_title,
-                "Installation requirement (currently met)");
+                R.string.gboard_patches_advanced_voice_payload_present_requirement_title);
         payloadPresentRequirementSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_payload_present_requirement_summary,
-                "No download is needed right now. For future updates or reinstalls, you must "
-                        + "still use a bundle or split APKM and apply the patch in Morphe; a "
-                        + "standalone APK cannot work.\nTap to view the APKMirror download page");
+                R.string.gboard_patches_advanced_voice_payload_present_requirement_summary);
         payloadAbsentTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_payload_absent_title,
-                "Dictation payload (Not installed)");
+                R.string.gboard_patches_advanced_voice_payload_absent_title);
         payloadAbsentSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_payload_absent_summary,
-                "The currently installed %1$s does not contain libdictation_jni.so, which "
-                        + "Advanced Voice Typing requires.");
+                R.string.gboard_patches_advanced_voice_payload_absent_summary);
         payloadAbsentRequirementTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_payload_absent_requirement_title,
-                "Get a bundle or split APKM");
+                R.string.gboard_patches_advanced_voice_payload_absent_requirement_title);
         payloadAbsentRequirementSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_payload_absent_requirement_summary,
-                "Get a bundle or split APKM and apply the patch in Morphe; a standalone APK "
-                        + "cannot work.\nTap to open the APKMirror download page");
+                R.string.gboard_patches_advanced_voice_payload_absent_requirement_summary);
         payloadUnknownTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_payload_unknown_title,
-                "Dictation payload (Unable to verify)");
+                R.string.gboard_patches_advanced_voice_payload_unknown_title);
         payloadUnknownSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_payload_unknown_summary,
-                "The installed APK files for the selected Gboard package could not be "
-                        + "inspected.");
+                R.string.gboard_patches_advanced_voice_payload_unknown_summary);
         payloadUnknownRequirementTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_payload_unknown_requirement_title,
-                "Verify the installation source");
+                R.string.gboard_patches_advanced_voice_payload_unknown_requirement_title);
         payloadUnknownRequirementSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_advanced_voice_payload_unknown_requirement_summary,
-                "It is currently unclear whether another download is needed. Verify that you "
-                        + "used a bundle or split APKM and applied the patch in Morphe; a "
-                        + "standalone APK cannot work.\nTap to view the APKMirror download page");
+                R.string.gboard_patches_advanced_voice_payload_unknown_requirement_summary);
     }
 
     @Override
@@ -248,7 +183,7 @@ public final class GboardAdvancedVoiceSettingsFeature
 
     @Override
     public GboardPatchesSettingsContract.Screen buildScreen(
-            GboardPatchesSettingsContract.Host host) {
+            GboardPatchesSettingsContract.FeatureHost host) {
         try {
             if (host == null || host.getContext() == null) {
                 return buildErrorScreen();
@@ -312,7 +247,7 @@ public final class GboardAdvancedVoiceSettingsFeature
                     guidance.commandTitle,
                     guidance.commandSummary,
                     true,
-                    () -> host.openExternalUrl(APKMIRROR_DOWNLOAD_URL)));
+                    () -> GboardPatchesSettingsContract.openExternalUrl(host, APKMIRROR_DOWNLOAD_URL)));
 
             List<GboardPatchesSettingsContract.Row> offlineSpeechModelRows =
                     new ArrayList<GboardPatchesSettingsContract.Row>();
@@ -320,7 +255,7 @@ public final class GboardAdvancedVoiceSettingsFeature
                     speechServicesStatusTitle(speechServicesStatus),
                     speechServicesStatusSummary,
                     true,
-                    () -> host.openSpeechRecognitionAndSynthesisStoreListing()));
+                    () -> GboardPatchesSettingsContract.openSpeechRecognitionAndSynthesisStoreListing(host)));
             offlineSpeechModelRows.add(new GboardPatchesSettingsContract.DetailRow(
                     downloadedLanguagesTitle,
                     downloadedLanguagesSummary(context, offlineSpeechLanguages),
@@ -329,7 +264,7 @@ public final class GboardAdvancedVoiceSettingsFeature
                     liveTranscribeManageTitle,
                     liveTranscribeManageSummary,
                     true,
-                    () -> host.openLiveTranscribeLanguageManager()));
+                    () -> GboardPatchesSettingsContract.openLiveTranscribeLanguageManager(host)));
 
             List<GboardPatchesSettingsContract.Row> supportedLocalesRows =
                     Collections.singletonList(new GboardPatchesSettingsContract.DetailRow(
@@ -341,7 +276,7 @@ public final class GboardAdvancedVoiceSettingsFeature
                             githubStarTitle,
                             githubStarSummary,
                             true,
-                            () -> host.openExternalUrl(ADVANCED_VOICE_GITHUB_URL)));
+                            () -> GboardPatchesSettingsContract.openExternalUrl(host, ADVANCED_VOICE_GITHUB_URL)));
 
             return new GboardPatchesSettingsContract.Screen(
                     entryTitle,

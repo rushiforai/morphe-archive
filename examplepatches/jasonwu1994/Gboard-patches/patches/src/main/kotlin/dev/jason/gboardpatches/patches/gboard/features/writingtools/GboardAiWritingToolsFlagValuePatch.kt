@@ -10,6 +10,8 @@ import dev.jason.gboardpatches.patches.gboard.features.featureflags.injectFeatur
 import dev.jason.gboardpatches.patches.gboard.shared.findMutableMethodOrThrow
 import dev.jason.gboardpatches.patches.gboard.shared.generated.GboardVersionBindings
 import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesExtensionCarrierPatch
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 import dev.jason.gboardpatches.patches.shared.Constants.COMPATIBILITY_GBOARD
 
 internal val gboardAiWritingToolsFlagValuePatch = bytecodePatch(
@@ -41,7 +43,10 @@ internal fun MutableMethod.applyWritingToolsFlagValueOverride() {
 }
 
 private val FLAG_VALUE_DELEGATE_TEMPLATE = """
-    invoke-static {v1, v$RESULT_REGISTER_TOKEN}, $AI_WRITING_TOOLS_RUNTIME_CLASS->applyOverriddenFlagValue(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+    ${RuntimeCallEmitter.invoke(
+        RuntimeCallId.AI_WRITING_TOOLS_RUNTIME_APPLY_OVERRIDDEN_FLAG_VALUE,
+        "v1, v$RESULT_REGISTER_TOKEN",
+    )}
 
     move-result-object v$RESULT_REGISTER_TOKEN
 """.trimIndent()

@@ -362,30 +362,6 @@ internal data class FeatureFlagMarkerRuntimeContract(
     val siblingMarkerLiterals: List<String>,
 )
 
-internal data class FeatureFlagRegistryContract(
-    val publicPatchPropertyName: String,
-    val markerPatchPropertyName: String,
-)
-
-internal fun assertFeatureFlagRegistryContract(
-    registrySource: String,
-    contract: FeatureFlagRegistryContract,
-) {
-    FeatureFlagSource.parse(registrySource)
-        .resourcePatch(contract.publicPatchPropertyName)
-        .body
-        .assertExactExecutableTokens(
-            """
-            compatibleWith(COMPATIBILITY_GBOARD)
-            dependsOn(
-                gboardPatchesExtensionCarrierPatch,
-                gboardFeatureFlagsBytecodePatch,
-                ${contract.markerPatchPropertyName}
-            )
-            """.trimIndent(),
-        )
-}
-
 internal fun assertFeatureFlagMarkerRuntimeContract(
     markerSource: String,
     availabilitySource: String,

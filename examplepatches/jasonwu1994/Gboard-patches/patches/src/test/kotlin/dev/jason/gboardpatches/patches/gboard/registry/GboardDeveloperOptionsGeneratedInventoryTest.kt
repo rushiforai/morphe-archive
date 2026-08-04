@@ -11,7 +11,7 @@ import org.junit.Test
 
 class GboardDeveloperOptionsGeneratedInventoryTest {
     @Test
-    fun generatedInventoryContainsTwentyTwoPublishedPatchesAndNoRetiredRows() {
+    fun generatedInventoryContainsTwentyThreePublishedPatchesAndNoRetiredRows() {
         val repositoryRoot = findRepositoryRoot()
         val inventory = JsonParser.parseString(
             String(
@@ -22,7 +22,7 @@ class GboardDeveloperOptionsGeneratedInventoryTest {
         val patches = inventory.getAsJsonArray("patches")
         val names = patches.map { it.asJsonObject.get("name").asString }
 
-        assertEquals(22, patches.size())
+        assertEquals(23, patches.size())
         RETIRED_PATCH_NAMES.forEach { retiredName ->
             assertFalse("Retired patch must stay absent: $retiredName", names.contains(retiredName))
         }
@@ -54,6 +54,7 @@ class GboardDeveloperOptionsGeneratedInventoryTest {
             "Add Gboard Signature Bypass",
             "Advanced Voice Typing",
             "Clipboard Enhancements",
+            "Clipboard Custom Character Limit",
             "Custom Symbols",
             "Developer options",
             "Emojis, stickers & GIFs Tab Order",

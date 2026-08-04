@@ -6,8 +6,18 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import dev.jason.gboardpatches.patches.gboard.shared.VerifiedTransformationPlan
+import dev.jason.gboardpatches.patches.gboard.shared.VerifiedTransformationState
+import dev.jason.gboardpatches.patches.gboard.shared.applyVerified
 import dev.jason.gboardpatches.patches.gboard.shared.findMutableMethodOrThrow
+import dev.jason.gboardpatches.patches.gboard.shared.isMethodReference
+import dev.jason.gboardpatches.patches.gboard.shared.isOpcode
 import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesExtensionCarrierPatch
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeAbiCatalog
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
+
+private val PRUNE_RUNTIME_CALL = RuntimeCallId.CLIPBOARD_RUNTIME_HANDLE_CUSTOM_PRUNE
 
 internal val gboardClipboardPrunePatch = bytecodePatch(
     description = "移植 clipboard DB prune 策略"
@@ -32,31 +42,47 @@ internal fun MutableMethod.applyClipboardPruneDelegate() {
         "Ljava/lang/Object;",
         emptyList(),
     )
+    applyVerified(
+        VerifiedTransformationPlan(
+            targetName = "$CLIPBOARD_PRUNE_CALLABLE_CLASS->call()Ljava/lang/Object;",
+            classify = MutableMethod::classifyClipboardPrune,
+            mutate = { method ->
+                method.addInstructions(0, PRUNE_DELEGATE)
+                method
+            },
+        ),
+    )
+}
+
+private fun MutableMethod.classifyClipboardPrune(): VerifiedTransformationState {
     val instructions = implementation?.instructions
         ?: error("No instructions in $definingClass->$name")
-    val delegateCount = instructions.count { it.methodDescriptor() == PRUNE_METHOD_DESCRIPTOR }
+    val delegateCount = instructions.count { it.isMethodReference(PRUNE_METHOD_DESCRIPTOR) }
     val completed = instructions.size >= 5 &&
         instructions[0].isExactRangeInvoke(PRUNE_METHOD_DESCRIPTOR, p0Register(), 1) &&
-        instructions[1].normalizedOpcode() == "MOVE_RESULT" &&
+        instructions[1].isOpcode("MOVE_RESULT") &&
         (instructions[1] as? OneRegisterInstruction)?.registerA == 0 &&
-        instructions[2].normalizedOpcode() == "IF_EQZ" &&
+        instructions[2].isOpcode("IF_EQZ") &&
         (instructions[2] as? OneRegisterInstruction)?.registerA == 0 &&
-        instructions[3].normalizedOpcode() == "CONST_4" &&
+        instructions.hasExactBranchTarget(2, 5) &&
+        instructions[3].isOpcode("CONST_4") &&
         (instructions[3] as? OneRegisterInstruction)?.registerA == 0 &&
         (instructions[3] as? NarrowLiteralInstruction)?.narrowLiteral == 0 &&
-        instructions[4].normalizedOpcode() == "RETURN_OBJECT" &&
+        instructions[4].isOpcode("RETURN_OBJECT") &&
         (instructions[4] as? OneRegisterInstruction)?.registerA == 0
-    if (instructions.clipboardRuntimeReferenceCount() > 0) {
-        check(delegateCount == 1 && completed) {
-            "Malformed partial Clipboard prune delegate in $definingClass->$name"
+    return when (instructions.clipboardRuntimeReferenceCount()) {
+        0 -> VerifiedTransformationState.STOCK
+        1 -> if (delegateCount == 1 && completed) {
+            VerifiedTransformationState.PATCHED
+        } else {
+            VerifiedTransformationState.MALFORMED
         }
-        return
+        else -> VerifiedTransformationState.MALFORMED
     }
-    addInstructions(0, PRUNE_DELEGATE)
 }
 
 private val PRUNE_DELEGATE = """
-    invoke-static/range {p0 .. p0}, ${CLIPBOARD_RUNTIME_CLASS}->handleCustomPrune(Ljava/lang/Object;)Z
+    ${RuntimeCallEmitter.invoke(PRUNE_RUNTIME_CALL, "p0 .. p0")}
 
     move-result v0
 
@@ -69,5 +95,4 @@ private val PRUNE_DELEGATE = """
     :jasondev_continue
 """.trimIndent()
 
-private const val PRUNE_METHOD_DESCRIPTOR =
-    "$CLIPBOARD_RUNTIME_CLASS->handleCustomPrune(Ljava/lang/Object;)Z"
+private val PRUNE_METHOD_DESCRIPTOR = RuntimeAbiCatalog.abi(PRUNE_RUNTIME_CALL).reference

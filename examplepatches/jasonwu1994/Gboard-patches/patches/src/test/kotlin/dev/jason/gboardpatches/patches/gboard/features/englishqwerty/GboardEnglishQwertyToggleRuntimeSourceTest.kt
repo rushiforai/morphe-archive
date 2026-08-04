@@ -13,7 +13,7 @@ class GboardEnglishQwertyToggleRuntimeSourceTest {
         val source = readSource()
         val patchBody = helperBody(source, "PATCH_INCOMING_METADATA_BODY")
 
-        assertTrue(patchBody.contains("->isEnabled()Z"))
+        assertTrue(patchBody.contains("ENGLISH_UPPERCASE_TOGGLE_RUNTIME_IS_ENABLED"))
         assertTrue(patchBody.contains("if-eqz v0, :cond_return_original_safe"))
         assertFalse(source.contains("jasondevStripSlideUpAction"))
         assertFalse(source.contains("STRIP_SLIDE_UP_ACTION_BODY"))

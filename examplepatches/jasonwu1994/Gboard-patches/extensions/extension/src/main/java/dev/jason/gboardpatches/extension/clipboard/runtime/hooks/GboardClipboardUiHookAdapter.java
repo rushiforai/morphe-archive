@@ -20,6 +20,7 @@ final class GboardClipboardUiHookAdapter {
     private final GboardClipboardCountdownFeature countdownFeature;
     private final GboardClipboardCreationTimeFeature creationTimeFeature;
     private final GboardClipboardOrderIndexFeature orderIndexFeature;
+    private final GboardClipboardCardPreviewFeature cardPreviewFeature;
     private final GboardClipboardLoaderHookAdapter loaderHookAdapter;
 
     GboardClipboardUiHookAdapter(GboardClipboardRuntimeSupport support,
@@ -28,6 +29,7 @@ final class GboardClipboardUiHookAdapter {
             GboardClipboardCountdownFeature countdownFeature,
             GboardClipboardCreationTimeFeature creationTimeFeature,
             GboardClipboardOrderIndexFeature orderIndexFeature,
+            GboardClipboardCardPreviewFeature cardPreviewFeature,
             GboardClipboardLoaderHookAdapter loaderHookAdapter) {
         this.support = support;
         this.maxCountFeature = maxCountFeature;
@@ -35,7 +37,12 @@ final class GboardClipboardUiHookAdapter {
         this.countdownFeature = countdownFeature;
         this.creationTimeFeature = creationTimeFeature;
         this.orderIndexFeature = orderIndexFeature;
+        this.cardPreviewFeature = cardPreviewFeature;
         this.loaderHookAdapter = loaderHookAdapter;
+    }
+
+    void beforeItemBind(Object receiver, Object holderObject, int position) {
+        cardPreviewFeature.beforeItemBind(receiver, position);
     }
 
     void afterAdapterTrim(Object receiver) {
@@ -52,6 +59,7 @@ final class GboardClipboardUiHookAdapter {
     }
 
     void afterItemBind(Object receiver, Object holderObject, int position) {
+        cardPreviewFeature.afterItemBind();
         support.runSafely("bind clipboard metadata label", () -> {
             if (receiver == null) {
                 return;

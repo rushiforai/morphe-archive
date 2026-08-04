@@ -1,5 +1,7 @@
 package dev.jason.gboardpatches.patches.gboard.features.advancedvoice
 
+import dev.jason.gboardpatches.patches.gboard.shared.generated.GboardVersionBindings
+
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -10,17 +12,28 @@ import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import dev.jason.gboardpatches.patches.gboard.shared.findMutableMethodOrThrow
+import dev.jason.gboardpatches.patches.gboard.shared.VerifiedTransformationPlan
+import dev.jason.gboardpatches.patches.gboard.shared.VerifiedTransformationState
+import dev.jason.gboardpatches.patches.gboard.shared.applyVerified
 import dev.jason.gboardpatches.patches.gboard.shared.gboardStructuralFingerprint
 import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesExtensionCarrierPatch
+import dev.jason.gboardpatches.patches.gboard.shared.isMethodReference
 import dev.jason.gboardpatches.patches.gboard.shared.mutableClass
 import dev.jason.gboardpatches.patches.gboard.shared.returnInstructionIndices
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeAbiCatalog
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 import dev.jason.gboardpatches.patches.shared.Constants.COMPATIBILITY_GBOARD
 
-private const val INITIAL_SETTINGS_RUNTIME_DESCRIPTOR =
-    "$ADVANCED_VOICE_RUNTIME_CLASS->afterInitialVoiceSettings(Landroid/content/Context;Ljava/lang/Object;)V"
+private val INITIAL_SETTINGS_RUNTIME_DESCRIPTOR = RuntimeAbiCatalog.abi(
+    RuntimeCallId.ADVANCED_VOICE_RUNTIME_AFTER_INITIAL_VOICE_SETTINGS,
+).reference
 
 internal val ADVANCED_VOICE_INITIAL_SETTINGS_DELEGATE = """
-    invoke-static {p0, p1}, $INITIAL_SETTINGS_RUNTIME_DESCRIPTOR
+    ${RuntimeCallEmitter.invoke(
+        RuntimeCallId.ADVANCED_VOICE_RUNTIME_AFTER_INITIAL_VOICE_SETTINGS,
+        "p0, p1",
+    )}
 """.trimIndent()
 
 internal val gboardAdvancedVoiceInitialSettingsPatch = bytecodePatch(
@@ -31,13 +44,13 @@ internal val gboardAdvancedVoiceInitialSettingsPatch = bytecodePatch(
 
     execute {
         val method = findMutableMethodOrThrow(
-            GboardAdvancedVoice1777Bindings.initialVoiceSettings,
+            GboardVersionBindings.advancedVoiceInitialSettings,
         )
         val patchedMethod = method.applyAdvancedVoiceInitialSettingsDelegate()
         if (patchedMethod !== method) {
-            val methods = mutableClass(
-                GboardAdvancedVoice1777Bindings.initialVoiceSettings.classType,
-            ).methods
+            val methods = GboardVersionBindings.advancedVoiceInitialSettings
+                .ownerClass(this)
+                .methods
             check(methods.remove(method) && methods.add(patchedMethod)) {
                 "Could not replace expanded Advanced Voice initial settings method"
             }
@@ -46,43 +59,46 @@ internal val gboardAdvancedVoiceInitialSettingsPatch = bytecodePatch(
 }
 
 internal fun MutableMethod.applyAdvancedVoiceInitialSettingsDelegate(): MutableMethod {
+    return applyVerified(
+        VerifiedTransformationPlan(
+            targetName = GboardVersionBindings.advancedVoiceInitialSettings.reference,
+            classify = MutableMethod::classifyAdvancedVoiceInitialSettings,
+            mutate = { stock ->
+                stock.expandAdvancedVoiceInitialSettingsRegisters().also { expanded ->
+                    expanded.addInstructions(0, INITIAL_SETTINGS_ENTRY_PARAMETER_COPIES)
+                    expanded.injectAdvancedVoiceBeforeReturns(
+                        INITIAL_SETTINGS_RUNTIME_DESCRIPTOR,
+                        ADVANCED_VOICE_INITIAL_SETTINGS_DELEGATE,
+                    )
+                }
+            },
+        ),
+    )
+}
+
+private fun MutableMethod.classifyAdvancedVoiceInitialSettings(): VerifiedTransformationState {
     val implementation = implementation ?: error(
         "Advanced Voice initial settings target has no implementation",
     )
-    if (implementation.registerCount == INITIAL_SETTINGS_PATCHED_REGISTER_COUNT) {
-        val actual = gboardStructuralFingerprint()
-        check(actual == GboardAdvancedVoice1777Bindings.initialVoiceSettingsPatchedFingerprint) {
-            "Malformed Advanced Voice initial settings state: $actual"
+    val actual = gboardStructuralFingerprint()
+    return when (implementation.registerCount) {
+        INITIAL_SETTINGS_STOCK_REGISTER_COUNT -> {
+            check(actual == GboardAdvancedVoice1777Fingerprints.initialVoiceSettingsStock) {
+                "Stock body drift in " +
+                    "${GboardVersionBindings.advancedVoiceInitialSettings.reference}: $actual"
+            }
+            VerifiedTransformationState.STOCK
         }
-        validateAdvancedVoiceInitialSettingsDelegate()
-        return this
+        INITIAL_SETTINGS_PATCHED_REGISTER_COUNT -> {
+            check(actual == GboardAdvancedVoice1777Fingerprints.initialVoiceSettingsPatched) {
+                "Patched body drift in " +
+                    "${GboardVersionBindings.advancedVoiceInitialSettings.reference}: $actual"
+            }
+            validateAdvancedVoiceInitialSettingsDelegate()
+            VerifiedTransformationState.PATCHED
+        }
+        else -> VerifiedTransformationState.MALFORMED
     }
-    val stockFingerprint = gboardStructuralFingerprint()
-    check(
-        implementation.registerCount == INITIAL_SETTINGS_STOCK_REGISTER_COUNT &&
-            stockFingerprint ==
-            GboardAdvancedVoice1777Bindings.initialVoiceSettingsStockFingerprint,
-    ) {
-        "Stock body drift in " +
-            "${GboardAdvancedVoice1777Bindings.initialVoiceSettings.descriptor()}: " +
-            stockFingerprint
-    }
-
-    val expanded = expandAdvancedVoiceInitialSettingsRegisters()
-    expanded.addInstructions(0, INITIAL_SETTINGS_ENTRY_PARAMETER_COPIES)
-    expanded.injectAdvancedVoiceBeforeReturns(
-        INITIAL_SETTINGS_RUNTIME_DESCRIPTOR,
-        ADVANCED_VOICE_INITIAL_SETTINGS_DELEGATE,
-    )
-    val patchedFingerprint = expanded.gboardStructuralFingerprint()
-    check(
-        patchedFingerprint ==
-            GboardAdvancedVoice1777Bindings.initialVoiceSettingsPatchedFingerprint,
-    ) {
-        "Unexpected Advanced Voice initial settings shape: $patchedFingerprint"
-    }
-    expanded.validateAdvancedVoiceInitialSettingsDelegate()
-    return expanded
 }
 
 private fun MutableMethod.expandAdvancedVoiceInitialSettingsRegisters(): MutableMethod {
@@ -133,7 +149,7 @@ private fun MutableMethod.validateAdvancedVoiceInitialSettingsDelegate() {
     val runtimeInvoke = instructions.getOrNull(returns.single() - 1)
     check(
         runtimeInvoke is FiveRegisterInstruction &&
-            runtimeInvoke.methodDescriptor() == INITIAL_SETTINGS_RUNTIME_DESCRIPTOR &&
+            runtimeInvoke.isMethodReference(INITIAL_SETTINGS_RUNTIME_DESCRIPTOR) &&
             runtimeInvoke.registerCount == 2 &&
             runtimeInvoke.registerC == INITIAL_SETTINGS_PATCHED_P0_REGISTER &&
             runtimeInvoke.registerD == INITIAL_SETTINGS_PATCHED_P1_REGISTER,

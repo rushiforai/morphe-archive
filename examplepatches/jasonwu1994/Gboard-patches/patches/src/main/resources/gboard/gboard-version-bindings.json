@@ -1,1 +1,37 @@
-{"format":"gboard-version-bindings.v1","target_version":"17.7.7","profile_version":"1.2.0","projection_sha256":"bfc44f884d3cfbc1aa1c98af7eb81eaa376e24954e2ab587c3baa2d55d60a662","bindings":{"flag_bool_getter":{"kind":"method","class_type":"Lneg;","method_name":"g","parameter_types":[],"return_type":"Ljava/lang/Object;","confidence":1},"flag_name_field":{"kind":"field","class_type":"Lneg;","field_name":"a","field_type":"Ljava/lang/String;","confidence":1},"gesture_dispatch":{"kind":"method","class_type":"Lpbj;","method_name":"f","parameter_types":["Lpbl;","Loth;","Loud;","Lowd;","J","Z","Z","I","Z","J","I"],"return_type":"V","confidence":0.9},"keyboard_extension_manager":{"kind":"method","class_type":"Lncc;","method_name":"c","parameter_types":["Lovf;"],"return_type":"Loea;","confidence":1},"keyboard_provider_request":{"kind":"method","class_type":"Lilo;","method_name":"H","parameter_types":["Landroid/content/Context;","Lody;","Lcom/google/android/libraries/inputmethod/metadata/ImeDef;","Lovf;","Ljava/lang/String;","Ltol;","Lodz;"],"return_type":"V","confidence":1},"pointer_cancel":{"kind":"method","class_type":"Lpbl;","method_name":"s","parameter_types":["J"],"return_type":"V","confidence":0.9},"pointer_owner":{"kind":"method","class_type":"Lpbl;","method_name":"B","parameter_types":["Lcom/google/android/libraries/inputmethod/widgets/SoftKeyView;","F","F","J","I"],"return_type":"V","confidence":0.9},"pointer_reset":{"kind":"method","class_type":"Lpbl;","method_name":"C","parameter_types":[],"return_type":"V","confidence":0.9},"soft_key_bind":{"kind":"method","class_type":"Lcom/google/android/libraries/inputmethod/widgets/SoftKeyView;","method_name":"q","parameter_types":["Lowd;","J"],"return_type":"Z","confidence":0.9}}}
+{
+  "format": "gboard-version-bindings.v1",
+  "target_version": "17.7.7",
+  "profile_version": "1.3.0",
+  "bindings": {
+    "advanced_voice_asr_session_reset": {"kind": "method", "class_type": "Lrpi;", "method_name": "a", "parameter_types": ["Z", "Z", "Ljava/util/Locale;", "Lqzo;", "Laalb;", "Ljus;"], "return_type": "Lwcz;", "confidence": 1},
+    "advanced_voice_formatter_constructor": {"kind": "method", "class_type": "Lrcb;", "method_name": "<init>", "parameter_types": ["Ljava/util/Locale;", "Leed;", "Lros;", "Ledu;", "Z", "Lrce;", "Lrud;", "Lsln;", "Ljava/util/concurrent/Executor;"], "return_type": "V", "confidence": 1},
+    "advanced_voice_initial_settings": {"kind": "method", "class_type": "Leqb;", "method_name": "d", "parameter_types": ["Landroid/content/Context;", "Lptc;"], "return_type": "V", "confidence": 1},
+    "advanced_voice_mdd_provider_constructor": {"kind": "method", "class_type": "Lqzh;", "method_name": "<init>", "parameter_types": ["Landroid/content/Context;", "Lqzi;", "Lqzc;", "Laave;"], "return_type": "V", "confidence": 1},
+    "advanced_voice_native_readiness": {"kind": "method", "class_type": "Lric;", "method_name": "a", "parameter_types": [], "return_type": "Z", "confidence": 1},
+    "advanced_voice_s3_network_availability": {"kind": "method", "class_type": "Lrvv;", "method_name": "b", "parameter_types": [], "return_type": "Z", "confidence": 1},
+    "ai_writing_tools_ambiguity_constructor": {"kind": "method", "class_type": "Lgfl;", "method_name": "<init>", "parameter_types": [], "return_type": "V", "confidence": 1},
+    "ai_writing_tools_classification_run": {"kind": "method", "class_type": "Lgfh;", "method_name": "run", "parameter_types": [], "return_type": "V", "confidence": 1},
+    "ai_writing_tools_classifier_init": {"kind": "method", "class_type": "Lgfn;", "method_name": "a", "parameter_types": ["Landroid/content/Context;"], "return_type": "Lwcz;", "confidence": 1},
+    "ai_writing_tools_gen_ai_init": {"kind": "method", "class_type": "Lhoa;", "method_name": "c", "parameter_types": ["Lcom/google/android/apps/inputmethod/libs/nga/impl/input/NgaInputManager;", "Lgvm;"], "return_type": "V", "confidence": 1},
+    "ai_writing_tools_module_predicate": {"kind": "method", "class_type": "Lgfo;", "method_name": "a", "parameter_types": ["Lnea;"], "return_type": "Z", "confidence": 1},
+    "ai_writing_tools_nga_input_refresh": {"kind": "method", "class_type": "Lcom/google/android/apps/inputmethod/libs/nga/impl/input/NgaInputManager;", "method_name": "n", "parameter_types": [], "return_type": "V", "confidence": 1},
+    "ai_writing_tools_proto_value": {"kind": "method", "class_type": "Lneu;", "method_name": "l", "parameter_types": [], "return_type": "Lyxf;", "confidence": 1},
+    "ai_writing_tools_smart_edit_init": {"kind": "method", "class_type": "Lhoa;", "method_name": "d", "parameter_types": [], "return_type": "V", "confidence": 1},
+    "ai_writing_tools_smart_edit_request": {"kind": "method", "class_type": "Lhnk;", "method_name": "run", "parameter_types": [], "return_type": "V", "confidence": 1},
+    "flag_bool_getter": {"kind": "method", "class_type": "Lneg;", "method_name": "g", "parameter_types": [], "return_type": "Ljava/lang/Object;", "confidence": 1},
+    "flag_name_field": {"kind": "field", "class_type": "Lneg;", "field_name": "a", "field_type": "Ljava/lang/String;", "confidence": 1},
+    "gesture_dispatch": {"kind": "method", "class_type": "Lpbj;", "method_name": "f", "parameter_types": ["Lpbl;", "Loth;", "Loud;", "Lowd;", "J", "Z", "Z", "I", "Z", "J", "I"], "return_type": "V", "confidence": 0.9},
+    "gesture_dispatcher_type": {"kind": "type", "source": {"binding": "gesture_dispatch", "component": "owner"}, "confidence": 1},
+    "keyboard_completion_callback_type": {"kind": "type", "source": {"binding": "keyboard_provider_request", "component": "parameter", "index": 6}, "confidence": 1},
+    "keyboard_definition_type": {"kind": "type", "source": {"binding": "keyboard_provider_request", "component": "parameter", "index": 3}, "confidence": 1},
+    "keyboard_extension_manager": {"kind": "method", "class_type": "Lncc;", "method_name": "c", "parameter_types": ["Lovf;"], "return_type": "Loea;", "confidence": 1},
+    "keyboard_provider_request": {"kind": "method", "class_type": "Lilo;", "method_name": "H", "parameter_types": ["Landroid/content/Context;", "Lody;", "Lcom/google/android/libraries/inputmethod/metadata/ImeDef;", "Lovf;", "Ljava/lang/String;", "Ltol;", "Lodz;"], "return_type": "V", "confidence": 1},
+    "long_press_quick_actions_input_event": {"kind": "method", "class_type": "Loau;", "method_name": "at", "parameter_types": ["Lnbj;"], "return_type": "Z", "confidence": 1},
+    "pointer_cancel": {"kind": "method", "class_type": "Lpbl;", "method_name": "s", "parameter_types": ["J"], "return_type": "V", "confidence": 0.9},
+    "pointer_owner": {"kind": "method", "class_type": "Lpbl;", "method_name": "B", "parameter_types": ["Lcom/google/android/libraries/inputmethod/widgets/SoftKeyView;", "F", "F", "J", "I"], "return_type": "V", "confidence": 0.9},
+    "pointer_owner_type": {"kind": "type", "source": {"binding": "pointer_owner", "component": "owner"}, "confidence": 1},
+    "pointer_reset": {"kind": "method", "class_type": "Lpbl;", "method_name": "C", "parameter_types": [], "return_type": "V", "confidence": 0.9},
+    "soft_key_bind": {"kind": "method", "class_type": "Lcom/google/android/libraries/inputmethod/widgets/SoftKeyView;", "method_name": "q", "parameter_types": ["Lowd;", "J"], "return_type": "Z", "confidence": 0.9},
+    "soft_key_metadata_type": {"kind": "type", "source": {"binding": "soft_key_bind", "component": "parameter", "index": 0}, "confidence": 1}
+  }
+}

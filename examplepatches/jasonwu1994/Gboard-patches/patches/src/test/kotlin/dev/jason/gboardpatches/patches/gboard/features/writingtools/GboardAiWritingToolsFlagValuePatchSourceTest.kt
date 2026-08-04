@@ -40,7 +40,8 @@ class GboardAiWritingToolsFlagValuePatchSourceTest {
         assertTrue(source.contains("injectFeatureFlagReturnOverrides("))
         assertTrue(source.contains("delegateTemplate = FLAG_VALUE_DELEGATE_TEMPLATE"))
         assertFalse(source.contains("::buildFlagValueDelegate"))
-        assertTrue(source.contains("invoke-static {v1, v\$RESULT_REGISTER_TOKEN}"))
+        assertTrue(source.contains("AI_WRITING_TOOLS_RUNTIME_APPLY_OVERRIDDEN_FLAG_VALUE"))
+        assertTrue(source.contains("\"v1, v\$RESULT_REGISTER_TOKEN\""))
         assertFalse(source.contains("addInstructions(0, PRESERVE_RECEIVER_DELEGATE)"))
         assertFalse(source.contains("addInstructions(0, FLAG_VALUE_OVERRIDE_DELEGATE)"))
     }

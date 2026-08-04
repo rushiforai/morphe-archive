@@ -123,364 +123,229 @@ final class GboardTopRowSwipeStrings {
 
     private GboardTopRowSwipeStrings(Context context) {
         headerBadge = GboardSettingsText.get(context,
-                R.string.gboard_patches_header_badge,
-                "Gboard");
+                R.string.gboard_patches_header_badge);
         entryTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_title,
-                "Custom Top Row");
+                R.string.gboard_patches_top_row_title);
         entrySummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_summary,
-                "Swipe the top row horizontally to open custom text and JavaScript slots.");
+                R.string.gboard_patches_top_row_summary);
         headerSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_header_summary,
-                "Controls the custom first-row page opened by horizontal top-row swipe.");
+                R.string.gboard_patches_top_row_header_summary);
         errorTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_error_title,
-                "Custom Top Row settings unavailable");
+                R.string.gboard_patches_top_row_error_title);
         errorSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_error_summary,
-                "The Custom Top Row settings screen failed to load. Reopen Gboard settings and "
-                        + "try again.");
+                R.string.gboard_patches_top_row_error_summary);
         sectionBehavior = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_section_behavior,
-                "Behavior");
+                R.string.gboard_patches_top_row_section_behavior);
         sectionLayouts = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_section_layouts,
-                "Supported layouts");
+                R.string.gboard_patches_top_row_section_layouts);
         sectionJavaScript = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_section_javascript,
-                "JavaScript");
+                R.string.gboard_patches_top_row_section_javascript);
         sectionSlots = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_section_slots,
-                "Slots");
+                R.string.gboard_patches_top_row_section_slots);
         sectionTransfer = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_section_transfer,
-                "Transfer");
+                R.string.gboard_patches_top_row_section_transfer);
         sectionAdvanced = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_section_advanced,
-                "Advanced");
+                R.string.gboard_patches_top_row_section_advanced);
         sectionJavaScriptGuide = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_section_javascript_guide,
-                "JavaScript Guide");
+                R.string.gboard_patches_top_row_section_javascript_guide);
         enabledTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_enabled_title,
-                "Enabled");
+                R.string.gboard_patches_top_row_enabled_title);
         enabledSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_enabled_summary,
-                "Enable the custom first-row page opened by horizontal top-row swipe.");
+                R.string.gboard_patches_top_row_enabled_summary);
         zhuyinLayoutTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_layout_zhuyin_title,
-                "Zhuyin");
+                R.string.gboard_patches_top_row_layout_zhuyin_title);
         zhuyinLayoutSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_layout_zhuyin_summary,
-                "Enable horizontal swipe on the Zhuyin top row.");
+                R.string.gboard_patches_top_row_layout_zhuyin_summary);
         englishQwertyLayoutTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_layout_english_qwerty_title,
-                "English QWERTY");
+                R.string.gboard_patches_top_row_layout_english_qwerty_title);
         englishQwertyLayoutSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_layout_english_qwerty_summary,
-                "Enable horizontal swipe on the English q-p top row.");
+                R.string.gboard_patches_top_row_layout_english_qwerty_summary);
         globalJavaScriptTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_global_javascript_title,
-                "Global JavaScript");
+                R.string.gboard_patches_top_row_global_javascript_title);
         globalJavaScriptSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_global_javascript_summary,
-                "Define helper functions available to every JavaScript slot.");
+                R.string.gboard_patches_top_row_global_javascript_summary);
         globalJavaScriptEmptySummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_global_javascript_empty_summary,
-                "No shared helpers configured.");
+                R.string.gboard_patches_top_row_global_javascript_empty_summary);
         globalJavaScriptConfiguredSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_global_javascript_configured_summary,
-                "Script: %1$s");
+                R.string.gboard_patches_top_row_global_javascript_configured_summary);
         globalJavaScriptHint = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_global_javascript_hint,
-                "function helper(input) {\n  return input;\n}");
+                R.string.gboard_patches_top_row_global_javascript_hint);
         javaScriptRuntimeLimitsTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_runtime_limits_title,
-                "JavaScript Runtime Limits");
+                R.string.gboard_patches_top_row_runtime_limits_title);
         javaScriptRuntimeLimitsSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_runtime_limits_summary,
-                "Configure the global response, timeout, memory, and stack limits used by JavaScript slots.");
+                R.string.gboard_patches_top_row_runtime_limits_summary);
         javaScriptRuntimeLimitsValueFormat = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_runtime_limits_value,
-                "%1$s • %2$s • %3$s • %4$s");
+                R.string.gboard_patches_top_row_runtime_limits_value);
         javaScriptRuntimeLimitsDialogTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_runtime_limits_dialog_title,
-                "JavaScript Runtime Limits");
+                R.string.gboard_patches_top_row_runtime_limits_dialog_title);
         javaScriptRuntimeResponseBodyLimitLabel = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_runtime_limits_response_body_label,
-                "Response body limit (KiB)");
+                R.string.gboard_patches_top_row_runtime_limits_response_body_label);
         javaScriptRuntimeResponseBodyLimitHint = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_runtime_limits_response_body_hint,
-                "1024");
+                R.string.gboard_patches_top_row_runtime_limits_response_body_hint);
         javaScriptRuntimeTimeoutMaxLabel = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_runtime_limits_timeout_max_label,
-                "Maximum timeout (ms)");
+                R.string.gboard_patches_top_row_runtime_limits_timeout_max_label);
         javaScriptRuntimeTimeoutMaxHint = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_runtime_limits_timeout_max_hint,
-                "30000");
+                R.string.gboard_patches_top_row_runtime_limits_timeout_max_hint);
         javaScriptRuntimeMemoryLimitLabel = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_runtime_limits_memory_label,
-                "Memory limit (MiB)");
+                R.string.gboard_patches_top_row_runtime_limits_memory_label);
         javaScriptRuntimeMemoryLimitHint = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_runtime_limits_memory_hint,
-                "8");
+                R.string.gboard_patches_top_row_runtime_limits_memory_hint);
         javaScriptRuntimeMaxStackLabel = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_runtime_limits_stack_label,
-                "Max stack (KiB)");
+                R.string.gboard_patches_top_row_runtime_limits_stack_label);
         javaScriptRuntimeMaxStackHint = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_runtime_limits_stack_hint,
-                "512");
+                R.string.gboard_patches_top_row_runtime_limits_stack_hint);
         javaScriptRuntimeDialogError = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_runtime_limits_dialog_error,
-                "Enter valid values for all JavaScript runtime limits.");
+                R.string.gboard_patches_top_row_runtime_limits_dialog_error);
         exportTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_export_title,
-                "Export settings");
+                R.string.gboard_patches_top_row_export_title);
         exportSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_export_summary,
-                "Save Global JavaScript, runtime limits, and all 10 slot mappings as a JSON file.");
+                R.string.gboard_patches_top_row_export_summary);
         importTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_import_title,
-                "Import settings");
+                R.string.gboard_patches_top_row_import_title);
         importSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_import_summary,
-                "Open a JSON file and replace Global JavaScript, runtime limits, and all 10 slots.");
+                R.string.gboard_patches_top_row_import_summary);
         exportDoneMessage = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_export_done,
-                "Exported settings");
+                R.string.gboard_patches_top_row_export_done);
         importDoneMessage = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_import_done,
-                "Imported settings");
+                R.string.gboard_patches_top_row_import_done);
         importFailedTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_import_failed_title,
-                "Import failed");
+                R.string.gboard_patches_top_row_import_failed_title);
         importFailedSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_import_failed_summary,
-                "The selected file could not be imported.");
+                R.string.gboard_patches_top_row_import_failed_summary);
         importInvalidSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_import_invalid_summary,
-                "The selected file is not valid.");
+                R.string.gboard_patches_top_row_import_invalid_summary);
         resetTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_reset_title,
-                "Reset slots");
+                R.string.gboard_patches_top_row_reset_title);
         resetSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_reset_summary,
-                "Restore all 10 slots to the default emoji row.");
+                R.string.gboard_patches_top_row_reset_summary);
         resetConfirmTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_reset_confirm_title,
-                "Reset all slots?");
+                R.string.gboard_patches_top_row_reset_confirm_title);
         resetConfirmMessage = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_reset_confirm_message,
-                "This restores all 10 display/input mappings to the default emoji row.");
+                R.string.gboard_patches_top_row_reset_confirm_message);
         slotTitleFormat = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_slot_title,
-                "Slot %1$d");
+                R.string.gboard_patches_top_row_slot_title);
         slotSummaryPlainFormat = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_slot_summary_plain,
-                "Display: %1$s\nInput: %2$s");
+                R.string.gboard_patches_top_row_slot_summary_plain);
         slotSummaryJavaScriptFormat = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_slot_summary_javascript,
-                "Display: %1$s\nJavaScript\nTimeout: %2$d ms\nScript: %3$s");
+                R.string.gboard_patches_top_row_slot_summary_javascript);
         editorDisplayLabel = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_editor_display_label,
-                "Display text");
+                R.string.gboard_patches_top_row_editor_display_label);
         editorDisplayHint = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_editor_display_hint,
-                "Display text");
+                R.string.gboard_patches_top_row_editor_display_hint);
         editorCommitLabel = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_editor_commit_label,
-                "Input text");
+                R.string.gboard_patches_top_row_editor_commit_label);
         editorCommitHint = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_editor_commit_hint,
-                "Input text");
+                R.string.gboard_patches_top_row_editor_commit_hint);
         editorUseJavaScriptLabel = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_editor_use_javascript,
-                "Use JavaScript");
+                R.string.gboard_patches_top_row_editor_use_javascript);
         editorScriptLabel = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_editor_script_label,
-                "JavaScript");
+                R.string.gboard_patches_top_row_editor_script_label);
         editorScriptHint = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_editor_script_hint,
-                "JavaScript");
+                R.string.gboard_patches_top_row_editor_script_hint);
         editorTimeoutLabel = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_editor_timeout_label,
-                "Timeout (ms)");
+                R.string.gboard_patches_top_row_editor_timeout_label);
         editorTimeoutHint = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_editor_timeout_hint,
-                "Timeout (ms)");
+                R.string.gboard_patches_top_row_editor_timeout_hint);
         editorTestInputHint = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_editor_test_input_hint,
-                "Test input (select text for input)");
+                R.string.gboard_patches_top_row_editor_test_input_hint);
         editorTestButton = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_editor_test_button,
-                "Test");
+                R.string.gboard_patches_top_row_editor_test_button);
         editorTestRunning = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_editor_test_running,
-                "Running...");
+                R.string.gboard_patches_top_row_editor_test_running);
         editorDisplayBlankError = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_editor_display_blank_error,
-                "Display text cannot be blank");
+                R.string.gboard_patches_top_row_editor_display_blank_error);
         editorLockedState = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_editor_locked_state,
-                "Locked");
+                R.string.gboard_patches_top_row_editor_locked_state);
         editorUnlockedState = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_editor_unlocked_state,
-                "Unlocked");
+                R.string.gboard_patches_top_row_editor_unlocked_state);
         saveButton = GboardSettingsText.get(context,
-                R.string.gboard_patches_dialog_save,
-                "Save");
+                R.string.gboard_patches_dialog_save);
         cancelButton = GboardSettingsText.get(context,
-                R.string.gboard_patches_dialog_cancel,
-                "Cancel");
+                R.string.gboard_patches_dialog_cancel);
         closeButton = GboardSettingsText.get(context,
-                R.string.gboard_patches_dialog_close,
-                "Close");
+                R.string.gboard_patches_dialog_close);
         clearButton = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_clear_button,
-                "Clear");
+                R.string.gboard_patches_top_row_clear_button);
         resetButton = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_reset_button,
-                "Reset");
+                R.string.gboard_patches_top_row_reset_button);
         testResultTimedOut = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_test_result_timed_out,
-                "Timed out");
+                R.string.gboard_patches_top_row_test_result_timed_out);
         testResultFailedFormat = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_test_result_failed,
-                "Failed: %1$s");
+                R.string.gboard_patches_top_row_test_result_failed);
         testResultFailedGeneric = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_test_result_failed_generic,
-                "QuickJS test failed");
+                R.string.gboard_patches_top_row_test_result_failed_generic);
         testResultOutputFormat = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_test_result_output,
-                "Output: %1$s");
+                R.string.gboard_patches_top_row_test_result_output);
         testResultFinishedNoOutput = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_test_result_finished_no_output,
-                "Finished: no output");
+                R.string.gboard_patches_top_row_test_result_finished_no_output);
         javaScriptGuideExecutionTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_js_guide_execution_title,
-                "Execution Model");
+                R.string.gboard_patches_top_row_js_guide_execution_title);
         javaScriptGuideExecutionSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_js_guide_execution_summary,
-                "Use input for selected text. Return a string to commit it. Each tap starts a fresh QuickJS runtime.");
+                R.string.gboard_patches_top_row_js_guide_execution_summary);
         javaScriptGuideExecutionDialogMessage = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_js_guide_execution_dialog_message,
-                "Use input to read the current selection. If nothing is selected, input is an empty string.\n\n"
-                        + "Return a string to commit it to the editor. Returning null, undefined, or nothing finishes without commit.\n\n"
-                        + "Global JavaScript runs before the slot body on every key press.\n\n"
-                        + "The slot body and Global JavaScript share the same execution, but every tap creates a fresh QuickJS runtime and context. Do not rely on state from an earlier run.\n\n"
-                        + "If Global JavaScript needs input, define a helper there and pass input into it from the slot body.\n\n"
-                        + "This environment is synchronous-only. DOM, Node.js APIs, fetch, and async request pipelines are not available.");
+                R.string.gboard_patches_top_row_js_guide_execution_dialog_message);
         javaScriptGuideReturnTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_js_guide_return_title,
-                "Return & Commit");
+                R.string.gboard_patches_top_row_js_guide_return_title);
         javaScriptGuideReturnSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_js_guide_return_summary,
-                "Only non-null return values commit text, and commit is skipped if InputConnection changed during execution.");
+                R.string.gboard_patches_top_row_js_guide_return_summary);
         javaScriptGuideReturnDialogMessage = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_js_guide_return_dialog_message,
-                "Return contract:\n"
-                        + "- return a non-null and non-undefined value to commit it as text\n"
-                        + "- return null, return undefined, or omit return to finish without commit\n\n"
-                        + "Even after a successful run, text only commits when the InputConnection at the end is still the same object captured at the start. Focus changes or editor switches fail closed.");
+                R.string.gboard_patches_top_row_js_guide_return_dialog_message);
         javaScriptGuideHttpTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_js_guide_http_title,
-                "Host APIs");
+                R.string.gboard_patches_top_row_js_guide_http_title);
         javaScriptGuideHttpSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_js_guide_http_summary,
-                "Beyond standard QuickJS features, this patch also provides input, httpRequest(options), httpGet(url), and httpPost(url, body).");
+                R.string.gboard_patches_top_row_js_guide_http_summary);
         javaScriptGuideHttpDialogMessage = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_js_guide_http_dialog_message,
-                "Beyond standard QuickJS features, this patch provides these extra host APIs:\n"
-                        + "- input\n"
-                        + "- httpRequest(options)\n"
-                        + "- httpGet(url)\n"
-                        + "- httpPost(url, body)\n\n"
-                        + "httpRequest only accepts GET, POST, PUT, PATCH, and DELETE. Only http:// and https:// URLs are allowed. headers must be a plain object, and body is sent as UTF-8.\n\n"
-                        + "Non-2xx status, invalid method, invalid URL scheme, timeout, invalid headers, transport errors, and response bodies over the configured limit all throw script errors.");
+                R.string.gboard_patches_top_row_js_guide_http_dialog_message);
         javaScriptGuideLimitsTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_js_guide_limits_title,
-                "Limits & Fail-Closed");
+                R.string.gboard_patches_top_row_js_guide_limits_title);
         javaScriptGuideLimitsSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_js_guide_limits_summary,
-                "Slots are clamped by global timeout, response, memory, and stack limits; syntax and runtime errors fail only that run.");
+                R.string.gboard_patches_top_row_js_guide_limits_summary);
         javaScriptGuideLimitsDialogMessage = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_js_guide_limits_dialog_message,
-                "Runtime limits:\n"
-                        + "- slot timeoutMs input must stay within 0..global timeoutMaxMs; after sanitize the runtime minimum is 1 ms\n"
-                        + "- response body limit, memory limit, and max stack come from JavaScript Runtime Limits\n\n"
-                        + "Defaults:\n"
-                        + "- timeoutMaxMs: 30000 ms\n"
-                        + "- response body: 1 MiB\n"
-                        + "- memory: 8 MiB\n"
-                        + "- max stack: 512 KiB\n\n"
-                        + "Syntax errors, runtime errors, timeouts, HTTP failures, oversized responses, and InputConnection changes fail closed for the current run only. They do not disable the whole Custom Top Row feature.");
+                R.string.gboard_patches_top_row_js_guide_limits_dialog_message);
         javaScriptGuideExamplesTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_js_guide_examples_title,
-                "Examples");
+                R.string.gboard_patches_top_row_js_guide_examples_title);
         javaScriptGuideExamplesSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_js_guide_examples_summary,
-                "Copy ready-to-use snippets, from basic return examples to IP lookup, OpenAI calls, timestamps, UK time, and unit conversion.");
+                R.string.gboard_patches_top_row_js_guide_examples_summary);
         javaScriptGuideExamplesDialogTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_js_guide_examples_dialog_title,
-                "JavaScript Examples");
+                R.string.gboard_patches_top_row_js_guide_examples_dialog_title);
         javaScriptGuideExamplesCopyButton = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_js_guide_examples_copy_button,
-                "Copy to clipboard");
+                R.string.gboard_patches_top_row_js_guide_examples_copy_button);
         javaScriptGuideExamplesExpandButton = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_js_guide_examples_expand_button,
-                "Expand");
+                R.string.gboard_patches_top_row_js_guide_examples_expand_button);
         javaScriptGuideExamplesCollapseButton = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_js_guide_examples_collapse_button,
-                "Collapse");
+                R.string.gboard_patches_top_row_js_guide_examples_collapse_button);
         javaScriptGuideExamplesCopiedFormat = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_js_guide_examples_copied_format,
-                "Copied example: %1$s");
+                R.string.gboard_patches_top_row_js_guide_examples_copied_format);
         javaScriptGuideExamplesClipboardUnavailable = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_js_guide_examples_clipboard_unavailable,
-                "Clipboard unavailable");
+                R.string.gboard_patches_top_row_js_guide_examples_clipboard_unavailable);
         javaScriptExampleHelloWorldTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_js_example_hello_world_title,
-                "Hello World");
+                R.string.gboard_patches_top_row_js_example_hello_world_title);
         javaScriptExampleHelloWorldSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_js_example_hello_world_summary,
-                "Returns a fixed string literal to the editor.");
+                R.string.gboard_patches_top_row_js_example_hello_world_summary);
         javaScriptExampleReturnInputTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_js_example_return_input_title,
-                "Return Input");
+                R.string.gboard_patches_top_row_js_example_return_input_title);
         javaScriptExampleReturnInputSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_js_example_return_input_summary,
-                "Commits the current input string unchanged.");
+                R.string.gboard_patches_top_row_js_example_return_input_summary);
         javaScriptExampleIpTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_js_example_ip_title,
-                "Current IP");
+                R.string.gboard_patches_top_row_js_example_ip_title);
         javaScriptExampleIpSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_js_example_ip_summary,
-                "Gets the current public IP address with a simple GET request.");
+                R.string.gboard_patches_top_row_js_example_ip_summary);
         javaScriptExampleOpenAiTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_js_example_openai_title,
-                "OpenAI via HTTP");
+                R.string.gboard_patches_top_row_js_example_openai_title);
         javaScriptExampleOpenAiSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_js_example_openai_summary,
-                "Calls the OpenAI Responses API with gpt-5.5 using httpRequest.");
+                R.string.gboard_patches_top_row_js_example_openai_summary);
         javaScriptExampleTimestampTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_js_example_timestamp_title,
-                "Current Timestamp");
+                R.string.gboard_patches_top_row_js_example_timestamp_title);
         javaScriptExampleTimestampSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_js_example_timestamp_summary,
-                "Returns the current Unix timestamp in milliseconds.");
+                R.string.gboard_patches_top_row_js_example_timestamp_summary);
         javaScriptExampleUkTimeTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_js_example_uk_time_title,
-                "UK Time");
+                R.string.gboard_patches_top_row_js_example_uk_time_title);
         javaScriptExampleUkTimeSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_js_example_uk_time_summary,
-                "Fetches the current London time and formats it as a local timestamp string.");
+                R.string.gboard_patches_top_row_js_example_uk_time_summary);
         javaScriptExampleUnitConvertTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_js_example_unit_convert_title,
-                "Unit Auto Conversion");
+                R.string.gboard_patches_top_row_js_example_unit_convert_title);
         javaScriptExampleUnitConvertSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_top_row_js_example_unit_convert_summary,
-                "Converts inputs like 10lbs, 40kg, 100F, or 40C in both directions.");
+                R.string.gboard_patches_top_row_js_example_unit_convert_summary);
     }
 
     static GboardTopRowSwipeStrings from(Context context) {

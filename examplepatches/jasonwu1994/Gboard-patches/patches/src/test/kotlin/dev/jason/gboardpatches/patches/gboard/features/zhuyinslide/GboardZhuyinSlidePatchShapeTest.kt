@@ -25,9 +25,6 @@ class GboardZhuyinSlidePatchShapeTest {
             "ensureTemplateAction", "setAttribute("
         ).forEach { stale -> assertFalse("Found active resource mutation $stale", sources.contains(stale)) }
         assertTrue(sources.contains("GboardVersionBindings.softKeyBind"))
-        assertTrue(sources.contains("GboardVersionBindings.pointerOwner"))
-        assertTrue(sources.contains("GboardVersionBindings.pointerCancel"))
-        assertTrue(sources.contains("GboardVersionBindings.pointerReset"))
     }
 
     @Test
@@ -36,35 +33,12 @@ class GboardZhuyinSlidePatchShapeTest {
 
         assertTrue(source.contains("TOP_ROW_SWIPE_RUNTIME_CLASS"))
         assertTrue(source.contains("ZHUYIN_TOGGLE_RUNTIME_CLASS"))
-        assertTrue(source.contains("GboardEnglishUppercaseToggleRuntime"))
+        assertTrue(source.contains("ENGLISH_UPPERCASE_TOGGLE_RUNTIME_IS_ENABLED"))
         assertTrue(source.contains("patchIncomingSoftKeyMetadata"))
         assertTrue(source.contains("jasondevPatchIncomingMetadata"))
         assertTrue(source.contains("maxOf("))
         assertTrue(source.contains("mutableMethod.addInstructions(insertIndex"))
-        assertTrue(source.contains("GboardZhuyinSlideRuntime;"))
-        assertTrue(source.contains("->patchIncomingSoftKeyMetadata"))
-    }
-
-    @Test
-    fun `pointer delegate runs before r and ac reset and cleanup runs at method entry`() {
-        val source = readSource("GboardZhuyinSlidePointerAnchorPatch.kt")
-        val injection = source.substring(
-            source.indexOf("private fun injectPointerOwner"),
-            source.indexOf("private fun injectPointerCleanup")
-        )
-
-        assertTrue(injection.contains("rCallIndex < acCallIndex"))
-        assertTrue(injection.contains("pointerOwnerMethod.applyZhuyinSlidePointerDelegate()"))
-        assertTrue(source.contains("internal fun MutableMethod.applyZhuyinSlidePointerDelegate()"))
-        assertTrue(source.contains("addInstructions(rCallIndex, \"nop\")"))
-        assertTrue(injection.contains("rCallIndex,"))
-        assertTrue(source.contains("maybeCaptureAndShouldSuppressRetarget"))
-        assertTrue(source.contains("return-void"))
-        assertTrue(source.contains("cancelMethod.addInstructions(0, ZHUYIN_SLIDE_CLEAR_POINTER_DELEGATE)"))
-        assertTrue(source.contains("resetMethod.addInstructions(0, ZHUYIN_SLIDE_CLEAR_POINTER_DELEGATE)"))
-        assertFalse(source.contains("Loaa;"))
-        assertFalse(source.contains("Lnxi;"))
-        assertFalse(source.contains("Lnxl;"))
+        assertTrue(source.contains("ZHUYIN_SLIDE_RUNTIME_PATCH_INCOMING_SOFT_KEY_METADATA"))
     }
 
     @Test

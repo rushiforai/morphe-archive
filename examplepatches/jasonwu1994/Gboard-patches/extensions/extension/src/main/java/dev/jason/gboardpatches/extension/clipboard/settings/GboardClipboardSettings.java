@@ -30,6 +30,8 @@ public final class GboardClipboardSettings {
             "pref_clipboard_show_creation_time";
     public static final String PREF_KEY_CLIPBOARD_SHOW_ORDER_INDEX =
             "pref_clipboard_show_order_index";
+    public static final String PREF_KEY_CLIPBOARD_CARD_PREVIEW_LIMIT_ENABLED =
+            "pref_clipboard_card_preview_limit_enabled";
     public static final String PREF_KEY_CLIPBOARD_ORDER_INDEX_MODE =
             "pref_clipboard_order_index_mode";
     public static final String PREF_KEY_CLIPBOARD_COLUMN_COUNT =
@@ -49,6 +51,7 @@ public final class GboardClipboardSettings {
     public static final boolean DEFAULT_CLIPBOARD_SHOW_COUNTDOWN = true;
     public static final boolean DEFAULT_CLIPBOARD_SHOW_CREATION_TIME = false;
     public static final boolean DEFAULT_CLIPBOARD_SHOW_ORDER_INDEX = true;
+    public static final boolean DEFAULT_CLIPBOARD_CARD_PREVIEW_LIMIT_ENABLED = false;
     public static final String DEFAULT_CLIPBOARD_ORDER_INDEX_MODE =
             CLIPBOARD_ORDER_INDEX_MODE_NEWEST_FIRST;
     public static final int DEFAULT_CLIPBOARD_COLUMN_COUNT = CLIPBOARD_COLUMN_COUNT_TWO;
@@ -90,6 +93,9 @@ public final class GboardClipboardSettings {
         editor = putBooleanPreferenceIfMissing(editor, preferences,
                 PREF_KEY_CLIPBOARD_SHOW_ORDER_INDEX,
                 DEFAULT_CLIPBOARD_SHOW_ORDER_INDEX);
+        editor = putBooleanPreferenceIfMissing(editor, preferences,
+                PREF_KEY_CLIPBOARD_CARD_PREVIEW_LIMIT_ENABLED,
+                DEFAULT_CLIPBOARD_CARD_PREVIEW_LIMIT_ENABLED);
         editor = putStringPreferenceIfMissing(editor, preferences,
                 PREF_KEY_CLIPBOARD_ORDER_INDEX_MODE,
                 DEFAULT_CLIPBOARD_ORDER_INDEX_MODE);
@@ -162,6 +168,20 @@ public final class GboardClipboardSettings {
     public static boolean readClipboardShowOrderIndex(SharedPreferences preferences) {
         return readBooleanPreference(preferences, PREF_KEY_CLIPBOARD_SHOW_ORDER_INDEX,
                 DEFAULT_CLIPBOARD_SHOW_ORDER_INDEX);
+    }
+
+    public static boolean readClipboardCardPreviewLimitEnabled(Context context) {
+        SharedPreferences preferences = preferences(context);
+        ensureDefaults(preferences);
+        return readClipboardCardPreviewLimitEnabled(preferences);
+    }
+
+    public static boolean readClipboardCardPreviewLimitEnabled(
+            SharedPreferences preferences) {
+        return readBooleanPreference(
+                preferences,
+                PREF_KEY_CLIPBOARD_CARD_PREVIEW_LIMIT_ENABLED,
+                DEFAULT_CLIPBOARD_CARD_PREVIEW_LIMIT_ENABLED);
     }
 
     public static String readClipboardOrderIndexMode(Context context) {

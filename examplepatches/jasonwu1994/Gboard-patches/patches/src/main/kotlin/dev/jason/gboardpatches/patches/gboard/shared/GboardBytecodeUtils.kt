@@ -2,12 +2,12 @@ package dev.jason.gboardpatches.patches.gboard.shared
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableField
 import app.morphe.patcher.util.proxy.mutableTypes.MutableField.Companion.toMutable
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
-import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
@@ -15,11 +15,6 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableField
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
-import dev.jason.gboardpatches.patches.gboard.shared.generated.GboardFieldBinding
-import dev.jason.gboardpatches.patches.gboard.shared.generated.GboardMethodBinding
-
-private fun String.normalizedOpcodeName(): String =
-    uppercase().replace('-', '_')
 
 internal fun BytecodePatchContext.mutableClass(type: String) = mutableClassDefBy(type)
 
@@ -29,12 +24,23 @@ internal fun BytecodePatchContext.addFieldIfMissing(
     fieldType: String,
     accessFlags: Int
 ) {
-    val mutableClass = mutableClass(classType)
-    if (mutableClass.fields.any { it.name == fieldName && it.type == fieldType }) return
+    mutableClass(classType).addFieldIfMissing(
+        fieldName = fieldName,
+        fieldType = fieldType,
+        accessFlags = accessFlags,
+    )
+}
 
-    mutableClass.fields.add(
+internal fun MutableClass.addFieldIfMissing(
+    fieldName: String,
+    fieldType: String,
+    accessFlags: Int,
+) {
+    if (fields.any { it.name == fieldName && it.type == fieldType }) return
+
+    fields.add(
         ImmutableField(
-            classType,
+            type,
             fieldName,
             fieldType,
             accessFlags,
@@ -58,19 +64,12 @@ internal fun BytecodePatchContext.findMutableMethodOrThrow(
 }
 
 internal fun BytecodePatchContext.findMutableMethodOrThrow(
-    binding: GboardMethodBinding,
-): MutableMethod = findMutableMethodOrThrow(
-    classType = binding.classType,
-    name = binding.name,
-    returnType = binding.returnType,
-    parameterTypes = binding.parameterTypes,
-)
+    binding: GboardMethodTarget,
+): MutableMethod = binding.resolve(this)
 
 internal fun BytecodePatchContext.mutableFieldOrThrow(
-    binding: GboardFieldBinding,
-): MutableField = mutableClass(binding.classType).fields.firstOrNull {
-    it.name == binding.name && it.type == binding.type
-} ?: error("Could not find ${binding.classType}->${binding.name}:${binding.type}")
+    binding: GboardFieldTarget,
+): MutableField = binding.resolve(this)
 
 internal fun BytecodePatchContext.addHelperMethodIfMissing(
     classType: String,
@@ -81,16 +80,33 @@ internal fun BytecodePatchContext.addHelperMethodIfMissing(
     registerCount: Int,
     body: String
 ) {
-    val mutableClass = mutableClass(classType)
-    if (mutableClass.methods.any {
+    mutableClass(classType).addHelperMethodIfMissing(
+        name = name,
+        parameterTypes = parameterTypes,
+        returnType = returnType,
+        accessFlags = accessFlags,
+        registerCount = registerCount,
+        body = body,
+    )
+}
+
+internal fun MutableClass.addHelperMethodIfMissing(
+    name: String,
+    parameterTypes: List<String>,
+    returnType: String,
+    accessFlags: Int,
+    registerCount: Int,
+    body: String,
+) {
+    if (methods.any {
             it.name == name && it.returnType == returnType && it.parameterTypes == parameterTypes
         }) {
         return
     }
 
-    mutableClass.methods.add(
+    methods.add(
         ImmutableMethod(
-            classType,
+            type,
             name,
             parameterTypes.map { ImmutableMethodParameter(it, null, null) },
             returnType,
@@ -139,8 +155,11 @@ internal fun MutableMethod.methodCallIndices(
 internal fun MutableMethod.indexOfFirstMoveResultAfter(instructionIndex: Int): Int {
     val instructions = implementation?.instructions ?: return -1
     for (index in (instructionIndex + 1) until instructions.size) {
-        val opcodeName = instructions[index].opcode.name.normalizedOpcodeName()
-        if (opcodeName.startsWith("MOVE_RESULT")) return index
+        if (instructions[index].isOpcode("MOVE_RESULT") ||
+            instructions[index].isOpcode("MOVE_RESULT_OBJECT") ||
+            instructions[index].isOpcode("MOVE_RESULT_WIDE")) {
+            return index
+        }
     }
     return -1
 }
@@ -149,9 +168,12 @@ internal fun MutableMethod.indexOfFirstConst4LiteralFollowedByIfEqz(literal: Int
     val instructions = implementation?.instructions ?: return -1
     for (index in 0 until instructions.lastIndex) {
         val instruction = instructions[index]
-        if (instruction.opcode.name.normalizedOpcodeName() == "CONST_4" &&
-            (instruction as? NarrowLiteralInstruction)?.narrowLiteral == literal &&
-            instructions[index + 1].opcode.name.normalizedOpcodeName() == "IF_EQZ"
+        if (instruction.isOpcode("CONST_4") &&
+            instruction.isLiteralWrite(
+                register = (instruction as? OneRegisterInstruction)?.registerA ?: continue,
+                literal = literal.toLong(),
+            ) &&
+            instructions[index + 1].isOpcode("IF_EQZ")
         ) {
             return index
         }
@@ -168,9 +190,8 @@ internal fun MutableMethod.indexOfFirstInstructionWritingRegister(register: Int)
 
 internal fun MutableMethod.instructionIndices(opcodeName: String): List<Int> {
     val instructions = implementation?.instructions ?: return emptyList()
-    val normalizedOpcodeName = opcodeName.normalizedOpcodeName()
     return instructions.mapIndexedNotNull { index, instruction ->
-        if (instruction.opcode.name.normalizedOpcodeName() == normalizedOpcodeName) {
+        if (instruction.isOpcode(opcodeName)) {
             index
         } else {
             null
@@ -181,7 +202,10 @@ internal fun MutableMethod.instructionIndices(opcodeName: String): List<Int> {
 internal fun MutableMethod.returnInstructionIndices(): List<Int> {
     val instructions = implementation?.instructions ?: return emptyList()
     return instructions.indices.filter { index ->
-        instructions[index].opcode.name.normalizedOpcodeName().startsWith("RETURN")
+        instructions[index].isOpcode("RETURN") ||
+            instructions[index].isOpcode("RETURN_OBJECT") ||
+            instructions[index].isOpcode("RETURN_VOID") ||
+            instructions[index].isOpcode("RETURN_WIDE")
     }
 }
 
@@ -197,6 +221,6 @@ internal fun MutableMethod.indexOfFirstFieldAccess(
         reference.definingClass == definingClass &&
             reference.name == name &&
             reference.type == type &&
-            (opcodeName == null || instruction.opcode.name.normalizedOpcodeName() == opcodeName.normalizedOpcodeName())
+            (opcodeName == null || instruction.isOpcode(opcodeName))
     }
 }

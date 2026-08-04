@@ -9,7 +9,13 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import dev.jason.gboardpatches.patches.gboard.shared.findMutableMethodOrThrow
 import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesExtensionCarrierPatch
+import dev.jason.gboardpatches.patches.gboard.shared.isInvoke
+import dev.jason.gboardpatches.patches.gboard.shared.isMethodReference
+import dev.jason.gboardpatches.patches.gboard.shared.isOpcode
 import dev.jason.gboardpatches.patches.gboard.shared.returnInstructionIndices
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeAbiCatalog
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 import dev.jason.gboardpatches.patches.shared.Constants.COMPATIBILITY_GBOARD
 
 internal val gboardAiWritingToolsSettingsVisibilityPatch = bytecodePatch(
@@ -83,17 +89,18 @@ internal fun MutableMethod.applyWritingToolsSettingsRemovalBypass() {
         val branch = instructions.getOrNull(2) as? OffsetInstruction
         val complete = delegateCount == 1 &&
             instructions.size > 4 &&
-            instructions[0].isExactWritingToolsStaticInvoke(
+            instructions[0].isInvoke(
+                "INVOKE_STATIC",
                 SHOULD_BYPASS_DESCRIPTOR,
                 implementation!!.registerCount - 1,
             ) &&
-            instructions[1].normalizedOpcode() == "MOVE_RESULT" &&
+            instructions[1].isOpcode("MOVE_RESULT") &&
             moveResult?.registerA == 0 &&
-            instructions[2].normalizedOpcode() == "IF_EQZ" &&
+            instructions[2].isOpcode("IF_EQZ") &&
             (instructions[2] as? OneRegisterInstruction)?.registerA == 0 &&
             branch != null &&
             instructions.codeAddressOf(2) + branch.codeOffset == instructions.codeAddressOf(4) &&
-            instructions[3].normalizedOpcode() == "RETURN_VOID"
+            instructions[3].isOpcode("RETURN_VOID")
         check(complete) {
             "Malformed partial Writing Tools settings bypass in $definingClass->$name"
         }
@@ -103,23 +110,23 @@ internal fun MutableMethod.applyWritingToolsSettingsRemovalBypass() {
 }
 
 private val SCOPE_ENTER_DELEGATE = """
-    invoke-static {}, $AI_WRITING_TOOLS_RUNTIME_CLASS->enterSettingsControllerScope()V
+    ${RuntimeCallEmitter.invoke(RuntimeCallId.AI_WRITING_TOOLS_RUNTIME_ENTER_SETTINGS_CONTROLLER_SCOPE, "")}
 """.trimIndent()
 
 private val SCOPE_EXIT_DELEGATE = """
-    invoke-static {}, $AI_WRITING_TOOLS_RUNTIME_CLASS->exitSettingsControllerScope()V
+    ${RuntimeCallEmitter.invoke(RuntimeCallId.AI_WRITING_TOOLS_RUNTIME_EXIT_SETTINGS_CONTROLLER_SCOPE, "")}
 """.trimIndent()
 
 private val SCOPE_EXCEPTION_HANDLER = """
     move-exception p0
 
-    invoke-static {}, $AI_WRITING_TOOLS_RUNTIME_CLASS->exitSettingsControllerScope()V
+    ${RuntimeCallEmitter.invoke(RuntimeCallId.AI_WRITING_TOOLS_RUNTIME_EXIT_SETTINGS_CONTROLLER_SCOPE, "")}
 
     throw p0
 """.trimIndent()
 
 private val SETTINGS_REMOVAL_BYPASS_DELEGATE = """
-    invoke-static {p1}, $AI_WRITING_TOOLS_RUNTIME_CLASS->shouldBypassSettingsRemoval(I)Z
+    ${RuntimeCallEmitter.invoke(RuntimeCallId.AI_WRITING_TOOLS_RUNTIME_SHOULD_BYPASS_SETTINGS_REMOVAL, "p1")}
 
     move-result v0
 
@@ -130,27 +137,30 @@ private val SETTINGS_REMOVAL_BYPASS_DELEGATE = """
     :cond_jasondev_continue_original
 """.trimIndent()
 
-private const val SCOPE_ENTER_DESCRIPTOR =
-    "$AI_WRITING_TOOLS_RUNTIME_CLASS->enterSettingsControllerScope()V"
-private const val SCOPE_EXIT_DESCRIPTOR =
-    "$AI_WRITING_TOOLS_RUNTIME_CLASS->exitSettingsControllerScope()V"
-private const val SHOULD_BYPASS_DESCRIPTOR =
-    "$AI_WRITING_TOOLS_RUNTIME_CLASS->shouldBypassSettingsRemoval(I)Z"
+private val SCOPE_ENTER_DESCRIPTOR = RuntimeAbiCatalog.abi(
+    RuntimeCallId.AI_WRITING_TOOLS_RUNTIME_ENTER_SETTINGS_CONTROLLER_SCOPE,
+).reference
+private val SCOPE_EXIT_DESCRIPTOR = RuntimeAbiCatalog.abi(
+    RuntimeCallId.AI_WRITING_TOOLS_RUNTIME_EXIT_SETTINGS_CONTROLLER_SCOPE,
+).reference
+private val SHOULD_BYPASS_DESCRIPTOR = RuntimeAbiCatalog.abi(
+    RuntimeCallId.AI_WRITING_TOOLS_RUNTIME_SHOULD_BYPASS_SETTINGS_REMOVAL,
+).reference
 
 private fun List<com.android.tools.smali.dexlib2.iface.instruction.Instruction>
     .countMethodDescriptor(descriptor: String): Int = count {
-        it.settingsMethodDescriptor() == descriptor
+        it.isMethodReference(descriptor)
     }
 
 private fun List<com.android.tools.smali.dexlib2.iface.instruction.Instruction>
     .isScopeExceptionHandlerAt(index: Int): Boolean {
-    if (index + 2 >= size || get(index).normalizedOpcode() != "MOVE_EXCEPTION") {
+    if (index + 2 >= size || !get(index).isOpcode("MOVE_EXCEPTION")) {
         return false
     }
     val moved = get(index) as? OneRegisterInstruction ?: return false
     val thrown = get(index + 2) as? OneRegisterInstruction ?: return false
     return get(index + 1).isExactStaticNoArgInvoke(SCOPE_EXIT_DESCRIPTOR) &&
-        get(index + 2).normalizedOpcode() == "THROW" &&
+        get(index + 2).isOpcode("THROW") &&
         moved.registerA == thrown.registerA
 }
 
@@ -202,13 +212,7 @@ private fun com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 
 private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction
     .isExactStaticNoArgInvoke(descriptor: String): Boolean =
-    isExactWritingToolsStaticInvoke(descriptor)
+    isInvoke("INVOKE_STATIC", descriptor)
 
 private fun List<com.android.tools.smali.dexlib2.iface.instruction.Instruction>
     .codeAddressOf(index: Int): Int = take(index).sumOf { instruction -> instruction.codeUnits }
-
-private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction.settingsMethodDescriptor(): String? =
-    ((this as? ReferenceInstruction)?.reference as? MethodReference)?.toString()
-
-private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction
-    .normalizedOpcode(): String = opcode.name.uppercase().replace('-', '_')

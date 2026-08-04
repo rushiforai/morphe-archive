@@ -18,17 +18,29 @@ import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesExtensionCarrierPatch
+import dev.jason.gboardpatches.patches.gboard.shared.VerifiedTransformationPlan
+import dev.jason.gboardpatches.patches.gboard.shared.VerifiedTransformationState
+import dev.jason.gboardpatches.patches.gboard.shared.applyVerified
+import dev.jason.gboardpatches.patches.gboard.shared.isInvoke
+import dev.jason.gboardpatches.patches.gboard.shared.isMethodReference
+import dev.jason.gboardpatches.patches.gboard.shared.isMethodReferenceInClass
+import dev.jason.gboardpatches.patches.gboard.shared.isOpcode
 import dev.jason.gboardpatches.patches.gboard.shared.mutableClass
+import dev.jason.gboardpatches.patches.gboard.shared.semanticShape
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeAbiCatalog
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 import dev.jason.gboardpatches.patches.shared.Constants.COMPATIBILITY_GBOARD
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 
 private const val SETTINGS_ACTIVITY_CLASS =
     "Lcom/google/android/apps/inputmethod/latin/preference/SettingsActivity;"
-private const val SETTINGS_HOMEPAGE_RUNTIME_CLASS =
-    "Ldev/jason/gboardpatches/extension/settingshomepage/GboardSettingsHomepageRuntime;"
-private const val SETTINGS_HOMEPAGE_RUNTIME_DESCRIPTOR =
-    "$SETTINGS_HOMEPAGE_RUNTIME_CLASS->applySettingsHomepagePolicy(Ljava/lang/Object;)V"
+private val SETTINGS_HOMEPAGE_RUNTIME_CALL =
+    RuntimeCallId.SETTINGS_HOMEPAGE_RUNTIME_APPLY_SETTINGS_HOMEPAGE_POLICY
+private val SETTINGS_HOMEPAGE_RUNTIME_ABI = RuntimeAbiCatalog.abi(SETTINGS_HOMEPAGE_RUNTIME_CALL)
+private val SETTINGS_HOMEPAGE_RUNTIME_CLASS = SETTINGS_HOMEPAGE_RUNTIME_ABI.owner
+private val SETTINGS_HOMEPAGE_RUNTIME_DESCRIPTOR = SETTINGS_HOMEPAGE_RUNTIME_ABI.reference
 private const val TARGET_METHOD_NAME = "onCreate"
 private val TARGET_PARAMETER_TYPES = listOf("Landroid/os/Bundle;")
 private const val TARGET_RETURN_TYPE = "V"
@@ -72,25 +84,41 @@ internal fun selectSettingsActivityOnCreate(methods: List<MutableMethod>): Mutab
 
 internal fun MutableMethod.applySettingsHomepageOverride(): MutableMethod {
     requireExactTarget()
-    val implementation = implementation ?: error("No instructions in $TARGET_DESCRIPTOR")
-    val instructions = implementation.instructions
-    val runtimeReferences = instructions.filter { instruction ->
-        instruction.methodDescriptor()?.startsWith("$SETTINGS_HOMEPAGE_RUNTIME_CLASS->") == true
-    }
-    if (runtimeReferences.isNotEmpty()) {
-        check(runtimeReferences.size == 1 &&
-            runtimeReferences.single().methodDescriptor() == SETTINGS_HOMEPAGE_RUNTIME_DESCRIPTOR
-        ) {
-            "$TARGET_DESCRIPTOR contains an orphan or duplicate Settings Homepage delegate"
-        }
-        validateCompletedPatch()
-        return this
-    }
+    return applyVerified(
+        VerifiedTransformationPlan(
+            targetName = TARGET_DESCRIPTOR,
+            classify = MutableMethod::classifySettingsHomepageOverride,
+            mutate = { method ->
+                method.addInstructions(
+                    0,
+                    RuntimeCallEmitter.invoke(SETTINGS_HOMEPAGE_RUNTIME_CALL, "p0"),
+                )
+                method
+            },
+        ),
+    )
+}
 
-    validateStockBody()
-    addInstructions(0, "invoke-static {p0}, $SETTINGS_HOMEPAGE_RUNTIME_DESCRIPTOR")
-    validateCompletedPatch()
-    return this
+private fun MutableMethod.classifySettingsHomepageOverride(): VerifiedTransformationState {
+    val instructions = implementation?.instructions
+        ?: error("No instructions in $TARGET_DESCRIPTOR")
+    val runtimeReferences = instructions.filter { instruction ->
+        instruction.isMethodReferenceInClass(SETTINGS_HOMEPAGE_RUNTIME_CLASS)
+    }
+    return when {
+        runtimeReferences.isEmpty() -> {
+            validateStockBody()
+            VerifiedTransformationState.STOCK
+        }
+        runtimeReferences.size == 1 &&
+            runtimeReferences.single().isMethodReference(
+                SETTINGS_HOMEPAGE_RUNTIME_DESCRIPTOR,
+            ) -> {
+            validateCompletedPatch()
+            VerifiedTransformationState.PATCHED
+        }
+        else -> VerifiedTransformationState.MALFORMED
+    }
 }
 
 private fun MutableMethod.requireExactTarget() {
@@ -117,7 +145,7 @@ private fun MutableMethod.validateStockBody() {
     }
     val instructions = implementation.instructions
     check(instructions.none { instruction ->
-        instruction.methodDescriptor()?.startsWith("$SETTINGS_HOMEPAGE_RUNTIME_CLASS->") == true
+        instruction.isMethodReferenceInClass(SETTINGS_HOMEPAGE_RUNTIME_CLASS)
     }) {
         "$TARGET_DESCRIPTOR contains an orphan Settings Homepage delegate"
     }
@@ -135,12 +163,12 @@ private fun MutableMethod.validateCompletedPatch() {
         "$TARGET_DESCRIPTOR entry delegate is missing, misplaced, or malformed"
     }
     check(instructions.count { instruction ->
-        instruction.methodDescriptor() == SETTINGS_HOMEPAGE_RUNTIME_DESCRIPTOR
+        instruction.isMethodReference(SETTINGS_HOMEPAGE_RUNTIME_DESCRIPTOR)
     } == 1) {
         "$TARGET_DESCRIPTOR must contain exactly one Settings Homepage delegate"
     }
     check(instructions.count { instruction ->
-        instruction.methodDescriptor()?.startsWith("$SETTINGS_HOMEPAGE_RUNTIME_CLASS->") == true
+        instruction.isMethodReferenceInClass(SETTINGS_HOMEPAGE_RUNTIME_CLASS)
     } == 1) {
         "$TARGET_DESCRIPTOR contains an orphan Settings Homepage runtime reference"
     }
@@ -155,18 +183,18 @@ private fun MutableMethod.validateCompletedPatch() {
 }
 
 private fun validateControlFlow(instructions: List<Instruction>) {
-    check(instructions.firstOrNull()?.methodDescriptor() ==
-        "$SETTINGS_ACTIVITY_CLASS->getIntent()Landroid/content/Intent;"
-    ) {
+    check(instructions.firstOrNull()?.isMethodReference(
+        "$SETTINGS_ACTIVITY_CLASS->getIntent()Landroid/content/Intent;",
+    ) == true) {
         "$TARGET_DESCRIPTOR must retain getIntent as its first stock instruction"
     }
     check(instructions.count { instruction ->
-        instruction.methodDescriptor() == "Lepu;->onCreate(Landroid/os/Bundle;)V"
+        instruction.isMethodReference("Lepu;->onCreate(Landroid/os/Bundle;)V")
     } == 1) {
         "$TARGET_DESCRIPTOR must retain its exact super onCreate call"
     }
     val returns = instructions.indices.filter { index ->
-        instructions[index].normalizedOpcode() == "RETURN_VOID"
+        instructions[index].isOpcode("RETURN_VOID")
     }
     check(returns == listOf(instructions.lastIndex)) {
         "$TARGET_DESCRIPTOR must retain its single final RETURN_VOID"
@@ -209,43 +237,9 @@ private fun stockFingerprint(
         .joinToString("") { value -> "%02X".format(value) }
 }
 
-private fun Instruction.semanticShape(): String = buildString {
-    append(normalizedOpcode())
-    when (this@semanticShape) {
-        is FiveRegisterInstruction -> append("|5=")
-            .append(registerCount).append(',').append(registerC).append(',')
-            .append(registerD).append(',').append(registerE).append(',')
-            .append(registerF).append(',').append(registerG)
-        is RegisterRangeInstruction -> append("|range=")
-            .append(startRegister).append(',').append(registerCount)
-        is ThreeRegisterInstruction -> append("|3=")
-            .append(registerA).append(',').append(registerB).append(',').append(registerC)
-        is TwoRegisterInstruction -> append("|2=")
-            .append(registerA).append(',').append(registerB)
-        is OneRegisterInstruction -> append("|1=").append(registerA)
-    }
-    if (this@semanticShape is ReferenceInstruction) {
-        append("|ref=").append(reference)
-    }
-    if (this@semanticShape is WideLiteralInstruction) {
-        append("|wide=").append(wideLiteral)
-    } else if (this@semanticShape is NarrowLiteralInstruction) {
-        append("|narrow=").append(narrowLiteral)
-    }
-    if (this@semanticShape is OffsetInstruction) {
-        append("|offset=").append(codeOffset)
-    }
-}
-
 private fun Instruction?.isExactEntryDelegate(): Boolean =
-    this?.normalizedOpcode() == "INVOKE_STATIC" &&
-        this.methodDescriptor() == SETTINGS_HOMEPAGE_RUNTIME_DESCRIPTOR &&
-        this is FiveRegisterInstruction &&
-        registerCount == 1 &&
-        registerC == STOCK_RECEIVER_REGISTER
-
-private fun Instruction.methodDescriptor(): String? =
-    ((this as? ReferenceInstruction)?.reference as? MethodReference)?.toString()
-
-private fun Instruction.normalizedOpcode(): String =
-    opcode.name.uppercase().replace('-', '_').replace('/', '_')
+    this?.isInvoke(
+        "INVOKE_STATIC",
+        SETTINGS_HOMEPAGE_RUNTIME_DESCRIPTOR,
+        STOCK_RECEIVER_REGISTER,
+    ) == true

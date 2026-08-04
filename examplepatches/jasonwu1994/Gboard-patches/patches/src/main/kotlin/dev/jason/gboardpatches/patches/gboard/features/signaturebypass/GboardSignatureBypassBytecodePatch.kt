@@ -12,6 +12,13 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import dev.jason.gboardpatches.patches.gboard.shared.mutableClass
+import dev.jason.gboardpatches.patches.gboard.shared.VerifiedTransformationPlan
+import dev.jason.gboardpatches.patches.gboard.shared.VerifiedTransformationState
+import dev.jason.gboardpatches.patches.gboard.shared.applyVerified
+import dev.jason.gboardpatches.patches.gboard.shared.isFieldReference
+import dev.jason.gboardpatches.patches.gboard.shared.isLiteralWrite
+import dev.jason.gboardpatches.patches.gboard.shared.isMethodReference
+import dev.jason.gboardpatches.patches.gboard.shared.isOpcode
 import dev.jason.gboardpatches.patches.shared.Constants.COMPATIBILITY_GBOARD
 
 private const val SIGNATURE_UTILS_CLASS = "Lqvi;"
@@ -43,6 +50,19 @@ internal fun Iterable<MutableMethod>.findGboardSignatureBypassTargetOrThrow(): M
 }
 
 internal fun MutableMethod.applyGboardSignatureBypass() {
+    applyVerified(
+        VerifiedTransformationPlan(
+            targetName = SIGNATURE_CHECK_DESCRIPTOR,
+            classify = MutableMethod::classifyGboardSignatureBypass,
+            mutate = { method ->
+                method.forceSignatureBypassReturns()
+                method
+            },
+        ),
+    )
+}
+
+private fun MutableMethod.classifyGboardSignatureBypass(): VerifiedTransformationState {
     check(isExactGboardSignatureBypassTarget()) {
         "Refusing non-target signature bypass method $definingClass->$name"
     }
@@ -53,7 +73,7 @@ internal fun MutableMethod.applyGboardSignatureBypass() {
     }
 
     val returnIndices = instructions.indices.filter { index ->
-        instructions[index].normalizedOpcode() == "RETURN"
+        instructions[index].isOpcode("RETURN")
     }
     check(returnIndices.size == TARGET_RETURN_REGISTERS.size) {
         "Expected three normal returns in $SIGNATURE_CHECK_DESCRIPTOR"
@@ -65,14 +85,14 @@ internal fun MutableMethod.applyGboardSignatureBypass() {
     check(returnRegisters == TARGET_RETURN_REGISTERS) {
         "Unexpected normal return registers in $SIGNATURE_CHECK_DESCRIPTOR"
     }
-    check(instructions.countMethodReference(DIGEST_METHOD_DESCRIPTOR) == 1) {
+    check(instructions.count { it.isMethodReference(DIGEST_METHOD_DESCRIPTOR) } == 1) {
         "Expected exact digest call in $SIGNATURE_CHECK_DESCRIPTOR"
     }
-    check(instructions.countMethodReference(ARRAYS_EQUALS_DESCRIPTOR) == 1) {
+    check(instructions.count { it.isMethodReference(ARRAYS_EQUALS_DESCRIPTOR) } == 1) {
         "Expected exact digest comparison in $SIGNATURE_CHECK_DESCRIPTOR"
     }
     TARGET_FIELD_DESCRIPTORS.forEach { descriptor ->
-        check(instructions.countFieldReference(descriptor) == 1) {
+        check(instructions.count { it.isFieldReference(descriptor) } == 1) {
             "Expected exact field $descriptor in $SIGNATURE_CHECK_DESCRIPTOR"
         }
     }
@@ -91,14 +111,23 @@ internal fun MutableMethod.applyGboardSignatureBypass() {
         instruction.normalizedOpcode().startsWith("CONST") &&
             (instruction as? NarrowLiteralInstruction)?.narrowLiteral == 1
     }
-    if (completedReturns == returnIndices.size &&
-        oneLiteralCount == TARGET_COMPLETED_ONE_LITERAL_COUNT) {
-        return
+    return when {
+        completedReturns == returnIndices.size &&
+            oneLiteralCount == TARGET_COMPLETED_ONE_LITERAL_COUNT ->
+            VerifiedTransformationState.PATCHED
+        completedReturns == 0 &&
+            oneLiteralCount == TARGET_STOCK_ONE_LITERAL_COUNT ->
+            VerifiedTransformationState.STOCK
+        else -> VerifiedTransformationState.MALFORMED
     }
-    check(completedReturns == 0 && oneLiteralCount == TARGET_STOCK_ONE_LITERAL_COUNT) {
-        "Malformed partial signature bypass in $SIGNATURE_CHECK_DESCRIPTOR"
-    }
+}
 
+private fun MutableMethod.forceSignatureBypassReturns() {
+    val instructions = implementation?.instructions
+        ?: error("No instructions available in $SIGNATURE_CHECK_DESCRIPTOR")
+    val returnIndices = instructions.indices.filter { index ->
+        instructions[index].isOpcode("RETURN")
+    }
     returnIndices.asReversed().forEach { returnIndex ->
         val resultRegister = (instructions[returnIndex] as OneRegisterInstruction).registerA
         check(resultRegister <= MAX_CONST_4_REGISTER) {
@@ -116,31 +145,16 @@ private fun MutableMethod.isExactGboardSignatureBypassTarget(): Boolean =
         parameterTypes == SIGNATURE_CHECK_PARAMETERS &&
         accessFlags == TARGET_ACCESS_FLAGS
 
-private fun List<com.android.tools.smali.dexlib2.iface.instruction.Instruction>
-    .countMethodReference(descriptor: String): Int = count { instruction ->
-        ((instruction as? ReferenceInstruction)?.reference as? MethodReference)?.toString() ==
-            descriptor
-    }
-
-private fun List<com.android.tools.smali.dexlib2.iface.instruction.Instruction>
-    .countFieldReference(descriptor: String): Int = count { instruction ->
-        ((instruction as? ReferenceInstruction)?.reference as? FieldReference)?.toString() ==
-            descriptor
-    }
-
 private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction?.isForcedTrueFor(
     register: Int,
-): Boolean = this != null &&
-    normalizedOpcode() == "CONST_4" &&
-    (this as? NarrowLiteralInstruction)?.narrowLiteral == 1 &&
-    (this as? OneRegisterInstruction)?.registerA == register
+): Boolean = this?.isOpcode("CONST_4") == true && isLiteralWrite(register, 1)
 
 private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction.matchesLiteral(
     expected: LiteralShape,
 ): Boolean = literalShape() == expected
 
 private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction.literalShape(): LiteralShape? {
-    if (normalizedOpcode() != "CONST_4") return null
+    if (!isOpcode("CONST_4")) return null
     val register = (this as? OneRegisterInstruction)?.registerA ?: return null
     val literal = (this as? NarrowLiteralInstruction)?.narrowLiteral ?: return null
     return LiteralShape(register, literal)

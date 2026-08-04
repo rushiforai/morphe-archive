@@ -55,101 +55,69 @@ public final class GboardZhuyinBottomRowWeightSettingsFeature
 
     public GboardZhuyinBottomRowWeightSettingsFeature(Context context) {
         entryTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_zhuyin_bottom_row_title,
-                "Zhuyin Bottom Row Key Sizes");
+                R.string.gboard_patches_zhuyin_bottom_row_title);
         headerBadge = GboardSettingsText.get(context,
-                R.string.gboard_patches_header_badge,
-                "Gboard");
+                R.string.gboard_patches_header_badge);
         entrySummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_zhuyin_bottom_row_summary,
-                "Adjust the seven bottom-row slot weights on the Zhuyin keyboard.");
+                R.string.gboard_patches_zhuyin_bottom_row_summary);
         headerSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_zhuyin_bottom_row_header_summary,
-                "Adjust the seven bottom-row slot weights on the Zhuyin keyboard.");
+                R.string.gboard_patches_zhuyin_bottom_row_header_summary);
         errorTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_zhuyin_bottom_row_error_title,
-                "Zhuyin bottom row key sizes unavailable");
+                R.string.gboard_patches_zhuyin_bottom_row_error_title);
         errorSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_zhuyin_bottom_row_error_summary,
-                "The Zhuyin bottom row settings screen failed to load. Reopen Gboard settings and try again.");
+                R.string.gboard_patches_zhuyin_bottom_row_error_summary);
         enabledTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_zhuyin_bottom_row_enabled_title,
-                "Enabled");
+                R.string.gboard_patches_zhuyin_bottom_row_enabled_title);
         enabledSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_zhuyin_bottom_row_enabled_summary,
-                "Enable custom weight override.");
+                R.string.gboard_patches_zhuyin_bottom_row_enabled_summary);
         sectionBehavior = GboardSettingsText.get(context,
-                R.string.gboard_patches_zhuyin_bottom_row_section_behavior,
-                "Behavior");
+                R.string.gboard_patches_zhuyin_bottom_row_section_behavior);
         sectionWeights = GboardSettingsText.get(context,
-                R.string.gboard_patches_zhuyin_bottom_row_section_weights,
-                "Weights");
+                R.string.gboard_patches_zhuyin_bottom_row_section_weights);
         sectionAdvanced = GboardSettingsText.get(context,
-                R.string.gboard_patches_zhuyin_bottom_row_section_advanced,
-                "Advanced");
+                R.string.gboard_patches_zhuyin_bottom_row_section_advanced);
         applyRecommendedTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_zhuyin_bottom_row_apply_recommended_title,
-                "Apply Recommended Values");
+                R.string.gboard_patches_zhuyin_bottom_row_apply_recommended_title);
         applyRecommendedSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_zhuyin_bottom_row_apply_recommended_summary,
-                "Recommended: set Space to 200 and Delete to 200; keep all other slots at their stock defaults.");
+                R.string.gboard_patches_zhuyin_bottom_row_apply_recommended_summary);
         applyRecommendedConfirmTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_zhuyin_bottom_row_apply_recommended_confirm_title,
-                "Apply recommended values?");
+                R.string.gboard_patches_zhuyin_bottom_row_apply_recommended_confirm_title);
         applyRecommendedConfirmMessage = GboardSettingsText.get(context,
-                R.string.gboard_patches_zhuyin_bottom_row_apply_recommended_confirm_message,
-                "This sets Space and Delete to 200, and restores the other five slots to stock defaults.");
+                R.string.gboard_patches_zhuyin_bottom_row_apply_recommended_confirm_message);
         resetTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_zhuyin_bottom_row_reset_title,
-                "Reset to Default");
+                R.string.gboard_patches_zhuyin_bottom_row_reset_title);
         resetSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_zhuyin_bottom_row_reset_summary,
-                "Restore all 7 bottom-row slot weights to the stock layout values.");
+                R.string.gboard_patches_zhuyin_bottom_row_reset_summary);
         resetConfirmTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_zhuyin_bottom_row_reset_confirm_title,
-                "Reset all Zhuyin bottom-row weights?");
+                R.string.gboard_patches_zhuyin_bottom_row_reset_confirm_title);
         resetConfirmMessage = GboardSettingsText.get(context,
-                R.string.gboard_patches_zhuyin_bottom_row_reset_confirm_message,
-                "This restores the seven bottom-row slot weights to the stock Zhuyin normal layout.");
+                R.string.gboard_patches_zhuyin_bottom_row_reset_confirm_message);
         dialogHint = GboardSettingsText.get(context,
-                R.string.gboard_patches_zhuyin_bottom_row_dialog_hint,
-                "1-500");
+                R.string.gboard_patches_zhuyin_bottom_row_dialog_hint);
         dialogError = GboardSettingsText.get(context,
-                R.string.gboard_patches_zhuyin_bottom_row_dialog_error,
-                "Enter a value from 1 to 500.");
+                R.string.gboard_patches_zhuyin_bottom_row_dialog_error);
         switchToSymbolTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_zhuyin_bottom_row_weight_switch_to_symbol_title,
-                "?123");
+                R.string.gboard_patches_zhuyin_bottom_row_weight_switch_to_symbol_title);
         a02Title = GboardSettingsText.get(context,
-                R.string.gboard_patches_zhuyin_bottom_row_weight_a02_title,
-                "Comma");
+                R.string.gboard_patches_zhuyin_bottom_row_weight_a02_title);
         switchToNextLanguageTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_zhuyin_bottom_row_weight_switch_to_next_language_title,
-                "Globe");
+                R.string.gboard_patches_zhuyin_bottom_row_weight_switch_to_next_language_title);
         spaceTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_zhuyin_bottom_row_weight_space_title,
-                "Space");
+                R.string.gboard_patches_zhuyin_bottom_row_weight_space_title);
         a06Title = GboardSettingsText.get(context,
-                R.string.gboard_patches_zhuyin_bottom_row_weight_a06_title,
-                "A06 / ㄦ");
+                R.string.gboard_patches_zhuyin_bottom_row_weight_a06_title);
         a08Title = GboardSettingsText.get(context,
-                R.string.gboard_patches_zhuyin_bottom_row_weight_a08_title,
-                "Delete");
+                R.string.gboard_patches_zhuyin_bottom_row_weight_a08_title);
         imeActionTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_zhuyin_bottom_row_weight_ime_action_title,
-                "Search / Enter");
+                R.string.gboard_patches_zhuyin_bottom_row_weight_ime_action_title);
         weightSummaryTemplate = GboardSettingsText.get(context,
-                R.string.gboard_patches_zhuyin_bottom_row_weight_summary,
-                "Range: 1-500. Stock default: %1$d.");
+                R.string.gboard_patches_zhuyin_bottom_row_weight_summary);
         weightValueTemplate = GboardSettingsText.get(context,
-                R.string.gboard_patches_zhuyin_bottom_row_weight_value,
-                "%1$d");
+                R.string.gboard_patches_zhuyin_bottom_row_weight_value);
         weightValueDefaultTemplate = GboardSettingsText.get(context,
-                R.string.gboard_patches_zhuyin_bottom_row_weight_value_default,
-                "%1$d (Default)");
+                R.string.gboard_patches_zhuyin_bottom_row_weight_value_default);
         dialogTitleTemplate = GboardSettingsText.get(context,
-                R.string.gboard_patches_zhuyin_bottom_row_dialog_title,
-                "%1$s");
+                R.string.gboard_patches_zhuyin_bottom_row_dialog_title);
     }
 
     @Override
@@ -171,7 +139,7 @@ public final class GboardZhuyinBottomRowWeightSettingsFeature
 
     @Override
     public GboardPatchesSettingsContract.Screen buildScreen(
-            GboardPatchesSettingsContract.Host host) {
+            GboardPatchesSettingsContract.FeatureHost host) {
         try {
             if (host == null || host.getContext() == null) {
                 return buildErrorScreen();
@@ -283,7 +251,7 @@ public final class GboardZhuyinBottomRowWeightSettingsFeature
     }
 
     private GboardPatchesSettingsContract.Row buildWeightRow(
-            GboardPatchesSettingsContract.Host host,
+            GboardPatchesSettingsContract.FeatureHost host,
             String rowTitle,
             boolean enabled,
             int defaultWeight,
@@ -297,12 +265,12 @@ public final class GboardZhuyinBottomRowWeightSettingsFeature
                 () -> showWeightDialog(host, rowTitle, currentWeight, writer));
     }
 
-    private void showWeightDialog(GboardPatchesSettingsContract.Host host, String rowTitle,
+    private void showWeightDialog(GboardPatchesSettingsContract.FeatureHost host, String rowTitle,
             int currentWeight, WeightWriter writer) {
         if (host == null || host.getContext() == null || writer == null) {
             return;
         }
-        host.showTextInputDialog(
+        GboardPatchesSettingsContract.showTextInputDialog(host,
                 String.format(Locale.US, dialogTitleTemplate, rowTitle),
                 dialogHint,
                 Integer.toString(currentWeight),
@@ -373,9 +341,9 @@ public final class GboardZhuyinBottomRowWeightSettingsFeature
     }
 
     private static final class ResetWeightsAction implements Runnable {
-        private final GboardPatchesSettingsContract.Host host;
+        private final GboardPatchesSettingsContract.FeatureHost host;
 
-        ResetWeightsAction(GboardPatchesSettingsContract.Host host) {
+        ResetWeightsAction(GboardPatchesSettingsContract.FeatureHost host) {
             this.host = host;
         }
 
@@ -394,9 +362,9 @@ public final class GboardZhuyinBottomRowWeightSettingsFeature
     }
 
     private static final class ApplyRecommendedWeightsAction implements Runnable {
-        private final GboardPatchesSettingsContract.Host host;
+        private final GboardPatchesSettingsContract.FeatureHost host;
 
-        ApplyRecommendedWeightsAction(GboardPatchesSettingsContract.Host host) {
+        ApplyRecommendedWeightsAction(GboardPatchesSettingsContract.FeatureHost host) {
             this.host = host;
         }
 
@@ -414,12 +382,12 @@ public final class GboardZhuyinBottomRowWeightSettingsFeature
         }
     }
 
-    private static void safeRefresh(GboardPatchesSettingsContract.Host host) {
+    private static void safeRefresh(GboardPatchesSettingsContract.FeatureHost host) {
         if (host == null) {
             return;
         }
         try {
-            host.refresh();
+            GboardPatchesSettingsContract.refresh(host);
         } catch (Throwable throwable) {
             Log.w(TAG, "Failed to refresh Zhuyin bottom row weight settings", throwable);
         }

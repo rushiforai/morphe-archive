@@ -1,60 +1,59 @@
 package dev.jason.gboardpatches.patches.gboard.features.longpressquickactions
 
+import dev.jason.gboardpatches.patches.gboard.shared.generated.GboardVersionBindings
+
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
-import dev.jason.gboardpatches.patches.gboard.shared.findMutableMethodOrThrow
 import dev.jason.gboardpatches.patches.gboard.shared.GboardPointerOwner1777RegisterContract
-import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesExtensionCarrierPatch
+import dev.jason.gboardpatches.patches.gboard.shared.GboardPointerOwnerFeature
+import dev.jason.gboardpatches.patches.gboard.shared.GboardPointerOwnerFeatureSpec
+import dev.jason.gboardpatches.patches.gboard.shared.GboardPointerOwnerTransformationContext
+import dev.jason.gboardpatches.patches.gboard.shared.GboardPointerOwnerTransformationAdapter
 import dev.jason.gboardpatches.patches.gboard.shared.gboardStructuralFingerprint
-import dev.jason.gboardpatches.patches.gboard.shared.mutableClass
+import dev.jason.gboardpatches.patches.gboard.shared.isInvoke
 import dev.jason.gboardpatches.patches.gboard.shared.returnInstructionIndices
-import dev.jason.gboardpatches.patches.shared.Constants.COMPATIBILITY_GBOARD
+import dev.jason.gboardpatches.patches.gboard.shared.gboardPointerOwnerFeaturePatch
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeAbiCatalog
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 
-private const val POINTER_OWNER_RUNTIME_DESCRIPTOR =
-    "$LONG_PRESS_QUICK_ACTIONS_RUNTIME_CLASS->maybeEnsureLongPressScheduled(Ljava/lang/Object;Landroid/view/View;)V"
+private val POINTER_OWNER_RUNTIME_CALL =
+    RuntimeCallId.LONG_PRESS_QUICK_ACTIONS_RUNTIME_MAYBE_ENSURE_LONG_PRESS_SCHEDULED
+private val POINTER_OWNER_RUNTIME_DESCRIPTOR = RuntimeAbiCatalog.abi(POINTER_OWNER_RUNTIME_CALL).reference
 
 internal val LONG_PRESS_QUICK_ACTIONS_POINTER_OWNER_DELEGATE = """
-    invoke-static/range {p0 .. p1}, $POINTER_OWNER_RUNTIME_DESCRIPTOR
+    ${RuntimeCallEmitter.invoke(POINTER_OWNER_RUNTIME_CALL, "p0 .. p1")}
 """.trimIndent()
 
-internal val gboardLongPressQuickActionsPointerOwnerPatch = bytecodePatch(
-    description = "在 17.7.7 pointer owner 完成後補用 Gboard stock long-press scheduler。",
-) {
-    compatibleWith(COMPATIBILITY_GBOARD)
-    dependsOn(gboardPatchesExtensionCarrierPatch)
-
-    execute {
-        val method = findMutableMethodOrThrow(
-            GboardLongPressQuickActions1777Bindings.pointerOwner,
+internal val gboardLongPressQuickActionsPointerOwnerTransformation =
+    GboardPointerOwnerTransformationAdapter { context ->
+        context.replacePointerOwnerMethod(
+            context.pointerOwnerMethod.applyLongPressQuickActionsPointerOwnerDelegate(),
         )
-        val patchedMethod = method.applyLongPressQuickActionsPointerOwnerDelegate()
-        if (patchedMethod !== method) {
-            val methods = mutableClass(
-                GboardLongPressQuickActions1777Bindings.pointerOwner.classType,
-            ).methods
-            check(methods.remove(method) && methods.add(patchedMethod)) {
-                "Could not replace expanded Long-press pointer owner method"
-            }
-        }
-    }
 }
+
+private val gboardLongPressQuickActionsPointerOwnerSpec = GboardPointerOwnerFeatureSpec(
+    feature = GboardPointerOwnerFeature.LONG_PRESS_QUICK_ACTIONS,
+    transformation = gboardLongPressQuickActionsPointerOwnerTransformation,
+)
+
+internal val gboardLongPressQuickActionsPointerOwnerPatch = gboardPointerOwnerFeaturePatch(
+    description = "在 17.7.7 pointer owner 完成後補用 Gboard stock long-press scheduler。",
+    spec = gboardLongPressQuickActionsPointerOwnerSpec,
+)
 
 internal fun MutableMethod.applyLongPressQuickActionsPointerOwnerDelegate(): MutableMethod {
     val implementation = implementation ?: error("Long-press pointer owner has no implementation")
     if (implementation.registerCount == POINTER_OWNER_PATCHED_REGISTER_COUNT) {
         val actual = gboardStructuralFingerprint()
         check(actual in setOf(
-            GboardLongPressQuickActions1777Bindings.pointerOwnerPatchedFingerprint,
-            GboardLongPressQuickActions1777Bindings.pointerOwnerEnglishQwertyPatchedFingerprint,
+            GboardLongPressQuickActions1777Fingerprints.pointerOwnerPatched,
+            GboardLongPressQuickActions1777Fingerprints.pointerOwnerEnglishQwertyPatched,
         )) {
             "Malformed Long-press pointer delegate state: $actual"
         }
@@ -63,18 +62,18 @@ internal fun MutableMethod.applyLongPressQuickActionsPointerOwnerDelegate(): Mut
     }
     val stockFingerprint = gboardStructuralFingerprint()
     val expectedPatchedFingerprint = when (stockFingerprint) {
-        GboardLongPressQuickActions1777Bindings.pointerOwnerStockFingerprint ->
-            GboardLongPressQuickActions1777Bindings.pointerOwnerPatchedFingerprint
-        GboardLongPressQuickActions1777Bindings.pointerOwnerEnglishQwertyFingerprint ->
-            GboardLongPressQuickActions1777Bindings.pointerOwnerEnglishQwertyPatchedFingerprint
+        GboardLongPressQuickActions1777Fingerprints.pointerOwnerStock ->
+            GboardLongPressQuickActions1777Fingerprints.pointerOwnerPatched
+        GboardLongPressQuickActions1777Fingerprints.pointerOwnerEnglishQwerty ->
+            GboardLongPressQuickActions1777Fingerprints.pointerOwnerEnglishQwertyPatched
         else -> error(
-            "Stock body drift in ${GboardLongPressQuickActions1777Bindings.pointerOwner.descriptor()}: " +
+            "Stock body drift in ${GboardVersionBindings.pointerOwner.reference}: " +
                 stockFingerprint,
         )
     }
     check(implementation.registerCount == POINTER_OWNER_STOCK_REGISTER_COUNT) {
         "Unexpected register count in " +
-            "${GboardLongPressQuickActions1777Bindings.pointerOwner.descriptor()}: " +
+            "${GboardVersionBindings.pointerOwner.reference}: " +
             implementation.registerCount
     }
 
@@ -135,11 +134,12 @@ private fun MutableMethod.validateLongPressPointerOwnerDelegate() {
     }
     check(returns.isNotEmpty()) { "Long-press pointer owner has no RETURN_VOID" }
     check(returns.all { returnIndex ->
-        val invoke = instructions.getOrNull(returnIndex - 1)
-        invoke is RegisterRangeInstruction &&
-            invoke.methodDescriptor() == POINTER_OWNER_RUNTIME_DESCRIPTOR &&
-            invoke.startRegister == POINTER_OWNER_PATCHED_P0_REGISTER &&
-            invoke.registerCount == 2
+        instructions.getOrNull(returnIndex - 1)?.isInvoke(
+            "INVOKE_STATIC_RANGE",
+            POINTER_OWNER_RUNTIME_DESCRIPTOR,
+            POINTER_OWNER_PATCHED_P0_REGISTER,
+            POINTER_OWNER_PATCHED_P1_REGISTER,
+        ) == true
     }) {
         "Long-press pointer return delegates are missing or malformed"
     }
@@ -192,6 +192,3 @@ private const val POINTER_OWNER_PATCHED_P4_REGISTER =
     GboardPointerOwner1777RegisterContract.expandedP4Register
 private const val POINTER_OWNER_PATCHED_P6_REGISTER =
     GboardPointerOwner1777RegisterContract.expandedP6Register
-
-private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction.methodDescriptor(): String? =
-    ((this as? ReferenceInstruction)?.reference as? MethodReference)?.toString()

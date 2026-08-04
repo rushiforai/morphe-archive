@@ -75,6 +75,7 @@ final class GboardClipboardRuntimeSupport {
     final AtomicInteger trimInvocationCount = new AtomicInteger(0);
     final AtomicInteger countdownBindCount = new AtomicInteger(0);
     final AtomicInteger textMaxLinesPatchCount = new AtomicInteger(0);
+    final AtomicInteger cardPreviewLimitCount = new AtomicInteger(0);
 
     <T> T runSafely(String action, ThrowingSupplier<T> supplier, T fallbackValue) {
         try {
@@ -180,6 +181,7 @@ final class GboardClipboardRuntimeSupport {
                 GboardClipboardSettings.readClipboardShowCountdown(preferences),
                 GboardClipboardSettings.readClipboardShowCreationTime(preferences),
                 GboardClipboardSettings.readClipboardShowOrderIndex(preferences),
+                GboardClipboardSettings.readClipboardCardPreviewLimitEnabled(preferences),
                 sanitizeOrderIndexMode(
                         GboardClipboardSettings.readClipboardOrderIndexMode(preferences)),
                 GboardClipboardSettings.readClipboardTtlMs(preferences),
@@ -527,6 +529,7 @@ final class GboardClipboardRuntimeSupport {
         final boolean showExpiryCountdown;
         final boolean showCreationTime;
         final boolean showOrderIndex;
+        final boolean cardPreviewLimitEnabled;
         final String clipboardOrderIndexMode;
         final long clipboardTtlMs;
         final int clipboardMaxCount;
@@ -534,12 +537,14 @@ final class GboardClipboardRuntimeSupport {
         final int clipboardGroupLimit;
 
         RuntimeSettings(boolean enabled, boolean showExpiryCountdown, boolean showCreationTime,
-                boolean showOrderIndex, String clipboardOrderIndexMode, long clipboardTtlMs,
+                boolean showOrderIndex, boolean cardPreviewLimitEnabled,
+                String clipboardOrderIndexMode, long clipboardTtlMs,
                 int clipboardMaxCount, int clipboardContentMaxLines) {
             this.enabled = enabled;
             this.showExpiryCountdown = showExpiryCountdown;
             this.showCreationTime = showCreationTime;
             this.showOrderIndex = showOrderIndex;
+            this.cardPreviewLimitEnabled = cardPreviewLimitEnabled;
             this.clipboardOrderIndexMode = clipboardOrderIndexMode;
             this.clipboardTtlMs = clipboardTtlMs;
             this.clipboardMaxCount = clipboardMaxCount;
@@ -552,6 +557,7 @@ final class GboardClipboardRuntimeSupport {
         static RuntimeSettings stockDefaults(boolean enabled) {
             return new RuntimeSettings(
                     enabled,
+                    false,
                     false,
                     false,
                     false,
@@ -616,6 +622,7 @@ final class GboardClipboardRuntimeSupport {
         final Field clipIdField;
         final Field clipTimestampField;
         final Field clipModelField;
+        final Field clipModelTextField;
         final Field clipModelItemTypeField;
         final Method clipIsPinnedMethod;
         final Method clipIsSpecialMethod;
@@ -665,6 +672,7 @@ final class GboardClipboardRuntimeSupport {
             clipIdField = declaredField(clipClass, "d");
             clipTimestampField = declaredField(clipClass, "e");
             clipModelField = declaredField(clipClass, "g");
+            clipModelTextField = declaredField(clipModelClass, "a");
             clipModelItemTypeField = declaredField(clipModelClass, "c");
             clipIsPinnedMethod = declaredMethod(clipClass, "m");
             clipIsSpecialMethod = declaredMethod(clipClass, "n");

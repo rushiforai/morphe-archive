@@ -13,8 +13,8 @@ public final class GboardPatchesSettingsContract {
 
         String getEntrySummary();
 
-        default void openRootEntry(Host host) {
-            host.openFeature(this);
+        default void openRootEntry(FeatureHost host) {
+            openFeature(host, this);
         }
 
         default boolean isAvailable(Context context) {
@@ -25,11 +25,30 @@ public final class GboardPatchesSettingsContract {
             return false;
         }
 
-        Screen buildScreen(Host host);
+        Screen buildScreen(FeatureHost host);
     }
 
-    public interface Host {
+    public interface Intent {
+        void apply(Host host);
+    }
+
+    public interface FeatureHost {
         Context getContext();
+
+        default OfflineSpeechLanguages getOfflineSpeechLanguages() {
+            return OfflineSpeechLanguages.loading();
+        }
+
+        void submit(Intent intent);
+    }
+
+    public interface Host extends FeatureHost {
+        @Override
+        default void submit(Intent intent) {
+            if (intent != null) {
+                intent.apply(this);
+            }
+        }
 
         void refresh();
 
@@ -37,10 +56,6 @@ public final class GboardPatchesSettingsContract {
 
         default void openExternalUrl(String url) {
             throw new UnsupportedOperationException("External URL navigation is unavailable");
-        }
-
-        default OfflineSpeechLanguages getOfflineSpeechLanguages() {
-            return OfflineSpeechLanguages.loading();
         }
 
         default void openSpeechRecognitionAndSynthesisStoreListing() {
@@ -69,10 +84,79 @@ public final class GboardPatchesSettingsContract {
 
         void showPreviewDialog(PreviewSpec previewSpec);
 
+        void showManagedDialog(ManagedDialogAction action);
+
         void createTextDocument(String fileName, String mimeType, String text,
                 Runnable completionAction);
 
         void openTextDocument(String[] mimeTypes, StringValueConsumer valueConsumer);
+    }
+
+    public static void refresh(FeatureHost host) {
+        submit(host, Host::refresh);
+    }
+
+    public static void openFeature(FeatureHost host, Feature feature) {
+        submit(host, adapter -> adapter.openFeature(feature));
+    }
+
+    public static void openExternalUrl(FeatureHost host, String url) {
+        submit(host, adapter -> adapter.openExternalUrl(url));
+    }
+
+    public static void openSpeechRecognitionAndSynthesisStoreListing(FeatureHost host) {
+        submit(host, Host::openSpeechRecognitionAndSynthesisStoreListing);
+    }
+
+    public static void openLiveTranscribeLanguageManager(FeatureHost host) {
+        submit(host, Host::openLiveTranscribeLanguageManager);
+    }
+
+    public static void openTargetSettingsHeader(FeatureHost host, int headerKeyResourceId) {
+        submit(host, adapter -> adapter.openTargetSettingsHeader(headerKeyResourceId));
+    }
+
+    public static void showChoiceDialog(FeatureHost host, String title, String[] labels,
+            String[] values, String currentValue, String customValue, Runnable customAction,
+            StringValueConsumer valueConsumer) {
+        submit(host, adapter -> adapter.showChoiceDialog(title, labels, values, currentValue,
+                customValue, customAction, valueConsumer));
+    }
+
+    public static void showPositiveIntegerDialog(FeatureHost host, String title, String hint,
+            int initialValue, PositiveIntegerConsumer consumer) {
+        submit(host, adapter ->
+                adapter.showPositiveIntegerDialog(title, hint, initialValue, consumer));
+    }
+
+    public static void showTextInputDialog(FeatureHost host, String title, String hint,
+            String initialValue, TextValueConsumer consumer) {
+        submit(host, adapter -> adapter.showTextInputDialog(title, hint, initialValue, consumer));
+    }
+
+    public static void showPreviewDialog(FeatureHost host, PreviewSpec previewSpec) {
+        submit(host, adapter -> adapter.showPreviewDialog(previewSpec));
+    }
+
+    public static void showManagedDialog(FeatureHost host, ManagedDialogAction action) {
+        submit(host, adapter -> adapter.showManagedDialog(action));
+    }
+
+    public static void createTextDocument(FeatureHost host, String fileName, String mimeType,
+            String text, Runnable completionAction) {
+        submit(host, adapter ->
+                adapter.createTextDocument(fileName, mimeType, text, completionAction));
+    }
+
+    public static void openTextDocument(FeatureHost host, String[] mimeTypes,
+            StringValueConsumer valueConsumer) {
+        submit(host, adapter -> adapter.openTextDocument(mimeTypes, valueConsumer));
+    }
+
+    private static void submit(FeatureHost host, Intent intent) {
+        if (host != null) {
+            host.submit(intent);
+        }
     }
 
     public static final class OfflineSpeechLanguages {
@@ -134,6 +218,10 @@ public final class GboardPatchesSettingsContract {
 
     public interface TextValueConsumer {
         void accept(String value);
+    }
+
+    public interface ManagedDialogAction {
+        boolean show(Runnable onDismiss);
     }
 
     public interface ToggleAction {

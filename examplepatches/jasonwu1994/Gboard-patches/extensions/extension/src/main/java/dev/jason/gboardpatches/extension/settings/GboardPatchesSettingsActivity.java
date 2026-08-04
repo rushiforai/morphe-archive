@@ -101,47 +101,12 @@ public final class GboardPatchesSettingsActivity extends Activity
             "https://play.google.com/store/apps/details?id=com.google.android.tts";
     private static final String LIVE_TRANSCRIBE_PLAY_STORE_URL =
             "https://play.google.com/store/apps/details?id=com.google.audio.hearing.visualization.accessibility.scribe";
-    private static final String SPEECH_SERVICES_OPEN_FAILED =
-            "Unable to open the Speech Recognition & Synthesis Google Play page.";
-    private static final String LIVE_TRANSCRIBE_OPEN_FAILED =
-            "Unable to open Live Transcribe or its Google Play page.";
     private static final String PLAY_STORE_PACKAGE_NAME = "com.android.vending";
     private static final long OFFLINE_SPEECH_LANGUAGE_QUERY_TIMEOUT_MS = 10_000L;
     private static final int REQUEST_CREATE_TEXT_DOCUMENT = 0x4742;
     private static final int REQUEST_OPEN_TEXT_DOCUMENT = 0x4743;
     private static final int TOOLBAR_HEIGHT_DP = 56;
     private static final String TOOLBAR_TITLE_PATCHES = "Patches";
-    private static final String HEADER_BADGE = "Gboard";
-    private static final String HEADER_TITLE = "Patch settings";
-    private static final String HEADER_SUMMARY = "";
-    private static final String ERROR_HEADER_TITLE = "Feature unavailable";
-    private static final String ERROR_HEADER_SUMMARY =
-            "This settings page failed to load and was safely disabled.";
-    private static final String ERROR_ROW_TITLE = "Unable to load feature";
-    private static final String ERROR_ROW_SUMMARY =
-            "The host app stayed alive. Reopen Gboard settings and try again.";
-    private static final String FATAL_FALLBACK_TITLE = "Patches temporarily unavailable";
-    private static final String FATAL_FALLBACK_SUMMARY =
-            "This screen hit an internal error and was safely disabled. "
-                    + "Gboard stays alive. Reopen settings and try again.";
-    private static final String ABOUT_AUTHOR_TITLE = "Author";
-    private static final String ABOUT_PATCH_VERSION_TITLE = "Patch Version";
-    private static final String PREFERENCES_SECTION_TITLE = "Preferences";
-    private static final String LANGUAGE_TITLE = "Language";
-    private static final String LANGUAGE_SUMMARY = "";
-    private static final String LANGUAGE_SYSTEM_LABEL = "System default";
-    private static final String LANGUAGE_ENGLISH_LABEL = "English";
-    private static final String LANGUAGE_TRADITIONAL_CHINESE_LABEL = "Traditional Chinese";
-    private static final String DIALOG_SAVE = "Save";
-    private static final String DIALOG_CANCEL = "Cancel";
-    private static final String DIALOG_CLOSE = "Close";
-    private static final String DIALOG_ERROR_POSITIVE = "Enter a positive number.";
-    private static final String DIALOG_ERROR_SAVE_FAILED = "Failed to save setting.";
-    private static final String PREVIEW_LOAD_FAILED = "Failed to load preview media.";
-    private static final String NAVIGATE_UP_LABEL = "Navigate up";
-    private static final String CURRENT_VALUE_LABEL = "Current";
-    private static final String PREVIEW_LABEL = "Preview";
-    private static final String CONFIRM_ACTION = "Confirm";
     private static final String ABOUT_AUTHOR_URL = "https://github.com/jasonwu1994";
     private static final String ABOUT_PATCH_REPOSITORY_URL =
             "https://github.com/jasonwu1994/Gboard-patches";
@@ -159,12 +124,13 @@ public final class GboardPatchesSettingsActivity extends Activity
     private ScrollView contentScrollView;
     private LinearLayout contentColumn;
     private List<GboardPatchesSettingsContract.Feature> features;
-    private GboardPatchesSettingsContract.Feature currentFeature;
-    private final List<GboardPatchesSettingsContract.Feature> featureBackStack =
-            new ArrayList<GboardPatchesSettingsContract.Feature>();
+    private final GboardPatchesSettingsOrchestrator<GboardPatchesSettingsContract.Feature,
+            GboardPatchesSettingsContract.Intent>
+            settingsOrchestrator =
+            new GboardPatchesSettingsOrchestrator<GboardPatchesSettingsContract.Feature,
+                    GboardPatchesSettingsContract.Intent>();
     private boolean featuresInitialized;
     private Object backInvokedCallback;
-    private boolean fatalFallbackShown;
     private final Handler screenRefreshHandler = new Handler(Looper.getMainLooper());
     private final Runnable screenRefreshRunnable = this::refresh;
     private final Runnable deferredRenderRunnable = this::initializeFeaturesAndRenderSafely;
@@ -181,10 +147,6 @@ public final class GboardPatchesSettingsActivity extends Activity
                 return thread;
             });
     private final Object screenBuildLock = new Object();
-    private int screenBuildGeneration;
-    private boolean activityResumed;
-    private long currentScreenRefreshIntervalMs;
-    private int activeModalDialogCount;
     private boolean scrollToTopOnNextScreenApply = true;
     private boolean initialFeatureFromIntentHandled;
     private PendingTextDocumentWrite pendingTextDocumentWrite;
@@ -205,7 +167,6 @@ public final class GboardPatchesSettingsActivity extends Activity
         setTheme(resolveActivityTheme());
         super.onCreate(savedInstanceState);
         try {
-            fatalFallbackShown = false;
             palette = Palette.forConfiguration(getResources().getConfiguration());
             features = Collections.emptyList();
             featuresInitialized = false;
@@ -214,7 +175,6 @@ public final class GboardPatchesSettingsActivity extends Activity
             setContentView(contentView);
             installWindowInsetsHandling(contentView);
             registerBackCallback();
-            scheduleDeferredRender();
         } catch (Throwable throwable) {
             showFatalFallbackScreen("Failed to initialize patches settings activity", throwable);
         }
@@ -237,26 +197,24 @@ public final class GboardPatchesSettingsActivity extends Activity
     @Override
     protected void onResume() {
         super.onResume();
-        activityResumed = true;
-        refreshOfflineSpeechLanguagesForCurrentFeature();
-        scheduleDeferredRender();
+        applyOrchestration(settingsOrchestrator.accept(
+                GboardPatchesSettingsOrchestrator.Event.resume()));
     }
 
     @Override
     protected void onPause() {
-        activityResumed = false;
-        invalidatePendingScreenBuilds();
+        applyOrchestration(settingsOrchestrator.accept(
+                GboardPatchesSettingsOrchestrator.Event.pause()));
         cancelDeferredRender();
-        cancelScheduledScreenRefresh();
         cancelOfflineSpeechLanguageQuery();
         super.onPause();
     }
 
     @Override
     protected void onDestroy() {
-        activityResumed = false;
+        applyOrchestration(settingsOrchestrator.accept(
+                GboardPatchesSettingsOrchestrator.Event.pause()));
         cancelDeferredRender();
-        cancelScheduledScreenRefresh();
         cancelOfflineSpeechLanguageQuery();
         unregisterBackCallback();
         screenBuildExecutor.shutdownNow();
@@ -267,7 +225,8 @@ public final class GboardPatchesSettingsActivity extends Activity
     @Override
     @SuppressLint("GestureBackNavigation")
     public void onBackPressed() {
-        if (navigateToRootIfNeeded()) {
+        if (!applyOrchestration(settingsOrchestrator.accept(
+                GboardPatchesSettingsOrchestrator.Event.back()))) {
             return;
         }
         super.onBackPressed();
@@ -276,6 +235,12 @@ public final class GboardPatchesSettingsActivity extends Activity
     @Override
     public Context getContext() {
         return this;
+    }
+
+    @Override
+    public void submit(GboardPatchesSettingsContract.Intent intent) {
+        applyOrchestration(settingsOrchestrator.accept(
+                GboardPatchesSettingsOrchestrator.Event.featureIntent(intent)));
     }
 
     @Override
@@ -293,8 +258,8 @@ public final class GboardPatchesSettingsActivity extends Activity
             runOnUiThread(this::onManagedDialogShown);
             return;
         }
-        activeModalDialogCount++;
-        cancelScheduledScreenRefresh();
+        applyOrchestration(settingsOrchestrator.accept(
+                GboardPatchesSettingsOrchestrator.Event.modalShown()));
     }
 
     public void onManagedDialogDismissed() {
@@ -302,12 +267,8 @@ public final class GboardPatchesSettingsActivity extends Activity
             runOnUiThread(this::onManagedDialogDismissed);
             return;
         }
-        if (activeModalDialogCount > 0) {
-            activeModalDialogCount--;
-        }
-        if (activeModalDialogCount == 0) {
-            scheduleScreenRefresh(currentScreenRefreshIntervalMs);
-        }
+        applyOrchestration(settingsOrchestrator.accept(
+                GboardPatchesSettingsOrchestrator.Event.modalDismissed()));
     }
 
     @Override
@@ -315,15 +276,8 @@ public final class GboardPatchesSettingsActivity extends Activity
         if (feature == null) {
             return;
         }
-        if (currentFeature == null) {
-            featureBackStack.clear();
-        } else {
-            featureBackStack.add(currentFeature);
-        }
-        currentFeature = feature;
-        refreshOfflineSpeechLanguagesForCurrentFeature();
-        requestScrollToTopOnNextScreenApply();
-        initializeFeaturesAndRenderSafely();
+        applyOrchestration(settingsOrchestrator.accept(
+                GboardPatchesSettingsOrchestrator.Event.open(feature)));
     }
 
     @Override
@@ -413,7 +367,7 @@ public final class GboardPatchesSettingsActivity extends Activity
                             });
                     dialogInterface.dismiss();
                 })
-                .setNegativeButton(text(R.string.gboard_patches_dialog_cancel, DIALOG_CANCEL), null)
+                .setNegativeButton(text(R.string.gboard_patches_dialog_cancel), null)
                 .create();
         dialog.setOnDismissListener(ignored -> {
             Runnable action = pendingSelectionAction[0];
@@ -452,9 +406,9 @@ public final class GboardPatchesSettingsActivity extends Activity
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle(title)
                 .setView(container)
-                .setPositiveButton(text(R.string.gboard_patches_dialog_save, DIALOG_SAVE), null)
+                .setPositiveButton(text(R.string.gboard_patches_dialog_save), null)
                 .setNegativeButton(
-                        text(R.string.gboard_patches_dialog_cancel, DIALOG_CANCEL),
+                        text(R.string.gboard_patches_dialog_cancel),
                         null)
                 .create();
         dialog.setOnShowListener(ignored -> {
@@ -462,8 +416,7 @@ public final class GboardPatchesSettingsActivity extends Activity
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(view -> {
                 int value = parsePositiveInteger(input.getText().toString());
                 if (value <= 0) {
-                    input.setError(text(R.string.gboard_patches_dialog_error_positive,
-                            DIALOG_ERROR_POSITIVE));
+                    input.setError(text(R.string.gboard_patches_dialog_error_positive));
                     return;
                 }
                 try {
@@ -472,8 +425,7 @@ public final class GboardPatchesSettingsActivity extends Activity
                     renderCurrentScreenSafely();
                 } catch (Throwable throwable) {
                     Log.w(TAG, "Failed to persist positive integer setting", throwable);
-                    input.setError(text(R.string.gboard_patches_dialog_error_save_failed,
-                            DIALOG_ERROR_SAVE_FAILED));
+                    input.setError(text(R.string.gboard_patches_dialog_error_save_failed));
                 }
             });
         });
@@ -508,9 +460,9 @@ public final class GboardPatchesSettingsActivity extends Activity
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle(title)
                 .setView(container)
-                .setPositiveButton(text(R.string.gboard_patches_dialog_save, DIALOG_SAVE), null)
+                .setPositiveButton(text(R.string.gboard_patches_dialog_save), null)
                 .setNegativeButton(
-                        text(R.string.gboard_patches_dialog_cancel, DIALOG_CANCEL),
+                        text(R.string.gboard_patches_dialog_cancel),
                         null)
                 .create();
         dialog.setOnShowListener(ignored -> {
@@ -524,8 +476,7 @@ public final class GboardPatchesSettingsActivity extends Activity
                     input.setError(exception.getMessage());
                 } catch (Throwable throwable) {
                     Log.w(TAG, "Failed to persist text setting", throwable);
-                    input.setError(text(R.string.gboard_patches_dialog_error_save_failed,
-                            DIALOG_ERROR_SAVE_FAILED));
+                    input.setError(text(R.string.gboard_patches_dialog_error_save_failed));
                 }
             });
         });
@@ -634,7 +585,7 @@ public final class GboardPatchesSettingsActivity extends Activity
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle(previewSpec.getTitle())
                 .setView(scrollView)
-                .setPositiveButton(text(R.string.gboard_patches_dialog_close, DIALOG_CLOSE), null)
+                .setPositiveButton(text(R.string.gboard_patches_dialog_close), null)
                 .create();
         dialog.setOnDismissListener(ignored -> {
             for (VideoView previewVideoView : previewVideoViews) {
@@ -652,6 +603,24 @@ public final class GboardPatchesSettingsActivity extends Activity
             tintDialogButtons(dialog);
         } catch (Throwable throwable) {
             Log.w(TAG, "Failed to show preview dialog", throwable);
+        }
+    }
+
+    @Override
+    public void showManagedDialog(GboardPatchesSettingsContract.ManagedDialogAction action) {
+        if (action == null) {
+            return;
+        }
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            runOnUiThread(() -> showManagedDialog(action));
+            return;
+        }
+        Throwable throwable = GboardManagedDialogRunner.run(
+                action,
+                this::onManagedDialogShown,
+                this::onManagedDialogDismissed);
+        if (throwable != null) {
+            Log.w(TAG, "Failed to show managed settings dialog", throwable);
         }
     }
 
@@ -762,8 +731,7 @@ public final class GboardPatchesSettingsActivity extends Activity
             }
         } else {
             TextView errorView = new TextView(this);
-            errorView.setText(text(R.string.gboard_patches_preview_load_failed,
-                    PREVIEW_LOAD_FAILED));
+            errorView.setText(text(R.string.gboard_patches_preview_load_failed));
             errorView.setTextColor(palette.textSecondary);
             errorView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f);
             imageCard.addView(errorView);
@@ -949,7 +917,7 @@ public final class GboardPatchesSettingsActivity extends Activity
         videoContainer.removeAllViews();
 
         TextView errorView = new TextView(this);
-        errorView.setText(text(R.string.gboard_patches_preview_load_failed, PREVIEW_LOAD_FAILED));
+        errorView.setText(text(R.string.gboard_patches_preview_load_failed));
         errorView.setTextColor(palette.textSecondary);
         errorView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f);
         errorView.setGravity(Gravity.CENTER);
@@ -1154,8 +1122,7 @@ public final class GboardPatchesSettingsActivity extends Activity
                 canvas.drawPath(path, paint);
             }
         };
-        backButton.setContentDescription(text(R.string.gboard_patches_navigate_up,
-                NAVIGATE_UP_LABEL));
+        backButton.setContentDescription(text(R.string.gboard_patches_navigate_up));
         backButton.setLayoutParams(new LinearLayout.LayoutParams(dp(48), dp(48)));
         backButton.setBackground(buildRippleDrawable(dp(24)));
         backButton.setOnClickListener(view -> goBackOrFinish());
@@ -1247,8 +1214,7 @@ public final class GboardPatchesSettingsActivity extends Activity
             return;
         }
         showSafeToast(
-                R.string.gboard_patches_advanced_voice_speech_services_open_failed,
-                SPEECH_SERVICES_OPEN_FAILED);
+                R.string.gboard_patches_advanced_voice_speech_services_open_failed);
     }
 
     @Override
@@ -1269,13 +1235,12 @@ public final class GboardPatchesSettingsActivity extends Activity
             return;
         }
         showSafeToast(
-                R.string.gboard_patches_advanced_voice_live_transcribe_open_failed,
-                LIVE_TRANSCRIBE_OPEN_FAILED);
+                R.string.gboard_patches_advanced_voice_live_transcribe_open_failed);
     }
 
-    private void showSafeToast(int resourceId, String fallback) {
+    private void showSafeToast(int resourceId) {
         try {
-            String message = GboardSettingsText.get(this, resourceId, fallback);
+            String message = GboardSettingsText.get(this, resourceId);
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
         } catch (Throwable throwable) {
             try {
@@ -1314,6 +1279,8 @@ public final class GboardPatchesSettingsActivity extends Activity
     }
 
     private void refreshOfflineSpeechLanguagesForCurrentFeature() {
+        GboardPatchesSettingsContract.Feature currentFeature =
+                settingsOrchestrator.snapshot().getCurrent();
         if (currentFeature != null && currentFeature.requiresOfflineSpeechLanguages()) {
             queryOfflineSpeechLanguages();
             return;
@@ -1468,18 +1435,8 @@ public final class GboardPatchesSettingsActivity extends Activity
     }
 
     private boolean navigateToRootIfNeeded() {
-        if (currentFeature == null) {
-            return false;
-        }
-        if (featureBackStack.isEmpty()) {
-            currentFeature = null;
-        } else {
-            currentFeature = featureBackStack.remove(featureBackStack.size() - 1);
-        }
-        refreshOfflineSpeechLanguagesForCurrentFeature();
-        requestScrollToTopOnNextScreenApply();
-        renderCurrentScreenSafely();
-        return true;
+        return !applyOrchestration(settingsOrchestrator.accept(
+                GboardPatchesSettingsOrchestrator.Event.back()));
     }
 
     private void registerBackCallback() {
@@ -1558,7 +1515,7 @@ public final class GboardPatchesSettingsActivity extends Activity
     }
 
     private void scheduleDeferredRender() {
-        if (fatalFallbackShown) {
+        if (settingsOrchestrator.snapshot().isFatal()) {
             return;
         }
         View anchor = panelContainer != null ? panelContainer : getWindow().getDecorView();
@@ -1590,14 +1547,54 @@ public final class GboardPatchesSettingsActivity extends Activity
     }
 
     private void initializeFeaturesAndRenderSafely() {
-        if (fatalFallbackShown) {
-            return;
+        applyOrchestration(settingsOrchestrator.accept(
+                GboardPatchesSettingsOrchestrator.Event.requestRender()));
+    }
+
+    private boolean applyOrchestration(
+            GboardPatchesSettingsOrchestrator.Transition<
+                    GboardPatchesSettingsContract.Feature,
+                    GboardPatchesSettingsContract.Intent> transition) {
+        boolean exitRequested = false;
+        for (GboardPatchesSettingsOrchestrator.Effect<
+                GboardPatchesSettingsContract.Feature,
+                GboardPatchesSettingsContract.Intent> effect : transition.getEffects()) {
+            switch (effect.getKind()) {
+                case REQUEST_RENDER:
+                    enqueueScreenBuild(effect.getGeneration());
+                    break;
+                case REFRESH_DEPENDENCIES:
+                    refreshOfflineSpeechLanguagesForCurrentFeature();
+                    break;
+                case SCROLL_TO_TOP:
+                    requestScrollToTopOnNextScreenApply();
+                    break;
+                case SCHEDULE_REFRESH:
+                    scheduleScreenRefresh(effect.getDelayMs());
+                    break;
+                case CANCEL_REFRESH:
+                    cancelScheduledScreenRefresh();
+                    break;
+                case CANCEL_PENDING_RENDER:
+                    cancelDeferredRender();
+                    break;
+                case EXECUTE_INTENT:
+                    GboardPatchesSettingsContract.Intent intent = effect.getPayload();
+                    if (intent != null) {
+                        intent.apply(this);
+                    }
+                    break;
+                case EXIT:
+                    exitRequested = true;
+                    break;
+                default:
+                    break;
+            }
         }
-        final int buildGeneration;
-        synchronized (screenBuildLock) {
-            screenBuildGeneration++;
-            buildGeneration = screenBuildGeneration;
-        }
+        return exitRequested;
+    }
+
+    private void enqueueScreenBuild(int buildGeneration) {
         try {
             screenBuildExecutor.execute(() -> buildAndApplyCurrentScreen(buildGeneration));
         } catch (RejectedExecutionException ignored) {
@@ -1605,10 +1602,15 @@ public final class GboardPatchesSettingsActivity extends Activity
         }
     }
 
-    private void invalidatePendingScreenBuilds() {
-        synchronized (screenBuildLock) {
-            screenBuildGeneration++;
+    private static boolean containsEffect(
+            GboardPatchesSettingsOrchestrator.Transition<?, ?> transition,
+            GboardPatchesSettingsOrchestrator.EffectKind kind) {
+        for (GboardPatchesSettingsOrchestrator.Effect<?, ?> effect : transition.getEffects()) {
+            if (effect.getKind() == kind) {
+                return true;
+            }
         }
+        return false;
     }
 
     private void ensureFeaturesInitialized() {
@@ -1631,22 +1633,26 @@ public final class GboardPatchesSettingsActivity extends Activity
     }
 
     private void buildAndApplyCurrentScreen(int buildGeneration) {
-        if (fatalFallbackShown) {
+        if (settingsOrchestrator.snapshot().isFatal()) {
             return;
         }
 
         GboardPatchesSettingsContract.Screen screen;
-        GboardPatchesSettingsContract.Feature featureSnapshot = currentFeature;
+        GboardPatchesSettingsContract.Feature featureSnapshot =
+                settingsOrchestrator.snapshot().getCurrent();
         try {
             ensureFeaturesInitialized();
-            openInitialFeatureFromIntentIfNeeded();
-            featureSnapshot = currentFeature;
+            if (openInitialFeatureFromIntentIfNeeded()) {
+                return;
+            }
+            featureSnapshot = settingsOrchestrator.snapshot().getCurrent();
             screen = featureSnapshot == null
                     ? buildRootScreen()
                     : featureSnapshot.buildScreen(this);
         } catch (IllegalStateException exception) {
             runOnUiThread(() -> {
-                if (!isLatestScreenBuild(buildGeneration) || fatalFallbackShown
+                if (!isLatestScreenBuild(buildGeneration)
+                        || settingsOrchestrator.snapshot().isFatal()
                         || isFinishing()) {
                     return;
                 }
@@ -1656,25 +1662,60 @@ public final class GboardPatchesSettingsActivity extends Activity
             return;
         } catch (Throwable throwable) {
             Log.w(TAG, "Failed to render settings screen", throwable);
-            screen = buildFeatureErrorScreen(currentFeature);
+            screen = buildFeatureErrorScreen(settingsOrchestrator.snapshot().getCurrent());
         }
 
         GboardPatchesSettingsContract.Feature appliedFeature = featureSnapshot;
         GboardPatchesSettingsContract.Screen finalScreen = screen;
         runOnUiThread(() -> {
-            if (!isLatestScreenBuild(buildGeneration)
-                    || fatalFallbackShown
-                    || isFinishing()
+            if (isFinishing()
                     || (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1
                     && isDestroyed())) {
                 return;
             }
+            GboardPatchesSettingsOrchestrator.Transition<
+                    GboardPatchesSettingsContract.Feature,
+                    GboardPatchesSettingsContract.Intent> renderTransition =
+                    settingsOrchestrator.accept(
+                            GboardPatchesSettingsOrchestrator.Event.renderReady(
+                                    buildGeneration,
+                                    finalScreen.getRefreshIntervalMs()));
+            if (!containsEffect(renderTransition,
+                    GboardPatchesSettingsOrchestrator.EffectKind.APPLY_RENDER)
+                    || settingsOrchestrator.snapshot().isFatal()) {
+                return;
+            }
             try {
                 applyScreen(finalScreen);
+                applyOrchestration(renderTransition);
             } catch (Throwable throwable) {
                 Log.w(TAG, "Failed to apply settings screen", throwable);
                 try {
-                    applyScreen(buildFeatureErrorScreen(appliedFeature));
+                    GboardPatchesSettingsOrchestrator.Transition<
+                            GboardPatchesSettingsContract.Feature,
+                            GboardPatchesSettingsContract.Intent> recoveryTransition =
+                            settingsOrchestrator.accept(
+                                    GboardPatchesSettingsOrchestrator.Event.renderFailed(
+                                            buildGeneration));
+                    if (!containsEffect(recoveryTransition,
+                            GboardPatchesSettingsOrchestrator.EffectKind.APPLY_RECOVERY)) {
+                        return;
+                    }
+                    GboardPatchesSettingsContract.Screen recoveryScreen =
+                            buildFeatureErrorScreen(appliedFeature);
+                    GboardPatchesSettingsOrchestrator.Transition<
+                            GboardPatchesSettingsContract.Feature,
+                            GboardPatchesSettingsContract.Intent> recoveryReady =
+                            settingsOrchestrator.accept(
+                                    GboardPatchesSettingsOrchestrator.Event.recoveryReady(
+                                            buildGeneration,
+                                            recoveryScreen.getRefreshIntervalMs()));
+                    if (!containsEffect(recoveryReady,
+                            GboardPatchesSettingsOrchestrator.EffectKind.APPLY_RECOVERY)) {
+                        return;
+                    }
+                    applyScreen(recoveryScreen);
+                    applyOrchestration(recoveryReady);
                 } catch (Throwable fallbackThrowable) {
                     Log.w(TAG, "Failed to apply feature error screen", fallbackThrowable);
                     try {
@@ -1688,9 +1729,7 @@ public final class GboardPatchesSettingsActivity extends Activity
     }
 
     private boolean isLatestScreenBuild(int buildGeneration) {
-        synchronized (screenBuildLock) {
-            return buildGeneration == screenBuildGeneration;
-        }
+        return buildGeneration == settingsOrchestrator.snapshot().getRenderGeneration();
     }
 
     private void updateToolbarInsets(int topInset) {
@@ -1741,8 +1780,6 @@ public final class GboardPatchesSettingsActivity extends Activity
         for (GboardPatchesSettingsContract.Section section : screen.getSections()) {
             panelContainer.addView(createSectionView(section));
         }
-        currentScreenRefreshIntervalMs = screen.getRefreshIntervalMs();
-        scheduleScreenRefresh(currentScreenRefreshIntervalMs);
         if (consumeScrollToTopOnNextScreenApply()) {
             scrollContentToTopAfterLayout();
         }
@@ -1780,39 +1817,34 @@ public final class GboardPatchesSettingsActivity extends Activity
         if (sanitizedPath.isEmpty()) {
             return;
         }
-        featureBackStack.clear();
-        for (int index = 0; index < sanitizedPath.size() - 1; index++) {
-            featureBackStack.add(sanitizedPath.get(index));
-        }
-        currentFeature = sanitizedPath.get(sanitizedPath.size() - 1);
-        requestScrollToTopOnNextScreenApply();
-        initializeFeaturesAndRenderSafely();
+        applyOrchestration(settingsOrchestrator.accept(
+                GboardPatchesSettingsOrchestrator.Event.replacePath(sanitizedPath)));
     }
 
-    private void openInitialFeatureFromIntentIfNeeded() {
+    private boolean openInitialFeatureFromIntentIfNeeded() {
         if (initialFeatureFromIntentHandled) {
-            return;
+            return false;
         }
         initialFeatureFromIntentHandled = true;
         Intent intent = getIntent();
         if (intent == null) {
-            return;
+            return false;
         }
         boolean tilePreferencesIntent = ACTION_QS_TILE_PREFERENCES.equals(intent.getAction());
         boolean openWebClipboard = intent.getBooleanExtra(EXTRA_OPEN_WEB_CLIPBOARD, false);
         if (!tilePreferencesIntent && !openWebClipboard) {
-            return;
+            return false;
         }
         GboardClipboardSettingsFeature clipboardFeature = findClipboardFeature();
         if (clipboardFeature == null) {
-            return;
+            return false;
         }
         GboardPatchesSettingsContract.Feature webClipboardFeature =
                 clipboardFeature.getWebClipboardFeature();
-        featureBackStack.clear();
-        featureBackStack.add(clipboardFeature);
-        currentFeature = webClipboardFeature;
-        requestScrollToTopOnNextScreenApply();
+        runOnUiThread(() -> applyOrchestration(settingsOrchestrator.accept(
+                GboardPatchesSettingsOrchestrator.Event.replacePath(
+                        Arrays.asList(clipboardFeature, webClipboardFeature)))));
+        return true;
     }
 
     private GboardClipboardSettingsFeature findClipboardFeature() {
@@ -1850,7 +1882,7 @@ public final class GboardPatchesSettingsActivity extends Activity
 
     private void scheduleScreenRefresh(long refreshIntervalMs) {
         cancelScheduledScreenRefresh();
-        if (refreshIntervalMs <= 0L || !activityResumed || activeModalDialogCount > 0) {
+        if (refreshIntervalMs <= 0L) {
             return;
         }
         screenRefreshHandler.postDelayed(screenRefreshRunnable, refreshIntervalMs);
@@ -1861,8 +1893,8 @@ public final class GboardPatchesSettingsActivity extends Activity
     }
 
     private void showFatalFallbackScreen(String reason, Throwable throwable) {
+        settingsOrchestrator.accept(GboardPatchesSettingsOrchestrator.Event.fatal());
         cancelScheduledScreenRefresh();
-        fatalFallbackShown = true;
         Log.e(TAG, reason, throwable);
         if (palette == null) {
             palette = Palette.forConfiguration(getResources().getConfiguration());
@@ -1890,16 +1922,14 @@ public final class GboardPatchesSettingsActivity extends Activity
                 ViewGroup.LayoutParams.MATCH_PARENT));
 
         TextView titleView = new TextView(this);
-        titleView.setText(text(R.string.gboard_patches_fatal_fallback_title,
-                FATAL_FALLBACK_TITLE));
+        titleView.setText(text(R.string.gboard_patches_fatal_fallback_title));
         titleView.setTextColor(palette.textPrimary);
         titleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 22f);
         titleView.setTypeface(Typeface.DEFAULT_BOLD);
         titleView.setGravity(Gravity.CENTER_HORIZONTAL);
 
         TextView summaryView = new TextView(this);
-        summaryView.setText(text(R.string.gboard_patches_fatal_fallback_summary,
-                FATAL_FALLBACK_SUMMARY));
+        summaryView.setText(text(R.string.gboard_patches_fatal_fallback_summary));
         summaryView.setTextColor(palette.textSecondary);
         summaryView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f);
         summaryView.setGravity(Gravity.CENTER_HORIZONTAL);
@@ -1925,7 +1955,7 @@ public final class GboardPatchesSettingsActivity extends Activity
     }
 
     static GboardPatchesSettingsContract.Screen createRootScreen(
-            GboardPatchesSettingsContract.Host host,
+            GboardPatchesSettingsContract.FeatureHost host,
             List<? extends GboardPatchesSettingsContract.Feature> rootFeatures,
             String aboutAuthor,
             String patchVersion,
@@ -1944,74 +1974,59 @@ public final class GboardPatchesSettingsActivity extends Activity
         List<GboardPatchesSettingsContract.Row> preferenceRows =
                 new ArrayList<GboardPatchesSettingsContract.Row>();
         preferenceRows.add(new GboardPatchesSettingsContract.SelectorRow(
-                GboardSettingsText.get(context, R.string.gboard_patches_language_title,
-                        LANGUAGE_TITLE),
-                GboardSettingsText.get(context, R.string.gboard_patches_language_summary,
-                        LANGUAGE_SUMMARY),
+                GboardSettingsText.get(context, R.string.gboard_patches_language_title),
+                GboardSettingsText.get(context, R.string.gboard_patches_language_summary),
                 currentLanguageLabel(context),
                 true,
                 () -> showLanguageDialog(host)));
         List<GboardPatchesSettingsContract.Row> aboutRows =
                 new ArrayList<GboardPatchesSettingsContract.Row>();
         aboutRows.add(new GboardPatchesSettingsContract.CommandRow(
-                GboardSettingsText.get(context, R.string.gboard_patches_about_author_title,
-                        ABOUT_AUTHOR_TITLE),
+                GboardSettingsText.get(context, R.string.gboard_patches_about_author_title),
                 aboutAuthor,
                 true,
                 authorAction));
         aboutRows.add(new GboardPatchesSettingsContract.CommandRow(
                 GboardSettingsText.get(context,
-                        R.string.gboard_patches_about_patch_version_title,
-                        ABOUT_PATCH_VERSION_TITLE),
+                        R.string.gboard_patches_about_patch_version_title),
                 patchVersion,
                 true,
                 patchRepositoryAction));
         return new GboardPatchesSettingsContract.Screen(
-                GboardSettingsText.get(context, R.string.gboard_patches_activity_title,
-                        TOOLBAR_TITLE_PATCHES),
-                GboardSettingsText.get(context, R.string.gboard_patches_header_badge,
-                        HEADER_BADGE),
-                GboardSettingsText.get(context, R.string.gboard_patches_header_title,
-                        HEADER_TITLE),
-                GboardSettingsText.get(context, R.string.gboard_patches_header_summary,
-                        HEADER_SUMMARY),
+                GboardSettingsText.get(context, R.string.gboard_patches_activity_title),
+                GboardSettingsText.get(context, R.string.gboard_patches_header_badge),
+                GboardSettingsText.get(context, R.string.gboard_patches_header_title),
+                GboardSettingsText.get(context, R.string.gboard_patches_header_summary),
                 Collections.emptyList(),
                 Arrays.asList(
                         new GboardPatchesSettingsContract.Section(
                                 GboardSettingsText.get(context,
-                                        R.string.gboard_patches_section_preferences,
-                                        PREFERENCES_SECTION_TITLE),
+                                        R.string.gboard_patches_section_preferences),
                                 preferenceRows),
                         new GboardPatchesSettingsContract.Section(
                                 GboardSettingsText.get(context,
-                                        R.string.gboard_patches_section_features,
-                                        "Features"),
+                                        R.string.gboard_patches_section_features),
                                 featureRows),
                         new GboardPatchesSettingsContract.Section(
                                 GboardSettingsText.get(context,
-                                        R.string.gboard_patches_section_about,
-                                        "About"),
+                                        R.string.gboard_patches_section_about),
                                 aboutRows)));
     }
 
-    private static void showLanguageDialog(GboardPatchesSettingsContract.Host host) {
+    private static void showLanguageDialog(GboardPatchesSettingsContract.FeatureHost host) {
         if (host == null) {
             return;
         }
         Context context = host.getContext();
-        host.showChoiceDialog(
-                GboardSettingsText.get(context, R.string.gboard_patches_language_title,
-                        LANGUAGE_TITLE),
+        GboardPatchesSettingsContract.showChoiceDialog(host,
+                GboardSettingsText.get(context, R.string.gboard_patches_language_title),
                 new String[] {
                         GboardSettingsText.get(context,
-                                R.string.gboard_patches_language_system_label,
-                                LANGUAGE_SYSTEM_LABEL),
+                                R.string.gboard_patches_language_system_label),
                         GboardSettingsText.get(context,
-                                R.string.gboard_patches_language_english_label,
-                                LANGUAGE_ENGLISH_LABEL),
+                                R.string.gboard_patches_language_english_label),
                         GboardSettingsText.get(context,
-                                R.string.gboard_patches_language_traditional_chinese_label,
-                                LANGUAGE_TRADITIONAL_CHINESE_LABEL)
+                                R.string.gboard_patches_language_traditional_chinese_label)
                 },
                 new String[] {
                         GboardSettingsLocaleManager.LANGUAGE_SYSTEM,
@@ -2033,7 +2048,7 @@ public final class GboardPatchesSettingsActivity extends Activity
                     if (context instanceof Activity activity) {
                         activity.recreate();
                     } else {
-                        host.refresh();
+                        GboardPatchesSettingsContract.refresh(host);
                     }
                 });
     }
@@ -2045,13 +2060,11 @@ public final class GboardPatchesSettingsActivity extends Activity
         String preference = GboardSettingsLocaleManager.readLanguagePreference(preferences);
         if (GboardSettingsLocaleManager.LANGUAGE_TRADITIONAL_CHINESE.equals(preference)) {
             return GboardSettingsText.get(context,
-                    R.string.gboard_patches_language_traditional_chinese_label,
-                    LANGUAGE_TRADITIONAL_CHINESE_LABEL);
+                    R.string.gboard_patches_language_traditional_chinese_label);
         }
         if (GboardSettingsLocaleManager.LANGUAGE_ENGLISH.equals(preference)) {
             return GboardSettingsText.get(context,
-                    R.string.gboard_patches_language_english_label,
-                    LANGUAGE_ENGLISH_LABEL);
+                    R.string.gboard_patches_language_english_label);
         }
         String effectiveLanguage = GboardSettingsLocaleManager.resolveEffectiveLanguageTag(
                 preference,
@@ -2059,14 +2072,11 @@ public final class GboardPatchesSettingsActivity extends Activity
         String effectiveLabel =
                 GboardSettingsLocaleManager.LANGUAGE_TRADITIONAL_CHINESE.equals(effectiveLanguage)
                         ? GboardSettingsText.get(context,
-                                R.string.gboard_patches_language_traditional_chinese_label,
-                                LANGUAGE_TRADITIONAL_CHINESE_LABEL)
+                                R.string.gboard_patches_language_traditional_chinese_label)
                         : GboardSettingsText.get(context,
-                                R.string.gboard_patches_language_english_label,
-                                LANGUAGE_ENGLISH_LABEL);
-        return GboardSettingsText.get(context,
+                                R.string.gboard_patches_language_english_label);
+        return GboardSettingsText.format(context,
                 R.string.gboard_patches_language_system_value,
-                "System default (%1$s)",
                 effectiveLabel);
     }
 
@@ -2078,14 +2088,14 @@ public final class GboardPatchesSettingsActivity extends Activity
         List<GboardPatchesSettingsContract.StatusBlock> statusBlocks =
                 new ArrayList<GboardPatchesSettingsContract.StatusBlock>();
         statusBlocks.add(new GboardPatchesSettingsContract.StatusBlock(
-                text(R.string.gboard_patches_error_row_title, ERROR_ROW_TITLE),
-                text(R.string.gboard_patches_error_row_summary, ERROR_ROW_SUMMARY),
+                text(R.string.gboard_patches_error_row_title),
+                text(R.string.gboard_patches_error_row_summary),
                 GboardPatchesSettingsContract.StatusTone.WARNING));
         return new GboardPatchesSettingsContract.Screen(
                 toolbarTitle,
-                text(R.string.gboard_patches_header_badge, HEADER_BADGE),
-                text(R.string.gboard_patches_error_header_title, ERROR_HEADER_TITLE),
-                text(R.string.gboard_patches_error_header_summary, ERROR_HEADER_SUMMARY),
+                text(R.string.gboard_patches_header_badge),
+                text(R.string.gboard_patches_error_header_title),
+                text(R.string.gboard_patches_error_header_summary),
                 statusBlocks,
                 Collections.emptyList());
     }
@@ -2537,7 +2547,7 @@ public final class GboardPatchesSettingsActivity extends Activity
 
         if (hasCurrentValue) {
             TextView labelView = buildSupportLineLabel(
-                    text(R.string.gboard_patches_current_value_label, CURRENT_VALUE_LABEL));
+                    text(R.string.gboard_patches_current_value_label));
             supportLine.addView(labelView);
             supportLine.addView(buildCurrentValueChip(rowModel.getCurrentValue()),
                     supportChipLayoutParams(0));
@@ -2607,7 +2617,7 @@ public final class GboardPatchesSettingsActivity extends Activity
             return null;
         }
         TextView previewButton = new TextView(this);
-        previewButton.setText(text(R.string.gboard_patches_preview_label, PREVIEW_LABEL));
+        previewButton.setText(text(R.string.gboard_patches_preview_label));
         previewButton.setTextColor(palette.accent);
         previewButton.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f);
         previewButton.setTypeface(Typeface.DEFAULT_BOLD);
@@ -2670,11 +2680,11 @@ public final class GboardPatchesSettingsActivity extends Activity
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle(title)
                 .setMessage(message)
-                .setPositiveButton(text(R.string.gboard_patches_confirm_action, CONFIRM_ACTION),
+                .setPositiveButton(text(R.string.gboard_patches_confirm_action),
                         (dialogInterface, which) ->
                         runSafely("confirm settings action", confirmAction))
                 .setNegativeButton(
-                        text(R.string.gboard_patches_dialog_cancel, DIALOG_CANCEL),
+                        text(R.string.gboard_patches_dialog_cancel),
                         null)
                 .create();
         dialog.setOnDismissListener(ignored -> onManagedDialogDismissed());
@@ -2746,12 +2756,8 @@ public final class GboardPatchesSettingsActivity extends Activity
         return Color.argb(alpha, Color.red(color), Color.green(color), Color.blue(color));
     }
 
-    private String text(int resId, String fallback) {
-        return GboardSettingsText.get(this, resId, fallback);
-    }
-
-    private String text(int resId, String fallbackFormat, Object... args) {
-        return GboardSettingsText.get(this, resId, fallbackFormat, args);
+    private String text(int resId) {
+        return GboardSettingsText.get(this, resId);
     }
 
     private int dp(int value) {

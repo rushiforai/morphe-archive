@@ -22,21 +22,15 @@ public final class GboardKeyboardSettingsGroupFeature
 
     public GboardKeyboardSettingsGroupFeature(Context context) {
         delegate = new GboardFeatureGroup(
-                GboardSettingsText.get(context, R.string.gboard_patches_group_keyboard_title,
-                        "Keyboard"),
-                GboardSettingsText.get(context, R.string.gboard_patches_group_keyboard_summary,
-                        "Keyboard-related patch settings."),
-                GboardSettingsText.get(context, R.string.gboard_patches_header_badge,
-                        "Gboard"),
+                GboardSettingsText.get(context, R.string.gboard_patches_group_keyboard_title),
+                GboardSettingsText.get(context, R.string.gboard_patches_group_keyboard_summary),
+                GboardSettingsText.get(context, R.string.gboard_patches_header_badge),
                 GboardSettingsText.get(context,
-                        R.string.gboard_patches_group_keyboard_header_summary,
-                        "Keyboard-level settings for the patches included in this build."),
+                        R.string.gboard_patches_group_keyboard_header_summary),
                 GboardSettingsText.get(context,
-                        R.string.gboard_patches_group_keyboard_empty_title,
-                        "No keyboard settings available"),
+                        R.string.gboard_patches_group_keyboard_empty_title),
                 GboardSettingsText.get(context,
-                        R.string.gboard_patches_group_keyboard_empty_summary,
-                        "This build does not include any keyboard settings features."),
+                        R.string.gboard_patches_group_keyboard_empty_summary),
                 Arrays.asList(
                         new GboardAiWritingToolsSettingsFeature(context),
                         new GboardAdvancedVoiceSettingsFeature(context),
@@ -66,7 +60,7 @@ public final class GboardKeyboardSettingsGroupFeature
 
     @Override
     public GboardPatchesSettingsContract.Screen buildScreen(
-            GboardPatchesSettingsContract.Host host) {
+            GboardPatchesSettingsContract.FeatureHost host) {
         return delegate.buildScreen(host);
     }
 }

@@ -72,7 +72,7 @@ class GboardAiWritingToolsPatchRegistrySourceTest {
         ).asJsonObject
         val patches = inventory.getAsJsonArray("patches")
             .map { element -> element.asJsonObject }
-        assertEquals(22, patches.size)
+        assertEquals(23, patches.size)
         val writingTools = patches.single { patch ->
             patch.get("name").asString == "AI Writing Tools"
         }
@@ -92,8 +92,8 @@ class GboardAiWritingToolsPatchRegistrySourceTest {
                 ),
             ),
         ).asJsonObject.getAsJsonObject("bindings")
-        assertEquals(9, generatedBindings.size())
         assertFalse(generatedBindings.has("flag_factory"))
+        assertTrue(generatedBindings.has("ai_writing_tools_gen_ai_init"))
 
         val activeSources = sequenceOf(
             repositoryRoot.resolve(

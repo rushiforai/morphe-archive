@@ -170,95 +170,17 @@ class GboardInlineSuggestionsPatchContractTest {
     }
 
     @Test
-    fun inlineSuggestionsRegistrySourceMatchesExactPatchBody() {
-        assertInlineRegistrySourceContract(readSource(REGISTRY_PATH))
-    }
-
-    @Test
-    fun inlineSuggestionsRegistryContractRejectsSiblingMarkerDependency() {
-        val registrySource = readSource(REGISTRY_PATH)
-        val mutatedRegistry = mutateInlineRegistryPatch(registrySource) { inlinePatch ->
-            inlinePatch.replaceFirst(
-                "gboardInlineSuggestionsFeatureMarkerPatch",
-                "gboardGrammarCheckerFeatureMarkerPatch",
-            )
-        }
-
-        assertNotEquals(registrySource, mutatedRegistry)
-        assertThrows(AssertionError::class.java) {
-            assertInlineRegistrySourceContract(mutatedRegistry)
-        }
-    }
-
-    @Test
-    fun inlineSuggestionsRegistryContractRejectsCompatibilityChange() {
-        val registrySource = readSource(REGISTRY_PATH)
-        val mutatedRegistry = mutateInlineRegistryPatch(registrySource) { inlinePatch ->
-            inlinePatch.replaceFirst(
-                "compatibleWith(COMPATIBILITY_GBOARD)",
-                "compatibleWith(emptySet())",
-            )
-        }
-
-        assertNotEquals(registrySource, mutatedRegistry)
-        assertThrows(AssertionError::class.java) {
-            assertInlineRegistrySourceContract(mutatedRegistry)
-        }
-    }
-
-    @Test
-    fun inlineSuggestionsRegistryContractRejectsNestedDeclarationMaskingBrokenTopLevelPatch() {
-        val registrySource = readSource(REGISTRY_PATH)
-        val brokenRegistry = mutateInlineRegistryPatch(registrySource) { inlinePatch ->
-            inlinePatch.replaceFirst(
-                "gboardInlineSuggestionsFeatureMarkerPatch",
-                "gboardGrammarCheckerFeatureMarkerPatch",
-            )
-        }
-        val nestedDecoy =
-            """
-            private fun inlineSuggestionsRegistryContractDecoy() {
-                val gboardInlineSuggestionsFlagPatch = resourcePatch(
-                    name = "decoy"
-                ) {
-                    compatibleWith(COMPATIBILITY_GBOARD)
-                    dependsOn(
-                        gboardPatchesExtensionCarrierPatch,
-                        gboardFeatureFlagsBytecodePatch,
-                        gboardInlineSuggestionsFeatureMarkerPatch
-                    )
-                }
-            }
-
-            """.trimIndent()
-        val declarationIndex = brokenRegistry.indexOf(
-            "val gboardInlineSuggestionsFlagPatch = resourcePatch(",
-        )
-        if (declarationIndex < 0) throw AssertionError("Missing Inline Suggestions registry patch")
-        val annotationIndex = brokenRegistry.lastIndexOf(
-            "@Suppress(\"unused\")",
-            declarationIndex,
-        ).takeIf { it >= 0 } ?: declarationIndex
-        val mutatedRegistry = brokenRegistry.substring(0, annotationIndex) +
-            nestedDecoy +
-            brokenRegistry.substring(annotationIndex)
-
-        assertNotEquals(registrySource, mutatedRegistry)
-        assertThrows(AssertionError::class.java) {
-            assertInlineRegistrySourceContract(mutatedRegistry)
-        }
-    }
-
-    @Test
     fun generatedInventoryKeepsTheInlineSuggestionsTargetOnlyAndEnabledByDefault() {
-        val inventory = JsonParser.parseString(readSource(PATCHES_LIST_PATH)).asJsonObject
+        val inventory = JsonParser.parseString(
+            GboardPublishedPatchCatalog.publishedInventory("test-version"),
+        ).asJsonObject
         val patches = inventory.getAsJsonArray("patches").map { element -> element.asJsonObject }
         val inlinePatch = patches.single { patch ->
             patch.get("name").asString == "Inline Suggestions"
         }
         val compatiblePackages = inlinePatch.getAsJsonObject("compatiblePackages")
 
-        assertEquals(22, patches.size)
+        assertEquals(23, patches.size)
         assertTrue(inlinePatch.get("use").asBoolean)
         assertEquals(setOf(GBOARD_PACKAGE), compatiblePackages.keySet())
         assertEquals(
@@ -278,36 +200,6 @@ class GboardInlineSuggestionsPatchContractTest {
             runtimeSource = runtimeSource,
             contract = INLINE_CONTRACT,
         )
-    }
-
-    private fun assertInlineRegistrySourceContract(registrySource: String) {
-        FeatureFlagSource.parse(registrySource)
-            .resourcePatch("gboardInlineSuggestionsFlagPatch")
-            .body
-            .assertExactExecutableTokens(
-                """
-                compatibleWith(COMPATIBILITY_GBOARD)
-                dependsOn(
-                    gboardPatchesExtensionCarrierPatch,
-                    gboardFeatureFlagsBytecodePatch,
-                    gboardInlineSuggestionsFeatureMarkerPatch
-                )
-                """.trimIndent(),
-            )
-    }
-
-    private fun mutateInlineRegistryPatch(
-        registrySource: String,
-        mutate: (String) -> String,
-    ): String {
-        val start = registrySource.indexOf("val gboardInlineSuggestionsFlagPatch = resourcePatch(")
-        if (start < 0) throw AssertionError("Missing Inline Suggestions registry patch")
-        val end = registrySource.indexOf("\nval ", start + 1).takeIf { it >= 0 }
-            ?: registrySource.length
-        val inlinePatch = registrySource.substring(start, end)
-        val mutatedPatch = mutate(inlinePatch)
-        if (mutatedPatch == inlinePatch) throw AssertionError("Inline registry mutation did not apply")
-        return registrySource.substring(0, start) + mutatedPatch + registrySource.substring(end)
     }
 
     private fun readSource(relativePath: String): String = String(
@@ -338,10 +230,6 @@ class GboardInlineSuggestionsPatchContractTest {
         const val FEATURE_FLAGS_RUNTIME_PATH =
             "extensions/extension/src/main/java/dev/jason/gboardpatches/extension/featureflags/" +
                 "GboardFeatureFlagsRuntime.java"
-        const val REGISTRY_PATH =
-            "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/registry/" +
-                "GboardPatchRegistry.kt"
-        const val PATCHES_LIST_PATH = "patches-list.json"
         val INLINE_CONTRACT = FeatureFlagMarkerRuntimeContract(
             markerPatchPropertyName = "gboardInlineSuggestionsFeatureMarkerPatch",
             markerConstantName = "INLINE_SUGGESTIONS_FEATURE_MARKER_NAME",

@@ -1,3 +1,9 @@
+## [1.8.1](https://github.com/cesbar/zpatches/compare/v1.8.0...v1.8.1) (2026-08-03)
+
+### 🚀 Updated App Support
+
+* **Citymapper:** support for 11.56.1 ([f664063](https://github.com/cesbar/zpatches/commit/f6640639d7bad9bd96641a690fad70b334c49ed0))
+
 ## [1.8.0](https://github.com/cesbar/zpatches/compare/v1.7.0...v1.8.0) (2026-07-26)
 
 ### ✨ New Features

@@ -1,20 +1,21 @@
 package dev.jason.gboardpatches.util
 
-import app.morphe.patcher.patch.Patch
 import app.morphe.patcher.patch.loadPatchesFromJar
-import com.google.gson.GsonBuilder
-import com.google.gson.JsonObject
+import dev.jason.gboardpatches.patches.gboard.registry.GboardPublishedPatchCatalog
 import java.io.File
 import java.net.URLClassLoader
 import java.util.jar.Manifest
 
-typealias PackageName = String
-typealias VersionName = String
-
 internal fun main() {
     val patchBundle = resolvePatchBundleFile()
     val patchFiles = setOf(patchBundle)
-    val loadedPatches = loadPatchesFromJar(patchFiles)
+    val loadedPatchNames = loadPatchesFromJar(patchFiles).mapNotNull { patch -> patch.name }.toSet()
+    val catalogPatchNames = GboardPublishedPatchCatalog.morpheRegistrations
+        .mapNotNull { patch -> patch.name }
+        .toSet()
+    require(loadedPatchNames == catalogPatchNames) {
+        "Published catalog does not match Morphe registrations in ${patchBundle.name}"
+    }
     val patchClassLoader = URLClassLoader(patchFiles.map { it.toURI().toURL() }.toTypedArray())
     val manifest = patchClassLoader.getResources("META-INF/MANIFEST.MF")
 
@@ -23,7 +24,7 @@ internal fun main() {
             .mainAttributes
             .getValue("Version")
             ?.let {
-                generatePatchList(it, loadedPatches)
+                generatePatchList(it)
             }
     }
 }
@@ -51,62 +52,7 @@ private fun resolvePatchBundleFile(): File {
     ?: error("Unable to resolve patch bundle from ${buildLibs.path}")
 }
 
-@Suppress("DEPRECATION")
-private fun generatePatchList(version: String, patches: Set<Patch<*>>) {
+private fun generatePatchList(version: String) {
     val listJson = File("../patches-list.json")
-
-    val patchesMap = patches.sortedBy { it.name }.map {
-        JsonPatch(
-            it.name!!,
-            it.description,
-            it.use,
-            it.dependencies.mapNotNull { dependency -> dependency.name }.sorted(),
-            it.compatiblePackages?.associate { (packageName, versions) -> packageName to versions },
-            it.options.values.map { option ->
-                JsonPatch.Option(
-                    option.key,
-                    option.title,
-                    option.description,
-                    option.required,
-                    option.type.toString(),
-                    option.default,
-                    option.values,
-                )
-            },
-        )
-    }
-
-    val gsonBuilder = GsonBuilder()
-        .serializeNulls()
-        .disableHtmlEscaping()
-        .setPrettyPrinting()
-        .create()
-
-    val jsonObject = JsonObject()
-    jsonObject.addProperty("version", version)
-    jsonObject.add("patches", gsonBuilder.toJsonTree(patchesMap))
-
-    listJson.writeText(
-        gsonBuilder.toJson(jsonObject)
-    )
-}
-
-@Suppress("unused")
-private class JsonPatch(
-    val name: String? = null,
-    val description: String? = null,
-    val use: Boolean = true,
-    val dependencies: List<String>,
-    val compatiblePackages: Map<PackageName, Set<VersionName>?>? = null,
-    val options: List<Option>,
-) {
-    class Option(
-        val key: String,
-        val title: String?,
-        val description: String?,
-        val required: Boolean,
-        val type: String,
-        val default: Any?,
-        val values: Map<String, Any?>?,
-    )
+    listJson.writeText(GboardPublishedPatchCatalog.publishedInventory(version))
 }

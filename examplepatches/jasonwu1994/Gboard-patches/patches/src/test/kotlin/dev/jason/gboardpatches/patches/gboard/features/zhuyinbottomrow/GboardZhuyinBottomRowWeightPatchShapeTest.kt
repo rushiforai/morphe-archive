@@ -13,12 +13,9 @@ class GboardZhuyinBottomRowWeightPatchShapeTest {
     @Test
     fun `softkey patch uses exact 1777 shared bind descriptor`() {
         assertEquals(
-            "Lcom/google/android/libraries/inputmethod/widgets/SoftKeyView;",
-            GboardVersionBindings.softKeyBind.classType
+            "Lcom/google/android/libraries/inputmethod/widgets/SoftKeyView;->q(Lowd;J)Z",
+            GboardVersionBindings.softKeyBind.reference,
         )
-        assertEquals("q", GboardVersionBindings.softKeyBind.name)
-        assertEquals(listOf("Lowd;", "J"), GboardVersionBindings.softKeyBind.parameterTypes)
-        assertEquals("Z", GboardVersionBindings.softKeyBind.returnType)
     }
 
     @Test

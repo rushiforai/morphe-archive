@@ -3,15 +3,18 @@ package dev.jason.gboardpatches.patches.gboard.features.addsymbols
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
-import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import dev.jason.gboardpatches.patches.gboard.shared.GboardExpressionCorpusPatchState
 import dev.jason.gboardpatches.patches.gboard.shared.findMutableMethodOrThrow
 import dev.jason.gboardpatches.patches.gboard.shared.indexOfFirstMoveResultAfter
+import dev.jason.gboardpatches.patches.gboard.shared.invokeRegisters
+import dev.jason.gboardpatches.patches.gboard.shared.isMethodReference
+import dev.jason.gboardpatches.patches.gboard.shared.isOpcode
+import dev.jason.gboardpatches.patches.gboard.shared.isRegisterOperation
 import dev.jason.gboardpatches.patches.gboard.shared.methodCallIndices
 import dev.jason.gboardpatches.patches.gboard.shared.requireGboardExpressionCorpusPatchState
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeAbiCatalog
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 
 private const val EXPRESSION_CORPUS_MANAGER_CLASS = "Lgan;"
 
@@ -54,7 +57,7 @@ internal fun MutableMethod.applyZhuyinCustomSymbolsCorpusDelegate(): MutableMeth
         "Expected exactly two Stream.collect calls in gan.a"
     }
     val customReferences = instructions.count {
-        it.methodDescriptor() == CUSTOM_SYMBOLS_RUNTIME_DESCRIPTOR
+        it.isMethodReference(CUSTOM_SYMBOLS_RUNTIME_DESCRIPTOR)
     }
     if (state == GboardExpressionCorpusPatchState.CUSTOM_ONLY ||
         state == GboardExpressionCorpusPatchState.COMPOSED
@@ -73,7 +76,7 @@ internal fun MutableMethod.applyZhuyinCustomSymbolsCorpusDelegate(): MutableMeth
     val moveResultIndex = indexOfFirstMoveResultAfter(collectCallIndex)
     check(moveResultIndex >= 0) { "Could not resolve final collect() move-result in gan.a" }
     val resultRegister = returnRegisterAt(moveResultIndex)
-    check(instructions.getOrNull(moveResultIndex + 1)?.normalizedOpcode() == "CHECK_CAST") {
+    check(instructions.getOrNull(moveResultIndex + 1)?.isOpcode("CHECK_CAST") == true) {
         "Final collect() result in gan.a is not cast to vai"
     }
     addInstructions(moveResultIndex + 2, buildCorpusAppendDelegate(resultRegister))
@@ -96,56 +99,45 @@ private fun MutableMethod.validateCustomSymbolsCorpusDelegate() {
     check(moveResultIndex >= 0) { "Could not resolve final collect() move-result in gan.a" }
     val expectedResultRegister = returnRegisterAt(moveResultIndex)
     val customIndex = instructions.indexOfFirst {
-        it.methodDescriptor() == CUSTOM_SYMBOLS_RUNTIME_DESCRIPTOR
+        it.isMethodReference(CUSTOM_SYMBOLS_RUNTIME_DESCRIPTOR)
     }
     check(customIndex >= 0 && instructions.count {
-        it.methodDescriptor() == CUSTOM_SYMBOLS_RUNTIME_DESCRIPTOR
+        it.isMethodReference(CUSTOM_SYMBOLS_RUNTIME_DESCRIPTOR)
     } == 1) {
         "Custom Symbols corpus delegate is duplicated or orphaned"
     }
-    val invoke = instructions[customIndex] as? FiveRegisterInstruction
+    val resultRegister = instructions[customIndex]
+        .invokeRegisters(CUSTOM_SYMBOLS_RUNTIME_DESCRIPTOR)
+        ?.singleOrNull()
         ?: error("Custom Symbols corpus delegate has an unexpected invoke format")
-    val resultRegister = invoke.registerC
     check(
         customIndex == moveResultIndex + 2 &&
-            instructions.getOrNull(moveResultIndex + 1).isExactOneRegister(
+            instructions.getOrNull(moveResultIndex + 1)?.isRegisterOperation(
                 "CHECK_CAST", expectedResultRegister,
-            ) &&
-            invoke.registerCount == 1 &&
+            ) == true &&
             resultRegister == expectedResultRegister &&
-            instructions.getOrNull(customIndex + 1).isExactOneRegister(
+            instructions.getOrNull(customIndex + 1)?.isRegisterOperation(
                 "MOVE_RESULT_OBJECT", resultRegister,
-            ) &&
-            instructions.getOrNull(customIndex + 2).isExactOneRegister(
+            ) == true &&
+            instructions.getOrNull(customIndex + 2)?.isRegisterOperation(
                 "CHECK_CAST", resultRegister,
-            ),
+            ) == true,
     ) {
         "Custom Symbols corpus delegate is incomplete or malformed"
     }
 }
 
-private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction?.isExactOneRegister(
-    opcode: String,
-    register: Int,
-): Boolean =
-    this?.normalizedOpcode() == opcode &&
-        this is OneRegisterInstruction &&
-        registerA == register
-
-private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction.methodDescriptor(): String? =
-    ((this as? ReferenceInstruction)?.reference as? MethodReference)?.toString()
-
-private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction.normalizedOpcode(): String =
-    opcode.name.uppercase().replace('-', '_').replace('/', '_')
-
 private fun buildCorpusAppendDelegate(register: Int): String = """
-    invoke-static {v$register}, $CUSTOM_SYMBOLS_RUNTIME_DESCRIPTOR
+    ${RuntimeCallEmitter.invoke(
+        RuntimeCallId.ADD_SYMBOLS_RUNTIME_APPEND_CUSTOM_CORPUS_ITEM,
+        "v$register",
+    )}
 
     move-result-object v$register
 
     check-cast v$register, Lvai;
 """.trimIndent()
 
-private const val CUSTOM_SYMBOLS_RUNTIME_DESCRIPTOR =
-    "Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->" +
-        "appendCustomCorpusItem(Ljava/lang/Object;)Ljava/lang/Object;"
+private val CUSTOM_SYMBOLS_RUNTIME_DESCRIPTOR = RuntimeAbiCatalog.abi(
+    RuntimeCallId.ADD_SYMBOLS_RUNTIME_APPEND_CUSTOM_CORPUS_ITEM,
+).reference

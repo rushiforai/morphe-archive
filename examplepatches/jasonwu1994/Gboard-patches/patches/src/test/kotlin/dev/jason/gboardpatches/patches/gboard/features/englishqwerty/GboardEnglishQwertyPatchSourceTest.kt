@@ -43,11 +43,10 @@ class GboardEnglishQwertyPatchSourceTest {
     fun softKeyPatchPreservesDisabledAndExistingNativeSlideUpMetadata() {
         val source = readSoftKeySource()
 
-        assertTrue(source.contains("GboardEnglishUppercaseToggleRuntime;"))
-        assertTrue(source.contains("->isEnabled()Z"))
-        assertTrue(source.contains("->isPatchedMetadata(Ljava/lang/Object;)Z"))
-        assertTrue(source.contains("->getCachedPatchedMetadata(Ljava/lang/Object;)Ljava/lang/Object;"))
-        assertTrue(source.contains("->cachePatchedMetadata(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"))
+        assertTrue(source.contains("ENGLISH_UPPERCASE_TOGGLE_RUNTIME_IS_ENABLED"))
+        assertTrue(source.contains("ENGLISH_UPPERCASE_TOGGLE_RUNTIME_IS_PATCHED_METADATA"))
+        assertTrue(source.contains("ENGLISH_UPPERCASE_TOGGLE_RUNTIME_GET_CACHED_PATCHED_METADATA"))
+        assertTrue(source.contains("ENGLISH_UPPERCASE_TOGGLE_RUNTIME_CACHE_PATCHED_METADATA"))
         assertFalse(source.contains("->markPatchedMetadata(Ljava/lang/Object;)V"))
         assertTrue(source.contains("sget-object v0, Loth;->c:Loth;"))
         assertTrue(source.contains("invoke-virtual {p1, v0}, Lowd;->h(Loth;)Lotk;"))
@@ -59,13 +58,13 @@ class GboardEnglishQwertyPatchSourceTest {
     fun softKeyCacheRunsAfterEnabledAndNativeGuardsAndBeforeCloning() {
         val source = readSoftKeySource()
         val patchBody = tripleQuotedValue(source, "PATCH_INCOMING_METADATA_BODY")
-        val enabledIndex = patchBody.indexOf("->isEnabled()Z")
+        val enabledIndex = patchBody.indexOf("ENGLISH_UPPERCASE_TOGGLE_RUNTIME_IS_ENABLED")
         val nativeLookupIndex = patchBody.indexOf(
             "invoke-virtual {p1, v0}, Lowd;->h(Loth;)Lotk;"
         )
-        val cacheGetIndex = patchBody.indexOf("->getCachedPatchedMetadata")
+        val cacheGetIndex = patchBody.indexOf("ENGLISH_UPPERCASE_TOGGLE_RUNTIME_GET_CACHED_PATCHED_METADATA")
         val builderIndex = patchBody.indexOf("new-instance v4, Lovv;")
-        val cachePutIndex = patchBody.indexOf("->cachePatchedMetadata")
+        val cachePutIndex = patchBody.indexOf("ENGLISH_UPPERCASE_TOGGLE_RUNTIME_CACHE_PATCHED_METADATA")
 
         assertTrue(enabledIndex >= 0)
         assertTrue(enabledIndex < nativeLookupIndex)

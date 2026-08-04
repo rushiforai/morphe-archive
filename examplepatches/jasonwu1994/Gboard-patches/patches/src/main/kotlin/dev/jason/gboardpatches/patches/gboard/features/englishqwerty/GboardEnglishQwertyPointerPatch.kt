@@ -2,48 +2,57 @@ package dev.jason.gboardpatches.patches.gboard.features.englishqwerty
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
-import app.morphe.patcher.patch.BytecodePatchContext
-import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.AccessFlags
+import dev.jason.gboardpatches.patches.gboard.shared.GboardPointerOwnerFeature
+import dev.jason.gboardpatches.patches.gboard.shared.GboardPointerOwnerFeatureSpec
+import dev.jason.gboardpatches.patches.gboard.shared.GboardPointerOwnerTransformationContext
+import dev.jason.gboardpatches.patches.gboard.shared.GboardPointerOwnerTransformationAdapter
 import dev.jason.gboardpatches.patches.gboard.shared.addFieldIfMissing
 import dev.jason.gboardpatches.patches.gboard.shared.addHelperMethodIfMissing
-import dev.jason.gboardpatches.patches.gboard.shared.findMutableMethodOrThrow
 import dev.jason.gboardpatches.patches.gboard.shared.generated.GboardVersionBindings
 import dev.jason.gboardpatches.patches.gboard.shared.indexOfFirstMethodCall
+import dev.jason.gboardpatches.patches.gboard.shared.gboardPointerOwnerFeaturePatch
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeAbiCatalog
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 
-private val pointerTrackerClass = GboardVersionBindings.pointerOwner.classType
+private val pointerTrackerClass = GboardVersionBindings.pointerOwnerType.descriptor
 private const val SOFT_KEY_VIEW_TYPE =
     "Lcom/google/android/libraries/inputmethod/widgets/SoftKeyView;"
-private const val ENGLISH_UPPERCASE_RUNTIME_CLASS =
-    "Ldev/jason/gboardpatches/extension/keyboard/GboardEnglishUppercaseToggleRuntime;"
+private val ENGLISH_UPPERCASE_RUNTIME_CLASS = RuntimeAbiCatalog.abi(
+    RuntimeCallId.ENGLISH_UPPERCASE_TOGGLE_RUNTIME_IS_ENABLED,
+).owner
 private const val ENGLISH_ANCHOR_FIELD_NAME = "jasondevEnglishAnchorKey"
 
-internal val gboardEnglishQwertyPointerPatch = bytecodePatch(
-    description = "在 17.7.7 pbl reset 前固定 English 上滑起始 key 並抑制 retarget。"
-) {
-    execute {
-        addEnglishAnchorField()
-        addEnglishPointerHelpers()
-        injectEnglishPointerOwner()
-        injectEnglishPointerCleanup()
+internal val gboardEnglishQwertyPointerTransformation =
+    GboardPointerOwnerTransformationAdapter { context ->
+        context.addEnglishAnchorField()
+        context.addEnglishPointerHelpers()
+        context.injectEnglishPointerOwner()
+        context.injectEnglishPointerCleanup()
     }
-}
 
-context(context: BytecodePatchContext)
-private fun addEnglishAnchorField() = with(context) {
-    addFieldIfMissing(
-        classType = pointerTrackerClass,
+private val gboardEnglishQwertyPointerSpec = GboardPointerOwnerFeatureSpec(
+    feature = GboardPointerOwnerFeature.ENGLISH_QWERTY,
+    transformation = gboardEnglishQwertyPointerTransformation,
+)
+
+internal val gboardEnglishQwertyPointerPatch = gboardPointerOwnerFeaturePatch(
+    description = "在 17.7.7 pbl reset 前固定 English 上滑起始 key 並抑制 retarget。",
+    spec = gboardEnglishQwertyPointerSpec,
+)
+
+private fun GboardPointerOwnerTransformationContext.addEnglishAnchorField() {
+    ownerClass.addFieldIfMissing(
         fieldName = ENGLISH_ANCHOR_FIELD_NAME,
         fieldType = SOFT_KEY_VIEW_TYPE,
         accessFlags = AccessFlags.PRIVATE.value
     )
 }
 
-context(context: BytecodePatchContext)
-private fun addEnglishPointerHelpers() = with(context) {
-    addHelperMethodIfMissing(
-        classType = pointerTrackerClass,
+private fun GboardPointerOwnerTransformationContext.addEnglishPointerHelpers() {
+    ownerClass.addHelperMethodIfMissing(
         name = "jasondevShouldSuppressEnglishRetarget",
         parameterTypes = listOf(SOFT_KEY_VIEW_TYPE, "F", "F"),
         returnType = "Z",
@@ -51,8 +60,7 @@ private fun addEnglishPointerHelpers() = with(context) {
         registerCount = 9,
         body = SHOULD_SUPPRESS_ENGLISH_RETARGET_BODY
     )
-    addHelperMethodIfMissing(
-        classType = pointerTrackerClass,
+    ownerClass.addHelperMethodIfMissing(
         name = "jasondevClearEnglishAnchor",
         parameterTypes = emptyList(),
         returnType = "V",
@@ -62,9 +70,7 @@ private fun addEnglishPointerHelpers() = with(context) {
     )
 }
 
-context(context: BytecodePatchContext)
-private fun injectEnglishPointerOwner() = with(context) {
-    val pointerOwnerMethod = findMutableMethodOrThrow(GboardVersionBindings.pointerOwner)
+private fun GboardPointerOwnerTransformationContext.injectEnglishPointerOwner() {
     val rCallIndex = pointerOwnerMethod.indexOfFirstMethodCall(
         definingClass = pointerTrackerClass,
         name = "r",
@@ -95,13 +101,9 @@ private fun injectEnglishPointerOwner() = with(context) {
     )
 }
 
-context(context: BytecodePatchContext)
-private fun injectEnglishPointerCleanup() = with(context) {
-    val cancelMethod = findMutableMethodOrThrow(GboardVersionBindings.pointerCancel)
-    cancelMethod.addInstructions(0, CLEAR_ENGLISH_POINTER_ANCHOR_DELEGATE)
-
-    val resetMethod = findMutableMethodOrThrow(GboardVersionBindings.pointerReset)
-    resetMethod.addInstructions(0, CLEAR_ENGLISH_POINTER_ANCHOR_DELEGATE)
+private fun GboardPointerOwnerTransformationContext.injectEnglishPointerCleanup() {
+    pointerCancelMethod.addInstructions(0, CLEAR_ENGLISH_POINTER_ANCHOR_DELEGATE)
+    pointerResetMethod.addInstructions(0, CLEAR_ENGLISH_POINTER_ANCHOR_DELEGATE)
 }
 
 private val ENGLISH_POINTER_OWNER_PRE_RESET_DELEGATE = """
@@ -128,7 +130,7 @@ private val CLEAR_ENGLISH_POINTER_ANCHOR_BODY = """
 
 private val SHOULD_SUPPRESS_ENGLISH_RETARGET_BODY = """
     :try_start_0
-    invoke-static {}, $ENGLISH_UPPERCASE_RUNTIME_CLASS->isEnabled()Z
+    ${RuntimeCallEmitter.invoke(RuntimeCallId.ENGLISH_UPPERCASE_TOGGLE_RUNTIME_IS_ENABLED, "")}
 
     move-result v0
 
@@ -155,7 +157,10 @@ private val SHOULD_SUPPRESS_ENGLISH_RETARGET_BODY = """
 
     if-eqz v1, :cond_return_false
 
-    invoke-static {v1}, $ENGLISH_UPPERCASE_RUNTIME_CLASS->isPatchedMetadata(Ljava/lang/Object;)Z
+    ${RuntimeCallEmitter.invoke(
+        RuntimeCallId.ENGLISH_UPPERCASE_TOGGLE_RUNTIME_IS_PATCHED_METADATA,
+        "v1",
+    )}
 
     move-result v2
 
@@ -170,7 +175,10 @@ private val SHOULD_SUPPRESS_ENGLISH_RETARGET_BODY = """
 
     if-eqz v1, :cond_return_false
 
-    invoke-static {v1}, $ENGLISH_UPPERCASE_RUNTIME_CLASS->isPatchedMetadata(Ljava/lang/Object;)Z
+    ${RuntimeCallEmitter.invoke(
+        RuntimeCallId.ENGLISH_UPPERCASE_TOGGLE_RUNTIME_IS_PATCHED_METADATA,
+        "v1",
+    )}
 
     move-result v2
 

@@ -21,30 +21,6 @@ public final class GboardLatinGlobeKeyIgnoreIntervalSettingsFeature
             "settings-previews/keyboard/gboard_latin_globe_key_ignore_interval_default.mp4";
     private static final String PREVIEW_VIDEO_PATCHED_ASSET =
             "settings-previews/keyboard/gboard_latin_globe_key_ignore_interval_patched.mp4";
-    private static final String HEADER_BADGE = "Gboard";
-    private static final String ENTRY_TITLE = "English Globe Key Ignore Delay";
-    private static final String ENTRY_SUMMARY =
-            "On the English keyboard, you cannot switch keyboards with the globe key immediately after typing letters. The stock delay is 500ms.";
-    private static final String ERROR_TITLE =
-            "English globe key ignore delay unavailable";
-    private static final String ERROR_SUMMARY =
-            "The English globe key settings screen failed to load. Reopen Gboard settings and try again.";
-    private static final String ENABLED_TITLE = "Enabled";
-    private static final String ENABLED_SUMMARY =
-            "Enable this runtime override for the English keyboard globe key ignore delay.";
-    private static final String INTERVAL_TITLE = "Ignore delay";
-    private static final String INTERVAL_SUMMARY =
-            "Range: 0-1000ms. Official default: 500ms.";
-    private static final String INTERVAL_DIALOG_TITLE =
-            "English Globe Key Ignore Delay";
-    private static final String INTERVAL_DIALOG_HINT = "0-1000 ms";
-    private static final String INTERVAL_DIALOG_ERROR =
-            "Enter a value from 0 to 1000.";
-    private static final String SECTION_BEHAVIOR = "Behavior";
-    private static final String PREVIEW_MESSAGE = "";
-    private static final String PREVIEW_DEFAULT_CAPTION = "Stock default (500 ms)";
-    private static final String PREVIEW_PATCHED_CAPTION = "Patched example (0 ms)";
-
     private final String headerBadge;
     private final String entryTitle;
     private final String entrySummary;
@@ -66,62 +42,43 @@ public final class GboardLatinGlobeKeyIgnoreIntervalSettingsFeature
     private final String intervalValueDefaultTemplate;
 
     public GboardLatinGlobeKeyIgnoreIntervalSettingsFeature(Context context) {
-        headerBadge = GboardSettingsText.get(context, R.string.gboard_patches_header_badge,
-                HEADER_BADGE);
-        entryTitle = GboardSettingsText.get(context, R.string.gboard_patches_latin_globe_title,
-                ENTRY_TITLE);
+        headerBadge = GboardSettingsText.get(context, R.string.gboard_patches_header_badge);
+        entryTitle = GboardSettingsText.get(context, R.string.gboard_patches_latin_globe_title);
         entrySummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_latin_globe_summary,
-                ENTRY_SUMMARY);
-        headerSummary = GboardSettingsText.get(context,
+                R.string.gboard_patches_latin_globe_summary);
+        headerSummary = GboardSettingsText.format(context,
                 R.string.gboard_patches_latin_globe_header_summary,
-                "On the English keyboard, you cannot switch keyboards with the globe key immediately after typing letters. The stock delay is %1$dms.",
                 GboardLatinGlobeKeyIgnoreIntervalSettings.DEFAULT_INTERVAL_MS);
         errorTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_latin_globe_error_title,
-                ERROR_TITLE);
+                R.string.gboard_patches_latin_globe_error_title);
         errorSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_latin_globe_error_summary,
-                ERROR_SUMMARY);
+                R.string.gboard_patches_latin_globe_error_summary);
         enabledTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_latin_globe_enabled_title,
-                ENABLED_TITLE);
+                R.string.gboard_patches_latin_globe_enabled_title);
         enabledSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_latin_globe_enabled_summary,
-                ENABLED_SUMMARY);
+                R.string.gboard_patches_latin_globe_enabled_summary);
         intervalTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_latin_globe_interval_title,
-                INTERVAL_TITLE);
+                R.string.gboard_patches_latin_globe_interval_title);
         intervalSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_latin_globe_interval_summary,
-                INTERVAL_SUMMARY);
+                R.string.gboard_patches_latin_globe_interval_summary);
         intervalDialogTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_latin_globe_dialog_title,
-                INTERVAL_DIALOG_TITLE);
+                R.string.gboard_patches_latin_globe_dialog_title);
         intervalDialogHint = GboardSettingsText.get(context,
-                R.string.gboard_patches_latin_globe_dialog_hint,
-                INTERVAL_DIALOG_HINT);
+                R.string.gboard_patches_latin_globe_dialog_hint);
         intervalDialogError = GboardSettingsText.get(context,
-                R.string.gboard_patches_latin_globe_dialog_error,
-                INTERVAL_DIALOG_ERROR);
+                R.string.gboard_patches_latin_globe_dialog_error);
         sectionBehavior = GboardSettingsText.get(context,
-                R.string.gboard_patches_latin_globe_section_behavior,
-                SECTION_BEHAVIOR);
+                R.string.gboard_patches_latin_globe_section_behavior);
         previewMessage = GboardSettingsText.get(context,
-                R.string.gboard_patches_latin_globe_preview_message,
-                PREVIEW_MESSAGE);
+                R.string.gboard_patches_latin_globe_preview_message);
         previewDefaultCaption = GboardSettingsText.get(context,
-                R.string.gboard_patches_latin_globe_preview_default,
-                PREVIEW_DEFAULT_CAPTION);
+                R.string.gboard_patches_latin_globe_preview_default);
         previewPatchedCaption = GboardSettingsText.get(context,
-                R.string.gboard_patches_latin_globe_preview_patched,
-                PREVIEW_PATCHED_CAPTION);
+                R.string.gboard_patches_latin_globe_preview_patched);
         intervalValueTemplate = GboardSettingsText.get(context,
-                R.string.gboard_patches_latin_globe_interval_value,
-                "%1$d ms");
+                R.string.gboard_patches_latin_globe_interval_value);
         intervalValueDefaultTemplate = GboardSettingsText.get(context,
-                R.string.gboard_patches_latin_globe_interval_value_default,
-                "%1$d ms (Default)");
+                R.string.gboard_patches_latin_globe_interval_value_default);
     }
 
     @Override
@@ -143,7 +100,7 @@ public final class GboardLatinGlobeKeyIgnoreIntervalSettingsFeature
 
     @Override
     public GboardPatchesSettingsContract.Screen buildScreen(
-            GboardPatchesSettingsContract.Host host) {
+            GboardPatchesSettingsContract.FeatureHost host) {
         try {
             if (host == null || host.getContext() == null) {
                 return buildErrorScreen();
@@ -208,9 +165,9 @@ public final class GboardLatinGlobeKeyIgnoreIntervalSettingsFeature
                 Collections.emptyList());
     }
 
-    private void showIntervalDialog(GboardPatchesSettingsContract.Host host,
+    private void showIntervalDialog(GboardPatchesSettingsContract.FeatureHost host,
             SharedPreferences preferences) {
-        host.showTextInputDialog(
+        GboardPatchesSettingsContract.showTextInputDialog(host,
                 intervalDialogTitle,
                 intervalDialogHint,
                 Integer.toString(

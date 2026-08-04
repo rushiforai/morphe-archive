@@ -34,53 +34,36 @@ public final class GboardLongPressQuickActionsSettingsFeature
     public GboardLongPressQuickActionsSettingsFeature(Context context) {
         this(
                 GboardSettingsText.get(context,
-                        R.string.gboard_patches_long_press_quick_actions_title,
-                        "Long-Press Editing Shortcuts"),
+                        R.string.gboard_patches_long_press_quick_actions_title),
                 GboardSettingsText.get(context,
-                        R.string.gboard_patches_long_press_quick_actions_summary,
-                        "Long-press designated letter keys to show Select all, Undo, Copy, Cut, "
-                                + "Paste, and Redo actions."),
+                        R.string.gboard_patches_long_press_quick_actions_summary),
                 GboardSettingsText.get(context,
-                        R.string.gboard_patches_header_badge,
-                        "Gboard"),
+                        R.string.gboard_patches_header_badge),
                 GboardSettingsText.get(context,
-                        R.string.gboard_patches_long_press_quick_actions_error_title,
-                        "Long-Press Editing Shortcuts unavailable"),
+                        R.string.gboard_patches_long_press_quick_actions_error_title),
                 GboardSettingsText.get(context,
-                        R.string.gboard_patches_long_press_quick_actions_error_summary,
-                        "The Long-Press Editing Shortcuts settings screen failed to load. "
-                                + "Reopen Gboard settings and try again."),
+                        R.string.gboard_patches_long_press_quick_actions_error_summary),
                 GboardSettingsText.get(context,
-                        R.string.gboard_patches_long_press_quick_actions_enabled_title,
-                        "Enable Long-Press Editing Shortcuts"),
+                        R.string.gboard_patches_long_press_quick_actions_enabled_title),
                 GboardSettingsText.get(context,
-                        R.string.gboard_patches_long_press_quick_actions_enabled_summary,
-                        "Reopen the keyboard or switch layouts to fully apply changes."),
+                        R.string.gboard_patches_long_press_quick_actions_enabled_summary),
                 GboardSettingsText.get(context,
-                        R.string.gboard_patches_long_press_quick_actions_section_feature,
-                        "Feature"),
+                        R.string.gboard_patches_long_press_quick_actions_section_feature),
                 GboardSettingsText.get(context,
-                        R.string.gboard_patches_long_press_quick_actions_section_mappings,
-                        "Mappings"),
+                        R.string.gboard_patches_long_press_quick_actions_section_mappings),
                 new String[] {
                         GboardSettingsText.get(context,
-                                R.string.gboard_patches_long_press_quick_actions_action_select_all,
-                                "Select all"),
+                                R.string.gboard_patches_long_press_quick_actions_action_select_all),
                         GboardSettingsText.get(context,
-                                R.string.gboard_patches_long_press_quick_actions_action_undo,
-                                "Undo"),
+                                R.string.gboard_patches_long_press_quick_actions_action_undo),
                         GboardSettingsText.get(context,
-                                R.string.gboard_patches_long_press_quick_actions_action_copy,
-                                "Copy"),
+                                R.string.gboard_patches_long_press_quick_actions_action_copy),
                         GboardSettingsText.get(context,
-                                R.string.gboard_patches_long_press_quick_actions_action_cut,
-                                "Cut"),
+                                R.string.gboard_patches_long_press_quick_actions_action_cut),
                         GboardSettingsText.get(context,
-                                R.string.gboard_patches_long_press_quick_actions_action_paste,
-                                "Paste"),
+                                R.string.gboard_patches_long_press_quick_actions_action_paste),
                         GboardSettingsText.get(context,
-                                R.string.gboard_patches_long_press_quick_actions_action_redo,
-                                "Redo")
+                                R.string.gboard_patches_long_press_quick_actions_action_redo)
                 });
     }
 
@@ -119,7 +102,7 @@ public final class GboardLongPressQuickActionsSettingsFeature
 
     @Override
     public GboardPatchesSettingsContract.Screen buildScreen(
-            GboardPatchesSettingsContract.Host host) {
+            GboardPatchesSettingsContract.FeatureHost host) {
         try {
             if (host == null || host.getContext() == null) {
                 return buildErrorScreen();

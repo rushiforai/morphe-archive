@@ -95,7 +95,7 @@ public final class GboardEnglishUppercaseToggleSettingsFeatureTest {
         return null;
     }
 
-    private static final class CapturingHost implements GboardPatchesSettingsContract.Host {
+    private static final class CapturingHost extends dev.jason.gboardpatches.extension.settings.GboardPatchesSettingsTestHost {
         private final SharedPreferences preferences;
         private final Context context;
 

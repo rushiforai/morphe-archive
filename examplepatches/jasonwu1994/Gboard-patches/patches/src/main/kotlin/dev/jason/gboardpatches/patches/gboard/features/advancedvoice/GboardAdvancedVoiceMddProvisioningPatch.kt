@@ -1,15 +1,24 @@
 package dev.jason.gboardpatches.patches.gboard.features.advancedvoice
 
+import dev.jason.gboardpatches.patches.gboard.shared.generated.GboardVersionBindings
+
 import app.morphe.patcher.patch.bytecodePatch
 import dev.jason.gboardpatches.patches.gboard.shared.findMutableMethodOrThrow
 import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesExtensionCarrierPatch
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeAbiCatalog
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 import dev.jason.gboardpatches.patches.shared.Constants.COMPATIBILITY_GBOARD
 
-private const val MDD_PROVISIONING_RUNTIME_DESCRIPTOR =
-    "$ADVANCED_VOICE_RUNTIME_CLASS->afterMddProviderConstructed(Ljava/lang/Object;)V"
+private val MDD_PROVISIONING_RUNTIME_DESCRIPTOR = RuntimeAbiCatalog.abi(
+    RuntimeCallId.ADVANCED_VOICE_RUNTIME_AFTER_MDD_PROVIDER_CONSTRUCTED,
+).reference
 
 internal val ADVANCED_VOICE_MDD_PROVISIONING_DELEGATE = """
-    invoke-static {p0}, $MDD_PROVISIONING_RUNTIME_DESCRIPTOR
+    ${RuntimeCallEmitter.invoke(
+        RuntimeCallId.ADVANCED_VOICE_RUNTIME_AFTER_MDD_PROVIDER_CONSTRUCTED,
+        "p0",
+    )}
 """.trimIndent()
 
 internal val gboardAdvancedVoiceMddProvisioningPatch = bytecodePatch(
@@ -20,7 +29,7 @@ internal val gboardAdvancedVoiceMddProvisioningPatch = bytecodePatch(
 
     execute {
         val method = findMutableMethodOrThrow(
-            GboardAdvancedVoice1777Bindings.mddProviderConstructor,
+            GboardVersionBindings.advancedVoiceMddProviderConstructor,
         )
         method.applyAdvancedVoiceMddProvisioningDelegate()
     }
@@ -29,10 +38,10 @@ internal val gboardAdvancedVoiceMddProvisioningPatch = bytecodePatch(
 internal fun app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
     .applyAdvancedVoiceMddProvisioningDelegate() {
     applyAdvancedVoiceFingerprintGuard(
-        GboardAdvancedVoice1777Bindings.mddProviderConstructor.descriptor(),
+        GboardVersionBindings.advancedVoiceMddProviderConstructor.reference,
         MDD_PROVISIONING_RUNTIME_DESCRIPTOR,
-        GboardAdvancedVoice1777Bindings.mddProviderStockFingerprint,
-        GboardAdvancedVoice1777Bindings.mddProviderPatchedFingerprint,
+        GboardAdvancedVoice1777Fingerprints.mddProviderStock,
+        GboardAdvancedVoice1777Fingerprints.mddProviderPatched,
     ) {
         injectAdvancedVoiceBeforeReturns(
             MDD_PROVISIONING_RUNTIME_DESCRIPTOR,

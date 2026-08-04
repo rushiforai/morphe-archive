@@ -9,6 +9,8 @@ import android.util.Log;
 public final class GboardPatchesFeatureAvailability {
     public static final String FEATURE_CLIPBOARD_ENHANCEMENTS =
             "dev.jason.gboardpatches.feature.clipboard_enhancements";
+    public static final String FEATURE_CLIPBOARD_CONTENT_LIMIT =
+            "dev.jason.gboardpatches.feature.clipboard_content_limit";
     public static final String FEATURE_WEB_CLIPBOARD =
             "dev.jason.gboardpatches.feature.web_clipboard";
     public static final String FEATURE_DEVICE_INTELLIGENCE =

@@ -3,39 +3,52 @@ package dev.jason.gboardpatches.patches.gboard.features.advancedvoice
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import dev.jason.gboardpatches.patches.gboard.shared.VerifiedTransformationPlan
+import dev.jason.gboardpatches.patches.gboard.shared.VerifiedTransformationState
+import dev.jason.gboardpatches.patches.gboard.shared.applyVerified
 import dev.jason.gboardpatches.patches.gboard.shared.gboardStructuralFingerprint
+import dev.jason.gboardpatches.patches.gboard.shared.isMethodReference
 import dev.jason.gboardpatches.patches.gboard.shared.returnInstructionIndices
 
-internal const val ADVANCED_VOICE_RUNTIME_CLASS =
-    "Ldev/jason/gboardpatches/extension/advancedvoice/GboardAdvancedVoice1777Runtime;"
 internal const val ADVANCED_VOICE_RESULT_TOKEN = "__RESULT__"
 
-internal inline fun MutableMethod.applyAdvancedVoiceFingerprintGuard(
+internal fun MutableMethod.applyAdvancedVoiceFingerprintGuard(
     descriptor: String,
     runtimeDescriptor: String,
     stockFingerprint: String,
     patchedFingerprint: String,
     inject: () -> Unit,
 ) {
-    val delegateCount = implementation!!.instructions.count {
-        it.methodDescriptor() == runtimeDescriptor
-    }
-    if (delegateCount != 0) {
-        val actual = gboardStructuralFingerprint()
-        check(actual == patchedFingerprint) {
-            "Malformed Advanced Voice delegate state in $descriptor: $actual"
-        }
-        return
-    }
-    val actual = gboardStructuralFingerprint()
-    check(actual == stockFingerprint) { "Stock body drift in $descriptor: $actual" }
-    inject()
-    val patched = gboardStructuralFingerprint()
-    check(patched == patchedFingerprint) {
-        "Unexpected Advanced Voice patched shape in $descriptor: $patched"
-    }
+    applyVerified(
+        VerifiedTransformationPlan(
+            targetName = descriptor,
+            classify = { method ->
+                val delegateCount = method.implementation!!.instructions.count {
+                    it.isMethodReference(runtimeDescriptor)
+                }
+                val actual = method.gboardStructuralFingerprint()
+                when {
+                    delegateCount == 0 -> {
+                        check(actual == stockFingerprint) {
+                            "Stock body drift in $descriptor: $actual"
+                        }
+                        VerifiedTransformationState.STOCK
+                    }
+                    delegateCount > 0 -> {
+                        check(actual == patchedFingerprint) {
+                            "Patched body drift in $descriptor: $actual"
+                        }
+                        VerifiedTransformationState.PATCHED
+                    }
+                    else -> VerifiedTransformationState.MALFORMED
+                }
+            },
+            mutate = { method ->
+                inject()
+                method
+            },
+        ),
+    )
 }
 
 internal fun MutableMethod.injectAdvancedVoiceResultDelegate(
@@ -46,7 +59,7 @@ internal fun MutableMethod.injectAdvancedVoiceResultDelegate(
         ?: error("Advanced Voice target has no implementation")
     val returns = returnInstructionIndices()
     check(returns.isNotEmpty()) { "Advanced Voice target has no return instructions" }
-    val existing = instructions.count { it.methodDescriptor() == descriptor }
+    val existing = instructions.count { it.isMethodReference(descriptor) }
     check(existing == 0 || existing == returns.size) {
         "Partial or duplicate Advanced Voice result delegates for $descriptor"
     }
@@ -72,7 +85,7 @@ internal fun MutableMethod.injectAdvancedVoiceBeforeReturns(
         ?: error("Advanced Voice target has no implementation")
     val returns = returnInstructionIndices()
     check(returns.isNotEmpty()) { "Advanced Voice target has no return instructions" }
-    val existing = instructions.count { it.methodDescriptor() == descriptor }
+    val existing = instructions.count { it.isMethodReference(descriptor) }
     check(existing == 0 || existing == returns.size) {
         "Partial or duplicate Advanced Voice return delegates for $descriptor"
     }
@@ -83,6 +96,3 @@ internal fun MutableMethod.injectAdvancedVoiceBeforeReturns(
         addInstructions(returnIndex, delegate)
     }
 }
-
-internal fun com.android.tools.smali.dexlib2.iface.instruction.Instruction.methodDescriptor(): String? =
-    ((this as? ReferenceInstruction)?.reference as? MethodReference)?.toString()

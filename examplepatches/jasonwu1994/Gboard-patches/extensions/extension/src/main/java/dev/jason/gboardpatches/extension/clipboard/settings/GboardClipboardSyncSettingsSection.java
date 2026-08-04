@@ -53,7 +53,7 @@ final class GboardClipboardSyncSettingsSection {
 
                 @Override
                 public GboardPatchesSettingsContract.Screen buildScreen(
-                        GboardPatchesSettingsContract.Host host) {
+                        GboardPatchesSettingsContract.FeatureHost host) {
                     return buildConnectedClientsScreen(host);
                 }
             };
@@ -104,7 +104,7 @@ final class GboardClipboardSyncSettingsSection {
     }
 
     GboardPatchesSettingsContract.Screen buildHomeScreen(
-            GboardPatchesSettingsContract.Host host,
+            GboardPatchesSettingsContract.FeatureHost host,
             SharedPreferences preferences) {
         Context context = host.getContext();
         WebClipboardPreferences.ensureDefaults(preferences);
@@ -133,7 +133,7 @@ final class GboardClipboardSyncSettingsSection {
                 pairingRequired,
                 value -> {
                     WebClipboardTileController.applyPairingRequired(context, value);
-                    host.refresh();
+                    GboardPatchesSettingsContract.refresh(host);
                 }));
         securityRows.add(new GboardPatchesSettingsContract.SelectorRow(
                 titlePairingCode,
@@ -142,14 +142,14 @@ final class GboardClipboardSyncSettingsSection {
                         : textLookup.pairingCodeSummaryOff(),
                 pairingCode,
                 enabled,
-                () -> host.showTextInputDialog(
+                () -> GboardPatchesSettingsContract.showTextInputDialog(host,
                         titlePairingCode,
                         pairingCode,
                         pairingCode,
                         value -> {
                             String normalizedCode = normalizePairingCodeInput(value);
                             WebClipboardTileController.applyPairingCode(context, normalizedCode);
-                            host.refresh();
+                            GboardPatchesSettingsContract.refresh(host);
                         })));
         securityRows.add(new GboardPatchesSettingsContract.CommandRow(
                 regenerateCodeTitle,
@@ -157,7 +157,7 @@ final class GboardClipboardSyncSettingsSection {
                 enabled,
                 () -> {
                     WebClipboardTileController.regeneratePairingCode(context);
-                    host.refresh();
+                    GboardPatchesSettingsContract.refresh(host);
                 }));
 
         List<GboardPatchesSettingsContract.Row> networkRows =
@@ -167,7 +167,7 @@ final class GboardClipboardSyncSettingsSection {
                 textLookup.portSummary(),
                 Integer.toString(port),
                 true,
-                () -> host.showPositiveIntegerDialog(
+                () -> GboardPatchesSettingsContract.showPositiveIntegerDialog(host,
                         titlePort,
                         textLookup.portHint(WebClipboardPreferences.DEFAULT_PORT),
                         port,
@@ -185,7 +185,7 @@ final class GboardClipboardSyncSettingsSection {
                 clientsHomeSummary(clients),
                 Integer.toString(clients.size()),
                 enabled,
-                () -> host.openFeature(connectedClientsFeature)));
+                () -> GboardPatchesSettingsContract.openFeature(host, connectedClientsFeature)));
 
         return new GboardPatchesSettingsContract.Screen(
                 entryTitle,
@@ -204,7 +204,7 @@ final class GboardClipboardSyncSettingsSection {
     }
 
     private GboardPatchesSettingsContract.Screen buildConnectedClientsScreen(
-            GboardPatchesSettingsContract.Host host) {
+            GboardPatchesSettingsContract.FeatureHost host) {
         List<ClipboardSyncWebPortal.ConnectedClientSnapshot> clients =
                 ClipboardSyncService.getConnectedClientSnapshots();
         List<GboardPatchesSettingsContract.Row> rows =
@@ -225,7 +225,7 @@ final class GboardClipboardSyncSettingsSection {
                     true,
                     () -> {
                         ClipboardSyncService.kickConnectedClient(client.id);
-                        host.refresh();
+                        GboardPatchesSettingsContract.refresh(host);
                     },
                     textLookup.kickConfirmTitle(),
                     textLookup.kickConfirmMessage(clientTitle)));
@@ -339,180 +339,154 @@ final class GboardClipboardSyncSettingsSection {
         public String headerBadge() {
             return GboardSettingsText.get(
                     context,
-                    R.string.gboard_patches_header_badge,
-                    "Gboard");
+                    R.string.gboard_patches_header_badge);
         }
 
         @Override
         public String entryTitle() {
             return GboardSettingsText.get(
                     context,
-                    R.string.gboard_patches_web_clipboard_title,
-                    "Web Clipboard");
+                    R.string.gboard_patches_web_clipboard_title);
         }
 
         @Override
         public String entrySummary() {
             return GboardSettingsText.get(
                     context,
-                    R.string.gboard_patches_web_clipboard_summary,
-                    "Zero-install clipboard sharing hosted by this phone. Open the same LAN"
-                            + " page on multiple devices to keep your phone and browsers in"
-                            + " sync. Recommended: turn on Quick Settings Tile.");
+                    R.string.gboard_patches_web_clipboard_summary);
         }
 
         @Override
         public String sectionGeneral() {
             return GboardSettingsText.get(
                     context,
-                    R.string.gboard_patches_clipboard_section_general,
-                    "General");
+                    R.string.gboard_patches_clipboard_section_general);
         }
 
         @Override
         public String sectionSecurity() {
             return GboardSettingsText.get(
                     context,
-                    R.string.gboard_patches_web_clipboard_section_security,
-                    "Security");
+                    R.string.gboard_patches_web_clipboard_section_security);
         }
 
         @Override
         public String sectionNetwork() {
             return GboardSettingsText.get(
                     context,
-                    R.string.gboard_patches_web_clipboard_section_network,
-                    "Network");
+                    R.string.gboard_patches_web_clipboard_section_network);
         }
 
         @Override
         public String sectionConnectedClients() {
             return GboardSettingsText.get(
                     context,
-                    R.string.gboard_patches_web_clipboard_section_connected_clients,
-                    "Connected clients");
+                    R.string.gboard_patches_web_clipboard_section_connected_clients);
         }
 
         @Override
         public String titleEnable() {
             return GboardSettingsText.get(
                     context,
-                    R.string.gboard_patches_web_clipboard_enable_title,
-                    "Enable Web Clipboard");
+                    R.string.gboard_patches_web_clipboard_enable_title);
         }
 
         @Override
         public String titlePort() {
             return GboardSettingsText.get(
                     context,
-                    R.string.gboard_patches_web_clipboard_port_title,
-                    "Web server port");
+                    R.string.gboard_patches_web_clipboard_port_title);
         }
 
         @Override
         public String titlePairing() {
             return GboardSettingsText.get(
                     context,
-                    R.string.gboard_patches_web_clipboard_pairing_title,
-                    "Require pairing code");
+                    R.string.gboard_patches_web_clipboard_pairing_title);
         }
 
         @Override
         public String titlePairingCode() {
             return GboardSettingsText.get(
                     context,
-                    R.string.gboard_patches_web_clipboard_pairing_code_title,
-                    "Pairing code");
+                    R.string.gboard_patches_web_clipboard_pairing_code_title);
         }
 
         @Override
         public String titleUrls() {
             return GboardSettingsText.get(
                     context,
-                    R.string.gboard_patches_web_clipboard_urls_title,
-                    "Current URLs");
+                    R.string.gboard_patches_web_clipboard_urls_title);
         }
 
         @Override
         public String titleClients() {
             return GboardSettingsText.get(
                     context,
-                    R.string.gboard_patches_web_clipboard_clients_title,
-                    "Connected clients");
+                    R.string.gboard_patches_web_clipboard_clients_title);
         }
 
         @Override
         public String errorPairingCode() {
             return GboardSettingsText.get(
                     context,
-                    R.string.gboard_patches_web_clipboard_pairing_error,
-                    "Enter a 4-digit code.");
+                    R.string.gboard_patches_web_clipboard_pairing_error);
         }
 
         @Override
         public String clientsFeatureSummary() {
             return GboardSettingsText.get(
                     context,
-                    R.string.gboard_patches_web_clipboard_clients_feature_summary,
-                    "View connected Web Clipboard clients and kick browser sessions.");
+                    R.string.gboard_patches_web_clipboard_clients_feature_summary);
         }
 
         @Override
         public String noClientsSummary() {
             return GboardSettingsText.get(
                     context,
-                    R.string.gboard_patches_web_clipboard_no_clients,
-                    "No browser clients are connected.");
+                    R.string.gboard_patches_web_clipboard_no_clients);
         }
 
         @Override
         public String clientsSummary() {
             return GboardSettingsText.get(
                     context,
-                    R.string.gboard_patches_web_clipboard_clients_summary,
-                    "Tap to view and kick browser clients.");
+                    R.string.gboard_patches_web_clipboard_clients_summary);
         }
 
         @Override
         public String connectedClientsSummary() {
             return GboardSettingsText.get(
                     context,
-                    R.string.gboard_patches_web_clipboard_connected_summary,
-                    "Browser clients currently connected to the Web Clipboard portal.");
+                    R.string.gboard_patches_web_clipboard_connected_summary);
         }
 
         @Override
         public String regenerateCodeTitle() {
             return GboardSettingsText.get(
                     context,
-                    R.string.gboard_patches_web_clipboard_regenerate_code_title,
-                    "Regenerate pairing code");
+                    R.string.gboard_patches_web_clipboard_regenerate_code_title);
         }
 
         @Override
         public String regenerateCodeSummary() {
             return GboardSettingsText.get(
                     context,
-                    R.string.gboard_patches_web_clipboard_regenerate_code_summary,
-                    "Create a new 4-digit code and restart the portal if it is running.");
+                    R.string.gboard_patches_web_clipboard_regenerate_code_summary);
         }
 
         @Override
         public String pairingSummary() {
             return GboardSettingsText.get(
                     context,
-                    R.string.gboard_patches_web_clipboard_pairing_summary,
-                    "Default is on. Desktop browsers must enter a simple 4-digit code before"
-                            + " they can sync unless you turn this off.");
+                    R.string.gboard_patches_web_clipboard_pairing_summary);
         }
 
         @Override
         public String pairingCodeSummaryOn(String pairingCode) {
-            return GboardSettingsText.get(
+            return GboardSettingsText.format(
                     context,
                     R.string.gboard_patches_web_clipboard_pairing_code_summary_on,
-                    "Desktop users enter this 4-digit code or open a URL that includes"
-                            + " ?code=%1$s.",
                     pairingCode);
         }
 
@@ -520,42 +494,37 @@ final class GboardClipboardSyncSettingsSection {
         public String pairingCodeSummaryOff() {
             return GboardSettingsText.get(
                     context,
-                    R.string.gboard_patches_web_clipboard_pairing_code_summary_off,
-                    "Pairing is off; this code is only used after you enable the switch.");
+                    R.string.gboard_patches_web_clipboard_pairing_code_summary_off);
         }
 
         @Override
         public String portSummary() {
             return GboardSettingsText.get(
                     context,
-                    R.string.gboard_patches_web_clipboard_port_summary,
-                    "Choose the port used by the phone-hosted web UI.");
+                    R.string.gboard_patches_web_clipboard_port_summary);
         }
 
         @Override
         public String portHint(int defaultPort) {
-            return GboardSettingsText.get(
+            return GboardSettingsText.format(
                     context,
                     R.string.gboard_patches_web_clipboard_port_hint_default,
-                    "%1$d",
                     defaultPort);
         }
 
         @Override
         public String entryHostedSummary(String url) {
-            return GboardSettingsText.get(
+            return GboardSettingsText.format(
                     context,
                     R.string.gboard_patches_web_clipboard_entry_summary,
-                    "Hosted on this phone at %1$s when enabled.",
                     url);
         }
 
         @Override
         public String kickTitle(String clientTitle) {
-            return GboardSettingsText.get(
+            return GboardSettingsText.format(
                     context,
                     R.string.gboard_patches_web_clipboard_kick_title,
-                    "Kick %1$s",
                     clientTitle);
         }
 
@@ -563,35 +532,31 @@ final class GboardClipboardSyncSettingsSection {
         public String kickConfirmTitle() {
             return GboardSettingsText.get(
                     context,
-                    R.string.gboard_patches_web_clipboard_kick_confirm_title,
-                    "Kick connected client");
+                    R.string.gboard_patches_web_clipboard_kick_confirm_title);
         }
 
         @Override
         public String kickConfirmMessage(String clientTitle) {
-            return GboardSettingsText.get(
+            return GboardSettingsText.format(
                     context,
                     R.string.gboard_patches_web_clipboard_kick_confirm_message,
-                    "Disconnect %1$s from Web Clipboard?",
                     clientTitle);
         }
 
         @Override
         public String clientTitle(String browser, String label) {
-            return GboardSettingsText.get(
+            return GboardSettingsText.format(
                     context,
                     R.string.gboard_patches_web_clipboard_client_title,
-                    "%1$s %2$s",
                     browser,
                     label);
         }
 
         @Override
         public String clientDetail(String address, String agent) {
-            return GboardSettingsText.get(
+            return GboardSettingsText.format(
                     context,
                     R.string.gboard_patches_web_clipboard_client_detail,
-                    "IP: %1$s\nClient agent: %2$s",
                     address,
                     agent);
         }
@@ -600,16 +565,14 @@ final class GboardClipboardSyncSettingsSection {
         public String clientBrowserFallback() {
             return GboardSettingsText.get(
                     context,
-                    R.string.gboard_patches_web_clipboard_client_browser_fallback,
-                    "Browser");
+                    R.string.gboard_patches_web_clipboard_client_browser_fallback);
         }
 
         @Override
         public String clientAgentFallback() {
             return GboardSettingsText.get(
                     context,
-                    R.string.gboard_patches_web_clipboard_client_agent_fallback,
-                    "Unknown agent");
+                    R.string.gboard_patches_web_clipboard_client_agent_fallback);
         }
     }
 

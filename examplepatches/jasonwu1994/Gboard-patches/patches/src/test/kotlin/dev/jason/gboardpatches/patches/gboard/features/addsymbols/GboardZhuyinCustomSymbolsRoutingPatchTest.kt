@@ -109,7 +109,7 @@ class GboardZhuyinCustomSymbolsRoutingPatchTest {
         assertTrue(history.contains("private const val EMOTICON_ITEM_CLICK_CONSUMER_CLASS = \"Liju;\""))
         assertTrue(history.contains("private const val EMOTICON_HISTORY_MANAGER_CLASS = \"Lfsr;\""))
         assertTrue(history.contains("private const val EMOTICON_HISTORY_FIELD = \"c\""))
-        assertTrue(history.contains("interceptHistoryWrite"))
+        assertTrue(history.contains("ADD_SYMBOLS_RUNTIME_INTERCEPT_HISTORY_WRITE"))
         assertFalse(history.contains("clickMethod.instructionIndices(\"RETURN_VOID\")"))
 
         val recycler = readPatch("GboardZhuyinCustomSymbolsRecyclerPatch.kt")
@@ -135,10 +135,8 @@ class GboardZhuyinCustomSymbolsRoutingPatchTest {
         val delegate = state.substringAfter("private val CONSTRUCTOR_DELEGATE")
             .substringBefore("private val BODY_READY_DELEGATE")
 
-        assertTrue(delegate.contains(
-            "invoke-static {p0}, Ldev/jason/gboardpatches/extension/addsymbols/" +
-                "GboardAddSymbolsRuntime;->onEmoticonKeyboardConstructed(Ljava/lang/Object;)V",
-        ))
+        assertTrue(delegate.contains("ADD_SYMBOLS_RUNTIME_ON_EMOTICON_KEYBOARD_CONSTRUCTED"))
+        assertTrue(delegate.contains("\"p0\""))
         assertFalse(delegate.contains("p5"))
         assertTrue(runtime.contains(
             "public static void onEmoticonKeyboardConstructed(Object keyboard)",
@@ -170,7 +168,7 @@ class GboardZhuyinCustomSymbolsRoutingPatchTest {
         assertTrue(source.contains("type = \"Landroid/view/ViewGroup;\""))
         assertTrue(source.contains("opcodeName = \"IPUT_OBJECT\""))
         assertTrue(source.contains("bodyReadyFieldWriteIndex + 1"))
-        assertTrue(source.contains("invoke-static {p0},"))
+        assertTrue(source.contains("ADD_SYMBOLS_RUNTIME_ON_EMOTICON_BODY_READY"))
         assertFalse(source.contains(
             "returnIndices.sortedDescending().forEach { returnIndex ->\n" +
                 "        mutableMethod.addInstructions(returnIndex, BODY_READY_DELEGATE)",
@@ -202,12 +200,11 @@ class GboardZhuyinCustomSymbolsRoutingPatchTest {
         assertTrue(state.contains("HEADER_CALLBACK_DELEGATE.format(headerReceiverRegister)"))
         val headerDelegate = state.substringAfter("private val HEADER_CALLBACK_DELEGATE")
             .substringBefore("private val HEADER_START_EDGE_GUARD_DELEGATE")
-        assertTrue(headerDelegate.contains("invoke-static {%s},"))
-        assertFalse(headerDelegate.contains("invoke-static {p0},"))
-        assertTrue(recycler.contains(
-            "onEmoticonRecyclerAdapterConstructed(Ljava/lang/Object;Ljava/lang/Object;)V",
-        ))
-        assertTrue(recycler.contains("invoke-static {p0, p3},"))
+        assertTrue(headerDelegate.contains("ADD_SYMBOLS_RUNTIME_ON_HEADER_CALLBACK_AFTER"))
+        assertTrue(headerDelegate.contains("\"%s\""))
+        assertFalse(headerDelegate.contains("\"p0\""))
+        assertTrue(recycler.contains("ADD_SYMBOLS_RUNTIME_ON_EMOTICON_RECYCLER_ADAPTER_CONSTRUCTED"))
+        assertTrue(recycler.contains("\"p0, p3\""))
         assertFalse(runtime.contains("ACTIVE_CUSTOM_EMOTICON_HEADER_CALLBACK_RECEIVER"))
         assertFalse(runtime.contains("CUSTOM_EMOTICON_ADAPTER_CONSTRUCTION"))
         assertFalse(runtime.contains("onHeaderCallbackBefore("))
@@ -237,8 +234,8 @@ class GboardZhuyinCustomSymbolsRoutingPatchTest {
         assertTrue(history.contains("move-result p1"))
         assertTrue(history.contains("if-nez p1, :jasondev_history_handled"))
         assertTrue(history.contains("move-object/from16 v5, p0"))
-        assertTrue(history.contains("invoke-static {v5, %s, %s}"))
-        assertFalse(history.contains("invoke-static {p0, %s, %s}"))
+        assertTrue(history.contains("\"v5, %s, %s\""))
+        assertFalse(history.contains("\"p0, %s, %s\""))
         assertFalse(history.contains("clickMethod.addInstructions(0, ITEM_CLICK_DELEGATE)"))
         assertFalse(history.contains("ITEM_CLICK_FINISH_DELEGATE"))
         assertFalse(runtime.contains("ACTIVE_CUSTOM_EMOTICON_HISTORY_WRITE_KEYBOARD"))

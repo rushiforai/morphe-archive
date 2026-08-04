@@ -26,24 +26,20 @@ final class GboardClipboardSettingsSupport {
         String minutesLabel = GboardSettingsText.quantity(
                 context,
                 R.plurals.gboard_patches_minutes,
-                minutes,
-                "%d minute",
-                "%d minutes");
+                minutes);
         String normalizedMinutesLabel =
                 minutesLabel.replace(Integer.toString(minutes), "").trim();
-        return GboardSettingsText.get(
+        return GboardSettingsText.format(
                 context,
                 R.string.gboard_patches_custom_minutes_value,
-                "Custom (%1$d %2$s)",
                 minutes,
                 normalizedMinutesLabel);
     }
 
     static String formatCustomCountLabel(Context context, int count) {
-        return GboardSettingsText.get(
+        return GboardSettingsText.format(
                 context,
                 R.string.gboard_patches_custom_count_value,
-                "Custom (%1$d)",
                 count);
     }
 }

@@ -10,6 +10,8 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import dev.jason.gboardpatches.patches.gboard.shared.generated.GboardVersionBindings
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 
 private const val PROVIDER_RECEIVER_WRAPPER_CLASS = "Loef;"
 private const val METRICS_UTILS_CLASS = "Lhhs;"
@@ -18,9 +20,9 @@ private const val KEYBOARD_WRAPPER_CLASS = "Lnvd;"
 private const val SCROLLABLE_NAVIGATION_VIEW_CLASS =
     "Lcom/google/android/apps/inputmethod/libs/expression/navbar/ScrollableNavigationView;"
 private val providerRequestKeyboardType =
-    GboardVersionBindings.keyboardProviderRequest.parameterTypes[3]
+    GboardVersionBindings.keyboardDefinitionType.descriptor
 private val providerRequestReceiverType =
-    GboardVersionBindings.keyboardProviderRequest.parameterTypes[6]
+    GboardVersionBindings.keyboardCompletionCallbackType.descriptor
 
 internal val gboardZhuyinCustomSymbolsRoutingPatch = bytecodePatch(
     description = "移植 add-symbols 的 provider / routing / tab identity 主線。"
@@ -133,19 +135,19 @@ private fun patchKeyboardReady() = with(context) {
 }
 
 private val EXTENSION_MANAGER_DELEGATE = """
-    invoke-static {p0, p1}, Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->ensureExtensionProviderMapping(Ljava/lang/Object;Ljava/lang/Object;)V
+    ${RuntimeCallEmitter.invoke(RuntimeCallId.ADD_SYMBOLS_RUNTIME_ENSURE_EXTENSION_PROVIDER_MAPPING, "p0, p1")}
 """.trimIndent()
 
 private val PROVIDER_REQUEST_DELEGATE = """
     move-object v2, p4
 
-    invoke-static {p4}, Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->rewriteProviderRequestType(Ljava/lang/Object;)Ljava/lang/Object;
+    ${RuntimeCallEmitter.invoke(RuntimeCallId.ADD_SYMBOLS_RUNTIME_REWRITE_PROVIDER_REQUEST_TYPE, "p4")}
 
     move-result-object p4
 
     check-cast p4, $providerRequestKeyboardType
 
-    invoke-static {p0, v2, p7}, Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->bridgeProviderReceiver(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+    ${RuntimeCallEmitter.invoke(RuntimeCallId.ADD_SYMBOLS_RUNTIME_BRIDGE_PROVIDER_RECEIVER, "p0, v2, p7")}
 
     move-result-object p7
 
@@ -153,7 +155,7 @@ private val PROVIDER_REQUEST_DELEGATE = """
 """.trimIndent()
 
 private val PROVIDER_WRAPPER_TYPE_DELEGATE = """
-    invoke-static {p1}, Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->rewriteProviderWrapperKeyboardType(Ljava/lang/Object;)Ljava/lang/Object;
+    ${RuntimeCallEmitter.invoke(RuntimeCallId.ADD_SYMBOLS_RUNTIME_REWRITE_PROVIDER_WRAPPER_KEYBOARD_TYPE, "p1")}
 
     move-result-object p1
 
@@ -161,7 +163,7 @@ private val PROVIDER_WRAPPER_TYPE_DELEGATE = """
 """.trimIndent()
 
 private val METRICS_ALIAS_DELEGATE = """
-    invoke-static {p0}, Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->rewriteMetricsKeyboardType(Ljava/lang/Object;)Ljava/lang/Object;
+    ${RuntimeCallEmitter.invoke(RuntimeCallId.ADD_SYMBOLS_RUNTIME_REWRITE_METRICS_KEYBOARD_TYPE, "p0")}
 
     move-result-object p0
 
@@ -169,7 +171,7 @@ private val METRICS_ALIAS_DELEGATE = """
 """.trimIndent()
 
 private val NAVIGATION_IDENTITY_DELEGATE = """
-    invoke-static {p2}, Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->rewriteNavigationKeyboardType(Ljava/lang/Object;)Ljava/lang/Object;
+    ${RuntimeCallEmitter.invoke(RuntimeCallId.ADD_SYMBOLS_RUNTIME_REWRITE_NAVIGATION_KEYBOARD_TYPE, "p2")}
 
     move-result-object p2
 
@@ -177,11 +179,11 @@ private val NAVIGATION_IDENTITY_DELEGATE = """
 """.trimIndent()
 
 private val FOOTER_TAB_CLICK_DELEGATE = """
-    invoke-static {p0, p1}, Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->onExpressionCorpusFooterTabClick(Ljava/lang/Object;Ljava/lang/Object;)V
+    ${RuntimeCallEmitter.invoke(RuntimeCallId.ADD_SYMBOLS_RUNTIME_ON_EXPRESSION_CORPUS_FOOTER_TAB_CLICK, "p0, p1")}
 """.trimIndent()
 
 private val KEYBOARD_READY_DELEGATE = """
-    invoke-static/range {p0 .. p3}, Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->onKeyboardReady(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V
+    ${RuntimeCallEmitter.invoke(RuntimeCallId.ADD_SYMBOLS_RUNTIME_ON_KEYBOARD_READY, "p0 .. p3")}
 """.trimIndent()
 
 internal data class FooterTabClickConsumerShape(

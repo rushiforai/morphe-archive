@@ -106,7 +106,7 @@ public final class GboardPatchesSettingsActivitySourceTest {
         String method = extractMethod(source, "public void showChoiceDialog(");
 
         Assert.assertTrue(method.contains(
-                ".setNegativeButton(text(R.string.gboard_patches_dialog_cancel, DIALOG_CANCEL), null)"));
+                ".setNegativeButton(text(R.string.gboard_patches_dialog_cancel), null)"));
         Assert.assertFalse(method.contains("android.R.string.cancel"));
     }
 

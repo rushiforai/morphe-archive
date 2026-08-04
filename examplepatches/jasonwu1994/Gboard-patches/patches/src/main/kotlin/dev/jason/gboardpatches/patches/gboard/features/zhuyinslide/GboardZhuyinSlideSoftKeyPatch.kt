@@ -9,18 +9,23 @@ import dev.jason.gboardpatches.patches.gboard.shared.findMutableMethodOrThrow
 import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesExtensionCarrierPatch
 import dev.jason.gboardpatches.patches.gboard.shared.generated.GboardVersionBindings
 import dev.jason.gboardpatches.patches.gboard.shared.indexOfFirstMethodCall
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeAbiCatalog
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 import dev.jason.gboardpatches.patches.shared.Constants.COMPATIBILITY_GBOARD
 
 private const val SOFT_KEY_VIEW_CLASS =
     "Lcom/google/android/libraries/inputmethod/widgets/SoftKeyView;"
-private const val ENGLISH_UPPERCASE_RUNTIME_CLASS =
-    "Ldev/jason/gboardpatches/extension/keyboard/GboardEnglishUppercaseToggleRuntime;"
-internal const val ZHUYIN_SLIDE_RUNTIME_CLASS =
-    "Ldev/jason/gboardpatches/extension/zhuyinslide/GboardZhuyinSlideRuntime;"
-private val softKeyMetadataType = GboardVersionBindings.softKeyBind.parameterTypes[0]
+private val ENGLISH_UPPERCASE_RUNTIME_CLASS = RuntimeAbiCatalog.abi(
+    RuntimeCallId.ENGLISH_UPPERCASE_TOGGLE_RUNTIME_IS_ENABLED,
+).owner
+private val softKeyMetadataType = GboardVersionBindings.softKeyMetadataType.descriptor
 
 internal val ZHUYIN_SLIDE_SOFT_KEY_DELEGATE = """
-    invoke-static {p0, p1}, $ZHUYIN_SLIDE_RUNTIME_CLASS->patchIncomingSoftKeyMetadata(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+    ${RuntimeCallEmitter.invoke(
+        RuntimeCallId.ZHUYIN_SLIDE_RUNTIME_PATCH_INCOMING_SOFT_KEY_METADATA,
+        "p0, p1",
+    )}
 
     move-result-object p1
 

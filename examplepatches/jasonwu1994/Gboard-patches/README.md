@@ -34,7 +34,13 @@ Gboard Patches is a public Morphe source for a curated set of Gboard enhancement
 <details>
   <summary><code>Clipboard Enhancements</code></summary>
 
-  Lets you enhance clipboard retention time, item count limits, preview lines, countdown and creation-time labels, order index, and grid columns.
+  Lets you enhance clipboard retention time, item count limits, preview lines, countdown and creation-time labels, order index, grid columns, and optionally render only the first 1,000 characters on each clipboard card.
+</details>
+
+<details>
+  <summary><code>Clipboard Custom Character Limit</code></summary>
+
+  Lets you set the maximum number of characters stored for each text clipboard item, with Gboard's stock 20,000-character limit as the default.
 </details>
 
 <details>

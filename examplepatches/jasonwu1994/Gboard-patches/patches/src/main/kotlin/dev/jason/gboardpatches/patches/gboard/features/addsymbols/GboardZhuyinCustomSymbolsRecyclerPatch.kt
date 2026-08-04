@@ -5,6 +5,8 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import dev.jason.gboardpatches.patches.gboard.shared.findMutableMethodOrThrow
 import dev.jason.gboardpatches.patches.gboard.shared.instructionIndices
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 
 private const val BASE_RECYCLER_ADAPTER_CLASS = "Ljn;"
 private const val EMOTICON_RECYCLER_ADAPTER_CLASS = "Lils;"
@@ -79,11 +81,14 @@ private fun patchCreateViewHolder() = with(context) {
 }
 
 private val CONSTRUCTOR_DELEGATE = """
-    invoke-static {p0, p3}, Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->onEmoticonRecyclerAdapterConstructed(Ljava/lang/Object;Ljava/lang/Object;)V
+    ${RuntimeCallEmitter.invoke(
+        RuntimeCallId.ADD_SYMBOLS_RUNTIME_ON_EMOTICON_RECYCLER_ADAPTER_CONSTRUCTED,
+        "p0, p3",
+    )}
 """.trimIndent()
 
 private val BIND_VIEW_HOLDER_DELEGATE = """
-    invoke-static {p0, p1, p2}, Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->bindCustomViewHolder(Ljava/lang/Object;Ljava/lang/Object;I)Z
+    ${RuntimeCallEmitter.invoke(RuntimeCallId.ADD_SYMBOLS_RUNTIME_BIND_CUSTOM_VIEW_HOLDER, "p0, p1, p2")}
 
     move-result v0
 
@@ -95,7 +100,7 @@ private val BIND_VIEW_HOLDER_DELEGATE = """
 """.trimIndent()
 
 private val VIEW_TYPE_DELEGATE = """
-    invoke-static {p0, p1}, Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->resolveCustomViewType(Ljava/lang/Object;I)I
+    ${RuntimeCallEmitter.invoke(RuntimeCallId.ADD_SYMBOLS_RUNTIME_RESOLVE_CUSTOM_VIEW_TYPE, "p0, p1")}
 
     move-result p0
 
@@ -109,7 +114,7 @@ private val VIEW_TYPE_DELEGATE = """
 """.trimIndent()
 
 private val CREATE_VIEW_HOLDER_DELEGATE = """
-    invoke-static {p0, p1, p2}, Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->createCustomViewHolder(Ljava/lang/Object;Ljava/lang/Object;I)Ljava/lang/Object;
+    ${RuntimeCallEmitter.invoke(RuntimeCallId.ADD_SYMBOLS_RUNTIME_CREATE_CUSTOM_VIEW_HOLDER, "p0, p1, p2")}
 
     move-result-object v0
 

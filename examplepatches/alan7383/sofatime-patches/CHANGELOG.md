@@ -1,3 +1,9 @@
+## [1.3.6](https://github.com/alan7383/sofatime-patches/compare/v1.3.5...v1.3.6) (2026-08-03)
+
+### 🐛 Bug Fixes
+
+* correct obfuscated class mapping for Google SignIn and remove 1.2.0 target ([4b3eb02](https://github.com/alan7383/sofatime-patches/commit/4b3eb02bcec48df59319fd9de84be1e94b02e9b9))
+
 ## [1.3.5](https://github.com/alan7383/sofatime-patches/compare/v1.3.4...v1.3.5) (2026-08-02)
 
 ### 🐛 Bug Fixes

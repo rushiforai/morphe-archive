@@ -9,7 +9,13 @@ import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import dev.jason.gboardpatches.patches.gboard.shared.findMutableMethodOrThrow
 import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesExtensionCarrierPatch
+import dev.jason.gboardpatches.patches.gboard.shared.isInvoke
+import dev.jason.gboardpatches.patches.gboard.shared.isMethodReference
+import dev.jason.gboardpatches.patches.gboard.shared.isOpcode
 import dev.jason.gboardpatches.patches.gboard.shared.returnInstructionIndices
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeAbiCatalog
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 import dev.jason.gboardpatches.patches.shared.Constants.COMPATIBILITY_GBOARD
 
 internal val gboardAiWritingToolsSignalPatch = bytecodePatch(
@@ -35,7 +41,7 @@ internal fun MutableMethod.applyWritingToolsSignalOverride() {
     val parameterRegister = implementation!!.registerCount - 1
     val identityBranchIndices = instructions.indices.filter { index ->
         val instruction = instructions[index]
-        instruction.normalizedOpcode() == "IF_NE" &&
+        instruction.isOpcode("IF_NE") &&
             instruction is TwoRegisterInstruction &&
             instruction.registerA == 0 &&
             instruction.registerB == parameterRegister
@@ -49,7 +55,7 @@ internal fun MutableMethod.applyWritingToolsSignalOverride() {
     }
     val preserveIndices = instructions.indices.filter { index ->
         val instruction = instructions[index]
-        instruction.normalizedOpcode() == "MOVE_OBJECT" &&
+        instruction.isOpcode("MOVE_OBJECT") &&
             instruction is TwoRegisterInstruction &&
             instruction.registerA == SIGNAL_SCRATCH_REGISTER &&
             instruction.registerB == parameterRegister
@@ -61,7 +67,7 @@ internal fun MutableMethod.applyWritingToolsSignalOverride() {
     }
     val producer = instructions.getOrNull(producerIndex) as? OneRegisterInstruction
     check(producer != null &&
-        instructions[producerIndex].normalizedOpcode() == "MOVE_RESULT_OBJECT" &&
+        instructions[producerIndex].isOpcode("MOVE_RESULT_OBJECT") &&
         producer.registerA == 0) {
         "Identity branch producer changed in $definingClass->$name"
     }
@@ -69,19 +75,20 @@ internal fun MutableMethod.applyWritingToolsSignalOverride() {
     val returnIndices = returnInstructionIndices()
     check(returnIndices.size == 2) { "Expected two RETURN sites in $definingClass->$name" }
     val signalCalls = instructions.indices.filter { index ->
-        instructions[index].signalMethodDescriptor() == SIGNAL_RESULT_DESCRIPTOR
+        instructions[index].isMethodReference(SIGNAL_RESULT_DESCRIPTOR)
     }
     val completedReturns = returnIndices.count { returnIndex ->
         if (returnIndex < 2) return@count false
         val moveResult = instructions[returnIndex - 1] as? OneRegisterInstruction
         val returned = instructions[returnIndex] as? OneRegisterInstruction
         returned != null &&
-            instructions[returnIndex - 2].isExactWritingToolsStaticInvoke(
+            instructions[returnIndex - 2].isInvoke(
+                "INVOKE_STATIC",
                 SIGNAL_RESULT_DESCRIPTOR,
                 SIGNAL_SCRATCH_REGISTER,
                 returned.registerA,
             ) &&
-            instructions[returnIndex - 1].normalizedOpcode() == "MOVE_RESULT" &&
+            instructions[returnIndex - 1].isOpcode("MOVE_RESULT") &&
             moveResult?.registerA == returned?.registerA
     }
     if (signalCalls.isNotEmpty() || preserveIndices.isNotEmpty()) {
@@ -103,18 +110,15 @@ internal fun MutableMethod.applyWritingToolsSignalOverride() {
 }
 
 private fun buildSignalResultDelegate(resultRegister: Int): String = """
-    invoke-static {v$SIGNAL_SCRATCH_REGISTER, v$resultRegister}, $AI_WRITING_TOOLS_RUNTIME_CLASS->applySignalResult(Ljava/lang/Object;Z)Z
+    ${RuntimeCallEmitter.invoke(
+        RuntimeCallId.AI_WRITING_TOOLS_RUNTIME_APPLY_SIGNAL_RESULT,
+        "v$SIGNAL_SCRATCH_REGISTER, v$resultRegister",
+    )}
 
     move-result v$resultRegister
 """.trimIndent()
 
 private const val SIGNAL_SCRATCH_REGISTER = 1
-private const val SIGNAL_RESULT_DESCRIPTOR =
-    "$AI_WRITING_TOOLS_RUNTIME_CLASS->applySignalResult(Ljava/lang/Object;Z)Z"
-
-private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction
-    .signalMethodDescriptor(): String? =
-    ((this as? ReferenceInstruction)?.reference as? MethodReference)?.toString()
-
-private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction
-    .normalizedOpcode(): String = opcode.name.uppercase().replace('-', '_')
+private val SIGNAL_RESULT_DESCRIPTOR = RuntimeAbiCatalog.abi(
+    RuntimeCallId.AI_WRITING_TOOLS_RUNTIME_APPLY_SIGNAL_RESULT,
+).reference

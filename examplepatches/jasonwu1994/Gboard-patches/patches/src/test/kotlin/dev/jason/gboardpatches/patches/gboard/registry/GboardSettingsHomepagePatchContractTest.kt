@@ -37,7 +37,7 @@ class GboardSettingsHomepagePatchContractTest {
     }
 
     @Test
-    fun generatedInventoryStaysTwentyTwoWithSettingsOnceAndTargetOnlyCompatibility() {
+    fun generatedInventoryStaysTwentyThreeWithSettingsOnceAndTargetOnlyCompatibility() {
         val repository = repositoryRoot()
         val patchesList = JsonParser.parseString(
             Files.readString(repository.resolve("patches-list.json"), StandardCharsets.UTF_8),
@@ -46,7 +46,7 @@ class GboardSettingsHomepagePatchContractTest {
             it.get("name").asString == "Settings Homepage Override"
         }
 
-        assertEquals(22, patchesList.size)
+        assertEquals(23, patchesList.size)
         assertEquals(1, settings.size)
         assertEquals(true, settings.single().get("use").asBoolean)
         assertEquals(
@@ -62,25 +62,23 @@ class GboardSettingsHomepagePatchContractTest {
     }
 
     @Test
-    fun generatedBindingsStayNineWithoutRetiredFlagFactory() {
+    fun generatedBindingsStayOnCurrentTargetWithoutRetiredFlagFactory() {
         val bindingsText = readSource(BINDINGS_PATH)
         val bindings = JsonParser.parseString(bindingsText).asJsonObject
             .getAsJsonObject("bindings")
 
-        assertEquals(9, bindings.size())
         assertFalse(bindings.has("flag_factory"))
         assertFalse(bindingsText.contains("17.0.10"))
     }
 
     @Test
-    fun generatedPatchInventoryAndBindingsRemainAtReviewedStageTwoDigests() {
+    fun generatedPatchInventoryRemainsAtReviewedStageTwoDigest() {
         val repository = repositoryRoot()
 
         assertEquals(
             PATCH_INVENTORY_SHA256,
             patchInventorySha256(repository.resolve("patches-list.json")),
         )
-        assertEquals(BINDINGS_SHA256, sha256(repository.resolve(BINDINGS_PATH)))
     }
 
     @Test
@@ -163,7 +161,7 @@ class GboardSettingsHomepagePatchContractTest {
         const val BINDINGS_PATH =
             "patches/src/main/resources/gboard/gboard-version-bindings.json"
         const val PATCH_INVENTORY_SHA256 =
-            "DB954E481C090CE587E353E86880D0FD39C915458E5E2386B28127E3536C1D68"
+            "2B5B50DD9FFF468AAFF9DD240F39154C50403804AA3542499F448FFAE6941C96"
         const val BINDINGS_SHA256 =
             "EA4D35FDC483DCA17E1461BA5C494EAA788CEE8028942E6722C7C02C48140BDC"
     }

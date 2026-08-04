@@ -12,10 +12,20 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import dev.jason.gboardpatches.patches.gboard.shared.GboardExpressionCorpusPatchState
+import dev.jason.gboardpatches.patches.gboard.shared.VerifiedTransformationPlan
+import dev.jason.gboardpatches.patches.gboard.shared.VerifiedTransformationState
+import dev.jason.gboardpatches.patches.gboard.shared.applyVerified
 import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesExtensionCarrierPatch
+import dev.jason.gboardpatches.patches.gboard.shared.isInvoke
+import dev.jason.gboardpatches.patches.gboard.shared.isMethodReference
+import dev.jason.gboardpatches.patches.gboard.shared.isOpcode
+import dev.jason.gboardpatches.patches.gboard.shared.isRegisterOperation
 import dev.jason.gboardpatches.patches.gboard.shared.mutableClass
 import dev.jason.gboardpatches.patches.gboard.shared.requireGboardExpressionCorpusPatchState
 import dev.jason.gboardpatches.patches.gboard.shared.returnInstructionIndices
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeAbiCatalog
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 
 private const val EXPRESSION_CORPUS_MANAGER_CLASS = "Lgan;"
 
@@ -46,27 +56,41 @@ internal val gboardSymbolFooterOrderBytecodePatch = bytecodePatch(
 
 internal fun MutableMethod.applySymbolFooterOrderDelegate(): MutableMethod {
     requireExactTarget()
-    val implementation = implementation ?: error("No instructions in $TARGET_DESCRIPTOR")
-    val state = requireGboardExpressionCorpusPatchState()
-    if (state == GboardExpressionCorpusPatchState.TAB_ONLY ||
-        state == GboardExpressionCorpusPatchState.COMPOSED
-    ) {
-        validateCompletedPatch()
-        return this
-    }
-
-    check(implementation.registerCount == STOCK_REGISTER_COUNT) {
-        "Unexpected register count in $TARGET_DESCRIPTOR: ${implementation.registerCount}"
-    }
-    validateStockShape()
-
-    val expanded = expandRegisters()
-    expanded.addInstructions(0, ENTRY_PARAMETER_COPIES)
-    val returnIndex = expanded.singleReturnIndex()
-    expanded.addInstructions(returnIndex, buildReorderDelegate(LEGACY_P0_REGISTER))
-    expanded.validateCompletedPatch()
-    return expanded
+    return applyVerified(
+        VerifiedTransformationPlan(
+            targetName = TARGET_DESCRIPTOR,
+            classify = MutableMethod::classifySymbolFooterOrder,
+            mutate = { stock ->
+                stock.expandRegisters().also { expanded ->
+                    expanded.addInstructions(0, ENTRY_PARAMETER_COPIES)
+                    expanded.addInstructions(
+                        expanded.singleReturnIndex(),
+                        buildReorderDelegate(LEGACY_P0_REGISTER),
+                    )
+                }
+            },
+        ),
+    )
 }
+
+private fun MutableMethod.classifySymbolFooterOrder(): VerifiedTransformationState =
+    when (requireGboardExpressionCorpusPatchState()) {
+        GboardExpressionCorpusPatchState.STOCK,
+        GboardExpressionCorpusPatchState.CUSTOM_ONLY -> {
+            val registerCount = implementation?.registerCount
+                ?: error("No instructions in $TARGET_DESCRIPTOR")
+            check(registerCount == STOCK_REGISTER_COUNT) {
+                "Unexpected register count in $TARGET_DESCRIPTOR: $registerCount"
+            }
+            validateStockShape()
+            VerifiedTransformationState.STOCK
+        }
+        GboardExpressionCorpusPatchState.TAB_ONLY,
+        GboardExpressionCorpusPatchState.COMPOSED -> {
+            validateCompletedPatch()
+            VerifiedTransformationState.PATCHED
+        }
+    }
 
 private fun MutableMethod.requireExactTarget() {
     check(
@@ -89,13 +113,13 @@ private fun MutableMethod.validateStockShape() {
     check((instructions.last() as OneRegisterInstruction).registerA == LEGACY_P0_REGISTER) {
         "$TARGET_DESCRIPTOR must return legacy p0/v$LEGACY_P0_REGISTER"
     }
-    check(instructions.countMethodReference(FINAL_COLLECT_DESCRIPTOR) == 2) {
+    check(instructions.count { it.isMethodReference(FINAL_COLLECT_DESCRIPTOR) } == 2) {
         "$TARGET_DESCRIPTOR must contain exactly two Stream.collect calls"
     }
-    check(instructions.countMethodReference(RECEIVER_LAST_USE_DESCRIPTOR) == 1) {
+    check(instructions.count { it.isMethodReference(RECEIVER_LAST_USE_DESCRIPTOR) } == 1) {
         "$TARGET_DESCRIPTOR must contain the exact final original-receiver use"
     }
-    check(instructions.countMethodReference(FOOTER_RUNTIME_DESCRIPTOR) == 0) {
+    check(instructions.count { it.isMethodReference(FOOTER_RUNTIME_DESCRIPTOR) } == 0) {
         "$TARGET_DESCRIPTOR contains an orphan Symbol Footer delegate"
     }
 }
@@ -134,11 +158,11 @@ private fun MutableMethod.validateCompletedPatch() {
     ) {
         "$TARGET_DESCRIPTOR final Symbol Footer delegate is missing or malformed"
     }
-    check(instructions.countMethodReference(FOOTER_RUNTIME_DESCRIPTOR) == 1) {
+    check(instructions.count { it.isMethodReference(FOOTER_RUNTIME_DESCRIPTOR) } == 1) {
         "$TARGET_DESCRIPTOR must contain exactly one Symbol Footer delegate"
     }
-    check(instructions.countMethodReference(FINAL_COLLECT_DESCRIPTOR) == 2)
-    check(instructions.countMethodReference(RECEIVER_LAST_USE_DESCRIPTOR) == 1)
+    check(instructions.count { it.isMethodReference(FINAL_COLLECT_DESCRIPTOR) } == 2)
+    check(instructions.count { it.isMethodReference(RECEIVER_LAST_USE_DESCRIPTOR) } == 1)
 }
 
 private fun MutableMethod.expandRegisters(): MutableMethod {
@@ -163,7 +187,7 @@ private fun MutableMethod.expandRegisters(): MutableMethod {
 private fun MutableMethod.singleReturnIndex(): Int {
     val instructions = implementation?.instructions ?: error("No instructions in $TARGET_DESCRIPTOR")
     val returns = returnInstructionIndices().filter {
-        instructions[it].normalizedOpcode() == "RETURN_OBJECT"
+        instructions[it].isOpcode("RETURN_OBJECT")
     }
     check(returns.size == 1) {
         "$TARGET_DESCRIPTOR must contain exactly one RETURN_OBJECT"
@@ -176,7 +200,7 @@ private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction?.isExa
     destination: Int,
     source: Int,
 ): Boolean =
-    this?.normalizedOpcode() == opcode &&
+    this?.isOpcode(opcode) == true &&
         this is TwoRegisterInstruction &&
         registerA == destination &&
         registerB == source
@@ -185,29 +209,18 @@ private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction?.isExa
     opcode: String,
     register: Int,
 ): Boolean =
-    this?.normalizedOpcode() == opcode &&
-        this is OneRegisterInstruction &&
-        registerA == register
+    this?.isRegisterOperation(opcode, register) == true
 
 private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction?.isExactFooterInvoke(): Boolean =
-    this?.normalizedOpcode() == "INVOKE_STATIC" &&
-        methodDescriptor() == FOOTER_RUNTIME_DESCRIPTOR &&
-        this is FiveRegisterInstruction &&
-        registerCount == 2 &&
-        registerC == PATCHED_P0_REGISTER &&
-        registerD == LEGACY_P0_REGISTER
-
-private fun List<com.android.tools.smali.dexlib2.iface.instruction.Instruction>
-    .countMethodReference(descriptor: String): Int = count { it.methodDescriptor() == descriptor }
-
-private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction.methodDescriptor(): String? =
-    ((this as? ReferenceInstruction)?.reference as? MethodReference)?.toString()
-
-private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction.normalizedOpcode(): String =
-    opcode.name.uppercase().replace('-', '_').replace('/', '_')
+    this?.isInvoke(
+        "INVOKE_STATIC",
+        FOOTER_RUNTIME_DESCRIPTOR,
+        PATCHED_P0_REGISTER,
+        LEGACY_P0_REGISTER,
+    ) == true
 
 private fun buildReorderDelegate(register: Int): String = """
-    invoke-static {p0, v$register}, $FOOTER_RUNTIME_DESCRIPTOR
+    ${RuntimeCallEmitter.invoke(FOOTER_RUNTIME_CALL, "p0, v$register")}
 
     move-result-object v$register
 
@@ -225,11 +238,9 @@ private const val TARGET_RETURN_TYPE = "Lvai;"
 private val TARGET_PARAMETERS = listOf("Landroid/view/inputmethod/EditorInfo;", "Z")
 private const val TARGET_DESCRIPTOR =
     "Lgan;->a(Landroid/view/inputmethod/EditorInfo;Z)Lvai;"
-private const val RUNTIME_CLASS =
-    "Ldev/jason/gboardpatches/extension/symbolfooter/GboardSymbolFooterOrderRuntime;"
-private const val FOOTER_RUNTIME_DESCRIPTOR =
-    "$RUNTIME_CLASS->reorderExpressionCorpusList" +
-        "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"
+private val FOOTER_RUNTIME_CALL =
+    RuntimeCallId.SYMBOL_FOOTER_ORDER_RUNTIME_REORDER_EXPRESSION_CORPUS_LIST
+private val FOOTER_RUNTIME_DESCRIPTOR = RuntimeAbiCatalog.abi(FOOTER_RUNTIME_CALL).reference
 private const val FINAL_COLLECT_DESCRIPTOR =
     "Lj$/util/stream/Stream;->collect" +
         "(Lj$/util/stream/Collector;)Ljava/lang/Object;"

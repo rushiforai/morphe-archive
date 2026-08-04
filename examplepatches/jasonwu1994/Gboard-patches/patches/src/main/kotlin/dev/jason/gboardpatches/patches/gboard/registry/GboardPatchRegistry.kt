@@ -1,6 +1,9 @@
 package dev.jason.gboardpatches.patches.gboard.registry
 
+import app.morphe.patcher.patch.Patch
 import app.morphe.patcher.patch.resourcePatch
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonObject
 import dev.jason.gboardpatches.patches.gboard.features.advancedvoice.gboardAdvancedVoiceFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.advancedvoice.gboardAdvancedVoiceAsrSessionPatch
 import dev.jason.gboardpatches.patches.gboard.features.advancedvoice.gboardAdvancedVoiceFlagValuePatch
@@ -25,6 +28,8 @@ import dev.jason.gboardpatches.patches.gboard.features.clipboard.gboardClipboard
 import dev.jason.gboardpatches.patches.gboard.features.clipboard.gboardClipboardItemBindPatch
 import dev.jason.gboardpatches.patches.gboard.features.clipboard.gboardClipboardLoaderPatch
 import dev.jason.gboardpatches.patches.gboard.features.clipboard.gboardClipboardPrunePatch
+import dev.jason.gboardpatches.patches.gboard.features.clipboardcontentlimit.gboardClipboardContentLimitFeatureMarkerPatch
+import dev.jason.gboardpatches.patches.gboard.features.clipboardcontentlimit.gboardClipboardContentLimitFlagValuePatch
 import dev.jason.gboardpatches.patches.gboard.features.developeroptions.gboardDeveloperOptionsFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.webclipboard.gboardWebClipboardAssetsPatch
 import dev.jason.gboardpatches.patches.gboard.features.webclipboard.gboardWebClipboardCapturePatch
@@ -264,6 +269,21 @@ val gboardClipboardEnhancementsPatch = resourcePatch(
 }
 
 @Suppress("unused")
+val gboardClipboardContentLimitPatch = resourcePatch(
+    name = "Clipboard Custom Character Limit",
+    description = "自訂每個文字剪貼簿項目的最大字元數\nCustomize the maximum character count for each text clipboard item.",
+    default = true
+) {
+    compatibleWith(COMPATIBILITY_GBOARD)
+
+    dependsOn(
+        gboardPatchesSettingsPatch,
+        gboardClipboardContentLimitFeatureMarkerPatch,
+        gboardClipboardContentLimitFlagValuePatch
+    )
+}
+
+@Suppress("unused")
 val gboardWebClipboardPatch = resourcePatch(
     name = "Web Clipboard",
     description = "新增手機自架的 Web Clipboard，支援瀏覽器同步、配對碼與快速設定開關\nAdd the phone-hosted Web Clipboard with browser sync, pairing, and a Quick Settings Tile.",
@@ -429,4 +449,88 @@ val gboardSignatureBypassPatch = resourcePatch(
     dependsOn(
         gboardSignatureBypassBytecodePatch
     )
+}
+
+object GboardPublishedPatchCatalog {
+    val morpheRegistrations: Set<Patch<*>> = linkedSetOf(
+        gboardZhuyinSlideInputPatch,
+        gboardEnglishQwertySlideUppercaseTogglePatch,
+        gboardLongPressQuickActionsPatch,
+        gboardAdvancedVoiceTypingPatch,
+        gboardBluetoothMicrophonePatch,
+        gboardZhuyinQuickTraditionalSimplifiedTogglePatch,
+        gboardCustomSymbolsPatch,
+        gboardCustomTopRowSwipePatch,
+        gboardDeveloperOptionsPatch,
+        gboardSymbolsFooterOrderPatch,
+        gboardClipboardEnhancementsPatch,
+        gboardClipboardContentLimitPatch,
+        gboardWebClipboardPatch,
+        gboardDeviceIntelligencePatch,
+        gboardGrammarCheckerFlagPatch,
+        gboardInlineSuggestionsFlagPatch,
+        gboardKeyShapeSelectionFlagPatch,
+        gboardAiWritingToolsPatch,
+        gboardSettingsHomepagePatch,
+        gboardLatinGlobeKeyIgnoreIntervalPatch,
+        gboardZhuyinBottomRowWeightPatch,
+        gboardPackageRenamePatch,
+        gboardSignatureBypassPatch,
+    )
+
+    @Suppress("DEPRECATION")
+    fun publishedInventory(version: String): String {
+        val publishedPatches = morpheRegistrations.sortedBy { patch -> patch.name }.map { patch ->
+            PublishedPatch(
+                name = patch.name!!,
+                description = patch.description,
+                use = patch.use,
+                dependencies = patch.dependencies.mapNotNull { dependency -> dependency.name }.sorted(),
+                compatiblePackages = patch.compatiblePackages?.associate { (packageName, versions) ->
+                    packageName to versions
+                },
+                options = patch.options.values.map { option ->
+                    PublishedPatch.Option(
+                        key = option.key,
+                        title = option.title,
+                        description = option.description,
+                        required = option.required,
+                        type = option.type.toString(),
+                        default = option.default,
+                        values = option.values,
+                    )
+                },
+            )
+        }
+        val gson = GsonBuilder()
+            .serializeNulls()
+            .disableHtmlEscaping()
+            .setPrettyPrinting()
+            .create()
+        val inventory = JsonObject().apply {
+            addProperty("version", version)
+            add("patches", gson.toJsonTree(publishedPatches))
+        }
+
+        return gson.toJson(inventory) + "\n"
+    }
+
+    private class PublishedPatch(
+        val name: String,
+        val description: String?,
+        val use: Boolean,
+        val dependencies: List<String>,
+        val compatiblePackages: Map<String, Set<String>?>?,
+        val options: List<Option>,
+    ) {
+        class Option(
+            val key: String,
+            val title: String?,
+            val description: String?,
+            val required: Boolean,
+            val type: String,
+            val default: Any?,
+            val values: Map<String, Any?>?,
+        )
+    }
 }

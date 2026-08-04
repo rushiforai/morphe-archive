@@ -43,12 +43,6 @@ class GboardFeatureFlagsBytecodePatchSourceTest {
         assertTrue(
             utilitySource.contains("RETURN_OBJECT at \$returnIndex does not expose registerA"),
         )
-        assertTrue(
-            source.contains(
-                "applyOverriddenFlagValue(Ljava/lang/String;Ljava/lang/Object;)" +
-                    "Ljava/lang/Object;",
-            ),
-        )
         assertTrue(source.contains("move-result-object v\$RESULT_REGISTER_TOKEN"))
         assertFalse(source.contains("flag_factory"))
         assertFalse(source.contains("Lmky;"))

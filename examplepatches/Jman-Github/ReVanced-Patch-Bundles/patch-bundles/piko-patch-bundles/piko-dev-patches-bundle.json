@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-07-27T18:28:09",
-  "description": "## [3.9.0-dev.2](https://github.com/crimera/piko/compare/v3.9.0-dev.1...v3.9.0-dev.2) (2026-07-27)\n\n### \ud83d\udc1b Bug Fixes\n\n* **instagram:** prevent inbox action bar verifier crash ([b65cdb2](https://github.com/crimera/piko/commit/b65cdb26c195891a12e2b7ad64c90cb21e56b042))\n* **instagram:** restore profile action bar hooks ([5cf2a42](https://github.com/crimera/piko/commit/5cf2a427c2f8b3831276fe8cbc6a12178aa3dbe4))\n\n### \u2728 New Features\n\n* **Instagram:** Added mappings for `439.0.0.37.89` ([b335af3](https://github.com/crimera/piko/commit/b335af3f20cefe15d6f5342fd5cc41d692eb9fac))\n",
-  "download_url": "https://github.com/crimera/piko/releases/download/v3.9.0-dev.2/patches-3.9.0-dev.2.mpp",
+  "created_at": "2026-08-03T16:33:54",
+  "description": "## [3.9.0-dev.4](https://github.com/crimera/piko/compare/v3.9.0-dev.3...v3.9.0-dev.4) (2026-08-03)\n\n### \ud83d\udc1b Bug Fixes\n\n* **Instagram:** Fix user data entity fingerprints ([5d83613](https://github.com/crimera/piko/commit/5d8361334805470b2cc94fcfd0f2e4623a4d6be0))\n* **Twitter:** Fix inverted upsell flag boolean ([8a8b9e1](https://github.com/crimera/piko/commit/8a8b9e1a92da7d80419679ab0c900647bffed44a))\n\n### \u2728 New Features\n\n* **Instagram:** Added some recommended flags ([40ddc7e](https://github.com/crimera/piko/commit/40ddc7ee525e351ae57e71055a81d995207e9917))\n",
+  "download_url": "https://github.com/crimera/piko/releases/download/v3.9.0-dev.4/patches-3.9.0-dev.4.mpp",
   "signature_download_url": "N/A",
-  "version": "v3.9.0-dev.2"
+  "version": "v3.9.0-dev.4"
 }

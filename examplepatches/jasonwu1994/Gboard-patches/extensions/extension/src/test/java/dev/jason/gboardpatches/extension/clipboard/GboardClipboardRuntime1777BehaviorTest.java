@@ -68,6 +68,7 @@ public final class GboardClipboardRuntime1777BehaviorTest {
         Assert.assertEquals("y", handles.adapterPinnedVisibleCountField.getName());
         Assert.assertEquals("e", handles.adapterContextField.getName());
         Assert.assertEquals("evl", handles.clipItemViewHolderTextField.getDeclaringClass().getName());
+        Assert.assertEquals("a", handles.clipModelTextField.getName());
         Assert.assertEquals("l", handles.dataHandlerCleanupCursorMethod.getName());
         Assert.assertEquals("N", handles.preferencesAccessorMethod.getName());
         Assert.assertEquals("s", handles.preferenceWriteLongMethod.getName());
@@ -127,6 +128,54 @@ public final class GboardClipboardRuntime1777BehaviorTest {
         Assert.assertEquals(11,
                 GboardClipboardSettings.readClipboardContentMaxLines(snapshot.preferences));
         Assert.assertEquals(0, snapshot.editCalls);
+    }
+
+    @Test
+    public void cardPreviewTemporarilyLimitsBindTextAndRestoresFullModel() throws Throwable {
+        setRuntimePreferences(-1L, 100, 5, false, false, false,
+                "newest_first", 2);
+        context.getSharedPreferences(GboardClipboardSettings.PREF_FILE, Context.MODE_PRIVATE)
+                .edit()
+                .putBoolean(
+                        GboardClipboardSettings.PREF_KEY_CLIPBOARD_CARD_PREVIEW_LIMIT_ENABLED,
+                        true)
+                .commit();
+
+        String fullText = "PREFIX-" + "A".repeat(29_989) + "-END";
+        Assert.assertEquals(30_000, fullText.length());
+        Object clip = newClip(8L, System.currentTimeMillis(), 0, false, false);
+        setClipText(clip, fullText);
+        Object adapter = newAdapter(assemblyWithRecent(Arrays.asList(clip)), 1, 0);
+        TextView textView = new TextView(context);
+        Object holder = construct("evl", new Class<?>[] { TextView.class }, textView);
+        GboardClipboardUiHookAdapter ui = newUiAdapter();
+
+        ui.beforeItemBind(adapter, holder, 1);
+        String previewText = getClipText(clip);
+        Assert.assertEquals(1_000, previewText.length());
+        textView.setText(previewText);
+        ui.afterItemBind(adapter, holder, 1);
+
+        Assert.assertEquals(fullText, getClipText(clip));
+        Assert.assertEquals(1_000, textView.getText().length());
+    }
+
+    @Test
+    public void cardPreviewDisabledKeepsFullModelDuringBind() throws Throwable {
+        setRuntimePreferences(-1L, 100, 5, false, false, false,
+                "newest_first", 2);
+        String fullText = "B".repeat(30_000);
+        Object clip = newClip(9L, System.currentTimeMillis(), 0, false, false);
+        setClipText(clip, fullText);
+        Object adapter = newAdapter(assemblyWithRecent(Arrays.asList(clip)), 1, 0);
+        TextView textView = new TextView(context);
+        Object holder = construct("evl", new Class<?>[] { TextView.class }, textView);
+        GboardClipboardUiHookAdapter ui = newUiAdapter();
+
+        ui.beforeItemBind(adapter, holder, 1);
+        Assert.assertEquals(fullText, getClipText(clip));
+        ui.afterItemBind(adapter, holder, 1);
+        Assert.assertEquals(fullText, getClipText(clip));
     }
 
     @Test
@@ -464,7 +513,8 @@ public final class GboardClipboardRuntime1777BehaviorTest {
                 new GboardClipboardPreviewLinesFeature(support),
                 new GboardClipboardCountdownFeature(support, retention),
                 new GboardClipboardCreationTimeFeature(support),
-                new GboardClipboardOrderIndexFeature(support), loader);
+                new GboardClipboardOrderIndexFeature(support),
+                new GboardClipboardCardPreviewFeature(support), loader);
     }
 
     private Object newLoaderReceiver() throws Exception {
@@ -484,6 +534,20 @@ public final class GboardClipboardRuntime1777BehaviorTest {
         return construct("euk", new Class<?>[] { long.class, targetClass("j$.time.Instant"),
                 int.class, boolean.class, boolean.class }, Long.valueOf(id), instant,
                 Integer.valueOf(itemType), Boolean.valueOf(pinned), Boolean.valueOf(special));
+    }
+
+    private void setClipText(Object clip, String text) throws Exception {
+        Object model = getField(clip, "g");
+        Field field = model.getClass().getDeclaredField("a");
+        field.setAccessible(true);
+        field.set(model, text);
+    }
+
+    private String getClipText(Object clip) throws Exception {
+        Object model = getField(clip, "g");
+        Field field = model.getClass().getDeclaredField("a");
+        field.setAccessible(true);
+        return (String) field.get(model);
     }
 
     private List<Object> assemblyWithRecent(List<Object> recent) throws Exception {

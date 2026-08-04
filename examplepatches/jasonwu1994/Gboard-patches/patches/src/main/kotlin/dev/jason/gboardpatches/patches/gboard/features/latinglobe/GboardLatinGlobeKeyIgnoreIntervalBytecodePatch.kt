@@ -19,7 +19,19 @@ import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesExtensionCarrierPatch
+import dev.jason.gboardpatches.patches.gboard.shared.VerifiedTransformationPlan
+import dev.jason.gboardpatches.patches.gboard.shared.VerifiedTransformationState
+import dev.jason.gboardpatches.patches.gboard.shared.applyVerified
+import dev.jason.gboardpatches.patches.gboard.shared.isInvoke
+import dev.jason.gboardpatches.patches.gboard.shared.isMethodReference
+import dev.jason.gboardpatches.patches.gboard.shared.isOpcode
+import dev.jason.gboardpatches.patches.gboard.shared.isReference
+import dev.jason.gboardpatches.patches.gboard.shared.isRegisterOperation
 import dev.jason.gboardpatches.patches.gboard.shared.mutableClass
+import dev.jason.gboardpatches.patches.gboard.shared.semanticShape
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeAbiCatalog
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 import dev.jason.gboardpatches.patches.shared.Constants.COMPATIBILITY_GBOARD
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
@@ -27,10 +39,9 @@ import java.security.MessageDigest
 private const val LATIN_IME_CLASS =
     "Lcom/google/android/apps/inputmethod/libs/latin5/LatinIme;"
 private const val LATIN_RUNTIME_PARAMS_TYPE = "Lxdj;"
-private const val LATIN_GLOBE_RUNTIME_CLASS =
-    "Ldev/jason/gboardpatches/extension/keyboard/GboardLatinGlobeKeyIgnoreIntervalRuntime;"
-private const val LATIN_GLOBE_RUNTIME_DESCRIPTOR =
-    "$LATIN_GLOBE_RUNTIME_CLASS->applyOverride(Ljava/lang/Object;)Ljava/lang/Object;"
+private val LATIN_GLOBE_RUNTIME_CALL =
+    RuntimeCallId.LATIN_GLOBE_KEY_IGNORE_INTERVAL_RUNTIME_APPLY_OVERRIDE
+private val LATIN_GLOBE_RUNTIME_DESCRIPTOR = RuntimeAbiCatalog.abi(LATIN_GLOBE_RUNTIME_CALL).reference
 private const val TARGET_METHOD_NAME = "U"
 private const val TARGET_DESCRIPTOR =
     "$LATIN_IME_CLASS->U()$LATIN_RUNTIME_PARAMS_TYPE"
@@ -70,24 +81,37 @@ internal fun selectLatinGlobeFactory(methods: List<MutableMethod>): MutableMetho
 
 internal fun MutableMethod.applyLatinGlobeKeyIgnoreIntervalOverride(): MutableMethod {
     requireExactTarget()
+    return applyVerified(
+        VerifiedTransformationPlan(
+            targetName = TARGET_DESCRIPTOR,
+            classify = MutableMethod::classifyLatinGlobeOverride,
+            mutate = { method ->
+                val instructions = method.implementation?.instructions
+                    ?: error("No instructions available in $TARGET_DESCRIPTOR")
+                method.addInstructions(
+                    method.singleReturnIndex(instructions),
+                    buildLatinGlobeDelegate(STOCK_RETURN_REGISTER),
+                )
+                method
+            },
+        ),
+    )
+}
+
+private fun MutableMethod.classifyLatinGlobeOverride(): VerifiedTransformationState {
     val instructions = implementation?.instructions
         ?: error("No instructions available in $TARGET_DESCRIPTOR")
-    val delegateCount = instructions.count {
-        it.methodDescriptor() == LATIN_GLOBE_RUNTIME_DESCRIPTOR
-    }
-    if (delegateCount != 0) {
-        check(delegateCount == 1) {
-            "$TARGET_DESCRIPTOR must contain exactly one Latin Globe delegate"
+    return when (instructions.count { it.isMethodReference(LATIN_GLOBE_RUNTIME_DESCRIPTOR) }) {
+        0 -> {
+            validateStockBody(instructions)
+            VerifiedTransformationState.STOCK
         }
-        validateCompletedPatch()
-        return this
+        1 -> {
+            validateCompletedPatch()
+            VerifiedTransformationState.PATCHED
+        }
+        else -> VerifiedTransformationState.MALFORMED
     }
-
-    validateStockBody(instructions)
-    val returnIndex = singleReturnIndex(instructions)
-    addInstructions(returnIndex, buildLatinGlobeDelegate(STOCK_RETURN_REGISTER))
-    validateCompletedPatch()
-    return this
 }
 
 private fun MutableMethod.requireExactTarget() {
@@ -118,7 +142,7 @@ private fun MutableMethod.validateStockBody(instructions: List<Instruction>) {
     check((instructions[returnIndex] as OneRegisterInstruction).registerA == STOCK_RETURN_REGISTER) {
         "$TARGET_DESCRIPTOR must return exact v$STOCK_RETURN_REGISTER"
     }
-    check(instructions.none { it.methodDescriptor() == LATIN_GLOBE_RUNTIME_DESCRIPTOR }) {
+    check(instructions.none { it.isMethodReference(LATIN_GLOBE_RUNTIME_DESCRIPTOR) }) {
         "$TARGET_DESCRIPTOR contains an orphan Latin Globe delegate"
     }
     requireStockFingerprint(instructions, implementation.debugItems)
@@ -148,7 +172,7 @@ private fun MutableMethod.validateCompletedPatch() {
         "$TARGET_DESCRIPTOR final Latin Globe delegate is missing or malformed"
     }
     check(instructions.count {
-        it.methodDescriptor() == LATIN_GLOBE_RUNTIME_DESCRIPTOR
+        it.isMethodReference(LATIN_GLOBE_RUNTIME_DESCRIPTOR)
     } == 1) {
         "$TARGET_DESCRIPTOR must contain exactly one Latin Globe delegate"
     }
@@ -160,7 +184,7 @@ private fun MutableMethod.validateCompletedPatch() {
 
 private fun MutableMethod.singleReturnIndex(instructions: List<Instruction>): Int {
     val returns = instructions.indices.filter { index ->
-        instructions[index].normalizedOpcode() == "RETURN_OBJECT"
+        instructions[index].isOpcode("RETURN_OBJECT")
     }
     check(returns.size == 1) {
         "$TARGET_DESCRIPTOR must contain exactly one RETURN_OBJECT"
@@ -199,59 +223,22 @@ private fun stockFingerprint(
         .joinToString("") { value -> "%02X".format(value) }
 }
 
-private fun Instruction.semanticShape(): String = buildString {
-    append(normalizedOpcode())
-    when (this@semanticShape) {
-        is FiveRegisterInstruction -> append("|5=")
-            .append(registerCount).append(',').append(registerC).append(',')
-            .append(registerD).append(',').append(registerE).append(',')
-            .append(registerF).append(',').append(registerG)
-        is RegisterRangeInstruction -> append("|range=")
-            .append(startRegister).append(',').append(registerCount)
-        is ThreeRegisterInstruction -> append("|3=")
-            .append(registerA).append(',').append(registerB).append(',').append(registerC)
-        is TwoRegisterInstruction -> append("|2=")
-            .append(registerA).append(',').append(registerB)
-        is OneRegisterInstruction -> append("|1=").append(registerA)
-    }
-    if (this@semanticShape is ReferenceInstruction) {
-        append("|ref=").append(reference)
-    }
-    if (this@semanticShape is WideLiteralInstruction) {
-        append("|wide=").append(wideLiteral)
-    } else if (this@semanticShape is NarrowLiteralInstruction) {
-        append("|narrow=").append(narrowLiteral)
-    }
-    if (this@semanticShape is OffsetInstruction) {
-        append("|offset=").append(codeOffset)
-    }
-}
-
 private fun Instruction.isExactDelegateInvoke(): Boolean =
-    normalizedOpcode() == "INVOKE_STATIC" &&
-        methodDescriptor() == LATIN_GLOBE_RUNTIME_DESCRIPTOR &&
-        this is FiveRegisterInstruction &&
-        registerCount == 1 &&
-        registerC == STOCK_RETURN_REGISTER
+    isInvoke(
+        "INVOKE_STATIC",
+        LATIN_GLOBE_RUNTIME_DESCRIPTOR,
+        STOCK_RETURN_REGISTER,
+    )
 
 private fun Instruction.isExactOneRegister(opcode: String, register: Int): Boolean =
-    normalizedOpcode() == opcode &&
-        this is OneRegisterInstruction &&
-        registerA == register
+    isRegisterOperation(opcode, register)
 
 private fun Instruction.isExactCast(register: Int, type: String): Boolean =
     isExactOneRegister("CHECK_CAST", register) &&
-        this is ReferenceInstruction &&
-        (reference as? TypeReference)?.type == type
-
-private fun Instruction.methodDescriptor(): String? =
-    ((this as? ReferenceInstruction)?.reference as? MethodReference)?.toString()
-
-private fun Instruction.normalizedOpcode(): String =
-    opcode.name.uppercase().replace('-', '_').replace('/', '_')
+        isReference(type)
 
 private fun buildLatinGlobeDelegate(register: Int): String = """
-    invoke-static {v$register}, $LATIN_GLOBE_RUNTIME_DESCRIPTOR
+    ${RuntimeCallEmitter.invoke(LATIN_GLOBE_RUNTIME_CALL, "v$register")}
 
     move-result-object v$register
 

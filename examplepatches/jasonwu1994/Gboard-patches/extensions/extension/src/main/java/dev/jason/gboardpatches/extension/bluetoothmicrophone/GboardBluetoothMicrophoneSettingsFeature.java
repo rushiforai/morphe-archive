@@ -26,23 +26,17 @@ public final class GboardBluetoothMicrophoneSettingsFeature
     public GboardBluetoothMicrophoneSettingsFeature(Context context) {
         this(
                 GboardSettingsText.get(context,
-                        R.string.gboard_patches_bluetooth_microphone_title,
-                        "Use Bluetooth microphone"),
+                        R.string.gboard_patches_bluetooth_microphone_title),
                 GboardSettingsText.get(context,
-                        R.string.gboard_patches_bluetooth_microphone_summary,
-                        "Voice typing -> Use Bluetooth microphone"),
+                        R.string.gboard_patches_bluetooth_microphone_summary),
                 GboardSettingsText.get(context,
-                        R.string.gboard_patches_header_badge,
-                        "Gboard"),
+                        R.string.gboard_patches_header_badge),
                 GboardSettingsText.get(context,
-                        R.string.gboard_patches_bluetooth_microphone_error_title,
-                        "Bluetooth microphone unavailable"),
+                        R.string.gboard_patches_bluetooth_microphone_error_title),
                 GboardSettingsText.get(context,
-                        R.string.gboard_patches_bluetooth_microphone_error_summary,
-                        "The Bluetooth microphone settings screen failed to load. Reopen Gboard settings and try again."),
+                        R.string.gboard_patches_bluetooth_microphone_error_summary),
                 GboardSettingsText.get(context,
-                        R.string.gboard_patches_bluetooth_microphone_section_behavior,
-                        "Behavior"));
+                        R.string.gboard_patches_bluetooth_microphone_section_behavior));
     }
 
     GboardBluetoothMicrophoneSettingsFeature(
@@ -79,7 +73,7 @@ public final class GboardBluetoothMicrophoneSettingsFeature
 
     @Override
     public GboardPatchesSettingsContract.Screen buildScreen(
-            GboardPatchesSettingsContract.Host host) {
+            GboardPatchesSettingsContract.FeatureHost host) {
         try {
             if (host == null || host.getContext() == null) {
                 return buildErrorScreen();

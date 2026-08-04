@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.List;
 
 import dev.jason.gboardpatches.extension.R;
+import dev.jason.gboardpatches.extension.clipboardcontentlimit.GboardClipboardContentLimitSettingsRow;
 import dev.jason.gboardpatches.extension.settings.GboardPatchesFeatureAvailability;
 import dev.jason.gboardpatches.extension.settings.GboardPatchesSettingsContract;
 import dev.jason.gboardpatches.extension.settings.GboardSettingsText;
@@ -37,6 +38,8 @@ public final class GboardClipboardSettingsFeature
             new GboardClipboardLayoutSettingsSection();
     private final GboardClipboardRetentionSettingsSection retentionSection =
             new GboardClipboardRetentionSettingsSection();
+    private final GboardClipboardContentLimitSettingsRow contentLimitSettingsRow =
+            new GboardClipboardContentLimitSettingsRow();
     private final GboardWebClipboardSettingsFeature webClipboardFeature =
             new GboardWebClipboardSettingsFeature();
 
@@ -71,12 +74,13 @@ public final class GboardClipboardSettingsFeature
         return GboardPatchesFeatureAvailability.hasAnyFeature(
                 context,
                 GboardPatchesFeatureAvailability.FEATURE_CLIPBOARD_ENHANCEMENTS,
+                GboardPatchesFeatureAvailability.FEATURE_CLIPBOARD_CONTENT_LIMIT,
                 GboardPatchesFeatureAvailability.FEATURE_WEB_CLIPBOARD);
     }
 
     @Override
     public GboardPatchesSettingsContract.Screen buildScreen(
-            GboardPatchesSettingsContract.Host host) {
+            GboardPatchesSettingsContract.FeatureHost host) {
         try {
             Context context = host.getContext();
             initializeText(context);
@@ -88,6 +92,11 @@ public final class GboardClipboardSettingsFeature
                     ? GboardPatchesFeatureAvailability.hasFeature(
                             context,
                             GboardPatchesFeatureAvailability.FEATURE_CLIPBOARD_ENHANCEMENTS)
+                    : true;
+            boolean hasClipboardContentLimit = canQueryAvailability
+                    ? GboardPatchesFeatureAvailability.hasFeature(
+                            context,
+                            GboardPatchesFeatureAvailability.FEATURE_CLIPBOARD_CONTENT_LIMIT)
                     : true;
             boolean hasWebClipboard = canQueryAvailability
                     ? webClipboardFeature.isAvailable(context)
@@ -110,6 +119,20 @@ public final class GboardClipboardSettingsFeature
                                         GboardClipboardSettings.PREF_KEY_CLIPBOARD_ENABLED,
                                         value)
                                 .apply()));
+                generalRows.add(new GboardPatchesSettingsContract.ToggleRow(
+                        GboardSettingsText.get(context,
+                                R.string.gboard_patches_clipboard_card_preview_limit_title),
+                        GboardSettingsText.get(context,
+                                R.string.gboard_patches_clipboard_card_preview_limit_summary),
+                        clipboardEnabled,
+                        GboardClipboardSettings.readClipboardCardPreviewLimitEnabled(
+                                preferences),
+                        value -> preferences.edit()
+                                .putBoolean(
+                                        GboardClipboardSettings
+                                                .PREF_KEY_CLIPBOARD_CARD_PREVIEW_LIMIT_ENABLED,
+                                        value)
+                                .apply()));
 
                 List<GboardPatchesSettingsContract.Row> metadataRows =
                         new ArrayList<GboardPatchesSettingsContract.Row>();
@@ -126,7 +149,17 @@ public final class GboardClipboardSettingsFeature
                 sections.add(new GboardPatchesSettingsContract.Section(sectionGeneral, generalRows));
                 sections.add(new GboardPatchesSettingsContract.Section(sectionMetadata, metadataRows));
                 sections.add(new GboardPatchesSettingsContract.Section(sectionLayout, layoutRows));
-                sections.add(new GboardPatchesSettingsContract.Section(sectionRetention, retentionRows));
+                if (hasClipboardContentLimit) {
+                    contentLimitSettingsRow.appendRow(retentionRows, host);
+                }
+                sections.add(new GboardPatchesSettingsContract.Section(
+                        sectionRetention, retentionRows));
+            } else if (hasClipboardContentLimit) {
+                List<GboardPatchesSettingsContract.Row> retentionRows =
+                        new ArrayList<GboardPatchesSettingsContract.Row>();
+                contentLimitSettingsRow.appendRow(retentionRows, host);
+                sections.add(new GboardPatchesSettingsContract.Section(
+                        sectionRetention, retentionRows));
             }
 
             if (hasWebClipboard) {
@@ -136,7 +169,7 @@ public final class GboardClipboardSettingsFeature
                         webClipboardFeature.getEntryTitle(),
                         webClipboardFeature.getHostedEntrySummary(context, preferences),
                         true,
-                        () -> host.openFeature(webClipboardFeature)));
+                        () -> GboardPatchesSettingsContract.openFeature(host, webClipboardFeature)));
                 sections.add(new GboardPatchesSettingsContract.Section(
                         sectionExtensions,
                         extensionRows));
@@ -179,44 +212,34 @@ public final class GboardClipboardSettingsFeature
     private void initializeText(Context context) {
         headerBadge = GboardSettingsText.get(
                 context,
-                R.string.gboard_patches_header_badge,
-                FALLBACK_HEADER_BADGE);
+                R.string.gboard_patches_header_badge);
         entryTitle = GboardSettingsText.get(
                 context,
-                R.string.gboard_patches_clipboard_title,
-                FALLBACK_ENTRY_TITLE);
+                R.string.gboard_patches_clipboard_title);
         entrySummary = GboardSettingsText.get(
                 context,
-                R.string.gboard_patches_clipboard_summary,
-                FALLBACK_ENTRY_SUMMARY);
+                R.string.gboard_patches_clipboard_summary);
         errorTitle = GboardSettingsText.get(
                 context,
-                R.string.gboard_patches_clipboard_error_title,
-                FALLBACK_ERROR_TITLE);
+                R.string.gboard_patches_clipboard_error_title);
         errorSummary = GboardSettingsText.get(
                 context,
-                R.string.gboard_patches_clipboard_error_summary,
-                FALLBACK_ERROR_SUMMARY);
+                R.string.gboard_patches_clipboard_error_summary);
         sectionGeneral = GboardSettingsText.get(
                 context,
-                R.string.gboard_patches_clipboard_section_general,
-                FALLBACK_SECTION_GENERAL);
+                R.string.gboard_patches_clipboard_section_general);
         sectionMetadata = GboardSettingsText.get(
                 context,
-                R.string.gboard_patches_clipboard_section_metadata,
-                FALLBACK_SECTION_METADATA);
+                R.string.gboard_patches_clipboard_section_metadata);
         sectionLayout = GboardSettingsText.get(
                 context,
-                R.string.gboard_patches_clipboard_section_layout,
-                FALLBACK_SECTION_LAYOUT);
+                R.string.gboard_patches_clipboard_section_layout);
         sectionRetention = GboardSettingsText.get(
                 context,
-                R.string.gboard_patches_clipboard_section_retention,
-                FALLBACK_SECTION_RETENTION);
+                R.string.gboard_patches_clipboard_section_retention);
         sectionExtensions = GboardSettingsText.get(
                 context,
-                R.string.gboard_patches_clipboard_section_extensions,
-                FALLBACK_SECTION_EXTENSIONS);
+                R.string.gboard_patches_clipboard_section_extensions);
     }
 
     private boolean canQueryFeatureAvailability(Context context) {

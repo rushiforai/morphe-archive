@@ -21,7 +21,7 @@ class GboardAiWritingToolsSignalPatchSourceTest {
         )
 
         assertTrue(source.contains("applyWritingToolsSignalOverride()"))
-        assertTrue(source.contains("applySignalResult(Ljava/lang/Object;Z)Z"))
+        assertTrue(source.contains("AI_WRITING_TOOLS_RUNTIME_APPLY_SIGNAL_RESULT"))
         assertTrue(source.contains("returnInstructionIndices()"))
         assertFalse(source.contains("shouldForceSignalTrue"))
         assertFalse(source.contains("return v0\n\n    :cond_jasondev_continue_original"))

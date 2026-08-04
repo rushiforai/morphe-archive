@@ -43,7 +43,8 @@ class GboardClipboardTargetSourceContractTest {
         requireAll(sources.adapterPatch,
             "CLIPBOARD_ADAPTER_CLASS", "\"F\"", "\"p\"",
             "listOf(RECYCLER_VIEW_HOLDER_CLASS, \"I\")",
-            "ITEM_BIND_ENTRY_COPIES", "ITEM_BIND_EXPANDED_REGISTER_COUNT",
+            "ITEM_BIND_ENTRY", "ITEM_BIND_BEFORE_METHOD_DESCRIPTOR",
+            "ITEM_BIND_EXPANDED_REGISTER_COUNT",
             "ITEM_BIND_STOCK_FINGERPRINT", "ITEM_BIND_PATCHED_FINGERPRINT",
             "expandClipboardItemBindRegisters()", "validateExpandedClipboardItemBind()")
         requireAll(sources.columnPatch, "name = \"l\"", "parameterTypes = emptyList()")
@@ -67,11 +68,14 @@ class GboardClipboardTargetSourceContractTest {
             "declaredField(adapterClass, \"n\")",
             "declaredField(adapterClass, \"o\")",
             "declaredField(adapterClass, \"y\")",
+            "declaredField(clipModelClass, \"a\")",
             "declaredMethod(dataHandlerClass, \"l\"",
             "declaredMethod(preferencesClass, \"N\"",
             "declaredMethod(preferenceBaseClass, \"s\"",
             "timestampToEpochMillis(handles.clipTimestampField.get(clip))")
         requireAll(sources.uiAdapter,
+            "cardPreviewFeature.beforeItemBind(receiver, position)",
+            "cardPreviewFeature.afterItemBind()",
             "expectedRecent != currentRecent",
             "expectedPinned != currentPinned",
             "expectedSize != currentSize",

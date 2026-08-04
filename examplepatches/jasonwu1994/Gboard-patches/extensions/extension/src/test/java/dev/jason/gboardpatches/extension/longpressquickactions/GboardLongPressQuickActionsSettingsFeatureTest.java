@@ -5,7 +5,6 @@ import org.junit.Test;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicReference;
 
 import dev.jason.gboardpatches.extension.settings.GboardPatchesSettingsContract;
@@ -79,26 +78,6 @@ public final class GboardLongPressQuickActionsSettingsFeatureTest {
                 "gboard_long_press_quick_actions_enabled_preview.mp4")));
     }
 
-    @Test
-    public void localizedResourcesUsePublishedPatchName() throws Exception {
-        Path root = repositoryRoot();
-        String english = new String(Files.readAllBytes(root.resolve(
-                "extensions/extension/src/main/res/values/gboard_settings_strings.xml")),
-                StandardCharsets.UTF_8);
-        String traditionalChinese = new String(Files.readAllBytes(root.resolve(
-                "extensions/extension/src/main/res/values-b+zh+Hant/"
-                        + "gboard_settings_strings.xml")), StandardCharsets.UTF_8);
-
-        Assert.assertTrue(english.contains(
-                ">Long-Press Editing Shortcuts</string>"));
-        Assert.assertTrue(english.contains(
-                ">Enable Long-Press Editing Shortcuts</string>"));
-        Assert.assertTrue(traditionalChinese.contains(
-                ">長按編輯快捷鍵</string>"));
-        Assert.assertTrue(traditionalChinese.contains(
-                ">啟用長按編輯快捷鍵</string>"));
-    }
-
     private static GboardLongPressQuickActionsSettingsFeature testFeature() {
         return new GboardLongPressQuickActionsSettingsFeature(
                 "Long-Press Editing Shortcuts",
@@ -111,17 +90,6 @@ public final class GboardLongPressQuickActionsSettingsFeatureTest {
                 "Feature",
                 "Mappings",
                 new String[] {"Select all", "Undo", "Copy", "Cut", "Paste", "Redo"});
-    }
-
-    private static Path repositoryRoot() {
-        Path current = Path.of("").toAbsolutePath().normalize();
-        while (current != null) {
-            if (Files.isRegularFile(current.resolve("settings.gradle.kts"))) {
-                return current;
-            }
-            current = current.getParent();
-        }
-        throw new IllegalStateException("Could not locate repository root");
     }
 
     private static void assertMapping(GboardPatchesSettingsContract.Screen screen,

@@ -89,8 +89,12 @@ class evl extends kl {
 }
 
 class eum {
+    public String a;
     public final int c;
-    eum(int itemType) { c = itemType; }
+    eum(int itemType) {
+        a = "";
+        c = itemType;
+    }
 }
 
 class euk {

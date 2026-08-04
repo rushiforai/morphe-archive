@@ -9,12 +9,16 @@ import dev.jason.gboardpatches.patches.gboard.shared.addHelperMethodIfMissing
 import dev.jason.gboardpatches.patches.gboard.shared.findMutableMethodOrThrow
 import dev.jason.gboardpatches.patches.gboard.shared.generated.GboardVersionBindings
 import dev.jason.gboardpatches.patches.gboard.shared.indexOfFirstMethodCall
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeAbiCatalog
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 
 private const val SOFT_KEY_VIEW_CLASS =
     "Lcom/google/android/libraries/inputmethod/widgets/SoftKeyView;"
-private const val ENGLISH_UPPERCASE_RUNTIME_CLASS =
-    "Ldev/jason/gboardpatches/extension/keyboard/GboardEnglishUppercaseToggleRuntime;"
-private val softKeyMetadataType = GboardVersionBindings.softKeyBind.parameterTypes[0]
+private val ENGLISH_UPPERCASE_RUNTIME_CLASS = RuntimeAbiCatalog.abi(
+    RuntimeCallId.ENGLISH_UPPERCASE_TOGGLE_RUNTIME_IS_ENABLED,
+).owner
+private val softKeyMetadataType = GboardVersionBindings.softKeyMetadataType.descriptor
 
 internal val gboardEnglishQwertySoftKeyPatch = bytecodePatch(
     description = "在 17.7.7 English QWERTY bind time 注入缺少的上滑大小寫 action。"
@@ -333,13 +337,16 @@ private val PATCH_INCOMING_METADATA_BODY = """
     if-eqz p1, :cond_return_original
 
     :try_start_0
-    invoke-static {}, $ENGLISH_UPPERCASE_RUNTIME_CLASS->isEnabled()Z
+    ${RuntimeCallEmitter.invoke(RuntimeCallId.ENGLISH_UPPERCASE_TOGGLE_RUNTIME_IS_ENABLED, "")}
 
     move-result v0
 
     if-eqz v0, :cond_return_original_safe
 
-    invoke-static {p1}, $ENGLISH_UPPERCASE_RUNTIME_CLASS->isPatchedMetadata(Ljava/lang/Object;)Z
+    ${RuntimeCallEmitter.invoke(
+        RuntimeCallId.ENGLISH_UPPERCASE_TOGGLE_RUNTIME_IS_PATCHED_METADATA,
+        "p1",
+    )}
 
     move-result v0
 
@@ -361,7 +368,10 @@ private val PATCH_INCOMING_METADATA_BODY = """
 
     if-nez v0, :cond_return_original_safe
 
-    invoke-static {p1}, $ENGLISH_UPPERCASE_RUNTIME_CLASS->getCachedPatchedMetadata(Ljava/lang/Object;)Ljava/lang/Object;
+    ${RuntimeCallEmitter.invoke(
+        RuntimeCallId.ENGLISH_UPPERCASE_TOGGLE_RUNTIME_GET_CACHED_PATCHED_METADATA,
+        "p1",
+    )}
 
     move-result-object v0
 
@@ -447,7 +457,10 @@ private val PATCH_INCOMING_METADATA_BODY = """
 
     if-eqz v0, :cond_return_original_safe
 
-    invoke-static {p1, v0}, $ENGLISH_UPPERCASE_RUNTIME_CLASS->cachePatchedMetadata(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+    ${RuntimeCallEmitter.invoke(
+        RuntimeCallId.ENGLISH_UPPERCASE_TOGGLE_RUNTIME_CACHE_PATCHED_METADATA,
+        "p1, v0",
+    )}
 
     move-result-object v0
 

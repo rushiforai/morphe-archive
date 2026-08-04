@@ -4,7 +4,7 @@ A collection of [Morphe](https://github.com/MorpheApp) patches useful to me
 
 ## Patch list
 <!-- PATCHES_START -->
-> **[v1.8.0](https://github.com/cesbar/zpatches/releases/tag/v1.8.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;14 patches total
+> **[v1.8.1](https://github.com/cesbar/zpatches/releases/tag/v1.8.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;14 patches total
 <details open>
 <summary>📦 ee.dustland.android.dustlandsudoku&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>

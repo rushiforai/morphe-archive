@@ -1,15 +1,73 @@
+import javax.inject.Inject
+import org.gradle.api.DefaultTask
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.Classpath
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.testing.Test
+import org.gradle.process.ExecOperations
+
+@CacheableTask
+abstract class GenerateTargetBindingsTask @Inject constructor(
+    private val execOperations: ExecOperations,
+) : DefaultTask() {
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val profileFile: RegularFileProperty
+
+    @get:Classpath
+    abstract val compilerClasspath: ConfigurableFileCollection
+
+    @get:OutputFile
+    abstract val outputFile: RegularFileProperty
+
+    @TaskAction
+    fun generate() {
+        execOperations.javaexec {
+            classpath(compilerClasspath)
+            mainClass.set("dev.jason.gboardpatches.tools.bindings.TargetBindingGenerator")
+            args(
+                profileFile.get().asFile.absolutePath,
+                outputFile.get().asFile.absolutePath,
+            )
+        }
+    }
+}
+
 group = "dev.jason.gboardpatches"
 
 val generatedPatchInfoDir = layout.buildDirectory.dir("generated/sources/patchBuildInfo/kotlin/main")
+val generatedVersionBindingsDir = layout.buildDirectory.dir("generated/sources/versionBindings/kotlin/main")
 val generatedPreviewAssetsResourcesDir = layout.buildDirectory.dir("generated/resources/previewAssets/main")
+val bindingCompilerSourceSet = sourceSets.create("bindingCompiler") {
+    java.srcDir("src/bindingCompiler/kotlin")
+}
 val patchMetadataSourceSet = sourceSets.create("patchMetadata") {
     java.srcDir("src/patchMetadata/kotlin")
 }
+patchMetadataSourceSet.compileClasspath += sourceSets.main.get().output
+patchMetadataSourceSet.runtimeClasspath += sourceSets.main.get().output
 val utf8Bom = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte())
 val previewAssetsSourceDir = layout.projectDirectory.dir("src/main/resources/settings-previews")
+val versionBindingsProfile = layout.projectDirectory.file(
+    "src/main/resources/gboard/gboard-version-bindings.json"
+)
+val syncExtensionTask = project(":extensions:extension").tasks.named("syncExtension")
+val runtimeAbiOutputDirectory = syncExtensionTask.map { task -> task.outputs.files.singleFile }
+val compiledPatchClasses = layout.buildDirectory.dir("classes/kotlin/main")
 
 configurations.named(patchMetadataSourceSet.implementationConfigurationName) {
     extendsFrom(configurations["implementation"])
+}
+
+sourceSets.test {
+    compileClasspath += bindingCompilerSourceSet.output
+    runtimeClasspath += bindingCompilerSourceSet.output
 }
 
 val generatePatchBuildInfo by tasks.registering {
@@ -72,6 +130,19 @@ val generatePreviewAssetsIndex by tasks.registering {
     }
 }
 
+val generateGboardVersionBindings by tasks.registering(GenerateTargetBindingsTask::class) {
+    val outputFile = generatedVersionBindingsDir.map { directory ->
+        directory.file(
+            "dev/jason/gboardpatches/patches/gboard/shared/generated/GboardVersionBindings.kt"
+        )
+    }
+
+    dependsOn(bindingCompilerSourceSet.classesTaskName)
+    profileFile.set(versionBindingsProfile)
+    compilerClasspath.from(bindingCompilerSourceSet.runtimeClasspath)
+    this.outputFile.set(outputFile)
+}
+
 patches {
     about {
         name = "Gboard Patches"
@@ -92,22 +163,46 @@ kotlin {
 
 sourceSets.named("main") {
     java.srcDir(generatedPatchInfoDir)
+    java.srcDir(generatedVersionBindingsDir)
     resources.srcDir(generatedPreviewAssetsResourcesDir)
 }
 
 dependencies {
+    implementation(libs.gson)
+    add(bindingCompilerSourceSet.implementationConfigurationName, libs.gson)
     add(patchMetadataSourceSet.implementationConfigurationName, libs.gson)
     testImplementation(libs.gson)
     testImplementation("junit:junit:4.13.2")
+    testImplementation("org.ow2.asm:asm-analysis:9.7.1")
+    testImplementation("org.ow2.asm:asm-tree:9.7.1")
 }
 
 tasks {
-    named("test") {
+    named<Test>("test") {
+        dependsOn(syncExtensionTask)
         inputs.file(rootProject.file("patches-list.json"))
+        inputs.dir(runtimeAbiOutputDirectory)
+            .withPathSensitivity(PathSensitivity.RELATIVE)
+        inputs.dir(compiledPatchClasses)
+            .withPathSensitivity(PathSensitivity.RELATIVE)
+        doFirst {
+            systemProperty(
+                "gboard.runtimeAbiOutputDirectory",
+                runtimeAbiOutputDirectory.get()
+                    .relativeTo(projectDir)
+                    .invariantSeparatorsPath,
+            )
+            systemProperty(
+                "gboard.compiledPatchClasses",
+                compiledPatchClasses.get().asFile
+                    .relativeTo(projectDir)
+                    .invariantSeparatorsPath,
+            )
+        }
     }
 
     named("compileKotlin") {
-        dependsOn(generatePatchBuildInfo)
+        dependsOn(generatePatchBuildInfo, generateGboardVersionBindings)
     }
 
     named("processResources") {
@@ -117,6 +212,7 @@ tasks {
     named("sourcesJar") {
         dependsOn(
             generatePatchBuildInfo,
+            generateGboardVersionBindings,
             generatePreviewAssetsIndex
         )
     }

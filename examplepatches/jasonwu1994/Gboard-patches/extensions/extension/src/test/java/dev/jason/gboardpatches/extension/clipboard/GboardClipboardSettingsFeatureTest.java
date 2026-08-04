@@ -35,9 +35,18 @@ public final class GboardClipboardSettingsFeatureTest {
                 Arrays.asList("General", "Metadata", "Layout", "Retention", "Extensions"),
                 sectionTitles(sections));
         Assert.assertEquals("ToggleRow", sections.get(0).getItems().get(0).getClass().getSimpleName());
+        Assert.assertEquals(2, sections.get(0).getItems().size());
+        Assert.assertEquals(
+                "ToggleRow",
+                findRow(screen, "Show only the first 1,000 characters")
+                        .getClass().getSimpleName());
         Assert.assertEquals(
                 "SelectorRow",
                 findRow(screen, "Clipboard columns").getClass().getSimpleName());
+        Assert.assertEquals(
+                "SelectorRow",
+                findRow(screen, "Clipboard Custom Character Limit")
+                        .getClass().getSimpleName());
         Assert.assertEquals(
                 "NavigationRow",
                 sections.get(4).getItems().get(0).getClass().getSimpleName());
@@ -117,7 +126,7 @@ public final class GboardClipboardSettingsFeatureTest {
         throw new AssertionError("Row is not actionable: " + row.getClass().getSimpleName());
     }
 
-    private static final class CapturingHost implements GboardPatchesSettingsContract.Host {
+    private static final class CapturingHost extends dev.jason.gboardpatches.extension.settings.GboardPatchesSettingsTestHost {
         private final SharedPreferences preferences;
         private final Context context;
         private GboardPatchesSettingsContract.Feature openedFeature;

@@ -87,21 +87,11 @@ class GboardTopRowSwipePatchShapeTest {
 
     @Test
     fun `generated bindings drive all five exported top row anchors`() {
-        assertEquals("Lcom/google/android/libraries/inputmethod/widgets/SoftKeyView;", GboardVersionBindings.softKeyBind.classType)
-        assertEquals("q", GboardVersionBindings.softKeyBind.name)
-        assertEquals(listOf("Lowd;", "J"), GboardVersionBindings.softKeyBind.parameterTypes)
-
-        assertEquals("Lpbl;", GboardVersionBindings.pointerOwner.classType)
-        assertEquals("B", GboardVersionBindings.pointerOwner.name)
-        assertEquals(listOf("Lcom/google/android/libraries/inputmethod/widgets/SoftKeyView;", "F", "F", "J", "I"), GboardVersionBindings.pointerOwner.parameterTypes)
-        assertEquals("s", GboardVersionBindings.pointerCancel.name)
-        assertEquals(listOf("J"), GboardVersionBindings.pointerCancel.parameterTypes)
-        assertEquals("C", GboardVersionBindings.pointerReset.name)
-        assertTrue(GboardVersionBindings.pointerReset.parameterTypes.isEmpty())
-
-        assertEquals("Lpbj;", GboardVersionBindings.gestureDispatch.classType)
-        assertEquals("f", GboardVersionBindings.gestureDispatch.name)
-        assertEquals(listOf("Lpbl;", "Loth;", "Loud;", "Lowd;", "J", "Z", "Z", "I", "Z", "J", "I"), GboardVersionBindings.gestureDispatch.parameterTypes)
+        assertEquals("Lcom/google/android/libraries/inputmethod/widgets/SoftKeyView;->q(Lowd;J)Z", GboardVersionBindings.softKeyBind.reference)
+        assertEquals("Lpbl;->B(Lcom/google/android/libraries/inputmethod/widgets/SoftKeyView;FFJI)V", GboardVersionBindings.pointerOwner.reference)
+        assertEquals("Lpbl;->s(J)V", GboardVersionBindings.pointerCancel.reference)
+        assertEquals("Lpbl;->C()V", GboardVersionBindings.pointerReset.reference)
+        assertEquals("Lpbj;->f(Lpbl;Loth;Loud;Lowd;JZZIZJI)V", GboardVersionBindings.gestureDispatch.reference)
     }
 
     @Test
@@ -130,25 +120,7 @@ class GboardTopRowSwipePatchShapeTest {
     }
 
     @Test
-    fun `pointer lifecycle installs finish after and cancel after while reset stays before`() {
-        val source = readSource(
-            "src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/toprowswipe/" +
-                "GboardTopRowSwipePointerPatch.kt"
-        )
-
-        assertTrue(source.contains("findMutableMethodOrThrow(GboardVersionBindings.pointerOwner)"))
-        assertTrue(source.contains("findMutableMethodOrThrow(GboardVersionBindings.pointerCancel)"))
-        assertTrue(source.contains("findMutableMethodOrThrow(GboardVersionBindings.pointerReset)"))
-        assertTrue(source.contains("name = \"r\""))
-        assertTrue(source.contains("parameterTypes = listOf(\"J\", \"I\")"))
-        assertTrue(source.contains("finishMethod.returnInstructionIndices()"))
-        assertTrue(source.contains("cancelMethod.returnInstructionIndices()"))
-        assertTrue(source.contains("resetMethod.addInstructions(0, TOP_ROW_SWIPE_CLEAR_SESSION_DELEGATE)"))
-        assertFalse(source.contains("Unable to find Lofk"))
-    }
-
-    @Test
-    fun `shared gesture dispatch helper is installed on generated target tuple`() {
+    fun `shared gesture dispatch helper is installed through semantic target`() {
         val source = readSource(
             "src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/" +
                 "zhuyintraditionalsimplifiedtoggle/GboardZhuyinTraditionalSimplifiedToggleRuntimePatch.kt"
@@ -163,9 +135,10 @@ class GboardTopRowSwipePatchShapeTest {
         assertTrue(helperStart >= 0 && helperEnd > helperStart)
         val helper = source.substring(helperStart, helperEnd)
 
-        assertTrue(helper.contains("GboardVersionBindings.gestureDispatch.classType"))
-        assertTrue(helper.contains("GboardVersionBindings.gestureDispatch.parameterTypes"))
-        assertTrue(helper.contains("GboardVersionBindings.gestureDispatch.returnType"))
+        assertTrue(helper.contains("GboardVersionBindings.gestureDispatch.installHelper("))
+        assertFalse(helper.contains("GboardVersionBindings.gestureDispatch.classType"))
+        assertFalse(helper.contains("GboardVersionBindings.gestureDispatch.parameterTypes"))
+        assertFalse(helper.contains("GboardVersionBindings.gestureDispatch.returnType"))
         assertTrue(helper.contains("Lpbj;->o:Lpbh;"))
         assertTrue(helper.contains("Lpbh;->o(Lpbl;Loth;Loud;Lowd;JZZIZJI)V"))
         assertFalse(helper.contains("Lofi;"))

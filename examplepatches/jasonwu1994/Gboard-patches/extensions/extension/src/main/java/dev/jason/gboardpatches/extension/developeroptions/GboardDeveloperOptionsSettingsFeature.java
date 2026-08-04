@@ -20,12 +20,10 @@ public final class GboardDeveloperOptionsSettingsFeature
         this(
                 GboardSettingsText.get(
                         context,
-                        R.string.gboard_patches_developer_options_title,
-                        "Developer options"),
+                        R.string.gboard_patches_developer_options_title),
                 GboardSettingsText.get(
                         context,
-                        R.string.gboard_patches_developer_options_summary,
-                        "Open Developer options and the Flag Editor."));
+                        R.string.gboard_patches_developer_options_summary));
     }
 
     GboardDeveloperOptionsSettingsFeature(String entryTitle, String entrySummary) {
@@ -51,13 +49,13 @@ public final class GboardDeveloperOptionsSettingsFeature
     }
 
     @Override
-    public void openRootEntry(GboardPatchesSettingsContract.Host host) {
-        host.openTargetSettingsHeader(TARGET_1777_HEADER_KEY_RESOURCE_ID);
+    public void openRootEntry(GboardPatchesSettingsContract.FeatureHost host) {
+        GboardPatchesSettingsContract.openTargetSettingsHeader(host, TARGET_1777_HEADER_KEY_RESOURCE_ID);
     }
 
     @Override
     public GboardPatchesSettingsContract.Screen buildScreen(
-            GboardPatchesSettingsContract.Host host) {
+            GboardPatchesSettingsContract.FeatureHost host) {
         return new GboardPatchesSettingsContract.Screen(
                 entryTitle,
                 "Gboard",

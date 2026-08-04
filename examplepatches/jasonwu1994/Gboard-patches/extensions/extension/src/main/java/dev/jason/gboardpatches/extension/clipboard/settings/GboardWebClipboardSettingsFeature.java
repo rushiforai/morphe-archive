@@ -48,7 +48,7 @@ public final class GboardWebClipboardSettingsFeature
 
     @Override
     public GboardPatchesSettingsContract.Screen buildScreen(
-            GboardPatchesSettingsContract.Host host) {
+            GboardPatchesSettingsContract.FeatureHost host) {
         try {
             Context context = host.getContext();
             initializeText(context);

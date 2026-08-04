@@ -10,70 +10,46 @@ import dev.jason.gboardpatches.extension.settings.GboardPatchesSettingsContract;
 import dev.jason.gboardpatches.extension.settings.GboardSettingsText;
 
 final class GboardClipboardRetentionSettingsSection {
-    private static final String TITLE_TTL = "Retention TTL";
-    private static final String SUMMARY_TTL =
-            "Controls how long unpinned clipboard items are retained.";
-    private static final String TITLE_MAX_COUNT = "Max count";
-    private static final String SUMMARY_MAX_COUNT =
-            "Limits how many unpinned clipboard items stay visible at the same time.";
-    private static final String LABEL_CUSTOM = "Custom";
-    private static final String LABEL_INFINITE = "Infinite";
-    private static final String LABEL_ONE_MINUTE = "1 minute";
-    private static final String LABEL_ONE_HOUR_DEFAULT = "1 hour (Default)";
-    private static final String LABEL_TEN = "10";
-    private static final String LABEL_HUNDRED_DEFAULT = "100 (Default)";
-    private static final String DIALOG_TITLE_CUSTOM_TTL = "Custom retention TTL";
-    private static final String DIALOG_HINT_MINUTES = "Minutes";
-    private static final String DIALOG_TITLE_CUSTOM_MAX_COUNT = "Custom max count";
-    private static final String DIALOG_HINT_COUNT = "Count";
-
     void appendRows(List<GboardPatchesSettingsContract.Row> rows,
-            GboardPatchesSettingsContract.Host host, SharedPreferences preferences,
+            GboardPatchesSettingsContract.FeatureHost host, SharedPreferences preferences,
             boolean clipboardEnabled) {
         Context context = host.getContext();
         rows.add(new GboardPatchesSettingsContract.SelectorRow(
-                GboardSettingsText.get(context, R.string.gboard_patches_pref_ttl, TITLE_TTL),
+                GboardSettingsText.get(context, R.string.gboard_patches_pref_ttl),
                 GboardSettingsText.get(
                         context,
-                        R.string.gboard_patches_pref_ttl_summary,
-                        SUMMARY_TTL),
+                        R.string.gboard_patches_pref_ttl_summary),
                 currentTtlLabel(context, preferences),
                 clipboardEnabled,
                 () -> showTtlDialog(host, preferences)));
         rows.add(new GboardPatchesSettingsContract.SelectorRow(
                 GboardSettingsText.get(
                         context,
-                        R.string.gboard_patches_pref_max_count,
-                        TITLE_MAX_COUNT),
+                        R.string.gboard_patches_pref_max_count),
                 GboardSettingsText.get(
                         context,
-                        R.string.gboard_patches_pref_max_count_summary,
-                        SUMMARY_MAX_COUNT),
+                        R.string.gboard_patches_pref_max_count_summary),
                 currentMaxCountLabel(context, preferences),
                 clipboardEnabled,
                 () -> showMaxCountDialog(host, preferences)));
     }
 
-    private void showTtlDialog(GboardPatchesSettingsContract.Host host,
+    private void showTtlDialog(GboardPatchesSettingsContract.FeatureHost host,
             SharedPreferences preferences) {
         Context context = host.getContext();
         String[] labels = new String[] {
                 GboardSettingsText.get(
                         context,
-                        R.string.gboard_patches_ttl_option_one_minute,
-                        LABEL_ONE_MINUTE),
+                        R.string.gboard_patches_ttl_option_one_minute),
                 GboardSettingsText.get(
                         context,
-                        R.string.gboard_patches_ttl_option_one_hour_default,
-                        LABEL_ONE_HOUR_DEFAULT),
+                        R.string.gboard_patches_ttl_option_one_hour_default),
                 GboardSettingsText.get(
                         context,
-                        R.string.gboard_patches_option_infinite,
-                        LABEL_INFINITE),
+                        R.string.gboard_patches_option_infinite),
                 GboardSettingsText.get(
                         context,
-                        R.string.gboard_patches_option_custom,
-                        LABEL_CUSTOM)
+                        R.string.gboard_patches_option_custom)
         };
         String[] values = new String[] {
                 Long.toString(GboardClipboardSettings.TTL_ONE_MINUTE_MS),
@@ -81,8 +57,8 @@ final class GboardClipboardRetentionSettingsSection {
                 Long.toString(GboardClipboardSettings.INFINITE_TTL_MS),
                 GboardClipboardSettings.PREF_VALUE_CUSTOM
         };
-        host.showChoiceDialog(
-                GboardSettingsText.get(context, R.string.gboard_patches_pref_ttl, TITLE_TTL),
+        GboardPatchesSettingsContract.showChoiceDialog(host,
+                GboardSettingsText.get(context, R.string.gboard_patches_pref_ttl),
                 labels,
                 values,
                 GboardClipboardSettingsSupport.readSelectionValue(
@@ -90,15 +66,13 @@ final class GboardClipboardRetentionSettingsSection {
                         GboardClipboardSettings.PREF_KEY_CLIPBOARD_TTL_MS,
                         Long.toString(GboardClipboardSettings.DEFAULT_CLIPBOARD_TTL_MS)),
                 GboardClipboardSettings.PREF_VALUE_CUSTOM,
-                () -> host.showPositiveIntegerDialog(
+                () -> GboardPatchesSettingsContract.showPositiveIntegerDialog(host,
                         GboardSettingsText.get(
                                 context,
-                                R.string.gboard_patches_custom_ttl_dialog_title,
-                                DIALOG_TITLE_CUSTOM_TTL),
+                                R.string.gboard_patches_custom_ttl_dialog_title),
                         GboardSettingsText.get(
                                 context,
-                                R.string.gboard_patches_custom_ttl_dialog_hint,
-                                DIALOG_HINT_MINUTES),
+                                R.string.gboard_patches_custom_ttl_dialog_hint),
                         GboardClipboardSettings.readClipboardTtlCustomMinutes(preferences),
                         value -> preferences.edit()
                                 .putString(
@@ -113,26 +87,22 @@ final class GboardClipboardRetentionSettingsSection {
                         .apply());
     }
 
-    private void showMaxCountDialog(GboardPatchesSettingsContract.Host host,
+    private void showMaxCountDialog(GboardPatchesSettingsContract.FeatureHost host,
             SharedPreferences preferences) {
         Context context = host.getContext();
         String[] labels = new String[] {
                 GboardSettingsText.get(
                         context,
-                        R.string.gboard_patches_max_count_option_ten,
-                        LABEL_TEN),
+                        R.string.gboard_patches_max_count_option_ten),
                 GboardSettingsText.get(
                         context,
-                        R.string.gboard_patches_max_count_option_hundred_default,
-                        LABEL_HUNDRED_DEFAULT),
+                        R.string.gboard_patches_max_count_option_hundred_default),
                 GboardSettingsText.get(
                         context,
-                        R.string.gboard_patches_option_infinite,
-                        LABEL_INFINITE),
+                        R.string.gboard_patches_option_infinite),
                 GboardSettingsText.get(
                         context,
-                        R.string.gboard_patches_option_custom,
-                        LABEL_CUSTOM)
+                        R.string.gboard_patches_option_custom)
         };
         String[] values = new String[] {
                 Integer.toString(GboardClipboardSettings.MAX_COUNT_TEN),
@@ -140,11 +110,10 @@ final class GboardClipboardRetentionSettingsSection {
                 Integer.toString(GboardClipboardSettings.INFINITE_MAX_COUNT),
                 GboardClipboardSettings.PREF_VALUE_CUSTOM
         };
-        host.showChoiceDialog(
+        GboardPatchesSettingsContract.showChoiceDialog(host,
                 GboardSettingsText.get(
                         context,
-                        R.string.gboard_patches_pref_max_count,
-                        TITLE_MAX_COUNT),
+                        R.string.gboard_patches_pref_max_count),
                 labels,
                 values,
                 GboardClipboardSettingsSupport.readSelectionValue(
@@ -152,15 +121,13 @@ final class GboardClipboardRetentionSettingsSection {
                         GboardClipboardSettings.PREF_KEY_CLIPBOARD_MAX_COUNT,
                         Integer.toString(GboardClipboardSettings.DEFAULT_CLIPBOARD_MAX_COUNT)),
                 GboardClipboardSettings.PREF_VALUE_CUSTOM,
-                () -> host.showPositiveIntegerDialog(
+                () -> GboardPatchesSettingsContract.showPositiveIntegerDialog(host,
                         GboardSettingsText.get(
                                 context,
-                                R.string.gboard_patches_custom_max_count_dialog_title,
-                                DIALOG_TITLE_CUSTOM_MAX_COUNT),
+                                R.string.gboard_patches_custom_max_count_dialog_title),
                         GboardSettingsText.get(
                                 context,
-                                R.string.gboard_patches_custom_max_count_dialog_hint,
-                                DIALOG_HINT_COUNT),
+                                R.string.gboard_patches_custom_max_count_dialog_hint),
                         GboardClipboardSettings.readClipboardMaxCountCustomValue(preferences),
                         value -> preferences.edit()
                                 .putString(
@@ -188,19 +155,16 @@ final class GboardClipboardRetentionSettingsSection {
         if (Long.toString(GboardClipboardSettings.TTL_ONE_MINUTE_MS).equals(selection)) {
             return GboardSettingsText.get(
                     context,
-                    R.string.gboard_patches_ttl_option_one_minute,
-                    LABEL_ONE_MINUTE);
+                    R.string.gboard_patches_ttl_option_one_minute);
         }
         if (Long.toString(GboardClipboardSettings.INFINITE_TTL_MS).equals(selection)) {
             return GboardSettingsText.get(
                     context,
-                    R.string.gboard_patches_option_infinite,
-                    LABEL_INFINITE);
+                    R.string.gboard_patches_option_infinite);
         }
         return GboardSettingsText.get(
                 context,
-                R.string.gboard_patches_ttl_option_one_hour_default,
-                LABEL_ONE_HOUR_DEFAULT);
+                R.string.gboard_patches_ttl_option_one_hour_default);
     }
 
     private String currentMaxCountLabel(Context context, SharedPreferences preferences) {
@@ -216,18 +180,15 @@ final class GboardClipboardRetentionSettingsSection {
         if (Integer.toString(GboardClipboardSettings.MAX_COUNT_TEN).equals(selection)) {
             return GboardSettingsText.get(
                     context,
-                    R.string.gboard_patches_max_count_option_ten,
-                    LABEL_TEN);
+                    R.string.gboard_patches_max_count_option_ten);
         }
         if (Integer.toString(GboardClipboardSettings.INFINITE_MAX_COUNT).equals(selection)) {
             return GboardSettingsText.get(
                     context,
-                    R.string.gboard_patches_option_infinite,
-                    LABEL_INFINITE);
+                    R.string.gboard_patches_option_infinite);
         }
         return GboardSettingsText.get(
                 context,
-                R.string.gboard_patches_max_count_option_hundred_default,
-                LABEL_HUNDRED_DEFAULT);
+                R.string.gboard_patches_max_count_option_hundred_default);
     }
 }

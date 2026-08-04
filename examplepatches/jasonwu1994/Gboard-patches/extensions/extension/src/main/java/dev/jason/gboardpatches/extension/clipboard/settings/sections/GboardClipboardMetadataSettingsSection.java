@@ -10,34 +10,17 @@ import dev.jason.gboardpatches.extension.settings.GboardPatchesSettingsContract;
 import dev.jason.gboardpatches.extension.settings.GboardSettingsText;
 
 final class GboardClipboardMetadataSettingsSection {
-    private static final String TITLE_SHOW_EXPIRY_COUNTDOWN = "Show expiry countdown";
-    private static final String SUMMARY_SHOW_EXPIRY_COUNTDOWN =
-            "Shows the remaining retention time above each clipboard item.";
-    private static final String TITLE_SHOW_CREATION_TIME = "Show creation time";
-    private static final String SUMMARY_SHOW_CREATION_TIME =
-            "Shows when each clipboard item was created in the current device time zone.";
-    private static final String TITLE_SHOW_ORDER_INDEX = "Show order index";
-    private static final String SUMMARY_SHOW_ORDER_INDEX =
-            "Shows [1], [2], and so on above each clipboard item.";
-    private static final String TITLE_ORDER_INDEX_DIRECTION = "Order index direction";
-    private static final String SUMMARY_ORDER_INDEX_DIRECTION =
-            "Controls whether [1] marks the newest or oldest clipboard item.";
-    private static final String LABEL_NEWEST_FIRST_DEFAULT = "Newest first (Default)";
-    private static final String LABEL_OLDEST_FIRST = "Oldest first";
-
     void appendRows(List<GboardPatchesSettingsContract.Row> rows,
-            GboardPatchesSettingsContract.Host host, SharedPreferences preferences,
+            GboardPatchesSettingsContract.FeatureHost host, SharedPreferences preferences,
             boolean clipboardEnabled) {
         Context context = host.getContext();
         rows.add(new GboardPatchesSettingsContract.ToggleRow(
                 GboardSettingsText.get(
                         context,
-                        R.string.gboard_patches_pref_show_expiry_countdown,
-                        TITLE_SHOW_EXPIRY_COUNTDOWN),
+                        R.string.gboard_patches_pref_show_expiry_countdown),
                 GboardSettingsText.get(
                         context,
-                        R.string.gboard_patches_pref_show_expiry_countdown_summary,
-                        SUMMARY_SHOW_EXPIRY_COUNTDOWN),
+                        R.string.gboard_patches_pref_show_expiry_countdown_summary),
                 clipboardEnabled,
                 GboardClipboardSettings.readClipboardShowCountdown(preferences),
                 value -> preferences.edit()
@@ -49,12 +32,10 @@ final class GboardClipboardMetadataSettingsSection {
         rows.add(new GboardPatchesSettingsContract.ToggleRow(
                 GboardSettingsText.get(
                         context,
-                        R.string.gboard_patches_pref_show_creation_time,
-                        TITLE_SHOW_CREATION_TIME),
+                        R.string.gboard_patches_pref_show_creation_time),
                 GboardSettingsText.get(
                         context,
-                        R.string.gboard_patches_pref_show_creation_time_summary,
-                        SUMMARY_SHOW_CREATION_TIME),
+                        R.string.gboard_patches_pref_show_creation_time_summary),
                 clipboardEnabled,
                 GboardClipboardSettings.readClipboardShowCreationTime(preferences),
                 value -> preferences.edit()
@@ -68,12 +49,10 @@ final class GboardClipboardMetadataSettingsSection {
         rows.add(new GboardPatchesSettingsContract.ToggleRow(
                 GboardSettingsText.get(
                         context,
-                        R.string.gboard_patches_pref_show_order_index,
-                        TITLE_SHOW_ORDER_INDEX),
+                        R.string.gboard_patches_pref_show_order_index),
                 GboardSettingsText.get(
                         context,
-                        R.string.gboard_patches_pref_show_order_index_summary,
-                        SUMMARY_SHOW_ORDER_INDEX),
+                        R.string.gboard_patches_pref_show_order_index_summary),
                 clipboardEnabled,
                 showOrderIndex,
                 value -> preferences.edit()
@@ -85,39 +64,34 @@ final class GboardClipboardMetadataSettingsSection {
         rows.add(new GboardPatchesSettingsContract.SelectorRow(
                 GboardSettingsText.get(
                         context,
-                        R.string.gboard_patches_pref_order_index_direction,
-                        TITLE_ORDER_INDEX_DIRECTION),
+                        R.string.gboard_patches_pref_order_index_direction),
                 GboardSettingsText.get(
                         context,
-                        R.string.gboard_patches_pref_order_index_direction_summary,
-                        SUMMARY_ORDER_INDEX_DIRECTION),
+                        R.string.gboard_patches_pref_order_index_direction_summary),
                 currentOrderIndexDirectionLabel(context, preferences),
                 clipboardEnabled && showOrderIndex,
                 () -> showOrderIndexDirectionDialog(host, preferences)));
     }
 
-    private void showOrderIndexDirectionDialog(GboardPatchesSettingsContract.Host host,
+    private void showOrderIndexDirectionDialog(GboardPatchesSettingsContract.FeatureHost host,
             SharedPreferences preferences) {
         Context context = host.getContext();
         String[] labels = new String[] {
                 GboardSettingsText.get(
                         context,
-                        R.string.gboard_patches_order_index_newest_first_default,
-                        LABEL_NEWEST_FIRST_DEFAULT),
+                        R.string.gboard_patches_order_index_newest_first_default),
                 GboardSettingsText.get(
                         context,
-                        R.string.gboard_patches_order_index_oldest_first,
-                        LABEL_OLDEST_FIRST)
+                        R.string.gboard_patches_order_index_oldest_first)
         };
         String[] values = new String[] {
                 GboardClipboardSettings.CLIPBOARD_ORDER_INDEX_MODE_NEWEST_FIRST,
                 GboardClipboardSettings.CLIPBOARD_ORDER_INDEX_MODE_OLDEST_FIRST
         };
-        host.showChoiceDialog(
+        GboardPatchesSettingsContract.showChoiceDialog(host,
                 GboardSettingsText.get(
                         context,
-                        R.string.gboard_patches_pref_order_index_direction,
-                        TITLE_ORDER_INDEX_DIRECTION),
+                        R.string.gboard_patches_pref_order_index_direction),
                 labels,
                 values,
                 GboardClipboardSettings.readClipboardOrderIndexMode(preferences),
@@ -137,57 +111,49 @@ final class GboardClipboardMetadataSettingsSection {
         if (GboardClipboardSettings.CLIPBOARD_ORDER_INDEX_MODE_OLDEST_FIRST.equals(selection)) {
             return GboardSettingsText.get(
                     context,
-                    R.string.gboard_patches_order_index_oldest_first,
-                    LABEL_OLDEST_FIRST);
+                    R.string.gboard_patches_order_index_oldest_first);
         }
         return GboardSettingsText.get(
                 context,
-                R.string.gboard_patches_order_index_newest_first_default,
-                LABEL_NEWEST_FIRST_DEFAULT);
+                R.string.gboard_patches_order_index_newest_first_default);
     }
 
     private GboardPatchesSettingsContract.PreviewSpec buildExpiryCountdownPreview(Context context) {
         return new GboardPatchesSettingsContract.PreviewSpec(
                 GboardSettingsText.get(
                         context,
-                        R.string.gboard_patches_pref_show_expiry_countdown,
-                        TITLE_SHOW_EXPIRY_COUNTDOWN),
+                        R.string.gboard_patches_pref_show_expiry_countdown),
                 "",
                 new GboardPatchesSettingsContract.PreviewImage(
                         "settings-previews/clipboard/show_expiry_countdown.png",
                         GboardSettingsText.get(
                                 context,
-                                R.string.gboard_patches_preview_countdown_caption,
-                                "Countdown example")));
+                                R.string.gboard_patches_preview_countdown_caption)));
     }
 
     private GboardPatchesSettingsContract.PreviewSpec buildCreationTimePreview(Context context) {
         return new GboardPatchesSettingsContract.PreviewSpec(
                 GboardSettingsText.get(
                         context,
-                        R.string.gboard_patches_pref_show_creation_time,
-                        TITLE_SHOW_CREATION_TIME),
+                        R.string.gboard_patches_pref_show_creation_time),
                 "",
                 new GboardPatchesSettingsContract.PreviewImage(
                         "settings-previews/clipboard/show_creation_time.png",
                         GboardSettingsText.get(
                                 context,
-                                R.string.gboard_patches_preview_creation_time_caption,
-                                "Creation time example")));
+                                R.string.gboard_patches_preview_creation_time_caption)));
     }
 
     private GboardPatchesSettingsContract.PreviewSpec buildOrderIndexPreview(Context context) {
         return new GboardPatchesSettingsContract.PreviewSpec(
                 GboardSettingsText.get(
                         context,
-                        R.string.gboard_patches_pref_show_order_index,
-                        TITLE_SHOW_ORDER_INDEX),
+                        R.string.gboard_patches_pref_show_order_index),
                 "",
                 new GboardPatchesSettingsContract.PreviewImage(
                         "settings-previews/clipboard/show_order_index.png",
                         GboardSettingsText.get(
                                 context,
-                                R.string.gboard_patches_preview_order_index_caption,
-                                "Order index example")));
+                                R.string.gboard_patches_preview_order_index_caption)));
     }
 }

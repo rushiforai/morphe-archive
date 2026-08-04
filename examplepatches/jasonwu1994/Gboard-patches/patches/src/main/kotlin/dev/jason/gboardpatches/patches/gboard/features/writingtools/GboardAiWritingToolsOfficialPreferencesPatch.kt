@@ -8,7 +8,12 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import dev.jason.gboardpatches.patches.gboard.shared.findMutableMethodOrThrow
 import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesExtensionCarrierPatch
+import dev.jason.gboardpatches.patches.gboard.shared.isInvoke
+import dev.jason.gboardpatches.patches.gboard.shared.isMethodReference
 import dev.jason.gboardpatches.patches.gboard.shared.returnInstructionIndices
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeAbiCatalog
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 import dev.jason.gboardpatches.patches.shared.Constants.COMPATIBILITY_GBOARD
 
 internal val gboardAiWritingToolsOfficialPreferencesPatch = bytecodePatch(
@@ -35,12 +40,13 @@ internal fun MutableMethod.applyWritingToolsOfficialPreferenceObserver() {
     check(returnIndices.isNotEmpty()) { "Missing RETURN in $definingClass->$name" }
     val parameterRegister = implementation!!.registerCount - 1
     val observerIndices = instructions.indices.filter { index ->
-        instructions[index].officialMethodDescriptor() == OFFICIAL_OBSERVER_DESCRIPTOR
+        instructions[index].isMethodReference(OFFICIAL_OBSERVER_DESCRIPTOR)
     }
     val completedReturns = returnIndices.count { returnIndex ->
         val returned = instructions[returnIndex] as? OneRegisterInstruction
         returnIndex > 0 && returned != null &&
-            instructions[returnIndex - 1].isExactWritingToolsStaticInvoke(
+            instructions[returnIndex - 1].isInvoke(
+                "INVOKE_STATIC",
                 OFFICIAL_OBSERVER_DESCRIPTOR,
                 parameterRegister,
                 returned.registerA,
@@ -61,11 +67,12 @@ internal fun MutableMethod.applyWritingToolsOfficialPreferenceObserver() {
 }
 
 private fun buildOfficialPreferenceObserverDelegate(register: Int): String = """
-    invoke-static {p1, v$register}, $AI_WRITING_TOOLS_OFFICIAL_PREFS_CLASS->notePreferenceValue(IZ)V
+    ${RuntimeCallEmitter.invoke(
+        RuntimeCallId.AI_WRITING_TOOLS_OFFICIAL_PREFERENCES_NOTE_PREFERENCE_VALUE,
+        "p1, v$register",
+    )}
 """.trimIndent()
 
-private const val OFFICIAL_OBSERVER_DESCRIPTOR =
-    "$AI_WRITING_TOOLS_OFFICIAL_PREFS_CLASS->notePreferenceValue(IZ)V"
-
-private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction.officialMethodDescriptor(): String? =
-    ((this as? ReferenceInstruction)?.reference as? MethodReference)?.toString()
+private val OFFICIAL_OBSERVER_DESCRIPTOR = RuntimeAbiCatalog.abi(
+    RuntimeCallId.AI_WRITING_TOOLS_OFFICIAL_PREFERENCES_NOTE_PREFERENCE_VALUE,
+).reference

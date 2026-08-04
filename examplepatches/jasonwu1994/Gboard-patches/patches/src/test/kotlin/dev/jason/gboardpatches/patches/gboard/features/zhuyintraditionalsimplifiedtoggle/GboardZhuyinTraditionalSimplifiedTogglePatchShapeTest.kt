@@ -12,17 +12,12 @@ class GboardZhuyinTraditionalSimplifiedTogglePatchShapeTest {
     @Test
     fun `softkey and dispatch use exact generated 1777 descriptors`() {
         assertEquals(
-            "Lcom/google/android/libraries/inputmethod/widgets/SoftKeyView;",
-            GboardVersionBindings.softKeyBind.classType
+            "Lcom/google/android/libraries/inputmethod/widgets/SoftKeyView;->q(Lowd;J)Z",
+            GboardVersionBindings.softKeyBind.reference,
         )
-        assertEquals("q", GboardVersionBindings.softKeyBind.name)
-        assertEquals(listOf("Lowd;", "J"), GboardVersionBindings.softKeyBind.parameterTypes)
-        assertEquals("Z", GboardVersionBindings.softKeyBind.returnType)
-        assertEquals("Lpbj;", GboardVersionBindings.gestureDispatch.classType)
-        assertEquals("f", GboardVersionBindings.gestureDispatch.name)
         assertEquals(
-            listOf("Lpbl;", "Loth;", "Loud;", "Lowd;", "J", "Z", "Z", "I", "Z", "J", "I"),
-            GboardVersionBindings.gestureDispatch.parameterTypes
+            "Lpbj;->f(Lpbl;Loth;Loud;Lowd;JZZIZJI)V",
+            GboardVersionBindings.gestureDispatch.reference,
         )
     }
 
@@ -34,8 +29,8 @@ class GboardZhuyinTraditionalSimplifiedTogglePatchShapeTest {
                 "GboardZhuyinTraditionalSimplifiedToggleSoftKeyPatch.kt"
         )
 
-        assertTrue(source.contains("patchIncomingSoftKeyMetadata"))
-        assertTrue(source.contains("afterSoftKeyBound"))
+        assertTrue(source.contains("ZHUYIN_TRADITIONAL_SIMPLIFIED_TOGGLE_RUNTIME_PATCH_INCOMING_SOFT_KEY_METADATA"))
+        assertTrue(source.contains("ZHUYIN_TRADITIONAL_SIMPLIFIED_TOGGLE_RUNTIME_AFTER_SOFT_KEY_BOUND"))
         assertTrue(source.contains("mutableMethod.addInstructions(0,"))
         assertTrue(source.contains("val returnIndices = mutableMethod.returnInstructionIndices()"))
         assertTrue(source.contains("check(returnIndices.isNotEmpty())"))
@@ -53,7 +48,7 @@ class GboardZhuyinTraditionalSimplifiedTogglePatchShapeTest {
         assertTrue(helperStart >= 0 && helperEnd > helperStart)
         val helper = source.substring(helperStart, helperEnd)
 
-        val toggle = helper.indexOf("maybeToggle(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Z")
+        val toggle = helper.indexOf("ZHUYIN_TRADITIONAL_SIMPLIFIED_TOGGLE_RUNTIME_MAYBE_TOGGLE")
         val stock = helper.indexOf("Lpbh;->o(Lpbl;Loth;Loud;Lowd;JZZIZJI)V")
         assertTrue(toggle >= 0)
         assertTrue(stock > toggle)
@@ -70,7 +65,7 @@ class GboardZhuyinTraditionalSimplifiedTogglePatchShapeTest {
         assertTrue(source.contains("name = \"b\""))
         assertTrue(source.contains("returnType = \"Loud;\""))
         assertTrue(source.contains("\"Lotk;\""))
-        assertTrue(source.contains("patchPopupAction"))
+        assertTrue(source.contains("ZHUYIN_TRADITIONAL_SIMPLIFIED_TOGGLE_RUNTIME_PATCH_POPUP_ACTION"))
         assertTrue(source.contains("move-result-object p5"))
         assertTrue(source.contains("check-cast p5, Lotk;"))
         assertTrue(source.contains("dependsOn(gboardPatchesExtensionCarrierPatch)"))
@@ -126,15 +121,15 @@ class GboardZhuyinTraditionalSimplifiedTogglePatchShapeTest {
             "src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/toprowswipe/" +
                 "GboardTopRowSwipeGesturePatch.kt"
         )
-        assertTrue(topRow.contains("maybeConsumeTopRowSwipe"))
-        assertTrue(topRow.contains("maybeConsumeQuickJsTopRowPress"))
+        assertTrue(topRow.contains("TOP_ROW_SWIPE_RUNTIME_MAYBE_CONSUME_TOP_ROW_SWIPE"))
+        assertTrue(topRow.contains("TOP_ROW_SWIPE_RUNTIME_MAYBE_CONSUME_QUICK_JS_TOP_ROW_PRESS"))
         assertTrue(topRow.contains("jasondevDispatchOrToggle"))
         assertTrue(
-            topRow.indexOf("maybeConsumeTopRowSwipe") <
-                topRow.indexOf("maybeConsumeQuickJsTopRowPress")
+            topRow.indexOf("TOP_ROW_SWIPE_RUNTIME_MAYBE_CONSUME_TOP_ROW_SWIPE") <
+                topRow.indexOf("TOP_ROW_SWIPE_RUNTIME_MAYBE_CONSUME_QUICK_JS_TOP_ROW_PRESS")
         )
         assertTrue(
-            topRow.indexOf("maybeConsumeQuickJsTopRowPress") <
+            topRow.indexOf("TOP_ROW_SWIPE_RUNTIME_MAYBE_CONSUME_QUICK_JS_TOP_ROW_PRESS") <
                 topRow.indexOf("jasondevDispatchOrToggle")
         )
     }

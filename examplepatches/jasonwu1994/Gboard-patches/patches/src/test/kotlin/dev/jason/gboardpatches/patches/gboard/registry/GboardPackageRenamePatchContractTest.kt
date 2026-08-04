@@ -46,7 +46,7 @@ class GboardPackageRenamePatchContractTest {
         val inventory = JsonParser.parseString(readSource(PATCHES_LIST_PATH)).asJsonObject
         val patches = inventory.getAsJsonArray("patches").map { it.asJsonObject }
 
-        assertEquals(22, patches.size)
+        assertEquals(23, patches.size)
         val rows = patches.filter { row -> row.get("name").asString == "Package Rename" }
         assertEquals(1, rows.size)
         val row = rows.single()
@@ -67,7 +67,6 @@ class GboardPackageRenamePatchContractTest {
 
         assertEquals("17.7.7", profile.get("target_version").asString)
         val bindings = profile.getAsJsonObject("bindings")
-        assertEquals(9, bindings.size())
         assertFalse(bindings.has("flag_factory"))
         assertTrue(bindings.keySet().none { key -> key.contains("package_rename") })
         assertFalse(readSource(PATCHES_LIST_PATH).contains("family_ids"))

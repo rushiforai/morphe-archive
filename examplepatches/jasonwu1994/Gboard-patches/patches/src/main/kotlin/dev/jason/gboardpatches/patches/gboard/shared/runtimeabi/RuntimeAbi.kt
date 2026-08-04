@@ -1,0 +1,140 @@
+package dev.jason.gboardpatches.patches.gboard.shared.runtimeabi
+
+internal enum class RuntimeCallId(internal val encodedAbi: String) {
+    ADD_SYMBOLS_RUNTIME_APPEND_CUSTOM_CORPUS_ITEM("Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->appendCustomCorpusItem(Ljava/lang/Object;)Ljava/lang/Object;"),
+    ADD_SYMBOLS_RUNTIME_BIND_CUSTOM_VIEW_HOLDER("Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->bindCustomViewHolder(Ljava/lang/Object;Ljava/lang/Object;I)Z"),
+    ADD_SYMBOLS_RUNTIME_BRIDGE_PROVIDER_RECEIVER("Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->bridgeProviderReceiver(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"),
+    ADD_SYMBOLS_RUNTIME_CREATE_CUSTOM_VIEW_HOLDER("Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->createCustomViewHolder(Ljava/lang/Object;Ljava/lang/Object;I)Ljava/lang/Object;"),
+    ADD_SYMBOLS_RUNTIME_ENSURE_EXTENSION_PROVIDER_MAPPING("Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->ensureExtensionProviderMapping(Ljava/lang/Object;Ljava/lang/Object;)V"),
+    ADD_SYMBOLS_RUNTIME_HANDLE_CATEGORY_BIND("Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->handleCategoryBind(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)Z"),
+    ADD_SYMBOLS_RUNTIME_HANDLE_CATEGORY_CHANGE("Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->handleCategoryChange(Ljava/lang/Object;II)Z"),
+    ADD_SYMBOLS_RUNTIME_INTERCEPT_HISTORY_WRITE("Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->interceptHistoryWrite(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)Z"),
+    ADD_SYMBOLS_RUNTIME_ON_EMOTICON_BODY_READY("Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->onEmoticonBodyReady(Ljava/lang/Object;)V"),
+    ADD_SYMBOLS_RUNTIME_ON_EMOTICON_KEYBOARD_CONSTRUCTED("Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->onEmoticonKeyboardConstructed(Ljava/lang/Object;)V"),
+    ADD_SYMBOLS_RUNTIME_ON_EMOTICON_RECYCLER_ADAPTER_CONSTRUCTED("Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->onEmoticonRecyclerAdapterConstructed(Ljava/lang/Object;Ljava/lang/Object;)V"),
+    ADD_SYMBOLS_RUNTIME_ON_EXPRESSION_CORPUS_FOOTER_TAB_CLICK("Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->onExpressionCorpusFooterTabClick(Ljava/lang/Object;Ljava/lang/Object;)V"),
+    ADD_SYMBOLS_RUNTIME_ON_HEADER_CALLBACK_AFTER("Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->onHeaderCallbackAfter(Ljava/lang/Object;)V"),
+    ADD_SYMBOLS_RUNTIME_ON_KEYBOARD_READY("Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->onKeyboardReady(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V"),
+    ADD_SYMBOLS_RUNTIME_OVERRIDE_CATEGORY_NAME_FROM_INDEX("Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->overrideCategoryNameFromIndex(Ljava/lang/Object;I)Ljava/lang/String;"),
+    ADD_SYMBOLS_RUNTIME_RESOLVE_CUSTOM_VIEW_TYPE("Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->resolveCustomViewType(Ljava/lang/Object;I)I"),
+    ADD_SYMBOLS_RUNTIME_RESOLVE_SELECTED_CATEGORY_INDEX("Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->resolveSelectedCategoryIndex(Ljava/lang/Object;Ljava/lang/Object;)I"),
+    ADD_SYMBOLS_RUNTIME_REWRITE_METRICS_KEYBOARD_TYPE("Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->rewriteMetricsKeyboardType(Ljava/lang/Object;)Ljava/lang/Object;"),
+    ADD_SYMBOLS_RUNTIME_REWRITE_NAVIGATION_KEYBOARD_TYPE("Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->rewriteNavigationKeyboardType(Ljava/lang/Object;)Ljava/lang/Object;"),
+    ADD_SYMBOLS_RUNTIME_REWRITE_PROVIDER_REQUEST_TYPE("Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->rewriteProviderRequestType(Ljava/lang/Object;)Ljava/lang/Object;"),
+    ADD_SYMBOLS_RUNTIME_REWRITE_PROVIDER_WRAPPER_KEYBOARD_TYPE("Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->rewriteProviderWrapperKeyboardType(Ljava/lang/Object;)Ljava/lang/Object;"),
+    ADD_SYMBOLS_RUNTIME_SHOULD_SKIP_DETACHED_VIEW_TRANSFORM("Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->shouldSkipDetachedViewTransform(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Z"),
+    ADD_SYMBOLS_RUNTIME_SHOULD_SKIP_HEADER_START_EDGE_UPDATE("Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->shouldSkipHeaderStartEdgeUpdate(Ljava/lang/Object;)Z"),
+    ADD_SYMBOLS_SOFT_KEY_RUNTIME_PATCH_SOFT_KEY_METADATA("Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsSoftKeyRuntime;->patchSoftKeyMetadata(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"),
+    ADVANCED_VOICE_RUNTIME_AFTER_FLAG_VALUE("Ldev/jason/gboardpatches/extension/advancedvoice/GboardAdvancedVoice1777Runtime;->afterFlagValue(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"),
+    ADVANCED_VOICE_RUNTIME_AFTER_INITIAL_VOICE_SETTINGS("Ldev/jason/gboardpatches/extension/advancedvoice/GboardAdvancedVoice1777Runtime;->afterInitialVoiceSettings(Landroid/content/Context;Ljava/lang/Object;)V"),
+    ADVANCED_VOICE_RUNTIME_AFTER_MDD_PROVIDER_CONSTRUCTED("Ldev/jason/gboardpatches/extension/advancedvoice/GboardAdvancedVoice1777Runtime;->afterMddProviderConstructed(Ljava/lang/Object;)V"),
+    ADVANCED_VOICE_RUNTIME_AFTER_NATIVE_READINESS("Ldev/jason/gboardpatches/extension/advancedvoice/GboardAdvancedVoice1777Runtime;->afterNativeReadiness(Z)Z"),
+    ADVANCED_VOICE_RUNTIME_BEFORE_FORMATTER_CONSTRUCTED("Ldev/jason/gboardpatches/extension/advancedvoice/GboardAdvancedVoice1777Runtime;->beforeFormatterConstructed(Ljava/util/Locale;Ljava/lang/Object;Z)Z"),
+    BLUETOOTH_MICROPHONE_RUNTIME_APPLY_OVERRIDDEN_FLAG_VALUE("Ldev/jason/gboardpatches/extension/bluetoothmicrophone/GboardBluetoothMicrophone1777Runtime;->applyOverriddenFlagValue(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"),
+    CLIPBOARD_CONTENT_LIMIT_RUNTIME_APPLY_OVERRIDDEN_FLAG_VALUE("Ldev/jason/gboardpatches/extension/clipboardcontentlimit/GboardClipboardContentLimitRuntime;->applyOverriddenFlagValue(Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/Object;"),
+    CLIPBOARD_RUNTIME_AFTER_ADAPTER_TRIM("Ldev/jason/gboardpatches/extension/clipboard/GboardClipboardRuntime;->afterAdapterTrim(Ljava/lang/Object;)V"),
+    CLIPBOARD_RUNTIME_AFTER_ITEM_BIND("Ldev/jason/gboardpatches/extension/clipboard/GboardClipboardRuntime;->afterItemBind(Ljava/lang/Object;Ljava/lang/Object;I)V"),
+    CLIPBOARD_RUNTIME_BEFORE_ITEM_BIND("Ldev/jason/gboardpatches/extension/clipboard/GboardClipboardRuntime;->beforeItemBind(Ljava/lang/Object;Ljava/lang/Object;I)V"),
+    CLIPBOARD_RUNTIME_HANDLE_CUSTOM_PRUNE("Ldev/jason/gboardpatches/extension/clipboard/GboardClipboardRuntime;->handleCustomPrune(Ljava/lang/Object;)Z"),
+    CLIPBOARD_RUNTIME_MAYBE_BUILD_LOADER_RESULT("Ldev/jason/gboardpatches/extension/clipboard/GboardClipboardRuntime;->maybeBuildLoaderResult(Ljava/lang/Object;)Ljava/lang/Object;"),
+    CLIPBOARD_RUNTIME_RESOLVE_COLUMN_COUNT_OVERRIDE("Ldev/jason/gboardpatches/extension/clipboard/GboardClipboardRuntime;->resolveColumnCountOverride(Ljava/lang/Object;)Ljava/lang/Integer;"),
+    FEATURE_FLAGS_RUNTIME_APPLY_OVERRIDDEN_FLAG_VALUE("Ldev/jason/gboardpatches/extension/featureflags/GboardFeatureFlagsRuntime;->applyOverriddenFlagValue(Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/Object;"),
+    ENGLISH_UPPERCASE_TOGGLE_RUNTIME_CACHE_PATCHED_METADATA("Ldev/jason/gboardpatches/extension/keyboard/GboardEnglishUppercaseToggleRuntime;->cachePatchedMetadata(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"),
+    ENGLISH_UPPERCASE_TOGGLE_RUNTIME_GET_CACHED_PATCHED_METADATA("Ldev/jason/gboardpatches/extension/keyboard/GboardEnglishUppercaseToggleRuntime;->getCachedPatchedMetadata(Ljava/lang/Object;)Ljava/lang/Object;"),
+    ENGLISH_UPPERCASE_TOGGLE_RUNTIME_IS_ENABLED("Ldev/jason/gboardpatches/extension/keyboard/GboardEnglishUppercaseToggleRuntime;->isEnabled()Z"),
+    ENGLISH_UPPERCASE_TOGGLE_RUNTIME_IS_PATCHED_METADATA("Ldev/jason/gboardpatches/extension/keyboard/GboardEnglishUppercaseToggleRuntime;->isPatchedMetadata(Ljava/lang/Object;)Z"),
+    LATIN_GLOBE_KEY_IGNORE_INTERVAL_RUNTIME_APPLY_OVERRIDE("Ldev/jason/gboardpatches/extension/keyboard/GboardLatinGlobeKeyIgnoreIntervalRuntime;->applyOverride(Ljava/lang/Object;)Ljava/lang/Object;"),
+    LONG_PRESS_QUICK_ACTIONS_RUNTIME_MAYBE_ENSURE_LONG_PRESS_SCHEDULED("Ldev/jason/gboardpatches/extension/longpressquickactions/GboardLongPressQuickActions1777Runtime;->maybeEnsureLongPressScheduled(Ljava/lang/Object;Landroid/view/View;)V"),
+    LONG_PRESS_QUICK_ACTIONS_RUNTIME_MAYBE_HANDLE_INPUT_EVENT("Ldev/jason/gboardpatches/extension/longpressquickactions/GboardLongPressQuickActions1777Runtime;->maybeHandleInputEvent(Landroid/inputmethodservice/InputMethodService;Ljava/lang/Object;)Z"),
+    LONG_PRESS_QUICK_ACTIONS_RUNTIME_MAYBE_PATCH_METADATA("Ldev/jason/gboardpatches/extension/longpressquickactions/GboardLongPressQuickActions1777Runtime;->maybePatchMetadata(Ljava/lang/Object;Landroid/view/View;)Ljava/lang/Object;"),
+    SETTINGS_HOMEPAGE_RUNTIME_APPLY_SETTINGS_HOMEPAGE_POLICY("Ldev/jason/gboardpatches/extension/settingshomepage/GboardSettingsHomepageRuntime;->applySettingsHomepagePolicy(Ljava/lang/Object;)V"),
+    SYMBOL_FOOTER_ORDER_RUNTIME_REORDER_EXPRESSION_CORPUS_LIST("Ldev/jason/gboardpatches/extension/symbolfooter/GboardSymbolFooterOrderRuntime;->reorderExpressionCorpusList(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"),
+    TOP_ROW_SWIPE_RUNTIME_AFTER_SOFT_KEY_BOUND("Ldev/jason/gboardpatches/extension/toprowswipe/GboardTopRowSwipeRuntime;->afterSoftKeyBound(Ljava/lang/Object;)V"),
+    TOP_ROW_SWIPE_RUNTIME_CLEAR_SWIPE_SESSION("Ldev/jason/gboardpatches/extension/toprowswipe/GboardTopRowSwipeRuntime;->clearSwipeSession(Ljava/lang/Object;)V"),
+    TOP_ROW_SWIPE_RUNTIME_FINISH_SWIPE_SESSION("Ldev/jason/gboardpatches/extension/toprowswipe/GboardTopRowSwipeRuntime;->finishSwipeSession(Ljava/lang/Object;)V"),
+    TOP_ROW_SWIPE_RUNTIME_MAYBE_ARM_AND_RESOLVE_TOP_ROW_OWNER("Ldev/jason/gboardpatches/extension/toprowswipe/GboardTopRowSwipeRuntime;->maybeArmAndResolveTopRowOwner(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;FF)Ljava/lang/Object;"),
+    TOP_ROW_SWIPE_RUNTIME_MAYBE_CONSUME_QUICK_JS_TOP_ROW_PRESS("Ldev/jason/gboardpatches/extension/toprowswipe/GboardTopRowSwipeRuntime;->maybeConsumeQuickJsTopRowPress(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Z"),
+    TOP_ROW_SWIPE_RUNTIME_MAYBE_CONSUME_TOP_ROW_SWIPE("Ldev/jason/gboardpatches/extension/toprowswipe/GboardTopRowSwipeRuntime;->maybeConsumeTopRowSwipe(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Z"),
+    TOP_ROW_SWIPE_RUNTIME_PATCH_INCOMING_SOFT_KEY_METADATA("Ldev/jason/gboardpatches/extension/toprowswipe/GboardTopRowSwipeRuntime;->patchIncomingSoftKeyMetadata(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"),
+    WEB_CLIPBOARD_CAPTURE_BOOTSTRAP_AFTER_LATIN_IME_ON_CREATE("Ldev/jason/gboardpatches/extension/webclipboard/GboardWebClipboardCaptureBootstrap;->afterLatinImeOnCreate(Ljava/lang/Object;)V"),
+    AI_WRITING_TOOLS_BACKEND_FACTORY_RUNTIME_REPLACE_UNSUPPORTED_SERVER_FALLBACK("Ldev/jason/gboardpatches/extension/writingtools/GboardAiWritingToolsBackendFactoryRuntime;->replaceUnsupportedServerFallback(Ljava/lang/Object;Landroid/content/Context;Ljava/lang/Object;)Ljava/lang/Object;"),
+    AI_WRITING_TOOLS_OFFICIAL_PREFERENCES_NOTE_PREFERENCE_VALUE("Ldev/jason/gboardpatches/extension/writingtools/GboardAiWritingToolsOfficialPreferences;->notePreferenceValue(IZ)V"),
+    AI_WRITING_TOOLS_RUNTIME_APPLY_OVERRIDDEN_FLAG_VALUE("Ldev/jason/gboardpatches/extension/writingtools/GboardAiWritingToolsRuntime;->applyOverriddenFlagValue(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"),
+    AI_WRITING_TOOLS_RUNTIME_APPLY_SIGNAL_RESULT("Ldev/jason/gboardpatches/extension/writingtools/GboardAiWritingToolsRuntime;->applySignalResult(Ljava/lang/Object;Z)Z"),
+    AI_WRITING_TOOLS_RUNTIME_ENTER_SETTINGS_CONTROLLER_SCOPE("Ldev/jason/gboardpatches/extension/writingtools/GboardAiWritingToolsRuntime;->enterSettingsControllerScope()V"),
+    AI_WRITING_TOOLS_RUNTIME_EXIT_SETTINGS_CONTROLLER_SCOPE("Ldev/jason/gboardpatches/extension/writingtools/GboardAiWritingToolsRuntime;->exitSettingsControllerScope()V"),
+    AI_WRITING_TOOLS_RUNTIME_SHOULD_BYPASS_SETTINGS_REMOVAL("Ldev/jason/gboardpatches/extension/writingtools/GboardAiWritingToolsRuntime;->shouldBypassSettingsRemoval(I)Z"),
+    AI_WRITING_TOOLS_VOICE_COMMAND_RUNTIME_AFTER_COMMAND_AMBIGUITY_CONSTRUCTED("Ldev/jason/gboardpatches/extension/writingtools/GboardAiWritingToolsVoiceCommandRuntime;->afterCommandAmbiguityConstructed(Ljava/lang/Object;)V"),
+    AI_WRITING_TOOLS_VOICE_COMMAND_RUNTIME_APPLY_CLASSIFICATION_REGEX_VERSION("Ldev/jason/gboardpatches/extension/writingtools/GboardAiWritingToolsVoiceCommandRuntime;->applyClassificationRegexVersion(Ljava/lang/Object;)Ljava/lang/Object;"),
+    AI_WRITING_TOOLS_VOICE_COMMAND_RUNTIME_APPLY_CLASSIFIER_MODELESS_FLAG_VALUE("Ldev/jason/gboardpatches/extension/writingtools/GboardAiWritingToolsVoiceCommandRuntime;->applyClassifierModelessFlagValue(Ljava/lang/Object;)Ljava/lang/Object;"),
+    AI_WRITING_TOOLS_VOICE_COMMAND_RUNTIME_APPLY_GEN_AI_INIT_CLIENT_TYPE("Ldev/jason/gboardpatches/extension/writingtools/GboardAiWritingToolsVoiceCommandRuntime;->applyGenAiInitClientType(Ljava/lang/Object;Z)Z"),
+    AI_WRITING_TOOLS_VOICE_COMMAND_RUNTIME_APPLY_SMART_EDIT_INIT_CLIENT_TYPE("Ldev/jason/gboardpatches/extension/writingtools/GboardAiWritingToolsVoiceCommandRuntime;->applySmartEditInitClientType(Ljava/lang/Object;Z)Z"),
+    AI_WRITING_TOOLS_VOICE_COMMAND_RUNTIME_APPLY_VOICE_COMMAND_LANGUAGES("Ldev/jason/gboardpatches/extension/writingtools/GboardAiWritingToolsVoiceCommandRuntime;->applyVoiceCommandLanguages(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"),
+    AI_WRITING_TOOLS_VOICE_COMMAND_RUNTIME_BEGIN_GEN_AI_REFRESH("Ldev/jason/gboardpatches/extension/writingtools/GboardAiWritingToolsVoiceCommandRuntime;->beginGenAiRefresh(Ljava/lang/Object;)V"),
+    AI_WRITING_TOOLS_VOICE_COMMAND_RUNTIME_FINISH_GEN_AI_REFRESH("Ldev/jason/gboardpatches/extension/writingtools/GboardAiWritingToolsVoiceCommandRuntime;->finishGenAiRefresh(Ljava/lang/Object;)V"),
+    AI_WRITING_TOOLS_VOICE_COMMAND_RUNTIME_OBSERVE_GEN_AI_REFRESH_CLIENT_TYPE("Ldev/jason/gboardpatches/extension/writingtools/GboardAiWritingToolsVoiceCommandRuntime;->observeGenAiRefreshClientType(Ljava/lang/Object;Ljava/lang/Object;)V"),
+    AI_WRITING_TOOLS_VOICE_COMMAND_RUNTIME_REMEMBER_GEN_AI_INIT_CALL("Ldev/jason/gboardpatches/extension/writingtools/GboardAiWritingToolsVoiceCommandRuntime;->rememberGenAiInitCall(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V"),
+    AI_WRITING_TOOLS_VOICE_COMMAND_RUNTIME_RESTORE_SMART_EDIT_GENERATOR_MODULE("Ldev/jason/gboardpatches/extension/writingtools/GboardAiWritingToolsVoiceCommandRuntime;->restoreSmartEditGeneratorModule(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"),
+    AI_WRITING_TOOLS_VOICE_COMMAND_RUNTIME_SHOULD_ENABLE_SMART_EDIT_MODULE("Ldev/jason/gboardpatches/extension/writingtools/GboardAiWritingToolsVoiceCommandRuntime;->shouldEnableSmartEditModule(Ljava/lang/Object;)Z"),
+    ZHUYIN_BOTTOM_ROW_WEIGHT_RUNTIME_AFTER_SOFT_KEY_BOUND("Ldev/jason/gboardpatches/extension/zhuyinbottomrow/GboardZhuyinBottomRowWeightRuntime;->afterSoftKeyBound(Ljava/lang/Object;)V"),
+    ZHUYIN_SLIDE_RUNTIME_CLEAR_POINTER_STATE("Ldev/jason/gboardpatches/extension/zhuyinslide/GboardZhuyinSlideRuntime;->clearPointerState(Ljava/lang/Object;)V"),
+    ZHUYIN_SLIDE_RUNTIME_MAYBE_CAPTURE_AND_SHOULD_SUPPRESS_RETARGET("Ldev/jason/gboardpatches/extension/zhuyinslide/GboardZhuyinSlideRuntime;->maybeCaptureAndShouldSuppressRetarget(Ljava/lang/Object;Ljava/lang/Object;FF)Z"),
+    ZHUYIN_SLIDE_RUNTIME_PATCH_INCOMING_SOFT_KEY_METADATA("Ldev/jason/gboardpatches/extension/zhuyinslide/GboardZhuyinSlideRuntime;->patchIncomingSoftKeyMetadata(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"),
+    ZHUYIN_TRADITIONAL_SIMPLIFIED_TOGGLE_RUNTIME_AFTER_SOFT_KEY_BOUND("Ldev/jason/gboardpatches/extension/zhuyintoggle/GboardZhuyinTraditionalSimplifiedToggleRuntime;->afterSoftKeyBound(Ljava/lang/Object;)V"),
+    ZHUYIN_TRADITIONAL_SIMPLIFIED_TOGGLE_RUNTIME_MAYBE_TOGGLE("Ldev/jason/gboardpatches/extension/zhuyintoggle/GboardZhuyinTraditionalSimplifiedToggleRuntime;->maybeToggle(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Z"),
+    ZHUYIN_TRADITIONAL_SIMPLIFIED_TOGGLE_RUNTIME_PATCH_INCOMING_SOFT_KEY_METADATA("Ldev/jason/gboardpatches/extension/zhuyintoggle/GboardZhuyinTraditionalSimplifiedToggleRuntime;->patchIncomingSoftKeyMetadata(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"),
+    ZHUYIN_TRADITIONAL_SIMPLIFIED_TOGGLE_RUNTIME_PATCH_POPUP_ACTION("Ldev/jason/gboardpatches/extension/zhuyintoggle/GboardZhuyinTraditionalSimplifiedToggleRuntime;->patchPopupAction(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"),
+}
+
+internal data class RuntimeAbi(
+    val owner: String,
+    val name: String,
+    val parameters: List<String>,
+    val returnType: String,
+    val isStatic: Boolean,
+) {
+    val descriptor: String
+        get() = parameters.joinToString(prefix = "(", postfix = ")$returnType", separator = "")
+
+    val reference: String
+        get() = "$owner->$name$descriptor"
+
+    companion object {
+        fun decode(encoded: String): RuntimeAbi {
+            val owner = encoded.substringBefore("->")
+            val method = encoded.substringAfter("->")
+            val name = method.substringBefore('(')
+            val parametersDescriptor = method.substringAfter('(').substringBefore(')')
+            return RuntimeAbi(
+                owner = owner,
+                name = name,
+                parameters = decodeTypes(parametersDescriptor),
+                returnType = method.substringAfter(')'),
+                isStatic = true,
+            )
+        }
+
+        private fun decodeTypes(descriptor: String): List<String> = buildList {
+            var index = 0
+            while (index < descriptor.length) {
+                val start = index
+                while (descriptor[index] == '[') index++
+                if (descriptor[index] == 'L') {
+                    index = descriptor.indexOf(';', index) + 1
+                    require(index > 0) { "Malformed object type in runtime ABI: $descriptor" }
+                } else {
+                    index++
+                }
+                add(descriptor.substring(start, index))
+            }
+        }
+    }
+}
+
+internal object RuntimeAbiCatalog {
+    private val abiByCall = RuntimeCallId.entries.associateWith { call ->
+        RuntimeAbi.decode(call.encodedAbi)
+    }
+
+    fun abi(call: RuntimeCallId): RuntimeAbi = abiByCall.getValue(call)
+}

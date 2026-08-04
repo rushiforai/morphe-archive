@@ -54,7 +54,7 @@ public final class GboardFeatureGroup implements GboardPatchesSettingsContract.F
 
     @Override
     public GboardPatchesSettingsContract.Screen buildScreen(
-            GboardPatchesSettingsContract.Host host) {
+            GboardPatchesSettingsContract.FeatureHost host) {
         List<GboardPatchesSettingsContract.Feature> visibleChildren =
                 availableChildren(host.getContext());
         if (visibleChildren.isEmpty()) {
@@ -78,7 +78,7 @@ public final class GboardFeatureGroup implements GboardPatchesSettingsContract.F
                         child.getEntryTitle(),
                         child.getEntrySummary(),
                         true,
-                        () -> host.openFeature(child)));
+                        () -> GboardPatchesSettingsContract.openFeature(host, child)));
             }
             return new GboardPatchesSettingsContract.Screen(
                     entryTitle,
@@ -88,8 +88,7 @@ public final class GboardFeatureGroup implements GboardPatchesSettingsContract.F
                     Collections.emptyList(),
                     Collections.singletonList(new GboardPatchesSettingsContract.Section(
                             GboardSettingsText.get(host.getContext(),
-                                    R.string.gboard_patches_section_features,
-                                    "Features"),
+                                    R.string.gboard_patches_section_features),
                             rows)));
         }
     }

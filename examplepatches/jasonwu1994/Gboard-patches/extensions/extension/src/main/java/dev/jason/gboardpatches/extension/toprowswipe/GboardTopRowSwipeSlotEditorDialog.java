@@ -32,14 +32,16 @@ final class GboardTopRowSwipeSlotEditorDialog {
     private GboardTopRowSwipeSlotEditorDialog() {
     }
 
-    static void show(Activity activity, int slotIndex,
+    static boolean show(Activity activity, int slotIndex,
             GboardTopRowSwipeSettings.SlotText currentSlot,
-            SaveCallback saveCallback) {
+            SaveCallback saveCallback,
+            Runnable onDismiss) {
         if (activity == null || activity.isFinishing() || currentSlot == null) {
-            return;
+            return false;
         }
 
         GboardTopRowSwipeStrings strings = GboardTopRowSwipeStrings.from(activity);
+        boolean[] shown = { false };
         runUiActionSafely(activity, "show slot editor dialog", () -> {
             Controller controller = new Controller(activity, currentSlot, strings);
             ScrollView scrollView = new ScrollView(activity);
@@ -85,8 +87,15 @@ final class GboardTopRowSwipeSlotEditorDialog {
                                         "reset slot editor dialog",
                                         () -> controller.resetToDefaultSlot(slotIndex)));
                     }));
+            dialog.setOnDismissListener(ignored -> {
+                if (onDismiss != null) {
+                    onDismiss.run();
+                }
+            });
             dialog.show();
+            shown[0] = true;
         });
+        return shown[0];
     }
 
     private static final class Controller {

@@ -5,18 +5,14 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.AccessFlags
 import dev.jason.gboardpatches.patches.gboard.features.zhuyintraditionalsimplifiedtoggle.installZhuyinToggleGestureDispatchHelpers
-import dev.jason.gboardpatches.patches.gboard.shared.addHelperMethodIfMissing
 import dev.jason.gboardpatches.patches.gboard.shared.findMutableMethodOrThrow
 import dev.jason.gboardpatches.patches.gboard.shared.generated.GboardVersionBindings
 import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesExtensionCarrierPatch
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 
-private val gestureDispatcherClass = GboardVersionBindings.gestureDispatch.classType
-private val gestureDispatchDescriptor = buildString {
-    append('(')
-    append(GboardVersionBindings.gestureDispatch.parameterTypes.joinToString(""))
-    append(')')
-    append(GboardVersionBindings.gestureDispatch.returnType)
-}
+private val gestureDispatcherClass = GboardVersionBindings.gestureDispatch.ownerDescriptor
+private val gestureDispatchDescriptor = GboardVersionBindings.gestureDispatch.descriptor
 
 internal val TOP_ROW_SWIPE_GESTURE_OWNER_DELEGATE = """
     invoke-direct/range {p0 .. p13}, $gestureDispatcherClass->jasondevDispatchWithTopRow$gestureDispatchDescriptor
@@ -39,11 +35,9 @@ internal val gboardTopRowSwipeGesturePatch = bytecodePatch(
 context(context: BytecodePatchContext)
 private fun installGestureDispatchHelpers() = with(context) {
     installZhuyinToggleGestureDispatchHelpers()
-    addHelperMethodIfMissing(
-        classType = gestureDispatcherClass,
+    GboardVersionBindings.gestureDispatch.installHelper(
+        context = this,
         name = "jasondevDispatchWithTopRow",
-        parameterTypes = GboardVersionBindings.gestureDispatch.parameterTypes,
-        returnType = GboardVersionBindings.gestureDispatch.returnType,
         accessFlags = AccessFlags.PRIVATE.value or AccessFlags.FINAL.value,
         registerCount = 15,
         body = TOP_ROW_SWIPE_DISPATCH_WITH_TOP_ROW_BODY
@@ -51,13 +45,19 @@ private fun installGestureDispatchHelpers() = with(context) {
 }
 
 internal val TOP_ROW_SWIPE_DISPATCH_WITH_TOP_ROW_BODY = """
-    invoke-static {p0, p1, p2, p4}, $TOP_ROW_SWIPE_RUNTIME_CLASS->maybeConsumeTopRowSwipe(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Z
+    ${RuntimeCallEmitter.invoke(
+        RuntimeCallId.TOP_ROW_SWIPE_RUNTIME_MAYBE_CONSUME_TOP_ROW_SWIPE,
+        "p0, p1, p2, p4",
+    )}
 
     move-result v0
 
     if-nez v0, :cond_return
 
-    invoke-static {p0, p1, p2, p3, p4}, $TOP_ROW_SWIPE_RUNTIME_CLASS->maybeConsumeQuickJsTopRowPress(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Z
+    ${RuntimeCallEmitter.invoke(
+        RuntimeCallId.TOP_ROW_SWIPE_RUNTIME_MAYBE_CONSUME_QUICK_JS_TOP_ROW_PRESS,
+        "p0, p1, p2, p3, p4",
+    )}
 
     move-result v0
 

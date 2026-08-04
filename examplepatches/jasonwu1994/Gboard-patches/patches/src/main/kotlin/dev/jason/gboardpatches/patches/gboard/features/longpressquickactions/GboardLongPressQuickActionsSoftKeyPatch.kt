@@ -1,26 +1,37 @@
 package dev.jason.gboardpatches.patches.gboard.features.longpressquickactions
 
+import dev.jason.gboardpatches.patches.gboard.shared.generated.GboardVersionBindings
+
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import dev.jason.gboardpatches.patches.gboard.shared.VerifiedTransformationPlan
+import dev.jason.gboardpatches.patches.gboard.shared.VerifiedTransformationState
+import dev.jason.gboardpatches.patches.gboard.shared.applyVerified
 import dev.jason.gboardpatches.patches.gboard.shared.findMutableMethodOrThrow
 import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesExtensionCarrierPatch
 import dev.jason.gboardpatches.patches.gboard.shared.gboardStructuralFingerprint
+import dev.jason.gboardpatches.patches.gboard.shared.isMethodReference
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeAbiCatalog
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 import dev.jason.gboardpatches.patches.shared.Constants.COMPATIBILITY_GBOARD
 
-internal const val LONG_PRESS_QUICK_ACTIONS_RUNTIME_CLASS =
-    "Ldev/jason/gboardpatches/extension/longpressquickactions/GboardLongPressQuickActions1777Runtime;"
-private const val SOFT_KEY_RUNTIME_DESCRIPTOR =
-    "$LONG_PRESS_QUICK_ACTIONS_RUNTIME_CLASS->maybePatchMetadata(Ljava/lang/Object;Landroid/view/View;)Ljava/lang/Object;"
+private val SOFT_KEY_RUNTIME_DESCRIPTOR = RuntimeAbiCatalog.abi(
+    RuntimeCallId.LONG_PRESS_QUICK_ACTIONS_RUNTIME_MAYBE_PATCH_METADATA,
+).reference
 private const val SOFT_KEY_STOCK_ENTRY_STRING = "SoftKeyView.setSoftKeyDef"
 
 internal val LONG_PRESS_QUICK_ACTIONS_SOFT_KEY_DELEGATE = """
-    invoke-static {p1, p0}, $SOFT_KEY_RUNTIME_DESCRIPTOR
+    ${RuntimeCallEmitter.invoke(
+        RuntimeCallId.LONG_PRESS_QUICK_ACTIONS_RUNTIME_MAYBE_PATCH_METADATA,
+        "p1, p0",
+    )}
 
     move-result-object p1
 
@@ -35,28 +46,38 @@ internal val gboardLongPressQuickActionsSoftKeyPatch = bytecodePatch(
 
     execute {
         val method = findMutableMethodOrThrow(
-            GboardLongPressQuickActions1777Bindings.softKeyBind,
+            GboardVersionBindings.softKeyBind,
         )
         method.applyLongPressQuickActionsSoftKeyDelegate()
     }
 }
 
 internal fun MutableMethod.applyLongPressQuickActionsSoftKeyDelegate() {
+    applyVerified(
+        VerifiedTransformationPlan(
+            targetName = GboardVersionBindings.softKeyBind.reference,
+            classify = MutableMethod::classifyLongPressSoftKey,
+            mutate = { method ->
+                method.addInstructions(0, LONG_PRESS_QUICK_ACTIONS_SOFT_KEY_DELEGATE)
+                method
+            },
+        ),
+    )
+}
+
+private fun MutableMethod.classifyLongPressSoftKey(): VerifiedTransformationState {
     val count = implementation!!.instructions.count {
-        it.methodDescriptor() == SOFT_KEY_RUNTIME_DESCRIPTOR
+        it.isMethodReference(SOFT_KEY_RUNTIME_DESCRIPTOR)
     }
-    check(count <= 1) { "Duplicate Long-press SoftKey delegates" }
     val stockEntryIndex = requireLongPressSoftKeyStockBodyFingerprint()
-    if (count == 1) {
-        requireValidLongPressSoftKeyDelegate(stockEntryIndex)
-        return
+    return when (count) {
+        0 -> VerifiedTransformationState.STOCK
+        1 -> {
+            requireValidLongPressSoftKeyDelegate(stockEntryIndex)
+            VerifiedTransformationState.PATCHED
+        }
+        else -> VerifiedTransformationState.MALFORMED
     }
-    addInstructions(0, LONG_PRESS_QUICK_ACTIONS_SOFT_KEY_DELEGATE)
-    check(implementation!!.instructions.count {
-        it.methodDescriptor() == SOFT_KEY_RUNTIME_DESCRIPTOR
-    } == 1) { "Long-press SoftKey delegate insertion failed" }
-    val patchedStockEntryIndex = requireLongPressSoftKeyStockBodyFingerprint()
-    requireValidLongPressSoftKeyDelegate(patchedStockEntryIndex)
 }
 
 private fun MutableMethod.requireLongPressSoftKeyStockBodyFingerprint(): Int {
@@ -66,11 +87,11 @@ private fun MutableMethod.requireLongPressSoftKeyStockBodyFingerprint(): Int {
             SOFT_KEY_STOCK_ENTRY_STRING
     }
     check(stockEntryIndex >= 0) {
-        "Missing stock entry anchor in ${GboardLongPressQuickActions1777Bindings.softKeyBind.descriptor()}"
+        "Missing stock entry anchor in ${GboardVersionBindings.softKeyBind.reference}"
     }
     val actual = gboardStructuralFingerprint(stockEntryIndex)
-    check(actual == GboardLongPressQuickActions1777Bindings.softKeyStockFingerprint) {
-        "Stock body drift in ${GboardLongPressQuickActions1777Bindings.softKeyBind.descriptor()}: $actual"
+    check(actual == GboardLongPressQuickActions1777Fingerprints.softKeyStock) {
+        "Stock body drift in ${GboardVersionBindings.softKeyBind.reference}: $actual"
     }
     return stockEntryIndex
 }
@@ -78,18 +99,30 @@ private fun MutableMethod.requireLongPressSoftKeyStockBodyFingerprint(): Int {
 private fun MutableMethod.requireValidLongPressSoftKeyDelegate(stockEntryIndex: Int) {
     val instructions = implementation!!.instructions
     val delegateIndex = instructions.indexOfFirst {
-        it.methodDescriptor() == SOFT_KEY_RUNTIME_DESCRIPTOR
+        it.isMethodReference(SOFT_KEY_RUNTIME_DESCRIPTOR)
     }
     check(delegateIndex >= 0 && delegateIndex + 2 < stockEntryIndex) {
         "Malformed Long-press SoftKey delegate position"
     }
+    val parameterRegisterCount = parameterTypes.sumOf { type ->
+        if (type == "J" || type == "D") 2 else 1
+    }
+    val p0 = implementation!!.registerCount - parameterRegisterCount - 1
+    val p1 = p0 + 1
+    val invoke = instructions[delegateIndex] as? FiveRegisterInstruction
     val moveResult = instructions[delegateIndex + 1] as? OneRegisterInstruction
     val checkCast = instructions[delegateIndex + 2]
     val checkCastRegister = checkCast as? OneRegisterInstruction
     check(
-        moveResult?.opcode == Opcode.MOVE_RESULT_OBJECT &&
+        invoke?.opcode == Opcode.INVOKE_STATIC &&
+            invoke.isMethodReference(SOFT_KEY_RUNTIME_DESCRIPTOR) &&
+            invoke.registerCount == 2 &&
+            invoke.registerC == p1 &&
+            invoke.registerD == p0 &&
+            moveResult?.opcode == Opcode.MOVE_RESULT_OBJECT &&
+            moveResult.registerA == p1 &&
             checkCast.opcode == Opcode.CHECK_CAST &&
-            moveResult?.registerA == checkCastRegister?.registerA &&
+            checkCastRegister?.registerA == p1 &&
             (checkCast as? ReferenceInstruction)?.reference?.toString() == "Lowd;",
     ) {
         "Malformed Long-press SoftKey delegate sequence"
@@ -103,6 +136,3 @@ internal fun MutableMethod.requireLongPressStockFingerprint(
     val actual = gboardStructuralFingerprint()
     check(actual == expected) { "Stock body drift in $descriptor: $actual" }
 }
-
-private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction.methodDescriptor(): String? =
-    ((this as? ReferenceInstruction)?.reference as? MethodReference)?.toString()

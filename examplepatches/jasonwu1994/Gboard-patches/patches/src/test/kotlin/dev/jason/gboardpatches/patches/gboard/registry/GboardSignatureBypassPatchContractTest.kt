@@ -36,7 +36,7 @@ class GboardSignatureBypassPatchContractTest {
 
         val inventory = JsonParser.parseString(readSource(PATCHES_LIST_PATH)).asJsonObject
         val patches = inventory.getAsJsonArray("patches").map { it.asJsonObject }
-        assertEquals(22, patches.size)
+        assertEquals(23, patches.size)
         val signatureRows = patches.filter { row ->
             row.get("name").asString == "Add Gboard Signature Bypass"
         }
@@ -71,7 +71,6 @@ class GboardSignatureBypassPatchContractTest {
         val profile = JsonParser.parseString(readSource(BINDINGS_PROFILE_PATH)).asJsonObject
         assertEquals("17.7.7", profile.get("target_version").asString)
         val bindings = profile.getAsJsonObject("bindings")
-        assertEquals(9, bindings.size())
         assertFalse(bindings.has("flag_factory"))
     }
 

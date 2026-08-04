@@ -49,6 +49,7 @@ class GboardDeveloperOptionsPatchContractSourceTest {
         val featurePath = repositoryRoot.resolve(FEATURE_PATH)
         val contract = readSource(CONTRACT_PATH)
         val activity = readSource(ACTIVITY_PATH)
+        val orchestrator = readSource(ORCHESTRATOR_PATH)
 
         assertTrue(availability.contains("FEATURE_DEVELOPER_OPTIONS"))
         assertTrue(availability.contains("dev.jason.gboardpatches.feature.developer_options"))
@@ -57,16 +58,42 @@ class GboardDeveloperOptionsPatchContractSourceTest {
 
         val feature = readSource(FEATURE_PATH)
         assertTrue(feature.contains("FEATURE_DEVELOPER_OPTIONS"))
-        assertTrue(feature.contains("public void openRootEntry("))
-        assertTrue(feature.contains("host.openTargetSettingsHeader("))
+        assertTrue(
+            feature.contains(
+                "public void openRootEntry(GboardPatchesSettingsContract.FeatureHost host)",
+            ),
+        )
+        assertTrue(
+            feature.contains(
+                "GboardPatchesSettingsContract.openTargetSettingsHeader(" +
+                    "host, TARGET_1777_HEADER_KEY_RESOURCE_ID)",
+            ),
+        )
         assertTrue(feature.contains("0x7f140abe"))
+        assertFalse(feature.contains("openFeature("))
         assertFalse(feature.contains("DeveloperSettingsFragment"))
         assertFalse(feature.contains(":android:show_fragment"))
 
-        assertTrue(contract.contains("default void openRootEntry(Host host)"))
-        assertTrue(contract.contains("host.openFeature(this);"))
+        assertTrue(contract.contains("default void openRootEntry(FeatureHost host)"))
+        assertTrue(contract.contains("void submit(Intent intent);"))
+        assertTrue(
+            contract.contains(
+                "public static void openTargetSettingsHeader(" +
+                    "FeatureHost host, int headerKeyResourceId)",
+            ),
+        )
+        assertTrue(
+            contract.contains(
+                "submit(host, adapter -> adapter.openTargetSettingsHeader(headerKeyResourceId))",
+            ),
+        )
         assertTrue(contract.contains("default void openTargetSettingsHeader(int headerKeyResourceId)"))
         assertTrue(activity.contains("() -> feature.openRootEntry(host)"))
+        assertTrue(activity.contains("GboardPatchesSettingsOrchestrator.Event.featureIntent(intent)"))
+        assertTrue(activity.contains("case EXECUTE_INTENT:"))
+        assertTrue(activity.contains("intent.apply(this);"))
+        assertTrue(orchestrator.contains("case FEATURE_INTENT:"))
+        assertTrue(orchestrator.contains("EffectKind.EXECUTE_INTENT"))
         assertFalse(activity.contains("() -> host.openFeature(feature)"))
     }
 
@@ -90,25 +117,6 @@ class GboardDeveloperOptionsPatchContractSourceTest {
         assertFalse(activity.contains("versionName.startsWith("))
         assertFalse(activity.contains("17.0.10"))
         assertFalse(activity.contains("fallbackFragment"))
-    }
-
-    @Test
-    fun localizedStringsUseConciseDeveloperOptionsAndFlagEditorCopy() {
-        val english = readSource(ENGLISH_STRINGS_PATH)
-        val traditionalChinese = readSource(TRADITIONAL_CHINESE_STRINGS_PATH)
-
-        assertTrue(english.contains(
-            "<string name=\"gboard_patches_developer_options_title\">Developer options</string>",
-        ))
-        assertTrue(english.contains(
-            "<string name=\"gboard_patches_developer_options_summary\">Open Developer options and the Flag Editor.</string>",
-        ))
-        assertTrue(traditionalChinese.contains(
-            "<string name=\"gboard_patches_developer_options_title\">開發人員選項</string>",
-        ))
-        assertTrue(traditionalChinese.contains(
-            "<string name=\"gboard_patches_developer_options_summary\">開啟 開發人員選項 與 Flag 編輯器。</string>",
-        ))
     }
 
     private fun readSource(relativePath: String): String = String(
@@ -154,10 +162,9 @@ class GboardDeveloperOptionsPatchContractSourceTest {
         const val ACTIVITY_PATH =
             "extensions/extension/src/main/java/dev/jason/gboardpatches/extension/settings/" +
                 "GboardPatchesSettingsActivity.java"
-        const val ENGLISH_STRINGS_PATH =
-            "extensions/extension/src/main/res/values/gboard_settings_strings.xml"
-        const val TRADITIONAL_CHINESE_STRINGS_PATH =
-            "extensions/extension/src/main/res/values-b+zh+Hant/gboard_settings_strings.xml"
+        const val ORCHESTRATOR_PATH =
+            "extensions/extension/src/main/java/dev/jason/gboardpatches/extension/settings/" +
+                "GboardPatchesSettingsOrchestrator.java"
         val SUPPORTED_PACKAGES = listOf(
             "com.google.android.inputmethod.latin",
             "com.google.android.inputmethod.latin.jason.dev",

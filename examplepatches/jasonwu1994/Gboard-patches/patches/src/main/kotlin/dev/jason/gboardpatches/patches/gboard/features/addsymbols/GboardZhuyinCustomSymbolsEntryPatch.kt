@@ -5,8 +5,10 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import dev.jason.gboardpatches.patches.gboard.shared.findMutableMethodOrThrow
 import dev.jason.gboardpatches.patches.gboard.shared.generated.GboardVersionBindings
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 
-private val softKeyMetadataType = GboardVersionBindings.softKeyBind.parameterTypes[0]
+private val softKeyMetadataType = GboardVersionBindings.softKeyMetadataType.descriptor
 
 internal val gboardZhuyinCustomSymbolsEntryPatch = bytecodePatch(
     description = "對注音逗號長按 popup 注入 jasondev_symbol 入口。"
@@ -21,7 +23,10 @@ internal val gboardZhuyinCustomSymbolsEntryPatch = bytecodePatch(
 }
 
 private val ENTRY_METADATA_DELEGATE = """
-    invoke-static {p0, p1}, Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsSoftKeyRuntime;->patchSoftKeyMetadata(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+    ${RuntimeCallEmitter.invoke(
+        RuntimeCallId.ADD_SYMBOLS_SOFT_KEY_RUNTIME_PATCH_SOFT_KEY_METADATA,
+        "p0, p1",
+    )}
 
     move-result-object p1
 

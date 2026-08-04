@@ -31,7 +31,8 @@ public final class GboardClipboardWebFeatureSourceTest {
         Assert.assertTrue(clipboardFeatureSource.contains("FEATURE_WEB_CLIPBOARD"));
         Assert.assertTrue(clipboardFeatureSource.contains("hasAnyFeature("));
         Assert.assertTrue(clipboardFeatureSource.contains("GboardWebClipboardSettingsFeature"));
-        Assert.assertTrue(clipboardFeatureSource.contains("host.openFeature(webClipboardFeature)"));
+        Assert.assertTrue(clipboardFeatureSource.contains(
+                "GboardPatchesSettingsContract.openFeature(host, webClipboardFeature)"));
         Assert.assertFalse(
                 "Web Clipboard rows should stay behind a dedicated subpage entry",
                 clipboardFeatureSource.contains("rows.addAll(webClipboardFeature.buildScreen("));

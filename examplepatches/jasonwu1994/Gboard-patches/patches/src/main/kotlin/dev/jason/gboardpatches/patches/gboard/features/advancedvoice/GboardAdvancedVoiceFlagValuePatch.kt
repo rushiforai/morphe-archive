@@ -1,15 +1,24 @@
 package dev.jason.gboardpatches.patches.gboard.features.advancedvoice
 
+import dev.jason.gboardpatches.patches.gboard.shared.generated.GboardVersionBindings
+
 import app.morphe.patcher.patch.bytecodePatch
 import dev.jason.gboardpatches.patches.gboard.features.featureflags.gboardFeatureFlagsBytecodePatch
 import dev.jason.gboardpatches.patches.gboard.shared.findMutableMethodOrThrow
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeAbiCatalog
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 import dev.jason.gboardpatches.patches.shared.Constants.COMPATIBILITY_GBOARD
 
-private const val FLAG_VALUE_RUNTIME_DESCRIPTOR =
-    "$ADVANCED_VOICE_RUNTIME_CLASS->afterFlagValue(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"
+private val FLAG_VALUE_RUNTIME_DESCRIPTOR = RuntimeAbiCatalog.abi(
+    RuntimeCallId.ADVANCED_VOICE_RUNTIME_AFTER_FLAG_VALUE,
+).reference
 
 internal val ADVANCED_VOICE_FLAG_VALUE_DELEGATE_TEMPLATE = """
-    invoke-static {v1, v__RESULT__}, $FLAG_VALUE_RUNTIME_DESCRIPTOR
+    ${RuntimeCallEmitter.invoke(
+        RuntimeCallId.ADVANCED_VOICE_RUNTIME_AFTER_FLAG_VALUE,
+        "v1, v__RESULT__",
+    )}
 
     move-result-object v__RESULT__
 """.trimIndent()
@@ -21,7 +30,7 @@ internal val gboardAdvancedVoiceFlagValuePatch = bytecodePatch(
     dependsOn(gboardFeatureFlagsBytecodePatch)
 
     execute {
-        val method = findMutableMethodOrThrow(GboardAdvancedVoice1777Bindings.flagValue)
+        val method = findMutableMethodOrThrow(GboardVersionBindings.flagBoolGetter)
         method.applyAdvancedVoiceFlagValueDelegate()
     }
 }

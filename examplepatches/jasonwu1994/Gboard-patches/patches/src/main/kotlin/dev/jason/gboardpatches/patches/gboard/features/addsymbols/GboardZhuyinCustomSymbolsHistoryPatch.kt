@@ -10,6 +10,8 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import dev.jason.gboardpatches.patches.gboard.shared.findMutableMethodOrThrow
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 
 private const val EMOTICON_ITEM_CLICK_CONSUMER_CLASS = "Liju;"
 private const val EMOTICON_HISTORY_MANAGER_CLASS = "Lfsr;"
@@ -82,7 +84,10 @@ internal fun MutableMethod.applyZhuyinCustomSymbolsHistoryDelegate(): MutableMet
 private val HISTORY_WRITE_DELEGATE = """
     move-object/from16 v5, p0
 
-    invoke-static {v5, %s, %s}, Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->interceptHistoryWrite(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)Z
+    ${RuntimeCallEmitter.invoke(
+        RuntimeCallId.ADD_SYMBOLS_RUNTIME_INTERCEPT_HISTORY_WRITE,
+        "v5, %s, %s",
+    )}
 
     move-result p1
 

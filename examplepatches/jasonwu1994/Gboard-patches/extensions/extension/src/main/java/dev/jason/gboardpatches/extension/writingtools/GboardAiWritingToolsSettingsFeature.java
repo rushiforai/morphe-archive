@@ -17,27 +17,6 @@ public final class GboardAiWritingToolsSettingsFeature
         implements GboardPatchesSettingsContract.Feature {
     private static final String TAG = "GboardPatches";
     private static final String VALUE_UNUSED = "__unused__";
-    private static final String HEADER_BADGE = "Gboard";
-    private static final String ENTRY_TITLE = "AI Writing Tools";
-    private static final String ENTRY_SUMMARY =
-            "Controls whether to force-show the stock AI Writing Tools switches.";
-    private static final String ERROR_TITLE = "AI Writing Tools unavailable";
-    private static final String ERROR_SUMMARY =
-            "The AI Writing Tools settings screen failed to load. Reopen Gboard settings and try again.";
-    private static final String ENABLED_TITLE = "Enable AI Writing Tools";
-    private static final String ENABLED_SUMMARY =
-            "Force-show the two switches under Corrections & suggestions -> Writing tools.";
-    private static final String ALL_KEYBOARDS_TITLE = "Support All Keyboards";
-    private static final String ALL_KEYBOARDS_SUMMARY =
-            "When enabled, force writing tools to work on every keyboard. Force-stop "
-                    + "and restart Gboard for the change to take effect.";
-    private static final String BACKEND_TYPE_TITLE = "Backend type";
-    private static final String BACKEND_TYPE_SUMMARY =
-            "Force-stop and restart Gboard after changing the backend. If you select "
-                    + "AICORE, you must be eligible to download the model.";
-    private static final String BACKEND_TYPE_DIALOG_TITLE = "Backend type";
-    private static final String SECTION_BEHAVIOR = "Behavior";
-
     private final String headerBadge;
     private final String entryTitle;
     private final String entrySummary;
@@ -55,52 +34,38 @@ public final class GboardAiWritingToolsSettingsFeature
     private final String sectionBehavior;
 
     public GboardAiWritingToolsSettingsFeature(Context context) {
-        headerBadge = GboardSettingsText.get(context, R.string.gboard_patches_header_badge,
-                HEADER_BADGE);
+        headerBadge = GboardSettingsText.get(context, R.string.gboard_patches_header_badge);
         entryTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_ai_writing_tools_title,
-                ENTRY_TITLE);
+                R.string.gboard_patches_ai_writing_tools_title);
         entrySummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_ai_writing_tools_summary,
-                ENTRY_SUMMARY);
+                R.string.gboard_patches_ai_writing_tools_summary);
         headerSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_ai_writing_tools_header_summary,
-                "");
+                R.string.gboard_patches_ai_writing_tools_header_summary);
         errorTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_ai_writing_tools_error_title,
-                ERROR_TITLE);
+                R.string.gboard_patches_ai_writing_tools_error_title);
         errorSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_ai_writing_tools_error_summary,
-                ERROR_SUMMARY);
+                R.string.gboard_patches_ai_writing_tools_error_summary);
         enabledTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_ai_writing_tools_enabled_title,
-                ENABLED_TITLE);
+                R.string.gboard_patches_ai_writing_tools_enabled_title);
         enabledSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_ai_writing_tools_enabled_summary,
-                ENABLED_SUMMARY);
+                R.string.gboard_patches_ai_writing_tools_enabled_summary);
         allKeyboardsTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_ai_writing_tools_all_keyboards_title,
-                ALL_KEYBOARDS_TITLE);
+                R.string.gboard_patches_ai_writing_tools_all_keyboards_title);
         allKeyboardsSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_ai_writing_tools_all_keyboards_summary,
-                ALL_KEYBOARDS_SUMMARY);
+                R.string.gboard_patches_ai_writing_tools_all_keyboards_summary);
         backendTypeTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_ai_writing_tools_backend_type_title,
-                BACKEND_TYPE_TITLE);
+                R.string.gboard_patches_ai_writing_tools_backend_type_title);
         backendTypeSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_ai_writing_tools_backend_type_summary,
-                BACKEND_TYPE_SUMMARY);
+                R.string.gboard_patches_ai_writing_tools_backend_type_summary);
         backendTypeDialogTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_ai_writing_tools_backend_type_dialog_title,
-                BACKEND_TYPE_DIALOG_TITLE);
+                R.string.gboard_patches_ai_writing_tools_backend_type_dialog_title);
         backendTypeValues = new String[]{
                 GboardAiWritingToolsSettings.BACKEND_GBOARD_SERVER,
                 GboardAiWritingToolsSettings.BACKEND_PRIVATE_INFERENCE_AICORE,
                 GboardAiWritingToolsSettings.BACKEND_PRIVATE_INFERENCE_ASTREA
         };
         sectionBehavior = GboardSettingsText.get(context,
-                R.string.gboard_patches_ai_writing_tools_section_behavior,
-                SECTION_BEHAVIOR);
+                R.string.gboard_patches_ai_writing_tools_section_behavior);
     }
 
     @Override
@@ -122,7 +87,7 @@ public final class GboardAiWritingToolsSettingsFeature
 
     @Override
     public GboardPatchesSettingsContract.Screen buildScreen(
-            GboardPatchesSettingsContract.Host host) {
+            GboardPatchesSettingsContract.FeatureHost host) {
         try {
             if (host == null || host.getContext() == null) {
                 return buildErrorScreen();
@@ -193,9 +158,9 @@ public final class GboardAiWritingToolsSettingsFeature
                 Collections.emptyList());
     }
 
-    private void showBackendTypeDialog(GboardPatchesSettingsContract.Host host,
+    private void showBackendTypeDialog(GboardPatchesSettingsContract.FeatureHost host,
             SharedPreferences preferences, String currentBackendType) {
-        host.showChoiceDialog(
+        GboardPatchesSettingsContract.showChoiceDialog(host,
                 backendTypeDialogTitle,
                 backendTypeValues,
                 backendTypeValues,
@@ -205,7 +170,7 @@ public final class GboardAiWritingToolsSettingsFeature
                 },
                 value -> {
                     GboardAiWritingToolsSettings.writeBackendType(preferences, value);
-                    host.refresh();
+                    GboardPatchesSettingsContract.refresh(host);
                 });
     }
 }

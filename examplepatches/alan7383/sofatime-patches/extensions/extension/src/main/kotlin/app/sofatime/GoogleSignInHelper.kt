@@ -371,17 +371,24 @@ object GoogleSignInHelper {
 
         private class DexScan(private val data: ByteArray) {
             private fun u16(off: Int): Int =
-                (data[off].toInt() and 0xFF) or ((data[off + 1].toInt() and 0xFF) shl 8)
+                if (off in 0..(data.size - 2)) {
+                    (data[off].toInt() and 0xFF) or ((data[off + 1].toInt() and 0xFF) shl 8)
+                } else {
+                    0xFFFF
+                }
 
             private fun u32(off: Int): Int =
                 (data[off].toInt() and 0xFF) or ((data[off + 1].toInt() and 0xFF) shl 8) or
                     ((data[off + 2].toInt() and 0xFF) shl 16) or ((data[off + 3].toInt() and 0xFF) shl 24)
 
+            private fun safeU32(off: Int, max: Int = data.size): Int =
+                if (off in 0..(max - 4)) u32(off) else -1
+
             private fun uleb128(start: Int): Pair<Int, Int> {
                 var result = 0
                 var shift = 0
                 var off = start
-                while (true) {
+                while (off < data.size) {
                     val b = data[off].toInt() and 0xFF
                     off++
                     result = result or ((b and 0x7F) shl shift)
@@ -392,27 +399,38 @@ object GoogleSignInHelper {
             }
 
             private fun string(idx: Int): String {
-                val off = u32(stringIdsOff + idx * 4)
+                if (idx < 0 || idx >= stringIdsSize) return ""
+                val off = safeU32(stringIdsOff + idx * 4)
+                if (off < 0) return ""
                 val (_, p) = uleb128(off)
                 var i = p
-                while (data[i].toInt() != 0) i++
+                while (i < data.size && data[i].toInt() != 0) i++
                 return String(data.copyOfRange(p, i), Charsets.UTF_8)
             }
 
-            private fun type(idx: Int): String = string(u32(typeIdsOff + idx * 4))
+            private fun type(idx: Int): String {
+                if (idx < 0 || idx >= typeIdsSize) return ""
+                return string(safeU32(typeIdsOff + idx * 4))
+            }
 
             private fun proto(idx: Int): Proto {
+                if (idx < 0 || protoIdsOff + idx * 12 > data.size - 12) return Proto("", emptyList())
                 val base = protoIdsOff + idx * 12
-                val returnType = type(u32(base + 4))
-                val paramsOff = u32(base + 8)
-                if (paramsOff == 0) return Proto(returnType, emptyList())
+                val returnType = type(safeU32(base + 4))
+                val paramsOff = safeU32(base + 8)
+                if (paramsOff <= 0 || paramsOff > data.size - 4) return Proto(returnType, emptyList())
                 val size = u32(paramsOff)
-                val params = (0 until size).map { type(u32(paramsOff + 4 + it * 4)) }
+                val params = if (paramsOff + 4 + size * 4 > data.size) {
+                    emptyList()
+                } else {
+                    (0 until size).map { type(u32(paramsOff + 4 + it * 4)) }
+                }
                 return Proto(returnType, params)
             }
 
             private val stringIdsSize = u32(0x38)
             private val stringIdsOff = u32(0x3C)
+            private val typeIdsSize = u32(0x40)
             private val typeIdsOff = u32(0x44)
             private val protoIdsOff = u32(0x4C)
             private val fieldIdsOff = u32(0x54)
@@ -421,12 +439,14 @@ object GoogleSignInHelper {
             private val classDefsOff = u32(0x64)
 
             private fun fieldType(fieldIdx: Int): String =
-                type(u16(fieldIdsOff + fieldIdx * 8 + 2))
+                if (fieldIdx < 0 || fieldIdsOff + fieldIdx * 8 + 4 > data.size) "" else type(u16(fieldIdsOff + fieldIdx * 8 + 2))
 
             private fun methodProto(methodIdx: Int): Proto =
-                proto(u16(methodIdsOff + methodIdx * 8 + 2))
+                if (methodIdx < 0 || methodIdsOff + methodIdx * 8 + 8 > data.size) Proto("", emptyList())
+                else proto(u16(methodIdsOff + methodIdx * 8 + 2))
 
             private fun methodName(methodIdx: Int): String {
+                if (methodIdx < 0 || methodIdsOff + methodIdx * 8 + 8 > data.size) return ""
                 val nameIdx = u32(methodIdsOff + methodIdx * 8 + 4)
                 return string(nameIdx)
             }
@@ -438,6 +458,7 @@ object GoogleSignInHelper {
                 var cls = 0
                 while (cls < classDefsSize) {
                     val defOff = classDefsOff + cls * 32
+                    if (defOff < 0 || defOff + 28 > data.size) break
                     val classIdx = u32(defOff)
                     val superIdx = u32(defOff + 8)
                     val interfacesOff = u32(defOff + 12)
@@ -445,10 +466,10 @@ object GoogleSignInHelper {
 
                     val superName = if (superIdx == -1) "" else type(superIdx)
                     var isSerializable = false
-                    if (interfacesOff != 0) {
+                    if (interfacesOff != 0 && interfacesOff > 0 && interfacesOff <= data.size - 4) {
                         val count = u32(interfacesOff)
                         var i = 0
-                        while (i < count) {
+                        while (i < count && interfacesOff + 4 + i * 4 + 4 <= data.size) {
                             if (type(u32(interfacesOff + 4 + i * 4)) == "Ljava/io/Serializable;") {
                                 isSerializable = true
                                 break
@@ -456,7 +477,7 @@ object GoogleSignInHelper {
                             i++
                         }
                     }
-                    if (superName != "Ljava/lang/Object;" || !isSerializable || classDataOff == 0) {
+                    if (superName != "Ljava/lang/Object;" || !isSerializable || classDataOff == 0 || classDataOff >= data.size) {
                         cls++
                         continue
                     }
@@ -471,14 +492,17 @@ object GoogleSignInHelper {
                     var hasObjectField = false
                     var hasThrowableField = false
                     var i0 = p2
+                    var fieldsOk = true
                     while (i < staticFieldsSize) {
+                        if (i0 >= data.size) { fieldsOk = false; break }
                         val (diff, np) = uleb128(i0)
                         i0 = np
                         fieldIdx += diff
                         i++
                     }
                     i = 0
-                    while (i < instanceFieldsSize) {
+                    while (i < instanceFieldsSize && fieldsOk) {
+                        if (i0 >= data.size) { fieldsOk = false; break }
                         val (diff, np) = uleb128(i0)
                         i0 = np
                         fieldIdx += diff
@@ -494,7 +518,9 @@ object GoogleSignInHelper {
                     var directHasCtorThrowable = false
                     var directHasStaticThrowableOf = false
                     var m0 = p3
-                    while (i < directMethodsSize) {
+                    var methodsOk = true
+                    while (i < directMethodsSize && fieldsOk) {
+                        if (m0 >= data.size) { methodsOk = false; break }
                         val (diff, np1) = uleb128(m0)
                         val (flags, np2) = uleb128(np1)
                         val (_, np3) = uleb128(np2)
@@ -513,7 +539,8 @@ object GoogleSignInHelper {
                     methodIdx = 0
                     i = 0
                     var m1 = p4
-                    while (i < virtualMethodsSize) {
+                    while (i < virtualMethodsSize && methodsOk) {
+                        if (m1 >= data.size) break
                         val (diff, np1) = uleb128(m1)
                         val (_, np2) = uleb128(np1)
                         val (_, np3) = uleb128(np2)
@@ -551,16 +578,17 @@ object GoogleSignInHelper {
         private var scanned = false
 
         private val KNOWN = listOf(
+            "zn5" to "yn5",
             "kn5" to "jn5",
-            "gm5" to "fm5",
-            "kotlin.Result" to "kotlin.Result\$Failure"
+            "gm5" to "fm5"
         )
 
         fun resultClass(context: Context?): Class<*>? = resolve(context)?.first
         fun failureClass(context: Context?): Class<*>? = resolve(context)?.second
 
-        private fun load(name: String): Class<*>? = try {
-            Class.forName(name)
+        private fun load(name: String, classLoader: ClassLoader? = null): Class<*>? = try {
+            val cl = classLoader ?: appContext?.classLoader ?: GoogleSignInHelper::class.java.classLoader
+            if (cl != null) cl.loadClass(name) else Class.forName(name)
         } catch (_: Throwable) {
             null
         }
@@ -579,11 +607,15 @@ object GoogleSignInHelper {
                 cachedResult?.let { r -> cachedFailure?.let { f -> return r to f } }
 
                 for ((rn, fn) in KNOWN) {
-                    val rc = load(rn)
-                    val fc = load(fn)
-                    if (rc != null && fc != null && hasCtor(rc, Any::class.java) && hasCtor(fc, Throwable::class.java)) {
+                    val rc = try { load(rn) } catch (_: Throwable) { null }
+                    val fc = try { load(fn) } catch (_: Throwable) { null }
+                    val rcCtor = rc != null && try { hasCtor(rc, Any::class.java) } catch (_: Throwable) { false }
+                    val fcCtor = fc != null && try { hasCtor(fc, Throwable::class.java) } catch (_: Throwable) { false }
+                    Log.d(TAG, "KNOWN pair $rn/$fn: rc=${rc?.name} fc=${fc?.name} ctor=$rcCtor/$fcCtor")
+                    if (rc != null && fc != null && rcCtor && fcCtor) {
                         cachedResult = rc
                         cachedFailure = fc
+                        Log.i(TAG, "Resolved Result classes via KNOWN: ${rc.name} / ${fc.name}")
                         return rc to fc
                     }
                 }
@@ -620,6 +652,16 @@ object GoogleSignInHelper {
                             Log.e(TAG, "DEX scan failed", e)
                         }
                     }
+                }
+
+                val stdlibResult = load("kotlin.Result")
+                val stdlibFailure = load("kotlin.Result\$Failure")
+                if (stdlibResult != null && stdlibFailure != null &&
+                    hasCtor(stdlibResult, Any::class.java) && hasCtor(stdlibFailure, Throwable::class.java)
+                ) {
+                    cachedResult = stdlibResult
+                    cachedFailure = stdlibFailure
+                    return stdlibResult to stdlibFailure
                 }
                 return null
             }

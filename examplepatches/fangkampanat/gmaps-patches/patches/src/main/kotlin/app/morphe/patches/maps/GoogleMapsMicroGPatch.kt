@@ -86,6 +86,7 @@ val googleMapsMicroGPatch = bytecodePatch(
         rewriteGmsCoreStrings()
         patchExtensionRuntime()
         patchAvailabilityChecks()
+        suppressMisleadingPlayServicesUpdateNotification()
         injectExtensionContext()
         injectGmsCoreCheck()
     }
@@ -93,14 +94,43 @@ val googleMapsMicroGPatch = bytecodePatch(
 
 private fun patchManifest(document: Document) {
     val manifest = document.documentElement
+    val appOwnedPermissionRenames = collectAppOwnedPermissionRenames(document)
+
     manifest.setAttribute("package", PATCHED_PACKAGE_NAME)
 
-    rewriteManifestAttributes(manifest)
+    rewriteManifestAttributes(manifest, appOwnedPermissionRenames)
+    validateAppOwnedPermissionRenames(document, appOwnedPermissionRenames)
     ensureQueryPackage(document, manifest)
     ensureSpoofMetadata(document)
 }
 
-private fun rewriteManifestAttributes(node: Node) {
+private fun collectAppOwnedPermissionRenames(document: Document): Map<String, String> {
+    val renames = linkedMapOf<String, String>()
+
+    manifestPermissionDeclarationTags.forEach { tagName ->
+        val declarations = document.getElementsByTagName(tagName)
+        for (index in 0 until declarations.length) {
+            val declaration = declarations.item(index) as? Element ?: continue
+            val name = declaration.getAttribute("android:name")
+            if (name.isBlank()) continue
+
+            renames[name] = when {
+                name.startsWith("$ORIGINAL_PACKAGE_NAME.") ->
+                    name.replaceFirst(ORIGINAL_PACKAGE_NAME, PATCHED_PACKAGE_NAME)
+
+                name.startsWith('.') -> "$PATCHED_PACKAGE_NAME$name"
+                else -> "${PATCHED_PACKAGE_NAME}_$name"
+            }
+        }
+    }
+
+    return renames
+}
+
+private fun rewriteManifestAttributes(
+    node: Node,
+    appOwnedPermissionRenames: Map<String, String>,
+) {
     if (node is Element) {
         val attributes = node.attributes
         for (index in 0 until attributes.length) {
@@ -110,9 +140,12 @@ private fun rewriteManifestAttributes(node: Node) {
 
             attribute.nodeValue = when {
                 name == "android:authorities" -> value.replaceOriginalPackage()
-                name == "android:name" && value == "$ORIGINAL_PACKAGE_NAME.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" -> value.replaceOriginalPackage()
-                name == "android:name" && node.tagName in manifestPermissionTags -> value.rewriteManifestRoute()
-                name in manifestPermissionAttributes -> value.replaceOriginalPackage().rewriteManifestRoute()
+                name == "android:name" && node.tagName in manifestPermissionTags ->
+                    appOwnedPermissionRenames[value] ?: value.rewriteManifestRoute()
+
+                name in manifestPermissionAttributes ->
+                    appOwnedPermissionRenames[value] ?: value.rewriteManifestRoute()
+
                 else -> value
             }
         }
@@ -120,23 +153,80 @@ private fun rewriteManifestAttributes(node: Node) {
 
     val children = node.childNodes
     for (index in 0 until children.length) {
-        rewriteManifestAttributes(children.item(index))
+        rewriteManifestAttributes(children.item(index), appOwnedPermissionRenames)
+    }
+}
+
+private fun validateAppOwnedPermissionRenames(
+    document: Document,
+    appOwnedPermissionRenames: Map<String, String>,
+) {
+    if (appOwnedPermissionRenames.isEmpty()) return
+
+    val oldNames = appOwnedPermissionRenames.keys
+    val staleNames = linkedSetOf<String>()
+
+    fun collectStaleNames(node: Node) {
+        if (node is Element) {
+            val attributes = node.attributes
+            for (index in 0 until attributes.length) {
+                val attribute = attributes.item(index)
+                val isPermissionName =
+                    attribute.nodeName == "android:name" && node.tagName in manifestPermissionTags
+                val isPermissionReference = attribute.nodeName in manifestPermissionAttributes
+
+                if ((isPermissionName || isPermissionReference) && attribute.nodeValue in oldNames) {
+                    staleNames += attribute.nodeValue
+                }
+            }
+        }
+
+        val children = node.childNodes
+        for (index in 0 until children.length) {
+            collectStaleNames(children.item(index))
+        }
+    }
+
+    collectStaleNames(document.documentElement)
+    if (staleNames.isNotEmpty()) {
+        throw PatchException("Failed to rename app-owned permissions: ${staleNames.joinToString()}")
+    }
+
+    val declaredNames = manifestPermissionDeclarationTags.flatMap { tagName ->
+        val declarations = document.getElementsByTagName(tagName)
+        buildList {
+            for (index in 0 until declarations.length) {
+                val declaration = declarations.item(index) as? Element ?: continue
+                add(declaration.getAttribute("android:name"))
+            }
+        }
+    }.toSet()
+    val missingDeclarations = appOwnedPermissionRenames.values - declaredNames
+
+    if (missingDeclarations.isNotEmpty()) {
+        throw PatchException(
+            "Missing renamed app-owned permission declarations: ${missingDeclarations.joinToString()}",
+        )
     }
 }
 
 private fun String.replaceOriginalPackage() =
     replace(ORIGINAL_PACKAGE_NAME, PATCHED_PACKAGE_NAME)
 
-private val manifestPermissionTags = setOf(
+private val manifestPermissionDeclarationTags = setOf(
     "permission",
     "permission-group",
     "permission-tree",
+)
+
+private val manifestPermissionTags = manifestPermissionDeclarationTags + setOf(
     "uses-permission",
     "uses-permission-sdk-23",
 )
 
 private val manifestPermissionAttributes = setOf(
     "android:permission",
+    "android:permissionGroup",
     "android:readPermission",
     "android:writePermission",
 )
@@ -429,6 +519,15 @@ private val googlePlayUtilityFingerprints = listOf(
     googlePlayUtilityFingerprint("Lbjqa;", "o"),
 )
 
+private val playServicesAvailabilityNotificationFingerprint = Fingerprint(
+    returnType = "V",
+    parameters = listOf(
+        "Landroid/content/Context;",
+        "Lcom/google/android/gms/common/ConnectionResult;",
+    ),
+    strings = listOf("com.google.android.gms.availability"),
+)
+
 private fun app.morphe.patcher.patch.BytecodePatchContext.patchExtensionRuntime() {
     val vendorMethod = extensionVendorFingerprint.methodOrNull
         ?: throw PatchException("Failed to match GmsCore extension vendor hook")
@@ -462,6 +561,23 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchAvailabilityCheck
         """
             const/4 v0, 0x0
             return v0
+        """.trimIndent(),
+    )
+}
+
+private fun app.morphe.patcher.patch.BytecodePatchContext.suppressMisleadingPlayServicesUpdateNotification() {
+    val method = playServicesAvailabilityNotificationFingerprint.methodOrNull
+        ?: throw PatchException("Failed to match Google Play services availability notification")
+
+    method.addInstructions(
+        0,
+        """
+            iget v0, p2, Lcom/google/android/gms/common/ConnectionResult;->c:I
+            const/4 v1, 0x2
+            if-ne v0, v1, :show_notification
+            return-void
+            :show_notification
+            nop
         """.trimIndent(),
     )
 }

@@ -1,7 +1,11 @@
 package dev.jason.gboardpatches.patches.gboard.features.clipboard
 
-internal const val CLIPBOARD_RUNTIME_CLASS =
-    "Ldev/jason/gboardpatches/extension/clipboard/GboardClipboardRuntime;"
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeAbiCatalog
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
+
+internal val CLIPBOARD_RUNTIME_CLASS = RuntimeAbiCatalog.abi(
+    RuntimeCallId.CLIPBOARD_RUNTIME_AFTER_ADAPTER_TRIM,
+).owner
 internal const val CLIPBOARD_LOADER_CALLABLE_CLASS = "Leun;"
 internal const val CLIPBOARD_PRUNE_CALLABLE_CLASS = "Levu;"
 internal const val CLIPBOARD_ADAPTER_CLASS = "Levn;"

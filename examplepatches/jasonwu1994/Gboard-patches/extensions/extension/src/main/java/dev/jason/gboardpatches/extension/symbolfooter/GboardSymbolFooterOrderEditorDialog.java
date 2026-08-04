@@ -41,12 +41,13 @@ final class GboardSymbolFooterOrderEditorDialog {
     private GboardSymbolFooterOrderEditorDialog() {
     }
 
-    static void show(Activity activity,
+    static boolean show(Activity activity,
             List<String> currentOrder,
             LabelResolver labelResolver,
-            SaveCallback saveCallback) {
+            SaveCallback saveCallback,
+            Runnable onDismiss) {
         if (activity == null || activity.isFinishing() || isDestroyed(activity)) {
-            return;
+            return false;
         }
         Controller controller = null;
         try {
@@ -59,13 +60,26 @@ final class GboardSymbolFooterOrderEditorDialog {
                             new SaveDialogClickListener(controller, saveCallback))
                     .setNegativeButton(CANCEL_LABEL, null)
                     .create();
-            dialog.setOnDismissListener(new ReleaseControllerOnDismissListener(controller));
+            Controller finalController = controller;
+            dialog.setOnDismissListener(ignored -> {
+                try {
+                    finalController.release();
+                } catch (Throwable throwable) {
+                    Log.w(TAG, "Failed to dismiss expression footer reorder dialog", throwable);
+                } finally {
+                    if (onDismiss != null) {
+                        onDismiss.run();
+                    }
+                }
+            });
             dialog.show();
+            return true;
         } catch (Throwable throwable) {
             Log.w(TAG, "Failed to show expression footer reorder dialog", throwable);
             if (controller != null) {
                 controller.release();
             }
+            return false;
         }
     }
 
@@ -473,26 +487,6 @@ final class GboardSymbolFooterOrderEditorDialog {
                 saveCallback.onSave(controller.currentOrder());
             } catch (Throwable throwable) {
                 Log.w(TAG, "Failed to save expression footer reorder result", throwable);
-            }
-        }
-    }
-
-    private static final class ReleaseControllerOnDismissListener
-            implements android.content.DialogInterface.OnDismissListener {
-        private final Controller controller;
-
-        ReleaseControllerOnDismissListener(Controller controller) {
-            this.controller = controller;
-        }
-
-        @Override
-        public void onDismiss(android.content.DialogInterface dialogInterface) {
-            try {
-                if (controller != null) {
-                    controller.release();
-                }
-            } catch (Throwable throwable) {
-                Log.w(TAG, "Failed to dismiss expression footer reorder dialog", throwable);
             }
         }
     }

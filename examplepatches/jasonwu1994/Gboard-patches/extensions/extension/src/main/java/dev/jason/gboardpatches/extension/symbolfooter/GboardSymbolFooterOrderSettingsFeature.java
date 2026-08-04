@@ -45,50 +45,35 @@ public final class GboardSymbolFooterOrderSettingsFeature
     public GboardSymbolFooterOrderSettingsFeature(Context context) {
         stringContext = context;
         entryTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_symbol_footer_title,
-                "Emojis, stickers & GIFs Tab Order");
+                R.string.gboard_patches_symbol_footer_title);
         headerBadge = GboardSettingsText.get(context,
-                R.string.gboard_patches_header_badge,
-                "Gboard");
+                R.string.gboard_patches_header_badge);
         entrySummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_symbol_footer_summary,
-                "Reorder the bottom tabs in Gboard's Emojis, stickers & GIFs panel.");
+                R.string.gboard_patches_symbol_footer_summary);
         headerSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_symbol_footer_header_summary,
-                "Controls the bottom tab order used by Gboard's Emojis, stickers & GIFs panel.");
+                R.string.gboard_patches_symbol_footer_header_summary);
         errorTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_symbol_footer_error_title,
-                "Emojis, stickers & GIFs tab order unavailable");
+                R.string.gboard_patches_symbol_footer_error_title);
         errorSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_symbol_footer_error_summary,
-                "The footer order screen failed to load. Reopen Gboard settings and try again.");
+                R.string.gboard_patches_symbol_footer_error_summary);
         currentOrderTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_symbol_footer_current_title,
-                "Current order");
+                R.string.gboard_patches_symbol_footer_current_title);
         reorderTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_symbol_footer_reorder_title,
-                "Reorder tabs");
+                R.string.gboard_patches_symbol_footer_reorder_title);
         reorderSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_symbol_footer_reorder_summary,
-                "Drag the handle to move tabs.");
+                R.string.gboard_patches_symbol_footer_reorder_summary);
         resetTitle = GboardSettingsText.get(context,
-                R.string.gboard_patches_symbol_footer_reset_title,
-                "Reset to default order");
+                R.string.gboard_patches_symbol_footer_reset_title);
         resetSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_symbol_footer_reset_summary,
-                "");
+                R.string.gboard_patches_symbol_footer_reset_summary);
         emptyOrderSummary = GboardSettingsText.get(context,
-                R.string.gboard_patches_symbol_footer_empty_summary,
-                "No tabs available in this build.");
+                R.string.gboard_patches_symbol_footer_empty_summary);
         sectionCurrentConfiguration = GboardSettingsText.get(context,
-                R.string.gboard_patches_symbol_footer_section_current,
-                "Current configuration");
+                R.string.gboard_patches_symbol_footer_section_current);
         sectionBehavior = GboardSettingsText.get(context,
-                R.string.gboard_patches_symbol_footer_section_behavior,
-                "Behavior");
+                R.string.gboard_patches_symbol_footer_section_behavior);
         sectionAdvanced = GboardSettingsText.get(context,
-                R.string.gboard_patches_symbol_footer_section_advanced,
-                "Advanced");
+                R.string.gboard_patches_symbol_footer_section_advanced);
     }
 
     @Override
@@ -110,7 +95,7 @@ public final class GboardSymbolFooterOrderSettingsFeature
 
     @Override
     public GboardPatchesSettingsContract.Screen buildScreen(
-            GboardPatchesSettingsContract.Host host) {
+            GboardPatchesSettingsContract.FeatureHost host) {
         try {
             if (host == null || host.getContext() == null) {
                 return buildErrorScreen();
@@ -144,11 +129,9 @@ public final class GboardSymbolFooterOrderSettingsFeature
                     true,
                     new ResetOrderAction(host),
                     GboardSettingsText.get(stringContext,
-                            R.string.gboard_patches_symbol_footer_reset_confirm_title,
-                            "Reset tab order"),
+                            R.string.gboard_patches_symbol_footer_reset_confirm_title),
                     GboardSettingsText.get(stringContext,
-                            R.string.gboard_patches_symbol_footer_reset_confirm_message,
-                            "Restore the default Emojis, stickers & GIFs tab order?")));
+                            R.string.gboard_patches_symbol_footer_reset_confirm_message)));
             return new GboardPatchesSettingsContract.Screen(
                     entryTitle,
                     headerBadge,
@@ -189,7 +172,7 @@ public final class GboardSymbolFooterOrderSettingsFeature
                 Collections.emptyList());
     }
 
-    private void showReorderDialog(GboardPatchesSettingsContract.Host host) {
+    private void showReorderDialog(GboardPatchesSettingsContract.FeatureHost host) {
         if (host == null || host.getContext() == null) {
             return;
         }
@@ -207,11 +190,14 @@ public final class GboardSymbolFooterOrderSettingsFeature
             List<String> storedOrder = GboardSymbolFooterOrderSettings.readSymbolFooterOrder(
                     context);
             List<String> currentOrder = visibleOrder(storedOrder, availableTabs);
-            GboardSymbolFooterOrderEditorDialog.show(
-                    activity,
-                    currentOrder,
-                    new TabLabelResolver(),
-                    new SaveReorderedOrderAction(context, host, storedOrder, availableTabs));
+            GboardPatchesSettingsContract.showManagedDialog(host, onDismiss ->
+                    GboardSymbolFooterOrderEditorDialog.show(
+                            activity,
+                            currentOrder,
+                            new TabLabelResolver(),
+                            new SaveReorderedOrderAction(
+                                    context, host, storedOrder, availableTabs),
+                            onDismiss));
         } catch (Throwable throwable) {
             Log.w(TAG, "Failed to show Emojis, stickers & GIFs reorder dialog", throwable);
         }
@@ -313,38 +299,33 @@ public final class GboardSymbolFooterOrderSettingsFeature
     private String tabLabel(String tabType) {
         if (GboardSymbolFooterOrderSettings.SYMBOL_FOOTER_TAB_EMOJI.equals(tabType)) {
             return GboardSettingsText.get(stringContext,
-                    R.string.gboard_patches_symbol_tab_emoji,
-                    "Emoji");
+                    R.string.gboard_patches_symbol_tab_emoji);
         }
         if (GboardSymbolFooterOrderSettings.SYMBOL_FOOTER_TAB_CUSTOM_SYMBOLS.equals(tabType)) {
             return GboardSettingsText.get(stringContext,
-                    R.string.gboard_patches_symbol_tab_custom_symbols,
-                    "Custom Symbols");
+                    R.string.gboard_patches_symbol_tab_custom_symbols);
         }
         if (GboardSymbolFooterOrderSettings.SYMBOL_FOOTER_TAB_EMOTICON.equals(tabType)) {
             return GboardSettingsText.get(stringContext,
-                    R.string.gboard_patches_symbol_tab_emoticon,
-                    "Emoticon");
+                    R.string.gboard_patches_symbol_tab_emoticon);
         }
         if (GboardSymbolFooterOrderSettings.SYMBOL_FOOTER_TAB_GIF.equals(tabType)) {
             return GboardSettingsText.get(stringContext,
-                    R.string.gboard_patches_symbol_tab_gif,
-                    "GIF");
+                    R.string.gboard_patches_symbol_tab_gif);
         }
         if (GboardSymbolFooterOrderSettings.SYMBOL_FOOTER_TAB_STICKER.equals(tabType)) {
             return GboardSettingsText.get(stringContext,
-                    R.string.gboard_patches_symbol_tab_sticker,
-                    "Sticker");
+                    R.string.gboard_patches_symbol_tab_sticker);
         }
         return tabType;
     }
 
     private final class ShowReorderDialogAction implements Runnable {
         private final GboardSymbolFooterOrderSettingsFeature feature;
-        private final GboardPatchesSettingsContract.Host host;
+        private final GboardPatchesSettingsContract.FeatureHost host;
 
         ShowReorderDialogAction(GboardSymbolFooterOrderSettingsFeature feature,
-                GboardPatchesSettingsContract.Host host) {
+                GboardPatchesSettingsContract.FeatureHost host) {
             this.feature = feature;
             this.host = host;
         }
@@ -359,9 +340,9 @@ public final class GboardSymbolFooterOrderSettingsFeature
     }
 
     private static final class ResetOrderAction implements Runnable {
-        private final GboardPatchesSettingsContract.Host host;
+        private final GboardPatchesSettingsContract.FeatureHost host;
 
-        ResetOrderAction(GboardPatchesSettingsContract.Host host) {
+        ResetOrderAction(GboardPatchesSettingsContract.FeatureHost host) {
             this.host = host;
         }
 
@@ -392,12 +373,12 @@ public final class GboardSymbolFooterOrderSettingsFeature
     private static final class SaveReorderedOrderAction
             implements GboardSymbolFooterOrderEditorDialog.SaveCallback {
         private final Context context;
-        private final GboardPatchesSettingsContract.Host host;
+        private final GboardPatchesSettingsContract.FeatureHost host;
         private final List<String> storedOrder;
         private final List<String> availableTabs;
 
         SaveReorderedOrderAction(Context context,
-                GboardPatchesSettingsContract.Host host,
+                GboardPatchesSettingsContract.FeatureHost host,
                 List<String> storedOrder,
                 List<String> availableTabs) {
             this.context = context;
@@ -426,12 +407,12 @@ public final class GboardSymbolFooterOrderSettingsFeature
         }
     }
 
-    private static void safeRefresh(GboardPatchesSettingsContract.Host host) {
+    private static void safeRefresh(GboardPatchesSettingsContract.FeatureHost host) {
         if (host == null) {
             return;
         }
         try {
-            host.refresh();
+            GboardPatchesSettingsContract.refresh(host);
         } catch (Throwable throwable) {
             Log.w(TAG, "Failed to refresh settings after expression footer update", throwable);
         }

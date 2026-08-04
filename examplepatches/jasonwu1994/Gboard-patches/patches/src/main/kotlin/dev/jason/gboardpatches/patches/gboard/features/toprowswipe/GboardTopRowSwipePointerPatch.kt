@@ -1,58 +1,67 @@
 package dev.jason.gboardpatches.patches.gboard.features.toprowswipe
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import dev.jason.gboardpatches.patches.gboard.shared.GboardPointerOwner1777RegisterContract
-import dev.jason.gboardpatches.patches.gboard.shared.findMutableMethodOrThrow
+import dev.jason.gboardpatches.patches.gboard.shared.GboardPointerOwnerFeature
+import dev.jason.gboardpatches.patches.gboard.shared.GboardPointerOwnerFeatureSpec
+import dev.jason.gboardpatches.patches.gboard.shared.GboardPointerOwnerTransformationContext
+import dev.jason.gboardpatches.patches.gboard.shared.GboardPointerOwnerTransformationAdapter
 import dev.jason.gboardpatches.patches.gboard.shared.generated.GboardVersionBindings
 import dev.jason.gboardpatches.patches.gboard.shared.indexOfFirstMethodCall
 import dev.jason.gboardpatches.patches.gboard.shared.returnInstructionIndices
+import dev.jason.gboardpatches.patches.gboard.shared.gboardPointerOwnerFeaturePatch
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 
-private val pointerTrackerClass = GboardVersionBindings.pointerOwner.classType
+private val pointerTrackerClass = GboardVersionBindings.pointerOwnerType.descriptor
 
 internal val TOP_ROW_SWIPE_POINTER_DELEGATE = topRowSwipePointerDelegate(
     GboardPointerOwner1777RegisterContract.stockRegisterCount,
 )
 
 internal val TOP_ROW_SWIPE_CLEAR_SESSION_DELEGATE = """
-    invoke-static {p0}, $TOP_ROW_SWIPE_RUNTIME_CLASS->clearSwipeSession(Ljava/lang/Object;)V
+    ${RuntimeCallEmitter.invoke(RuntimeCallId.TOP_ROW_SWIPE_RUNTIME_CLEAR_SWIPE_SESSION, "p0")}
 """.trimIndent()
 
 internal val TOP_ROW_SWIPE_FINISH_SESSION_DELEGATE = """
-    invoke-static {p0}, $TOP_ROW_SWIPE_RUNTIME_CLASS->finishSwipeSession(Ljava/lang/Object;)V
+    ${RuntimeCallEmitter.invoke(RuntimeCallId.TOP_ROW_SWIPE_RUNTIME_FINISH_SWIPE_SESSION, "p0")}
 """.trimIndent()
 
-internal val gboardTopRowSwipePointerPatch = bytecodePatch(
-    description = "攔第一排水平手勢 session 並在 gesture 結束時套用 pending page。"
-) {
-    execute {
-        val pointerTrackMethod = findMutableMethodOrThrow(GboardVersionBindings.pointerOwner)
-        pointerTrackMethod.applyTopRowSwipePointerDelegate()
+internal val gboardTopRowSwipePointerTransformation =
+    GboardPointerOwnerTransformationAdapter { context ->
+        context.pointerOwnerMethod.applyTopRowSwipePointerDelegate()
 
-        val finishMethod = findMutableMethodOrThrow(
-            classType = pointerTrackerClass,
-            name = "r",
-            returnType = "V",
-            parameterTypes = listOf("J", "I")
-        )
-        val finishReturns = finishMethod.returnInstructionIndices()
+        val finishReturns = context.pointerFinishMethod.returnInstructionIndices()
         check(finishReturns.isNotEmpty()) { "Unable to find return in Lpbl;->r(JI)V" }
         finishReturns.asReversed().forEach { returnIndex ->
-            finishMethod.addInstructions(returnIndex, TOP_ROW_SWIPE_FINISH_SESSION_DELEGATE)
+            context.pointerFinishMethod.addInstructions(
+                returnIndex,
+                TOP_ROW_SWIPE_FINISH_SESSION_DELEGATE,
+            )
         }
 
-        val cancelMethod = findMutableMethodOrThrow(GboardVersionBindings.pointerCancel)
-        val cancelReturns = cancelMethod.returnInstructionIndices()
+        val cancelReturns = context.pointerCancelMethod.returnInstructionIndices()
         check(cancelReturns.isNotEmpty()) { "Unable to find return in target pointer cancel" }
         cancelReturns.asReversed().forEach { returnIndex ->
-            cancelMethod.addInstructions(returnIndex, TOP_ROW_SWIPE_CLEAR_SESSION_DELEGATE)
+            context.pointerCancelMethod.addInstructions(
+                returnIndex,
+                TOP_ROW_SWIPE_CLEAR_SESSION_DELEGATE,
+            )
         }
 
-        val resetMethod = findMutableMethodOrThrow(GboardVersionBindings.pointerReset)
-        resetMethod.addInstructions(0, TOP_ROW_SWIPE_CLEAR_SESSION_DELEGATE)
-    }
+        context.pointerResetMethod.addInstructions(0, TOP_ROW_SWIPE_CLEAR_SESSION_DELEGATE)
 }
+
+private val gboardTopRowSwipePointerSpec = GboardPointerOwnerFeatureSpec(
+    feature = GboardPointerOwnerFeature.TOP_ROW_SWIPE,
+    transformation = gboardTopRowSwipePointerTransformation,
+)
+
+internal val gboardTopRowSwipePointerPatch = gboardPointerOwnerFeaturePatch(
+    description = "攔第一排水平手勢 session 並在 gesture 結束時套用 pending page。",
+    spec = gboardTopRowSwipePointerSpec,
+)
 
 internal fun MutableMethod.applyTopRowSwipePointerDelegate() {
     val insertIndex = indexOfFirstMethodCall(
@@ -70,7 +79,10 @@ internal fun MutableMethod.applyTopRowSwipePointerDelegate() {
 private fun topRowSwipePointerDelegate(registerCount: Int): String {
     val registers = GboardPointerOwner1777RegisterContract.delegateRegisters(registerCount)
     return """
-        invoke-static {${registers.receiver}, ${registers.softKey}, v3, v0, v1}, $TOP_ROW_SWIPE_RUNTIME_CLASS->maybeArmAndResolveTopRowOwner(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;FF)Ljava/lang/Object;
+        ${RuntimeCallEmitter.invoke(
+            RuntimeCallId.TOP_ROW_SWIPE_RUNTIME_MAYBE_ARM_AND_RESOLVE_TOP_ROW_OWNER,
+            "${registers.receiver}, ${registers.softKey}, v3, v0, v1",
+        )}
 
         move-result-object ${registers.softKey}
 

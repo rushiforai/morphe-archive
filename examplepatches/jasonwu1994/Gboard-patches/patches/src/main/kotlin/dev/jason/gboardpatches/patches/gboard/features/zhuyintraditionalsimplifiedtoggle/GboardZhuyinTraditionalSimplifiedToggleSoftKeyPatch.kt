@@ -7,16 +7,22 @@ import dev.jason.gboardpatches.patches.gboard.shared.findMutableMethodOrThrow
 import dev.jason.gboardpatches.patches.gboard.shared.generated.GboardVersionBindings
 import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesExtensionCarrierPatch
 import dev.jason.gboardpatches.patches.gboard.shared.returnInstructionIndices
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeAbiCatalog
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 import dev.jason.gboardpatches.patches.shared.Constants.COMPATIBILITY_GBOARD
 
-internal const val ZHUYIN_TOGGLE_RUNTIME_CLASS =
-    "Ldev/jason/gboardpatches/extension/zhuyintoggle/" +
-        "GboardZhuyinTraditionalSimplifiedToggleRuntime;"
+internal val ZHUYIN_TOGGLE_RUNTIME_CLASS = RuntimeAbiCatalog.abi(
+    RuntimeCallId.ZHUYIN_TRADITIONAL_SIMPLIFIED_TOGGLE_RUNTIME_PATCH_INCOMING_SOFT_KEY_METADATA,
+).owner
 
-private val softKeyMetadataType = GboardVersionBindings.softKeyBind.parameterTypes[0]
+private val softKeyMetadataType = GboardVersionBindings.softKeyMetadataType.descriptor
 
 internal val ZHUYIN_TOGGLE_PATCH_INCOMING_METADATA_DELEGATE = """
-    invoke-static {p0, p1}, $ZHUYIN_TOGGLE_RUNTIME_CLASS->patchIncomingSoftKeyMetadata(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+    ${RuntimeCallEmitter.invoke(
+        RuntimeCallId.ZHUYIN_TRADITIONAL_SIMPLIFIED_TOGGLE_RUNTIME_PATCH_INCOMING_SOFT_KEY_METADATA,
+        "p0, p1",
+    )}
 
     move-result-object p1
 
@@ -24,7 +30,10 @@ internal val ZHUYIN_TOGGLE_PATCH_INCOMING_METADATA_DELEGATE = """
 """.trimIndent()
 
 internal val ZHUYIN_TOGGLE_AFTER_BIND_DELEGATE = """
-    invoke-static {p0}, $ZHUYIN_TOGGLE_RUNTIME_CLASS->afterSoftKeyBound(Ljava/lang/Object;)V
+    ${RuntimeCallEmitter.invoke(
+        RuntimeCallId.ZHUYIN_TRADITIONAL_SIMPLIFIED_TOGGLE_RUNTIME_AFTER_SOFT_KEY_BOUND,
+        "p0",
+    )}
 """.trimIndent()
 
 internal val gboardZhuyinTraditionalSimplifiedToggleSoftKeyPatch = bytecodePatch(

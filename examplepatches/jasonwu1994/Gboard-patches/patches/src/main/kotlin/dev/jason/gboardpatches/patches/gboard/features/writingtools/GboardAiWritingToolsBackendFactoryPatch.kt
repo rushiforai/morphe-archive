@@ -11,7 +11,13 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import dev.jason.gboardpatches.patches.gboard.shared.findMutableMethodOrThrow
 import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesExtensionCarrierPatch
+import dev.jason.gboardpatches.patches.gboard.shared.isInvoke
+import dev.jason.gboardpatches.patches.gboard.shared.isMethodReference
+import dev.jason.gboardpatches.patches.gboard.shared.isOpcode
 import dev.jason.gboardpatches.patches.gboard.shared.returnInstructionIndices
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeAbiCatalog
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 import dev.jason.gboardpatches.patches.shared.Constants.COMPATIBILITY_GBOARD
 
 internal val gboardAiWritingToolsBackendFactoryPatch = bytecodePatch(
@@ -38,7 +44,7 @@ internal fun MutableMethod.applyWritingToolsBackendFactoryGuard() {
         "Unexpected gyc#a register count in $definingClass->$name"
     }
     val returnIndices = returnInstructionIndices()
-        .filter { instructions[it].normalizedOpcode() == "RETURN_OBJECT" }
+        .filter { instructions[it].isOpcode("RETURN_OBJECT") }
     check(returnIndices.size == 5) {
         "Expected five RETURN_OBJECT sites in $definingClass->$name"
     }
@@ -50,12 +56,12 @@ internal fun MutableMethod.applyWritingToolsBackendFactoryGuard() {
         "Unsupported fallback result no longer returns p0"
     }
     val serverConstructorIndex = (unsupportedReturnIndex - 1 downTo 0).firstOrNull { index ->
-        instructions[index].backendMethodDescriptor() == SERVER_CONSTRUCTOR_DESCRIPTOR
+        instructions[index].isMethodReference(SERVER_CONSTRUCTOR_DESCRIPTOR)
     } ?: error("Missing final njl constructor in $definingClass->$name")
     val contextOverwriteIndices = instructions.indices.filter { index ->
         val instruction = instructions[index]
         val field = (instruction as? ReferenceInstruction)?.reference as? FieldReference
-        instruction.normalizedOpcode() == "SGET_OBJECT" &&
+        instruction.isOpcode("SGET_OBJECT") &&
             instruction is OneRegisterInstruction &&
             instruction.registerA == CONTEXT_PARAMETER_REGISTER &&
             field?.toString() == CONTEXT_OVERWRITE_FIELD
@@ -65,11 +71,11 @@ internal fun MutableMethod.applyWritingToolsBackendFactoryGuard() {
     }
     val contextOverwriteIndex = contextOverwriteIndices.single()
     val delegateIndices = instructions.indices.filter { index ->
-        instructions[index].backendMethodDescriptor() == BACKEND_FACTORY_DELEGATE_DESCRIPTOR
+        instructions[index].isMethodReference(BACKEND_FACTORY_DELEGATE_DESCRIPTOR)
     }
     val contextPreserveIndices = instructions.indices.filter { index ->
         val instruction = instructions[index]
-        instruction.normalizedOpcode() == "MOVE_OBJECT" &&
+        instruction.isOpcode("MOVE_OBJECT") &&
             instruction is TwoRegisterInstruction &&
             instruction.registerA == CONTEXT_SCRATCH_REGISTER &&
             instruction.registerB == CONTEXT_PARAMETER_REGISTER
@@ -78,16 +84,17 @@ internal fun MutableMethod.applyWritingToolsBackendFactoryGuard() {
         unsupportedReturnIndex >= 4 &&
         serverConstructorIndex == unsupportedReturnIndex - 4 &&
         delegateIndices.single() == unsupportedReturnIndex - 3 &&
-        instructions[unsupportedReturnIndex - 3].isExactWritingToolsStaticInvoke(
+        instructions[unsupportedReturnIndex - 3].isInvoke(
+            "INVOKE_STATIC",
             BACKEND_FACTORY_DELEGATE_DESCRIPTOR,
             unsupportedResultRegister,
             CONTEXT_SCRATCH_REGISTER,
             implementation!!.registerCount - 1,
         ) &&
-        instructions[unsupportedReturnIndex - 2].normalizedOpcode() == "MOVE_RESULT_OBJECT" &&
+        instructions[unsupportedReturnIndex - 2].isOpcode("MOVE_RESULT_OBJECT") &&
         (instructions[unsupportedReturnIndex - 2] as? OneRegisterInstruction)?.registerA ==
             unsupportedResultRegister &&
-        instructions[unsupportedReturnIndex - 1].normalizedOpcode() == "CHECK_CAST" &&
+        instructions[unsupportedReturnIndex - 1].isOpcode("CHECK_CAST") &&
         (instructions[unsupportedReturnIndex - 1] as? OneRegisterInstruction)?.registerA ==
             unsupportedResultRegister &&
         (instructions[unsupportedReturnIndex - 1] as? ReferenceInstruction)
@@ -119,7 +126,10 @@ internal fun MutableMethod.applyWritingToolsBackendFactoryGuard() {
 }
 
 private fun buildBackendFactoryDelegate(resultRegister: Int): String = """
-    invoke-static {v$resultRegister, v$CONTEXT_SCRATCH_REGISTER, p1}, $AI_WRITING_TOOLS_BACKEND_FACTORY_RUNTIME_CLASS->replaceUnsupportedServerFallback(Ljava/lang/Object;Landroid/content/Context;Ljava/lang/Object;)Ljava/lang/Object;
+    ${RuntimeCallEmitter.invoke(
+        RuntimeCallId.AI_WRITING_TOOLS_BACKEND_FACTORY_RUNTIME_REPLACE_UNSUPPORTED_SERVER_FALLBACK,
+        "v$resultRegister, v$CONTEXT_SCRATCH_REGISTER, p1",
+    )}
 
     move-result-object v$resultRegister
 
@@ -130,14 +140,6 @@ private const val CONTEXT_SCRATCH_REGISTER = 4
 private const val CONTEXT_PARAMETER_REGISTER = 5
 private const val CONTEXT_OVERWRITE_FIELD = "Lgyc;->a:Lviq;"
 private const val SERVER_CONSTRUCTOR_DESCRIPTOR = "Lnjl;-><init>(Loxe;)V"
-private const val BACKEND_FACTORY_DELEGATE_DESCRIPTOR =
-    "$AI_WRITING_TOOLS_BACKEND_FACTORY_RUNTIME_CLASS->" +
-        "replaceUnsupportedServerFallback(Ljava/lang/Object;Landroid/content/Context;" +
-        "Ljava/lang/Object;)Ljava/lang/Object;"
-
-private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction
-    .backendMethodDescriptor(): String? =
-    ((this as? ReferenceInstruction)?.reference as? MethodReference)?.toString()
-
-private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction
-    .normalizedOpcode(): String = opcode.name.uppercase().replace('-', '_')
+private val BACKEND_FACTORY_DELEGATE_DESCRIPTOR = RuntimeAbiCatalog.abi(
+    RuntimeCallId.AI_WRITING_TOOLS_BACKEND_FACTORY_RUNTIME_REPLACE_UNSUPPORTED_SERVER_FALLBACK,
+).reference

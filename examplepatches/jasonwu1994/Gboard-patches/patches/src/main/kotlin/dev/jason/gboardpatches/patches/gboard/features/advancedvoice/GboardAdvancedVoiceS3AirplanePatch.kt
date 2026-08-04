@@ -1,5 +1,7 @@
 package dev.jason.gboardpatches.patches.gboard.features.advancedvoice
 
+import dev.jason.gboardpatches.patches.gboard.shared.generated.GboardVersionBindings
+
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -16,7 +18,7 @@ internal val gboardAdvancedVoiceS3AirplanePatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_GBOARD)
 
     execute {
-        findMutableMethodOrThrow(GboardAdvancedVoice1777Bindings.s3NetworkAvailability)
+        findMutableMethodOrThrow(GboardVersionBindings.advancedVoiceS3NetworkAvailability)
             .applyAdvancedVoiceS3AirplaneModeOverride()
     }
 }

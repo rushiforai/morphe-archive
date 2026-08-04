@@ -15,8 +15,18 @@ import com.android.tools.smali.dexlib2.iface.instruction.ThreeRegisterInstructio
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesExtensionCarrierPatch
+import dev.jason.gboardpatches.patches.gboard.shared.VerifiedTransformationPlan
+import dev.jason.gboardpatches.patches.gboard.shared.VerifiedTransformationState
+import dev.jason.gboardpatches.patches.gboard.shared.applyVerified
+import dev.jason.gboardpatches.patches.gboard.shared.isInvoke
+import dev.jason.gboardpatches.patches.gboard.shared.isMethodReference
+import dev.jason.gboardpatches.patches.gboard.shared.isMethodReferenceInClass
+import dev.jason.gboardpatches.patches.gboard.shared.isOpcode
 import dev.jason.gboardpatches.patches.gboard.shared.gboardStructuralFingerprint
 import dev.jason.gboardpatches.patches.gboard.shared.mutableClass
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeAbiCatalog
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 
@@ -44,10 +54,11 @@ private val TARGET_CLASS_ACCESS_FLAGS = AccessFlags.PUBLIC.value
 private val TARGET_METHOD_ACCESS_FLAGS =
     AccessFlags.PUBLIC.value or AccessFlags.FINAL.value
 
-private const val CAPTURE_BOOTSTRAP_RUNTIME_CLASS =
-    "Ldev/jason/gboardpatches/extension/webclipboard/GboardWebClipboardCaptureBootstrap;"
-private const val CAPTURE_BOOTSTRAP_RUNTIME_DESCRIPTOR =
-    "$CAPTURE_BOOTSTRAP_RUNTIME_CLASS->afterLatinImeOnCreate(Ljava/lang/Object;)V"
+private val CAPTURE_BOOTSTRAP_RUNTIME_CALL =
+    RuntimeCallId.WEB_CLIPBOARD_CAPTURE_BOOTSTRAP_AFTER_LATIN_IME_ON_CREATE
+private val CAPTURE_BOOTSTRAP_RUNTIME_ABI = RuntimeAbiCatalog.abi(CAPTURE_BOOTSTRAP_RUNTIME_CALL)
+private val CAPTURE_BOOTSTRAP_RUNTIME_CLASS = CAPTURE_BOOTSTRAP_RUNTIME_ABI.owner
+private val CAPTURE_BOOTSTRAP_RUNTIME_DESCRIPTOR = CAPTURE_BOOTSTRAP_RUNTIME_ABI.reference
 
 internal val gboardWebClipboardCapturePatch = bytecodePatch(
     description = "在 oau.onCreate() 正常返回前掛上 Web Clipboard capture bootstrap。"
@@ -88,33 +99,48 @@ internal fun selectWebClipboardCaptureOnCreate(
 
 internal fun MutableMethod.applyWebClipboardCaptureBootstrap(): MutableMethod {
     requireExactTarget()
+    return applyVerified(
+        VerifiedTransformationPlan(
+            targetName = TARGET_DESCRIPTOR,
+            classify = MutableMethod::classifyWebClipboardCapture,
+            mutate = { method ->
+                val instructions = method.implementation?.instructions
+                    ?: error("No instructions in $TARGET_DESCRIPTOR")
+                method.addInstructions(
+                    receiverSaveInsertionIndex(instructions),
+                    RECEIVER_SAVE,
+                )
+                val returnIndex = singleNormalReturnIndex(
+                    method.implementation?.instructions
+                        ?: error("No instructions in $TARGET_DESCRIPTOR"),
+                )
+                method.addInstructions(returnIndex, CAPTURE_BOOTSTRAP_DELEGATE)
+                method
+            },
+        ),
+    )
+}
+
+private fun MutableMethod.classifyWebClipboardCapture(): VerifiedTransformationState {
     val instructions = implementation?.instructions
         ?: error("No instructions in $TARGET_DESCRIPTOR")
     val runtimeReferences = instructions.filter { instruction ->
-        instruction.methodDescriptor()
-            ?.startsWith("$CAPTURE_BOOTSTRAP_RUNTIME_CLASS->") == true
+        instruction.isMethodReferenceInClass(CAPTURE_BOOTSTRAP_RUNTIME_CLASS)
     }
-    if (runtimeReferences.isNotEmpty()) {
-        check(
-            runtimeReferences.size == 1 &&
-                runtimeReferences.single().methodDescriptor() ==
-                    CAPTURE_BOOTSTRAP_RUNTIME_DESCRIPTOR,
-        ) {
-            "$TARGET_DESCRIPTOR contains an orphan or duplicate Web Clipboard delegate"
+    return when {
+        runtimeReferences.isEmpty() -> {
+            validateStockBody()
+            VerifiedTransformationState.STOCK
         }
-        validateCompletedPatch()
-        return this
+        runtimeReferences.size == 1 &&
+            runtimeReferences.single().isMethodReference(
+                CAPTURE_BOOTSTRAP_RUNTIME_DESCRIPTOR,
+            ) -> {
+            validateCompletedPatch()
+            VerifiedTransformationState.PATCHED
+        }
+        else -> VerifiedTransformationState.MALFORMED
     }
-
-    validateStockBody()
-    val receiverSaveIndex = receiverSaveInsertionIndex(instructions)
-    addInstructions(receiverSaveIndex, RECEIVER_SAVE)
-    val returnIndex = singleNormalReturnIndex(
-        implementation?.instructions ?: error("No instructions in $TARGET_DESCRIPTOR"),
-    )
-    addInstructions(returnIndex, CAPTURE_BOOTSTRAP_DELEGATE)
-    validateCompletedPatch()
-    return this
 }
 
 private fun MutableMethod.requireExactTarget() {
@@ -136,8 +162,7 @@ private fun MutableMethod.validateStockBody() {
         "Unexpected register count in $TARGET_DESCRIPTOR: ${implementation.registerCount}"
     }
     check(implementation.instructions.none { instruction ->
-        instruction.methodDescriptor()
-            ?.startsWith("$CAPTURE_BOOTSTRAP_RUNTIME_CLASS->") == true
+        instruction.isMethodReferenceInClass(CAPTURE_BOOTSTRAP_RUNTIME_CLASS)
     }) {
         "$TARGET_DESCRIPTOR contains an orphan Web Clipboard runtime reference"
     }
@@ -181,13 +206,12 @@ private fun MutableMethod.validateCompletedPatch() {
         "$TARGET_DESCRIPTOR must save the receiver before p0 is clobbered"
     }
     check(instructions.count { instruction ->
-        instruction.methodDescriptor() == CAPTURE_BOOTSTRAP_RUNTIME_DESCRIPTOR
+        instruction.isMethodReference(CAPTURE_BOOTSTRAP_RUNTIME_DESCRIPTOR)
     } == 1) {
         "$TARGET_DESCRIPTOR must contain exactly one Web Clipboard delegate"
     }
     check(instructions.count { instruction ->
-        instruction.methodDescriptor()
-            ?.startsWith("$CAPTURE_BOOTSTRAP_RUNTIME_CLASS->") == true
+        instruction.isMethodReferenceInClass(CAPTURE_BOOTSTRAP_RUNTIME_CLASS)
     } == 1) {
         "$TARGET_DESCRIPTOR contains an orphan Web Clipboard runtime reference"
     }
@@ -213,7 +237,7 @@ private fun MutableMethod.validateStockControlFlow() {
     val instructions = implementation.instructions
     val returnIndex = singleNormalReturnIndex(instructions)
     val throwIndices = instructions.indices.filter { index ->
-        instructions[index].normalizedOpcode() == "THROW"
+        instructions[index].isOpcode("THROW")
     }
     check(throwIndices.size == 1) {
         "$TARGET_DESCRIPTOR must retain exactly one catchall THROW"
@@ -229,7 +253,7 @@ private fun MutableMethod.validateStockControlFlow() {
         "$TARGET_DESCRIPTOR catchall must throw the original p0 register"
     }
     check(
-        instructions.getOrNull(throwIndex - 2)?.normalizedOpcode() == "MOVE_EXCEPTION" &&
+        instructions.getOrNull(throwIndex - 2)?.isOpcode("MOVE_EXCEPTION") == true &&
             (instructions[throwIndex - 2] as? OneRegisterInstruction)?.registerA ==
                 STOCK_RECEIVER_REGISTER,
     ) {
@@ -237,7 +261,7 @@ private fun MutableMethod.validateStockControlFlow() {
     }
 
     val superCalls = instructions.indices.filter { index ->
-        instructions[index].methodDescriptor() == SUPER_ON_CREATE_DESCRIPTOR
+        instructions[index].isMethodReference(SUPER_ON_CREATE_DESCRIPTOR)
     }
     check(superCalls.size == 1 && superCalls.single() < returnIndex) {
         "$TARGET_DESCRIPTOR must call InputMethodService.onCreate() before normal return"
@@ -260,7 +284,7 @@ private fun MutableMethod.validateStockControlFlow() {
 
 private fun MutableMethod.singleNormalReturnIndex(instructions: List<Instruction>): Int {
     val returns = instructions.indices.filter { index ->
-        instructions[index].normalizedOpcode() == "RETURN_VOID"
+        instructions[index].isOpcode("RETURN_VOID")
     }
     check(returns.size == 1) {
         "$TARGET_DESCRIPTOR must contain exactly one normal RETURN_VOID"
@@ -330,20 +354,20 @@ private fun List<Instruction>.codeAddressOf(index: Int): Int {
 }
 
 private fun Instruction?.isExactCaptureDelegate(): Boolean =
-    this?.normalizedOpcode() == "INVOKE_STATIC_RANGE" &&
-        this.methodDescriptor() == CAPTURE_BOOTSTRAP_RUNTIME_DESCRIPTOR &&
-        this is RegisterRangeInstruction &&
-        startRegister == SAVED_RECEIVER_REGISTER &&
-        registerCount == 1
+    this?.isInvoke(
+        "INVOKE_STATIC_RANGE",
+        CAPTURE_BOOTSTRAP_RUNTIME_DESCRIPTOR,
+        SAVED_RECEIVER_REGISTER,
+    ) == true
 
 private fun Instruction?.isExactReceiverSave(): Boolean =
-    this?.normalizedOpcode() == "MOVE_OBJECT" &&
+    this?.isOpcode("MOVE_OBJECT") == true &&
         this is TwoRegisterInstruction &&
         registerA == SAVED_RECEIVER_REGISTER &&
         registerB == STOCK_RECEIVER_REGISTER
 
 private fun Instruction?.isExactLastSavedLocalUse(): Boolean =
-    this?.normalizedOpcode() == "APUT_OBJECT" &&
+    this?.isOpcode("APUT_OBJECT") == true &&
         this is ThreeRegisterInstruction &&
         registerA == SAVED_RECEIVER_REGISTER &&
         registerB == 2 &&
@@ -380,15 +404,12 @@ private fun Instruction.definesRegister(register: Int): Boolean {
     }
 }
 
-private fun Instruction.methodDescriptor(): String? =
-    ((this as? ReferenceInstruction)?.reference as? MethodReference)?.toString()
-
 private fun Instruction.normalizedOpcode(): String =
     opcode.name.uppercase().replace('-', '_').replace('/', '_')
 
 private const val RECEIVER_SAVE = "move-object v4, p0"
-private const val CAPTURE_BOOTSTRAP_DELEGATE =
-    "invoke-static/range {v4 .. v4}, $CAPTURE_BOOTSTRAP_RUNTIME_DESCRIPTOR"
+private val CAPTURE_BOOTSTRAP_DELEGATE =
+    RuntimeCallEmitter.invoke(CAPTURE_BOOTSTRAP_RUNTIME_CALL, "v4 .. v4")
 
 private val DESTINATION_REGISTER_PREFIXES = listOf(
     "CONST",

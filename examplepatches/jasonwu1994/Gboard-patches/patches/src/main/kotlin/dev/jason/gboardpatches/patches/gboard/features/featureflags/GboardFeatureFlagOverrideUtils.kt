@@ -174,9 +174,7 @@ private fun List<com.android.tools.smali.dexlib2.iface.instruction.Instruction>
             flagNameLoad.opcode.name.normalized() != "IGET_OBJECT" ||
             flagNameLoad.registerA != 0 ||
             flagNameLoad.registerB != FEATURE_FLAG_RECEIVER_REGISTER ||
-            field.definingClass != GboardVersionBindings.flagNameField.classType ||
-            field.name != GboardVersionBindings.flagNameField.name ||
-            field.type != GboardVersionBindings.flagNameField.type
+            !GboardVersionBindings.flagNameField.matches(field)
         ) {
             return false
         }

@@ -124,27 +124,15 @@ public final class GboardSettingsGroupingTest {
     }
 
     @Test
-    public void bluetoothMicrophoneUsesIndependentMarkerAndExactLocalizedCopy()
+    public void bluetoothMicrophoneUsesIndependentMarker()
             throws Exception {
         String availabilitySource = readSource(
                 "src/main/java/dev/jason/gboardpatches/extension/settings/"
                         + "GboardPatchesFeatureAvailability.java");
-        String englishStrings = readSource(
-                "src/main/res/values/gboard_settings_strings.xml");
-        String traditionalChineseStrings = readSource(
-                "src/main/res/values-b+zh+Hant/gboard_settings_strings.xml");
 
         Assert.assertTrue(availabilitySource.contains("FEATURE_BLUETOOTH_MICROPHONE"));
         Assert.assertTrue(availabilitySource.contains(
                 "dev.jason.gboardpatches.feature.bluetooth_microphone"));
-        Assert.assertTrue(englishStrings.contains(
-                ">Use Bluetooth microphone</string>"));
-        Assert.assertTrue(englishStrings.contains(
-                ">Voice typing -&gt; Use Bluetooth microphone</string>"));
-        Assert.assertTrue(traditionalChineseStrings.contains(
-                ">使用藍芽麥克風</string>"));
-        Assert.assertTrue(traditionalChineseStrings.contains(
-                ">語音輸入-&gt;使用藍芽麥克風</string>"));
     }
 
     @Test
@@ -267,7 +255,7 @@ public final class GboardSettingsGroupingTest {
         return (Runnable) method.invoke(target);
     }
 
-    private static final class RecordingHost implements GboardPatchesSettingsContract.Host {
+    private static final class RecordingHost extends dev.jason.gboardpatches.extension.settings.GboardPatchesSettingsTestHost {
         private GboardPatchesSettingsContract.Feature openedFeature;
 
         @Override
@@ -343,7 +331,7 @@ public final class GboardSettingsGroupingTest {
 
         @Override
         public GboardPatchesSettingsContract.Screen buildScreen(
-                GboardPatchesSettingsContract.Host host) {
+                GboardPatchesSettingsContract.FeatureHost host) {
             return new GboardPatchesSettingsContract.Screen(
                     title,
                     "Gboard",

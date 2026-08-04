@@ -99,8 +99,9 @@ class GboardWebClipboardRuntimePreservationTest {
             "DE0AEBDC3D5D36AC06CEA66334E5528CAF8319122680F59761FAC4423E3C49F2"
         const val NON_CAPTURE_PATCHES_SHA256 =
             "B1ED6A3375C989F5C08A951FEEB1A4949133F86F4826C602552D4C3D21E719BF"
+        // STRONG #4 intentionally narrows settings features from Host to FeatureHost.
         const val SETTINGS_RUNTIME_SHA256 =
-            "9243EC546FA865C2D1622A6C704374EC4C3AA0F53C1DC2139C3CCC910C2E395D"
+            "4406B8F10478D995223CC5F92EAE4195EC04BC90FFA051BBEC867C44B63167D0"
         val TEXT_EXTENSIONS = setOf(
             "css", "html", "java", "js", "json", "kt", "svg", "txt", "xml",
         )

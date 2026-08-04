@@ -1,5 +1,7 @@
 package dev.jason.gboardpatches.patches.gboard.features.writingtools
 
+import dev.jason.gboardpatches.patches.gboard.shared.generated.GboardVersionBindings
+
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
@@ -15,36 +17,46 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import dev.jason.gboardpatches.patches.gboard.shared.findMutableMethodOrThrow
 import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesExtensionCarrierPatch
+import dev.jason.gboardpatches.patches.gboard.shared.isFieldReference
+import dev.jason.gboardpatches.patches.gboard.shared.isMethodReference
+import dev.jason.gboardpatches.patches.gboard.shared.isReference
 import dev.jason.gboardpatches.patches.gboard.shared.returnInstructionIndices
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeAbiCatalog
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
+import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 import dev.jason.gboardpatches.patches.shared.Constants.COMPATIBILITY_GBOARD
 
-internal const val VOICE_COMMAND_RUNTIME_CLASS =
-    "Ldev/jason/gboardpatches/extension/writingtools/GboardAiWritingToolsVoiceCommandRuntime;"
+internal val VOICE_COMMAND_RUNTIME_CLASS = RuntimeAbiCatalog.abi(
+    RuntimeCallId.AI_WRITING_TOOLS_VOICE_COMMAND_RUNTIME_APPLY_GEN_AI_INIT_CLIENT_TYPE,
+).owner
 
-private const val GEN_AI_GATE =
-    "$VOICE_COMMAND_RUNTIME_CLASS->applyGenAiInitClientType(Ljava/lang/Object;Z)Z"
-private const val GEN_AI_INIT_REMEMBER =
-    "$VOICE_COMMAND_RUNTIME_CLASS->rememberGenAiInitCall(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V"
-private const val GEN_AI_REFRESH_BEGIN =
-    "$VOICE_COMMAND_RUNTIME_CLASS->beginGenAiRefresh(Ljava/lang/Object;)V"
-private const val GEN_AI_REFRESH_OBSERVE =
-    "$VOICE_COMMAND_RUNTIME_CLASS->observeGenAiRefreshClientType(Ljava/lang/Object;Ljava/lang/Object;)V"
-private const val GEN_AI_REFRESH_FINISH =
-    "$VOICE_COMMAND_RUNTIME_CLASS->finishGenAiRefresh(Ljava/lang/Object;)V"
-private const val SMART_EDIT_GATE =
-    "$VOICE_COMMAND_RUNTIME_CLASS->applySmartEditInitClientType(Ljava/lang/Object;Z)Z"
-private const val SMART_EDIT_MODULE =
-    "$VOICE_COMMAND_RUNTIME_CLASS->shouldEnableSmartEditModule(Ljava/lang/Object;)Z"
-private const val COMMAND_AMBIGUITY =
-    "$VOICE_COMMAND_RUNTIME_CLASS->afterCommandAmbiguityConstructed(Ljava/lang/Object;)V"
-private const val CLASSIFIER_MODELESS =
-    "$VOICE_COMMAND_RUNTIME_CLASS->applyClassifierModelessFlagValue(Ljava/lang/Object;)Ljava/lang/Object;"
-private const val CLASSIFICATION_REGEX =
-    "$VOICE_COMMAND_RUNTIME_CLASS->applyClassificationRegexVersion(Ljava/lang/Object;)Ljava/lang/Object;"
-private const val VOICE_COMMAND_LANGUAGES =
-    "$VOICE_COMMAND_RUNTIME_CLASS->applyVoiceCommandLanguages(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"
-private const val SMART_EDIT_GENERATOR_MODULE =
-    "$VOICE_COMMAND_RUNTIME_CLASS->restoreSmartEditGeneratorModule(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"
+private val RuntimeCallId.reference: String
+    get() = RuntimeAbiCatalog.abi(this).reference
+
+private val GEN_AI_GATE =
+    RuntimeCallId.AI_WRITING_TOOLS_VOICE_COMMAND_RUNTIME_APPLY_GEN_AI_INIT_CLIENT_TYPE
+private val GEN_AI_INIT_REMEMBER =
+    RuntimeCallId.AI_WRITING_TOOLS_VOICE_COMMAND_RUNTIME_REMEMBER_GEN_AI_INIT_CALL
+private val GEN_AI_REFRESH_BEGIN =
+    RuntimeCallId.AI_WRITING_TOOLS_VOICE_COMMAND_RUNTIME_BEGIN_GEN_AI_REFRESH
+private val GEN_AI_REFRESH_OBSERVE =
+    RuntimeCallId.AI_WRITING_TOOLS_VOICE_COMMAND_RUNTIME_OBSERVE_GEN_AI_REFRESH_CLIENT_TYPE
+private val GEN_AI_REFRESH_FINISH =
+    RuntimeCallId.AI_WRITING_TOOLS_VOICE_COMMAND_RUNTIME_FINISH_GEN_AI_REFRESH
+private val SMART_EDIT_GATE =
+    RuntimeCallId.AI_WRITING_TOOLS_VOICE_COMMAND_RUNTIME_APPLY_SMART_EDIT_INIT_CLIENT_TYPE
+private val SMART_EDIT_MODULE =
+    RuntimeCallId.AI_WRITING_TOOLS_VOICE_COMMAND_RUNTIME_SHOULD_ENABLE_SMART_EDIT_MODULE
+private val COMMAND_AMBIGUITY =
+    RuntimeCallId.AI_WRITING_TOOLS_VOICE_COMMAND_RUNTIME_AFTER_COMMAND_AMBIGUITY_CONSTRUCTED
+private val CLASSIFIER_MODELESS =
+    RuntimeCallId.AI_WRITING_TOOLS_VOICE_COMMAND_RUNTIME_APPLY_CLASSIFIER_MODELESS_FLAG_VALUE
+private val CLASSIFICATION_REGEX =
+    RuntimeCallId.AI_WRITING_TOOLS_VOICE_COMMAND_RUNTIME_APPLY_CLASSIFICATION_REGEX_VERSION
+private val VOICE_COMMAND_LANGUAGES =
+    RuntimeCallId.AI_WRITING_TOOLS_VOICE_COMMAND_RUNTIME_APPLY_VOICE_COMMAND_LANGUAGES
+private val SMART_EDIT_GENERATOR_MODULE =
+    RuntimeCallId.AI_WRITING_TOOLS_VOICE_COMMAND_RUNTIME_RESTORE_SMART_EDIT_GENERATOR_MODULE
 private const val MODULE_MANAGER_GET_LOADED =
     "Lcom/google/android/libraries/inputmethod/module/ModuleManager;->a(Ljava/lang/Class;)Lozp;"
 
@@ -55,23 +67,23 @@ internal val gboardAiWritingToolsVoiceCommandPatch = bytecodePatch(
     dependsOn(gboardPatchesExtensionCarrierPatch)
 
     execute {
-        findMutableMethodOrThrow(GboardAiWritingToolsVoiceCommandBindings.genAiInit)
+        findMutableMethodOrThrow(GboardVersionBindings.aiWritingToolsGenAiInit)
             .applyWritingToolsGenAiInitClientTypeDelegate()
-        findMutableMethodOrThrow(GboardAiWritingToolsVoiceCommandBindings.ngaInputRefresh)
+        findMutableMethodOrThrow(GboardVersionBindings.aiWritingToolsNgaInputRefresh)
             .applyWritingToolsGenAiRefreshDelegate()
-        findMutableMethodOrThrow(GboardAiWritingToolsVoiceCommandBindings.smartEditInit)
+        findMutableMethodOrThrow(GboardVersionBindings.aiWritingToolsSmartEditInit)
             .applyWritingToolsSmartEditInitClientTypeDelegate()
-        findMutableMethodOrThrow(GboardAiWritingToolsVoiceCommandBindings.modulePredicate)
+        findMutableMethodOrThrow(GboardVersionBindings.aiWritingToolsModulePredicate)
             .applyWritingToolsSmartEditModulePredicateDelegate()
-        findMutableMethodOrThrow(GboardAiWritingToolsVoiceCommandBindings.ambiguityConstructor)
+        findMutableMethodOrThrow(GboardVersionBindings.aiWritingToolsAmbiguityConstructor)
             .applyWritingToolsCommandAmbiguityDelegate()
-        findMutableMethodOrThrow(GboardAiWritingToolsVoiceCommandBindings.classifierInit)
+        findMutableMethodOrThrow(GboardVersionBindings.aiWritingToolsClassifierInit)
             .applyWritingToolsClassifierModelessFlagDelegate()
-        findMutableMethodOrThrow(GboardAiWritingToolsVoiceCommandBindings.classificationRun)
+        findMutableMethodOrThrow(GboardVersionBindings.aiWritingToolsClassificationRun)
             .applyWritingToolsClassificationRegexDelegate()
-        findMutableMethodOrThrow(GboardAiWritingToolsVoiceCommandBindings.protoValue)
+        findMutableMethodOrThrow(GboardVersionBindings.aiWritingToolsProtoValue)
             .applyWritingToolsVoiceCommandLanguagesDelegate()
-        findMutableMethodOrThrow(GboardAiWritingToolsVoiceCommandBindings.smartEditRequest)
+        findMutableMethodOrThrow(GboardVersionBindings.aiWritingToolsSmartEditRequest)
             .applyWritingToolsSmartEditGeneratorModuleDelegate()
     }
 }
@@ -91,20 +103,20 @@ internal fun MutableMethod.applyWritingToolsGenAiInitClientTypeDelegate() {
 private fun MutableMethod.applyWritingToolsGenAiInitRememberDelegate() {
     val instructions = implementation?.instructions
         ?: error("GenAI init target has no implementation")
-    val runtimeCalls = instructions.count { it.methodDescriptor() == GEN_AI_INIT_REMEMBER }
+    val runtimeCalls = instructions.count { it.isMethodReference(GEN_AI_INIT_REMEMBER.reference) }
     if (runtimeCalls != 0) {
         check(runtimeCalls == 1) { "Duplicate GenAI init remember delegate in ${descriptor()}" }
         return
     }
-    addInstructions(0, "invoke-static {p0, p1, p2}, $GEN_AI_INIT_REMEMBER")
+    addInstructions(0, RuntimeCallEmitter.invoke(GEN_AI_INIT_REMEMBER, "p0, p1, p2"))
 }
 
 internal fun MutableMethod.applyWritingToolsGenAiRefreshDelegate() {
     val instructions = implementation?.instructions
         ?: error("GenAI refresh target has no implementation")
-    val beginCalls = instructions.count { it.methodDescriptor() == GEN_AI_REFRESH_BEGIN }
-    val observeCalls = instructions.count { it.methodDescriptor() == GEN_AI_REFRESH_OBSERVE }
-    val finishCalls = instructions.count { it.methodDescriptor() == GEN_AI_REFRESH_FINISH }
+    val beginCalls = instructions.count { it.isMethodReference(GEN_AI_REFRESH_BEGIN.reference) }
+    val observeCalls = instructions.count { it.isMethodReference(GEN_AI_REFRESH_OBSERVE.reference) }
+    val finishCalls = instructions.count { it.isMethodReference(GEN_AI_REFRESH_FINISH.reference) }
     if (beginCalls + observeCalls + finishCalls != 0) {
         check(beginCalls == 1 && observeCalls == 1 && finishCalls == 1) {
             "Incomplete GenAI refresh delegates in ${descriptor()}"
@@ -116,7 +128,7 @@ internal fun MutableMethod.applyWritingToolsGenAiRefreshDelegate() {
     }
 
     val predicateIndices = instructions.indices.filter {
-        instructions[it].methodDescriptor() == "Lttb;->cH(Ljus;)Z"
+        instructions[it].isMethodReference("Lttb;->cH(Ljus;)Z")
     }
     check(predicateIndices.size == 1) {
         "Expected one exact Smart Dictation predicate in ${descriptor()}"
@@ -129,7 +141,7 @@ internal fun MutableMethod.applyWritingToolsGenAiRefreshDelegate() {
     val clientRegister = predicate.registerC
     val clientProducerIndices = instructions.indices.filter { index ->
         index < predicateIndex &&
-            instructions[index].fieldDescriptor() == "Lhmc;->j:Ljus;" &&
+            instructions[index].isFieldReference("Lhmc;->j:Ljus;") &&
             (instructions[index] as? TwoRegisterInstruction)?.let { producer ->
                 producer.opcode == Opcode.IGET_OBJECT && producer.registerA == clientRegister
             } == true
@@ -143,13 +155,13 @@ internal fun MutableMethod.applyWritingToolsGenAiRefreshDelegate() {
     }
 
     val returnIndex = returns.single()
-    replaceInstruction(returnIndex, "invoke-static {p0}, $GEN_AI_REFRESH_FINISH")
+    replaceInstruction(returnIndex, RuntimeCallEmitter.invoke(GEN_AI_REFRESH_FINISH, "p0"))
     addInstructions(returnIndex + 1, "return-void")
     addInstructions(
         clientProducerIndices.single() + 1,
-        "invoke-static {p0, v$clientRegister}, $GEN_AI_REFRESH_OBSERVE",
+        RuntimeCallEmitter.invoke(GEN_AI_REFRESH_OBSERVE, "p0, v$clientRegister"),
     )
-    addInstructions(0, "invoke-static {p0}, $GEN_AI_REFRESH_BEGIN")
+    addInstructions(0, RuntimeCallEmitter.invoke(GEN_AI_REFRESH_BEGIN, "p0"))
 }
 
 internal fun MutableMethod.applyWritingToolsSmartEditInitClientTypeDelegate() {
@@ -169,21 +181,21 @@ private fun MutableMethod.applyClientTypeCallSiteDelegate(
     clientRegister: Int,
     scratchRegister: Int,
     resultRegister: Int,
-    runtime: String,
+    runtime: RuntimeCallId,
 ) {
     val instructions = implementation?.instructions
         ?: error("Voice-command target has no implementation")
     check(implementation!!.registerCount == expectedRegisterCount) {
         "Register drift in ${descriptor()}: ${implementation!!.registerCount}"
     }
-    val runtimeCalls = instructions.count { it.methodDescriptor() == runtime }
+    val runtimeCalls = instructions.count { it.isMethodReference(runtime.reference) }
     if (runtimeCalls != 0) {
         check(runtimeCalls == 1) { "Duplicate client-type delegate in ${descriptor()}" }
         return
     }
 
     val predicateIndices = instructions.indices.filter {
-        instructions[it].methodDescriptor() == predicate
+        instructions[it].isMethodReference(predicate)
     }
     check(predicateIndices.size == 1) {
         "Expected one exact $predicate call in ${descriptor()}"
@@ -200,7 +212,7 @@ private fun MutableMethod.applyClientTypeCallSiteDelegate(
     }
     val clientProducerIndices = instructions.indices.filter { index ->
         index < predicateIndex &&
-            instructions[index].fieldDescriptor() == "Lhmc;->j:Ljus;" &&
+            instructions[index].isFieldReference("Lhmc;->j:Ljus;") &&
             (instructions[index] as? TwoRegisterInstruction)?.let { producer ->
                 producer.opcode == Opcode.IGET_OBJECT && producer.registerA == clientRegister
             } == true
@@ -213,7 +225,7 @@ private fun MutableMethod.applyClientTypeCallSiteDelegate(
     addInstructions(
         predicateIndex + 2,
         """
-            invoke-static {v$scratchRegister, v$resultRegister}, $runtime
+            ${RuntimeCallEmitter.invoke(runtime, "v$scratchRegister, v$resultRegister")}
             move-result v$resultRegister
         """.trimIndent(),
     )
@@ -223,7 +235,7 @@ private fun MutableMethod.applyClientTypeCallSiteDelegate(
 internal fun MutableMethod.applyWritingToolsSmartEditModulePredicateDelegate() {
     val instructions = implementation?.instructions
         ?: error("SmartEdit module target has no implementation")
-    val runtimeCalls = instructions.count { it.methodDescriptor() == SMART_EDIT_MODULE }
+    val runtimeCalls = instructions.count { it.isMethodReference(SMART_EDIT_MODULE.reference) }
     if (runtimeCalls != 0) {
         check(runtimeCalls == 1) { "Duplicate SmartEdit module delegate in ${descriptor()}" }
         return
@@ -237,7 +249,7 @@ internal fun MutableMethod.applyWritingToolsSmartEditModulePredicateDelegate() {
     addInstructionsWithLabels(
         0,
         """
-            invoke-static {p1}, $SMART_EDIT_MODULE
+            ${RuntimeCallEmitter.invoke(SMART_EDIT_MODULE, "p1")}
             move-result v0
             if-eqz v0, :jasondev_voice_command_stock_module_predicate
             const/4 v0, 0x1
@@ -248,7 +260,7 @@ internal fun MutableMethod.applyWritingToolsSmartEditModulePredicateDelegate() {
 }
 
 internal fun MutableMethod.applyWritingToolsCommandAmbiguityDelegate() {
-    injectBeforeSingleReturn(COMMAND_AMBIGUITY, "invoke-static {p0}, $COMMAND_AMBIGUITY")
+    injectBeforeSingleReturn(COMMAND_AMBIGUITY, "p0")
 }
 
 internal fun MutableMethod.applyWritingToolsClassifierModelessFlagDelegate() {
@@ -261,12 +273,12 @@ internal fun MutableMethod.applyWritingToolsClassificationRegexDelegate() {
 
 private fun MutableMethod.applyExactObjectFlagReadDelegate(
     fieldDescriptor: String,
-    runtime: String,
+    runtime: RuntimeCallId,
     expectedReadCount: Int,
 ) {
     val instructions = implementation?.instructions
         ?: error("Voice-command flag-read target has no implementation")
-    val runtimeCalls = instructions.count { it.methodDescriptor() == runtime }
+    val runtimeCalls = instructions.count { it.isMethodReference(runtime.reference) }
     if (runtimeCalls != 0) {
         check(runtimeCalls == expectedReadCount) {
             "Expected $expectedReadCount flag-read delegates in ${descriptor()}, found $runtimeCalls"
@@ -274,7 +286,7 @@ private fun MutableMethod.applyExactObjectFlagReadDelegate(
         return
     }
     val fieldIndices = instructions.indices.filter {
-        instructions[it].fieldDescriptor() == fieldDescriptor
+        instructions[it].isFieldReference(fieldDescriptor)
     }
     check(fieldIndices.size == expectedReadCount) {
         "Expected $expectedReadCount exact $fieldDescriptor reads in ${descriptor()}"
@@ -284,8 +296,9 @@ private fun MutableMethod.applyExactObjectFlagReadDelegate(
         val invoke = instructions.getOrNull(fieldIndex + 1) as? FiveRegisterInstruction
         val moveResult = instructions.getOrNull(fieldIndex + 2) as? OneRegisterInstruction
         check(fieldRead != null && fieldRead.opcode == Opcode.SGET_OBJECT &&
-            invoke != null && instructions[fieldIndex + 1].methodDescriptor() ==
-            "Lnea;->g()Ljava/lang/Object;" &&
+            invoke != null && instructions[fieldIndex + 1].isMethodReference(
+                "Lnea;->g()Ljava/lang/Object;",
+            ) &&
             invoke.registerCount == 1 && invoke.registerC == fieldRead.registerA &&
             moveResult != null && moveResult.opcode == Opcode.MOVE_RESULT_OBJECT) {
             "Flag-read call shape drift in ${descriptor()}"
@@ -296,7 +309,7 @@ private fun MutableMethod.applyExactObjectFlagReadDelegate(
         addInstructions(
             fieldIndex + 3,
             """
-                invoke-static {v$resultRegister}, $runtime
+                ${RuntimeCallEmitter.invoke(runtime, "v$resultRegister")}
                 move-result-object v$resultRegister
             """.trimIndent(),
         )
@@ -306,7 +319,7 @@ private fun MutableMethod.applyExactObjectFlagReadDelegate(
 internal fun MutableMethod.applyWritingToolsVoiceCommandLanguagesDelegate() {
     val instructions = implementation?.instructions
         ?: error("Voice-command proto target has no implementation")
-    val runtimeCalls = instructions.count { it.methodDescriptor() == VOICE_COMMAND_LANGUAGES }
+    val runtimeCalls = instructions.count { it.isMethodReference(VOICE_COMMAND_LANGUAGES.reference) }
     if (runtimeCalls != 0) {
         check(runtimeCalls == 1) { "Duplicate proto delegate in ${descriptor()}" }
         return
@@ -315,8 +328,9 @@ internal fun MutableMethod.applyWritingToolsVoiceCommandLanguagesDelegate() {
         "Register drift in ${descriptor()}: ${implementation!!.registerCount}"
     }
     val receiverOverwriteIndices = instructions.indices.filter {
-        instructions[it].fieldDescriptor() ==
-            "Lneu;->d:Ljava/util/concurrent/atomic/AtomicReference;"
+        instructions[it].isFieldReference(
+            "Lneu;->d:Ljava/util/concurrent/atomic/AtomicReference;",
+        )
     }
     check(receiverOverwriteIndices.size == 1) {
         "Expected one neu.d receiver overwrite in ${descriptor()}"
@@ -339,7 +353,7 @@ internal fun MutableMethod.applyWritingToolsVoiceCommandLanguagesDelegate() {
     addInstructions(
         returnIndex,
         """
-            invoke-static {v1, p0}, $VOICE_COMMAND_LANGUAGES
+            ${RuntimeCallEmitter.invoke(VOICE_COMMAND_LANGUAGES, "v1, p0")}
             move-result-object p0
         """.trimIndent(),
     )
@@ -350,7 +364,7 @@ internal fun MutableMethod.applyWritingToolsSmartEditGeneratorModuleDelegate() {
     val instructions = implementation?.instructions
         ?: error("SmartEdit request target has no implementation")
     val runtimeCalls = instructions.count {
-        it.methodDescriptor() == SMART_EDIT_GENERATOR_MODULE
+        it.isMethodReference(SMART_EDIT_GENERATOR_MODULE.reference)
     }
     if (runtimeCalls != 0) {
         check(runtimeCalls == 1) {
@@ -360,7 +374,7 @@ internal fun MutableMethod.applyWritingToolsSmartEditGeneratorModuleDelegate() {
     }
 
     val candidates = instructions.indices.filter { invokeIndex ->
-        if (instructions[invokeIndex].methodDescriptor() != MODULE_MANAGER_GET_LOADED) {
+        if (!instructions[invokeIndex].isMethodReference(MODULE_MANAGER_GET_LOADED)) {
             return@filter false
         }
         val invoke = instructions[invokeIndex] as? FiveRegisterInstruction
@@ -372,7 +386,7 @@ internal fun MutableMethod.applyWritingToolsSmartEditGeneratorModuleDelegate() {
             ?: return@filter false
         if (moduleClass.opcode != Opcode.CONST_CLASS ||
             moduleClass.registerA != invoke.registerD ||
-            instructions[invokeIndex - 1].referenceDescriptor() != "Lhhf;") {
+            !instructions[invokeIndex - 1].isReference("Lhhf;")) {
             return@filter false
         }
         val stockResult = instructions.getOrNull(invokeIndex + 1) as? OneRegisterInstruction
@@ -384,14 +398,14 @@ internal fun MutableMethod.applyWritingToolsSmartEditGeneratorModuleDelegate() {
             ?: return@filter false
         if (cast.opcode != Opcode.CHECK_CAST ||
             cast.registerA != stockResult.registerA ||
-            instructions[invokeIndex + 2].referenceDescriptor() != "Lhhf;") {
+            !instructions[invokeIndex + 2].isReference("Lhhf;")) {
             return@filter false
         }
         val store = instructions.getOrNull(invokeIndex + 3) as? TwoRegisterInstruction
             ?: return@filter false
         store.opcode == Opcode.IPUT_OBJECT &&
             store.registerA == stockResult.registerA &&
-            instructions[invokeIndex + 3].fieldDescriptor() == "Lhhg;->a:Lhhf;"
+            instructions[invokeIndex + 3].isFieldReference("Lhhg;->a:Lhhf;")
     }
     check(candidates.size == 1) {
         "Expected one exact ModuleManager#a(hhf) result in ${descriptor()}"
@@ -408,7 +422,10 @@ internal fun MutableMethod.applyWritingToolsSmartEditGeneratorModuleDelegate() {
     addInstructions(
         invokeIndex + 2,
         """
-            invoke-static {v${stockResult.registerA}, v0, v${invoke.registerD}}, $SMART_EDIT_GENERATOR_MODULE
+            ${RuntimeCallEmitter.invoke(
+                SMART_EDIT_GENERATOR_MODULE,
+                "v${stockResult.registerA}, v0, v${invoke.registerD}",
+            )}
             move-result-object v${stockResult.registerA}
             move-object/from16 v0, p0
         """.trimIndent(),
@@ -416,10 +433,10 @@ internal fun MutableMethod.applyWritingToolsSmartEditGeneratorModuleDelegate() {
     addInstructions(invokeIndex, "move-object v0, v${invoke.registerC}")
 }
 
-private fun MutableMethod.injectBeforeSingleReturn(runtime: String, delegate: String) {
+private fun MutableMethod.injectBeforeSingleReturn(runtime: RuntimeCallId, registers: String) {
     val instructions = implementation?.instructions
         ?: error("Voice-command return target has no implementation")
-    val runtimeCalls = instructions.count { it.methodDescriptor() == runtime }
+    val runtimeCalls = instructions.count { it.isMethodReference(runtime.reference) }
     if (runtimeCalls != 0) {
         check(runtimeCalls == 1) { "Duplicate return delegate in ${descriptor()}" }
         return
@@ -428,20 +445,8 @@ private fun MutableMethod.injectBeforeSingleReturn(runtime: String, delegate: St
     check(returns.size == 1 && instructions[returns.single()].opcode == Opcode.RETURN_VOID) {
         "Expected one RETURN_VOID in ${descriptor()}"
     }
-    addInstructions(returns.single(), delegate)
+    addInstructions(returns.single(), RuntimeCallEmitter.invoke(runtime, registers))
 }
 
 private fun MutableMethod.descriptor(): String =
     "$definingClass->$name(${parameterTypes.joinToString("")})$returnType"
-
-private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction
-    .methodDescriptor(): String? =
-    ((this as? ReferenceInstruction)?.reference as? MethodReference)?.toString()
-
-private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction
-    .fieldDescriptor(): String? =
-    ((this as? ReferenceInstruction)?.reference as? FieldReference)?.toString()
-
-private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction
-    .referenceDescriptor(): String? =
-    (this as? ReferenceInstruction)?.reference?.toString()
