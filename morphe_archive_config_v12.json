@@ -969,6 +969,54 @@
                 "sortOrder": 117,
                 "createdAt": 1785694261066,
                 "updatedAt": 1785694261066
+            },
+            {
+                "name": "Morphe-Patches",
+                "source": "https://raw.githubusercontent.com/Alastor-Kaneki/Morphe-Patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 118,
+                "createdAt": 1785897755305,
+                "updatedAt": 1785897755305
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/GoldRift/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 119,
+                "createdAt": 1785897755333,
+                "updatedAt": 1785897755333
+            },
+            {
+                "name": "morphe-patches-template",
+                "source": "https://raw.githubusercontent.com/RoundSalmon4/morphe-patches-template/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 120,
+                "createdAt": 1785897755724,
+                "updatedAt": 1785897755724
+            },
+            {
+                "name": "niconico-yt-morphe-patches",
+                "source": "https://raw.githubusercontent.com/david419kr/niconico-yt-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 121,
+                "createdAt": 1785897756170,
+                "updatedAt": 1785897756170
+            },
+            {
+                "name": "patches",
+                "source": "https://raw.githubusercontent.com/hu-liberator/patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 122,
+                "createdAt": 1785897756378,
+                "updatedAt": 1785897756378
+            },
+            {
+                "name": "nuviotv-patches",
+                "source": "https://raw.githubusercontent.com/liongalahad/nuviotv-patches/master/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 123,
+                "createdAt": 1785897756603,
+                "updatedAt": 1785897756603
             }
         ]
     }

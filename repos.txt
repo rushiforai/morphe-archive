@@ -1,9 +1,11 @@
 ARHCOS/arhcos-patches
+Alastor-Kaneki/Morphe-Patches
 AlexNaga/android-patches
 Almewty/my-morphe-patches
 AmpleReVanced/revanced-patches
 BholeyKaBhakt/android-patches-xtra
 Entree3k/Morning-Entree-Patches
+GoldRift/morphe-patches
 Graywizard888/Enhancify
 HellveticaStandard/HellveticaPatches
 Hiosdra/morphe-patches
@@ -36,6 +38,7 @@ Quantro100/Morphe-patches
 RealCyberwash/max-patches
 Ripthulhu/morphe-google-patches
 RookieEnough/De-Vanced
+RoundSalmon4/morphe-patches-template
 Seobject/Seobject-patches
 SouBryan/pinterest-morphed
 TheRealCrazyfuy/abeja-morphe-patches
@@ -75,6 +78,7 @@ ciraolone/morphe-watch-later
 claviola/morphe-patches-nl
 crimera/piko
 d0nj/morphe-patches
+david419kr/niconico-yt-morphe-patches
 dexnis-dev/morphe-patches
 dh6k/morphe-patches
 docbt/patched-up
@@ -94,6 +98,7 @@ gitlab.com/inotia00/x-shim
 hackingguy/morphe-patches
 hoo-dles/jadx-morphe
 hoo-dles/morphe-patches
+hu-liberator/patches
 humzakh/HK-Morphe-Patches
 hxreborn/morphe-patches
 icysymmetra/tiktok-patches-for-morphe
@@ -108,6 +113,7 @@ kolaron/morphe-patches
 kondratjev/morphe-patches
 kontsevoye/emorphe-patches
 kun-codes/npci-bhim-morphe-patches
+liongalahad/nuviotv-patches
 loskutov/youtube-domain-fronting-patch
 lyyako/realme-link-patches
 meridianfresco/morphe-meta-patches

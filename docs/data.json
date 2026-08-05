@@ -1,13 +1,13 @@
 {
-  "generatedAt": "2026-08-04 02:46 UTC",
-  "configFile": "morphe_archive_config_v11.json",
-  "configVersion": 11,
-  "repoCount": 115,
-  "appCount": 606,
-  "patchCount": 2185,
+  "generatedAt": "2026-08-05 02:42 UTC",
+  "configFile": "morphe_archive_config_v12.json",
+  "configVersion": 12,
+  "repoCount": 121,
+  "appCount": 611,
+  "patchCount": 2199,
   "universalPatchCount": 168,
   "hostCounts": {
-    "github.com": 111,
+    "github.com": 117,
     "gitlab.com": 4
   },
   "repos": [
@@ -192,6 +192,29 @@
           "iconColor": "#1E1E2E"
         }
       ]
+    },
+    {
+      "name": "Morphe-Patches",
+      "repo": "Alastor-Kaneki/Morphe-Patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/Alastor-Kaneki/Morphe-Patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/Alastor-Kaneki/Morphe-Patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/Alastor-Kaneki/Morphe-Patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/Alastor-Kaneki/Morphe-Patches",
+      "addUrl": "https://morphe.software/add-source?github=Alastor-Kaneki/Morphe-Patches",
+      "avatarUrl": "https://github.com/Alastor-Kaneki.png?size=96",
+      "patchCount": 0,
+      "appCount": 0,
+      "createdAt": 1785897755305,
+      "updatedAt": 1785897755305,
+      "createdDate": "2026-08-05",
+      "updatedDate": "2026-08-05",
+      "latestChanges": {
+        "title": "",
+        "date": "",
+        "items": []
+      },
+      "apps": []
     },
     {
       "name": "pichiwa-patches",
@@ -1407,12 +1430,12 @@
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.5.0 (2026-08-01)",
-        "date": "2026-08-01",
+        "title": "1.5.2 (2026-08-04)",
+        "date": "2026-08-04",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "added easysudoku patch"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "remove invalid COMPATIBILITY_BETTER_LAUNCHER placeholder causing ExceptionInInitializerError"
           }
         ]
       },
@@ -2054,6 +2077,29 @@
           "iconColor": "#6200EE"
         }
       ]
+    },
+    {
+      "name": "niconico-yt-morphe-patches",
+      "repo": "david419kr/niconico-yt-morphe-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/david419kr/niconico-yt-morphe-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/david419kr/niconico-yt-morphe-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/david419kr/niconico-yt-morphe-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/david419kr/niconico-yt-morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=david419kr/niconico-yt-morphe-patches",
+      "avatarUrl": "https://github.com/david419kr.png?size=96",
+      "patchCount": 0,
+      "appCount": 0,
+      "createdAt": 1785897756170,
+      "updatedAt": 1785897756170,
+      "createdDate": "2026-08-05",
+      "updatedDate": "2026-08-05",
+      "latestChanges": {
+        "title": "",
+        "date": "",
+        "items": []
+      },
+      "apps": []
     },
     {
       "name": "morphe-patches",
@@ -3181,6 +3227,42 @@
     },
     {
       "name": "morphe-patches",
+      "repo": "GoldRift/morphe-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/GoldRift/morphe-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/GoldRift/morphe-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/GoldRift/morphe-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/GoldRift/morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=GoldRift/morphe-patches",
+      "avatarUrl": "https://github.com/GoldRift.png?size=96",
+      "patchCount": 1,
+      "appCount": 1,
+      "createdAt": 1785897755333,
+      "updatedAt": 1785897755333,
+      "createdDate": "2026-08-05",
+      "updatedDate": "2026-08-05",
+      "latestChanges": {
+        "title": "1.0.0 (2026-07-11)",
+        "date": "2026-07-11",
+        "items": [
+          {
+            "category": "\u2728 New Features",
+            "text": "add strong app unlock pro patch"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Strong",
+          "packageName": "io.strongapp.strong",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#1565C0"
+        }
+      ]
+    },
+    {
+      "name": "morphe-patches",
       "repo": "hackingguy/morphe-patches",
       "host": "github.com",
       "source": "https://raw.githubusercontent.com/hackingguy/morphe-patches/main/patches-bundle.json",
@@ -3716,6 +3798,49 @@
           "patchCount": 1,
           "iconUrl": "https://play-lh.googleusercontent.com/bfewUxobdHumF6r7pj6teHAPnLWXWpRapcgipF4-WjU8ziVwQpm5nyOhM9FNq2-G2axH74JiDU9z3Fc_5FeS",
           "iconColor": "#F76219"
+        }
+      ]
+    },
+    {
+      "name": "patches",
+      "repo": "hu-liberator/patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/hu-liberator/patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/hu-liberator/patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/hu-liberator/patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/hu-liberator/patches",
+      "addUrl": "https://morphe.software/add-source?github=hu-liberator/patches",
+      "avatarUrl": "https://github.com/hu-liberator.png?size=96",
+      "patchCount": 11,
+      "appCount": 2,
+      "createdAt": 1785897756378,
+      "updatedAt": 1785897756378,
+      "createdDate": "2026-08-05",
+      "updatedDate": "2026-08-05",
+      "latestChanges": {
+        "title": "1.0.0 (2026-08-04)",
+        "date": "2026-08-04",
+        "items": [
+          {
+            "category": "\u2728 New Features",
+            "text": "add mav and idokep patches"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Id\u0151k\u00e9p",
+          "packageName": "hu.idokep.idokep",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#FF0045"
+        },
+        {
+          "name": "M\u00c1VPlusz",
+          "packageName": "hu.mav.emmapp",
+          "patchCount": 10,
+          "iconUrl": "",
+          "iconColor": "#00695C"
         }
       ]
     },
@@ -5141,6 +5266,42 @@
           "patchCount": 1,
           "iconUrl": "https://play-lh.googleusercontent.com/_R9e9F6wRrKOIe0xuU6I68KSSLyiO9oGXBUF8WHcO2Pf3cxnL_WDGQUp7aIV6o8ZTJVve7tIamVzj-aQI2Qy0g",
           "iconColor": "#000000"
+        }
+      ]
+    },
+    {
+      "name": "nuviotv-patches",
+      "repo": "liongalahad/nuviotv-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/liongalahad/nuviotv-patches/master/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/liongalahad/nuviotv-patches/master/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/liongalahad/nuviotv-patches/master/CHANGELOG.md",
+      "webUrl": "https://github.com/liongalahad/nuviotv-patches",
+      "addUrl": "https://morphe.software/add-source?github=liongalahad/nuviotv-patches",
+      "avatarUrl": "https://github.com/liongalahad.png?size=96",
+      "patchCount": 1,
+      "appCount": 1,
+      "createdAt": 1785897756603,
+      "updatedAt": 1785897756603,
+      "createdDate": "2026-08-05",
+      "updatedDate": "2026-08-05",
+      "latestChanges": {
+        "title": "1.0.0-dev.9 (2026-08-05)",
+        "date": "2026-08-05",
+        "items": [
+          {
+            "category": "\u2728 New Features",
+            "text": "rebrand source and add prerelease warning"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "NuvioTV",
+          "packageName": "com.nuvio.tv",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#111827"
         }
       ]
     },
@@ -6573,6 +6734,42 @@
           "patchCount": 6,
           "iconUrl": "https://play-lh.googleusercontent.com/JHCM4AIyomRp6Lo2-5ugoznlGdsZmNnejVN8DLvtWFHShcz8YRgUE170f1CyOfrleYbtFL2g8tQ3VqlQNAgqoA",
           "iconColor": ""
+        }
+      ]
+    },
+    {
+      "name": "morphe-patches-template",
+      "repo": "RoundSalmon4/morphe-patches-template",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/RoundSalmon4/morphe-patches-template/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/RoundSalmon4/morphe-patches-template/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/RoundSalmon4/morphe-patches-template/main/CHANGELOG.md",
+      "webUrl": "https://github.com/RoundSalmon4/morphe-patches-template",
+      "addUrl": "https://morphe.software/add-source?github=RoundSalmon4/morphe-patches-template",
+      "avatarUrl": "https://github.com/RoundSalmon4.png?size=96",
+      "patchCount": 1,
+      "appCount": 1,
+      "createdAt": 1785897755724,
+      "updatedAt": 1785897755724,
+      "createdDate": "2026-08-05",
+      "updatedDate": "2026-08-05",
+      "latestChanges": {
+        "title": "1.0.1 (2026-07-15)",
+        "date": "2026-07-15",
+        "items": [
+          {
+            "category": "\ud83d\ude80 Updated App Support",
+            "text": "add SeriesGuide v2026.3.0 target"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "SeriesGuide",
+          "packageName": "com.battlelancer.seriesguide",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#E53935"
         }
       ]
     },
@@ -8982,12 +9179,12 @@
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.11.3 (2026-07-30)",
-        "date": "2026-07-30",
+        "title": "1.11.4 (2026-08-04)",
+        "date": "2026-08-04",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**tbank:** support version 7.40.1"
+            "text": "**avito:** support version 230.0"
           }
         ]
       },
@@ -12105,12 +12302,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.11.3 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.11.4 (2026-08-04)",
+            "date": "2026-08-04",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**tbank:** support version 7.40.1"
+                "text": "**avito:** support version 230.0"
               }
             ]
           },
@@ -12156,7 +12353,8 @@
             }
           ],
           "versions": [
-            "229.1"
+            "229.1",
+            "230.0"
           ]
         }
       ],
@@ -12205,7 +12403,8 @@
         }
       ],
       "versions": [
-        "229.1"
+        "229.1",
+        "230.0"
       ],
       "iconColor": "#00AAFF",
       "iconUrl": ""
@@ -28664,12 +28863,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/browzomje/browzomje-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/browzomje.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-08-01)",
-            "date": "2026-08-01",
+            "title": "1.5.2 (2026-08-04)",
+            "date": "2026-08-04",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "added easysudoku patch"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "remove invalid COMPATIBILITY_BETTER_LAUNCHER placeholder causing ExceptionInInitializerError"
               }
             ]
           },
@@ -32618,6 +32817,66 @@
       ],
       "iconColor": "#9FC5E8",
       "iconUrl": "https://play-lh.googleusercontent.com/o7vo7iZJg82nRkas3Snx6mDS95d3bX__PJfTfAKdjcofF-lYBL72_NAfMik1x7RBx-pKHqD5uL_e5UX9iTe9Gg"
+    },
+    {
+      "packageName": "hu.idokep.idokep",
+      "name": "Id\u0151k\u00e9p",
+      "repos": [
+        "hu-liberator/patches"
+      ],
+      "sources": [
+        {
+          "repo": "hu-liberator/patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/hu-liberator/patches",
+          "addUrl": "https://morphe.software/add-source?github=hu-liberator/patches",
+          "source": "https://raw.githubusercontent.com/hu-liberator/patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/hu-liberator/patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/hu-liberator.png?size=96",
+          "latestChanges": {
+            "title": "1.0.0 (2026-08-04)",
+            "date": "2026-08-04",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "add mav and idokep patches"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "hu-idokep-idokep-hu-liberator-patches",
+            "releaseTag": "app-hu-idokep-idokep-hu-liberator-patches",
+            "assetName": "id-k-p-hu-liberator-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Remove idokep ads",
+              "description": "Removes ads from the idokep app."
+            }
+          ],
+          "versions": [
+            "1.0.2",
+            "4.3.7"
+          ]
+        }
+      ],
+      "patches": [
+        "Remove idokep ads"
+      ],
+      "patchDetails": [
+        {
+          "name": "Remove idokep ads",
+          "description": "Removes ads from the idokep app."
+        }
+      ],
+      "versions": [
+        "1.0.2",
+        "4.3.7"
+      ],
+      "iconColor": "#FF0045",
+      "iconUrl": ""
     },
     {
       "packageName": "com.ihealthlabs.MyVitalsPro",
@@ -40885,6 +41144,145 @@
       "iconUrl": "https://play-lh.googleusercontent.com/DLt6nmeZ-ibGGaudFHT9dwkMN5IjNO64mdp26Ya4NsgiLlej3vE6jid8K1Ncw_TuyC4ShhTTfqYQgfMoyI1BTQ"
     },
     {
+      "packageName": "hu.mav.emmapp",
+      "name": "M\u00c1VPlusz",
+      "repos": [
+        "hu-liberator/patches"
+      ],
+      "sources": [
+        {
+          "repo": "hu-liberator/patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/hu-liberator/patches",
+          "addUrl": "https://morphe.software/add-source?github=hu-liberator/patches",
+          "source": "https://raw.githubusercontent.com/hu-liberator/patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/hu-liberator/patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/hu-liberator.png?size=96",
+          "latestChanges": {
+            "title": "1.0.0 (2026-08-04)",
+            "date": "2026-08-04",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "add mav and idokep patches"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "hu-mav-emmapp-hu-liberator-patches",
+            "releaseTag": "app-hu-mav-emmapp-hu-liberator-patches",
+            "assetName": "m-vplusz-hu-liberator-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Disable broadcast receiver security check",
+              "description": "Removes SecurityException throws gating a BroadcastReceiver's onReceive, which fail when the broadcast sender isn't verified as the real Play Store."
+            },
+            {
+              "name": "Disable certificate pinning",
+              "description": "Prevents the app's OkHttp CertificatePinner from ever being installed, allowing HTTPS traffic to be intercepted (e.g. by a proxy) for analysis."
+            },
+            {
+              "name": "Disable Firebase Crashlytics",
+              "description": "Adds the official firebase_crashlytics_collection_enabled=false manifest flag, disabling all crash/log reporting to Firebase Crashlytics at SDK init."
+            },
+            {
+              "name": "Disable Pairip license check",
+              "description": "Prevents the Pairip-injected Application class from binding to the Play Store licensing service, which would otherwise redirect to / force-close for a side-loaded APK."
+            },
+            {
+              "name": "Disable Play Integrity failure crash",
+              "description": "Prevents SecurityException when the Play Integrity API call itself fails (APP_NOT_INSTALLED / APP_UID_MISMATCH), as happens for side-loaded APKs."
+            },
+            {
+              "name": "Disable Play Integrity gating flag wait",
+              "description": "Stops the startup coroutine from waiting forever on a Remote-Config-backed flag to decide whether to run the Play Integrity flow, by always treating it as disabled."
+            },
+            {
+              "name": "Disable Play Integrity token request",
+              "description": "Makes the Play Integrity token request always fail immediately with an unclassified exception, so the app treats it as gracefully unavailable and continues initialization instead of getting stuck on a Play-Store-required gate."
+            },
+            {
+              "name": "Disable Play Integrity verdict validation",
+              "description": "Removes client-side SecurityException throws that reject unlicensed/unattested/unrecognized Play Integrity verdicts, without touching unrelated code sharing the same method."
+            },
+            {
+              "name": "Disable StoreLogs telemetry",
+              "description": "Prevents the app from uploading queued client-side log entries to its own backend telemetry endpoint (.../Log/StoreLogs)."
+            },
+            {
+              "name": "Trust user-installed certificates",
+              "description": "Adds a user certificate trust anchor to the network security config, so a MITM proxy's installed CA is accepted (this is separate from and in addition to disabling OkHttp's code-level certificate pinning)."
+            }
+          ],
+          "versions": [
+            "2.4.19-prod"
+          ]
+        }
+      ],
+      "patches": [
+        "Disable broadcast receiver security check",
+        "Disable certificate pinning",
+        "Disable Firebase Crashlytics",
+        "Disable Pairip license check",
+        "Disable Play Integrity failure crash",
+        "Disable Play Integrity gating flag wait",
+        "Disable Play Integrity token request",
+        "Disable Play Integrity verdict validation",
+        "Disable StoreLogs telemetry",
+        "Trust user-installed certificates"
+      ],
+      "patchDetails": [
+        {
+          "name": "Disable broadcast receiver security check",
+          "description": "Removes SecurityException throws gating a BroadcastReceiver's onReceive, which fail when the broadcast sender isn't verified as the real Play Store."
+        },
+        {
+          "name": "Disable certificate pinning",
+          "description": "Prevents the app's OkHttp CertificatePinner from ever being installed, allowing HTTPS traffic to be intercepted (e.g. by a proxy) for analysis."
+        },
+        {
+          "name": "Disable Firebase Crashlytics",
+          "description": "Adds the official firebase_crashlytics_collection_enabled=false manifest flag, disabling all crash/log reporting to Firebase Crashlytics at SDK init."
+        },
+        {
+          "name": "Disable Pairip license check",
+          "description": "Prevents the Pairip-injected Application class from binding to the Play Store licensing service, which would otherwise redirect to / force-close for a side-loaded APK."
+        },
+        {
+          "name": "Disable Play Integrity failure crash",
+          "description": "Prevents SecurityException when the Play Integrity API call itself fails (APP_NOT_INSTALLED / APP_UID_MISMATCH), as happens for side-loaded APKs."
+        },
+        {
+          "name": "Disable Play Integrity gating flag wait",
+          "description": "Stops the startup coroutine from waiting forever on a Remote-Config-backed flag to decide whether to run the Play Integrity flow, by always treating it as disabled."
+        },
+        {
+          "name": "Disable Play Integrity token request",
+          "description": "Makes the Play Integrity token request always fail immediately with an unclassified exception, so the app treats it as gracefully unavailable and continues initialization instead of getting stuck on a Play-Store-required gate."
+        },
+        {
+          "name": "Disable Play Integrity verdict validation",
+          "description": "Removes client-side SecurityException throws that reject unlicensed/unattested/unrecognized Play Integrity verdicts, without touching unrelated code sharing the same method."
+        },
+        {
+          "name": "Disable StoreLogs telemetry",
+          "description": "Prevents the app from uploading queued client-side log entries to its own backend telemetry endpoint (.../Log/StoreLogs)."
+        },
+        {
+          "name": "Trust user-installed certificates",
+          "description": "Adds a user certificate trust anchor to the network security config, so a MITM proxy's installed CA is accepted (this is separate from and in addition to disabling OkHttp's code-level certificate pinning)."
+        }
+      ],
+      "versions": [
+        "2.4.19-prod"
+      ],
+      "iconColor": "#00695C",
+      "iconUrl": ""
+    },
+    {
       "packageName": "com.rawcam.app",
       "name": "Native Camera",
       "repos": [
@@ -42074,6 +42472,64 @@
       "iconUrl": "https://play-lh.googleusercontent.com/KrGUFVNpzq8nghzbFI9uM11WAVEHTkZKVyypMlr8G17ravMH6WV_MbI_IAG6zvgF2te5gWQKMobPraUY3WBFpw"
     },
     {
+      "packageName": "com.nuvio.tv",
+      "name": "NuvioTV",
+      "repos": [
+        "liongalahad/nuviotv-patches"
+      ],
+      "sources": [
+        {
+          "repo": "liongalahad/nuviotv-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/liongalahad/nuviotv-patches",
+          "addUrl": "https://morphe.software/add-source?github=liongalahad/nuviotv-patches",
+          "source": "https://raw.githubusercontent.com/liongalahad/nuviotv-patches/master/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/liongalahad/nuviotv-patches/master/CHANGELOG.md",
+          "avatarUrl": "https://github.com/liongalahad.png?size=96",
+          "latestChanges": {
+            "title": "1.0.0-dev.9 (2026-08-05)",
+            "date": "2026-08-05",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "rebrand source and add prerelease warning"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-nuvio-tv-liongalahad-nuviotv-patches",
+            "releaseTag": "app-com-nuvio-tv-liongalahad-nuviotv-patches",
+            "assetName": "nuviotv-liongalahad-nuviotv-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Remove SDH Annotations",
+              "description": "Adds Settings \u2192 Morphe \u2192 Subtitles and removes SDH annotations from Media3 subtitles when enabled."
+            }
+          ],
+          "versions": [
+            "0.8.1-beta"
+          ]
+        }
+      ],
+      "patches": [
+        "Remove SDH Annotations"
+      ],
+      "patchDetails": [
+        {
+          "name": "Remove SDH Annotations",
+          "description": "Adds Settings \u2192 Morphe \u2192 Subtitles and removes SDH annotations from Media3 subtitles when enabled."
+        }
+      ],
+      "versions": [
+        "0.8.1-beta"
+      ],
+      "iconColor": "#111827",
+      "iconUrl": ""
+    },
+    {
       "packageName": "com.nytimes.crossword",
       "name": "NYT Games",
       "repos": [
@@ -42970,12 +43426,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.11.3 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.11.4 (2026-08-04)",
+            "date": "2026-08-04",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**tbank:** support version 7.40.1"
+                "text": "**avito:** support version 230.0"
               }
             ]
           },
@@ -44238,12 +44694,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/browzomje/browzomje-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/browzomje.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-08-01)",
-            "date": "2026-08-01",
+            "title": "1.5.2 (2026-08-04)",
+            "date": "2026-08-04",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "added easysudoku patch"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "remove invalid COMPATIBILITY_BETTER_LAUNCHER placeholder causing ExceptionInInitializerError"
               }
             ]
           },
@@ -46450,8 +46906,8 @@
       ],
       "patches": [
         "Disable tracking",
-        "Unlock Premium",
-        "Unlock premium"
+        "Unlock premium",
+        "Unlock Premium"
       ],
       "patchDetails": [
         {
@@ -46459,12 +46915,12 @@
           "description": "Disables analytics and crash reporting."
         },
         {
-          "name": "Unlock Premium",
-          "description": "Unlocks all premium features by bypassing the native library premium check."
-        },
-        {
           "name": "Unlock premium",
           "description": "Unlocks all premium features."
+        },
+        {
+          "name": "Unlock Premium",
+          "description": "Unlocks all premium features by bypassing the native library premium check."
         }
       ],
       "versions": [
@@ -49841,6 +50297,66 @@
       "iconUrl": "https://play-lh.googleusercontent.com/_wRe-FHoXo6xhr-PnDw2FsIPMiqZOfqkV8KY1UJ4sNwjOlGOyakwjZVlH4GThXYbRbimjDsajPW-4aCl0-_ynw"
     },
     {
+      "packageName": "com.battlelancer.seriesguide",
+      "name": "SeriesGuide",
+      "repos": [
+        "RoundSalmon4/morphe-patches-template"
+      ],
+      "sources": [
+        {
+          "repo": "RoundSalmon4/morphe-patches-template",
+          "host": "github.com",
+          "webUrl": "https://github.com/RoundSalmon4/morphe-patches-template",
+          "addUrl": "https://morphe.software/add-source?github=RoundSalmon4/morphe-patches-template",
+          "source": "https://raw.githubusercontent.com/RoundSalmon4/morphe-patches-template/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/RoundSalmon4/morphe-patches-template/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/RoundSalmon4.png?size=96",
+          "latestChanges": {
+            "title": "1.0.1 (2026-07-15)",
+            "date": "2026-07-15",
+            "items": [
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "add SeriesGuide v2026.3.0 target"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-battlelancer-seriesguide-roundsalmon4-morphe-patches-template",
+            "releaseTag": "app-com-battlelancer-seriesguide-roundsalmon4-morphe-patches-template",
+            "assetName": "seriesguide-roundsalmon4-morphe-patches-template.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Unlock Premium",
+              "description": "Unlocks all premium features."
+            }
+          ],
+          "versions": [
+            "2026.2.2",
+            "2026.3.0"
+          ]
+        }
+      ],
+      "patches": [
+        "Unlock Premium"
+      ],
+      "patchDetails": [
+        {
+          "name": "Unlock Premium",
+          "description": "Unlocks all premium features."
+        }
+      ],
+      "versions": [
+        "2026.2.2",
+        "2026.3.0"
+      ],
+      "iconColor": "#E53935",
+      "iconUrl": ""
+    },
+    {
       "packageName": "com.trieudadlovestun.servicenowsystemadmin",
       "name": "ServiceNow CSA",
       "repos": [
@@ -52637,6 +53153,64 @@
       "iconUrl": "https://play-lh.googleusercontent.com/4vXEbUyL5rFpaHlvhkU9r14NN-GZWIbyEEEoOUR-YYT2bFYiFqMPZ-JAGK_xinJRutsSgJWbD2R8jiP_FSoq"
     },
     {
+      "packageName": "io.strongapp.strong",
+      "name": "Strong",
+      "repos": [
+        "GoldRift/morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "GoldRift/morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/GoldRift/morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=GoldRift/morphe-patches",
+          "source": "https://raw.githubusercontent.com/GoldRift/morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/GoldRift/morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/GoldRift.png?size=96",
+          "latestChanges": {
+            "title": "1.0.0 (2026-07-11)",
+            "date": "2026-07-11",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "add strong app unlock pro patch"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "io-strongapp-strong-goldrift-morphe-patches",
+            "releaseTag": "app-io-strongapp-strong-goldrift-morphe-patches",
+            "assetName": "strong-goldrift-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Unlock Pro",
+              "description": "Unlocks all Strong Pro features."
+            }
+          ],
+          "versions": [
+            "v6.2.2"
+          ]
+        }
+      ],
+      "patches": [
+        "Unlock Pro"
+      ],
+      "patchDetails": [
+        {
+          "name": "Unlock Pro",
+          "description": "Unlocks all Strong Pro features."
+        }
+      ],
+      "versions": [
+        "v6.2.2"
+      ],
+      "iconColor": "#1565C0",
+      "iconUrl": ""
+    },
+    {
       "packageName": "io.goodservice.theweekendest",
       "name": "Subway Now",
       "repos": [
@@ -54292,12 +54866,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.11.3 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.11.4 (2026-08-04)",
+            "date": "2026-08-04",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**tbank:** support version 7.40.1"
+                "text": "**avito:** support version 230.0"
               }
             ]
           },
@@ -59679,12 +60253,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.11.3 (2026-07-30)",
-            "date": "2026-07-30",
+            "title": "1.11.4 (2026-08-04)",
+            "date": "2026-08-04",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**tbank:** support version 7.40.1"
+                "text": "**avito:** support version 230.0"
               }
             ]
           },
@@ -66109,12 +66683,12 @@
       "avatarUrl": "https://github.com/xob0t.png?size=96",
       "patchCount": 13,
       "latestChanges": {
-        "title": "1.11.3 (2026-07-30)",
-        "date": "2026-07-30",
+        "title": "1.11.4 (2026-08-04)",
+        "date": "2026-08-04",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**tbank:** support version 7.40.1"
+            "text": "**avito:** support version 230.0"
           }
         ]
       },
@@ -66188,6 +66762,157 @@
     }
   ],
   "recentSources": [
+    {
+      "name": "nuviotv-patches",
+      "repo": "liongalahad/nuviotv-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/liongalahad/nuviotv-patches/master/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/liongalahad/nuviotv-patches/master/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/liongalahad/nuviotv-patches/master/CHANGELOG.md",
+      "webUrl": "https://github.com/liongalahad/nuviotv-patches",
+      "addUrl": "https://morphe.software/add-source?github=liongalahad/nuviotv-patches",
+      "avatarUrl": "https://github.com/liongalahad.png?size=96",
+      "patchCount": 1,
+      "appCount": 1,
+      "createdAt": 1785897756603,
+      "updatedAt": 1785897756603,
+      "createdDate": "2026-08-05",
+      "updatedDate": "2026-08-05",
+      "latestChanges": {
+        "title": "1.0.0-dev.9 (2026-08-05)",
+        "date": "2026-08-05",
+        "items": [
+          {
+            "category": "\u2728 New Features",
+            "text": "rebrand source and add prerelease warning"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "NuvioTV",
+          "packageName": "com.nuvio.tv",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#111827"
+        }
+      ]
+    },
+    {
+      "name": "patches",
+      "repo": "hu-liberator/patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/hu-liberator/patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/hu-liberator/patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/hu-liberator/patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/hu-liberator/patches",
+      "addUrl": "https://morphe.software/add-source?github=hu-liberator/patches",
+      "avatarUrl": "https://github.com/hu-liberator.png?size=96",
+      "patchCount": 11,
+      "appCount": 2,
+      "createdAt": 1785897756378,
+      "updatedAt": 1785897756378,
+      "createdDate": "2026-08-05",
+      "updatedDate": "2026-08-05",
+      "latestChanges": {
+        "title": "1.0.0 (2026-08-04)",
+        "date": "2026-08-04",
+        "items": [
+          {
+            "category": "\u2728 New Features",
+            "text": "add mav and idokep patches"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Id\u0151k\u00e9p",
+          "packageName": "hu.idokep.idokep",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#FF0045"
+        },
+        {
+          "name": "M\u00c1VPlusz",
+          "packageName": "hu.mav.emmapp",
+          "patchCount": 10,
+          "iconUrl": "",
+          "iconColor": "#00695C"
+        }
+      ]
+    },
+    {
+      "name": "morphe-patches-template",
+      "repo": "RoundSalmon4/morphe-patches-template",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/RoundSalmon4/morphe-patches-template/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/RoundSalmon4/morphe-patches-template/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/RoundSalmon4/morphe-patches-template/main/CHANGELOG.md",
+      "webUrl": "https://github.com/RoundSalmon4/morphe-patches-template",
+      "addUrl": "https://morphe.software/add-source?github=RoundSalmon4/morphe-patches-template",
+      "avatarUrl": "https://github.com/RoundSalmon4.png?size=96",
+      "patchCount": 1,
+      "appCount": 1,
+      "createdAt": 1785897755724,
+      "updatedAt": 1785897755724,
+      "createdDate": "2026-08-05",
+      "updatedDate": "2026-08-05",
+      "latestChanges": {
+        "title": "1.0.1 (2026-07-15)",
+        "date": "2026-07-15",
+        "items": [
+          {
+            "category": "\ud83d\ude80 Updated App Support",
+            "text": "add SeriesGuide v2026.3.0 target"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "SeriesGuide",
+          "packageName": "com.battlelancer.seriesguide",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#E53935"
+        }
+      ]
+    },
+    {
+      "name": "morphe-patches",
+      "repo": "GoldRift/morphe-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/GoldRift/morphe-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/GoldRift/morphe-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/GoldRift/morphe-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/GoldRift/morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=GoldRift/morphe-patches",
+      "avatarUrl": "https://github.com/GoldRift.png?size=96",
+      "patchCount": 1,
+      "appCount": 1,
+      "createdAt": 1785897755333,
+      "updatedAt": 1785897755333,
+      "createdDate": "2026-08-05",
+      "updatedDate": "2026-08-05",
+      "latestChanges": {
+        "title": "1.0.0 (2026-07-11)",
+        "date": "2026-07-11",
+        "items": [
+          {
+            "category": "\u2728 New Features",
+            "text": "add strong app unlock pro patch"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Strong",
+          "packageName": "io.strongapp.strong",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#1565C0"
+        }
+      ]
+    },
     {
       "name": "morphe-patches",
       "repo": "eZ4RK0/morphe-patches",
@@ -66524,180 +67249,6 @@
           "patchCount": 1,
           "iconUrl": "",
           "iconColor": "#FF0045"
-        }
-      ]
-    },
-    {
-      "name": "morphe-patches",
-      "repo": "dh6k/morphe-patches",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/dh6k/morphe-patches/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/dh6k/morphe-patches/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/dh6k/morphe-patches/main/CHANGELOG.md",
-      "webUrl": "https://github.com/dh6k/morphe-patches",
-      "addUrl": "https://morphe.software/add-source?github=dh6k/morphe-patches",
-      "avatarUrl": "https://github.com/dh6k.png?size=96",
-      "patchCount": 3,
-      "appCount": 3,
-      "createdAt": 1785034852274,
-      "updatedAt": 1785034852274,
-      "createdDate": "2026-07-26",
-      "updatedDate": "2026-07-26",
-      "latestChanges": {
-        "title": "1.1.0 (2026-07-25)",
-        "date": "2026-07-25",
-        "items": [
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**build:** keep generator dependencies out of patch dex"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**release:** publish appName option on main"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**universal:** release bundle-specific app name option"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**universal:** restore appName option key"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "**universal:** add custom app icon patch"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "Brave Beta",
-          "packageName": "com.brave.browser_beta",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#FF4500"
-        },
-        {
-          "name": "Brave Browser",
-          "packageName": "com.brave.browser",
-          "patchCount": 1,
-          "iconUrl": "https://play-lh.googleusercontent.com/UBrZnuXGb-QACU0uUdF5r_n5nx5oBbdfPyEbtsr0xXv00RN7rpaTVu3GjLeE90aHFmNlbaCmm8vNcmY0eE98U9E",
-          "iconColor": "#FF4500"
-        },
-        {
-          "name": "Brave Nightly",
-          "packageName": "com.brave.browser_nightly",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#FF4500"
-        }
-      ]
-    },
-    {
-      "name": "morphe-watch-later",
-      "repo": "ciraolone/morphe-watch-later",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/ciraolone/morphe-watch-later/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/ciraolone/morphe-watch-later/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/ciraolone/morphe-watch-later/main/CHANGELOG.md",
-      "webUrl": "https://github.com/ciraolone/morphe-watch-later",
-      "addUrl": "https://morphe.software/add-source?github=ciraolone/morphe-watch-later",
-      "avatarUrl": "https://github.com/ciraolone.png?size=96",
-      "patchCount": 1,
-      "appCount": 1,
-      "createdAt": 1785034852247,
-      "updatedAt": 1785034852247,
-      "createdDate": "2026-07-26",
-      "updatedDate": "2026-07-26",
-      "latestChanges": {
-        "title": "1.1.0 (2026-07-24)",
-        "date": "2026-07-24",
-        "items": [
-          {
-            "category": "\u2728 New Features",
-            "text": "add link navigation, clock icon, Later label and position before profile"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "YouTube",
-          "packageName": "com.google.android.youtube",
-          "patchCount": 1,
-          "iconUrl": "https://play-lh.googleusercontent.com/QNmuZQc9I6Zbe3mWnSr0hycnENqGFCI5p3yE29Hkxtf22T0IWS6zTrpxULLyyjWpB7ONAXDsDQXnXcVWokl3eg",
-          "iconColor": "#FF0033"
-        }
-      ]
-    },
-    {
-      "name": "morphe-patches",
-      "repo": "andrewliang25/morphe-patches",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/andrewliang25/morphe-patches/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/andrewliang25/morphe-patches/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/andrewliang25/morphe-patches/main/CHANGELOG.md",
-      "webUrl": "https://github.com/andrewliang25/morphe-patches",
-      "addUrl": "https://morphe.software/add-source?github=andrewliang25/morphe-patches",
-      "avatarUrl": "https://github.com/andrewliang25.png?size=96",
-      "patchCount": 19,
-      "appCount": 1,
-      "createdAt": 1785034852052,
-      "updatedAt": 1785034852052,
-      "createdDate": "2026-07-26",
-      "updatedDate": "2026-07-26",
-      "latestChanges": {
-        "title": "1.4.0 (2026-08-02)",
-        "date": "2026-08-02",
-        "items": [
-          {
-            "category": "\u2728 New Features",
-            "text": "add \"Fix push notifications\" patch"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "LINE",
-          "packageName": "jp.naver.line.android",
-          "patchCount": 19,
-          "iconUrl": "",
-          "iconColor": "#06C755"
-        }
-      ]
-    },
-    {
-      "name": "morphe-patches-yavot",
-      "repo": "MarcaDian/morphe-patches-yavot",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/MarcaDian/morphe-patches-yavot/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/MarcaDian/morphe-patches-yavot/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/MarcaDian/morphe-patches-yavot/main/CHANGELOG.md",
-      "webUrl": "https://github.com/MarcaDian/morphe-patches-yavot",
-      "addUrl": "https://morphe.software/add-source?github=MarcaDian/morphe-patches-yavot",
-      "avatarUrl": "https://github.com/MarcaDian.png?size=96",
-      "patchCount": 1,
-      "appCount": 1,
-      "createdAt": 1785034851803,
-      "updatedAt": 1785034851803,
-      "createdDate": "2026-07-26",
-      "updatedDate": "2026-07-26",
-      "latestChanges": {
-        "title": "1.0.0 (2026-08-02)",
-        "date": "2026-08-02",
-        "items": [
-          {
-            "category": "\u2728 New Features",
-            "text": "add Yandex VoT as add-on for Morphe Patches"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "YouTube",
-          "packageName": "com.google.android.youtube",
-          "patchCount": 1,
-          "iconUrl": "https://play-lh.googleusercontent.com/QNmuZQc9I6Zbe3mWnSr0hycnENqGFCI5p3yE29Hkxtf22T0IWS6zTrpxULLyyjWpB7ONAXDsDQXnXcVWokl3eg",
-          "iconColor": "#FF0033"
         }
       ]
     }
