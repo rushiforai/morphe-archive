@@ -1,0 +1,25 @@
+{
+  "morpheDesktop": {
+    "version": "1.12.0",
+    "file": "morphe-desktop-1.12.0-all.jar",
+    "url": "https://github.com/MorpheApp/morphe-desktop/releases/download/v1.12.0/morphe-desktop-1.12.0-all.jar"
+  },
+  "morpheSources": {
+    "gradlePlugin": {
+      "version": "1.3.3",
+      "directory": "morphe-patches-gradle-plugin",
+      "url": "https://github.com/MorpheApp/morphe-patches-gradle-plugin.git"
+    },
+    "patcher": {
+      "version": "1.7.0",
+      "directory": "morphe-patcher",
+      "url": "https://github.com/MorpheApp/morphe-patcher.git"
+    }
+  },
+  "android": {
+    "studioJdk": "C:\\Program Files\\Android\\Android Studio\\jbr",
+    "sdk": "C:\\Users\\giorgio.marinelli\\AppData\\Local\\Android\\Sdk",
+    "phoneAvd": "Pixel_10",
+    "tvAvd": "Television_4K"
+  }
+}

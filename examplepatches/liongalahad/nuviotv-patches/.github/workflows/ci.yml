@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [dev, main]
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  build-and-apply:
+    name: build-and-apply (${{ matrix.target.name }})
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - name: x86_64
+            url: https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.1-beta/app-full-x86_64-release.apk
+            sha256: 9dd9256fe3070efc0e3254dff6969c4f8ff3d2b4921e3fe0695f8c64d8766c93
+          - name: universal
+            url: https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.1-beta/app-full-universal-release.apk
+            sha256: 11961657275fd3d3a57ae1235abad766f829e8f4bc3cda219c2e39c7ada4defd
+    env:
+      GITHUB_ACTOR: liongalahad
+      MORPHE_PACKAGES_TOKEN: ${{ secrets.MORPHE_PACKAGES_TOKEN }}
+      TARGET_URL: ${{ matrix.target.url }}
+      TARGET_SHA256: ${{ matrix.target.sha256 }}
+      MORPHE_URL: https://github.com/MorpheApp/morphe-desktop/releases/download/v1.12.0/morphe-desktop-1.12.0-all.jar
+    steps:
+      - uses: actions/checkout@v7
+        with: {fetch-depth: 0}
+      - uses: actions/setup-java@v5
+        with: {distribution: temurin, java-version: '21'}
+      - name: Configure Morphe package credentials
+        shell: pwsh
+        env:
+          GPR_KEY: ${{ secrets.MORPHE_PACKAGES_TOKEN || github.token }}
+        run: |
+          New-Item -ItemType Directory -Force "$HOME\.gradle" | Out-Null
+          @("gpr.user=$env:GITHUB_ACTOR", "gpr.key=$env:GPR_KEY") |
+            Set-Content -Encoding utf8 "$HOME\.gradle\gradle.properties"
+      - name: Unit tests and clean bundle
+        shell: pwsh
+        run: |
+          ./gradlew.bat :extensions:extension:test :patches:buildAndroid --no-daemon
+          ./gradlew.bat generatePatchesList --no-daemon
+          $list = Get-Content patches-list.json -Raw | ConvertFrom-Json
+          if ($list.patches.name -notcontains 'Remove SDH Annotations') { throw 'Generated list is missing the SDH patch.' }
+      - name: Download and verify official target
+        shell: pwsh
+        run: |
+          Invoke-WebRequest $env:TARGET_URL -OutFile "$env:RUNNER_TEMP\nuvio.apk"
+          $actual = (Get-FileHash "$env:RUNNER_TEMP\nuvio.apk" -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($actual -ne $env:TARGET_SHA256) { throw "Target digest mismatch: $actual" }
+          Invoke-WebRequest $env:MORPHE_URL -OutFile "$env:RUNNER_TEMP\morphe.jar"
+      - name: Isolated patch application and inspection
+        shell: pwsh
+        run: |
+          $bundle = (Get-ChildItem patches/build/libs/patches-*.mpp |
+            Where-Object Name -NotMatch '-(sources|javadoc)\.mpp$' |
+            Select-Object -First 1).FullName
+          if (-not $bundle) { throw 'Runtime patch bundle was not produced.' }
+          # FULL SDK verification reports false positives for optional classes
+          # already absent from Nuvio; STRIP_SAFE has a Morphe 1.12.0 rebuild bug.
+          java -jar "$env:RUNNER_TEMP\morphe.jar" patch --patches $bundle --exclusive --enable 'Remove SDH Annotations' --unsigned --bytecode-mode STRIP_FAST --out "$env:RUNNER_TEMP\patched.apk" --result-file "$env:RUNNER_TEMP\result.json" "$env:RUNNER_TEMP\nuvio.apk"
+          if ($LASTEXITCODE -ne 0) { throw 'Isolated patching failed.' }
+          $aapt = Get-ChildItem "$env:ANDROID_HOME\build-tools" -Recurse -Filter aapt2.exe | Sort-Object FullName -Descending | Select-Object -First 1
+          $manifest = (& $aapt.FullName dump xmltree --file AndroidManifest.xml "$env:RUNNER_TEMP\patched.apk") -join "`n"
+          foreach ($needle in @('MorpheInitProvider','nuviotv.settings.category.subtitles')) {
+            if ($manifest -notmatch $needle) { throw "Manifest inspection did not find $needle" }
+          }
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $archive = [IO.Compression.ZipFile]::OpenRead("$env:RUNNER_TEMP\patched.apk")
+          try {
+            $dexText = ($archive.Entries | Where-Object Name -Match '^classes\d*\.dex$' | ForEach-Object {
+              $stream = $_.Open(); $memory = New-Object IO.MemoryStream
+              try { $stream.CopyTo($memory); [Text.Encoding]::ASCII.GetString($memory.ToArray()) } finally { $memory.Dispose(); $stream.Dispose() }
+            }) -join ''
+          } finally { $archive.Dispose() }
+          foreach ($needle in @('MorpheSettingsRuntime','MorpheComposeToggleAction','MorpheSubtitlesExpandAction','SdhCueTransformer','subtitles.remove_sdh_annotations','Landroidx/media3/common/text/CueGroup;')) {
+            if (-not $dexText.Contains($needle)) { throw "DEX inspection did not find $needle" }
+          }
+          if ($dexText.Contains('Lcom/google/common/collect/ImmutableList;')) {
+            throw 'DEX inspection found a release-incompatible Guava descriptor.'
+          }
+          $result = Get-Content "$env:RUNNER_TEMP\result.json" -Raw
+          if ($result -notmatch 'Remove SDH Annotations') { throw 'Patch result does not identify the selected patch.' }
+      # Patched and source APKs remain in RUNNER_TEMP and are never uploaded.

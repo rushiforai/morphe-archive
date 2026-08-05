@@ -1,0 +1,12 @@
+[versions]
+morphe-patcher = "1.7.0"
+#noinspection GradleDependency
+smali = "d92701d947"
+gson = "2.14.0"
+junit = "4.13.2"
+json = "20260719"
+
+[libraries]
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+junit = { module = "junit:junit", version.ref = "junit" }
+json = { module = "org.json:json", version.ref = "json" }

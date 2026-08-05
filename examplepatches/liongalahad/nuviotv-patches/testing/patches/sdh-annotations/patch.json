@@ -1,0 +1,60 @@
+{
+  "$schema": "../patch.schema.json",
+  "id": "sdh-annotations",
+  "name": "Remove SDH Annotations",
+  "category": "subtitles",
+  "target": {
+    "application": "NuvioTV",
+    "package": "com.nuvio.tv",
+    "versions": ["0.8.1-beta"],
+    "launchComponent": "com.nuvio.tv/.MainActivity"
+  },
+  "assets": {
+    "universal": {
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.1-beta/app-full-universal-release.apk",
+      "sha256": "11961657275fd3d3a57ae1235abad766f829e8f4bc3cda219c2e39c7ada4defd"
+    },
+    "x86_64": {
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.1-beta/app-full-x86_64-release.apk",
+      "sha256": "9dd9256fe3070efc0e3254dff6969c4f8ff3d2b4921e3fe0695f8c64d8766c93"
+    },
+    "arm64-v8a": {
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.1-beta/app-full-arm64-v8a-release.apk",
+      "sha256": "dfd7a756c48d22694c63e6ee853b3111651d93140c518fc478fce15ee4ae51b0"
+    },
+    "armeabi-v7a": {
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.1-beta/app-full-armeabi-v7a-release.apk",
+      "sha256": "5dadf7cefd795352e271ed46dc1cb5cf32328e84e63254bef5dfde3c2670b30b"
+    }
+  },
+  "dependencies": ["settings-hub"],
+  "emulators": {"phone": "Pixel_10", "tv": "Television_4K"},
+  "fingerprints": ["SettingsScreenFingerprint", "ExperienceSettingsHeaderFingerprint", "ExperienceSettingsCardFingerprint", "NativeSettingsSwitchUsageFingerprint", "CueGroupOutputFingerprint", "LegacyCueOutputFingerprint"],
+  "inspection": {
+    "provider": "io.github.liongalahad.nuviotv.extension.settings.MorpheInitProvider",
+    "metadata": "io.github.liongalahad.nuviotv.settings.category.subtitles",
+    "classes": [
+      "io.github.liongalahad.nuviotv.extension.settings.MorpheSettingsRuntime",
+      "io.github.liongalahad.nuviotv.extension.settings.MorpheComposeToggleAction",
+      "io.github.liongalahad.nuviotv.extension.settings.MorpheComposeModeAction",
+      "io.github.liongalahad.nuviotv.extension.settings.MorpheSdhModeDialogAction",
+      "io.github.liongalahad.nuviotv.extension.settings.MorpheSdhModeDialog",
+      "io.github.liongalahad.nuviotv.extension.settings.MorpheSubtitlesExpandAction",
+      "io.github.liongalahad.nuviotv.extension.subtitles.sdh.SdhCleanupMode",
+      "io.github.liongalahad.nuviotv.extension.subtitles.sdh.SdhCueTransformer"
+    ]
+  },
+  "focusedTests": ["SdhSubtitleCleanerTest", "isolated x86_64 and universal exclusive-mode application", "manifest and injected-class inspection"],
+  "acceptance": [
+    "Unpatched NuvioTV has no Morphe entry",
+    "Patched NuvioTV shows Settings → Morphe → Subtitles",
+    "Subtitles expands in the existing pane and shows one native Remove SDH annotations selector with its current value",
+    "The selector opens the same three-choice modal layout, focus treatment, typography, spacing, selected fill, checkmark, and D-pad order as Nuvio's Playback selector",
+    "Exactly one of Off, Remove SDH, keep lyrics, and Full cleanup is selected in the modal",
+    "Mode defaults to Off and persists after force-stop and reboot",
+    "Off preserves the full subtitle text",
+    "Remove SDH, keep lyrics removes annotations while preserving likely lyrics",
+    "Full cleanup also removes all text enclosed by normal or supported mojibake music-note markers",
+    "No crash, ANR, VerifyError, or fatal log during launch, settings, playback, seeking, or track changes"
+  ]
+}

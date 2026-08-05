@@ -1,0 +1,47 @@
+name: Sofa Time Update Checker
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/check_sofatime_update.yml'
+      - 'scripts/check_update.py'
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  check-update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install google-play-scraper
+
+      - name: Check for update
+        id: check_update
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          python scripts/check_update.py
+
+      - name: Commit updated version file
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "update latest_version.json [skip ci]"
+          file_pattern: "latest_version.json"
+          commit_author: "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"

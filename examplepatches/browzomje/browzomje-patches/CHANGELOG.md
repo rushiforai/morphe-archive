@@ -1,3 +1,15 @@
+## [1.5.2](https://github.com/browzomje/browzomje-patches/compare/v1.5.1...v1.5.2) (2026-08-04)
+
+### 🐛 Bug Fixes
+
+* remove invalid COMPATIBILITY_BETTER_LAUNCHER placeholder causing ExceptionInInitializerError ([95a13ce](https://github.com/browzomje/browzomje-patches/commit/95a13ce803fc73cface091b78ec7b5b8dcc222c6))
+
+## [1.5.1](https://github.com/browzomje/browzomje-patches/compare/v1.5.0...v1.5.1) (2026-08-04)
+
+### 🐛 Bug Fixes
+
+* update patch metadata and source urls ([a587d55](https://github.com/browzomje/browzomje-patches/commit/a587d5572e1e5feb07c4a80d945f5528696bc076))
+
 ## [1.5.0](https://github.com/browzomje/browzomje-patches/compare/v1.4.1...v1.5.0) (2026-08-01)
 
 ### ✨ New Features

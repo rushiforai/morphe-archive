@@ -819,6 +819,41 @@
         "integration": "https://api.github.com/repos/revanced/revanced-integrations",
         "prerelease": false
     },
+    "niconico-yt-stable": {
+        "patches": "https://api.github.com/repos/david419kr/niconico-yt-morphe-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": false
+    },
+    "alastor-kaneki-stable": {
+        "patches": "https://api.github.com/repos/Alastor-Kaneki/Morphe-Patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": false
+    },
+    "nuviotv-stable": {
+        "patches": "https://api.github.com/repos/liongalahad/nuviotv-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": false
+    },
+    "goldrift-stable": {
+        "patches": "https://api.github.com/repos/GoldRift/morphe-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": false
+    },
+    "roundsalmon4-stable": {
+        "patches": "https://api.github.com/repos/RoundSalmon4/morphe-patches-template",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": false
+    },
+    "dexnis-stable": {
+        "patches": "https://api.github.com/repos/dexnis-dev/morphe-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": false
+    },
+    "hu-liberator-stable": {
+        "patches": "https://api.github.com/repos/hu-liberator/patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": false
+    },
     "piko-dev": {
         "patches": "https://api.github.com/repos/crimera/piko",
         "integration": "https://api.github.com/repos/crimera/revanced-integrations",
@@ -1634,6 +1669,41 @@
         "integration": "https://api.github.com/repos/revanced/revanced-integrations",
         "prerelease": true
     },
+    "niconico-yt-dev": {
+        "patches": "https://api.github.com/repos/david419kr/niconico-yt-morphe-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": true
+    },
+    "alastor-kaneki-dev": {
+        "patches": "https://api.github.com/repos/Alastor-Kaneki/Morphe-Patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": true
+    },
+    "nuviotv-dev": {
+        "patches": "https://api.github.com/repos/liongalahad/nuviotv-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": true
+    },
+    "goldrift-dev": {
+        "patches": "https://api.github.com/repos/GoldRift/morphe-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": true
+    },
+    "roundsalmon4-dev": {
+        "patches": "https://api.github.com/repos/RoundSalmon4/morphe-patches-template",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": true
+    },
+    "dexnis-dev": {
+        "patches": "https://api.github.com/repos/dexnis-dev/morphe-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": true
+    },
+    "hu-liberator-dev": {
+        "patches": "https://api.github.com/repos/hu-liberator/patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": true
+    },
     "piko-latest": {
         "patches": "https://api.github.com/repos/crimera/piko",
         "integration": "https://api.github.com/repos/crimera/revanced-integrations",
@@ -2446,6 +2516,41 @@
     },
     "tiktok-lite-latest": {
         "patches": "https://api.github.com/repos/furkngld/tiktok-lite-patches-for-morphe",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "latest": true
+    },
+    "niconico-yt-latest": {
+        "patches": "https://api.github.com/repos/david419kr/niconico-yt-morphe-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "latest": true
+    },
+    "alastor-kaneki-latest": {
+        "patches": "https://api.github.com/repos/Alastor-Kaneki/Morphe-Patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "latest": true
+    },
+    "nuviotv-latest": {
+        "patches": "https://api.github.com/repos/liongalahad/nuviotv-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "latest": true
+    },
+    "goldrift-latest": {
+        "patches": "https://api.github.com/repos/GoldRift/morphe-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "latest": true
+    },
+    "roundsalmon4-latest": {
+        "patches": "https://api.github.com/repos/RoundSalmon4/morphe-patches-template",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "latest": true
+    },
+    "dexnis-latest": {
+        "patches": "https://api.github.com/repos/dexnis-dev/morphe-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "latest": true
+    },
+    "hu-liberator-latest": {
+        "patches": "https://api.github.com/repos/hu-liberator/patches",
         "integration": "https://api.github.com/repos/revanced/revanced-integrations",
         "latest": true
     }

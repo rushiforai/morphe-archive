@@ -2166,6 +2166,96 @@ If you know of another working ReVanced or Morphe patch repository that is not l
 **Dev:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/tiktok-lite-patch-bundles/tiktok-lite-dev-patches-bundle.json```
 </details>
 
+---
+### 📦 Niconico-YT-Patches-Bundle [Morphe]:
+[🧩 Niconico-YT Bundle Patch List](https://github.com/Jman-Github/ReVanced-Patch-Bundles/blob/bundles/patch-bundles/PATCH-LIST-CATALOG.md#-niconico-yt-bundle-patch-list)
+<details>
+<summary><i>Expand For Links</i></summary>
+
+**Latest:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/niconico-yt-patch-bundles/niconico-yt-latest-patches-bundle.json```
+
+**Stable:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/niconico-yt-patch-bundles/niconico-yt-stable-patches-bundle.json```
+
+**Dev:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/niconico-yt-patch-bundles/niconico-yt-dev-patches-bundle.json```
+</details>
+
+---
+### 📦 Alastor-Kaneki-Patches-Bundle [Morphe]:
+[🧩 Alastor-Kaneki Bundle Patch List](https://github.com/Jman-Github/ReVanced-Patch-Bundles/blob/bundles/patch-bundles/PATCH-LIST-CATALOG.md#-alastor-kaneki-bundle-patch-list)
+<details>
+<summary><i>Expand For Links</i></summary>
+
+**Latest:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/alastor-kaneki-patch-bundles/alastor-kaneki-latest-patches-bundle.json```
+
+**Stable:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/alastor-kaneki-patch-bundles/alastor-kaneki-stable-patches-bundle.json```
+
+**Dev:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/alastor-kaneki-patch-bundles/alastor-kaneki-dev-patches-bundle.json```
+</details>
+
+---
+### 📦 NuvioTV-Patches-Bundle [Morphe]:
+[🧩 NuvioTV Bundle Patch List](https://github.com/Jman-Github/ReVanced-Patch-Bundles/blob/bundles/patch-bundles/PATCH-LIST-CATALOG.md#-nuviotv-bundle-patch-list)
+<details>
+<summary><i>Expand For Links</i></summary>
+
+**Latest:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/nuviotv-patch-bundles/nuviotv-latest-patches-bundle.json```
+
+**Stable:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/nuviotv-patch-bundles/nuviotv-stable-patches-bundle.json```
+
+**Dev:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/nuviotv-patch-bundles/nuviotv-dev-patches-bundle.json```
+</details>
+
+---
+### 📦 GoldRift-Patches-Bundle [Morphe]:
+[🧩 GoldRift Bundle Patch List](https://github.com/Jman-Github/ReVanced-Patch-Bundles/blob/bundles/patch-bundles/PATCH-LIST-CATALOG.md#-goldrift-bundle-patch-list)
+<details>
+<summary><i>Expand For Links</i></summary>
+
+**Latest:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/goldrift-patch-bundles/goldrift-latest-patches-bundle.json```
+
+**Stable:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/goldrift-patch-bundles/goldrift-stable-patches-bundle.json```
+
+**Dev:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/goldrift-patch-bundles/goldrift-dev-patches-bundle.json```
+</details>
+---
+### 📦 RoundSalmon4-Patches-Bundle [Morphe]:
+[🧩 RoundSalmon4 Bundle Patch List](https://github.com/Jman-Github/ReVanced-Patch-Bundles/blob/bundles/patch-bundles/PATCH-LIST-CATALOG.md#-roundsalmon4-bundle-patch-list)
+<details>
+<summary><i>Expand For Links</i></summary>
+
+**Latest:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/roundsalmon4-patch-bundles/roundsalmon4-latest-patches-bundle.json```
+
+**Stable:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/roundsalmon4-patch-bundles/roundsalmon4-stable-patches-bundle.json```
+
+**Dev:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/roundsalmon4-patch-bundles/roundsalmon4-dev-patches-bundle.json```
+</details>
+
+---
+### 📦 Dexnis-Patches-Bundle [Morphe]:
+[🧩 Dexnis Bundle Patch List](https://github.com/Jman-Github/ReVanced-Patch-Bundles/blob/bundles/patch-bundles/PATCH-LIST-CATALOG.md#-dexnis-bundle-patch-list)
+<details>
+<summary><i>Expand For Links</i></summary>
+
+**Latest:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/dexnis-patch-bundles/dexnis-latest-patches-bundle.json```
+
+**Stable:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/dexnis-patch-bundles/dexnis-stable-patches-bundle.json```
+
+**Dev:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/dexnis-patch-bundles/dexnis-dev-patches-bundle.json```
+</details>
+
+---
+### 📦 HU-Liberator-Patches-Bundle [Morphe]:
+[🧩 HU-Liberator Bundle Patch List](https://github.com/Jman-Github/ReVanced-Patch-Bundles/blob/bundles/patch-bundles/PATCH-LIST-CATALOG.md#-hu-liberator-bundle-patch-list)
+<details>
+<summary><i>Expand For Links</i></summary>
+
+**Latest:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/hu-liberator-patch-bundles/hu-liberator-latest-patches-bundle.json```
+
+**Stable:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/hu-liberator-patch-bundles/hu-liberator-stable-patches-bundle.json```
+
+**Dev:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/hu-liberator-patch-bundles/hu-liberator-dev-patches-bundle.json```
+</details>
+
 ## 📱 Compatible Managers
 
 | Manager | Best For | Source | Downloads |
@@ -2511,6 +2601,21 @@ If you know of another working ReVanced or Morphe patch repository that is not l
 #### 🩹 [Zarko-Patches-Bundle](https://github.com/eZ4RK0/morphe-patches)
 
 #### 🩹 [TikTok-Lite-Patches-Bundle](https://github.com/furkngld/tiktok-lite-patches-for-morphe)
+
+#### 🩹 [Niconico-YT-Patches-Bundle](https://github.com/david419kr/niconico-yt-morphe-patches)
+
+#### 🩹 [Alastor-Kaneki-Patches-Bundle](https://github.com/Alastor-Kaneki/Morphe-Patches)
+
+#### 🩹 [NuvioTV-Patches-Bundle](https://github.com/liongalahad/nuviotv-patches)
+
+#### 🩹 [GoldRift-Patches-Bundle](https://github.com/GoldRift/morphe-patches)
+
+#### 🩹 [RoundSalmon4-Patches-Bundle](https://github.com/RoundSalmon4/morphe-patches-template)
+
+#### 🩹 [Dexnis-Patches-Bundle](https://github.com/dexnis-dev/morphe-patches)
+
+
+#### 🩹 [HU-Liberator-Patches-Bundle](https://github.com/hu-liberator/patches)
 
 ## 🖇 Integrations Repositories In Use
 
