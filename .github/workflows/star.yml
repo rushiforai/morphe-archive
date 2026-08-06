@@ -24,14 +24,10 @@ jobs:
           echo "Authenticated user:"
           gh api user --jq '.login'
 
-          echo "Token:"
-          gh api user -i 2>&1 | grep -i "x-oauth-scopes" || true
-
       - name: Star and watch repositories
         env:
           GH_TOKEN: ${{ secrets.STAR_TOKEN }}
         run: |
-
           if [ ! -f repos.txt ]; then
             echo "❌ repos.txt not found"
             exit 1
@@ -39,7 +35,6 @@ jobs:
 
           while IFS= read -r repo || [ -n "$repo" ]; do
 
-            # Skip empty lines and comments
             if [[ -z "$repo" || "$repo" == \#* ]]; then
               continue
             fi
@@ -50,75 +45,48 @@ jobs:
             echo "=============================="
 
 
-            # Check repository exists
+            # Check repo exists
             if ! gh api "/repos/$repo" --silent > /dev/null 2>&1; then
               echo "⚠️ Repository not found or no access: $repo"
               continue
             fi
 
 
-            #
-            # STAR REPOSITORY
-            #
+            # Star check
             if gh api "/user/starred/$repo" --silent > /dev/null 2>&1; then
-
               echo "⭐ Already starred: $repo"
-
             else
-
               echo "⭐ Starring: $repo"
 
               if gh api \
                 --method PUT \
                 "/user/starred/$repo"; then
-
                 echo "✅ Starred: $repo"
-
               else
-
                 echo "❌ Failed to star: $repo"
-
               fi
-
             fi
 
 
-            #
-            # WATCH REPOSITORY
-            #
-            watched=$(gh api \
-              "/repos/$repo/subscription" \
+            # Watch check
+            watched=$(gh api "/repos/$repo/subscription" \
               --jq '.subscribed' 2>/dev/null || echo false)
 
-
             if [ "$watched" = "true" ]; then
-
               echo "👁️ Already watching: $repo"
-
             else
-
               echo "👁️ Watching: $repo"
 
               if gh api \
                 --method PUT \
                 "/repos/$repo/subscription" \
-                --input - <<EOF
-            {
-              "subscribed": true,
-              "ignored": false
-            }
-            EOF
-              then
+                --input <(echo '{"subscribed":true,"ignored":false}'); then
 
                 echo "✅ Watching: $repo"
 
               else
-
                 echo "❌ Failed to watch: $repo"
-
               fi
-
             fi
-
 
           done < repos.txt
