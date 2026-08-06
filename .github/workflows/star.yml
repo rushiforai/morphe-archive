@@ -103,11 +103,11 @@ jobs:
                 --method PUT \
                 "/repos/$repo/subscription" \
                 --input - <<EOF
-{
-  "subscribed": true,
-  "ignored": false
-}
-EOF
+            {
+              "subscribed": true,
+              "ignored": false
+            }
+            EOF
               then
 
                 echo "✅ Watching: $repo"
