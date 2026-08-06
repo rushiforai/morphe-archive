@@ -1,6 +1,6 @@
 [*.{kt,kts}]
 ktlint_code_style = intellij_idea
 ktlint_standard_no-wildcard-imports = disabled
-insert_final_newline = false
+insert_final_newline = true
 ij_kotlin_allow_trailing_comma_on_call_site=false
 ij_kotlin_allow_trailing_comma=false

@@ -232,7 +232,7 @@ object GoogleSignInHelper {
             val failureClass = ResultClasses.failureClass(appContext)
             if (failureClass != null) {
                 try {
-                    val ctor = failureClass.getDeclaredConstructor(Throwable::class.java)
+                    val ctor = failureClass.declaredConstructors.first { it.parameterTypes.size == 1 }
                     ctor.isAccessible = true
                     ctor.newInstance(exception)
                 } catch (e: Exception) {
@@ -247,7 +247,7 @@ object GoogleSignInHelper {
         val resultClass = ResultClasses.resultClass(appContext)
         val boxed: Any? = if (valueToBox != null && resultClass != null) {
             try {
-                val ctor = resultClass.getDeclaredConstructor(Any::class.java)
+                val ctor = resultClass.declaredConstructors.first { it.parameterTypes.size == 1 && it.parameterTypes[0] == Any::class.java }
                 ctor.isAccessible = true
                 ctor.newInstance(valueToBox)
             } catch (e: Exception) {
@@ -267,7 +267,7 @@ object GoogleSignInHelper {
         val successClass = ResultClasses.resultClass(appContext)
         if (successClass != null) {
             try {
-                val ctor = successClass.getDeclaredConstructor(Any::class.java)
+                val ctor = successClass.declaredConstructors.first { it.parameterTypes.size == 1 && it.parameterTypes[0] == Any::class.java }
                 ctor.isAccessible = true
                 return ctor.newInstance(null)
             } catch (e: Exception) {
@@ -451,7 +451,7 @@ object GoogleSignInHelper {
                 return string(nameIdx)
             }
 
-            fun findResultClasses(): Pair<String, String>? {
+            fun findResultClasses(): Pair<String?, String?> {
                 var resultClass: String? = null
                 var failureClass: String? = null
 
@@ -469,8 +469,8 @@ object GoogleSignInHelper {
                     if (interfacesOff != 0 && interfacesOff > 0 && interfacesOff <= data.size - 4) {
                         val count = u32(interfacesOff)
                         var i = 0
-                        while (i < count && interfacesOff + 4 + i * 4 + 4 <= data.size) {
-                            if (type(u32(interfacesOff + 4 + i * 4)) == "Ljava/io/Serializable;") {
+                        while (i < count && interfacesOff + 4 + i * 2 + 2 <= data.size) {
+                            if (type(u16(interfacesOff + 4 + i * 2)) == "Ljava/io/Serializable;") {
                                 isSerializable = true
                                 break
                             }
@@ -487,24 +487,28 @@ object GoogleSignInHelper {
                     val (directMethodsSize, p3) = uleb128(p2)
                     val (virtualMethodsSize, p4) = uleb128(p3)
 
-                    var fieldIdx = 0
-                    var i = 0
                     var hasObjectField = false
                     var hasThrowableField = false
-                    var i0 = p2
+                    var i0 = p4
+                    var fieldIdx = 0
                     var fieldsOk = true
-                    while (i < staticFieldsSize) {
+                    var i = 0
+                    while (i < staticFieldsSize && fieldsOk) {
                         if (i0 >= data.size) { fieldsOk = false; break }
-                        val (diff, np) = uleb128(i0)
-                        i0 = np
+                        val (diff, np1) = uleb128(i0)
+                        val (flags, np2) = uleb128(np1)
+                        i0 = np2
                         fieldIdx += diff
                         i++
                     }
+
+                    fieldIdx = 0 // Reset for instance_fields list
                     i = 0
                     while (i < instanceFieldsSize && fieldsOk) {
                         if (i0 >= data.size) { fieldsOk = false; break }
-                        val (diff, np) = uleb128(i0)
-                        i0 = np
+                        val (diff, np1) = uleb128(i0)
+                        val (flags, np2) = uleb128(np1)
+                        i0 = np2
                         fieldIdx += diff
                         when (fieldType(fieldIdx)) {
                             "Ljava/lang/Object;" -> hasObjectField = true
@@ -517,7 +521,7 @@ object GoogleSignInHelper {
                     i = 0
                     var directHasCtorThrowable = false
                     var directHasStaticThrowableOf = false
-                    var m0 = p3
+                    var m0 = i0 // Methods array starts right after fields arrays
                     var methodsOk = true
                     while (i < directMethodsSize && fieldsOk) {
                         if (m0 >= data.size) { methodsOk = false; break }
@@ -562,11 +566,7 @@ object GoogleSignInHelper {
                     cls++
                 }
 
-                return if (resultClass != null && failureClass != null) {
-                    resultClass to failureClass
-                } else {
-                    null
-                }
+                return resultClass to failureClass
             }
         }
 
@@ -577,11 +577,7 @@ object GoogleSignInHelper {
         @Volatile
         private var scanned = false
 
-        private val KNOWN = listOf(
-            "zn5" to "yn5",
-            "kn5" to "jn5",
-            "gm5" to "fm5"
-        )
+        private val KNOWN = listOf<Pair<String, String>>()
 
         fun resultClass(context: Context?): Class<*>? = resolve(context)?.first
         fun failureClass(context: Context?): Class<*>? = resolve(context)?.second
@@ -594,9 +590,11 @@ object GoogleSignInHelper {
         }
 
         private fun hasCtor(cls: Class<*>, param: Class<*>): Boolean = try {
-            cls.getDeclaredConstructor(param)
-            true
-        } catch (_: Throwable) {
+            val res = cls.declaredConstructors.any { it.parameterTypes.size == 1 && it.parameterTypes[0] == param }
+            Log.d(TAG, "hasCtor for ${cls.name} with param ${param.name}: $res")
+            res
+        } catch (e: Throwable) {
+            Log.e(TAG, "hasCtor threw exception", e)
             false
         }
 
@@ -635,17 +633,29 @@ object GoogleSignInHelper {
                                     .map { zip.getInputStream(it).readBytes() }
                                     .toList()
                             }
+                            var foundResultClass: Class<*>? = null
+                            var foundFailureClass: Class<*>? = null
+
                             for (dex in dexFiles) {
                                 val found = DexScan(dex).findResultClasses()
-                                if (found != null) {
-                                    val rc = load(found.first)
-                                    val fc = load(found.second)
-                                    if (rc != null && fc != null && hasCtor(rc, Any::class.java) && hasCtor(fc, Throwable::class.java)) {
-                                        cachedResult = rc
-                                        cachedFailure = fc
-                                        Log.i(TAG, "Discovered obfuscated Result classes via DEX scan: ${rc.name} / ${fc.name}")
-                                        return rc to fc
-                                    }
+                                Log.d(TAG, "DexScan returned: ${found.first} / ${found.second}")
+                                if (found.first != null && foundResultClass == null) {
+                                    val rc = load(found.first!!)
+                                    val hasCtorRes = rc != null && hasCtor(rc, Any::class.java)
+                                    Log.d(TAG, "loaded rc: ${rc?.name}, hasCtor: $hasCtorRes")
+                                    if (hasCtorRes) foundResultClass = rc
+                                }
+                                if (found.second != null && foundFailureClass == null) {
+                                    val fc = load(found.second!!)
+                                    val hasCtorRes = fc != null && hasCtor(fc, Throwable::class.java)
+                                    Log.d(TAG, "loaded fc: ${fc?.name}, hasCtor: $hasCtorRes")
+                                    if (hasCtorRes) foundFailureClass = fc
+                                }
+                                if (foundResultClass != null && foundFailureClass != null) {
+                                    cachedResult = foundResultClass
+                                    cachedFailure = foundFailureClass
+                                    Log.i(TAG, "Discovered obfuscated Result classes via DEX scan: ${foundResultClass.name} / ${foundFailureClass.name}")
+                                    return foundResultClass to foundFailureClass
                                 }
                             }
                         } catch (e: Exception) {
@@ -668,3 +678,5 @@ object GoogleSignInHelper {
         }
     }
 }
+
+

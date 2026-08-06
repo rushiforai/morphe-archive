@@ -29,6 +29,12 @@ jobs:
       - name: Test GX URL resolver
         run: bash tools/test-parser.sh
 
+      - name: Test Chrome userscript engine
+        run: bash tools/test-chrome-userscripts.sh
+
+      - name: Test Chrome 150 exact menu hook
+        run: bash tools/test-chrome150-menu-hook.sh
+
       - name: Build Android Morphe bundle
         env:
           GITHUB_ACTOR: ${{ github.actor }}

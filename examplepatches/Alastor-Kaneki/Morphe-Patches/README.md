@@ -7,59 +7,164 @@ patches are added to this project and built together into one `.mpp` bundle.
 
 ### Opera GX — Download GX mods as files
 
-Targets the Android Opera GX package (`com.opera.gx`). It adds a visible floating
-**Download Mod** button inside the patched browser and keeps **Download GX Mod**
-as an Android share-sheet fallback. Both save the GX Store's official raw `.crx`
-package to the public **Downloads** folder.
+Targets Opera GX Android (`com.opera.gx`). It adds a visible, theme-aware
+**Download Mod** button and an Android share-sheet fallback. Both resolve the GX
+Store's official raw `mod.crx` package and save it to **Downloads** without
+installing or activating it.
 
-The patch does not install, activate, or modify the downloaded mod.
+### Chrome Android — MonkeyScript userscript manager
 
-#### Usage
+Targets Google Chrome Android (`com.android.chrome`). The patch adds a native
+userscript manager that adapts portable behavior from Violentmonkey for Chrome
+Android, where the normal desktop WebExtension runtime is unavailable.
 
-1. Patch a full Opera GX Android APK using the generated `.mpp` bundle.
-2. Enable **Download GX mods as files** in Morphe Manager.
-3. Install the patched Opera GX APK.
-4. Open a mod page on `store.gx.me`.
-5. Tap the floating **Download Mod ↓** button.
+#### Chrome Material You interface
 
-The button attempts to detect the current GX Store URL from Opera's current tab,
-address bar, navigation objects, intent, or clipboard. If Opera does not expose
-the complete URL, it opens a small paste dialog rather than failing silently.
+The manager, editor, and installation-review screens inherit Chrome's own app
+theme and resolve Chrome/Material You colors at runtime. Surfaces, primary and
+secondary accents, text, outlines, controls, ripples, status bars, and navigation
+bars follow the patched Chrome build's current light, dark, and dynamic-color
+palette.
 
-The floating button follows Opera GX's active theme at runtime. It reads the
-app's surface, primary/accent, and foreground colors and automatically chooses
-readable text, border, and ripple colors.
+#### Process-aware startup and guaranteed access
 
-The injected downloader reads the public GX Store page, resolves either a direct
-`mod.crx` URL or a version-matched `/contents/` asset URL, and queues the package
-through Android Download Manager.
+Chrome can place its browser activities in a process different from the
+application's default process. MonkeyScript registers an initializer in every
+process that hosts a Chrome activity, so the menu binder, page runtime, install
+interceptor, and userscript engine start in the process where Chrome's UI is
+actually running.
 
-Only HTTPS package URLs on these official GX hosts are accepted:
+The normal entry is **Userscripts** in Chrome's app menu. Android 7.1 and newer
+also receive a dynamic **Userscripts** shortcut: long-press the patched Chrome
+launcher icon to open the manager even when a particular Chrome release hides
+or replaces its internal app-menu model.
 
-- `mods.store.gx.me`
-- `play.gxc.gg`
-- `play.gx.games`
+#### Safe Chrome app-menu integration
 
-The filename is `<mod-slug>-<timestamp>.crx`.
+The patch never scans Android popup windows or modifies arbitrary menu-view
+hierarchies. It therefore does not touch text-selection, link, image, or other
+context menus.
 
-#### Version resilience
+MonkeyScript first checks Chrome's `AppMenuHandler`. For obfuscated releases it
+performs a bounded search through the Chrome Activity's non-view object graph and
+accepts a `Menu` only after it matches Chrome app-menu signatures such as
+Settings, History, Downloads, Bookmarks, recent tabs, and their resource-entry
+names. It then adds:
 
-Opera GX Mobile is heavily obfuscated and its internal menu code changes between
-versions. The patch starts its overlay through an injected Android
-`ContentProvider` rather than hooking a version-specific Opera menu method. The
-share-sheet target remains available as a fallback.
+- **Userscripts** — opens the complete userscript manager.
+- **Install userscript** — appears for supported Fork pages and direct
+  `.user.js` / `.user.css` URLs.
 
-## Repository structure
+Both menu rows carry explicit Activity intents as well as click listeners, which
+supports Chrome menu implementations that bypass ordinary item listeners.
 
-- `patches/` — Morphe patch definitions.
-- `extensions/extension/` — Android code injected by patches.
-- `tools/` — local tests and validation helpers.
-- `.github/workflows/build.yml` — builds the shared `.mpp` bundle.
+#### Violentmonkey-derived compatibility core
 
-Future patches should receive their own package under
-`patches/src/main/kotlin/dev/alastorkaneki/morphe/patches/` and, when needed,
-their injected code under
-`extensions/extension/src/main/java/dev/alastorkaneki/morphe/extension/`.
+Portable userscript behavior is adapted from Violentmonkey's MIT-licensed
+metadata parser and installer logic. The adaptation includes:
+
+- Userscript and userstyle metadata-block validation.
+- Localized metadata such as `@name:en` and `@description:en`.
+- Normalized hyphenated and underscored metadata keys.
+- Trusted install URL families used by Greasy Fork, Sleazy Fork, GitHub,
+  OpenUserJS, raw GitHub content, and GitHub releases.
+- Greasy Fork and Sleazy Fork script-page detection.
+- Correct Fork fallback URLs that preserve both the script ID and script slug.
+- Install-link interception for `.user.js` and `.user.css` links on Fork pages.
+
+The complete desktop Violentmonkey extension is not embedded because stock
+Chrome Android does not provide its required WebExtension APIs. Chrome tab
+access, script injection, storage, and the native manager are supplied by the
+Morphe Android bridge instead. Attribution and the upstream MIT license are in
+[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
+
+#### Greasy Fork and Sleazy Fork
+
+The manager has first-class **Greasy Fork** and **Sleazy Fork** catalogue
+buttons. On either Fork, tapping a userscript install link is intercepted before
+Chrome handles it as a normal file navigation. The patch then opens a full-screen
+review showing the parsed metadata and complete source before installation.
+
+MonkeyScript can recognize Fork script pages, resolve official install and
+update URLs, install direct `.user.js` and `.user.css` URLs, review source and
+metadata, and retain the original URL for update checks.
+
+#### Publishing userscripts
+
+The editor includes **Publish → Greasy Fork / Sleazy Fork**. MonkeyScript stages
+the current JavaScript userscript in Chrome's private storage, opens the selected
+Fork in the same Chrome app, and submits the source to that site's authenticated
+prefill form. The site displays its normal publish/update page for final review.
+
+Publishing uses the Fork account already logged into Chrome. MonkeyScript does
+not request or store the account password or session cookie. Existing scripts
+use the version-prefill route when their Fork script ID is available; new scripts
+use the new-script prefill route. CSS userstyles remain installable and
+exportable, but direct Fork publishing currently targets JavaScript userscripts.
+
+#### Patch-time app cloning
+
+The Morphe patch exposes two editable options:
+
+- **App name** — defaults to `Chrome MonkeyScript`.
+- **Package name** — defaults to `com.android.chrome.morphe`.
+
+The package ID must differ from stock Chrome. The resource patch qualifies
+relative components before changing the manifest package, renames launcher
+labels, removes shared-UID metadata, and rewrites app-scoped permissions,
+processes, task affinities, provider authorities, authority string resources,
+and the injected providers. This is intended to let the patched build install
+beside `com.android.chrome`.
+
+Changing Chrome's package and signing certificate can break Google-account
+sign-in, Chrome Sync, Play Integrity relationships, trusted WebAPK relationships,
+or other Google services that authorize the official package/signature pair.
+
+#### Manager and editor
+
+- Searchable Material You dashboard with enable/disable switches and JS/CSS
+  badges.
+- Source editor with parsed-metadata inspection and URL-rule testing.
+- Installation from Fork pages, `.user.js`, `.user.css`, local files, clipboard
+  text, or a direct URL.
+- JavaScript userscript and CSS userstyle templates.
+- `@updateURL` and `@downloadURL` update checks.
+- Individual script export and complete JSON backup/restore.
+- Global pause and per-site disable rules.
+
+#### Metadata and runtime compatibility
+
+MonkeyScript supports common metadata including localized names,
+`@namespace`, `@version`, `@description`, `@author`, match/include/exclude rules,
+`@run-at`, `@noframes`, `@grant`, `@require`, `@resource`, update/download URLs,
+icons, tags, `@connect`, `@antifeature`, and `@compatible`.
+
+Matching scripts are injected into the active Chromium `WebContents`. The
+compatibility layer provides `GM_info`, synchronous and Promise-style value
+storage, style and logging APIs, registered commands, tab opening, clipboard,
+notifications, downloads, a best-effort `GM_xmlhttpRequest`, and `unsafeWindow`.
+`@require` dependencies are cached, and CSS userstyles are injected directly.
+
+#### Important limitations
+
+MonkeyScript is a userscript engine, not Chrome's desktop extension runtime.
+Extension service workers, `chrome.tabs`, extension popups, native messaging,
+and other desktop extension APIs are not provided.
+
+Chrome's internal Java APIs vary between releases. The process-aware initializer
+and long-press shortcut guarantee access to the manager, but exact placement of
+the **Userscripts** row in Chrome's overflow menu still depends on the menu model
+used by the specific Chrome APK. `document-start` is best effort, page-origin
+networking restrictions can affect `GM_xmlhttpRequest`, value storage is scoped
+by script and page origin, and scripts are not injected in Incognito.
+
+#### Security behavior
+
+Userscripts execute code in pages you visit. Install only scripts you trust.
+MonkeyScript stores its database, cached dependencies, and temporary publishing
+source in the patched app's private storage. It does not upload the script
+library, browser history, credentials, or page contents. Files without a valid
+userscript metadata block are rejected or disabled until reviewed.
 
 ## Build
 
@@ -69,27 +174,25 @@ Requirements:
 - Gradle 9.6.1
 - GitHub credentials with read access to Morphe's GitHub Packages registry
 
-Set either Gradle properties `gpr.user` / `gpr.key`, or environment variables
-`GITHUB_ACTOR` / `GITHUB_TOKEN`, then run:
+Run:
 
 ```bash
 bash tools/test-parser.sh
+bash tools/test-chrome-userscripts.sh
 gradle buildAndroid --stacktrace
 ```
 
 The bundle is generated under `patches/build/libs/` as an `.mpp`. Every push to
-`main` also runs the included GitHub Actions workflow and uploads the bundle as a
-workflow artifact.
+`main` also runs GitHub Actions and uploads the bundle as a workflow artifact.
 
-## Opera GX patch security behavior
+## Repository structure
 
-- Accepts only a GX Store mod page or an already-direct official GX CDN
-  `mod.crx` URL.
-- Refuses arbitrary download hosts.
-- Caps fetched page HTML at 12 MB.
-- Does not read cookies, credentials, browser history, or installed mods.
-- Does not install the downloaded package.
+- `patches/` — Morphe patch definitions.
+- `extensions/extension/` — Android code injected by patches.
+- `tools/` — local parser, matcher, installer, and payload tests.
+- `.github/workflows/` — CI and controlled GitHub Release publishing.
 
 ## License
 
-GPL-3.0. See [`LICENSE`](LICENSE).
+GPL-3.0. See [`LICENSE`](LICENSE). Third-party notices are in
+[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).

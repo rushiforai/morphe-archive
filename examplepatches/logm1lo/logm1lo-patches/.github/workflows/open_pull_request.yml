@@ -1,0 +1,41 @@
+name: Open PR to main
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  open-pr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Check if PR exists
+        id: check
+        run: |
+          git fetch origin main 2>/dev/null || { echo "main branch does not exist, skipping"; exit 0; }
+          PR_COUNT=$(gh pr list --base main --head dev --state open --json number -q '. | length')
+          echo "count=$PR_COUNT" >> $GITHUB_OUTPUT
+          echo "Found $PR_COUNT open PRs from dev to main"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Create PR
+        if: steps.check.outputs.count == '0'
+        run: |
+          COMMITS=$(git rev-list --count origin/main..origin/dev 2>/dev/null || echo 0)
+          if [ "$COMMITS" -gt 0 ]; then
+            gh pr create --base main --head dev \
+              --title "Merge dev to main" \
+              --body "Merging dev branch changes into main."
+          else
+            echo "No commits to merge, skipping"
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}

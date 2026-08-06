@@ -12,12 +12,6 @@ patches {
     }
 }
 
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.add("-Xcontext-parameters")
-    }
-}
-
 dependencies {
     // Used by JsonGenerator.
     implementation(libs.gson)
@@ -39,7 +33,10 @@ tasks {
 }
 
 kotlin {
+    jvmToolchain(21)
+    
     compilerOptions {
-        freeCompilerArgs = listOf("-Xcontext-receivers")
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+        freeCompilerArgs.add("-Xcontext-parameters") 
     }
 }

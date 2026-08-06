@@ -28,6 +28,12 @@ jobs:
       - name: Test GX URL resolver
         run: bash tools/test-parser.sh
 
+      - name: Test Chrome userscript engine
+        run: bash tools/test-chrome-userscripts.sh
+
+      - name: Test Chrome 150 exact menu hook
+        run: bash tools/test-chrome150-menu-hook.sh
+
       - name: Build Android Morphe bundle
         env:
           GITHUB_ACTOR: ${{ github.actor }}
@@ -50,7 +56,7 @@ jobs:
             exit 1
           fi
 
-          RELEASE_DESCRIPTION="Morphe Patches ${VERSION}. Opera GX raw mod downloader only; all Discord patches have been removed."
+          RELEASE_DESCRIPTION="Morphe Patches ${VERSION}. Includes the Opera GX raw mod downloader and the Chrome 150 exact app-menu MonkeyScript manager with Material You, Greasy Fork/Sleazy Fork browsing, installation, and userscript publishing."
 
           if ! gh release view "$TAG" >/dev/null 2>&1; then
             gh release create "$TAG" \

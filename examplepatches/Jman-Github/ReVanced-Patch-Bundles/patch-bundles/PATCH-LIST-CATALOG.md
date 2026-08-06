@@ -82,7 +82,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Perplexity-STT](#-perplexity-stt-bundle-patch-list) | 1 | 1 | Generated |
 | [Browzomje](#-browzomje-bundle-patch-list) | 19 | 2 | Generated |
 | [Morphe-Portal](#-morphe-portal-bundle-patch-list) | 3 | 2 | Generated |
-| [Zpatches](#-zpatches-bundle-patch-list) | 9 | 6 | Generated |
+| [Zpatches](#-zpatches-bundle-patch-list) | 10 | 6 | Generated |
 | [iHealth-Morphe](#-ihealth-morphe-bundle-patch-list) | 6 | 2 | Generated |
 | [Hoomans-Morphe](#-hoomans-morphe-bundle-patch-list) | 53 | 40 | Generated |
 | [Realme-Link](#-realme-link-bundle-patch-list) | 1 | 1 | Generated |
@@ -111,7 +111,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [IMXEren](#-imxeren-bundle-patch-list) | 2 | 2 | Generated |
 | [Almewty](#-almewty-bundle-patch-list) | 3 | 2 | Generated |
 | [Anddea-Morphed](#-anddea-morphed-bundle-patch-list) | 133 | 6 | Generated |
-| [RookieEnough](#-rookieenough-bundle-patch-list) | 84 | 35 | Generated |
+| [RookieEnough](#-rookieenough-bundle-patch-list) | 88 | 35 | Generated |
 | [Adobo](#-adobo-bundle-patch-list) | 42 | 5 | Generated |
 | [Docbt](#-docbt-bundle-patch-list) | 6 | 3 | Generated |
 | [PixelPusher247](#-pixelpusher247-bundle-patch-list) | 1 | 1 | Generated |
@@ -145,8 +145,8 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Sjshb57-PairIP](#-sjshb57-pairip-bundle-patch-list) | 4 | 1 | Generated |
 | [RIVanced-Universal](#-rivanced-universal-bundle-patch-list) | 27 | 1 | Generated |
 | [Variablenine](#-variablenine-bundle-patch-list) | 132 | 4 | Generated |
-| [Stylus](#-stylus-bundle-patch-list) | 1 | 1 | Generated |
-| [HXReborn](#-hxreborn-bundle-patch-list) | 9 | 4 | Generated |
+| [Stylus](#-stylus-bundle-patch-list) | 5 | 2 | Generated |
+| [HXReborn](#-hxreborn-bundle-patch-list) | 11 | 4 | Generated |
 | [Ikura](#-ikura-bundle-patch-list) | 6 | 1 | Generated |
 | [DH6K](#-dh6k-bundle-patch-list) | 3 | 4 | Generated |
 | [AndrewLiang25](#-andrewliang25-bundle-patch-list) | 19 | 1 | Generated |
@@ -166,11 +166,15 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [TikTok-Lite](#-tiktok-lite-bundle-patch-list) | 35 | 2 | Generated |
 | [Niconico-YT](#-niconico-yt-bundle-patch-list) | 1 | 1 | Generated |
 | [Alastor-Kaneki](#-alastor-kaneki-bundle-patch-list) | 1 | 1 | Generated |
-| [NuvioTV](#-nuviotv-bundle-patch-list) | 1 | 1 | Generated |
+| [NuvioTV](#-nuviotv-bundle-patch-list) | 2 | 1 | Generated |
 | [GoldRift](#-goldrift-bundle-patch-list) | 1 | 1 | Generated |
 | [RoundSalmon4](#-roundsalmon4-bundle-patch-list) | 1 | 1 | Generated |
 | [Dexnis](#-dexnis-bundle-patch-list) | 1 | 1 | Generated |
 | [HU-Liberator](#-hu-liberator-bundle-patch-list) | 11 | 2 | Generated |
+| [JonnyVR1](#-jonnyvr1-bundle-patch-list) | 10 | 1 | Generated |
+| [Logm1lo](#-logm1lo-bundle-patch-list) | 1 | 1 | Generated |
+| [Heinrich26](#-heinrich26-bundle-patch-list) | 1 | 1 | Generated |
+| [SpookyEXE](#-spookyexe-bundle-patch-list) | 1 | 1 | Generated |
 
 ### Legacy
 | Bundle | Patches | Apps | Status |
@@ -898,13 +902,14 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 ### 🧩 Zpatches Bundle Patch List:
 [?? Zpatches-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-zpatches-patches-bundle-morphe)
 <details>
-<summary><b>Zpatches</b> - 9 patches, 6 apps</summary>
+<summary><b>Zpatches</b> - 10 patches, 6 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
 | ```Enable Club``` | ```Enable Citymapper Club subscription``` | ```com.citymapper.app.release``` | ```All versions``` |
 | ```Google Maps API key``` | ```Use a different Google Maps API key to fix modified apps``` | ```com.citymapper.app.release, com.jcdecaux.vls.lyon``` | ```3.1.1``` |
 | ```Disable map animations``` | ```Disable the map zoom-in animation``` | ```com.jcdecaux.vls.lyon``` | ```3.1.1``` |
+| ```Easy deeplinks configuration``` | ```Allows easy configuration of deeplinks (velov.cyclocity.fr, velov.grandlyon.com) required by the app to sign-in``` | ```com.jcdecaux.vls.lyon``` | ```3.1.1``` |
 | ```No geolocalisation check``` | ```Allows you to unlock a bike even if you're not near the station.``` | ```com.jcdecaux.vls.lyon``` | ```3.1.1``` |
 | ```Spoof package signature``` | ```Spoofs the package signature required for Firebase, fixes notifications``` | ```com.jcdecaux.vls.lyon``` | ```3.1.1``` |
 | ```Bypass PairIp``` | ```Bypass the PairIp license check preventing app modification``` | ```ee.dustland.android.dustlandsudoku``` | ```All versions``` |
@@ -3409,7 +3414,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Disable QUIC protocol``` | ```Adds an option to disable QUIC (Quick UDP Internet Connections) network protocol.``` | ```YouTube``` | ```All versions``` |
 | ```Disable rolling number animations``` | ```Adds an option to disable rolling number animations of video view count, user likes, and upload time.``` | ```YouTube``` | ```All versions``` |
 | ```Disable Shorts resuming on startup``` | ```Adds an option to disable Shorts from resuming on app startup when Shorts were last being watched.``` | ```YouTube``` | ```All versions``` |
-| ```Disable sign in to TV popup``` | ```Adds an option to disable the popup asking to sign into a TV on the same local network.``` | ```YouTube``` | ```All versions``` |
+| ```Disable sign in to TV popup``` | ```Adds options to disable the popups asking to sign into or connect to a TV on the same local network.``` | ```YouTube``` | ```All versions``` |
 | ```Disable video codecs``` | ```Adds options to disable HDR and VP9 codecs.``` | ```YouTube``` | ```All versions``` |
 | ```Double tap to seek``` | ```Adds additional double-tap to seek values to the YouTube settings menu.``` | ```YouTube``` | ```All versions``` |
 | ```Downloads``` | ```Adds support to download videos with an external downloader app using the in-app download button or a video player action button.``` | ```YouTube``` | ```All versions``` |
@@ -3866,7 +3871,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 RookieEnough Bundle Patch List:
 [📦 RookieEnough-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-rookieenough-patches-bundle-morphe)
 <details>
-<summary><b>RookieEnough</b> - 84 patches, 35 apps</summary>
+<summary><b>RookieEnough</b> - 88 patches, 35 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -3874,6 +3879,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Remove free accounts limit``` | ```Removes the limit for maximum free accounts logged in.``` | ```ch.protonmail.android``` | ```4.15.0``` |
 | ```Bypass login``` | ```Allows the use of the app after its discontinuation.``` | ```com.adobe.photoshopmix``` | ```All versions``` |
 | ```Prevent log upload``` | ```Avoid uploading logs when the application crashes.``` | ```com.amazon.mp3``` | ```All versions``` |
+| ```Rename shared permissions``` | ```Rename certain permissions shared across Amazon apps. Applying this patch can fix installation errors, but can also break features in certain apps.``` | ```com.amazon.mp3``` | ```All versions``` |
 | ```Skip ads``` | ```Skip ads between the tracks.``` | ```com.amazon.mp3``` | ```All versions``` |
 | ```Unlimited track skipping``` | ```Unlocks the ability to skip tracks without restriction.``` | ```com.amazon.mp3``` | ```All versions``` |
 | ```Unlock Unlimited``` | ```Unlock Music Unlimited features.``` | ```com.amazon.mp3``` | ```All versions``` |
@@ -3885,10 +3891,13 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Hide 'Sponsored Stories'``` | ```N/A``` | ```com.facebook.katana``` | ```490.0.0.63.82``` |
 | ```Hide story ads``` | ```Hides the ads in the Facebook app stories.``` | ```com.facebook.katana``` | ```All versions``` |
 | ```Disable typing indicator``` | ```Disables the indicator while typing a message.``` | ```com.facebook.orca``` | ```All versions``` |
-| ```Hide Facebook button``` | ```Hides the Facebook button in the top toolbar.``` | ```com.facebook.orca``` | ```All versions``` |
+| ```Hide Facebook buttons``` | ```Hides buttons and shortcuts that open Facebook.``` | ```com.facebook.orca``` | ```All versions``` |
 | ```Hide inbox ads``` | ```Hides ads in inbox.``` | ```com.facebook.orca``` | ```All versions``` |
+| ```Hide inbox stories and notes tray``` | ```Hides the stories and notes horizontal tray at the top of the inbox.``` | ```com.facebook.orca``` | ```All versions``` |
 | ```Hide inbox subtabs``` | ```Hides Home and Channels tabs between active now tray and chats.``` | ```com.facebook.orca``` | ```All versions``` |
+| ```Open links externally``` | ```Always opens links in your default browser instead of the in-app browser, regardless of the in-app setting.``` | ```com.facebook.orca``` | ```All versions``` |
 | ```Remove Meta AI``` | ```Removes UI elements related to Meta AI.``` | ```com.facebook.orca``` | ```All versions``` |
+| ```Spoof package version``` | ```Sets a very high version code so the Play Store treats the app as already up to date and never offers an update.``` | ```com.facebook.orca``` | ```All versions``` |
 | ```Enable CustomTabs``` | ```Enables CustomTabs to open articles in your default browser.``` | ```com.google.android.apps.magazines``` | ```5.108.0.644447823``` |
 | ```GmsCore support``` | ```Allows the app to work without root by using a different package name when patched using a GmsCore instead of Google Play Services.``` | ```com.google.android.apps.magazines``` | ```5.108.0.644447823``` |
 | ```Enable DCIM folders backup control``` | ```Disables always on backup for the Camera and other DCIM folders, allowing you to control backup for each folder individually. This will make the app default to having no folders backed up.``` | ```com.google.android.apps.photos``` | ```All versions``` |
@@ -5150,11 +5159,15 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Stylus Bundle Patch List:
 [📦 Stylus-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-stylus-patches-bundle-morphe)
 <details>
-<summary><b>Stylus</b> - 1 patch, 1 app</summary>
+<summary><b>Stylus</b> - 5 patches, 2 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
 | ```Force system font (Bitwarden)``` | ```Renders the app using the device's system font instead of DM Sans / Roboto.``` | ```Bitwarden``` | ```All versions``` |
+| ```Custom font (GitHub)``` | ```Replaces GitHub's bundled Inter and Mona Sans UI fonts with a custom font file.``` | ```GitHub``` | ```All versions``` |
+| ```Custom monospace font (GitHub)``` | ```Replaces GitHub's bundled Roboto Mono code font with a custom monospace font file.``` | ```GitHub``` | ```All versions``` |
+| ```Force system font (GitHub)``` | ```Renders GitHub UI text using the device system font by overriding bundled font resources at runtime.``` | ```GitHub``` | ```All versions``` |
+| ```Force system font (including monospace) (GitHub)``` | ```Renders GitHub UI and monospace text using the device system UI font.``` | ```GitHub``` | ```All versions``` |
 
 </details>
 
@@ -5162,7 +5175,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 HXReborn Bundle Patch List:
 [📦 HXReborn-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-hxreborn-patches-bundle-morphe)
 <details>
-<summary><b>HXReborn</b> - 9 patches, 4 apps</summary>
+<summary><b>HXReborn</b> - 11 patches, 4 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -5173,6 +5186,8 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Hide upgrade upselling``` | ```Hides the top-bar upgrade button and promotional sidebar rows.``` | ```Proton Mail``` | ```All versions``` |
 | ```Remove 'Sent from' signature``` | ```Removes the 'Sent from Proton Mail' signature from emails.``` | ```Proton Mail``` | ```All versions``` |
 | ```Remove free accounts limit``` | ```Removes the limit for maximum free accounts logged in.``` | ```Proton Mail``` | ```All versions``` |
+| ```Spoof signature``` | ```Restores push notifications by spoofing the original app signature.``` | ```Proton Mail``` | ```All versions``` |
+| ```Unlock custom time picker``` | ```Enables picking a custom date and time when snoozing conversations and scheduling messages.``` | ```Proton Mail``` | ```All versions``` |
 | ```AMOLED dark theme``` | ```Replaces the dark theme background with pure black.``` | ```Showly``` | ```All versions``` |
 | ```Unlock premium``` | ```Unlocks ad removal, light theme, custom images, list view types, quick ratings, and transparent widgets.``` | ```Showly``` | ```All versions``` |
 
@@ -5543,10 +5558,11 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 NuvioTV Bundle Patch List:
 [📦 NuvioTV-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-nuviotv-patches-bundle-morphe)
 <details>
-<summary><b>NuvioTV</b> - 1 patch, 1 app</summary>
+<summary><b>NuvioTV</b> - 2 patches, 1 app</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
+| ```Rating Visibility``` | ```Adds Settings > Morphe > Ratings with independent overall and episode rating controls.``` | ```NuvioTV``` | ```All versions``` |
 | ```Remove SDH Annotations``` | ```Adds Settings → Morphe → Subtitles and removes SDH annotations from Media3 subtitles when enabled.``` | ```NuvioTV``` | ```All versions``` |
 
 </details>
@@ -5595,16 +5611,73 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Remove idokep ads``` | ```Removes ads from the idokep app.``` | ```Időkép``` | ```4.3.7, 1.0.2``` |
-| ```Disable broadcast receiver security check``` | ```Removes SecurityException throws gating a BroadcastReceiver's onReceive, which fail when the broadcast sender isn't verified as the real Play Store.``` | ```MÁVPlusz``` | ```2.4.19-prod``` |
-| ```Disable certificate pinning``` | ```Prevents the app's OkHttp CertificatePinner from ever being installed, allowing HTTPS traffic to be intercepted (e.g. by a proxy) for analysis.``` | ```MÁVPlusz``` | ```2.4.19-prod``` |
-| ```Disable Firebase Crashlytics``` | ```Adds the official firebase_crashlytics_collection_enabled=false manifest flag, disabling all crash/log reporting to Firebase Crashlytics at SDK init.``` | ```MÁVPlusz``` | ```2.4.19-prod``` |
-| ```Disable Pairip license check``` | ```Prevents the Pairip-injected Application class from binding to the Play Store licensing service, which would otherwise redirect to / force-close for a side-loaded APK.``` | ```MÁVPlusz``` | ```2.4.19-prod``` |
-| ```Disable Play Integrity failure crash``` | ```Prevents SecurityException when the Play Integrity API call itself fails (APP_NOT_INSTALLED / APP_UID_MISMATCH), as happens for side-loaded APKs.``` | ```MÁVPlusz``` | ```2.4.19-prod``` |
-| ```Disable Play Integrity gating flag wait``` | ```Stops the startup coroutine from waiting forever on a Remote-Config-backed flag to decide whether to run the Play Integrity flow, by always treating it as disabled.``` | ```MÁVPlusz``` | ```2.4.19-prod``` |
-| ```Disable Play Integrity token request``` | ```Makes the Play Integrity token request always fail immediately with an unclassified exception, so the app treats it as gracefully unavailable and continues initialization instead of getting stuck on a Play-Store-required gate.``` | ```MÁVPlusz``` | ```2.4.19-prod``` |
-| ```Disable Play Integrity verdict validation``` | ```Removes client-side SecurityException throws that reject unlicensed/unattested/unrecognized Play Integrity verdicts, without touching unrelated code sharing the same method.``` | ```MÁVPlusz``` | ```2.4.19-prod``` |
-| ```Disable StoreLogs telemetry``` | ```Prevents the app from uploading queued client-side log entries to its own backend telemetry endpoint (.../Log/StoreLogs).``` | ```MÁVPlusz``` | ```2.4.19-prod``` |
-| ```Trust user-installed certificates``` | ```Adds a user certificate trust anchor to the network security config, so a MITM proxy's installed CA is accepted (this is separate from and in addition to disabling OkHttp's code-level certificate pinning).``` | ```MÁVPlusz``` | ```2.4.19-prod``` |
+| ```Remove idokep ads``` | ```Removes ads from the idokep app.``` | ```Időkép``` | ```All versions``` |
+| ```Disable broadcast receiver security check``` | ```Removes SecurityException throws gating a BroadcastReceiver's onReceive, which fail when the broadcast sender isn't verified as the real Play Store.``` | ```MÁVPlusz``` | ```All versions``` |
+| ```Disable certificate pinning``` | ```Prevents the app's OkHttp CertificatePinner from ever being installed, allowing HTTPS traffic to be intercepted (e.g. by a proxy) for analysis.``` | ```MÁVPlusz``` | ```All versions``` |
+| ```Disable Firebase Crashlytics``` | ```Adds the official firebase_crashlytics_collection_enabled=false manifest flag, disabling all crash/log reporting to Firebase Crashlytics at SDK init.``` | ```MÁVPlusz``` | ```All versions``` |
+| ```Disable Pairip license check``` | ```Prevents the Pairip-injected Application class from binding to the Play Store licensing service, which would otherwise redirect to / force-close for a side-loaded APK.``` | ```MÁVPlusz``` | ```All versions``` |
+| ```Disable Play Integrity failure crash``` | ```Prevents SecurityException when the Play Integrity API call itself fails (APP_NOT_INSTALLED / APP_UID_MISMATCH), as happens for side-loaded APKs.``` | ```MÁVPlusz``` | ```All versions``` |
+| ```Disable Play Integrity gating flag wait``` | ```Stops the startup coroutine from waiting forever on a Remote-Config-backed flag to decide whether to run the Play Integrity flow, by always treating it as disabled.``` | ```MÁVPlusz``` | ```All versions``` |
+| ```Disable Play Integrity token request``` | ```Makes the Play Integrity token request always fail immediately with an unclassified exception, so the app treats it as gracefully unavailable and continues initialization instead of getting stuck on a Play-Store-required gate.``` | ```MÁVPlusz``` | ```All versions``` |
+| ```Disable Play Integrity verdict validation``` | ```Removes client-side SecurityException throws that reject unlicensed/unattested/unrecognized Play Integrity verdicts, without touching unrelated code sharing the same method.``` | ```MÁVPlusz``` | ```All versions``` |
+| ```Disable StoreLogs telemetry``` | ```Prevents the app from uploading queued client-side log entries to its own backend telemetry endpoint (.../Log/StoreLogs).``` | ```MÁVPlusz``` | ```All versions``` |
+| ```Trust user-installed certificates``` | ```Adds a user certificate trust anchor to the network security config, so a MITM proxy's installed CA is accepted (this is separate from and in addition to disabling OkHttp's code-level certificate pinning).``` | ```MÁVPlusz``` | ```All versions``` |
+
+</details>
+
+---
+### 🧩 JonnyVR1 Bundle Patch List:
+[📦 JonnyVR1-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-jonnyvr1-patches-bundle-morphe)
+<details>
+<summary><b>JonnyVR1</b> - 10 patches, 1 app</summary>
+
+| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
+|----------|---------------|---------------------|-------------------------|
+| ```Ad Removal``` | ```Removes all ad displays: navigation bar banner, native feed ads, live streaming banner ads, live square ads, conversation Google ads, marriage guide card, four-select-one card, daily selection card, visitor list ads``` | ```Tantan``` | ```All versions``` |
+| ```Analytics Disable``` | ```Disables all analytics, telemetry, and device fingerprinting for privacy``` | ```Tantan``` | ```All versions``` |
+| ```Dialog Cleanup``` | ```Removes annoying promotional dialogs: 5-star rating, appstore rating, version upgrade, offline popup, notification permission, phone auth prompts, purchase pages``` | ```Tantan``` | ```All versions``` |
+| ```GMS Compatibility``` | ```Makes Google Maps and GMS-dependent features work in re-signed APKs. Includes signature spoofing, auth header fixes, MicroG support, and GMS availability bypass.``` | ```Tantan``` | ```All versions``` |
+| ```Live Streaming Enhancement``` | ```Live streaming enhancement: push limit bypass, swipe card unlimited, chat rate limit removal, voice game access, all-day PK battles, gift leaderboard, knight privileges, entrance limits, permission control, daily payment, noble config, stealth privacy, video chat, voice features, monetization, game operations, star toggle``` | ```Tantan``` | ```All versions``` |
+| ```Messaging Enhancement``` | ```Removes message limits, unlimited pin chat, voice/video calls, quick chat, typing indicator, free gifts, letter, greeting, ice breaker, read receipts, AI translation, message recall, group chat, live chat, message filter, chat partner config, ODiamond visitor config, prologue config, love buzz data, secret crush limit, boost limit``` | ```Tantan``` | ```All versions``` |
+| ```Premium Unlock``` | ```Unlocks all premium features, tier statuses, subscription validation, and display``` | ```Tantan``` | ```All versions``` |
+| ```Privacy Controls``` | ```Unlocks privacy features: hide from nearby, visitor footprint hiding, mysterious mode, nearby people access, read receipt unlock, read receipt dialog suppression, contact access block, location privacy, privacy settings force enable, hide activity time, hide age, hide icon, frozen activity, frozen time, hide distance, core service privacy gate, hide active from SVip, disable ad suggestions, live stealth privacy, online status visibility, hide VIP badge, heartbeat disable, verified user messages, online reminder, unreplied reminder, greeting do not disturb, only show about me inside``` | ```Tantan``` | ```All versions``` |
+| ```Privacy Enhancement``` | ```Advanced privacy protections: root/emulator detection bypass, ShuMeng SDK blocking, Facebook SDK emulator detection bypass, APK signature verification bypass, package enumeration prevention``` | ```Tantan``` | ```All versions``` |
+| ```UI Cleanup``` | ```Removes guides, banners, stickers, decorations, and AI prompts``` | ```Tantan``` | ```All versions``` |
+
+</details>
+
+---
+### 🧩 Logm1lo Bundle Patch List:
+[📦 Logm1lo-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-logm1lo-patches-bundle-morphe)
+<details>
+<summary><b>Logm1lo</b> - 1 patch, 1 app</summary>
+
+| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
+|----------|---------------|---------------------|-------------------------|
+| ```Premium Unlock``` | ```Unlocks all Calistree PRO features.``` | ```Calistree``` | ```5.8.5``` |
+
+</details>
+
+---
+### 🧩 Heinrich26 Bundle Patch List:
+[📦 Heinrich26-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-heinrich26-patches-bundle-morphe)
+<details>
+<summary><b>Heinrich26</b> - 1 patch, 1 app</summary>
+
+| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
+|----------|---------------|---------------------|-------------------------|
+| ```Unlock Pro``` | ```N/A``` | ```MT Capsule``` | ```15.7``` |
+
+</details>
+
+---
+### 🧩 SpookyEXE Bundle Patch List:
+[📦 SpookyEXE-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-spookyexe-patches-bundle-morphe)
+<details>
+<summary><b>SpookyEXE</b> - 1 patch, 1 app</summary>
+
+| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
+|----------|---------------|---------------------|-------------------------|
+| ```Unlock Beeline Plus features``` | ```Unlocks Beeline plus features such as round-trip generation, live traffic and premium map types.``` | ```Beeline``` | ```4.2.8014``` |
 
 </details>

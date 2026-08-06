@@ -1,0 +1,56 @@
+# Gradle
+.gradle/
+/build/
+patches/build/
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Secrets
+.env
+
+# Analysis (gitignored per app)
+analysis/
+
+# Node
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+*.apk
+*.apks
+*.xapk
+*.apkm
+*.mpp
+*.mpp.sig
+
+# Binary tools (downloaded/built separately)
+morphe-cli.jar
+morphe-data/
+scripts/baksmali.jar
+
+# Keystore
+Morphe.keystore
+
+# Backup files
+*.bak
+*~
+
+# Logs
+*.log
+
+# Temporary
+/tmp/
+*.tmp
+
+# OpenCode workspace (local only)
+.opencode/
+AGENTS.md
+opencode.json

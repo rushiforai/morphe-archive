@@ -69,8 +69,7 @@ def save_state(info):
     data = {
         "app_id": APP_ID,
         "version": info["version"],
-        "last_updated": info["last_updated"],
-        "last_checked": datetime.datetime.now(datetime.timezone.utc).isoformat()
+        "last_updated": info["last_updated"]
     }
     with open(STATE_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)

@@ -1,0 +1,74 @@
+name: Bug or malfunction report
+description: Report disrupted behavior, a regression, or another patch malfunction.
+title: "bug: "
+labels: ["Bug report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # NuvioTV Morphe Patches bug report
+
+        All patches are prerelease work in progress. They are not fully tested and may disrupt NuvioTV functionality. Search [existing issues](https://github.com/liongalahad/nuviotv-morphe-patches/issues?q=is%3Aissue) before submitting a report.
+
+        Do not upload or link to an original, patched, or modified NuvioTV APK.
+  - type: input
+    id: bundle-version
+    attributes:
+      label: Patch bundle version
+      description: Enter the Morphe bundle version shown in the patch source.
+      placeholder: v1.0.0-dev.8
+    validations:
+      required: true
+  - type: input
+    id: nuvio-version
+    attributes:
+      label: NuvioTV version and APK variant
+      description: Enter the NuvioTV version and ABI or universal variant used for patching.
+      placeholder: 0.8.1-beta, universal
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Test device
+      description: Include phone or TV, model or emulator, Android version, and ABI.
+      placeholder: Television_4K AVD, Android 16/API 36, x86_64
+    validations:
+      required: true
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: What happened?
+      description: Describe the problem, exact reproduction steps, expected behavior, and actual behavior.
+      placeholder: |
+        Steps:
+        1.
+        2.
+
+        Expected:
+
+        Actual:
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs and visual evidence
+      description: Paste relevant logcat output and attach screenshots or short recordings where useful. Remove secrets and personal data.
+      render: shell
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context
+      description: Include selected patches, settings, subtitle examples, or other details that may help reproduce the issue.
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements
+      options:
+        - label: I understand these patches are prerelease work in progress, are not fully tested, and may disrupt NuvioTV functionality.
+          required: true
+        - label: I searched open and closed issues and did not find a duplicate.
+          required: true
+        - label: I have not attached or linked to an original, patched, or modified NuvioTV APK.
+          required: true

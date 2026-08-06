@@ -19,17 +19,14 @@ private fun Method.referencesString(value: String) =
         it.getReference<StringReference>()?.string == value
     } == true
 
-private fun Method.referencesStringContaining(value: String) =
-    implementation?.instructions?.any {
-        it.getReference<StringReference>()?.string?.contains(value) == true
+private fun Method.referencesMethod(
+    returnType: String,
+    parameters: List<String>? = null,
+) = implementation?.instructions?.any {
+    it.getReference<MethodReference>()?.let { ref ->
+        ref.returnType == returnType && (parameters == null || ref.parameterTypes.toList() == parameters)
     } == true
-
-private fun Method.referencesMethod(returnType: String, parameters: List<String>? = null) =
-    implementation?.instructions?.any {
-        it.getReference<MethodReference>()?.let { ref ->
-            ref.returnType == returnType && (parameters == null || ref.parameterTypes.toList() == parameters)
-        } == true
-    } == true
+} == true
 
 private fun Method.referencesVoidMethodWithSingleObjectParameter() =
     implementation?.instructions?.any {
@@ -45,11 +42,7 @@ private fun Method.referencesIntLiteral(value: Int) =
         it is NarrowLiteralInstruction && it.narrowLiteral == value
     } == true
 
-private fun ClassDef.hasMethodReferencingString(value: String) =
-    methods.any { it.referencesString(value) }
-
-private fun ClassDef.hasMethodReferencingStringContaining(value: String) =
-    methods.any { it.referencesStringContaining(value) }
+private fun ClassDef.hasMethodReferencingString(value: String) = methods.any { it.referencesString(value) }
 
 /**
  * Matches `aext.d()` — the AccountValidityMonitor method that enqueues `CheckAccountTask`
@@ -64,16 +57,16 @@ internal object AccountValidityMonitorCheckFingerprint : Fingerprint(
             classDef.hasMethodReferencingString("com.google.android.apps.photos.login.AccountValidityMonitor.CheckAccountTask") &&
             method.implementation?.instructions?.let { instructions ->
                 instructions.any {
-                it.getReference<FieldReference>()?.let { ref ->
-                    ref.name == "a" && ref.type == "I"
-                } == true
-            } && method.referencesVoidMethodWithSingleObjectParameter()
-        } == true
+                    it.getReference<FieldReference>()?.let { ref ->
+                        ref.name == "a" && ref.type == "I"
+                    } == true
+                } && method.referencesVoidMethodWithSingleObjectParameter()
+            } == true
     },
 )
 
 /**
- * Matches `aeye.f()` — the frictionless-login eligibility check.
+ * Matches the frictionless-login eligibility check.
  *
  * Under MicroG this can return false and clear the selected account.
  */
@@ -82,11 +75,10 @@ internal object FrictionlessEligibilityFingerprint : Fingerprint(
     returnType = "Z",
     parameters = listOf(),
     custom = { method, classDef ->
-        classDef.hasMethodReferencingStringContaining("maybeStartFrictionless") &&
+        classDef.hasMethodReferencingString("checkPlayServices") &&
             classDef.hasMethodReferencingString("ProvideFrctAccountTask") &&
             method.referencesMethod("Z", emptyList()) &&
             method.referencesMethod("V", listOf("I")) &&
             method.referencesIntLiteral(-1)
     },
 )
-

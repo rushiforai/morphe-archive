@@ -1,3 +1,36 @@
+## [1.4.0](https://github.com/alan7383/sofatime-patches/compare/v1.3.6...v1.4.0) (2026-08-06)
+
+### 🐛 Bug Fixes
+
+* remove pip cache option from setup-python ([35b8012](https://github.com/alan7383/sofatime-patches/commit/35b801242618e8292a02e7ce9d07907f6fe15f80))
+* Support SofaTime v1.2.2 (Fixes [#1](https://github.com/alan7383/sofatime-patches/issues/1)) ([c7528f9](https://github.com/alan7383/sofatime-patches/commit/c7528f9f05d7c6cb3712d6387ec84a6b5bd31057))
+
+### ✨ New Features
+
+* add sofa time update checker script and github workflow ([2da0ae0](https://github.com/alan7383/sofatime-patches/commit/2da0ae0ae7655993ec7faaf04049b7dfbc0ea8d9))
+
+## [1.4.0](https://github.com/alan7383/sofatime-patches/compare/v1.3.6...v1.4.0) (2026-08-06)
+
+### 🐛 Bug Fixes
+
+* remove pip cache option from setup-python ([35b8012](https://github.com/alan7383/sofatime-patches/commit/35b801242618e8292a02e7ce9d07907f6fe15f80))
+* Support SofaTime v1.2.2 (Fixes [#1](https://github.com/alan7383/sofatime-patches/issues/1)) ([c7528f9](https://github.com/alan7383/sofatime-patches/commit/c7528f9f05d7c6cb3712d6387ec84a6b5bd31057))
+
+### ✨ New Features
+
+* add sofa time update checker script and github workflow ([2da0ae0](https://github.com/alan7383/sofatime-patches/commit/2da0ae0ae7655993ec7faaf04049b7dfbc0ea8d9))
+
+## [1.4.0](https://github.com/alan7383/sofatime-patches/compare/v1.3.6...v1.4.0) (2026-08-06)
+
+### 🐛 Bug Fixes
+
+* remove pip cache option from setup-python ([35b8012](https://github.com/alan7383/sofatime-patches/commit/35b801242618e8292a02e7ce9d07907f6fe15f80))
+* Support SofaTime v1.2.2 (Fixes [#1](https://github.com/alan7383/sofatime-patches/issues/1)) ([4c3d882](https://github.com/alan7383/sofatime-patches/commit/4c3d882ee3d19afe1d7fc6db5710fbc3dbb65357))
+
+### ✨ New Features
+
+* add sofa time update checker script and github workflow ([2da0ae0](https://github.com/alan7383/sofatime-patches/commit/2da0ae0ae7655993ec7faaf04049b7dfbc0ea8d9))
+
 ## [1.3.6](https://github.com/alan7383/sofatime-patches/compare/v1.3.5...v1.3.6) (2026-08-03)
 
 ### 🐛 Bug Fixes
