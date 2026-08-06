@@ -17,6 +17,7 @@ Jl4cTuk/morphe-patches
 Jman-Github/Awesome-ReVanced
 Jman-Github/ReVanced-Patch-Bundles
 Jman-Github/Universal-ReVanced-Manager
+JonnyVR1/morph-patches
 Joristdh/Platypatch
 Joussflls10/Jouss-Patches
 LaBlazer/morphe-patches
@@ -96,6 +97,7 @@ gitlab.com/early.egg3707/ee-morphe-patches
 gitlab.com/inotia00/proguard-patches
 gitlab.com/inotia00/x-shim
 hackingguy/morphe-patches
+heinrich26/morphe-patches
 hoo-dles/jadx-morphe
 hoo-dles/morphe-patches
 hu-liberator/patches
@@ -113,7 +115,9 @@ kolaron/morphe-patches
 kondratjev/morphe-patches
 kontsevoye/emorphe-patches
 kun-codes/npci-bhim-morphe-patches
+liongalahad/nuviotv-morphe-patches
 liongalahad/nuviotv-patches
+logm1lo/logm1lo-patches
 loskutov/youtube-domain-fronting-patch
 lyyako/realme-link-patches
 meridianfresco/morphe-meta-patches
@@ -131,6 +135,7 @@ saieshshirodkar/saiesh-morphe-patches
 shaun-the-sheep-patches/morphe-patches
 sjshb57/Pairip-Patches
 skulldogged/cobalt-morphe
+spookyexe/morphe-patches
 tiaruebar1024/tiaruebar-patches
 totsiaw/proxma-patches
 variablenine/morphe-patches

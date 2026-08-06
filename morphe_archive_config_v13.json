@@ -1017,6 +1017,46 @@
                 "sortOrder": 123,
                 "createdAt": 1785897756603,
                 "updatedAt": 1785897756603
+            },
+            {
+                "name": "morph-patches",
+                "source": "https://raw.githubusercontent.com/JonnyVR1/morph-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 124,
+                "createdAt": 1785983278208,
+                "updatedAt": 1785983278208
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/heinrich26/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 125,
+                "createdAt": 1785983279605,
+                "updatedAt": 1785983279605
+            },
+            {
+                "name": "nuviotv-morphe-patches",
+                "source": "https://raw.githubusercontent.com/liongalahad/nuviotv-morphe-patches/master/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 126,
+                "createdAt": 1785983280124,
+                "updatedAt": 1785983280124
+            },
+            {
+                "name": "logm1lo-patches",
+                "source": "https://raw.githubusercontent.com/logm1lo/logm1lo-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 127,
+                "createdAt": 1785983280370,
+                "updatedAt": 1785983280370
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/spookyexe/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 128,
+                "createdAt": 1785983280824,
+                "updatedAt": 1785983280824
             }
         ]
     }

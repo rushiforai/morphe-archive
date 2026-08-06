@@ -1,13 +1,13 @@
 {
-  "generatedAt": "2026-08-05 02:42 UTC",
-  "configFile": "morphe_archive_config_v12.json",
-  "configVersion": 12,
-  "repoCount": 121,
-  "appCount": 611,
-  "patchCount": 2199,
+  "generatedAt": "2026-08-06 02:28 UTC",
+  "configFile": "morphe_archive_config_v13.json",
+  "configVersion": 13,
+  "repoCount": 126,
+  "appCount": 615,
+  "patchCount": 2226,
   "universalPatchCount": 168,
   "hostCounts": {
-    "github.com": 117,
+    "github.com": 122,
     "gitlab.com": 4
   },
   "repos": [
@@ -174,12 +174,20 @@
       "createdDate": "2026-07-28",
       "updatedDate": "2026-07-28",
       "latestChanges": {
-        "title": "1.3.6 (2026-08-03)",
-        "date": "2026-08-03",
+        "title": "1.4.0 (2026-08-06)",
+        "date": "2026-08-06",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "correct obfuscated class mapping for Google SignIn and remove 1.2.0 target"
+            "text": "remove pip cache option from setup-python"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Support SofaTime v1.2.2 (Fixes #1)"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "add sofa time update checker script and github workflow"
           }
         ]
       },
@@ -1615,19 +1623,19 @@
       "webUrl": "https://github.com/cesbar/zpatches",
       "addUrl": "https://morphe.software/add-source?github=cesbar/zpatches",
       "avatarUrl": "https://github.com/cesbar.png?size=96",
-      "patchCount": 9,
+      "patchCount": 10,
       "appCount": 5,
       "createdAt": 1784836032428,
       "updatedAt": 1784836032428,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.8.1 (2026-08-03)",
-        "date": "2026-08-03",
+        "title": "1.9.1 (2026-08-05)",
+        "date": "2026-08-05",
         "items": [
           {
             "category": "\ud83d\ude80 Updated App Support",
-            "text": "**Citymapper:** support for 11.56.1"
+            "text": "**Citymapper:** support for 11.56.2"
           }
         ]
       },
@@ -1642,7 +1650,7 @@
         {
           "name": "com.jcdecaux.vls.lyon",
           "packageName": "com.jcdecaux.vls.lyon",
-          "patchCount": 4,
+          "patchCount": 5,
           "iconUrl": "https://play-lh.googleusercontent.com/XC_XcRVkg55F_UTglnTJ8lLJkz3GueyDGpmw5-ygNKTcFRDK_xIRPs-5I8_nWf00PnnTgJ88xGCojWE0vBABEA",
           "iconColor": ""
         },
@@ -1679,19 +1687,19 @@
       "webUrl": "https://github.com/ch3thanhs/stylus",
       "addUrl": "https://morphe.software/add-source?github=ch3thanhs/stylus",
       "avatarUrl": "https://github.com/ch3thanhs.png?size=96",
-      "patchCount": 1,
-      "appCount": 1,
+      "patchCount": 5,
+      "appCount": 2,
       "createdAt": 1784837694852,
       "updatedAt": 1784837694852,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.2.0 (2026-07-23)",
-        "date": "2026-07-23",
+        "title": "1.4.0 (2026-08-05)",
+        "date": "2026-08-05",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "**reddit:** remove stylus reddit font patches"
+            "text": "**github:** add force system font webview css override and ui-monospace patch"
           }
         ]
       },
@@ -1702,6 +1710,13 @@
           "patchCount": 1,
           "iconUrl": "https://play-lh.googleusercontent.com/ezsPZ5JtRMkMd6DtbUOZghm4m-EbYcZSzXAIxJMumYOaDP9sI8o-DN8-tZpds0HJUXb-ur7F-oB9rFH78Jy2lA",
           "iconColor": "#175DDC"
+        },
+        {
+          "name": "GitHub",
+          "packageName": "com.github.android",
+          "patchCount": 4,
+          "iconUrl": "https://play-lh.googleusercontent.com/nxpwi4UD84GNJuJ42S9U0f3lGDsHu8VkIDPCccFmJL6kyNVb1O3pTY1rl1YZICLBk6EcWIaX6n9prCbdUoQEOw",
+          "iconColor": "#181C20"
         }
       ]
     },
@@ -3333,6 +3348,42 @@
       ]
     },
     {
+      "name": "morphe-patches",
+      "repo": "heinrich26/morphe-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/heinrich26/morphe-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/heinrich26/morphe-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/heinrich26/morphe-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/heinrich26/morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=heinrich26/morphe-patches",
+      "avatarUrl": "https://github.com/heinrich26.png?size=96",
+      "patchCount": 1,
+      "appCount": 1,
+      "createdAt": 1785983279605,
+      "updatedAt": 1785983279605,
+      "createdDate": "2026-08-06",
+      "updatedDate": "2026-08-06",
+      "latestChanges": {
+        "title": "1.0.1 (2026-08-05)",
+        "date": "2026-08-05",
+        "items": [
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "patch should now work"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "MT Capsule",
+          "packageName": "com.pryshedko.mtisland",
+          "patchCount": 1,
+          "iconUrl": "https://play-lh.googleusercontent.com/mrNuw058MP_GKlWVCLuZrg3QyONOUJAzrw4mCkdTvtGckt5EGUEzbO26z49bMCJTlX5WRs1qP9fSljF30k3xcAk",
+          "iconColor": "#FF0045"
+        }
+      ]
+    },
+    {
       "name": "HellveticaPatches",
       "repo": "HellveticaStandard/HellveticaPatches",
       "host": "github.com",
@@ -3939,19 +3990,23 @@
       "webUrl": "https://github.com/hxreborn/morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=hxreborn/morphe-patches",
       "avatarUrl": "https://github.com/hxreborn.png?size=96",
-      "patchCount": 9,
+      "patchCount": 11,
       "appCount": 4,
       "createdAt": 1784837695114,
       "updatedAt": 1784837695114,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.2.0 (2026-08-03)",
-        "date": "2026-08-03",
+        "title": "1.3.0 (2026-08-05)",
+        "date": "2026-08-05",
         "items": [
           {
             "category": "New Features",
-            "text": "**Showly - AMOLED dark theme:** add patch (#16)"
+            "text": "**Proton Mail - Spoof signature:** restore push notifications on patched installs"
+          },
+          {
+            "category": "New Features",
+            "text": "**Proton Mail - Unlock custom time picker:** add patch"
           }
         ]
       },
@@ -3973,7 +4028,7 @@
         {
           "name": "Proton Mail",
           "packageName": "ch.protonmail.android",
-          "patchCount": 4,
+          "patchCount": 6,
           "iconUrl": "https://play-lh.googleusercontent.com/TrxNlz9xizn4GBiVB2gWyws0majvL7tuCS1OsoaZxK1Sbi-uWFd51vo7eO9ghIDR6jQkIRF47mHoudd73KHazmI",
           "iconColor": "#6D4AFF"
         },
@@ -4457,6 +4512,37 @@
           "patchCount": 8,
           "iconUrl": "",
           "iconColor": "#0077FF"
+        }
+      ]
+    },
+    {
+      "name": "morph-patches",
+      "repo": "JonnyVR1/morph-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/JonnyVR1/morph-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/JonnyVR1/morph-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/JonnyVR1/morph-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/JonnyVR1/morph-patches",
+      "addUrl": "https://morphe.software/add-source?github=JonnyVR1/morph-patches",
+      "avatarUrl": "https://github.com/JonnyVR1.png?size=96",
+      "patchCount": 10,
+      "appCount": 1,
+      "createdAt": 1785983278208,
+      "updatedAt": 1785983278208,
+      "createdDate": "2026-08-06",
+      "updatedDate": "2026-08-06",
+      "latestChanges": {
+        "title": "",
+        "date": "",
+        "items": []
+      },
+      "apps": [
+        {
+          "name": "Tantan",
+          "packageName": "com.tantantribe.tribe",
+          "patchCount": 10,
+          "iconUrl": "",
+          "iconColor": ""
         }
       ]
     },
@@ -5270,6 +5356,42 @@
       ]
     },
     {
+      "name": "nuviotv-morphe-patches",
+      "repo": "liongalahad/nuviotv-morphe-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/liongalahad/nuviotv-morphe-patches/master/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/liongalahad/nuviotv-morphe-patches/master/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/liongalahad/nuviotv-morphe-patches/master/CHANGELOG.md",
+      "webUrl": "https://github.com/liongalahad/nuviotv-morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=liongalahad/nuviotv-morphe-patches",
+      "avatarUrl": "https://github.com/liongalahad.png?size=96",
+      "patchCount": 2,
+      "appCount": 1,
+      "createdAt": 1785983280124,
+      "updatedAt": 1785983280124,
+      "createdDate": "2026-08-06",
+      "updatedDate": "2026-08-06",
+      "latestChanges": {
+        "title": "1.0.0-dev.13 (2026-08-05)",
+        "date": "2026-08-05",
+        "items": [
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "intercept all Media3 subtitle cue groups"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "NuvioTV",
+          "packageName": "com.nuvio.tv",
+          "patchCount": 2,
+          "iconUrl": "",
+          "iconColor": "#111827"
+        }
+      ]
+    },
+    {
       "name": "nuviotv-patches",
       "repo": "liongalahad/nuviotv-patches",
       "host": "github.com",
@@ -5279,19 +5401,19 @@
       "webUrl": "https://github.com/liongalahad/nuviotv-patches",
       "addUrl": "https://morphe.software/add-source?github=liongalahad/nuviotv-patches",
       "avatarUrl": "https://github.com/liongalahad.png?size=96",
-      "patchCount": 1,
+      "patchCount": 2,
       "appCount": 1,
       "createdAt": 1785897756603,
       "updatedAt": 1785897756603,
       "createdDate": "2026-08-05",
       "updatedDate": "2026-08-05",
       "latestChanges": {
-        "title": "1.0.0-dev.9 (2026-08-05)",
+        "title": "1.0.0-dev.13 (2026-08-05)",
         "date": "2026-08-05",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "rebrand source and add prerelease warning"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "intercept all Media3 subtitle cue groups"
           }
         ]
       },
@@ -5299,9 +5421,45 @@
         {
           "name": "NuvioTV",
           "packageName": "com.nuvio.tv",
-          "patchCount": 1,
+          "patchCount": 2,
           "iconUrl": "",
           "iconColor": "#111827"
+        }
+      ]
+    },
+    {
+      "name": "logm1lo-patches",
+      "repo": "logm1lo/logm1lo-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/logm1lo/logm1lo-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/logm1lo/logm1lo-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/logm1lo/logm1lo-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/logm1lo/logm1lo-patches",
+      "addUrl": "https://morphe.software/add-source?github=logm1lo/logm1lo-patches",
+      "avatarUrl": "https://github.com/logm1lo.png?size=96",
+      "patchCount": 1,
+      "appCount": 1,
+      "createdAt": 1785983280370,
+      "updatedAt": 1785983280370,
+      "createdDate": "2026-08-06",
+      "updatedDate": "2026-08-06",
+      "latestChanges": {
+        "title": "1.0.10 (2026-08-05)",
+        "date": "2026-08-05",
+        "items": [
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "sync lockfile with @semantic-release/git v11"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Calistree",
+          "packageName": "com.calistree.calistree",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#4CAF50"
         }
       ]
     },
@@ -6456,7 +6614,7 @@
       "webUrl": "https://github.com/RookieEnough/De-Vanced",
       "addUrl": "https://morphe.software/add-source?github=RookieEnough/De-Vanced",
       "avatarUrl": "https://github.com/RookieEnough.png?size=96",
-      "patchCount": 84,
+      "patchCount": 88,
       "appCount": 34,
       "createdAt": 1784836025414,
       "updatedAt": 1784836025414,
@@ -6514,7 +6672,7 @@
         {
           "name": "com.amazon.mp3",
           "packageName": "com.amazon.mp3",
-          "patchCount": 4,
+          "patchCount": 5,
           "iconUrl": "https://play-lh.googleusercontent.com/9v2z1-7g8pWbxek8IW3Q9gGsAqD-YkTvy_rmyd4Cfb-OkpVR2T6jt-Ev2eKDcvx72njhCQ_4fEd9qg8-T9AaDA",
           "iconColor": ""
         },
@@ -6563,7 +6721,7 @@
         {
           "name": "com.facebook.orca",
           "packageName": "com.facebook.orca",
-          "patchCount": 5,
+          "patchCount": 8,
           "iconUrl": "https://play-lh.googleusercontent.com/cuRpiGqvAMkcbAOibD-AKCBagAunUkspQUWC_jVZF2Hob_ODdmkefnZeqkofW1idFQHhgZgnLIjsqT-2v7JKBw",
           "iconColor": ""
         },
@@ -8452,6 +8610,42 @@
           "patchCount": 13,
           "iconUrl": "https://play-lh.googleusercontent.com/VExMwhu9Fe5kz72YnPWP6mHrNA5WfgZ-PJMnBnQmXFpLncTAOaaHtK4b8w7b2xxGxtqycDatYslVyNSLucl9QA",
           "iconColor": "#E60023"
+        }
+      ]
+    },
+    {
+      "name": "morphe-patches",
+      "repo": "spookyexe/morphe-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/spookyexe/morphe-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/spookyexe/morphe-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/spookyexe/morphe-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/spookyexe/morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=spookyexe/morphe-patches",
+      "avatarUrl": "https://github.com/spookyexe.png?size=96",
+      "patchCount": 1,
+      "appCount": 1,
+      "createdAt": 1785983280824,
+      "updatedAt": 1785983280824,
+      "createdDate": "2026-08-06",
+      "updatedDate": "2026-08-06",
+      "latestChanges": {
+        "title": "1.0.0 (2026-08-05)",
+        "date": "2026-08-05",
+        "items": [
+          {
+            "category": "\u2728 New Features",
+            "text": "Add beeline plus patch for beeline app"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Beeline",
+          "packageName": "co.beeline",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#FFCF00"
         }
       ]
     },
@@ -11600,8 +11794,8 @@
       ],
       "patches": [
         "Disable PairIP DRM",
-        "Unlock premium",
-        "Unlock Premium"
+        "Unlock Premium",
+        "Unlock premium"
       ],
       "patchDetails": [
         {
@@ -11609,12 +11803,12 @@
           "description": "Disables PairIP signature verification and Google Play LVL license check. Required for the app to launch after re-signing."
         },
         {
-          "name": "Unlock premium",
-          "description": "Unlocks all AT4K premium features by forcing the premium status to true."
-        },
-        {
           "name": "Unlock Premium",
           "description": "Unlocks all premium features by forcing the premium state to true in the purchase manager."
+        },
+        {
+          "name": "Unlock premium",
+          "description": "Unlocks all AT4K premium features by forcing the premium status to true."
         }
       ],
       "versions": [
@@ -13734,6 +13928,64 @@
       "iconUrl": "https://play-lh.googleusercontent.com/JX6vKXernce59eCJ033qXWqu3NDryxBp4Y_TuuCn3A9oWq_I_hL06FJQK1gYNOVrkOVr-cevOm04VREtBAVXtg"
     },
     {
+      "packageName": "co.beeline",
+      "name": "Beeline",
+      "repos": [
+        "spookyexe/morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "spookyexe/morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/spookyexe/morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=spookyexe/morphe-patches",
+          "source": "https://raw.githubusercontent.com/spookyexe/morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/spookyexe/morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/spookyexe.png?size=96",
+          "latestChanges": {
+            "title": "1.0.0 (2026-08-05)",
+            "date": "2026-08-05",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "Add beeline plus patch for beeline app"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "co-beeline-spookyexe-morphe-patches",
+            "releaseTag": "app-co-beeline-spookyexe-morphe-patches",
+            "assetName": "beeline-spookyexe-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Unlock Beeline Plus features",
+              "description": "Unlocks Beeline plus features such as round-trip generation, live traffic and premium map types."
+            }
+          ],
+          "versions": [
+            "4.2.8014"
+          ]
+        }
+      ],
+      "patches": [
+        "Unlock Beeline Plus features"
+      ],
+      "patchDetails": [
+        {
+          "name": "Unlock Beeline Plus features",
+          "description": "Unlocks Beeline plus features such as round-trip generation, live traffic and premium map types."
+        }
+      ],
+      "versions": [
+        "4.2.8014"
+      ],
+      "iconColor": "#FFCF00",
+      "iconUrl": ""
+    },
+    {
       "packageName": "it.mirko.beta",
       "name": "Beta Maniac",
       "repos": [
@@ -13910,12 +14162,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/ch3thanhs/stylus/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/ch3thanhs.png?size=96",
           "latestChanges": {
-            "title": "1.2.0 (2026-07-23)",
-            "date": "2026-07-23",
+            "title": "1.4.0 (2026-08-05)",
+            "date": "2026-08-05",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**reddit:** remove stylus reddit font patches"
+                "text": "**github:** add force system font webview css override and ui-monospace patch"
               }
             ]
           },
@@ -13933,7 +14185,8 @@
             }
           ],
           "versions": [
-            "2026.6.1"
+            "2026.6.1",
+            "2026.7.0"
           ]
         }
       ],
@@ -13947,7 +14200,8 @@
         }
       ],
       "versions": [
-        "2026.6.1"
+        "2026.6.1",
+        "2026.7.0"
       ],
       "iconColor": "#175DDC",
       "iconUrl": "https://play-lh.googleusercontent.com/ezsPZ5JtRMkMd6DtbUOZghm4m-EbYcZSzXAIxJMumYOaDP9sI8o-DN8-tZpds0HJUXb-ur7F-oB9rFH78Jy2lA"
@@ -15586,6 +15840,64 @@
       "iconUrl": "https://play-lh.googleusercontent.com/kKaoi4tJiGPOoaTERi8PbT-mFNNhbttLUun_ywr8AxFIj6BV35mnQEAYkcklGwVTPFrk2k4XjwnHQjYtCzQiXjw"
     },
     {
+      "packageName": "com.calistree.calistree",
+      "name": "Calistree",
+      "repos": [
+        "logm1lo/logm1lo-patches"
+      ],
+      "sources": [
+        {
+          "repo": "logm1lo/logm1lo-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/logm1lo/logm1lo-patches",
+          "addUrl": "https://morphe.software/add-source?github=logm1lo/logm1lo-patches",
+          "source": "https://raw.githubusercontent.com/logm1lo/logm1lo-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/logm1lo/logm1lo-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/logm1lo.png?size=96",
+          "latestChanges": {
+            "title": "1.0.10 (2026-08-05)",
+            "date": "2026-08-05",
+            "items": [
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "sync lockfile with @semantic-release/git v11"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-calistree-calistree-logm1lo-logm1lo-patches",
+            "releaseTag": "app-com-calistree-calistree-logm1lo-logm1lo-patches",
+            "assetName": "calistree-logm1lo-logm1lo-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Premium Unlock",
+              "description": "Unlocks all Calistree PRO features."
+            }
+          ],
+          "versions": [
+            "5.8.5"
+          ]
+        }
+      ],
+      "patches": [
+        "Premium Unlock"
+      ],
+      "patchDetails": [
+        {
+          "name": "Premium Unlock",
+          "description": "Unlocks all Calistree PRO features."
+        }
+      ],
+      "versions": [
+        "5.8.5"
+      ],
+      "iconColor": "#4CAF50",
+      "iconUrl": ""
+    },
+    {
       "packageName": "com.calm.android",
       "name": "Calm: Sleep & Meditation",
       "repos": [
@@ -16556,12 +16868,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.2.0 (2026-08-03)",
-            "date": "2026-08-03",
+            "title": "1.3.0 (2026-08-05)",
+            "date": "2026-08-05",
             "items": [
               {
                 "category": "New Features",
-                "text": "**Showly - AMOLED dark theme:** add patch (#16)"
+                "text": "**Proton Mail - Spoof signature:** restore push notifications on patched installs"
+              },
+              {
+                "category": "New Features",
+                "text": "**Proton Mail - Unlock custom time picker:** add patch"
               }
             ]
           },
@@ -16588,6 +16904,14 @@
             {
               "name": "Remove free accounts limit",
               "description": "Removes the limit for maximum free accounts logged in."
+            },
+            {
+              "name": "Spoof signature",
+              "description": "Restores push notifications by spoofing the original app signature."
+            },
+            {
+              "name": "Unlock custom time picker",
+              "description": "Enables picking a custom date and time when snoozing conversations and scheduling messages."
             }
           ],
           "versions": [
@@ -16662,7 +16986,9 @@
         "AMOLED dark theme",
         "Hide upgrade upselling",
         "Remove 'Sent from' signature",
-        "Remove free accounts limit"
+        "Remove free accounts limit",
+        "Spoof signature",
+        "Unlock custom time picker"
       ],
       "patchDetails": [
         {
@@ -16680,6 +17006,14 @@
         {
           "name": "Remove free accounts limit",
           "description": "Removes the limit for maximum free accounts logged in."
+        },
+        {
+          "name": "Spoof signature",
+          "description": "Restores push notifications by spoofing the original app signature."
+        },
+        {
+          "name": "Unlock custom time picker",
+          "description": "Enables picking a custom date and time when snoozing conversations and scheduling messages."
         }
       ],
       "versions": [
@@ -18257,6 +18591,10 @@
               "description": "Avoid uploading logs when the application crashes."
             },
             {
+              "name": "Rename shared permissions",
+              "description": "Rename certain permissions shared across Amazon apps. Applying this patch can fix installation errors, but can also break features in certain apps."
+            },
+            {
               "name": "Skip ads",
               "description": "Skip ads between the tracks."
             },
@@ -18274,6 +18612,7 @@
       ],
       "patches": [
         "Prevent log upload",
+        "Rename shared permissions",
         "Skip ads",
         "Unlimited track skipping",
         "Unlock Unlimited"
@@ -18282,6 +18621,10 @@
         {
           "name": "Prevent log upload",
           "description": "Avoid uploading logs when the application crashes."
+        },
+        {
+          "name": "Rename shared permissions",
+          "description": "Rename certain permissions shared across Amazon apps. Applying this patch can fix installation errors, but can also break features in certain apps."
         },
         {
           "name": "Skip ads",
@@ -19006,12 +19349,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/cesbar/zpatches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/cesbar.png?size=96",
           "latestChanges": {
-            "title": "1.8.1 (2026-08-03)",
-            "date": "2026-08-03",
+            "title": "1.9.1 (2026-08-05)",
+            "date": "2026-08-05",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "**Citymapper:** support for 11.56.1"
+                "text": "**Citymapper:** support for 11.56.2"
               }
             ]
           },
@@ -19819,20 +20162,32 @@
               "description": "Disables the indicator while typing a message."
             },
             {
-              "name": "Hide Facebook button",
-              "description": "Hides the Facebook button in the top toolbar."
+              "name": "Hide Facebook buttons",
+              "description": "Hides buttons and shortcuts that open Facebook."
             },
             {
               "name": "Hide inbox ads",
               "description": "Hides ads in inbox."
             },
             {
+              "name": "Hide inbox stories and notes tray",
+              "description": "Hides the stories and notes horizontal tray at the top of the inbox."
+            },
+            {
               "name": "Hide inbox subtabs",
               "description": "Hides Home and Channels tabs between active now tray and chats."
             },
             {
+              "name": "Open links externally",
+              "description": "Always opens links in your default browser instead of the in-app browser, regardless of the in-app setting."
+            },
+            {
               "name": "Remove Meta AI",
               "description": "Removes UI elements related to Meta AI."
+            },
+            {
+              "name": "Spoof package version",
+              "description": "Sets a very high version code so the Play Store treats the app as already up to date and never offers an update."
             }
           ],
           "versions": []
@@ -19840,10 +20195,13 @@
       ],
       "patches": [
         "Disable typing indicator",
-        "Hide Facebook button",
+        "Hide Facebook buttons",
         "Hide inbox ads",
+        "Hide inbox stories and notes tray",
         "Hide inbox subtabs",
-        "Remove Meta AI"
+        "Open links externally",
+        "Remove Meta AI",
+        "Spoof package version"
       ],
       "patchDetails": [
         {
@@ -19851,20 +20209,32 @@
           "description": "Disables the indicator while typing a message."
         },
         {
-          "name": "Hide Facebook button",
-          "description": "Hides the Facebook button in the top toolbar."
+          "name": "Hide Facebook buttons",
+          "description": "Hides buttons and shortcuts that open Facebook."
         },
         {
           "name": "Hide inbox ads",
           "description": "Hides ads in inbox."
         },
         {
+          "name": "Hide inbox stories and notes tray",
+          "description": "Hides the stories and notes horizontal tray at the top of the inbox."
+        },
+        {
           "name": "Hide inbox subtabs",
           "description": "Hides Home and Channels tabs between active now tray and chats."
         },
         {
+          "name": "Open links externally",
+          "description": "Always opens links in your default browser instead of the in-app browser, regardless of the in-app setting."
+        },
+        {
           "name": "Remove Meta AI",
           "description": "Removes UI elements related to Meta AI."
+        },
+        {
+          "name": "Spoof package version",
+          "description": "Sets a very high version code so the Play Store treats the app as already up to date and never offers an update."
         }
       ],
       "versions": [],
@@ -20071,10 +20441,58 @@
       "packageName": "com.github.android",
       "name": "com.github.android",
       "repos": [
+        "ch3thanhs/stylus",
         "chirag127/morphe-patches",
         "hoo-dles/morphe-patches"
       ],
       "sources": [
+        {
+          "repo": "ch3thanhs/stylus",
+          "host": "github.com",
+          "webUrl": "https://github.com/ch3thanhs/stylus",
+          "addUrl": "https://morphe.software/add-source?github=ch3thanhs/stylus",
+          "source": "https://raw.githubusercontent.com/ch3thanhs/stylus/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/ch3thanhs/stylus/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/ch3thanhs.png?size=96",
+          "latestChanges": {
+            "title": "1.4.0 (2026-08-05)",
+            "date": "2026-08-05",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "**github:** add force system font webview css override and ui-monospace patch"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-github-android-ch3thanhs-stylus",
+            "releaseTag": "app-com-github-android-ch3thanhs-stylus",
+            "assetName": "com-github-android-ch3thanhs-stylus.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Custom font (GitHub)",
+              "description": "Replaces GitHub's bundled Inter and Mona Sans UI fonts with a custom font file."
+            },
+            {
+              "name": "Custom monospace font (GitHub)",
+              "description": "Replaces GitHub's bundled Roboto Mono code font with a custom monospace font file."
+            },
+            {
+              "name": "Force system font (GitHub)",
+              "description": "Renders GitHub UI text using the device system font by overriding bundled font resources at runtime."
+            },
+            {
+              "name": "Force system font (including monospace) (GitHub)",
+              "description": "Renders GitHub UI and monospace text using the device system UI font."
+            }
+          ],
+          "versions": [
+            "1.270.0"
+          ]
+        },
         {
           "repo": "chirag127/morphe-patches",
           "host": "github.com",
@@ -20170,6 +20588,10 @@
       ],
       "patches": [
         "AMOLED dark theme",
+        "Custom font (GitHub)",
+        "Custom monospace font (GitHub)",
+        "Force system font (GitHub)",
+        "Force system font (including monospace) (GitHub)",
         "GitHub \u2014 all patches",
         "GitHub \u2014 AMOLED comment surface (STUB)",
         "GitHub \u2014 AMOLED dark theme (STUB)",
@@ -20180,6 +20602,22 @@
         {
           "name": "AMOLED dark theme",
           "description": "Changes the default dark theme to use true blacks for AMOLED screens."
+        },
+        {
+          "name": "Custom font (GitHub)",
+          "description": "Replaces GitHub's bundled Inter and Mona Sans UI fonts with a custom font file."
+        },
+        {
+          "name": "Custom monospace font (GitHub)",
+          "description": "Replaces GitHub's bundled Roboto Mono code font with a custom monospace font file."
+        },
+        {
+          "name": "Force system font (GitHub)",
+          "description": "Renders GitHub UI text using the device system font by overriding bundled font resources at runtime."
+        },
+        {
+          "name": "Force system font (including monospace) (GitHub)",
+          "description": "Renders GitHub UI and monospace text using the device system UI font."
         },
         {
           "name": "GitHub \u2014 all patches",
@@ -20203,7 +20641,8 @@
         }
       ],
       "versions": [
-        "1.255.0"
+        "1.255.0",
+        "1.270.0"
       ],
       "iconColor": "#000000",
       "iconUrl": "https://play-lh.googleusercontent.com/nxpwi4UD84GNJuJ42S9U0f3lGDsHu8VkIDPCccFmJL6kyNVb1O3pTY1rl1YZICLBk6EcWIaX6n9prCbdUoQEOw"
@@ -21885,12 +22324,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/cesbar/zpatches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/cesbar.png?size=96",
           "latestChanges": {
-            "title": "1.8.1 (2026-08-03)",
-            "date": "2026-08-03",
+            "title": "1.9.1 (2026-08-05)",
+            "date": "2026-08-05",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "**Citymapper:** support for 11.56.1"
+                "text": "**Citymapper:** support for 11.56.2"
               }
             ]
           },
@@ -21905,6 +22344,10 @@
             {
               "name": "Disable map animations",
               "description": "Disable the map zoom-in animation"
+            },
+            {
+              "name": "Easy deeplinks configuration",
+              "description": "Allows easy configuration of deeplinks (velov.cyclocity.fr, velov.grandlyon.com) required by the app to sign-in"
             },
             {
               "name": "Google Maps API key",
@@ -21926,6 +22369,7 @@
       ],
       "patches": [
         "Disable map animations",
+        "Easy deeplinks configuration",
         "Google Maps API key",
         "No geolocalisation check",
         "Spoof package signature"
@@ -21934,6 +22378,10 @@
         {
           "name": "Disable map animations",
           "description": "Disable the map zoom-in animation"
+        },
+        {
+          "name": "Easy deeplinks configuration",
+          "description": "Allows easy configuration of deeplinks (velov.cyclocity.fr, velov.grandlyon.com) required by the app to sign-in"
         },
         {
           "name": "Google Maps API key",
@@ -28957,12 +29405,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/cesbar/zpatches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/cesbar.png?size=96",
           "latestChanges": {
-            "title": "1.8.1 (2026-08-03)",
-            "date": "2026-08-03",
+            "title": "1.9.1 (2026-08-05)",
+            "date": "2026-08-05",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "**Citymapper:** support for 11.56.1"
+                "text": "**Citymapper:** support for 11.56.2"
               }
             ]
           },
@@ -29029,12 +29477,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/cesbar/zpatches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/cesbar.png?size=96",
           "latestChanges": {
-            "title": "1.8.1 (2026-08-03)",
-            "date": "2026-08-03",
+            "title": "1.9.1 (2026-08-05)",
+            "date": "2026-08-05",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "**Citymapper:** support for 11.56.1"
+                "text": "**Citymapper:** support for 11.56.2"
               }
             ]
           },
@@ -29092,12 +29540,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/cesbar/zpatches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/cesbar.png?size=96",
           "latestChanges": {
-            "title": "1.8.1 (2026-08-03)",
-            "date": "2026-08-03",
+            "title": "1.9.1 (2026-08-05)",
+            "date": "2026-08-05",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "**Citymapper:** support for 11.56.1"
+                "text": "**Citymapper:** support for 11.56.2"
               }
             ]
           },
@@ -30772,12 +31220,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.2.0 (2026-08-03)",
-            "date": "2026-08-03",
+            "title": "1.3.0 (2026-08-05)",
+            "date": "2026-08-05",
             "items": [
               {
                 "category": "New Features",
-                "text": "**Showly - AMOLED dark theme:** add patch (#16)"
+                "text": "**Proton Mail - Spoof signature:** restore push notifications on patched installs"
+              },
+              {
+                "category": "New Features",
+                "text": "**Proton Mail - Unlock custom time picker:** add patch"
               }
             ]
           },
@@ -40333,6 +40785,64 @@
       "iconUrl": "https://play-lh.googleusercontent.com/hrz4coRvzEr2euUSAUYdqlJkj4iv9aIk0nwg5EVl9Kif4cYRMqC2ussnVdcNjjclNtlbWq1_XaGWfC0SoC7U7A"
     },
     {
+      "packageName": "com.pryshedko.mtisland",
+      "name": "MT Capsule",
+      "repos": [
+        "heinrich26/morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "heinrich26/morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/heinrich26/morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=heinrich26/morphe-patches",
+          "source": "https://raw.githubusercontent.com/heinrich26/morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/heinrich26/morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/heinrich26.png?size=96",
+          "latestChanges": {
+            "title": "1.0.1 (2026-08-05)",
+            "date": "2026-08-05",
+            "items": [
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "patch should now work"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-pryshedko-mtisland-heinrich26-morphe-patches",
+            "releaseTag": "app-com-pryshedko-mtisland-heinrich26-morphe-patches",
+            "assetName": "mt-capsule-heinrich26-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Unlock Pro",
+              "description": ""
+            }
+          ],
+          "versions": [
+            "15.7"
+          ]
+        }
+      ],
+      "patches": [
+        "Unlock Pro"
+      ],
+      "patchDetails": [
+        {
+          "name": "Unlock Pro",
+          "description": ""
+        }
+      ],
+      "versions": [
+        "15.7"
+      ],
+      "iconColor": "#FF0045",
+      "iconUrl": "https://play-lh.googleusercontent.com/mrNuw058MP_GKlWVCLuZrg3QyONOUJAzrw4mCkdTvtGckt5EGUEzbO26z49bMCJTlX5WRs1qP9fSljF30k3xcAk"
+    },
+    {
       "packageName": "com.sdev.mtproxy",
       "name": "MTProxy",
       "repos": [
@@ -42475,9 +42985,49 @@
       "packageName": "com.nuvio.tv",
       "name": "NuvioTV",
       "repos": [
+        "liongalahad/nuviotv-morphe-patches",
         "liongalahad/nuviotv-patches"
       ],
       "sources": [
+        {
+          "repo": "liongalahad/nuviotv-morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/liongalahad/nuviotv-morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=liongalahad/nuviotv-morphe-patches",
+          "source": "https://raw.githubusercontent.com/liongalahad/nuviotv-morphe-patches/master/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/liongalahad/nuviotv-morphe-patches/master/CHANGELOG.md",
+          "avatarUrl": "https://github.com/liongalahad.png?size=96",
+          "latestChanges": {
+            "title": "1.0.0-dev.13 (2026-08-05)",
+            "date": "2026-08-05",
+            "items": [
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "intercept all Media3 subtitle cue groups"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-nuvio-tv-liongalahad-nuviotv-morphe-patches",
+            "releaseTag": "app-com-nuvio-tv-liongalahad-nuviotv-morphe-patches",
+            "assetName": "nuviotv-liongalahad-nuviotv-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Rating Visibility",
+              "description": "Adds Settings > Morphe > Ratings with independent overall and episode rating controls."
+            },
+            {
+              "name": "Remove SDH Annotations",
+              "description": "Adds Settings \u2192 Morphe \u2192 Subtitles and removes SDH annotations from Media3 subtitles when enabled."
+            }
+          ],
+          "versions": [
+            "0.8.2-beta"
+          ]
+        },
         {
           "repo": "liongalahad/nuviotv-patches",
           "host": "github.com",
@@ -42487,12 +43037,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/liongalahad/nuviotv-patches/master/CHANGELOG.md",
           "avatarUrl": "https://github.com/liongalahad.png?size=96",
           "latestChanges": {
-            "title": "1.0.0-dev.9 (2026-08-05)",
+            "title": "1.0.0-dev.13 (2026-08-05)",
             "date": "2026-08-05",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "rebrand source and add prerelease warning"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "intercept all Media3 subtitle cue groups"
               }
             ]
           },
@@ -42505,26 +43055,35 @@
           },
           "patches": [
             {
+              "name": "Rating Visibility",
+              "description": "Adds Settings > Morphe > Ratings with independent overall and episode rating controls."
+            },
+            {
               "name": "Remove SDH Annotations",
               "description": "Adds Settings \u2192 Morphe \u2192 Subtitles and removes SDH annotations from Media3 subtitles when enabled."
             }
           ],
           "versions": [
-            "0.8.1-beta"
+            "0.8.2-beta"
           ]
         }
       ],
       "patches": [
+        "Rating Visibility",
         "Remove SDH Annotations"
       ],
       "patchDetails": [
+        {
+          "name": "Rating Visibility",
+          "description": "Adds Settings > Morphe > Ratings with independent overall and episode rating controls."
+        },
         {
           "name": "Remove SDH Annotations",
           "description": "Adds Settings \u2192 Morphe \u2192 Subtitles and removes SDH annotations from Media3 subtitles when enabled."
         }
       ],
       "versions": [
-        "0.8.1-beta"
+        "0.8.2-beta"
       ],
       "iconColor": "#111827",
       "iconUrl": ""
@@ -46840,12 +47399,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.2.0 (2026-08-03)",
-            "date": "2026-08-03",
+            "title": "1.3.0 (2026-08-05)",
+            "date": "2026-08-05",
             "items": [
               {
                 "category": "New Features",
-                "text": "**Showly - AMOLED dark theme:** add patch (#16)"
+                "text": "**Proton Mail - Spoof signature:** restore push notifications on patched installs"
+              },
+              {
+                "category": "New Features",
+                "text": "**Proton Mail - Unlock custom time picker:** add patch"
               }
             ]
           },
@@ -46906,8 +47469,8 @@
       ],
       "patches": [
         "Disable tracking",
-        "Unlock premium",
-        "Unlock Premium"
+        "Unlock Premium",
+        "Unlock premium"
       ],
       "patchDetails": [
         {
@@ -46915,12 +47478,12 @@
           "description": "Disables analytics and crash reporting."
         },
         {
-          "name": "Unlock premium",
-          "description": "Unlocks all premium features."
-        },
-        {
           "name": "Unlock Premium",
           "description": "Unlocks all premium features by bypassing the native library premium check."
+        },
+        {
+          "name": "Unlock premium",
+          "description": "Unlocks all premium features."
         }
       ],
       "versions": [
@@ -50528,12 +51091,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.2.0 (2026-08-03)",
-            "date": "2026-08-03",
+            "title": "1.3.0 (2026-08-05)",
+            "date": "2026-08-05",
             "items": [
               {
                 "category": "New Features",
-                "text": "**Showly - AMOLED dark theme:** add patch (#16)"
+                "text": "**Proton Mail - Spoof signature:** restore push notifications on patched installs"
+              },
+              {
+                "category": "New Features",
+                "text": "**Proton Mail - Unlock custom time picker:** add patch"
               }
             ]
           },
@@ -51592,12 +52159,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/alan7383/sofatime-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/alan7383.png?size=96",
           "latestChanges": {
-            "title": "1.3.6 (2026-08-03)",
-            "date": "2026-08-03",
+            "title": "1.4.0 (2026-08-06)",
+            "date": "2026-08-06",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "correct obfuscated class mapping for Google SignIn and remove 1.2.0 target"
+                "text": "remove pip cache option from setup-python"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Support SofaTime v1.2.2 (Fixes #1)"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add sofa time update checker script and github workflow"
               }
             ]
           },
@@ -51627,7 +52202,7 @@
             }
           ],
           "versions": [
-            "1.2.1"
+            "1.2.2"
           ]
         }
       ],
@@ -51656,7 +52231,7 @@
         }
       ],
       "versions": [
-        "1.2.1"
+        "1.2.2"
       ],
       "iconColor": "#1E1E2E",
       "iconUrl": ""
@@ -54674,6 +55249,140 @@
       ],
       "iconColor": "#2196F3",
       "iconUrl": "https://play-lh.googleusercontent.com/i_cwM3vOXBGhtBCTNXbw9x6leBumcnQGSJpR-D7YG20rZhO4y7t72nCcLGANwgNJJcmD1qkYE2cUOkxlVaKiAg"
+    },
+    {
+      "packageName": "com.tantantribe.tribe",
+      "name": "Tantan",
+      "repos": [
+        "JonnyVR1/morph-patches"
+      ],
+      "sources": [
+        {
+          "repo": "JonnyVR1/morph-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/JonnyVR1/morph-patches",
+          "addUrl": "https://morphe.software/add-source?github=JonnyVR1/morph-patches",
+          "source": "https://raw.githubusercontent.com/JonnyVR1/morph-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/JonnyVR1/morph-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/JonnyVR1.png?size=96",
+          "latestChanges": {
+            "title": "",
+            "date": "",
+            "items": []
+          },
+          "builder": {
+            "buildId": "com-tantantribe-tribe-jonnyvr1-morph-patches",
+            "releaseTag": "app-com-tantantribe-tribe-jonnyvr1-morph-patches",
+            "assetName": "tantan-jonnyvr1-morph-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Ad Removal",
+              "description": "Removes all ad displays: navigation bar banner, native feed ads, live streaming banner ads, live square ads, conversation Google ads, marriage guide card, four-select-one card, daily selection card, visitor list ads"
+            },
+            {
+              "name": "Analytics Disable",
+              "description": "Disables all analytics, telemetry, and device fingerprinting for privacy"
+            },
+            {
+              "name": "Dialog Cleanup",
+              "description": "Removes annoying promotional dialogs: 5-star rating, appstore rating, version upgrade, offline popup, notification permission, phone auth prompts, purchase pages"
+            },
+            {
+              "name": "GMS Compatibility",
+              "description": "Makes Google Maps and GMS-dependent features work in re-signed APKs. Includes signature spoofing, auth header fixes, MicroG support, and GMS availability bypass."
+            },
+            {
+              "name": "Live Streaming Enhancement",
+              "description": "Live streaming enhancement: push limit bypass, swipe card unlimited, chat rate limit removal, voice game access, all-day PK battles, gift leaderboard, knight privileges, entrance limits, permission control, daily payment, noble config, stealth privacy, video chat, voice features, monetization, game operations, star toggle"
+            },
+            {
+              "name": "Messaging Enhancement",
+              "description": "Removes message limits, unlimited pin chat, voice/video calls, quick chat, typing indicator, free gifts, letter, greeting, ice breaker, read receipts, AI translation, message recall, group chat, live chat, message filter, chat partner config, ODiamond visitor config, prologue config, love buzz data, secret crush limit, boost limit"
+            },
+            {
+              "name": "Premium Unlock",
+              "description": "Unlocks all premium features, tier statuses, subscription validation, and display"
+            },
+            {
+              "name": "Privacy Controls",
+              "description": "Unlocks privacy features: hide from nearby, visitor footprint hiding, mysterious mode, nearby people access, read receipt unlock, read receipt dialog suppression, contact access block, location privacy, privacy settings force enable, hide activity time, hide age, hide icon, frozen activity, frozen time, hide distance, core service privacy gate, hide active from SVip, disable ad suggestions, live stealth privacy, online status visibility, hide VIP badge, heartbeat disable, verified user messages, online reminder, unreplied reminder, greeting do not disturb, only show about me inside"
+            },
+            {
+              "name": "Privacy Enhancement",
+              "description": "Advanced privacy protections: root/emulator detection bypass, ShuMeng SDK blocking, Facebook SDK emulator detection bypass, APK signature verification bypass, package enumeration prevention"
+            },
+            {
+              "name": "UI Cleanup",
+              "description": "Removes guides, banners, stickers, decorations, and AI prompts"
+            }
+          ],
+          "versions": [
+            "7.3.3"
+          ]
+        }
+      ],
+      "patches": [
+        "Ad Removal",
+        "Analytics Disable",
+        "Dialog Cleanup",
+        "GMS Compatibility",
+        "Live Streaming Enhancement",
+        "Messaging Enhancement",
+        "Premium Unlock",
+        "Privacy Controls",
+        "Privacy Enhancement",
+        "UI Cleanup"
+      ],
+      "patchDetails": [
+        {
+          "name": "Ad Removal",
+          "description": "Removes all ad displays: navigation bar banner, native feed ads, live streaming banner ads, live square ads, conversation Google ads, marriage guide card, four-select-one card, daily selection card, visitor list ads"
+        },
+        {
+          "name": "Analytics Disable",
+          "description": "Disables all analytics, telemetry, and device fingerprinting for privacy"
+        },
+        {
+          "name": "Dialog Cleanup",
+          "description": "Removes annoying promotional dialogs: 5-star rating, appstore rating, version upgrade, offline popup, notification permission, phone auth prompts, purchase pages"
+        },
+        {
+          "name": "GMS Compatibility",
+          "description": "Makes Google Maps and GMS-dependent features work in re-signed APKs. Includes signature spoofing, auth header fixes, MicroG support, and GMS availability bypass."
+        },
+        {
+          "name": "Live Streaming Enhancement",
+          "description": "Live streaming enhancement: push limit bypass, swipe card unlimited, chat rate limit removal, voice game access, all-day PK battles, gift leaderboard, knight privileges, entrance limits, permission control, daily payment, noble config, stealth privacy, video chat, voice features, monetization, game operations, star toggle"
+        },
+        {
+          "name": "Messaging Enhancement",
+          "description": "Removes message limits, unlimited pin chat, voice/video calls, quick chat, typing indicator, free gifts, letter, greeting, ice breaker, read receipts, AI translation, message recall, group chat, live chat, message filter, chat partner config, ODiamond visitor config, prologue config, love buzz data, secret crush limit, boost limit"
+        },
+        {
+          "name": "Premium Unlock",
+          "description": "Unlocks all premium features, tier statuses, subscription validation, and display"
+        },
+        {
+          "name": "Privacy Controls",
+          "description": "Unlocks privacy features: hide from nearby, visitor footprint hiding, mysterious mode, nearby people access, read receipt unlock, read receipt dialog suppression, contact access block, location privacy, privacy settings force enable, hide activity time, hide age, hide icon, frozen activity, frozen time, hide distance, core service privacy gate, hide active from SVip, disable ad suggestions, live stealth privacy, online status visibility, hide VIP badge, heartbeat disable, verified user messages, online reminder, unreplied reminder, greeting do not disturb, only show about me inside"
+        },
+        {
+          "name": "Privacy Enhancement",
+          "description": "Advanced privacy protections: root/emulator detection bypass, ShuMeng SDK blocking, Facebook SDK emulator detection bypass, APK signature verification bypass, package enumeration prevention"
+        },
+        {
+          "name": "UI Cleanup",
+          "description": "Removes guides, banners, stickers, decorations, and AI prompts"
+        }
+      ],
+      "versions": [
+        "7.3.3"
+      ],
+      "iconColor": "",
+      "iconUrl": ""
     },
     {
       "packageName": "com.targo_prod.bad",
@@ -65161,12 +65870,12 @@
       "avatarUrl": "https://github.com/cesbar.png?size=96",
       "patchCount": 1,
       "latestChanges": {
-        "title": "1.8.1 (2026-08-03)",
-        "date": "2026-08-03",
+        "title": "1.9.1 (2026-08-05)",
+        "date": "2026-08-05",
         "items": [
           {
             "category": "\ud83d\ude80 Updated App Support",
-            "text": "**Citymapper:** support for 11.56.1"
+            "text": "**Citymapper:** support for 11.56.2"
           }
         ]
       },
@@ -66763,6 +67472,150 @@
   ],
   "recentSources": [
     {
+      "name": "morphe-patches",
+      "repo": "spookyexe/morphe-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/spookyexe/morphe-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/spookyexe/morphe-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/spookyexe/morphe-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/spookyexe/morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=spookyexe/morphe-patches",
+      "avatarUrl": "https://github.com/spookyexe.png?size=96",
+      "patchCount": 1,
+      "appCount": 1,
+      "createdAt": 1785983280824,
+      "updatedAt": 1785983280824,
+      "createdDate": "2026-08-06",
+      "updatedDate": "2026-08-06",
+      "latestChanges": {
+        "title": "1.0.0 (2026-08-05)",
+        "date": "2026-08-05",
+        "items": [
+          {
+            "category": "\u2728 New Features",
+            "text": "Add beeline plus patch for beeline app"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Beeline",
+          "packageName": "co.beeline",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#FFCF00"
+        }
+      ]
+    },
+    {
+      "name": "logm1lo-patches",
+      "repo": "logm1lo/logm1lo-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/logm1lo/logm1lo-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/logm1lo/logm1lo-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/logm1lo/logm1lo-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/logm1lo/logm1lo-patches",
+      "addUrl": "https://morphe.software/add-source?github=logm1lo/logm1lo-patches",
+      "avatarUrl": "https://github.com/logm1lo.png?size=96",
+      "patchCount": 1,
+      "appCount": 1,
+      "createdAt": 1785983280370,
+      "updatedAt": 1785983280370,
+      "createdDate": "2026-08-06",
+      "updatedDate": "2026-08-06",
+      "latestChanges": {
+        "title": "1.0.10 (2026-08-05)",
+        "date": "2026-08-05",
+        "items": [
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "sync lockfile with @semantic-release/git v11"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Calistree",
+          "packageName": "com.calistree.calistree",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#4CAF50"
+        }
+      ]
+    },
+    {
+      "name": "nuviotv-morphe-patches",
+      "repo": "liongalahad/nuviotv-morphe-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/liongalahad/nuviotv-morphe-patches/master/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/liongalahad/nuviotv-morphe-patches/master/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/liongalahad/nuviotv-morphe-patches/master/CHANGELOG.md",
+      "webUrl": "https://github.com/liongalahad/nuviotv-morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=liongalahad/nuviotv-morphe-patches",
+      "avatarUrl": "https://github.com/liongalahad.png?size=96",
+      "patchCount": 2,
+      "appCount": 1,
+      "createdAt": 1785983280124,
+      "updatedAt": 1785983280124,
+      "createdDate": "2026-08-06",
+      "updatedDate": "2026-08-06",
+      "latestChanges": {
+        "title": "1.0.0-dev.13 (2026-08-05)",
+        "date": "2026-08-05",
+        "items": [
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "intercept all Media3 subtitle cue groups"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "NuvioTV",
+          "packageName": "com.nuvio.tv",
+          "patchCount": 2,
+          "iconUrl": "",
+          "iconColor": "#111827"
+        }
+      ]
+    },
+    {
+      "name": "morphe-patches",
+      "repo": "heinrich26/morphe-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/heinrich26/morphe-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/heinrich26/morphe-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/heinrich26/morphe-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/heinrich26/morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=heinrich26/morphe-patches",
+      "avatarUrl": "https://github.com/heinrich26.png?size=96",
+      "patchCount": 1,
+      "appCount": 1,
+      "createdAt": 1785983279605,
+      "updatedAt": 1785983279605,
+      "createdDate": "2026-08-06",
+      "updatedDate": "2026-08-06",
+      "latestChanges": {
+        "title": "1.0.1 (2026-08-05)",
+        "date": "2026-08-05",
+        "items": [
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "patch should now work"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "MT Capsule",
+          "packageName": "com.pryshedko.mtisland",
+          "patchCount": 1,
+          "iconUrl": "https://play-lh.googleusercontent.com/mrNuw058MP_GKlWVCLuZrg3QyONOUJAzrw4mCkdTvtGckt5EGUEzbO26z49bMCJTlX5WRs1qP9fSljF30k3xcAk",
+          "iconColor": "#FF0045"
+        }
+      ]
+    },
+    {
       "name": "nuviotv-patches",
       "repo": "liongalahad/nuviotv-patches",
       "host": "github.com",
@@ -66772,19 +67625,19 @@
       "webUrl": "https://github.com/liongalahad/nuviotv-patches",
       "addUrl": "https://morphe.software/add-source?github=liongalahad/nuviotv-patches",
       "avatarUrl": "https://github.com/liongalahad.png?size=96",
-      "patchCount": 1,
+      "patchCount": 2,
       "appCount": 1,
       "createdAt": 1785897756603,
       "updatedAt": 1785897756603,
       "createdDate": "2026-08-05",
       "updatedDate": "2026-08-05",
       "latestChanges": {
-        "title": "1.0.0-dev.9 (2026-08-05)",
+        "title": "1.0.0-dev.13 (2026-08-05)",
         "date": "2026-08-05",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "rebrand source and add prerelease warning"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "intercept all Media3 subtitle cue groups"
           }
         ]
       },
@@ -66792,7 +67645,7 @@
         {
           "name": "NuvioTV",
           "packageName": "com.nuvio.tv",
-          "patchCount": 1,
+          "patchCount": 2,
           "iconUrl": "",
           "iconColor": "#111827"
         }
@@ -67070,185 +67923,6 @@
           "patchCount": 1,
           "iconUrl": "",
           "iconColor": "#FF6B35"
-        }
-      ]
-    },
-    {
-      "name": "sofatime-patches",
-      "repo": "alan7383/sofatime-patches",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/alan7383/sofatime-patches/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/alan7383/sofatime-patches/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/alan7383/sofatime-patches/main/CHANGELOG.md",
-      "webUrl": "https://github.com/alan7383/sofatime-patches",
-      "addUrl": "https://morphe.software/add-source?github=alan7383/sofatime-patches",
-      "avatarUrl": "https://github.com/alan7383.png?size=96",
-      "patchCount": 4,
-      "appCount": 1,
-      "createdAt": 1785206626877,
-      "updatedAt": 1785206626877,
-      "createdDate": "2026-07-28",
-      "updatedDate": "2026-07-28",
-      "latestChanges": {
-        "title": "1.3.6 (2026-08-03)",
-        "date": "2026-08-03",
-        "items": [
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "correct obfuscated class mapping for Google SignIn and remove 1.2.0 target"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "SofaTime",
-          "packageName": "com.theclashsoft.sofatime",
-          "patchCount": 4,
-          "iconUrl": "",
-          "iconColor": "#1E1E2E"
-        }
-      ]
-    },
-    {
-      "name": "morphe-patches",
-      "repo": "Jl4cTuk/morphe-patches",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/Jl4cTuk/morphe-patches/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/Jl4cTuk/morphe-patches/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/Jl4cTuk/morphe-patches/main/CHANGELOG.md",
-      "webUrl": "https://github.com/Jl4cTuk/morphe-patches",
-      "addUrl": "https://morphe.software/add-source?github=Jl4cTuk/morphe-patches",
-      "avatarUrl": "https://github.com/Jl4cTuk.png?size=96",
-      "patchCount": 16,
-      "appCount": 2,
-      "createdAt": 1785206625562,
-      "updatedAt": 1785206625562,
-      "createdDate": "2026-07-28",
-      "updatedDate": "2026-07-28",
-      "latestChanges": {
-        "title": "1.2.0 (2026-07-27)",
-        "date": "2026-07-27",
-        "items": [
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "disable Ozon lottery and in-app pushes"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "hide Ozon account promo banner"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "hide Ozon home hashtag recommendations"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "hide redundant Ozon cart price rows"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "port Ozon patches to 19.28.0"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "port RuStore patches to 1.106.0.3"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "prevent Ozon startup crash after patching"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "prevent RuStore crash with analytics disabled"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "Ozon",
-          "packageName": "ru.ozon.app.android",
-          "patchCount": 8,
-          "iconUrl": "https://play-lh.googleusercontent.com/Rz5gPi2gs8Vs8VZVn7mpJQpIB7XzeeErGGNAMIdr9NmWJigvmFpaWtMlpyC2rdieC6gxnpmQ5guTUUMjnZn97g",
-          "iconColor": "#005BFF"
-        },
-        {
-          "name": "RuStore",
-          "packageName": "ru.vk.store",
-          "patchCount": 8,
-          "iconUrl": "",
-          "iconColor": "#0077FF"
-        }
-      ]
-    },
-    {
-      "name": "morphe-patches",
-      "repo": "Hiosdra/morphe-patches",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/Hiosdra/morphe-patches/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/Hiosdra/morphe-patches/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/Hiosdra/morphe-patches/main/CHANGELOG.md",
-      "webUrl": "https://github.com/Hiosdra/morphe-patches",
-      "addUrl": "https://morphe.software/add-source?github=Hiosdra/morphe-patches",
-      "avatarUrl": "https://github.com/Hiosdra.png?size=96",
-      "patchCount": 4,
-      "appCount": 1,
-      "createdAt": 1785206625424,
-      "updatedAt": 1785206625424,
-      "createdDate": "2026-07-28",
-      "updatedDate": "2026-07-28",
-      "latestChanges": {
-        "title": "1.3.0 (2026-07-27)",
-        "date": "2026-07-27",
-        "items": [
-          {
-            "category": "\u2728 New Features",
-            "text": "add playback controls to F1 notification"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "F1 TV",
-          "packageName": "com.formulaone.production",
-          "patchCount": 3,
-          "iconUrl": "",
-          "iconColor": "#E10600"
-        }
-      ]
-    },
-    {
-      "name": "morphe-patches",
-      "repo": "pseudofractal/morphe-patches",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/pseudofractal/morphe-patches/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/pseudofractal/morphe-patches/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/pseudofractal/morphe-patches/main/CHANGELOG.md",
-      "webUrl": "https://github.com/pseudofractal/morphe-patches",
-      "addUrl": "https://morphe.software/add-source?github=pseudofractal/morphe-patches",
-      "avatarUrl": "https://github.com/pseudofractal.png?size=96",
-      "patchCount": 1,
-      "appCount": 1,
-      "createdAt": 1785034852630,
-      "updatedAt": 1785034852630,
-      "createdDate": "2026-07-26",
-      "updatedDate": "2026-07-26",
-      "latestChanges": {
-        "title": "1.0.0 (2026-07-25)",
-        "date": "2026-07-25",
-        "items": [
-          {
-            "category": "\u2728 New Features",
-            "text": "**nix:** flake start and direnv"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "XYZ app",
-          "packageName": "com.example.app",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#FF0045"
         }
       ]
     }
