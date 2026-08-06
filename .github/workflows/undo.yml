@@ -1,0 +1,61 @@
+name: Repo Actions
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Choose action"
+        required: true
+        type: choice
+        options:
+          - star
+          - unstar
+          - unify
+
+      repo:
+        description: "Repository (owner/name)"
+        required: true
+        type: string
+
+jobs:
+  action:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Execute action
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ACTION: ${{ inputs.action }}
+          REPO: ${{ inputs.repo }}
+        run: |
+          echo "Action: $ACTION"
+          echo "Repo: $REPO"
+
+          case "$ACTION" in
+            star)
+              echo "Starring $REPO"
+              gh api \
+                --method PUT \
+                /user/starred/$REPO
+              ;;
+
+            unstar)
+              echo "Unstarring $REPO"
+              gh api \
+                --method DELETE \
+                /user/starred/$REPO
+              ;;
+
+            unify)
+              echo "Running unify process"
+              # Add your unify script here
+              ;;
+
+            *)
+              echo "Unknown action"
+              exit 1
+              ;;
+          esac
