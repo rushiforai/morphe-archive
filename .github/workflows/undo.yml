@@ -1,61 +1,140 @@
-name: Repo Actions
+name: Repository Actions
 
 on:
   workflow_dispatch:
     inputs:
       action:
-        description: "Choose action"
+        description: "Choose repository action"
         required: true
         type: choice
         options:
           - star
           - unstar
-          - unify
+          - watch
+          - unwatch
 
-      repo:
-        description: "Repository (owner/name)"
-        required: true
-        type: string
+permissions:
+  contents: read
 
 jobs:
-  action:
+  repo-actions:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Execute action
+      - name: Check authentication
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ACTION: ${{ inputs.action }}
-          REPO: ${{ inputs.repo }}
+          GH_TOKEN: ${{ secrets.STAR_TOKEN }}
         run: |
-          echo "Action: $ACTION"
-          echo "Repo: $REPO"
+          echo "Authenticated as:"
+          gh api user --jq '.login'
 
-          case "$ACTION" in
-            star)
-              echo "Starring $REPO"
-              gh api \
-                --method PUT \
-                /user/starred/$REPO
-              ;;
+      - name: Apply action
+        env:
+          GH_TOKEN: ${{ secrets.STAR_TOKEN }}
+          ACTION: ${{ inputs.action }}
+        run: |
 
-            unstar)
-              echo "Unstarring $REPO"
-              gh api \
-                --method DELETE \
-                /user/starred/$REPO
-              ;;
+          if [ ! -f repos.txt ]; then
+            echo "❌ repos.txt not found"
+            exit 1
+          fi
 
-            unify)
-              echo "Running unify process"
-              # Add your unify script here
-              ;;
+          while IFS= read -r repo || [ -n "$repo" ]; do
 
-            *)
-              echo "Unknown action"
-              exit 1
-              ;;
-          esac
+            # Skip empty/comment lines
+            if [[ -z "$repo" || "$repo" == \#* ]]; then
+              continue
+            fi
+
+            echo ""
+            echo "=========================="
+            echo "Processing: $repo"
+            echo "Action: $ACTION"
+            echo "=========================="
+
+
+            # Check repo exists
+            if ! gh api "/repos/$repo" --silent > /dev/null 2>&1; then
+              echo "⚠️ Repository not found: $repo"
+              continue
+            fi
+
+
+            case "$ACTION" in
+
+              star)
+
+                if gh api "/user/starred/$repo" --silent > /dev/null 2>&1; then
+                  echo "⭐ Already starred: $repo"
+                else
+                  gh api \
+                    --method PUT \
+                    "/user/starred/$repo" \
+                    && echo "✅ Starred: $repo"
+                fi
+
+                ;;
+
+
+              unstar)
+
+                if gh api "/user/starred/$repo" --silent > /dev/null 2>&1; then
+
+                  gh api \
+                    --method DELETE \
+                    "/user/starred/$repo" \
+                    && echo "✅ Unstarred: $repo"
+
+                else
+                  echo "⭐ Not starred: $repo"
+                fi
+
+                ;;
+
+
+              watch)
+
+                watched=$(gh api "/repos/$repo/subscription" \
+                  --jq '.subscribed' 2>/dev/null || echo false)
+
+                if [ "$watched" = "true" ]; then
+                  echo "👁️ Already watching: $repo"
+                else
+
+                  gh api \
+                    --method PUT \
+                    "/repos/$repo/subscription" \
+                    --input <(echo '{"subscribed":true,"ignored":false}') \
+                    && echo "✅ Watching: $repo"
+
+                fi
+
+                ;;
+
+
+              unwatch)
+
+                watched=$(gh api "/repos/$repo/subscription" \
+                  --jq '.subscribed' 2>/dev/null || echo false)
+
+                if [ "$watched" = "true" ]; then
+
+                  gh api \
+                    --method PUT \
+                    "/repos/$repo/subscription" \
+                    --input <(echo '{"subscribed":false,"ignored":false}') \
+                    && echo "✅ Unwatched: $repo"
+
+                else
+                  echo "👁️ Not watching: $repo"
+                fi
+
+                ;;
+
+            esac
+
+
+          done < repos.txt
