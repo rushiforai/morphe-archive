@@ -31,18 +31,13 @@ jobs:
           echo "Token scopes:"
           gh api -i user 2>&1 | grep -i "x-oauth-scopes" || true
 
-      - name: Star repositories
+      - name: Star and watch repositories
         env:
           GH_TOKEN: ${{ secrets.STAR_TOKEN }}
         run: |
-          if [ ! -f repos.txt ]; then
-            echo "❌ repos.txt not found"
-            exit 1
-          fi
-
           while IFS= read -r repo || [ -n "$repo" ]; do
 
-            # Ignore empty lines and comments
+            # Skip empty lines and comments
             if [[ -z "$repo" || "$repo" == \#* ]]; then
               continue
             fi
@@ -50,31 +45,52 @@ jobs:
             echo ""
             echo "Processing: $repo"
 
-            # Check repository exists
+            # Check repo exists
             if ! gh api "/repos/$repo" --silent > /dev/null 2>&1; then
               echo "⚠️ Repository not found or no access: $repo"
               continue
             fi
 
-            # Check if already starred
+
+            # STAR CHECK
             if gh api "/user/starred/$repo" --silent > /dev/null 2>&1; then
               echo "⭐ Already starred: $repo"
-              continue
+            else
+              echo "⭐ Starring: $repo"
+
+              if gh api \
+                --method PUT \
+                "/user/starred/$repo"; then
+                echo "✅ Starred: $repo"
+              else
+                echo "❌ Failed to star: $repo"
+              fi
             fi
 
-            echo "⭐ Starring: $repo"
 
-            # Star repository
-            if gh api \
-              --method PUT \
-              "/user/starred/$repo"; then
+            # WATCH CHECK
+            if gh api "/repos/$repo/subscription" \
+              --jq '.subscribed' 2>/dev/null | grep -q true; then
 
-              echo "✅ Successfully starred: $repo"
+              echo "👁️ Already watching: $repo"
 
             else
 
-              echo "❌ Failed to star: $repo"
+              echo "👁️ Watching: $repo"
+
+              if gh api \
+                --method PUT \
+                "/repos/$repo/subscription" \
+                -f subscribed=true \
+                -f ignored=false; then
+
+                echo "✅ Watching: $repo"
+
+              else
+                echo "❌ Failed to watch: $repo"
+              fi
 
             fi
+
 
           done < repos.txt
