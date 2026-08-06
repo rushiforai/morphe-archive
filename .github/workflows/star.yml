@@ -1,0 +1,62 @@
+name: Star Repositories
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - repos.txt
+
+permissions:
+  contents: read
+
+jobs:
+  star-repos:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Star repositories
+        env:
+          GH_TOKEN: ${{ secrets.STAR_TOKEN }}
+        run: |
+          while IFS= read -r repo || [ -n "$repo" ]; do
+
+            # Skip empty lines and comments
+            if [[ -z "$repo" || "$repo" == \#* ]]; then
+              continue
+            fi
+
+            echo "Processing: $repo"
+
+            # Check if repository exists
+            if ! gh api "/repos/$repo" --silent > /dev/null 2>&1; then
+              echo "⚠️ Repository not found or no access: $repo"
+              continue
+            fi
+
+            # Check if already starred
+            if gh api \
+              "/user/starred/$repo" \
+              --silent > /dev/null 2>&1; then
+
+              echo "⭐ Already starred: $repo"
+
+            else
+
+              echo "⭐ Starring: $repo"
+
+              if gh api \
+                --method PUT \
+                "/user/starred/$repo"; then
+
+                echo "✅ Starred: $repo"
+
+              else
+                echo "❌ Failed to star: $repo"
+              fi
+
+            fi
+
+          done < repos.txt
