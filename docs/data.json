@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-06 02:28 UTC",
+  "generatedAt": "2026-08-06 02:45 UTC",
   "configFile": "morphe_archive_config_v13.json",
   "configVersion": 13,
   "repoCount": 126,
@@ -11794,8 +11794,8 @@
       ],
       "patches": [
         "Disable PairIP DRM",
-        "Unlock Premium",
-        "Unlock premium"
+        "Unlock premium",
+        "Unlock Premium"
       ],
       "patchDetails": [
         {
@@ -11803,12 +11803,12 @@
           "description": "Disables PairIP signature verification and Google Play LVL license check. Required for the app to launch after re-signing."
         },
         {
-          "name": "Unlock Premium",
-          "description": "Unlocks all premium features by forcing the premium state to true in the purchase manager."
-        },
-        {
           "name": "Unlock premium",
           "description": "Unlocks all AT4K premium features by forcing the premium status to true."
+        },
+        {
+          "name": "Unlock Premium",
+          "description": "Unlocks all premium features by forcing the premium state to true in the purchase manager."
         }
       ],
       "versions": [
@@ -24601,8 +24601,8 @@
         }
       ],
       "patches": [
-        "Disable ad-free banner",
         "Disable Ad-Free Banner",
+        "Disable ad-free banner",
         "Disable blog notification reminder",
         "Disable dashboard ads",
         "Disable gift message popup",
@@ -24614,12 +24614,12 @@
       ],
       "patchDetails": [
         {
-          "name": "Disable ad-free banner",
-          "description": "Hides the banner with the frog that prompts you to buy Tumblr Ad-Free."
-        },
-        {
           "name": "Disable Ad-Free Banner",
           "description": "Disables the banner with a frog, prompting you to buy Tumblr Ad-Free."
+        },
+        {
+          "name": "Disable ad-free banner",
+          "description": "Hides the banner with the frog that prompts you to buy Tumblr Ad-Free."
         },
         {
           "name": "Disable blog notification reminder",
@@ -47469,8 +47469,8 @@
       ],
       "patches": [
         "Disable tracking",
-        "Unlock Premium",
-        "Unlock premium"
+        "Unlock premium",
+        "Unlock Premium"
       ],
       "patchDetails": [
         {
@@ -47478,12 +47478,12 @@
           "description": "Disables analytics and crash reporting."
         },
         {
-          "name": "Unlock Premium",
-          "description": "Unlocks all premium features by bypassing the native library premium check."
-        },
-        {
           "name": "Unlock premium",
           "description": "Unlocks all premium features."
+        },
+        {
+          "name": "Unlock Premium",
+          "description": "Unlocks all premium features by bypassing the native library premium check."
         }
       ],
       "versions": [
