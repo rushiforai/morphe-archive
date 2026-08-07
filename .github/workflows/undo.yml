@@ -116,22 +116,32 @@ jobs:
 
 
               unwatch)
-
+              
                 watched=$(gh api "/repos/$repo/subscription" \
                   --jq '.subscribed' 2>/dev/null || echo false)
-
+              
                 if [ "$watched" = "true" ]; then
-
-                  gh api \
-                    --method PUT \
-                    "/repos/$repo/subscription" \
-                    --input <(echo '{"subscribed":false,"ignored":false}') \
-                    && echo "✅ Unwatched: $repo"
-
+              
+                  echo "🔕 Unwatching: $repo"
+              
+                  if gh api \
+                    --method DELETE \
+                    "/repos/$repo/subscription"; then
+              
+                    echo "✅ Unwatched: $repo"
+              
+                  else
+              
+                    echo "❌ Failed to unwatch: $repo"
+              
+                  fi
+              
                 else
+              
                   echo "👁️ Not watching: $repo"
+              
                 fi
-
+              
                 ;;
 
             esac
