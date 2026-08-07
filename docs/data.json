@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-08-07 01:47 UTC",
+  "generatedAt": "2026-08-07 02:48 UTC",
   "configFile": "morphe_archive_config_v14.json",
   "configVersion": 14,
   "repoCount": 127,
-  "appCount": 617,
-  "patchCount": 2240,
+  "appCount": 618,
+  "patchCount": 2242,
   "universalPatchCount": 168,
   "hostCounts": {
     "github.com": 123,
@@ -3220,19 +3220,35 @@
       "webUrl": "https://github.com/franticg33k/morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=franticg33k/morphe-patches",
       "avatarUrl": "https://github.com/franticg33k.png?size=96",
-      "patchCount": 17,
-      "appCount": 9,
+      "patchCount": 19,
+      "appCount": 10,
       "createdAt": 1784836034684,
       "updatedAt": 1784836034684,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.3.7-dev.2 (2026-08-04)",
-        "date": "2026-08-04",
+        "title": "1.3.7 (2026-08-07)",
+        "date": "2026-08-07",
         "items": [
           {
             "category": "\ud83d\ude80 Updated App Support",
+            "text": "add JellyWatch TV premium unlock patch"
+          },
+          {
+            "category": "\ud83d\ude80 Updated App Support",
+            "text": "fix JellyWatch premium unlock for 2.0.REV-1712"
+          },
+          {
+            "category": "\ud83d\ude80 Updated App Support",
+            "text": "fix Native Camera premium unlock for 1.1.7"
+          },
+          {
+            "category": "\ud83d\ude80 Updated App Support",
             "text": "update app name in Compatibility for Karobar"
+          },
+          {
+            "category": "\ud83d\ude80 Updated App Support",
+            "text": "update offsets and descriptions in EnablePremiumPatch for premium features"
           }
         ]
       },
@@ -3263,6 +3279,13 @@
           "packageName": "com.jellywatch.app",
           "patchCount": 2,
           "iconUrl": "https://play-lh.googleusercontent.com/7-Y4y44gnorJcG37GUeDzSDgh5HkqmgE07Il3D_tHficwAQw32a4A3CgBrdfUKgaRAZ9lsZTgwg2vWH6KEmQHw",
+          "iconColor": "#008577"
+        },
+        {
+          "name": "JellyWatch TV",
+          "packageName": "com.jellywatch.tv",
+          "patchCount": 2,
+          "iconUrl": "",
           "iconColor": "#008577"
         },
         {
@@ -11960,12 +11983,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.7-dev.2 (2026-08-04)",
-            "date": "2026-08-04",
+            "title": "1.3.7 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
+                "text": "add JellyWatch TV premium unlock patch"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "fix JellyWatch premium unlock for 2.0.REV-1712"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "fix Native Camera premium unlock for 1.1.7"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
                 "text": "update app name in Compatibility for Karobar"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "update offsets and descriptions in EnablePremiumPatch for premium features"
               }
             ]
           },
@@ -15731,12 +15770,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.7-dev.2 (2026-08-04)",
-            "date": "2026-08-04",
+            "title": "1.3.7 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
+                "text": "add JellyWatch TV premium unlock patch"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "fix JellyWatch premium unlock for 2.0.REV-1712"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "fix Native Camera premium unlock for 1.1.7"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
                 "text": "update app name in Compatibility for Karobar"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "update offsets and descriptions in EnablePremiumPatch for premium features"
               }
             ]
           },
@@ -32603,12 +32658,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.7-dev.2 (2026-08-04)",
-            "date": "2026-08-04",
+            "title": "1.3.7 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
+                "text": "add JellyWatch TV premium unlock patch"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "fix JellyWatch premium unlock for 2.0.REV-1712"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "fix Native Camera premium unlock for 1.1.7"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
                 "text": "update app name in Compatibility for Karobar"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "update offsets and descriptions in EnablePremiumPatch for premium features"
               }
             ]
           },
@@ -35861,12 +35932,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.7-dev.2 (2026-08-04)",
-            "date": "2026-08-04",
+            "title": "1.3.7 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
+                "text": "add JellyWatch TV premium unlock patch"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "fix JellyWatch premium unlock for 2.0.REV-1712"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "fix Native Camera premium unlock for 1.1.7"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
                 "text": "update app name in Compatibility for Karobar"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "update offsets and descriptions in EnablePremiumPatch for premium features"
               }
             ]
           },
@@ -35887,7 +35974,9 @@
               "description": "Unlocks all premium features and shop items in JellyWatch."
             }
           ],
-          "versions": []
+          "versions": [
+            "2.0.REV-1712"
+          ]
         }
       ],
       "patches": [
@@ -35904,9 +35993,94 @@
           "description": "Unlocks all premium features and shop items in JellyWatch."
         }
       ],
-      "versions": [],
+      "versions": [
+        "2.0.REV-1712"
+      ],
       "iconColor": "#008577",
       "iconUrl": "https://play-lh.googleusercontent.com/7-Y4y44gnorJcG37GUeDzSDgh5HkqmgE07Il3D_tHficwAQw32a4A3CgBrdfUKgaRAZ9lsZTgwg2vWH6KEmQHw"
+    },
+    {
+      "packageName": "com.jellywatch.tv",
+      "name": "JellyWatch TV",
+      "repos": [
+        "franticg33k/morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "franticg33k/morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/franticg33k/morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=franticg33k/morphe-patches",
+          "source": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/franticg33k.png?size=96",
+          "latestChanges": {
+            "title": "1.3.7 (2026-08-07)",
+            "date": "2026-08-07",
+            "items": [
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "add JellyWatch TV premium unlock patch"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "fix JellyWatch premium unlock for 2.0.REV-1712"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "fix Native Camera premium unlock for 1.1.7"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "update app name in Compatibility for Karobar"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "update offsets and descriptions in EnablePremiumPatch for premium features"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-jellywatch-tv-franticg33k-morphe-patches",
+            "releaseTag": "app-com-jellywatch-tv-franticg33k-morphe-patches",
+            "assetName": "jellywatch-tv-franticg33k-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Remove License Activity",
+              "description": "Removes the PairIP LicenseActivity from AndroidManifest.xml."
+            },
+            {
+              "name": "Unlock Premium",
+              "description": "Unlocks all premium features in JellyWatch TV. Premium entitlement is server-verified against verify.jellywatch.app and surfaced to the UI as a PremiumStatus data class (isPremium = first boolean field); the patch forces that field to true and neutralizes the PairIP Play Store license check that gates the app on launch."
+            }
+          ],
+          "versions": [
+            "1.0.REV-0207"
+          ]
+        }
+      ],
+      "patches": [
+        "Remove License Activity",
+        "Unlock Premium"
+      ],
+      "patchDetails": [
+        {
+          "name": "Remove License Activity",
+          "description": "Removes the PairIP LicenseActivity from AndroidManifest.xml."
+        },
+        {
+          "name": "Unlock Premium",
+          "description": "Unlocks all premium features in JellyWatch TV. Premium entitlement is server-verified against verify.jellywatch.app and surfaced to the UI as a PremiumStatus data class (isPremium = first boolean field); the patch forces that field to true and neutralizes the PairIP Play Store license check that gates the app on launch."
+        }
+      ],
+      "versions": [
+        "1.0.REV-0207"
+      ],
+      "iconColor": "#008577",
+      "iconUrl": ""
     },
     {
       "packageName": "com.halfbrick.jetpackjoyride",
@@ -37179,12 +37353,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.7-dev.2 (2026-08-04)",
-            "date": "2026-08-04",
+            "title": "1.3.7 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
+                "text": "add JellyWatch TV premium unlock patch"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "fix JellyWatch premium unlock for 2.0.REV-1712"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "fix Native Camera premium unlock for 1.1.7"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
                 "text": "update app name in Compatibility for Karobar"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "update offsets and descriptions in EnablePremiumPatch for premium features"
               }
             ]
           },
@@ -42303,12 +42493,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.7-dev.2 (2026-08-04)",
-            "date": "2026-08-04",
+            "title": "1.3.7 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
+                "text": "add JellyWatch TV premium unlock patch"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "fix JellyWatch premium unlock for 2.0.REV-1712"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "fix Native Camera premium unlock for 1.1.7"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
                 "text": "update app name in Compatibility for Karobar"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "update offsets and descriptions in EnablePremiumPatch for premium features"
               }
             ]
           },
@@ -42325,7 +42531,9 @@
               "description": "Forces the premium entitlement in Native Camera. Premium status is a local 'is_premium' SharedPreferences flag read on startup behind PairIP's Play Store licensing, so this unlocks RAW DNG, 10-bit video, HLG/UHDR and the boosted-ISO seekbar."
             }
           ],
-          "versions": []
+          "versions": [
+            "1.1.7"
+          ]
         }
       ],
       "patches": [
@@ -42337,7 +42545,9 @@
           "description": "Forces the premium entitlement in Native Camera. Premium status is a local 'is_premium' SharedPreferences flag read on startup behind PairIP's Play Store licensing, so this unlocks RAW DNG, 10-bit video, HLG/UHDR and the boosted-ISO seekbar."
         }
       ],
-      "versions": [],
+      "versions": [
+        "1.1.7"
+      ],
       "iconColor": "#D0BCFF",
       "iconUrl": ""
     },
@@ -42519,12 +42729,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.7-dev.2 (2026-08-04)",
-            "date": "2026-08-04",
+            "title": "1.3.7 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
+                "text": "add JellyWatch TV premium unlock patch"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "fix JellyWatch premium unlock for 2.0.REV-1712"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "fix Native Camera premium unlock for 1.1.7"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
                 "text": "update app name in Compatibility for Karobar"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "update offsets and descriptions in EnablePremiumPatch for premium features"
               }
             ]
           },
@@ -47900,12 +48126,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.7-dev.2 (2026-08-04)",
-            "date": "2026-08-04",
+            "title": "1.3.7 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
+                "text": "add JellyWatch TV premium unlock patch"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "fix JellyWatch premium unlock for 2.0.REV-1712"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "fix Native Camera premium unlock for 1.1.7"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
                 "text": "update app name in Compatibility for Karobar"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "update offsets and descriptions in EnablePremiumPatch for premium features"
               }
             ]
           },
@@ -48546,12 +48788,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.7-dev.2 (2026-08-04)",
-            "date": "2026-08-04",
+            "title": "1.3.7 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
+                "text": "add JellyWatch TV premium unlock patch"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "fix JellyWatch premium unlock for 2.0.REV-1712"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "fix Native Camera premium unlock for 1.1.7"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
                 "text": "update app name in Compatibility for Karobar"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "update offsets and descriptions in EnablePremiumPatch for premium features"
               }
             ]
           },
@@ -64174,8 +64432,8 @@
         "Save to watch later",
         "Seekbar",
         "Seekbar components",
-        "Set transcript cookies",
         "Set Transcript Cookies",
+        "Set transcript cookies",
         "Settings for YouTube",
         "Settings menu filter",
         "Shorts autoplay",
@@ -64620,11 +64878,11 @@
           "description": "Adds options to hide or change components related to the seekbar."
         },
         {
-          "name": "Set transcript cookies",
+          "name": "Set Transcript Cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {
-          "name": "Set Transcript Cookies",
+          "name": "Set transcript cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {
