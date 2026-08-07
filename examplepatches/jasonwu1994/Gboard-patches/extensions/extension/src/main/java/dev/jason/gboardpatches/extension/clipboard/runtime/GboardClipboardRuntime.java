@@ -23,6 +23,8 @@ public final class GboardClipboardRuntime {
             new GboardClipboardColumnCountFeature(SUPPORT);
     private static final GboardClipboardCardPreviewFeature CARD_PREVIEW_FEATURE =
             new GboardClipboardCardPreviewFeature(SUPPORT);
+    private static final GboardClipboardSensitiveContentFeature SENSITIVE_CONTENT_FEATURE =
+            new GboardClipboardSensitiveContentFeature(SUPPORT);
     private static final GboardClipboardLoaderHookAdapter LOADER_HOOK_ADAPTER =
             new GboardClipboardLoaderHookAdapter(SUPPORT, RETENTION_FEATURE, MAX_COUNT_FEATURE);
     private static final GboardClipboardPruneHookAdapter PRUNE_HOOK_ADAPTER =
@@ -30,7 +32,7 @@ public final class GboardClipboardRuntime {
     private static final GboardClipboardUiHookAdapter UI_HOOK_ADAPTER =
             new GboardClipboardUiHookAdapter(SUPPORT, MAX_COUNT_FEATURE, PREVIEW_LINES_FEATURE,
                     COUNTDOWN_FEATURE, CREATION_TIME_FEATURE, ORDER_INDEX_FEATURE,
-                    CARD_PREVIEW_FEATURE, LOADER_HOOK_ADAPTER);
+                    CARD_PREVIEW_FEATURE, SENSITIVE_CONTENT_FEATURE, LOADER_HOOK_ADAPTER);
     private static final GboardClipboardColumnCountHookAdapter COLUMN_COUNT_HOOK_ADAPTER =
             new GboardClipboardColumnCountHookAdapter(COLUMN_COUNT_FEATURE);
 

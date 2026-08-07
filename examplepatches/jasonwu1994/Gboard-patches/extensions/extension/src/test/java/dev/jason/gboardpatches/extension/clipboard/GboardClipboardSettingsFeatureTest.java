@@ -35,7 +35,35 @@ public final class GboardClipboardSettingsFeatureTest {
                 Arrays.asList("General", "Metadata", "Layout", "Retention", "Extensions"),
                 sectionTitles(sections));
         Assert.assertEquals("ToggleRow", sections.get(0).getItems().get(0).getClass().getSimpleName());
-        Assert.assertEquals(2, sections.get(0).getItems().size());
+        Assert.assertEquals(3, sections.get(0).getItems().size());
+        GboardPatchesSettingsContract.ToggleRow sensitiveRow =
+                (GboardPatchesSettingsContract.ToggleRow) findRow(
+                        screen,
+                        "Show sensitive clipboard contents");
+        Assert.assertFalse(sensitiveRow.isChecked());
+        Assert.assertNotNull(sensitiveRow.getPreviewSpec());
+        Assert.assertEquals(
+                GboardPatchesSettingsContract.PreviewLayout.STACKED,
+                sensitiveRow.getPreviewSpec().getLayout());
+        Assert.assertEquals(2, sensitiveRow.getPreviewSpec().getMediaItems().size());
+        Assert.assertEquals(
+                "settings-previews/clipboard/show_sensitive_content_enabled.png",
+                ((GboardPatchesSettingsContract.PreviewImage)
+                        sensitiveRow.getPreviewSpec().getMediaItems().get(0)).getAssetPath());
+        Assert.assertEquals(
+                "settings-previews/clipboard/show_sensitive_content_disabled.png",
+                ((GboardPatchesSettingsContract.PreviewImage)
+                        sensitiveRow.getPreviewSpec().getMediaItems().get(1)).getAssetPath());
+        Assert.assertEquals(
+                "Enabled: original text",
+                sensitiveRow.getPreviewSpec().getMediaItems().get(0).getCaption());
+        Assert.assertEquals(
+                "Disabled: dots",
+                sensitiveRow.getPreviewSpec().getMediaItems().get(1).getCaption());
+        Assert.assertTrue(preferences.contains(
+                GboardClipboardSettings.PREF_KEY_CLIPBOARD_SHOW_SENSITIVE_CONTENT));
+        sensitiveRow.getToggleAction().accept(true);
+        Assert.assertTrue(GboardClipboardSettings.readClipboardShowSensitiveContent(preferences));
         Assert.assertEquals(
                 "ToggleRow",
                 findRow(screen, "Show only the first 1,000 characters")

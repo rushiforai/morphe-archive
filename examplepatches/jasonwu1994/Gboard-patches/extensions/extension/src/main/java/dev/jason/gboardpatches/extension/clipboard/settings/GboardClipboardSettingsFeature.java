@@ -17,6 +17,7 @@ import dev.jason.gboardpatches.extension.settings.GboardSettingsText;
 public final class GboardClipboardSettingsFeature
         implements GboardPatchesSettingsContract.Feature {
     private static final String TAG = "GboardClipboard";
+    private static final String EMPTY_PREVIEW_MESSAGE = "";
     private static final String FALLBACK_HEADER_BADGE = "Gboard";
     private static final String FALLBACK_ENTRY_TITLE = "Clipboard";
     private static final String FALLBACK_ENTRY_SUMMARY =
@@ -120,6 +121,22 @@ public final class GboardClipboardSettingsFeature
                                         value)
                                 .apply()));
                 generalRows.add(new GboardPatchesSettingsContract.ToggleRow(
+                        GboardSettingsText.get(
+                                context,
+                                R.string.gboard_patches_clipboard_show_sensitive_content_title),
+                        GboardSettingsText.get(
+                                context,
+                                R.string.gboard_patches_clipboard_show_sensitive_content_summary),
+                        clipboardEnabled,
+                        GboardClipboardSettings.readClipboardShowSensitiveContent(preferences),
+                        value -> preferences.edit()
+                                .putBoolean(
+                                        GboardClipboardSettings
+                                                .PREF_KEY_CLIPBOARD_SHOW_SENSITIVE_CONTENT,
+                                        value)
+                                .apply(),
+                        buildSensitiveContentPreview(context)));
+                generalRows.add(new GboardPatchesSettingsContract.ToggleRow(
                         GboardSettingsText.get(context,
                                 R.string.gboard_patches_clipboard_card_preview_limit_title),
                         GboardSettingsText.get(context,
@@ -207,6 +224,26 @@ public final class GboardClipboardSettingsFeature
                 entrySummary,
                 statusBlocks,
                 Collections.emptyList());
+    }
+
+    private GboardPatchesSettingsContract.PreviewSpec buildSensitiveContentPreview(
+            Context context) {
+        String title = GboardSettingsText.get(context,
+                R.string.gboard_patches_clipboard_show_sensitive_content_title);
+        String enabledCaption = GboardSettingsText.get(context,
+                R.string.gboard_patches_preview_sensitive_content_enabled_caption);
+        String disabledCaption = GboardSettingsText.get(context,
+                R.string.gboard_patches_preview_sensitive_content_disabled_caption);
+        return new GboardPatchesSettingsContract.PreviewSpec(
+                title,
+                EMPTY_PREVIEW_MESSAGE,
+                GboardPatchesSettingsContract.PreviewLayout.STACKED,
+                new GboardPatchesSettingsContract.PreviewImage(
+                        "settings-previews/clipboard/show_sensitive_content_enabled.png",
+                        enabledCaption),
+                new GboardPatchesSettingsContract.PreviewImage(
+                        "settings-previews/clipboard/show_sensitive_content_disabled.png",
+                        disabledCaption));
     }
 
     private void initializeText(Context context) {

@@ -21,6 +21,7 @@ final class GboardClipboardUiHookAdapter {
     private final GboardClipboardCreationTimeFeature creationTimeFeature;
     private final GboardClipboardOrderIndexFeature orderIndexFeature;
     private final GboardClipboardCardPreviewFeature cardPreviewFeature;
+    private final GboardClipboardSensitiveContentFeature sensitiveContentFeature;
     private final GboardClipboardLoaderHookAdapter loaderHookAdapter;
 
     GboardClipboardUiHookAdapter(GboardClipboardRuntimeSupport support,
@@ -30,6 +31,7 @@ final class GboardClipboardUiHookAdapter {
             GboardClipboardCreationTimeFeature creationTimeFeature,
             GboardClipboardOrderIndexFeature orderIndexFeature,
             GboardClipboardCardPreviewFeature cardPreviewFeature,
+            GboardClipboardSensitiveContentFeature sensitiveContentFeature,
             GboardClipboardLoaderHookAdapter loaderHookAdapter) {
         this.support = support;
         this.maxCountFeature = maxCountFeature;
@@ -38,6 +40,7 @@ final class GboardClipboardUiHookAdapter {
         this.creationTimeFeature = creationTimeFeature;
         this.orderIndexFeature = orderIndexFeature;
         this.cardPreviewFeature = cardPreviewFeature;
+        this.sensitiveContentFeature = sensitiveContentFeature;
         this.loaderHookAdapter = loaderHookAdapter;
     }
 
@@ -156,6 +159,7 @@ final class GboardClipboardUiHookAdapter {
         long clipId = support.clipId(handles, clip);
         clearCountdownBinding(textView, Long.valueOf(clipId));
         GboardClipboardRuntimeSupport.RuntimeSettings settings = support.runtimeSettings();
+        sensitiveContentFeature.apply(handles, textView, clip, settings);
         if (!settings.enabled) {
             previewLinesFeature.restoreStockMaxLines(textView);
             return;

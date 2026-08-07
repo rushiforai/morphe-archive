@@ -912,6 +912,22 @@
         <translation locale="en">Gboard puts the entire text into each card on the Clipboard page and renders it repeatedly, which can make vertical scrolling stutter. This switch makes each clipboard card actually hold only the first 1,000 characters while it is rendered to avoid scrolling lag.</translation>
         <translation locale="zh-Hant">由於 Gboard 官方在剪貼簿頁面中會把整個 text 放在卡片中並且重複渲染，會導致上下滑動卡頓，所以這個開關會讓剪貼簿卡片實際只存前 1000 字元，避免上下滑動卡頓。</translation>
     </string>
+    <string name="gboard_patches_clipboard_show_sensitive_content_title">
+        <translation locale="en">Show sensitive clipboard contents</translation>
+        <translation locale="zh-Hant">顯示敏感剪貼簿內容</translation>
+    </string>
+    <string name="gboard_patches_clipboard_show_sensitive_content_summary">
+        <translation locale="en">Show the original text instead of dots for clipboard items marked sensitive by password managers, incognito browsing, or other apps. This can expose passwords and private data on screen.</translation>
+        <translation locale="zh-Hant">對密碼管理器、無痕瀏覽或其他 App 標記為敏感的剪貼簿項目，顯示原始文字而非圓點。這可能會讓密碼與私人資料直接顯示在畫面上。</translation>
+    </string>
+    <string name="gboard_patches_preview_sensitive_content_enabled_caption">
+        <translation locale="en">Enabled: original text</translation>
+        <translation locale="zh-Hant">開啟：顯示原文</translation>
+    </string>
+    <string name="gboard_patches_preview_sensitive_content_disabled_caption">
+        <translation locale="en">Disabled: dots</translation>
+        <translation locale="zh-Hant">關閉：顯示圓點</translation>
+    </string>
     <string name="gboard_patches_clipboard_content_limit_title">
         <translation locale="en">Clipboard Custom Character Limit</translation>
         <translation locale="zh-Hant">剪貼簿自訂字元上限</translation>

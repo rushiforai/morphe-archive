@@ -91,9 +91,14 @@ class evl extends kl {
 class eum {
     public String a;
     public final int c;
+    public final boolean h;
     eum(int itemType) {
+        this(itemType, false);
+    }
+    eum(int itemType, boolean sensitive) {
         a = "";
         c = itemType;
+        h = sensitive;
     }
 }
 
@@ -110,13 +115,19 @@ class euk {
 
     euk(long id, j$.time.Instant timestamp, int itemType, boolean isPinned,
             boolean isSpecial) {
+        this(id, timestamp, itemType, isPinned, isSpecial, false);
+    }
+
+    euk(long id, j$.time.Instant timestamp, int itemType, boolean isPinned,
+            boolean isSpecial, boolean sensitive) {
         d = id;
         e = timestamp;
-        g = new eum(itemType);
+        g = new eum(itemType, sensitive);
         pinned = isPinned;
         special = isSpecial;
     }
 
+    public boolean l() { return g.h; }
     public boolean m() { return pinned; }
     public boolean n() { return special; }
 }

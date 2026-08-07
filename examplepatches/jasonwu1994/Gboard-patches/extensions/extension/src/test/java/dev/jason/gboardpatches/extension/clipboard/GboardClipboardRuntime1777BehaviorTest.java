@@ -69,6 +69,7 @@ public final class GboardClipboardRuntime1777BehaviorTest {
         Assert.assertEquals("e", handles.adapterContextField.getName());
         Assert.assertEquals("evl", handles.clipItemViewHolderTextField.getDeclaringClass().getName());
         Assert.assertEquals("a", handles.clipModelTextField.getName());
+        Assert.assertEquals("l", handles.clipIsSensitiveMethod.getName());
         Assert.assertEquals("l", handles.dataHandlerCleanupCursorMethod.getName());
         Assert.assertEquals("N", handles.preferencesAccessorMethod.getName());
         Assert.assertEquals("s", handles.preferenceWriteLongMethod.getName());
@@ -176,6 +177,96 @@ public final class GboardClipboardRuntime1777BehaviorTest {
         Assert.assertEquals(fullText, getClipText(clip));
         ui.afterItemBind(adapter, holder, 1);
         Assert.assertEquals(fullText, getClipText(clip));
+    }
+
+    @Test
+    public void sensitiveClipboardContentFollowsSettingAndRestoresMask() throws Throwable {
+        setRuntimePreferences(-1L, 100, 5, false, false, false,
+                "newest_first", 2);
+        SharedPreferences preferences = context.getSharedPreferences(
+                GboardClipboardSettings.PREF_FILE,
+                Context.MODE_PRIVATE);
+        preferences.edit()
+                .putBoolean(
+                        GboardClipboardSettings.PREF_KEY_CLIPBOARD_SHOW_SENSITIVE_CONTENT,
+                        true)
+                .commit();
+
+        String originalText = "Sensitive42";
+        Object clip = newSensitiveClip(10L, System.currentTimeMillis(), originalText);
+        Object adapter = newAdapter(assemblyWithRecent(Arrays.asList(clip)), 1, 0);
+        TextView textView = new TextView(context);
+        textView.setText("•".repeat(originalText.length()));
+        Object holder = construct("evl", new Class<?>[] { TextView.class }, textView);
+        GboardClipboardUiHookAdapter ui = newUiAdapter();
+
+        ui.afterItemBind(adapter, holder, 1);
+        Assert.assertEquals(originalText, textView.getText().toString());
+
+        preferences.edit()
+                .putBoolean(
+                        GboardClipboardSettings.PREF_KEY_CLIPBOARD_SHOW_SENSITIVE_CONTENT,
+                        false)
+                .commit();
+        textView.setText(originalText);
+        ui.afterItemBind(adapter, holder, 1);
+
+        Assert.assertEquals("•".repeat(originalText.length()), textView.getText().toString());
+        Assert.assertEquals(originalText, getClipText(clip));
+    }
+
+    @Test
+    public void sensitiveRevealRespectsCardPreviewLimit() throws Throwable {
+        setRuntimePreferences(-1L, 100, 5, false, false, false,
+                "newest_first", 2);
+        context.getSharedPreferences(GboardClipboardSettings.PREF_FILE, Context.MODE_PRIVATE)
+                .edit()
+                .putBoolean(
+                        GboardClipboardSettings.PREF_KEY_CLIPBOARD_SHOW_SENSITIVE_CONTENT,
+                        true)
+                .putBoolean(
+                        GboardClipboardSettings.PREF_KEY_CLIPBOARD_CARD_PREVIEW_LIMIT_ENABLED,
+                        true)
+                .commit();
+
+        String fullText = "S".repeat(30_000);
+        Object clip = newSensitiveClip(11L, System.currentTimeMillis(), fullText);
+        Object adapter = newAdapter(assemblyWithRecent(Arrays.asList(clip)), 1, 0);
+        TextView textView = new TextView(context);
+        Object holder = construct("evl", new Class<?>[] { TextView.class }, textView);
+        GboardClipboardUiHookAdapter ui = newUiAdapter();
+
+        ui.beforeItemBind(adapter, holder, 1);
+        textView.setText("•".repeat(1_000));
+        ui.afterItemBind(adapter, holder, 1);
+
+        Assert.assertEquals(fullText, getClipText(clip));
+        Assert.assertEquals(fullText.substring(0, 1_000), textView.getText().toString());
+    }
+
+    @Test
+    public void sensitiveRevealRequiresClipboardEnhancementsEnabled() throws Throwable {
+        setRuntimePreferences(-1L, 100, 5, false, false, false,
+                "newest_first", 2);
+        context.getSharedPreferences(GboardClipboardSettings.PREF_FILE, Context.MODE_PRIVATE)
+                .edit()
+                .putBoolean(GboardClipboardSettings.PREF_KEY_CLIPBOARD_ENABLED, false)
+                .putBoolean(
+                        GboardClipboardSettings.PREF_KEY_CLIPBOARD_SHOW_SENSITIVE_CONTENT,
+                        true)
+                .commit();
+
+        String originalText = "SensitiveWhileDisabled";
+        Object clip = newSensitiveClip(12L, System.currentTimeMillis(), originalText);
+        Object adapter = newAdapter(assemblyWithRecent(Arrays.asList(clip)), 1, 0);
+        TextView textView = new TextView(context);
+        textView.setText(originalText);
+        Object holder = construct("evl", new Class<?>[] { TextView.class }, textView);
+
+        newUiAdapter().afterItemBind(adapter, holder, 1);
+
+        Assert.assertEquals("•".repeat(originalText.length()), textView.getText().toString());
+        Assert.assertEquals(originalText, getClipText(clip));
     }
 
     @Test
@@ -514,7 +605,8 @@ public final class GboardClipboardRuntime1777BehaviorTest {
                 new GboardClipboardCountdownFeature(support, retention),
                 new GboardClipboardCreationTimeFeature(support),
                 new GboardClipboardOrderIndexFeature(support),
-                new GboardClipboardCardPreviewFeature(support), loader);
+                new GboardClipboardCardPreviewFeature(support),
+                new GboardClipboardSensitiveContentFeature(support), loader);
     }
 
     private Object newLoaderReceiver() throws Exception {
@@ -534,6 +626,17 @@ public final class GboardClipboardRuntime1777BehaviorTest {
         return construct("euk", new Class<?>[] { long.class, targetClass("j$.time.Instant"),
                 int.class, boolean.class, boolean.class }, Long.valueOf(id), instant,
                 Integer.valueOf(itemType), Boolean.valueOf(pinned), Boolean.valueOf(special));
+    }
+
+    private Object newSensitiveClip(long id, long timestamp, String text) throws Exception {
+        Object instant = construct("j$.time.Instant", new Class<?>[] { long.class },
+                Long.valueOf(timestamp));
+        Object clip = construct("euk", new Class<?>[] { long.class,
+                targetClass("j$.time.Instant"), int.class, boolean.class, boolean.class,
+                boolean.class }, Long.valueOf(id), instant, Integer.valueOf(0), Boolean.FALSE,
+                Boolean.FALSE, Boolean.TRUE);
+        setClipText(clip, text);
+        return clip;
     }
 
     private void setClipText(Object clip, String text) throws Exception {
