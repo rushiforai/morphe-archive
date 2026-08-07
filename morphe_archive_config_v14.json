@@ -1057,6 +1057,14 @@
                 "sortOrder": 128,
                 "createdAt": 1785983280824,
                 "updatedAt": 1785983280824
+            },
+            {
+                "name": "PetalMaps-AndroidAuto",
+                "source": "https://raw.githubusercontent.com/andersonlucasg3/PetalMaps-AndroidAuto/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 129,
+                "createdAt": 1786067248701,
+                "updatedAt": 1786067248701
             }
         ]
     }

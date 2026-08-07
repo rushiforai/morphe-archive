@@ -56,6 +56,7 @@ alejandrobellver/pichiwa-patches
 ameenalasady/ameen-morphe
 ameenalasady/photogrid-morphe
 anddea/revanced-patches
+andersonlucasg3/PetalMaps-AndroidAuto
 andrewliang25/morphe-patches
 andronedev/morphe-patches
 andronedev/morphe-portal-patch

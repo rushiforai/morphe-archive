@@ -1,13 +1,13 @@
 {
-  "generatedAt": "2026-08-06 02:45 UTC",
-  "configFile": "morphe_archive_config_v13.json",
-  "configVersion": 13,
-  "repoCount": 126,
-  "appCount": 615,
-  "patchCount": 2226,
+  "generatedAt": "2026-08-07 01:47 UTC",
+  "configFile": "morphe_archive_config_v14.json",
+  "configVersion": 14,
+  "repoCount": 127,
+  "appCount": 617,
+  "patchCount": 2240,
   "universalPatchCount": 168,
   "hostCounts": {
-    "github.com": 122,
+    "github.com": 123,
     "gitlab.com": 4
   },
   "repos": [
@@ -68,12 +68,40 @@
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.12.3 (2026-07-18)",
-        "date": "2026-07-18",
+        "title": "1.18.1 (2026-08-07)",
+        "date": "2026-08-07",
         "items": [
           {
             "category": "Bug Fixes",
-            "text": "**hbomax:** support 7.7.0.78 and derive Patch 2 register dynamically"
+            "text": "**pluto:** skip DASH period strip on live (dynamic) manifests (#89)"
+          },
+          {
+            "category": "Bug Fixes",
+            "text": "**twitch:** correct playerType-spoof layer, remove broken GrandDads layer"
+          },
+          {
+            "category": "Features",
+            "text": "**twitch:** add two-layer ad suppression patch (untested)"
+          },
+          {
+            "category": "Features",
+            "text": "**twitch:** ship live ad-reduction (embed playerType + GrandDads + stitched-metadata) (f79108f), closes #75"
+          },
+          {
+            "category": "Features",
+            "text": "**pluto:** remove VOD ads via DASH period surgery (Skip ads Hook 5) (#80)"
+          },
+          {
+            "category": "Features",
+            "text": "**primevideo-native:** suppress TV-show preroll/mid-roll ads (regolith)"
+          },
+          {
+            "category": "Bug Fixes",
+            "text": "**primevideo-native:** skip decompression chunks to stop CURL 61 corruption"
+          },
+          {
+            "category": "Features",
+            "text": "**primevideo-native:** working GOT/PLT import hook for in-process ad strip"
           }
         ]
       },
@@ -551,6 +579,37 @@
           "patchCount": 68,
           "iconUrl": "https://play-lh.googleusercontent.com/QNmuZQc9I6Zbe3mWnSr0hycnENqGFCI5p3yE29Hkxtf22T0IWS6zTrpxULLyyjWpB7ONAXDsDQXnXcVWokl3eg",
           "iconColor": ""
+        }
+      ]
+    },
+    {
+      "name": "PetalMaps-AndroidAuto",
+      "repo": "andersonlucasg3/PetalMaps-AndroidAuto",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/andersonlucasg3/PetalMaps-AndroidAuto/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/andersonlucasg3/PetalMaps-AndroidAuto/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/andersonlucasg3/PetalMaps-AndroidAuto/main/CHANGELOG.md",
+      "webUrl": "https://github.com/andersonlucasg3/PetalMaps-AndroidAuto",
+      "addUrl": "https://morphe.software/add-source?github=andersonlucasg3/PetalMaps-AndroidAuto",
+      "avatarUrl": "https://github.com/andersonlucasg3.png?size=96",
+      "patchCount": 8,
+      "appCount": 1,
+      "createdAt": 1786067248701,
+      "updatedAt": 1786067248701,
+      "createdDate": "2026-08-07",
+      "updatedDate": "2026-08-07",
+      "latestChanges": {
+        "title": "",
+        "date": "",
+        "items": []
+      },
+      "apps": [
+        {
+          "name": "Petal Maps",
+          "packageName": "com.huawei.maps.app",
+          "patchCount": 8,
+          "iconUrl": "",
+          "iconColor": "#E60012"
         }
       ]
     },
@@ -1552,19 +1611,19 @@
       "webUrl": "https://github.com/byehi98/okish-morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=byehi98/okish-morphe-patches",
       "avatarUrl": "https://github.com/byehi98.png?size=96",
-      "patchCount": 7,
-      "appCount": 6,
+      "patchCount": 10,
+      "appCount": 7,
       "createdAt": 1784836032190,
       "updatedAt": 1784836032190,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.5.0 (2026-08-02)",
-        "date": "2026-08-02",
+        "title": "1.6.0 (2026-08-06)",
+        "date": "2026-08-06",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "add Doodle Jump billing bypass patch"
+            "text": "add Dr. Driving patches (ad removal, unlimited gold, unlimited coins)"
           }
         ]
       },
@@ -1575,6 +1634,13 @@
           "patchCount": 1,
           "iconUrl": "",
           "iconColor": "#66BB6A"
+        },
+        {
+          "name": "Dr. Driving",
+          "packageName": "com.ansangha.drdriving",
+          "patchCount": 3,
+          "iconUrl": "",
+          "iconColor": "#1565C0"
         },
         {
           "name": "FreeJobAlert",
@@ -3161,16 +3227,12 @@
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.3.6 (2026-07-31)",
-        "date": "2026-07-31",
+        "title": "1.3.7-dev.2 (2026-08-04)",
+        "date": "2026-08-04",
         "items": [
           {
             "category": "\ud83d\ude80 Updated App Support",
-            "text": "add native camera premium unlock patch"
-          },
-          {
-            "category": "\ud83d\ude80 Updated App Support",
-            "text": "remove oldroll patches"
+            "text": "update app name in Compatibility for Karobar"
           }
         ]
       },
@@ -3204,7 +3266,7 @@
           "iconColor": "#008577"
         },
         {
-          "name": "Mero Karobar",
+          "name": "Karobar",
           "packageName": "com.bytecaretech.merokarobar",
           "patchCount": 1,
           "iconUrl": "https://play-lh.googleusercontent.com/9Gx38ML5KX24JSQ4rJq1nlxvl7EEB_UosLexB7xhlZon_Fht7gNEsR-bClQ30qtmf9fa28JaLYyuXIwQGmiZ",
@@ -3465,8 +3527,8 @@
       "webUrl": "https://github.com/hoo-dles/morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=hoo-dles/morphe-patches",
       "avatarUrl": "https://github.com/hoo-dles.png?size=96",
-      "patchCount": 77,
-      "appCount": 52,
+      "patchCount": 78,
+      "appCount": 53,
       "createdAt": 1784836036710,
       "updatedAt": 1784836036710,
       "createdDate": "2026-07-23",
@@ -3597,6 +3659,20 @@
           "patchCount": 1,
           "iconUrl": "https://play-lh.googleusercontent.com/TuQLI-feVEhXj9pUf36cZ10Kwi_9w0UBv3Y1WBYbEyBf0ci3W0jB1swnzfittajO8KKEnCRK-qL7765B76j-",
           "iconColor": "#0066FF"
+        },
+        {
+          "name": "Lightroom Mobile",
+          "packageName": "com.adobe.lrmobile",
+          "patchCount": 2,
+          "iconUrl": "",
+          "iconColor": "#001D35"
+        },
+        {
+          "name": "Ling",
+          "packageName": "com.simyasolutions.ling.universal",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#F8485E"
         },
         {
           "name": "Lingory",
@@ -3786,13 +3862,6 @@
           "patchCount": 2,
           "iconUrl": "https://play-lh.googleusercontent.com/oqEWB9fLSMEayfQyRsGy88Ketkt7EdM5DGg5a43tprbki_m1W8IrU5OCdMXAuJAtPOIQ8VRrcFKcJFVgGnJTgw",
           "iconColor": "#F79729"
-        },
-        {
-          "name": "Teuida",
-          "packageName": "net.teuida.teuida",
-          "patchCount": 2,
-          "iconUrl": "https://play-lh.googleusercontent.com/2BnY8aZYmPiBPj9vZMljUm-Sgc_TW_BV2c7lNxxr1MRSkfjqamqKfVsI2JpYiM4F2wmqrRJE5LzO_dxSiOhF",
-          "iconColor": "#52DBD7"
         },
         {
           "name": "TTMIK Stories",
@@ -5365,19 +5434,19 @@
       "webUrl": "https://github.com/liongalahad/nuviotv-morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=liongalahad/nuviotv-morphe-patches",
       "avatarUrl": "https://github.com/liongalahad.png?size=96",
-      "patchCount": 2,
+      "patchCount": 3,
       "appCount": 1,
       "createdAt": 1785983280124,
       "updatedAt": 1785983280124,
       "createdDate": "2026-08-06",
       "updatedDate": "2026-08-06",
       "latestChanges": {
-        "title": "1.0.0-dev.13 (2026-08-05)",
-        "date": "2026-08-05",
+        "title": "1.0.0-dev.14 (2026-08-06)",
+        "date": "2026-08-06",
         "items": [
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "intercept all Media3 subtitle cue groups"
+            "category": "\u2728 New Features",
+            "text": "add SDH subtitle marking and shared settings layout"
           }
         ]
       },
@@ -5385,7 +5454,7 @@
         {
           "name": "NuvioTV",
           "packageName": "com.nuvio.tv",
-          "patchCount": 2,
+          "patchCount": 3,
           "iconUrl": "",
           "iconColor": "#111827"
         }
@@ -5401,19 +5470,19 @@
       "webUrl": "https://github.com/liongalahad/nuviotv-patches",
       "addUrl": "https://morphe.software/add-source?github=liongalahad/nuviotv-patches",
       "avatarUrl": "https://github.com/liongalahad.png?size=96",
-      "patchCount": 2,
+      "patchCount": 3,
       "appCount": 1,
       "createdAt": 1785897756603,
       "updatedAt": 1785897756603,
       "createdDate": "2026-08-05",
       "updatedDate": "2026-08-05",
       "latestChanges": {
-        "title": "1.0.0-dev.13 (2026-08-05)",
-        "date": "2026-08-05",
+        "title": "1.0.0-dev.14 (2026-08-06)",
+        "date": "2026-08-06",
         "items": [
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "intercept all Media3 subtitle cue groups"
+            "category": "\u2728 New Features",
+            "text": "add SDH subtitle marking and shared settings layout"
           }
         ]
       },
@@ -5421,7 +5490,7 @@
         {
           "name": "NuvioTV",
           "packageName": "com.nuvio.tv",
-          "patchCount": 2,
+          "patchCount": 3,
           "iconUrl": "",
           "iconColor": "#111827"
         }
@@ -9373,12 +9442,12 @@
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.11.4 (2026-08-04)",
-        "date": "2026-08-04",
+        "title": "1.11.6 (2026-08-06)",
+        "date": "2026-08-06",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**avito:** support version 230.0"
+            "text": "**ozon:** preserve navbar background"
           }
         ]
       },
@@ -10016,7 +10085,7 @@
             }
           ],
           "versions": [
-            "4.12.81"
+            "4.13.1"
           ]
         },
         {
@@ -10071,8 +10140,8 @@
         }
       ],
       "versions": [
-        "4.12.81",
         "4.13.0",
+        "4.13.1",
         "4.14.0"
       ],
       "iconColor": "#67B279",
@@ -11891,16 +11960,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.6 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.3.7-dev.2 (2026-08-04)",
+            "date": "2026-08-04",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "add native camera premium unlock patch"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "remove oldroll patches"
+                "text": "update app name in Compatibility for Karobar"
               }
             ]
           },
@@ -12496,12 +12561,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.11.4 (2026-08-04)",
-            "date": "2026-08-04",
+            "title": "1.11.6 (2026-08-06)",
+            "date": "2026-08-06",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**avito:** support version 230.0"
+                "text": "**ozon:** preserve navbar background"
               }
             ]
           },
@@ -15666,16 +15731,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.6 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.3.7-dev.2 (2026-08-04)",
+            "date": "2026-08-04",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "add native camera premium unlock patch"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "remove oldroll patches"
+                "text": "update app name in Compatibility for Karobar"
               }
             ]
           },
@@ -18301,12 +18362,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/ajstrick81/morphe-androidtv-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/ajstrick81.png?size=96",
           "latestChanges": {
-            "title": "1.12.3 (2026-07-18)",
-            "date": "2026-07-18",
+            "title": "1.18.1 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**hbomax:** support 7.7.0.78 and derive Patch 2 register dynamically"
+                "text": "**pluto:** skip DASH period strip on live (dynamic) manifests (#89)"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**twitch:** correct playerType-spoof layer, remove broken GrandDads layer"
+              },
+              {
+                "category": "Features",
+                "text": "**twitch:** add two-layer ad suppression patch (untested)"
+              },
+              {
+                "category": "Features",
+                "text": "**twitch:** ship live ad-reduction (embed playerType + GrandDads + stitched-metadata) (f79108f), closes #75"
+              },
+              {
+                "category": "Features",
+                "text": "**pluto:** remove VOD ads via DASH period surgery (Skip ads Hook 5) (#80)"
+              },
+              {
+                "category": "Features",
+                "text": "**primevideo-native:** suppress TV-show preroll/mid-roll ads (regolith)"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**primevideo-native:** skip decompression chunks to stop CURL 61 corruption"
+              },
+              {
+                "category": "Features",
+                "text": "**primevideo-native:** working GOT/PLT import hook for in-process ad strip"
               }
             ]
           },
@@ -19090,12 +19179,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/ajstrick81/morphe-androidtv-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/ajstrick81.png?size=96",
           "latestChanges": {
-            "title": "1.12.3 (2026-07-18)",
-            "date": "2026-07-18",
+            "title": "1.18.1 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**hbomax:** support 7.7.0.78 and derive Patch 2 register dynamically"
+                "text": "**pluto:** skip DASH period strip on live (dynamic) manifests (#89)"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**twitch:** correct playerType-spoof layer, remove broken GrandDads layer"
+              },
+              {
+                "category": "Features",
+                "text": "**twitch:** add two-layer ad suppression patch (untested)"
+              },
+              {
+                "category": "Features",
+                "text": "**twitch:** ship live ad-reduction (embed playerType + GrandDads + stitched-metadata) (f79108f), closes #75"
+              },
+              {
+                "category": "Features",
+                "text": "**pluto:** remove VOD ads via DASH period surgery (Skip ads Hook 5) (#80)"
+              },
+              {
+                "category": "Features",
+                "text": "**primevideo-native:** suppress TV-show preroll/mid-roll ads (regolith)"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**primevideo-native:** skip decompression chunks to stop CURL 61 corruption"
+              },
+              {
+                "category": "Features",
+                "text": "**primevideo-native:** working GOT/PLT import hook for in-process ad strip"
               }
             ]
           },
@@ -19288,12 +19405,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/ajstrick81/morphe-androidtv-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/ajstrick81.png?size=96",
           "latestChanges": {
-            "title": "1.12.3 (2026-07-18)",
-            "date": "2026-07-18",
+            "title": "1.18.1 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**hbomax:** support 7.7.0.78 and derive Patch 2 register dynamically"
+                "text": "**pluto:** skip DASH period strip on live (dynamic) manifests (#89)"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**twitch:** correct playerType-spoof layer, remove broken GrandDads layer"
+              },
+              {
+                "category": "Features",
+                "text": "**twitch:** add two-layer ad suppression patch (untested)"
+              },
+              {
+                "category": "Features",
+                "text": "**twitch:** ship live ad-reduction (embed playerType + GrandDads + stitched-metadata) (f79108f), closes #75"
+              },
+              {
+                "category": "Features",
+                "text": "**pluto:** remove VOD ads via DASH period surgery (Skip ads Hook 5) (#80)"
+              },
+              {
+                "category": "Features",
+                "text": "**primevideo-native:** suppress TV-show preroll/mid-roll ads (regolith)"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**primevideo-native:** skip decompression chunks to stop CURL 61 corruption"
+              },
+              {
+                "category": "Features",
+                "text": "**primevideo-native:** working GOT/PLT import hook for in-process ad strip"
               }
             ]
           },
@@ -19307,11 +19452,12 @@
           "patches": [
             {
               "name": "Paramount+ Android TV",
-              "description": "Removes VOD ads and pause ads while preserving live TV."
+              "description": "Removes VOD pre-roll ads and pause ads while preserving live TV."
             }
           ],
           "versions": [
             "16.12.0",
+            "16.17.0",
             "16.8.0"
           ]
         }
@@ -19322,11 +19468,12 @@
       "patchDetails": [
         {
           "name": "Paramount+ Android TV",
-          "description": "Removes VOD ads and pause ads while preserving live TV."
+          "description": "Removes VOD pre-roll ads and pause ads while preserving live TV."
         }
       ],
       "versions": [
         "16.12.0",
+        "16.17.0",
         "16.8.0"
       ],
       "iconColor": "",
@@ -19455,12 +19602,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/ajstrick81/morphe-androidtv-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/ajstrick81.png?size=96",
           "latestChanges": {
-            "title": "1.12.3 (2026-07-18)",
-            "date": "2026-07-18",
+            "title": "1.18.1 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**hbomax:** support 7.7.0.78 and derive Patch 2 register dynamically"
+                "text": "**pluto:** skip DASH period strip on live (dynamic) manifests (#89)"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**twitch:** correct playerType-spoof layer, remove broken GrandDads layer"
+              },
+              {
+                "category": "Features",
+                "text": "**twitch:** add two-layer ad suppression patch (untested)"
+              },
+              {
+                "category": "Features",
+                "text": "**twitch:** ship live ad-reduction (embed playerType + GrandDads + stitched-metadata) (f79108f), closes #75"
+              },
+              {
+                "category": "Features",
+                "text": "**pluto:** remove VOD ads via DASH period surgery (Skip ads Hook 5) (#80)"
+              },
+              {
+                "category": "Features",
+                "text": "**primevideo-native:** suppress TV-show preroll/mid-roll ads (regolith)"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**primevideo-native:** skip decompression chunks to stop CURL 61 corruption"
+              },
+              {
+                "category": "Features",
+                "text": "**primevideo-native:** working GOT/PLT import hook for in-process ad strip"
               }
             ]
           },
@@ -20395,12 +20570,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/ajstrick81/morphe-androidtv-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/ajstrick81.png?size=96",
           "latestChanges": {
-            "title": "1.12.3 (2026-07-18)",
-            "date": "2026-07-18",
+            "title": "1.18.1 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**hbomax:** support 7.7.0.78 and derive Patch 2 register dynamically"
+                "text": "**pluto:** skip DASH period strip on live (dynamic) manifests (#89)"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**twitch:** correct playerType-spoof layer, remove broken GrandDads layer"
+              },
+              {
+                "category": "Features",
+                "text": "**twitch:** add two-layer ad suppression patch (untested)"
+              },
+              {
+                "category": "Features",
+                "text": "**twitch:** ship live ad-reduction (embed playerType + GrandDads + stitched-metadata) (f79108f), closes #75"
+              },
+              {
+                "category": "Features",
+                "text": "**pluto:** remove VOD ads via DASH period surgery (Skip ads Hook 5) (#80)"
+              },
+              {
+                "category": "Features",
+                "text": "**primevideo-native:** suppress TV-show preroll/mid-roll ads (regolith)"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**primevideo-native:** skip decompression chunks to stop CURL 61 corruption"
+              },
+              {
+                "category": "Features",
+                "text": "**primevideo-native:** working GOT/PLT import hook for in-process ad strip"
               }
             ]
           },
@@ -20582,7 +20785,7 @@
             }
           ],
           "versions": [
-            "1.255.0"
+            "1.267.0"
           ]
         }
       ],
@@ -20641,7 +20844,7 @@
         }
       ],
       "versions": [
-        "1.255.0",
+        "1.267.0",
         "1.270.0"
       ],
       "iconColor": "#000000",
@@ -23122,12 +23325,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/ajstrick81/morphe-androidtv-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/ajstrick81.png?size=96",
           "latestChanges": {
-            "title": "1.12.3 (2026-07-18)",
-            "date": "2026-07-18",
+            "title": "1.18.1 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**hbomax:** support 7.7.0.78 and derive Patch 2 register dynamically"
+                "text": "**pluto:** skip DASH period strip on live (dynamic) manifests (#89)"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**twitch:** correct playerType-spoof layer, remove broken GrandDads layer"
+              },
+              {
+                "category": "Features",
+                "text": "**twitch:** add two-layer ad suppression patch (untested)"
+              },
+              {
+                "category": "Features",
+                "text": "**twitch:** ship live ad-reduction (embed playerType + GrandDads + stitched-metadata) (f79108f), closes #75"
+              },
+              {
+                "category": "Features",
+                "text": "**pluto:** remove VOD ads via DASH period surgery (Skip ads Hook 5) (#80)"
+              },
+              {
+                "category": "Features",
+                "text": "**primevideo-native:** suppress TV-show preroll/mid-roll ads (regolith)"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**primevideo-native:** skip decompression chunks to stop CURL 61 corruption"
+              },
+              {
+                "category": "Features",
+                "text": "**primevideo-native:** working GOT/PLT import hook for in-process ad strip"
               }
             ]
           },
@@ -24409,12 +24640,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/ajstrick81/morphe-androidtv-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/ajstrick81.png?size=96",
           "latestChanges": {
-            "title": "1.12.3 (2026-07-18)",
-            "date": "2026-07-18",
+            "title": "1.18.1 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**hbomax:** support 7.7.0.78 and derive Patch 2 register dynamically"
+                "text": "**pluto:** skip DASH period strip on live (dynamic) manifests (#89)"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**twitch:** correct playerType-spoof layer, remove broken GrandDads layer"
+              },
+              {
+                "category": "Features",
+                "text": "**twitch:** add two-layer ad suppression patch (untested)"
+              },
+              {
+                "category": "Features",
+                "text": "**twitch:** ship live ad-reduction (embed playerType + GrandDads + stitched-metadata) (f79108f), closes #75"
+              },
+              {
+                "category": "Features",
+                "text": "**pluto:** remove VOD ads via DASH period surgery (Skip ads Hook 5) (#80)"
+              },
+              {
+                "category": "Features",
+                "text": "**primevideo-native:** suppress TV-show preroll/mid-roll ads (regolith)"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**primevideo-native:** skip decompression chunks to stop CURL 61 corruption"
+              },
+              {
+                "category": "Features",
+                "text": "**primevideo-native:** working GOT/PLT import hook for in-process ad strip"
               }
             ]
           },
@@ -24601,8 +24860,8 @@
         }
       ],
       "patches": [
-        "Disable Ad-Free Banner",
         "Disable ad-free banner",
+        "Disable Ad-Free Banner",
         "Disable blog notification reminder",
         "Disable dashboard ads",
         "Disable gift message popup",
@@ -24614,12 +24873,12 @@
       ],
       "patchDetails": [
         {
-          "name": "Disable Ad-Free Banner",
-          "description": "Disables the banner with a frog, prompting you to buy Tumblr Ad-Free."
-        },
-        {
           "name": "Disable ad-free banner",
           "description": "Hides the banner with the frog that prompts you to buy Tumblr Ad-Free."
+        },
+        {
+          "name": "Disable Ad-Free Banner",
+          "description": "Disables the banner with a frog, prompting you to buy Tumblr Ad-Free."
         },
         {
           "name": "Disable blog notification reminder",
@@ -25585,12 +25844,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/ajstrick81/morphe-androidtv-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/ajstrick81.png?size=96",
           "latestChanges": {
-            "title": "1.12.3 (2026-07-18)",
-            "date": "2026-07-18",
+            "title": "1.18.1 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**hbomax:** support 7.7.0.78 and derive Patch 2 register dynamically"
+                "text": "**pluto:** skip DASH period strip on live (dynamic) manifests (#89)"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**twitch:** correct playerType-spoof layer, remove broken GrandDads layer"
+              },
+              {
+                "category": "Features",
+                "text": "**twitch:** add two-layer ad suppression patch (untested)"
+              },
+              {
+                "category": "Features",
+                "text": "**twitch:** ship live ad-reduction (embed playerType + GrandDads + stitched-metadata) (f79108f), closes #75"
+              },
+              {
+                "category": "Features",
+                "text": "**pluto:** remove VOD ads via DASH period surgery (Skip ads Hook 5) (#80)"
+              },
+              {
+                "category": "Features",
+                "text": "**primevideo-native:** suppress TV-show preroll/mid-roll ads (regolith)"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**primevideo-native:** skip decompression chunks to stop CURL 61 corruption"
+              },
+              {
+                "category": "Features",
+                "text": "**primevideo-native:** working GOT/PLT import hook for in-process ad strip"
               }
             ]
           },
@@ -25818,12 +26105,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/ajstrick81/morphe-androidtv-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/ajstrick81.png?size=96",
           "latestChanges": {
-            "title": "1.12.3 (2026-07-18)",
-            "date": "2026-07-18",
+            "title": "1.18.1 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**hbomax:** support 7.7.0.78 and derive Patch 2 register dynamically"
+                "text": "**pluto:** skip DASH period strip on live (dynamic) manifests (#89)"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**twitch:** correct playerType-spoof layer, remove broken GrandDads layer"
+              },
+              {
+                "category": "Features",
+                "text": "**twitch:** add two-layer ad suppression patch (untested)"
+              },
+              {
+                "category": "Features",
+                "text": "**twitch:** ship live ad-reduction (embed playerType + GrandDads + stitched-metadata) (f79108f), closes #75"
+              },
+              {
+                "category": "Features",
+                "text": "**pluto:** remove VOD ads via DASH period surgery (Skip ads Hook 5) (#80)"
+              },
+              {
+                "category": "Features",
+                "text": "**primevideo-native:** suppress TV-show preroll/mid-roll ads (regolith)"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**primevideo-native:** skip decompression chunks to stop CURL 61 corruption"
+              },
+              {
+                "category": "Features",
+                "text": "**primevideo-native:** working GOT/PLT import hook for in-process ad strip"
               }
             ]
           },
@@ -29079,12 +29394,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-08-02)",
-            "date": "2026-08-02",
+            "title": "1.6.0 (2026-08-06)",
+            "date": "2026-08-06",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Doodle Jump billing bypass patch"
+                "text": "add Dr. Driving patches (ad removal, unlimited gold, unlimited coins)"
               }
             ]
           },
@@ -29293,6 +29608,82 @@
         "1.0.10"
       ],
       "iconColor": "#023C69",
+      "iconUrl": ""
+    },
+    {
+      "packageName": "com.ansangha.drdriving",
+      "name": "Dr. Driving",
+      "repos": [
+        "byehi98/okish-morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "byehi98/okish-morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/byehi98/okish-morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=byehi98/okish-morphe-patches",
+          "source": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/byehi98.png?size=96",
+          "latestChanges": {
+            "title": "1.6.0 (2026-08-06)",
+            "date": "2026-08-06",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "add Dr. Driving patches (ad removal, unlimited gold, unlimited coins)"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-ansangha-drdriving-byehi98-okish-morphe-patches",
+            "releaseTag": "app-com-ansangha-drdriving-byehi98-okish-morphe-patches",
+            "assetName": "dr-driving-byehi98-okish-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Dr. Driving Ad Removal",
+              "description": "Removes all Google AdMob ads (banner, interstitial, rewarded)."
+            },
+            {
+              "name": "Dr. Driving Unlimited Coins",
+              "description": "Coins inflated to 1,000,000,000 on save load; purchases, upgrades, rentals and repairs never cost coins."
+            },
+            {
+              "name": "Dr. Driving Unlimited Gold",
+              "description": "Gold is inflated to 1,000,000,000 on save load; gold packs in the store also grant gold."
+            }
+          ],
+          "versions": [
+            "1.73"
+          ]
+        }
+      ],
+      "patches": [
+        "Dr. Driving Ad Removal",
+        "Dr. Driving Unlimited Coins",
+        "Dr. Driving Unlimited Gold"
+      ],
+      "patchDetails": [
+        {
+          "name": "Dr. Driving Ad Removal",
+          "description": "Removes all Google AdMob ads (banner, interstitial, rewarded)."
+        },
+        {
+          "name": "Dr. Driving Unlimited Coins",
+          "description": "Coins inflated to 1,000,000,000 on save load; purchases, upgrades, rentals and repairs never cost coins."
+        },
+        {
+          "name": "Dr. Driving Unlimited Gold",
+          "description": "Gold is inflated to 1,000,000,000 on save load; gold packs in the store also grant gold."
+        }
+      ],
+      "versions": [
+        "1.73"
+      ],
+      "iconColor": "#1565C0",
       "iconUrl": ""
     },
     {
@@ -31543,12 +31934,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-08-02)",
-            "date": "2026-08-02",
+            "title": "1.6.0 (2026-08-06)",
+            "date": "2026-08-06",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Doodle Jump billing bypass patch"
+                "text": "add Dr. Driving patches (ad removal, unlimited gold, unlimited coins)"
               }
             ]
           },
@@ -32212,16 +32603,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.6 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.3.7-dev.2 (2026-08-04)",
+            "date": "2026-08-04",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "add native camera premium unlock patch"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "remove oldroll patches"
+                "text": "update app name in Compatibility for Karobar"
               }
             ]
           },
@@ -35474,16 +35861,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.6 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.3.7-dev.2 (2026-08-04)",
+            "date": "2026-08-04",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "add native camera premium unlock patch"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "remove oldroll patches"
+                "text": "update app name in Compatibility for Karobar"
               }
             ]
           },
@@ -35541,12 +35924,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-08-02)",
-            "date": "2026-08-02",
+            "title": "1.6.0 (2026-08-06)",
+            "date": "2026-08-06",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Doodle Jump billing bypass patch"
+                "text": "add Dr. Driving patches (ad removal, unlimited gold, unlimited coins)"
               }
             ]
           },
@@ -36781,6 +37164,60 @@
       "iconUrl": "https://play-lh.googleusercontent.com/VaxoIL0V83FKXsQ5fOR0XJ3CQ7Q_eOt_WXuKFtnuK3nWUH_SOll1_LRK5AlXE7b8sUg4iHNKBVof1zV1haQRyw"
     },
     {
+      "packageName": "com.bytecaretech.merokarobar",
+      "name": "Karobar",
+      "repos": [
+        "franticg33k/morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "franticg33k/morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/franticg33k/morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=franticg33k/morphe-patches",
+          "source": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/franticg33k.png?size=96",
+          "latestChanges": {
+            "title": "1.3.7-dev.2 (2026-08-04)",
+            "date": "2026-08-04",
+            "items": [
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "update app name in Compatibility for Karobar"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-bytecaretech-merokarobar-franticg33k-morphe-patches",
+            "releaseTag": "app-com-bytecaretech-merokarobar-franticg33k-morphe-patches",
+            "assetName": "karobar-franticg33k-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Unlock Premium",
+              "description": "Patches Dart AOT-compiled libapp.so to unlock all premium features. Forces hasPremiumAccess and isPaidUser to always return true by NOPing their ARM64 conditional branch instructions."
+            }
+          ],
+          "versions": []
+        }
+      ],
+      "patches": [
+        "Unlock Premium"
+      ],
+      "patchDetails": [
+        {
+          "name": "Unlock Premium",
+          "description": "Patches Dart AOT-compiled libapp.so to unlock all premium features. Forces hasPremiumAccess and isPaidUser to always return true by NOPing their ARM64 conditional branch instructions."
+        }
+      ],
+      "versions": [],
+      "iconColor": "#1565C0",
+      "iconUrl": "https://play-lh.googleusercontent.com/9Gx38ML5KX24JSQ4rJq1nlxvl7EEB_UosLexB7xhlZon_Fht7gNEsR-bClQ30qtmf9fa28JaLYyuXIwQGmiZ"
+    },
+    {
       "packageName": "net.nemostudio.keymate",
       "name": "Keymate",
       "repos": [
@@ -37472,6 +37909,77 @@
       "iconUrl": "https://play-lh.googleusercontent.com/gMeT8cxzZOnlrCKwYIOPHT90C9kb9pPbE0mHlk2gixDIadJ_B9QmslnPkQ3Sc0y9KuS8KMxPDxFgsL_GLnXbsg"
     },
     {
+      "packageName": "com.adobe.lrmobile",
+      "name": "Lightroom Mobile",
+      "repos": [
+        "hoo-dles/morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "hoo-dles/morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/hoo-dles/morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=hoo-dles/morphe-patches",
+          "source": "https://raw.githubusercontent.com/hoo-dles/morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/hoo-dles/morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/hoo-dles.png?size=96",
+          "latestChanges": {
+            "title": "1.38.2 (2026-07-06)",
+            "date": "2026-07-06",
+            "items": [
+              {
+                "category": "Bug Fixes",
+                "text": "**CamScanner:** Fix crash on first scan after app installation"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "Update signature spoofing code"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-adobe-lrmobile-hoo-dles-morphe-patches",
+            "releaseTag": "app-com-adobe-lrmobile-hoo-dles-morphe-patches",
+            "assetName": "lightroom-mobile-hoo-dles-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Bypass login",
+              "description": "Allows app use without login. BUT breaks many features. There is a strict version requirement for this patch and only arm64-v8a devices are supported."
+            },
+            {
+              "name": "Unlock premium features",
+              "description": "Enables app features locked behind the subscription paywall. There is a strict version requirement for this patch and only arm64-v8a devices are supported."
+            }
+          ],
+          "versions": [
+            "11.4.5"
+          ]
+        }
+      ],
+      "patches": [
+        "Bypass login",
+        "Unlock premium features"
+      ],
+      "patchDetails": [
+        {
+          "name": "Bypass login",
+          "description": "Allows app use without login. BUT breaks many features. There is a strict version requirement for this patch and only arm64-v8a devices are supported."
+        },
+        {
+          "name": "Unlock premium features",
+          "description": "Enables app features locked behind the subscription paywall. There is a strict version requirement for this patch and only arm64-v8a devices are supported."
+        }
+      ],
+      "versions": [
+        "11.4.5"
+      ],
+      "iconColor": "#001D35",
+      "iconUrl": ""
+    },
+    {
       "packageName": "jp.naver.line.android",
       "name": "LINE",
       "repos": [
@@ -37695,7 +38203,8 @@
       "packageName": "com.simyasolutions.ling.universal",
       "name": "Ling",
       "repos": [
-        "Entree3k/Morning-Entree-Patches"
+        "Entree3k/Morning-Entree-Patches",
+        "hoo-dles/morphe-patches"
       ],
       "sources": [
         {
@@ -37732,15 +38241,59 @@
           "versions": [
             "8.4.4"
           ]
+        },
+        {
+          "repo": "hoo-dles/morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/hoo-dles/morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=hoo-dles/morphe-patches",
+          "source": "https://raw.githubusercontent.com/hoo-dles/morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/hoo-dles/morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/hoo-dles.png?size=96",
+          "latestChanges": {
+            "title": "1.38.2 (2026-07-06)",
+            "date": "2026-07-06",
+            "items": [
+              {
+                "category": "Bug Fixes",
+                "text": "**CamScanner:** Fix crash on first scan after app installation"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "Update signature spoofing code"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-simyasolutions-ling-universal-hoo-dles-morphe-patches",
+            "releaseTag": "app-com-simyasolutions-ling-universal-hoo-dles-morphe-patches",
+            "assetName": "ling-hoo-dles-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Enable Pro",
+              "description": "Enables app features locked behind the subscription paywall."
+            }
+          ],
+          "versions": [
+            "8.4.4"
+          ]
         }
       ],
       "patches": [
-        "Enable Premium"
+        "Enable Premium",
+        "Enable Pro"
       ],
       "patchDetails": [
         {
           "name": "Enable Premium",
           "description": "Unlocks Ling Pro"
+        },
+        {
+          "name": "Enable Pro",
+          "description": "Enables app features locked behind the subscription paywall."
         }
       ],
       "versions": [
@@ -38435,7 +38988,7 @@
             }
           ],
           "versions": [
-            "5.7.8"
+            "5.7.9"
           ]
         }
       ],
@@ -38449,7 +39002,7 @@
         }
       ],
       "versions": [
-        "5.7.8"
+        "5.7.9"
       ],
       "iconColor": "#000000",
       "iconUrl": "https://play-lh.googleusercontent.com/4gfovnH1uoLSJr-ga0iswuqW-jR7Go1iQdJTVWblLLrb3DeAGj1VqtF8n-lFi2e6hWEIBVshkGqTqjjIl99AptM"
@@ -39376,64 +39929,6 @@
       ],
       "iconColor": "#C93133",
       "iconUrl": "https://play-lh.googleusercontent.com/DK7aQ7tXOAbG5lz7t7Q7rwkq8UpJ1SUiQUT5brACDf0qT__dcWqiJs-a56ELtwOu7wXIsdI6ZEgPJ4-8r7qG"
-    },
-    {
-      "packageName": "com.bytecaretech.merokarobar",
-      "name": "Mero Karobar",
-      "repos": [
-        "franticg33k/morphe-patches"
-      ],
-      "sources": [
-        {
-          "repo": "franticg33k/morphe-patches",
-          "host": "github.com",
-          "webUrl": "https://github.com/franticg33k/morphe-patches",
-          "addUrl": "https://morphe.software/add-source?github=franticg33k/morphe-patches",
-          "source": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/patches-bundle.json",
-          "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
-          "avatarUrl": "https://github.com/franticg33k.png?size=96",
-          "latestChanges": {
-            "title": "1.3.6 (2026-07-31)",
-            "date": "2026-07-31",
-            "items": [
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "add native camera premium unlock patch"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "remove oldroll patches"
-              }
-            ]
-          },
-          "builder": {
-            "buildId": "com-bytecaretech-merokarobar-franticg33k-morphe-patches",
-            "releaseTag": "app-com-bytecaretech-merokarobar-franticg33k-morphe-patches",
-            "assetName": "mero-karobar-franticg33k-morphe-patches.apk",
-            "repo": "rushiforai/morphe-builder",
-            "webUrl": "https://github.com/rushiforai/morphe-builder"
-          },
-          "patches": [
-            {
-              "name": "Unlock Premium",
-              "description": "Patches Dart AOT-compiled libapp.so to unlock all premium features. Forces hasPremiumAccess and isPaidUser to always return true by NOPing their ARM64 conditional branch instructions."
-            }
-          ],
-          "versions": []
-        }
-      ],
-      "patches": [
-        "Unlock Premium"
-      ],
-      "patchDetails": [
-        {
-          "name": "Unlock Premium",
-          "description": "Patches Dart AOT-compiled libapp.so to unlock all premium features. Forces hasPremiumAccess and isPaidUser to always return true by NOPing their ARM64 conditional branch instructions."
-        }
-      ],
-      "versions": [],
-      "iconColor": "#1565C0",
-      "iconUrl": "https://play-lh.googleusercontent.com/9Gx38ML5KX24JSQ4rJq1nlxvl7EEB_UosLexB7xhlZon_Fht7gNEsR-bClQ30qtmf9fa28JaLYyuXIwQGmiZ"
     },
     {
       "packageName": "com.merriamwebster",
@@ -41808,16 +42303,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.6 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.3.7-dev.2 (2026-08-04)",
+            "date": "2026-08-04",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "add native camera premium unlock patch"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "remove oldroll patches"
+                "text": "update app name in Compatibility for Karobar"
               }
             ]
           },
@@ -42028,16 +42519,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.6 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.3.7-dev.2 (2026-08-04)",
+            "date": "2026-08-04",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "add native camera premium unlock patch"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "remove oldroll patches"
+                "text": "update app name in Compatibility for Karobar"
               }
             ]
           },
@@ -42844,7 +43331,7 @@
             }
           ],
           "versions": [
-            "81042 (8.5.1)"
+            "88600 (8.8.6)"
           ]
         }
       ],
@@ -42863,7 +43350,6 @@
         }
       ],
       "versions": [
-        "81042 (8.5.1)",
         "88600 (8.8.6)"
       ],
       "iconColor": "#DA4624",
@@ -42998,12 +43484,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/liongalahad/nuviotv-morphe-patches/master/CHANGELOG.md",
           "avatarUrl": "https://github.com/liongalahad.png?size=96",
           "latestChanges": {
-            "title": "1.0.0-dev.13 (2026-08-05)",
-            "date": "2026-08-05",
+            "title": "1.0.0-dev.14 (2026-08-06)",
+            "date": "2026-08-06",
             "items": [
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "intercept all Media3 subtitle cue groups"
+                "category": "\u2728 New Features",
+                "text": "add SDH subtitle marking and shared settings layout"
               }
             ]
           },
@@ -43015,6 +43501,10 @@
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
           "patches": [
+            {
+              "name": "Mark SDH Subtitles",
+              "description": "Marks detected English SDH tracks in embedded and addon subtitle lists."
+            },
             {
               "name": "Rating Visibility",
               "description": "Adds Settings > Morphe > Ratings with independent overall and episode rating controls."
@@ -43037,12 +43527,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/liongalahad/nuviotv-patches/master/CHANGELOG.md",
           "avatarUrl": "https://github.com/liongalahad.png?size=96",
           "latestChanges": {
-            "title": "1.0.0-dev.13 (2026-08-05)",
-            "date": "2026-08-05",
+            "title": "1.0.0-dev.14 (2026-08-06)",
+            "date": "2026-08-06",
             "items": [
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "intercept all Media3 subtitle cue groups"
+                "category": "\u2728 New Features",
+                "text": "add SDH subtitle marking and shared settings layout"
               }
             ]
           },
@@ -43054,6 +43544,10 @@
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
           "patches": [
+            {
+              "name": "Mark SDH Subtitles",
+              "description": "Marks detected English SDH tracks in embedded and addon subtitle lists."
+            },
             {
               "name": "Rating Visibility",
               "description": "Adds Settings > Morphe > Ratings with independent overall and episode rating controls."
@@ -43069,10 +43563,15 @@
         }
       ],
       "patches": [
+        "Mark SDH Subtitles",
         "Rating Visibility",
         "Remove SDH Annotations"
       ],
       "patchDetails": [
+        {
+          "name": "Mark SDH Subtitles",
+          "description": "Marks detected English SDH tracks in embedded and addon subtitle lists."
+        },
         {
           "name": "Rating Visibility",
           "description": "Adds Settings > Morphe > Ratings with independent overall and episode rating controls."
@@ -43985,12 +44484,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.11.4 (2026-08-04)",
-            "date": "2026-08-04",
+            "title": "1.11.6 (2026-08-06)",
+            "date": "2026-08-06",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**avito:** support version 230.0"
+                "text": "**ozon:** preserve navbar background"
               }
             ]
           },
@@ -44683,6 +45182,122 @@
       ],
       "iconColor": "#4CAF50",
       "iconUrl": "https://play-lh.googleusercontent.com/Avvq84tDNB49hhXn06aDd9TcqTH8b4VUw7VntAqcNoDgS8PFoDJS5dN0uiJ24pyEUtBxj5Pa14FqhEUdFMgi"
+    },
+    {
+      "packageName": "com.huawei.maps.app",
+      "name": "Petal Maps",
+      "repos": [
+        "andersonlucasg3/PetalMaps-AndroidAuto"
+      ],
+      "sources": [
+        {
+          "repo": "andersonlucasg3/PetalMaps-AndroidAuto",
+          "host": "github.com",
+          "webUrl": "https://github.com/andersonlucasg3/PetalMaps-AndroidAuto",
+          "addUrl": "https://morphe.software/add-source?github=andersonlucasg3/PetalMaps-AndroidAuto",
+          "source": "https://raw.githubusercontent.com/andersonlucasg3/PetalMaps-AndroidAuto/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/andersonlucasg3/PetalMaps-AndroidAuto/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/andersonlucasg3.png?size=96",
+          "latestChanges": {
+            "title": "",
+            "date": "",
+            "items": []
+          },
+          "builder": {
+            "buildId": "com-huawei-maps-app-andersonlucasg3-petalmaps-androidauto",
+            "releaseTag": "app-com-huawei-maps-app-andersonlucasg3-petalmaps-androidauto",
+            "assetName": "petal-maps-andersonlucasg3-petalmaps-androidauto.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Android Auto",
+              "description": "Injects full Android Auto support into Petal Maps, including CarAppService, manifest declarations, and required resources. Also apply 'Anti-Repack Bypass' and 'Manufacturer Check Bypass' for full functionality on non-Huawei devices."
+            },
+            {
+              "name": "Android Auto allowlist (root)",
+              "description": "Registers the app in Android Auto's allowlist on startup when root is available; no-op without root."
+            },
+            {
+              "name": "Android Auto Manifest",
+              "description": "Adds the Android Auto CarAppService declaration, meta-data, and permissions to AndroidManifest.xml."
+            },
+            {
+              "name": "Android Auto Resources",
+              "description": "Adds the automotive_app_desc.xml resource required by Android Auto."
+            },
+            {
+              "name": "Anti-Repack Bypass",
+              "description": "Neutralizes the native integrity check (SecurityDetect.irpj) that kills the process upon detecting APK re-signing."
+            },
+            {
+              "name": "Change package name",
+              "description": "Changes the package name from com.huawei.maps.app to morphe.huawei.petal.maps by default, allowing the patched app to coexist with the original. Changing the package name can lead to unexpected issues."
+            },
+            {
+              "name": "Huawei login fix",
+              "description": "Forces the Account Picker sign-in flow with WebView fallback, fixing login on devices without HMS Core."
+            },
+            {
+              "name": "Manufacturer Check Bypass",
+              "description": "Forces the Huawei manufacturer check to always return true, allowing non-Huawei devices to use the app."
+            }
+          ],
+          "versions": [
+            "4.7.0.322(001)"
+          ]
+        }
+      ],
+      "patches": [
+        "Android Auto",
+        "Android Auto allowlist (root)",
+        "Android Auto Manifest",
+        "Android Auto Resources",
+        "Anti-Repack Bypass",
+        "Change package name",
+        "Huawei login fix",
+        "Manufacturer Check Bypass"
+      ],
+      "patchDetails": [
+        {
+          "name": "Android Auto",
+          "description": "Injects full Android Auto support into Petal Maps, including CarAppService, manifest declarations, and required resources. Also apply 'Anti-Repack Bypass' and 'Manufacturer Check Bypass' for full functionality on non-Huawei devices."
+        },
+        {
+          "name": "Android Auto allowlist (root)",
+          "description": "Registers the app in Android Auto's allowlist on startup when root is available; no-op without root."
+        },
+        {
+          "name": "Android Auto Manifest",
+          "description": "Adds the Android Auto CarAppService declaration, meta-data, and permissions to AndroidManifest.xml."
+        },
+        {
+          "name": "Android Auto Resources",
+          "description": "Adds the automotive_app_desc.xml resource required by Android Auto."
+        },
+        {
+          "name": "Anti-Repack Bypass",
+          "description": "Neutralizes the native integrity check (SecurityDetect.irpj) that kills the process upon detecting APK re-signing."
+        },
+        {
+          "name": "Change package name",
+          "description": "Changes the package name from com.huawei.maps.app to morphe.huawei.petal.maps by default, allowing the patched app to coexist with the original. Changing the package name can lead to unexpected issues."
+        },
+        {
+          "name": "Huawei login fix",
+          "description": "Forces the Account Picker sign-in flow with WebView fallback, fixing login on devices without HMS Core."
+        },
+        {
+          "name": "Manufacturer Check Bypass",
+          "description": "Forces the Huawei manufacturer check to always return true, allowing non-Huawei devices to use the app."
+        }
+      ],
+      "versions": [
+        "4.7.0.322(001)"
+      ],
+      "iconColor": "#E60012",
+      "iconUrl": ""
     },
     {
       "packageName": "com.launcher.hype",
@@ -47285,16 +47900,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.6 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.3.7-dev.2 (2026-08-04)",
+            "date": "2026-08-04",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "add native camera premium unlock patch"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "remove oldroll patches"
+                "text": "update app name in Compatibility for Karobar"
               }
             ]
           },
@@ -47732,7 +48343,7 @@
             }
           ],
           "versions": [
-            "5.17.72.0"
+            "5.19.43.0"
           ]
         },
         {
@@ -47912,8 +48523,8 @@
         }
       ],
       "versions": [
-        "5.17.72.0",
         "5.19.16.0",
+        "5.19.43.0",
         "5.19.61.0"
       ],
       "iconColor": "#6D4AFF",
@@ -47935,16 +48546,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/franticg33k/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/franticg33k.png?size=96",
           "latestChanges": {
-            "title": "1.3.6 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.3.7-dev.2 (2026-08-04)",
+            "date": "2026-08-04",
             "items": [
               {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "add native camera premium unlock patch"
-              },
-              {
-                "category": "\ud83d\ude80 Updated App Support",
-                "text": "remove oldroll patches"
+                "text": "update app name in Compatibility for Karobar"
               }
             ]
           },
@@ -51596,7 +52203,7 @@
             }
           ],
           "versions": [
-            "6.6 build 002"
+            "6.6 build 014"
           ]
         }
       ],
@@ -51615,7 +52222,7 @@
         }
       ],
       "versions": [
-        "6.6 build 002"
+        "6.6 build 014"
       ],
       "iconColor": "#000000",
       "iconUrl": "https://play-lh.googleusercontent.com/AM7MidChVOk5Uj7Vf7xM0ZaOYnGBea4PZBH5O5wlllmksRKCdMgRzPnPSgg-K7bQ0DXv2Bb7F9-kfyCVyG3JNtQ"
@@ -51636,12 +52243,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-08-02)",
-            "date": "2026-08-02",
+            "title": "1.6.0 (2026-08-06)",
+            "date": "2026-08-06",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Doodle Jump billing bypass patch"
+                "text": "add Dr. Driving patches (ad removal, unlimited gold, unlimited coins)"
               }
             ]
           },
@@ -52324,7 +52931,7 @@
             }
           ],
           "versions": [
-            "3.4.1"
+            "3.5.16"
           ]
         }
       ],
@@ -52353,8 +52960,8 @@
         }
       ],
       "versions": [
-        "3.4.1",
         "3.4.10",
+        "3.5.16",
         "3.5.7b"
       ],
       "iconColor": "#039BE5",
@@ -54207,12 +54814,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-08-02)",
-            "date": "2026-08-02",
+            "title": "1.6.0 (2026-08-06)",
+            "date": "2026-08-06",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Doodle Jump billing bypass patch"
+                "text": "add Dr. Driving patches (ad removal, unlimited gold, unlimited coins)"
               }
             ]
           },
@@ -55280,7 +55887,7 @@
           "patches": [
             {
               "name": "Ad Removal",
-              "description": "Removes all ad displays: navigation bar banner, native feed ads, live streaming banner ads, live square ads, conversation Google ads, marriage guide card, four-select-one card, daily selection card, visitor list ads"
+              "description": "Removes all ad displays: navigation bar banner, native feed ads, live streaming banner ads, live video feed ads, live square ads, conversation Google ads, marriage guide card, four-select-one card, daily selection card, visitor list ads, likers ads, meet likers ads, meet visitor ads"
             },
             {
               "name": "Analytics Disable",
@@ -55320,7 +55927,7 @@
             }
           ],
           "versions": [
-            "7.3.3"
+            "7.3.6"
           ]
         }
       ],
@@ -55339,7 +55946,7 @@
       "patchDetails": [
         {
           "name": "Ad Removal",
-          "description": "Removes all ad displays: navigation bar banner, native feed ads, live streaming banner ads, live square ads, conversation Google ads, marriage guide card, four-select-one card, daily selection card, visitor list ads"
+          "description": "Removes all ad displays: navigation bar banner, native feed ads, live streaming banner ads, live video feed ads, live square ads, conversation Google ads, marriage guide card, four-select-one card, daily selection card, visitor list ads, likers ads, meet likers ads, meet visitor ads"
         },
         {
           "name": "Analytics Disable",
@@ -55379,7 +55986,7 @@
         }
       ],
       "versions": [
-        "7.3.3"
+        "7.3.6"
       ],
       "iconColor": "",
       "iconUrl": ""
@@ -55575,12 +56182,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.11.4 (2026-08-04)",
-            "date": "2026-08-04",
+            "title": "1.11.6 (2026-08-06)",
+            "date": "2026-08-06",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**avito:** support version 230.0"
+                "text": "**ozon:** preserve navbar background"
               }
             ]
           },
@@ -56173,77 +56780,6 @@
       ],
       "iconColor": "#023C69",
       "iconUrl": ""
-    },
-    {
-      "packageName": "net.teuida.teuida",
-      "name": "Teuida",
-      "repos": [
-        "hoo-dles/morphe-patches"
-      ],
-      "sources": [
-        {
-          "repo": "hoo-dles/morphe-patches",
-          "host": "github.com",
-          "webUrl": "https://github.com/hoo-dles/morphe-patches",
-          "addUrl": "https://morphe.software/add-source?github=hoo-dles/morphe-patches",
-          "source": "https://raw.githubusercontent.com/hoo-dles/morphe-patches/main/patches-bundle.json",
-          "changelogUrl": "https://raw.githubusercontent.com/hoo-dles/morphe-patches/main/CHANGELOG.md",
-          "avatarUrl": "https://github.com/hoo-dles.png?size=96",
-          "latestChanges": {
-            "title": "1.38.2 (2026-07-06)",
-            "date": "2026-07-06",
-            "items": [
-              {
-                "category": "Bug Fixes",
-                "text": "**CamScanner:** Fix crash on first scan after app installation"
-              },
-              {
-                "category": "Bug Fixes",
-                "text": "Update signature spoofing code"
-              }
-            ]
-          },
-          "builder": {
-            "buildId": "net-teuida-teuida-hoo-dles-morphe-patches",
-            "releaseTag": "app-net-teuida-teuida-hoo-dles-morphe-patches",
-            "assetName": "teuida-hoo-dles-morphe-patches.apk",
-            "repo": "rushiforai/morphe-builder",
-            "webUrl": "https://github.com/rushiforai/morphe-builder"
-          },
-          "patches": [
-            {
-              "name": "Enable Premium",
-              "description": "Enables app features locked behind the subscription paywall."
-            },
-            {
-              "name": "MicroG integration",
-              "description": "Allows the app to work without root by using MicroG instead of Google Play Services."
-            }
-          ],
-          "versions": [
-            "1.21.16"
-          ]
-        }
-      ],
-      "patches": [
-        "Enable Premium",
-        "MicroG integration"
-      ],
-      "patchDetails": [
-        {
-          "name": "Enable Premium",
-          "description": "Enables app features locked behind the subscription paywall."
-        },
-        {
-          "name": "MicroG integration",
-          "description": "Allows the app to work without root by using MicroG instead of Google Play Services."
-        }
-      ],
-      "versions": [
-        "1.21.16"
-      ],
-      "iconColor": "#52DBD7",
-      "iconUrl": "https://play-lh.googleusercontent.com/2BnY8aZYmPiBPj9vZMljUm-Sgc_TW_BV2c7lNxxr1MRSkfjqamqKfVsI2JpYiM4F2wmqrRJE5LzO_dxSiOhF"
     },
     {
       "packageName": "com.theathletic",
@@ -58571,12 +59107,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-08-02)",
-            "date": "2026-08-02",
+            "title": "1.6.0 (2026-08-06)",
+            "date": "2026-08-06",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Doodle Jump billing bypass patch"
+                "text": "add Dr. Driving patches (ad removal, unlimited gold, unlimited coins)"
               }
             ]
           },
@@ -58749,12 +59285,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/ajstrick81/morphe-androidtv-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/ajstrick81.png?size=96",
           "latestChanges": {
-            "title": "1.12.3 (2026-07-18)",
-            "date": "2026-07-18",
+            "title": "1.18.1 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**hbomax:** support 7.7.0.78 and derive Patch 2 register dynamically"
+                "text": "**pluto:** skip DASH period strip on live (dynamic) manifests (#89)"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**twitch:** correct playerType-spoof layer, remove broken GrandDads layer"
+              },
+              {
+                "category": "Features",
+                "text": "**twitch:** add two-layer ad suppression patch (untested)"
+              },
+              {
+                "category": "Features",
+                "text": "**twitch:** ship live ad-reduction (embed playerType + GrandDads + stitched-metadata) (f79108f), closes #75"
+              },
+              {
+                "category": "Features",
+                "text": "**pluto:** remove VOD ads via DASH period surgery (Skip ads Hook 5) (#80)"
+              },
+              {
+                "category": "Features",
+                "text": "**primevideo-native:** suppress TV-show preroll/mid-roll ads (regolith)"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**primevideo-native:** skip decompression chunks to stop CURL 61 corruption"
+              },
+              {
+                "category": "Features",
+                "text": "**primevideo-native:** working GOT/PLT import hook for in-process ad strip"
               }
             ]
           },
@@ -58836,12 +59400,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/ajstrick81/morphe-androidtv-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/ajstrick81.png?size=96",
           "latestChanges": {
-            "title": "1.12.3 (2026-07-18)",
-            "date": "2026-07-18",
+            "title": "1.18.1 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**hbomax:** support 7.7.0.78 and derive Patch 2 register dynamically"
+                "text": "**pluto:** skip DASH period strip on live (dynamic) manifests (#89)"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**twitch:** correct playerType-spoof layer, remove broken GrandDads layer"
+              },
+              {
+                "category": "Features",
+                "text": "**twitch:** add two-layer ad suppression patch (untested)"
+              },
+              {
+                "category": "Features",
+                "text": "**twitch:** ship live ad-reduction (embed playerType + GrandDads + stitched-metadata) (f79108f), closes #75"
+              },
+              {
+                "category": "Features",
+                "text": "**pluto:** remove VOD ads via DASH period surgery (Skip ads Hook 5) (#80)"
+              },
+              {
+                "category": "Features",
+                "text": "**primevideo-native:** suppress TV-show preroll/mid-roll ads (regolith)"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**primevideo-native:** skip decompression chunks to stop CURL 61 corruption"
+              },
+              {
+                "category": "Features",
+                "text": "**primevideo-native:** working GOT/PLT import hook for in-process ad strip"
               }
             ]
           },
@@ -60962,12 +61554,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.11.4 (2026-08-04)",
-            "date": "2026-08-04",
+            "title": "1.11.6 (2026-08-06)",
+            "date": "2026-08-06",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**avito:** support version 230.0"
+                "text": "**ozon:** preserve navbar background"
               }
             ]
           },
@@ -60986,7 +61578,8 @@
           ],
           "versions": [
             "7.7.2001-rustore",
-            "7.7.3001-rustore"
+            "7.7.3001-rustore",
+            "7.7.4003-rustore"
           ]
         }
       ],
@@ -61001,7 +61594,8 @@
       ],
       "versions": [
         "7.7.2001-rustore",
-        "7.7.3001-rustore"
+        "7.7.3001-rustore",
+        "7.7.4003-rustore"
       ],
       "iconColor": "#A73AFD",
       "iconUrl": "https://play-lh.googleusercontent.com/_3OFXp7p3aaOt6lJdqOPNS8frRjGW7SrlgUELTcxMZNbvQtBN0ez_lrXtMk-X9Yk_kfdesM7fOcRpMl3Ebhgpg"
@@ -61584,7 +62178,7 @@
             }
           ],
           "versions": [
-            "10.15.0"
+            "10.17.1"
           ]
         }
       ],
@@ -61598,7 +62192,7 @@
         }
       ],
       "versions": [
-        "10.15.0"
+        "10.17.1"
       ],
       "iconColor": "#C82C40",
       "iconUrl": "https://play-lh.googleusercontent.com/AmBoaxTjw_jERw2p8YUqv52zctH_P5K9Hxb1OXBEIrKFXV_KDi4HYEQ1303G2e_cQwnIDsHR225tySjFYJCxDg"
@@ -63580,8 +64174,8 @@
         "Save to watch later",
         "Seekbar",
         "Seekbar components",
-        "Set Transcript Cookies",
         "Set transcript cookies",
+        "Set Transcript Cookies",
         "Settings for YouTube",
         "Settings menu filter",
         "Shorts autoplay",
@@ -64026,11 +64620,11 @@
           "description": "Adds options to hide or change components related to the seekbar."
         },
         {
-          "name": "Set Transcript Cookies",
+          "name": "Set transcript cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {
-          "name": "Set transcript cookies",
+          "name": "Set Transcript Cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {
@@ -67392,12 +67986,12 @@
       "avatarUrl": "https://github.com/xob0t.png?size=96",
       "patchCount": 13,
       "latestChanges": {
-        "title": "1.11.4 (2026-08-04)",
-        "date": "2026-08-04",
+        "title": "1.11.6 (2026-08-06)",
+        "date": "2026-08-06",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**avito:** support version 230.0"
+            "text": "**ozon:** preserve navbar background"
           }
         ]
       },
@@ -67553,19 +68147,19 @@
       "webUrl": "https://github.com/liongalahad/nuviotv-morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=liongalahad/nuviotv-morphe-patches",
       "avatarUrl": "https://github.com/liongalahad.png?size=96",
-      "patchCount": 2,
+      "patchCount": 3,
       "appCount": 1,
       "createdAt": 1785983280124,
       "updatedAt": 1785983280124,
       "createdDate": "2026-08-06",
       "updatedDate": "2026-08-06",
       "latestChanges": {
-        "title": "1.0.0-dev.13 (2026-08-05)",
-        "date": "2026-08-05",
+        "title": "1.0.0-dev.14 (2026-08-06)",
+        "date": "2026-08-06",
         "items": [
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "intercept all Media3 subtitle cue groups"
+            "category": "\u2728 New Features",
+            "text": "add SDH subtitle marking and shared settings layout"
           }
         ]
       },
@@ -67573,7 +68167,7 @@
         {
           "name": "NuvioTV",
           "packageName": "com.nuvio.tv",
-          "patchCount": 2,
+          "patchCount": 3,
           "iconUrl": "",
           "iconColor": "#111827"
         }
@@ -67625,19 +68219,19 @@
       "webUrl": "https://github.com/liongalahad/nuviotv-patches",
       "addUrl": "https://morphe.software/add-source?github=liongalahad/nuviotv-patches",
       "avatarUrl": "https://github.com/liongalahad.png?size=96",
-      "patchCount": 2,
+      "patchCount": 3,
       "appCount": 1,
       "createdAt": 1785897756603,
       "updatedAt": 1785897756603,
       "createdDate": "2026-08-05",
       "updatedDate": "2026-08-05",
       "latestChanges": {
-        "title": "1.0.0-dev.13 (2026-08-05)",
-        "date": "2026-08-05",
+        "title": "1.0.0-dev.14 (2026-08-06)",
+        "date": "2026-08-06",
         "items": [
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "intercept all Media3 subtitle cue groups"
+            "category": "\u2728 New Features",
+            "text": "add SDH subtitle marking and shared settings layout"
           }
         ]
       },
@@ -67645,7 +68239,7 @@
         {
           "name": "NuvioTV",
           "packageName": "com.nuvio.tv",
-          "patchCount": 2,
+          "patchCount": 3,
           "iconUrl": "",
           "iconColor": "#111827"
         }
