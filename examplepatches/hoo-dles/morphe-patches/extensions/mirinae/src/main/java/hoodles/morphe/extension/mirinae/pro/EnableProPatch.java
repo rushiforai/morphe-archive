@@ -1,3 +1,8 @@
+/**
+ * Copyright 2026 Hoo-dles
+ * https://github.com/hoo-dles/morphe-patches
+ */
+
 package hoodles.morphe.extension.mirinae.pro;
 
 import hoodles.morphe.extension.shared.Utils;

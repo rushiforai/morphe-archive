@@ -1,0 +1,16 @@
+syntax = "proto3";
+package voicelivemessage;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + userMask）
+option java_package = "com.p1.mobile.longlink.msg.voicelivemessage";
+option java_outer_classname = "VoiceFunnyAvatar";
+option optimize_for = LITE_RUNTIME;
+
+import "voiceLiveRankingMessage.proto";
+
+message VoiceLivePhotoSticker{
+   string userId = 1;
+   string pthotoType = 2;  //"none"/"eraser"/"magic"/"sticker"
+   PictureConfig frameConfig = 3;
+   int64 serverTimeInSeconds = 4;
+}

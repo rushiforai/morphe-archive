@@ -1,0 +1,230 @@
+syntax = "proto3";
+
+package livecampaign;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + livecampaign）
+option java_package = "com.p1.mobile.longlink.msg.livecampaign";
+option java_outer_classname = "LongLinkSocketMessage";
+option optimize_for = LITE_RUNTIME;
+
+import "template.proto";
+
+message SendLiveRedPacketMsg {
+  string sendUserID = 1;
+  string redPacketID = 2;
+  string token = 3;
+  int64 numberOfPackets = 4;
+  template.TemplateData template = 5;
+}
+
+message ReceiveLiveRedPacketMsg {
+  string userId = 1;
+  string userName = 2;
+  int64 amount = 3;
+  template.TemplateData template = 4;
+}
+
+// 顶部特效
+message TopEffect {
+  string userName = 1;
+  string avatarUrl = 2;
+  string content = 3;
+  string startBackendColor = 4;
+  string endBackendColor = 5;
+  int64 duration = 6;
+  string roomId = 7;
+  string backgroundUrl = 8;
+  // 文案的背景动图
+  string backgroundSVGAUrl = 9;
+  // 特效的背景图
+  string effectBackgroundUrl = 10;
+  // 副标题颜色
+  string subtitleColor = 11;
+}
+
+// 活动自动弹出
+message PopUp {
+  string campaignId = 1;
+  string roomId = 2;
+}
+
+// 活动详情页局部更新
+message PopUpContentUpdateNotice {
+  string roomId = 1;
+  string url = 2; // 对用活动的 h5(不带任何 query 参数)
+  string updateType = 3; // 更新类型
+  string data = 4; // 局部更新数据 json（透传前端）
+}
+
+// 插入特效
+message LiveAnimationPlayMsg {
+  string roomId = 1;
+  string liveResourceId = 2;
+  int64 duration = 3; // 展示时长（单位:ms）
+  int64 priority = 4; // 0是按顺序插入，1是插入到最前面
+  repeated VideoEffectExtra videoEffectExtras = 6; // 特效礼物所需的资源
+  bool toMyQueue = 7; // true: 自己的特效队列 false: 别人的特效队列
+  string animationType = 13; // 动画类型:
+  repeated SvgaEffectExtra svgaEffectExtras = 14; // 特效礼物所需的资源
+}
+
+// 新增MP4特效礼物资源
+message VideoEffectExtra {
+  string id = 1;
+  int64 type = 2;  // pic text 两种类型
+  string value = 3;
+}
+
+// 新增SVGA特效礼物资源
+message SvgaEffectExtra {
+  string id = 1;
+  int64 type = 2;  // pic text 两种类型
+  string value = 3;
+  int64 textSize = 4; //字体大小
+  string textColor = 5; //字体颜色
+}
+
+// 运营位通知
+message OperationPopupNotice {
+  enum OperationPopupType {
+    Unknown = 0;
+    H5Drawer = 1;
+    TextDrawer = 2;
+    H5PopUp = 3;
+  }
+
+  string operationType = 1;
+  OperationPopupType popupType = 2;
+  TextDrawer textDrawer = 3;
+  H5Drawer drawer = 4;
+  H5PopUp h5PopUp = 5;
+  int64 timestamp = 6; //ms, 乱序丢弃老的消息保留新的消息
+}
+
+// 运营位消息抽屉
+message TextDrawer {
+  string iconUrl = 1;
+  Shading shading = 2;
+  TextDrawerContent content = 3;
+  string jumpScheme = 4;
+  string actionAfterClick = 5;
+}
+
+message TextDrawerContent {
+  int64 templateId = 1;
+  repeated string templateFields = 2;
+  OperationHierarchy hierarchy = 3;
+}
+
+message OperationHierarchy {
+  int64 userHierarchy = 1;
+}
+
+// 运营位消息背景样式
+message Shading {
+  string startColor = 1;
+  string endColor = 2;
+  string imageUrl = 3;
+  int64 transparency = 4;
+  string shadingType = 5;
+}
+
+// 运营位H5抽屉
+message H5Drawer {
+  string h5Url = 1;
+  int64 fadingSeconds = 2;
+  string closeButtonUrl = 3;
+  double height = 4;
+  double width = 5;
+  H5DrawerLoading loading = 6;
+}
+
+// 运营位弹窗
+message H5PopUp {
+  string jumpScheme = 1;
+}
+
+message H5DrawerLoading {
+  string startColor = 1;
+  string endColor = 2;
+  string imageUrl = 3;
+  int64 transparency = 4;
+  string loadingType = 5;
+}
+
+// 运营位更新通知
+message OperationUpdateNotice {
+  enum OperationUpdatePosition {
+    Unknown = 0;
+    List = 1;
+    Element = 2;
+    H5Drawer = 3; //订阅更新
+    Data = 4; //数据更新
+  }
+  OperationUpdatePosition position = 1;
+  OperationSubscription subscription = 2;
+  string operationType = 3;
+  int64 randomDelaySeconds = 4; //三秒取随机数刷新, 0就是直接刷新
+  int64 timestamp = 5; //ms, 乱序丢弃老的消息保留新的消息
+  string data = 6; //动态给客户端的数据，特殊业务需要解析各自的字段
+  OperationAnimation animation = 7; // 运营位动画
+}
+
+message OperationSubscription {
+  string subscribeType = 1;
+  string updateType = 2;
+  string data = 3;
+}
+
+message OperationAnimation {
+  OperationAnimationEnter enter = 1;
+}
+
+message OperationAnimationEnter {
+  string animationType = 1;
+  bool isTop = 2;
+  string imageUrl = 3;
+}
+
+message LotteryGiftRedPacketAnimationMsg {
+  LotteryGiftRedPacketSender sender = 1;
+  LotteryGiftRedPacketGift gift = 2;
+  int64 showSeconds = 3;
+}
+
+message LotteryGiftRedPacketSender {
+  string userId = 1;
+  string name = 2;
+  string avatarUrl = 3;
+}
+
+message LotteryGiftRedPacketGift {
+  string id = 1;
+  string name = 2;
+  string url = 3;
+  int64 num = 4;
+  int64 amount = 5;
+}
+
+//巨龙防线3期https://alidocs.dingtalk.com/i/nodes/N7dx2rn0JbZQqA9AC0n4wY2ZJMGjLRb3?dontjump=true
+//msgTypeName： live.campaign.dragonScourgeChatMsg
+message DragonScourgeRecords {
+  repeated string monsterUrls = 1; // index 0-7 对应怪物1-8的图片url
+  string title = 2;
+  repeated int64 monsters = 3; // 最近30场的怪的index[1, 5, 0, 7, ...]
+  string schema = 4;
+}
+
+message MysteryBoxReward {
+    string name = 1; // 奖励名称
+    string url = 2; // 奖励图标
+    int64 num = 3; // 数量
+}
+
+message MysteryBoxRecord {
+    template.TemplateData template = 1; // 消息内容，走 template 模板
+    string iconUrl = 2; // 消息图标
+    int64 num = 3; // 数量
+    repeated MysteryBoxReward rewards = 4; // 奖励列表
+}
+

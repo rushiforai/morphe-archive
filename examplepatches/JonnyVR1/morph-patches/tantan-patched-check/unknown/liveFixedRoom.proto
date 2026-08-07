@@ -1,0 +1,38 @@
+syntax = "proto3";
+package fixedroomchat;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + connector）
+option java_package = "com.p1.mobile.longlink.msg.connector";
+option java_outer_classname = "LongLinkFixedRoomMessage";
+option optimize_for = LITE_RUNTIME;
+
+message LiveFixedRoomChatCell {
+    LiveFixedRoomChatCellInfo cellInfo = 1;
+    LiveFixedRoomChatCellRoomInfo roomInfo = 2;
+    LiveFixedRoomChatCellChatInfo chatInfo = 3;
+}
+
+message LiveFixedRoomChatCellInfo {
+  bool isOnTop = 1; // 是否置顶
+  bool isShow = 2; // 是否展示（不显示、删除等场景）
+  bool isRemoved = 3; // 是否被移除
+  bool isDissolved = 4; // 是否
+  string dissolveReason = 5;
+  bool isRemind = 6;
+}
+
+message LiveFixedRoomChatCellRoomInfo {
+  string roomId = 1;
+  string title = 2;
+  repeated string avatars = 3;
+  int64 memberCount = 4;
+  string liveId = 5;
+}
+
+message LiveFixedRoomChatCellChatInfo {
+  int64 unreadedCount = 1;
+  uint64 currentSeq = 2;
+  string currentSenderName = 3;
+  string currentMsg = 4;
+  int64 currentTime = 5;
+}

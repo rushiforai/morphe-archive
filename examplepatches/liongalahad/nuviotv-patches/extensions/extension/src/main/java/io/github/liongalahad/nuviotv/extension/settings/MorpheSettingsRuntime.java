@@ -23,6 +23,7 @@ public final class MorpheSettingsRuntime {
     public static final String PREFERENCES_NAME = "morphe_patches";
     public static final String SDH_CLEANUP_MODE_KEY = "subtitles.sdh_cleanup_mode";
     public static final String REMOVE_SDH_KEY = "subtitles.remove_sdh_annotations";
+    public static final String SDH_MARKING_KEY = "subtitles.mark_sdh";
     public static final String OVERALL_RATINGS_KEY = "ratings.overall_visibility";
     public static final String EPISODE_RATINGS_KEY = "ratings.episode_visibility";
 
@@ -33,24 +34,27 @@ public final class MorpheSettingsRuntime {
     public static final int EPISODE_RATINGS_HIDE = 1;
     public static final int EPISODE_RATINGS_HIDE_UNWATCHED = 2;
 
-    private static final int CATEGORY_NONE = 0;
-    private static final int CATEGORY_SUBTITLES = 1;
-    private static final int CATEGORY_RATINGS = 2;
     private static final String SUBTITLES_METADATA =
             "io.github.liongalahad.nuviotv.settings.category.subtitles";
     private static final String RATINGS_METADATA =
             "io.github.liongalahad.nuviotv.settings.category.ratings";
+    private static final String REMOVE_SDH_FEATURE_METADATA =
+            "io.github.liongalahad.nuviotv.settings.feature.remove_sdh";
+    private static final String SDH_MARKING_FEATURE_METADATA =
+            "io.github.liongalahad.nuviotv.settings.feature.mark_sdh";
 
     private static volatile Application application;
     private static volatile WeakReference<Activity> resumedActivity = new WeakReference<>(null);
     private static volatile boolean activityCallbacksRegistered;
     private static volatile SharedPreferences preferences;
     private static volatile int sdhCleanupMode = SDH_MODE_OFF;
+    private static volatile boolean sdhMarkingEnabled;
     private static volatile boolean overallRatingsShown = true;
     private static volatile int episodeRatingsMode = EPISODE_RATINGS_SHOW;
     private static volatile boolean subtitlesCategoryEnabled;
     private static volatile boolean ratingsCategoryEnabled;
-    private static volatile int expandedCategory = CATEGORY_NONE;
+    private static volatile boolean removeSdhFeatureEnabled;
+    private static volatile boolean sdhMarkingFeatureEnabled;
 
     private MorpheSettingsRuntime() {}
 
@@ -70,6 +74,7 @@ public final class MorpheSettingsRuntime {
             if (preferences != null) return;
             SharedPreferences prefs = appContext.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE);
             sdhCleanupMode = readSdhCleanupMode(prefs);
+            sdhMarkingEnabled = readSdhMarkingEnabled(prefs);
             overallRatingsShown = readOverallRatingsShown(prefs);
             episodeRatingsMode = readEpisodeRatingsMode(prefs);
             if (!prefs.contains(SDH_CLEANUP_MODE_KEY) && prefs.getBoolean(REMOVE_SDH_KEY, false)) {
@@ -78,6 +83,8 @@ public final class MorpheSettingsRuntime {
             prefs.registerOnSharedPreferenceChangeListener((sharedPreferences, key) -> {
                 if (SDH_CLEANUP_MODE_KEY.equals(key)) {
                     sdhCleanupMode = readSdhCleanupMode(sharedPreferences);
+                } else if (SDH_MARKING_KEY.equals(key)) {
+                    sdhMarkingEnabled = readSdhMarkingEnabled(sharedPreferences);
                 } else if (OVERALL_RATINGS_KEY.equals(key)) {
                     overallRatingsShown = readOverallRatingsShown(sharedPreferences);
                 } else if (EPISODE_RATINGS_KEY.equals(key)) {
@@ -88,44 +95,21 @@ public final class MorpheSettingsRuntime {
         }
     }
 
-    public static String primaryCategoryTitle() {
-        return ratingsCategoryEnabled ? ratingsCategoryTitle() : subtitlesCategoryTitle();
-    }
-
-    public static String primaryCategoryDescription() {
-        return ratingsCategoryEnabled ? ratingsCategoryDescription() : subtitlesCategoryDescription();
-    }
-
-    public static String primaryCategoryStatus() {
-        int primary = ratingsCategoryEnabled ? CATEGORY_RATINGS : CATEGORY_SUBTITLES;
-        return expandedCategory == primary ? "Open" : "Closed";
-    }
-
-    public static void togglePrimaryCategory() {
-        toggleCategory(ratingsCategoryEnabled ? CATEGORY_RATINGS : CATEGORY_SUBTITLES);
-    }
-
-    public static boolean isPrimaryRatingsExpanded() {
-        return ratingsCategoryEnabled && expandedCategory == CATEGORY_RATINGS;
-    }
-
-    public static boolean isPrimarySubtitlesExpanded() {
-        return !ratingsCategoryEnabled && subtitlesCategoryEnabled && expandedCategory == CATEGORY_SUBTITLES;
-    }
-
-    public static boolean shouldRenderSecondarySubtitles() {
-        return ratingsCategoryEnabled && subtitlesCategoryEnabled;
-    }
-
+    public static boolean hasRatingsCategory() { return ratingsCategoryEnabled; }
+    public static boolean hasSubtitlesCategory() { return subtitlesCategoryEnabled; }
     public static String ratingsCategoryTitle() { return "Ratings"; }
-    public static String ratingsCategoryDescription() { return "Configure rating visibility"; }
+    public static String ratingsCategoryDescription() {
+        return "Configure rating visibility";
+    }
     public static String subtitlesCategoryTitle() { return "Subtitles"; }
-    public static String subtitlesCategoryDescription() { return "Configure subtitle patch settings"; }
+    public static String subtitlesCategoryDescription() {
+        return "Configure subtitle patch settings";
+    }
     public static String overallRatingsTitle() { return "Overall Ratings"; }
     public static String overallRatingsDescription() {
         return isOverallRatingsShown()
                 ? "Standard and TMDB ratings are shown."
-                : "Standard and TMDB ratings are Hidden. MDBList provider settings take priority on detail pages.";
+                : "Standard and TMDB ratings hidden; MDBList takes priority.";
     }
     public static String episodeRatingsTitle() { return "Episode Ratings"; }
 
@@ -303,26 +287,35 @@ public final class MorpheSettingsRuntime {
     public static String sdhDialogTitle() { return "Remove SDH annotations"; }
     public static String currentSdhModeTitle() { return sdhModeTitle(sdhCleanupModeOrdinal()); }
 
+    public static boolean hasRemoveSdhFeature() { return removeSdhFeatureEnabled; }
+    public static boolean hasSdhMarkingFeature() { return sdhMarkingFeatureEnabled; }
+    public static String sdhMarkingTitle() { return "Mark SDH subtitles"; }
+    public static String sdhMarkingDescription() {
+        return "Add SDH to English subtitle titles using metadata and repeated annotation patterns.";
+    }
+
+    public static boolean isSdhMarkingEnabled() {
+        ensureInitialized();
+        return sdhMarkingEnabled;
+    }
+
+    public static boolean toggleSdhMarkingEnabled() {
+        ensureInitialized();
+        if (preferences == null) throw new IllegalStateException("Morphe settings were not initialized");
+        sdhMarkingEnabled = !sdhMarkingEnabled;
+        preferences.edit().putBoolean(SDH_MARKING_KEY, sdhMarkingEnabled).commit();
+        return sdhMarkingEnabled;
+    }
+
+    public static void setSdhMarkingEnabled(Context context, boolean enabled) {
+        initialize(context);
+        sdhMarkingEnabled = enabled;
+        preferences.edit().putBoolean(SDH_MARKING_KEY, enabled).commit();
+    }
+
     static Activity resumedActivity() {
         Activity activity = resumedActivity.get();
         return activity != null && !activity.isFinishing() && !activity.isDestroyed() ? activity : null;
-    }
-
-    public static boolean isSubtitlesExpanded() {
-        return expandedCategory == CATEGORY_SUBTITLES;
-    }
-
-    public static boolean toggleSubtitlesExpanded() {
-        toggleCategory(CATEGORY_SUBTITLES);
-        return isSubtitlesExpanded();
-    }
-
-    public static String subtitlesExpansionStatus() {
-        return isSubtitlesExpanded() ? "Open" : "Closed";
-    }
-
-    private static void toggleCategory(int category) {
-        expandedCategory = expandedCategory == category ? CATEGORY_NONE : category;
     }
 
     private static void persistSdhCleanupMode(int mode) {
@@ -344,6 +337,11 @@ public final class MorpheSettingsRuntime {
         if (!prefs.contains(OVERALL_RATINGS_KEY)) return true;
         try { return prefs.getBoolean(OVERALL_RATINGS_KEY, true); }
         catch (ClassCastException ignored) { return "SHOW".equals(prefs.getString(OVERALL_RATINGS_KEY, "SHOW")); }
+    }
+
+    private static boolean readSdhMarkingEnabled(SharedPreferences prefs) {
+        try { return prefs.getBoolean(SDH_MARKING_KEY, false); }
+        catch (ClassCastException ignored) { return false; }
     }
 
     private static int readEpisodeRatingsMode(SharedPreferences prefs) {
@@ -408,11 +406,28 @@ public final class MorpheSettingsRuntime {
             ApplicationInfo info = context.getPackageManager().getApplicationInfo(
                     context.getPackageName(), PackageManager.GET_META_DATA);
             Bundle metadata = info.metaData;
-            subtitlesCategoryEnabled = metadata != null && metadata.getBoolean(SUBTITLES_METADATA, false);
-            ratingsCategoryEnabled = metadata != null && metadata.getBoolean(RATINGS_METADATA, false);
+            subtitlesCategoryEnabled =
+                    (metadata != null && metadata.getBoolean(SUBTITLES_METADATA, false)) ||
+                    hasClass(context, "io.github.liongalahad.nuviotv.extension.subtitles.sdh.Extension");
+            ratingsCategoryEnabled =
+                    (metadata != null && metadata.getBoolean(RATINGS_METADATA, false)) ||
+                    hasClass(context, "io.github.liongalahad.nuviotv.extension.ratings.ratingsvisibility.Extension");
+            removeSdhFeatureEnabled = metadata != null && metadata.getBoolean(REMOVE_SDH_FEATURE_METADATA, false);
+            sdhMarkingFeatureEnabled = metadata != null && metadata.getBoolean(SDH_MARKING_FEATURE_METADATA, false);
         } catch (Throwable ignored) {
             subtitlesCategoryEnabled = false;
             ratingsCategoryEnabled = false;
+            removeSdhFeatureEnabled = false;
+            sdhMarkingFeatureEnabled = false;
+        }
+    }
+
+    private static boolean hasClass(Context context, String className) {
+        try {
+            Class.forName(className, false, context.getClassLoader());
+            return true;
+        } catch (Throwable ignored) {
+            return false;
         }
     }
 

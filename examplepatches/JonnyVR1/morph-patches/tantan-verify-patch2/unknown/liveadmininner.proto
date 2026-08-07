@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+// 直播内部运营管理（live - 直播，admin - 管理，inner - 内部）
+package liveadmininner;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + liveadmininner）
+option java_package = "com.p1.mobile.longlink.msg.liveadmininner";
+option java_outer_classname = "LongLinkAdminMessage";
+option optimize_for = LITE_RUNTIME;
+
+
+enum IconType {
+  iconUrl = 0;  // 默认，后端下发
+  userSelf = 1; // 收到长链用户自己头像,客户端自己填充
+}
+
+message IconStyle {
+  IconType type = 1;
+  string url = 2;
+}
+
+message BgStyle {
+  string startColor = 1; // 开始颜色
+  string endColor = 2; // 结束颜色
+  string alpha = 3; // 透明度
+}
+
+enum JumpType {
+  gotoLink = 0;  // goto链接
+  staticButton = 1; // 静态按钮
+  dynamicButton = 2; // 动态按钮
+}
+
+message ButtonJumpStyle {
+  BgStyle bgcolor = 1; // 背景颜色
+  string textColor = 2; // 字体颜色
+  string content = 3; // 文案
+  string icon = 4; // 图标
+  string url = 5; // 动态gif
+}
+
+message JumpStyle {
+  JumpType type = 1;
+  string schema = 2;
+  ButtonJumpStyle button = 3;
+}
+
+// 用户侧消息通知
+message UserWithBgColorSocketNotification {
+  string roomId = 1;
+  IconStyle icon = 2; // 图标
+  BgStyle bgStyle = 3; // 背景样式
+  string content = 4; // 内容
+  JumpStyle jump = 5; // 跳转
+  int64 showTimes = 6; // 展示次数
+  int64 showSeconds = 7; // 停留时长
+  int64 rotationInterval = 8; // 轮播间隔
+  string type = 9; // 类型
+  bool moveUp = 10; //是否上移
+  bool isCountdown = 11; // 是否需要倒计时
+  bool isFixed = 12; // 是否固定位置
+}

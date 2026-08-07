@@ -1,0 +1,27 @@
+syntax = "proto3";
+package voicelivemessage;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + userMask）
+option java_package = "com.p1.mobile.longlink.msg.voicelivemessage";
+option java_outer_classname = "VoiceMicEmoji";
+option optimize_for = LITE_RUNTIME;
+
+import "template.proto";
+import "userMaskConfig.proto";
+
+//  voicelive.tricks.emojiPlayMsg
+// 麦位表情长链消息
+message VoiceEmojiPlayMessage {
+  string mid = 1;
+  string userId = 2;       // 用户id
+  userMask.UserMask userMask = 3;
+  string emojiType = 4; // 表情类型。
+  repeated EmojiPlayResult result = 5;
+  template.TemplateData tempdata = 6;
+}
+message EmojiPlayResult{
+  string contentPic = 1; // 结果图片（动态表情为空）
+  string loadingSvg = 2; // 加载中的图片
+  int64 loadingDurationS = 3;// 加载动画持续时间（秒）
+  int64 resultShowDurationS = 4;// 结果展示持续时间
+}

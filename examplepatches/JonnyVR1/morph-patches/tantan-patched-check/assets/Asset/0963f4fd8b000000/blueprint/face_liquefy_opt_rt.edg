@@ -1,0 +1,79 @@
+{
+    "graph_id": "0c58f8d96fc00000",
+    "graph_type": 0,
+    "matrix": {
+        "dx": -144,
+        "dy": -304,
+        "m11": 1,
+        "m12": 0,
+        "m21": 0,
+        "m22": 1
+    },
+    "nodes": [
+        {
+            "id": "{226c0669-73db-4126-95c4-c0261ba41452}",
+            "model": {
+                "name": "FilterOriginInput",
+                "patch_node_id": "0c58f8dbe3400000",
+                "patch_node_type": "GraphNode.BaseNode.OriginInputSampler"
+            },
+            "position": {
+                "x": -133,
+                "y": 50
+            }
+        },
+        {
+            "id": "{dc1a053d-f2ef-47f4-91fb-5eb45d80b980}",
+            "model": {
+                "name": "FilterFinalOutput",
+                "patch_node_id": "0c58f8dbe4000000",
+                "patch_node_type": "GraphNode.BaseNode.FinalOutput"
+            },
+            "position": {
+                "x": 267,
+                "y": 150
+            }
+        },
+        {
+            "id": "{3e13fe85-0d7e-44c6-adf3-b03b818b560e}",
+            "model": {
+                "name": "FilterPassModifier",
+                "patch_node_id": "0c58f93853400000",
+                "patch_node_type": "GraphNode.BaseNode.Variable.PassModifier"
+            },
+            "position": {
+                "x": -433,
+                "y": 150
+            }
+        },
+        {
+            "id": "{debbccc6-9fe5-4441-9501-67714a37c95d}",
+            "model": {
+                "name": "CommonFilter",
+                "patch_node_id": "0c58f8dbe3800000",
+                "patch_node_type": "GraphNode.BaseNode.Filter"
+            },
+            "position": {
+                "x": -33,
+                "y": 50
+            }
+        },
+        {
+            "id": "{78afddbb-1b6c-49ed-9114-c0ef610c9ff8}",
+            "model": {
+                "name": "FilterRenderProcess",
+                "patch_node_id": "0c58f8dbe7c00000",
+                "patch_node_type": "GraphNode.BaseNode.RenderProcess"
+            },
+            "position": {
+                "x": 367,
+                "y": 150
+            }
+        }
+    ],
+    "position": {
+        "x": 421,
+        "y": -285
+    },
+    "rtg_path": "Asset/0963f4fd8b000000/blueprint/face_liquefy_opt_rt.rtg"
+}

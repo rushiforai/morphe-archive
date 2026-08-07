@@ -1,0 +1,19 @@
+syntax = "proto3";
+package connector;
+
+//当前proto没有使用
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + connector）
+option java_package = "com.p1.mobile.longlink.msg.connector";
+option java_outer_classname = "LongLinkLiveAuthMessage";
+option optimize_for = LITE_RUNTIME;
+
+//回执枚举
+enum AckCode {
+  LIVE_ROOM_MSG_FAIL = 0;
+  LIVE_ROOM_NOT_EXIST = 1;
+}
+
+//回执结构体
+message Ack {
+  AckCode code = 1;
+}

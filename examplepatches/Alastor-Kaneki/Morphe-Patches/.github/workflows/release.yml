@@ -12,7 +12,7 @@ jobs:
   release:
     if: contains(github.event.head_commit.message, '[release]')
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
@@ -28,11 +28,17 @@ jobs:
       - name: Test GX URL resolver
         run: bash tools/test-parser.sh
 
+      - name: Test standalone GX icon pack
+        run: bash tools/test-gx-icon-pack.sh
+
       - name: Test Chrome userscript engine
         run: bash tools/test-chrome-userscripts.sh
 
       - name: Test Chrome 150 exact menu hook
         run: bash tools/test-chrome150-menu-hook.sh
+
+      - name: Test Chrome page runtime and Material UI
+        run: bash tools/test-chrome-runtime-bridge.sh
 
       - name: Build Android Morphe bundle
         env:
@@ -56,7 +62,7 @@ jobs:
             exit 1
           fi
 
-          RELEASE_DESCRIPTION="Morphe Patches ${VERSION}. Includes the Opera GX raw mod downloader and the Chrome 150 exact app-menu MonkeyScript manager with Material You, Greasy Fork/Sleazy Fork browsing, installation, and userscript publishing."
+          RELEASE_DESCRIPTION="Morphe Patches ${VERSION}. Includes the separate Suno timestamped-lyrics exporter with LRC, enhanced LRC, SRT, WebVTT, and JSON output; the Opera GX 56-icon launcher selector; the independently selectable Opera GX raw mod downloader; and the Chrome 150 MonkeyScript manager with contrast-safe Material You, page-capable userscript execution, Greasy Fork/Sleazy Fork installation, and publishing."
 
           if ! gh release view "$TAG" >/dev/null 2>&1; then
             gh release create "$TAG" \

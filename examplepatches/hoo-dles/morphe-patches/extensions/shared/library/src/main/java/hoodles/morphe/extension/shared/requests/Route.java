@@ -1,3 +1,11 @@
+/**
+ * Original code is credited to Morphe:
+ * https://github.com/MorpheApp/morphe-patches/blob/main/extensions/shared/library/src/main/java/app/morphe/extension/shared/requests/Route.java
+ *
+ * Copyright 2026 Hoo-dles
+ * https://github.com/hoo-dles/morphe-patches
+ */
+
 package hoodles.morphe.extension.shared.requests;
 
 public class Route {

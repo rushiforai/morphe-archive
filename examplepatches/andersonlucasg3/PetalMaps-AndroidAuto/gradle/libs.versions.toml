@@ -1,0 +1,22 @@
+[versions]
+morphe-patcher = "1.7.0"
+morphe-patches-library = "1.5.1-dev.2"
+# Tracking https://github.com/google/smali/issues/100.
+smali = "d92701d947"
+agp = "9.1.0"
+annotation = "1.10.0"
+androidx-core = "1.18.0"
+car-app = "1.7.0"
+gson = "2.14.0"
+
+[libraries]
+morphe-patches-library = { module = "app.morphe:morphe-patches-library", version.ref = "morphe-patches-library" }
+morphe-extensions-library = { module = "app.morphe:morphe-extensions-library", version.ref = "morphe-patches-library" }
+annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
+androidx-core = { module = "androidx.core:core", version.ref = "androidx-core" }
+car-app = { module = "androidx.car.app:app", version.ref = "car-app" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+
+[plugins]
+android-library = { id = "com.android.library" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version = "2.1.0" }

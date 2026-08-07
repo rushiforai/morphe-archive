@@ -146,8 +146,9 @@ Unlocks privacy features:
 Enhances messaging features:
 - Message limits removal (ChatPartnerConfig limits)
 - Pin chat unlimited (PlatinumPinChat expiration)
-- Voice/video calls (LoveBuzzData remaining counts)
+- Voice/video calls (LoveBuzzData remaining counts - consolidated single-pass scan)
 - Quick chat features (quickchat privileges)
+- Typing indicator control (conversation view model X2 method)
 - Visitor message limits (ODiamondVisitorMessageGuideConfig)
 - Conversation entry limits (PrologueConfig)
 - Buzz call toggles (voiceBuzz, videoBuzz, textBuzz, memojiBuzz)
@@ -269,7 +270,8 @@ Patches MUST survive obfuscation churn between app versions. **Never match obfus
 | `PrivilegeContentDlgItemView` | CamelCase stable + `string("mysterious_mode")` |
 | `ChatPartnerConfig` | `fieldAccess(messageLimit)` + `fieldAccess(perday)` |
 | `PlatinumPinChat` | `fieldAccess(expireTime)` |
-| `LoveBuzzData` | `fieldAccess(remainingVoiceBuzz)` + `fieldAccess(remainingVideoBuzz)` |
+| `LoveBuzzData` | Consolidated single-pass: `fieldAccess(LoveBuzzData.remainingVoiceBuzz/TextBuzz/VideoBuzz/MemojiBuzz)` via `classDefForEach` pre-filter |
+| Typing indicator | `fieldAccess(KeepConnection.chatTypingOpen)` + `fieldAccess(KeepConnection.chatTypingInterval)` + `methodCall(interval)` |
 | FoxStatistics (`zvf0`) | `string("e_request_none_oaid")` |
 | AppsFlyer | `string("dmfeSDkpVxP8m6Ys6yJCpn")` (dev key) |
 | CleverTap | `string("CleverTap SDK initialized with accountId")` |

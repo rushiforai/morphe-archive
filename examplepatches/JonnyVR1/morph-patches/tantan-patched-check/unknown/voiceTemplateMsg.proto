@@ -1,0 +1,13 @@
+syntax = "proto3";
+package liveroom;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + liveroom）
+option java_package = "com.p1.mobile.longlink.msg.liveroom";
+option java_outer_classname = "voiceTemplateMsg";
+option optimize_for = LITE_RUNTIME;
+import "template.proto";
+import "userMaskConfig.proto";
+message VoiceTemplateMsg {
+  template.TemplateData templateData = 1;
+  userMask.UserMask senderMask = 2;
+}

@@ -1,0 +1,43 @@
+.class public interface abstract Lcom/p1/mobile/longlink/msg/liveadmininner/LongLinkAdminMessage$BgStyleOrBuilder;
+.super Ljava/lang/Object;
+.source "SourceFile"
+
+# interfaces
+.implements Ll/lfz;
+
+
+# annotations
+.annotation system Ldalvik/annotation/EnclosingClass;
+    value = Lcom/p1/mobile/longlink/msg/liveadmininner/LongLinkAdminMessage;
+.end annotation
+
+.annotation system Ldalvik/annotation/InnerClass;
+    accessFlags = 0x609
+    name = "BgStyleOrBuilder"
+.end annotation
+
+
+# virtual methods
+.method public abstract getAlpha()Ljava/lang/String;
+.end method
+
+.method public abstract getAlphaBytes()Lcom/google/protobuf/ByteString;
+.end method
+
+.method public abstract synthetic getDefaultInstanceForType()Lcom/google/protobuf/q;
+.end method
+
+.method public abstract getEndColor()Ljava/lang/String;
+.end method
+
+.method public abstract getEndColorBytes()Lcom/google/protobuf/ByteString;
+.end method
+
+.method public abstract getStartColor()Ljava/lang/String;
+.end method
+
+.method public abstract getStartColorBytes()Lcom/google/protobuf/ByteString;
+.end method
+
+.method public abstract synthetic isInitialized()Z
+.end method

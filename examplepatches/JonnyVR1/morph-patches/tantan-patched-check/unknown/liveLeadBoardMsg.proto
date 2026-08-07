@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package live.leaderboard;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + live.leaderboard）
+option java_package = "com.p1.mobile.longlink.msg.live.leaderboard";
+option java_outer_classname = "LongLinkLiveLeadBoardMsg";
+option optimize_for = LITE_RUNTIME;
+
+enum LeaderboardEffectType {
+  week = 0;
+  second = 1;
+  love = 2;
+}
+
+message LeaderboardEffectInfo {
+  LeaderboardEffectType type = 1;
+  string userName = 2;
+  string userPic = 3;
+  string title = 4;
+  string content = 5;
+  string svgUrl = 6;
+}

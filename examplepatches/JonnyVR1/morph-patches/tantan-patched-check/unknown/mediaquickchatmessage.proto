@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+option go_package = "pushmessage";
+option java_package = "com.p1.mobile.longlink.msg";
+option java_outer_classname = "LongLinkmediaquickchatmeassage";
+option optimize_for = LITE_RUNTIME;
+
+enum QuickchatType {
+  Unknown = 0;
+  Audio = 1;
+  Video = 2;
+}
+
+message QuickchatMatched {
+  string otherUserID = 1;
+  QuickchatType quickchatType = 2;
+  string rtcToken = 3;
+  string rtcChannel = 4;
+  int64 rtcChannelWaittingTime = 5;
+  string queryOtherUserToken = 6;
+}
+
+message QuickchatChannel {
+  string channelID = 1;
+  string usedExpiredPropUserID = 2;
+  string superlikeSentUserID = 3;
+  int64 expiredTime = 4;
+  bool userMatched = 5;
+}
+
+message QuickchatChannelEvent{
+  string eventName = 1;
+  QuickchatChannel status = 2;
+  int64 version = 3;
+}

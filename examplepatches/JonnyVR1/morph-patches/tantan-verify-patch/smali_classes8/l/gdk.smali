@@ -1,0 +1,54 @@
+.class public final synthetic Ll/gdk;
+.super Ljava/lang/Object;
+.source "SourceFile"
+
+# interfaces
+.implements Landroid/view/View$OnClickListener;
+
+
+# instance fields
+.field public final synthetic a:Lcom/p1/mobile/putong/core/ui/greet/GreetingItemRootLayout;
+
+.field public final synthetic b:Lcom/p1/mobile/putong/core/data/MessageTipsContent;
+
+.field public final synthetic c:Ljava/lang/String;
+
+.field public final synthetic d:Ll/pol;
+
+
+# direct methods
+.method public synthetic constructor <init>(Lcom/p1/mobile/putong/core/ui/greet/GreetingItemRootLayout;Lcom/p1/mobile/putong/core/data/MessageTipsContent;Ljava/lang/String;Ll/pol;)V
+    .locals 0
+
+    .line 1
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+
+    iput-object p1, p0, Ll/gdk;->a:Lcom/p1/mobile/putong/core/ui/greet/GreetingItemRootLayout;
+
+    iput-object p2, p0, Ll/gdk;->b:Lcom/p1/mobile/putong/core/data/MessageTipsContent;
+
+    iput-object p3, p0, Ll/gdk;->c:Ljava/lang/String;
+
+    iput-object p4, p0, Ll/gdk;->d:Ll/pol;
+
+    return-void
+.end method
+
+
+# virtual methods
+.method public final onClick(Landroid/view/View;)V
+    .locals 3
+
+    .line 1
+    iget-object v0, p0, Ll/gdk;->a:Lcom/p1/mobile/putong/core/ui/greet/GreetingItemRootLayout;
+
+    iget-object v1, p0, Ll/gdk;->b:Lcom/p1/mobile/putong/core/data/MessageTipsContent;
+
+    iget-object v2, p0, Ll/gdk;->c:Ljava/lang/String;
+
+    iget-object p0, p0, Ll/gdk;->d:Ll/pol;
+
+    invoke-static {v0, v1, v2, p0, p1}, Lcom/p1/mobile/putong/core/ui/greet/GreetingItemRootLayout;->c(Lcom/p1/mobile/putong/core/ui/greet/GreetingItemRootLayout;Lcom/p1/mobile/putong/core/data/MessageTipsContent;Ljava/lang/String;Ll/pol;Landroid/view/View;)V
+
+    return-void
+.end method

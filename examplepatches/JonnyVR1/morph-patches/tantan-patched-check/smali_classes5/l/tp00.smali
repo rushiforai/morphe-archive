@@ -1,0 +1,56 @@
+.class public final synthetic Ll/tp00;
+.super Ljava/lang/Object;
+.source "SourceFile"
+
+# interfaces
+.implements Ll/y20;
+
+
+# instance fields
+.field public final synthetic a:Ll/xp00;
+
+.field public final synthetic b:Lv/VDraweeView;
+
+.field public final synthetic c:Landroid/widget/TextView;
+
+.field public final synthetic d:Ljava/lang/String;
+
+
+# direct methods
+.method public synthetic constructor <init>(Ll/xp00;Lv/VDraweeView;Landroid/widget/TextView;Ljava/lang/String;)V
+    .locals 0
+
+    .line 1
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+
+    iput-object p1, p0, Ll/tp00;->a:Ll/xp00;
+
+    iput-object p2, p0, Ll/tp00;->b:Lv/VDraweeView;
+
+    iput-object p3, p0, Ll/tp00;->c:Landroid/widget/TextView;
+
+    iput-object p4, p0, Ll/tp00;->d:Ljava/lang/String;
+
+    return-void
+.end method
+
+
+# virtual methods
+.method public final call(Ljava/lang/Object;)V
+    .locals 3
+
+    .line 1
+    iget-object v0, p0, Ll/tp00;->a:Ll/xp00;
+
+    iget-object v1, p0, Ll/tp00;->b:Lv/VDraweeView;
+
+    iget-object v2, p0, Ll/tp00;->c:Landroid/widget/TextView;
+
+    iget-object p0, p0, Ll/tp00;->d:Ljava/lang/String;
+
+    check-cast p1, Lcom/p1/mobile/putong/data/User;
+
+    invoke-static {v0, v1, v2, p0, p1}, Ll/xp00;->t(Ll/xp00;Lv/VDraweeView;Landroid/widget/TextView;Ljava/lang/String;Lcom/p1/mobile/putong/data/User;)V
+
+    return-void
+.end method

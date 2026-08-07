@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package liveroom;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + liveroom）
+option java_package = "com.p1.mobile.longlink.msg.liveroom";
+option java_outer_classname = "LongLinkAnchorGrowthMsg";
+option optimize_for = LITE_RUNTIME;
+
+//msgTypeName = "voice.room.anchor.growth"
+message AnchorGift {
+  string image = 1; // 礼物图片
+  string day = 2;  // 有效期
+}
+message VoiceAnchorGrowthMessage {
+  string title = 1;              // 标题
+  string subTitle = 2;           // 子标题
+  string scheme = 3;              // 跳转scheme
+  repeated AnchorGift gifts = 4;  // 礼物信息
+}

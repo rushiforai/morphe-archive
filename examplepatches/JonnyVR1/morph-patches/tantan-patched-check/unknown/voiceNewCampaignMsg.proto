@@ -1,0 +1,45 @@
+syntax = "proto3";
+package voicegift;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + liveroom）
+option java_package = "com.p1.mobile.longlink.msg.voicegift";
+option java_outer_classname = "VoiceNewCampaign";
+option optimize_for = LITE_RUNTIME;
+
+
+enum VoiceLongLinkUpdateAction {
+  ActionUnknow = 0;
+  ReRequest = 1;
+  Refresh = 2;
+  Complete = 3;
+}
+
+enum VoiceLongLinkUpdatePosition {
+  PositionUnknow = 0;
+  CampaignEntrance = 1;
+  GiftList = 2;
+  FirstRechargeCampaign = 3;
+  LiveCampaign = 4;
+  FirstRechargeStimulus = 5;
+}
+
+enum VoiceLiveCampaignType {
+  List = 0;
+  Entrance = 1;
+}
+
+message VoiceLiveCampaignInfo {
+  VoiceLiveCampaignType type = 1;
+  string id = 2;
+  int64 position = 3;
+  string subscribeType = 4;
+  string updateType = 5;
+  string data = 6;
+}
+
+message VoiceLiveContentUpdateNotice {
+  VoiceLongLinkUpdateAction action = 1;
+  VoiceLongLinkUpdatePosition position = 2;
+  string roomId = 3;
+  repeated VoiceLiveCampaignInfo liveCampaigns = 4;
+}

@@ -6,6 +6,8 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.util.Base64;
 
+import org.json.JSONObject;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -29,9 +31,7 @@ final class ForkSiteSupport {
     private static final String PENDING_FILE = "pending-fork-publish.user.js";
 
     private static final Pattern SCRIPT_ID = Pattern.compile("/scripts/(\\d+)(?:[-/]|$)");
-    private static final Pattern HREF = Pattern.compile(
-            "(?is)href\\s*=\\s*([\"'])(.*?)\\1"
-    );
+    private static final Pattern HREF = Pattern.compile("(?is)href\\s*=\\s*([\"'])(.*?)\\1");
     private static final Map<Activity, String> LAST_INSTALL_PROMPT = new WeakHashMap<>();
 
     private ForkSiteSupport() { }
@@ -66,6 +66,15 @@ final class ForkSiteSupport {
         if (isDirectScript(pageUrl)) return pageUrl;
         if (!isForkScriptPage(pageUrl)) throw new Exception("This page is not a userscript page");
 
+        String apiUrl = apiUrl(pageUrl);
+        if (apiUrl != null) {
+            try {
+                JSONObject object = new JSONObject(MonkeyStore.fetch(apiUrl));
+                String codeUrl = object.optString("code_url", "").trim();
+                if (isAllowedInstallUrl(codeUrl)) return codeUrl;
+            } catch (Throwable ignored) { }
+        }
+
         String html = MonkeyStore.fetch(pageUrl);
         Matcher matcher = HREF.matcher(html);
         while (matcher.find()) {
@@ -76,12 +85,9 @@ final class ForkSiteSupport {
             } catch (Exception ignored) {
                 continue;
             }
-            if (!isDirectScript(resolved)) continue;
-            String host = ViolentmonkeyCompat.normalizeHost(new URI(resolved).getHost());
-            if (isAllowedForkDownloadHost(host)) return resolved;
+            if (isAllowedInstallUrl(resolved)) return resolved;
         }
 
-        // Violentmonkey-compatible fallback that preserves both script ID and slug.
         return ViolentmonkeyCompat.fallbackForkInstallUrl(pageUrl);
     }
 
@@ -98,27 +104,37 @@ final class ForkSiteSupport {
 
     static void openInstallPreview(Activity activity, String pageUrl) {
         activity.startActivity(new Intent(activity, UserscriptInstallActivity.class)
-                .putExtra("script_page_url", pageUrl));
+                .putExtra("script_page_url", pageUrl)
+                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
     }
 
     /**
-     * Ports Violentmonkey's install-link interception to Chrome Android without webRequest.
-     * A click on a .user.js/.user.css link is converted into a temporary URL hash marker that the
-     * native tab poller can observe and open in the full-screen install reviewer.
+     * Redirects a website install click straight into the exported native installer activity.
+     * The old hash-only bridge could swallow Greasy Fork's click and then wait forever for Chrome
+     * to report the changed hash. The explicit Android intent does not depend on that polling path.
      */
-    static void injectInstallClickBridge(ChromeBridge.Page page) {
-        if (page == null || page.incognito || !isForkScriptPage(page.url)) return;
+    static void injectInstallClickBridge(Activity activity, ChromeBridge.Page page) {
+        if (activity == null || page == null || page.incognito || !isForkPage(page.url)) return;
+        String packageName = activity.getPackageName();
         String payload = "(function(){"
-                + "if(window.__MonkeyScriptInstallBridge)return;"
-                + "window.__MonkeyScriptInstallBridge=true;"
+                + "if(window.__MonkeyScriptInstallBridgeV2)return;"
+                + "window.__MonkeyScriptInstallBridgeV2=true;"
+                + "const pkg='" + packageName + "';"
+                + "const direct=u=>/\\.user\\.(?:js|css)(?:[?#]|$)/i.test(u||'');"
+                + "const resolve=a=>{let u='';try{u=new URL((a&&((a.href)||(a.dataset&&a.dataset.codeUrl)))||'',location.href).href}catch(e){}return u};"
+                + "const launch=u=>{if(!direct(u))return false;"
+                + "window.__MonkeyScriptInstallRequest=u;"
+                + "const i='intent://install?url='+encodeURIComponent(u)+'#Intent;scheme=monkeyscript-install;package='+pkg+';end';"
+                + "setTimeout(()=>{location.href=i},0);"
+                + "setTimeout(()=>{if(document.visibilityState==='visible'){try{history.replaceState(history.state,'',location.pathname+location.search+'#monkeyscript-install='+encodeURIComponent(u))}catch(e){location.hash='monkeyscript-install='+encodeURIComponent(u)}}},900);"
+                + "return true};"
                 + "document.addEventListener('click',function(e){"
-                + "var a=e.target&&e.target.closest?e.target.closest('a[href]'):null;"
-                + "if(!a)return;"
-                + "var u;try{u=new URL(a.href,location.href)}catch(x){return;}"
-                + "if(!/\\.user\\.(?:js|css)(?:[?#]|$)/i.test(u.href))return;"
-                + "e.preventDefault();e.stopImmediatePropagation();"
-                + "location.hash='monkeyscript-install='+encodeURIComponent(u.href);"
+                + "const a=e.target&&e.target.closest?e.target.closest('a[href],button[data-code-url],[data-code-url]'):null;"
+                + "if(!a)return;const u=resolve(a);if(!direct(u))return;"
+                + "e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();launch(u);"
                 + "},true);"
+                + "const tag=()=>document.querySelectorAll('a.install-link[href],a[href*=\".user.js\"],a[href*=\".user.css\"],[data-code-url]').forEach(a=>{a.dataset.monkeyscriptReady='true';a.title='Install with Userscripts'});"
+                + "tag();new MutationObserver(tag).observe(document.documentElement,{childList:true,subtree:true});"
                 + "})();";
         ChromeBridge.exec(page, payload);
     }
@@ -196,9 +212,7 @@ final class ForkSiteSupport {
                 source = MonkeyStore.read(input, 3 * 1024 * 1024);
             }
             String encoded = Base64.encodeToString(
-                    source.getBytes(StandardCharsets.UTF_8),
-                    Base64.NO_WRAP
-            );
+                    source.getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP);
             String action = "https://" + host + path;
             String payload = "(function(){if(window.__MonkeyForkPublish)return;"
                     + "window.__MonkeyForkPublish=true;const b='" + encoded + "';"
@@ -229,6 +243,37 @@ final class ForkSiteSupport {
                 .apply();
         File pending = new File(new File(activity.getFilesDir(), "monkeyscript"), PENDING_FILE);
         if (pending.isFile()) pending.delete();
+    }
+
+    private static String apiUrl(String pageUrl) {
+        try {
+            URI uri = new URI(pageUrl);
+            String host = ViolentmonkeyCompat.normalizeHost(uri.getHost());
+            Matcher matcher = SCRIPT_ID.matcher(uri.getPath() == null ? "" : uri.getPath());
+            if (!matcher.find()) return null;
+            String apiHost = GREASY_HOST.equals(host) ? "api.greasyfork.org" : host;
+            return "https://" + apiHost + "/en/scripts/" + matcher.group(1) + ".json";
+        } catch (Throwable ignored) {
+            return null;
+        }
+    }
+
+    private static boolean isForkPage(String url) {
+        try {
+            return isForkHost(new URI(url).getHost());
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
+    private static boolean isAllowedInstallUrl(String url) {
+        if (!isDirectScript(url)) return false;
+        try {
+            return isAllowedForkDownloadHost(
+                    ViolentmonkeyCompat.normalizeHost(new URI(url).getHost()));
+        } catch (Throwable ignored) {
+            return false;
+        }
     }
 
     private static String scriptIdForHost(String installUrl, String targetHost) {

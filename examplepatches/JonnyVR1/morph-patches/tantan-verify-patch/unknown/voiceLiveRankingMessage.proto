@@ -1,0 +1,91 @@
+syntax = "proto3";
+package voicelivemessage;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + userMask）
+option java_package = "com.p1.mobile.longlink.msg.voicelivemessage";
+option java_outer_classname = "VoiceLiveRankingBoard";
+option optimize_for = LITE_RUNTIME;
+
+// 小时榜-长链推送
+message VoiceLiveRankings {
+  string title = 1;
+  VoiceLiveRankingType type = 2; // 榜单类型，目前是小时榜
+  VoiceLiveRankingAction action = 3;
+  repeated VoiceLiveRanking rankings = 4;
+  string roomId = 5;      //房间 id
+  string liveId = 6;      //场次 id
+  int64 rankingTime = 7;
+  VoiceLiveRankingMsgType msgType = 9;
+}
+
+enum VoiceLiveRankingType {
+  currentHour = 0;   // 当前小时榜
+  lastHour = 1; // 上小时榜
+}
+
+enum VoiceLiveRankingAction {
+  all = 0;
+  current = 1;
+  top = 2;
+}
+
+enum VoiceLiveStateEnum {
+  onlive = 0;
+  stopped = 1;
+  suspended = 2;
+  born = 3;
+}
+
+message VoiceLiveRanking {
+  int64 rank = 1;
+  string anchorId = 2;
+  string roomId = 3;
+  string liveId = 4;
+  string anchorImage = 5;
+  string anchorName = 6;
+  int64 amount = 7;
+  VoiceLiveStateEnum userLiveState = 8;
+  string content = 9;
+  int64 gap = 10; // 小时榜内和指定主播的数值差距
+}
+
+enum VoiceLiveRankingMsgType {
+  normal = 0; // 普通消息
+  start = 1; // 重新开始
+  progress = 2; // 进度
+  sprint = 3; // 冲刺
+}
+
+message UserMask {
+  string userId = 1;
+  string name = 2;
+  string avatar = 3;
+  AvatarConfig avatarConfig = 4;
+  VoiceMaskModeAddition voiceMaskModeAddition = 5;
+}
+
+message AvatarConfig {
+  PictureConfig frameConfig = 1;
+}
+
+message PictureConfig {
+  string staticUrl = 1;
+  string dynamicUrl = 2;
+  string smallDynamicUrl = 3;
+  string mediumDynamicUrl = 4;
+  int64 totalSec = 5;
+  int64 remainingSec =6;
+  int64 changeVoiceNo =7;
+  int64 endMill = 8;
+  string funnyUrl = 9;
+}
+
+message VoiceMaskModeAddition {
+  string color = 1;
+  string gender = 2;
+}
+
+message CurrentHourSuggestConfig {
+  bool enable = 1; // 是否开启玩法
+}
+

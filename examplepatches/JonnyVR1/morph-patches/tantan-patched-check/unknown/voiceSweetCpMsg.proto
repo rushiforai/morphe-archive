@@ -1,0 +1,78 @@
+syntax = "proto3";
+package liveroom;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + liveroom）
+option java_package = "com.p1.mobile.longlink.msg.liveroom";
+option java_outer_classname = "VoiceSweet";
+option optimize_for = LITE_RUNTIME;
+
+import "userMaskConfig.proto";
+
+// 甜蜜cp绑定邀请 (msgTypeName: voiceLive.cp.bindRelationship)
+message VoiceCpBindMessage {
+  string roomId = 1;
+  string liveId = 2;
+  string houseId = 3;
+  string houseName = 4;
+  int32 houseRank = 5;
+  string houseImage = 6;
+  string houseBackground = 7;
+  string userId = 8;//发起邀请方ID
+  string userName = 9;
+  string userAvatar = 10;
+  string otherUserId = 11; // 对方用户ID
+  string otherUserName = 12;
+  string otherUserAvatar = 13;
+  VoiceCpBindAction action = 14;
+}
+
+enum VoiceCpBindAction {
+  invite = 0; // 邀请
+  agree = 1; // 同意
+  refuse = 2; // 拒绝
+}
+
+// 甜蜜cp小屋升级 (msgTypeName: voiceLive.cp.houseUpgrade)
+message VoiceCpHouseUpgradeMessage {
+  string roomId = 1;
+  string liveId = 2;
+  string houseId = 3;
+  string houseName = 4;
+  int32 houseRank = 5;
+  string houseImage = 6;
+  string houseBackground = 7;
+  string userId = 8;//发起邀请方ID
+  string userName = 9;
+  string otherUserId = 11; // 对方用户ID
+  string otherUserName = 12;
+  repeated VoiceCpHouseReward rewardList = 13;
+}
+
+message VoiceCpHouseReward {
+  string title = 1;
+  string image = 2;
+}
+
+// 甜蜜小屋解锁以及升级动效 (msgTypeName = 'voicelive.sweetcp.animation')
+message VoiceSweetCpAnimation {
+  enum Type {
+    upgrade = 0; // 升级动效
+  }
+  Type type = 1;
+  string animationUrl = 2; // 动画资源链接 svga
+  repeated userMask.UserMask cpUsers = 3; // cp 用户信息，长度为2
+  VoiceSweetCpHouseInfo houseInfo = 4;// 小屋信息
+}
+
+message VoiceSweetCpHouseInfo {
+  int32 houseLevel = 1;
+  string avatarAnimationUrl = 2; // 头像banner svga
+}
+
+//msgTypeName = "voice.room.sweetcp.cpeffect"
+message VoiceSweetCpEffect {
+  bool On = 1; // true: 打开特效, false: 关闭特效
+  repeated string userIds = 2;
+  string horizontalCallConnectionEffectSvga = 3;
+  string verticalCallConnectionEffectSvga = 4;
+}

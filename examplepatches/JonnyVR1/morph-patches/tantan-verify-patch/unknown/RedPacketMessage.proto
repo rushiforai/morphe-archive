@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package liveredpacket;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + liveredpacket）
+option java_package = "com.p1.mobile.longlink.msg.liveredpacket";
+option java_outer_classname = "LongLinkRedPacketMessage";
+option optimize_for = LITE_RUNTIME;
+
+import "template.proto";
+
+message JoinLotteryGiftRedPacketMsg {
+  string userId = 1;
+  string userName = 2;
+  string jumpScheme = 3; // 红包点击我也参加执行的操作
+  bool isAggregate = 4; //是否聚合
+  string roomId = 5;
+  template.TemplateData template = 6;
+}
+
+

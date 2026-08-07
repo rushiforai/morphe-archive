@@ -1,0 +1,13 @@
+syntax = "proto3";
+package voicelivecampaign;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + liveroom）
+option java_package = "com.p1.mobile.longlink.msg.voicelivecampaign";
+option java_outer_classname = "VoiceNewCampaignPopUp";
+option optimize_for = LITE_RUNTIME;
+
+
+message VoiceLivePopUp {
+  string campaignId = 1;
+  string roomId = 2;
+}

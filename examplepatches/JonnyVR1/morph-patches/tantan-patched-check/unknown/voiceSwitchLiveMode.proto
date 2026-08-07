@@ -1,0 +1,16 @@
+syntax = "proto3";
+package liveroom;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + liveroom）
+option java_package = "com.p1.mobile.longlink.msg.liveroom";
+option java_outer_classname = "LongLinkVoiceSwitchLiveMode";
+option optimize_for = LITE_RUNTIME;
+
+
+// msgTypeName: voice.live.liveMode
+// 匿名房&9麦房支持切换
+message VoiceLiveModeMessage {
+  string roomId = 1; // 房间id
+  string liveId = 2; // 直播id
+  string liveMode = 3;
+}

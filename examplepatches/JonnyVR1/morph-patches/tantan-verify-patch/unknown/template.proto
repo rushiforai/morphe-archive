@@ -1,0 +1,25 @@
+syntax = "proto3";
+package template;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + template）
+option java_package = "com.p1.mobile.longlink.msg.template";
+option java_outer_classname = "Template";
+option optimize_for = LITE_RUNTIME;
+
+enum TemplateType {
+  TP_DEFAULT = 0;
+  TP_ROOM_ENTER = 1;
+  TP_CHAT_NORMAL = 2;
+  TP_CHAT_GIFT = 3;
+  TP_FOLLOW = 4;
+  TP_OPENLIVE_NOTICE = 5;
+  TP_ENTER_NOTICE = 6;
+  TP_PUNISH = 7;
+  TP_KICK = 8;
+  TP_JAIL = 9;
+}
+
+message TemplateData {
+  uint32 id = 1;
+  repeated string fields = 2;
+}

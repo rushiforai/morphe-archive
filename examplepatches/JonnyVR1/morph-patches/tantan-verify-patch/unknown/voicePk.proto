@@ -1,0 +1,19 @@
+syntax = "proto3";
+package intllivecommon;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + userMask）
+option java_package = "com.p1.mobile.longlink.msg.voicelivemessage";
+option java_outer_classname = "VoiceLivePk";
+option optimize_for = LITE_RUNTIME;
+
+message VoiceLivePkModify {
+}
+message VoiceLivePkPoint {
+  repeated CallPkPoint callRewardPoints = 1;
+}
+
+message CallPkPoint {
+  string userId = 1;
+  uint64 point = 2;
+  bool isNewTopOne =3;
+}

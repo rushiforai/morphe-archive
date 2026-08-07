@@ -35,12 +35,12 @@
     "metadata": "io.github.liongalahad.nuviotv.settings.category.subtitles",
     "classes": [
       "io.github.liongalahad.nuviotv.extension.settings.MorpheSettingsRuntime",
-      "io.github.liongalahad.nuviotv.extension.settings.MorphePrimaryCategoryAction",
-      "io.github.liongalahad.nuviotv.extension.settings.MorpheComposeToggleAction",
+      "io.github.liongalahad.nuviotv.extension.settings.MorpheSettingsPageContent",
+      "io.github.liongalahad.nuviotv.extension.settings.MorpheSettingsRows",
+      "io.github.liongalahad.nuviotv.extension.settings.MorpheSubtitlesGroupContent",
       "io.github.liongalahad.nuviotv.extension.settings.MorpheComposeModeAction",
       "io.github.liongalahad.nuviotv.extension.settings.MorpheSdhModeDialogAction",
       "io.github.liongalahad.nuviotv.extension.settings.MorpheSdhModeDialog",
-      "io.github.liongalahad.nuviotv.extension.settings.MorpheSubtitlesExpandAction",
       "io.github.liongalahad.nuviotv.extension.subtitles.sdh.SdhCleanupMode",
       "io.github.liongalahad.nuviotv.extension.subtitles.sdh.SdhCueTransformer"
     ],

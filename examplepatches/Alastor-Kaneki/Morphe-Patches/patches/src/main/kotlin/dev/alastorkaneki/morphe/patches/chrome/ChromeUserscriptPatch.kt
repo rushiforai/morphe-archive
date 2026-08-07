@@ -118,8 +118,6 @@ private fun findActivity(application: Element, requestedName: String): Element? 
 private fun resolveChromeTheme(application: Element): String {
     val applicationTheme = application.getAttribute("android:theme")
 
-    // Chrome commonly exposes its launcher through an activity-alias. Follow targetActivity to
-    // the real ChromeTabbedActivity instead of falling back to Android's generic Material theme.
     listOf("activity", "activity-alias").forEach { tag ->
         val nodes = application.getElementsByTagName(tag)
         for (index in 0 until nodes.length) {
@@ -138,7 +136,6 @@ private fun resolveChromeTheme(application: Element): String {
         }
     }
 
-    // Exact fallback for Chrome packages whose launcher alias is heavily transformed.
     val activities = application.getElementsByTagName("activity")
     for (index in 0 until activities.length) {
         val activity = activities.item(index) as Element
@@ -204,10 +201,6 @@ internal val addChromeUserscriptManifestPatch = resourcePatch(
                 }
             }
 
-            // Chrome activities may run outside the application's default process. A provider
-            // registered only in the default process cannot observe those activities, which makes
-            // the patch appear completely absent. Install one initializer in every process that
-            // hosts an Activity, plus the default process used by the injected manager screens.
             val applicationProcess = application.getAttribute("android:process")
             val activityProcesses = linkedSetOf(applicationProcess)
             val activityNodes = application.getElementsByTagName("activity")
@@ -255,12 +248,43 @@ internal val addChromeUserscriptManifestPatch = resourcePatch(
 
             addActivity(MANAGER_ACTIVITY, "Userscripts", exported = true)
             addActivity(EDITOR_ACTIVITY, "Userscript editor")
-            addActivity(INSTALL_ACTIVITY, "Install userscript")
-        }
+            addActivity(INSTALL_ACTIVITY, "Install userscript", exported = true)
 
-        // Chrome 150 renders its app menu from a Chromium ModelList rather than android.view.Menu.
-        // The injected extension targets only the exact app_menu_list view at runtime and rejects
-        // the separate context_menu_list_view hierarchy.
+            val installActivities = application.getElementsByTagName("activity")
+            val installActivity = (0 until installActivities.length)
+                .map { installActivities.item(it) as Element }
+                .firstOrNull { it.getAttribute("android:name") == INSTALL_ACTIVITY }
+
+            installActivity?.let { activity ->
+                activity.setAttribute("android:exported", "true")
+                val filters = activity.getElementsByTagName("intent-filter")
+                val hasDeepLink = (0 until filters.length).any { filterIndex ->
+                    val filter = filters.item(filterIndex) as Element
+                    val dataNodes = filter.getElementsByTagName("data")
+                    (0 until dataNodes.length).any { dataIndex ->
+                        (dataNodes.item(dataIndex) as Element)
+                            .getAttribute("android:scheme") == "monkeyscript-install"
+                    }
+                }
+                if (!hasDeepLink) {
+                    activity.appendChild(document.createElement("intent-filter").apply {
+                        appendChild(document.createElement("action").apply {
+                            setAttribute("android:name", "android.intent.action.VIEW")
+                        })
+                        appendChild(document.createElement("category").apply {
+                            setAttribute("android:name", "android.intent.category.DEFAULT")
+                        })
+                        appendChild(document.createElement("category").apply {
+                            setAttribute("android:name", "android.intent.category.BROWSABLE")
+                        })
+                        appendChild(document.createElement("data").apply {
+                            setAttribute("android:scheme", "monkeyscript-install")
+                            setAttribute("android:host", "install")
+                        })
+                    })
+                }
+            }
+        }
     }
 
     finalize {
@@ -365,14 +389,12 @@ internal val addChromeUserscriptManifestPatch = resourcePatch(
 val chromeUserscriptManagerPatch = bytecodePatch(
     name = "MonkeyScript userscript manager",
     description =
-        "Adds an exact Chrome 150 Material You userscript manager using a Violentmonkey-derived parser and installer, app_menu_list integration, Greasy Fork/Sleazy Fork support, publishing, and configurable app/package cloning.",
+        "Adds a Chrome 150 Material You userscript manager using a Violentmonkey-derived parser, native app-menu integration, guaranteed Fork-page installation, Greasy Fork/Sleazy Fork support, publishing, and configurable app/package cloning.",
     default = true
 ) {
     compatibleWith(CHROME)
     dependsOn(addChromeUserscriptManifestPatch)
     extendWith("extensions/extension.mpe")
 
-    // Chrome Android does not expose the desktop WebExtension runtime. The injected extension
-    // therefore adapts Violentmonkey's portable userscript logic to Chromium Tab/WebContents.
     execute { }
 }

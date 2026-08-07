@@ -30,6 +30,19 @@ class MorpheSettingsRuntimeTest {
     }
 
     @Test
+    fun `category and control descriptions remain available`() {
+        assertEquals("Ratings", MorpheSettingsRuntime.ratingsCategoryTitle())
+        assertEquals("Subtitles", MorpheSettingsRuntime.subtitlesCategoryTitle())
+        assertEquals("Configure rating visibility", MorpheSettingsRuntime.ratingsCategoryDescription())
+        assertEquals("Configure subtitle patch settings", MorpheSettingsRuntime.subtitlesCategoryDescription())
+        assertEquals("Standard and TMDB ratings are shown.", MorpheSettingsRuntime.overallRatingsDescription())
+        assertEquals(
+            "Add SDH to English subtitle titles using metadata and repeated annotation patterns.",
+            MorpheSettingsRuntime.sdhMarkingDescription()
+        )
+    }
+
+    @Test
     fun `three modes commit synchronously and expose exact labels`() {
         assertEquals("Off", MorpheSettingsRuntime.sdhModeTitle(0))
         assertEquals("Remove SDH, keep lyrics", MorpheSettingsRuntime.sdhModeTitle(1))
@@ -58,5 +71,18 @@ class MorpheSettingsRuntimeTest {
         MorpheSettingsRuntime.setSdhCleanupMode(application, 99)
         assertEquals(0, MorpheSettingsRuntime.sdhCleanupModeOrdinal())
         assertFalse(MorpheSettingsRuntime.isRemoveSdhEnabled())
+    }
+
+    @Test
+    fun `sdh marking defaults off and persists independently`() {
+        val application = ApplicationProvider.getApplicationContext<android.app.Application>()
+        MorpheSettingsRuntime.setSdhMarkingEnabled(application, false)
+        assertFalse(MorpheSettingsRuntime.isSdhMarkingEnabled())
+
+        assertTrue(MorpheSettingsRuntime.toggleSdhMarkingEnabled())
+        assertTrue(MorpheSettingsRuntime.isSdhMarkingEnabled())
+        assertEquals("Mark SDH subtitles", MorpheSettingsRuntime.sdhMarkingTitle())
+
+        MorpheSettingsRuntime.setSdhMarkingEnabled(application, false)
     }
 }

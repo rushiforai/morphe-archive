@@ -1,0 +1,93 @@
+syntax = "proto3";
+package connector;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + connector）
+option java_package = "com.p1.mobile.longlink.msg.connector";
+option java_outer_classname = "LongLinkAuthMessage";
+option optimize_for = LITE_RUNTIME;
+
+enum ClientSourceEnum {
+  CLIENT_SOURCE_ANDROID = 0;
+  CLIENT_SOURCE_IOS = 1;
+  CLIENT_SOURCE_WEB = 2;
+}
+
+enum AppStaySideEnum {
+  APP_STAY_SIDE_FOREGROUND = 0;
+  APP_STAY_SIDE_BACKGROUND = 1;
+}
+
+message SwitchSide {
+  AppStaySideEnum toSide = 1;
+  bool mute = 2;
+}
+
+message Location {
+  float lon = 1;
+  float lat = 2;
+}
+
+message UserAgent {
+  ClientSourceEnum source = 1;
+  string appVersion = 2; // Putong/{{appVersion}}
+  string sourceVersion = 3; // Android/{{sourceVersion}}
+  string brand = 4; // Meizu
+  string model = 5; // PRO+7+Plus
+  string appUIVersion = 6;
+}
+
+message Auth {
+  string accessToken = 1;
+  ClientSourceEnum source = 2; // Deprecated
+  Location loc = 3;
+  AppStaySideEnum staySide = 4;
+  UserAgent ua = 5;
+  string locale = 6;
+  string roomId = 7;
+  bytes XTestingGroup = 8;
+  bytes XTTClientInfo = 9;
+  bytes flag = 10; //0x00 观众进入直播间 0x01 主播开播
+  bool mute = 11;
+  int32 MCC = 12;
+  string channel = 13;
+  string appID = 14;
+  string userID = 15;
+  string deviceIdentifer = 16;
+  string ext = 17;
+
+}
+
+enum AuthResCode {
+  AUTH_SUCC = 0;
+  AUTH_FAIL = 1;
+}
+message AuthAck {
+  AuthResCode code = 1;
+}
+
+message PushAck {
+  int64 recvTs = 1; //精确到毫秒，13位整数
+  AppStaySideEnum staySide = 2;
+  bool isReliable = 3;
+}
+
+
+message AuthAndHistory {
+  string accessToken = 1;
+  ClientSourceEnum source = 2;
+  string model = 3;
+}
+
+message AuthAndHistoryAck {
+  AuthResCode code = 1;
+  string senderId = 2;
+}
+
+message ConnInfo {
+  ClientSourceEnum source = 1;
+  AppStaySideEnum side = 2;
+  UserAgent ua = 3;
+  Location loc = 4;
+  string locale = 5;
+  string roomId = 6;
+}

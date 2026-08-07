@@ -1,3 +1,8 @@
+/**
+ * Copyright 2026 Hoo-dles
+ * https://github.com/hoo-dles/morphe-patches
+ */
+
 package hoodles.morphe.patches.adguard.premium
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
@@ -17,7 +22,7 @@ val enablePremiumPatch = bytecodePatch(
         name = "AdGuard",
         packageName = "com.adguard.android",
         appIconColor = 0x67b279,
-        targets = listOf(AppTarget("4.12.81"))
+        targets = listOf(AppTarget("4.13.1"))
     ))
 
     execute {
@@ -49,10 +54,13 @@ val enablePremiumPatch = bytecodePatch(
 
         GetPlusStateFingerprint.classDef.methods.add(getPaidLicenseMethod)
 
-        GetPlusStateFingerprint.method.addInstructions(0, """
+        val patchInstructions = """
             invoke-static {}, $getPaidLicenseMethod
             move-result-object v0
             return-object v0
-        """.trimIndent())
+        """.trimIndent()
+
+        GetPlusStateFingerprint.method.addInstructions(0, patchInstructions)
+        FetchPlusStateFingerprint.method.addInstructions(0, patchInstructions)
     }
 }

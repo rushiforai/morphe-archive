@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package livepkrank;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + livePkRank）
+option java_package = "com.p1.mobile.longlink.msg.livePkRank";
+option java_outer_classname = "LongLinkSocketMessage";
+option optimize_for = LITE_RUNTIME;
+
+//msgTypeName： live.pkRank.upgrade
+message PkRankUpgrade {
+  string anchorId = 1;
+  string anchorName = 2;
+  string rankName = 3; // 青铜IV 或 最强王者
+  int64 starCount = 4; // 为0则非王者段位，非0表示王者段位的星数
+  string rankSvga = 5;
+}
+

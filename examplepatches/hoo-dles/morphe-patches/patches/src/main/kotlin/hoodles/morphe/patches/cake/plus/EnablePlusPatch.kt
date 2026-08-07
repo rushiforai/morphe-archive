@@ -1,13 +1,15 @@
+/**
+ * Copyright 2026 Hoo-dles
+ * https://github.com/hoo-dles/morphe-patches
+ */
+
 package hoodles.morphe.patches.cake.plus
 
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.rawResourcePatch
 import hoodles.morphe.patches.shared.misc.hermes.hermesPatch
-
-//  LoadConstTrue         r0
-//  Ret                   r0
-const val RETURN_TRUE = "78 00 5c 00"
+import hoodles.morphe.util.HermesConstants.RETURN_TRUE
 
 @Suppress("unused")
 val enablePlusPatch = rawResourcePatch(

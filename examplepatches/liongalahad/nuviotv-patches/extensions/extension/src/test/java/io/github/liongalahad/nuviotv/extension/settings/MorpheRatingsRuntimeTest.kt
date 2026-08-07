@@ -48,7 +48,7 @@ class MorpheRatingsRuntimeTest {
         assertTrue(MorpheSettingsRuntime.shouldHideOverallRating(true))
         assertEquals("Hide", MorpheSettingsRuntime.currentOverallRatingsTitle())
         assertEquals(
-            "Standard and TMDB ratings are Hidden. MDBList provider settings take priority on detail pages.",
+            "Standard and TMDB ratings hidden; MDBList takes priority.",
             MorpheSettingsRuntime.overallRatingsDescription()
         )
     }

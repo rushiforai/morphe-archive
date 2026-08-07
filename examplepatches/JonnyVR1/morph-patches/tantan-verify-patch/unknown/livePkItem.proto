@@ -1,0 +1,22 @@
+syntax = "proto3";
+package livepkitem;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + liveroom）
+option java_package = "com.p1.mobile.longlink.msg.livepkitem";
+option java_outer_classname = "LongLinkLiveMessage";
+option optimize_for = LITE_RUNTIME;
+
+message PkItemCardsDetail {
+  repeated PkItemCard userItemCards = 1;
+  repeated PkItemCard otherUserItemCards = 2;
+}
+
+message PkItemCard {
+  string type = 1;
+  string text = 2;
+  int64 startTs = 3;
+  int32 duration = 4;
+  bool isResult = 5;
+  string name = 6;
+  string icon = 7;
+}

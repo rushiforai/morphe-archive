@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<scene>
+  <width_height>720,600</width_height>
+  <src_scale>1.0,1.0</src_scale>
+  <duration>6000</duration>
+  <max>10</max>
+  <model>
+    <chance_range>0,1</chance_range>
+    <active_time>2000,2500</active_time>
+    <src_ltwh>0,0,34,50</src_ltwh>
+    <move_from>30,30,match_parent,600</move_from>
+    <move_to>offset:-30,offset:30,0,0</move_to>
+    <move_interpolator>sin_6,cos_6</move_interpolator>
+    <rotate>0,0,0,0,13,39</rotate>
+    <alpha>30,70,255,255</alpha>
+    <alpha_interpolator>spring</alpha_interpolator>
+    <scale>1.1,1.2,1.5,1.7</scale>
+    <scale_interpolator>spring</scale_interpolator>
+  </model>
+</scene>

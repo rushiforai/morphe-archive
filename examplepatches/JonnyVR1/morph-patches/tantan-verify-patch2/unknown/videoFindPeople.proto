@@ -1,0 +1,26 @@
+syntax = "proto3";
+package liveroom;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + userMask）
+option java_package = "com.p1.mobile.longlink.msg.liveroom";
+option java_outer_classname = "LongLinkVideoFindPeople";
+option optimize_for = LITE_RUNTIME;
+
+enum Type {
+  startFinder = 0;
+  stopFinder = 1;
+}
+message LiveMultiCallPartyFinderMessage {
+  Type   type = 1;
+  string userId = 2;
+  string finderId = 3;
+  int32 invitedUserCnt = 4; // 邀请进房人数
+}
+
+message LiveAnchorAvatarComment {
+  string       iconUrl = 1; // 图标
+  string title = 2; // 标题
+  string content = 3; // 内容
+  string       gotoSchema = 4; // 跳转schema, 空的话不跳转
+  int32        showSeconds = 5; // 展示秒数
+}

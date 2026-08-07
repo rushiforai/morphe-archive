@@ -1,0 +1,40 @@
+syntax = "proto3";
+package liveoperationplace;
+
+//当前proto没有使用
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + liveoperationplace）
+option java_package = "com.p1.mobile.longlink.msg.liveoperationplace";
+option java_outer_classname = "LongLinkLiveTurboCard";
+option optimize_for = LITE_RUNTIME;
+
+message OperationPlace {
+  string icon = 1;
+  string clickAction = 2; // h5 或者 scheme
+  string url = 3; //url地址
+  string id = 4;
+  string type = 5;// "type":"turboCard", 运营位业务类型
+  TurboCardInfo turboCardInfo = 6;
+}
+
+message TurboCardInfo {//action=start时候的数据
+  string action = 1;// start 人气卡触发开始  processing 过程中
+  int64 prepareTimeStart = 2;//准备阶段（秒）
+  int64 prepareTimeEnd = 3;//准备阶段结束 （秒）
+  int64 exposureTimeStart = 4; //曝光开始时间
+  int64 exposureTimeEnd = 5; //曝光结束时间
+  string userType = 6;//送礼人身份 主播或者用户 anchor或者audience
+  string userId = 7; //送礼人id
+  string userName = 8; //送礼人姓名
+  int64 userHierarchy = 9; //送礼人等级
+  string userMedal = 10; //勋章
+  string roomId = 11;
+  string text = 12; // "XXXX使用了超级人气卡"
+  string msgType = 13; // ""普通消息 iconMsg 图文消息 左边有小图片的
+  string cardType = 14; // senior super
+}
+
+message TurboCardEventMsg {
+  string text = 1; // "XXXX等60人通过曝光进入了直播间"
+  int64 roomId = 2;
+  string icon = 3;
+}

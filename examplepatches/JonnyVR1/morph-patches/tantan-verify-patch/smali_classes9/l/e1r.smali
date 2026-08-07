@@ -1,0 +1,48 @@
+.class public final synthetic Ll/e1r;
+.super Ljava/lang/Object;
+.source "SourceFile"
+
+# interfaces
+.implements Landroid/view/View$OnClickListener;
+
+
+# instance fields
+.field public final synthetic a:Ll/w0r$g;
+
+.field public final synthetic b:Lcom/p1/mobile/putong/core/data/Sticker;
+
+.field public final synthetic c:Landroid/widget/PopupWindow;
+
+
+# direct methods
+.method public synthetic constructor <init>(Ll/w0r$g;Lcom/p1/mobile/putong/core/data/Sticker;Landroid/widget/PopupWindow;)V
+    .locals 0
+
+    .line 1
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+
+    iput-object p1, p0, Ll/e1r;->a:Ll/w0r$g;
+
+    iput-object p2, p0, Ll/e1r;->b:Lcom/p1/mobile/putong/core/data/Sticker;
+
+    iput-object p3, p0, Ll/e1r;->c:Landroid/widget/PopupWindow;
+
+    return-void
+.end method
+
+
+# virtual methods
+.method public final onClick(Landroid/view/View;)V
+    .locals 2
+
+    .line 1
+    iget-object v0, p0, Ll/e1r;->a:Ll/w0r$g;
+
+    iget-object v1, p0, Ll/e1r;->b:Lcom/p1/mobile/putong/core/data/Sticker;
+
+    iget-object p0, p0, Ll/e1r;->c:Landroid/widget/PopupWindow;
+
+    invoke-static {v0, v1, p0, p1}, Ll/w0r$g;->s(Ll/w0r$g;Lcom/p1/mobile/putong/core/data/Sticker;Landroid/widget/PopupWindow;Landroid/view/View;)V
+
+    return-void
+.end method

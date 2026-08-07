@@ -1,0 +1,79 @@
+{
+    "graph_id": "0963f8985e800000",
+    "graph_type": 0,
+    "matrix": {
+        "dx": -44.84953703703705,
+        "dy": -178.91589506172843,
+        "m11": 1,
+        "m12": 0,
+        "m21": 0,
+        "m22": 1
+    },
+    "nodes": [
+        {
+            "id": "{078a8d5d-a583-4a87-815e-2240bbaa9001}",
+            "model": {
+                "name": "FilterOriginInput",
+                "patch_node_id": "0963f89b7f400000",
+                "patch_node_type": "GraphNode.BaseNode.OriginInputSampler"
+            },
+            "position": {
+                "x": -299,
+                "y": -134
+            }
+        },
+        {
+            "id": "{586291d0-9ae1-4071-965d-919b208a1a99}",
+            "model": {
+                "name": "FilterRenderProcess",
+                "patch_node_id": "0963f89b83400000",
+                "patch_node_type": "GraphNode.BaseNode.RenderProcess"
+            },
+            "position": {
+                "x": 401,
+                "y": -34
+            }
+        },
+        {
+            "id": "{7a3e1c41-d3ec-4453-bc93-290b46e0535d}",
+            "model": {
+                "name": "CommonFilter",
+                "patch_node_id": "0963f89b7fc00000",
+                "patch_node_type": "GraphNode.BaseNode.Filter"
+            },
+            "position": {
+                "x": -100.72800000000001,
+                "y": -134
+            }
+        },
+        {
+            "id": "{07a4c9b5-edb9-4930-b022-90a40b53dec4}",
+            "model": {
+                "name": "FilterFinalOutput",
+                "patch_node_id": "0963f89b80000000",
+                "patch_node_type": "GraphNode.BaseNode.FinalOutput"
+            },
+            "position": {
+                "x": 201,
+                "y": -34
+            }
+        },
+        {
+            "id": "{c1f9fe8f-0962-461e-b3c7-45daa5c5f271}",
+            "model": {
+                "name": "FilterPassModifier",
+                "patch_node_id": "0965650a77400000",
+                "patch_node_type": "GraphNode.BaseNode.Variable.PassModifier"
+            },
+            "position": {
+                "x": -521.464,
+                "y": 7.024000000000058
+            }
+        }
+    ],
+    "position": {
+        "x": 397,
+        "y": -441
+    },
+    "rtg_path": "Asset/0963f4fd8b000000/blueprint/face_liquefy.rtg"
+}

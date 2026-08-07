@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package liveroom;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + liveroom）
+option java_package = "com.p1.mobile.longlink.msg.liveroom";
+option java_outer_classname = "LongLinkVoiceLiveAuctionAnimationMsg";
+option optimize_for = LITE_RUNTIME;
+
+import "userMaskConfig.proto";
+
+message VoiceLiveAuctionAnimation {
+
+  AnimType type = 1;
+  userMask.UserMask guestUser = 2;
+  userMask.UserMask winnerUser = 3;
+  int64 level = 4;
+  string relationName = 5;
+  string guestTagImage = 6; // 发起方tag
+  string winnerTagImage = 7; // 竞拍方tag
+  string daysText = 8; // 天数文本
+}
+enum AnimType {
+  settleAuction = 0; // 定拍动画
+  endAuction = 1; // 结束拍拍
+  endPledgeAuction = 2; // 结束誓约关系拍拍
+}

@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<scene>
+  <width_height>720,1280</width_height>
+  <duration>6000</duration>
+  <max>10</max>
+  <model>
+    <chance_range>0,1</chance_range>
+    <active_time>6000,8000</active_time>
+    <src_ltwh>0,0,24,27</src_ltwh>
+    <move_from>-100,0,match_parent,0</move_from>
+    <move_to>offset:100,1280,60,10</move_to>
+    <move_interpolator>decelerate,decelerate</move_interpolator>
+    <rotate>0,100,500,600,10,12</rotate>
+    <rotate_interpolator>decelerate</rotate_interpolator>
+    <alpha>100,150,0,0</alpha>
+    <alpha_interpolator>decelerate</alpha_interpolator>
+    <scale>1.6,2.0,2.8,3.0</scale>
+  </model>
+</scene>

@@ -1,0 +1,47 @@
+syntax = "proto3";
+package liveroom;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + liveroom）
+option java_package = "com.p1.mobile.longlink.msg.liveroom";
+option java_outer_classname = "VoiceUndercoverBean";
+option optimize_for = LITE_RUNTIME;
+
+import "userMaskConfig.proto";
+
+message VoiceUndercover {
+  message Player {
+    string userId = 1;
+    int32 number = 2;
+    userMask.UserMask mask = 3;
+    string role = 4;
+  }
+  message Vote {
+    userMask.UserMask candidateMask = 1;
+    int32 number = 2;
+    repeated int32 voterNumbers = 3;
+  }
+  message VoteResult {
+    bool isDraw = 1;
+    string result = 2;
+    string outUserRole = 3;
+    userMask.UserMask outUserMask = 4;
+  }
+  message GameResult {
+    string winnerRole = 1;
+    repeated userMask.UserMask normalMasks = 2;
+    string normalWord = 3;
+    repeated userMask.UserMask undercoverMasks = 4;
+    string undercoverWord = 5;
+  }
+  string id = 1;
+  string liveId = 2;
+  string status = 3;
+  string toast = 4;
+  repeated Player currentPlayers = 5;
+  int32 remainSeconds = 6;
+  repeated Vote votes = 7;
+  VoteResult voteResult = 8;
+  GameResult gameResult = 9;
+  int32 countDownSeconds = 10;
+  string word = 11;
+}

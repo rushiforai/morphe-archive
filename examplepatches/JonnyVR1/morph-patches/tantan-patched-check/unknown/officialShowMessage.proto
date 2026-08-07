@@ -1,0 +1,26 @@
+syntax = "proto3";
+package live.officialshow;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + live_fanbase）
+option java_package = "com.p1.mobile.longlink.msg.mln";
+option java_outer_classname = "OfficialShowMessage";
+option optimize_for = LITE_RUNTIME;
+
+// 公演房状态切换 msgTypeName="live.officialShow.update"
+message OfficialShowUpdateStatus {
+    enum ActionType {
+        unknown = 0;
+        updateAnchor = 1;
+        updateShowList = 2;
+        livePause = 3;
+        liveRecover = 4;
+    }
+  ActionType action = 1; // 主播进入/退出公演状态 公演房间更新公演节目单
+  string currentAnchorId = 2; // 公演中的主播id
+}
+
+// 公演房状态切换 msgTypeName="live.officialShow.jump"
+message OfficialShowJump {
+  string officialShowLiveId = 1; // 直播id
+  string officialShowRoomId = 2; // 房间id
+}

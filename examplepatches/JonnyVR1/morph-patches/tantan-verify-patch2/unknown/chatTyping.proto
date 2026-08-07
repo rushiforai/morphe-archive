@@ -1,0 +1,12 @@
+syntax = "proto3";
+package connector;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + connector）
+option java_package = "com.p1.mobile.longlink.msg.connector";
+option java_outer_classname = "LongLinkChatTypingMessage";
+option optimize_for = LITE_RUNTIME;
+
+message ChatTyping {
+  string userId = 1; //发送端uid
+  string otherUserId = 2; //接收端uid
+}

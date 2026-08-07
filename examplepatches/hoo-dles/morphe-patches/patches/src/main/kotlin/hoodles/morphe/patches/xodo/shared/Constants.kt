@@ -1,3 +1,8 @@
+/**
+ * Copyright 2026 Hoo-dles
+ * https://github.com/hoo-dles/morphe-patches
+ */
+
 package hoodles.morphe.patches.xodo.shared
 
 import app.morphe.patcher.patch.AppTarget
@@ -8,6 +13,6 @@ object Constants {
         name = "Xodo",
         packageName = "com.xodo.pdf.reader",
         appIconColor = 0xc82c40,
-        targets = listOf(AppTarget("10.15.0"))
+        targets = listOf(AppTarget("10.17.1"))
     )
 }

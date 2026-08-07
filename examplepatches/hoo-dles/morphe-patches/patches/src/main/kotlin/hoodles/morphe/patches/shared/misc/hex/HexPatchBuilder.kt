@@ -1,7 +1,16 @@
+/**
+ * Original code is credited to Morphe:
+ * https://github.com/MorpheApp/morphe-patches-library/blob/main/patch-library/src/main/kotlin/app/morphe/patches/all/misc/hex/HexPatchBuilder.kt
+ *
+ * Copyright 2026 Hoo-dles
+ * https://github.com/hoo-dles/morphe-patches
+ */
+
 package hoodles.morphe.patches.shared.misc.hex
 
 import app.morphe.patcher.patch.PatchException
-import hoodles.morphe.util.byteArrayOf
+import app.morphe.util.byteArrayOf
+import hoodles.morphe.util.find
 import kotlin.math.max
 
 /**
@@ -35,7 +44,7 @@ class Replacement(
      * @param targetFileBytes The bytes of the file to make the changes in.
      */
     internal fun replacePattern(targetFileBytes: ByteArray) {
-        val startIndex = indexOfPatternIn(targetFileBytes)
+        val startIndex = targetFileBytes.find(this.bytes)
 
         if (startIndex == -1) {
             throw PatchException(
@@ -45,39 +54,5 @@ class Replacement(
         }
 
         replacementBytesPadded.copyInto(targetFileBytes, startIndex)
-    }
-
-    // TODO: Allow searching in a file channel instead of a byte array to reduce memory usage.
-    /**
-     * Returns the index of the first occurrence of [bytes] in the haystack
-     * using the Boyer-Moore algorithm.
-     *
-     * @param haystack The array to search in.
-     *
-     * @return The index of the first occurrence of the [bytes] in the haystack or -1
-     * if the [bytes] is not found.
-     */
-    private fun indexOfPatternIn(haystack: ByteArray): Int {
-        val needle = bytes
-
-        val right = IntArray(256) { -1 }
-
-        for (i in 0 until needle.size) right[needle[i].toInt().and(0xFF)] = i
-
-        var skip: Int
-        for (i in 0..haystack.size - needle.size) {
-            skip = 0
-
-            for (j in needle.size - 1 downTo 0) {
-                if (needle[j] != haystack[i + j]) {
-                    skip = max(1, j - right[haystack[i + j].toInt().and(0xFF)])
-
-                    break
-                }
-            }
-
-            if (skip == 0) return i
-        }
-        return -1
     }
 }

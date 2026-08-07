@@ -1,3 +1,8 @@
+/**
+ * Copyright 2026 Hoo-dles
+ * https://github.com/hoo-dles/morphe-patches
+ */
+
 package hoodles.morphe.patches.solidexplorer.shared
 
 import app.morphe.patcher.patch.AppTarget
@@ -8,6 +13,6 @@ object Constants {
         name = "Solid Explorer",
         packageName = "pl.solidexplorer2",
         appIconColor = 0x039BE5,
-        targets = listOf(AppTarget("3.4.1"))
+        targets = listOf(AppTarget("3.5.16"))
     )
 }

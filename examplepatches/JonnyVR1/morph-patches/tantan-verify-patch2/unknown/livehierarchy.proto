@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package livehierarchy;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + livehierarchy）
+option java_package = "com.p1.mobile.longlink.msg.livehierarchy";
+option java_outer_classname = "LongLinkLiveUserLevel";
+option optimize_for = LITE_RUNTIME;
+
+//message
+message UserHierarchyGrade {
+  uint64 seq = 1;
+  string userId = 2;
+  string userName = 3;
+  string userImageUrl = 4;
+  int64 grade = 5;
+  int64 superGrade = 6;
+}
+
+// 礼物面板财富等级栏通知长链信息(本次增加的财富值为 wealth - preWealth)
+message UserLiveHierarchyProgressChange {
+  int64 grade = 1; // 当前等级
+  int64 wealth = 2; // 当前财富值
+  double wealthRatio = 3; // 进度
+  string progressText = 4; // 进度条常规文案
+  string jumpText = 5;
+  string jumpSchema = 6;
+  int64 preGrade = 7; // 之前的等级
+  int64 preWealth = 8; // 之前的财富值
+  int64 serverTs = 9; // 服务器时间戳，纳秒，防止旧事件后传到客户端，客户端根据此字段决定是否舍弃此次长链
+  int64 superGrade = 10; // 当前神豪等级，非神豪为0
+  UserLiveHierarchyProgressStyle style = 11;   // 进度条样式
+  repeated string progressTexts = 12;   // 进度条常规文案 多条轮播
+}
+
+message UserLiveHierarchyProgressStyle {
+  string startColor = 1;
+  string endColor = 2;
+  string bgStartColor = 3;
+  string bgEndColor = 4;
+  string textColor = 5;
+}
+
+// 用户财富等级升级
+enum RoomTopEffectType {
+  userWealthGradeUp = 0; // 用户财富等级升级
+}
+message RoomTopEffect {
+  RoomTopEffectType type = 1; // 特效类型
+  string svgUrl = 2; // svg底图
+  string tag = 3; // 标题的展示（可能为空）
+  string userId = 4; // 用户id
+  string userName = 5;  // 用户名 （可能为空）
+  string userImageUrl = 6; // 用户头像（可能为空）
+  int64 grade = 7; //升级后财富等级
+  int64 superGrade = 8; // 升级后神豪等级
+  int64 duration = 9; // 展示时长毫秒
+}

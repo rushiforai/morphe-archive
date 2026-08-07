@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<scene>
+  <duration>1500</duration>
+  <width_height>760,480</width_height>
+  <layout_type>bottom</layout_type>
+  <max>12</max>
+  <model>
+    <name>heart_motion</name>
+    <chance_range>0.0,1.0</chance_range>
+    <active_time>1000,1500</active_time>
+    <src_ltwh>0,0,146,126</src_ltwh>
+    <move_from>0,480,match_parent,36</move_from>
+    <move_to>offset:0,0,50,0</move_to>
+    <move_interpolator>sin_2,decelerate_2</move_interpolator>
+    <rotate>0,0,73.0,0.0</rotate>
+    <rotate_interpolator>linear_2</rotate_interpolator>
+    <alpha>0,0,100,150</alpha>
+    <alpha_interpolator>spring_2</alpha_interpolator>
+    <scale>0.6,1.2</scale>
+    <scale_interpolator>linear_2</scale_interpolator>
+  </model>
+</scene>

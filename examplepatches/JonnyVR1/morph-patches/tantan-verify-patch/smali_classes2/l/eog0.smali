@@ -1,0 +1,17 @@
+.class public abstract Ll/eog0;
+.super Ll/log0;
+.source "SourceFile"
+
+
+# direct methods
+.method public constructor <init>()V
+    .locals 0
+
+    .line 1
+    invoke-direct {p0}, Ll/log0;-><init>()V
+
+    .line 2
+    .line 3
+    .line 4
+    return-void
+.end method

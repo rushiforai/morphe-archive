@@ -1,0 +1,94 @@
+syntax = "proto3";
+
+package livegift;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + livegift）
+option java_package = "com.p1.mobile.longlink.msg.livegift";
+option java_outer_classname = "LongLinkLiveDanmakuMessage";
+option optimize_for = LITE_RUNTIME;
+
+message FakeUserMask {
+  string id = 1;
+  FakeType fakeType = 2;
+  string userId = 3;
+  string fakeId = 4;
+  string name = 5;
+  string gender = 6;
+  string avatar = 7;
+  FakeUserAvatarConfig avatarConfig = 8;
+  FakeUserProfileConfig profileConfig = 9;
+  string color = 10;
+  string icon = 11;
+  bool isFresh = 12;
+  string originUserId = 13;
+}
+
+enum FakeType {
+  system = 0;
+  voiceMask = 1;
+  mystery = 2;
+}
+
+
+message FakeUserAvatarConfig {
+  FakeUserPictureConfig frameConfig = 1;
+}
+
+message FakeUserPictureConfig {
+  string staticUrl = 1;
+  string dynamicUrl = 2;
+}
+
+message FakeUserProfileConfig {
+  FakeUserPictureConfig backgroundPictureConfig = 1;
+  FakeUserPictureConfig topFrameConfig = 2;
+}
+
+// 弹幕样式
+message BulletCommentStyle {
+  // 背景颜色
+  repeated string backgroundColors = 1;
+  // 背景透明度
+  int64 opacity = 2;
+  // 描边颜色
+  string borderColor = 3;
+  //背景图片
+  string backgroundUrl = 4;
+  //描边渐变色
+  repeated string borderColors = 5;
+
+}
+
+message VideoLiveBulletComment {
+  string id = 1;
+  string scenario = 2;
+  string liveId = 3;
+  string roomId = 4;
+  string anchorId = 5;
+  // 用户财富等级
+  int64 userHierarchy = 6;
+  // 表情图标
+  string iconUrl = 7;
+  // 弹幕类型Id
+  string typeId = 8;
+  // 弹幕类型
+  string type = 9;
+  // 弹幕子类型
+  string subType = 10;
+  // 支付方式 ttc / lbp
+  string payAssetType = 11;
+  // 支付资产ID
+  string payAssetId = 12;
+  // 支付金额
+  int64 payAmount = 13;
+  // 弹幕内容
+  string content = 14;
+  // 发送优先级, 数字越小优先级越高
+  int64 priority = 15;
+  BulletCommentStyle style = 16;
+}
+
+message BulletCommentInfo {
+  repeated FakeUserMask masks = 1;
+  VideoLiveBulletComment videoLiveBulletComment = 2;
+}

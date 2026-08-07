@@ -1,3 +1,8 @@
+/**
+ * Copyright 2026 Hoo-dles
+ * https://github.com/hoo-dles/morphe-patches
+ */
+
 package hoodles.morphe.patches.github.misc.theme
 
 import app.morphe.patcher.Fingerprint
@@ -11,7 +16,6 @@ object FunctionalColorsCtorFingerprint : Fingerprint(
 )
 
 object SetNavigationBarContrastFingerprint : Fingerprint(
-    strings = listOf("statusBarStyle", "navigationBarStyle", "window", "view"),
     filters = listOf(
         methodCall(name = "setNavigationBarContrastEnforced")
     )

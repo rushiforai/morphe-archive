@@ -2,10 +2,10 @@ package dev.alastorkaneki.morphe.extension.chromeuserscripts;
 
 import android.app.Activity;
 import android.graphics.Typeface;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.Gravity;
-import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -24,7 +24,12 @@ public final class UserscriptInstallActivity extends Activity {
         super.onCreate(state);
         MonkeyUi.window(this);
         render();
+
         String pageUrl = getIntent().getStringExtra("script_page_url");
+        Uri data = getIntent().getData();
+        if ((pageUrl == null || pageUrl.trim().isEmpty()) && data != null) {
+            pageUrl = data.getQueryParameter("url");
+        }
         if (pageUrl == null || pageUrl.trim().isEmpty()) {
             fail("No userscript URL was supplied");
             return;
@@ -130,7 +135,7 @@ public final class UserscriptInstallActivity extends Activity {
         view.setText(text);
         view.setTextColor(color);
         view.setTextSize(TypedValue.COMPLEX_UNIT_SP, sp);
-        if (bold) view.setTypeface(Typeface.DEFAULT_BOLD);
+        MonkeyUi.applyTypography(view, bold);
         return view;
     }
 
@@ -145,7 +150,7 @@ public final class UserscriptInstallActivity extends Activity {
     }
 
     private static String fileName(String url) {
-        String segment = android.net.Uri.parse(url).getLastPathSegment();
+        String segment = Uri.parse(url).getLastPathSegment();
         if (segment == null || segment.trim().isEmpty()) return "userscript.user.js";
         String lower = segment.toLowerCase(Locale.US);
         return lower.contains(".user.") ? segment : segment + ".user.js";

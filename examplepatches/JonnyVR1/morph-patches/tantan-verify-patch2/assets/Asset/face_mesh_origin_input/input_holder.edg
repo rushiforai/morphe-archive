@@ -1,0 +1,79 @@
+{
+    "graph_id": "0c81ae008fc00000",
+    "graph_type": 0,
+    "matrix": {
+        "dx": 0,
+        "dy": 0,
+        "m11": 1,
+        "m12": 0,
+        "m21": 0,
+        "m22": 1
+    },
+    "nodes": [
+        {
+            "id": "{9c0ec144-1903-46d2-bc8c-9bea81806a5f}",
+            "model": {
+                "name": "FilterRenderProcess",
+                "patch_node_id": "0c81ae1ed5c00009",
+                "patch_node_type": "GraphNode.BaseNode.RenderProcess"
+            },
+            "position": {
+                "x": 443.9520000000002,
+                "y": 159.51199999999972
+            }
+        },
+        {
+            "id": "{119e5291-44aa-4833-9deb-dc54cca99506}",
+            "model": {
+                "name": "FilterFinalOutput",
+                "patch_node_id": "0c81ae1ed5c00006",
+                "patch_node_type": "GraphNode.BaseNode.FinalOutput"
+            },
+            "position": {
+                "x": 7.58400000000006,
+                "y": 238.95999999999992
+            }
+        },
+        {
+            "id": "{1f1e34c0-278b-4e4f-be7f-20cc3b60e09c}",
+            "model": {
+                "name": "CommonFilter",
+                "patch_node_id": "0c81ae1ed5c00002",
+                "patch_node_type": "GraphNode.BaseNode.Filter"
+            },
+            "position": {
+                "x": 461,
+                "y": -48
+            }
+        },
+        {
+            "id": "{a3214f14-5b91-4759-96b5-70c2b98dc5ea}",
+            "model": {
+                "name": "FilterPassModifier",
+                "patch_node_id": "0c81aeb43fc00004",
+                "patch_node_type": "GraphNode.BaseNode.Variable.PassModifier"
+            },
+            "position": {
+                "x": 11,
+                "y": 67
+            }
+        },
+        {
+            "id": "{30ec7c0c-d433-4227-84d4-2ff9e978b53a}",
+            "model": {
+                "name": "FilterOriginInput",
+                "patch_node_id": "0c81ae1ed5c00000",
+                "patch_node_type": "GraphNode.BaseNode.OriginInputSampler"
+            },
+            "position": {
+                "x": 8,
+                "y": -60
+            }
+        }
+    ],
+    "position": {
+        "x": 154,
+        "y": -114
+    },
+    "rtg_path": "Asset/face_mesh_origin_input/input_holder.rtg"
+}

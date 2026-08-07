@@ -1,0 +1,50 @@
+[
+  {
+    "id": "0",
+    "name": "初中",
+    "section": "初中",
+    "query": "junior-middle-school"
+  },
+  {
+    "id": "13",
+    "name": "三年级",
+    "section": "中专",
+    "query": "technical-school"
+  },
+  {
+    "id": "12",
+    "name": "二年级",
+    "section": "中专",
+    "query": "technical-school"
+  },
+  {
+    "id": "11",
+    "name": "一年级",
+    "section": "中专",
+    "query": "technical-school"
+  },
+  {
+    "id": "23",
+    "name": "三年级",
+    "section": "高中",
+    "query": "senior-middle-school"
+  },
+  {
+    "id": "22",
+    "name": "二年级",
+    "section": "高中",
+    "query": "senior-middle-school"
+  },
+  {
+    "id": "21",
+    "name": "一年级",
+    "section": "高中",
+    "query": "senior-middle-school"
+  },
+  {
+    "id": "29",
+    "name": "高中毕业",
+    "section": "高中毕业",
+    "query": "senior-middle-school"
+  }
+]

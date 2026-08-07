@@ -21,16 +21,26 @@ private const val CUE_TRANSFORMER =
 private const val CUE_GROUP = "Landroidx/media3/common/text/CueGroup;"
 private const val CATEGORY_METADATA =
     "io.github.liongalahad.nuviotv.settings.category.subtitles"
+private const val FEATURE_METADATA =
+    "io.github.liongalahad.nuviotv.settings.feature.remove_sdh"
 
 private val sdhCategoryResourcePatch = resourcePatch {
     compatibleWith(NUVIO_COMPATIBILITY)
     execute {
         document("AndroidManifest.xml").use { document ->
             val application = document.getElementsByTagName("application").item(0) as Element
-            application.appendChild(document.createElement("meta-data").apply {
-                setAttribute("android:name", CATEGORY_METADATA)
-                setAttribute("android:value", "true")
-            })
+            listOf(CATEGORY_METADATA, FEATURE_METADATA).forEach { metadataName ->
+                val alreadyPresent = (0 until application.getElementsByTagName("meta-data").length).any { index ->
+                    (application.getElementsByTagName("meta-data").item(index) as? Element)
+                        ?.getAttribute("android:name") == metadataName
+                }
+                if (!alreadyPresent) {
+                    application.appendChild(document.createElement("meta-data").apply {
+                        setAttribute("android:name", metadataName)
+                        setAttribute("android:value", "true")
+                    })
+                }
+            }
         }
     }
 }

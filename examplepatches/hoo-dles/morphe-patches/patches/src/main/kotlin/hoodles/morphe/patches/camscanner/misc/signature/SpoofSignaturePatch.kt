@@ -1,3 +1,8 @@
+/**
+ * Copyright 2026 Hoo-dles
+ * https://github.com/hoo-dles/morphe-patches
+ */
+
 package hoodles.morphe.patches.camscanner.misc.signature
 
 import hoodles.morphe.patches.camscanner.shared.Constants

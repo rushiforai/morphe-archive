@@ -1,3 +1,8 @@
+/**
+ * Original code credited to Morphe:
+ * https://github.com/MorpheApp/morphe-patches/blob/main/patches/src/main/kotlin/app/morphe/patches/util/resource/StringResource.kt
+ */
+
 package hoodles.morphe.util
 
 // Matches unescaped double quotes.

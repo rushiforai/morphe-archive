@@ -1,0 +1,170 @@
+.class public Ll/ozh$b;
+.super Ll/h80;
+.source "SourceFile"
+
+
+# annotations
+.annotation system Ldalvik/annotation/EnclosingClass;
+    value = Ll/ozh;
+.end annotation
+
+.annotation system Ldalvik/annotation/InnerClass;
+    accessFlags = 0x1
+    name = null
+.end annotation
+
+.annotation system Ldalvik/annotation/Signature;
+    value = {
+        "Ll/h80<",
+        "Ll/uzh;",
+        ">;"
+    }
+.end annotation
+
+
+# instance fields
+.field public final synthetic i:Ll/ozh;
+
+
+# direct methods
+.method public constructor <init>(Ll/ozh;)V
+    .locals 0
+
+    .line 1
+    iput-object p1, p0, Ll/ozh$b;->i:Ll/ozh;
+
+    .line 2
+    .line 3
+    invoke-direct {p0}, Ll/h80;-><init>()V
+
+    .line 4
+    .line 5
+    .line 6
+    return-void
+.end method
+
+
+# virtual methods
+.method public bridge synthetic j(Ljava/lang/Object;I)V
+    .locals 0
+
+    .line 1
+    check-cast p1, Ll/uzh;
+
+    .line 2
+    .line 3
+    invoke-virtual {p0, p1, p2}, Ll/ozh$b;->s(Ll/uzh;I)V
+
+    .line 4
+    .line 5
+    .line 6
+    return-void
+.end method
+
+.method public bridge synthetic l(Ljava/lang/Object;IJ)V
+    .locals 0
+
+    .line 1
+    check-cast p1, Ll/uzh;
+
+    .line 2
+    .line 3
+    invoke-virtual {p0, p1, p2, p3, p4}, Ll/ozh$b;->t(Ll/uzh;IJ)V
+
+    .line 4
+    .line 5
+    .line 6
+    return-void
+.end method
+
+.method public s(Ll/uzh;I)V
+    .locals 0
+
+    .line 1
+    invoke-static {p1}, Lcom/tantanapp/common/utils/NullChecker;->a(Ljava/lang/Object;)Z
+
+    .line 2
+    .line 3
+    .line 4
+    move-result p0
+
+    .line 5
+    if-eqz p0, :cond_0
+
+    .line 6
+    .line 7
+    invoke-virtual {p1}, Ll/uzh;->b()Lcom/p1/mobile/putong/data/Emotion;
+
+    .line 8
+    .line 9
+    .line 10
+    move-result-object p0
+
+    .line 11
+    invoke-static {p0}, Lcom/tantanapp/common/utils/NullChecker;->a(Ljava/lang/Object;)Z
+
+    .line 12
+    .line 13
+    .line 14
+    move-result p0
+
+    .line 15
+    if-eqz p0, :cond_0
+
+    .line 16
+    .line 17
+    invoke-virtual {p1}, Ll/uzh;->b()Lcom/p1/mobile/putong/data/Emotion;
+
+    .line 18
+    .line 19
+    .line 20
+    move-result-object p0
+
+    .line 21
+    iget-object p0, p0, Lcom/p1/mobile/putong/data/Emotion;->id:Ljava/lang/String;
+
+    .line 22
+    .line 23
+    const-string p1, "state_type_id"
+
+    .line 24
+    .line 25
+    invoke-static {p1, p0}, Ll/jyb;->Y(Ljava/lang/Object;Ljava/lang/Object;)Ll/pf60;
+
+    .line 26
+    .line 27
+    .line 28
+    move-result-object p0
+
+    .line 29
+    filled-new-array {p0}, [Ll/pf60;
+
+    .line 30
+    .line 31
+    .line 32
+    move-result-object p0
+
+    .line 33
+    const-string p1, "e_set_my_state_type"
+
+    .line 34
+    .line 35
+    const-string p2, "p_set_my_state_post"
+
+    .line 36
+    .line 37
+    invoke-static {p1, p2, p0}, Ll/i4g0;->A(Ljava/lang/String;Ljava/lang/String;[Ll/pf60;)V
+
+    .line 38
+    .line 39
+    .line 40
+    :cond_0
+    return-void
+.end method
+
+.method public t(Ll/uzh;IJ)V
+    .locals 0
+
+    .line 1
+    return-void
+.end method

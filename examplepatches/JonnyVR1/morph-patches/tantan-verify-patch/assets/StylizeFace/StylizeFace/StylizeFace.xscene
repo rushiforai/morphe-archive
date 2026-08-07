@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="GB2312"?>
+<Scene SceneVer="1.8" SceneType="gfx" ViewportColor="11414c" PBREnable="0" LevelName="DefaultLevel" Present="1" RenderOption="1">
+ <SceneCamera CameraType="Perspective" FOV="0.78539819" ZNear="0.1" ZFar="500" Location="0.000000,0.000000,0.000000" Dir="0.000000,0.000000,1.000000" Up="0.000000,1.000000,0.000000"/>
+ <DetectParams>
+	<DetectParam TypeDesc="segmentaion.enable">
+	 <VariantData Type="XVT_BOOL" Value="0"/>
+	</DetectParam>
+	<DetectParam TypeDesc="segmentaion.flip_u">
+	 <VariantData Type="XVT_BOOL" Value="0"/>
+	</DetectParam>
+	<DetectParam TypeDesc="segmentaion.flip_v">
+	 <VariantData Type="XVT_BOOL" Value="0"/>
+	</DetectParam>
+	<DetectParam TypeDesc="segmentaion.rotate_degree">
+	 <VariantData Type="XVT_INT" Value="0"/>
+	</DetectParam>
+	<DetectParam TypeDesc="segmentaion.type">
+	 <VariantData Type="XVT_INT" Value="0"/>
+	</DetectParam>
+	<DetectParam TypeDesc="head.segmentaion.enable">
+	 <VariantData Type="XVT_BOOL" Value="0"/>
+	</DetectParam>
+	<DetectParam TypeDesc="head.segmentaion.flip_u">
+	 <VariantData Type="XVT_BOOL" Value="0"/>
+	</DetectParam>
+	<DetectParam TypeDesc="head.segmentaion.flip_v">
+	 <VariantData Type="XVT_BOOL" Value="0"/>
+	</DetectParam>
+	<DetectParam TypeDesc="objectdetect.enable">
+	 <VariantData Type="XVT_BOOL" Value="0"/>
+	</DetectParam>
+	<DetectParam TypeDesc="objectdetect.detect_all">
+	 <VariantData Type="XVT_BOOL" Value="1"/>
+	</DetectParam>
+	<DetectParam TypeDesc="objectdetect.fliped_show">
+	 <VariantData Type="XVT_BOOL" Value="0"/>
+	</DetectParam>
+	<DetectParam TypeDesc="objectdetect.rotate_degree">
+	 <VariantData Type="XVT_INT" Value="0"/>
+	</DetectParam>
+	<DetectParam TypeDesc="body.enable">
+	 <VariantData Type="XVT_BOOL" Value="0"/>
+	</DetectParam>
+	<DetectParam TypeDesc="body.use_tracking">
+	 <VariantData Type="XVT_BOOL" Value="1"/>
+	</DetectParam>
+	<DetectParam TypeDesc="body.detect_single_frame">
+	 <VariantData Type="XVT_BOOL" Value="0"/>
+	</DetectParam>
+	<DetectParam TypeDesc="body.version">
+	 <VariantData Type="XVT_INT" Value="1"/>
+	</DetectParam>
+	<DetectParam TypeDesc="animojidetect.enable">
+	 <VariantData Type="XVT_BOOL" Value="0"/>
+	</DetectParam>
+	<DetectParam TypeDesc="video.beauty_switch">
+	 <VariantData Type="XVT_BOOL" Value="1"/>
+	</DetectParam>
+	<DetectParam TypeDesc="video.expression_switch">
+	 <VariantData Type="XVT_BOOL" Value="1"/>
+	</DetectParam>
+	<DetectParam TypeDesc="video.eye_classify_switch">
+	 <VariantData Type="XVT_BOOL" Value="0"/>
+	</DetectParam>
+	<DetectParam TypeDesc="video.multifaces_switch">
+	 <VariantData Type="XVT_BOOL" Value="1"/>
+	</DetectParam>
+	<DetectParam TypeDesc="video.detect_single_frame">
+	 <VariantData Type="XVT_BOOL" Value="0"/>
+	</DetectParam>
+	<DetectParam TypeDesc="video.asynchronous_face_detect">
+	 <VariantData Type="XVT_BOOL" Value="1"/>
+	</DetectParam>
+	<DetectParam TypeDesc="video.asynchronous_save_features">
+	 <VariantData Type="XVT_BOOL" Value="0"/>
+	</DetectParam>
+	<DetectParam TypeDesc="video.skin_switch">
+	 <VariantData Type="XVT_BOOL" Value="1"/>
+	</DetectParam>
+	<DetectParam TypeDesc="video.use_npd">
+	 <VariantData Type="XVT_BOOL" Value="1"/>
+	</DetectParam>
+	<DetectParam TypeDesc="video.do_facedect_corp_center">
+	 <VariantData Type="XVT_BOOL" Value="1"/>
+	</DetectParam>
+	<DetectParam TypeDesc="video.max_faces">
+	 <VariantData Type="XVT_INT" Value="1"/>
+	</DetectParam>
+	<DetectParam TypeDesc="video.rotate_degree">
+	 <VariantData Type="XVT_INT" Value="0"/>
+	</DetectParam>
+	<DetectParam TypeDesc="video.restore_degree">
+	 <VariantData Type="XVT_INT" Value="0"/>
+	</DetectParam>
+	<DetectParam TypeDesc="video.face_alignment_version">
+	 <VariantData Type="XVT_INT" Value="0"/>
+	</DetectParam>
+	<DetectParam TypeDesc="video.client_filter_enable">
+	 <VariantData Type="XVT_BOOL" Value="1"/>
+	</DetectParam>
+	<DetectParam TypeDesc="video.warp_type">
+	 <VariantData Type="XVT_INT" Value="9"/>
+	</DetectParam>
+	<DetectParam TypeDesc="video.warp_level1">
+	 <VariantData Type="XVT_FLOAT1" Value="0"/>
+	</DetectParam>
+	<DetectParam TypeDesc="video.warp_level2">
+	 <VariantData Type="XVT_FLOAT1" Value="0"/>
+	</DetectParam>
+	<DetectParam TypeDesc="camera.back_tips">
+	 <VariantData Type="XVT_BOOL" Value="1"/>
+	</DetectParam>
+	<DetectParam TypeDesc="camera.back_tips_content">
+	 <VariantData Type="XVT_STRING" Value=""/>
+	</DetectParam>
+	<DetectParam TypeDesc="camera.back_tips_is_facetrack">
+	 <VariantData Type="XVT_BOOL" Value="0"/>
+	</DetectParam>
+	<DetectParam TypeDesc="camera.back_tips_trigger_content">
+	 <VariantData Type="XVT_STRING" Value=""/>
+	</DetectParam>
+	<DetectParam TypeDesc="camera.front_tips">
+	 <VariantData Type="XVT_BOOL" Value="1"/>
+	</DetectParam>
+	<DetectParam TypeDesc="camera.front_tips_content">
+	 <VariantData Type="XVT_STRING" Value=""/>
+	</DetectParam>
+	<DetectParam TypeDesc="camera.front_tips_is_facetrack">
+	 <VariantData Type="XVT_BOOL" Value="0"/>
+	</DetectParam>
+	<DetectParam TypeDesc="camera.front_tips_trigger_content">
+	 <VariantData Type="XVT_STRING" Value=""/>
+	</DetectParam>
+	<DetectParam TypeDesc="hand.track_enable">
+	 <VariantData Type="XVT_BOOL" Value="0"/>
+	</DetectParam>
+	<DetectParam TypeDesc="ttheart.enable">
+	 <VariantData Type="XVT_BOOL" Value="0"/>
+	</DetectParam>
+	<DetectParam TypeDesc="cartoon.enable">
+	 <VariantData Type="XVT_BOOL" Value="0"/>
+	</DetectParam>
+	<DetectParam TypeDesc="cartoon.effect_type">
+	 <VariantData Type="XVT_BOOL" Value="0"/>
+	</DetectParam>
+ </DetectParams>
+ <ActorSpawnerFaceTracker/>
+ <WorldProperty IsOverrideGravity="0" GlobalGravity="0.000000,-9.800000,0.000000" GlobalWindDir="0.000000,0.000000,0.000000" GlobalWindSpeed="0" DebugDrawPhysics="0" OIT="0" OITLayerNum="0" Shadow="0" ShadowMapResolution="0" ShadowDistance="0" ShadowCascadeNum="0" ShadowDepthBias="0" ShadowSoftTransitionScale="-1.0568284e+34" ShadowSoftness="0" ShadowStrength="1" ShadowColor="0.000000,0.000000,0.000000,1.000000" ScriptBindingObjectType="World" BlendshapeNormalMethod="2" PostprocessEnable="0" FXAAEnable="0" BloomEnable="0" BloomColorThreshold="0" BloomSamplerScale="0" FogEnable="0" FogStart="0" FogEnd="0" FogDensity="0" FogColorUpper="0.000000,0.000000,0.000000,1.000000" FogColorLower="0.000000,0.000000,0.000000,1.000000" FogGradientAngleUpper="0" FogGradientAngleLower="0" WorldTickSubsteppingEnable="0" WorldTickMaxStepTimeMS="16" FxBatchEnabled="1" FxBatchInSameLayer="1" FxMaxBatchedVertexNum="1000" BrushPathPointMinDistance="0.001" BrushTexcoordLoopDistance="0.1" LightMapIntensity="1" LightMapScale="1" LightMapPadding="1" LightMapResolution="512" LightSampleCount="1024" LightMaxBounce="10" LightMapBruteForcePackEnabled="0" LightMapHdrEnabled="0" LightMapCompressEnabled="1" LightMapDenoiseEnabled="1" LightMapSuperSamplingRate="1"/>
+ <PBRRender PBRQuality="4" BRDFDiffuse="1" BRDFDistribution="0" BRDFVisibility="2" BRDFFresnel="0" ShaderHighPrecision="0">
+	<PostProcessConfig ToneMap="1" Bloom="1" FXAA="0" TemporalAA="0" BloomIntensity="1" BloomThreshold="-1" Bloom1Tint="0.346000,0.346000,0.346000" Bloom2Tint="0.138000,0.138000,0.138000" Bloom3Tint="0.117000,0.117000,0.117000" Bloom4Tint="0.066000,0.066000,0.066000" Bloom5Tint="0.066000,0.066000,0.066000" Bloom6Tint="0.061000,0.061000,0.061000"/>
+ </PBRRender>
+ <GraphList>
+	<Graph GraphAsset="Asset/0a2ae45b25c00000/blueprint/stylize.rtg"/>
+ </GraphList>
+ <Actor Name="DefaultCamera" IdString="0a2ae45e13c00001" Type="CameraActor" FilterPath="/system/" Hidden="0" PickMask="3" PickPriority="0" DrawDebug="0" CollisionChannel="CameraActor" RenderGroup="1" BoundingBoxColor="1.000000,0.000000,0.000000,1.000000">
+	<Component Type="CameraComponent" Index="1" Location="0.000000,0.000000,0.000000" Rotation="0.000000,0.000000,0.000000,1.000000" Scale="1.000000,1.000000,1.000000" Movability="Movable" CameraType="Perspective" FOV="0.78539819" ZNear="0.1" ZFar="500" ActiveCamera="1"/>
+ </Actor>
+ <Actor Name="EnvLightActor_1" IdString="0a2ae45e13c00003" Type="EnvLightActor" FilterPath="/system/" Hidden="0" PickMask="0" PickPriority="-16777212" DrawDebug="0" CollisionChannel="EnvLightActor" RenderGroup="1" BoundingBoxColor="1.000000,0.000000,0.000000,1.000000">
+	<Component Type="LightComponent" Index="1" Location="0.000000,0.000000,0.000000" Rotation="0.000000,0.000000,0.000000,1.000000" Scale="1.000000,1.000000,1.000000" Movability="Movable" LightType="XLT_ENV" Color="ffc6c6c6" LightIndex="0" Luminance="1.000000"/>
+ </Actor>
+ <Actor Name="EnvLightActor_2" IdString="0a2ae45e13c00004" Type="EnvLightActor" FilterPath="/system/" Hidden="0" PickMask="0" PickPriority="-16777212" DrawDebug="0" CollisionChannel="EnvLightActor" RenderGroup="1" BoundingBoxColor="1.000000,0.000000,0.000000,1.000000">
+	<Component Type="LightComponent" Index="1" Location="0.000000,0.000000,0.000000" Rotation="0.000000,0.000000,0.000000,1.000000" Scale="1.000000,1.000000,1.000000" Movability="Movable" LightType="XLT_ENV" Color="ffc6c6c6" LightIndex="1" Luminance="1.000000"/>
+ </Actor>
+ <Actor Name="DirLightActor_1" IdString="0a2ae45e13c00005" Type="DirLightActor" FilterPath="/system/" Hidden="0" PickMask="3" PickPriority="16777215" DrawDebug="0" CollisionChannel="DirLightActor" RenderGroup="1" BoundingBoxColor="1.000000,0.000000,0.000000,1.000000">
+	<Component Type="LightComponent" Index="1" Location="-0.050000,0.050000,0.170000" Rotation="0.500000,0.500000,-0.000000,0.707107" Scale="0.010831,0.010831,0.010831" Movability="Movable" LightType="XLT_DIRECTION" Color="ffffffff" Luminance="1.000000" CastShadow="1" ShadowBias="0"/>
+ </Actor>
+ <LayerObj Name="Project" Type="LayerObj" Hidden="0">
+	<AttachPath Path="StylizeFace.xscene"/>
+	<AttachPath Path="Asset/0a2ae45b25c00000/blueprint/stylize.edg"/>
+	<AttachPath Path="Asset/0a2ae45b25c00000/blueprint/stylize.rtg"/>
+ </LayerObj>
+</Scene>

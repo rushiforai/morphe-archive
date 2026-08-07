@@ -1,0 +1,22 @@
+syntax = "proto3";
+package liveroom;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + liveroom）
+option java_package = "com.p1.mobile.longlink.msg.liveroom";
+option java_outer_classname = "voiceFollow";
+option optimize_for = LITE_RUNTIME;
+import "template.proto";
+import "userMaskConfig.proto";
+import "liveMessage.proto";
+message VoiceLiveFollowMessage {
+  template.TemplateData templateData = 1;
+  enum Source {
+    InRoom = 0;
+    OnCall = 1;
+    SendGift = 2;
+    OtherFollow = 3;
+  }
+  Source source = 2;
+  userMask.UserMask userMask = 3;
+  liveroom.UserInfo follower = 4;
+}

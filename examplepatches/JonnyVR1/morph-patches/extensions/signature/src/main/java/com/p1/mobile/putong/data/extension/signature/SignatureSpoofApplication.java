@@ -157,33 +157,80 @@ public class SignatureSpoofApplication extends ContentProvider {
     
     private static void clearPackageManagerCachesStatic() {
         try {
-            Field cacheField = PackageManager.class.getDeclaredField("sPackageInfoCache");
-            cacheField.setAccessible(true);
-            Object cache = cacheField.get(null);
-            if (cache != null) {
-                Method clearMethod = cache.getClass().getMethod("clear");
-                clearMethod.invoke(cache);
+            // Strategy 1: Try sPackageInfoCache (Android 8-12)
+            try {
+                Field cacheField = PackageManager.class.getDeclaredField("sPackageInfoCache");
+                cacheField.setAccessible(true);
+                Object cache = cacheField.get(null);
+                if (cache != null) {
+                    Method clearMethod = cache.getClass().getMethod("clear");
+                    clearMethod.invoke(cache);
+                    Log.d(TAG, "Cleared sPackageInfoCache");
+                }
+            } catch (NoSuchFieldException e) {
+                Log.w(TAG, "sPackageInfoCache not found (Android 13+), trying alternative methods");
             }
             
+            // Strategy 2: Try mPackageInfoCache in ApplicationPackageManager (Android 13+)
+            try {
+                Class<?> appPmClass = Class.forName("android.app.ApplicationPackageManager");
+                Field mPackageInfoCacheField = appPmClass.getDeclaredField("mPackageInfoCache");
+                mPackageInfoCacheField.setAccessible(true);
+                
+                // Get the current PackageManager instance
+                Class<?> activityThreadClass = Class.forName("android.app.ActivityThread");
+                Method currentActivityThreadMethod = activityThreadClass.getDeclaredMethod("currentActivityThread");
+                currentActivityThreadMethod.setAccessible(true);
+                Object currentActivityThread = currentActivityThreadMethod.invoke(null);
+                
+                Method getPackageManagerMethod = activityThreadClass.getMethod("getPackageManager");
+                Object packageManager = getPackageManagerMethod.invoke(currentActivityThread);
+                
+                Object cache = mPackageInfoCacheField.get(packageManager);
+                if (cache != null) {
+                    Method clearMethod = cache.getClass().getMethod("clear");
+                    clearMethod.invoke(cache);
+                    Log.d(TAG, "Cleared ApplicationPackageManager.mPackageInfoCache");
+                }
+            } catch (Exception e) {
+                Log.w(TAG, "ApplicationPackageManager.mPackageInfoCache not accessible: " + e.getMessage());
+            }
+            
+            // Strategy 3: Clear Parcel caches (all Android versions)
             try {
                 Field mCreatorsField = Parcel.class.getDeclaredField("mCreators");
                 mCreatorsField.setAccessible(true);
                 Map<?, ?> mCreators = (Map<?, ?>) mCreatorsField.get(null);
-                if (mCreators != null) mCreators.clear();
+                if (mCreators != null) {
+                    mCreators.clear();
+                    Log.d(TAG, "Cleared Parcel.mCreators");
+                }
             } catch (NoSuchFieldException e) {
-                Log.w(TAG, "Parcel.mCreators not found (removed in this Android version)");
+                Log.w(TAG, "Parcel.mCreators not found");
             }
             
             try {
                 Field sPairedCreatorsField = Parcel.class.getDeclaredField("sPairedCreators");
                 sPairedCreatorsField.setAccessible(true);
                 Map<?, ?> sPairedCreators = (Map<?, ?>) sPairedCreatorsField.get(null);
-                if (sPairedCreators != null) sPairedCreators.clear();
+                if (sPairedCreators != null) {
+                    sPairedCreators.clear();
+                    Log.d(TAG, "Cleared Parcel.sPairedCreators");
+                }
             } catch (NoSuchFieldException e) {
-                Log.w(TAG, "Parcel.sPairedCreators not found (removed in this Android version)");
+                Log.w(TAG, "Parcel.sPairedCreators not found");
             }
             
-            Log.d(TAG, "PackageManager caches cleared (static)");
+            // Strategy 4: Force garbage collection and clear any LRU caches
+            try {
+                System.gc();
+                Thread.sleep(100);
+                Log.d(TAG, "Triggered GC to clear cached PackageInfo objects");
+            } catch (Exception e) {
+                Log.w(TAG, "GC trigger failed: " + e.getMessage());
+            }
+            
+            Log.d(TAG, "PackageManager cache clearing completed");
         } catch (Exception e) {
             Log.e(TAG, "Failed to clear PackageManager caches (static)", e);
         }

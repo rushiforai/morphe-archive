@@ -1,3 +1,11 @@
+/**
+ * Original code is credited to Morphe:
+ * https://github.com/MorpheApp/morphe-patches/blob/main/extensions/shared-youtube/library/src/main/java/app/morphe/extension/shared/patches/GmsCoreSupportPatch.java
+ *
+ * Copyright 2026 Hoo-dles
+ * https://github.com/hoo-dles/morphe-patches
+ */
+
 package hoodles.morphe.extension.shared;
 
 import static app.morphe.extension.shared.StringRef.str;

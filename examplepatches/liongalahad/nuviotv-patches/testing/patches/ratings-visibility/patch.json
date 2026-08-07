@@ -47,7 +47,9 @@
     "metadata": "io.github.liongalahad.nuviotv.settings.category.ratings",
     "classes": [
       "io.github.liongalahad.nuviotv.extension.settings.MorpheSettingsRuntime",
-      "io.github.liongalahad.nuviotv.extension.settings.MorphePrimaryCategoryAction",
+      "io.github.liongalahad.nuviotv.extension.settings.MorpheSettingsPageContent",
+      "io.github.liongalahad.nuviotv.extension.settings.MorpheSettingsRows",
+      "io.github.liongalahad.nuviotv.extension.settings.MorpheRatingsGroupContent",
       "io.github.liongalahad.nuviotv.extension.settings.MorpheOverallRatingsToggleAction",
       "io.github.liongalahad.nuviotv.extension.settings.MorpheEpisodeRatingsDialogAction",
       "io.github.liongalahad.nuviotv.extension.settings.MorpheEpisodeRatingsDialog",

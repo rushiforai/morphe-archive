@@ -1,0 +1,29 @@
+syntax = "proto3";
+package voicelivemessage;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + userMask）
+option java_package = "com.p1.mobile.longlink.msg.voicelivemessage";
+option java_outer_classname = "VoiceChangeRoomBg";
+option optimize_for = LITE_RUNTIME;
+
+
+//voicelive.room.backgroundPicUpdate
+// 语音房更换房间背景
+message VoiceRoomBgPicUpdateMessage {
+  string roomId = 1; // 房间id
+  string liveId = 2;// 直播id
+  string anchorId = 3;// 主播id
+  string picId = 4;// 图片id
+  string url = 5;// 图片大图url
+  string thumbnailUrl = 6;// 图片缩略图url
+  string picName = 7;//图片名称
+  string picType = 8;// 图片类型  static/svga
+  VoiceRoomCallPlaceResource callPlaceResource = 9;// 连线麦位等资源
+}
+
+message VoiceRoomCallPlaceResource {
+  string bgUrl = 1;
+  string addUrl = 2;
+  string bossUrl = 3;
+  string indexColor = 4;
+}

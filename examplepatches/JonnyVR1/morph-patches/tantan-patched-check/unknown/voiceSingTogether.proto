@@ -1,0 +1,56 @@
+syntax = "proto3";
+package intlvoicesing;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + liveroom）
+option java_package = "com.p1.mobile.longlink.msg.intlvoicesing";
+option java_outer_classname = "voiceSingTogether";
+option optimize_for = LITE_RUNTIME;
+import "userMaskConfig.proto";
+
+message CurrentSing {
+    string userId = 1;
+    userMask.UserMask mask = 2;
+    string title = 3;
+    string cover = 4;
+    string songCode = 5;
+    string lyricType = 6;
+    string lyricUrl = 7;
+    string accompany = 8;
+    int32 progressMilliseconds = 9;
+    int64 orderId = 10;
+    bool hasStart = 11;
+ }
+
+message NextSing {
+    string userId = 1;
+    userMask.UserMask mask = 2;
+    string title = 3;
+    string cover = 4;
+    string songCode = 5;
+    string lyricType = 6;
+    string lyricUrl = 7;
+    string accompany = 8;
+    int32 countDownSeconds = 9;
+    int32 remainSeconds = 10;
+}
+
+message VoiceSing {
+
+
+  string id = 1;
+  string status = 2;
+  CurrentSing currentSing = 3;
+  NextSing nextSing = 4;
+  string toast = 5;
+}
+message VoiceSingConfirm {
+  string id = 1;
+  string orderId = 2;
+  string title = 3;
+}
+
+message VoiceSingStart {
+  string id = 1;
+  string orderId = 2;
+  string userId = 3; // 唱歌者
+}

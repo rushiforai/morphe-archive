@@ -39,6 +39,20 @@ dependencies {
 }
 
 tasks {
+    register<JavaExec>("extractApkSignature") {
+        description = "Extract APK signature hash"
+        classpath = sourceSets["main"].runtimeClasspath
+        mainClass.set("util.ExtractApkSignatureKt")
+        
+        // Use command line argument if provided, otherwise default to tantan-7.3.6.apk
+        val apkPath = if (project.hasProperty("apkPath")) {
+            project.property("apkPath") as String
+        } else {
+            rootProject.file("tantan-7.3.6.apk").absolutePath
+        }
+        args = listOf(apkPath)
+    }
+
     register<JavaExec>("generatePatchesList") {
         description = "Build patch with patch list"
 

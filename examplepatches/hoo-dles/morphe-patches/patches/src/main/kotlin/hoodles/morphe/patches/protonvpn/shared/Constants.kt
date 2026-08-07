@@ -1,3 +1,8 @@
+/**
+ * Copyright 2026 Hoo-dles
+ * https://github.com/hoo-dles/morphe-patches
+ */
+
 package hoodles.morphe.patches.protonvpn.shared
 
 import app.morphe.patcher.patch.AppTarget
@@ -8,6 +13,6 @@ object Constants {
         name = "Proton VPN",
         packageName = "ch.protonvpn.android",
         appIconColor = 0x6D4AFF,
-        targets = listOf(AppTarget("5.17.72.0"))
+        targets = listOf(AppTarget("5.19.43.0"))
     )
 }

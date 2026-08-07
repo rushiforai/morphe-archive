@@ -1,0 +1,138 @@
+syntax = "proto3";
+package live.videochat;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + livegift）
+option java_package = "com.p1.mobile.longlink.msg.videoChat";
+option java_outer_classname = "LongLinkVideoChat";
+option optimize_for = LITE_RUNTIME;
+// 视频闪聊状态变更
+// MsgTypeName live.videoChat.statusChange
+message LiveVideoChatChange {
+  VideoChat videoChat = 1;
+  string reason = 2;
+}
+// 视频闪聊直播状态变更
+// MsgTypeName live.videoChatLive.statusChange
+message LiveVideoChatLiveChange {
+  string liveId = 1;
+  string status = 2;
+  string reason = 3;
+}
+
+// toast 提示消息
+// MsgTypeName live.videoChat.toast
+message LiveVideoChatToast {
+  string chatId = 1;
+  string toast = 2;
+}
+
+message VideoChat {
+  enum Status {
+    StatusUnknown = 0;
+    Pending = 1;
+    Connecting = 2;
+    Calling = 3;
+    Stopped = 4;
+  }
+  enum EndType {
+    endTypeUnknown = 0;
+    // 拨号超时
+    timeout = 1;
+    // 主播拒接
+    anchorReject = 10;
+    // 主播挂断
+    anchorHangUp = 11;
+    // 主播异常退出
+    anchorQuit = 12;
+    // 主播被 ban
+    banAnchor = 13;
+    // 主播断连
+    anchorLost = 14;
+    // 主播多设备登陆
+    anchorQuitMultiDevice = 15;
+    // 用户挂断
+    userHangUp = 20;
+    // 用户异常退出
+    userQuit = 21;
+    // 用户被ban
+    banUser = 22;
+    // 用户支付超时
+    userPayTimeout = 23;
+    // 用户未支付
+    userNotPay = 24;
+    // 用户取消
+    userCancel = 25;
+    // 用户断连
+    userLost = 26;
+    // 用户多设备登陆
+    userQuitMultiDevice = 27;
+  }
+  enum Category {
+      normal = 0;
+      random = 1;
+    }
+  string id = 1;
+  string userId = 2;
+  string anchorId = 3;
+  string roomId = 4;
+  string liveId = 5;
+  // 开始时间, 单位 ns
+  int64 startedTime = 6;
+  // 结束时间，单位 ns
+  int64 endedTime = 7;
+  EndType endType = 8;
+  // 结束判罚消息
+  string punishMessage = 9;
+  string errorMessage = 10;
+  string leaveUserId = 11;
+  // 闪聊是否接通过
+  bool called = 12;
+  string giftId = 13;
+  // 单位 1 探币 = 1000000
+  int64 ttc = 14;
+  repeated VideoChatPlayer players = 15;
+  string source = 16;
+  string anchorCallId = 17;
+  Category category = 18;
+  // 客户端异常结束信息
+  Status status = 20;
+  // 创建时间，单位 ns
+  int64 createdTime = 21;
+  // 更新时间，单位 ns
+  int64 updatedTime = 22;
+  // 结束提示文案
+  string endTipMessage = 23;
+
+  Status lastStatus = 24;
+  //rtc供应商
+  string rtcProvider = 25;
+}
+message VideoChatPlayer {
+  string userId = 1;
+  string userName = 2;
+  string avatar = 3;
+  string role = 4;
+}
+
+// 视频闪聊主播回拨结果，通知主播
+// MsgTypeName live.videochat.anchorCallResult
+message LiveVideoChatAnchorCallResult {
+  string callId = 1;
+  string anchorId = 2;
+  string userId = 3;
+  string status = 4; // busy 用户忙碌 rejected 用户拒接
+}
+
+// 视频闪聊底部气泡
+// MsgTypeName live.videoChat.chatBubble
+message LiveVideoChatBubble {
+  string text = 1; // 气泡文案
+  int64 duration = 2; // 气泡持续时间，单位：ms
+}
+
+// 视频闪聊cdn重推
+// MsgTypeName live.videoChat.cdnFail
+message LiveVideoChatCdnFail {
+  string chatId = 1;
+  string newPushUrl = 2;
+}

@@ -864,13 +864,13 @@
         "integration": "https://api.github.com/repos/revanced/revanced-integrations",
         "prerelease": false
     },
-    "heinrich26-stable": {
-        "patches": "https://api.github.com/repos/heinrich26/morphe-patches",
+    "spookyexe-stable": {
+        "patches": "https://api.github.com/repos/spookyexe/morphe-patches",
         "integration": "https://api.github.com/repos/revanced/revanced-integrations",
         "prerelease": false
     },
-    "spookyexe-stable": {
-        "patches": "https://api.github.com/repos/spookyexe/morphe-patches",
+    "petalmaps-androidauto-stable": {
+        "patches": "https://api.github.com/repos/andersonlucasg3/PetalMaps-AndroidAuto",
         "integration": "https://api.github.com/repos/revanced/revanced-integrations",
         "prerelease": false
     },
@@ -1734,13 +1734,13 @@
         "integration": "https://api.github.com/repos/revanced/revanced-integrations",
         "prerelease": true
     },
-    "heinrich26-dev": {
-        "patches": "https://api.github.com/repos/heinrich26/morphe-patches",
+    "spookyexe-dev": {
+        "patches": "https://api.github.com/repos/spookyexe/morphe-patches",
         "integration": "https://api.github.com/repos/revanced/revanced-integrations",
         "prerelease": true
     },
-    "spookyexe-dev": {
-        "patches": "https://api.github.com/repos/spookyexe/morphe-patches",
+    "petalmaps-androidauto-dev": {
+        "patches": "https://api.github.com/repos/andersonlucasg3/PetalMaps-AndroidAuto",
         "integration": "https://api.github.com/repos/revanced/revanced-integrations",
         "prerelease": true
     },
@@ -2604,13 +2604,13 @@
         "integration": "https://api.github.com/repos/revanced/revanced-integrations",
         "latest": true
     },
-    "heinrich26-latest": {
-        "patches": "https://api.github.com/repos/heinrich26/morphe-patches",
+    "spookyexe-latest": {
+        "patches": "https://api.github.com/repos/spookyexe/morphe-patches",
         "integration": "https://api.github.com/repos/revanced/revanced-integrations",
         "latest": true
     },
-    "spookyexe-latest": {
-        "patches": "https://api.github.com/repos/spookyexe/morphe-patches",
+    "petalmaps-androidauto-latest": {
+        "patches": "https://api.github.com/repos/andersonlucasg3/PetalMaps-AndroidAuto",
         "integration": "https://api.github.com/repos/revanced/revanced-integrations",
         "latest": true
     }

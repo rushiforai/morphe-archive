@@ -86,7 +86,7 @@ final class MonkeyRuntime implements Runnable {
                     && !page.incognito
                     && UrlPatternMatcher.isInjectableScheme(page.url)) {
                 ForkSiteSupport.injectPendingPublish(activity, page);
-                ForkSiteSupport.injectInstallClickBridge(page);
+                ForkSiteSupport.injectInstallClickBridge(activity, page);
                 ForkSiteSupport.consumeInstallMarker(activity, page);
 
                 int identity = System.identityHashCode(page.tab);

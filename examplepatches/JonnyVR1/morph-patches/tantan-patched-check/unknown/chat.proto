@@ -1,0 +1,12 @@
+syntax = "proto3";
+package connector;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + connector）
+option java_package = "com.p1.mobile.longlink.msg.connector";
+option java_outer_classname = "LongLinkChatServiceMessage";
+option optimize_for = LITE_RUNTIME;
+
+message OtherUserReadSocketMessage {
+  string otherUserId = 1;
+  string readUntilId = 2;
+}

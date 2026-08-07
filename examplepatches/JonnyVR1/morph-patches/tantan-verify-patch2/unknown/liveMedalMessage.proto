@@ -1,0 +1,40 @@
+syntax = "proto3";
+package livemedal;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + livemedal）
+option java_package = "com.p1.mobile.longlink.msg.livemedal";
+option java_outer_classname = "LongLinkMedalMessage";
+option optimize_for = LITE_RUNTIME;
+
+import "template.proto";
+
+// 用户勋章变化
+// MSG_TYPE_COMMON
+// MsgTypeName LiveMedalChangedMsg
+message LiveMedalChangedMsg {
+  string userID = 1;
+  string roomID = 2;
+  string liveID = 3;
+  string medalID = 4;
+  string userName = 5;
+  template.TemplateData template = 6;
+}
+
+message TurboCardReceiveEvent {
+  CardTypeEnum type = 1; // super超级人气卡 senior 高级人气卡
+  string name = 2; // “高级人气卡”
+  int64 nums = 3;  // 数量
+  string icon = 4; //图标
+  string url = 5; //路径
+}
+
+enum CardTypeEnum {
+  SENIOR = 0; //高级卡
+  SUPER = 1; //超级卡
+}
+
+message TurboCardResultNotice {
+  string roomId = 1;
+  int64 totalAudience = 2; //总观看人数
+  CardTypeEnum type = 3; // super超级人气卡 senior 高级人气卡
+}

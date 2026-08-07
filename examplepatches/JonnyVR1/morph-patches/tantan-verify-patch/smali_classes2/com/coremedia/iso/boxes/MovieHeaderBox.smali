@@ -1,0 +1,3680 @@
+.class public Lcom/coremedia/iso/boxes/MovieHeaderBox;
+.super Lcom/googlecode/mp4parser/AbstractFullBox;
+.source "SourceFile"
+
+
+# static fields
+.field public static final TYPE:Ljava/lang/String; = "mvhd"
+
+.field private static final synthetic ajc$tjp_0:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+.field private static final synthetic ajc$tjp_1:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+.field private static final synthetic ajc$tjp_10:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+.field private static final synthetic ajc$tjp_11:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+.field private static final synthetic ajc$tjp_12:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+.field private static final synthetic ajc$tjp_13:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+.field private static final synthetic ajc$tjp_14:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+.field private static final synthetic ajc$tjp_15:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+.field private static final synthetic ajc$tjp_16:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+.field private static final synthetic ajc$tjp_17:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+.field private static final synthetic ajc$tjp_18:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+.field private static final synthetic ajc$tjp_19:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+.field private static final synthetic ajc$tjp_2:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+.field private static final synthetic ajc$tjp_20:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+.field private static final synthetic ajc$tjp_21:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+.field private static final synthetic ajc$tjp_22:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+.field private static final synthetic ajc$tjp_23:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+.field private static final synthetic ajc$tjp_24:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+.field private static final synthetic ajc$tjp_25:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+.field private static final synthetic ajc$tjp_26:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+.field private static final synthetic ajc$tjp_27:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+.field private static final synthetic ajc$tjp_28:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+.field private static final synthetic ajc$tjp_3:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+.field private static final synthetic ajc$tjp_4:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+.field private static final synthetic ajc$tjp_5:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+.field private static final synthetic ajc$tjp_6:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+.field private static final synthetic ajc$tjp_7:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+.field private static final synthetic ajc$tjp_8:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+.field private static final synthetic ajc$tjp_9:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+
+# instance fields
+.field private creationTime:Ljava/util/Date;
+
+.field private currentTime:I
+
+.field private duration:J
+
+.field private matrix:Ll/khx;
+
+.field private modificationTime:Ljava/util/Date;
+
+.field private nextTrackId:J
+
+.field private posterTime:I
+
+.field private previewDuration:I
+
+.field private previewTime:I
+
+.field private rate:D
+
+.field private selectionDuration:I
+
+.field private selectionTime:I
+
+.field private timescale:J
+
+.field private volume:F
+
+
+# direct methods
+.method static constructor <clinit>()V
+    .locals 0
+
+    .line 1
+    invoke-static {}, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$preClinit()V
+
+    .line 2
+    .line 3
+    .line 4
+    return-void
+.end method
+
+.method public constructor <init>()V
+    .locals 2
+
+    .line 1
+    const-string v0, "mvhd"
+
+    .line 2
+    .line 3
+    invoke-direct {p0, v0}, Lcom/googlecode/mp4parser/AbstractFullBox;-><init>(Ljava/lang/String;)V
+
+    .line 4
+    .line 5
+    .line 6
+    const-wide/high16 v0, 0x3ff0000000000000L    # 1.0
+
+    .line 7
+    .line 8
+    iput-wide v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->rate:D
+
+    .line 9
+    .line 10
+    const/high16 v0, 0x3f800000    # 1.0f
+
+    .line 11
+    .line 12
+    iput v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->volume:F
+
+    .line 13
+    .line 14
+    sget-object v0, Ll/khx;->j:Ll/khx;
+
+    .line 15
+    .line 16
+    iput-object v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->matrix:Ll/khx;
+
+    .line 17
+    .line 18
+    return-void
+.end method
+
+.method private static synthetic ajc$preClinit()V
+    .locals 9
+
+    .line 1
+    new-instance v0, Lorg/aspectj/runtime/reflect/Factory;
+
+    .line 2
+    .line 3
+    const-string v1, "MovieHeaderBox.java"
+
+    .line 4
+    .line 5
+    const-class v2, Lcom/coremedia/iso/boxes/MovieHeaderBox;
+
+    .line 6
+    .line 7
+    invoke-direct {v0, v1, v2}, Lorg/aspectj/runtime/reflect/Factory;-><init>(Ljava/lang/String;Ljava/lang/Class;)V
+
+    .line 8
+    .line 9
+    .line 10
+    const-string v6, ""
+
+    .line 11
+    .line 12
+    const-string v7, "java.util.Date"
+
+    .line 13
+    .line 14
+    const-string v1, "1"
+
+    .line 15
+    .line 16
+    const-string v2, "getCreationTime"
+
+    .line 17
+    .line 18
+    const-string v3, "com.coremedia.iso.boxes.MovieHeaderBox"
+
+    .line 19
+    .line 20
+    const-string v4, ""
+
+    .line 21
+    .line 22
+    const-string v5, ""
+
+    .line 23
+    .line 24
+    invoke-virtual/range {v0 .. v7}, Lorg/aspectj/runtime/reflect/Factory;->makeMethodSig(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/aspectj/lang/reflect/MethodSignature;
+
+    .line 25
+    .line 26
+    .line 27
+    move-result-object v1
+
+    .line 28
+    const/16 v2, 0x3f
+
+    .line 29
+    .line 30
+    const-string v8, "method-execution"
+
+    .line 31
+    .line 32
+    invoke-virtual {v0, v8, v1, v2}, Lorg/aspectj/runtime/reflect/Factory;->makeSJP(Ljava/lang/String;Lorg/aspectj/lang/Signature;I)Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 33
+    .line 34
+    .line 35
+    move-result-object v1
+
+    .line 36
+    sput-object v1, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_0:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 37
+    .line 38
+    const-string v6, ""
+
+    .line 39
+    .line 40
+    const-string v7, "java.util.Date"
+
+    .line 41
+    .line 42
+    const-string v1, "1"
+
+    .line 43
+    .line 44
+    const-string v2, "getModificationTime"
+
+    .line 45
+    .line 46
+    const-string v3, "com.coremedia.iso.boxes.MovieHeaderBox"
+
+    .line 47
+    .line 48
+    const-string v4, ""
+
+    .line 49
+    .line 50
+    const-string v5, ""
+
+    .line 51
+    .line 52
+    invoke-virtual/range {v0 .. v7}, Lorg/aspectj/runtime/reflect/Factory;->makeMethodSig(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/aspectj/lang/reflect/MethodSignature;
+
+    .line 53
+    .line 54
+    .line 55
+    move-result-object v1
+
+    .line 56
+    const/16 v2, 0x43
+
+    .line 57
+    .line 58
+    invoke-virtual {v0, v8, v1, v2}, Lorg/aspectj/runtime/reflect/Factory;->makeSJP(Ljava/lang/String;Lorg/aspectj/lang/Signature;I)Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 59
+    .line 60
+    .line 61
+    move-result-object v1
+
+    .line 62
+    sput-object v1, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_1:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 63
+    .line 64
+    const-string v6, ""
+
+    .line 65
+    .line 66
+    const-string v7, "void"
+
+    .line 67
+    .line 68
+    const-string v1, "1"
+
+    .line 69
+    .line 70
+    const-string v2, "setModificationTime"
+
+    .line 71
+    .line 72
+    const-string v3, "com.coremedia.iso.boxes.MovieHeaderBox"
+
+    .line 73
+    .line 74
+    const-string v4, "java.util.Date"
+
+    .line 75
+    .line 76
+    const-string v5, "modificationTime"
+
+    .line 77
+    .line 78
+    invoke-virtual/range {v0 .. v7}, Lorg/aspectj/runtime/reflect/Factory;->makeMethodSig(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/aspectj/lang/reflect/MethodSignature;
+
+    .line 79
+    .line 80
+    .line 81
+    move-result-object v1
+
+    .line 82
+    const/16 v2, 0xcb
+
+    .line 83
+    .line 84
+    invoke-virtual {v0, v8, v1, v2}, Lorg/aspectj/runtime/reflect/Factory;->makeSJP(Ljava/lang/String;Lorg/aspectj/lang/Signature;I)Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 85
+    .line 86
+    .line 87
+    move-result-object v1
+
+    .line 88
+    sput-object v1, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_10:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 89
+    .line 90
+    const-string v6, ""
+
+    .line 91
+    .line 92
+    const-string v7, "void"
+
+    .line 93
+    .line 94
+    const-string v1, "1"
+
+    .line 95
+    .line 96
+    const-string v2, "setTimescale"
+
+    .line 97
+    .line 98
+    const-string v3, "com.coremedia.iso.boxes.MovieHeaderBox"
+
+    .line 99
+    .line 100
+    const-string v4, "long"
+
+    .line 101
+    .line 102
+    const-string v5, "timescale"
+
+    .line 103
+    .line 104
+    invoke-virtual/range {v0 .. v7}, Lorg/aspectj/runtime/reflect/Factory;->makeMethodSig(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/aspectj/lang/reflect/MethodSignature;
+
+    .line 105
+    .line 106
+    .line 107
+    move-result-object v1
+
+    .line 108
+    const/16 v2, 0xd3
+
+    .line 109
+    .line 110
+    invoke-virtual {v0, v8, v1, v2}, Lorg/aspectj/runtime/reflect/Factory;->makeSJP(Ljava/lang/String;Lorg/aspectj/lang/Signature;I)Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 111
+    .line 112
+    .line 113
+    move-result-object v1
+
+    .line 114
+    sput-object v1, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_11:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 115
+    .line 116
+    const-string v6, ""
+
+    .line 117
+    .line 118
+    const-string v7, "void"
+
+    .line 119
+    .line 120
+    const-string v1, "1"
+
+    .line 121
+    .line 122
+    const-string v2, "setDuration"
+
+    .line 123
+    .line 124
+    const-string v3, "com.coremedia.iso.boxes.MovieHeaderBox"
+
+    .line 125
+    .line 126
+    const-string v4, "long"
+
+    .line 127
+    .line 128
+    const-string v5, "duration"
+
+    .line 129
+    .line 130
+    invoke-virtual/range {v0 .. v7}, Lorg/aspectj/runtime/reflect/Factory;->makeMethodSig(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/aspectj/lang/reflect/MethodSignature;
+
+    .line 131
+    .line 132
+    .line 133
+    move-result-object v1
+
+    .line 134
+    const/16 v2, 0xd7
+
+    .line 135
+    .line 136
+    invoke-virtual {v0, v8, v1, v2}, Lorg/aspectj/runtime/reflect/Factory;->makeSJP(Ljava/lang/String;Lorg/aspectj/lang/Signature;I)Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 137
+    .line 138
+    .line 139
+    move-result-object v1
+
+    .line 140
+    sput-object v1, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_12:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 141
+    .line 142
+    const-string v6, ""
+
+    .line 143
+    .line 144
+    const-string v7, "void"
+
+    .line 145
+    .line 146
+    const-string v1, "1"
+
+    .line 147
+    .line 148
+    const-string v2, "setRate"
+
+    .line 149
+    .line 150
+    const-string v3, "com.coremedia.iso.boxes.MovieHeaderBox"
+
+    .line 151
+    .line 152
+    const-string v4, "double"
+
+    .line 153
+    .line 154
+    const-string v5, "rate"
+
+    .line 155
+    .line 156
+    invoke-virtual/range {v0 .. v7}, Lorg/aspectj/runtime/reflect/Factory;->makeMethodSig(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/aspectj/lang/reflect/MethodSignature;
+
+    .line 157
+    .line 158
+    .line 159
+    move-result-object v1
+
+    .line 160
+    const/16 v2, 0xde
+
+    .line 161
+    .line 162
+    invoke-virtual {v0, v8, v1, v2}, Lorg/aspectj/runtime/reflect/Factory;->makeSJP(Ljava/lang/String;Lorg/aspectj/lang/Signature;I)Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 163
+    .line 164
+    .line 165
+    move-result-object v1
+
+    .line 166
+    sput-object v1, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_13:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 167
+    .line 168
+    const-string v6, ""
+
+    .line 169
+    .line 170
+    const-string v7, "void"
+
+    .line 171
+    .line 172
+    const-string v1, "1"
+
+    .line 173
+    .line 174
+    const-string v2, "setVolume"
+
+    .line 175
+    .line 176
+    const-string v3, "com.coremedia.iso.boxes.MovieHeaderBox"
+
+    .line 177
+    .line 178
+    const-string v4, "float"
+
+    .line 179
+    .line 180
+    const-string v5, "volume"
+
+    .line 181
+    .line 182
+    invoke-virtual/range {v0 .. v7}, Lorg/aspectj/runtime/reflect/Factory;->makeMethodSig(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/aspectj/lang/reflect/MethodSignature;
+
+    .line 183
+    .line 184
+    .line 185
+    move-result-object v1
+
+    .line 186
+    const/16 v2, 0xe2
+
+    .line 187
+    .line 188
+    invoke-virtual {v0, v8, v1, v2}, Lorg/aspectj/runtime/reflect/Factory;->makeSJP(Ljava/lang/String;Lorg/aspectj/lang/Signature;I)Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 189
+    .line 190
+    .line 191
+    move-result-object v1
+
+    .line 192
+    sput-object v1, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_14:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 193
+    .line 194
+    const-string v6, ""
+
+    .line 195
+    .line 196
+    const-string v7, "void"
+
+    .line 197
+    .line 198
+    const-string v1, "1"
+
+    .line 199
+    .line 200
+    const-string v2, "setMatrix"
+
+    .line 201
+    .line 202
+    const-string v3, "com.coremedia.iso.boxes.MovieHeaderBox"
+
+    .line 203
+    .line 204
+    const-string v4, "com.googlecode.mp4parser.util.Matrix"
+
+    .line 205
+    .line 206
+    const-string v5, "matrix"
+
+    .line 207
+    .line 208
+    invoke-virtual/range {v0 .. v7}, Lorg/aspectj/runtime/reflect/Factory;->makeMethodSig(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/aspectj/lang/reflect/MethodSignature;
+
+    .line 209
+    .line 210
+    .line 211
+    move-result-object v1
+
+    .line 212
+    const/16 v2, 0xe6
+
+    .line 213
+    .line 214
+    invoke-virtual {v0, v8, v1, v2}, Lorg/aspectj/runtime/reflect/Factory;->makeSJP(Ljava/lang/String;Lorg/aspectj/lang/Signature;I)Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 215
+    .line 216
+    .line 217
+    move-result-object v1
+
+    .line 218
+    sput-object v1, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_15:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 219
+    .line 220
+    const-string v6, ""
+
+    .line 221
+    .line 222
+    const-string v7, "void"
+
+    .line 223
+    .line 224
+    const-string v1, "1"
+
+    .line 225
+    .line 226
+    const-string v2, "setNextTrackId"
+
+    .line 227
+    .line 228
+    const-string v3, "com.coremedia.iso.boxes.MovieHeaderBox"
+
+    .line 229
+    .line 230
+    const-string v4, "long"
+
+    .line 231
+    .line 232
+    const-string v5, "nextTrackId"
+
+    .line 233
+    .line 234
+    invoke-virtual/range {v0 .. v7}, Lorg/aspectj/runtime/reflect/Factory;->makeMethodSig(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/aspectj/lang/reflect/MethodSignature;
+
+    .line 235
+    .line 236
+    .line 237
+    move-result-object v1
+
+    .line 238
+    const/16 v2, 0xea
+
+    .line 239
+    .line 240
+    invoke-virtual {v0, v8, v1, v2}, Lorg/aspectj/runtime/reflect/Factory;->makeSJP(Ljava/lang/String;Lorg/aspectj/lang/Signature;I)Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 241
+    .line 242
+    .line 243
+    move-result-object v1
+
+    .line 244
+    sput-object v1, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_16:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 245
+    .line 246
+    const-string v6, ""
+
+    .line 247
+    .line 248
+    const-string v7, "int"
+
+    .line 249
+    .line 250
+    const-string v1, "1"
+
+    .line 251
+    .line 252
+    const-string v2, "getPreviewTime"
+
+    .line 253
+    .line 254
+    const-string v3, "com.coremedia.iso.boxes.MovieHeaderBox"
+
+    .line 255
+    .line 256
+    const-string v4, ""
+
+    .line 257
+    .line 258
+    const-string v5, ""
+
+    .line 259
+    .line 260
+    invoke-virtual/range {v0 .. v7}, Lorg/aspectj/runtime/reflect/Factory;->makeMethodSig(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/aspectj/lang/reflect/MethodSignature;
+
+    .line 261
+    .line 262
+    .line 263
+    move-result-object v1
+
+    .line 264
+    const/16 v2, 0xee
+
+    .line 265
+    .line 266
+    invoke-virtual {v0, v8, v1, v2}, Lorg/aspectj/runtime/reflect/Factory;->makeSJP(Ljava/lang/String;Lorg/aspectj/lang/Signature;I)Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 267
+    .line 268
+    .line 269
+    move-result-object v1
+
+    .line 270
+    sput-object v1, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_17:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 271
+    .line 272
+    const-string v6, ""
+
+    .line 273
+    .line 274
+    const-string v7, "void"
+
+    .line 275
+    .line 276
+    const-string v1, "1"
+
+    .line 277
+    .line 278
+    const-string v2, "setPreviewTime"
+
+    .line 279
+    .line 280
+    const-string v3, "com.coremedia.iso.boxes.MovieHeaderBox"
+
+    .line 281
+    .line 282
+    const-string v4, "int"
+
+    .line 283
+    .line 284
+    const-string v5, "previewTime"
+
+    .line 285
+    .line 286
+    invoke-virtual/range {v0 .. v7}, Lorg/aspectj/runtime/reflect/Factory;->makeMethodSig(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/aspectj/lang/reflect/MethodSignature;
+
+    .line 287
+    .line 288
+    .line 289
+    move-result-object v1
+
+    .line 290
+    const/16 v2, 0xf2
+
+    .line 291
+    .line 292
+    invoke-virtual {v0, v8, v1, v2}, Lorg/aspectj/runtime/reflect/Factory;->makeSJP(Ljava/lang/String;Lorg/aspectj/lang/Signature;I)Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 293
+    .line 294
+    .line 295
+    move-result-object v1
+
+    .line 296
+    sput-object v1, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_18:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 297
+    .line 298
+    const-string v6, ""
+
+    .line 299
+    .line 300
+    const-string v7, "int"
+
+    .line 301
+    .line 302
+    const-string v1, "1"
+
+    .line 303
+    .line 304
+    const-string v2, "getPreviewDuration"
+
+    .line 305
+    .line 306
+    const-string v3, "com.coremedia.iso.boxes.MovieHeaderBox"
+
+    .line 307
+    .line 308
+    const-string v4, ""
+
+    .line 309
+    .line 310
+    const-string v5, ""
+
+    .line 311
+    .line 312
+    invoke-virtual/range {v0 .. v7}, Lorg/aspectj/runtime/reflect/Factory;->makeMethodSig(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/aspectj/lang/reflect/MethodSignature;
+
+    .line 313
+    .line 314
+    .line 315
+    move-result-object v1
+
+    .line 316
+    const/16 v2, 0xf6
+
+    .line 317
+    .line 318
+    invoke-virtual {v0, v8, v1, v2}, Lorg/aspectj/runtime/reflect/Factory;->makeSJP(Ljava/lang/String;Lorg/aspectj/lang/Signature;I)Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 319
+    .line 320
+    .line 321
+    move-result-object v1
+
+    .line 322
+    sput-object v1, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_19:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 323
+    .line 324
+    const-string v6, ""
+
+    .line 325
+    .line 326
+    const-string v7, "long"
+
+    .line 327
+    .line 328
+    const-string v1, "1"
+
+    .line 329
+    .line 330
+    const-string v2, "getTimescale"
+
+    .line 331
+    .line 332
+    const-string v3, "com.coremedia.iso.boxes.MovieHeaderBox"
+
+    .line 333
+    .line 334
+    const-string v4, ""
+
+    .line 335
+    .line 336
+    const-string v5, ""
+
+    .line 337
+    .line 338
+    invoke-virtual/range {v0 .. v7}, Lorg/aspectj/runtime/reflect/Factory;->makeMethodSig(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/aspectj/lang/reflect/MethodSignature;
+
+    .line 339
+    .line 340
+    .line 341
+    move-result-object v1
+
+    .line 342
+    const/16 v2, 0x47
+
+    .line 343
+    .line 344
+    invoke-virtual {v0, v8, v1, v2}, Lorg/aspectj/runtime/reflect/Factory;->makeSJP(Ljava/lang/String;Lorg/aspectj/lang/Signature;I)Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 345
+    .line 346
+    .line 347
+    move-result-object v1
+
+    .line 348
+    sput-object v1, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_2:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 349
+    .line 350
+    const-string v6, ""
+
+    .line 351
+    .line 352
+    const-string v7, "void"
+
+    .line 353
+    .line 354
+    const-string v1, "1"
+
+    .line 355
+    .line 356
+    const-string v2, "setPreviewDuration"
+
+    .line 357
+    .line 358
+    const-string v3, "com.coremedia.iso.boxes.MovieHeaderBox"
+
+    .line 359
+    .line 360
+    const-string v4, "int"
+
+    .line 361
+    .line 362
+    const-string v5, "previewDuration"
+
+    .line 363
+    .line 364
+    invoke-virtual/range {v0 .. v7}, Lorg/aspectj/runtime/reflect/Factory;->makeMethodSig(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/aspectj/lang/reflect/MethodSignature;
+
+    .line 365
+    .line 366
+    .line 367
+    move-result-object v1
+
+    .line 368
+    const/16 v2, 0xfa
+
+    .line 369
+    .line 370
+    invoke-virtual {v0, v8, v1, v2}, Lorg/aspectj/runtime/reflect/Factory;->makeSJP(Ljava/lang/String;Lorg/aspectj/lang/Signature;I)Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 371
+    .line 372
+    .line 373
+    move-result-object v1
+
+    .line 374
+    sput-object v1, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_20:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 375
+    .line 376
+    const-string v6, ""
+
+    .line 377
+    .line 378
+    const-string v7, "int"
+
+    .line 379
+    .line 380
+    const-string v1, "1"
+
+    .line 381
+    .line 382
+    const-string v2, "getPosterTime"
+
+    .line 383
+    .line 384
+    const-string v3, "com.coremedia.iso.boxes.MovieHeaderBox"
+
+    .line 385
+    .line 386
+    const-string v4, ""
+
+    .line 387
+    .line 388
+    const-string v5, ""
+
+    .line 389
+    .line 390
+    invoke-virtual/range {v0 .. v7}, Lorg/aspectj/runtime/reflect/Factory;->makeMethodSig(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/aspectj/lang/reflect/MethodSignature;
+
+    .line 391
+    .line 392
+    .line 393
+    move-result-object v1
+
+    .line 394
+    const/16 v2, 0xfe
+
+    .line 395
+    .line 396
+    invoke-virtual {v0, v8, v1, v2}, Lorg/aspectj/runtime/reflect/Factory;->makeSJP(Ljava/lang/String;Lorg/aspectj/lang/Signature;I)Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 397
+    .line 398
+    .line 399
+    move-result-object v1
+
+    .line 400
+    sput-object v1, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_21:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 401
+    .line 402
+    const-string v6, ""
+
+    .line 403
+    .line 404
+    const-string v7, "void"
+
+    .line 405
+    .line 406
+    const-string v1, "1"
+
+    .line 407
+    .line 408
+    const-string v2, "setPosterTime"
+
+    .line 409
+    .line 410
+    const-string v3, "com.coremedia.iso.boxes.MovieHeaderBox"
+
+    .line 411
+    .line 412
+    const-string v4, "int"
+
+    .line 413
+    .line 414
+    const-string v5, "posterTime"
+
+    .line 415
+    .line 416
+    invoke-virtual/range {v0 .. v7}, Lorg/aspectj/runtime/reflect/Factory;->makeMethodSig(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/aspectj/lang/reflect/MethodSignature;
+
+    .line 417
+    .line 418
+    .line 419
+    move-result-object v1
+
+    .line 420
+    const/16 v2, 0x102
+
+    .line 421
+    .line 422
+    invoke-virtual {v0, v8, v1, v2}, Lorg/aspectj/runtime/reflect/Factory;->makeSJP(Ljava/lang/String;Lorg/aspectj/lang/Signature;I)Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 423
+    .line 424
+    .line 425
+    move-result-object v1
+
+    .line 426
+    sput-object v1, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_22:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 427
+    .line 428
+    const-string v6, ""
+
+    .line 429
+    .line 430
+    const-string v7, "int"
+
+    .line 431
+    .line 432
+    const-string v1, "1"
+
+    .line 433
+    .line 434
+    const-string v2, "getSelectionTime"
+
+    .line 435
+    .line 436
+    const-string v3, "com.coremedia.iso.boxes.MovieHeaderBox"
+
+    .line 437
+    .line 438
+    const-string v4, ""
+
+    .line 439
+    .line 440
+    const-string v5, ""
+
+    .line 441
+    .line 442
+    invoke-virtual/range {v0 .. v7}, Lorg/aspectj/runtime/reflect/Factory;->makeMethodSig(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/aspectj/lang/reflect/MethodSignature;
+
+    .line 443
+    .line 444
+    .line 445
+    move-result-object v1
+
+    .line 446
+    const/16 v2, 0x106
+
+    .line 447
+    .line 448
+    invoke-virtual {v0, v8, v1, v2}, Lorg/aspectj/runtime/reflect/Factory;->makeSJP(Ljava/lang/String;Lorg/aspectj/lang/Signature;I)Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 449
+    .line 450
+    .line 451
+    move-result-object v1
+
+    .line 452
+    sput-object v1, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_23:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 453
+    .line 454
+    const-string v6, ""
+
+    .line 455
+    .line 456
+    const-string v7, "void"
+
+    .line 457
+    .line 458
+    const-string v1, "1"
+
+    .line 459
+    .line 460
+    const-string v2, "setSelectionTime"
+
+    .line 461
+    .line 462
+    const-string v3, "com.coremedia.iso.boxes.MovieHeaderBox"
+
+    .line 463
+    .line 464
+    const-string v4, "int"
+
+    .line 465
+    .line 466
+    const-string v5, "selectionTime"
+
+    .line 467
+    .line 468
+    invoke-virtual/range {v0 .. v7}, Lorg/aspectj/runtime/reflect/Factory;->makeMethodSig(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/aspectj/lang/reflect/MethodSignature;
+
+    .line 469
+    .line 470
+    .line 471
+    move-result-object v1
+
+    .line 472
+    const/16 v2, 0x10a
+
+    .line 473
+    .line 474
+    invoke-virtual {v0, v8, v1, v2}, Lorg/aspectj/runtime/reflect/Factory;->makeSJP(Ljava/lang/String;Lorg/aspectj/lang/Signature;I)Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 475
+    .line 476
+    .line 477
+    move-result-object v1
+
+    .line 478
+    sput-object v1, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_24:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 479
+    .line 480
+    const-string v6, ""
+
+    .line 481
+    .line 482
+    const-string v7, "int"
+
+    .line 483
+    .line 484
+    const-string v1, "1"
+
+    .line 485
+    .line 486
+    const-string v2, "getSelectionDuration"
+
+    .line 487
+    .line 488
+    const-string v3, "com.coremedia.iso.boxes.MovieHeaderBox"
+
+    .line 489
+    .line 490
+    const-string v4, ""
+
+    .line 491
+    .line 492
+    const-string v5, ""
+
+    .line 493
+    .line 494
+    invoke-virtual/range {v0 .. v7}, Lorg/aspectj/runtime/reflect/Factory;->makeMethodSig(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/aspectj/lang/reflect/MethodSignature;
+
+    .line 495
+    .line 496
+    .line 497
+    move-result-object v1
+
+    .line 498
+    const/16 v2, 0x10e
+
+    .line 499
+    .line 500
+    invoke-virtual {v0, v8, v1, v2}, Lorg/aspectj/runtime/reflect/Factory;->makeSJP(Ljava/lang/String;Lorg/aspectj/lang/Signature;I)Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 501
+    .line 502
+    .line 503
+    move-result-object v1
+
+    .line 504
+    sput-object v1, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_25:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 505
+    .line 506
+    const-string v6, ""
+
+    .line 507
+    .line 508
+    const-string v7, "void"
+
+    .line 509
+    .line 510
+    const-string v1, "1"
+
+    .line 511
+    .line 512
+    const-string v2, "setSelectionDuration"
+
+    .line 513
+    .line 514
+    const-string v3, "com.coremedia.iso.boxes.MovieHeaderBox"
+
+    .line 515
+    .line 516
+    const-string v4, "int"
+
+    .line 517
+    .line 518
+    const-string v5, "selectionDuration"
+
+    .line 519
+    .line 520
+    invoke-virtual/range {v0 .. v7}, Lorg/aspectj/runtime/reflect/Factory;->makeMethodSig(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/aspectj/lang/reflect/MethodSignature;
+
+    .line 521
+    .line 522
+    .line 523
+    move-result-object v1
+
+    .line 524
+    const/16 v2, 0x112
+
+    .line 525
+    .line 526
+    invoke-virtual {v0, v8, v1, v2}, Lorg/aspectj/runtime/reflect/Factory;->makeSJP(Ljava/lang/String;Lorg/aspectj/lang/Signature;I)Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 527
+    .line 528
+    .line 529
+    move-result-object v1
+
+    .line 530
+    sput-object v1, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_26:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 531
+    .line 532
+    const-string v6, ""
+
+    .line 533
+    .line 534
+    const-string v7, "int"
+
+    .line 535
+    .line 536
+    const-string v1, "1"
+
+    .line 537
+    .line 538
+    const-string v2, "getCurrentTime"
+
+    .line 539
+    .line 540
+    const-string v3, "com.coremedia.iso.boxes.MovieHeaderBox"
+
+    .line 541
+    .line 542
+    const-string v4, ""
+
+    .line 543
+    .line 544
+    const-string v5, ""
+
+    .line 545
+    .line 546
+    invoke-virtual/range {v0 .. v7}, Lorg/aspectj/runtime/reflect/Factory;->makeMethodSig(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/aspectj/lang/reflect/MethodSignature;
+
+    .line 547
+    .line 548
+    .line 549
+    move-result-object v1
+
+    .line 550
+    const/16 v2, 0x116
+
+    .line 551
+    .line 552
+    invoke-virtual {v0, v8, v1, v2}, Lorg/aspectj/runtime/reflect/Factory;->makeSJP(Ljava/lang/String;Lorg/aspectj/lang/Signature;I)Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 553
+    .line 554
+    .line 555
+    move-result-object v1
+
+    .line 556
+    sput-object v1, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_27:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 557
+    .line 558
+    const-string v6, ""
+
+    .line 559
+    .line 560
+    const-string v7, "void"
+
+    .line 561
+    .line 562
+    const-string v1, "1"
+
+    .line 563
+    .line 564
+    const-string v2, "setCurrentTime"
+
+    .line 565
+    .line 566
+    const-string v3, "com.coremedia.iso.boxes.MovieHeaderBox"
+
+    .line 567
+    .line 568
+    const-string v4, "int"
+
+    .line 569
+    .line 570
+    const-string v5, "currentTime"
+
+    .line 571
+    .line 572
+    invoke-virtual/range {v0 .. v7}, Lorg/aspectj/runtime/reflect/Factory;->makeMethodSig(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/aspectj/lang/reflect/MethodSignature;
+
+    .line 573
+    .line 574
+    .line 575
+    move-result-object v1
+
+    .line 576
+    const/16 v2, 0x11a
+
+    .line 577
+    .line 578
+    invoke-virtual {v0, v8, v1, v2}, Lorg/aspectj/runtime/reflect/Factory;->makeSJP(Ljava/lang/String;Lorg/aspectj/lang/Signature;I)Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 579
+    .line 580
+    .line 581
+    move-result-object v1
+
+    .line 582
+    sput-object v1, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_28:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 583
+    .line 584
+    const-string v6, ""
+
+    .line 585
+    .line 586
+    const-string v7, "long"
+
+    .line 587
+    .line 588
+    const-string v1, "1"
+
+    .line 589
+    .line 590
+    const-string v2, "getDuration"
+
+    .line 591
+    .line 592
+    const-string v3, "com.coremedia.iso.boxes.MovieHeaderBox"
+
+    .line 593
+    .line 594
+    const-string v4, ""
+
+    .line 595
+    .line 596
+    const-string v5, ""
+
+    .line 597
+    .line 598
+    invoke-virtual/range {v0 .. v7}, Lorg/aspectj/runtime/reflect/Factory;->makeMethodSig(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/aspectj/lang/reflect/MethodSignature;
+
+    .line 599
+    .line 600
+    .line 601
+    move-result-object v1
+
+    .line 602
+    const/16 v2, 0x4b
+
+    .line 603
+    .line 604
+    invoke-virtual {v0, v8, v1, v2}, Lorg/aspectj/runtime/reflect/Factory;->makeSJP(Ljava/lang/String;Lorg/aspectj/lang/Signature;I)Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 605
+    .line 606
+    .line 607
+    move-result-object v1
+
+    .line 608
+    sput-object v1, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_3:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 609
+    .line 610
+    const-string v6, ""
+
+    .line 611
+    .line 612
+    const-string v7, "double"
+
+    .line 613
+    .line 614
+    const-string v1, "1"
+
+    .line 615
+    .line 616
+    const-string v2, "getRate"
+
+    .line 617
+    .line 618
+    const-string v3, "com.coremedia.iso.boxes.MovieHeaderBox"
+
+    .line 619
+    .line 620
+    const-string v4, ""
+
+    .line 621
+    .line 622
+    const-string v5, ""
+
+    .line 623
+    .line 624
+    invoke-virtual/range {v0 .. v7}, Lorg/aspectj/runtime/reflect/Factory;->makeMethodSig(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/aspectj/lang/reflect/MethodSignature;
+
+    .line 625
+    .line 626
+    .line 627
+    move-result-object v1
+
+    .line 628
+    const/16 v2, 0x4f
+
+    .line 629
+    .line 630
+    invoke-virtual {v0, v8, v1, v2}, Lorg/aspectj/runtime/reflect/Factory;->makeSJP(Ljava/lang/String;Lorg/aspectj/lang/Signature;I)Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 631
+    .line 632
+    .line 633
+    move-result-object v1
+
+    .line 634
+    sput-object v1, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_4:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 635
+    .line 636
+    const-string v6, ""
+
+    .line 637
+    .line 638
+    const-string v7, "float"
+
+    .line 639
+    .line 640
+    const-string v1, "1"
+
+    .line 641
+    .line 642
+    const-string v2, "getVolume"
+
+    .line 643
+    .line 644
+    const-string v3, "com.coremedia.iso.boxes.MovieHeaderBox"
+
+    .line 645
+    .line 646
+    const-string v4, ""
+
+    .line 647
+    .line 648
+    const-string v5, ""
+
+    .line 649
+    .line 650
+    invoke-virtual/range {v0 .. v7}, Lorg/aspectj/runtime/reflect/Factory;->makeMethodSig(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/aspectj/lang/reflect/MethodSignature;
+
+    .line 651
+    .line 652
+    .line 653
+    move-result-object v1
+
+    .line 654
+    const/16 v2, 0x53
+
+    .line 655
+    .line 656
+    invoke-virtual {v0, v8, v1, v2}, Lorg/aspectj/runtime/reflect/Factory;->makeSJP(Ljava/lang/String;Lorg/aspectj/lang/Signature;I)Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 657
+    .line 658
+    .line 659
+    move-result-object v1
+
+    .line 660
+    sput-object v1, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_5:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 661
+    .line 662
+    const-string v6, ""
+
+    .line 663
+    .line 664
+    const-string v7, "com.googlecode.mp4parser.util.Matrix"
+
+    .line 665
+    .line 666
+    const-string v1, "1"
+
+    .line 667
+    .line 668
+    const-string v2, "getMatrix"
+
+    .line 669
+    .line 670
+    const-string v3, "com.coremedia.iso.boxes.MovieHeaderBox"
+
+    .line 671
+    .line 672
+    const-string v4, ""
+
+    .line 673
+    .line 674
+    const-string v5, ""
+
+    .line 675
+    .line 676
+    invoke-virtual/range {v0 .. v7}, Lorg/aspectj/runtime/reflect/Factory;->makeMethodSig(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/aspectj/lang/reflect/MethodSignature;
+
+    .line 677
+    .line 678
+    .line 679
+    move-result-object v1
+
+    .line 680
+    const/16 v2, 0x57
+
+    .line 681
+    .line 682
+    invoke-virtual {v0, v8, v1, v2}, Lorg/aspectj/runtime/reflect/Factory;->makeSJP(Ljava/lang/String;Lorg/aspectj/lang/Signature;I)Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 683
+    .line 684
+    .line 685
+    move-result-object v1
+
+    .line 686
+    sput-object v1, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_6:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 687
+    .line 688
+    const-string v6, ""
+
+    .line 689
+    .line 690
+    const-string v7, "long"
+
+    .line 691
+    .line 692
+    const-string v1, "1"
+
+    .line 693
+    .line 694
+    const-string v2, "getNextTrackId"
+
+    .line 695
+    .line 696
+    const-string v3, "com.coremedia.iso.boxes.MovieHeaderBox"
+
+    .line 697
+    .line 698
+    const-string v4, ""
+
+    .line 699
+    .line 700
+    const-string v5, ""
+
+    .line 701
+    .line 702
+    invoke-virtual/range {v0 .. v7}, Lorg/aspectj/runtime/reflect/Factory;->makeMethodSig(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/aspectj/lang/reflect/MethodSignature;
+
+    .line 703
+    .line 704
+    .line 705
+    move-result-object v1
+
+    .line 706
+    const/16 v2, 0x5b
+
+    .line 707
+    .line 708
+    invoke-virtual {v0, v8, v1, v2}, Lorg/aspectj/runtime/reflect/Factory;->makeSJP(Ljava/lang/String;Lorg/aspectj/lang/Signature;I)Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 709
+    .line 710
+    .line 711
+    move-result-object v1
+
+    .line 712
+    sput-object v1, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_7:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 713
+    .line 714
+    const-string v6, ""
+
+    .line 715
+    .line 716
+    const-string v7, "java.lang.String"
+
+    .line 717
+    .line 718
+    const-string v1, "1"
+
+    .line 719
+    .line 720
+    const-string v2, "toString"
+
+    .line 721
+    .line 722
+    const-string v3, "com.coremedia.iso.boxes.MovieHeaderBox"
+
+    .line 723
+    .line 724
+    const-string v4, ""
+
+    .line 725
+    .line 726
+    const-string v5, ""
+
+    .line 727
+    .line 728
+    invoke-virtual/range {v0 .. v7}, Lorg/aspectj/runtime/reflect/Factory;->makeMethodSig(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/aspectj/lang/reflect/MethodSignature;
+
+    .line 729
+    .line 730
+    .line 731
+    move-result-object v1
+
+    .line 732
+    const/16 v2, 0x8b
+
+    .line 733
+    .line 734
+    invoke-virtual {v0, v8, v1, v2}, Lorg/aspectj/runtime/reflect/Factory;->makeSJP(Ljava/lang/String;Lorg/aspectj/lang/Signature;I)Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 735
+    .line 736
+    .line 737
+    move-result-object v1
+
+    .line 738
+    sput-object v1, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_8:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 739
+    .line 740
+    const-string v6, ""
+
+    .line 741
+    .line 742
+    const-string v7, "void"
+
+    .line 743
+    .line 744
+    const-string v1, "1"
+
+    .line 745
+    .line 746
+    const-string v2, "setCreationTime"
+
+    .line 747
+    .line 748
+    const-string v3, "com.coremedia.iso.boxes.MovieHeaderBox"
+
+    .line 749
+    .line 750
+    const-string v4, "java.util.Date"
+
+    .line 751
+    .line 752
+    const-string v5, "creationTime"
+
+    .line 753
+    .line 754
+    invoke-virtual/range {v0 .. v7}, Lorg/aspectj/runtime/reflect/Factory;->makeMethodSig(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lorg/aspectj/lang/reflect/MethodSignature;
+
+    .line 755
+    .line 756
+    .line 757
+    move-result-object v1
+
+    .line 758
+    const/16 v2, 0xc3
+
+    .line 759
+    .line 760
+    invoke-virtual {v0, v8, v1, v2}, Lorg/aspectj/runtime/reflect/Factory;->makeSJP(Ljava/lang/String;Lorg/aspectj/lang/Signature;I)Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 761
+    .line 762
+    .line 763
+    move-result-object v0
+
+    .line 764
+    sput-object v0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_9:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 765
+    .line 766
+    return-void
+.end method
+
+
+# virtual methods
+.method public _parseDetails(Ljava/nio/ByteBuffer;)V
+    .locals 2
+
+    .line 1
+    invoke-virtual {p0, p1}, Lcom/googlecode/mp4parser/AbstractFullBox;->parseVersionAndFlags(Ljava/nio/ByteBuffer;)J
+
+    .line 2
+    .line 3
+    .line 4
+    invoke-virtual {p0}, Lcom/googlecode/mp4parser/AbstractFullBox;->getVersion()I
+
+    .line 5
+    .line 6
+    .line 7
+    move-result v0
+
+    .line 8
+    const/4 v1, 0x1
+
+    .line 9
+    if-ne v0, v1, :cond_0
+
+    .line 10
+    .line 11
+    invoke-static {p1}, Ll/y0q;->m(Ljava/nio/ByteBuffer;)J
+
+    .line 12
+    .line 13
+    .line 14
+    move-result-wide v0
+
+    .line 15
+    invoke-static {v0, v1}, Ll/l8c;->b(J)Ljava/util/Date;
+
+    .line 16
+    .line 17
+    .line 18
+    move-result-object v0
+
+    .line 19
+    iput-object v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->creationTime:Ljava/util/Date;
+
+    .line 20
+    .line 21
+    invoke-static {p1}, Ll/y0q;->m(Ljava/nio/ByteBuffer;)J
+
+    .line 22
+    .line 23
+    .line 24
+    move-result-wide v0
+
+    .line 25
+    invoke-static {v0, v1}, Ll/l8c;->b(J)Ljava/util/Date;
+
+    .line 26
+    .line 27
+    .line 28
+    move-result-object v0
+
+    .line 29
+    iput-object v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->modificationTime:Ljava/util/Date;
+
+    .line 30
+    .line 31
+    invoke-static {p1}, Ll/y0q;->k(Ljava/nio/ByteBuffer;)J
+
+    .line 32
+    .line 33
+    .line 34
+    move-result-wide v0
+
+    .line 35
+    iput-wide v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->timescale:J
+
+    .line 36
+    .line 37
+    invoke-static {p1}, Ll/y0q;->m(Ljava/nio/ByteBuffer;)J
+
+    .line 38
+    .line 39
+    .line 40
+    move-result-wide v0
+
+    .line 41
+    iput-wide v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->duration:J
+
+    .line 42
+    .line 43
+    goto :goto_0
+
+    .line 44
+    :cond_0
+    invoke-static {p1}, Ll/y0q;->k(Ljava/nio/ByteBuffer;)J
+
+    .line 45
+    .line 46
+    .line 47
+    move-result-wide v0
+
+    .line 48
+    invoke-static {v0, v1}, Ll/l8c;->b(J)Ljava/util/Date;
+
+    .line 49
+    .line 50
+    .line 51
+    move-result-object v0
+
+    .line 52
+    iput-object v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->creationTime:Ljava/util/Date;
+
+    .line 53
+    .line 54
+    invoke-static {p1}, Ll/y0q;->k(Ljava/nio/ByteBuffer;)J
+
+    .line 55
+    .line 56
+    .line 57
+    move-result-wide v0
+
+    .line 58
+    invoke-static {v0, v1}, Ll/l8c;->b(J)Ljava/util/Date;
+
+    .line 59
+    .line 60
+    .line 61
+    move-result-object v0
+
+    .line 62
+    iput-object v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->modificationTime:Ljava/util/Date;
+
+    .line 63
+    .line 64
+    invoke-static {p1}, Ll/y0q;->k(Ljava/nio/ByteBuffer;)J
+
+    .line 65
+    .line 66
+    .line 67
+    move-result-wide v0
+
+    .line 68
+    iput-wide v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->timescale:J
+
+    .line 69
+    .line 70
+    invoke-static {p1}, Ll/y0q;->k(Ljava/nio/ByteBuffer;)J
+
+    .line 71
+    .line 72
+    .line 73
+    move-result-wide v0
+
+    .line 74
+    iput-wide v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->duration:J
+
+    .line 75
+    .line 76
+    :goto_0
+    invoke-static {p1}, Ll/y0q;->d(Ljava/nio/ByteBuffer;)D
+
+    .line 77
+    .line 78
+    .line 79
+    move-result-wide v0
+
+    .line 80
+    iput-wide v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->rate:D
+
+    .line 81
+    .line 82
+    invoke-static {p1}, Ll/y0q;->e(Ljava/nio/ByteBuffer;)F
+
+    .line 83
+    .line 84
+    .line 85
+    move-result v0
+
+    .line 86
+    iput v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->volume:F
+
+    .line 87
+    .line 88
+    invoke-static {p1}, Ll/y0q;->i(Ljava/nio/ByteBuffer;)I
+
+    .line 89
+    .line 90
+    .line 91
+    invoke-static {p1}, Ll/y0q;->k(Ljava/nio/ByteBuffer;)J
+
+    .line 92
+    .line 93
+    .line 94
+    invoke-static {p1}, Ll/y0q;->k(Ljava/nio/ByteBuffer;)J
+
+    .line 95
+    .line 96
+    .line 97
+    invoke-static {p1}, Ll/khx;->a(Ljava/nio/ByteBuffer;)Ll/khx;
+
+    .line 98
+    .line 99
+    .line 100
+    move-result-object v0
+
+    .line 101
+    iput-object v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->matrix:Ll/khx;
+
+    .line 102
+    .line 103
+    invoke-virtual {p1}, Ljava/nio/ByteBuffer;->getInt()I
+
+    .line 104
+    .line 105
+    .line 106
+    move-result v0
+
+    .line 107
+    iput v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->previewTime:I
+
+    .line 108
+    .line 109
+    invoke-virtual {p1}, Ljava/nio/ByteBuffer;->getInt()I
+
+    .line 110
+    .line 111
+    .line 112
+    move-result v0
+
+    .line 113
+    iput v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->previewDuration:I
+
+    .line 114
+    .line 115
+    invoke-virtual {p1}, Ljava/nio/ByteBuffer;->getInt()I
+
+    .line 116
+    .line 117
+    .line 118
+    move-result v0
+
+    .line 119
+    iput v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->posterTime:I
+
+    .line 120
+    .line 121
+    invoke-virtual {p1}, Ljava/nio/ByteBuffer;->getInt()I
+
+    .line 122
+    .line 123
+    .line 124
+    move-result v0
+
+    .line 125
+    iput v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->selectionTime:I
+
+    .line 126
+    .line 127
+    invoke-virtual {p1}, Ljava/nio/ByteBuffer;->getInt()I
+
+    .line 128
+    .line 129
+    .line 130
+    move-result v0
+
+    .line 131
+    iput v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->selectionDuration:I
+
+    .line 132
+    .line 133
+    invoke-virtual {p1}, Ljava/nio/ByteBuffer;->getInt()I
+
+    .line 134
+    .line 135
+    .line 136
+    move-result v0
+
+    .line 137
+    iput v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->currentTime:I
+
+    .line 138
+    .line 139
+    invoke-static {p1}, Ll/y0q;->k(Ljava/nio/ByteBuffer;)J
+
+    .line 140
+    .line 141
+    .line 142
+    move-result-wide v0
+
+    .line 143
+    iput-wide v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->nextTrackId:J
+
+    .line 144
+    .line 145
+    return-void
+.end method
+
+.method public getContent(Ljava/nio/ByteBuffer;)V
+    .locals 3
+
+    .line 1
+    invoke-virtual {p0, p1}, Lcom/googlecode/mp4parser/AbstractFullBox;->writeVersionAndFlags(Ljava/nio/ByteBuffer;)V
+
+    .line 2
+    .line 3
+    .line 4
+    invoke-virtual {p0}, Lcom/googlecode/mp4parser/AbstractFullBox;->getVersion()I
+
+    .line 5
+    .line 6
+    .line 7
+    move-result v0
+
+    .line 8
+    iget-object v1, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->creationTime:Ljava/util/Date;
+
+    .line 9
+    .line 10
+    const/4 v2, 0x1
+
+    .line 11
+    if-ne v0, v2, :cond_0
+
+    .line 12
+    .line 13
+    invoke-static {v1}, Ll/l8c;->a(Ljava/util/Date;)J
+
+    .line 14
+    .line 15
+    .line 16
+    move-result-wide v0
+
+    .line 17
+    invoke-static {p1, v0, v1}, Ll/b1q;->i(Ljava/nio/ByteBuffer;J)V
+
+    .line 18
+    .line 19
+    .line 20
+    iget-object v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->modificationTime:Ljava/util/Date;
+
+    .line 21
+    .line 22
+    invoke-static {v0}, Ll/l8c;->a(Ljava/util/Date;)J
+
+    .line 23
+    .line 24
+    .line 25
+    move-result-wide v0
+
+    .line 26
+    invoke-static {p1, v0, v1}, Ll/b1q;->i(Ljava/nio/ByteBuffer;J)V
+
+    .line 27
+    .line 28
+    .line 29
+    iget-wide v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->timescale:J
+
+    .line 30
+    .line 31
+    invoke-static {p1, v0, v1}, Ll/b1q;->g(Ljava/nio/ByteBuffer;J)V
+
+    .line 32
+    .line 33
+    .line 34
+    iget-wide v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->duration:J
+
+    .line 35
+    .line 36
+    invoke-static {p1, v0, v1}, Ll/b1q;->i(Ljava/nio/ByteBuffer;J)V
+
+    .line 37
+    .line 38
+    .line 39
+    goto :goto_0
+
+    .line 40
+    :cond_0
+    invoke-static {v1}, Ll/l8c;->a(Ljava/util/Date;)J
+
+    .line 41
+    .line 42
+    .line 43
+    move-result-wide v0
+
+    .line 44
+    invoke-static {p1, v0, v1}, Ll/b1q;->g(Ljava/nio/ByteBuffer;J)V
+
+    .line 45
+    .line 46
+    .line 47
+    iget-object v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->modificationTime:Ljava/util/Date;
+
+    .line 48
+    .line 49
+    invoke-static {v0}, Ll/l8c;->a(Ljava/util/Date;)J
+
+    .line 50
+    .line 51
+    .line 52
+    move-result-wide v0
+
+    .line 53
+    invoke-static {p1, v0, v1}, Ll/b1q;->g(Ljava/nio/ByteBuffer;J)V
+
+    .line 54
+    .line 55
+    .line 56
+    iget-wide v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->timescale:J
+
+    .line 57
+    .line 58
+    invoke-static {p1, v0, v1}, Ll/b1q;->g(Ljava/nio/ByteBuffer;J)V
+
+    .line 59
+    .line 60
+    .line 61
+    iget-wide v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->duration:J
+
+    .line 62
+    .line 63
+    invoke-static {p1, v0, v1}, Ll/b1q;->g(Ljava/nio/ByteBuffer;J)V
+
+    .line 64
+    .line 65
+    .line 66
+    :goto_0
+    iget-wide v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->rate:D
+
+    .line 67
+    .line 68
+    invoke-static {p1, v0, v1}, Ll/b1q;->b(Ljava/nio/ByteBuffer;D)V
+
+    .line 69
+    .line 70
+    .line 71
+    iget v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->volume:F
+
+    .line 72
+    .line 73
+    float-to-double v0, v0
+
+    .line 74
+    invoke-static {p1, v0, v1}, Ll/b1q;->c(Ljava/nio/ByteBuffer;D)V
+
+    .line 75
+    .line 76
+    .line 77
+    const/4 v0, 0x0
+
+    .line 78
+    invoke-static {p1, v0}, Ll/b1q;->e(Ljava/nio/ByteBuffer;I)V
+
+    .line 79
+    .line 80
+    .line 81
+    const-wide/16 v0, 0x0
+
+    .line 82
+    .line 83
+    invoke-static {p1, v0, v1}, Ll/b1q;->g(Ljava/nio/ByteBuffer;J)V
+
+    .line 84
+    .line 85
+    .line 86
+    invoke-static {p1, v0, v1}, Ll/b1q;->g(Ljava/nio/ByteBuffer;J)V
+
+    .line 87
+    .line 88
+    .line 89
+    iget-object v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->matrix:Ll/khx;
+
+    .line 90
+    .line 91
+    invoke-virtual {v0, p1}, Ll/khx;->c(Ljava/nio/ByteBuffer;)V
+
+    .line 92
+    .line 93
+    .line 94
+    iget v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->previewTime:I
+
+    .line 95
+    .line 96
+    invoke-virtual {p1, v0}, Ljava/nio/ByteBuffer;->putInt(I)Ljava/nio/ByteBuffer;
+
+    .line 97
+    .line 98
+    .line 99
+    iget v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->previewDuration:I
+
+    .line 100
+    .line 101
+    invoke-virtual {p1, v0}, Ljava/nio/ByteBuffer;->putInt(I)Ljava/nio/ByteBuffer;
+
+    .line 102
+    .line 103
+    .line 104
+    iget v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->posterTime:I
+
+    .line 105
+    .line 106
+    invoke-virtual {p1, v0}, Ljava/nio/ByteBuffer;->putInt(I)Ljava/nio/ByteBuffer;
+
+    .line 107
+    .line 108
+    .line 109
+    iget v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->selectionTime:I
+
+    .line 110
+    .line 111
+    invoke-virtual {p1, v0}, Ljava/nio/ByteBuffer;->putInt(I)Ljava/nio/ByteBuffer;
+
+    .line 112
+    .line 113
+    .line 114
+    iget v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->selectionDuration:I
+
+    .line 115
+    .line 116
+    invoke-virtual {p1, v0}, Ljava/nio/ByteBuffer;->putInt(I)Ljava/nio/ByteBuffer;
+
+    .line 117
+    .line 118
+    .line 119
+    iget v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->currentTime:I
+
+    .line 120
+    .line 121
+    invoke-virtual {p1, v0}, Ljava/nio/ByteBuffer;->putInt(I)Ljava/nio/ByteBuffer;
+
+    .line 122
+    .line 123
+    .line 124
+    iget-wide v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->nextTrackId:J
+
+    .line 125
+    .line 126
+    invoke-static {p1, v0, v1}, Ll/b1q;->g(Ljava/nio/ByteBuffer;J)V
+
+    .line 127
+    .line 128
+    .line 129
+    return-void
+.end method
+
+.method public getContentSize()J
+    .locals 4
+
+    .line 1
+    invoke-virtual {p0}, Lcom/googlecode/mp4parser/AbstractFullBox;->getVersion()I
+
+    .line 2
+    .line 3
+    .line 4
+    move-result p0
+
+    .line 5
+    const/4 v0, 0x1
+
+    .line 6
+    if-ne p0, v0, :cond_0
+
+    .line 7
+    .line 8
+    const-wide/16 v0, 0x20
+
+    .line 9
+    .line 10
+    goto :goto_0
+
+    .line 11
+    :cond_0
+    const-wide/16 v0, 0x14
+
+    .line 12
+    .line 13
+    :goto_0
+    const-wide/16 v2, 0x50
+
+    .line 14
+    .line 15
+    add-long/2addr v0, v2
+
+    .line 16
+    return-wide v0
+.end method
+
+.method public getCreationTime()Ljava/util/Date;
+    .locals 2
+
+    .line 1
+    sget-object v0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_0:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 2
+    .line 3
+    invoke-static {v0, p0, p0}, Lorg/aspectj/runtime/reflect/Factory;->makeJP(Lorg/aspectj/lang/JoinPoint$StaticPart;Ljava/lang/Object;Ljava/lang/Object;)Lorg/aspectj/lang/JoinPoint;
+
+    .line 4
+    .line 5
+    .line 6
+    move-result-object v0
+
+    .line 7
+    invoke-static {}, Ll/f3d0;->b()Ll/f3d0;
+
+    .line 8
+    .line 9
+    .line 10
+    move-result-object v1
+
+    .line 11
+    invoke-virtual {v1, v0}, Ll/f3d0;->c(Lorg/aspectj/lang/JoinPoint;)V
+
+    .line 12
+    .line 13
+    .line 14
+    iget-object p0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->creationTime:Ljava/util/Date;
+
+    .line 15
+    .line 16
+    return-object p0
+.end method
+
+.method public getCurrentTime()I
+    .locals 2
+
+    .line 1
+    sget-object v0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_27:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 2
+    .line 3
+    invoke-static {v0, p0, p0}, Lorg/aspectj/runtime/reflect/Factory;->makeJP(Lorg/aspectj/lang/JoinPoint$StaticPart;Ljava/lang/Object;Ljava/lang/Object;)Lorg/aspectj/lang/JoinPoint;
+
+    .line 4
+    .line 5
+    .line 6
+    move-result-object v0
+
+    .line 7
+    invoke-static {}, Ll/f3d0;->b()Ll/f3d0;
+
+    .line 8
+    .line 9
+    .line 10
+    move-result-object v1
+
+    .line 11
+    invoke-virtual {v1, v0}, Ll/f3d0;->c(Lorg/aspectj/lang/JoinPoint;)V
+
+    .line 12
+    .line 13
+    .line 14
+    iget p0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->currentTime:I
+
+    .line 15
+    .line 16
+    return p0
+.end method
+
+.method public getDuration()J
+    .locals 2
+
+    .line 1
+    sget-object v0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_3:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 2
+    .line 3
+    invoke-static {v0, p0, p0}, Lorg/aspectj/runtime/reflect/Factory;->makeJP(Lorg/aspectj/lang/JoinPoint$StaticPart;Ljava/lang/Object;Ljava/lang/Object;)Lorg/aspectj/lang/JoinPoint;
+
+    .line 4
+    .line 5
+    .line 6
+    move-result-object v0
+
+    .line 7
+    invoke-static {}, Ll/f3d0;->b()Ll/f3d0;
+
+    .line 8
+    .line 9
+    .line 10
+    move-result-object v1
+
+    .line 11
+    invoke-virtual {v1, v0}, Ll/f3d0;->c(Lorg/aspectj/lang/JoinPoint;)V
+
+    .line 12
+    .line 13
+    .line 14
+    iget-wide v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->duration:J
+
+    .line 15
+    .line 16
+    return-wide v0
+.end method
+
+.method public getMatrix()Ll/khx;
+    .locals 2
+
+    .line 1
+    sget-object v0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_6:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 2
+    .line 3
+    invoke-static {v0, p0, p0}, Lorg/aspectj/runtime/reflect/Factory;->makeJP(Lorg/aspectj/lang/JoinPoint$StaticPart;Ljava/lang/Object;Ljava/lang/Object;)Lorg/aspectj/lang/JoinPoint;
+
+    .line 4
+    .line 5
+    .line 6
+    move-result-object v0
+
+    .line 7
+    invoke-static {}, Ll/f3d0;->b()Ll/f3d0;
+
+    .line 8
+    .line 9
+    .line 10
+    move-result-object v1
+
+    .line 11
+    invoke-virtual {v1, v0}, Ll/f3d0;->c(Lorg/aspectj/lang/JoinPoint;)V
+
+    .line 12
+    .line 13
+    .line 14
+    iget-object p0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->matrix:Ll/khx;
+
+    .line 15
+    .line 16
+    return-object p0
+.end method
+
+.method public getModificationTime()Ljava/util/Date;
+    .locals 2
+
+    .line 1
+    sget-object v0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_1:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 2
+    .line 3
+    invoke-static {v0, p0, p0}, Lorg/aspectj/runtime/reflect/Factory;->makeJP(Lorg/aspectj/lang/JoinPoint$StaticPart;Ljava/lang/Object;Ljava/lang/Object;)Lorg/aspectj/lang/JoinPoint;
+
+    .line 4
+    .line 5
+    .line 6
+    move-result-object v0
+
+    .line 7
+    invoke-static {}, Ll/f3d0;->b()Ll/f3d0;
+
+    .line 8
+    .line 9
+    .line 10
+    move-result-object v1
+
+    .line 11
+    invoke-virtual {v1, v0}, Ll/f3d0;->c(Lorg/aspectj/lang/JoinPoint;)V
+
+    .line 12
+    .line 13
+    .line 14
+    iget-object p0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->modificationTime:Ljava/util/Date;
+
+    .line 15
+    .line 16
+    return-object p0
+.end method
+
+.method public getNextTrackId()J
+    .locals 2
+
+    .line 1
+    sget-object v0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_7:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 2
+    .line 3
+    invoke-static {v0, p0, p0}, Lorg/aspectj/runtime/reflect/Factory;->makeJP(Lorg/aspectj/lang/JoinPoint$StaticPart;Ljava/lang/Object;Ljava/lang/Object;)Lorg/aspectj/lang/JoinPoint;
+
+    .line 4
+    .line 5
+    .line 6
+    move-result-object v0
+
+    .line 7
+    invoke-static {}, Ll/f3d0;->b()Ll/f3d0;
+
+    .line 8
+    .line 9
+    .line 10
+    move-result-object v1
+
+    .line 11
+    invoke-virtual {v1, v0}, Ll/f3d0;->c(Lorg/aspectj/lang/JoinPoint;)V
+
+    .line 12
+    .line 13
+    .line 14
+    iget-wide v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->nextTrackId:J
+
+    .line 15
+    .line 16
+    return-wide v0
+.end method
+
+.method public getPosterTime()I
+    .locals 2
+
+    .line 1
+    sget-object v0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_21:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 2
+    .line 3
+    invoke-static {v0, p0, p0}, Lorg/aspectj/runtime/reflect/Factory;->makeJP(Lorg/aspectj/lang/JoinPoint$StaticPart;Ljava/lang/Object;Ljava/lang/Object;)Lorg/aspectj/lang/JoinPoint;
+
+    .line 4
+    .line 5
+    .line 6
+    move-result-object v0
+
+    .line 7
+    invoke-static {}, Ll/f3d0;->b()Ll/f3d0;
+
+    .line 8
+    .line 9
+    .line 10
+    move-result-object v1
+
+    .line 11
+    invoke-virtual {v1, v0}, Ll/f3d0;->c(Lorg/aspectj/lang/JoinPoint;)V
+
+    .line 12
+    .line 13
+    .line 14
+    iget p0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->posterTime:I
+
+    .line 15
+    .line 16
+    return p0
+.end method
+
+.method public getPreviewDuration()I
+    .locals 2
+
+    .line 1
+    sget-object v0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_19:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 2
+    .line 3
+    invoke-static {v0, p0, p0}, Lorg/aspectj/runtime/reflect/Factory;->makeJP(Lorg/aspectj/lang/JoinPoint$StaticPart;Ljava/lang/Object;Ljava/lang/Object;)Lorg/aspectj/lang/JoinPoint;
+
+    .line 4
+    .line 5
+    .line 6
+    move-result-object v0
+
+    .line 7
+    invoke-static {}, Ll/f3d0;->b()Ll/f3d0;
+
+    .line 8
+    .line 9
+    .line 10
+    move-result-object v1
+
+    .line 11
+    invoke-virtual {v1, v0}, Ll/f3d0;->c(Lorg/aspectj/lang/JoinPoint;)V
+
+    .line 12
+    .line 13
+    .line 14
+    iget p0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->previewDuration:I
+
+    .line 15
+    .line 16
+    return p0
+.end method
+
+.method public getPreviewTime()I
+    .locals 2
+
+    .line 1
+    sget-object v0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_17:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 2
+    .line 3
+    invoke-static {v0, p0, p0}, Lorg/aspectj/runtime/reflect/Factory;->makeJP(Lorg/aspectj/lang/JoinPoint$StaticPart;Ljava/lang/Object;Ljava/lang/Object;)Lorg/aspectj/lang/JoinPoint;
+
+    .line 4
+    .line 5
+    .line 6
+    move-result-object v0
+
+    .line 7
+    invoke-static {}, Ll/f3d0;->b()Ll/f3d0;
+
+    .line 8
+    .line 9
+    .line 10
+    move-result-object v1
+
+    .line 11
+    invoke-virtual {v1, v0}, Ll/f3d0;->c(Lorg/aspectj/lang/JoinPoint;)V
+
+    .line 12
+    .line 13
+    .line 14
+    iget p0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->previewTime:I
+
+    .line 15
+    .line 16
+    return p0
+.end method
+
+.method public getRate()D
+    .locals 2
+
+    .line 1
+    sget-object v0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_4:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 2
+    .line 3
+    invoke-static {v0, p0, p0}, Lorg/aspectj/runtime/reflect/Factory;->makeJP(Lorg/aspectj/lang/JoinPoint$StaticPart;Ljava/lang/Object;Ljava/lang/Object;)Lorg/aspectj/lang/JoinPoint;
+
+    .line 4
+    .line 5
+    .line 6
+    move-result-object v0
+
+    .line 7
+    invoke-static {}, Ll/f3d0;->b()Ll/f3d0;
+
+    .line 8
+    .line 9
+    .line 10
+    move-result-object v1
+
+    .line 11
+    invoke-virtual {v1, v0}, Ll/f3d0;->c(Lorg/aspectj/lang/JoinPoint;)V
+
+    .line 12
+    .line 13
+    .line 14
+    iget-wide v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->rate:D
+
+    .line 15
+    .line 16
+    return-wide v0
+.end method
+
+.method public getSelectionDuration()I
+    .locals 2
+
+    .line 1
+    sget-object v0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_25:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 2
+    .line 3
+    invoke-static {v0, p0, p0}, Lorg/aspectj/runtime/reflect/Factory;->makeJP(Lorg/aspectj/lang/JoinPoint$StaticPart;Ljava/lang/Object;Ljava/lang/Object;)Lorg/aspectj/lang/JoinPoint;
+
+    .line 4
+    .line 5
+    .line 6
+    move-result-object v0
+
+    .line 7
+    invoke-static {}, Ll/f3d0;->b()Ll/f3d0;
+
+    .line 8
+    .line 9
+    .line 10
+    move-result-object v1
+
+    .line 11
+    invoke-virtual {v1, v0}, Ll/f3d0;->c(Lorg/aspectj/lang/JoinPoint;)V
+
+    .line 12
+    .line 13
+    .line 14
+    iget p0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->selectionDuration:I
+
+    .line 15
+    .line 16
+    return p0
+.end method
+
+.method public getSelectionTime()I
+    .locals 2
+
+    .line 1
+    sget-object v0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_23:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 2
+    .line 3
+    invoke-static {v0, p0, p0}, Lorg/aspectj/runtime/reflect/Factory;->makeJP(Lorg/aspectj/lang/JoinPoint$StaticPart;Ljava/lang/Object;Ljava/lang/Object;)Lorg/aspectj/lang/JoinPoint;
+
+    .line 4
+    .line 5
+    .line 6
+    move-result-object v0
+
+    .line 7
+    invoke-static {}, Ll/f3d0;->b()Ll/f3d0;
+
+    .line 8
+    .line 9
+    .line 10
+    move-result-object v1
+
+    .line 11
+    invoke-virtual {v1, v0}, Ll/f3d0;->c(Lorg/aspectj/lang/JoinPoint;)V
+
+    .line 12
+    .line 13
+    .line 14
+    iget p0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->selectionTime:I
+
+    .line 15
+    .line 16
+    return p0
+.end method
+
+.method public getTimescale()J
+    .locals 2
+
+    .line 1
+    sget-object v0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_2:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 2
+    .line 3
+    invoke-static {v0, p0, p0}, Lorg/aspectj/runtime/reflect/Factory;->makeJP(Lorg/aspectj/lang/JoinPoint$StaticPart;Ljava/lang/Object;Ljava/lang/Object;)Lorg/aspectj/lang/JoinPoint;
+
+    .line 4
+    .line 5
+    .line 6
+    move-result-object v0
+
+    .line 7
+    invoke-static {}, Ll/f3d0;->b()Ll/f3d0;
+
+    .line 8
+    .line 9
+    .line 10
+    move-result-object v1
+
+    .line 11
+    invoke-virtual {v1, v0}, Ll/f3d0;->c(Lorg/aspectj/lang/JoinPoint;)V
+
+    .line 12
+    .line 13
+    .line 14
+    iget-wide v0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->timescale:J
+
+    .line 15
+    .line 16
+    return-wide v0
+.end method
+
+.method public getVolume()F
+    .locals 2
+
+    .line 1
+    sget-object v0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_5:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 2
+    .line 3
+    invoke-static {v0, p0, p0}, Lorg/aspectj/runtime/reflect/Factory;->makeJP(Lorg/aspectj/lang/JoinPoint$StaticPart;Ljava/lang/Object;Ljava/lang/Object;)Lorg/aspectj/lang/JoinPoint;
+
+    .line 4
+    .line 5
+    .line 6
+    move-result-object v0
+
+    .line 7
+    invoke-static {}, Ll/f3d0;->b()Ll/f3d0;
+
+    .line 8
+    .line 9
+    .line 10
+    move-result-object v1
+
+    .line 11
+    invoke-virtual {v1, v0}, Ll/f3d0;->c(Lorg/aspectj/lang/JoinPoint;)V
+
+    .line 12
+    .line 13
+    .line 14
+    iget p0, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->volume:F
+
+    .line 15
+    .line 16
+    return p0
+.end method
+
+.method public setCreationTime(Ljava/util/Date;)V
+    .locals 4
+
+    .line 1
+    sget-object v0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_9:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 2
+    .line 3
+    invoke-static {v0, p0, p0, p1}, Lorg/aspectj/runtime/reflect/Factory;->makeJP(Lorg/aspectj/lang/JoinPoint$StaticPart;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Lorg/aspectj/lang/JoinPoint;
+
+    .line 4
+    .line 5
+    .line 6
+    move-result-object v0
+
+    .line 7
+    invoke-static {}, Ll/f3d0;->b()Ll/f3d0;
+
+    .line 8
+    .line 9
+    .line 10
+    move-result-object v1
+
+    .line 11
+    invoke-virtual {v1, v0}, Ll/f3d0;->c(Lorg/aspectj/lang/JoinPoint;)V
+
+    .line 12
+    .line 13
+    .line 14
+    iput-object p1, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->creationTime:Ljava/util/Date;
+
+    .line 15
+    .line 16
+    invoke-static {p1}, Ll/l8c;->a(Ljava/util/Date;)J
+
+    .line 17
+    .line 18
+    .line 19
+    move-result-wide v0
+
+    .line 20
+    const-wide v2, 0x100000000L
+
+    .line 21
+    .line 22
+    .line 23
+    .line 24
+    .line 25
+    cmp-long p1, v0, v2
+
+    .line 26
+    .line 27
+    if-ltz p1, :cond_0
+
+    .line 28
+    .line 29
+    const/4 p1, 0x1
+
+    .line 30
+    invoke-virtual {p0, p1}, Lcom/googlecode/mp4parser/AbstractFullBox;->setVersion(I)V
+
+    .line 31
+    .line 32
+    .line 33
+    :cond_0
+    return-void
+.end method
+
+.method public setCurrentTime(I)V
+    .locals 2
+
+    .line 1
+    sget-object v0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_28:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 2
+    .line 3
+    invoke-static {p1}, Lorg/aspectj/runtime/internal/Conversions;->intObject(I)Ljava/lang/Object;
+
+    .line 4
+    .line 5
+    .line 6
+    move-result-object v1
+
+    .line 7
+    invoke-static {v0, p0, p0, v1}, Lorg/aspectj/runtime/reflect/Factory;->makeJP(Lorg/aspectj/lang/JoinPoint$StaticPart;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Lorg/aspectj/lang/JoinPoint;
+
+    .line 8
+    .line 9
+    .line 10
+    move-result-object v0
+
+    .line 11
+    invoke-static {}, Ll/f3d0;->b()Ll/f3d0;
+
+    .line 12
+    .line 13
+    .line 14
+    move-result-object v1
+
+    .line 15
+    invoke-virtual {v1, v0}, Ll/f3d0;->c(Lorg/aspectj/lang/JoinPoint;)V
+
+    .line 16
+    .line 17
+    .line 18
+    iput p1, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->currentTime:I
+
+    .line 19
+    .line 20
+    return-void
+.end method
+
+.method public setDuration(J)V
+    .locals 2
+
+    .line 1
+    sget-object v0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_12:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 2
+    .line 3
+    invoke-static {p1, p2}, Lorg/aspectj/runtime/internal/Conversions;->longObject(J)Ljava/lang/Object;
+
+    .line 4
+    .line 5
+    .line 6
+    move-result-object v1
+
+    .line 7
+    invoke-static {v0, p0, p0, v1}, Lorg/aspectj/runtime/reflect/Factory;->makeJP(Lorg/aspectj/lang/JoinPoint$StaticPart;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Lorg/aspectj/lang/JoinPoint;
+
+    .line 8
+    .line 9
+    .line 10
+    move-result-object v0
+
+    .line 11
+    invoke-static {}, Ll/f3d0;->b()Ll/f3d0;
+
+    .line 12
+    .line 13
+    .line 14
+    move-result-object v1
+
+    .line 15
+    invoke-virtual {v1, v0}, Ll/f3d0;->c(Lorg/aspectj/lang/JoinPoint;)V
+
+    .line 16
+    .line 17
+    .line 18
+    iput-wide p1, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->duration:J
+
+    .line 19
+    .line 20
+    const-wide v0, 0x100000000L
+
+    .line 21
+    .line 22
+    .line 23
+    .line 24
+    .line 25
+    cmp-long p1, p1, v0
+
+    .line 26
+    .line 27
+    if-ltz p1, :cond_0
+
+    .line 28
+    .line 29
+    const/4 p1, 0x1
+
+    .line 30
+    invoke-virtual {p0, p1}, Lcom/googlecode/mp4parser/AbstractFullBox;->setVersion(I)V
+
+    .line 31
+    .line 32
+    .line 33
+    :cond_0
+    return-void
+.end method
+
+.method public setMatrix(Ll/khx;)V
+    .locals 2
+
+    .line 1
+    sget-object v0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_15:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 2
+    .line 3
+    invoke-static {v0, p0, p0, p1}, Lorg/aspectj/runtime/reflect/Factory;->makeJP(Lorg/aspectj/lang/JoinPoint$StaticPart;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Lorg/aspectj/lang/JoinPoint;
+
+    .line 4
+    .line 5
+    .line 6
+    move-result-object v0
+
+    .line 7
+    invoke-static {}, Ll/f3d0;->b()Ll/f3d0;
+
+    .line 8
+    .line 9
+    .line 10
+    move-result-object v1
+
+    .line 11
+    invoke-virtual {v1, v0}, Ll/f3d0;->c(Lorg/aspectj/lang/JoinPoint;)V
+
+    .line 12
+    .line 13
+    .line 14
+    iput-object p1, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->matrix:Ll/khx;
+
+    .line 15
+    .line 16
+    return-void
+.end method
+
+.method public setModificationTime(Ljava/util/Date;)V
+    .locals 4
+
+    .line 1
+    sget-object v0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_10:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 2
+    .line 3
+    invoke-static {v0, p0, p0, p1}, Lorg/aspectj/runtime/reflect/Factory;->makeJP(Lorg/aspectj/lang/JoinPoint$StaticPart;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Lorg/aspectj/lang/JoinPoint;
+
+    .line 4
+    .line 5
+    .line 6
+    move-result-object v0
+
+    .line 7
+    invoke-static {}, Ll/f3d0;->b()Ll/f3d0;
+
+    .line 8
+    .line 9
+    .line 10
+    move-result-object v1
+
+    .line 11
+    invoke-virtual {v1, v0}, Ll/f3d0;->c(Lorg/aspectj/lang/JoinPoint;)V
+
+    .line 12
+    .line 13
+    .line 14
+    iput-object p1, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->modificationTime:Ljava/util/Date;
+
+    .line 15
+    .line 16
+    invoke-static {p1}, Ll/l8c;->a(Ljava/util/Date;)J
+
+    .line 17
+    .line 18
+    .line 19
+    move-result-wide v0
+
+    .line 20
+    const-wide v2, 0x100000000L
+
+    .line 21
+    .line 22
+    .line 23
+    .line 24
+    .line 25
+    cmp-long p1, v0, v2
+
+    .line 26
+    .line 27
+    if-ltz p1, :cond_0
+
+    .line 28
+    .line 29
+    const/4 p1, 0x1
+
+    .line 30
+    invoke-virtual {p0, p1}, Lcom/googlecode/mp4parser/AbstractFullBox;->setVersion(I)V
+
+    .line 31
+    .line 32
+    .line 33
+    :cond_0
+    return-void
+.end method
+
+.method public setNextTrackId(J)V
+    .locals 2
+
+    .line 1
+    sget-object v0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_16:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 2
+    .line 3
+    invoke-static {p1, p2}, Lorg/aspectj/runtime/internal/Conversions;->longObject(J)Ljava/lang/Object;
+
+    .line 4
+    .line 5
+    .line 6
+    move-result-object v1
+
+    .line 7
+    invoke-static {v0, p0, p0, v1}, Lorg/aspectj/runtime/reflect/Factory;->makeJP(Lorg/aspectj/lang/JoinPoint$StaticPart;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Lorg/aspectj/lang/JoinPoint;
+
+    .line 8
+    .line 9
+    .line 10
+    move-result-object v0
+
+    .line 11
+    invoke-static {}, Ll/f3d0;->b()Ll/f3d0;
+
+    .line 12
+    .line 13
+    .line 14
+    move-result-object v1
+
+    .line 15
+    invoke-virtual {v1, v0}, Ll/f3d0;->c(Lorg/aspectj/lang/JoinPoint;)V
+
+    .line 16
+    .line 17
+    .line 18
+    iput-wide p1, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->nextTrackId:J
+
+    .line 19
+    .line 20
+    return-void
+.end method
+
+.method public setPosterTime(I)V
+    .locals 2
+
+    .line 1
+    sget-object v0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_22:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 2
+    .line 3
+    invoke-static {p1}, Lorg/aspectj/runtime/internal/Conversions;->intObject(I)Ljava/lang/Object;
+
+    .line 4
+    .line 5
+    .line 6
+    move-result-object v1
+
+    .line 7
+    invoke-static {v0, p0, p0, v1}, Lorg/aspectj/runtime/reflect/Factory;->makeJP(Lorg/aspectj/lang/JoinPoint$StaticPart;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Lorg/aspectj/lang/JoinPoint;
+
+    .line 8
+    .line 9
+    .line 10
+    move-result-object v0
+
+    .line 11
+    invoke-static {}, Ll/f3d0;->b()Ll/f3d0;
+
+    .line 12
+    .line 13
+    .line 14
+    move-result-object v1
+
+    .line 15
+    invoke-virtual {v1, v0}, Ll/f3d0;->c(Lorg/aspectj/lang/JoinPoint;)V
+
+    .line 16
+    .line 17
+    .line 18
+    iput p1, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->posterTime:I
+
+    .line 19
+    .line 20
+    return-void
+.end method
+
+.method public setPreviewDuration(I)V
+    .locals 2
+
+    .line 1
+    sget-object v0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_20:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 2
+    .line 3
+    invoke-static {p1}, Lorg/aspectj/runtime/internal/Conversions;->intObject(I)Ljava/lang/Object;
+
+    .line 4
+    .line 5
+    .line 6
+    move-result-object v1
+
+    .line 7
+    invoke-static {v0, p0, p0, v1}, Lorg/aspectj/runtime/reflect/Factory;->makeJP(Lorg/aspectj/lang/JoinPoint$StaticPart;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Lorg/aspectj/lang/JoinPoint;
+
+    .line 8
+    .line 9
+    .line 10
+    move-result-object v0
+
+    .line 11
+    invoke-static {}, Ll/f3d0;->b()Ll/f3d0;
+
+    .line 12
+    .line 13
+    .line 14
+    move-result-object v1
+
+    .line 15
+    invoke-virtual {v1, v0}, Ll/f3d0;->c(Lorg/aspectj/lang/JoinPoint;)V
+
+    .line 16
+    .line 17
+    .line 18
+    iput p1, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->previewDuration:I
+
+    .line 19
+    .line 20
+    return-void
+.end method
+
+.method public setPreviewTime(I)V
+    .locals 2
+
+    .line 1
+    sget-object v0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_18:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 2
+    .line 3
+    invoke-static {p1}, Lorg/aspectj/runtime/internal/Conversions;->intObject(I)Ljava/lang/Object;
+
+    .line 4
+    .line 5
+    .line 6
+    move-result-object v1
+
+    .line 7
+    invoke-static {v0, p0, p0, v1}, Lorg/aspectj/runtime/reflect/Factory;->makeJP(Lorg/aspectj/lang/JoinPoint$StaticPart;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Lorg/aspectj/lang/JoinPoint;
+
+    .line 8
+    .line 9
+    .line 10
+    move-result-object v0
+
+    .line 11
+    invoke-static {}, Ll/f3d0;->b()Ll/f3d0;
+
+    .line 12
+    .line 13
+    .line 14
+    move-result-object v1
+
+    .line 15
+    invoke-virtual {v1, v0}, Ll/f3d0;->c(Lorg/aspectj/lang/JoinPoint;)V
+
+    .line 16
+    .line 17
+    .line 18
+    iput p1, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->previewTime:I
+
+    .line 19
+    .line 20
+    return-void
+.end method
+
+.method public setRate(D)V
+    .locals 2
+
+    .line 1
+    sget-object v0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_13:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 2
+    .line 3
+    invoke-static {p1, p2}, Lorg/aspectj/runtime/internal/Conversions;->doubleObject(D)Ljava/lang/Object;
+
+    .line 4
+    .line 5
+    .line 6
+    move-result-object v1
+
+    .line 7
+    invoke-static {v0, p0, p0, v1}, Lorg/aspectj/runtime/reflect/Factory;->makeJP(Lorg/aspectj/lang/JoinPoint$StaticPart;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Lorg/aspectj/lang/JoinPoint;
+
+    .line 8
+    .line 9
+    .line 10
+    move-result-object v0
+
+    .line 11
+    invoke-static {}, Ll/f3d0;->b()Ll/f3d0;
+
+    .line 12
+    .line 13
+    .line 14
+    move-result-object v1
+
+    .line 15
+    invoke-virtual {v1, v0}, Ll/f3d0;->c(Lorg/aspectj/lang/JoinPoint;)V
+
+    .line 16
+    .line 17
+    .line 18
+    iput-wide p1, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->rate:D
+
+    .line 19
+    .line 20
+    return-void
+.end method
+
+.method public setSelectionDuration(I)V
+    .locals 2
+
+    .line 1
+    sget-object v0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_26:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 2
+    .line 3
+    invoke-static {p1}, Lorg/aspectj/runtime/internal/Conversions;->intObject(I)Ljava/lang/Object;
+
+    .line 4
+    .line 5
+    .line 6
+    move-result-object v1
+
+    .line 7
+    invoke-static {v0, p0, p0, v1}, Lorg/aspectj/runtime/reflect/Factory;->makeJP(Lorg/aspectj/lang/JoinPoint$StaticPart;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Lorg/aspectj/lang/JoinPoint;
+
+    .line 8
+    .line 9
+    .line 10
+    move-result-object v0
+
+    .line 11
+    invoke-static {}, Ll/f3d0;->b()Ll/f3d0;
+
+    .line 12
+    .line 13
+    .line 14
+    move-result-object v1
+
+    .line 15
+    invoke-virtual {v1, v0}, Ll/f3d0;->c(Lorg/aspectj/lang/JoinPoint;)V
+
+    .line 16
+    .line 17
+    .line 18
+    iput p1, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->selectionDuration:I
+
+    .line 19
+    .line 20
+    return-void
+.end method
+
+.method public setSelectionTime(I)V
+    .locals 2
+
+    .line 1
+    sget-object v0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_24:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 2
+    .line 3
+    invoke-static {p1}, Lorg/aspectj/runtime/internal/Conversions;->intObject(I)Ljava/lang/Object;
+
+    .line 4
+    .line 5
+    .line 6
+    move-result-object v1
+
+    .line 7
+    invoke-static {v0, p0, p0, v1}, Lorg/aspectj/runtime/reflect/Factory;->makeJP(Lorg/aspectj/lang/JoinPoint$StaticPart;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Lorg/aspectj/lang/JoinPoint;
+
+    .line 8
+    .line 9
+    .line 10
+    move-result-object v0
+
+    .line 11
+    invoke-static {}, Ll/f3d0;->b()Ll/f3d0;
+
+    .line 12
+    .line 13
+    .line 14
+    move-result-object v1
+
+    .line 15
+    invoke-virtual {v1, v0}, Ll/f3d0;->c(Lorg/aspectj/lang/JoinPoint;)V
+
+    .line 16
+    .line 17
+    .line 18
+    iput p1, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->selectionTime:I
+
+    .line 19
+    .line 20
+    return-void
+.end method
+
+.method public setTimescale(J)V
+    .locals 2
+
+    .line 1
+    sget-object v0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_11:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 2
+    .line 3
+    invoke-static {p1, p2}, Lorg/aspectj/runtime/internal/Conversions;->longObject(J)Ljava/lang/Object;
+
+    .line 4
+    .line 5
+    .line 6
+    move-result-object v1
+
+    .line 7
+    invoke-static {v0, p0, p0, v1}, Lorg/aspectj/runtime/reflect/Factory;->makeJP(Lorg/aspectj/lang/JoinPoint$StaticPart;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Lorg/aspectj/lang/JoinPoint;
+
+    .line 8
+    .line 9
+    .line 10
+    move-result-object v0
+
+    .line 11
+    invoke-static {}, Ll/f3d0;->b()Ll/f3d0;
+
+    .line 12
+    .line 13
+    .line 14
+    move-result-object v1
+
+    .line 15
+    invoke-virtual {v1, v0}, Ll/f3d0;->c(Lorg/aspectj/lang/JoinPoint;)V
+
+    .line 16
+    .line 17
+    .line 18
+    iput-wide p1, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->timescale:J
+
+    .line 19
+    .line 20
+    return-void
+.end method
+
+.method public setVolume(F)V
+    .locals 2
+
+    .line 1
+    sget-object v0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_14:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 2
+    .line 3
+    invoke-static {p1}, Lorg/aspectj/runtime/internal/Conversions;->floatObject(F)Ljava/lang/Object;
+
+    .line 4
+    .line 5
+    .line 6
+    move-result-object v1
+
+    .line 7
+    invoke-static {v0, p0, p0, v1}, Lorg/aspectj/runtime/reflect/Factory;->makeJP(Lorg/aspectj/lang/JoinPoint$StaticPart;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Lorg/aspectj/lang/JoinPoint;
+
+    .line 8
+    .line 9
+    .line 10
+    move-result-object v0
+
+    .line 11
+    invoke-static {}, Ll/f3d0;->b()Ll/f3d0;
+
+    .line 12
+    .line 13
+    .line 14
+    move-result-object v1
+
+    .line 15
+    invoke-virtual {v1, v0}, Ll/f3d0;->c(Lorg/aspectj/lang/JoinPoint;)V
+
+    .line 16
+    .line 17
+    .line 18
+    iput p1, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->volume:F
+
+    .line 19
+    .line 20
+    return-void
+.end method
+
+.method public toString()Ljava/lang/String;
+    .locals 3
+
+    .line 1
+    sget-object v0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->ajc$tjp_8:Lorg/aspectj/lang/JoinPoint$StaticPart;
+
+    .line 2
+    .line 3
+    invoke-static {v0, p0, p0}, Lorg/aspectj/runtime/reflect/Factory;->makeJP(Lorg/aspectj/lang/JoinPoint$StaticPart;Ljava/lang/Object;Ljava/lang/Object;)Lorg/aspectj/lang/JoinPoint;
+
+    .line 4
+    .line 5
+    .line 6
+    move-result-object v0
+
+    .line 7
+    invoke-static {}, Ll/f3d0;->b()Ll/f3d0;
+
+    .line 8
+    .line 9
+    .line 10
+    move-result-object v1
+
+    .line 11
+    invoke-virtual {v1, v0}, Ll/f3d0;->c(Lorg/aspectj/lang/JoinPoint;)V
+
+    .line 12
+    .line 13
+    .line 14
+    new-instance v0, Ljava/lang/StringBuilder;
+
+    .line 15
+    .line 16
+    const-string v1, "MovieHeaderBox[creationTime="
+
+    .line 17
+    .line 18
+    invoke-direct {v0, v1}, Ljava/lang/StringBuilder;-><init>(Ljava/lang/String;)V
+
+    .line 19
+    .line 20
+    .line 21
+    invoke-virtual {p0}, Lcom/coremedia/iso/boxes/MovieHeaderBox;->getCreationTime()Ljava/util/Date;
+
+    .line 22
+    .line 23
+    .line 24
+    move-result-object v1
+
+    .line 25
+    invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/Object;)Ljava/lang/StringBuilder;
+
+    .line 26
+    .line 27
+    .line 28
+    const-string v1, ";modificationTime="
+
+    .line 29
+    .line 30
+    invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    .line 31
+    .line 32
+    .line 33
+    invoke-virtual {p0}, Lcom/coremedia/iso/boxes/MovieHeaderBox;->getModificationTime()Ljava/util/Date;
+
+    .line 34
+    .line 35
+    .line 36
+    move-result-object v1
+
+    .line 37
+    invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/Object;)Ljava/lang/StringBuilder;
+
+    .line 38
+    .line 39
+    .line 40
+    const-string v1, ";timescale="
+
+    .line 41
+    .line 42
+    invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    .line 43
+    .line 44
+    .line 45
+    invoke-virtual {p0}, Lcom/coremedia/iso/boxes/MovieHeaderBox;->getTimescale()J
+
+    .line 46
+    .line 47
+    .line 48
+    move-result-wide v1
+
+    .line 49
+    invoke-virtual {v0, v1, v2}, Ljava/lang/StringBuilder;->append(J)Ljava/lang/StringBuilder;
+
+    .line 50
+    .line 51
+    .line 52
+    const-string v1, ";duration="
+
+    .line 53
+    .line 54
+    invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    .line 55
+    .line 56
+    .line 57
+    invoke-virtual {p0}, Lcom/coremedia/iso/boxes/MovieHeaderBox;->getDuration()J
+
+    .line 58
+    .line 59
+    .line 60
+    move-result-wide v1
+
+    .line 61
+    invoke-virtual {v0, v1, v2}, Ljava/lang/StringBuilder;->append(J)Ljava/lang/StringBuilder;
+
+    .line 62
+    .line 63
+    .line 64
+    const-string v1, ";rate="
+
+    .line 65
+    .line 66
+    invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    .line 67
+    .line 68
+    .line 69
+    invoke-virtual {p0}, Lcom/coremedia/iso/boxes/MovieHeaderBox;->getRate()D
+
+    .line 70
+    .line 71
+    .line 72
+    move-result-wide v1
+
+    .line 73
+    invoke-virtual {v0, v1, v2}, Ljava/lang/StringBuilder;->append(D)Ljava/lang/StringBuilder;
+
+    .line 74
+    .line 75
+    .line 76
+    const-string v1, ";volume="
+
+    .line 77
+    .line 78
+    invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    .line 79
+    .line 80
+    .line 81
+    invoke-virtual {p0}, Lcom/coremedia/iso/boxes/MovieHeaderBox;->getVolume()F
+
+    .line 82
+    .line 83
+    .line 84
+    move-result v1
+
+    .line 85
+    invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(F)Ljava/lang/StringBuilder;
+
+    .line 86
+    .line 87
+    .line 88
+    const-string v1, ";matrix="
+
+    .line 89
+    .line 90
+    invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    .line 91
+    .line 92
+    .line 93
+    iget-object v1, p0, Lcom/coremedia/iso/boxes/MovieHeaderBox;->matrix:Ll/khx;
+
+    .line 94
+    .line 95
+    invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/Object;)Ljava/lang/StringBuilder;
+
+    .line 96
+    .line 97
+    .line 98
+    const-string v1, ";nextTrackId="
+
+    .line 99
+    .line 100
+    invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    .line 101
+    .line 102
+    .line 103
+    invoke-virtual {p0}, Lcom/coremedia/iso/boxes/MovieHeaderBox;->getNextTrackId()J
+
+    .line 104
+    .line 105
+    .line 106
+    move-result-wide v1
+
+    .line 107
+    invoke-virtual {v0, v1, v2}, Ljava/lang/StringBuilder;->append(J)Ljava/lang/StringBuilder;
+
+    .line 108
+    .line 109
+    .line 110
+    const-string p0, "]"
+
+    .line 111
+    .line 112
+    invoke-virtual {v0, p0}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    .line 113
+    .line 114
+    .line 115
+    invoke-virtual {v0}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    .line 116
+    .line 117
+    .line 118
+    move-result-object p0
+
+    .line 119
+    return-object p0
+.end method

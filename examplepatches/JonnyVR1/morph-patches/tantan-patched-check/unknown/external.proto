@@ -1,0 +1,98 @@
+syntax = "proto3";
+
+package project;
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + project）
+option java_package = "com.p1.mobile.longlink.msg.project";
+option java_outer_classname = "LongLinkOmsDialogInfo";
+option go_package = "gitlab.p1staff.com/backend/tantan-backend-oms/proto/oms";
+option optimize_for = LITE_RUNTIME;
+
+
+message Dialogs {
+  repeated Dialog dialogs = 1;
+}
+
+message Dialog {
+  string id = 1;
+  string identifier = 2;
+  int32 version = 3;
+  bool remote = 4;
+  bool cancelAble = 5;
+  bool blockCard = 6;
+  Constraint constraint = 7;
+  Position position = 8;
+  Mercury mercury = 9;
+  string contentType = 10;
+  Content content = 11;
+}
+
+message Position {
+  string id = 1;
+  repeated string contain = 2;
+  repeated string exclude = 3;
+}
+
+message Constraint {
+  int32 Count = 1;
+  int32 SessionCount = 2;
+  repeated int32 Frequency = 3;
+  repeated int64 TimeRange = 4;
+  int32 TimePerDay = 5;
+  int32 Priority = 6;
+}
+
+message Content {
+  Resource template = 1;
+  Web web = 2;
+  bytes morph = 3;
+}
+
+message Web {
+  string url = 1;
+  Layout width = 2;
+  Layout height = 3;
+}
+
+message Layout {
+  string type = 1;
+  double value = 2;
+}
+
+message Resource {
+  string id = 1;
+  string templateID = 2;
+  repeated ResourcePage pages = 3;
+}
+
+message ResourcePage {
+  int32 index = 1;
+  repeated ResourceNode nodes = 2;
+}
+
+message ResourceNode {
+  string index = 1;
+  repeated NodeContent contents = 2;
+  string src = 3;
+  string url = 5;
+  string type = 6;
+  string direction = 7;
+  repeated string colors = 8;
+  Mercury mercury = 9;
+}
+
+message Mercury {
+  string id = 1;
+  string type = 2;
+  map<string, string> server = 3;
+}
+
+message NodeContent {
+  string value = 1;
+  string color = 2;
+  int32 size = 3;
+  string font = 4;
+  string backgroundColor = 5;
+  bool strikethrough = 6;
+  bool underline = 7;
+  string url = 8;
+}

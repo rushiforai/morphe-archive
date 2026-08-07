@@ -1,0 +1,39 @@
+syntax = "proto3";
+package livegift;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + livegift）
+option java_package = "com.p1.mobile.longlink.msg.livegift";
+option java_outer_classname = "LongLinkConfession";
+option optimize_for = LITE_RUNTIME;
+
+// 语音房表白礼物相关长链
+// MsgTypeName: live.gift.confessionreceive: 收礼人特效单播长链消息
+message ConfessionGiftReceiveMsg {
+  User user = 1;
+  Gift gift = 2;
+  string slogan = 3;
+  string confessRecordId = 4;
+  string roomId = 5;
+  string liveId = 6;
+  int64 showTime = 7;
+}
+
+message User {
+  string id = 1;
+  string name = 2;
+  string imageUrl = 3;
+}
+
+message Gift {
+  string id = 1;
+  string icon = 2;
+  int64 price = 3;
+}
+
+message GiftWallGradeFiveNotice {
+  string userName = 1;
+  string otherUserName = 2;
+  string giftName = 3;
+  string giftIcon = 4;
+  string svgaUrl = 5;
+}

@@ -1,0 +1,72 @@
+syntax = "proto3";
+
+package liveroom;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + liveroom）
+option java_package = "com.p1.mobile.longlink.msg.liveroom";
+option java_outer_classname = "LongLinkLiveMultiPk";
+option optimize_for = LITE_RUNTIME;
+
+// 多人PK邀请通知
+// MsgTypeName live.multiPk.invite.notify
+message MultiPkInviteNotify {
+  string multiPkInviteId = 1;
+  MultiPkPlayer fromUser = 2;
+}
+
+// 多人PK拒绝
+// MsgTypeName live.multiPk.invite.rejected
+message MultiPkInviteRejected {
+  string multiPkInviteId = 1;
+  MultiPkPlayer rejectUser = 2;
+}
+
+// 多人PK同意通知
+// MsgTypeName live.multiPk.invite.accepted
+message MultiPkInviteAccepted {
+  string multiPkInviteId = 1;
+}
+
+// 多人PK特效
+// MsgTypeName live.multiPk.animation
+message MultiPkAnimation {
+  string multiPkId = 1;
+  string animationUrl = 2; // pk特效
+}
+
+message MultiPkPlayer {
+  string userId = 1;
+  int64 position = 2;
+  string role = 3; // "player": pk参与者  "spectator": 旁观者
+  string roomId = 4;
+  string liveId = 5;
+  uint64 point = 6; // pk值
+  string userName = 7;
+  string avatar = 8;
+  int64 rank = 9;
+}
+
+// 多人PK分数推送
+// MsgTypeName live.multiPk.points
+message MultiPkPoints {
+  string pkId = 1;
+  repeated MultiPkPlayer player = 2;
+  int64 serverTimeTs = 3;
+}
+
+message MultiPk {
+  string id = 1;
+  string stage = 2;   // "playing": 进行中 "punishing"：惩罚中
+  int64 startTs = 3;
+  int32 duration = 4;
+  repeated MultiPkPlayer players = 5;
+  string winnerUserId = 6;
+  string animationUrl = 7; // pk特效
+  string toast = 8; // pk提示
+}
+
+// 多人PK状态变更通知
+// MsgTypeName live.multiPk.stageChange
+message MultiPkStageChange {
+  MultiPk multiPk = 1;
+}

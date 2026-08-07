@@ -1,0 +1,23 @@
+syntax = "proto3";
+package connector;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + project）
+option java_package = "com.p1.mobile.longlink.msg.connector";
+option java_outer_classname = "LongLinkMomentMessage";
+option optimize_for = LITE_RUNTIME;
+
+message MomentLike {
+  string mid = 1;
+  string otherUserId = 2;
+}
+
+message MomentCancelLike {
+  string mid = 1;
+  string otherUserId = 2;
+}
+
+message MomentComment {
+  string mid = 1;
+  string otherUserId = 2;
+  string ticker = 3;
+}

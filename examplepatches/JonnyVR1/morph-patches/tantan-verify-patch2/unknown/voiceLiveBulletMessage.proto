@@ -1,0 +1,41 @@
+syntax = "proto3";
+package voicelivemessage;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + userMask）
+option java_package = "com.p1.mobile.longlink.msg.voicelivemessage";
+option java_outer_classname = "VoiceLiveBullet";
+option optimize_for = LITE_RUNTIME;
+
+message SystemVoiceLiveCommentsMsg {
+  string roomID = 1; // 消息房间id
+  string liveID = 2;
+  string iconUrl = 3; // 消息图标
+  string startColor = 4; // 背景渐变色 start color
+  string endColor = 5; // 背景渐变色 end color
+  int64 displayDuration = 6; // 弹幕停留时长，单位
+  string gotoSchema = 7; // 跳转地址（schema 解析跳转）
+  TemplateData templateData = 8;
+  string id = 9; // 弹幕 id
+  string type = 10; // 弹幕类型
+  SystemVoiceLiveCommentBackground background = 11;
+  int64 priority = 12; //0-队尾;1-队头
+  Alignment alignment = 13; // 弹幕在屏幕上的对齐方式
+}
+
+message TemplateData {
+  uint32 id = 1;
+  repeated string fields = 2;
+}
+
+message SystemVoiceLiveCommentBackground {
+  string headerImgUrl = 1; //头图
+  string middleImgUrl = 2; //中图
+  string bottomImgUrl = 3; //尾图
+  string coverImgUrl = 4; //覆盖图
+}
+
+// 系统弹幕
+enum Alignment {
+  Center = 0; // 直播间内居中展示
+  Left = 1; // 直播间内居左展示
+}

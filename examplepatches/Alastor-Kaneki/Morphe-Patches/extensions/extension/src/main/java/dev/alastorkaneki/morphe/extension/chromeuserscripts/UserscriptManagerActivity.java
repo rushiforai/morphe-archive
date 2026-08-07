@@ -13,7 +13,6 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Switch;
@@ -25,13 +24,14 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Locale;
 
-/** Chrome-styled userscript dashboard backed by the Violentmonkey compatibility core. */
+/** Chrome Material You userscript dashboard backed by the Violentmonkey compatibility core. */
 public final class UserscriptManagerActivity extends Activity {
     private static final int PICK_IMPORT = 41;
     private static final int SAVE_EXPORT = 42;
 
     private LinearLayout list;
     private EditText search;
+    private TextView summary;
     private String pendingExport;
     private String currentUrl;
 
@@ -51,24 +51,30 @@ public final class UserscriptManagerActivity extends Activity {
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(dp(16), dp(16), dp(16), dp(12));
+        root.setPadding(dp(18), dp(18), dp(18), dp(14));
         root.setBackgroundColor(MonkeyUi.bg(this));
 
-        root.addView(label("Userscripts", 26, true, MonkeyUi.text(this)));
-        root.addView(label(
-                "Violentmonkey-compatible manager for Chrome Android",
-                13,
-                false,
-                MonkeyUi.muted(this)
-        ), margins(-1, -2, 0, 2, 0, 10));
+        root.addView(label("Userscripts", 28, true, MonkeyUi.text(this)));
+        summary = label("Violentmonkey-compatible manager for Chrome Android", 14, false,
+                MonkeyUi.muted(this));
+        root.addView(summary, margins(-1, -2, 0, 2, 0, 16));
 
         String marked = ForkSiteSupport.installUrlFromMarker(currentUrl);
         String installTarget = marked == null ? currentUrl : marked;
         if (ForkSiteSupport.isInstallablePage(installTarget)) {
-            TextView current = MonkeyUi.button(this, "Review userscript from this page", true);
+            LinearLayout currentCard = new LinearLayout(this);
+            currentCard.setOrientation(LinearLayout.VERTICAL);
+            currentCard.setPadding(dp(16), dp(14), dp(16), dp(14));
+            currentCard.setBackground(MonkeyUi.card(this));
+            currentCard.addView(label("Userscript detected on this page", 16, true,
+                    MonkeyUi.text(this)));
+            currentCard.addView(label("Review its source and permissions before installing.", 13,
+                    false, MonkeyUi.muted(this)), margins(-1, -2, 0, 4, 0, 12));
+            TextView current = MonkeyUi.button(this, "Review and install", true);
             current.setOnClickListener(view ->
                     ForkSiteSupport.openInstallPreview(this, installTarget));
-            root.addView(current, margins(-1, -2, 0, 0, 0, 12));
+            currentCard.addView(current);
+            root.addView(currentCard, margins(-1, -2, 0, 0, 0, 16));
         }
 
         search = new EditText(this);
@@ -77,8 +83,8 @@ public final class UserscriptManagerActivity extends Activity {
         search.setHintTextColor(MonkeyUi.muted(this));
         search.setSingleLine(true);
         search.setBackground(MonkeyUi.input(this));
-        search.setPadding(dp(16), dp(12), dp(16), dp(12));
-        root.addView(search, margins(-1, -2, 0, 0, 0, 12));
+        search.setPadding(dp(16), dp(13), dp(16), dp(13));
+        root.addView(search, margins(-1, -2, 0, 0, 0, 18));
         search.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -87,25 +93,32 @@ public final class UserscriptManagerActivity extends Activity {
             @Override public void afterTextChanged(Editable editable) { }
         });
 
-        LinearLayout actions = new LinearLayout(this);
-        actions.setOrientation(LinearLayout.HORIZONTAL);
-        addAction(actions, "New", view -> chooseNew());
-        addAction(actions, "Import", view -> pickImport());
-        addAction(actions, "Install URL", view -> installUrl());
-        addAction(actions, "Greasy Fork", view ->
-                ForkSiteSupport.openSite(this, ForkSiteSupport.GREASY_HOST));
-        addAction(actions, "Sleazy Fork", view ->
-                ForkSiteSupport.openSite(this, ForkSiteSupport.SLEAZY_HOST));
-        addAction(actions, "Update", view -> updateAll());
-        addAction(actions, "Backup", view -> backup());
-        addAction(actions, "Settings", view -> settings());
+        root.addView(label("Quick actions", 15, true, MonkeyUi.text(this)),
+                margins(-1, -2, 0, 0, 0, 10));
 
-        HorizontalScrollView actionScroll = new HorizontalScrollView(this);
-        actionScroll.setHorizontalScrollBarEnabled(false);
-        actionScroll.addView(actions);
-        root.addView(actionScroll, margins(-1, -2, 0, 0, 0, 12));
+        LinearLayout actionGrid = new LinearLayout(this);
+        actionGrid.setOrientation(LinearLayout.VERTICAL);
+        addActionRow(actionGrid,
+                action("New script", view -> chooseNew()),
+                action("Import file", view -> pickImport()));
+        addActionRow(actionGrid,
+                action("Install URL", view -> installUrl()),
+                action("Check updates", view -> updateAll()));
+        addActionRow(actionGrid,
+                action("Greasy Fork", view ->
+                        ForkSiteSupport.openSite(this, ForkSiteSupport.GREASY_HOST)),
+                action("Sleazy Fork", view ->
+                        ForkSiteSupport.openSite(this, ForkSiteSupport.SLEAZY_HOST)));
+        addActionRow(actionGrid,
+                action("Backup", view -> backup()),
+                action("Settings", view -> settings()));
+        root.addView(actionGrid, margins(-1, -2, 0, 0, 0, 18));
+
+        root.addView(label("Installed", 15, true, MonkeyUi.text(this)),
+                margins(-1, -2, 0, 0, 0, 8));
 
         ScrollView scroll = new ScrollView(this);
+        scroll.setFillViewport(true);
         list = new LinearLayout(this);
         list.setOrientation(LinearLayout.VERTICAL);
         scroll.addView(list, new ScrollView.LayoutParams(-1, -2));
@@ -123,6 +136,11 @@ public final class UserscriptManagerActivity extends Activity {
                 : search.getText().toString().toLowerCase(Locale.US).trim();
 
         List<Userscript> scripts = MonkeyStore.list(this);
+        if (summary != null) {
+            summary.setText(scripts.size() + (scripts.size() == 1 ? " script" : " scripts")
+                    + " installed • Violentmonkey-compatible core");
+        }
+
         int visible = 0;
         for (Userscript script : scripts) {
             String haystack = (script.name + " " + script.description + " "
@@ -133,19 +151,36 @@ public final class UserscriptManagerActivity extends Activity {
             visible++;
         }
 
-        if (visible == 0) {
-            TextView empty = label(
-                    scripts.isEmpty()
-                            ? "No userscripts installed. Open Greasy Fork or Sleazy Fork, import a file, or install a direct URL."
-                            : "No installed scripts match your search.",
-                    14,
-                    false,
-                    MonkeyUi.muted(this)
-            );
-            empty.setGravity(Gravity.CENTER);
-            empty.setPadding(dp(16), dp(44), dp(16), dp(44));
-            list.addView(empty);
+        if (visible == 0) list.addView(emptyState(scripts.isEmpty()));
+    }
+
+    private View emptyState(boolean noScripts) {
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setGravity(Gravity.CENTER_HORIZONTAL);
+        card.setPadding(dp(20), dp(26), dp(20), dp(24));
+        card.setBackground(MonkeyUi.card(this));
+
+        card.addView(label(noScripts ? "No userscripts yet" : "No matching scripts",
+                19, true, MonkeyUi.text(this)));
+        TextView body = label(noScripts
+                        ? "Browse a script catalogue, import a file, or review a direct .user.js URL."
+                        : "Try a different search term.",
+                14, false, MonkeyUi.muted(this));
+        body.setGravity(Gravity.CENTER);
+        card.addView(body, margins(-1, -2, 0, 8, 0, 18));
+
+        if (noScripts) {
+            TextView browse = MonkeyUi.button(this, "Browse Greasy Fork", true);
+            browse.setOnClickListener(view ->
+                    ForkSiteSupport.openSite(this, ForkSiteSupport.GREASY_HOST));
+            card.addView(browse, new LinearLayout.LayoutParams(-1, -2));
+
+            TextView install = MonkeyUi.button(this, "Install from URL", false);
+            install.setOnClickListener(view -> installUrl());
+            card.addView(install, margins(-1, -2, 0, 10, 0, 0));
         }
+        return card;
     }
 
     private View card(Userscript script) {
@@ -159,12 +194,9 @@ public final class UserscriptManagerActivity extends Activity {
 
         TextView badge = label(
                 Userscript.KIND_CSS.equals(script.kind) ? "CSS" : "JS",
-                12,
-                true,
+                12, true,
                 Userscript.KIND_CSS.equals(script.kind)
-                        ? MonkeyUi.secondary(this)
-                        : MonkeyUi.primary(this)
-        );
+                        ? MonkeyUi.secondary(this) : MonkeyUi.primary(this));
         top.addView(badge, margins(-2, -2, 0, 0, 12, 0));
 
         TextView name = label(script.name, 16, true, MonkeyUi.text(this));
@@ -186,10 +218,7 @@ public final class UserscriptManagerActivity extends Activity {
         card.addView(label(
                 "v" + script.version + "  •  " + script.runAt + "  •  "
                         + (script.matches.size() + script.includes.size()) + " rule(s)",
-                12,
-                false,
-                MonkeyUi.muted(this)
-        ));
+                12, false, MonkeyUi.muted(this)));
 
         if (!script.description.isEmpty()) {
             card.addView(label(script.description, 13, false, MonkeyUi.muted(this)),
@@ -213,19 +242,34 @@ public final class UserscriptManagerActivity extends Activity {
         return card;
     }
 
+    private TextView action(String text, View.OnClickListener listener) {
+        TextView button = MonkeyUi.button(this, text, false);
+        button.setOnClickListener(listener);
+        return button;
+    }
+
+    private void addActionRow(LinearLayout grid, TextView left, TextView right) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        LinearLayout.LayoutParams leftParams = new LinearLayout.LayoutParams(0, -2, 1);
+        leftParams.setMargins(0, 0, dp(6), dp(10));
+        LinearLayout.LayoutParams rightParams = new LinearLayout.LayoutParams(0, -2, 1);
+        rightParams.setMargins(dp(6), 0, 0, dp(10));
+        row.addView(left, leftParams);
+        row.addView(right, rightParams);
+        grid.addView(row, new LinearLayout.LayoutParams(-1, -2));
+    }
+
     private void chooseNew() {
         new AlertDialog.Builder(this)
                 .setTitle("New userscript")
                 .setItems(new String[]{"JavaScript userscript", "CSS userstyle"},
                         (dialog, which) -> {
                             String kind = which == 1
-                                    ? Userscript.KIND_CSS
-                                    : Userscript.KIND_JAVASCRIPT;
+                                    ? Userscript.KIND_CSS : Userscript.KIND_JAVASCRIPT;
                             Userscript script = UserscriptMetadataParser.parse(
                                     template(kind),
-                                    which == 1 ? "new.user.css" : "new.user.js",
-                                    ""
-                            );
+                                    which == 1 ? "new.user.css" : "new.user.js", "");
                             script.enabled = false;
                             try {
                                 MonkeyStore.save(this, script);
@@ -242,13 +286,14 @@ public final class UserscriptManagerActivity extends Activity {
                 new Intent(Intent.ACTION_OPEN_DOCUMENT)
                         .setType("*/*")
                         .addCategory(Intent.CATEGORY_OPENABLE),
-                PICK_IMPORT
-        );
+                PICK_IMPORT);
     }
 
     private void installUrl() {
         EditText input = new EditText(this);
         input.setHint("Greasy Fork page or direct .user.js URL");
+        input.setTextColor(MonkeyUi.text(this));
+        input.setHintTextColor(MonkeyUi.muted(this));
         input.setSingleLine(true);
         new AlertDialog.Builder(this)
                 .setTitle("Install userscript")
@@ -280,8 +325,7 @@ public final class UserscriptManagerActivity extends Activity {
                     new Intent(Intent.ACTION_CREATE_DOCUMENT)
                             .setType("application/json")
                             .putExtra(Intent.EXTRA_TITLE, "userscripts-backup.json"),
-                    SAVE_EXPORT
-            );
+                    SAVE_EXPORT);
         } catch (Exception error) {
             toast(error.getMessage());
         }
@@ -290,14 +334,12 @@ public final class UserscriptManagerActivity extends Activity {
     private void exportScript(Userscript script) {
         pendingExport = script.source;
         String extension = Userscript.KIND_CSS.equals(script.kind)
-                ? ".user.css"
-                : ".user.js";
+                ? ".user.css" : ".user.js";
         startActivityForResult(
                 new Intent(Intent.ACTION_CREATE_DOCUMENT)
                         .setType("text/plain")
                         .putExtra(Intent.EXTRA_TITLE, safeName(script.name) + extension),
-                SAVE_EXPORT
-        );
+                SAVE_EXPORT);
     }
 
     private void settings() {
@@ -343,8 +385,7 @@ public final class UserscriptManagerActivity extends Activity {
         try {
             if (request == PICK_IMPORT) {
                 String name = uri.getLastPathSegment() == null
-                        ? "import.user.js"
-                        : uri.getLastPathSegment();
+                        ? "import.user.js" : uri.getLastPathSegment();
                 String text;
                 try (InputStream input = getContentResolver().openInputStream(uri)) {
                     text = MonkeyStore.read(input, 8 * 1024 * 1024);
@@ -379,12 +420,6 @@ public final class UserscriptManagerActivity extends Activity {
                 + "(function () {\n  'use strict';\n})();\n";
     }
 
-    private void addAction(LinearLayout row, String text, View.OnClickListener listener) {
-        TextView button = MonkeyUi.button(this, text, false);
-        button.setOnClickListener(listener);
-        row.addView(button, margins(-2, -2, 0, 0, 8, 0));
-    }
-
     private TextView label(String text, int sp, boolean bold, int color) {
         TextView view = new TextView(this);
         view.setText(text);
@@ -395,13 +430,7 @@ public final class UserscriptManagerActivity extends Activity {
     }
 
     private LinearLayout.LayoutParams margins(
-            int width,
-            int height,
-            int left,
-            int top,
-            int right,
-            int bottom
-    ) {
+            int width, int height, int left, int top, int right, int bottom) {
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(width, height);
         params.setMargins(dp(left), dp(top), dp(right), dp(bottom));
         return params;

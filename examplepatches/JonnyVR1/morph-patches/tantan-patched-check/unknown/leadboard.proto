@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package live.leaderboard;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + live.leaderboard）
+option java_package = "com.p1.mobile.longlink.msg.live.leaderboard";
+option java_outer_classname = "LongLinkLeaderboard";
+option optimize_for = LITE_RUNTIME;
+
+message GiftStarLeaderboardChangeMessage {
+
+}

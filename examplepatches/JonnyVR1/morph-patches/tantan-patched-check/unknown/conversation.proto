@@ -1,0 +1,20 @@
+syntax = "proto3";
+package connector;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + connector）
+option java_package = "com.p1.mobile.longlink.msg.connector";
+option java_outer_classname = "LongLinkConversationMessage";
+option optimize_for = LITE_RUNTIME;
+
+message CreateConversation {
+  string otherUserId = 1;
+}
+
+message DeleteConversation {
+  string otherUserId = 1;
+  string action = 2;
+}
+
+message BlockConversation {
+  string otherUserId = 1;
+}

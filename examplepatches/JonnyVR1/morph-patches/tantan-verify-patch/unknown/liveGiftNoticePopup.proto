@@ -1,0 +1,107 @@
+syntax = "proto3";
+
+package liveroom;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + liveroom）
+option java_package = "com.p1.mobile.longlink.msg.liveroom";
+option java_outer_classname = "LongLinkLiveBottomPopup";
+option optimize_for = LITE_RUNTIME;
+
+message LiveBottomPopupButton{
+  string text = 1; // 按钮内容
+  string textColor = 2; // 内容颜色
+  string startColor = 3; // 按钮开始颜色
+  string endColor = 4; // 按钮结束颜色
+  enum LiveBottomPopupButtonJumpType {
+    url = 0;  // url
+    schema = 1; // schema
+  }
+  LiveBottomPopupButtonJumpType jumpType = 5; // 请求跳转类型
+  string  jumpSchema = 6; // 请求跳转地址
+
+  string startAfterColor = 7; // 倒计时LiveBottomCountdownOverActionEnum非 none 的倒计时结束后的颜色
+  string endAfterColor = 8; // 倒计时LiveBottomCountdownOverActionEnum非 none 的倒计时结束后的颜色
+  repeated LiveBottomContent richText = 9; //富文本 button 内容
+}
+
+message LiveBottomContent {
+   LiveBottomContentTypeEnum type = 1; //类型
+   string text = 2; // 如果是文字，这里是文字
+   string textColor = 3; // 内容颜色 🎨
+   string url = 4; //如果是图片，这是url
+   int64 countdownEndTime = 5; //如果是倒计时，这里是倒计时结束时间
+   int64 countdownCurrentTime = 6; //如果是倒计时，这里是当前时间
+   LiveBottomCountdownOverActionEnum countDownOverAction = 7;
+}
+
+enum LiveBottomContentTypeEnum {
+    text = 0;
+    picture = 1;
+    countdown = 2;
+}
+
+enum LiveBottomCountdownOverActionEnum {
+    none = 0;
+    buttonLightUp = 1; //按钮点亮
+    buttonLightDown = 2; //按钮置灰
+}
+
+message LiveBottomPopupHeader{
+  string textColor = 1; // 标题颜色
+  enum Position {
+    left = 0;  // 左对齐
+    middle = 1; // 居中
+  };
+  Position position = 2; // 标题位置 居中 或 左对齐
+}
+
+message LiveBottomPopupRemind{
+  bool show = 1; // 是否展示不再弹窗提醒项
+  bool click = 2; // 是否默认勾选
+  string textColor = 3; // 不再弹窗提示文案色值
+}
+
+message LiveBottomPopupToast{
+  string successText = 1; // 成功文案
+  string failText = 2; // 失败
+}
+
+message LiveBottomPopup{
+  string iconUrl = 1; // 图标
+  string title = 2; // 标题
+  string content = 3; // 内容
+  LiveBottomPopupButton button = 4; // 按钮
+  string  source = 5; // 来源
+  string  type = 6; // 类型
+  int64   remainDuration = 7; //底部停留时长，秒
+  LiveBottomPopupRemind remind = 8; // 弹窗提醒项
+  string extra = 9; // 附加字段
+  LiveBottomPopupToast toast = 10; // 弹窗文案
+  bool showClose = 11; // 是否展示关闭按钮
+  LiveBottomPopupHeader header = 12; // 头部大标题
+  string backgroundColor = 13; // 整体弹窗背景色值
+  string contentColor = 14; // 弹窗主题文案色值
+  bool blankClose = 15; //点击空白是否关闭
+
+  LiveBottomPopupStyleTypeEnum styleType = 17; //样式类型，window为本次新增
+  repeated LiveBottomContent descriptions = 18; //标题下边描述
+  repeated LiveBottomWindown window = 19; //橱窗内容
+}
+
+message LiveBottomWindown {
+    string picture = 1;
+    repeated LiveBottomContent text = 2;
+    string backgroundColor = 3;
+}
+
+enum LiveBottomPopupStyleTypeEnum {
+  common = 0;
+  window = 1; //橱窗
+}
+
+// messageTypeName: 'live.room.toast'
+// 直播间客户端收到后展示toast提示
+message VideoLiveToast {
+  string toast = 1;
+  string roomId = 2;
+}

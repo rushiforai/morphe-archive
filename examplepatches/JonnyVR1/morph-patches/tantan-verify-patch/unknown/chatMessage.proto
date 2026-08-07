@@ -1,0 +1,196 @@
+syntax = "proto3";
+package livechat;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + livechat）
+option java_package = "com.p1.mobile.longlink.msg.livechat";
+option java_outer_classname = "LongLinkChatMessage";
+option optimize_for = LITE_RUNTIME;
+
+import "template.proto";
+import "userMaskConfig.proto";
+
+enum LiveChatMessageType {
+  TEXT = 0;
+  GIFT = 1;
+  BULLETCOMMENT = 2;
+}
+
+enum Action {
+  DEFAULT = 0; // open profile page
+  PROFILE = 1; // open h5 link
+  H5 = 2; // open system menu
+  SYSTEM = 3;
+}
+
+enum PredefineMessageType {
+  PLACEHOLDER = 0; // 占位
+  OPENLIVE_NOTICE = 1; // 开播提醒
+  ENTERROOM_NOTICE = 2; // 观众入场提醒
+}
+
+enum PostMessageCode {
+  POST_CODE_PLACEHOLDER = 0; // 占位
+  SUCCESS = 1; // 成功
+  FAIL = 2; // 未知原因失败
+  JAIL = 3; // 被禁言
+  BLOCK = 4; // 被拉黑
+  NOT_IN_ROOM = 5; // 不在房间中
+  BAD_REQUEST = 6; // 请求非法
+  CONTENT_ILLEGAL = 7; // 内容违规
+  PMC_TANTAN_BANNED = 8; // 用户被tantan ban
+  PMC_TANTAN_JAILED = 9; // 用户被tantan 禁言
+}
+
+message PostMessageAck {
+  PostMessageCode code = 1;
+  string codeMessage = 2;
+  LiveChatMessage message = 3;
+}
+
+message GiftMessage {
+  int64 id = 1;
+  string type = 2;
+  string name = 3;
+  string url = 4;
+  string originId = 5;
+  uint32 count = 6;
+  string anchorId = 7;
+  string liveId = 8;
+  // 礼物信息增加version版本
+  string version = 9;
+}
+
+message ClientPostMessageRequest {
+  string anchorId = 1;
+  LiveChatMessage msg = 2;
+}
+
+// 用户勋章结构
+message UserMedal {
+  repeated string ids = 1;
+  string version = 2;
+}
+
+message HierarchyMessage {
+  int64 grade = 1;
+  string imageUrl = 2; // 新增参数，等级图
+
+}
+
+message LiveChatMessage {
+  string roomId = 1;
+  uint64 seq = 2;
+  LiveChatMessageType type = 3;
+  string userId = 4;
+  string username = 5;
+  string value = 6;
+  Action action = 7;
+  GiftMessage gift = 8;
+  string h5 = 9;
+  template.TemplateData template = 10;
+  string liveId = 11;
+  MedalMessage medal = 12;
+  int64 createdTime = 13;
+  HierarchyMessage hierarchy = 14;
+  LiveRevenueCampaignVip liveRevenueCampaignVip = 15;
+  RoomType roomType = 16;
+  LiveChatMessageExtInfo extInfo = 17;
+  LiveChatShadingConfig chatShadingConfig = 18;
+  string fakeId = 19;
+  string msgId = 20;
+  string fakeName = 21;
+  string anchorId = 22;
+  string giftTargetUserId = 23; //礼物单播消息
+  SharedVoiceLiveInfo sharedVoiceLiveInfo = 24; // 语音房分享卡片消息
+  string liveMode = 25;
+  string templateType = 26; // 语音房模板类型
+  uint64 preSeq = 27; // 上条消息的seq
+  int64 preTimestamp = 28; // 上条消息的发送时间
+  string userIdentity = 29;  //用户身份
+  string source = 32; //标识来源，用于客户端打点需求
+  HierarchyMessage starlightHierarchy = 33;
+}
+
+message SharedVoiceLiveInfo {
+  string roomId = 1;
+  string liveId = 2;
+  string description = 3;
+  int32 audienceCount = 4;
+  int32 voiceCallCount = 5;
+  string anchorId = 6;
+}
+
+enum RoomType {
+  video = 0;
+  voice = 1;
+  text = 2;
+  guild = 3;
+}
+message LiveChatMessageExtInfo {
+  string imageUrl = 1;
+  string senderCityID = 2;
+  Mask mask = 3;
+  bool maskMode = 4;
+  userMask.UserMask userMask = 6;
+  bool groupControl = 7;
+  string groupType = 8;    // redpacket
+  repeated AtUserInfo atUserInfos = 9;
+  string SharedVoiceRoomID = 10;
+  string TraceInfo = 11;   //pid、eid是固定name的key
+  bool colorfulMode = 12;
+}
+message Mask {
+  string color = 1;
+  string icon = 2;
+  string gender = 3;
+}
+
+message LiveRevenueCampaignVip {
+  bool isVip = 1;
+}
+
+message MedalMessage {
+  repeated string ids = 1;
+  string version = 2;
+  repeated Medal singleRoomMedals = 3;
+  repeated Medal multiRoomMedals = 4;
+}
+
+message Medal {
+  string id = 1;
+  int64 fanbaseGrade = 2;
+  int64 familyGrade = 3; // 家族铭牌等级
+  string familyText = 4; // 家族铭牌名称
+  int64 voiceFanbaseGrade = 5; // 语音房粉丝团等级
+  string voiceFanbaseColor = 6; // light:点亮/gray:置灰
+  string voiceFanbaseText = 7; // 团主昵称, 截取12字符
+  bool familyLight = 8 ;
+}
+
+message LiveChatShadingConfig {
+  LiveBackgroundColorConfig borderColorConfig = 1;
+  LiveBackgroundColorConfig backgroundColorConfig = 2;
+  LiveCornerConfig cornerConfig = 3;
+}
+
+message LiveBackgroundColorConfig {
+  int64 gradientDirection = 1;
+  repeated string colors = 2;
+  int64 transparency = 3;
+}
+
+message LiveCornerConfig {
+  string pictureUrl = 1;
+  int64 position = 2;
+}
+message VoiceLiveMaskModeFollowApplyInfo {
+  string roomId = 1;
+  string liveId = 2;
+  string userId = 3;
+  string otherUserId = 4;
+}
+
+message AtUserInfo {
+  string userId = 1;
+  string userName = 2;
+}

@@ -1,9 +1,14 @@
+/**
+ * Copyright 2026 Hoo-dles
+ * https://github.com/hoo-dles/morphe-patches
+ */
+
 package hoodles.morphe.patches.macrofactor.misc.signature
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.util.byteArrayOf
 import hoodles.morphe.patches.macrofactor.shared.Constants
-import hoodles.morphe.util.byteArrayOf
 
 val SIGNATURE = byteArrayOf("72 80 3C E3 0B 7F 47 E8 4D 86 98 7F 45 1D AF 8C 7A CC B5 A0")
 val WORKOUTS_SIGNATURE = byteArrayOf("44 40 CF FB DA 84 8C 6C 8B 9E 02 84 79 50 74 58 79 9D 51 2C")

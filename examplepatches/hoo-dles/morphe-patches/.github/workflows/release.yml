@@ -3,9 +3,6 @@ name: Release
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
-      - dev
 
 jobs:
   release:
@@ -18,21 +15,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Setup Java
         uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
-          java-version: '17'
-
-      - name: Cache Gradle
-        uses: burrunan/gradle-cache-action@v3
-
-      - name: Build
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew :patches:buildAndroid generatePatchesList clean
+          java-version: '21'
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -43,13 +34,8 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@v7
-        with:
-          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
-          passphrase: ${{ secrets.GPG_PASSPHRASE }}
-          fingerprint: ${{ vars.GPG_FINGERPRINT }}
-
+      # Semantic release runs its own Gradle build command.
+      # Only dev and main branch will generate a release as specified by .releaserc
       - name: Release
         uses: cycjimmy/semantic-release-action@v6
         id: release
@@ -60,11 +46,13 @@ jobs:
         if: steps.release.outputs.new_release_published == 'true'
         uses: actions/attest-build-provenance@v4
         with:
-          subject-name: 'Patches ${{ steps.release.outputs.new_release_git_tag }}'
+          subject-name: 'Morphe Patches ${{ steps.release.outputs.new_release_git_tag }}'
           subject-path: patches/build/libs/patches-*.mpp
 
-      - name: Purge jsDelivr Cache
-        run: |
-          for file in patches-bundle.json patches-list.json; do
-            curl -i "https://purge.jsdelivr.net/gh/${{ github.repository }}@${{ github.ref_name }}/$file"
-          done
+      # Always verify compilation when semantic-release did not publish a release.
+      # This covers non-main/dev branches, chore commits, docs commits, etc.
+      - name: Verify project compiles
+        if: steps.release.outputs.new_release_published != 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:buildAndroid clean --no-daemon

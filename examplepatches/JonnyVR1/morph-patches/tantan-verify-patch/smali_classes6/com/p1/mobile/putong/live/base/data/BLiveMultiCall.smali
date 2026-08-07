@@ -1,0 +1,2035 @@
+.class public Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;
+.super Lcom/tantanapp/common/data/ValueObject;
+.source "SourceFile"
+
+# interfaces
+.implements Ljava/lang/Cloneable;
+.implements Ljava/io/Serializable;
+
+
+# static fields
+.field public static JSON_ADAPTER:Lcom/tantanapp/common/data/JsonAdapter; = null
+    .annotation system Ldalvik/annotation/Signature;
+        value = {
+            "Lcom/tantanapp/common/data/JsonAdapter<",
+            "Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;",
+            ">;"
+        }
+    .end annotation
+.end field
+
+.field public static final TYPE:Ljava/lang/String; = "blivemulticall"
+
+
+# instance fields
+.field public category:Ljava/lang/String;
+    .annotation build Landroidx/annotation/NonNull;
+    .end annotation
+
+    .annotation build Lcom/tantanapp/common/data/ProtobufIndex;
+        index = 0xd
+    .end annotation
+.end field
+
+.field public followship:Lcom/p1/mobile/putong/data/Followship;
+    .annotation build Landroidx/annotation/Nullable;
+    .end annotation
+.end field
+
+.field public id:Ljava/lang/String;
+    .annotation build Landroidx/annotation/NonNull;
+    .end annotation
+
+    .annotation build Lcom/tantanapp/common/data/ProtobufIndex;
+        index = 0x1
+    .end annotation
+.end field
+
+.field public isAway:Z
+    .annotation build Lcom/tantanapp/common/data/ProtobufIndex;
+        index = 0x12
+    .end annotation
+.end field
+
+.field public isLeadRole:Z
+    .annotation build Lcom/tantanapp/common/data/ProtobufIndex;
+        index = 0x16
+    .end annotation
+.end field
+
+.field public liveId:Ljava/lang/String;
+    .annotation build Landroidx/annotation/NonNull;
+    .end annotation
+
+    .annotation build Lcom/tantanapp/common/data/ProtobufIndex;
+        index = 0xc
+    .end annotation
+.end field
+
+.field public maxCallNum:I
+    .annotation build Lcom/tantanapp/common/data/ProtobufIndex;
+        index = 0x17
+    .end annotation
+.end field
+
+.field public mutedByUserIds:Ljava/util/List;
+    .annotation build Landroidx/annotation/NonNull;
+    .end annotation
+
+    .annotation build Lcom/tantanapp/common/data/ProtobufIndex;
+        index = 0x13
+    .end annotation
+
+    .annotation system Ldalvik/annotation/Signature;
+        value = {
+            "Ljava/util/List<",
+            "Ljava/lang/String;",
+            ">;"
+        }
+    .end annotation
+.end field
+
+.field public ownerLiveId:Ljava/lang/String;
+    .annotation build Landroidx/annotation/NonNull;
+    .end annotation
+
+    .annotation build Lcom/tantanapp/common/data/ProtobufIndex;
+        index = 0x5
+    .end annotation
+.end field
+
+.field public ownerMultiCallOrder:Ljava/lang/String;
+    .annotation build Landroidx/annotation/NonNull;
+    .end annotation
+
+    .annotation build Lcom/tantanapp/common/data/ProtobufIndex;
+        index = 0x6
+    .end annotation
+.end field
+
+.field public ownerRoomId:Ljava/lang/String;
+    .annotation build Landroidx/annotation/NonNull;
+    .end annotation
+
+    .annotation build Lcom/tantanapp/common/data/ProtobufIndex;
+        index = 0x4
+    .end annotation
+.end field
+
+.field public ownerUserId:Ljava/lang/String;
+    .annotation build Landroidx/annotation/NonNull;
+    .end annotation
+
+    .annotation build Lcom/tantanapp/common/data/ProtobufIndex;
+        index = 0x3
+    .end annotation
+.end field
+
+.field public position:I
+    .annotation build Lcom/tantanapp/common/data/ProtobufIndex;
+        index = 0xf
+    .end annotation
+.end field
+
+.field public pushRemainCount:J
+    .annotation build Lcom/tantanapp/common/data/ProtobufIndex;
+        index = 0x15
+    .end annotation
+.end field
+
+.field public receivedRewardPoint:J
+    .annotation build Lcom/tantanapp/common/data/ProtobufIndex;
+        index = 0x11
+    .end annotation
+.end field
+
+.field public refreshPushStreamUrl:Ljava/lang/String;
+    .annotation build Landroidx/annotation/NonNull;
+    .end annotation
+
+    .annotation build Lcom/tantanapp/common/data/ProtobufIndex;
+        index = 0x18
+    .end annotation
+.end field
+
+.field public role:Ljava/lang/String;
+    .annotation build Landroidx/annotation/NonNull;
+    .end annotation
+
+    .annotation build Lcom/tantanapp/common/data/ProtobufIndex;
+        index = 0xa
+    .end annotation
+.end field
+
+.field public roomId:Ljava/lang/String;
+    .annotation build Landroidx/annotation/NonNull;
+    .end annotation
+
+    .annotation build Lcom/tantanapp/common/data/ProtobufIndex;
+        index = 0xb
+    .end annotation
+.end field
+
+.field public showSeconds:J
+    .annotation build Lcom/tantanapp/common/data/ProtobufIndex;
+        index = 0x14
+    .end annotation
+.end field
+
+.field public source:Ljava/lang/String;
+    .annotation build Landroidx/annotation/NonNull;
+    .end annotation
+
+    .annotation build Lcom/tantanapp/common/data/ProtobufIndex;
+        index = 0xe
+    .end annotation
+.end field
+
+.field public state:Ljava/lang/String;
+    .annotation build Landroidx/annotation/NonNull;
+    .end annotation
+
+    .annotation build Lcom/tantanapp/common/data/ProtobufIndex;
+        index = 0x10
+    .end annotation
+.end field
+
+.field public type:Ljava/lang/String;
+    .annotation build Landroidx/annotation/NonNull;
+    .end annotation
+
+    .annotation build Lcom/tantanapp/common/data/ProtobufIndex;
+        index = 0x2
+    .end annotation
+.end field
+
+.field public userAvatar:Ljava/lang/String;
+    .annotation build Landroidx/annotation/NonNull;
+    .end annotation
+
+    .annotation build Lcom/tantanapp/common/data/ProtobufIndex;
+        index = 0x9
+    .end annotation
+.end field
+
+.field public userId:Ljava/lang/String;
+    .annotation build Landroidx/annotation/NonNull;
+    .end annotation
+
+    .annotation build Lcom/tantanapp/common/data/ProtobufIndex;
+        index = 0x7
+    .end annotation
+.end field
+
+.field public userName:Ljava/lang/String;
+    .annotation build Landroidx/annotation/NonNull;
+    .end annotation
+
+    .annotation build Lcom/tantanapp/common/data/ProtobufIndex;
+        index = 0x8
+    .end annotation
+.end field
+
+
+# direct methods
+.method static constructor <clinit>()V
+    .locals 1
+
+    .line 1
+    new-instance v0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall$1;
+
+    .line 2
+    .line 3
+    invoke-direct {v0}, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall$1;-><init>()V
+
+    .line 4
+    .line 5
+    .line 6
+    sput-object v0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->JSON_ADAPTER:Lcom/tantanapp/common/data/JsonAdapter;
+
+    .line 7
+    .line 8
+    return-void
+.end method
+
+.method public constructor <init>()V
+    .locals 0
+
+    .line 1
+    invoke-direct {p0}, Lcom/tantanapp/common/data/ValueObject;-><init>()V
+
+    .line 2
+    .line 3
+    .line 4
+    return-void
+.end method
+
+.method public static synthetic a(Ljava/lang/String;)Ljava/lang/String;
+    .locals 0
+
+    .line 1
+    return-object p0
+.end method
+
+.method public static new_()Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;
+    .locals 1
+
+    .line 1
+    new-instance v0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;
+
+    .line 2
+    .line 3
+    invoke-direct {v0}, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;-><init>()V
+
+    .line 4
+    .line 5
+    .line 6
+    invoke-virtual {v0}, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->nullCheck()V
+
+    .line 7
+    .line 8
+    .line 9
+    return-object v0
+.end method
+
+
+# virtual methods
+.method public bridge synthetic clone()Lcom/google/protobuf/nano/MessageNano;
+    .locals 0
+    .annotation system Ldalvik/annotation/Throws;
+        value = {
+            Ljava/lang/CloneNotSupportedException;
+        }
+    .end annotation
+
+    .line 115
+    invoke-virtual {p0}, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->clone()Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;
+
+    move-result-object p0
+
+    return-object p0
+.end method
+
+.method public clone()Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;
+    .locals 3
+
+    .line 1
+    new-instance v0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;
+
+    .line 2
+    .line 3
+    invoke-direct {v0}, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;-><init>()V
+
+    .line 4
+    .line 5
+    .line 6
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->id:Ljava/lang/String;
+
+    .line 7
+    .line 8
+    iput-object v1, v0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->id:Ljava/lang/String;
+
+    .line 9
+    .line 10
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->type:Ljava/lang/String;
+
+    .line 11
+    .line 12
+    iput-object v1, v0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->type:Ljava/lang/String;
+
+    .line 13
+    .line 14
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->ownerUserId:Ljava/lang/String;
+
+    .line 15
+    .line 16
+    iput-object v1, v0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->ownerUserId:Ljava/lang/String;
+
+    .line 17
+    .line 18
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->ownerRoomId:Ljava/lang/String;
+
+    .line 19
+    .line 20
+    iput-object v1, v0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->ownerRoomId:Ljava/lang/String;
+
+    .line 21
+    .line 22
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->ownerLiveId:Ljava/lang/String;
+
+    .line 23
+    .line 24
+    iput-object v1, v0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->ownerLiveId:Ljava/lang/String;
+
+    .line 25
+    .line 26
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->ownerMultiCallOrder:Ljava/lang/String;
+
+    .line 27
+    .line 28
+    iput-object v1, v0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->ownerMultiCallOrder:Ljava/lang/String;
+
+    .line 29
+    .line 30
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->userId:Ljava/lang/String;
+
+    .line 31
+    .line 32
+    iput-object v1, v0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->userId:Ljava/lang/String;
+
+    .line 33
+    .line 34
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->userName:Ljava/lang/String;
+
+    .line 35
+    .line 36
+    iput-object v1, v0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->userName:Ljava/lang/String;
+
+    .line 37
+    .line 38
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->userAvatar:Ljava/lang/String;
+
+    .line 39
+    .line 40
+    iput-object v1, v0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->userAvatar:Ljava/lang/String;
+
+    .line 41
+    .line 42
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->role:Ljava/lang/String;
+
+    .line 43
+    .line 44
+    iput-object v1, v0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->role:Ljava/lang/String;
+
+    .line 45
+    .line 46
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->roomId:Ljava/lang/String;
+
+    .line 47
+    .line 48
+    iput-object v1, v0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->roomId:Ljava/lang/String;
+
+    .line 49
+    .line 50
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->liveId:Ljava/lang/String;
+
+    .line 51
+    .line 52
+    iput-object v1, v0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->liveId:Ljava/lang/String;
+
+    .line 53
+    .line 54
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->category:Ljava/lang/String;
+
+    .line 55
+    .line 56
+    iput-object v1, v0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->category:Ljava/lang/String;
+
+    .line 57
+    .line 58
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->source:Ljava/lang/String;
+
+    .line 59
+    .line 60
+    iput-object v1, v0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->source:Ljava/lang/String;
+
+    .line 61
+    .line 62
+    iget v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->position:I
+
+    .line 63
+    .line 64
+    iput v1, v0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->position:I
+
+    .line 65
+    .line 66
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->state:Ljava/lang/String;
+
+    .line 67
+    .line 68
+    iput-object v1, v0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->state:Ljava/lang/String;
+
+    .line 69
+    .line 70
+    iget-wide v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->receivedRewardPoint:J
+
+    .line 71
+    .line 72
+    iput-wide v1, v0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->receivedRewardPoint:J
+
+    .line 73
+    .line 74
+    iget-boolean v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->isAway:Z
+
+    .line 75
+    .line 76
+    iput-boolean v1, v0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->isAway:Z
+
+    .line 77
+    .line 78
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->mutedByUserIds:Ljava/util/List;
+
+    .line 79
+    .line 80
+    if-eqz v1, :cond_0
+
+    .line 81
+    .line 82
+    new-instance v2, Ll/d32;
+
+    .line 83
+    .line 84
+    invoke-direct {v2}, Ll/d32;-><init>()V
+
+    .line 85
+    .line 86
+    .line 87
+    invoke-static {v1, v2}, Lcom/tantanapp/common/data/ValueObject;->util_map(Ljava/util/List;Ll/qcj;)Ljava/util/List;
+
+    .line 88
+    .line 89
+    .line 90
+    move-result-object v1
+
+    .line 91
+    iput-object v1, v0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->mutedByUserIds:Ljava/util/List;
+
+    .line 92
+    .line 93
+    :cond_0
+    iget-wide v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->showSeconds:J
+
+    .line 94
+    .line 95
+    iput-wide v1, v0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->showSeconds:J
+
+    .line 96
+    .line 97
+    iget-wide v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->pushRemainCount:J
+
+    .line 98
+    .line 99
+    iput-wide v1, v0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->pushRemainCount:J
+
+    .line 100
+    .line 101
+    iget-boolean v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->isLeadRole:Z
+
+    .line 102
+    .line 103
+    iput-boolean v1, v0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->isLeadRole:Z
+
+    .line 104
+    .line 105
+    iget v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->maxCallNum:I
+
+    .line 106
+    .line 107
+    iput v1, v0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->maxCallNum:I
+
+    .line 108
+    .line 109
+    iget-object p0, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->refreshPushStreamUrl:Ljava/lang/String;
+
+    .line 110
+    .line 111
+    iput-object p0, v0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->refreshPushStreamUrl:Ljava/lang/String;
+
+    .line 112
+    .line 113
+    return-object v0
+.end method
+
+.method public bridge synthetic clone()Ljava/lang/Object;
+    .locals 0
+    .annotation system Ldalvik/annotation/Throws;
+        value = {
+            Ljava/lang/CloneNotSupportedException;
+        }
+    .end annotation
+
+    .line 114
+    invoke-virtual {p0}, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->clone()Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;
+
+    move-result-object p0
+
+    return-object p0
+.end method
+
+.method public equals(Ljava/lang/Object;)Z
+    .locals 7
+
+    .line 1
+    const/4 v0, 0x1
+
+    .line 2
+    if-ne p1, p0, :cond_0
+
+    .line 3
+    .line 4
+    return v0
+
+    .line 5
+    :cond_0
+    instance-of v1, p1, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;
+
+    .line 6
+    .line 7
+    const/4 v2, 0x0
+
+    .line 8
+    if-nez v1, :cond_1
+
+    .line 9
+    .line 10
+    return v2
+
+    .line 11
+    :cond_1
+    check-cast p1, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;
+
+    .line 12
+    .line 13
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->id:Ljava/lang/String;
+
+    .line 14
+    .line 15
+    iget-object v3, p1, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->id:Ljava/lang/String;
+
+    .line 16
+    .line 17
+    invoke-static {v1, v3}, Lcom/tantanapp/common/data/ValueObject;->util_equals(Ljava/lang/Object;Ljava/lang/Object;)Z
+
+    .line 18
+    .line 19
+    .line 20
+    move-result v1
+
+    .line 21
+    if-eqz v1, :cond_2
+
+    .line 22
+    .line 23
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->type:Ljava/lang/String;
+
+    .line 24
+    .line 25
+    iget-object v3, p1, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->type:Ljava/lang/String;
+
+    .line 26
+    .line 27
+    invoke-static {v1, v3}, Lcom/tantanapp/common/data/ValueObject;->util_equals(Ljava/lang/Object;Ljava/lang/Object;)Z
+
+    .line 28
+    .line 29
+    .line 30
+    move-result v1
+
+    .line 31
+    if-eqz v1, :cond_2
+
+    .line 32
+    .line 33
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->ownerUserId:Ljava/lang/String;
+
+    .line 34
+    .line 35
+    iget-object v3, p1, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->ownerUserId:Ljava/lang/String;
+
+    .line 36
+    .line 37
+    invoke-static {v1, v3}, Lcom/tantanapp/common/data/ValueObject;->util_equals(Ljava/lang/Object;Ljava/lang/Object;)Z
+
+    .line 38
+    .line 39
+    .line 40
+    move-result v1
+
+    .line 41
+    if-eqz v1, :cond_2
+
+    .line 42
+    .line 43
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->ownerRoomId:Ljava/lang/String;
+
+    .line 44
+    .line 45
+    iget-object v3, p1, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->ownerRoomId:Ljava/lang/String;
+
+    .line 46
+    .line 47
+    invoke-static {v1, v3}, Lcom/tantanapp/common/data/ValueObject;->util_equals(Ljava/lang/Object;Ljava/lang/Object;)Z
+
+    .line 48
+    .line 49
+    .line 50
+    move-result v1
+
+    .line 51
+    if-eqz v1, :cond_2
+
+    .line 52
+    .line 53
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->ownerLiveId:Ljava/lang/String;
+
+    .line 54
+    .line 55
+    iget-object v3, p1, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->ownerLiveId:Ljava/lang/String;
+
+    .line 56
+    .line 57
+    invoke-static {v1, v3}, Lcom/tantanapp/common/data/ValueObject;->util_equals(Ljava/lang/Object;Ljava/lang/Object;)Z
+
+    .line 58
+    .line 59
+    .line 60
+    move-result v1
+
+    .line 61
+    if-eqz v1, :cond_2
+
+    .line 62
+    .line 63
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->ownerMultiCallOrder:Ljava/lang/String;
+
+    .line 64
+    .line 65
+    iget-object v3, p1, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->ownerMultiCallOrder:Ljava/lang/String;
+
+    .line 66
+    .line 67
+    invoke-static {v1, v3}, Lcom/tantanapp/common/data/ValueObject;->util_equals(Ljava/lang/Object;Ljava/lang/Object;)Z
+
+    .line 68
+    .line 69
+    .line 70
+    move-result v1
+
+    .line 71
+    if-eqz v1, :cond_2
+
+    .line 72
+    .line 73
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->userId:Ljava/lang/String;
+
+    .line 74
+    .line 75
+    iget-object v3, p1, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->userId:Ljava/lang/String;
+
+    .line 76
+    .line 77
+    invoke-static {v1, v3}, Lcom/tantanapp/common/data/ValueObject;->util_equals(Ljava/lang/Object;Ljava/lang/Object;)Z
+
+    .line 78
+    .line 79
+    .line 80
+    move-result v1
+
+    .line 81
+    if-eqz v1, :cond_2
+
+    .line 82
+    .line 83
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->userName:Ljava/lang/String;
+
+    .line 84
+    .line 85
+    iget-object v3, p1, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->userName:Ljava/lang/String;
+
+    .line 86
+    .line 87
+    invoke-static {v1, v3}, Lcom/tantanapp/common/data/ValueObject;->util_equals(Ljava/lang/Object;Ljava/lang/Object;)Z
+
+    .line 88
+    .line 89
+    .line 90
+    move-result v1
+
+    .line 91
+    if-eqz v1, :cond_2
+
+    .line 92
+    .line 93
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->userAvatar:Ljava/lang/String;
+
+    .line 94
+    .line 95
+    iget-object v3, p1, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->userAvatar:Ljava/lang/String;
+
+    .line 96
+    .line 97
+    invoke-static {v1, v3}, Lcom/tantanapp/common/data/ValueObject;->util_equals(Ljava/lang/Object;Ljava/lang/Object;)Z
+
+    .line 98
+    .line 99
+    .line 100
+    move-result v1
+
+    .line 101
+    if-eqz v1, :cond_2
+
+    .line 102
+    .line 103
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->role:Ljava/lang/String;
+
+    .line 104
+    .line 105
+    iget-object v3, p1, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->role:Ljava/lang/String;
+
+    .line 106
+    .line 107
+    invoke-static {v1, v3}, Lcom/tantanapp/common/data/ValueObject;->util_equals(Ljava/lang/Object;Ljava/lang/Object;)Z
+
+    .line 108
+    .line 109
+    .line 110
+    move-result v1
+
+    .line 111
+    if-eqz v1, :cond_2
+
+    .line 112
+    .line 113
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->roomId:Ljava/lang/String;
+
+    .line 114
+    .line 115
+    iget-object v3, p1, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->roomId:Ljava/lang/String;
+
+    .line 116
+    .line 117
+    invoke-static {v1, v3}, Lcom/tantanapp/common/data/ValueObject;->util_equals(Ljava/lang/Object;Ljava/lang/Object;)Z
+
+    .line 118
+    .line 119
+    .line 120
+    move-result v1
+
+    .line 121
+    if-eqz v1, :cond_2
+
+    .line 122
+    .line 123
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->liveId:Ljava/lang/String;
+
+    .line 124
+    .line 125
+    iget-object v3, p1, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->liveId:Ljava/lang/String;
+
+    .line 126
+    .line 127
+    invoke-static {v1, v3}, Lcom/tantanapp/common/data/ValueObject;->util_equals(Ljava/lang/Object;Ljava/lang/Object;)Z
+
+    .line 128
+    .line 129
+    .line 130
+    move-result v1
+
+    .line 131
+    if-eqz v1, :cond_2
+
+    .line 132
+    .line 133
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->category:Ljava/lang/String;
+
+    .line 134
+    .line 135
+    iget-object v3, p1, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->category:Ljava/lang/String;
+
+    .line 136
+    .line 137
+    invoke-static {v1, v3}, Lcom/tantanapp/common/data/ValueObject;->util_equals(Ljava/lang/Object;Ljava/lang/Object;)Z
+
+    .line 138
+    .line 139
+    .line 140
+    move-result v1
+
+    .line 141
+    if-eqz v1, :cond_2
+
+    .line 142
+    .line 143
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->source:Ljava/lang/String;
+
+    .line 144
+    .line 145
+    iget-object v3, p1, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->source:Ljava/lang/String;
+
+    .line 146
+    .line 147
+    invoke-static {v1, v3}, Lcom/tantanapp/common/data/ValueObject;->util_equals(Ljava/lang/Object;Ljava/lang/Object;)Z
+
+    .line 148
+    .line 149
+    .line 150
+    move-result v1
+
+    .line 151
+    if-eqz v1, :cond_2
+
+    .line 152
+    .line 153
+    iget v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->position:I
+
+    .line 154
+    .line 155
+    iget v3, p1, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->position:I
+
+    .line 156
+    .line 157
+    if-ne v1, v3, :cond_2
+
+    .line 158
+    .line 159
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->state:Ljava/lang/String;
+
+    .line 160
+    .line 161
+    iget-object v3, p1, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->state:Ljava/lang/String;
+
+    .line 162
+    .line 163
+    invoke-static {v1, v3}, Lcom/tantanapp/common/data/ValueObject;->util_equals(Ljava/lang/Object;Ljava/lang/Object;)Z
+
+    .line 164
+    .line 165
+    .line 166
+    move-result v1
+
+    .line 167
+    if-eqz v1, :cond_2
+
+    .line 168
+    .line 169
+    iget-wide v3, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->receivedRewardPoint:J
+
+    .line 170
+    .line 171
+    iget-wide v5, p1, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->receivedRewardPoint:J
+
+    .line 172
+    .line 173
+    cmp-long v1, v3, v5
+
+    .line 174
+    .line 175
+    if-nez v1, :cond_2
+
+    .line 176
+    .line 177
+    iget-boolean v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->isAway:Z
+
+    .line 178
+    .line 179
+    iget-boolean v3, p1, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->isAway:Z
+
+    .line 180
+    .line 181
+    if-ne v1, v3, :cond_2
+
+    .line 182
+    .line 183
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->mutedByUserIds:Ljava/util/List;
+
+    .line 184
+    .line 185
+    iget-object v3, p1, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->mutedByUserIds:Ljava/util/List;
+
+    .line 186
+    .line 187
+    invoke-static {v1, v3}, Lcom/tantanapp/common/data/ValueObject;->util_equals(Ljava/lang/Object;Ljava/lang/Object;)Z
+
+    .line 188
+    .line 189
+    .line 190
+    move-result v1
+
+    .line 191
+    if-eqz v1, :cond_2
+
+    .line 192
+    .line 193
+    iget-wide v3, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->showSeconds:J
+
+    .line 194
+    .line 195
+    iget-wide v5, p1, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->showSeconds:J
+
+    .line 196
+    .line 197
+    cmp-long v1, v3, v5
+
+    .line 198
+    .line 199
+    if-nez v1, :cond_2
+
+    .line 200
+    .line 201
+    iget-wide v3, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->pushRemainCount:J
+
+    .line 202
+    .line 203
+    iget-wide v5, p1, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->pushRemainCount:J
+
+    .line 204
+    .line 205
+    cmp-long v1, v3, v5
+
+    .line 206
+    .line 207
+    if-nez v1, :cond_2
+
+    .line 208
+    .line 209
+    iget-boolean v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->isLeadRole:Z
+
+    .line 210
+    .line 211
+    iget-boolean v3, p1, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->isLeadRole:Z
+
+    .line 212
+    .line 213
+    if-ne v1, v3, :cond_2
+
+    .line 214
+    .line 215
+    iget v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->maxCallNum:I
+
+    .line 216
+    .line 217
+    iget v3, p1, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->maxCallNum:I
+
+    .line 218
+    .line 219
+    if-ne v1, v3, :cond_2
+
+    .line 220
+    .line 221
+    iget-object p0, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->refreshPushStreamUrl:Ljava/lang/String;
+
+    .line 222
+    .line 223
+    iget-object p1, p1, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->refreshPushStreamUrl:Ljava/lang/String;
+
+    .line 224
+    .line 225
+    invoke-static {p0, p1}, Lcom/tantanapp/common/data/ValueObject;->util_equals(Ljava/lang/Object;Ljava/lang/Object;)Z
+
+    .line 226
+    .line 227
+    .line 228
+    move-result p0
+
+    .line 229
+    if-eqz p0, :cond_2
+
+    .line 230
+    .line 231
+    return v0
+
+    .line 232
+    :cond_2
+    return v2
+.end method
+
+.method public getClassParseName()Ljava/lang/String;
+    .locals 0
+
+    .line 1
+    const-string p0, "blivemulticall"
+
+    .line 2
+    .line 3
+    return-object p0
+.end method
+
+.method public hashCode()I
+    .locals 10
+
+    .line 1
+    iget v0, p0, Lcom/tantanapp/common/data/ValueObject;->hashCode:I
+
+    .line 2
+    .line 3
+    if-nez v0, :cond_13
+
+    .line 4
+    .line 5
+    mul-int/lit8 v0, v0, 0x29
+
+    .line 6
+    .line 7
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->id:Ljava/lang/String;
+
+    .line 8
+    .line 9
+    const/4 v2, 0x0
+
+    .line 10
+    if-eqz v1, :cond_0
+
+    .line 11
+    .line 12
+    invoke-virtual {v1}, Ljava/lang/String;->hashCode()I
+
+    .line 13
+    .line 14
+    .line 15
+    move-result v1
+
+    .line 16
+    goto :goto_0
+
+    .line 17
+    :cond_0
+    move v1, v2
+
+    .line 18
+    :goto_0
+    add-int/2addr v0, v1
+
+    .line 19
+    mul-int/lit8 v0, v0, 0x29
+
+    .line 20
+    .line 21
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->type:Ljava/lang/String;
+
+    .line 22
+    .line 23
+    if-eqz v1, :cond_1
+
+    .line 24
+    .line 25
+    invoke-virtual {v1}, Ljava/lang/String;->hashCode()I
+
+    .line 26
+    .line 27
+    .line 28
+    move-result v1
+
+    .line 29
+    goto :goto_1
+
+    .line 30
+    :cond_1
+    move v1, v2
+
+    .line 31
+    :goto_1
+    add-int/2addr v0, v1
+
+    .line 32
+    mul-int/lit8 v0, v0, 0x29
+
+    .line 33
+    .line 34
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->ownerUserId:Ljava/lang/String;
+
+    .line 35
+    .line 36
+    if-eqz v1, :cond_2
+
+    .line 37
+    .line 38
+    invoke-virtual {v1}, Ljava/lang/String;->hashCode()I
+
+    .line 39
+    .line 40
+    .line 41
+    move-result v1
+
+    .line 42
+    goto :goto_2
+
+    .line 43
+    :cond_2
+    move v1, v2
+
+    .line 44
+    :goto_2
+    add-int/2addr v0, v1
+
+    .line 45
+    mul-int/lit8 v0, v0, 0x29
+
+    .line 46
+    .line 47
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->ownerRoomId:Ljava/lang/String;
+
+    .line 48
+    .line 49
+    if-eqz v1, :cond_3
+
+    .line 50
+    .line 51
+    invoke-virtual {v1}, Ljava/lang/String;->hashCode()I
+
+    .line 52
+    .line 53
+    .line 54
+    move-result v1
+
+    .line 55
+    goto :goto_3
+
+    .line 56
+    :cond_3
+    move v1, v2
+
+    .line 57
+    :goto_3
+    add-int/2addr v0, v1
+
+    .line 58
+    mul-int/lit8 v0, v0, 0x29
+
+    .line 59
+    .line 60
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->ownerLiveId:Ljava/lang/String;
+
+    .line 61
+    .line 62
+    if-eqz v1, :cond_4
+
+    .line 63
+    .line 64
+    invoke-virtual {v1}, Ljava/lang/String;->hashCode()I
+
+    .line 65
+    .line 66
+    .line 67
+    move-result v1
+
+    .line 68
+    goto :goto_4
+
+    .line 69
+    :cond_4
+    move v1, v2
+
+    .line 70
+    :goto_4
+    add-int/2addr v0, v1
+
+    .line 71
+    mul-int/lit8 v0, v0, 0x29
+
+    .line 72
+    .line 73
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->ownerMultiCallOrder:Ljava/lang/String;
+
+    .line 74
+    .line 75
+    if-eqz v1, :cond_5
+
+    .line 76
+    .line 77
+    invoke-virtual {v1}, Ljava/lang/String;->hashCode()I
+
+    .line 78
+    .line 79
+    .line 80
+    move-result v1
+
+    .line 81
+    goto :goto_5
+
+    .line 82
+    :cond_5
+    move v1, v2
+
+    .line 83
+    :goto_5
+    add-int/2addr v0, v1
+
+    .line 84
+    mul-int/lit8 v0, v0, 0x29
+
+    .line 85
+    .line 86
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->userId:Ljava/lang/String;
+
+    .line 87
+    .line 88
+    if-eqz v1, :cond_6
+
+    .line 89
+    .line 90
+    invoke-virtual {v1}, Ljava/lang/String;->hashCode()I
+
+    .line 91
+    .line 92
+    .line 93
+    move-result v1
+
+    .line 94
+    goto :goto_6
+
+    .line 95
+    :cond_6
+    move v1, v2
+
+    .line 96
+    :goto_6
+    add-int/2addr v0, v1
+
+    .line 97
+    mul-int/lit8 v0, v0, 0x29
+
+    .line 98
+    .line 99
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->userName:Ljava/lang/String;
+
+    .line 100
+    .line 101
+    if-eqz v1, :cond_7
+
+    .line 102
+    .line 103
+    invoke-virtual {v1}, Ljava/lang/String;->hashCode()I
+
+    .line 104
+    .line 105
+    .line 106
+    move-result v1
+
+    .line 107
+    goto :goto_7
+
+    .line 108
+    :cond_7
+    move v1, v2
+
+    .line 109
+    :goto_7
+    add-int/2addr v0, v1
+
+    .line 110
+    mul-int/lit8 v0, v0, 0x29
+
+    .line 111
+    .line 112
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->userAvatar:Ljava/lang/String;
+
+    .line 113
+    .line 114
+    if-eqz v1, :cond_8
+
+    .line 115
+    .line 116
+    invoke-virtual {v1}, Ljava/lang/String;->hashCode()I
+
+    .line 117
+    .line 118
+    .line 119
+    move-result v1
+
+    .line 120
+    goto :goto_8
+
+    .line 121
+    :cond_8
+    move v1, v2
+
+    .line 122
+    :goto_8
+    add-int/2addr v0, v1
+
+    .line 123
+    mul-int/lit8 v0, v0, 0x29
+
+    .line 124
+    .line 125
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->role:Ljava/lang/String;
+
+    .line 126
+    .line 127
+    if-eqz v1, :cond_9
+
+    .line 128
+    .line 129
+    invoke-virtual {v1}, Ljava/lang/String;->hashCode()I
+
+    .line 130
+    .line 131
+    .line 132
+    move-result v1
+
+    .line 133
+    goto :goto_9
+
+    .line 134
+    :cond_9
+    move v1, v2
+
+    .line 135
+    :goto_9
+    add-int/2addr v0, v1
+
+    .line 136
+    mul-int/lit8 v0, v0, 0x29
+
+    .line 137
+    .line 138
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->roomId:Ljava/lang/String;
+
+    .line 139
+    .line 140
+    if-eqz v1, :cond_a
+
+    .line 141
+    .line 142
+    invoke-virtual {v1}, Ljava/lang/String;->hashCode()I
+
+    .line 143
+    .line 144
+    .line 145
+    move-result v1
+
+    .line 146
+    goto :goto_a
+
+    .line 147
+    :cond_a
+    move v1, v2
+
+    .line 148
+    :goto_a
+    add-int/2addr v0, v1
+
+    .line 149
+    mul-int/lit8 v0, v0, 0x29
+
+    .line 150
+    .line 151
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->liveId:Ljava/lang/String;
+
+    .line 152
+    .line 153
+    if-eqz v1, :cond_b
+
+    .line 154
+    .line 155
+    invoke-virtual {v1}, Ljava/lang/String;->hashCode()I
+
+    .line 156
+    .line 157
+    .line 158
+    move-result v1
+
+    .line 159
+    goto :goto_b
+
+    .line 160
+    :cond_b
+    move v1, v2
+
+    .line 161
+    :goto_b
+    add-int/2addr v0, v1
+
+    .line 162
+    mul-int/lit8 v0, v0, 0x29
+
+    .line 163
+    .line 164
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->category:Ljava/lang/String;
+
+    .line 165
+    .line 166
+    if-eqz v1, :cond_c
+
+    .line 167
+    .line 168
+    invoke-virtual {v1}, Ljava/lang/String;->hashCode()I
+
+    .line 169
+    .line 170
+    .line 171
+    move-result v1
+
+    .line 172
+    goto :goto_c
+
+    .line 173
+    :cond_c
+    move v1, v2
+
+    .line 174
+    :goto_c
+    add-int/2addr v0, v1
+
+    .line 175
+    mul-int/lit8 v0, v0, 0x29
+
+    .line 176
+    .line 177
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->source:Ljava/lang/String;
+
+    .line 178
+    .line 179
+    if-eqz v1, :cond_d
+
+    .line 180
+    .line 181
+    invoke-virtual {v1}, Ljava/lang/String;->hashCode()I
+
+    .line 182
+    .line 183
+    .line 184
+    move-result v1
+
+    .line 185
+    goto :goto_d
+
+    .line 186
+    :cond_d
+    move v1, v2
+
+    .line 187
+    :goto_d
+    add-int/2addr v0, v1
+
+    .line 188
+    mul-int/lit8 v0, v0, 0x29
+
+    .line 189
+    .line 190
+    iget v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->position:I
+
+    .line 191
+    .line 192
+    add-int/2addr v0, v1
+
+    .line 193
+    mul-int/lit8 v0, v0, 0x29
+
+    .line 194
+    .line 195
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->state:Ljava/lang/String;
+
+    .line 196
+    .line 197
+    if-eqz v1, :cond_e
+
+    .line 198
+    .line 199
+    invoke-virtual {v1}, Ljava/lang/String;->hashCode()I
+
+    .line 200
+    .line 201
+    .line 202
+    move-result v1
+
+    .line 203
+    goto :goto_e
+
+    .line 204
+    :cond_e
+    move v1, v2
+
+    .line 205
+    :goto_e
+    add-int/2addr v0, v1
+
+    .line 206
+    mul-int/lit8 v0, v0, 0x29
+
+    .line 207
+    .line 208
+    iget-wide v3, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->receivedRewardPoint:J
+
+    .line 209
+    .line 210
+    const/16 v1, 0x20
+
+    .line 211
+    .line 212
+    ushr-long v5, v3, v1
+
+    .line 213
+    .line 214
+    xor-long/2addr v3, v5
+
+    .line 215
+    long-to-int v3, v3
+
+    .line 216
+    add-int/2addr v0, v3
+
+    .line 217
+    mul-int/lit8 v0, v0, 0x29
+
+    .line 218
+    .line 219
+    iget-boolean v3, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->isAway:Z
+
+    .line 220
+    .line 221
+    const/16 v4, 0x4d5
+
+    .line 222
+    .line 223
+    const/16 v5, 0x4cf
+
+    .line 224
+    .line 225
+    if-eqz v3, :cond_f
+
+    .line 226
+    .line 227
+    move v3, v5
+
+    .line 228
+    goto :goto_f
+
+    .line 229
+    :cond_f
+    move v3, v4
+
+    .line 230
+    :goto_f
+    add-int/2addr v0, v3
+
+    .line 231
+    mul-int/lit8 v0, v0, 0x29
+
+    .line 232
+    .line 233
+    iget-object v3, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->mutedByUserIds:Ljava/util/List;
+
+    .line 234
+    .line 235
+    if-eqz v3, :cond_10
+
+    .line 236
+    .line 237
+    invoke-interface {v3}, Ljava/util/List;->hashCode()I
+
+    .line 238
+    .line 239
+    .line 240
+    move-result v3
+
+    .line 241
+    goto :goto_10
+
+    .line 242
+    :cond_10
+    move v3, v2
+
+    .line 243
+    :goto_10
+    add-int/2addr v0, v3
+
+    .line 244
+    mul-int/lit8 v0, v0, 0x29
+
+    .line 245
+    .line 246
+    iget-wide v6, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->showSeconds:J
+
+    .line 247
+    .line 248
+    ushr-long v8, v6, v1
+
+    .line 249
+    .line 250
+    xor-long/2addr v6, v8
+
+    .line 251
+    long-to-int v3, v6
+
+    .line 252
+    add-int/2addr v0, v3
+
+    .line 253
+    mul-int/lit8 v0, v0, 0x29
+
+    .line 254
+    .line 255
+    iget-wide v6, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->pushRemainCount:J
+
+    .line 256
+    .line 257
+    ushr-long v8, v6, v1
+
+    .line 258
+    .line 259
+    xor-long/2addr v6, v8
+
+    .line 260
+    long-to-int v1, v6
+
+    .line 261
+    add-int/2addr v0, v1
+
+    .line 262
+    mul-int/lit8 v0, v0, 0x29
+
+    .line 263
+    .line 264
+    iget-boolean v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->isLeadRole:Z
+
+    .line 265
+    .line 266
+    if-eqz v1, :cond_11
+
+    .line 267
+    .line 268
+    move v4, v5
+
+    .line 269
+    :cond_11
+    add-int/2addr v0, v4
+
+    .line 270
+    mul-int/lit8 v0, v0, 0x29
+
+    .line 271
+    .line 272
+    iget v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->maxCallNum:I
+
+    .line 273
+    .line 274
+    add-int/2addr v0, v1
+
+    .line 275
+    mul-int/lit8 v0, v0, 0x29
+
+    .line 276
+    .line 277
+    iget-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->refreshPushStreamUrl:Ljava/lang/String;
+
+    .line 278
+    .line 279
+    if-eqz v1, :cond_12
+
+    .line 280
+    .line 281
+    invoke-virtual {v1}, Ljava/lang/String;->hashCode()I
+
+    .line 282
+    .line 283
+    .line 284
+    move-result v2
+
+    .line 285
+    :cond_12
+    add-int/2addr v0, v2
+
+    .line 286
+    iput v0, p0, Lcom/tantanapp/common/data/ValueObject;->hashCode:I
+
+    .line 287
+    .line 288
+    :cond_13
+    return v0
+.end method
+
+.method public isMatched()Z
+    .locals 1
+
+    .line 1
+    iget-object p0, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->followship:Lcom/p1/mobile/putong/data/Followship;
+
+    .line 2
+    .line 3
+    if-eqz p0, :cond_0
+
+    .line 4
+    .line 5
+    iget-object p0, p0, Lcom/p1/mobile/putong/data/Followship;->state:Lcom/p1/mobile/putong/data/FollowshipStatus;
+
+    .line 6
+    .line 7
+    const-string v0, "matched"
+
+    .line 8
+    .line 9
+    invoke-static {p0, v0}, Lcom/p1/mobile/putong/data/tenum/TEnum;->equals(Lcom/p1/mobile/putong/data/tenum/TEnum;Ljava/lang/String;)Z
+
+    .line 10
+    .line 11
+    .line 12
+    move-result p0
+
+    .line 13
+    if-eqz p0, :cond_0
+
+    .line 14
+    .line 15
+    const/4 p0, 0x1
+
+    .line 16
+    return p0
+
+    .line 17
+    :cond_0
+    const/4 p0, 0x0
+
+    .line 18
+    return p0
+.end method
+
+.method public nullCheck()V
+    .locals 2
+
+    .line 1
+    iget-object v0, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->id:Ljava/lang/String;
+
+    .line 2
+    .line 3
+    const-string v1, ""
+
+    .line 4
+    .line 5
+    if-nez v0, :cond_0
+
+    .line 6
+    .line 7
+    iput-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->id:Ljava/lang/String;
+
+    .line 8
+    .line 9
+    :cond_0
+    iget-object v0, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->type:Ljava/lang/String;
+
+    .line 10
+    .line 11
+    if-nez v0, :cond_1
+
+    .line 12
+    .line 13
+    iput-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->type:Ljava/lang/String;
+
+    .line 14
+    .line 15
+    :cond_1
+    iget-object v0, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->ownerUserId:Ljava/lang/String;
+
+    .line 16
+    .line 17
+    if-nez v0, :cond_2
+
+    .line 18
+    .line 19
+    iput-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->ownerUserId:Ljava/lang/String;
+
+    .line 20
+    .line 21
+    :cond_2
+    iget-object v0, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->ownerRoomId:Ljava/lang/String;
+
+    .line 22
+    .line 23
+    if-nez v0, :cond_3
+
+    .line 24
+    .line 25
+    iput-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->ownerRoomId:Ljava/lang/String;
+
+    .line 26
+    .line 27
+    :cond_3
+    iget-object v0, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->ownerLiveId:Ljava/lang/String;
+
+    .line 28
+    .line 29
+    if-nez v0, :cond_4
+
+    .line 30
+    .line 31
+    iput-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->ownerLiveId:Ljava/lang/String;
+
+    .line 32
+    .line 33
+    :cond_4
+    iget-object v0, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->ownerMultiCallOrder:Ljava/lang/String;
+
+    .line 34
+    .line 35
+    if-nez v0, :cond_5
+
+    .line 36
+    .line 37
+    iput-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->ownerMultiCallOrder:Ljava/lang/String;
+
+    .line 38
+    .line 39
+    :cond_5
+    iget-object v0, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->userId:Ljava/lang/String;
+
+    .line 40
+    .line 41
+    if-nez v0, :cond_6
+
+    .line 42
+    .line 43
+    iput-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->userId:Ljava/lang/String;
+
+    .line 44
+    .line 45
+    :cond_6
+    iget-object v0, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->userName:Ljava/lang/String;
+
+    .line 46
+    .line 47
+    if-nez v0, :cond_7
+
+    .line 48
+    .line 49
+    iput-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->userName:Ljava/lang/String;
+
+    .line 50
+    .line 51
+    :cond_7
+    iget-object v0, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->userAvatar:Ljava/lang/String;
+
+    .line 52
+    .line 53
+    if-nez v0, :cond_8
+
+    .line 54
+    .line 55
+    iput-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->userAvatar:Ljava/lang/String;
+
+    .line 56
+    .line 57
+    :cond_8
+    iget-object v0, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->role:Ljava/lang/String;
+
+    .line 58
+    .line 59
+    if-nez v0, :cond_9
+
+    .line 60
+    .line 61
+    iput-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->role:Ljava/lang/String;
+
+    .line 62
+    .line 63
+    :cond_9
+    iget-object v0, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->roomId:Ljava/lang/String;
+
+    .line 64
+    .line 65
+    if-nez v0, :cond_a
+
+    .line 66
+    .line 67
+    iput-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->roomId:Ljava/lang/String;
+
+    .line 68
+    .line 69
+    :cond_a
+    iget-object v0, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->liveId:Ljava/lang/String;
+
+    .line 70
+    .line 71
+    if-nez v0, :cond_b
+
+    .line 72
+    .line 73
+    iput-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->liveId:Ljava/lang/String;
+
+    .line 74
+    .line 75
+    :cond_b
+    iget-object v0, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->category:Ljava/lang/String;
+
+    .line 76
+    .line 77
+    if-nez v0, :cond_c
+
+    .line 78
+    .line 79
+    iput-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->category:Ljava/lang/String;
+
+    .line 80
+    .line 81
+    :cond_c
+    iget-object v0, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->source:Ljava/lang/String;
+
+    .line 82
+    .line 83
+    if-nez v0, :cond_d
+
+    .line 84
+    .line 85
+    iput-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->source:Ljava/lang/String;
+
+    .line 86
+    .line 87
+    :cond_d
+    iget-object v0, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->state:Ljava/lang/String;
+
+    .line 88
+    .line 89
+    if-nez v0, :cond_e
+
+    .line 90
+    .line 91
+    iput-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->state:Ljava/lang/String;
+
+    .line 92
+    .line 93
+    :cond_e
+    iget-object v0, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->mutedByUserIds:Ljava/util/List;
+
+    .line 94
+    .line 95
+    if-nez v0, :cond_f
+
+    .line 96
+    .line 97
+    new-instance v0, Ljava/util/ArrayList;
+
+    .line 98
+    .line 99
+    invoke-direct {v0}, Ljava/util/ArrayList;-><init>()V
+
+    .line 100
+    .line 101
+    .line 102
+    iput-object v0, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->mutedByUserIds:Ljava/util/List;
+
+    .line 103
+    .line 104
+    :cond_f
+    iget-object v0, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->refreshPushStreamUrl:Ljava/lang/String;
+
+    .line 105
+    .line 106
+    if-nez v0, :cond_10
+
+    .line 107
+    .line 108
+    iput-object v1, p0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->refreshPushStreamUrl:Ljava/lang/String;
+
+    .line 109
+    .line 110
+    :cond_10
+    return-void
+.end method
+
+.method public toJson()Ljava/lang/String;
+    .locals 1
+
+    .line 1
+    sget-object v0, Lcom/p1/mobile/putong/live/base/data/BLiveMultiCall;->JSON_ADAPTER:Lcom/tantanapp/common/data/JsonAdapter;
+
+    .line 2
+    .line 3
+    invoke-virtual {v0, p0}, Lcom/tantanapp/common/data/JsonAdapter;->serialize(Ljava/lang/Object;)Ljava/lang/String;
+
+    .line 4
+    .line 5
+    .line 6
+    move-result-object p0
+
+    .line 7
+    return-object p0
+.end method

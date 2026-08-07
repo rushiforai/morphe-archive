@@ -1,0 +1,13 @@
+syntax = "proto3";
+package connector;
+
+//当前proto文件没有使用
+option java_package = "com.p1.mobile.longlink.msg.connector";
+option java_outer_classname = "LongLinkUserPictureMessage";
+option optimize_for = LITE_RUNTIME;
+
+message UserPicture {
+  string url = 1;
+  string mediaType = 2;
+  repeated int64 size = 3;
+}

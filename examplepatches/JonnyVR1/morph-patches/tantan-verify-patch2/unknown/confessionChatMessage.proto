@@ -1,0 +1,15 @@
+syntax = "proto3";
+package liveroom;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + liveroom）
+option java_package = "com.p1.mobile.longlink.msg.liveroom";
+option java_outer_classname = "LongLinkLiveConfession";
+option optimize_for = LITE_RUNTIME;
+import "template.proto";
+
+// 跳转到发送消息页聊聊消息数据
+message JumpSendMessage {
+  string toUserId = 1;
+  template.TemplateData templateData = 2;   // 要展示的聊聊
+}
+

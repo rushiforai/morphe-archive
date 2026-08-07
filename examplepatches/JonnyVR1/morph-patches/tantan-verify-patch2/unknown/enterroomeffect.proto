@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+package enterroomeffect;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + enterroomeffect）
+option java_package = "com.p1.mobile.longlink.msg.enterroomeffect";
+option java_outer_classname = "LongLinkEnterRoomMessage";
+option optimize_for = LITE_RUNTIME;
+
+import "giftMessage.proto";
+
+message UserEnterRoomEffect {
+  string userId = 1;
+  string roomId = 2;
+  Hierarchys hierarchys = 3; //等级相关信息
+  string userName = 4; //用户名
+  string userImage = 5; //用户头像
+  string userNameColor = 6; //昵称色值
+  string text = 7; //入场特效文案
+  string textColor = 8; //入场特效文案色值
+  string backgroundUrl = 9; //背景图
+  string floatingUrl = 10; //浮层图
+  string resourceId = 11; //入场特效资源 id
+  int64 showDuration = 12; //展示时长，单位毫秒
+  bool isWealthHierarchy = 13; //是不是财富等级入场
+  EnterRoomEffectGradientDirection avatarGradientDirection = 14; //渐变色方向；1-从上到下；2-从左到右；3-从左上角到右下角
+  repeated string avatarGradients = 15; //渐变色
+  EnterRoomEffectGradientDirection backgroundGradientDirection = 16; //背景图渐变方向
+  repeated string backgroundGradients = 17; //背景图渐变色
+  string effectId = 18;
+  string internalText = 19; //入场特效文案(国际化版本)
+  int64 expireTime = 20; // 过期时间，单位秒
+  int64 backgroundUrlEndMargin = 21;  //背景图尾部留白距离
+  PlaceType placeType = 22; // 房间类型
+  string fixedBackgroundUrl = 23;  // 固定尺寸背景
+  int64 animationSizeType = 24; // 新入场动画尺寸1-375x110; 2-375x364
+  int64 enterVersion = 25; // 0-之前入场; 1-本次新入场
+  repeated VideoEffectExtra videoEffectExtras = 26; // 带头像昵称的特效礼物所需的资源
+  string newFloatingUrl = 27; //新浮层
+  string newResourceId = 28; //新动效
+  repeated gift.DynamicEffectExtend dynamicEffectExtends = 29; // 动态资源参数
+  repeated string userNameGradientColors = 30; // 昵称渐变色（至少 2 个色值时客户端按横向渐变绘制）
+}
+
+message Hierarchys {
+  Hierarchy wealthHierarchy = 1;
+}
+
+message Hierarchy {
+  int64 grade = 1; //等级
+  string icon = 2; //等级 icon
+}
+
+enum EnterRoomEffectGradientDirection {
+  unknow = 0;
+  fromUpToDown = 1; //从上到下
+  fromLeftToRight = 2; //从左到右
+  fromLeftUpToRightDown = 3; //从左上角到右下角
+}
+
+// 带头像昵称的特效礼物资源
+message VideoEffectExtra {
+  string id = 1; // 1 送礼人头像 2 收礼人昵称 3 收礼人头像 4 收礼人昵称
+  int64 type = 2;  // 1 pic 2 text 两种类型
+  string value = 3;
+}
+
+enum PlaceType {
+  videoRoom = 0;
+  voiceRoom = 1;
+}

@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package com.p1.mobile.android.geocoding;
+option optimize_for = LITE_RUNTIME;
+
+message Country {
+  int32 id = 1;
+  string iso = 2;
+  string iso3 = 3;
+  int32 isoNumeric = 4;
+  string name = 5;
+  float area = 6;
+  int64 population = 7;
+  string continent = 8;
+  repeated string locales = 9;
+}
+
+message Geometry {
+  oneof packed {
+    Ring ring = 1;
+    Polygon polygon = 2;
+    MultiPolygon multiPolygon = 3;
+  }
+}
+
+message Ring {
+  repeated float latitude = 1;
+  repeated float longitude = 2;
+}
+
+message Polygon {
+  Ring ring = 1;
+  MultiPolygon holes = 2;
+}
+
+message MultiPolygon {
+  repeated Geometry geometries = 1;
+}
+
+message Feature {
+  int32 country = 1;
+  Geometry geometry = 2;
+}

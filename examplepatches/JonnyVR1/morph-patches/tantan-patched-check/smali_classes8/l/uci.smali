@@ -1,0 +1,50 @@
+.class public final synthetic Ll/uci;
+.super Ljava/lang/Object;
+.source "SourceFile"
+
+# interfaces
+.implements Ll/y20;
+
+
+# instance fields
+.field public final synthetic a:Ll/pdi;
+
+.field public final synthetic b:I
+
+.field public final synthetic c:Landroid/view/animation/Interpolator;
+
+
+# direct methods
+.method public synthetic constructor <init>(Ll/pdi;ILandroid/view/animation/Interpolator;)V
+    .locals 0
+
+    .line 1
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+
+    iput-object p1, p0, Ll/uci;->a:Ll/pdi;
+
+    iput p2, p0, Ll/uci;->b:I
+
+    iput-object p3, p0, Ll/uci;->c:Landroid/view/animation/Interpolator;
+
+    return-void
+.end method
+
+
+# virtual methods
+.method public final call(Ljava/lang/Object;)V
+    .locals 2
+
+    .line 1
+    iget-object v0, p0, Ll/uci;->a:Ll/pdi;
+
+    iget v1, p0, Ll/uci;->b:I
+
+    iget-object p0, p0, Ll/uci;->c:Landroid/view/animation/Interpolator;
+
+    check-cast p1, Ljava/lang/Float;
+
+    invoke-static {v0, v1, p0, p1}, Ll/pdi;->n(Ll/pdi;ILandroid/view/animation/Interpolator;Ljava/lang/Float;)V
+
+    return-void
+.end method

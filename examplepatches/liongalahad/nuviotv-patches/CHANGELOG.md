@@ -1,3 +1,9 @@
+## [1.0.0-dev.14](https://github.com/liongalahad/nuviotv-morphe-patches/compare/v1.0.0-dev.13...v1.0.0-dev.14) (2026-08-06)
+
+### ✨ New Features
+
+* add SDH subtitle marking and shared settings layout ([563e257](https://github.com/liongalahad/nuviotv-morphe-patches/commit/563e257c6bf96f92fc29703419ab7403e8028a0f))
+
 ## [1.0.0-dev.13](https://github.com/liongalahad/nuviotv-morphe-patches/compare/v1.0.0-dev.12...v1.0.0-dev.13) (2026-08-05)
 
 ### 🐛 Bug Fixes

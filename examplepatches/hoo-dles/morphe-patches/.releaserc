@@ -24,11 +24,18 @@
         }
       }
     ],
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "./gradlew codegen"
+      }
+    ],
     "gradle-semantic-release-plugin",
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "jq '.version=\"${nextRelease.version}\"' patches-list.json > patches-list.json.tmp && mv patches-list.json.tmp patches-list.json"
+        "prepareCmd": "./gradlew generatePatchesList \
+          && jq '.version=\"${nextRelease.version}\"' patches-list.json > patches-list.json.tmp && mv patches-list.json.tmp patches-list.json"
       }
     ],
     [

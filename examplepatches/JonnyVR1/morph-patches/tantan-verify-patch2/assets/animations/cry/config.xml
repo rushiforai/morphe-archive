@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<scene>
+  <width_height>720,720</width_height>
+  <src_scale>1.0,1.0</src_scale>
+  <duration>6000</duration>
+  <max>5</max>
+  <model>
+    <chance_range>0,.3</chance_range>
+    <active_time>800,1200</active_time>
+    <src_ltwh>0,0,100,100</src_ltwh>
+    <move_from>30,30,320,660</move_from>
+    <move_to>offset:400,offset:-30,0,0</move_to>
+    <move_interpolator>linear,triangle_8</move_interpolator>
+    <rotate>0,0,-50,-20,50,50</rotate>
+    <rotate_interpolator>triangle_10</rotate_interpolator>
+    <alpha>0,0,255,255</alpha>
+    <alpha_interpolator>spring</alpha_interpolator>
+    <scale>.7,.8</scale>
+  </model>
+  <model>
+    <chance_range>.3,1</chance_range>
+    <active_time>1200,1700</active_time>
+    <src_ltwh>0,0,100,100</src_ltwh>
+    <move_from>30,30,320,660</move_from>
+    <move_to>offset:400,offset:-30,0,0</move_to>
+    <move_interpolator>linear,triangle_8</move_interpolator>
+    <rotate>0,0,-50,-20,50,50</rotate>
+    <rotate_interpolator>triangle_10</rotate_interpolator>
+    <alpha>0,0,255,255</alpha>
+    <alpha_interpolator>spring</alpha_interpolator>
+    <scale>.7,.9</scale>
+  </model>
+</scene>

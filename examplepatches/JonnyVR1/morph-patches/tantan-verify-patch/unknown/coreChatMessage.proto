@@ -1,0 +1,29 @@
+syntax = "proto3";
+package connector;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + connector）
+option java_package = "com.p1.mobile.longlink.msg.connector";
+option java_outer_classname = "LongLinkCoreChatMessage";
+option optimize_for = LITE_RUNTIME;
+
+message ChatMsg {
+  int64 ts = 1; //精确到毫秒
+  string title = 2;
+  string ticker = 3;
+  string senderId = 4;
+  string message = 5;
+}
+
+message ChatMsgGrpc {
+  int64 ts = 1; //精确到毫秒
+  string title = 2;
+  string ticker = 3;
+  string senderId = 4;
+  string message = 5;
+  map<string, string> tickerI18n = 6;
+}
+
+message RevokeChatMsg {
+  string otherUserId = 1;
+  string msgId = 2;
+}

@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<scene>
+  <duration>2000</duration>
+  <width_height>900,900</width_height>
+  <layout_type>match_height</layout_type>
+  <max>12</max>
+  <model>
+    <chance_range>0.0,1.0</chance_range>
+    <active_time>1500,2000</active_time>
+    <src_ltwh>0,0,100,100</src_ltwh>
+    <move_from>0,900,match_parent,50</move_from>
+    <move_to>offset:0,-100,0,0</move_to>
+    <move_interpolator>linear,linear</move_interpolator>
+    <rotate>-10,-10,10,10,50.0,80.0</rotate>
+    <rotate_interpolator>sin_8</rotate_interpolator>
+    <scale>0.5,1.0</scale>
+    <scale_interpolator>linear</scale_interpolator>
+  </model>
+</scene>

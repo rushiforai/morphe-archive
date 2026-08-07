@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package liveroom;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + liveroom）
+option java_package = "com.p1.mobile.longlink.msg.liveroom";
+option java_outer_classname = "LongLinkLiveVoiceActiveGiftMessage";
+option optimize_for = LITE_RUNTIME;
+
+message VoiceGiftItem {
+  string id = 1;
+  string name = 2; // 礼物名
+  string url = 3; // 礼物图标url
+  int64 count = 4; // 该礼物的数量
+  int64 tantanCoins = 5;
+}

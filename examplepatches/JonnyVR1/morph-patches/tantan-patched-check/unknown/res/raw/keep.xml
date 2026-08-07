@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@string/VIP_ALERT_DIGEST_LIKE_GROUP_A,
+        @string/INTL_PREMIUM_PRIVILEGE_2SUPERLIKE_DAY*,
+        @string/INTL_TTC_ULTRA_SUPERLIKE_TITLE*,
+        @string/INTL_ULTRA_INSTANTMATCH_TITLE,
+        @string/INTL_PREMIUM_COMPLIMENT_TITLE,
+        @string/SEE_WHO_LIKED_ME_INTRO_TITLE,
+        @string/INTL_TTC_ULTRA_FULLBOOST_TITLE*,
+        @string/CORE_SVIP_PURCHASE_PRIVILEGE_ADVANCED_FILTER_TITLE,
+        @string/INTL_PREMIUM_VISITORS_TITLE,
+        @string/INTL_MEET_TRIBE_TAB,
+        @string/INTL_TTC_FULLSCREEN_PREMIUM_SIGNAGE_BUZZ,
+        @string/US_VIP_ALERT_DIGEST_UNDO,
+        @string/US_VIP_ALERT_DIGEST_LOCATION,
+        @string/INTL_TTC_FULLSCREEN_PREMIUM_PRIVILEGE_TITLE_*,
+        @string/INTL_TTC_FULLSCREEN_VIP_PRIVILEGE_TITLE_*,
+        @string/INTL_SEARCH_MATCHES_GROUP_A,
+        @string/INTL_TTC_INSTANT_SALE_TEXT,
+        @string/INTL_PREMIUM_COMPLIMENT_TEXT,
+        @string/INTL_TTC_ULTRA_FULLBOOST_INTRO*,
+        @string/INTL_VIP_PRIVILEGE_TRIBE_TEXT,
+        @string/INTL_TTC_FULLSCREEN_PREMIUM_BOOST_TITLE*,
+        @drawable/*"
+    tools:shrinkMode="safe" />
+</resources>

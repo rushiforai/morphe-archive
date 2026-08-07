@@ -1,0 +1,7 @@
+{
+  "created_at": "2026-08-06T20:02:04",
+  "description": "Fix tweaker round 4 (root cause): run root commands in the GLOBAL mount namespace (su --mount-master). HyperOS overlays /data/data with a tmpfs in the app's namespace, hiding com.android.vending's dbs and making cp fail with ENOENT.",
+  "download_url": "https://github.com/andersonlucasg3/PetalMaps-AndroidAuto/releases/download/v1.1.9/patches-1.1.9.mpp",
+  "signature_download_url": "N/A",
+  "version": "v1.1.9"
+}

@@ -23,7 +23,8 @@ public final class MorpheComposeModeAction implements Function0<Unit> {
     }
 
     static void refreshSettingsPane() {
-        MorpheComposeToggleAction.pulseCapturedComposeState(refreshAction);
+        Function0<?> action = refreshAction;
+        if (action != null) action.invoke();
     }
 
     @Override

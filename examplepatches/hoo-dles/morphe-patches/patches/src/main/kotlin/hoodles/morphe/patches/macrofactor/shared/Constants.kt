@@ -1,3 +1,8 @@
+/**
+ * Copyright 2026 Hoo-dles
+ * https://github.com/hoo-dles/morphe-patches
+ */
+
 package hoodles.morphe.patches.macrofactor.shared
 
 import app.morphe.patcher.patch.AppTarget
@@ -12,7 +17,7 @@ object Constants {
             name = "MacroFactor",
             packageName = PACKAGE_NAME,
             appIconColor = 0x000000,
-            targets = listOf(AppTarget("5.7.8"))
+            targets = listOf(AppTarget("5.7.9"))
         ),
         Compatibility(
             name = "MacroFactor Workouts",

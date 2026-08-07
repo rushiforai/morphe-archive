@@ -1,0 +1,313 @@
+syntax = "proto3";
+package gift;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + gift）
+option java_package = "com.p1.mobile.longlink.msg.gift";
+option java_outer_classname = "LongLinkGiftMessage";
+option optimize_for = LITE_RUNTIME;
+
+import "userMaskConfig.proto";
+
+message LiveGiftReceivedMsg {
+  string liveId = 1;
+  string id = 2;
+  string userId = 3;
+  string anchorId = 4;
+  GiftItemBrief giftItemBrief = 5;
+  string anchorUserName = 6;
+  GiftMultiCall multiCall = 7; // 扩展多人连麦信息
+  GiftMultiCall guildCall = 8; // 扩展工会房连麦信息
+  GiftVideoChatInfo videoChat = 9; // 扩展闪聊信息
+}
+
+message GiftVideoChatInfo {
+  string chatId = 1;
+}
+
+message GiftMultiCall {
+  message ReceiveGiftRole {
+    string position = 1; // 多人连麦位置
+    string name = 2; // 昵称
+  }
+  string callId = 1;
+  ReceiveGiftRole receiveGiftRole = 2;
+}
+
+message GiftItemBrief {
+  int64 Id = 1;
+  string giftType = 2;
+  int64 combos = 3;
+  string comboId = 4; //连击id
+  string version = 5;
+  string userName = 6;
+  string userUrl = 7;
+  int64 stickFacePositionType = 8;
+  int64 luckyPrizeGiftInfoItemId = 9;
+  int64 giftSource = 10;
+  LiveGiftExtraInfo extraInfo = 11;
+  int64 giftNum = 12; // 新增 礼物个数
+  bool isGear = 13; // 是否为档位阶梯
+  int64 threshold = 14; // 阈值
+  int64 step = 15; // 步长
+  bool isNamed = 16; // 是否冠名该礼物
+  GiftItemBriefTray tray = 17; // 托盘样式
+  GiftFlyMicInfo flyMicInfo = 18;//飞麦礼物信息，ios需要 Android暂时不用
+  int64 lotteryGiftId = 19;//抽中礼物的id
+  string avatarTag = 20;  // "头号粉丝"图标
+  string giftBottomTag = 21; // 礼物底部标签
+
+}
+
+message GiftItemBriefTray {
+  string svg = 1;
+  string background = 2;
+}
+
+message GiftFlyMicInfo {
+  string receiveUserId = 1;
+  string startEffectIcon = 2;
+  string endEffectIcon = 3;
+  repeated DynamicEffectExtend dynamicEffectExtends = 4; // 动态资源参数
+}
+
+message DynamicEffectExtend {
+    string key = 1; // 参数名
+    repeated string value = 3; // 参数值（number, 单个参数等都统一转换为 string 数组, 如["zh-cn"],["1.5"]）
+}
+
+message LiveGiftExtraInfo {
+  LiveGiftDrawInfo drawInfo = 1;
+  bool maskMode = 2;
+  Mask mask = 3;
+  userMask.UserMask userMask = 4;
+  repeated VideoEffectExtra videoEffectExtras = 5; // 特效礼物所需的资源
+  string effectExt = 6;
+  userMask.UserMask previewMask = 7; // 头像框预览
+  userMask.UserMask senderShowMask = 8; // 展示送礼人头像预览
+  userMask.UserMask receiverShowMask = 9; // 展示收礼人头像预览此字段与 previewMask 互斥，存在 previewMask 不使用此字段
+}
+
+// 新增特效礼物资源
+message VideoEffectExtra {
+  string id = 1;
+  int64 type = 2;  // pic text 两种类型
+  string value = 3;
+}
+
+message Mask {
+  string color = 1;
+  string icon = 2;
+  string gender = 3;
+}
+
+message LiveGiftDrawInfo {
+  repeated LiveCoordinate coordinates = 1; //绘图礼物坐标
+  float length = 2;
+  float width = 3;
+}
+
+message LiveCoordinate {
+  float x = 1;
+  float y = 2;
+}
+
+message LiveLeaderboardMessage {
+  string liveId = 1;
+}
+
+enum LongLinkUpdateAction {
+  ActionUnknow = 0;
+  ReRequest = 1;
+  Refresh = 2;
+  Complete = 3;
+}
+
+enum LongLinkUpdatePosition {
+  PositionUnknow = 0;
+  CampaignEntrance = 1;
+  GiftList = 2;
+  FirstRechargeCampaign = 3;
+  LiveCampaign = 4;
+  FirstRechargeStimulus = 5;//新增首充（二期）类型
+}
+
+message LiveCampaignInfo {
+  LiveCampaignType type = 1;
+  string id = 2;
+  int64 position = 3;
+  string subscribeType = 4;
+  string updateType = 5;
+  string data = 6;
+}
+
+enum LiveCampaignType {
+  List = 0; // 重新刷新活动入口
+  Entrance = 1; // 活动入口局部刷新
+}
+
+message ContentUpdateNotice {
+  LongLinkUpdateAction action = 1;
+  LongLinkUpdatePosition position = 2;
+  string roomId = 3;
+  repeated LiveCampaignInfo liveCampaigns = 4;
+}
+
+message LiveGiftMessage {
+  TemplateData tempdata = 1;
+  string roomId = 2;
+}
+
+message TemplateData {
+  uint32 id = 1;
+  repeated string fields = 2;
+}
+
+message LiveBreakingLeaderboard {
+  string userID = 1;
+  string roomID = 2;
+  string liveID = 3;
+  int64 from = 4; //从第几名来
+  TemplateData tempdata = 5;
+}
+
+message LiveRankings {
+  string title = 1;
+  LiveRankingType type = 2;
+  LiveRankingAction action = 3;
+  repeated LiveRanking rankings = 4;
+  string roomId = 5; //房间 id
+  string liveId = 6; //场次 id
+  int64 rankingTime = 7; //榜单时间，收到时间<客户端榜单本地的，直接丢弃防止乱序
+  CurrentHourSuggestConfig currentHourSuggestConfig = 8;
+  LiveRankingMsgType msgType = 9;
+}
+
+enum LiveRankingType {
+  hour = 0;
+  week = 1;
+  live = 2; // 场次榜单
+}
+
+enum LiveRankingMsgType {
+  normal = 0; // 普通消息
+  start = 1; // 重新开始
+  progress = 2; // 进度
+  sprint = 3; // 冲刺
+}
+
+enum LiveRankingAction {
+  all = 0; // 小时榜 对应 LiveHourLeaderboards
+  current = 1; // 小时榜 对应 LiveCurrentHourLeaderboards    周榜 对应 LiveWeekLeaderboards
+  top = 2; // 小时榜 对应 PreHourLeaderboardsTopBroadcast     周榜 对应 WeekLeaderboardsNotice
+}
+
+enum LiveStateEnum {
+  onlive = 0;
+  stopped = 1;
+  suspended = 2;
+  born = 3;
+}
+
+message LiveRanking {
+  int64 rank = 1;
+  string anchorId = 2;
+  string roomId = 3;
+  string liveId = 4;
+  string userImage = 5;
+  string userName = 6;
+  int64 amount = 7;
+  LiveStateEnum userLiveState = 8;
+  string content = 9;
+  string userId = 10;
+  userMask.UserMask userMask = 11;
+  int64 gap = 12;
+}
+
+message CurrentHourSuggestConfig {
+  bool enable = 1; // 是否开启玩法
+  int64 target = 2; // 玩法目标值
+  repeated int64 nodes = 3; // 玩法关键节点
+}
+
+message PreHourLeaderboardsTopChat {
+  string roomId = 1;
+  string topLiveId = 2;
+  TemplateData tempdata = 3;
+}
+
+// 鸿运礼物弹幕
+message LuckyPrizeMsg {
+  string jumpRoomID = 1;
+  string liveID = 2;
+  string iconUrl = 3;
+  TemplateData template = 4;
+}
+
+// 系统弹幕
+enum Alignment {
+  Center = 0; // 直播间内居中展示
+  Left = 1; // 直播间内居左展示
+}
+
+message SystemLiveCommentsMsg {
+  string roomID = 1; // 消息房间id
+  string iconUrl = 2; // 消息图标
+  string startColor = 3; // 背景渐变色 start color
+  string endColor = 4; // 背景渐变色 end color
+  int64 displayDuration = 5; // 弹幕停留时长，单位
+  string gotoSchema = 6; // 跳转地址（schema 解析跳转）
+  TemplateData template = 7;
+  string id = 8; // 弹幕 id
+  string type = 9; // 弹幕类型
+  SystemLiveCommentBackground background = 10;
+  int64 priority = 11; //0-队尾;1-队头
+  Alignment alignment = 12; // 弹幕在屏幕上的对齐方式
+}
+
+message SystemLiveCommentBackground {
+  string headerImgUrl = 1; //头图
+  string middleImgUrl = 2; //中图
+  string bottomImgUrl = 3; //尾图
+  string coverImgUrl = 4; //覆盖图
+}
+
+// 抢头条的长链
+// MsgTypeName = "live.gift.headline"
+message Headline {
+  message User {
+    int64 id = 1; // 用户id
+    string avatar = 2; //头像
+    string roomID = 3;
+    string liveID = 4;
+  }
+  message LiveStatus {
+    int64 audienceCnt = 1; // 直播间人数
+    repeated string avatars = 2; // top3头像
+  }
+  message GiftRecord {
+    int64 giftID = 1;
+    int64 giftNum = 2;
+  }
+  message Resource {
+    int64 version = 1;
+    int64 id = 2;
+  }
+  User anchor = 1; // 主播信息
+  User audience = 2; // 观众信息
+  Resource resource = 3; // 背景资源信息
+  int64 version = 4; // 头条版本
+  int64 leftTime = 5; // 剩余时间 S
+  bool status = 6; // 是否展示头条位
+  string text = 7; // 头条告白文案
+  LiveStatus liveStatus = 8; // 主播直播间状态
+  GiftRecord giftRecord = 9; // 本次头条的礼物信息
+  repeated GiftRecord grabGiftRecords = 10; // 抢头条所需的礼物信息
+  int64 price = 11; // 头条价格
+}
+
+message VideoChatDuration {
+    string chatId = 1; // 闪聊 id
+    string userId = 2; // 用户 id
+    int64 remainingDurationSec = 3; // 用户剩余闪聊时长
+    int64 sinceSec = 4; // 本轮开始时间
+}

@@ -1,0 +1,16 @@
+syntax = "proto3";
+package liveroom;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + liveroom）
+option java_package = "com.p1.mobile.longlink.msg.liveroom";
+option java_outer_classname = "VoiceUpdateUserMaskProto";
+option optimize_for = LITE_RUNTIME;
+
+import "userMaskConfig.proto";
+
+message UserMaskUpdate {
+    string  userId = 1;
+    userMask.UserMask mask = 2;
+    string avatarId = 3;
+}
+

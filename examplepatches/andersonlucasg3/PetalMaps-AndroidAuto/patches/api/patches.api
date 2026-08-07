@@ -1,0 +1,4 @@
+public final class dev/petalaa/patches/example/ExamplePatchKt {
+	public static final fun getExamplePatch ()Lapp/morphe/patcher/patch/BytecodePatch;
+}
+

@@ -1,0 +1,36 @@
+syntax = "proto3";
+package userMask;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + userMask）
+option java_package = "com.p1.mobile.longlink.msg.userMask";
+option java_outer_classname = "userMaskConfig";
+option optimize_for = LITE_RUNTIME;
+message UserMask {
+  string userId = 1;
+  string name = 2;
+  string avatar = 3;
+  AvatarConfig avatarConfig = 4;
+  VoiceMaskModeAddition voiceMaskModeAddition = 5;
+  string avatarResourceType = 6;
+  repeated string userNameGradientColors = 7;
+}
+message VoiceMaskModeAddition {
+  string color = 1;
+  string gender = 2;
+}
+
+message AvatarConfig {
+  PictureConfig frameConfig = 1;
+}
+
+message PictureConfig {
+  string staticUrl = 1;
+  string dynamicUrl = 2;
+  string smallDynamicUrl =3;
+  string mediumDynamicUrl =4;
+  int64 totalSec = 5;
+  int64 remainingSec =6;
+  int64 changeVoiceNo =7;
+  int64 endMill = 8;
+  string funnyUrl = 9;
+}

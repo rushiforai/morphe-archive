@@ -1,0 +1,79 @@
+{
+    "graph_id": "0c45514e24000000",
+    "graph_type": 0,
+    "matrix": {
+        "dx": 0,
+        "dy": 0,
+        "m11": 0.6944444444444445,
+        "m12": 0,
+        "m21": 0,
+        "m22": 0.6944444444444445
+    },
+    "nodes": [
+        {
+            "id": "{53c1609a-d592-4096-aa5d-0b19e9542169}",
+            "model": {
+                "name": "FilterRenderProcess",
+                "patch_node_id": "0c455150c9400000",
+                "patch_node_type": "GraphNode.BaseNode.RenderProcess"
+            },
+            "position": {
+                "x": 373,
+                "y": 280
+            }
+        },
+        {
+            "id": "{59f842de-17c4-4a7c-9525-e46454ca2dce}",
+            "model": {
+                "name": "FilterOriginInput",
+                "patch_node_id": "0c455150c4800000",
+                "patch_node_type": "GraphNode.BaseNode.OriginInputSampler"
+            },
+            "position": {
+                "x": -258.03999999999996,
+                "y": 152.64
+            }
+        },
+        {
+            "id": "{f9492e56-a117-4445-b977-295b98f09b25}",
+            "model": {
+                "name": "CommonFilter",
+                "patch_node_id": "0c455150c5000000",
+                "patch_node_type": "GraphNode.BaseNode.Filter"
+            },
+            "position": {
+                "x": -32.76000000000002,
+                "y": 132.48000000000008
+            }
+        },
+        {
+            "id": "{e6a7480b-9521-457d-bac9-e9355ad3b079}",
+            "model": {
+                "name": "FilterFinalOutput",
+                "patch_node_id": "0c455150c5800000",
+                "patch_node_type": "GraphNode.BaseNode.FinalOutput"
+            },
+            "position": {
+                "x": 273,
+                "y": 280
+            }
+        },
+        {
+            "id": "{56c52ec9-a1c8-4590-ad0e-369d8ed69e98}",
+            "model": {
+                "name": "FilterPassModifier",
+                "patch_node_id": "0c45516ee3800004",
+                "patch_node_type": "GraphNode.BaseNode.Variable.PassModifier"
+            },
+            "position": {
+                "x": -427,
+                "y": 280
+            }
+        }
+    ],
+    "position": {
+        "x": 125,
+        "y": -120
+    },
+    "rtg_path": "Asset/09413d6630400000/blueprint/face_warp_rt.rtg"
+}

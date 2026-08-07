@@ -1,0 +1,146 @@
+MOXB<?xml version="1.0" encoding="GB2312"?>
+<GraphContainer>
+ <Graph Id="06609d27b2000023" Type="1" AutoRun="1">
+	<GraphNode Id="0652b08c5a80000e" Title="CommonFilter" Type="GraphNode.BaseNode.Filter" EnableState="1" InputFilterSlots="1">
+	 <GraphPin Id="07e3aa0e0fc00000" Name="CommonFilter_0" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="CommonFilter_0" ToolTip="filter-input pin-Slot:0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Filter" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <GraphPin Id="07e3aa0e0fc00001" Name="FilterOriginInputSampler" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FilterOriginInputSampler" ToolTip="Original Input Sampler input pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.OriginInputSampler" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <GraphPin Id="07e3aa0e0fc00002" Name="FaceModifier" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FaceModifier" ToolTip="Setup a face-entity/face-warp modifier for this filter node.">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.FaceEntityModifier|GraphNode.BaseNode.Variable.FaceEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.BodyEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupFaceVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupPupilVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeuEyesAreaVBIB" PinCategory="RenderEffect" PinSubCategory="Face entity Modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <GraphPin Id="07e3aa0e0fc00003" Name="CommonFilter" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="CommonFilter" ToolTip="Default filter-output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <GraphPin Id="07e3aa0e0fc00004" Name="TextureWhittenV1" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Whitten Texture V1" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Texture" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="07e3a4b6dfc00005" PinId="07e3aa0e0fc00015"/>
+	 </GraphPin>
+	 <GraphPin Id="07e3aa0e0fc00005" Name="TextureReddenV1" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Redden Texture V1" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Texture" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="07e3a4b6dfc00008" PinId="07e3aa0e0fc00016"/>
+	 </GraphPin>
+	 <GraphPin Id="07e3aa0e0fc00006" Name="TextureWhittenV2" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Whitten Texture V2" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Texture" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="07e3a4b6dfc0000b" PinId="07e3aa0e0fc00017"/>
+	 </GraphPin>
+	 <GraphPin Id="07e3aa0e0fc00007" Name="TextureReddenV2" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Redden Texture V2" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Texture" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="07e3a4b6dfc0000e" PinId="07e3aa0e0fc00018"/>
+	 </GraphPin>
+	 <GraphPin Id="07e3aa0e0fc00008" Name="TextureWhittenV3" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Whitten Texture V3" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Texture" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="07e3a4b6dfc00011" PinId="07e3aa0e0fc00019"/>
+	 </GraphPin>
+	 <GraphPin Id="07e3aa0e0fc00009" Name="whitenDegree" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Whiten Degree" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="1"/>
+		<PinLink NodeId="0652b08c5a80001c" PinId="07e3aa0e0fc00010"/>
+	 </GraphPin>
+	 <GraphPin Id="07e3aa0e0fc0000a" Name="redDegree" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Red Degree" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="1"/>
+		<PinLink NodeId="0652b08c5a80001e" PinId="07e3aa0e0fc00011"/>
+	 </GraphPin>
+	 <GraphPin Id="07e3aa0e0fc0000b" Name="whitenDegreeVersion" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Whiten Degree Version" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="1"/>
+		<PinLink NodeId="07e3a3a85dc00009" PinId="07e3aa0e0fc00013"/>
+	 </GraphPin>
+	 <GraphPin Id="07e3aa0e0fc0000c" Name="redDegreeVersion" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Red Degree Version" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="1"/>
+		<PinLink NodeId="07e3a3a85dc0000c" PinId="07e3aa0e0fc00014"/>
+	 </GraphPin>
+	 <GraphPin Id="07e3aa0e0fc0000d" Name="Pass_0" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Pass_0" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.PassModifier" PinCategory="RenderEffect" PinSubCategory="Pass modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0652b08c5a800020" PinId="07e3aa0e0fc00012"/>
+	 </GraphPin>
+	 <FilterTemplate>
+		<Node Name="CommonFilter_07e3a8346dc0001e" Type="Filter" FilterPath="" Enable="1" FilterNodeType="1" FilterGroupType="0" AcceptOriginalInputSampler="0" AcceptPreMainNodeAsFirstInputSampler="1" OutputSlots="" FaceTrackerIndex="1" FacePartType="FullScreen" MaterialAssetPath="Resources/material/white_v3/white_v3.mt" CopyOriginTexAsBgEnable="0">
+		 <Pass PassIndex="0" OutputTargetSizePolicy="2" OutputTargetTexFormat="2" OutputTargetName="OutputRenderTarget" OutputTargetSizeX="0" OutputTargetSizeY="0"/>
+		 <MaterialParams>
+			<TextureWhittenV1 Type="XVT_STRING" Value="Resources/material/white_v3/whitten_new_v1.png"/>
+			<TextureReddenV1 Type="XVT_STRING" Value="Resources/material/white_v3/redden_new_v1.png"/>
+			<TextureWhittenV2 Type="XVT_STRING" Value="Resources/material/white_v3/whitten_new_v2.png"/>
+			<TextureReddenV2 Type="XVT_STRING" Value="Resources/material/white_v3/redden_new_v2.png"/>
+			<TextureWhittenV3 Type="XVT_STRING" Value="Resources/material/white_v3/whitten_new_v3.png"/>
+			<whitenDegree Type="XVT_FLOAT1" Value="0"/>
+			<redDegree Type="XVT_FLOAT1" Value="0"/>
+			<whitenDegreeVersion Type="XVT_FLOAT1" Value="0.001"/>
+			<redDegreeVersion Type="XVT_FLOAT1" Value="0"/>
+		 </MaterialParams>
+		</Node>
+	 </FilterTemplate>
+	</GraphNode>
+	<GraphNode Id="0652b08c5a80001c" Title="whitenDegree" Type="GraphNode.BaseNode.Variable" EnableState="1">
+	 <GraphPin Id="07e3aa0e0fc00010" Name="whitenDegree" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Whiten Degree" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0652b08c5a80000e" PinId="07e3aa0e0fc00009"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="0"/>
+	</GraphNode>
+	<GraphNode Id="0652b08c5a80001e" Title="redDegree" Type="GraphNode.BaseNode.Variable" EnableState="1">
+	 <GraphPin Id="07e3aa0e0fc00011" Name="redDegree" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Red Degree" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0652b08c5a80000e" PinId="07e3aa0e0fc0000a"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="0"/>
+	</GraphNode>
+	<GraphNode Id="0652b08c5a800020" Title="Pass_0" Type="GraphNode.BaseNode.Variable.PassModifier" EnableState="1" PassIndex="0" OutputTargetSizePolicy="2" OutputTargetTexFormat="2" OutputTargetName="OutputRenderTarget" OutputTargetSizeX="0" OutputTargetSizeY="0">
+	 <GraphPin Id="07e3aa0e0fc00012" Name="Pass_0" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.PassModifier" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Pass modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0652b08c5a80000e" PinId="07e3aa0e0fc0000d"/>
+	 </GraphPin>
+	 <Variant Type="XVT_NONE"/>
+	</GraphNode>
+	<GraphNode Id="0652b08c5a800022" Title="Node_0649a62c8e000005" Type="GraphNode.Schema.Filter" EnableState="1"/>
+	<GraphNode Id="07e3a3a85dc00009" Title="whitenDegreeVersion" Type="GraphNode.BaseNode.Variable" EnableState="1">
+	 <GraphPin Id="07e3aa0e0fc00013" Name="whitenDegreeVersion" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Whiten Degree Version" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0652b08c5a80000e" PinId="07e3aa0e0fc0000b"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="0.001"/>
+	</GraphNode>
+	<GraphNode Id="07e3a3a85dc0000c" Title="redDegreeVersion" Type="GraphNode.BaseNode.Variable" EnableState="1">
+	 <GraphPin Id="07e3aa0e0fc00014" Name="redDegreeVersion" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Red Degree Version" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0652b08c5a80000e" PinId="07e3aa0e0fc0000c"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="0"/>
+	</GraphNode>
+	<GraphNode Id="07e3a4b6dfc00005" Title="TextureWhittenV1" Type="GraphNode.BaseNode.Variable.Texture" EnableState="1">
+	 <GraphPin Id="07e3aa0e0fc00015" Name="TextureWhittenV1" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Whitten Texture V1" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.Texture" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0652b08c5a80000e" PinId="07e3aa0e0fc00004"/>
+	 </GraphPin>
+	 <Variant Type="XVT_STRING" Value="Resources/material/white_v3/whitten_new_v1.png"/>
+	</GraphNode>
+	<GraphNode Id="07e3a4b6dfc00008" Title="TextureReddenV1" Type="GraphNode.BaseNode.Variable.Texture" EnableState="1">
+	 <GraphPin Id="07e3aa0e0fc00016" Name="TextureReddenV1" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Redden Texture V1" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.Texture" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0652b08c5a80000e" PinId="07e3aa0e0fc00005"/>
+	 </GraphPin>
+	 <Variant Type="XVT_STRING" Value="Resources/material/white_v3/redden_new_v1.png"/>
+	</GraphNode>
+	<GraphNode Id="07e3a4b6dfc0000b" Title="TextureWhittenV2" Type="GraphNode.BaseNode.Variable.Texture" EnableState="1">
+	 <GraphPin Id="07e3aa0e0fc00017" Name="TextureWhittenV2" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Whitten Texture V2" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.Texture" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0652b08c5a80000e" PinId="07e3aa0e0fc00006"/>
+	 </GraphPin>
+	 <Variant Type="XVT_STRING" Value="Resources/material/white_v3/whitten_new_v2.png"/>
+	</GraphNode>
+	<GraphNode Id="07e3a4b6dfc0000e" Title="TextureReddenV2" Type="GraphNode.BaseNode.Variable.Texture" EnableState="1">
+	 <GraphPin Id="07e3aa0e0fc00018" Name="TextureReddenV2" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Redden Texture V2" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.Texture" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0652b08c5a80000e" PinId="07e3aa0e0fc00007"/>
+	 </GraphPin>
+	 <Variant Type="XVT_STRING" Value="Resources/material/white_v3/redden_new_v2.png"/>
+	</GraphNode>
+	<GraphNode Id="07e3a4b6dfc00011" Title="TextureWhittenV3" Type="GraphNode.BaseNode.Variable.Texture" EnableState="1">
+	 <GraphPin Id="07e3aa0e0fc00019" Name="TextureWhittenV3" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Whitten Texture V3" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.Texture" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0652b08c5a80000e" PinId="07e3aa0e0fc00008"/>
+	 </GraphPin>
+	 <Variant Type="XVT_STRING" Value="Resources/material/white_v3/whitten_new_v3.png"/>
+	</GraphNode>
+ </Graph>
+</GraphContainer>

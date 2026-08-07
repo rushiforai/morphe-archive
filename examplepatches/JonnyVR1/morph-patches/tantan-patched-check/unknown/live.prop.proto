@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package live.prop;
+
+option java_package = "com.p1.mobile.longlink.msg.live.prop";
+option java_outer_classname = "LongLinkAdminMessage";
+option optimize_for = LITE_RUNTIME;
+
+enum LivePropType {
+  unknown = 0;
+  littleFlame = 1;
+}
+
+message LivePropSendEvent {
+  string id = 1;
+  string fromUserId = 2;
+  string toUserId = 3;
+  LivePropType type = 4;
+  int64 amount = 5;
+}
+
+message LivePropSendMsg {
+  UserMask fromUser = 1;
+  UserMask toUser = 2;
+  LivePropType type = 3;
+  int64 amount = 4;
+  string icon = 5;
+  string svgaUrl = 6;
+}
+
+message UserMask {
+  string userId = 1;
+  string name = 2;
+  string avatar = 3;
+  AvatarConfig avatarConfig = 4;
+  VoiceMaskModeAddition voiceMaskModeAddition = 5;
+}
+
+message AvatarConfig {
+  PictureConfig frameConfig = 1;
+}
+
+message PictureConfig {
+  string staticUrl = 1;
+  string dynamicUrl = 2;
+}
+
+message VoiceMaskModeAddition {
+  string color = 1;
+  string gender = 2;
+}

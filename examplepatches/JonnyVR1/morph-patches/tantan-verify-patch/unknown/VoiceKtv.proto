@@ -1,0 +1,91 @@
+syntax = "proto3";
+package liveroom;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + liveroom）
+option java_package = "com.p1.mobile.longlink.msg.liveroom";
+option java_outer_classname = "LongLinkVoiceKtv";
+option optimize_for = LITE_RUNTIME;
+
+import "userMaskConfig.proto";
+
+message VoiceKTVGame {
+  string id = 1;
+  string status = 2;
+  PlayInfo playInfo = 3;
+  PlayInfo nextPlayInfo = 4;
+  string toast = 5;
+  string backgroundUrl = 6;
+  PanelBgInfo panelBgInfo = 7;
+}
+message PlayInfo {
+  string orderId = 1;
+  string songCode = 2;
+  string userId = 3;
+  userMask.UserMask mask = 4;
+  string title = 5;
+  string lyricUrl = 6;
+  string lyricType = 7;
+  string songUrl = 8;
+  int32 prepareRemainSeconds = 9;
+  string status = 10;
+  int32 durationSecond = 11;
+  string author = 12;
+  string cover = 13;
+  QuickGiftInfo quickGiftInfo = 14;
+  string provider = 15;
+  bool showLevel = 16;
+  int32 level = 17;
+  int32 maxLevel = 18;
+  string levelTip = 19;
+  int64 score = 20;
+  string schema = 21;
+  string bestSingerName = 22;
+  string showBgSvgaUrl = 23;
+  int32 giftUv = 24;
+  int32 nextLevelGiftUv = 25;
+}
+message VoiceKTVOrderRefresh {
+  string liveId = 1;
+  string userId = 2;
+  enum Action {
+    ADD = 0;
+    REMOVE = 1;
+  }
+  Action action = 3;
+}
+message QuickGiftInfo {// 新增快捷礼物信息
+  int64 giftId = 1;
+  string name = 2;
+  string url = 3;
+}
+message PanelBgInfo {// 新增ktv 面板背景
+  string url = 1;
+  int32 remainSeconds = 2;
+  int64 updatedTime = 3;
+}
+//msgType: voicetrick.ktv.panelBgInfo
+message VoiceKTVPanelBg {
+  string gameId = 1;
+  string url = 2;
+  int32 remainSeconds = 3;
+  string userId = 4;
+  int64 updatedTime = 5; // ms 时间戳
+}
+
+// msgType: voicetrick.ktv.orderRating
+message VoiceKTVOrderRating {
+  string orderId = 1;
+  int32  level = 2;
+  int32  maxLevel = 3;
+  string levelTip = 4;
+  int32  score = 5;
+  string schema = 6;
+  int32 giftUv = 7;
+  int32 nextLevelGiftUv = 8;
+  string showBgSvgaUrl = 9;
+}
+// msgType: voicetrick.ktv.bubble
+message VoiceKTVBubble {
+  string gameId = 1;
+  string content = 2;
+}

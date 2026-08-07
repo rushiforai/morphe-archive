@@ -1,0 +1,176 @@
+syntax = "proto3";
+
+package liveright;
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + liveright）
+option java_package = "com.p1.mobile.longlink.msg.liveright";
+option java_outer_classname = "liveRight";
+option optimize_for = LITE_RUNTIME;
+
+enum GradientDirection{
+  unknownDirection = 0;
+  fromUpToDown = 1;   //从上到下
+  fromLeftToRight = 2;    //从左到右
+  fromLeftUpToRightDown = 3;  //从左上角到右下角
+}
+
+enum FadingType {
+  never = 0;  // 永不过期
+  relative = 1; // 相对时间
+  absolute = 2; // 绝对时间
+}
+
+enum ShowType {
+  single = 0; // 一对一
+  multiple = 1; // 一对多
+}
+
+enum OperationType {
+  auto = 0; // 自动激活
+  manual = 1; // 手动激活
+}
+
+enum Type {
+  emptyType = 0; // 不查询某一个具体的权益
+  chatShading = 1; // 聊天底纹
+  avatar = 2; // 头像配置
+  profile = 3; // 个人页
+  mystery = 4; // 神秘人
+  callEffect = 5; //麦位动效
+}
+
+enum BizType {
+  grant = 0; // 普通的授予类型
+  userHierarchyGrade = 1; // 用户财富等级
+  gift = 2; // 礼物
+}
+
+enum LiveRightStatus {
+  unknownStatus = 0;
+  pending = 1;  //已下线
+  delete = 3;   //删除
+}
+
+enum CornerPosition {
+  nonePosition = 0;
+  rightTop = 1;  // 右上
+  rightMiddle = 2; // 右中
+  rightBottom = 3; // 右下
+}
+
+enum PlaceType {
+  videoRoom = 0;
+  voiceRoom = 1;
+}
+
+enum ReceiveType {
+  forReceiver = 0;
+  forGiver = 1;
+}
+
+message PeriodConfig {
+  FadingType fadingType = 1;
+  int64 fadingValue = 2;
+  bool show = 3;
+}
+
+message ColorConfig {
+  GradientDirection gradientDirection = 1;
+  repeated string colors = 2;
+  int64 transparency = 3; // 透明度
+}
+
+message CornerConfig {
+  string pictureUrl = 1; // 配图
+  CornerPosition position = 2; // 位置
+}
+
+message PictureConfig {
+  string staticUrl = 1;
+  string dynamicUrl = 2;
+}
+
+message ChatShadingConfig {
+  ColorConfig borderColorConfig = 1; // 边框颜色配置
+  ColorConfig backgroundColorConfig = 2; // 背景颜色配置
+  CornerConfig cornerConfig = 3; // 角标配置
+}
+
+message AvatarConfig {
+  PictureConfig frameConfig = 1;
+  string avatarUrl = 2;
+  string connectorImage = 3; // 心灵感应
+}
+
+message ProfileConfig {
+  PictureConfig backgroundPictureConfig = 1;
+  PictureConfig topFrameConfig = 2;
+}
+
+message Restrict {
+  int64 grade = 1; // 等级限制
+  repeated int64 giftIds = 2;
+  ReceiveType receiveType = 3;
+}
+
+message Attribute {
+  string thumbnailUrl = 2; // 缩略图
+  string jumpUrl = 3; // 跳转 url
+  Restrict restrict = 4; // 给用户添加的限制
+  string resourceUrl = 5; // 大图，仅需配置资源url的权益使用此字段
+  ChatShadingConfig chatShadingConfig = 10; // 聊天底纹配置
+  AvatarConfig avatarConfig = 11; // 头像框
+  ProfileConfig profileConfig = 12; // 个人页
+  CallEffectConfig callEffectConfig = 13; // 麦序特效
+}
+
+message CallEffectConfig {
+  string verticalBg = 1; // 竖屏背景图
+  string horizontalBg = 2; // 横屏背景图
+  string defaultIcon = 3; // 默认图标
+  string muteIcon = 4; // 静音图标
+  string verticalVoicingUrl = 5; // 竖屏语音中svga
+  string horizontalVoicingUrl = 6; // 横屏语音中svga
+  string circleVoicingUrl = 7; // 扩散光效语音中svga
+ }
+
+enum UserLiveRightStatus {
+  deleted = 0;
+  created = 5;
+  activated = 10;
+  equipped = 15;
+}
+
+message UserLiveRight {
+  string id = 1;
+  string userId = 2; // 用户 id
+  string liveRightId = 3;
+  Type rightType = 4; // 权益类型
+  string name = 5;
+  ShowType showType = 6; // 分类：一对多/一对一
+  int64 level = 7; //入场分级
+  Attribute attribute = 8; // 权益属性
+  UserLiveRightStatus status = 9;
+  int64 createTimeInSeconds = 10; // 创建时间
+  int64 validEndTimeInSeconds = 11; // 失效时间
+  string fromUserId = 12; // 谁送的
+  PlaceType placeType = 13; // 权益的房间类型
+}
+
+message UserLiveRightResources {
+  repeated UserLiveRight userLiveRights = 1;
+}
+message AcquireUserLiveRightMsg {
+  enum AcquireUserLiveRightAction {
+    equip = 0;
+    unequip = 1;
+  }
+
+  AcquireUserLiveRightAction action = 1;
+  UserLiveRight userLiveRight = 2;
+  int64 serverTimeInSeconds = 3;
+}
+
+message TopChatUpdateNotice {
+  int64 randomDelaySeconds = 1; //三秒取随机数刷新, 0就是直接刷新
+  int64 timestamp = 2; //ms, 乱序丢弃老的消息保留新的消息
+}

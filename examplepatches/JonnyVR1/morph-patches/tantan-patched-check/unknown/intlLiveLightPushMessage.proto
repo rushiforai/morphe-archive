@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package intl_light_push;
+
+option java_package = "com.p1.mobile.longlink.msg.intl_light_push";
+option java_outer_classname = "LongLinkIntlLightPushMessage";
+option optimize_for = LITE_RUNTIME;
+
+message IntlLightPushInfo{
+  string roomId = 1;
+  string liveId = 2;
+  string anchorId = 3;
+  string region = 4;
+  string icon = 5;
+  string iconSchema = 6;
+  string textFirst = 7;
+  string textSchema = 8;
+  string textSecond = 9;
+  string textFirstColor = 10;
+  string textSecondColor = 11;
+  string backgroundStartColor = 12;
+  string backgroundEndColor = 13;
+  bool closeAuto = 14;
+  int64 closeTimeOutMs = 15;
+  bool svga = 16;
+}
+
+// 刷新余额，需要客户端请求对应余额接口
+message RefreshGiftTabBalanceMsg {
+  string userId = 1;    // userId
+  string priceType = 2; // 货币类型
+}
+
+// 刷新运营位
+message RefreshVoiceOperationMsg {
+  
+}

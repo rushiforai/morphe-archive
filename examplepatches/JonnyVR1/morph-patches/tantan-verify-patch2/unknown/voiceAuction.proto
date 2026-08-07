@@ -1,0 +1,111 @@
+syntax = "proto3";
+
+package liveroom;
+
+option java_package = "com.p1.mobile.longlink.msg.liveroom";
+option java_outer_classname = "LongLinkVoiceAuctionMessage";
+option optimize_for = LITE_RUNTIME;
+
+import "liveMessage.proto";
+import "multiCall.proto";
+import "template.proto";
+
+// messageTypeName: 'live.voicelive.toast'
+// 客户端收到后展示toast提示
+message VoiceLiveToast {
+  string toast = 1;
+}
+
+/*************** 拍拍信息变更&榜单变更 *****************/
+
+// msgTypeName = 'voicelive.auction.info'  // msgTypeName = 'voicelive.auction.info'
+message VoiceLiveAuctionChange {
+  enum Type {
+    refreshAuction = 0; // 刷新拍拍信息，客户端拉取拍拍详情接口
+    updateRank = 1; // 更新榜单信息
+  }
+  Type type = 1;
+  repeated VoiceLiveAuctionLeaderboard leaderboards = 2;// 榜单信息，type=2时有此字段
+  int64 currentTime = 3; // 下发消息时间
+}
+
+message VoiceLiveAuctionLeaderboard {
+  int64 rank = 1;// 排名
+  string  auctionId = 2; // 拍拍ID
+  string  userId = 3;    // 竞拍人用户id
+  UserProfile userProfile = 4; // 竞拍人详情(头像、昵称、萌面信息等)
+  int64   amount = 5;    // 礼物数量
+  string  voiceRoomId = 6;
+  string  voiceLiveId = 7;
+}
+
+/*************** 嘉宾邀请 *****************/
+// msgTypeName = 'voicelive.auction.invite'
+message VoiceLiveAuctionInvite {
+  enum Type {
+    auctionInvite = 0; // 发起邀请
+    reject = 1; // 拒绝邀请
+    accept = 2; // 接受邀请
+    timeout = 3; // 邀请超时
+  }
+  Type type = 1;
+  string inviteId = 2;
+  string userId = 3; // 被邀请用户id
+  string message = 4; // 后端控制文案，群主邀请你上拍
+}
+
+message VoiceLiveAuctionGuestInvite {
+  string id = 1;
+  string liveId = 2;
+  string auctionId = 3;
+  string hostUserId = 4;
+  UserProfile hostUserProfile = 5;
+  string guestUserId = 6;
+  UserProfile guestUserProfile = 7;
+  int32  showSeconds = 8; // 邀请面板展示时长
+  InviteState state = 9;
+}
+
+/**************** 嘉宾上位申请 *****************/
+// msgTypeName = 'voicelive.auction.applyGuest'
+message VoiceLiveAuctionApply {
+  enum Type {
+    apply = 0; // 发起申请
+    reject = 1; // 拒绝申请
+    accept = 2; // 接受申请
+  }
+  Type type = 1;
+  VoiceLiveAuctionGuestApply guestApply = 2;
+  template.TemplateData templateData = 3;
+}
+
+message VoiceLiveAuctionGuestApply {
+  enum ApplyState {
+    applied = 0; // 已申请
+    rejected = 1; // 已拒绝
+    accepted = 2; // 已接受
+  }
+  string id = 1;// 申请id
+  string liveId = 2;
+  string auctionId = 3;
+  string guestUserId = 4;
+  string hostUserId = 5;
+  ApplyState state = 6;
+}
+
+// msgTypeName = 'voicelive.auction.guestApplyMsg'
+// 跳转到拍拍房嘉宾申请列表聊聊消息数据
+message OpenAuctionGuestApplyList {
+  string applyId = 1;// 申请id
+  template.TemplateData templateData = 2;   // 要展示的聊聊,使用templateId 244
+}
+
+// msgTypeName = 'voicelive.auction.counter'
+message VoiceLiveAuctionCounter {
+  enum Type {
+    updateApplyUnreadCount = 0; // 更新拍拍申请队列红点计数
+  }
+  Type updateType = 1;
+  int64 currentTime = 2; // 下发消息时间,秒级时间戳，时间到达顺序不同时，currentTime大的覆盖小的
+  int64 applyUnreadCount = 3;// 最新未读数
+}

@@ -1,0 +1,10 @@
+io.agora.base
+io.agora.mediaplayer
+io.agora.mediaplayer.data
+io.agora.mediaplayer.gl
+io.agora.rtc2
+io.agora.rtc2.audio
+io.agora.rtc2.live
+io.agora.rtc2.proxy
+io.agora.rtc2.video
+io.agora.spatialaudio

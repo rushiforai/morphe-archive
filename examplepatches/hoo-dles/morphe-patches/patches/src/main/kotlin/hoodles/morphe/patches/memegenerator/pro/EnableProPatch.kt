@@ -1,3 +1,8 @@
+/**
+ * Copyright 2026 Hoo-dles
+ * https://github.com/hoo-dles/morphe-patches
+ */
+
 package hoodles.morphe.patches.memegenerator.pro
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions

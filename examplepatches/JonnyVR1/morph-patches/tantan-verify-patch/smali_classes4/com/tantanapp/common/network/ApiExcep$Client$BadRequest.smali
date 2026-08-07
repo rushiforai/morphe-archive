@@ -1,0 +1,41 @@
+.class public Lcom/tantanapp/common/network/ApiExcep$Client$BadRequest;
+.super Lcom/tantanapp/common/network/ApiExcep$Client;
+.source "SourceFile"
+
+
+# annotations
+.annotation system Ldalvik/annotation/EnclosingClass;
+    value = Lcom/tantanapp/common/network/ApiExcep$Client;
+.end annotation
+
+.annotation system Ldalvik/annotation/InnerClass;
+    accessFlags = 0x9
+    name = "BadRequest"
+.end annotation
+
+
+# direct methods
+.method public constructor <init>(Ll/i5d0;)V
+    .locals 1
+
+    .line 1
+    const-string v0, "bad request"
+
+    .line 2
+    .line 3
+    invoke-direct {p0, p1, v0}, Lcom/tantanapp/common/network/ApiExcep$Client;-><init>(Ll/i5d0;Ljava/lang/String;)V
+
+    .line 4
+    .line 5
+    .line 6
+    return-void
+.end method
+
+.method public constructor <init>(Ll/i5d0;Ljava/lang/String;)V
+    .locals 0
+
+    .line 7
+    invoke-direct {p0, p1, p2}, Lcom/tantanapp/common/network/ApiExcep$Client;-><init>(Ll/i5d0;Ljava/lang/String;)V
+
+    return-void
+.end method

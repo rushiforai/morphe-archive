@@ -1,0 +1,162 @@
+{
+  "intlLetterContent": {
+    "en-US": {
+      "female": [
+        "Hotties, how are you doing?",
+        "Hey baby, what's ur favourite food?",
+        "Have you seen the new movie?",
+        "You're so pretty! How about we having a dinner together? What's your MBTI?",
+        "I just love your OOTD! You know fashion!",
+        "What kind of boy do you like?",
+        "What countries have you been to?",
+        "Which is your favourite?",
+        "Sweetie, do you have any pets?",
+        "You look TERRIFIC!"
+      ],
+      "male": [
+        "What’s your definition of a good weekend? WEE spending it together?",
+        "Hey! What sports do you like?",
+        "What are you doing, cute guy?",
+        "You are in great shape! Do you usually workout? ! 😍",
+        "Mind telling me about your day?",
+        "Do you have any plans for a trip?",
+        "What's your favourite restaurant?",
+        "Do you play any games?",
+        "What is the best thing happened in your life?"
+      ]
+    },
+    "id-ID": {
+      "female": [
+        "Hai, boleh tau gak tipe cowokmu seperti apa?",
+        "Kamu cantik banget! Boleh kenalan gak？",
+        "Ceritain pengalaman paling bahagiamu dong!",
+        "Hai, kenalan yuk! Bidadari cantik sepertimu tidak boleh dilewatkan!",
+        "Dilihat dari foto profilmu, sepertinya kamu orang yang sangat ceria! Tipeku banget!",
+        "Kamu cantik banget! Siapa namamu?",
+        "Mata kamu cantik banget! Aku sampai gak bisa mengalihkan pandanganku darimu!",
+        "Negara apa yang paling ingin kamu kunjungi？"
+      ],
+      "male": [
+        "Hai, boleh tau gak tipe cewekmu seperti apa?",
+        "Hai tampan, ngobrol yuk! Apa hobimu?",
+        "Kamu ganteng dan berkharisma banget! Boleh kenalan, gak?",
+        "Hai, liburan ke mana aja nih?",
+        "Kamu suka main game apa?",
+        "Hai ganteng! Lagi apa, nih? Ngobrol yuk!",
+        "Kamu berapa bersaudara?",
+        "Rekomen beberapa film yang menurutmu keren, dong!",
+        "Dilihat dari foto profilmu, sepertinya kamu suka berolahraga ya?",
+        "Apa pengalaman paling asyik dalam hidupmu?"
+      ]
+    },
+    "ja-JP": {
+      "female": [
+        "人生で最も幸せな瞬間は何でしたか？",
+        "好きな食べ物はなんですか？",
+        "お気に入りの映画は何ですか？",
+        "好きなタイプはどういう方ですか？",
+        "最近忙しいですか？",
+        "ご趣味はなんですか？",
+        "プロフィールの写真すごく素敵な景色ですが、どちらですか？",
+        "写真めっちゃ美味しそうですね！どこのお店ですか？",
+        "ペット可愛いですね、飼われてるんですか？"
+      ],
+      "male": [
+        "どんな子がタイプ？",
+        "おすすめの映画はありますか？",
+        "最近、旅行の予定はありますか？",
+        "最近、何かゲームを遊んでいますか？",
+        "ペット可愛いですね、ペットを飼っていますか？",
+        "どんな音楽が好きですか？",
+        "どんなスポーツが好きですか？",
+        "今は何をしているのですか？",
+        "好きな食べ物はなんですか？",
+        "趣味はなんですか？"
+      ]
+    },
+    "ko-KR": {
+      "female": [
+        "이뿐이 안녕~ 어떤 남자를 좋아하는지 알 수 있을가요?",
+        "저기요. 이상형이 어떻게 되나요?",
+        "눈에 별이 있으시네요!",
+        "혹시 반려동물 키우시나요?",
+        "MBTI 어떻게 되나요?",
+        "좋아하는 음식은 뭐에요?",
+        "너무 이쁘시네요~첫눈에 반했어요!",
+        "저를 설레게 해서 책임 져야 해요~",
+        "어떤 남자를 좋아합니까?",
+        "코디 너무 잘하시네요!"
+      ],
+      "male": [
+        "요즘 하고 있는 게임은 뭐에요?",
+        "오빠 뭐해요?",
+        "오빠랑 얘기 좀 하고 싶어요~",
+        "잘 생기셨네요~저랑 채팅 한 번 하실래요?",
+        "무슨 운동을 좋아하나요?",
+        "오늘 어떻게 보내셨나요?",
+        "좋아하는 노래 있나요?",
+        "괜찮은 영화 추천 좀 받을 수 있을가요?",
+        "혹시 고양이 키우세요?",
+        "매력 있으시네요! 저랑 채팅 좀 하시죠~"
+      ]
+    },
+    "zh-CN": {
+      "female": [
+        "嗨，小姐姐你真好看，喜欢什么样的男生呀？",
+        "哈喽，小仙女不能偷偷下凡哦",
+        "哈喽小仙女，你是做什么工作的呢？",
+        "嗨，小姐姐求推荐几部喜欢的电影呢",
+        "你喜欢什么样的男孩子",
+        "你坚持最久的一件事情是什么？",
+        "你最喜欢的食物是什么？",
+        "最近有在玩什么游戏吗？",
+        "剧荒了！有没有什么电影推荐一下哇",
+        "你好呀，你有养小宠物吗",
+        "糟糕，是心动的感觉",
+        "最近有什么出游计划嘛",
+        "你的穿搭真好看",
+        "你的眼睛里有星星哎"
+      ],
+      "male": [
+        "最近在玩什么游戏吖～～",
+        "你平时喜欢什么运动啊",
+        "你好呀，你有养小宠物吗",
+        "今天过得怎么样啊",
+        "你平时听什么类型的音乐呀",
+        "最近有什么出游计划嘛",
+        "嗨，小哥哥～在干嘛呢",
+        "嗨，小哥哥求推荐几部喜欢的电影呢",
+        "你喜欢撸猫吗～",
+        "嗨，小哥哥～你最喜欢的食物是什么？",
+        "嗨，小哥哥～在忙什么呀",
+        "嗨，帅哥～聊聊嘛"
+      ]
+    },
+    "zh-TW": {
+      "female": [
+        "正妹妳好，可以認識一下嗎？✌🏼",
+        "妳感覺起來很有氣質～是在做什麼的呢？😄",
+        "平時有在追劇嗎？有特別推薦哪幾部嗎～",
+        "妳看起來很苗條，是不是有在運動？",
+        "妳通常都喜歡吃什麼類型的早午餐呀？",
+        "妳有養寵物嗎？感覺妳很有愛心💗",
+        "妳有去過哪幾個國家？最喜歡哪一國呢？",
+        "冒昧請問一下，妳喜歡什麼類型的對象？",
+        "平常喜歡什麼休閒娛樂🤔",
+        "最近剛上映的電影妳有去看了嗎？"
+      ],
+      "male": [
+        "你身材很好欸，平常都有在健身吧？！😍",
+        "陽光型男，你假日都會出門走走嗎？",
+        "下班之後都在幹嘛呀？🤗",
+        "你都聽什麼樣類型的歌呢？🎵",
+        "安安～你好～在幹嘛呢😬",
+        "我很好奇，你喜歡什麼樣類型的女生呢？🤭",
+        "你是做什麼的呢？感覺你人緣一定很好🤗",
+        "最近上映的電影你有去看了嗎？",
+        "你最喜歡吃的食物是什麼啊？",
+        "你最想去哪個國家渡假呀？🤔"
+      ]
+    }
+  }
+}

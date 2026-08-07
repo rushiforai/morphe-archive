@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package liveroom;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + liveroom）
+option java_package = "com.p1.mobile.longlink.msg.liveroom";
+option java_outer_classname = "LongLinkVoiceLiveAuctionMsg";
+option optimize_for = LITE_RUNTIME;
+
+message VoiceLiveAuctionUpdate {
+
+  UpdateType updateType = 1;
+  int64 currentTime = 2; // 下发消息时间,秒级时间戳
+  string auctionId = 3; // 拍拍id，当type != 0时有此值
+  int64 worth = 4;// 最新身价，type = 1时有此字段
+  string panelBgId = 5; // 背景图片，type = 1时有此字段
+  int64 level = 6; //   最新等级，type = 1时有此字段
+  repeated AuctionLeaderboard leaderboards = 7;// 榜单信息，type=2时有此字段
+  int64 leaderboardGap = 8;//当updatetype=3时的值
+  string worthBubble = 9; // 身价气泡，理论上有worth时会传，暂不确定其他场景情况
+  int64 worthBubbleLevel = 10; // 身价气泡所在等级
+  bool isChoosingPledgeRelation = 11; // 是否选择关系中
+}
+
+enum UpdateType {
+  refreshAuction = 0; // 刷新拍拍信息，客户端拉取拍拍详情接口更新整体数据，一般在定拍/流拍/结束拍拍后下发
+  updateWorth = 1; // 更新身价,同时会下发背景信息
+  updateRank = 2; // 更新榜单信息
+  updateGap = 3; //更新Gap信息
+}
+
+message AuctionLeaderboard {
+  int64 rank = 1;// 排名
+  int64  amount = 2;
+  string userId = 3;    // 竞拍人用户id
+  string userName = 4;
+  string avatar = 5; // 用户头像
+  string avatarFrameUrl = 6; // 头像框静态图
+  string avatarFrameDynamicUrl = 7; // 头像框动态图
+  string background = 8; // 卡片背景图
+  string amountBackgroundId = 9;// 贡献数背景图
+}
+
+// msgTypeName = 'voicelive.auction.pledge.choose'
+message VoiceLiveAuctionPledgeChoose {
+  string auctionId = 1;
+  string pledgeAName = 2; // 左侧称号
+  string pledgeBName = 3; // 右侧称号
+}

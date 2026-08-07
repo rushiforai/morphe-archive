@@ -1,0 +1,56 @@
+White Wolf|gxip_white_wolf|Basic
+Purple Haze|gxip_purple_haze|Basic
+Underwave GX|gxip_underwave_gx|Basic
+Rose Quartz|gxip_rose_quartz|Basic
+Ultraviolet|gxip_ultraviolet|Basic
+Underwave|gxip_underwave|Basic
+Sub Zero|gxip_sub_zero|Basic
+Vaporwave|gxip_vaporwave|Basic
+Classic|gxip_classic|Basic
+Classic-1|gxip_classic_1|Basic
+Hackerman|gxip_hackerman|Basic
+Classic GX|gxip_classic_gx|Basic
+Lambda|gxip_lambda|Basic
+Pay to Win|gxip_pay_to_win|Basic
+Frutti Di Mare|gxip_frutti_di_mare|Basic
+Coming Soon|gxip_coming_soon|Basic
+After Eight|gxip_after_eight|Basic
+Holo Frutti Di Mare|gxip_holo_frutti_di_mare|Holo
+Holo Classic|gxip_holo_classic|Holo
+Holo Rose Quartz|gxip_holo_rose_quartz|Holo
+Holo Hackerman|gxip_holo_hackerman|Holo
+Holo White Wolf|gxip_holo_white_wolf|Holo
+Holo Purple Haze|gxip_holo_purple_haze|Holo
+Holo Vaporwave|gxip_holo_vaporwave|Holo
+Holo Ultraviolet|gxip_holo_ultraviolet|Holo
+Holo Sub Zero|gxip_holo_sub_zero|Holo
+Holo Pay to Win|gxip_holo_pay_to_win|Holo
+Holo Lambda|gxip_holo_lambda|Holo
+Holo After Eight|gxip_holo_after_eight|Holo
+Holo Coming Soon|gxip_holo_coming_soon|Holo
+Holo GX Coming Soon|gxip_holo_gx_coming_soon|Holo GX
+Holo GX After Eight|gxip_holo_gx_after_eight|Holo GX
+Holo GX Pay to Win|gxip_holo_gx_pay_to_win|Holo GX
+Holo GX Sub Zero|gxip_holo_gx_sub_zero|Holo GX
+Holo GX Hackerman|gxip_holo_gx_hackerman|Holo GX
+Holo GX Vaporwave|gxip_holo_gx_vaporwave|Holo GX
+Holo GX Lambda|gxip_holo_gx_lambda|Holo GX
+Holo GX Frutti Di Mare|gxip_holo_gx_frutti_di_mare|Holo GX
+Holo GX Ultraviolet|gxip_holo_gx_ultraviolet|Holo GX
+Holo GX Classic|gxip_holo_gx_classic|Holo GX
+Holo GX Purple Haze|gxip_holo_gx_purple_haze|Holo GX
+Holo GX White Wolf|gxip_holo_gx_white_wolf|Holo GX
+Holo GX Rose Quartz|gxip_holo_gx_rose_quartz|Holo GX
+Neon Purple Haze|gxip_neon_purple_haze|Neon
+Neon Rose Quartz|gxip_neon_rose_quartz|Neon
+Neon Classic|gxip_neon_classic|Neon
+Neon Ultraviolet|gxip_neon_ultraviolet|Neon
+Neon Pay to Win|gxip_neon_pay_to_win|Neon
+Neon Sub Zero|gxip_neon_sub_zero|Neon
+Neon Vaporwave|gxip_neon_vaporwave|Neon
+Neon Frutti Di Mare|gxip_neon_frutti_di_mare|Neon
+Neon Hackerman|gxip_neon_hackerman|Neon
+Neon Lambda|gxip_neon_lambda|Neon
+Neon White Wolf|gxip_neon_white_wolf|Neon
+Neon Coming Soon|gxip_neon_coming_soon|Neon
+Neon After Eight|gxip_neon_after_eight|Neon

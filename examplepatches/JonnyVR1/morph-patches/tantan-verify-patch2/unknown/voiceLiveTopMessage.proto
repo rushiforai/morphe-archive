@@ -1,0 +1,20 @@
+syntax = "proto3";
+package voicelivemessage;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + userMask）
+option java_package = "com.p1.mobile.longlink.msg.voicelivemessage";
+option java_outer_classname = "VoiceLiveTopBroadCast";
+option optimize_for = LITE_RUNTIME;
+
+// 语音房小时榜奖励动画效果
+message VoiceLiveHourLeaderboardTopEffectMessage {
+  string roomId = 1;
+  string liveId = 2;
+  string anchorId = 3;
+  string anchorImage = 4;
+  string anchorName = 5;
+  string title = 6;
+  string titleColor = 7;
+  string backgroundUrl = 10;
+  int64 duration = 11;
+}

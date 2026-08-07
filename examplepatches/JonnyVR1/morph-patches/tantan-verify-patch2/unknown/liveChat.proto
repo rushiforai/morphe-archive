@@ -1,0 +1,30 @@
+syntax = "proto3";
+package connector;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + project）
+option java_package = "com.p1.mobile.longlink.msg.connector";
+option java_outer_classname = "LongLinkLiveChatMessage";
+option optimize_for = LITE_RUNTIME;
+
+message LiveChatPopup {
+  string otherUserId = 1;
+}
+
+message LiveChatRecall {
+  string otherUserId = 1;
+  string auth = 2;
+  string url = 3;
+  string gender = 4;
+  string name = 5;
+  string age = 6;
+  string tag1 = 7;
+  string tag2 = 8;
+  string tag3 = 9;
+  string queryToken = 10;
+  string topic = 11;
+  string sessionID = 12;
+  string openingRemark = 13;
+  string poolID = 14;
+  int64 birthday = 15;
+  string broadcastID = 16;
+}

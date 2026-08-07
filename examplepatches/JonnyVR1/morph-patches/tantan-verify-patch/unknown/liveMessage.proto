@@ -1,0 +1,900 @@
+syntax = "proto3";
+package liveroom;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + liveroom）
+option java_package = "com.p1.mobile.longlink.msg.liveroom";
+option java_outer_classname = "LongLinkLiveMessage";
+option optimize_for = LITE_RUNTIME;
+
+import "template.proto";
+import "userMaskConfig.proto";
+
+// 公共结构
+message UserInfo {
+  string id = 1; // 用户ID
+  string name = 2; // 用户昵称
+  string grade = 3; //用户等级
+  string identity = 4;//语音房的用户身份
+  string gender = 5 ;
+  int64 age = 6 ;
+}
+
+// 系统消息
+// MSG_TYPE_LIVE_SYSTEM_MSG
+message LiveSystemMessage {
+  string content = 1; // 警告内容
+  template.TemplateData tempdata = 2; // 模版ID
+}
+
+// 开播消息 （可能用不到）
+// MSG_TYPE_LIVE_START
+message LiveStart {
+  string userId = 1; // 主播id
+  string roomId = 2; // 房间号
+  string liveId = 3; // 直播id
+}
+
+// 停播
+// MSG_TYPE_LIVE_STOP
+message LiveStop {
+  string userId = 1; // 主播id
+  string roomId = 2; // 房间号
+  string liveId = 3; // 直播id
+}
+
+// 暂停直播
+// MSG_TYPE_LIVE_PAUSE
+message LivePause {
+  string userId = 1; // 主播id
+  string roomId = 2; // 房间号
+  string liveId = 3; // 直播id
+}
+
+// 恢复直播
+// MSG_TYPE_LIVE_RECOVER
+message LiveRecover {
+  string userId = 1; // 主播id
+  string roomId = 2; // 房间号
+  string liveId = 3; // 直播id
+  string streamIdentifier = 5; // 拉流标识
+}
+
+// 进入房间
+// MSG_TYPE_LIVE_ENTER_ROOM
+message EnterRoom {
+  string roomId = 1; // 房间id
+  UserInfo user = 2; // 用户信息
+  template.TemplateData tempdata = 3; // 模版ID
+  bool IsImportant = 4;  // 是否为重要消息
+}
+
+// 离开房间
+// MSG_TYPE_LIVE_LEAVE_ROOM
+message LeaveRoom {
+  string roomId = 1; // 房间id
+  UserInfo user = 2; // 用户信息
+  template.TemplateData tempdata = 3; // 模版ID
+}
+
+// 禁言消息
+// MSG_TYPE_LIVE_JAIL
+message JailInRoom {
+  string roomId = 1; // 房间id
+  UserInfo user = 2; // 用户信息
+  template.TemplateData tempdata = 3; // 模版ID
+  UserInfo manager = 4;
+}
+
+// 拉黑
+// MSG_TYPE_LIVE_BLOCK
+message Block {
+  string roomId = 1; // 房间id
+  UserInfo user = 2; // 用户信息
+  template.TemplateData tempdata = 3; // 模版ID
+  UserInfo manager = 4;
+}
+
+// 踢出房间
+// MSG_TYPE_LIVE_BOOT
+message BootOutRoom {
+  string roomId = 1; // 房间id
+  UserInfo user = 2; // 用户信息
+  template.TemplateData tempdata = 3; // 模版ID
+  UserInfo manager = 4;
+}
+
+message BootOutRoomByAdmin {
+  string roomId = 1; // 房间id
+  string notifyMessage = 2; // 弹窗提示文案
+}
+
+// 强制断流
+// MSG_TYPE_LIVE_FORCE_STOP
+message LiveForceStop {
+  string userId = 1; // 主播id
+  string roomId = 2; // 房间号
+  string liveId = 3; // 直播id
+  string reason = 4; // 原因
+}
+
+// 直播动态数据
+// MSG_TYPE_LIVE_LIVEINFO
+message LiveInfo {
+  string roomId = 1;
+  string liveId = 2;
+  uint32 memberCount = 3;
+  uint64 rewardPoint = 4;
+  UpdateField updateField = 5; // all：客户端更新所有字段，MEMBER_COUNT: 成员数量，REWARD_POINT: 心动值
+  repeated CallRewardPoint callRewardPoints = 6; // 连线副麦心动值
+  repeated CallRewardPoint multiCallRewardPoints = 7; // 多人连线心动值
+}
+enum UpdateField {
+  ALL = 0; // default
+  MEMBER_COUNT = 1;
+  REWARD_POINT = 2;
+}
+
+message CallRewardPoint {
+  string userId = 1;
+  uint64 rewardPoint = 2;
+}
+
+// 关注消息
+// MSG_TYPE_LIVE_FOLLOW
+message Follow {
+  string roomId = 1;
+  UserInfo follower = 2;
+  UserInfo anchor = 3;
+  template.TemplateData tempdata = 4;
+}
+
+// 任命管理员
+// MSG_TYPE_COMMON
+// MsgTypeName AddManager
+message AddManager {
+  string roomId = 1;
+  UserInfo user = 2;
+  template.TemplateData tempdata = 3;
+}
+
+// 删除管理员
+// MSG_TYPE_COMMON
+// MsgTypeName DeleteManager
+message DeleteManager {
+  string roomId = 1;
+  UserInfo user = 2;
+  template.TemplateData tempdata = 3;
+}
+
+message ChatTipsChange {
+  string roomId = 1; // 房间信息
+  string anchorId = 2; // 主播ID
+}
+
+message LiveTemplateMsg {
+  string roomId = 1;
+  UserInfo anchor = 2;
+  UserInfo user = 3;
+  template.TemplateData tempdata = 4;
+}
+
+// MSG_TYPE_COMMON
+// MsgTypeName live.sticker.change
+message LiveStickerChangeMsg {
+  string roomId = 1;
+  int64 timestamp = 2;
+  repeated LiveSticker liveStickers = 3;
+}
+
+// 房间公告审核提示消息
+// MSG_TYPE_COMMON
+// MsgTypeName live.roomAnnouncement.audit
+message LiveRoomAnnouncementAuditMsg {
+  string state = 1; //"approved" | "rejected"
+  string id = 2; // 公告id
+  string msg = 3; // 房间公告内容已审核通过 | 房间公告内容违反社区规范已被驳回，请重新提交
+}
+
+message LiveSticker {
+  string id = 1;
+  string templateId = 2;
+  int64 version = 3;
+  string content = 4;
+  Position position = 5;
+  string giftId = 6;
+  string giftIcon = 7;
+}
+
+message Position {
+  float x = 1;
+  float y = 2;
+}
+
+// MSG_TYPE_COMMON
+// MsgTypeName live.sticker.audit
+message LiveStickerAuditMsg {
+  string status = 1; // submit | approve | reject
+  string msg = 2; // "贴纸已提交审核，稍后返回结果" | "恭喜！贴纸审核通过，已展示给直播间观众" | "贴纸审核未通过，请重新编辑后提交"
+}
+
+// 随机pk超时
+// To: pk发起人
+// MSG_TYPE_COMMON
+// MsgTypeName live.pk.seek.timeout
+message PkSeekTimeout {
+  string seekId = 1;
+}
+
+message PlayerInfo {
+  string userId = 1;
+  string roomId = 2;
+  string liveId = 3;
+  string channel = 4; // 仅主播可见，非主播留空
+  string channelKey = 5; // 仅本人可见，非本人留空
+  uint64 point = 6; // pk值
+  string userName = 7; // 用户信息(pk.created消息有效)
+  string imageUrl = 8; // 头像(pk.created消息有效)
+  int64  winTimes = 9; // 连胜次数
+  repeated PkContributor contributors = 10;
+  double bountyAmount = 11; // 赏金金额
+  bool muted = 12; //静音
+}
+
+message PkInfo {
+  string id = 1;
+  string stage = 2;
+  int64 createdTs = 3;
+  int64 playingStageStartTs = 4;
+  int32 playingStageDuration = 5;
+  int64 punishmentStageStartTs = 6;
+  int32 PunishmentStageDuration = 7;
+  string appId = 8;
+  repeated PlayerInfo players = 9;
+  bool isTied = 10;
+  string winnerId = 11;
+  bool isOnceMore = 12;
+  string category = 13;
+  string categoryV2 = 14; // category弃用
+  string bountyId = 15; // 赏金赛Id
+  PkPlayingBuffInfo playingBuffInfo = 16;
+}
+
+// msgTypeName：live.pk.playingBuff
+message PkPlayingBuffInfo {
+  string type = 1;
+  string text = 2;
+  int64 startTs = 3;
+  int32 duration = 4;
+  bool showCountdown = 5;
+}
+
+// pk创建
+// To: 双方主播和观众
+// MSG_TYPE_COMMON
+// MsgTypeName live.pk.created
+message PkCreated {
+  PkInfo pk = 1;
+  string bulletChatMessage = 2;
+}
+
+// pk开始（pk双方都加入RTC房间并通知后端后）
+// To: 双方主播和观众
+// MSG_TYPE_COMMON
+// MsgTypeName live.pk.start
+message PkStart {
+  PkInfo pk = 1;
+  PkExecuteConfig executeConfig = 2;
+}
+
+message PkContributor {
+  string userId = 1;
+  string name = 2;
+  string image = 3;
+  uint64 point = 4;
+}
+
+message PkUserPoints {
+  string userId = 1;
+  uint64 points = 2;
+  repeated PkContributor contributions = 3;
+}
+
+// pk比分 (客户端收到该消息不要再通过http接口拉pk信息)
+// To: 双方主播和观众
+// MSG_TYPE_COMMON
+// MsgTypeName live.pk.points
+message PkPoints {
+  string pkId = 1;
+  repeated PkUserPoints points = 2;
+  PkExecuteInfo executeInfo = 3;
+  int64 serverTimeTs = 10;
+}
+
+// pk结果
+// To: 双方主播和观众
+// MSG_TYPE_COMMON
+// MsgTypeName live.pk.result
+message PkResult {
+  PkInfo pk = 1;
+  UserInfo mvpUser = 2;
+  PkEndType endType = 4;
+  int64 serverTimeTs = 10;
+}
+
+// pk结束
+// To: 双方主播和观众
+// MSG_TYPE_COMMON
+// MsgTypeName live.pk.end
+message PkEnd {
+  PkInfo pk = 1;
+  bool isLeave = 2;
+  string leaveUserId = 3;
+}
+
+// pk惩罚特效通知
+// To: 负方主播
+// MSG_TYPE_COMMON
+// MsgTypeName live.pk.punishment.motion
+message PkPunishmentMotion {
+  string pkId = 1;
+  string motionId = 2; // 惩罚动画id，动画内容在live-settings中
+  UserInfo mvpUser = 3;
+}
+
+// CDN转推失败通知
+// To: 出问题都主播
+// MSG_TYPE_COMMON
+// MsgTypeName live.pk.push.cdn.fail
+message PkPushCdnFail {
+  string pkId = 1;
+  string errcode = 2;
+}
+
+// PK邀请通知
+// To: 被邀请方
+// MSG_TYPE_COMMON
+// MsgTypeName live.pk.invite.notify
+message PkInviteNotify {
+  string pkInviteId = 1;
+  string fromUserId = 2;
+  bool isOnceMore = 3;
+}
+
+// PK取消通知
+// To: 被邀请方
+// MSG_TYPE_COMMON
+// MsgTypeName live.pk.invite.canceled
+message PkInviteCanceled {
+  string pkInviteId = 1;
+}
+
+// PK拒绝通知
+// To: 被拒绝方
+// MSG_TYPE_COMMON
+// MsgTypeName live.pk.invite.rejected
+message PkInviteRejected {
+  string pkInviteId = 1;
+}
+
+// PK惩罚选择通知
+// To: mvp
+// MSG_TYPE_COMMON
+// MsgTypeName live.pk.punishment.select
+message PkPunishmentSelect {
+  string pkId = 1;
+  UserInfo mvpUser = 2; //mvp用户等级信息
+}
+
+// PK惩罚选择结果通知
+// To: 双方房间广播
+// MSG_TYPE_COMMON
+// MsgTypeName live.pk.punishment.selected
+message PkPunishmentSelected {
+  string pkId = 1;
+  template.TemplateData tempdata = 2;
+}
+
+// mvp广播
+// To: 胜利方房间广播
+// MSG_TYPE_COMMON
+// MsgTypeName live.pk.mvp
+message PkMvp {
+  string pkId = 1;
+  template.TemplateData tempdata = 2;
+}
+
+// pk 静音 ｜ 取消静音
+// To: 主动静音方的主播观众
+// MSG_TYPE_COMMON
+// MsgTypeName live.pk.mute
+message PkMute {
+  string pkId = 1;
+  bool muted = 2;
+}
+
+message UserProfile {
+  string pictureUrl = 1; // 用户头像
+  bool maskMode = 2;
+  Mask mask = 3;
+  userMask.UserMask userMask = 4;
+}
+
+message Call {
+  string id = 1; // 连麦id
+  string liveId = 2; // 直播id
+  string state = 3; // 连麦状态
+  string source = 4; // 邀请/申请
+  int64 userSendRewardPoint = 5; // 本场送出的心动值
+  int64 userRecvRewardPoint = 6; // 本场收到的心动值
+  int32 intendPosition = 7; // 用户申请的麦位
+  int32 position = 8; // 分配的麦位
+  bool mutedByUser = 9; // 用户静音
+  bool mutedByAnchor = 10; // 主播静音
+  string userId = 11; // 副麦用户id
+  string userName = 12; // 副麦用户名
+  UserProfile userProfile = 13; // 副麦其他用户信息
+  string anchorUserId = 14; // 主播用户id
+  string anchorUserName = 15; // 主播用户名
+  UserProfile anchorUserProfile = 16; // 主播其他用户信息
+  string opState = 17; // 连麦申请状态
+  string inviteId = 18; // 邀请id, 邀请通知
+  bool isAway = 19; // 是否暂时离开麦位，如切后台，断网
+  string hangupReason = 20; // 连麦挂断原因
+
+}
+
+enum CallMessageType {
+  settingSwitchOpen = 0; // 开启连麦       to 直播间所有人
+  settingSwitchClose = 1; // 关闭连麦       to 直播间所有人
+  anchorVoiceInvited = 2; // 连麦邀请       to 被邀请用户
+  userVoiceApplied = 3; // 连麦申请       to 主播
+  userVoiceCanceled = 4; // 取消连麦申请    to 主播
+  voiceCreate = 5; // 开始建立连麦    to 被邀请用户&主播
+  voiceSuccess = 6; // 连麦成功        to 直播间所有人
+  voiceFail = 7; // 连麦失败        to 被邀请用户&主播
+  userGoAway = 8; // 副麦暂时离开     to 直播间所有人
+  userComeBack = 9; // 副麦离开后回来   to 直播间所有人
+  anchorHangUp = 10; // 连麦结束(主播)   to 直播间所有人
+  userHangUp = 11; // 连麦结束(用户)   to 直播间所有人
+  anchorSwitchToVideoInvited = 12; // 视频邀请        to 被邀请用户
+  anchorSwitchToVideoCanceled = 13; // 用户取消视频邀请  to 被邀请用户
+  videoCreate = 14; // 接受视频邀请     to 主播&被邀请副麦
+  userSwitchToVideoRejected = 15; // 拒绝视频邀请     to 主播
+  videoSuccess = 16; // 视频连麦成功     to 直播间所有人
+  videoFail = 17; // 视频连麦失败     to 主播&被邀请副麦
+  userSwitchToVideoNotExpected = 18; // 直播间所有人
+  anchorSwitchToVoice = 19; // 视频->音频(主播) to 直播间所有人
+  userSwitchToVoice = 20; // 视频->音频(用户) to 直播间所有人
+  anchorMute = 21; // 主播静音         to 直播间所有人
+  anchorUnmute = 22; // 主播取消静音     to 直播间所有人
+  userMute = 23; // 用户静音         to 直播间所有人
+  userUnmute = 24; // 用户取消静音     to 直播间所有人
+  videoReadyToStart = 25; // 视频即将接通,    to 直播间所有人
+  userSwitchToVideoCanceled = 26; // 用户取消视频邀请  to 主播
+  userToVoiceNotExpected = 27; // 不该上音频位
+  userLeaveRoom = 28; // 用户退出了房间
+  userLeaveRoomByKick = 29; // 用户被提出了房间
+  hangupException = 30; // 服务端异常挂断
+}
+
+// 连线相关消息, type = CallMessageType 对应的int值
+message CallMessage {
+  int32 type = 1;
+  Call call = 2;
+  template.TemplateData templateData = 3; // 渲染模板
+  string bulletText = 4; // 弹幕信息, 不为空, 客户端就展示
+}
+
+// 推流清晰度优化
+message LiveUpdateVideoQuality {
+  string userId = 1; // 主播id
+  string roomId = 2; // 房间号
+  string liveId = 3; // 直播id
+}
+
+// 拉流端无感重拉
+message LiveUpdatePullVideoQuality {
+  string userId = 1; // 主播id
+  string roomId = 2; // 房间号
+  string liveId = 3; // 直播id
+}
+
+/*-------------------------------------以下为语音房连线消息--------------------------------*/
+
+message BossModeInfo {
+  int64 popularity = 1;
+  int64 contribution = 2;
+}
+
+message VoiceCall {
+  string id = 1; // 连线id
+  string voiceLiveId = 2; // 语音房直播id
+  string state = 3; // 连线状态
+  string source = 4; // 邀请/申请
+  int64 userSendRewardPoint = 5; // 本场送出的心动值
+  int64 userRecvRewardPoint = 6; // 本场收到的心动值
+  int32 intendPosition = 7; // 用户申请的麦位
+  int32 position = 8; // 分配的麦位
+  bool mutedByUser = 9; // 用户静音
+  bool mutedByAnchor = 10; // 主播静音
+  string userId = 11; // 副麦用户id
+  string userName = 12; // 副麦用户名
+  UserProfile userProfile = 13; // 副麦其他用户信息
+  string anchorUserId = 14; // 主播用户id
+  string anchorUserName = 15; // 主播用户名
+  UserProfile anchorUserProfile = 16; // 主播其他用户信息
+  string inviteId = 17; // 邀请id, 邀请通知
+  bool isAway = 18; // 是否暂时离开麦位，如切后台，断网
+  string hangupReason = 19; // 连线挂断原因
+  string role = 20; // 副麦角色
+  AwayReason awayReason = 21; // 离开原因
+  int64 startTime = 22; // 开始时间
+  bool  fromManager = 23; // 管理员 邀请/抱下麦
+  string managerUserid = 24; // 管理员的id
+  string managerUserName = 25; // 管理员的昵称
+  UserProfile managerUserProfile = 26; // 管理员其他信息
+  BossModeInfo bossModeInfo = 27;
+  CallEffectConfig callEffect = 28; // 麦位动效信息
+  repeated string userNameGradientColors = 29;
+
+}
+message CallEffectConfig {
+  string verticalBg = 1; // 竖屏背景图
+  string horizontalBg = 2; // 横屏背景图
+  string defaultIcon = 3; // 默认图标
+  string muteIcon = 4; // 静音图标
+  string verticalVoicingUrl = 5; // 竖屏语音中svga
+  string horizontalVoicingUrl = 6; // 横屏语音中svga
+  string circleVoicingUrl = 7; // 扩散光效语音中svga
+}
+enum AwayReason {
+  nil = 0; // 空值
+  userReport = 1; // 客户端主动上报的离开
+  connClose = 2; // 长链断开
+}
+
+// 语音房连线相关消息, type = VoiceCallMessageType 对应的int值
+message VoiceCallMessage {
+  enum Type {
+    voiceInvited = 0; // 连线邀请        被邀请用户
+    voiceApprove = 1; // 主播同意        副麦
+    voiceApplied = 2; // 连线申请        主播
+    voiceCanceled = 3; // 取消连线申请     主播
+    goAway = 4; // 副麦暂时离开     直播间所有人
+    comeBack = 5; // 副麦离开后回来   直播间所有人
+    voiceSuccess = 6; // 连线成功        直播间所有人
+    anchorMute = 7; // 主播静音        直播间所有人
+    anchorUnmute = 8; // 主播取消静音    直播间所有人
+    anchorHangUp = 9; // 连线结束(主播)  直播间所有人
+    userMute = 10; // 用户静音       直播间所有人
+    userUnmute = 11; // 用户取消静音    直播间所有人
+    userHangUp = 12; // 连线结束(用户)  直播间所有人
+    serverHangup = 13; // 服务端异常挂断  直播间所有人
+    voiceInviteRejected = 14; //用户拒绝上麦邀请
+    userChangeSize = 15; //切换麦位顺序
+    reject = 16; //拒绝连麦申请
+  }
+  int32 type = 1;
+  VoiceCall call = 2;
+  template.TemplateData templateData = 3; // 渲染模板, 不为空, 客户端就展示
+  string bulletText = 4; // 弹窗信息, 不为空, 客户端就展示
+}
+message Mask {
+  string color = 1;
+  string icon = 2;
+  string gender = 3;
+}
+
+
+//语音房在线人数
+//msgTypeName = live.voice-room.room-info
+message RoomInfo {
+  string roomId = 1; //房间 Id
+  string liveId = 2; //直播 Id
+  int64 memberCount = 3; //在线人数
+}
+
+//语音房副麦心动值
+//msgTypeName = live.reward.point.info
+message LiveRewardPointInfo {
+  string roomId = 1;
+  string liveId = 2;
+  uint64 rewardPoint = 3; //主播心动值
+  message CallRewardPoint {//副麦心动值
+    string userId = 1;
+    uint64 rewardPoint = 2;
+  }
+  repeated CallRewardPoint callRewardPoints = 4;
+}
+
+// messageType = live.schema.chat
+message LiveSchemaChatMessage {
+  string       schema = 1; // 要跳转的schema
+  template.TemplateData templateData = 2; // 要展示的文字
+}
+/*-------------------------------------以上为语音房连线消息--------------------------------*/
+
+// msgTypeName := "live.voiceRoom.updateTopic"
+message VoiceRoomTopicUpdate {
+  string roomId = 1;
+  string title = 2;
+  Topic topic = 3;
+  UserInfo anchor = 4;
+  UserInfo manager = 5;
+  template.TemplateData tempdata = 6;
+}
+message Topic {
+  string id = 1;
+  string name = 2;
+}
+message VoiceLiveFollowShipApplyMessage {
+  VoiceLiveMaskModeFollowApplyInfo apply = 1;
+  template.TemplateData templateData = 2; // 渲染模板, 不为空, 客户端就展示
+}
+
+message VoiceLiveMaskModeFollowApplyInfo {
+  string liveId = 1;
+  string userId = 2;
+  string otherUserId = 3;
+}
+
+message SchemePopup {
+  string  scheme = 1; // 跳转scheme
+  int64 delay = 2; // 延迟执行时间 单位 s
+  string   uniqueId = 3; //唯一Id，去重
+}
+
+/*-----------------官方频道 End----------*/
+
+/*-----------------用户主播任务 Start----------*/
+
+// msgTypeName = "livetricks:anchor.daily.task"
+// 更新主播任务
+message AnchorDailyTaskMessage {
+  enum Type {
+    updateTask = 0;
+    updateButton = 1;
+  }
+  int32  type = 1;
+  string anchorId = 2;
+}
+
+// msgTypeName = "livetricks:user.daily.task"
+// 更新用户任务
+message UserDailyTaskMessage {
+  enum Type {
+    updateTask = 0;
+    updateButton = 1;
+  }
+  int32  type = 1;
+  string userId = 2;
+}
+
+/*-----------------用户主播任务 End----------*/
+
+/*
+  语音房玩法库 长链接消息
+*/
+message VoiceLiveGame {
+  string gameId = 1;
+  string liveId = 2;
+  enum Action {
+    start = 0;
+    stop = 1;
+    switchTextLibItem = 2;
+    switchGame = 3;
+    switchStage = 4;
+    restart = 5;
+  }
+  Action action = 3;
+}
+
+//---------------------------------------- 语音房猜歌长链 ---------------------------------------
+// 通知房间用户游戏状态更改
+// MSG_TYPE_COMMON
+// MsgTypeName: live.game.voiceSongGameStatusNotice
+message VoiceSongGameStatusNotice {
+  string anchorUserId = 1;
+  string roomId = 2;
+  string liveId = 3;
+  string gameId = 4;
+  int64 type = 5; //1-本歌曲结束； 2-游戏结束;
+  int64 endType = 6;
+  template.TemplateData tempdata = 7; // 模版ID
+}
+
+enum VoiceSongGameStatus {
+  NONE = 0;
+  SINGLE_SONG_END = 1;
+  SONG_GAME_END = 2;
+}
+
+enum VoiceSongGameEndType {
+  //1:正常结束；(Done) 2:主播手动结束；(Stop/Leave) 3:异常结束
+  DONE = 0;
+  NORMAL_END = 1;
+  ADVANCE_BACK_END = 2;
+}
+
+// 通知房间用户开始猜歌
+// MSG_TYPE_COMMON
+// MsgTypeName: live.game.voiceSongGameUserNotice
+message VoiceSongGameUserNotice {
+  string gameId = 1;              //游戏 id（start_game 创建的那个）
+  string songId = 2;          //歌曲id
+  string songName = 3;        //歌曲名称
+  string artist = 4;          //歌手
+  string sourceUrl = 5;       //资源地址
+  repeated VoiceAnswerOption answerOptions = 6;    //选项
+  int64 songIndex = 7;        //歌曲序号
+  int64 songShowAnswerOptionsDuration = 8;    //播放10秒展示答题卡
+  int64 songShowAnswerLastSecond = 9;         //倒数3秒展示正确答案
+  int64 countdown = 10;   //每局开始倒计时
+  repeated string countdownTips = 11;   //["记得调大音量更容易猜对~"],
+  int64 songDuration = 12;
+  bool end = 13;
+}
+
+//猜歌选项
+message VoiceAnswerOption {
+  string name = 1;
+  bool correct = 2;
+}
+//---------------------------------------- 语音房猜歌长链 ---------------------------------------
+
+message PkExecuteConfig {
+  bool  enable = 1;
+  int64 prepareStageDuration = 2; // 准备时长
+  int64 noticeStageDuration = 3; // 预告时长
+  int64 continuousExecutedDuration = 4; // 斩杀需要持续的时长
+  int64 executeLine = 5; // 斩杀线
+}
+
+message PkExecuteInfo {
+  bool executed = 1; // 是否开启斩杀
+  string executeUserId = 2; // 斩杀方
+  string executedUserId = 3; // 被斩杀方
+  int64 executedStartTs = 4; // 斩杀开始时间
+  int64 executedEndTs = 5; // 斩杀结束时间
+}
+
+
+enum PkEndType {
+  system = 0; // 正常结束
+  executed = 15;  // 斩杀结束
+}
+
+message SchemaJumpMessage{
+  string userID = 1;
+  string liveID = 2;
+  string roomID = 3;
+  string schema = 4; // 跳转 schema
+  template.TemplateData templateData = 5;
+}
+
+message VoiceMemberUpdate {
+  enum UpdateType {
+    Add = 0;
+    Remove = 1;
+    Count = 3; // 新增 代表只更新成员数量
+  }
+  UpdateType type = 1;
+  string memberId = 2;
+  userMask.UserMask userMask = 3;
+  int64 total = 4; // 成员数量
+}
+
+//----------------------语音房公告----------------------------
+//主播端 messageType: live.voiceRoom.announcementAudit
+enum Operate {
+  reject = 0; // 拒绝
+  approve = 1; // 通过
+}
+
+message AnnouncementAudit {
+  string roomId = 1; // 房间id
+  Operate operate = 2; // 审核结果
+  string notifyMessage = 3; // 弹窗提示文案
+  template.TemplateData templateData = 4; // 聊聊消息
+  string announcement = 5; // 最新的房间公告(通过后展示新的)
+}
+
+//观众端 messageType: live.voiceRoom.updateAnnouncement
+message VoiceRoomAnnouncementUpdate {
+  string roomId = 1; // 房间id
+  template.TemplateData templateData = 2; // 聊聊消息
+  string announcement = 3; // 最新的房间公告(通过后展示新的)
+}
+//----------------------语音房公告----------------------------
+
+// msgType: voiceLive.chatGroup.inviteCreate
+message VoiceChatGroupInviteCreate {
+  string userId = 1;
+  string liveId = 2;
+  template.TemplateData templateData = 3;
+}
+
+// msgType: voiceLive.chatGroupApply
+message VoiceChatGroupApply {
+  enum Action {
+    approve = 0;
+  }
+  Action action = 1;
+  string applyUserId = 2;
+  string liveId = 3;
+  string applyId = 4;
+  string userName = 5;
+  template.TemplateData templateData = 6;
+}
+//-----------------------------语音房优质房主激励------------------------------
+// 语音房顶部动画效果
+message VoiceLiveTopEffectMessage {
+  string roomId = 1;
+  string userName = 2;
+  string avatarUrl = 3;
+  string title = 4;
+  string titleColor = 5;
+  string content = 6;
+  string contentColor = 7;
+  string backgroundUrl = 8;
+  int64 duration = 9;
+  string schema = 10;
+}
+
+message VoiceLiveHighQualityTagMessage {
+  enum HighQualityTagState {
+    on = 0;  // 优质标签点亮
+    off = 1;  // 优质标签熄灭
+  }
+  enum HighQualityTagAction {
+    tagStateChange = 0; // 优质标签状态变更
+    guideTag = 1;       // 优质标签引导气泡
+  }
+  string roomId = 1;
+  string liveId = 2;
+  HighQualityTagState state = 3;
+  HighQualityTagAction action = 4;
+  string text = 5;
+  string schema = 6;
+  bool showTag = 7;      // 是否展示标签
+}
+
+// 语音房内推送入场条消息
+message VoiceLiveEnterRoomEffectMessage {
+  string roomId = 1;
+  string liveId = 2;
+  string userName = 3;
+  string userAvatar = 4;
+  string resourceId = 5;
+  string subTitle = 6;
+  string schema = 7;
+  int64  duration = 8;
+}
+
+// msgTypeName = "tricks.voice.virtual.avatar.init.notice"
+// 设置虚拟头像消息
+message VoiceVirtualAvatarInitNoticeMessage {
+  userMask.UserMask userMask = 1;
+  string title = 2;
+  string content = 3;
+  template.TemplateData templateData = 4;
+}
+
+//-----------------------------语音房优质房主激励------------------------------
+
+// msgTypeName: voice.trick.settle.guide
+message VoiceSettleGuideMessage {
+  repeated string avatars = 1; // 头像
+  string   title = 2; // 标题
+  repeated string tags = 3; // 标签
+}
+
+
+// ----------------------------语音房左上角榜单入口刷新长链------------------------------
+// msgTypeName: voice.leaderboard.refresh
+message RefreshVoiceRoomLeaderboard {
+  string roomId = 1;
+}
+// msgTypeName = "live.gift.giftWallRefresh"
+message GiftWallRefresh {
+}

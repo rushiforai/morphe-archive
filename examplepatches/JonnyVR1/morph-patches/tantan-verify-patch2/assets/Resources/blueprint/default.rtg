@@ -1,0 +1,614 @@
+MOXB<?xml version="1.0" encoding="GB2312"?>
+<GraphContainer>
+ <Graph Id="06497c4f46c00000" Type="0" AutoRun="1" Order="0">
+	<GraphNode Id="06497c4f46c00001" Title="Node_06497c4f46c00001" Type="GraphNode.Schema.Filter" EnableState="1" Tip=""/>
+	<GraphNode Id="0649a39c40000000" Title="OriginInput" Type="GraphNode.BaseNode.OriginInputSampler" EnableState="1" Tip="">
+	 <GraphPin Id="0649a39c40000001" Name="FilterOriginInputSampler" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.OriginInputSampler" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="06609d1489400000" PinId="0956651b23c00234"/>
+	 </GraphPin>
+	</GraphNode>
+	<GraphNode Id="0649a7446b400000" Title="OriginInput" Type="GraphNode.BaseNode.OriginInputSampler" EnableState="1" Tip="">
+	 <GraphPin Id="0649a7446b400001" Name="FilterOriginInputSampler" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.OriginInputSampler" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="06609d4939000000" PinId="0956651b23c001fe"/>
+	 </GraphPin>
+	</GraphNode>
+	<GraphNode Id="064d4f4bb9400000" Title="BeautiFxData" Type="GraphNode.BaseNode.Variable.BeautiFxModifier" EnableState="1" Tip="">
+	 <GraphPin Id="064d4f4bb9400001" Name="BeautiFxModifier" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.BeautiFxModifier" PinAcceptNodeType="GraphNode.BaseNode.Variable.BeautiFxGetter" PinCategory="RenderEffect" PinSubCategory="Beauty Fx modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="064d4f51c3000000" PinId="064d4f51c3000001"/>
+		<PinLink NodeId="064d4f752e000000" PinId="064d4f752e000001"/>
+		<PinLink NodeId="064d4f90b4000000" PinId="064d4f90b4000001"/>
+		<PinLink NodeId="064d4fa41ac00000" PinId="064d4fa41ac00001"/>
+		<PinLink NodeId="064d4fe1be800000" PinId="064d4fe1be800001"/>
+		<PinLink NodeId="078839c493c00000" PinId="078839c493c00001"/>
+		<PinLink NodeId="07823a479dc00000" PinId="07823a479dc00001"/>
+		<PinLink NodeId="0791b00fffc00004" PinId="0791b00fffc00002"/>
+		<PinLink NodeId="0791b014e1c00004" PinId="0791b014e1c00002"/>
+		<PinLink NodeId="0791b015dbc00004" PinId="0791b015dbc00002"/>
+		<PinLink NodeId="0791b015dbc00009" PinId="0791b015dbc00007"/>
+		<PinLink NodeId="07e3a30835c00004" PinId="07e3a30835c00002"/>
+		<PinLink NodeId="07e3a2e7fbc00004" PinId="07e3a2e7fbc00002"/>
+		<PinLink NodeId="0867aa29d3800000" PinId="0867aa29d3800001"/>
+	 </GraphPin>
+	 <Variant Type="XVT_NONE"/>
+	</GraphNode>
+	<GraphNode Id="064d4f51c3000000" Title="BeautiFxGetter" Type="GraphNode.BaseNode.Variable.BeautiFxGetter" EnableState="1" Tip="">
+	 <GraphPin Id="064d4f51c3000001" Name="Face Entity" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.BeautiFxGetter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Face entity getter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="064d4f4bb9400000" PinId="064d4f4bb9400001"/>
+	 </GraphPin>
+	 <GraphPin Id="064d4f51c3000002" Name="BeautiFxGetter" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.BeautiFxGetter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="06609d4939000000" PinId="0956651b23c00200"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="0"/>
+	 <ParamGetter/>
+	 <BeautiFxGetter ParamName="white_v1" ParamType="1"/>
+	</GraphNode>
+	<GraphNode Id="064d4f752e000000" Title="BeautiFxGetter" Type="GraphNode.BaseNode.Variable.BeautiFxGetter" EnableState="1" Tip="">
+	 <GraphPin Id="064d4f752e000001" Name="Face Entity" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.BeautiFxGetter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Face entity getter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="064d4f4bb9400000" PinId="064d4f4bb9400001"/>
+	 </GraphPin>
+	 <GraphPin Id="064d4f752e000002" Name="BeautiFxGetter" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.BeautiFxGetter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="06609d3d08400000" PinId="0956651b23c00210"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="0"/>
+	 <ParamGetter/>
+	 <BeautiFxGetter ParamName="white_v2" ParamType="1"/>
+	</GraphNode>
+	<GraphNode Id="064d4f90b4000000" Title="BeautiFxGetter" Type="GraphNode.BaseNode.Variable.BeautiFxGetter" EnableState="1" Tip="">
+	 <GraphPin Id="064d4f90b4000001" Name="Face Entity" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.BeautiFxGetter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Face entity getter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="064d4f4bb9400000" PinId="064d4f4bb9400001"/>
+	 </GraphPin>
+	 <GraphPin Id="064d4f90b4000002" Name="BeautiFxGetter" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.BeautiFxGetter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="06609d27b1800000" PinId="0956651b23c00224"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="0"/>
+	 <ParamGetter/>
+	 <BeautiFxGetter ParamName="white_v3" ParamType="1"/>
+	</GraphNode>
+	<GraphNode Id="064d4fa41ac00000" Title="BeautiFxGetter" Type="GraphNode.BaseNode.Variable.BeautiFxGetter" EnableState="1" Tip="">
+	 <GraphPin Id="064d4fa41ac00001" Name="Face Entity" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.BeautiFxGetter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Face entity getter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="064d4f4bb9400000" PinId="064d4f4bb9400001"/>
+	 </GraphPin>
+	 <GraphPin Id="064d4fa41ac00002" Name="BeautiFxGetter" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.BeautiFxGetter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="06609d27b1800000" PinId="0956651b23c00225"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="0"/>
+	 <ParamGetter/>
+	 <BeautiFxGetter ParamName="degree_v3" ParamType="1"/>
+	</GraphNode>
+	<GraphNode Id="064d4fe1be800000" Title="BeautiFxGetter" Type="GraphNode.BaseNode.Variable.BeautiFxGetter" EnableState="1" Tip="">
+	 <GraphPin Id="064d4fe1be800001" Name="Face Entity" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.BeautiFxGetter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Face entity getter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="064d4f4bb9400000" PinId="064d4f4bb9400001"/>
+	 </GraphPin>
+	 <GraphPin Id="064d4fe1be800002" Name="BeautiFxGetter" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.BeautiFxGetter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="06609d1489400000" PinId="0956651b23c00237"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="0"/>
+	 <ParamGetter/>
+	 <BeautiFxGetter ParamName="smooth_v1" ParamType="1"/>
+	</GraphNode>
+	<GraphNode Id="06609d1489400000" Title="smooth_node_v1" Type="GraphNode.BaseNode.Graph.SubGraph" EnableState="1" Tip="" AssetPath="Resources/blueprint/old_smooth_skin.sg" SubGraphId="06609d1489c00019">
+	 <GraphPin Id="0956651b23c00233" Name="CommonFilter_0(CommonFilter_06609d1489c00003)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="CommonFilter_0" ToolTip="filter-input pin-Slot:0" LinkNodeIdInSubGraph="06609d1489c00003" LinkPinNameInSubGraph="CommonFilter_0" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Filter" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="06609d27b1800000" PinId="0956651b23c00228"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c00234" Name="FilterOriginInputSampler(CommonFilter_06609d1489c00003)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FilterOriginInputSampler" ToolTip="Original Input Sampler input pin" LinkNodeIdInSubGraph="06609d1489c00003" LinkPinNameInSubGraph="FilterOriginInputSampler" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.OriginInputSampler" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0649a39c40000000" PinId="0649a39c40000001"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c00235" Name="FaceModifier(CommonFilter_06609d1489c00003)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FaceModifier" ToolTip="Setup a face-entity/face-warp modifier(0) for this filter node." LinkNodeIdInSubGraph="06609d1489c00003" LinkPinNameInSubGraph="FaceModifier" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.FaceEntityModifier|GraphNode.BaseNode.Variable.FaceEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.BodyEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupFaceVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupPupilVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeuEyesAreaVBIB" PinCategory="RenderEffect" PinSubCategory="Face entity Modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c00236" Name="ScriptModifier_0(CommonFilter_06609d1489c00003)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="ScriptModifier_0" ToolTip="Setup a script modifier for this node." LinkNodeIdInSubGraph="06609d1489c00003" LinkPinNameInSubGraph="ScriptModifier_0" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Script" PinCategory="Utility" PinSubCategory="Script Modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c00237" Name="parameter(CommonFilter_06609d1489c00003)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Parameter" ToolTip="" LinkNodeIdInSubGraph="06609d1489c00003" LinkPinNameInSubGraph="parameter" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="064d4fe1be800000" PinId="064d4fe1be800002"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c00238" Name="CommonFilter(CommonFilter_06609d1489c00003)" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="CommonFilter" ToolTip="Default filter-output pin" LinkNodeIdInSubGraph="06609d1489c00003" LinkPinNameInSubGraph="CommonFilter" LinkPinDirInSubGraph="1" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0788a6f6adc00000" PinId="0956654715c0001a"/>
+		<PinLink NodeId="0788a6f6adc00000" PinId="0956654715c00014"/>
+	 </GraphPin>
+	 <SubNodeIdMap SubGraphNodeOldId="0652a3d096800017" SubGraphNodeNewId="06609d1489c00017"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0652a3d096800014" SubGraphNodeNewId="06609d1489c00014"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0652a3d096800011" SubGraphNodeNewId="06609d1489c00011"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0652a3d09680000f" SubGraphNodeNewId="06609d1489c0000f"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0652a3d09680000e" SubGraphNodeNewId="06609d1489c0000e"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0652a3d09680000c" SubGraphNodeNewId="06609d1489c0000c"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0652a3d096800003" SubGraphNodeNewId="06609d1489c00003"/>
+	</GraphNode>
+	<GraphNode Id="06609d27b1800000" Title="white_node_v3" Type="GraphNode.BaseNode.Graph.SubGraph" EnableState="1" Tip="" AssetPath="Resources/blueprint/white_v3.sg" SubGraphId="06609d27b2000023">
+	 <GraphPin Id="0956651b23c00221" Name="CommonFilter_0(CommonFilter_06609d27b200000e)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="CommonFilter_0" ToolTip="filter-input pin-Slot:0" LinkNodeIdInSubGraph="06609d27b200000e" LinkPinNameInSubGraph="CommonFilter_0" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Filter" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="06609d3d08400000" PinId="0956651b23c00211"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c00222" Name="FilterOriginInputSampler(CommonFilter_06609d27b200000e)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FilterOriginInputSampler" ToolTip="Original Input Sampler input pin" LinkNodeIdInSubGraph="06609d27b200000e" LinkPinNameInSubGraph="FilterOriginInputSampler" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.OriginInputSampler" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c00223" Name="FaceModifier(CommonFilter_06609d27b200000e)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FaceModifier" ToolTip="Setup a face-entity/face-warp modifier(0) for this filter node." LinkNodeIdInSubGraph="06609d27b200000e" LinkPinNameInSubGraph="FaceModifier" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.FaceEntityModifier|GraphNode.BaseNode.Variable.FaceEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.BodyEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupFaceVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupPupilVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeuEyesAreaVBIB" PinCategory="RenderEffect" PinSubCategory="Face entity Modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c00224" Name="whitenDegree(CommonFilter_06609d27b200000e)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Whiten Degree" ToolTip="" LinkNodeIdInSubGraph="06609d27b200000e" LinkPinNameInSubGraph="whitenDegree" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="064d4f90b4000000" PinId="064d4f90b4000002"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c00225" Name="redDegree(CommonFilter_06609d27b200000e)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Red Degree" ToolTip="" LinkNodeIdInSubGraph="06609d27b200000e" LinkPinNameInSubGraph="redDegree" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="064d4fa41ac00000" PinId="064d4fa41ac00002"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c00226" Name="whitenDegreeVersion(CommonFilter_06609d27b200000e)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Whiten Degree Version" ToolTip="" LinkNodeIdInSubGraph="06609d27b200000e" LinkPinNameInSubGraph="whitenDegreeVersion" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="07e3a30835c00004" PinId="07e3a30835c00003"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c00227" Name="redDegreeVersion(CommonFilter_06609d27b200000e)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Red Degree Version" ToolTip="" LinkNodeIdInSubGraph="06609d27b200000e" LinkPinNameInSubGraph="redDegreeVersion" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="07e3a2e7fbc00004" PinId="07e3a2e7fbc00003"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c00228" Name="CommonFilter(CommonFilter_06609d27b200000e)" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="CommonFilter" ToolTip="Default filter-output pin" LinkNodeIdInSubGraph="06609d27b200000e" LinkPinNameInSubGraph="CommonFilter" LinkPinDirInSubGraph="1" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="06609d1489400000" PinId="0956651b23c00233"/>
+	 </GraphPin>
+	 <SubNodeIdMap SubGraphNodeOldId="0652b08c5a800022" SubGraphNodeNewId="06609d27b2000022"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0652b08c5a800020" SubGraphNodeNewId="06609d27b2000020"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0652b08c5a80001e" SubGraphNodeNewId="06609d27b200001e"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0652b08c5a80001c" SubGraphNodeNewId="06609d27b200001c"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0652b08c5a80000e" SubGraphNodeNewId="06609d27b200000e"/>
+	 <SubNodeIdMap SubGraphNodeOldId="07e3a3a85dc00009" SubGraphNodeNewId="07e3a3c1c1c00000"/>
+	 <SubNodeIdMap SubGraphNodeOldId="07e3a3a85dc0000c" SubGraphNodeNewId="07e3a3c1c1c00001"/>
+	 <SubNodeIdMap SubGraphNodeOldId="07e3a4b6dfc00005" SubGraphNodeNewId="07e3a4eb9bc00000"/>
+	 <SubNodeIdMap SubGraphNodeOldId="07e3a4b6dfc00008" SubGraphNodeNewId="07e3a4eb9bc00001"/>
+	 <SubNodeIdMap SubGraphNodeOldId="07e3a4b6dfc0000b" SubGraphNodeNewId="07e3a4eb9bc00002"/>
+	 <SubNodeIdMap SubGraphNodeOldId="07e3a4b6dfc0000e" SubGraphNodeNewId="07e3a4eb9bc00003"/>
+	 <SubNodeIdMap SubGraphNodeOldId="07e3a4b6dfc00011" SubGraphNodeNewId="07e3a4eb9bc00004"/>
+	</GraphNode>
+	<GraphNode Id="06609d3d08400000" Title="white_node_v2" Type="GraphNode.BaseNode.Graph.SubGraph" EnableState="1" Tip="" AssetPath="Resources/blueprint/white_v2.sg" SubGraphId="06609d3d08c0001b">
+	 <GraphPin Id="0956651b23c0020d" Name="CommonFilter_0(CommonFilter_06609d3d08c00003)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="CommonFilter_0" ToolTip="filter-input pin-Slot:0" LinkNodeIdInSubGraph="06609d3d08c00003" LinkPinNameInSubGraph="CommonFilter_0" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Filter" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="06609d4939000000" PinId="0956651b23c00201"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c0020e" Name="FilterOriginInputSampler(CommonFilter_06609d3d08c00003)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FilterOriginInputSampler" ToolTip="Original Input Sampler input pin" LinkNodeIdInSubGraph="06609d3d08c00003" LinkPinNameInSubGraph="FilterOriginInputSampler" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.OriginInputSampler" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c0020f" Name="FaceModifier(CommonFilter_06609d3d08c00003)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FaceModifier" ToolTip="Setup a face-entity/face-warp modifier(0) for this filter node." LinkNodeIdInSubGraph="06609d3d08c00003" LinkPinNameInSubGraph="FaceModifier" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.FaceEntityModifier|GraphNode.BaseNode.Variable.FaceEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.BodyEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupFaceVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupPupilVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeuEyesAreaVBIB" PinCategory="RenderEffect" PinSubCategory="Face entity Modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c00210" Name="alpha(CommonFilter_06609d3d08c00003)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="alpha" ToolTip="" LinkNodeIdInSubGraph="06609d3d08c00003" LinkPinNameInSubGraph="alpha" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="064d4f752e000000" PinId="064d4f752e000002"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c00211" Name="CommonFilter(CommonFilter_06609d3d08c00003)" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="CommonFilter" ToolTip="Default filter-output pin" LinkNodeIdInSubGraph="06609d3d08c00003" LinkPinNameInSubGraph="CommonFilter" LinkPinDirInSubGraph="1" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="06609d27b1800000" PinId="0956651b23c00221"/>
+	 </GraphPin>
+	 <SubNodeIdMap SubGraphNodeOldId="0652b08c5a000028" SubGraphNodeNewId="06609d3d08c0001a"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0652b08c5a000026" SubGraphNodeNewId="06609d3d08c00018"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0652b08c5a000024" SubGraphNodeNewId="06609d3d08c00016"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0652b08c5a000022" SubGraphNodeNewId="06609d3d08c00014"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0652b08c5a000020" SubGraphNodeNewId="06609d3d08c00012"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0652b08c5a00001e" SubGraphNodeNewId="06609d3d08c00010"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0652b08c5a00001c" SubGraphNodeNewId="06609d3d08c0000e"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0652b08c5a000011" SubGraphNodeNewId="06609d3d08c00003"/>
+	</GraphNode>
+	<GraphNode Id="06609d4939000000" Title="white_node_v1" Type="GraphNode.BaseNode.Graph.SubGraph" EnableState="1" Tip="" AssetPath="Resources/blueprint/white_v1.sg" SubGraphId="06609d4939800019">
+	 <GraphPin Id="0956651b23c001fe" Name="FilterOriginInputSampler(CommonFilter_06609d493980000a)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FilterOriginInputSampler" ToolTip="Original Input Sampler input pin" LinkNodeIdInSubGraph="06609d493980000a" LinkPinNameInSubGraph="FilterOriginInputSampler" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.OriginInputSampler" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0649a7446b400000" PinId="0649a7446b400001"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c001ff" Name="FaceModifier(CommonFilter_06609d493980000a)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FaceModifier" ToolTip="Setup a face-entity/face-warp modifier(0) for this filter node." LinkNodeIdInSubGraph="06609d493980000a" LinkPinNameInSubGraph="FaceModifier" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.FaceEntityModifier|GraphNode.BaseNode.Variable.FaceEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.BodyEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupFaceVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupPupilVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeuEyesAreaVBIB" PinCategory="RenderEffect" PinSubCategory="Face entity Modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c00200" Name="skinLightingScale(CommonFilter_06609d493980000a)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Skin Lighting Scale" ToolTip="" LinkNodeIdInSubGraph="06609d493980000a" LinkPinNameInSubGraph="skinLightingScale" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="064d4f51c3000000" PinId="064d4f51c3000002"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c00201" Name="CommonFilter(CommonFilter_06609d493980000a)" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="CommonFilter" ToolTip="Default filter-output pin" LinkNodeIdInSubGraph="06609d493980000a" LinkPinNameInSubGraph="CommonFilter" LinkPinDirInSubGraph="1" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="06609d3d08400000" PinId="0956651b23c0020d"/>
+	 </GraphPin>
+	 <SubNodeIdMap SubGraphNodeOldId="065274505b800019" SubGraphNodeNewId="06609d4939800018"/>
+	 <SubNodeIdMap SubGraphNodeOldId="065274505b800017" SubGraphNodeNewId="06609d4939800016"/>
+	 <SubNodeIdMap SubGraphNodeOldId="065274505b800015" SubGraphNodeNewId="06609d4939800014"/>
+	 <SubNodeIdMap SubGraphNodeOldId="065274505b800013" SubGraphNodeNewId="06609d4939800012"/>
+	 <SubNodeIdMap SubGraphNodeOldId="065274505b80000b" SubGraphNodeNewId="06609d493980000a"/>
+	</GraphNode>
+	<GraphNode Id="069add336ac00000" Title="OriginInput" Type="GraphNode.BaseNode.OriginInputSampler" EnableState="1" Tip="">
+	 <GraphPin Id="069add336ac00001" Name="FilterOriginInputSampler" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="FilterOriginInputSampler" ToolTip="Original Input Sampler output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.OriginInputSampler" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0788a6f6adc00000" PinId="0956654715c0001d"/>
+		<PinLink NodeId="0788a6f6adc00000" PinId="0956654715c0001b"/>
+		<PinLink NodeId="0788a6f6adc00000" PinId="0956654715c00015"/>
+	 </GraphPin>
+	</GraphNode>
+	<GraphNode Id="07823a479dc00000" Title="BeautiFxGetter" Type="GraphNode.BaseNode.Variable.BeautiFxGetter" EnableState="1" Tip="">
+	 <GraphPin Id="07823a479dc00001" Name="Face Entity" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Face Entity" ToolTip="Get parameter from the face-entity">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.BeautiFxGetter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Face entity getter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="064d4f4bb9400000" PinId="064d4f4bb9400001"/>
+	 </GraphPin>
+	 <GraphPin Id="07823a479dc00002" Name="BeautiFxGetter" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="BeautiFxGetter" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.BeautiFxGetter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0788a6f6adc00000" PinId="0956654715c0001f"/>
+		<PinLink NodeId="0788a6f6adc00000" PinId="0956654715c00018"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="0"/>
+	 <ParamGetter/>
+	 <BeautiFxGetter ParamName="sharpen_v3" ParamType="1"/>
+	</GraphNode>
+	<GraphNode Id="0783004335c00000" Title="Node_0783004335c00000" Type="GraphNode.BaseNode.Graph.SubGraph" EnableState="1" Tip=""/>
+	<GraphNode Id="07830081b5c00000" Title="Node_07830081b5c00000" Type="GraphNode.BaseNode.Graph.SubGraph" EnableState="1" Tip=""/>
+	<GraphNode Id="078300bb53c00000" Title="Node_078300bb53c00000" Type="GraphNode.BaseNode.Graph.SubGraph" EnableState="1" Tip=""/>
+	<GraphNode Id="078839c493c00000" Title="BeautiFxGetter" Type="GraphNode.BaseNode.Variable.BeautiFxGetter" EnableState="1" Tip="">
+	 <GraphPin Id="078839c493c00001" Name="Face Entity" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Face Entity" ToolTip="Get parameter from the face-entity">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.BeautiFxGetter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Face entity getter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="064d4f4bb9400000" PinId="064d4f4bb9400001"/>
+	 </GraphPin>
+	 <GraphPin Id="078839c493c00002" Name="BeautiFxGetter" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Blur Intensity" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.BeautiFxGetter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0788a6f6adc00000" PinId="0956654715c0001e"/>
+		<PinLink NodeId="0788a6f6adc00000" PinId="0956654715c00017"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="0"/>
+	 <ParamGetter/>
+	 <BeautiFxGetter ParamName="smooth_v3" ParamType="1"/>
+	</GraphNode>
+	<GraphNode Id="0788a6f6adc00000" Title="smooth_node_v3" Type="GraphNode.BaseNode.Graph.SubGraph" EnableState="1" Tip="" AssetPath="Resources/blueprint/skin_smooth_v3.sg" SubGraphId="0788a70747c00001">
+	 <GraphPin Id="0956654715c00014" Name="SkinV3ScreenFilter_1(SkinV3ScreenFilter_0788a70747c00002)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="SkinV3ScreenFilter_1" ToolTip="filter-input pin-Slot:1" LinkNodeIdInSubGraph="0788a70747c00002" LinkPinNameInSubGraph="SkinV3ScreenFilter_1" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Filter" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="06609d1489400000" PinId="0956651b23c00238"/>
+	 </GraphPin>
+	 <GraphPin Id="0956654715c00015" Name="FilterOriginInputSampler(SkinV3ScreenFilter_0788a70747c00002)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FilterOriginInputSampler" ToolTip="Original Input Sampler input pin" LinkNodeIdInSubGraph="0788a70747c00002" LinkPinNameInSubGraph="FilterOriginInputSampler" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.OriginInputSampler" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="069add336ac00000" PinId="069add336ac00001"/>
+	 </GraphPin>
+	 <GraphPin Id="0956654715c00016" Name="FaceModifier(SkinV3ScreenFilter_0788a70747c00002)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FaceModifier" ToolTip="Setup a face-entity/face-warp modifier(0) for this filter node." LinkNodeIdInSubGraph="0788a70747c00002" LinkPinNameInSubGraph="FaceModifier" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.FaceEntityModifier|GraphNode.BaseNode.Variable.FaceEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.BodyEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupFaceVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupPupilVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeuEyesAreaVBIB" PinCategory="RenderEffect" PinSubCategory="Face entity Modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <GraphPin Id="0956654715c00017" Name="intensity(SkinV3ScreenFilter_0788a70747c00002)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Blur Intensity" ToolTip="" LinkNodeIdInSubGraph="0788a70747c00002" LinkPinNameInSubGraph="intensity" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="078839c493c00000" PinId="078839c493c00002"/>
+	 </GraphPin>
+	 <GraphPin Id="0956654715c00018" Name="sharpen(SkinV3ScreenFilter_0788a70747c00002)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Sharpen Intensity" ToolTip="" LinkNodeIdInSubGraph="0788a70747c00002" LinkPinNameInSubGraph="sharpen" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="07823a479dc00000" PinId="07823a479dc00002"/>
+	 </GraphPin>
+	 <GraphPin Id="0956654715c00019" Name="mutil_face_enable(SkinV3ScreenFilter_0788a70747c00002)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Mutil Face Enable" ToolTip="" LinkNodeIdInSubGraph="0788a70747c00002" LinkPinNameInSubGraph="mutil_face_enable" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0867aa29d3800000" PinId="0867aa29d3800002"/>
+	 </GraphPin>
+	 <GraphPin Id="0956654715c0001a" Name="SkinV3BoxFilter_0(SkinV3BoxFilter_0788a70747c0000d)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="SkinV3BoxFilter_0" ToolTip="filter-input pin-Slot:0" LinkNodeIdInSubGraph="0788a70747c0000d" LinkPinNameInSubGraph="SkinV3BoxFilter_0" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Filter" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="06609d1489400000" PinId="0956651b23c00238"/>
+	 </GraphPin>
+	 <GraphPin Id="0956654715c0001b" Name="FilterOriginInputSampler(SkinV3BoxFilter_0788a70747c0000d)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FilterOriginInputSampler" ToolTip="Original Input Sampler input pin" LinkNodeIdInSubGraph="0788a70747c0000d" LinkPinNameInSubGraph="FilterOriginInputSampler" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.OriginInputSampler" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="069add336ac00000" PinId="069add336ac00001"/>
+	 </GraphPin>
+	 <GraphPin Id="0956654715c0001c" Name="FaceModifier(SkinV3BoxFilter_0788a70747c0000d)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FaceModifier" ToolTip="Setup a face-entity/face-warp modifier(0) for this filter node." LinkNodeIdInSubGraph="0788a70747c0000d" LinkPinNameInSubGraph="FaceModifier" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.FaceEntityModifier|GraphNode.BaseNode.Variable.FaceEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.BodyEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupFaceVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupPupilVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeuEyesAreaVBIB" PinCategory="RenderEffect" PinSubCategory="Face entity Modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <GraphPin Id="0956654715c0001d" Name="FilterOriginInputSampler(skin_smooth_face_node_0788a70747c00023)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FilterOriginInputSampler" ToolTip="Original Input Sampler input pin" LinkNodeIdInSubGraph="0788a70747c00023" LinkPinNameInSubGraph="FilterOriginInputSampler" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.OriginInputSampler" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="069add336ac00000" PinId="069add336ac00001"/>
+	 </GraphPin>
+	 <GraphPin Id="0956654715c0001e" Name="intensity2(skin_smooth_face_node_0788a70747c00023)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Blur Intensity" ToolTip="" LinkNodeIdInSubGraph="0788a70747c00023" LinkPinNameInSubGraph="intensity2" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="078839c493c00000" PinId="078839c493c00002"/>
+	 </GraphPin>
+	 <GraphPin Id="0956654715c0001f" Name="sharpen(skin_smooth_face_node_0788a70747c00023)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Sharpen Intensity" ToolTip="" LinkNodeIdInSubGraph="0788a70747c00023" LinkPinNameInSubGraph="sharpen" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="07823a479dc00000" PinId="07823a479dc00002"/>
+	 </GraphPin>
+	 <GraphPin Id="0956654715c00020" Name="skin_smooth_face_node(skin_smooth_face_node_0788a70747c00023)" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="skin_smooth_face_node" ToolTip="Default filter-output pin" LinkNodeIdInSubGraph="0788a70747c00023" LinkPinNameInSubGraph="skin_smooth_face_node" LinkPinDirInSubGraph="1" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0791af44dfc00000" PinId="0956651b23c002a7"/>
+		<PinLink NodeId="0791af44dfc00000" PinId="0956651b23c002a0"/>
+	 </GraphPin>
+	 <GraphPin Id="0956654715c00021" Name="Face Index(Makeup-face VBIB data modifier_095661e7cdc00000)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Face Index" ToolTip="Set face index" LinkNodeIdInSubGraph="095661e7cdc00000" LinkPinNameInSubGraph="Face Index" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupFaceVBIB" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="Face Index" PinDataType="8" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <SubNodeIdMap SubGraphNodeOldId="078eb26c17c00012" SubGraphNodeNewId="078eb277cfc00000"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0788396da9c00030" SubGraphNodeNewId="0788a70747c00002"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0788a6da5bc00030" SubGraphNodeNewId="0788a70747c00009"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0788396da9c00037" SubGraphNodeNewId="0788a70747c0000b"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0788396da9c00039" SubGraphNodeNewId="0788a70747c0000d"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0788396da9c00043" SubGraphNodeNewId="0788a70747c00017"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0788396da9c00045" SubGraphNodeNewId="0788a70747c00019"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0788396da9c00047" SubGraphNodeNewId="0788a70747c0001b"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0788396da9c00049" SubGraphNodeNewId="0788a70747c0001d"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0788396da9c0004b" SubGraphNodeNewId="0788a70747c0001f"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0788396da9c0004d" SubGraphNodeNewId="0788a70747c00021"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0788396da9c00023" SubGraphNodeNewId="0788a70747c00023"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0788a6da5bc0003a" SubGraphNodeNewId="0788a70747c0002b"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0788396da9c0002e" SubGraphNodeNewId="0788a70747c0002d"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0788a70747c00038" SubGraphNodeNewId="0788a72687c00000"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0867a995d9800008" SubGraphNodeNewId="0867a9d864000000"/>
+	 <SubNodeIdMap SubGraphNodeOldId="078eb26c17c0001d" SubGraphNodeNewId="078eb277cfc00001"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0956617f4fc00000" SubGraphNodeNewId="095661e7cdc00000"/>
+	 <SubNodeIdMap SubGraphNodeOldId="095661e7cdc00047" SubGraphNodeNewId="0956622459c00000"/>
+	</GraphNode>
+	<GraphNode Id="0791af44dfc00000" Title="face_lift" Type="GraphNode.BaseNode.Graph.SubGraph" EnableState="1" Tip="" AssetPath="Resources/blueprint/face_lift.sg" SubGraphId="0791af44dfc0005f">
+	 <GraphPin Id="0956651b23c002a0" Name="face_beauty_box_blur_0(face_beauty_box_blur_0791af44dfc00028)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="face_beauty_box_blur_0" ToolTip="filter-input pin-Slot:0" LinkNodeIdInSubGraph="0791af44dfc00028" LinkPinNameInSubGraph="face_beauty_box_blur_0" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Filter" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0788a6f6adc00000" PinId="0956654715c00020"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c002a1" Name="FilterOriginInputSampler(face_beauty_box_blur_0791af44dfc00028)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FilterOriginInputSampler" ToolTip="Original Input Sampler input pin" LinkNodeIdInSubGraph="0791af44dfc00028" LinkPinNameInSubGraph="FilterOriginInputSampler" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.OriginInputSampler" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0791af4cafc00000" PinId="0791af4cafc00001"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c002a2" Name="FaceModifier(face_beauty_box_blur_0791af44dfc00028)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FaceModifier" ToolTip="Setup a face-entity/face-warp modifier(0) for this filter node." LinkNodeIdInSubGraph="0791af44dfc00028" LinkPinNameInSubGraph="FaceModifier" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.FaceEntityModifier|GraphNode.BaseNode.Variable.FaceEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.BodyEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupFaceVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupPupilVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeuEyesAreaVBIB" PinCategory="RenderEffect" PinSubCategory="Face entity Modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c002a3" Name="ScriptModifier_0(face_beauty_box_blur_0791af44dfc00028)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="ScriptModifier_0" ToolTip="Setup a script modifier for this node." LinkNodeIdInSubGraph="0791af44dfc00028" LinkPinNameInSubGraph="ScriptModifier_0" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Script" PinCategory="Utility" PinSubCategory="Script Modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c002a4" Name="FilterOriginInputSampler(face_beauty_box_blur_0791af44dfc00033)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FilterOriginInputSampler" ToolTip="Original Input Sampler input pin" LinkNodeIdInSubGraph="0791af44dfc00033" LinkPinNameInSubGraph="FilterOriginInputSampler" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.OriginInputSampler" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0791af4cafc00000" PinId="0791af4cafc00001"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c002a5" Name="FaceModifier(face_beauty_box_blur_0791af44dfc00033)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FaceModifier" ToolTip="Setup a face-entity/face-warp modifier(0) for this filter node." LinkNodeIdInSubGraph="0791af44dfc00033" LinkPinNameInSubGraph="FaceModifier" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.FaceEntityModifier|GraphNode.BaseNode.Variable.FaceEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.BodyEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupFaceVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupPupilVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeuEyesAreaVBIB" PinCategory="RenderEffect" PinSubCategory="Face entity Modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c002a6" Name="ScriptModifier_0(face_beauty_box_blur_0791af44dfc00033)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="ScriptModifier_0" ToolTip="Setup a script modifier for this node." LinkNodeIdInSubGraph="0791af44dfc00033" LinkPinNameInSubGraph="ScriptModifier_0" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Script" PinCategory="Utility" PinSubCategory="Script Modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c002a7" Name="face_lift_beauty_01_0(face_lift_beauty_01_0791af44dfc0003e)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="face_lift_beauty_01_0" ToolTip="filter-input pin-Slot:0" LinkNodeIdInSubGraph="0791af44dfc0003e" LinkPinNameInSubGraph="face_lift_beauty_01_0" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Filter" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0788a6f6adc00000" PinId="0956654715c00020"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c002a8" Name="FilterOriginInputSampler(face_lift_beauty_01_0791af44dfc0003e)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FilterOriginInputSampler" ToolTip="Original Input Sampler input pin" LinkNodeIdInSubGraph="0791af44dfc0003e" LinkPinNameInSubGraph="FilterOriginInputSampler" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.OriginInputSampler" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0791af4cafc00000" PinId="0791af4cafc00001"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c002a9" Name="ScriptModifier_0(face_lift_beauty_01_0791af44dfc0003e)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="ScriptModifier_0" ToolTip="Setup a script modifier for this node." LinkNodeIdInSubGraph="0791af44dfc0003e" LinkPinNameInSubGraph="ScriptModifier_0" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Script" PinCategory="Utility" PinSubCategory="Script Modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c002aa" Name="eyebrightenIntensity(face_lift_beauty_01_0791af44dfc0003e)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Bright Eye Intensity" ToolTip="" LinkNodeIdInSubGraph="0791af44dfc0003e" LinkPinNameInSubGraph="eyebrightenIntensity" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0791b00fffc00004" PinId="0791b00fffc00003"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c002ab" Name="teethWhitenIntensity(face_lift_beauty_01_0791af44dfc0003e)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Teeth Whiten Intensity" ToolTip="" LinkNodeIdInSubGraph="0791af44dfc0003e" LinkPinNameInSubGraph="teethWhitenIntensity" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0791b014e1c00004" PinId="0791b014e1c00003"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c002ac" Name="removePouchIntensity(face_lift_beauty_01_0791af44dfc0003e)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Remove Pouch Intensity" ToolTip="" LinkNodeIdInSubGraph="0791af44dfc0003e" LinkPinNameInSubGraph="removePouchIntensity" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0791b015dbc00004" PinId="0791b015dbc00003"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c002ad" Name="removeNasolabialFoldsIntensity(face_lift_beauty_01_0791af44dfc0003e)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Remove NasolabialFolds Intensity" ToolTip="" LinkNodeIdInSubGraph="0791af44dfc0003e" LinkPinNameInSubGraph="removeNasolabialFoldsIntensity" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0791b015dbc00009" PinId="0791b015dbc00008"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c002ae" Name="Face Index(face_lift_data_01_079e0c7ad1c00000)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Face Index" ToolTip="Set face index" LinkNodeIdInSubGraph="079e0c7ad1c00000" LinkPinNameInSubGraph="Face Index" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupFaceVBIB" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="Face Index" PinDataType="8" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c002af" Name="FilterOriginInputSampler(face_lift_beauty_02_08678b7931800000)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FilterOriginInputSampler" ToolTip="Original Input Sampler input pin" LinkNodeIdInSubGraph="08678b7931800000" LinkPinNameInSubGraph="FilterOriginInputSampler" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.OriginInputSampler" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0791af4cafc00000" PinId="0791af4cafc00001"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c002b0" Name="ScriptModifier_0(face_lift_beauty_02_08678b7931800000)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="ScriptModifier_0" ToolTip="Setup a script modifier for this node." LinkNodeIdInSubGraph="08678b7931800000" LinkPinNameInSubGraph="ScriptModifier_0" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Script" PinCategory="Utility" PinSubCategory="Script Modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c002b1" Name="eyebrightenIntensity(face_lift_beauty_02_08678b7931800000)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Bright Eye Intensity" ToolTip="" LinkNodeIdInSubGraph="08678b7931800000" LinkPinNameInSubGraph="eyebrightenIntensity" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0791b00fffc00004" PinId="0791b00fffc00003"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c002b2" Name="teethWhitenIntensity(face_lift_beauty_02_08678b7931800000)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Teeth Whiten Intensity" ToolTip="" LinkNodeIdInSubGraph="08678b7931800000" LinkPinNameInSubGraph="teethWhitenIntensity" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0791b014e1c00004" PinId="0791b014e1c00003"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c002b3" Name="removePouchIntensity(face_lift_beauty_02_08678b7931800000)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Remove Pouch Intensity" ToolTip="" LinkNodeIdInSubGraph="08678b7931800000" LinkPinNameInSubGraph="removePouchIntensity" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0791b015dbc00004" PinId="0791b015dbc00003"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c002b4" Name="removeNasolabialFoldsIntensity(face_lift_beauty_02_08678b7931800000)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Remove NasolabialFolds Intensity" ToolTip="" LinkNodeIdInSubGraph="08678b7931800000" LinkPinNameInSubGraph="removeNasolabialFoldsIntensity" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0791b015dbc00009" PinId="0791b015dbc00008"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c002b5" Name="FilterOriginInputSampler(face_lift_beauty_03_08678c55c1000000)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FilterOriginInputSampler" ToolTip="Original Input Sampler input pin" LinkNodeIdInSubGraph="08678c55c1000000" LinkPinNameInSubGraph="FilterOriginInputSampler" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.OriginInputSampler" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0791af4cafc00000" PinId="0791af4cafc00001"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c002b6" Name="ScriptModifier_0(face_lift_beauty_03_08678c55c1000000)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="ScriptModifier_0" ToolTip="Setup a script modifier for this node." LinkNodeIdInSubGraph="08678c55c1000000" LinkPinNameInSubGraph="ScriptModifier_0" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Script" PinCategory="Utility" PinSubCategory="Script Modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c002b7" Name="eyebrightenIntensity(face_lift_beauty_03_08678c55c1000000)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Bright Eye Intensity" ToolTip="" LinkNodeIdInSubGraph="08678c55c1000000" LinkPinNameInSubGraph="eyebrightenIntensity" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0791b00fffc00004" PinId="0791b00fffc00003"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c002b8" Name="teethWhitenIntensity(face_lift_beauty_03_08678c55c1000000)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Teeth Whiten Intensity" ToolTip="" LinkNodeIdInSubGraph="08678c55c1000000" LinkPinNameInSubGraph="teethWhitenIntensity" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0791b014e1c00004" PinId="0791b014e1c00003"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c002b9" Name="removePouchIntensity(face_lift_beauty_03_08678c55c1000000)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Remove Pouch Intensity" ToolTip="" LinkNodeIdInSubGraph="08678c55c1000000" LinkPinNameInSubGraph="removePouchIntensity" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0791b015dbc00004" PinId="0791b015dbc00003"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c002ba" Name="removeNasolabialFoldsIntensity(face_lift_beauty_03_08678c55c1000000)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Remove NasolabialFolds Intensity" ToolTip="" LinkNodeIdInSubGraph="08678c55c1000000" LinkPinNameInSubGraph="removeNasolabialFoldsIntensity" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0791b015dbc00009" PinId="0791b015dbc00008"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c002bb" Name="face_lift_beauty_03(face_lift_beauty_03_08678c55c1000000)" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="face_lift_beauty_03" ToolTip="Default filter-output pin" LinkNodeIdInSubGraph="08678c55c1000000" LinkPinNameInSubGraph="face_lift_beauty_03" LinkPinDirInSubGraph="1" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0791af4cafc00006" PinId="0791af4cafc00007"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c002bc" Name="Face Index(face_lift_data_02_08678db32c000000)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Face Index" ToolTip="Set face index" LinkNodeIdInSubGraph="08678db32c000000" LinkPinNameInSubGraph="Face Index" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupFaceVBIB" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="Face Index" PinDataType="8" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <GraphPin Id="0956651b23c002bd" Name="Face Index(face_lift_data_03_08678db32c000001)" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Face Index" ToolTip="Set face index" LinkNodeIdInSubGraph="08678db32c000001" LinkPinNameInSubGraph="Face Index" LinkPinDirInSubGraph="0" LinkPinDrivenInSubGraph="0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupFaceVBIB" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="Face Index" PinDataType="8" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <SubNodeIdMap SubGraphNodeOldId="0783150f6dc00002" SubGraphNodeNewId="0791af44dfc00028"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0783153c59c000a4" SubGraphNodeNewId="0791af44dfc0002e"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0783154bf9c0001b" SubGraphNodeNewId="0791af44dfc00030"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0791a72aa7c00004" SubGraphNodeNewId="0791af44dfc00031"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0791a7605dc0000a" SubGraphNodeNewId="0791af44dfc00033"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0791a76b1bc0000a" SubGraphNodeNewId="0791af44dfc0003a"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0791a76b1bc0000d" SubGraphNodeNewId="0791af44dfc0003c"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0791a7941fc0000a" SubGraphNodeNewId="0791af44dfc0003e"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0791a79eddc00011" SubGraphNodeNewId="0791af44dfc0004b"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0791a79eddc00014" SubGraphNodeNewId="0791af44dfc0004d"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0791a79eddc00017" SubGraphNodeNewId="0791af44dfc0004f"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0791a79eddc0001a" SubGraphNodeNewId="0791af44dfc00051"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0791a79eddc0001d" SubGraphNodeNewId="0791af44dfc00053"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0791a79eddc00020" SubGraphNodeNewId="0791af44dfc00055"/>
+	 <SubNodeIdMap SubGraphNodeOldId="0791a79eddc00023" SubGraphNodeNewId="0791af44dfc00057"/>
+	 <SubNodeIdMap SubGraphNodeOldId="079e0c6361c00000" SubGraphNodeNewId="079e0c7ad1c00000"/>
+	 <SubNodeIdMap SubGraphNodeOldId="08678b709e00000d" SubGraphNodeNewId="08678b7931800000"/>
+	 <SubNodeIdMap SubGraphNodeOldId="08678b7942000000" SubGraphNodeNewId="08678b7b0e000000"/>
+	 <SubNodeIdMap SubGraphNodeOldId="08678b7942000003" SubGraphNodeNewId="08678b7b0e000001"/>
+	 <SubNodeIdMap SubGraphNodeOldId="08678b7942000006" SubGraphNodeNewId="08678b7b0e000002"/>
+	 <SubNodeIdMap SubGraphNodeOldId="08678b7942000009" SubGraphNodeNewId="08678b7b0e000003"/>
+	 <SubNodeIdMap SubGraphNodeOldId="08678b794200000c" SubGraphNodeNewId="08678b7b0e000004"/>
+	 <SubNodeIdMap SubGraphNodeOldId="08678b794200000f" SubGraphNodeNewId="08678b7b0e000005"/>
+	 <SubNodeIdMap SubGraphNodeOldId="08678b7942000012" SubGraphNodeNewId="08678b7b0e000006"/>
+	 <SubNodeIdMap SubGraphNodeOldId="08678c4e41c0001a" SubGraphNodeNewId="08678c55c1000000"/>
+	 <SubNodeIdMap SubGraphNodeOldId="08678c55d6c00000" SubGraphNodeNewId="08678c59d0800000"/>
+	 <SubNodeIdMap SubGraphNodeOldId="08678c55d6c00003" SubGraphNodeNewId="08678c59d0800001"/>
+	 <SubNodeIdMap SubGraphNodeOldId="08678c55d6c00006" SubGraphNodeNewId="08678c59d0800002"/>
+	 <SubNodeIdMap SubGraphNodeOldId="08678c55d6c00009" SubGraphNodeNewId="08678c59d0800003"/>
+	 <SubNodeIdMap SubGraphNodeOldId="08678c55d6c0000c" SubGraphNodeNewId="08678c59d0800004"/>
+	 <SubNodeIdMap SubGraphNodeOldId="08678c55d6c0000f" SubGraphNodeNewId="08678c59d0800005"/>
+	 <SubNodeIdMap SubGraphNodeOldId="08678c55d6c00012" SubGraphNodeNewId="08678c59d0800006"/>
+	 <SubNodeIdMap SubGraphNodeOldId="08678ce274800000" SubGraphNodeNewId="08678db32c000000"/>
+	 <SubNodeIdMap SubGraphNodeOldId="08678cf04ec00000" SubGraphNodeNewId="08678db32c000001"/>
+	</GraphNode>
+	<GraphNode Id="0791af4cafc00000" Title="OriginInput" Type="GraphNode.BaseNode.OriginInputSampler" EnableState="1" Tip="">
+	 <GraphPin Id="0791af4cafc00001" Name="FilterOriginInputSampler" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="FilterOriginInputSampler" ToolTip="Original Input Sampler output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.OriginInputSampler" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0791af44dfc00000" PinId="0956651b23c002b5"/>
+		<PinLink NodeId="0791af44dfc00000" PinId="0956651b23c002af"/>
+		<PinLink NodeId="0791af44dfc00000" PinId="0956651b23c002a8"/>
+		<PinLink NodeId="0791af44dfc00000" PinId="0956651b23c002a4"/>
+		<PinLink NodeId="0791af44dfc00000" PinId="0956651b23c002a1"/>
+	 </GraphPin>
+	</GraphNode>
+	<GraphNode Id="0791af4cafc00006" Title="FinalOutput" Type="GraphNode.BaseNode.FinalOutput" EnableState="1" Tip="">
+	 <GraphPin Id="0791af4cafc00007" Name="FilterFinalOutput" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FilterFinalOutput" ToolTip="Final filter chain input pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.FinalOutput" PinAcceptNodeType="GraphNode.BaseNode.Filter" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0791af44dfc00000" PinId="0956651b23c002bb"/>
+	 </GraphPin>
+	 <GraphPin Id="0791af4cafc00008" Name="FilterFinalOutput" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="FilterFinalOutput" ToolTip="Final filter chain output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.FinalOutput" PinAcceptNodeType="GraphNode.BaseNode.RenderProcess" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0791af4cafc00009" PinId="0791af4cafc0000a"/>
+	 </GraphPin>
+	</GraphNode>
+	<GraphNode Id="0791af4cafc00009" Title="RenderProcess" Type="GraphNode.BaseNode.RenderProcess" EnableState="1" Tip="" ProcessType="1" ProcessGraphRenderStrategy="37" RTName="" RTWidth="-1" RTHeight="-1" RTCpuReadable="-1">
+	 <GraphPin Id="0791af4cafc0000a" Name="FilterRenderProcess" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FilterRenderProcess" ToolTip="Render process input pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.RenderProcess" PinAcceptNodeType="GraphNode.BaseNode.FinalOutput" PinCategory="RenderEffect" PinSubCategory="Filter Render processor" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0791af4cafc00006" PinId="0791af4cafc00008"/>
+	 </GraphPin>
+	</GraphNode>
+	<GraphNode Id="0791b00fffc00004" Title="BeautiFxGetter" Type="GraphNode.BaseNode.Variable.BeautiFxGetter" EnableState="1" Tip="">
+	 <GraphPin Id="0791b00fffc00002" Name="Face Entity" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.BeautiFxGetter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Face entity getter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="064d4f4bb9400000" PinId="064d4f4bb9400001"/>
+	 </GraphPin>
+	 <GraphPin Id="0791b00fffc00003" Name="BeautiFxGetter" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.BeautiFxGetter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0791af44dfc00000" PinId="0956651b23c002b1"/>
+		<PinLink NodeId="0791af44dfc00000" PinId="0956651b23c002aa"/>
+		<PinLink NodeId="0791af44dfc00000" PinId="0956651b23c002b7"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="0"/>
+	 <ParamGetter/>
+	 <BeautiFxGetter ParamName="eyes_brighten" ParamType="1"/>
+	</GraphNode>
+	<GraphNode Id="0791b014e1c00004" Title="BeautiFxGetter" Type="GraphNode.BaseNode.Variable.BeautiFxGetter" EnableState="1" Tip="">
+	 <GraphPin Id="0791b014e1c00002" Name="Face Entity" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.BeautiFxGetter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Face entity getter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="064d4f4bb9400000" PinId="064d4f4bb9400001"/>
+	 </GraphPin>
+	 <GraphPin Id="0791b014e1c00003" Name="BeautiFxGetter" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.BeautiFxGetter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0791af44dfc00000" PinId="0956651b23c002b2"/>
+		<PinLink NodeId="0791af44dfc00000" PinId="0956651b23c002ab"/>
+		<PinLink NodeId="0791af44dfc00000" PinId="0956651b23c002b8"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="0"/>
+	 <ParamGetter/>
+	 <BeautiFxGetter ParamName="teeth_whiten" ParamType="1"/>
+	</GraphNode>
+	<GraphNode Id="0791b015dbc00004" Title="BeautiFxGetter" Type="GraphNode.BaseNode.Variable.BeautiFxGetter" EnableState="1" Tip="">
+	 <GraphPin Id="0791b015dbc00002" Name="Face Entity" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.BeautiFxGetter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Face entity getter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="064d4f4bb9400000" PinId="064d4f4bb9400001"/>
+	 </GraphPin>
+	 <GraphPin Id="0791b015dbc00003" Name="BeautiFxGetter" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.BeautiFxGetter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0791af44dfc00000" PinId="0956651b23c002b3"/>
+		<PinLink NodeId="0791af44dfc00000" PinId="0956651b23c002ac"/>
+		<PinLink NodeId="0791af44dfc00000" PinId="0956651b23c002b9"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="0"/>
+	 <ParamGetter/>
+	 <BeautiFxGetter ParamName="remove_pouch" ParamType="1"/>
+	</GraphNode>
+	<GraphNode Id="0791b015dbc00009" Title="BeautiFxGetter" Type="GraphNode.BaseNode.Variable.BeautiFxGetter" EnableState="1" Tip="">
+	 <GraphPin Id="0791b015dbc00007" Name="Face Entity" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.BeautiFxGetter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Face entity getter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="064d4f4bb9400000" PinId="064d4f4bb9400001"/>
+	 </GraphPin>
+	 <GraphPin Id="0791b015dbc00008" Name="BeautiFxGetter" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.BeautiFxGetter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0791af44dfc00000" PinId="0956651b23c002b4"/>
+		<PinLink NodeId="0791af44dfc00000" PinId="0956651b23c002ad"/>
+		<PinLink NodeId="0791af44dfc00000" PinId="0956651b23c002ba"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="0"/>
+	 <ParamGetter/>
+	 <BeautiFxGetter ParamName="remove_nasolabialFolds" ParamType="1"/>
+	</GraphNode>
+	<GraphNode Id="07e3a2e7fbc00004" Title="BeautiFxGetter" Type="GraphNode.BaseNode.Variable.BeautiFxGetter" EnableState="1" Tip="">
+	 <GraphPin Id="07e3a2e7fbc00002" Name="Face Entity" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.BeautiFxGetter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Face entity getter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="064d4f4bb9400000" PinId="064d4f4bb9400001"/>
+	 </GraphPin>
+	 <GraphPin Id="07e3a2e7fbc00003" Name="BeautiFxGetter" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.BeautiFxGetter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="06609d27b1800000" PinId="0956651b23c00227"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="0"/>
+	 <ParamGetter/>
+	 <BeautiFxGetter ParamName="degree_v3_sub_version" ParamType="1"/>
+	</GraphNode>
+	<GraphNode Id="07e3a30835c00004" Title="BeautiFxGetter" Type="GraphNode.BaseNode.Variable.BeautiFxGetter" EnableState="1" Tip="">
+	 <GraphPin Id="07e3a30835c00002" Name="Face Entity" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.BeautiFxGetter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Face entity getter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="064d4f4bb9400000" PinId="064d4f4bb9400001"/>
+	 </GraphPin>
+	 <GraphPin Id="07e3a30835c00003" Name="BeautiFxGetter" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.BeautiFxGetter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="06609d27b1800000" PinId="0956651b23c00226"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="0"/>
+	 <ParamGetter/>
+	 <BeautiFxGetter ParamName="white_v3_sub_version" ParamType="1"/>
+	</GraphNode>
+	<GraphNode Id="0867aa29d3800000" Title="BeautiFxGetter" Type="GraphNode.BaseNode.Variable.BeautiFxGetter" EnableState="1" Tip="">
+	 <GraphPin Id="0867aa29d3800001" Name="Face Entity" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Face Entity" ToolTip="Get parameter from the face-entity">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.BeautiFxGetter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Face entity getter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="064d4f4bb9400000" PinId="064d4f4bb9400001"/>
+	 </GraphPin>
+	 <GraphPin Id="0867aa29d3800002" Name="BeautiFxGetter" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="BeautiFxGetter" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.BeautiFxGetter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0788a6f6adc00000" PinId="0956654715c00019"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="0"/>
+	 <ParamGetter/>
+	 <BeautiFxGetter ParamName="mutil_face_enable" ParamType="1"/>
+	</GraphNode>
+ </Graph>
+</GraphContainer>

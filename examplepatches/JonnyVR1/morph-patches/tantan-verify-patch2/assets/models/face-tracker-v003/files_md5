@@ -1,0 +1,11 @@
+face-alignment-v331-i8/1102_mbv2_p1_eye.opt_bin.tnnproto:b38169d0c608fb1b6e984125c45723a6
+face-alignment-v331-i8/1102_mbv2_p1_eye.opt.tnnmodel:f20a6691bf09436049f96e777c3ad9c8
+face-alignment-v331-i8/1105_mbv2_eye_ch3.opt_bin.tnnproto:57d4aaccabff9f68e32c742bd6a6315a
+face-alignment-v331-i8/1105_mbv2_eye_ch3.opt.tnnmodel:07c31dc7dd0ccbc4f8969c013a73ebc1
+face-alignment-v331-i8/config_sparse.ini:3d9ba8f4b53858b8c16d0f01d40bbeec
+face-detector-v535-i8/acn_535_net2_36_bin.tnnproto:2616ec23d0215f7a730dd10e581f3c88
+face-detector-v535-i8/acn_535_net2_36.tnnmodel:9654e4af39bc2ea51acd6b2c35cca4e6
+face-detector-v535-i8/acn_536_net1_mobileone1000_bin.tnnproto:31dfe9caaef62f3c681ad1099cdf2d16
+face-detector-v535-i8/acn_536_net1_mobileone1000.tnnmodel:4924e2c6f949b580a1bc4f2351c1db28
+face-detector-v535-i8/config_detector.ini:e97c4281e1700acb5d7153b44bdbf07d
+yt_model_config.ini:b7cb3ec2d8f02d6bc386437b7fc7ebcc

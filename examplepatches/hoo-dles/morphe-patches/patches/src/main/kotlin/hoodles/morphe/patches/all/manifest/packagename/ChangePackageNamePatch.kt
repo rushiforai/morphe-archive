@@ -1,3 +1,8 @@
+/**
+ * Original code credited to Morphe:
+ * https://github.com/MorpheApp/morphe-patches/blob/main/patches/src/main/kotlin/app/morphe/patches/all/misc/packagename/ChangePackageNamePatch.kt
+ */
+
 package hoodles.morphe.patches.all.manifest.packagename
 
 import app.morphe.patcher.patch.Option

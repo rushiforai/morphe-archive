@@ -1,0 +1,762 @@
+[
+  [
+    {
+      "title": "磨皮",
+      "value": 0,
+      "sliderType": 0,
+      "type": "skin_smooth"
+    },
+    {
+      "title": "锐化",
+      "value": 0,
+      "sliderType": 0,
+      "type": "skin_sharpen"
+    },
+    {
+      "title": "美白",
+      "value": 0,
+      "sliderType": 0,
+      "type": "skin_whitening"
+    },
+    {
+      "title": "红润",
+      "value": 0,
+      "sliderType": 0,
+      "type": "skin_ruddy"
+    },
+    {
+      "title": "大眼",
+      "value": 0,
+      "sliderType": 0,
+      "type": "big_eye"
+    },
+    {
+      "title": "瘦脸",
+      "value": 0,
+      "sliderType": 0,
+      "type": "thin_face"
+    },
+    {
+      "title": "鼻子大小",
+      "value": 0,
+      "sliderType": 1,
+      "type": "nose_size"
+    },
+    {
+      "title": "脸宽",
+      "value": 0,
+      "sliderType": 0,
+      "type": "face_width"
+    },
+    {
+      "title": "削脸",
+      "value": 0,
+      "sliderType": 1,
+      "type": "jaw_shape"
+    },
+    {
+      "title": "短脸",
+      "value": 0,
+      "sliderType": 0,
+      "type": "shorten_face"
+    },
+    {
+      "title": "下巴",
+      "value": 0,
+      "sliderType": 1,
+      "type": "chin_length"
+    },
+    {
+      "title": "鼻子宽度",
+      "value": 0,
+      "sliderType": 1,
+      "type": "nose_width"
+    },
+    {
+      "title": "眼距",
+      "value": 0,
+      "sliderType": -1,
+      "type": "eye_distance"
+    },
+    {
+      "title": "嘴唇大小",
+      "value": 0,
+      "sliderType": 1,
+      "type": "mouth_size"
+    },
+    {
+      "title": "眼袋",
+      "value": 0,
+      "sliderType": 0,
+      "type": "remove_pouch"
+    },
+    {
+      "title": "额头",
+      "value": 0,
+      "sliderType": 1,
+      "type": "forehead"
+    },
+    {
+      "title": "眼睛角度",
+      "value": 0,
+      "sliderType": 1,
+      "type": "eye_tilt"
+    },
+    {
+      "title": "眼高",
+      "value": 0,
+      "sliderType": 0,
+      "type": "eye_height"
+    },
+    {
+      "title": "鼻高",
+      "value": 0,
+      "sliderType": 1,
+      "type": "nose_lift"
+    },
+    {
+      "title": "鼻梁",
+      "value": 0,
+      "sliderType": 1,
+      "type": "nose_ridge_width"
+    },
+    {
+      "title": "鼻尖",
+      "value": 0,
+      "sliderType": 1,
+      "type": "nose_tip_size"
+    },
+    {
+      "title": "嘴唇厚度",
+      "value": 0,
+      "sliderType": 1,
+      "type": "lip_thickness"
+    },
+    {
+      "title": "祛法令纹",
+      "value": 0,
+      "sliderType": 0,
+      "type": "remove_nasolabial_floads"
+    },
+    {
+      "title": "亮眼",
+      "value": 0.0,
+      "sliderType": 0,
+      "type": "eye_brighten"
+    },
+    {
+      "title": "白牙",
+      "value": 0,
+      "sliderType": 0,
+      "type": "teeth_whiten"
+    }
+  ],
+  [
+    {
+      "title": "磨皮",
+      "value": 0.33,
+      "sliderType": 0,
+      "type": "skin_smooth"
+    },
+    {
+      "title": "锐化",
+      "value": 0.7,
+      "sliderType": 0,
+      "type": "skin_sharpen"
+    },
+    {
+      "title": "美白",
+      "value": 0.52,
+      "sliderType": 0,
+      "type": "skin_whitening"
+    },
+    {
+      "title": "红润",
+      "value": 0.50,
+      "sliderType": 0,
+      "type": "skin_ruddy"
+    },
+    {
+      "title": "大眼",
+      "value": 0.25,
+      "sliderType": 0,
+      "type": "big_eye"
+    },
+    {
+      "title": "瘦脸",
+      "value": 0.4,
+      "sliderType": 0,
+      "type": "thin_face"
+    },
+    {
+      "title": "鼻子大小",
+      "value": 0.3,
+      "sliderType": 1,
+      "type": "nose_size"
+    },
+    {
+      "title": "脸宽",
+      "value": 0,
+      "sliderType": 0,
+      "type": "face_width"
+    },
+    {
+      "title": "削脸",
+      "value": 0,
+      "sliderType": 1,
+      "type": "jaw_shape"
+    },
+    {
+      "title": "短脸",
+      "value": 0,
+      "sliderType": 0,
+      "type": "shorten_face"
+    },
+    {
+      "title": "下巴",
+      "value": 0,
+      "sliderType": 1,
+      "type": "chin_length"
+    },
+    {
+      "title": "鼻子宽度",
+      "value": 0,
+      "sliderType": 1,
+      "type": "nose_width"
+    },
+    {
+      "title": "眼距",
+      "value": 0,
+      "sliderType": -1,
+      "type": "eye_distance"
+    },
+    {
+      "title": "嘴唇大小",
+      "value": 0,
+      "sliderType": 1,
+      "type": "mouth_size"
+    },
+    {
+      "title": "眼袋",
+      "value": 0,
+      "sliderType": 0,
+      "type": "remove_pouch"
+    },
+    {
+      "title": "额头",
+      "value": 0,
+      "sliderType": 1,
+      "type": "forehead"
+    },
+    {
+      "title": "眼睛角度",
+      "value": 0,
+      "sliderType": 1,
+      "type": "eye_tilt"
+    },
+    {
+      "title": "眼高",
+      "value": 0,
+      "sliderType": 0,
+      "type": "eye_height"
+    },
+    {
+      "title": "鼻高",
+      "value": 0,
+      "sliderType": 1,
+      "type": "nose_lift"
+    },
+    {
+      "title": "鼻梁",
+      "value": 0,
+      "sliderType": 1,
+      "type": "nose_ridge_width"
+    },
+    {
+      "title": "鼻尖",
+      "value": 0,
+      "sliderType": 1,
+      "type": "nose_tip_size"
+    },
+    {
+      "title": "嘴唇厚度",
+      "value": 0,
+      "sliderType": 1,
+      "type": "lip_thickness"
+    },
+    {
+      "title": "祛法令纹",
+      "value": 0,
+      "sliderType": 0,
+      "type": "remove_nasolabial_floads"
+    },
+    {
+      "title": "亮眼",
+      "value": 0.4,
+      "sliderType": 0,
+      "type": "eye_brighten"
+    },
+    {
+      "title": "白牙",
+      "value": 0.4,
+      "sliderType": 0,
+      "type": "teeth_whiten"
+    }
+  ],
+  [
+    {
+      "title": "磨皮",
+      "value": 0.46,
+      "sliderType": 0,
+      "type": "skin_smooth"
+    },
+    {
+      "title": "锐化",
+      "value": 0.7,
+      "sliderType": 0,
+      "type": "skin_sharpen"
+    },
+    {
+      "title": "美白",
+      "value": 0.52,
+      "sliderType": 0,
+      "type": "skin_whitening"
+    },
+    {
+      "title": "红润",
+      "value": 0.68,
+      "sliderType": 0,
+      "type": "skin_ruddy"
+    },
+    {
+      "title": "大眼",
+      "value": 0.5,
+      "sliderType": 0,
+      "type": "big_eye"
+    },
+    {
+      "title": "瘦脸",
+      "value": 0.25,
+      "sliderType": 0,
+      "type": "thin_face"
+    },
+    {
+      "title": "鼻子大小",
+      "value": 0.1,
+      "sliderType": 1,
+      "type": "nose_size"
+    },
+    {
+      "title": "脸宽",
+      "value": 0.29,
+      "sliderType": 0,
+      "type": "face_width"
+    },
+    {
+      "title": "削脸",
+      "value": -0.09,
+      "sliderType": 1,
+      "type": "jaw_shape"
+    },
+    {
+      "title": "短脸",
+      "value": 0.81,
+      "sliderType": 0,
+      "type": "shorten_face"
+    },
+    {
+      "title": "下巴",
+      "value": 0,
+      "sliderType": 1,
+      "type": "chin_length"
+    },
+    {
+      "title": "鼻子宽度",
+      "value": 0,
+      "sliderType": 1,
+      "type": "nose_width"
+    },
+    {
+      "title": "眼距",
+      "value": 0.09,
+      "sliderType": -1,
+      "type": "eye_distance"
+    },
+    {
+      "title": "嘴唇大小",
+      "value": 0.39,
+      "sliderType": 1,
+      "type": "mouth_size"
+    },
+    {
+      "title": "眼袋",
+      "value": 0,
+      "sliderType": 0,
+      "type": "remove_pouch"
+    },
+    {
+      "title": "额头",
+      "value": 1,
+      "sliderType": 1,
+      "type": "forehead"
+    },
+    {
+      "title": "眼睛角度",
+      "value": -0.2,
+      "sliderType": 1,
+      "type": "eye_tilt"
+    },
+    {
+      "title": "眼高",
+      "value": 0.35,
+      "sliderType": 0,
+      "type": "eye_height"
+    },
+    {
+      "title": "鼻高",
+      "value": 0,
+      "sliderType": 1,
+      "type": "nose_lift"
+    },
+    {
+      "title": "鼻梁",
+      "value": 0,
+      "sliderType": 1,
+      "type": "nose_ridge_width"
+    },
+    {
+      "title": "鼻尖",
+      "value": 0,
+      "sliderType": 1,
+      "type": "nose_tip_size"
+    },
+    {
+      "title": "嘴唇厚度",
+      "value": 0,
+      "sliderType": 1,
+      "type": "lip_thickness"
+    },
+    {
+      "title": "祛法令纹",
+      "value": 0,
+      "sliderType": 0,
+      "type": "remove_nasolabial_floads"
+    },
+    {
+      "title": "亮眼",
+      "value": 0.6,
+      "sliderType": 0,
+      "type": "eye_brighten"
+    },
+    {
+      "title": "白牙",
+      "value": 0.6,
+      "sliderType": 0,
+      "type": "teeth_whiten"
+    }
+  ],
+  [
+    {
+      "title": "磨皮",
+      "value": 0.55,
+      "sliderType": 0,
+      "type": "skin_smooth"
+    },
+    {
+      "title": "锐化",
+      "value": 0.7,
+      "sliderType": 0,
+      "type": "skin_sharpen"
+    },
+    {
+      "title": "美白",
+      "value": 0.52,
+      "sliderType": 0,
+      "type": "skin_whitening"
+    },
+    {
+      "title": "红润",
+      "value": 0.59,
+      "sliderType": 0,
+      "type": "skin_ruddy"
+    },
+    {
+      "title": "大眼",
+      "value": 0.49,
+      "sliderType": 0,
+      "type": "big_eye"
+    },
+    {
+      "title": "瘦脸",
+      "value": 0.65,
+      "sliderType": 0,
+      "type": "thin_face"
+    },
+    {
+      "title": "鼻子大小",
+      "value": 0.1,
+      "sliderType": 1,
+      "type": "nose_size"
+    },
+    {
+      "title": "脸宽",
+      "value": 0.31,
+      "sliderType": 0,
+      "type": "face_width"
+    },
+    {
+      "title": "削脸",
+      "value": 0.36,
+      "sliderType": 1,
+      "type": "jaw_shape"
+    },
+    {
+      "title": "短脸",
+      "value": 0.20,
+      "sliderType": 0,
+      "type": "shorten_face"
+    },
+    {
+      "title": "下巴",
+      "value": 0.12,
+      "sliderType": 1,
+      "type": "chin_length"
+    },
+    {
+      "title": "鼻子宽度",
+      "value": 0.51,
+      "sliderType": 1,
+      "type": "nose_width"
+    },
+    {
+      "title": "眼距",
+      "value": 0.45,
+      "sliderType": -1,
+      "type": "eye_distance"
+    },
+    {
+      "title": "嘴唇大小",
+      "value": 0.56,
+      "sliderType": 1,
+      "type": "mouth_size"
+    },
+    {
+      "title": "眼袋",
+      "value": 1,
+      "sliderType": 0,
+      "type": "remove_pouch"
+    },
+    {
+      "title": "额头",
+      "value": 0,
+      "sliderType": 1,
+      "type": "forehead"
+    },
+    {
+      "title": "眼睛角度",
+      "value": 0,
+      "sliderType": 1,
+      "type": "eye_tilt"
+    },
+    {
+      "title": "眼高",
+      "value": 0,
+      "sliderType": 0,
+      "type": "eye_height"
+    },
+    {
+      "title": "鼻高",
+      "value": 0,
+      "sliderType": 1,
+      "type": "nose_lift"
+    },
+    {
+      "title": "鼻梁",
+      "value": 0,
+      "sliderType": 1,
+      "type": "nose_ridge_width"
+    },
+    {
+      "title": "鼻尖",
+      "value": 0,
+      "sliderType": 1,
+      "type": "nose_tip_size"
+    },
+    {
+      "title": "嘴唇厚度",
+      "value": 0,
+      "sliderType": 1,
+      "type": "lip_thickness"
+    },
+    {
+      "title": "祛法令纹",
+      "value": 0,
+      "sliderType": 0,
+      "type": "remove_nasolabial_floads"
+    },
+    {
+      "title": "亮眼",
+      "value": 0.8,
+      "sliderType": 0,
+      "type": "eye_brighten"
+    },
+    {
+      "title": "白牙",
+      "value": 0.8,
+      "sliderType": 0,
+      "type": "teeth_whiten"
+    }
+  ],
+  [
+    {
+      "title": "磨皮",
+      "value": 0.33,
+      "sliderType": 0,
+      "type": "skin_smooth"
+    },
+    {
+      "title": "锐化",
+      "value": 0.7,
+      "sliderType": 0,
+      "type": "skin_sharpen"
+    },
+    {
+      "title": "美白",
+      "value": 0.8,
+      "sliderType": 0,
+      "type": "skin_whitening"
+    },
+    {
+      "title": "红润",
+      "value": 0.5,
+      "sliderType": 0,
+      "type": "skin_ruddy"
+    },
+    {
+      "title": "大眼",
+      "value": 0.25,
+      "sliderType": 0,
+      "type": "big_eye"
+    },
+    {
+      "title": "瘦脸",
+      "value": 0.4,
+      "sliderType": 0,
+      "type": "thin_face"
+    },
+    {
+      "title": "鼻子大小",
+      "value": 0.3,
+      "sliderType": 1,
+      "type": "nose_size"
+    },
+    {
+      "title": "脸宽",
+      "value": 0,
+      "sliderType": 0,
+      "type": "face_width"
+    },
+    {
+      "title": "削脸",
+      "value": 0,
+      "sliderType": 1,
+      "type": "jaw_shape"
+    },
+    {
+      "title": "短脸",
+      "value": 0,
+      "sliderType": 0,
+      "type": "shorten_face"
+    },
+    {
+      "title": "下巴",
+      "value": 0,
+      "sliderType": 1,
+      "type": "chin_length"
+    },
+    {
+      "title": "鼻子宽度",
+      "value": 0,
+      "sliderType": 1,
+      "type": "nose_width"
+    },
+    {
+      "title": "眼距",
+      "value": 0,
+      "sliderType": -1,
+      "type": "eye_distance"
+    },
+    {
+      "title": "嘴唇大小",
+      "value": 0,
+      "sliderType": 1,
+      "type": "mouth_size"
+    },
+    {
+      "title": "眼袋",
+      "value": 0,
+      "sliderType": 0,
+      "type": "remove_pouch"
+    },
+    {
+      "title": "额头",
+      "value": 0,
+      "sliderType": 1,
+      "type": "forehead"
+    },
+    {
+      "title": "眼睛角度",
+      "value": 0,
+      "sliderType": 1,
+      "type": "eye_tilt"
+    },
+    {
+      "title": "眼高",
+      "value": 0,
+      "sliderType": 0,
+      "type": "eye_height"
+    },
+    {
+      "title": "鼻高",
+      "value": 0,
+      "sliderType": 1,
+      "type": "nose_lift"
+    },
+    {
+      "title": "鼻梁",
+      "value": 0,
+      "sliderType": 1,
+      "type": "nose_ridge_width"
+    },
+    {
+      "title": "鼻尖",
+      "value": 0,
+      "sliderType": 1,
+      "type": "nose_tip_size"
+    },
+    {
+      "title": "嘴唇厚度",
+      "value": 0,
+      "sliderType": 1,
+      "type": "lip_thickness"
+    },
+    {
+      "title": "祛法令纹",
+      "value": 0,
+      "sliderType": 0,
+      "type": "remove_nasolabial_floads"
+    },
+    {
+      "title": "亮眼",
+      "value": 0.8,
+      "sliderType": 0,
+      "type": "eye_brighten"
+    },
+    {
+      "title": "白牙",
+      "value": 0.8,
+      "sliderType": 0,
+      "type": "teeth_whiten"
+    }
+  ]
+]

@@ -1,0 +1,1140 @@
+MOXB<?xml version="1.0" encoding="GB2312"?>
+<GraphContainer>
+ <Graph Id="086b5e0b2e400000" Type="1" AutoRun="1">
+	<GraphNode Id="0785a27ad1c00000" Title="makeup_blush_0" Type="GraphNode.BaseNode.Filter" EnableState="1" InputFilterSlots="1" FaceEntityModifierSlots="1">
+	 <GraphPin Id="0872eb8acb400000" Name="makeup_blush_0_0" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="makeup_blush_0_0" ToolTip="filter-input pin-Slot:0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Filter" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="07859debd3c00002" PinId="0872eb8acb4000a3"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400001" Name="FilterOriginInputSampler" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FilterOriginInputSampler" ToolTip="Original Input Sampler input pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.OriginInputSampler" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785cf3cd3c00000" PinId="0872eb8acb400059"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400002" Name="FaceModifier" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FaceModifier" ToolTip="Setup a face-entity/face-warp modifier(0) for this filter node.">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.FaceEntityModifier|GraphNode.BaseNode.Variable.FaceEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.BodyEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupFaceVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupPupilVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeuEyesAreaVBIB" PinCategory="RenderEffect" PinSubCategory="Face entity Modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="079e57a407c00000" PinId="0872eb8acb400066"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400003" Name="makeup_blush_0" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="makeup_blush_0" ToolTip="Default filter-output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a257a9c00000" PinId="0872eb8acb40003e"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400004" Name="ScriptModifier_0" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="ScriptModifier_0" ToolTip="Setup a script modifier for this node.">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Script" PinCategory="Utility" PinSubCategory="Script Modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400005" Name="SucaiTextureSampler" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="SucaiTextureSampler" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Texture" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a2fabfc00005" PinId="0872eb8acb40006d"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400006" Name="blendMode" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Blend Mode" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785c80a0dc00007" PinId="0872eb8acb40005c"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400007" Name="intensity" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Makeup Intensity" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="1"/>
+		<PinLink NodeId="086b63d705c00002" PinId="0872eb8acb4000af"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400008" Name="Pass_0" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Pass_0" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.PassModifier" PinCategory="RenderEffect" PinSubCategory="Pass modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a2fabfc0000e" PinId="0872eb8acb400084"/>
+	 </GraphPin>
+	 <FilterTemplate>
+		<Node Name="makeup_blush_0_0872eb4fe6000005" Type="Filter" FilterPath="" Enable="1" FilterNodeType="1" FilterGroupType="0" AcceptOriginalInputSampler="0" AcceptPreMainNodeAsFirstInputSampler="0" OutputSlots="0_0" FaceTrackerIndex="1" FacePartType="Custom" MaterialAssetPath="Asset/076e754479c00000/material/makeup_face/makeup_face.mt" CopyOriginTexAsBgEnable="0">
+		 <Pass PassIndex="0" OutputTargetSizePolicy="2" OutputTargetTexFormat="2" OutputTargetName="OutputRenderTarget" OutputTargetSizeX="0" OutputTargetSizeY="0"/>
+		 <MaterialParams>
+			<bDetachFace Type="XVT_NONE"/>
+			<bSegEnable Type="XVT_NONE"/>
+			<segFlipX Type="XVT_NONE"/>
+			<uSegMatrix Type="XVT_TRANSFORM" Value="0.000000,0.000000,0.000000;0.000000,0.000000,0.000000,1.000000;1.000000,1.000000,1.000000"/>
+			<segImageSize Type="XVT_FLOAT2" Value="0.000000,0.000000"/>
+			<SegMaskTextureSampler Type="XVT_STRING" Value="momo_ErrorTex"/>
+			<SucaiTextureSampler Type="XVT_STRING" Value="Asset/076e754479c00000/images/blush.png"/>
+			<blendMode Type="XVT_FLOAT1" Value="0"/>
+			<intensity Type="XVT_FLOAT1" Value="1"/>
+		 </MaterialParams>
+		</Node>
+	 </FilterTemplate>
+	</GraphNode>
+	<GraphNode Id="0785b220adc00002" Title="makeup_eyes_2" Type="GraphNode.BaseNode.Filter" EnableState="1" InputFilterSlots="1" FaceEntityModifierSlots="1">
+	 <GraphPin Id="0872eb8acb400009" Name="makeup_eyes_2_0" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="makeup_eyes_2_0" ToolTip="filter-input pin-Slot:0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Filter" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785b20c2bc00002" PinId="0872eb8acb400023"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb40000a" Name="FilterOriginInputSampler" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FilterOriginInputSampler" ToolTip="Original Input Sampler input pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.OriginInputSampler" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785b220adc00000" PinId="0872eb8acb400072"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb40000b" Name="FaceModifier" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FaceModifier" ToolTip="Setup a face-entity/face-warp modifier(0) for this filter node.">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.FaceEntityModifier|GraphNode.BaseNode.Variable.FaceEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.BodyEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupFaceVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupPupilVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeuEyesAreaVBIB" PinCategory="RenderEffect" PinSubCategory="Face entity Modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="079e620f05c00000" PinId="0872eb8acb40004c"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb40000c" Name="makeup_eyes_2" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="makeup_eyes_2" ToolTip="Default filter-output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="077f9d5b79c00000" PinId="0872eb8acb40002f"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb40000d" Name="ScriptModifier_0" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="ScriptModifier_0" ToolTip="Setup a script modifier for this node.">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Script" PinCategory="Utility" PinSubCategory="Script Modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb40000e" Name="SucaiTextureSampler" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="SucaiTextureSampler" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Texture" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785bb68a7c00008" PinId="0872eb8acb400071"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb40000f" Name="blendMode" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Blend Mode" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785bb68a7c0000b" PinId="0872eb8acb400065"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400010" Name="intensity" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="intensity" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="1"/>
+		<PinLink NodeId="086b6703a9c00008" PinId="0872eb8acb4000b7"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400011" Name="Pass_0" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Pass_0" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.PassModifier" PinCategory="RenderEffect" PinSubCategory="Pass modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785bb68a7c00011" PinId="0872eb8acb400061"/>
+	 </GraphPin>
+	 <FilterTemplate>
+		<Node Name="makeup_eyes_2_0872eb501a800000" Type="Filter" FilterPath="" Enable="1" FilterNodeType="1" FilterGroupType="0" AcceptOriginalInputSampler="0" AcceptPreMainNodeAsFirstInputSampler="0" OutputSlots="1_0" FaceTrackerIndex="1" FacePartType="Custom" MaterialAssetPath="Asset/076e754479c00000/material/makeup_eye/makeup_eye.mt" CopyOriginTexAsBgEnable="0">
+		 <Pass PassIndex="0" OutputTargetSizePolicy="1" OutputTargetTexFormat="2" OutputTargetName="OutputRenderTarget" OutputTargetSizeX="1" OutputTargetSizeY="1"/>
+		 <MaterialParams>
+			<bDetachFace Type="XVT_NONE"/>
+			<bSegEnable Type="XVT_NONE"/>
+			<segFlipX Type="XVT_NONE"/>
+			<uSegMatrix Type="XVT_TRANSFORM" Value="0.000000,0.000000,0.000000;0.000000,0.000000,0.000000,1.000000;1.000000,1.000000,1.000000"/>
+			<segImageSize Type="XVT_FLOAT2" Value="0.000000,0.000000"/>
+			<SegMaskTextureSampler Type="XVT_STRING" Value="momo_ErrorTex"/>
+			<SucaiTextureSampler Type="XVT_STRING" Value="Asset/076e754479c00000/images/eyeshadow.png"/>
+			<blendMode Type="XVT_FLOAT1" Value="0"/>
+			<intensity Type="XVT_FLOAT1" Value="1"/>
+		 </MaterialParams>
+		</Node>
+	 </FilterTemplate>
+	</GraphNode>
+	<GraphNode Id="0785a26a37c00000" Title="makeup_lips_0" Type="GraphNode.BaseNode.Filter" EnableState="1" InputFilterSlots="1" FaceEntityModifierSlots="1">
+	 <GraphPin Id="0872eb8acb400012" Name="makeup_lips_0_0" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="makeup_lips_0_0" ToolTip="filter-input pin-Slot:0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Filter" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a26555c00000" PinId="0872eb8acb400052"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400013" Name="FilterOriginInputSampler" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FilterOriginInputSampler" ToolTip="Original Input Sampler input pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.OriginInputSampler" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785d1658fc00000" PinId="0872eb8acb400068"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400014" Name="FaceModifier" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FaceModifier" ToolTip="Setup a face-entity/face-warp modifier(0) for this filter node.">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.FaceEntityModifier|GraphNode.BaseNode.Variable.FaceEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.BodyEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupFaceVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupPupilVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeuEyesAreaVBIB" PinCategory="RenderEffect" PinSubCategory="Face entity Modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="079e57a407c00000" PinId="0872eb8acb400066"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400015" Name="makeup_lips_0" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="makeup_lips_0" ToolTip="Default filter-output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a274f5c00000" PinId="0872eb8acb400090"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400016" Name="ScriptModifier_0" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="ScriptModifier_0" ToolTip="Setup a script modifier for this node.">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Script" PinCategory="Utility" PinSubCategory="Script Modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400017" Name="SucaiTextureSampler" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="SucaiTextureSampler" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Texture" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a321cfc00005" PinId="0872eb8acb40006a"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400018" Name="SucaiTextureSampler2" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="SucaiTextureSampler2" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Texture" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785c021a3c00099" PinId="0872eb8acb400074"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400019" Name="LutMaskTextureSampler" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="LutMaskTextureSampler" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Texture" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785c021a3c0009c" PinId="0872eb8acb400078"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb40001a" Name="MouthMaskTextureSampler" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="MouthMaskTextureSampler" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Texture" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785c021a3c0009f" PinId="0872eb8acb40005f"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb40001b" Name="NoiseTextureSampler" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="NoiseTextureSampler" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Texture" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="07e41b8fadc0005b" PinId="0872eb8acb4000ab"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb40001c" Name="blendMode" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Blend Mode" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a321cfc00008" PinId="0872eb8acb40009f"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb40001d" Name="intensity" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Makeup Intensity" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="1"/>
+		<PinLink NodeId="086b6518fb800006" PinId="0872eb8acb4000b2"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb40001e" Name="lipsType" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Lips Type" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="07e41cca21c000fa" PinId="0872eb8acb40005a"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb40001f" Name="Pass_0" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Pass_0" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.PassModifier" PinCategory="RenderEffect" PinSubCategory="Pass modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a321cfc0000e" PinId="0872eb8acb400064"/>
+	 </GraphPin>
+	 <FilterTemplate>
+		<Node Name="makeup_lips_0_0872eb4ffb000005" Type="Filter" FilterPath="" Enable="1" FilterNodeType="1" FilterGroupType="0" AcceptOriginalInputSampler="0" AcceptPreMainNodeAsFirstInputSampler="0" OutputSlots="0_0" FaceTrackerIndex="1" FacePartType="Custom" MaterialAssetPath="Asset/076e754479c00000/material/makeup_lips/makeup_lips.mt" CopyOriginTexAsBgEnable="0">
+		 <Pass PassIndex="0" OutputTargetSizePolicy="2" OutputTargetTexFormat="2" OutputTargetName="OutputRenderTarget" OutputTargetSizeX="0" OutputTargetSizeY="0"/>
+		 <MaterialParams>
+			<bDetachFace Type="XVT_NONE"/>
+			<openMouth Type="XVT_NONE"/>
+			<closeThreshold Type="XVT_NONE"/>
+			<bSegEnable Type="XVT_NONE"/>
+			<segFlipX Type="XVT_NONE"/>
+			<uSegMatrix Type="XVT_TRANSFORM" Value="0.000000,0.000000,0.000000;0.000000,0.000000,0.000000,1.000000;1.000000,1.000000,1.000000"/>
+			<segImageSize Type="XVT_FLOAT2" Value="0.000000,0.000000"/>
+			<SegMaskTextureSampler Type="XVT_STRING" Value="momo_ErrorTex"/>
+			<SucaiTextureSampler Type="XVT_STRING" Value="Asset/076e754479c00000/images/lip.png"/>
+			<SucaiTextureSampler2 Type="XVT_STRING" Value="Asset/076e754479c00000/images/lip00.png"/>
+			<LutMaskTextureSampler Type="XVT_STRING" Value="Asset/076e754479c00000/material/makeup_images/lips_mask230.png"/>
+			<MouthMaskTextureSampler Type="XVT_STRING" Value="Asset/076e754479c00000/material/makeup_images/lips_inner_mask.png"/>
+			<NoiseTextureSampler Type="XVT_STRING" Value="Asset/076e754479c00000/material/makeup_images/lips_noise.png"/>
+			<blendMode Type="XVT_FLOAT1" Value="0"/>
+			<intensity Type="XVT_FLOAT1" Value="1"/>
+			<lipsType Type="XVT_FLOAT1" Value="0"/>
+		 </MaterialParams>
+		</Node>
+	 </FilterTemplate>
+	</GraphNode>
+	<GraphNode Id="0785b20c2bc00002" Title="makeup_eyes_1" Type="GraphNode.BaseNode.Filter" EnableState="1" InputFilterSlots="1" FaceEntityModifierSlots="1">
+	 <GraphPin Id="0872eb8acb400020" Name="makeup_eyes_1_0" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="makeup_eyes_1_0" ToolTip="filter-input pin-Slot:0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Filter" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="077f707a37c00000" PinId="0872eb8acb40007e"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400021" Name="FilterOriginInputSampler" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FilterOriginInputSampler" ToolTip="Original Input Sampler input pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.OriginInputSampler" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785b20c2bc00000" PinId="0872eb8acb400049"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400022" Name="FaceModifier" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FaceModifier" ToolTip="Setup a face-entity/face-warp modifier(0) for this filter node.">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.FaceEntityModifier|GraphNode.BaseNode.Variable.FaceEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.BodyEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupFaceVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupPupilVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeuEyesAreaVBIB" PinCategory="RenderEffect" PinSubCategory="Face entity Modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="079e620f05c00000" PinId="0872eb8acb40004c"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400023" Name="makeup_eyes_1" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="makeup_eyes_1" ToolTip="Default filter-output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785b220adc00002" PinId="0872eb8acb400009"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400024" Name="ScriptModifier_0" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="ScriptModifier_0" ToolTip="Setup a script modifier for this node.">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Script" PinCategory="Utility" PinSubCategory="Script Modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400025" Name="SucaiTextureSampler" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="SucaiTextureSampler" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Texture" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785bb65b9c00008" PinId="0872eb8acb400062"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400026" Name="blendMode" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Blend Mode" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785bb65b9c0000b" PinId="0872eb8acb400058"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400027" Name="intensity" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="intensity" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="1"/>
+		<PinLink NodeId="086b6703a4400008" PinId="0872eb8acb4000b6"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400028" Name="Pass_0" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Pass_0" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.PassModifier" PinCategory="RenderEffect" PinSubCategory="Pass modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785bb65b9c00011" PinId="0872eb8acb40005d"/>
+	 </GraphPin>
+	 <FilterTemplate>
+		<Node Name="makeup_eyes_1_0872eb5016400005" Type="Filter" FilterPath="" Enable="1" FilterNodeType="1" FilterGroupType="0" AcceptOriginalInputSampler="0" AcceptPreMainNodeAsFirstInputSampler="0" OutputSlots="0_0" FaceTrackerIndex="1" FacePartType="Custom" MaterialAssetPath="Asset/076e754479c00000/material/makeup_eye/makeup_eye.mt" CopyOriginTexAsBgEnable="0">
+		 <Pass PassIndex="0" OutputTargetSizePolicy="1" OutputTargetTexFormat="2" OutputTargetName="OutputRenderTarget" OutputTargetSizeX="1" OutputTargetSizeY="1"/>
+		 <MaterialParams>
+			<bDetachFace Type="XVT_NONE"/>
+			<bSegEnable Type="XVT_NONE"/>
+			<segFlipX Type="XVT_NONE"/>
+			<uSegMatrix Type="XVT_TRANSFORM" Value="0.000000,0.000000,0.000000;0.000000,0.000000,0.000000,1.000000;1.000000,1.000000,1.000000"/>
+			<segImageSize Type="XVT_FLOAT2" Value="0.000000,0.000000"/>
+			<SegMaskTextureSampler Type="XVT_STRING" Value="momo_ErrorTex"/>
+			<SucaiTextureSampler Type="XVT_STRING" Value="Asset/076e754479c00000/images/eyeshadow.png"/>
+			<blendMode Type="XVT_FLOAT1" Value="0"/>
+			<intensity Type="XVT_FLOAT1" Value="1"/>
+		 </MaterialParams>
+		</Node>
+	 </FilterTemplate>
+	</GraphNode>
+	<GraphNode Id="077f70bc9fc00027" Title="Pass_0" Type="GraphNode.BaseNode.Variable.PassModifier" EnableState="1" PassIndex="0" OutputTargetSizePolicy="1" OutputTargetTexFormat="2" OutputTargetName="OutputRenderTarget" OutputTargetSizeX="1" OutputTargetSizeY="1">
+	 <GraphPin Id="0872eb8acb400029" Name="Pass_0" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Pass_0" ToolTip="Modifier of this pass">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.PassModifier" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Pass modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="077f6fb6e7c00000" PinId="0872eb8acb40008f"/>
+	 </GraphPin>
+	 <Variant Type="XVT_NONE"/>
+	</GraphNode>
+	<GraphNode Id="079e4fa42dc00087" Title="EyeMaskTextureSampler" Type="GraphNode.BaseNode.Variable.Texture" EnableState="1">
+	 <GraphPin Id="0872eb8acb40002a" Name="EyeMaskTextureSampler" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="EyeMaskTextureSampler" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.Texture" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="079e4f8eb1c00002" PinId="0872eb8acb40003b"/>
+	 </GraphPin>
+	 <Variant Type="XVT_STRING" Value="Asset/076e754479c00000/material/makeup_images/pupil_mask230.png"/>
+	</GraphNode>
+	<GraphNode Id="0785d12edfc00000" Title="OriginInput" Type="GraphNode.BaseNode.OriginInputSampler" EnableState="1">
+	 <GraphPin Id="0872eb8acb40002b" Name="FilterOriginInputSampler" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="FilterOriginInputSampler" ToolTip="Original Input Sampler output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.OriginInputSampler" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a257a9c00000" PinId="0872eb8acb40003f"/>
+	 </GraphPin>
+	</GraphNode>
+	<GraphNode Id="0785aa8857c00005" Title="makeup_pupil_texture" Type="GraphNode.BaseNode.Variable.Texture" EnableState="1">
+	 <GraphPin Id="0872eb8acb40002c" Name="SucaiTextureSampler" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="SucaiTextureSampler" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.Texture" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="077f6fb6e7c00000" PinId="0872eb8acb40008c"/>
+	 </GraphPin>
+	 <Variant Type="XVT_STRING" Value="Asset/076e754479c00000/images/pupil.png"/>
+	</GraphNode>
+	<GraphNode Id="077f9d5b79c00000" Title="MakeupBlendCommonFilter" Type="GraphNode.BaseNode.Filter" EnableState="1" InputFilterSlots="3" FaceEntityModifierSlots="1">
+	 <GraphPin Id="0872eb8acb40002d" Name="MakeupBlendCommonFilter_0" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="MakeupBlendCommonFilter_0" ToolTip="filter-input pin-Slot:0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Filter" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb40002e" Name="MakeupBlendCommonFilter_1" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="MakeupBlendCommonFilter_1" ToolTip="filter-input pin-Slot:1">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Filter" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a274f5c00000" PinId="0872eb8acb400093"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb40002f" Name="MakeupBlendCommonFilter_2" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="MakeupBlendCommonFilter_2" ToolTip="filter-input pin-Slot:2">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Filter" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785b220adc00002" PinId="0872eb8acb40000c"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400030" Name="FilterOriginInputSampler" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FilterOriginInputSampler" ToolTip="Original Input Sampler input pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.OriginInputSampler" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="086f18d87f800002" PinId="0872eb8acb4000b8"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400031" Name="FaceModifier" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FaceModifier" ToolTip="Setup a face-entity/face-warp modifier(0) for this filter node.">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.FaceEntityModifier|GraphNode.BaseNode.Variable.FaceEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.BodyEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupFaceVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupPupilVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeuEyesAreaVBIB" PinCategory="RenderEffect" PinSubCategory="Face entity Modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400032" Name="MakeupBlendCommonFilter" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="MakeupBlendCommonFilter" ToolTip="Default filter-output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400033" Name="Pass_0" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Pass_0" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.PassModifier" PinCategory="RenderEffect" PinSubCategory="Pass modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="077f9de143c00004" PinId="0872eb8acb400048"/>
+	 </GraphPin>
+	 <FilterTemplate>
+		<Node Name="MakeupBlendCommonFilter_0872eb501cc00006" Type="Filter" FilterPath="" Enable="1" FilterNodeType="1" FilterGroupType="0" AcceptOriginalInputSampler="0" AcceptPreMainNodeAsFirstInputSampler="0" OutputSlots="" FaceTrackerIndex="1" FacePartType="Custom" MaterialAssetPath="Asset/076e754479c00000/material/makeup_blend/makeup_blend.mt" CopyOriginTexAsBgEnable="0">
+		 <Pass PassIndex="0" OutputTargetSizePolicy="2" OutputTargetTexFormat="2" OutputTargetName="OutputRenderTarget" OutputTargetSizeX="0" OutputTargetSizeY="0"/>
+		 <MaterialParams/>
+		</Node>
+	 </FilterTemplate>
+	</GraphNode>
+	<GraphNode Id="0785c021a3c00079" Title="MouthMaskTextureSampler" Type="GraphNode.BaseNode.Variable.Texture" EnableState="1">
+	 <GraphPin Id="0872eb8acb400034" Name="MouthMaskTextureSampler" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="MouthMaskTextureSampler" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.Texture" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a274f5c00000" PinId="0872eb8acb400098"/>
+	 </GraphPin>
+	 <Variant Type="XVT_STRING" Value="Asset/076e754479c00000/material/makeup_images/lips_inner_mask.png"/>
+	</GraphNode>
+	<GraphNode Id="079e4f8eb1c00002" Title="makeup_pupil_sub" Type="GraphNode.BaseNode.Filter" EnableState="1" InputFilterSlots="2" FaceEntityModifierSlots="1">
+	 <GraphPin Id="0872eb8acb400035" Name="makeup_pupil_sub_0" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="makeup_pupil_sub_0" ToolTip="filter-input pin-Slot:0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Filter" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a274f5c00000" PinId="0872eb8acb400093"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400036" Name="makeup_pupil_sub_1" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="makeup_pupil_sub_1" ToolTip="filter-input pin-Slot:1">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Filter" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="077f6fb6e7c00000" PinId="0872eb8acb40008a"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400037" Name="FilterOriginInputSampler" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FilterOriginInputSampler" ToolTip="Original Input Sampler input pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.OriginInputSampler" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400038" Name="FaceModifier" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FaceModifier" ToolTip="Setup a face-entity/face-warp modifier(0) for this filter node.">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.FaceEntityModifier|GraphNode.BaseNode.Variable.FaceEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.BodyEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupFaceVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupPupilVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeuEyesAreaVBIB" PinCategory="RenderEffect" PinSubCategory="Face entity Modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="079e620f05c00000" PinId="0872eb8acb40004c"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400039" Name="makeup_pupil_sub" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="makeup_pupil_sub" ToolTip="Default filter-output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="077f707a37c00000" PinId="0872eb8acb40007b"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb40003a" Name="ScriptModifier_0" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="ScriptModifier_0" ToolTip="Setup a script modifier for this node.">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Script" PinCategory="Utility" PinSubCategory="Script Modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb40003b" Name="EyeMaskTextureSampler" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="EyeMaskTextureSampler" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Texture" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="079e4fa42dc00087" PinId="0872eb8acb40002a"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb40003c" Name="Pass_0" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Pass_0" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.PassModifier" PinCategory="RenderEffect" PinSubCategory="Pass modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="079e4fa42dc0008a" PinId="0872eb8acb40006c"/>
+	 </GraphPin>
+	 <FilterTemplate>
+		<Node Name="makeup_pupil_sub_0872eb500dc00006" Type="Filter" FilterPath="" Enable="1" FilterNodeType="1" FilterGroupType="0" AcceptOriginalInputSampler="1" AcceptPreMainNodeAsFirstInputSampler="0" OutputSlots="0_0" FaceTrackerIndex="1" FacePartType="Custom" MaterialAssetPath="Asset/076e754479c00000/material/makeup_pupil/makeup_pupil_mask.mt" CopyOriginTexAsBgEnable="0">
+		 <Pass PassIndex="0" OutputTargetSizePolicy="2" OutputTargetTexFormat="2" OutputTargetName="OutputRenderTarget" OutputTargetSizeX="0" OutputTargetSizeY="0"/>
+		 <MaterialParams>
+			<bDetachFace Type="XVT_NONE"/>
+			<bSegEnable Type="XVT_NONE"/>
+			<segFlipX Type="XVT_NONE"/>
+			<uSegMatrix Type="XVT_TRANSFORM" Value="0.000000,0.000000,0.000000;0.000000,0.000000,0.000000,1.000000;1.000000,1.000000,1.000000"/>
+			<segImageSize Type="XVT_FLOAT2" Value="0.000000,0.000000"/>
+			<SegMaskTextureSampler Type="XVT_STRING" Value="momo_ErrorTex"/>
+			<EyeMaskTextureSampler Type="XVT_STRING" Value="Asset/076e754479c00000/material/makeup_images/pupil_mask230.png"/>
+		 </MaterialParams>
+		</Node>
+	 </FilterTemplate>
+	</GraphNode>
+	<GraphNode Id="0785a2ec19c0000e" Title="Pass_0" Type="GraphNode.BaseNode.Variable.PassModifier" EnableState="1" PassIndex="0" OutputTargetSizePolicy="2" OutputTargetTexFormat="2" OutputTargetName="OutputRenderTarget" OutputTargetSizeX="0" OutputTargetSizeY="0">
+	 <GraphPin Id="0872eb8acb40003d" Name="Pass_0" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Pass_0" ToolTip="Modifier of this pass">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.PassModifier" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Pass modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="07859debd3c00002" PinId="0872eb8acb4000a8"/>
+	 </GraphPin>
+	 <Variant Type="XVT_NONE"/>
+	</GraphNode>
+	<GraphNode Id="0785a257a9c00000" Title="makeup_blush_1" Type="GraphNode.BaseNode.Filter" EnableState="1" InputFilterSlots="1" FaceEntityModifierSlots="1">
+	 <GraphPin Id="0872eb8acb40003e" Name="makeup_blush_1_0" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="makeup_blush_1_0" ToolTip="filter-input pin-Slot:0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Filter" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a27ad1c00000" PinId="0872eb8acb400003"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb40003f" Name="FilterOriginInputSampler" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FilterOriginInputSampler" ToolTip="Original Input Sampler input pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.OriginInputSampler" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785d12edfc00000" PinId="0872eb8acb40002b"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400040" Name="FaceModifier" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FaceModifier" ToolTip="Setup a face-entity/face-warp modifier(0) for this filter node.">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.FaceEntityModifier|GraphNode.BaseNode.Variable.FaceEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.BodyEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupFaceVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupPupilVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeuEyesAreaVBIB" PinCategory="RenderEffect" PinSubCategory="Face entity Modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="079e57a407c00000" PinId="0872eb8acb400066"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400041" Name="makeup_blush_1" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="makeup_blush_1" ToolTip="Default filter-output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a26555c00000" PinId="0872eb8acb40004f"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400042" Name="ScriptModifier_0" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="ScriptModifier_0" ToolTip="Setup a script modifier for this node.">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Script" PinCategory="Utility" PinSubCategory="Script Modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400043" Name="SucaiTextureSampler" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="SucaiTextureSampler" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Texture" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a2fdadc00005" PinId="0872eb8acb40004b"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400044" Name="blendMode" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Blend Mode" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785c81ba1c00007" PinId="0872eb8acb40009e"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400045" Name="intensity" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Makeup Intensity" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="1"/>
+		<PinLink NodeId="086b63d70b400002" PinId="0872eb8acb4000b0"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400046" Name="Pass_0" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Pass_0" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.PassModifier" PinCategory="RenderEffect" PinSubCategory="Pass modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a2fdadc0000e" PinId="0872eb8acb400069"/>
+	 </GraphPin>
+	 <FilterTemplate>
+		<Node Name="makeup_blush_1_0872eb4fea000005" Type="Filter" FilterPath="" Enable="1" FilterNodeType="1" FilterGroupType="0" AcceptOriginalInputSampler="0" AcceptPreMainNodeAsFirstInputSampler="0" OutputSlots="0_0" FaceTrackerIndex="1" FacePartType="Custom" MaterialAssetPath="Asset/076e754479c00000/material/makeup_face/makeup_face.mt" CopyOriginTexAsBgEnable="0">
+		 <Pass PassIndex="0" OutputTargetSizePolicy="2" OutputTargetTexFormat="2" OutputTargetName="OutputRenderTarget" OutputTargetSizeX="0" OutputTargetSizeY="0"/>
+		 <MaterialParams>
+			<bDetachFace Type="XVT_NONE"/>
+			<bSegEnable Type="XVT_NONE"/>
+			<segFlipX Type="XVT_NONE"/>
+			<uSegMatrix Type="XVT_TRANSFORM" Value="0.000000,0.000000,0.000000;0.000000,0.000000,0.000000,1.000000;1.000000,1.000000,1.000000"/>
+			<segImageSize Type="XVT_FLOAT2" Value="0.000000,0.000000"/>
+			<SegMaskTextureSampler Type="XVT_STRING" Value="momo_ErrorTex"/>
+			<SucaiTextureSampler Type="XVT_STRING" Value="Asset/076e754479c00000/images/blush.png"/>
+			<blendMode Type="XVT_FLOAT1" Value="0"/>
+			<intensity Type="XVT_FLOAT1" Value="1"/>
+		 </MaterialParams>
+		</Node>
+	 </FilterTemplate>
+	</GraphNode>
+	<GraphNode Id="0785a3057dc00005" Title="makeup_eyebrow_texture" Type="GraphNode.BaseNode.Variable.Texture" EnableState="1">
+	 <GraphPin Id="0872eb8acb400047" Name="SucaiTextureSampler" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="SucaiTextureSampler" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.Texture" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a26555c00000" PinId="0872eb8acb400054"/>
+	 </GraphPin>
+	 <Variant Type="XVT_STRING" Value="Asset/076e754479c00000/images/eyebrow.png"/>
+	</GraphNode>
+	<GraphNode Id="077f9de143c00004" Title="Pass_0" Type="GraphNode.BaseNode.Variable.PassModifier" EnableState="1" PassIndex="0" OutputTargetSizePolicy="2" OutputTargetTexFormat="2" OutputTargetName="OutputRenderTarget" OutputTargetSizeX="0" OutputTargetSizeY="0">
+	 <GraphPin Id="0872eb8acb400048" Name="Pass_0" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Pass_0" ToolTip="Modifier of this pass">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.PassModifier" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Pass modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="077f9d5b79c00000" PinId="0872eb8acb400033"/>
+	 </GraphPin>
+	 <Variant Type="XVT_NONE"/>
+	</GraphNode>
+	<GraphNode Id="0785b20c2bc00000" Title="OriginInput" Type="GraphNode.BaseNode.OriginInputSampler" EnableState="1">
+	 <GraphPin Id="0872eb8acb400049" Name="FilterOriginInputSampler" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="FilterOriginInputSampler" ToolTip="Original Input Sampler output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.OriginInputSampler" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785b20c2bc00002" PinId="0872eb8acb400021"/>
+	 </GraphPin>
+	</GraphNode>
+	<GraphNode Id="0785a3057dc0000e" Title="Pass_0" Type="GraphNode.BaseNode.Variable.PassModifier" EnableState="1" PassIndex="0" OutputTargetSizePolicy="2" OutputTargetTexFormat="2" OutputTargetName="OutputRenderTarget" OutputTargetSizeX="0" OutputTargetSizeY="0">
+	 <GraphPin Id="0872eb8acb40004a" Name="Pass_0" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Pass_0" ToolTip="Modifier of this pass">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.PassModifier" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Pass modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a26555c00000" PinId="0872eb8acb400057"/>
+	 </GraphPin>
+	 <Variant Type="XVT_NONE"/>
+	</GraphNode>
+	<GraphNode Id="0785a2fdadc00005" Title="makeup_blush_texture_1" Type="GraphNode.BaseNode.Variable.Texture" EnableState="1">
+	 <GraphPin Id="0872eb8acb40004b" Name="SucaiTextureSampler" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="SucaiTextureSampler" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.Texture" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a257a9c00000" PinId="0872eb8acb400043"/>
+	 </GraphPin>
+	 <Variant Type="XVT_STRING" Value="Asset/076e754479c00000/images/blush.png"/>
+	</GraphNode>
+	<GraphNode Id="079e620f05c00000" Title="MakeupEyesAreaData" Type="GraphNode.BaseNode.Variable.FaceEntityModifier.MakeuEyesAreaVBIB" EnableState="1" FaceIndex="1" ExtendVBIB="0">
+	 <GraphPin Id="0872eb8acb40004c" Name="FaceModifier.MakeupFaceVBIB" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="FaceModifier.MakeupFaceVBIB" ToolTip="Modifier of the makeup-eyesarea vb-ib">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.FaceEntityModifier.MakeuEyesAreaVBIB" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Makeup EyesArea VB-IB modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="079e4f8eb1c00002" PinId="0872eb8acb400038"/>
+		<PinLink NodeId="077f707a37c00000" PinId="0872eb8acb40007d"/>
+		<PinLink NodeId="0785b20c2bc00002" PinId="0872eb8acb400022"/>
+		<PinLink NodeId="0785b220adc00002" PinId="0872eb8acb40000b"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb40004d" Name="Face Index" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Face Index" ToolTip="Set face index">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.FaceEntityModifier.MakeuEyesAreaVBIB" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="Face Index" PinDataType="8" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <Variant Type="XVT_NONE"/>
+	</GraphNode>
+	<GraphNode Id="0785a2ec19c00005" Title="makeup_facial_texture" Type="GraphNode.BaseNode.Variable.Texture" EnableState="1">
+	 <GraphPin Id="0872eb8acb40004e" Name="SucaiTextureSampler" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="SucaiTextureSampler" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.Texture" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="07859debd3c00002" PinId="0872eb8acb4000a5"/>
+	 </GraphPin>
+	 <Variant Type="XVT_STRING" Value="Asset/076e754479c00000/images/face.png"/>
+	</GraphNode>
+	<GraphNode Id="0785a26555c00000" Title="makeup_eyebrow" Type="GraphNode.BaseNode.Filter" EnableState="1" InputFilterSlots="1" FaceEntityModifierSlots="1">
+	 <GraphPin Id="0872eb8acb40004f" Name="makeup_eyebrow_0" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="makeup_eyebrow_0" ToolTip="filter-input pin-Slot:0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Filter" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a257a9c00000" PinId="0872eb8acb400041"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400050" Name="FilterOriginInputSampler" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FilterOriginInputSampler" ToolTip="Original Input Sampler input pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.OriginInputSampler" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785d14d25c00000" PinId="0872eb8acb400076"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400051" Name="FaceModifier" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FaceModifier" ToolTip="Setup a face-entity/face-warp modifier(0) for this filter node.">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.FaceEntityModifier|GraphNode.BaseNode.Variable.FaceEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.BodyEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupFaceVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupPupilVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeuEyesAreaVBIB" PinCategory="RenderEffect" PinSubCategory="Face entity Modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="079e57a407c00000" PinId="0872eb8acb400066"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400052" Name="makeup_eyebrow" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="makeup_eyebrow" ToolTip="Default filter-output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a26a37c00000" PinId="0872eb8acb400012"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400053" Name="ScriptModifier_0" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="ScriptModifier_0" ToolTip="Setup a script modifier for this node.">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Script" PinCategory="Utility" PinSubCategory="Script Modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400054" Name="SucaiTextureSampler" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="SucaiTextureSampler" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Texture" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a3057dc00005" PinId="0872eb8acb400047"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400055" Name="blendMode" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Blend Mode" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785c842b1c00007" PinId="0872eb8acb400079"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400056" Name="intensity" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Makeup Intensity" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="1"/>
+		<PinLink NodeId="086b645cef800008" PinId="0872eb8acb4000b1"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400057" Name="Pass_0" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Pass_0" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.PassModifier" PinCategory="RenderEffect" PinSubCategory="Pass modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a3057dc0000e" PinId="0872eb8acb40004a"/>
+	 </GraphPin>
+	 <FilterTemplate>
+		<Node Name="makeup_eyebrow_0872eb4fee000005" Type="Filter" FilterPath="" Enable="1" FilterNodeType="1" FilterGroupType="0" AcceptOriginalInputSampler="0" AcceptPreMainNodeAsFirstInputSampler="0" OutputSlots="0_0" FaceTrackerIndex="1" FacePartType="Custom" MaterialAssetPath="Asset/076e754479c00000/material/makeup_face/makeup_face_eyebrow.mt" CopyOriginTexAsBgEnable="0">
+		 <Pass PassIndex="0" OutputTargetSizePolicy="2" OutputTargetTexFormat="2" OutputTargetName="OutputRenderTarget" OutputTargetSizeX="0" OutputTargetSizeY="0"/>
+		 <MaterialParams>
+			<bDetachFace Type="XVT_NONE"/>
+			<bSegEnable Type="XVT_NONE"/>
+			<segFlipX Type="XVT_NONE"/>
+			<uSegMatrix Type="XVT_TRANSFORM" Value="0.000000,0.000000,0.000000;0.000000,0.000000,0.000000,1.000000;1.000000,1.000000,1.000000"/>
+			<segImageSize Type="XVT_FLOAT2" Value="0.000000,0.000000"/>
+			<SegMaskTextureSampler Type="XVT_STRING" Value="momo_ErrorTex"/>
+			<SucaiTextureSampler Type="XVT_STRING" Value="Asset/076e754479c00000/images/eyebrow.png"/>
+			<blendMode Type="XVT_FLOAT1" Value="0"/>
+			<intensity Type="XVT_FLOAT1" Value="1"/>
+		 </MaterialParams>
+		</Node>
+	 </FilterTemplate>
+	</GraphNode>
+	<GraphNode Id="0785bb65b9c0000b" Title="makeup_eyes_blendMode_1" Type="GraphNode.BaseNode.Variable" EnableState="1">
+	 <GraphPin Id="0872eb8acb400058" Name="blendMode" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Blend Mode" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785b20c2bc00002" PinId="0872eb8acb400026"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="0"/>
+	</GraphNode>
+	<GraphNode Id="0785cf3cd3c00000" Title="OriginInput" Type="GraphNode.BaseNode.OriginInputSampler" EnableState="1">
+	 <GraphPin Id="0872eb8acb400059" Name="FilterOriginInputSampler" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="FilterOriginInputSampler" ToolTip="Original Input Sampler output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.OriginInputSampler" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a27ad1c00000" PinId="0872eb8acb400001"/>
+	 </GraphPin>
+	</GraphNode>
+	<GraphNode Id="07e41cca21c000fa" Title="makeup_lips_effect_type_0" Type="GraphNode.BaseNode.Variable" EnableState="1">
+	 <GraphPin Id="0872eb8acb40005a" Name="lipsType" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Lips Type" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a26a37c00000" PinId="0872eb8acb40001e"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="0"/>
+	</GraphNode>
+	<GraphNode Id="0785aa8857c00008" Title="makeup_pupil_blendMode" Type="GraphNode.BaseNode.Variable" EnableState="1">
+	 <GraphPin Id="0872eb8acb40005b" Name="blendMode" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Blend Mode" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="077f6fb6e7c00000" PinId="0872eb8acb40008d"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="0"/>
+	</GraphNode>
+	<GraphNode Id="0785c80a0dc00007" Title="makeup_blush_blendMode_0" Type="GraphNode.BaseNode.Variable" EnableState="1">
+	 <GraphPin Id="0872eb8acb40005c" Name="blendMode" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Blend Mode" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a27ad1c00000" PinId="0872eb8acb400006"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="0"/>
+	</GraphNode>
+	<GraphNode Id="0785bb65b9c00011" Title="Pass_0" Type="GraphNode.BaseNode.Variable.PassModifier" EnableState="1" PassIndex="0" OutputTargetSizePolicy="2" OutputTargetTexFormat="2" OutputTargetName="OutputRenderTarget" OutputTargetSizeX="0" OutputTargetSizeY="0">
+	 <GraphPin Id="0872eb8acb40005d" Name="Pass_0" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Pass_0" ToolTip="Modifier of this pass">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.PassModifier" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Pass modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785b20c2bc00002" PinId="0872eb8acb400028"/>
+	 </GraphPin>
+	 <Variant Type="XVT_NONE"/>
+	</GraphNode>
+	<GraphNode Id="0785c7f973c00007" Title="makeup_facial_blendMode" Type="GraphNode.BaseNode.Variable" EnableState="1">
+	 <GraphPin Id="0872eb8acb40005e" Name="blendMode" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Blend Mode" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="07859debd3c00002" PinId="0872eb8acb4000a6"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="1"/>
+	</GraphNode>
+	<GraphNode Id="0785c021a3c0009f" Title="MouthMaskTextureSampler" Type="GraphNode.BaseNode.Variable.Texture" EnableState="1">
+	 <GraphPin Id="0872eb8acb40005f" Name="MouthMaskTextureSampler" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="MouthMaskTextureSampler" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.Texture" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a26a37c00000" PinId="0872eb8acb40001a"/>
+	 </GraphPin>
+	 <Variant Type="XVT_STRING" Value="Asset/076e754479c00000/material/makeup_images/lips_inner_mask.png"/>
+	</GraphNode>
+	<GraphNode Id="07e41cca21c00142" Title="makeup_lips_effect_type_1" Type="GraphNode.BaseNode.Variable" EnableState="1">
+	 <GraphPin Id="0872eb8acb400060" Name="lipsType" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Lips Type" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a274f5c00000" PinId="0872eb8acb40009c"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="0"/>
+	</GraphNode>
+	<GraphNode Id="0785bb68a7c00011" Title="Pass_0" Type="GraphNode.BaseNode.Variable.PassModifier" EnableState="1" PassIndex="0" OutputTargetSizePolicy="2" OutputTargetTexFormat="2" OutputTargetName="OutputRenderTarget" OutputTargetSizeX="0" OutputTargetSizeY="0">
+	 <GraphPin Id="0872eb8acb400061" Name="Pass_0" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Pass_0" ToolTip="Modifier of this pass">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.PassModifier" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Pass modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785b220adc00002" PinId="0872eb8acb400011"/>
+	 </GraphPin>
+	 <Variant Type="XVT_NONE"/>
+	</GraphNode>
+	<GraphNode Id="0785bb65b9c00008" Title="makeup_eyes_texture_1" Type="GraphNode.BaseNode.Variable.Texture" EnableState="1">
+	 <GraphPin Id="0872eb8acb400062" Name="SucaiTextureSampler" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="SucaiTextureSampler" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.Texture" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785b20c2bc00002" PinId="0872eb8acb400025"/>
+	 </GraphPin>
+	 <Variant Type="XVT_STRING" Value="Asset/076e754479c00000/images/eyeshadow.png"/>
+	</GraphNode>
+	<GraphNode Id="0785ccc309c00000" Title="OriginInput" Type="GraphNode.BaseNode.OriginInputSampler" EnableState="1">
+	 <GraphPin Id="0872eb8acb400063" Name="FilterOriginInputSampler" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="FilterOriginInputSampler" ToolTip="Original Input Sampler output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.OriginInputSampler" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="07859debd3c00002" PinId="0872eb8acb4000a1"/>
+	 </GraphPin>
+	</GraphNode>
+	<GraphNode Id="0785a321cfc0000e" Title="Pass_0" Type="GraphNode.BaseNode.Variable.PassModifier" EnableState="1" PassIndex="0" OutputTargetSizePolicy="2" OutputTargetTexFormat="2" OutputTargetName="OutputRenderTarget" OutputTargetSizeX="0" OutputTargetSizeY="0">
+	 <GraphPin Id="0872eb8acb400064" Name="Pass_0" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Pass_0" ToolTip="Modifier of this pass">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.PassModifier" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Pass modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a26a37c00000" PinId="0872eb8acb40001f"/>
+	 </GraphPin>
+	 <Variant Type="XVT_NONE"/>
+	</GraphNode>
+	<GraphNode Id="0785bb68a7c0000b" Title="makeup_eyes_blendMode_2" Type="GraphNode.BaseNode.Variable" EnableState="1">
+	 <GraphPin Id="0872eb8acb400065" Name="blendMode" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Blend Mode" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785b220adc00002" PinId="0872eb8acb40000f"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="0"/>
+	</GraphNode>
+	<GraphNode Id="079e57a407c00000" Title="MakeupFaceData" Type="GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupFaceVBIB" EnableState="1" FaceIndex="1" ExtendVBIB="0">
+	 <GraphPin Id="0872eb8acb400066" Name="FaceModifier.MakeupFaceVBIB" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="FaceModifier.MakeupFaceVBIB" ToolTip="Modifier of the makeup-face vb-ib">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupFaceVBIB" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Makeup Face VB-IB modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="07859debd3c00002" PinId="0872eb8acb4000a2"/>
+		<PinLink NodeId="0785a27ad1c00000" PinId="0872eb8acb400002"/>
+		<PinLink NodeId="0785a257a9c00000" PinId="0872eb8acb400040"/>
+		<PinLink NodeId="0785a26555c00000" PinId="0872eb8acb400051"/>
+		<PinLink NodeId="0785a26a37c00000" PinId="0872eb8acb400014"/>
+		<PinLink NodeId="0785a274f5c00000" PinId="0872eb8acb400092"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400067" Name="Face Index" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Face Index" ToolTip="Set face index">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupFaceVBIB" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="Face Index" PinDataType="8" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <Variant Type="XVT_NONE"/>
+	</GraphNode>
+	<GraphNode Id="0785d1658fc00000" Title="OriginInput" Type="GraphNode.BaseNode.OriginInputSampler" EnableState="1">
+	 <GraphPin Id="0872eb8acb400068" Name="FilterOriginInputSampler" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="FilterOriginInputSampler" ToolTip="Original Input Sampler output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.OriginInputSampler" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a26a37c00000" PinId="0872eb8acb400013"/>
+	 </GraphPin>
+	</GraphNode>
+	<GraphNode Id="0785a2fdadc0000e" Title="Pass_0" Type="GraphNode.BaseNode.Variable.PassModifier" EnableState="1" PassIndex="0" OutputTargetSizePolicy="2" OutputTargetTexFormat="2" OutputTargetName="OutputRenderTarget" OutputTargetSizeX="0" OutputTargetSizeY="0">
+	 <GraphPin Id="0872eb8acb400069" Name="Pass_0" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Pass_0" ToolTip="Modifier of this pass">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.PassModifier" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Pass modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a257a9c00000" PinId="0872eb8acb400046"/>
+	 </GraphPin>
+	 <Variant Type="XVT_NONE"/>
+	</GraphNode>
+	<GraphNode Id="0785a321cfc00005" Title="makeup_lips_texture2_0" Type="GraphNode.BaseNode.Variable.Texture" EnableState="1">
+	 <GraphPin Id="0872eb8acb40006a" Name="SucaiTextureSampler" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="SucaiTextureSampler" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.Texture" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a26a37c00000" PinId="0872eb8acb400017"/>
+	 </GraphPin>
+	 <Variant Type="XVT_STRING" Value="Asset/076e754479c00000/images/lip.png"/>
+	</GraphNode>
+	<GraphNode Id="0785c021a3c00076" Title="LutMaskTextureSampler" Type="GraphNode.BaseNode.Variable.Texture" EnableState="1">
+	 <GraphPin Id="0872eb8acb40006b" Name="LutMaskTextureSampler" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="LutMaskTextureSampler" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.Texture" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a274f5c00000" PinId="0872eb8acb400097"/>
+	 </GraphPin>
+	 <Variant Type="XVT_STRING" Value="Asset/076e754479c00000/material/makeup_images/lips_mask230.png"/>
+	</GraphNode>
+	<GraphNode Id="079e4fa42dc0008a" Title="Pass_0" Type="GraphNode.BaseNode.Variable.PassModifier" EnableState="1" PassIndex="0" OutputTargetSizePolicy="2" OutputTargetTexFormat="2" OutputTargetName="OutputRenderTarget" OutputTargetSizeX="0" OutputTargetSizeY="0">
+	 <GraphPin Id="0872eb8acb40006c" Name="Pass_0" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Pass_0" ToolTip="Modifier of this pass">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.PassModifier" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Pass modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="079e4f8eb1c00002" PinId="0872eb8acb40003c"/>
+	 </GraphPin>
+	 <Variant Type="XVT_NONE"/>
+	</GraphNode>
+	<GraphNode Id="0785a2fabfc00005" Title="makeup_blush_texture_0" Type="GraphNode.BaseNode.Variable.Texture" EnableState="1">
+	 <GraphPin Id="0872eb8acb40006d" Name="SucaiTextureSampler" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="SucaiTextureSampler" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.Texture" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a27ad1c00000" PinId="0872eb8acb400005"/>
+	 </GraphPin>
+	 <Variant Type="XVT_STRING" Value="Asset/076e754479c00000/images/blush.png"/>
+	</GraphNode>
+	<GraphNode Id="0785a35d61c00005" Title="makeup_lips_texture_1" Type="GraphNode.BaseNode.Variable.Texture" EnableState="1">
+	 <GraphPin Id="0872eb8acb40006e" Name="SucaiTextureSampler" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="SucaiTextureSampler" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.Texture" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a274f5c00000" PinId="0872eb8acb400095"/>
+	 </GraphPin>
+	 <Variant Type="XVT_STRING" Value="Asset/076e754479c00000/images/liplookup.png"/>
+	</GraphNode>
+	<GraphNode Id="0784edd4b9c00000" Title="OriginInput" Type="GraphNode.BaseNode.OriginInputSampler" EnableState="1">
+	 <GraphPin Id="0872eb8acb40006f" Name="FilterOriginInputSampler" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="FilterOriginInputSampler" ToolTip="Original Input Sampler output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.OriginInputSampler" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="077f6fb6e7c00000" PinId="0872eb8acb400088"/>
+	 </GraphPin>
+	</GraphNode>
+	<GraphNode Id="0785b0a1ddc00008" Title="makeup_eyes_texture_0" Type="GraphNode.BaseNode.Variable.Texture" EnableState="1">
+	 <GraphPin Id="0872eb8acb400070" Name="SucaiTextureSampler" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="SucaiTextureSampler" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.Texture" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="077f707a37c00000" PinId="0872eb8acb400080"/>
+	 </GraphPin>
+	 <Variant Type="XVT_STRING" Value="Asset/076e754479c00000/images/eyeshadow.png"/>
+	</GraphNode>
+	<GraphNode Id="0785bb68a7c00008" Title="makeup_eyes_texture_2" Type="GraphNode.BaseNode.Variable.Texture" EnableState="1">
+	 <GraphPin Id="0872eb8acb400071" Name="SucaiTextureSampler" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="SucaiTextureSampler" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.Texture" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785b220adc00002" PinId="0872eb8acb40000e"/>
+	 </GraphPin>
+	 <Variant Type="XVT_STRING" Value="Asset/076e754479c00000/images/eyeshadow.png"/>
+	</GraphNode>
+	<GraphNode Id="0785b220adc00000" Title="OriginInput" Type="GraphNode.BaseNode.OriginInputSampler" EnableState="1">
+	 <GraphPin Id="0872eb8acb400072" Name="FilterOriginInputSampler" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="FilterOriginInputSampler" ToolTip="Original Input Sampler output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.OriginInputSampler" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785b220adc00002" PinId="0872eb8acb40000a"/>
+	 </GraphPin>
+	</GraphNode>
+	<GraphNode Id="0784ee123fc00000" Title="OriginInput" Type="GraphNode.BaseNode.OriginInputSampler" EnableState="1">
+	 <GraphPin Id="0872eb8acb400073" Name="FilterOriginInputSampler" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="FilterOriginInputSampler" ToolTip="Original Input Sampler output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.OriginInputSampler" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="077f707a37c00000" PinId="0872eb8acb40007c"/>
+	 </GraphPin>
+	</GraphNode>
+	<GraphNode Id="0785c021a3c00099" Title="makeup_lips_texture_0" Type="GraphNode.BaseNode.Variable.Texture" EnableState="1">
+	 <GraphPin Id="0872eb8acb400074" Name="SucaiTextureSampler2" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="SucaiTextureSampler2" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.Texture" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a26a37c00000" PinId="0872eb8acb400018"/>
+	 </GraphPin>
+	 <Variant Type="XVT_STRING" Value="Asset/076e754479c00000/images/lip00.png"/>
+	</GraphNode>
+	<GraphNode Id="0785c021a3c00073" Title="makeup_lips_texture2_1" Type="GraphNode.BaseNode.Variable.Texture" EnableState="1">
+	 <GraphPin Id="0872eb8acb400075" Name="SucaiTextureSampler2" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="SucaiTextureSampler2" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.Texture" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a274f5c00000" PinId="0872eb8acb400096"/>
+	 </GraphPin>
+	 <Variant Type="XVT_STRING" Value="Error"/>
+	</GraphNode>
+	<GraphNode Id="0785d14d25c00000" Title="OriginInput" Type="GraphNode.BaseNode.OriginInputSampler" EnableState="1">
+	 <GraphPin Id="0872eb8acb400076" Name="FilterOriginInputSampler" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="FilterOriginInputSampler" ToolTip="Original Input Sampler output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.OriginInputSampler" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a26555c00000" PinId="0872eb8acb400050"/>
+	 </GraphPin>
+	</GraphNode>
+	<GraphNode Id="07e41b8fadc00014" Title="NoiseTextureSampler" Type="GraphNode.BaseNode.Variable.Texture" EnableState="1">
+	 <GraphPin Id="0872eb8acb400077" Name="NoiseTextureSampler" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="NoiseTextureSampler" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.Texture" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a274f5c00000" PinId="0872eb8acb400099"/>
+	 </GraphPin>
+	 <Variant Type="XVT_STRING" Value="Asset/076e754479c00000/material/makeup_images/lips_noise.png"/>
+	</GraphNode>
+	<GraphNode Id="0785c021a3c0009c" Title="LutMaskTextureSampler" Type="GraphNode.BaseNode.Variable.Texture" EnableState="1">
+	 <GraphPin Id="0872eb8acb400078" Name="LutMaskTextureSampler" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="LutMaskTextureSampler" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.Texture" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a26a37c00000" PinId="0872eb8acb400019"/>
+	 </GraphPin>
+	 <Variant Type="XVT_STRING" Value="Asset/076e754479c00000/material/makeup_images/lips_mask230.png"/>
+	</GraphNode>
+	<GraphNode Id="0785c842b1c00007" Title="makeup_eyebrow_blendMode" Type="GraphNode.BaseNode.Variable" EnableState="1">
+	 <GraphPin Id="0872eb8acb400079" Name="blendMode" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Blend Mode" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a26555c00000" PinId="0872eb8acb400055"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="0"/>
+	</GraphNode>
+	<GraphNode Id="0785b0a1ddc0000b" Title="makeup_eyes_blendMode_0" Type="GraphNode.BaseNode.Variable" EnableState="1">
+	 <GraphPin Id="0872eb8acb40007a" Name="blendMode" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Blend Mode" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="077f707a37c00000" PinId="0872eb8acb400081"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="0"/>
+	</GraphNode>
+	<GraphNode Id="077f707a37c00000" Title="makeup_eyes_0" Type="GraphNode.BaseNode.Filter" EnableState="1" InputFilterSlots="1" FaceEntityModifierSlots="1">
+	 <GraphPin Id="0872eb8acb40007b" Name="makeup_eyes_0_0" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="makeup_eyes_0_0" ToolTip="filter-input pin-Slot:0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Filter" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="079e4f8eb1c00002" PinId="0872eb8acb400039"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb40007c" Name="FilterOriginInputSampler" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FilterOriginInputSampler" ToolTip="Original Input Sampler input pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.OriginInputSampler" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0784ee123fc00000" PinId="0872eb8acb400073"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb40007d" Name="FaceModifier" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FaceModifier" ToolTip="Setup a face-entity/face-warp modifier(0) for this filter node.">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.FaceEntityModifier|GraphNode.BaseNode.Variable.FaceEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.BodyEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupFaceVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupPupilVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeuEyesAreaVBIB" PinCategory="RenderEffect" PinSubCategory="Face entity Modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="079e620f05c00000" PinId="0872eb8acb40004c"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb40007e" Name="makeup_eyes_0" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="makeup_eyes_0" ToolTip="Default filter-output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785b20c2bc00002" PinId="0872eb8acb400020"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb40007f" Name="ScriptModifier_0" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="ScriptModifier_0" ToolTip="Setup a script modifier for this node.">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Script" PinCategory="Utility" PinSubCategory="Script Modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400080" Name="SucaiTextureSampler" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="SucaiTextureSampler" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Texture" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785b0a1ddc00008" PinId="0872eb8acb400070"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400081" Name="blendMode" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Blend Mode" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785b0a1ddc0000b" PinId="0872eb8acb40007a"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400082" Name="intensity" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="intensity" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="1"/>
+		<PinLink NodeId="086b67039ec00008" PinId="0872eb8acb4000b5"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400083" Name="Pass_0" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Pass_0" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.PassModifier" PinCategory="RenderEffect" PinSubCategory="Pass modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="077f747b9bc0000a" PinId="0872eb8acb4000a9"/>
+	 </GraphPin>
+	 <FilterTemplate>
+		<Node Name="makeup_eyes_0_0872eb5012000005" Type="Filter" FilterPath="" Enable="1" FilterNodeType="1" FilterGroupType="0" AcceptOriginalInputSampler="0" AcceptPreMainNodeAsFirstInputSampler="0" OutputSlots="0_0" FaceTrackerIndex="1" FacePartType="Custom" MaterialAssetPath="Asset/076e754479c00000/material/makeup_eye/makeup_eye.mt" CopyOriginTexAsBgEnable="0">
+		 <Pass PassIndex="0" OutputTargetSizePolicy="1" OutputTargetTexFormat="2" OutputTargetName="OutputRenderTarget" OutputTargetSizeX="1" OutputTargetSizeY="1"/>
+		 <MaterialParams>
+			<bDetachFace Type="XVT_NONE"/>
+			<bSegEnable Type="XVT_NONE"/>
+			<segFlipX Type="XVT_NONE"/>
+			<uSegMatrix Type="XVT_TRANSFORM" Value="0.000000,0.000000,0.000000;0.000000,0.000000,0.000000,1.000000;1.000000,1.000000,1.000000"/>
+			<segImageSize Type="XVT_FLOAT2" Value="0.000000,0.000000"/>
+			<SegMaskTextureSampler Type="XVT_STRING" Value="momo_ErrorTex"/>
+			<SucaiTextureSampler Type="XVT_STRING" Value="Asset/076e754479c00000/images/eyeshadow.png"/>
+			<blendMode Type="XVT_FLOAT1" Value="0"/>
+			<intensity Type="XVT_FLOAT1" Value="1"/>
+		 </MaterialParams>
+		</Node>
+	 </FilterTemplate>
+	</GraphNode>
+	<GraphNode Id="0785a2fabfc0000e" Title="Pass_0" Type="GraphNode.BaseNode.Variable.PassModifier" EnableState="1" PassIndex="0" OutputTargetSizePolicy="2" OutputTargetTexFormat="2" OutputTargetName="OutputRenderTarget" OutputTargetSizeX="0" OutputTargetSizeY="0">
+	 <GraphPin Id="0872eb8acb400084" Name="Pass_0" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Pass_0" ToolTip="Modifier of this pass">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.PassModifier" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Pass modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a27ad1c00000" PinId="0872eb8acb400008"/>
+	 </GraphPin>
+	 <Variant Type="XVT_NONE"/>
+	</GraphNode>
+	<GraphNode Id="0785a35d61c0000e" Title="Pass_0" Type="GraphNode.BaseNode.Variable.PassModifier" EnableState="1" PassIndex="0" OutputTargetSizePolicy="2" OutputTargetTexFormat="2" OutputTargetName="OutputRenderTarget" OutputTargetSizeX="0" OutputTargetSizeY="0">
+	 <GraphPin Id="0872eb8acb400085" Name="Pass_0" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Pass_0" ToolTip="Modifier of this pass">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.PassModifier" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Pass modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a274f5c00000" PinId="0872eb8acb40009d"/>
+	 </GraphPin>
+	 <Variant Type="XVT_NONE"/>
+	</GraphNode>
+	<GraphNode Id="0785d18c9fc00000" Title="OriginInput" Type="GraphNode.BaseNode.OriginInputSampler" EnableState="1">
+	 <GraphPin Id="0872eb8acb400086" Name="FilterOriginInputSampler" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="FilterOriginInputSampler" ToolTip="Original Input Sampler output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.OriginInputSampler" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a274f5c00000" PinId="0872eb8acb400091"/>
+	 </GraphPin>
+	</GraphNode>
+	<GraphNode Id="077f6fb6e7c00000" Title="makeup_pupil" Type="GraphNode.BaseNode.Filter" EnableState="1" InputFilterSlots="1" FaceEntityModifierSlots="1">
+	 <GraphPin Id="0872eb8acb400087" Name="makeup_pupil_0" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="makeup_pupil_0" ToolTip="filter-input pin-Slot:0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Filter" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a274f5c00000" PinId="0872eb8acb400093"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400088" Name="FilterOriginInputSampler" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FilterOriginInputSampler" ToolTip="Original Input Sampler input pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.OriginInputSampler" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0784edd4b9c00000" PinId="0872eb8acb40006f"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400089" Name="FaceModifier" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FaceModifier" ToolTip="Setup a face-entity/face-warp modifier(0) for this filter node.">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.FaceEntityModifier|GraphNode.BaseNode.Variable.FaceEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.BodyEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupFaceVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupPupilVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeuEyesAreaVBIB" PinCategory="RenderEffect" PinSubCategory="Face entity Modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="079e599807c00000" PinId="0872eb8acb4000ac"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb40008a" Name="makeup_pupil" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="makeup_pupil" ToolTip="Default filter-output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="079e4f8eb1c00002" PinId="0872eb8acb400036"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb40008b" Name="ScriptModifier_0" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="ScriptModifier_0" ToolTip="Setup a script modifier for this node.">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Script" PinCategory="Utility" PinSubCategory="Script Modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb40008c" Name="SucaiTextureSampler" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="SucaiTextureSampler" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Texture" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785aa8857c00005" PinId="0872eb8acb40002c"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb40008d" Name="blendMode" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Blend Mode" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785aa8857c00008" PinId="0872eb8acb40005b"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb40008e" Name="intensity" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Pupil Intensity" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="1"/>
+		<PinLink NodeId="086b655d6fc00001" PinId="0872eb8acb4000b4"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb40008f" Name="Pass_0" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Pass_0" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.PassModifier" PinCategory="RenderEffect" PinSubCategory="Pass modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="077f70bc9fc00027" PinId="0872eb8acb400029"/>
+	 </GraphPin>
+	 <FilterTemplate>
+		<Node Name="makeup_pupil_0872eb500c000000" Type="Filter" FilterPath="" Enable="1" FilterNodeType="1" FilterGroupType="0" AcceptOriginalInputSampler="0" AcceptPreMainNodeAsFirstInputSampler="0" OutputSlots="1_0" FaceTrackerIndex="1" FacePartType="Custom" MaterialAssetPath="Asset/076e754479c00000/material/makeup_pupil/makeup_pupil.mt" CopyOriginTexAsBgEnable="0">
+		 <Pass PassIndex="0" OutputTargetSizePolicy="1" OutputTargetTexFormat="2" OutputTargetName="OutputRenderTarget" OutputTargetSizeX="1" OutputTargetSizeY="1"/>
+		 <MaterialParams>
+			<bDetachFace Type="XVT_NONE"/>
+			<SucaiTextureSampler Type="XVT_STRING" Value="Asset/076e754479c00000/images/pupil.png"/>
+			<blendMode Type="XVT_FLOAT1" Value="0"/>
+			<intensity Type="XVT_FLOAT1" Value="1"/>
+		 </MaterialParams>
+		</Node>
+	 </FilterTemplate>
+	</GraphNode>
+	<GraphNode Id="0785a274f5c00000" Title="makeup_lips_1" Type="GraphNode.BaseNode.Filter" EnableState="1" InputFilterSlots="1" FaceEntityModifierSlots="1">
+	 <GraphPin Id="0872eb8acb400090" Name="makeup_lips_1_0" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="makeup_lips_1_0" ToolTip="filter-input pin-Slot:0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Filter" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a26a37c00000" PinId="0872eb8acb400015"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400091" Name="FilterOriginInputSampler" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FilterOriginInputSampler" ToolTip="Original Input Sampler input pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.OriginInputSampler" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785d18c9fc00000" PinId="0872eb8acb400086"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400092" Name="FaceModifier" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FaceModifier" ToolTip="Setup a face-entity/face-warp modifier(0) for this filter node.">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.FaceEntityModifier|GraphNode.BaseNode.Variable.FaceEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.BodyEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupFaceVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupPupilVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeuEyesAreaVBIB" PinCategory="RenderEffect" PinSubCategory="Face entity Modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="079e57a407c00000" PinId="0872eb8acb400066"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400093" Name="makeup_lips_1" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="makeup_lips_1" ToolTip="Default filter-output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="077f6fb6e7c00000" PinId="0872eb8acb400087"/>
+		<PinLink NodeId="079e4f8eb1c00002" PinId="0872eb8acb400035"/>
+		<PinLink NodeId="077f9d5b79c00000" PinId="0872eb8acb40002e"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400094" Name="ScriptModifier_0" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="ScriptModifier_0" ToolTip="Setup a script modifier for this node.">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Script" PinCategory="Utility" PinSubCategory="Script Modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400095" Name="SucaiTextureSampler" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="SucaiTextureSampler" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Texture" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a35d61c00005" PinId="0872eb8acb40006e"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400096" Name="SucaiTextureSampler2" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="SucaiTextureSampler2" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Texture" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785c021a3c00073" PinId="0872eb8acb400075"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400097" Name="LutMaskTextureSampler" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="LutMaskTextureSampler" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Texture" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785c021a3c00076" PinId="0872eb8acb40006b"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400098" Name="MouthMaskTextureSampler" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="MouthMaskTextureSampler" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Texture" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785c021a3c00079" PinId="0872eb8acb400034"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb400099" Name="NoiseTextureSampler" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="NoiseTextureSampler" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Texture" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="07e41b8fadc00014" PinId="0872eb8acb400077"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb40009a" Name="blendMode" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Blend Mode" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a35d61c00008" PinId="0872eb8acb4000aa"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb40009b" Name="intensity" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Makeup Intensity" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="1"/>
+		<PinLink NodeId="086b65190c400007" PinId="0872eb8acb4000b3"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb40009c" Name="lipsType" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Lips Type" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="07e41cca21c00142" PinId="0872eb8acb400060"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb40009d" Name="Pass_0" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Pass_0" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.PassModifier" PinCategory="RenderEffect" PinSubCategory="Pass modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a35d61c0000e" PinId="0872eb8acb400085"/>
+	 </GraphPin>
+	 <FilterTemplate>
+		<Node Name="makeup_lips_1_0872eb5009400005" Type="Filter" FilterPath="" Enable="1" FilterNodeType="1" FilterGroupType="0" AcceptOriginalInputSampler="0" AcceptPreMainNodeAsFirstInputSampler="0" OutputSlots="0_0" FaceTrackerIndex="1" FacePartType="Custom" MaterialAssetPath="Asset/076e754479c00000/material/makeup_lips/makeup_lips.mt" CopyOriginTexAsBgEnable="0">
+		 <Pass PassIndex="0" OutputTargetSizePolicy="2" OutputTargetTexFormat="2" OutputTargetName="OutputRenderTarget" OutputTargetSizeX="0" OutputTargetSizeY="0"/>
+		 <MaterialParams>
+			<bDetachFace Type="XVT_NONE"/>
+			<openMouth Type="XVT_NONE"/>
+			<closeThreshold Type="XVT_NONE"/>
+			<bSegEnable Type="XVT_NONE"/>
+			<segFlipX Type="XVT_NONE"/>
+			<uSegMatrix Type="XVT_TRANSFORM" Value="0.000000,0.000000,0.000000;0.000000,0.000000,0.000000,1.000000;1.000000,1.000000,1.000000"/>
+			<segImageSize Type="XVT_FLOAT2" Value="0.000000,0.000000"/>
+			<SegMaskTextureSampler Type="XVT_STRING" Value="momo_ErrorTex"/>
+			<SucaiTextureSampler Type="XVT_STRING" Value="Asset/076e754479c00000/images/liplookup.png"/>
+			<SucaiTextureSampler2 Type="XVT_STRING" Value="Error"/>
+			<LutMaskTextureSampler Type="XVT_STRING" Value="Asset/076e754479c00000/material/makeup_images/lips_mask230.png"/>
+			<MouthMaskTextureSampler Type="XVT_STRING" Value="Asset/076e754479c00000/material/makeup_images/lips_inner_mask.png"/>
+			<NoiseTextureSampler Type="XVT_STRING" Value="Asset/076e754479c00000/material/makeup_images/lips_noise.png"/>
+			<blendMode Type="XVT_FLOAT1" Value="20"/>
+			<intensity Type="XVT_FLOAT1" Value="1"/>
+			<lipsType Type="XVT_FLOAT1" Value="0"/>
+		 </MaterialParams>
+		</Node>
+	 </FilterTemplate>
+	</GraphNode>
+	<GraphNode Id="0785c81ba1c00007" Title="makeup_blush_blendMode_1" Type="GraphNode.BaseNode.Variable" EnableState="1">
+	 <GraphPin Id="0872eb8acb40009e" Name="blendMode" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Blend Mode" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a257a9c00000" PinId="0872eb8acb400044"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="0"/>
+	</GraphNode>
+	<GraphNode Id="0785a321cfc00008" Title="makeup_lips_blendMode_0" Type="GraphNode.BaseNode.Variable" EnableState="1">
+	 <GraphPin Id="0872eb8acb40009f" Name="blendMode" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Blend Mode" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a26a37c00000" PinId="0872eb8acb40001c"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="0"/>
+	</GraphNode>
+	<GraphNode Id="07859debd3c00002" Title="makeup_facial" Type="GraphNode.BaseNode.Filter" EnableState="1" InputFilterSlots="1" FaceEntityModifierSlots="1">
+	 <GraphPin Id="0872eb8acb4000a0" Name="makeup_facial_0" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="makeup_facial_0" ToolTip="filter-input pin-Slot:0">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Filter" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb4000a1" Name="FilterOriginInputSampler" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FilterOriginInputSampler" ToolTip="Original Input Sampler input pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.OriginInputSampler" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785ccc309c00000" PinId="0872eb8acb400063"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb4000a2" Name="FaceModifier" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="FaceModifier" ToolTip="Setup a face-entity/face-warp modifier(0) for this filter node.">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.FaceEntityModifier|GraphNode.BaseNode.Variable.FaceEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.BodyEntityModifier.WarpVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupFaceVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupPupilVBIB|GraphNode.BaseNode.Variable.FaceEntityModifier.MakeuEyesAreaVBIB" PinCategory="RenderEffect" PinSubCategory="Face entity Modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="079e57a407c00000" PinId="0872eb8acb400066"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb4000a3" Name="makeup_facial" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="makeup_facial" ToolTip="Default filter-output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Filter" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a27ad1c00000" PinId="0872eb8acb400000"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb4000a4" Name="ScriptModifier_0" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="ScriptModifier_0" ToolTip="Setup a script modifier for this node.">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Script" PinCategory="Utility" PinSubCategory="Script Modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb4000a5" Name="SucaiTextureSampler" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="SucaiTextureSampler" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.Texture" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a2ec19c00005" PinId="0872eb8acb40004e"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb4000a6" Name="blendMode" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Blend Mode" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785c7f973c00007" PinId="0872eb8acb40005e"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb4000a7" Name="intensity" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Makeup Intensity" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="1"/>
+		<PinLink NodeId="086b62114b000003" PinId="0872eb8acb4000ae"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb4000a8" Name="Pass_0" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Pass_0" ToolTip="">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Filter" PinAcceptNodeType="GraphNode.BaseNode.Variable.PassModifier" PinCategory="RenderEffect" PinSubCategory="Pass modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a2ec19c0000e" PinId="0872eb8acb40003d"/>
+	 </GraphPin>
+	 <FilterTemplate>
+		<Node Name="makeup_facial_0872eb4fe1c00005" Type="Filter" FilterPath="" Enable="1" FilterNodeType="1" FilterGroupType="0" AcceptOriginalInputSampler="0" AcceptPreMainNodeAsFirstInputSampler="0" OutputSlots="0_0" FaceTrackerIndex="1" FacePartType="Custom" MaterialAssetPath="Asset/076e754479c00000/material/makeup_face/makeup_face.mt" CopyOriginTexAsBgEnable="0">
+		 <Pass PassIndex="0" OutputTargetSizePolicy="2" OutputTargetTexFormat="2" OutputTargetName="OutputRenderTarget" OutputTargetSizeX="0" OutputTargetSizeY="0"/>
+		 <MaterialParams>
+			<bDetachFace Type="XVT_NONE"/>
+			<bSegEnable Type="XVT_NONE"/>
+			<segFlipX Type="XVT_NONE"/>
+			<uSegMatrix Type="XVT_TRANSFORM" Value="0.000000,0.000000,0.000000;0.000000,0.000000,0.000000,1.000000;1.000000,1.000000,1.000000"/>
+			<segImageSize Type="XVT_FLOAT2" Value="0.000000,0.000000"/>
+			<SegMaskTextureSampler Type="XVT_STRING" Value="momo_ErrorTex"/>
+			<SucaiTextureSampler Type="XVT_STRING" Value="Asset/076e754479c00000/images/face.png"/>
+			<blendMode Type="XVT_FLOAT1" Value="1"/>
+			<intensity Type="XVT_FLOAT1" Value="1"/>
+		 </MaterialParams>
+		</Node>
+	 </FilterTemplate>
+	</GraphNode>
+	<GraphNode Id="077f747b9bc0000a" Title="Pass_0" Type="GraphNode.BaseNode.Variable.PassModifier" EnableState="1" PassIndex="0" OutputTargetSizePolicy="1" OutputTargetTexFormat="2" OutputTargetName="OutputRenderTarget" OutputTargetSizeX="1" OutputTargetSizeY="1">
+	 <GraphPin Id="0872eb8acb4000a9" Name="Pass_0" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Pass_0" ToolTip="Modifier of this pass">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.PassModifier" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Pass modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="077f707a37c00000" PinId="0872eb8acb400083"/>
+	 </GraphPin>
+	 <Variant Type="XVT_NONE"/>
+	</GraphNode>
+	<GraphNode Id="0785a35d61c00008" Title="makeup_lips_blendMode_1" Type="GraphNode.BaseNode.Variable" EnableState="1">
+	 <GraphPin Id="0872eb8acb4000aa" Name="blendMode" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Blend Mode" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a274f5c00000" PinId="0872eb8acb40009a"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="20"/>
+	</GraphNode>
+	<GraphNode Id="07e41b8fadc0005b" Title="NoiseTextureSampler" Type="GraphNode.BaseNode.Variable.Texture" EnableState="1">
+	 <GraphPin Id="0872eb8acb4000ab" Name="NoiseTextureSampler" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="NoiseTextureSampler" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.Texture" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_STRING" PinDataType="10" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a26a37c00000" PinId="0872eb8acb40001b"/>
+	 </GraphPin>
+	 <Variant Type="XVT_STRING" Value="Asset/076e754479c00000/material/makeup_images/lips_noise.png"/>
+	</GraphNode>
+	<GraphNode Id="079e599807c00000" Title="MakeupPupilData" Type="GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupPupilVBIB" EnableState="1" FaceIndex="1" ExtendVBIB="0">
+	 <GraphPin Id="0872eb8acb4000ac" Name="FaceModifier.MakeupFaceVBIB" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="FaceModifier.MakeupFaceVBIB" ToolTip="Modifier of the makeup-pupil vb-ib">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupPupilVBIB" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Makeup Pupil VB-IB modifier" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="077f6fb6e7c00000" PinId="0872eb8acb400089"/>
+	 </GraphPin>
+	 <GraphPin Id="0872eb8acb4000ad" Name="Face Index" Direction="0" DrivenType="0" IsHidden="0" FriendlyName="Face Index" ToolTip="Set face index">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable.FaceEntityModifier.MakeupPupilVBIB" PinAcceptNodeType="GraphNode.BaseNode.Variable" PinCategory="Variable" PinSubCategory="Face Index" PinDataType="8" IsConst="0" IsAlwaysExposed="0"/>
+	 </GraphPin>
+	 <Variant Type="XVT_NONE"/>
+	</GraphNode>
+	<GraphNode Id="086b5e0b31000002" Title="GraphSchema" Type="GraphNode.Schema.Filter" EnableState="1"/>
+	<GraphNode Id="086b62114b000003" Title="intensity" Type="GraphNode.BaseNode.Variable" EnableState="1">
+	 <GraphPin Id="0872eb8acb4000ae" Name="intensity" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Makeup Intensity" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="07859debd3c00002" PinId="0872eb8acb4000a7"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="1"/>
+	</GraphNode>
+	<GraphNode Id="086b63d705c00002" Title="intensity" Type="GraphNode.BaseNode.Variable" EnableState="1">
+	 <GraphPin Id="0872eb8acb4000af" Name="intensity" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Makeup Intensity" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a27ad1c00000" PinId="0872eb8acb400007"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="1"/>
+	</GraphNode>
+	<GraphNode Id="086b63d70b400002" Title="intensity" Type="GraphNode.BaseNode.Variable" EnableState="1">
+	 <GraphPin Id="0872eb8acb4000b0" Name="intensity" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Makeup Intensity" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a257a9c00000" PinId="0872eb8acb400045"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="1"/>
+	</GraphNode>
+	<GraphNode Id="086b645cef800008" Title="intensity" Type="GraphNode.BaseNode.Variable" EnableState="1">
+	 <GraphPin Id="0872eb8acb4000b1" Name="intensity" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Makeup Intensity" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a26555c00000" PinId="0872eb8acb400056"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="1"/>
+	</GraphNode>
+	<GraphNode Id="086b6518fb800006" Title="intensity" Type="GraphNode.BaseNode.Variable" EnableState="1">
+	 <GraphPin Id="0872eb8acb4000b2" Name="intensity" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Makeup Intensity" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a26a37c00000" PinId="0872eb8acb40001d"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="1"/>
+	</GraphNode>
+	<GraphNode Id="086b65190c400007" Title="intensity" Type="GraphNode.BaseNode.Variable" EnableState="1">
+	 <GraphPin Id="0872eb8acb4000b3" Name="intensity" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Makeup Intensity" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785a274f5c00000" PinId="0872eb8acb40009b"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="1"/>
+	</GraphNode>
+	<GraphNode Id="086b655d6fc00001" Title="intensity" Type="GraphNode.BaseNode.Variable" EnableState="1">
+	 <GraphPin Id="0872eb8acb4000b4" Name="intensity" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="Pupil Intensity" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="077f6fb6e7c00000" PinId="0872eb8acb40008e"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="1"/>
+	</GraphNode>
+	<GraphNode Id="086b67039ec00008" Title="intensity" Type="GraphNode.BaseNode.Variable" EnableState="1">
+	 <GraphPin Id="0872eb8acb4000b5" Name="intensity" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="intensity" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="077f707a37c00000" PinId="0872eb8acb400082"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="1"/>
+	</GraphNode>
+	<GraphNode Id="086b6703a4400008" Title="intensity" Type="GraphNode.BaseNode.Variable" EnableState="1">
+	 <GraphPin Id="0872eb8acb4000b6" Name="intensity" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="intensity" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785b20c2bc00002" PinId="0872eb8acb400027"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="1"/>
+	</GraphNode>
+	<GraphNode Id="086b6703a9c00008" Title="intensity" Type="GraphNode.BaseNode.Variable" EnableState="1">
+	 <GraphPin Id="0872eb8acb4000b7" Name="intensity" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="intensity" ToolTip="Data output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.Variable" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="Variable" PinSubCategory="XVT_FLOAT1" PinDataType="1" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="0785b220adc00002" PinId="0872eb8acb400010"/>
+	 </GraphPin>
+	 <Variant Type="XVT_FLOAT1" Value="1"/>
+	</GraphNode>
+	<GraphNode Id="086f18d87f800002" Title="OriginInput" Type="GraphNode.BaseNode.OriginInputSampler" EnableState="1">
+	 <GraphPin Id="0872eb8acb4000b8" Name="FilterOriginInputSampler" Direction="1" DrivenType="0" IsHidden="0" FriendlyName="FilterOriginInputSampler" ToolTip="Original Input Sampler output pin">
+		<GraphPinType ContainerType="0" PinOwnerNodeType="GraphNode.BaseNode.OriginInputSampler" PinAcceptNodeType="NoAcceptableGraphNode" PinCategory="RenderEffect" PinSubCategory="Origin input sampler" PinDataType="0" IsConst="0" IsAlwaysExposed="0"/>
+		<PinLink NodeId="077f9d5b79c00000" PinId="0872eb8acb400030"/>
+	 </GraphPin>
+	</GraphNode>
+ </Graph>
+</GraphContainer>

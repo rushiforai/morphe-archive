@@ -1,5 +1,17 @@
 # Third-party notices
 
+## Opera GX icon artwork
+
+The standalone Opera GX **GX icon pack** patch packages launcher icon artwork from:
+
+- Project: GX Icon Pack
+- Author/developer: Opera Software
+- GX Store slug: `cbljk8/gx-icon-pack`
+- Version pinned and verified by the build: `1.7`
+- Files used: the 56 PNG files declared by `mod.payload.app_icon` in the official pack manifest
+
+Opera Software retains all rights in its names, trademarks, logos, and artwork. This repository is not affiliated with or endorsed by Opera Software. The build downloads the public official pack, verifies its manifest identity and version, and includes only the launcher icon payload required by the patch.
+
 ## Violentmonkey compatibility code
 
 Parts of the Chrome Android userscript metadata parser and installer behavior are adapted from:

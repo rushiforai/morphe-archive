@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Keep Powered by Google assets -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="
+      @drawable/places_powered_by_google_dark,
+      @drawable/places_powered_by_google_light"/>

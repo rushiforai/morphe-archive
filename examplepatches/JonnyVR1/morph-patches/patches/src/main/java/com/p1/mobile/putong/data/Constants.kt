@@ -32,10 +32,13 @@ internal val tantanCompatibility = Compatibility(
     packageName = TANTAN_PACKAGE_NAME,
     description = "Tantan - Global Dating App",
     apkFileType = ApkFileType.APK_REQUIRED,
+    signatures = setOf(
+        "7c5d634c27841a5318a5bf47300e4415bee8011e009c74230b9aebca994d30c7"
+    ),
     targets = listOf(
         AppTarget(
-            version = "7.3.3",
-            description = "Tested on 7.3.3",
+            version = "7.3.6",
+            description = "Tested on 7.3.6",
         )
     )
 )

@@ -1,0 +1,56 @@
+syntax = "proto3";
+package liveroom;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + userMask）
+option java_package = "com.p1.mobile.longlink.msg.liveroom";
+option java_outer_classname = "VoiceLiveManager";
+option optimize_for = LITE_RUNTIME;
+
+message VoiceManagerInvite {
+  string liveId = 1;
+  string userId = 2;
+  string inviteId = 3;
+}
+
+message VoiceManagerUpdate {
+  string liveId = 1;
+  string userId = 2;
+  enum UpdateType {
+    Add = 0;
+    Remove = 1;
+  }
+  UpdateType type = 3;
+}
+
+
+message VoiceFreeCallUpdate {
+  string roomId = 1;
+  string userId = 2; // 操作的用户
+  bool freeCall = 3; // true 开启 false 关闭
+}
+
+// msgTypeName = 'live.voicelive.info'
+// 直播信息（心动值）
+message VoiceLiveInfo {
+  enum VoiceLiveMode {
+    normal = 0;
+    auction = 1; // 拍卖模式
+    boss = 2;
+    virtualAvatar = 4;
+    commercialRoom = 5;
+    radio3 = 6;
+    radio5 =7;
+  }
+  string roomId = 1;
+  string liveId = 2;
+  uint64 rewardPoint = 3;
+  VoiceLiveMode liveMode = 4;
+  string template = 5; // "sixCall" 普通房间 "ktv" ktv房间
+}
+
+message VoiceLiveHeartBeatInfo {
+  string roomId = 1;
+  string liveId = 2;
+  int64 heartBeats = 3;
+  int64 timestamp = 4;
+}

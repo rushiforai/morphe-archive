@@ -1,0 +1,29 @@
+{
+    "name": "StylizeFace",
+    "filterDisable": false,
+    "beautyFace": {},
+    "distortionList": [],
+    "faceMaskList": [],
+    "filterList": [],
+    "itemList": [{
+        "layerType": "3d",
+        "folder": "StylizeFace",
+        "metalRerender": true
+    }],
+    "additionalInfo": {
+        "bodySegmentDetectEnable": false,
+        "objectDetectEnable": false,
+        "bodyDetectEnable": false,
+        "animojiDetectEnable": false,
+        "stylizeFaceEnable": true,
+        "coverMosaicWhenNoFace": true,
+        "mosaicTriggerAngle":[90.0, 90.0, 90.0],
+        "stickerType": "",
+        "backTips": {
+            "content": ""
+        },
+        "frontTips": {
+            "content": ""
+        }
+    }
+}

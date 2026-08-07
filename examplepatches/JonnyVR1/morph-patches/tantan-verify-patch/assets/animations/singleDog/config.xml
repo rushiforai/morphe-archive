@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<scene>
+  <width_height>720,600</width_height>
+  <src_scale>1.0,1.0</src_scale>
+  <layout_type>bottom</layout_type>
+  <duration>6000</duration>
+  <max>7</max>
+  <model>
+    <chance_range>0,.6</chance_range>
+    <active_time>1700,2100</active_time>
+    <src_ltwh>0,0,52,52</src_ltwh>
+    <move_from>0,600,270,10</move_from>
+    <move_to>270,50,450,120</move_to>
+    <move_interpolator>linear,spring</move_interpolator>
+    <rotate>0,20,130,180,26,26</rotate>
+    <alpha>0,0,255,255</alpha>
+    <alpha_interpolator>spring</alpha_interpolator>
+    <scale>1.2,1.6</scale>
+  </model>
+  <model>
+    <chance_range>.6,.8</chance_range>
+    <active_time>1700,2100</active_time>
+    <src_ltwh>0,0,52,52</src_ltwh>
+    <move_from>0,600,360,10</move_from>
+    <move_to>360,50,360,80</move_to>
+    <move_interpolator>linear,spring</move_interpolator>
+    <rotate>0,20,130,180,26,26</rotate>
+    <alpha>0,0,255,255</alpha>
+    <alpha_interpolator>spring</alpha_interpolator>
+    <scale>1.4,1.8</scale>
+  </model>
+  <model>
+    <chance_range>.8,1</chance_range>
+    <active_time>1600,2100</active_time>
+    <src_ltwh>0,0,52,52</src_ltwh>
+    <move_from>0,600,360,10</move_from>
+    <move_to>360,50,360,80</move_to>
+    <move_interpolator>linear,spring</move_interpolator>
+    <rotate>0,20,130,180,26,26</rotate>
+    <alpha>0,0,255,255</alpha>
+    <alpha_interpolator>spring</alpha_interpolator>
+    <scale>1.2,1.6</scale>
+  </model>
+</scene>

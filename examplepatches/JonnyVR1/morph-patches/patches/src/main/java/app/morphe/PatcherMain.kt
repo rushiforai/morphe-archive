@@ -154,14 +154,25 @@ private fun patchManifestBytes(manifestBytes: ByteArray, authority: String, prov
         val applicationElement = getApplicationElement.invoke(manifestBlock) ?: return manifestBytes
         val applicationElementClass = applicationElement.javaClass
 
-        // Check if provider already exists
         val elementClass = Class.forName("com.reandroid.arsc.chunk.xml.ResXmlElement")
         val attrClass = Class.forName("com.reandroid.arsc.chunk.xml.ResXmlAttribute")
+        val getOrCreateAndroidAttribute = elementClass.getMethod(
+            "getOrCreateAndroidAttribute", String::class.java, java.lang.Integer.TYPE
+        )
+
+        fun setAttrString(elem: Any, localName: String, value: String) {
+            val attr = getOrCreateAndroidAttribute.invoke(elem, localName, 0) ?: return
+            val setValueAsString = attrClass.getMethod("setValueAsString", String::class.java)
+            setValueAsString.invoke(attr, value)
+        }
+
+        // Check if provider already exists
         val listApplicationElementsByTag = manifestBlockClass.getMethod(
             "listApplicationElementsByTag", String::class.java
         )
         @Suppress("UNCHECKED_CAST")
         val existingProviders = listApplicationElementsByTag.invoke(manifestBlock, "provider") as List<Any>
+        var providerExists = false
         for (provider in existingProviders) {
             val getAttributes = elementClass.getMethod("getAttributes")
             @Suppress("UNCHECKED_CAST")
@@ -174,31 +185,36 @@ private fun patchManifestBytes(manifestBytes: ByteArray, authority: String, prov
                     val getValueString = attrClass.getMethod("getValueString")
                     val nameAttr = getValueString.invoke(attr) as String?
                     if (nameAttr != null && nameAttr.contains("SignatureSpoof")) {
-                        return manifestBytes
+                        providerExists = true
+                        break
                     }
                 }
             }
+            if (providerExists) break
         }
 
-        // Create new provider element via newElement (which adds it to parent)
-        val newElement = applicationElementClass.getMethod("newElement", String::class.java)
-        val providerElement = newElement.invoke(applicationElement, "provider")
+        // Create provider if it doesn't exist
+        if (!providerExists) {
+            val newElement = applicationElementClass.getMethod("newElement", String::class.java)
+            val providerElement = newElement.invoke(applicationElement, "provider")
 
-        // arsclib resolves android:* attribute names automatically when defaultId=0.
-        val getOrCreateAndroidAttribute = elementClass.getMethod(
-            "getOrCreateAndroidAttribute", String::class.java, java.lang.Integer.TYPE
-        )
-
-        fun setAttrString(elem: Any, localName: String, value: String) {
-            val attr = getOrCreateAndroidAttribute.invoke(elem, localName, 0) ?: return
-            val setValueAsString = attrClass.getMethod("setValueAsString", String::class.java)
-            setValueAsString.invoke(attr, value)
+            setAttrString(providerElement, "name", providerName)
+            setAttrString(providerElement, "authorities", authority)
+            setAttrString(providerElement, "exported", "false")
+            setAttrString(providerElement, "initOrder", "2147483647")
         }
 
-        setAttrString(providerElement, "name", providerName)
-        setAttrString(providerElement, "authorities", authority)
-        setAttrString(providerElement, "exported", "false")
-        setAttrString(providerElement, "initOrder", "2147483647")
+        // Inject meta-data entries for MicroG signature spoofing (always, even if provider exists)
+        fun addMetadata(name: String, value: String) {
+            val newElement = applicationElementClass.getMethod("newElement", String::class.java)
+            val metadataElement = newElement.invoke(applicationElement, "meta-data")
+            setAttrString(metadataElement, "name", name)
+            setAttrString(metadataElement, "value", value)
+        }
+
+        addMetadata("app.revanced.android.gms.SPOOFED_PACKAGE_NAME", "com.tantantribe.tribe")
+        addMetadata("app.revanced.android.gms.SPOOFED_PACKAGE_SIGNATURE", "71:5B:AB:0F:36:33:95:FE:34:D1:87:68:4B:0E:F7:71:A9:D4:00:F0")
+        addMetadata("app.revanced.MICROG_PACKAGE_NAME", "app.revanced.android.gms")
 
         // Re-encode to binary by writing to a temp file and reading back
         val tempFile = File.createTempFile("manifest-", ".bin")

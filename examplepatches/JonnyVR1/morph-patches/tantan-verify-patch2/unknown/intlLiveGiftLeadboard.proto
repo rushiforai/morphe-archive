@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package intllivecommon;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + live.leaderboard）
+option java_package = "com.p1.mobile.longlink.msg.live.intl.giftleaderboard";
+option java_outer_classname = "LongLinkLiveIntlGiftLeaderboard";
+option optimize_for = LITE_RUNTIME;
+
+message GiftLeaderboard {
+  bool open = 1;
+  bool homeStretch = 2;
+  GiftLeaderboardConfig config = 3;
+  repeated GiftLeaderboardItem current = 4;
+  string jumpUrl = 5;
+}
+
+message GiftLeaderboardConfig {
+  int64 pollingIntervalInSeconds = 1;
+  int64 scrollIntervalInSeconds = 2;
+}
+
+message GiftLeaderboardItem {
+  string name = 1;
+  string giftId = 2;
+  string giftIcon = 3;
+  int64 amount = 4;
+  int64 rank = 5;
+  int64 gap = 6;
+}
+
+message GiftLeaderboardTopEffect {
+  TemplateData template = 1;
+  string startBackendColor = 2;
+  string endBackendColor = 3;
+  int64 duration = 4;
+  string roomId = 5;
+  string backgroundUrl = 6;
+  string backgroundSvgaUrl = 7;
+  string effectBackgroundUrl = 8;
+}
+
+message TemplateData {
+  uint32 Id = 1;
+  repeated string Fields = 2;
+}

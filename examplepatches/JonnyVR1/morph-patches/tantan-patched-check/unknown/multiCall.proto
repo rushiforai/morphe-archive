@@ -1,0 +1,149 @@
+syntax = "proto3";
+
+package liveroom;
+
+option java_package = "com.p1.mobile.longlink.msg.liveroom";
+option java_outer_classname = "LongLinkMultiCallMessage";
+option optimize_for = LITE_RUNTIME;
+
+import "template.proto";
+
+// msgTypeName = "live.live.multi.call.action"
+// 免审开关
+message MultiCallActionMessage {
+  enum Type {
+    turnOnMultiCall = 0; // 打开多人连麦
+    turnOffMultiCall = 1; // 关闭多人连麦
+    turnOnFreeCall = 2; // 关闭免审
+    turnOffFreeCall = 3; // 打开免审
+    switch6MaxCallNum = 4; // 切换6麦位
+    switch9MaxCallNum = 5; // 切换9麦位
+  }
+  Type   type = 1;
+  string userId = 2;
+  string multiCallOrder = 3;  // 打开/关闭多人连麦时生效
+}
+
+message MultiCallInvite {
+  string id = 1;
+  string ownerUserId = 2;
+  string ownerUserName = 3;
+  string ownerUserAvatar = 4;
+  string ownerLiveId = 5;
+  string toUserId = 6;
+  string toLiveId = 7;
+  string toUserName = 8;
+  string toUserAvatar = 9;
+  int32  showSeconds = 10; // 邀请面板展示时长
+  string ownerMultiCallOrder = 11;
+}
+
+// msgTypeName = "livelive:multi.call:invite"
+// 多人视频连线-邀请
+message MultiCallInviteMessage {
+  enum Type {
+    invite = 0; // 发起邀请
+    reject = 1; // 拒绝邀请
+    accept = 2; // 接受邀请
+    timeout = 3; // 邀请超时
+  }
+  Type type = 1;
+  MultiCallInvite multiCallInvite = 2;
+}
+
+message MultiCall {
+  string id = 1;
+  string ownerUserId = 2;  // 房主 userId
+  string ownerLiveId = 3;  // 房主 roomId
+  string ownerRoomId = 4;  // 房主 liveId
+  string userId = 5;  // 麦上用户id
+  string userName = 6;  // 麦上用户名字
+  string userAvatar = 7;  // 麦上用户头像
+  string role = 8;  // 角色
+  string liveId = 9;  // 麦上用户roomId
+  string roomId = 10; // 麦上用户liveId
+  string category = 11; // 连麦类型
+  string source = 12; // 主动申请/邀请
+  int32 position = 13; // 麦位, 从1开始
+  string state = 14; // 连麦状态
+  bool isAway = 15; // 是否暂时离开麦位
+  int64 receivedRewardPoint = 16;// 收到的心动值
+  repeated string mutedByUserIds = 17; // 被哪些用户静音
+  string ownerMultiCallOrder = 18;  // 房主多人连麦场次
+  int64  showSeconds = 19; // 面板展示时长
+  int64 pushRemainCount = 20; // 推送剩余次数
+  bool isLeadRole = 21; // 是否为主咖
+  string refreshPushStreamUrl = 22; // 待更新的推流地址，cdnFail时返回
+}
+
+// msgTypeName = "livelive:multi.call"
+// 多人视频连线相关操作
+message MultiCallMessage {
+  enum Type {
+    apply = 0; // 发起申请
+    cancel = 1; // 取消申请
+    approve = 2; // 主播同意
+    success = 3; // 连麦成功
+    hangUp = 4; // 退出
+    goAway = 5; // 离开
+    comeBack = 6; // 回来
+    mute = 7; // 静音
+    unMute = 8; // 取消静音
+    switchToVideo = 9; // 切换到视频连线
+    inviteSwitchToVideo = 10; // 邀请切换到视频
+    rejectSwitchToVideo = 11; // 拒绝切换到视频
+    pushSuccess = 12; // 推送成功
+    switchToLeadRole = 13;    // 切换成主咖
+    cancelLeadRole = 14;      // 取消主咖
+    updatePosition = 15;      // 更新位置
+    cdnFail = 16; // cdn回调异常
+  }
+  Type      type = 1;
+  MultiCall multiCall = 2;
+  string    toast = 3;  // 此字段不为空的时候, 客户端展示此文案
+  template.TemplateData template = 4;
+}
+
+// msgTypeName = "live.live.multi.call.turn.on.guide"
+// 开启引导
+message MultiCallTurnOnGuide {
+  repeated string avatars = 1; // 头像
+  string          title = 2; // 标题
+  string          content = 3; // 内容
+  string          schema = 4; // 跳转地址
+  string          reason = 5; // 弹出原因
+}
+
+// msgTypeName = "live.live.multi.call.switch.to.lead.role.invite"
+// 多人视频连线-切换主咖邀请
+enum InviteState {
+  invited  = 0; // 邀请
+  rejected = 1; // 已拒绝
+  accepted = 2; // 已接受
+  timeout  = 3; //  邀请超时
+}
+
+// msgTypeName = "live.live.multi.call.switch.to.lead.role.invite"
+// 多人视频连线-切换主咖邀请
+message MultiCallSwitchToLeadRoleInvite {
+  string id              = 1;
+  string ownerUserId     = 2;
+  string ownerUserName   = 3;
+  string ownerUserAvatar = 4;
+  string toUserId        = 5;
+  string toUserName      = 6;
+  string toUserAvatar    = 7;
+  int64  showSeconds     = 8; // 邀请面板展示时长
+  InviteState state      = 9;
+}
+
+message MultiCallSwitchToLeadRoleInviteMessage {
+  enum Type {
+    switchToLeadRoleInvite  = 0;  // 发起邀请
+    switchToLeadRoleReject  = 1;  // 拒绝邀请
+    switchToLeadRoleAccept  = 2;  // 接受邀请
+    switchToLeadRoleTimeout = 3;  // 邀请超时
+  }
+  Type type = 1;
+  MultiCallSwitchToLeadRoleInvite invite = 2;
+}

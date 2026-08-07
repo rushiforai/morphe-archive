@@ -25,16 +25,19 @@ final class ChromeUserscriptController implements Application.ActivityLifecycleC
         ChromeUserscriptShortcut.install(activity);
         MonkeyRuntime.start(activity);
         ChromeAppMenuIntegrator.start(activity);
+        NativeInstallAction.start(activity);
     }
 
     @Override public void onActivityPaused(Activity activity) {
         MonkeyRuntime.stop(activity);
         ChromeAppMenuIntegrator.stop(activity);
+        NativeInstallAction.stop(activity);
     }
 
     @Override public void onActivityDestroyed(Activity activity) {
         MonkeyRuntime.stop(activity);
         ChromeAppMenuIntegrator.stop(activity);
+        NativeInstallAction.stop(activity);
     }
 
     static void toast(Activity activity, String message) {

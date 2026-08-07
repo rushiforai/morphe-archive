@@ -1,9 +1,14 @@
+/**
+ * Copyright 2026 Hoo-dles
+ * https://github.com/hoo-dles/morphe-patches
+ */
+
 package hoodles.morphe.patches.ibispaint.prime
 
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.rawResourcePatch
-import hoodles.morphe.util.byteArrayOf
+import app.morphe.util.byteArrayOf
 import net.fornwall.jelf.ElfFile
 import net.fornwall.jelf.ElfSymbol
 import java.io.RandomAccessFile

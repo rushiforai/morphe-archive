@@ -1,0 +1,58 @@
+.class public interface abstract Lcom/p1/mobile/longlink/msg/gift/LongLinkGiftMessage$LiveCampaignInfoOrBuilder;
+.super Ljava/lang/Object;
+.source "SourceFile"
+
+# interfaces
+.implements Ll/lfz;
+
+
+# annotations
+.annotation system Ldalvik/annotation/EnclosingClass;
+    value = Lcom/p1/mobile/longlink/msg/gift/LongLinkGiftMessage;
+.end annotation
+
+.annotation system Ldalvik/annotation/InnerClass;
+    accessFlags = 0x609
+    name = "LiveCampaignInfoOrBuilder"
+.end annotation
+
+
+# virtual methods
+.method public abstract getData()Ljava/lang/String;
+.end method
+
+.method public abstract getDataBytes()Lcom/google/protobuf/ByteString;
+.end method
+
+.method public abstract synthetic getDefaultInstanceForType()Lcom/google/protobuf/q;
+.end method
+
+.method public abstract getId()Ljava/lang/String;
+.end method
+
+.method public abstract getIdBytes()Lcom/google/protobuf/ByteString;
+.end method
+
+.method public abstract getPosition()J
+.end method
+
+.method public abstract getSubscribeType()Ljava/lang/String;
+.end method
+
+.method public abstract getSubscribeTypeBytes()Lcom/google/protobuf/ByteString;
+.end method
+
+.method public abstract getType()Lcom/p1/mobile/longlink/msg/gift/LongLinkGiftMessage$LiveCampaignType;
+.end method
+
+.method public abstract getTypeValue()I
+.end method
+
+.method public abstract getUpdateType()Ljava/lang/String;
+.end method
+
+.method public abstract getUpdateTypeBytes()Lcom/google/protobuf/ByteString;
+.end method
+
+.method public abstract synthetic isInitialized()Z
+.end method

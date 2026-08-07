@@ -1,0 +1,103 @@
+syntax = "proto3";
+
+package liveConnector;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + liveConnector）
+option java_package = "com.p1.mobile.longlink.msg.liveConnector";
+option java_outer_classname = "liveAuthMessageNew";
+option go_package = "gitlab.p1staff.com/backend/tantan-live-socket/connector/proto";
+
+import "google/protobuf/any.proto";
+
+// 新消息类型
+message Msg {
+  int32 version = 1; //版本控制（加解密，压缩等）
+  string msgId = 2;
+  string msgTypeName = 3; // 消息类型
+  bool isResponse = 4;
+  Status status = 5; // 返回状态
+  google.protobuf.Any data = 6; //实际消息内容
+}
+
+message Msgs {
+  repeated Msg msgs = 1;
+}
+
+message Status {
+  int64 recvTs = 1;
+  int32 status = 2; // http标准
+  bool needAck = 3;
+}
+
+enum AppStaySideEnum {
+  APP_STAY_SIDE_FOREGROUND = 0;
+  APP_STAY_SIDE_BACKGROUND = 1;
+}
+
+enum ClientSourceEnum {
+  CLIENT_SOURCE_ANDROID = 0;
+  CLIENT_SOURCE_IOS = 1;
+  CLIENT_SOURCE_WEB = 2;
+}
+
+message UserAgent {
+  ClientSourceEnum source = 1;
+  string appVersion = 2; // Putong/{{appVersion}}
+  string sourceVersion = 3; // Android/{{sourceVersion}}
+  string brand = 4; // Meizu
+  string model = 5; // PRO+7+Plus
+}
+
+message Location {
+  float lon = 1;
+  float lat = 2;
+}
+
+message Auth {
+  string userId = 1;
+  ClientSourceEnum source = 2;
+  Location loc = 3;
+  AppStaySideEnum staySide = 4;
+  UserAgent ua = 5;
+  string locale = 6;
+  string roomId = 7;
+  bytes XTestingGroup = 8;
+  bytes XTTClientInfo = 9;
+  bytes flag = 10; //0x00 观众进入直播间 0x01 主播开播
+  string ext = 11; // json
+  string roomType = 12; // room voiceRoom
+  bool iosVerify = 13;    // 是否为ios审核版本 若是只发聊聊和礼物消息
+  string liveMode =14;//视频直播下的区分
+  string liveId = 15;
+  string enterSource = 16; // 进房来源
+  string sessionId = 17;
+  int32 linkState = 18;   //0||1 本次链接的类型  0:首次连接 1:断开重连
+  int64 firstLinkTime = 19; //    第一次连接的时间戳
+  int64 interruptLinkTime = 20;   // 最近一次中断的时间戳
+  int64 currentTime = 21; // 客户端当前时间
+  string ipHost = 22; //  本次连接的套接字（xxx:xxx:xxx:xxx:9999）
+  int32 retryCount = 23; //   重试次数
+  int64 currentStartLinkTime = 24; // 本次开始连接的时间戳
+}
+
+message SwitchSide {
+  AppStaySideEnum toSide = 1;
+}
+
+message MultiDevice {
+  bytes msg = 1;
+}
+
+message AuthKey {
+  string roomKey = 1;
+}
+
+message ChatReaded {
+    uint64 seq = 1;
+}
+
+message Ack {
+    string msgId = 1;
+    string msgTypeName = 2;
+    int64 recvTimestamp = 3;
+}

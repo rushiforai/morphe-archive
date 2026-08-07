@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package livedistribution;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + livedistribution）
+option java_package = "com.p1.mobile.longlink.msg.livedistribution";
+option java_outer_classname = "LongLinkReportMsg";
+option optimize_for = LITE_RUNTIME;
+
+message LiveReportMsg {
+  string reportType = 1;
+  int64 delaySeconds = 2; //延迟多久上报
+  string data = 3; //动态给客户端的数据，特殊业务需要解析各自的字段
+}

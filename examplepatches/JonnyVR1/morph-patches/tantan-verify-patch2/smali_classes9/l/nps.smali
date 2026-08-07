@@ -1,0 +1,365 @@
+.class public final Ll/nps;
+.super Ll/jic0;
+.source "SourceFile"
+
+
+# annotations
+.annotation system Ldalvik/annotation/Signature;
+    value = {
+        "Ll/jic0<",
+        "Lcom/p1/mobile/putong/live/base/data/BLiveNewGiftWallGiftDetail;",
+        ">;"
+    }
+.end annotation
+
+.annotation runtime Lkotlin/Metadata;
+    d1 = {
+        "\u0000@\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0008\u0003\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u0008\n\u0000\n\u0002\u0018\u0002\n\u0002\u0008\u0005\n\u0002\u0010\u0002\n\u0002\u0008\u0006\n\u0002\u0010 \n\u0002\u0008\u0008\n\u0002\u0010!\n\u0002\u0008\u0006\u0018\u00002\u0008\u0012\u0004\u0012\u00020\u00020\u0001B\u000f\u0012\u0006\u0010\u0004\u001a\u00020\u0003\u00a2\u0006\u0004\u0008\u0005\u0010\u0006J!\u0010\u000c\u001a\u0004\u0018\u00010\u000b2\u0006\u0010\u0008\u001a\u00020\u00072\u0006\u0010\n\u001a\u00020\tH\u0016\u00a2\u0006\u0004\u0008\u000c\u0010\rJ/\u0010\u0012\u001a\u00020\u00112\u0006\u0010\u000e\u001a\u00020\u000b2\u0006\u0010\u000f\u001a\u00020\u00022\u0006\u0010\n\u001a\u00020\t2\u0006\u0010\u0010\u001a\u00020\tH\u0016\u00a2\u0006\u0004\u0008\u0012\u0010\u0013J\u0017\u0010\u0014\u001a\u00020\u00022\u0006\u0010\u0010\u001a\u00020\tH\u0016\u00a2\u0006\u0004\u0008\u0014\u0010\u0015J\u000f\u0010\u0016\u001a\u00020\tH\u0016\u00a2\u0006\u0004\u0008\u0016\u0010\u0017J\'\u0010\u001a\u001a\u00020\u00112\u000e\u0010\u0019\u001a\n\u0012\u0004\u0012\u00020\u0002\u0018\u00010\u00182\u0006\u0010\u0004\u001a\u00020\u0003H\u0007\u00a2\u0006\u0004\u0008\u001a\u0010\u001bR\"\u0010\u0004\u001a\u00020\u00038\u0006@\u0006X\u0086\u000e\u00a2\u0006\u0012\n\u0004\u0008\u001c\u0010\u001d\u001a\u0004\u0008\u001e\u0010\u001f\"\u0004\u0008 \u0010\u0006R\u001d\u0010&\u001a\u0008\u0012\u0004\u0012\u00020\u00020!8\u0006\u00a2\u0006\u000c\n\u0004\u0008\"\u0010#\u001a\u0004\u0008$\u0010%\u00a8\u0006\'"
+    }
+    d2 = {
+        "Ll/nps;",
+        "Ll/jic0;",
+        "Lcom/p1/mobile/putong/live/base/data/BLiveNewGiftWallGiftDetail;",
+        "Ll/mps;",
+        "presenter",
+        "<init>",
+        "(Ll/mps;)V",
+        "Landroid/view/ViewGroup;",
+        "parent",
+        "",
+        "itemViewType",
+        "Landroid/view/View;",
+        "D",
+        "(Landroid/view/ViewGroup;I)Landroid/view/View;",
+        "convertView",
+        "item",
+        "position",
+        "",
+        "E",
+        "(Landroid/view/View;Lcom/p1/mobile/putong/live/base/data/BLiveNewGiftWallGiftDetail;II)V",
+        "F",
+        "(I)Lcom/p1/mobile/putong/live/base/data/BLiveNewGiftWallGiftDetail;",
+        "C",
+        "()I",
+        "",
+        "data",
+        "G",
+        "(Ljava/util/List;Ll/mps;)V",
+        "c",
+        "Ll/mps;",
+        "getPresenter",
+        "()Ll/mps;",
+        "setPresenter",
+        "",
+        "d",
+        "Ljava/util/List;",
+        "getItems",
+        "()Ljava/util/List;",
+        "items",
+        "livingroom_intlGmsRelease"
+    }
+    k = 0x1
+    mv = {
+        0x2,
+        0x2,
+        0x0
+    }
+    xi = 0x30
+.end annotation
+
+
+# instance fields
+.field public c:Ll/mps;
+    .annotation build Lorg/jetbrains/annotations/NotNull;
+    .end annotation
+.end field
+
+.field public final d:Ljava/util/List;
+    .annotation system Ldalvik/annotation/Signature;
+        value = {
+            "Ljava/util/List<",
+            "Lcom/p1/mobile/putong/live/base/data/BLiveNewGiftWallGiftDetail;",
+            ">;"
+        }
+    .end annotation
+
+    .annotation build Lorg/jetbrains/annotations/NotNull;
+    .end annotation
+.end field
+
+
+# direct methods
+.method public constructor <init>(Ll/mps;)V
+    .locals 0
+    .param p1    # Ll/mps;
+        .annotation build Lorg/jetbrains/annotations/NotNull;
+        .end annotation
+    .end param
+
+    .line 1
+    invoke-virtual {p1}, Ljava/lang/Object;->getClass()Ljava/lang/Class;
+
+    .line 2
+    .line 3
+    .line 4
+    invoke-direct {p0}, Ll/jic0;-><init>()V
+
+    .line 5
+    .line 6
+    .line 7
+    iput-object p1, p0, Ll/nps;->c:Ll/mps;
+
+    .line 8
+    .line 9
+    new-instance p1, Ljava/util/ArrayList;
+
+    .line 10
+    .line 11
+    invoke-direct {p1}, Ljava/util/ArrayList;-><init>()V
+
+    .line 12
+    .line 13
+    .line 14
+    iput-object p1, p0, Ll/nps;->d:Ljava/util/List;
+
+    .line 15
+    .line 16
+    return-void
+.end method
+
+
+# virtual methods
+.method public bridge synthetic A(Landroid/view/View;Ljava/lang/Object;II)V
+    .locals 0
+
+    .line 1
+    check-cast p2, Lcom/p1/mobile/putong/live/base/data/BLiveNewGiftWallGiftDetail;
+
+    .line 2
+    .line 3
+    invoke-virtual {p0, p1, p2, p3, p4}, Ll/nps;->E(Landroid/view/View;Lcom/p1/mobile/putong/live/base/data/BLiveNewGiftWallGiftDetail;II)V
+
+    .line 4
+    .line 5
+    .line 6
+    return-void
+.end method
+
+.method public C()I
+    .locals 0
+
+    .line 1
+    iget-object p0, p0, Ll/nps;->d:Ljava/util/List;
+
+    .line 2
+    .line 3
+    invoke-interface {p0}, Ljava/util/List;->size()I
+
+    .line 4
+    .line 5
+    .line 6
+    move-result p0
+
+    .line 7
+    return p0
+.end method
+
+.method public D(Landroid/view/ViewGroup;I)Landroid/view/View;
+    .locals 1
+    .param p1    # Landroid/view/ViewGroup;
+        .annotation build Lorg/jetbrains/annotations/NotNull;
+        .end annotation
+    .end param
+    .annotation build Lorg/jetbrains/annotations/Nullable;
+    .end annotation
+
+    .line 1
+    invoke-virtual {p1}, Ljava/lang/Object;->getClass()Ljava/lang/Class;
+
+    .line 2
+    .line 3
+    .line 4
+    invoke-virtual {p1}, Landroid/view/View;->getContext()Landroid/content/Context;
+
+    .line 5
+    .line 6
+    .line 7
+    move-result-object p0
+
+    .line 8
+    invoke-static {p0}, Landroid/view/LayoutInflater;->from(Landroid/content/Context;)Landroid/view/LayoutInflater;
+
+    .line 9
+    .line 10
+    .line 11
+    move-result-object p0
+
+    .line 12
+    sget p2, Ll/yec0;->M1:I
+
+    .line 13
+    .line 14
+    const/4 v0, 0x0
+
+    .line 15
+    invoke-virtual {p0, p2, p1, v0}, Landroid/view/LayoutInflater;->inflate(ILandroid/view/ViewGroup;Z)Landroid/view/View;
+
+    .line 16
+    .line 17
+    .line 18
+    move-result-object p0
+
+    .line 19
+    return-object p0
+.end method
+
+.method public E(Landroid/view/View;Lcom/p1/mobile/putong/live/base/data/BLiveNewGiftWallGiftDetail;II)V
+    .locals 0
+    .param p1    # Landroid/view/View;
+        .annotation build Lorg/jetbrains/annotations/NotNull;
+        .end annotation
+    .end param
+    .param p2    # Lcom/p1/mobile/putong/live/base/data/BLiveNewGiftWallGiftDetail;
+        .annotation build Lorg/jetbrains/annotations/NotNull;
+        .end annotation
+    .end param
+
+    .line 1
+    invoke-virtual {p1}, Ljava/lang/Object;->getClass()Ljava/lang/Class;
+
+    .line 2
+    .line 3
+    .line 4
+    invoke-virtual {p2}, Ljava/lang/Object;->getClass()Ljava/lang/Class;
+
+    .line 5
+    .line 6
+    .line 7
+    check-cast p1, Lcom/p1/mobile/putong/live/livingroom/increment/gift/giftwallnew/set/LiveGiftWallSetSubTabItemView;
+
+    .line 8
+    .line 9
+    iget-object p0, p0, Ll/nps;->c:Ll/mps;
+
+    .line 10
+    .line 11
+    invoke-virtual {p1, p2, p4, p0}, Lcom/p1/mobile/putong/live/livingroom/increment/gift/giftwallnew/set/LiveGiftWallSetSubTabItemView;->k0(Lcom/p1/mobile/putong/live/base/data/BLiveNewGiftWallGiftDetail;ILl/mps;)V
+
+    .line 12
+    .line 13
+    .line 14
+    return-void
+.end method
+
+.method public F(I)Lcom/p1/mobile/putong/live/base/data/BLiveNewGiftWallGiftDetail;
+    .locals 0
+    .annotation build Lorg/jetbrains/annotations/NotNull;
+    .end annotation
+
+    .line 1
+    iget-object p0, p0, Ll/nps;->d:Ljava/util/List;
+
+    .line 2
+    .line 3
+    invoke-interface {p0, p1}, Ljava/util/List;->get(I)Ljava/lang/Object;
+
+    .line 4
+    .line 5
+    .line 6
+    move-result-object p0
+
+    .line 7
+    check-cast p0, Lcom/p1/mobile/putong/live/base/data/BLiveNewGiftWallGiftDetail;
+
+    .line 8
+    .line 9
+    return-object p0
+.end method
+
+.method public final G(Ljava/util/List;Ll/mps;)V
+    .locals 0
+    .param p1    # Ljava/util/List;
+        .annotation build Lorg/jetbrains/annotations/Nullable;
+        .end annotation
+    .end param
+    .param p2    # Ll/mps;
+        .annotation build Lorg/jetbrains/annotations/NotNull;
+        .end annotation
+    .end param
+    .annotation build Landroid/annotation/SuppressLint;
+        value = {
+            "NotifyDataSetChanged"
+        }
+    .end annotation
+
+    .annotation system Ldalvik/annotation/Signature;
+        value = {
+            "(",
+            "Ljava/util/List<",
+            "+",
+            "Lcom/p1/mobile/putong/live/base/data/BLiveNewGiftWallGiftDetail;",
+            ">;",
+            "Ll/mps;",
+            ")V"
+        }
+    .end annotation
+
+    .line 1
+    invoke-virtual {p2}, Ljava/lang/Object;->getClass()Ljava/lang/Class;
+
+    .line 2
+    .line 3
+    .line 4
+    iput-object p2, p0, Ll/nps;->c:Ll/mps;
+
+    .line 5
+    .line 6
+    iget-object p2, p0, Ll/nps;->d:Ljava/util/List;
+
+    .line 7
+    .line 8
+    invoke-interface {p2}, Ljava/util/List;->clear()V
+
+    .line 9
+    .line 10
+    .line 11
+    iget-object p2, p0, Ll/nps;->d:Ljava/util/List;
+
+    .line 12
+    .line 13
+    invoke-virtual {p1}, Ljava/lang/Object;->getClass()Ljava/lang/Class;
+
+    .line 14
+    .line 15
+    .line 16
+    check-cast p1, Ljava/util/Collection;
+
+    .line 17
+    .line 18
+    invoke-interface {p2, p1}, Ljava/util/List;->addAll(Ljava/util/Collection;)Z
+
+    .line 19
+    .line 20
+    .line 21
+    invoke-virtual {p0}, Landroidx/recyclerview/widget/RecyclerView$Adapter;->notifyDataSetChanged()V
+
+    .line 22
+    .line 23
+    .line 24
+    return-void
+.end method
+
+.method public bridge synthetic getItem(I)Ljava/lang/Object;
+    .locals 0
+
+    .line 1
+    invoke-virtual {p0, p1}, Ll/nps;->F(I)Lcom/p1/mobile/putong/live/base/data/BLiveNewGiftWallGiftDetail;
+
+    .line 2
+    .line 3
+    .line 4
+    move-result-object p0
+
+    .line 5
+    return-object p0
+.end method

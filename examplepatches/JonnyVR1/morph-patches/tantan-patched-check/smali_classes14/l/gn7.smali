@@ -1,0 +1,44 @@
+.class public final synthetic Ll/gn7;
+.super Ljava/lang/Object;
+.source "SourceFile"
+
+# interfaces
+.implements Ll/y20;
+
+
+# instance fields
+.field public final synthetic a:Lcom/p1/mobile/putong/core/api/f;
+
+.field public final synthetic b:Z
+
+
+# direct methods
+.method public synthetic constructor <init>(Lcom/p1/mobile/putong/core/api/f;Z)V
+    .locals 0
+
+    .line 1
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+
+    iput-object p1, p0, Ll/gn7;->a:Lcom/p1/mobile/putong/core/api/f;
+
+    iput-boolean p2, p0, Ll/gn7;->b:Z
+
+    return-void
+.end method
+
+
+# virtual methods
+.method public final call(Ljava/lang/Object;)V
+    .locals 1
+
+    .line 1
+    iget-object v0, p0, Ll/gn7;->a:Lcom/p1/mobile/putong/core/api/f;
+
+    iget-boolean p0, p0, Ll/gn7;->b:Z
+
+    check-cast p1, Lcom/p1/mobile/putong/data/Envelope;
+
+    invoke-static {v0, p0, p1}, Lcom/p1/mobile/putong/core/api/f;->f3(Lcom/p1/mobile/putong/core/api/f;ZLcom/p1/mobile/putong/data/Envelope;)V
+
+    return-void
+.end method

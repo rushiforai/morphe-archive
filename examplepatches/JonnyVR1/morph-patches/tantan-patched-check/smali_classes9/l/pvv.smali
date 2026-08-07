@@ -1,0 +1,48 @@
+.class public final synthetic Ll/pvv;
+.super Ljava/lang/Object;
+.source "SourceFile"
+
+# interfaces
+.implements Landroid/view/View$OnClickListener;
+
+
+# instance fields
+.field public final synthetic a:Ll/x20;
+
+.field public final synthetic b:Ll/i6t;
+
+.field public final synthetic c:Lcom/p1/mobile/putong/live/base/data/BLiveBonus;
+
+
+# direct methods
+.method public synthetic constructor <init>(Ll/x20;Ll/i6t;Lcom/p1/mobile/putong/live/base/data/BLiveBonus;)V
+    .locals 0
+
+    .line 1
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+
+    iput-object p1, p0, Ll/pvv;->a:Ll/x20;
+
+    iput-object p2, p0, Ll/pvv;->b:Ll/i6t;
+
+    iput-object p3, p0, Ll/pvv;->c:Lcom/p1/mobile/putong/live/base/data/BLiveBonus;
+
+    return-void
+.end method
+
+
+# virtual methods
+.method public final onClick(Landroid/view/View;)V
+    .locals 2
+
+    .line 1
+    iget-object v0, p0, Ll/pvv;->a:Ll/x20;
+
+    iget-object v1, p0, Ll/pvv;->b:Ll/i6t;
+
+    iget-object p0, p0, Ll/pvv;->c:Lcom/p1/mobile/putong/live/base/data/BLiveBonus;
+
+    invoke-static {v0, v1, p0, p1}, Lcom/p1/mobile/putong/live/livingroom/increment/recharge/LocalFirstRechargeGiftItemView;->h0(Ll/x20;Ll/i6t;Lcom/p1/mobile/putong/live/base/data/BLiveBonus;Landroid/view/View;)V
+
+    return-void
+.end method

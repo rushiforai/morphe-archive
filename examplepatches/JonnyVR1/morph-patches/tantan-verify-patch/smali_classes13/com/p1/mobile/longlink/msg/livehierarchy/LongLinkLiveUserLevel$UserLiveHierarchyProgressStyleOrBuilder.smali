@@ -1,0 +1,55 @@
+.class public interface abstract Lcom/p1/mobile/longlink/msg/livehierarchy/LongLinkLiveUserLevel$UserLiveHierarchyProgressStyleOrBuilder;
+.super Ljava/lang/Object;
+.source "SourceFile"
+
+# interfaces
+.implements Ll/lfz;
+
+
+# annotations
+.annotation system Ldalvik/annotation/EnclosingClass;
+    value = Lcom/p1/mobile/longlink/msg/livehierarchy/LongLinkLiveUserLevel;
+.end annotation
+
+.annotation system Ldalvik/annotation/InnerClass;
+    accessFlags = 0x609
+    name = "UserLiveHierarchyProgressStyleOrBuilder"
+.end annotation
+
+
+# virtual methods
+.method public abstract getBgEndColor()Ljava/lang/String;
+.end method
+
+.method public abstract getBgEndColorBytes()Lcom/google/protobuf/ByteString;
+.end method
+
+.method public abstract getBgStartColor()Ljava/lang/String;
+.end method
+
+.method public abstract getBgStartColorBytes()Lcom/google/protobuf/ByteString;
+.end method
+
+.method public abstract synthetic getDefaultInstanceForType()Lcom/google/protobuf/q;
+.end method
+
+.method public abstract getEndColor()Ljava/lang/String;
+.end method
+
+.method public abstract getEndColorBytes()Lcom/google/protobuf/ByteString;
+.end method
+
+.method public abstract getStartColor()Ljava/lang/String;
+.end method
+
+.method public abstract getStartColorBytes()Lcom/google/protobuf/ByteString;
+.end method
+
+.method public abstract getTextColor()Ljava/lang/String;
+.end method
+
+.method public abstract getTextColorBytes()Lcom/google/protobuf/ByteString;
+.end method
+
+.method public abstract synthetic isInitialized()Z
+.end method

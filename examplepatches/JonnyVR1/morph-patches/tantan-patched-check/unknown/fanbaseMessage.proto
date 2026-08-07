@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package live_fanbase;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + live_fanbase）
+option java_package = "com.p1.mobile.longlink.msg.live_fanbase";
+option java_outer_classname = "LongLinkLiveFanbaseMessage";
+option optimize_for = LITE_RUNTIME;
+
+// 粉丝团红包
+// MSG_TYPE_COMMON
+// MsgTypeName live.fanbase.event.redpacket
+
+message RedPacketEvent {
+  string fanbaseId = 1;
+}

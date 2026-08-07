@@ -2283,19 +2283,6 @@ If you know of another working ReVanced or Morphe patch repository that is not l
 </details>
 
 ---
-### 📦 Heinrich26-Patches-Bundle [Morphe]:
-[🧩 Heinrich26 Bundle Patch List](https://github.com/Jman-Github/ReVanced-Patch-Bundles/blob/bundles/patch-bundles/PATCH-LIST-CATALOG.md#-heinrich26-bundle-patch-list)
-<details>
-<summary><i>Expand For Links</i></summary>
-
-**Latest:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/heinrich26-patch-bundles/heinrich26-latest-patches-bundle.json```
-
-**Stable:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/heinrich26-patch-bundles/heinrich26-stable-patches-bundle.json```
-
-**Dev:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/heinrich26-patch-bundles/heinrich26-dev-patches-bundle.json```
-</details>
-
----
 ### 📦 SpookyEXE-Patches-Bundle [Morphe]:
 [🧩 SpookyEXE Bundle Patch List](https://github.com/Jman-Github/ReVanced-Patch-Bundles/blob/bundles/patch-bundles/PATCH-LIST-CATALOG.md#-spookyexe-bundle-patch-list)
 <details>
@@ -2306,6 +2293,19 @@ If you know of another working ReVanced or Morphe patch repository that is not l
 **Stable:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/spookyexe-patch-bundles/spookyexe-stable-patches-bundle.json```
 
 **Dev:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/spookyexe-patch-bundles/spookyexe-dev-patches-bundle.json```
+</details>
+
+---
+### 📦 PetalMaps-AndroidAuto-Patches-Bundle [Morphe]:
+[🧩 PetalMaps-AndroidAuto Bundle Patch List](https://github.com/Jman-Github/ReVanced-Patch-Bundles/blob/bundles/patch-bundles/PATCH-LIST-CATALOG.md#-petalmaps-androidauto-bundle-patch-list)
+<details>
+<summary><i>Expand For Links</i></summary>
+
+**Latest:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/petalmaps-androidauto-patch-bundles/petalmaps-androidauto-latest-patches-bundle.json```
+
+**Stable:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/petalmaps-androidauto-patch-bundles/petalmaps-androidauto-stable-patches-bundle.json```
+
+**Dev:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/petalmaps-androidauto-patch-bundles/petalmaps-androidauto-dev-patches-bundle.json```
 </details>
 
 ## 📱 Compatible Managers
@@ -2673,9 +2673,9 @@ If you know of another working ReVanced or Morphe patch repository that is not l
 
 #### 🩹 [Logm1lo-Patches-Bundle](https://github.com/logm1lo/logm1lo-patches)
 
-#### 🩹 [Heinrich26-Patches-Bundle](https://github.com/heinrich26/morphe-patches)
-
 #### 🩹 [SpookyEXE-Patches-Bundle](https://github.com/spookyexe/morphe-patches)
+
+#### 🩹 [PetalMaps-AndroidAuto-Patches-Bundle](https://github.com/andersonlucasg3/PetalMaps-AndroidAuto)
 
 ## 🖇 Integrations Repositories In Use
 

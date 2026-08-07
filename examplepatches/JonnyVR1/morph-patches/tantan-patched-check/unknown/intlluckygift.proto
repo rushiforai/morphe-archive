@@ -1,0 +1,13 @@
+syntax = "proto3";
+package intlluckygift;
+
+//务必将package 拼接到 java_package之后,即（com.p1.mobile.longlink.msg. + livechat）
+option java_package = "com.p1.mobile.longlink.msg.intlluckygift";
+option java_outer_classname = "LongLinkIntlLuckyGiftMessage";
+option optimize_for = LITE_RUNTIME;
+
+message IntlLuckyGiftTray{
+    string comboId = 1;  //CombosIDCrypo,如："0313539390d0366c29a95af711584ab7"
+    string diamond = 2; //收钱svga_url，为空代表不播放
+    string reward = 3; //中奖svga_url，为空代表不播放
+}

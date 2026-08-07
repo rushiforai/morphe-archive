@@ -1,0 +1,38 @@
+.class public final synthetic Ll/l81;
+.super Ljava/lang/Object;
+.source "SourceFile"
+
+# interfaces
+.implements Lkotlin/jvm/functions/Function0;
+
+
+# instance fields
+.field public final synthetic a:Ll/o81;
+
+
+# direct methods
+.method public synthetic constructor <init>(Ll/o81;)V
+    .locals 0
+
+    .line 1
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+
+    iput-object p1, p0, Ll/l81;->a:Ll/o81;
+
+    return-void
+.end method
+
+
+# virtual methods
+.method public final invoke()Ljava/lang/Object;
+    .locals 0
+
+    .line 1
+    iget-object p0, p0, Ll/l81;->a:Ll/o81;
+
+    invoke-static {p0}, Ll/o81;->h4(Ll/o81;)Landroid/animation/Animator;
+
+    move-result-object p0
+
+    return-object p0
+.end method
