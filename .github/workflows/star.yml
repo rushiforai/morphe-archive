@@ -68,25 +68,25 @@ jobs:
             fi
 
 
-            # Watch check
-            watched=$(gh api "/repos/$repo/subscription" \
-              --jq '.subscribed' 2>/dev/null || echo false)
+            # # Watch check
+            # watched=$(gh api "/repos/$repo/subscription" \
+            #   --jq '.subscribed' 2>/dev/null || echo false)
 
-            if [ "$watched" = "true" ]; then
-              echo "👁️ Already watching: $repo"
-            else
-              echo "👁️ Watching: $repo"
+            # if [ "$watched" = "true" ]; then
+            #   echo "👁️ Already watching: $repo"
+            # else
+            #   echo "👁️ Watching: $repo"
 
-              if gh api \
-                --method PUT \
-                "/repos/$repo/subscription" \
-                --input <(echo '{"subscribed":true,"ignored":false}'); then
+            #   if gh api \
+            #     --method PUT \
+            #     "/repos/$repo/subscription" \
+            #     --input <(echo '{"subscribed":true,"ignored":false}'); then
 
-                echo "✅ Watching: $repo"
+            #     echo "✅ Watching: $repo"
 
-              else
-                echo "❌ Failed to watch: $repo"
-              fi
-            fi
+            #   else
+            #     echo "❌ Failed to watch: $repo"
+            #   fi
+            # fi
 
           done < repos.txt
