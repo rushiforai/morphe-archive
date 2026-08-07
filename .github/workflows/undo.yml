@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Check authentication
@@ -31,7 +31,7 @@ jobs:
           echo "Authenticated as:"
           gh api user --jq '.login'
 
-      - name: Apply action
+      - name: Execute repository action
         env:
           GH_TOKEN: ${{ secrets.STAR_TOKEN }}
           ACTION: ${{ inputs.action }}
@@ -44,19 +44,19 @@ jobs:
 
           while IFS= read -r repo || [ -n "$repo" ]; do
 
-            # Skip empty/comment lines
+            # Skip empty lines and comments
             if [[ -z "$repo" || "$repo" == \#* ]]; then
               continue
             fi
 
             echo ""
-            echo "=========================="
-            echo "Processing: $repo"
+            echo "================================"
+            echo "Repository: $repo"
             echo "Action: $ACTION"
-            echo "=========================="
+            echo "================================"
 
 
-            # Check repo exists
+            # Check repository exists
             if ! gh api "/repos/$repo" --silent > /dev/null 2>&1; then
               echo "⚠️ Repository not found: $repo"
               continue
@@ -65,15 +65,29 @@ jobs:
 
             case "$ACTION" in
 
+
               star)
 
                 if gh api "/user/starred/$repo" --silent > /dev/null 2>&1; then
+
                   echo "⭐ Already starred: $repo"
+
                 else
-                  gh api \
+
+                  echo "⭐ Starring: $repo"
+
+                  if gh api \
                     --method PUT \
-                    "/user/starred/$repo" \
-                    && echo "✅ Starred: $repo"
+                    "/user/starred/$repo"; then
+
+                    echo "✅ Starred: $repo"
+
+                  else
+
+                    echo "❌ Failed to star: $repo"
+
+                  fi
+
                 fi
 
                 ;;
@@ -83,13 +97,24 @@ jobs:
 
                 if gh api "/user/starred/$repo" --silent > /dev/null 2>&1; then
 
-                  gh api \
+                  echo "❌ Removing star: $repo"
+
+                  if gh api \
                     --method DELETE \
-                    "/user/starred/$repo" \
-                    && echo "✅ Unstarred: $repo"
+                    "/user/starred/$repo"; then
+
+                    echo "✅ Unstarred: $repo"
+
+                  else
+
+                    echo "❌ Failed to unstar: $repo"
+
+                  fi
 
                 else
+
                   echo "⭐ Not starred: $repo"
+
                 fi
 
                 ;;
@@ -97,18 +122,31 @@ jobs:
 
               watch)
 
-                watched=$(gh api "/repos/$repo/subscription" \
+                subscribed=$(gh api \
+                  "/repos/$repo/subscription" \
                   --jq '.subscribed' 2>/dev/null || echo false)
 
-                if [ "$watched" = "true" ]; then
+
+                if [ "$subscribed" = "true" ]; then
+
                   echo "👁️ Already watching: $repo"
+
                 else
 
-                  gh api \
+                  echo "👁️ Watching: $repo"
+
+                  if gh api \
                     --method PUT \
                     "/repos/$repo/subscription" \
-                    --input <(echo '{"subscribed":true,"ignored":false}') \
-                    && echo "✅ Watching: $repo"
+                    --input <(echo '{"subscribed":true,"ignored":false}'); then
+
+                    echo "✅ Watching: $repo"
+
+                  else
+
+                    echo "❌ Failed to watch: $repo"
+
+                  fi
 
                 fi
 
@@ -116,32 +154,42 @@ jobs:
 
 
               unwatch)
-              
-                watched=$(gh api "/repos/$repo/subscription" \
+
+                subscribed=$(gh api \
+                  "/repos/$repo/subscription" \
                   --jq '.subscribed' 2>/dev/null || echo false)
-              
-                if [ "$watched" = "true" ]; then
-              
+
+
+                if [ "$subscribed" = "true" ]; then
+
                   echo "🔕 Unwatching: $repo"
-              
+
                   if gh api \
                     --method DELETE \
                     "/repos/$repo/subscription"; then
-              
+
                     echo "✅ Unwatched: $repo"
-              
+
                   else
-              
+
                     echo "❌ Failed to unwatch: $repo"
-              
+
                   fi
-              
+
                 else
-              
+
                   echo "👁️ Not watching: $repo"
-              
+
                 fi
-              
+
+                ;;
+
+
+              *)
+
+                echo "❌ Unknown action: $ACTION"
+                exit 1
+
                 ;;
 
             esac
