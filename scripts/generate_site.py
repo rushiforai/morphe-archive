@@ -468,7 +468,7 @@ HTML = """<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Morphe Archive</title>
   <meta name="description" content="Search Morphe patch sources and supported apps.">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111318'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-family='Arial,sans-serif' font-size='42' font-weight='800' fill='%2328c7dc'%3EM%3C/text%3E%3C/svg%3E">
@@ -488,6 +488,10 @@ HTML = """<!doctype html>
     }
     * { box-sizing: border-box; }
     html { scroll-behavior: smooth; }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
     html, body {
       width: 100%;
       max-width: 100%;
@@ -499,7 +503,7 @@ HTML = """<!doctype html>
       background: var(--bg);
       color: var(--text);
       line-height: 1.5;
-      padding-bottom: 54px;
+      padding-bottom: calc(54px + env(safe-area-inset-bottom));
     }
     header {
       border-bottom: 1px solid var(--line);
@@ -618,6 +622,15 @@ HTML = """<!doctype html>
       border-radius: 12px;
       padding: 10px 12px;
       font: inherit;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button, a.button { min-height: 40px; }
+    input::placeholder { color: #7a8291; }
+    ::selection { background: var(--accent); color: #06110c; }
+    input:focus-visible, select:focus-visible, button:focus-visible, a.button:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
     }
     input { width: 100%; }
     input, select { min-width: 0; }
@@ -646,8 +659,9 @@ HTML = """<!doctype html>
       min-width: 74px;
     }
     button.active {
-      color: var(--text);
-      background: var(--panel-2);
+      color: #fff;
+      background: #2b2f3a;
+      box-shadow: inset 0 -2px 0 var(--accent);
     }
     main .wrap { padding-top: 18px; }
     .list {
@@ -677,7 +691,11 @@ HTML = """<!doctype html>
     .row.has-expand.open .expandable {
       display: block;
     }
-    .row:hover { border-color: #46505f; }
+    .row { transition: border-color .18s ease, transform .18s ease; }
+    @media (hover: hover) and (pointer: fine) {
+      .row:hover { border-color: #46505f; transform: translateY(-1px); }
+      a:hover { color: #7cb8ff; }
+    }
     .card-head {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
@@ -980,14 +998,14 @@ HTML = """<!doctype html>
       color: var(--muted);
       font-size: 11px;
       line-height: 1.35;
-      padding: 9px 14px;
+      padding: 9px 14px max(9px, env(safe-area-inset-bottom));
       text-align: center;
     }
     .back-top {
       display: inline-flex;
       position: fixed;
       right: 22px;
-      bottom: 58px;
+      bottom: calc(58px + env(safe-area-inset-bottom));
       z-index: 21;
       width: 48px;
       height: 48px;
@@ -1001,6 +1019,10 @@ HTML = """<!doctype html>
       box-shadow: 0 12px 32px rgba(0, 0, 0, .35);
       font-size: 28px;
       line-height: 1;
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .back-top:hover { transform: translateY(-2px); box-shadow: 0 14px 36px rgba(0, 0, 0, .45); }
     }
     .modal {
       position: fixed;
@@ -1084,6 +1106,21 @@ HTML = """<!doctype html>
       font-weight: 800;
       white-space: nowrap;
     }
+    @media (max-width: 1080px) {
+      header { position: static; }
+      .top { grid-template-columns: 1fr; }
+      .stats { max-width: none; }
+      .toolbar { grid-template-columns: minmax(0, 1fr) auto; }
+      .toolbar .tabs { grid-column: 1 / -1; }
+      .host-tabs button { flex: 1 1 0; }
+      #search { grid-column: 1 / -1; }
+    }
+    @media (max-height: 520px) and (orientation: landscape) {
+      .wrap { padding-top: 12px; padding-bottom: 12px; }
+      .nav { padding-bottom: 6px; }
+      .top { padding: 6px 0 10px; }
+      .toolbar { margin-top: 10px; }
+    }
     @media (max-width: 760px) {
       header { position: static; }
       .nav {
@@ -1142,12 +1179,15 @@ HTML = """<!doctype html>
       }
       .tabs button {
         padding: 10px 8px;
+        white-space: nowrap;
       }
       .host-tabs button {
         min-width: 0;
         padding: 10px 8px;
+        white-space: nowrap;
       }
       .actions { justify-content: flex-start; }
+      button, a.button { min-height: 44px; }
       .repo-actions { justify-content: flex-start; }
       .bundle-actions {
         display: flex;
@@ -1192,8 +1232,9 @@ HTML = """<!doctype html>
         max-width: none;
       }
       .chip {
-        border-radius: 10px;
-        width: 100%;
+        border-radius: 999px;
+        padding: 6px 10px;
+        max-width: 100%;
       }
       .patch-item {
         padding: 9px 10px;
@@ -1223,6 +1264,7 @@ HTML = """<!doctype html>
       .brand {
         font-size: 22px;
       }
+      .modal-head .icon-button { font-size: 20px; }
       .list {
         gap: 12px;
       }
@@ -1247,6 +1289,14 @@ HTML = """<!doctype html>
       .subline {
         font-size: 12px;
       }
+    }
+    @media (max-width: 380px) {
+      .wrap { padding: 12px; }
+      h1 { font-size: 26px; }
+      .brand { font-size: 20px; }
+      .brand-mark { font-size: 26px; }
+      .stat strong { font-size: 17px; }
+      .tabs button, .host-tabs button { padding: 10px 4px; }
     }
   </style>
 </head>
