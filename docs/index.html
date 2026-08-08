@@ -592,6 +592,26 @@
       overflow: auto;
       min-height: 0;
       padding: 18px 24px 24px;
+      scrollbar-width: thin;
+      scrollbar-color: transparent transparent;
+    }
+    .modal-body.scrolling {
+      scrollbar-color: rgba(255, 255, 255, .32) transparent;
+    }
+    .modal-body::-webkit-scrollbar {
+      width: 8px;
+    }
+    .modal-body::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .modal-body::-webkit-scrollbar-thumb {
+      background: transparent;
+      border-radius: 999px;
+      border: 2px solid transparent;
+      background-clip: padding-box;
+    }
+    .modal-body.scrolling::-webkit-scrollbar-thumb {
+      background-color: rgba(255, 255, 255, .32);
     }
     .modal-panel {
       animation: modal-in .18s ease;
@@ -1231,9 +1251,18 @@
       document.body.style.overflow = "";
     }
 
+    let bodyScrollTimer = null;
+    detailModalBody.addEventListener("scroll", () => {
+      detailModalBody.classList.add("scrolling");
+      clearTimeout(bodyScrollTimer);
+      bodyScrollTimer = setTimeout(() => detailModalBody.classList.remove("scrolling"), 900);
+    }, { passive: true });
+
     function showDetailModal(headHtml, bodyHtml) {
       detailModalHead.innerHTML = headHtml;
       detailModalBody.innerHTML = bodyHtml;
+      detailModalBody.classList.remove("scrolling");
+      clearTimeout(bodyScrollTimer);
       detailModal.hidden = false;
       document.body.style.overflow = "hidden";
       detailModalBody.scrollTop = 0;
