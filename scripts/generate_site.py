@@ -683,14 +683,6 @@ HTML = """<!doctype html>
       min-width: 0;
     }
     .row.has-expand { cursor: pointer; }
-    .row.has-expand .expandable {
-      display: none;
-      margin-top: auto;
-      cursor: default;
-    }
-    .row.has-expand.open .expandable {
-      display: block;
-    }
     .row { transition: border-color .18s ease, transform .18s ease; }
     @media (hover: hover) and (pointer: fine) {
       .row:hover { border-color: #46505f; transform: translateY(-1px); }
@@ -1062,9 +1054,30 @@ HTML = """<!doctype html>
       font-size: 24px;
       font-weight: 800;
     }
-    .modal-body {
-      overflow: auto;
-      padding: 18px 24px 24px;
+    .modal-panel {
+      animation: modal-in .18s ease;
+    }
+    @keyframes modal-in {
+      from { opacity: 0; transform: translateY(12px) scale(.98); }
+      to { opacity: 1; transform: none; }
+    }
+    .modal-detail-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+    .modal-detail-head > div {
+      min-width: 0;
+    }
+    .modal-detail-head .app-icon,
+    .modal-detail-head .avatar {
+      width: 48px;
+      height: 48px;
+      flex: 0 0 auto;
+    }
+    .modal-detail-head .modal-title {
+      overflow-wrap: anywhere;
     }
     .change-card {
       border: 1px solid var(--line);
@@ -1377,6 +1390,15 @@ HTML = """<!doctype html>
       <div id="whatsNewBody" class="modal-body"></div>
     </section>
   </div>
+  <div id="detailModal" class="modal" hidden>
+    <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="detailModalTitle">
+      <div class="modal-head">
+        <div id="detailModalHead" class="modal-detail-head"></div>
+        <button id="closeDetailModal" class="button icon-button" type="button" aria-label="Close">x</button>
+      </div>
+      <div id="detailModalBody" class="modal-body"></div>
+    </section>
+  </div>
   <script>
     const state = { tab: "apps", query: "", host: "all", sort: "name", data: null };
     const list = document.getElementById("list");
@@ -1390,6 +1412,11 @@ HTML = """<!doctype html>
     const whatsNewModal = document.getElementById("whatsNewModal");
     const whatsNewBody = document.getElementById("whatsNewBody");
     const closeWhatsNew = document.getElementById("closeWhatsNew");
+    const detailModal = document.getElementById("detailModal");
+    const detailModalHead = document.getElementById("detailModalHead");
+    const detailModalBody = document.getElementById("detailModalBody");
+    const closeDetailModal = document.getElementById("closeDetailModal");
+    let lastOpener = null;
 
     function escapeHtml(value) {
       const div = document.createElement("div");
@@ -1502,16 +1529,6 @@ HTML = """<!doctype html>
     function repoRow(repo) {
       const row = document.createElement("article");
       row.className = "row has-expand";
-      const apps = (repo.apps || []).slice(0, 24).map((app) => `
-        <div class="bundle-app">
-          ${appIconHtml(app)}
-          <div class="bundle-app-info">
-            <div class="name">${escapeHtml(app.name)}</div>
-            <div class="meta"><span>${escapeHtml(app.packageName)}</span></div>
-            <div class="count-line"><span>${app.patchCount} patches</span></div>
-          </div>
-        </div>
-      `).join("");
       row.innerHTML = `
         <div>
           <div class="title-line">
@@ -1522,22 +1539,10 @@ HTML = """<!doctype html>
                 ${hostBadge(repo.host, repo.webUrl)}
               </div>
               <div class="count-line"><span>${repo.patchCount} patches</span><span>${repo.appCount} apps</span></div>
-              <div class="actions repo-actions bundle-actions">
-                <a class="button" href="${repo.source}" target="_blank" rel="noreferrer">Bundle</a>
-                <a class="button primary" href="${repo.addUrl}" target="_blank" rel="noreferrer">Add Source</a>
-              </div>
             </div>
           </div>
-        </div>
-        <div class="expandable">
-          <div class="bundle-apps">${apps || '<div class="patch-item">No app metadata</div>'}</div>
-          ${repo.appCount > 24 ? `<div class="patch-item">+${repo.appCount - 24} more apps</div>` : ""}
-          <div class="chips">
-            <a class="chip" href="${repo.source}" target="_blank" rel="noreferrer">patches-bundle.json</a>
-            <a class="chip" href="${repo.listUrl}" target="_blank" rel="noreferrer">patches-list.json</a>
-          </div>
         </div>`;
-      bindCardToggle(row);
+      makeClickable(row, () => openRepoModal(repo));
       return row;
     }
 
@@ -1549,17 +1554,26 @@ HTML = """<!doctype html>
       return shown + more;
     }
 
-    function bindCardToggle(row) {
+    function makeClickable(row, open) {
+      row.setAttribute("role", "button");
+      row.setAttribute("tabindex", "0");
+      row.setAttribute("aria-haspopup", "dialog");
       row.addEventListener("click", (event) => {
-        if (event.target.closest("a, button, input, select, textarea, .expandable")) return;
-        row.classList.toggle("open");
+        if (event.target.closest("a, button")) return;
+        lastOpener = row;
+        open();
+      });
+      row.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          lastOpener = row;
+          open();
+        }
       });
     }
 
-    function appRow(app) {
-      const row = document.createElement("article");
-      row.className = "row has-expand";
-      const sourceCards = app.sources.map((source) => {
+    function sourceCardsHtml(app) {
+      return app.sources.map((source) => {
         const sourcePatches = patchChips(source.patches, 16);
         const sourceVersions = source.versions.slice(0, 6).map((version) => `<span class="chip">${escapeHtml(version)}</span>`).join("");
         return `
@@ -1577,6 +1591,11 @@ HTML = """<!doctype html>
             <div class="patch-list">${sourcePatches || '<div class="patch-item">No patch metadata</div>'}</div>
           </div>`;
       }).join("");
+    }
+
+    function appRow(app) {
+      const row = document.createElement("article");
+      row.className = "row has-expand";
       row.innerHTML = `
         <div>
           <div class="title-line">
@@ -1589,11 +1608,8 @@ HTML = """<!doctype html>
               <div class="count-line"><span>${app.patches.length} patches</span><span>${app.repos.length} sources</span></div>
             </div>
           </div>
-        </div>
-        <div class="expandable">
-          <div class="source-grid">${sourceCards}</div>
         </div>`;
-      bindCardToggle(row);
+      makeClickable(row, () => openAppModal(app));
       return row;
     }
 
@@ -1610,16 +1626,10 @@ HTML = """<!doctype html>
                 ${hostBadge(source.host, source.webUrl)}
               </div>
               <div class="count-line"><span>${source.patchCount} universal patches</span></div>
-              <div class="actions repo-actions bundle-actions">
-                <a class="button primary" href="${source.addUrl}" target="_blank" rel="noreferrer">Add Source</a>
-              </div>
             </div>
           </div>
-        </div>
-        <div class="expandable">
-          <div class="patch-list">${patchChips(source.patches, 24) || '<div class="patch-item">No patch metadata</div>'}</div>
         </div>`;
-      bindCardToggle(row);
+      makeClickable(row, () => openUniversalModal(source));
       return row;
     }
 
@@ -1680,6 +1690,92 @@ HTML = """<!doctype html>
     function closeWhatsNewModal() {
       whatsNewModal.hidden = true;
       document.body.style.overflow = "";
+    }
+
+    function showDetailModal(headHtml, bodyHtml) {
+      detailModalHead.innerHTML = headHtml;
+      detailModalBody.innerHTML = bodyHtml;
+      detailModal.hidden = false;
+      document.body.style.overflow = "hidden";
+      detailModalBody.scrollTop = 0;
+      closeDetailModal.focus();
+    }
+
+    function closeDetailModalFn() {
+      detailModal.hidden = true;
+      document.body.style.overflow = "";
+      if (lastOpener && document.contains(lastOpener)) lastOpener.focus();
+    }
+
+    function openAppModal(app) {
+      showDetailModal(
+        `
+          ${appIconHtml(app)}
+          <div>
+            <h2 id="detailModalTitle" class="modal-title">${escapeHtml(app.name)}</h2>
+            <div class="meta">
+              <span>${escapeHtml(app.packageName)}</span>
+              <span>${app.patches.length} patches</span>
+              <span>${app.repos.length} sources</span>
+            </div>
+          </div>`,
+        `<div class="source-grid">${sourceCardsHtml(app)}</div>`
+      );
+    }
+
+    function openRepoModal(repo) {
+      const apps = (repo.apps || []).slice(0, 24).map((app) => `
+        <div class="bundle-app">
+          ${appIconHtml(app)}
+          <div class="bundle-app-info">
+            <div class="name">${escapeHtml(app.name)}</div>
+            <div class="meta"><span>${escapeHtml(app.packageName)}</span></div>
+            <div class="count-line"><span>${app.patchCount} patches</span></div>
+          </div>
+        </div>
+      `).join("");
+      showDetailModal(
+        `
+          ${avatarHtml(repo.avatarUrl, repo.repo)}
+          <div>
+            <h2 id="detailModalTitle" class="modal-title">${escapeHtml(repo.repo)}</h2>
+            <div class="meta">
+              ${hostBadge(repo.host, repo.webUrl)}
+              <span>${repo.patchCount} patches</span>
+              <span>${repo.appCount} apps</span>
+            </div>
+          </div>`,
+        `
+          <div class="actions repo-actions bundle-actions">
+            <a class="button" href="${repo.source}" target="_blank" rel="noreferrer">Bundle</a>
+            <a class="button primary" href="${repo.addUrl}" target="_blank" rel="noreferrer">Add Source</a>
+          </div>
+          <div class="bundle-apps">${apps || '<div class="patch-item">No app metadata</div>'}</div>
+          ${repo.appCount > 24 ? `<div class="patch-item">+${repo.appCount - 24} more apps</div>` : ""}
+          <div class="chips">
+            <a class="chip" href="${repo.source}" target="_blank" rel="noreferrer">patches-bundle.json</a>
+            <a class="chip" href="${repo.listUrl}" target="_blank" rel="noreferrer">patches-list.json</a>
+          </div>`
+      );
+    }
+
+    function openUniversalModal(source) {
+      showDetailModal(
+        `
+          ${avatarHtml(source.avatarUrl, source.repo)}
+          <div>
+            <h2 id="detailModalTitle" class="modal-title">${escapeHtml(source.repo)}</h2>
+            <div class="meta">
+              ${hostBadge(source.host, source.webUrl)}
+              <span>${source.patchCount} universal patches</span>
+            </div>
+          </div>`,
+        `
+          <div class="actions repo-actions bundle-actions">
+            <a class="button primary" href="${source.addUrl}" target="_blank" rel="noreferrer">Add Source</a>
+          </div>
+          <div class="patch-list">${patchChips(source.patches, 24) || '<div class="patch-item">No patch metadata</div>'}</div>`
+      );
     }
 
     function render() {
@@ -1765,8 +1861,14 @@ HTML = """<!doctype html>
     whatsNewModal.addEventListener("click", (event) => {
       if (event.target === whatsNewModal) closeWhatsNewModal();
     });
+    closeDetailModal.addEventListener("click", closeDetailModalFn);
+    detailModal.addEventListener("click", (event) => {
+      if (event.target === detailModal) closeDetailModalFn();
+    });
     document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && !whatsNewModal.hidden) closeWhatsNewModal();
+      if (event.key !== "Escape") return;
+      if (!detailModal.hidden) { closeDetailModalFn(); return; }
+      if (!whatsNewModal.hidden) closeWhatsNewModal();
     });
   </script>
 </body>
