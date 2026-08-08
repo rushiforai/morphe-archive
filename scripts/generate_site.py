@@ -1054,6 +1054,11 @@ HTML = """<!doctype html>
       font-size: 24px;
       font-weight: 800;
     }
+    .modal-body {
+      overflow: auto;
+      min-height: 0;
+      padding: 18px 24px 24px;
+    }
     .modal-panel {
       animation: modal-in .18s ease;
     }
