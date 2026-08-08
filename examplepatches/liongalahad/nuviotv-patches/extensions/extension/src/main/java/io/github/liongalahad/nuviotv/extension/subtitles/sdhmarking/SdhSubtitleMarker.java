@@ -8,6 +8,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -54,8 +55,8 @@ public final class SdhSubtitleMarker {
 
     public static String markTitle(String title, String label, String language, String id) {
         if (!MorpheSettingsRuntime.isSdhMarkingEnabled() || title == null || title.isEmpty()) return title;
-        if (!isEnglish(title, label, language)) return title;
         if (isExplicitSdh(title, label, language, id)) return appendSdh(title);
+        if (!isEnglish(title, label, language)) return title;
         return title;
     }
 
@@ -65,8 +66,8 @@ public final class SdhSubtitleMarker {
 
     private static String markAddonTitle(String title, String id, String url, String language) {
         if (!MorpheSettingsRuntime.isSdhMarkingEnabled() || title == null || title.isEmpty()) return title;
-        if (!isEnglish(title, language)) return title;
         if (isExplicitSdh(title, language, id, url)) return appendSdh(title);
+        if (!isEnglish(title, language, id)) return title;
         String key = key(id, url);
         if (Boolean.TRUE.equals(DETECTIONS.get(key))) return appendSdh(title);
         scheduleScan(key, url);
@@ -124,6 +125,7 @@ public final class SdhSubtitleMarker {
             if (value == null) continue;
             String normalized = value.trim().toLowerCase(Locale.ROOT).replace('_', '-');
             if (normalized.equals("en") || normalized.equals("eng") || normalized.startsWith("en-") ||
+                    normalized.startsWith("en\n") || normalized.startsWith("eng\n") ||
                     normalized.contains("english")) {
                 return true;
             }
@@ -153,14 +155,14 @@ public final class SdhSubtitleMarker {
     private static void scheduleScan(String key, String rawUrl) {
         if (rawUrl == null || rawUrl.isEmpty() || DETECTIONS.containsKey(key) || !IN_FLIGHT.add(key)) return;
         String lower = rawUrl.toLowerCase(Locale.ROOT);
-        if (!lower.startsWith("https://") && !lower.startsWith("http://")) {
+        if (!lower.startsWith("https://") && !lower.startsWith("http://") && !lower.startsWith("file:/")) {
             IN_FLIGHT.remove(key);
             return;
         }
         SCANNER.execute(() -> {
             boolean detected = false;
             try {
-                detected = scanRemoteText(rawUrl);
+                detected = scanText(rawUrl);
             } catch (Throwable ignored) {
                 // A failed sample leaves the subtitle unmarked and never blocks playback.
             } finally {
@@ -171,16 +173,23 @@ public final class SdhSubtitleMarker {
         });
     }
 
-    private static boolean scanRemoteText(String rawUrl) throws Exception {
-        HttpURLConnection connection = (HttpURLConnection) new URL(rawUrl).openConnection();
-        connection.setInstanceFollowRedirects(true);
+    private static boolean scanText(String rawUrl) throws Exception {
+        URLConnection connection = new URL(rawUrl).openConnection();
         connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
         connection.setReadTimeout(READ_TIMEOUT_MS);
-        connection.setRequestProperty("Range", "bytes=0-" + (MAX_SAMPLE_BYTES - 1));
-        connection.setRequestProperty("Accept-Encoding", "identity");
+        HttpURLConnection http = connection instanceof HttpURLConnection
+                ? (HttpURLConnection) connection
+                : null;
+        if (http != null) {
+            http.setInstanceFollowRedirects(true);
+            http.setRequestProperty("Range", "bytes=0-" + (MAX_SAMPLE_BYTES - 1));
+            http.setRequestProperty("Accept-Encoding", "identity");
+        }
         try {
-            int response = connection.getResponseCode();
-            if (response < 200 || response >= 300) return false;
+            if (http != null) {
+                int response = http.getResponseCode();
+                if (response < 200 || response >= 300) return false;
+            }
             try (InputStream input = connection.getInputStream();
                  ByteArrayOutputStream output = new ByteArrayOutputStream(MAX_SAMPLE_BYTES)) {
                 byte[] buffer = new byte[4_096];
@@ -195,7 +204,7 @@ public final class SdhSubtitleMarker {
                 return SdhSubtitleDetector.INSTANCE.isSdh(sample);
             }
         } finally {
-            connection.disconnect();
+            if (http != null) http.disconnect();
         }
     }
 

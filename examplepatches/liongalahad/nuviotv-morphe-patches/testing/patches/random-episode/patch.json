@@ -1,0 +1,90 @@
+{
+  "$schema": "../patch.schema.json",
+  "id": "random-episode",
+  "name": "Random Episode",
+  "category": "detail",
+  "target": {
+    "application": "NuvioTV",
+    "package": "com.nuvio.tv",
+    "versions": ["0.8.2-beta"],
+    "launchComponent": "com.nuvio.tv/.MainActivity"
+  },
+  "assets": {
+    "universal": {
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.2-beta/app-full-universal-release.apk",
+      "sha256": "f3eec9367dabe332bb54d7ad73cc425296d22e1cbd9db699004d0c33f182c030"
+    },
+    "x86_64": {
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.2-beta/app-full-x86_64-release.apk",
+      "sha256": "885c30945d91369969c633f7d0b3eb0816fc1db041af83459f1c7e842b9fbb8b"
+    },
+    "arm64-v8a": {
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.2-beta/app-full-arm64-v8a-release.apk",
+      "sha256": "f4e69b1d0136835635c2e44a939b160a7f5900c93dbf246d2e7eb9de713741fe"
+    },
+    "armeabi-v7a": {
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.2-beta/app-full-armeabi-v7a-release.apk",
+      "sha256": "c9086031e18946ad29f22bbe7e9018743dfae000822c05222c86f5947c2ac5e3"
+    }
+  },
+  "dependencies": ["settings-hub"],
+  "emulators": {"phone": "Pixel_10", "tv": "Television_4K"},
+  "fingerprints": [
+    "SettingsScreenFingerprint",
+    "ExperienceSettingsHeaderFingerprint",
+    "ExperienceSettingsCardFingerprint",
+    "NativeSettingsSwitchUsageFingerprint",
+    "HeroContentFingerprint",
+    "HeroActionIconFingerprint",
+    "HeroActionRowFingerprint",
+    "ManualPlayDialogFingerprint",
+    "StreamRouteFingerprint",
+    "RecomputeNextEpisodeFingerprint",
+    "SaveWatchProgressFingerprint",
+    "BuildScrobbleItemFingerprint",
+    "LoadSavedProgressSuspendFingerprint",
+    "ReturnFocusFingerprint",
+    "WarmTraktMappingFingerprint"
+  ],
+  "inspection": {
+    "provider": "io.github.liongalahad.nuviotv.extension.settings.MorpheInitProvider",
+    "metadata": "io.github.liongalahad.nuviotv.settings.provider.random_episode",
+    "classes": [
+      "io.github.liongalahad.nuviotv.extension.settings.MorpheSettingsRuntime",
+      "io.github.liongalahad.nuviotv.extension.settings.MorpheSettingsPageContent",
+      "io.github.liongalahad.nuviotv.extension.settings.MorpheSettingsRows",
+      "io.github.liongalahad.nuviotv.extension.detail.randomepisode.Extension",
+      "io.github.liongalahad.nuviotv.extension.detail.randomepisode.RandomEpisodeRuntime",
+      "io.github.liongalahad.nuviotv.extension.detail.randomepisode.RandomEpisodeSettings",
+      "io.github.liongalahad.nuviotv.extension.detail.randomepisode.RandomEpisodeSettingsCategory",
+      "io.github.liongalahad.nuviotv.extension.detail.randomepisode.RandomEpisodeSettingsContent",
+      "io.github.liongalahad.nuviotv.extension.detail.randomepisode.RandomEpisodeToggleAction"
+    ],
+    "needles": [
+      "detail.random_episode_button",
+      "Show Random Episode Button",
+      "Play random episode",
+      "Lcom/nuvio/tv/domain/model/Video;"
+    ],
+    "forbiddenNeedles": []
+  },
+  "focusedTests": [
+    "RandomEpisodeRuntimeTest",
+    "RandomEpisodeSettingsTest",
+    "MorpheSettingsRuntimeTest",
+    "isolated application on all declared APK assets",
+    "combined application with Rating Visibility, Remove SDH Annotations and Mark SDH Subtitles"
+  ],
+  "acceptance": [
+    "Selecting only Random Episode shows Morphe > Detail Page and no unrelated category",
+    "Show Random Episode Button defaults off, updates immediately and persists after force-stop and reboot",
+    "The enabled shuffle action appears before Library only on series with an eligible aired episode",
+    "Click chooses an aired non-special episode and opens its normal stream selection or autoplay flow",
+    "Long press preserves Nuvio's manual-play choice for the selected random episode",
+    "Random playback does not load or save watch progress and does not scrobble to tracking providers",
+    "Next Episode chooses another eligible random episode and excludes the current episode",
+    "Back and fatal-error paths return safely without contaminating the next normal playback session",
+    "All Morphe category expanded and collapsed combinations retain equal bounds, intact focus rings and stable D-pad order",
+    "No crash, ANR, VerifyError or fatal log occurs during launch, settings, navigation, random playback and normal playback"
+  ]
+}

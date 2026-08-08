@@ -32,26 +32,29 @@
   "fingerprints": ["TrackInfoConstructorFingerprint", "SubtitleOptionBuilderFingerprint", "SubtitleOptionContentFingerprint"],
   "inspection": {
     "provider": "io.github.liongalahad.nuviotv.extension.settings.MorpheInitProvider",
-    "metadata": "io.github.liongalahad.nuviotv.settings.feature.mark_sdh",
+    "metadata": "io.github.liongalahad.nuviotv.settings.provider.mark_sdh_subtitles",
     "classes": [
       "io.github.liongalahad.nuviotv.extension.subtitles.sdhmarking.SdhSubtitleDetector",
       "io.github.liongalahad.nuviotv.extension.subtitles.sdhmarking.SdhSubtitleMarker",
+      "io.github.liongalahad.nuviotv.extension.subtitles.sdhmarking.SdhMarkingSettingsCategory",
+      "io.github.liongalahad.nuviotv.extension.subtitles.sdhmarking.SdhMarkingSettingsContent",
       "io.github.liongalahad.nuviotv.extension.settings.MorpheSdhMarkingToggleAction"
     ],
     "needles": ["subtitles.mark_sdh", "Mark SDH subtitles"],
     "forbiddenNeedles": []
   },
-  "focusedTests": ["SdhSubtitleDetectorTest", "isolated x86_64 and universal exclusive-mode application"],
+  "focusedTests": ["SdhSubtitleDetectorTest including local file sampling", "isolated x86_64 and universal exclusive-mode application"],
   "acceptance": [
     "Patched NuvioTV shows Settings > Morphe > Subtitles > Mark SDH subtitles as a native switch",
     "The switch defaults off and persists after force-stop and reboot",
     "Off preserves every subtitle title",
-    "English embedded tracks with explicit SDH, HI, HOH, CC, hearing-impaired, or closed-caption evidence display SDH once",
-    "English addon tracks with explicit metadata display SDH immediately",
+    "Tracks in any language with explicit SDH, HI, HOH, CC, hearing-impaired, or closed-caption evidence display SDH once",
+    "Addon tracks with explicit metadata display SDH immediately",
     "English addon files with repeated annotation evidence display SDH after bounded background sampling",
+    "English local file sources with repeated annotation evidence display SDH after bounded background sampling",
     "At least 20 bracketed parentheses or square-bracket annotation blocks are required for content detection",
     "Music-note lyrics and speaker labels without bracketed annotations do not mark a subtitle as SDH",
-    "Non-English tracks are not sampled or marked",
+    "Non-English tracks are not content-sampled unless they carry an explicit SDH marker",
     "Playback startup and initial addon repository completion do not wait for content detection",
     "No crash, ANR, VerifyError, or fatal log during launch, settings, playback, or subtitle selection"
   ]

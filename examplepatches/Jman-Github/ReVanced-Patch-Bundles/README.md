@@ -2308,6 +2308,19 @@ If you know of another working ReVanced or Morphe patch repository that is not l
 **Dev:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/petalmaps-androidauto-patch-bundles/petalmaps-androidauto-dev-patches-bundle.json```
 </details>
 
+---
+### ?? Dbhavsar76-Patches-Bundle [API v4]:
+[?? Dbhavsar76 Bundle Patch List](https://github.com/Jman-Github/ReVanced-Patch-Bundles/blob/bundles/patch-bundles/PATCH-LIST-CATALOG.md#-dbhavsar76-bundle-patch-list)
+<details>
+<summary><i>Expand For Links</i></summary>
+
+**Latest:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/dbhavsar76-patch-bundles/dbhavsar76-latest-patches-bundle.json```
+
+**Stable:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/dbhavsar76-patch-bundles/dbhavsar76-stable-patches-bundle.json```
+
+**Dev:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/dbhavsar76-patch-bundles/dbhavsar76-dev-patches-bundle.json```
+</details>
+
 ## 📱 Compatible Managers
 
 | Manager | Best For | Source | Downloads |
@@ -2677,6 +2690,8 @@ If you know of another working ReVanced or Morphe patch repository that is not l
 
 #### 🩹 [PetalMaps-AndroidAuto-Patches-Bundle](https://github.com/andersonlucasg3/PetalMaps-AndroidAuto)
 
+#### ??? [Dbhavsar76-Patches-Bundle](https://github.com/dbhavsar76/revanced-patches)
+
 ## 🖇 Integrations Repositories In Use
 
 > [!NOTE]
@@ -2729,4 +2744,5 @@ Implemented a patch serializer for all `.rvp` (API v4) patch bundles in this
 
 ## ⭐ Star History
 
-[![Star History Chart](https://api.star-history.com/chart?repos=Jman-Github/Revanced-Patch-Bundlestype=date&type=date&legend=top-left&sealed_token=ORKUsht4OVNKSfhsXvs3ZJepz2X0oR7wgn7Eam-hPnsfIyJ-7843-C-shDPjdqC3W-LHutXghTgPXKtKsgaake_XbwSX4aZWMkWBDKEYvkVxbEvK82pcWg)](https://www.star-history.com/?repos=Jman-Github%2FRevanced-Patch-Bundlestype%3Ddate&type=date&legend=top-left)
+[![Star History Chart](https://star-history.dera.page/svg?repos=Jman-Github/Revanced-Patch-Bundlestype=date&legend=top-left)](https://star-history.dera.page/#Jman-Github/Revanced-Patch-Bundles&type=date&legend=top-left)
+

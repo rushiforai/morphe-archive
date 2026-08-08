@@ -1,0 +1,92 @@
+﻿{
+  "$schema": "../patch.schema.json",
+  "id": "local-storage-subtitles",
+  "name": "Allow Importing Subs from Local Storage",
+  "category": "subtitles",
+  "target": {
+    "application": "NuvioTV",
+    "package": "com.nuvio.tv",
+    "versions": ["0.8.2-beta"],
+    "launchComponent": "com.nuvio.tv/.MainActivity"
+  },
+  "assets": {
+    "universal": {
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.2-beta/app-full-universal-release.apk",
+      "sha256": "f3eec9367dabe332bb54d7ad73cc425296d22e1cbd9db699004d0c33f182c030"
+    },
+    "x86_64": {
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.2-beta/app-full-x86_64-release.apk",
+      "sha256": "885c30945d91369969c633f7d0b3eb0816fc1db041af83459f1c7e842b9fbb8b"
+    },
+    "arm64-v8a": {
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.2-beta/app-full-arm64-v8a-release.apk",
+      "sha256": "f4e69b1d0136835635c2e44a939b160a7f5900c93dbf246d2e7eb9de713741fe"
+    },
+    "armeabi-v7a": {
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.2-beta/app-full-armeabi-v7a-release.apk",
+      "sha256": "c9086031e18946ad29f22bbe7e9018743dfae000822c05222c86f5947c2ac5e3"
+    }
+  },
+  "dependencies": [],
+  "emulators": {"phone": "Pixel_10", "tv": "Television_4K"},
+  "fingerprints": [
+    "SubtitleOverlayFingerprint",
+    "SubtitleOptionBuilderFingerprint",
+    "SubtitleInitialFocusFingerprint",
+    "PlayerEventDispatcherFingerprint",
+    "RememberAddonSubtitleFingerprint",
+    "RememberInternalSubtitleFingerprint",
+    "RememberDisabledSubtitleFingerprint",
+    "SelectAddonSubtitleFingerprint",
+    "RestoreTrackPreferencesFingerprint",
+    "PersistTrackPreferencesFingerprint",
+    "LoadTrackPreferencesFingerprint",
+    "SubtitleConfigurationFingerprint"
+  ],
+  "inspection": {
+    "provider": "io.github.liongalahad.nuviotv.extension.subtitles.localstoragesubtitles.LocalSubtitleInitProvider",
+    "metadata": "io.github.liongalahad.nuviotv.extension.subtitles.localstoragesubtitles.LocalSubtitlePickerActivity",
+    "classes": [
+      "io.github.liongalahad.nuviotv.extension.subtitles.localstoragesubtitles.LocalSubtitleRuntime",
+      "io.github.liongalahad.nuviotv.extension.subtitles.localstoragesubtitles.LocalSubtitleRefreshState",
+      "io.github.liongalahad.nuviotv.extension.subtitles.localstoragesubtitles.LocalSubtitleInitProvider",
+      "io.github.liongalahad.nuviotv.extension.subtitles.localstoragesubtitles.LocalSubtitlePickerActivity",
+      "io.github.liongalahad.nuviotv.extension.subtitles.localstoragesubtitles.LocalSubtitleSettingsCategory",
+      "io.github.liongalahad.nuviotv.extension.subtitles.localstoragesubtitles.LocalSubtitleSettingsContent",
+      "io.github.liongalahad.nuviotv.extension.subtitles.localstoragesubtitles.LocalSubtitleSettingsToggleAction"
+    ],
+    "needles": [
+      "Local Storage",
+      "Choose subtitle file",
+      "Allow Importing Subs from Local Storage"
+    ],
+    "forbiddenNeedles": []
+  },
+  "focusedTests": [
+    "LocalSubtitleRuntimeTest",
+    "SdhSubtitleDetectorTest local-file scan",
+    "isolated x86_64 and universal exclusive-mode application"
+  ],
+  "acceptance": [
+    "Settings > Morphe > Subtitles exposes an enabled-by-default Allow Importing Subs from Local Storage switch that controls the feature",
+    "The subtitle language rail shows Local Storage immediately after None while ExoPlayer is active",
+    "Local Storage shows a Choose subtitle file action before imported files",
+    "Choosing the action keeps the subtitle overlay open behind Android's document picker without broad storage permission",
+    "SRT, VTT, WebVTT, ASS, SSA, TTML and DFXP files up to 10 MB can be imported into private app storage",
+    "Returning from the picker immediately shows the imported row selected in Local Storage and activates it in playback",
+    "Choose subtitle file never displays a selected tick; the imported row does",
+    "Imported rows show the detected language as the primary title and exact filename as light secondary text",
+    "The first imported-row selection attaches and selects it in Media3 while preserving playback position and play state",
+    "Reopening the subtitle overlay restores usable D-pad focus without changing the active local subtitle",
+    "Subtitle style and delay controls remain available for the imported subtitle",
+    "The active imported subtitle is restored for the same movie or episode after leaving and reopening playback",
+    "Private imported files expire after seven days without that movie or episode being watched",
+    "Imported selections remain patch-private and are not written to Nuvio sync or its addon subtitle preference",
+    "A filename SDH marker is not misread as Southern Kurdish; Mark SDH Subtitles displays it immediately",
+    "Mark SDH Subtitles scans English local files in the background when no explicit marker exists",
+    "Remove SDH Annotations processes imported Media3 cues under its existing mode",
+    "The original selected file is never modified",
+    "Local Storage is omitted for MPV and no imported subtitle is sent to MPV",
+    "No crash, ANR, VerifyError or fatal log occurs during picker launch, import, selection, seeking or exit"
+  ]
+}

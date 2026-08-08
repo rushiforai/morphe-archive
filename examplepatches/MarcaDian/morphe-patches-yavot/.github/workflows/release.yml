@@ -14,13 +14,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout yavot
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           path: morphe-patches-yavot
           fetch-depth: 0
 
       - name: Checkout base morphe-patches
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           repository: MorpheApp/morphe-patches
           # Temporary: the add-on hooks this bundle attaches to are not merged yet.
@@ -29,30 +29,26 @@ jobs:
           path: morphe-patches
 
       - name: Checkout morphe-patcher
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           repository: MorpheApp/morphe-patcher
           path: morphe-patcher
 
       - name: Checkout morphe-patches-library
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           repository: MorpheApp/morphe-patches-library
+          ref: dev
           path: morphe-patches-library
 
       - name: Setup Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5.6.0
         with:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Cache Gradle
-        uses: burrunan/gradle-cache-action@v3
-        with:
-          build-root-directory: morphe-patches-yavot
-
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 'lts/*'
 

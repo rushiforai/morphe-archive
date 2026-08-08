@@ -6,7 +6,6 @@ import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.string
-import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
@@ -24,23 +23,6 @@ private const val RETURN_FALSE = """
     const/4 v0, 0x0
     return v0
 """
-
-private val UI_CLEANUP_ANCHORS = linkedMapOf(
-    "aiChatGuide" to setOf("core_messages_ai_p2p_chat_guide"),
-    "aiTranslateGuide" to setOf("e_intl_ai_translate_bubble", "ai_chat_advice_guide"),
-    "mktFeaturePopup" to setOf("p_intl_mkt_feature_regular_popup"),
-    "mktTimeSticker" to setOf("p_intl_mkt_time_sticker_choose"),
-    "newFunctionGuide" to setOf("svip_new_function_guide_shown_Intl"),
-    "purchaseGuide" to setOf("p_new_users_see_purchase_guide_see_view"),
-    "myTabTopBanner" to setOf("core_my_tab_top_banner_view"),
-    "discountEntryBanner" to setOf("discount_entry_banner", "IntlMeetILikeNewLikeDiscountEntry"),
-    "positioningGuide" to setOf("p_alert_positioning_authority_open_guide_popup"),
-    "avatarVerificationGuide" to setOf("p_alert_avatar_verification_upgrade_guide_popup"),
-    "buzzPopup" to setOf("p_intl_buzz_memoji_paired"),
-    "idVerificationGuide" to setOf("p_id_verification_new_function_guide"),
-)
-
-private const val UI_CLEANUP_FINGERPRINT_COUNT = 12
 
 private val SHOW_LIKE_METHODS = setOf("show", "display", "init", "onResume")
 private val AI_TRANSLATE_METHODS = setOf("show", "showGuide", "display")
@@ -126,28 +108,15 @@ val uiCleanupPatch = bytecodePatch(
     compatibleWith(tantanCompatibility)
     execute {
 
-        val resolved = mutableMapOf<String, ClassDef>()
+        val resolver = UnifiedClassResolver(this)
+        resolver.resolve()
 
-        classDefForEach { classDef ->
-            if (resolved.size == UI_CLEANUP_FINGERPRINT_COUNT) return@classDefForEach
-
-            val foundStrings = mutableSetOf<String>()
-            for (method in classDef.methods) {
-                if (foundStrings.size >= 2) break
-                val impl = method.implementation ?: continue
-                for (instr in impl.instructions) {
-                    if (instr is ReferenceInstruction && instr.reference is StringReference) {
-                        foundStrings.add((instr.reference as StringReference).string)
-                    }
-                }
-            }
-
-            for ((key, anchors) in UI_CLEANUP_ANCHORS) {
-                if (key in resolved) continue
-                if (anchors.any { it in foundStrings }) {
-                    resolved[key] = classDef
-                }
-            }
+        val resolved = mutableMapOf<String, com.android.tools.smali.dexlib2.iface.ClassDef>()
+        val uiKeys = listOf("aiChatGuide", "aiTranslateGuide", "mktFeaturePopup", "mktTimeSticker",
+            "newFunctionGuide", "purchaseGuide", "myTabTopBanner", "discountEntryBanner",
+            "positioningGuide", "avatarVerificationGuide", "buzzPopup", "idVerificationGuide")
+        for (key in uiKeys) {
+            resolver.getUiCleanupClass(key)?.let { resolved[key] = it }
         }
 
         for ((key, classDef) in resolved) {
@@ -186,73 +155,9 @@ val uiCleanupPatch = bytecodePatch(
             }
         }
 
-        classDefByOrNull("Lcom/p1/mobile/putong/core/ui/banner/view/PrivilegeEnhancedPromotionBannerView;")?.let { classDef ->
-            mutableClassDefBy(classDef).methods.forEach { method ->
-                if (method.name == "onFinishInflate" && method.returnType == "V") {
-                    method.addInstructions(0, RETURN_VOID)
-                }
-            }
-        }
-
         classDefByOrNull("Lcom/p1/mobile/putong/core/ui/popup/ProfileThinPopup;")?.let { classDef ->
             mutableClassDefBy(classDef).methods.forEach { method ->
                 if (method.name == "initDataOnCreate" && method.returnType == "V") {
-                    method.addInstructions(0, RETURN_VOID)
-                }
-            }
-        }
-
-        classDefByOrNull("Lcom/p1/mobile/putong/core/newui/home/views/SuperLikeBannerView;")?.let { classDef ->
-            mutableClassDefBy(classDef).methods.forEach { method ->
-                if (method.name == "onFinishInflate" && method.returnType == "V") {
-                    method.addInstructions(0, RETURN_VOID)
-                }
-            }
-        }
-
-        classDefByOrNull("Lcom/p1/mobile/putong/core/newui/home/views/innerpush/ComplimentReceivedBannerLayout;")?.let { classDef ->
-            mutableClassDefBy(classDef).methods.forEach { method ->
-                if (method.name == "onFinishInflate" && method.returnType == "V") {
-                    method.addInstructions(0, RETURN_VOID)
-                }
-            }
-        }
-
-        classDefByOrNull("Lcom/p1/mobile/putong/core/ui/operation/OperationBannerView;")?.let { classDef ->
-            mutableClassDefBy(classDef).methods.forEach { method ->
-                if (method.name == "onFinishInflate" && method.returnType == "V") {
-                    method.addInstructions(0, RETURN_VOID)
-                }
-            }
-        }
-
-        classDefByOrNull("Lcom/p1/mobile/putong/core/newui/home/views/NewUserSpecialLikeBannerView;")?.let { classDef ->
-            mutableClassDefBy(classDef).methods.forEach { method ->
-                if (method.name == "onFinishInflate" && method.returnType == "V") {
-                    method.addInstructions(0, RETURN_VOID)
-                }
-            }
-        }
-
-        classDefByOrNull("Lcom/p1/mobile/putong/core/ui/popup/ProfileFakeView;")?.let { classDef ->
-            mutableClassDefBy(classDef).methods.forEach { method ->
-                if (method.name == "onFinishInflate" && method.returnType == "V") {
-                    method.addInstructions(0, RETURN_VOID)
-                }
-            }
-        }
-
-        classDefByOrNull("Lcom/p1/mobile/putong/core/ui/home/virtualcard/SuperLikeOrUndoGuideCardView;")?.let { classDef ->
-            mutableClassDefBy(classDef).methods.forEach { method ->
-                if (method.name == "onFinishInflate" && method.returnType == "V") {
-                    method.addInstructions(0, RETURN_VOID)
-                }
-            }
-        }
-
-        classDefByOrNull("Lcom/p1/mobile/putong/core/newui/boost/BoostGuideCardView;")?.let { classDef ->
-            mutableClassDefBy(classDef).methods.forEach { method ->
-                if (method.name == "onFinishInflate" && method.returnType == "V") {
                     method.addInstructions(0, RETURN_VOID)
                 }
             }
@@ -266,15 +171,16 @@ val uiCleanupPatch = bytecodePatch(
             }
         }
 
-        classDefByOrNull("Lcom/p1/mobile/putong/core/ui/superlikeopt/upgrade/SendMultiSuperLikePushBubble;")?.let { classDef ->
-            mutableClassDefBy(classDef).methods.forEach { method ->
-                if (method.name == "onFinishInflate" && method.returnType == "V") {
-                    method.addInstructions(0, RETURN_VOID)
-                }
-            }
-        }
-
         val guideViewDescriptors = listOf(
+            "Lcom/p1/mobile/putong/core/ui/banner/view/PrivilegeEnhancedPromotionBannerView;",
+            "Lcom/p1/mobile/putong/core/newui/home/views/SuperLikeBannerView;",
+            "Lcom/p1/mobile/putong/core/newui/home/views/innerpush/ComplimentReceivedBannerLayout;",
+            "Lcom/p1/mobile/putong/core/ui/operation/OperationBannerView;",
+            "Lcom/p1/mobile/putong/core/newui/home/views/NewUserSpecialLikeBannerView;",
+            "Lcom/p1/mobile/putong/core/ui/popup/ProfileFakeView;",
+            "Lcom/p1/mobile/putong/core/ui/home/virtualcard/SuperLikeOrUndoGuideCardView;",
+            "Lcom/p1/mobile/putong/core/newui/boost/BoostGuideCardView;",
+            "Lcom/p1/mobile/putong/core/ui/superlikeopt/upgrade/SendMultiSuperLikePushBubble;",
             "Lcom/p1/mobile/putong/core/newui/home/intlslguide/IntlSlGuideDialog;",
             "Lcom/p1/mobile/putong/core/newui/profile/newme/ProfilePrivilegePayGuide;",
             "Lcom/p1/mobile/putong/core/newui/boost/BoostGuidePushLayout;",
@@ -329,6 +235,54 @@ val uiCleanupPatch = bytecodePatch(
             "Lcom/p1/mobile/putong/core/ui/home/GuideTipsView;",
             "Lcom/p1/mobile/putong/core/ui/meet/MeetPromotionItemView;",
             "Lcom/p1/mobile/putong/core/ui/operation/OperationBannerFeedView;",
+            "Lcom/p1/mobile/putong/core/ui/banner/view/PrivilegeEntranceDefaultView;",
+            "Lcom/p1/mobile/putong/core/ui/banner/view/PrivilegeEntranceHasPrivilegeView;",
+            "Lcom/p1/mobile/putong/core/ui/banner/view/PrivilegeEntranceODiamondSingleView;",
+            "Lcom/p1/mobile/putong/core/ui/banner/view/PrivilegeEntrancePaymentView;",
+            "Lcom/p1/mobile/putong/core/ui/banner/view/PrivilegeEntrancePrivilegeTopView;",
+            "Lcom/p1/mobile/putong/core/ui/banner/view/PrivilegeEntranceSingleTextView;",
+            "Lcom/p1/mobile/putong/core/ui/banner/view/PrivilegeEntranceSingleTextWithIconBgView;",
+
+            "Lcom/p1/mobile/putong/core/newui/messages/ConversationItemBlindBoxEntrance;",
+            "Lcom/p1/mobile/putong/core/newui/messages/ItemMatchIceBreakGuide;",
+            "Lcom/p1/mobile/putong/core/ui/emoji/CoreCommendHintEmojiView;",
+            "Lcom/p1/mobile/putong/core/ui/messages/ItemAiChatGuideMessage;",
+            "Lcom/p1/mobile/putong/core/ui/messages/ItemAiP2PChatGuide;",
+            "Lcom/p1/mobile/putong/core/ui/purchase/PurchaseUpgradeIntroView;",
+            "Lcom/p1/mobile/putong/core/ui/purchase/showcase/NewUiGPPurchaseUpgradeSectionView;",
+            "Lcom/p1/mobile/putong/core/ui/purchase/showcase/NewUiGPPurchaseUpgradeTip;",
+            "Lcom/p1/mobile/putong/core/ui/purchase/showcase/ScrollerGPUpgradePurchaseSectionView;",
+            "Lcom/p1/mobile/putong/core/ui/purchase/intlUpgrade/IntlUpgradePurchaseSheetItemView;",
+            "Lcom/p1/mobile/putong/core/ui/growth/swipeguide/SwipeGuideSettingView;",
+            "Lcom/p1/mobile/putong/feed/newui/photoalbum/view/FeedPersonalizeSuggestGuideView;",
+            "Lcom/p1/mobile/putong/feed/newui/photoalbum/view/FeedRoamGuideView;",
+            "Lcom/p1/mobile/putong/feed/newui/photoalbum/view/FeedPostGuideView;",
+            "Lcom/p1/mobile/putong/feed/newui/photoalbum/guide/FeedMomentViewersOperationGuideView;",
+            "Lcom/p1/mobile/putong/feed/newui/status/display/view/FeedStateSquareEntranceView;",
+            "Lcom/p1/mobile/putong/live/external/internal/live/square/home/submodule/suggest/LiveBubbleGuideView;",
+            "Lcom/p1/mobile/putong/live/external/intl/common/gameguide/IntlGameGuideDialogView;",
+            "Lcom/p1/mobile/putong/live/external/intl/view/widgets/IntlLiveEntranceStartLiveView;",
+            "Lcom/p1/mobile/putong/live/external/intl/view/widgets/IntlLiveSquareBannerView;",
+            "Lcom/p1/mobile/putong/live/external/intl/view/widgets/IntlLiveSquareBannerItemView;",
+            "Lcom/p1/mobile/putong/live/livingroom/intl/common/bottom/gamepanel/IntlGameBoardBannerView;",
+            "Lcom/p1/mobile/putong/feed/newui/group/FeedGroupEntranceItemView;",
+            "Lcom/p1/mobile/putong/feed/newui/photoalbum/live/FeedLiveRecommendView;",
+            "Lcom/p1/mobile/putong/feed/newui/view/TopicRecommendView;",
+            "Lcom/p1/mobile/putong/feed/newui/photoalbum/view/TopicRecommendTopicView;",
+            "Lcom/p1/mobile/putong/feed/newui/photoalbum/view/TopicRecommendUserView;",
+
+            "Lcom/p1/mobile/putong/live/livingroom/voice/intl/heatbox/VoiceLiveHeatBoxEntryView;",
+            "Lcom/p1/mobile/putong/live/livingroom/voice/intl/increment/leaderboard/hourleaderboard/widget/VoiceLiveHourBoardEntryView;",
+            "Lcom/p1/mobile/putong/live/livingroom/increment/leaderboard/intlstarboard/IntlLiveStarBoardEntryView;",
+            "Lcom/p1/mobile/putong/live/livingroom/increment/leaderboard/intlstarboard/IntlLiveStarBoardEntryItemView;",
+            "Lcom/p1/mobile/putong/live/external/intl/view/widgets/IntlLiveSquareActiveGiftDialogView;",
+            "Lcom/p1/mobile/putong/live/external/intl/view/widgets/IntlLiveActivitiesEntryView;",
+            "Lcom/p1/mobile/putong/live/external/intl/view/widgets/IntlLiveActivitiesEntryRead;",
+            "Lcom/p1/mobile/putong/live/external/intl/view/widgets/IntlLiveActivitiesEntrySignIn;",
+            "Lcom/p1/mobile/putong/live/external/intl/view/widgets/IntlLiveActivitiesEntryUnRead;",
+            "Lcom/p1/mobile/putong/live/external/intl/view/widgets/IntlLiveActivitiesEntryOrigin;",
+
+            "Lcom/p1/mobile/putong/core/newui/intlmeet/visitor/IntlMeetVisitorsEmptyItemView;",
         )
         guideViewDescriptors.forEach { descriptor ->
             classDefByOrNull(descriptor)?.let { classDef ->
@@ -434,14 +388,9 @@ val uiCleanupPatch = bytecodePatch(
                 }
         }
 
-        // Patch "friends online popup" (See Toast) - server-driven popup showing
-        // "x people like you" with subtext "y people online" and online icon
         friendsOnlinePopupClassFingerprint.matchOrNull()?.classDef?.let { classDef ->
             mutableClassDefBy(classDef).methods
                 .filter { method ->
-                    // Patch k() and l() methods that display the toast
-                    // k() takes (home.b, ActionData) - main toast with title + message + online icon
-                    // l() takes (home.b, ActionToast) - simpler toast variant
                     method.returnType == "V" &&
                     method.parameterTypes.size == 2 &&
                     method.parameterTypes.any { it.contains("ActionData") || it.contains("ActionToast") }
@@ -449,25 +398,6 @@ val uiCleanupPatch = bytecodePatch(
                 .forEach { it.addInstructions(0, RETURN_VOID) }
         }
 
-        // Patch "See Who Liked You" entrance card in messages tab
-        classDefByOrNull("Lcom/p1/mobile/putong/core/newui/messages/ConversationHeadIntlSeeItem;")?.let { classDef ->
-            mutableClassDefBy(classDef).methods.forEach { method ->
-                if ((method.name == "L" || method.name == "onFinishInflate") && method.returnType == "V") {
-                    method.addInstructions(0, RETURN_VOID)
-                }
-            }
-        }
-
-        // Patch SVIP/VIP discount promotion header in messages tab
-        classDefByOrNull("Lcom/p1/mobile/putong/core/newui/messages/promotion/PrivilegePromotionHeaderView;")?.let { classDef ->
-            mutableClassDefBy(classDef).methods.forEach { method ->
-                if ((method.name == "d" || method.name == "e") && method.returnType == "V" && method.parameterTypes.isEmpty()) {
-                    method.addInstructions(0, RETURN_VOID)
-                }
-            }
-        }
-
-        // Patch "see" promotional banner in messages tab
         classDefByOrNull("Lcom/p1/mobile/putong/core/newui/messages/business/meet/MeetEntranceModel;")?.let { classDef ->
             mutableClassDefBy(classDef).methods.forEach { method ->
                 if ((method.name == "a" || method.name == "n") && method.returnType == "V" && method.parameterTypes.isEmpty()) {
@@ -476,13 +406,117 @@ val uiCleanupPatch = bytecodePatch(
             }
         }
 
-        // Patch "receive profile like" entrance in conversation list
-        classDefByOrNull("Lcom/p1/mobile/putong/core/newui/messages/ConversationItemProfileLikeEntrance;")?.let { classDef ->
+        classDefByOrNull("Lcom/p1/mobile/putong/core/ui/banner/view/PrivilegeEntranceView;")?.let { classDef ->
             mutableClassDefBy(classDef).methods.forEach { method ->
-                if (method.name in setOf("show", "display") && method.returnType == "V") {
+                if (method.name == "e" && method.returnType == "V" && method.parameterTypes.size == 1) {
                     method.addInstructions(0, RETURN_VOID)
                 }
             }
+        }
+
+        classDefByOrNull("Lcom/p1/mobile/putong/core/ui/gp/GpRateGuideDialog;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.name == "g" && method.returnType == "V" && method.parameterTypes.size == 2) {
+                    method.addInstructions(0, RETURN_VOID)
+                }
+            }
+        }
+
+        classDefByOrNull("Lcom/p1/mobile/putong/core/ui/lovebuzz/widget/BuzzComboEntranceView;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.name == "j0" && method.returnType == "V" && method.parameterTypes.isEmpty()) {
+                    method.addInstructions(0, RETURN_VOID)
+                }
+            }
+        }
+
+        classDefByOrNull("Lcom/p1/mobile/putong/core/ui/lovebuzz/widget/MemojiBuzzComboEntranceView;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.name == "n" && method.returnType == "V" && method.parameterTypes.size == 1) {
+                    method.addInstructions(0, RETURN_VOID)
+                }
+            }
+        }
+
+        classDefByOrNull("Lcom/p1/mobile/putong/feed/newui/group/FeedGroupEntranceView;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.name == "X" && method.returnType == "V" && method.parameterTypes.size == 1) {
+                    method.addInstructions(0, RETURN_VOID)
+                }
+            }
+        }
+
+        classDefByOrNull("Lcom/p1/mobile/putong/feed/newui/photoalbum/photoalbumactivities/FeedAlbumInterestedEntranceView;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.name == "B" && method.returnType == "V" && method.parameterTypes.isEmpty()) {
+                    method.addInstructions(0, RETURN_VOID)
+                }
+            }
+        }
+
+        classDefByOrNull("Lcom/p1/mobile/putong/feed/newui/view/RoamEntranceView;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.name in setOf("b", "d") && method.returnType == "V") {
+                    method.addInstructions(0, RETURN_VOID)
+                }
+            }
+        }
+
+        classDefByOrNull("Lcom/p1/mobile/putong/core/newui/profile/newme/revamp/common/MeTabRevampMemberCardHelper;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.name == "e" && method.returnType == "V" && method.parameterTypes.size == 4) {
+                    method.addInstructions(0, RETURN_VOID)
+                }
+            }
+        }
+
+        classDefByOrNull("Lcom/p1/mobile/putong/core/api/CoreIntlAffiliatePromotions;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                when {
+                    method.name == "O3" && method.returnType == "Z" && method.parameterTypes.isEmpty() ->
+                        method.addInstructions(0, RETURN_FALSE)
+                    method.name == "s3" && method.returnType.startsWith("L") && method.parameterTypes.isEmpty() ->
+                        method.addInstructions(0, "const/4 v0, 0x0\nreturn-object v0")
+                }
+            }
+        }
+
+        classDefByOrNull("Lcom/p1/mobile/putong/live/external/intl/view/widgets/IntlVoiceActivitiesInChatView;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.name == "z" && method.returnType == "V" && method.parameterTypes.size == 1 && method.parameterTypes[0] == "I") {
+                    method.addInstructions(0, RETURN_VOID)
+                }
+            }
+        }
+
+        // Patch CoreLikers.g7() to prevent "x people like you" promotional popup trigger
+        classDefByOrNull("Lcom/p1/mobile/putong/core/api/CoreLikers;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.name == "g7" && method.returnType.startsWith("L")) {
+                    method.addInstructions(0, "const/4 v0, 0x0\nreturn-object v0")
+                }
+            }
+        }
+
+        // Patch home presenter to prevent "x more people like you" popup display
+        // This is the single decision point for showing the popup, covering all trigger paths
+        val homePresenterClassFingerprint = Fingerprint(
+            filters = listOf(
+                string("home_total_liker_float"),
+                string("home_new_liker_float"),
+            )
+        )
+
+        homePresenterClassFingerprint.matchOrNull()?.classDef?.let { classDef ->
+            mutableClassDefBy(classDef).methods
+                .filter { method ->
+                    method.returnType == "Z" && 
+                    method.parameterTypes.size == 1 &&
+                    method.parameterTypes[0].contains("CoreLikers")
+                }
+                .forEach { method ->
+                    method.addInstructions(0, RETURN_FALSE)
+                }
         }
     }
 }

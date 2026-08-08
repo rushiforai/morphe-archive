@@ -32,12 +32,13 @@
   "fingerprints": ["SettingsScreenFingerprint", "ExperienceSettingsHeaderFingerprint", "ExperienceSettingsCardFingerprint", "NativeSettingsSwitchUsageFingerprint", "CueGroupOutputFingerprint", "LegacyCueOutputFingerprint"],
   "inspection": {
     "provider": "io.github.liongalahad.nuviotv.extension.settings.MorpheInitProvider",
-    "metadata": "io.github.liongalahad.nuviotv.settings.category.subtitles",
+    "metadata": "io.github.liongalahad.nuviotv.settings.provider.remove_sdh_annotations",
     "classes": [
       "io.github.liongalahad.nuviotv.extension.settings.MorpheSettingsRuntime",
       "io.github.liongalahad.nuviotv.extension.settings.MorpheSettingsPageContent",
       "io.github.liongalahad.nuviotv.extension.settings.MorpheSettingsRows",
-      "io.github.liongalahad.nuviotv.extension.settings.MorpheSubtitlesGroupContent",
+      "io.github.liongalahad.nuviotv.extension.subtitles.sdh.RemoveSdhSettingsCategory",
+      "io.github.liongalahad.nuviotv.extension.subtitles.sdh.RemoveSdhSettingsContent",
       "io.github.liongalahad.nuviotv.extension.settings.MorpheComposeModeAction",
       "io.github.liongalahad.nuviotv.extension.settings.MorpheSdhModeDialogAction",
       "io.github.liongalahad.nuviotv.extension.settings.MorpheSdhModeDialog",

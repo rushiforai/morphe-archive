@@ -1,3 +1,15 @@
+## [1.1.0](https://github.com/logm1lo/logm1lo-patches/compare/v1.0.10...v1.1.0) (2026-08-08)
+
+### New Features
+
+* add Cube Solver patches, fix Calistree Dart unlock ([a0d978a](https://github.com/logm1lo/logm1lo-patches/commit/a0d978a743dd6701077d45d264c1cab038bec4ea))
+
+## [1.1.0-dev.1](https://github.com/logm1lo/logm1lo-patches/compare/v1.0.10...v1.1.0-dev.1) (2026-08-08)
+
+### New Features
+
+* add Cube Solver patches, fix Calistree Dart unlock ([a0d978a](https://github.com/logm1lo/logm1lo-patches/commit/a0d978a743dd6701077d45d264c1cab038bec4ea))
+
 ## [1.0.10](https://github.com/logm1lo/logm1lo-patches/compare/v1.0.9...v1.0.10) (2026-08-05)
 
 ### 🐛 Bug Fixes

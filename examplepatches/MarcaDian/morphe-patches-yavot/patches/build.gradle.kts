@@ -3,7 +3,8 @@ group = "app.morphe.thirdparty.yavot"
 patches {
     about {
         name = "Morphe Yandex VoT"
-        description = "Yandex voice-over translation add-on for Morphe Patches"
+        description = "Yandex voice-over translation add-on for Morphe Patches. " +
+                "Requires patching with Morphe official patches"
         source = "git@github.com:MarcaDian/morphe-patches-yavot.git"
         author = "MarcaDian"
         contact = "na"
@@ -29,6 +30,10 @@ dependencies {
 }
 
 tasks {
+    named("sourcesJar") {
+        enabled = false
+    }
+
     register<JavaExec>("generatePatchesList") {
         description = "Build patch with patch list"
 

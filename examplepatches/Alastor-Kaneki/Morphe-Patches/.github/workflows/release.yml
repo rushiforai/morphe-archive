@@ -1,29 +1,45 @@
-name: Publish Morphe release
+name: Release
 
 on:
+  workflow_dispatch:
   push:
-    branches: [ main ]
+    branches: [ main, dev ]
 
 permissions:
   contents: write
   packages: read
+  id-token: write
+  attestations: write
 
 jobs:
   release:
-    if: contains(github.event.head_commit.message, '[release]')
+    name: Semantic release
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - uses: actions/setup-java@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '21'
 
-      - uses: gradle/actions/setup-gradle@v4
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '9.6.1'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
+      - name: Install semantic-release dependencies
+        run: npm install
 
       - name: Test GX URL resolver
         run: bash tools/test-parser.sh
@@ -40,88 +56,24 @@ jobs:
       - name: Test Chrome page runtime and Material UI
         run: bash tools/test-chrome-runtime-bridge.sh
 
-      - name: Build Android Morphe bundle
+      - name: Generate patches list
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gradle buildAndroid --stacktrace
-
-      - name: Create or update GitHub release and source metadata
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        shell: bash
         run: |
-          set -euo pipefail
+          gradle wrapper --gradle-version 9.6.1
+          ./gradlew generatePatchesList
 
-          VERSION="$(sed -n 's/^version=//p' gradle.properties | head -n 1)"
-          TAG="v${VERSION}"
-          mapfile -t BUNDLES < <(find patches/build/libs -maxdepth 1 -type f -name '*.mpp' -print)
+      - name: Release
+        uses: cycjimmy/semantic-release-action@v6
+        id: semantic
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-          if (( ${#BUNDLES[@]} == 0 )); then
-            echo 'No .mpp bundle was generated.' >&2
-            exit 1
-          fi
-
-          RELEASE_DESCRIPTION="Morphe Patches ${VERSION}. Includes the separate Suno timestamped-lyrics exporter with LRC, enhanced LRC, SRT, WebVTT, and JSON output; the Opera GX 56-icon launcher selector; the independently selectable Opera GX raw mod downloader; and the Chrome 150 MonkeyScript manager with contrast-safe Material You, page-capable userscript execution, Greasy Fork/Sleazy Fork installation, and publishing."
-
-          if ! gh release view "$TAG" >/dev/null 2>&1; then
-            gh release create "$TAG" \
-              --title "Morphe Patches ${TAG}" \
-              --notes "$RELEASE_DESCRIPTION"
-          fi
-          gh release upload "$TAG" "${BUNDLES[@]}" --clobber
-
-          BUNDLE="${BUNDLES[0]}"
-          FILE_NAME="$(basename "$BUNDLE")"
-          DIGEST="$(sha256sum "$BUNDLE" | awk '{print $1}')"
-          CREATED_AT="$(date -u +%Y-%m-%dT%H:%M:%S)"
-          DOWNLOAD_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/${FILE_NAME}"
-
-          SOURCE_METADATA="$(jq -n \
-            --arg created_at "$CREATED_AT" \
-            --arg description "$RELEASE_DESCRIPTION" \
-            --arg download_url "$DOWNLOAD_URL" \
-            --arg signature_download_url "" \
-            --arg version "$VERSION" \
-            '{created_at: $created_at, description: $description, download_url: $download_url, signature_download_url: $signature_download_url, version: $version}')"
-
-          RELEASE_MARKER="$(jq -n \
-            --arg version "$VERSION" \
-            --arg tag "$TAG" \
-            --arg asset "$FILE_NAME" \
-            --arg sha256 "$DIGEST" \
-            --arg sourceCommit "$GITHUB_SHA" \
-            '{version: $version, tag: $tag, asset: $asset, sha256: $sha256, sourceCommit: $sourceCommit}')"
-
-          upsert_repo_file() {
-            local path="$1"
-            local content="$2"
-            local message="$3"
-            local encoded existing_sha
-
-            encoded="$(printf '%s\n' "$content" | base64 -w 0)"
-            existing_sha="$(gh api "repos/${GITHUB_REPOSITORY}/contents/${path}" --jq .sha 2>/dev/null || true)"
-
-            if [[ -n "$existing_sha" ]]; then
-              gh api --method PUT "repos/${GITHUB_REPOSITORY}/contents/${path}" \
-                -f message="$message" \
-                -f content="$encoded" \
-                -f sha="$existing_sha" \
-                -f branch="$GITHUB_REF_NAME" >/dev/null
-            else
-              gh api --method PUT "repos/${GITHUB_REPOSITORY}/contents/${path}" \
-                -f message="$message" \
-                -f content="$encoded" \
-                -f branch="$GITHUB_REF_NAME" >/dev/null
-            fi
-          }
-
-          upsert_repo_file \
-            "patches-bundle.json" \
-            "$SOURCE_METADATA" \
-            "Update Morphe source metadata for ${TAG}"
-
-          upsert_repo_file \
-            "releases/latest.json" \
-            "$RELEASE_MARKER" \
-            "Record Morphe release ${TAG}"
+      - name: Attest release bundle
+        if: steps.semantic.outputs.new_release_published == 'true'
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-name: 'Morphe Patches ${{ steps.semantic.outputs.new_release_git_tag }}'
+          subject-path: patches/build/libs/patches-*.mpp

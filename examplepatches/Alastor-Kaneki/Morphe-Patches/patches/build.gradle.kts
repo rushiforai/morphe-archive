@@ -26,7 +26,7 @@ tasks.matching { it.name == "processResources" }.configureEach {
 patches {
     about {
         name = "Alastor Kaneki Morphe Patches"
-        description = "Morphe patches for Suno timestamped-lyrics export, a standalone Opera GX launcher icon selector, Opera GX raw mod downloads, and a cloneable Chrome Android Material You userscript manager with a Violentmonkey-derived parser and Greasy Fork/Sleazy Fork support."
+        description = "Morphe patches for Suno timestamped-lyrics export and independently selectable app-name/custom-icon branding, a standalone Opera GX launcher icon selector, Opera GX raw mod downloads, and a cloneable Chrome Android Material You userscript manager with a Violentmonkey-derived parser and Greasy Fork/Sleazy Fork support."
         source = "https://github.com/Alastor-Kaneki/Morphe-Patches"
         author = "Alastor Kaneki"
         contact = "https://github.com/Alastor-Kaneki"

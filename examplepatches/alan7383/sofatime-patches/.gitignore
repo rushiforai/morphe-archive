@@ -115,6 +115,10 @@ gradle-app.setting
 
 # Potentially copyrighted test APK
 *.apk
+*.apks
+
+# Morphe CLI data/temp output
+morphe-data/
 
 # Ignore vscode config
 .vscode/

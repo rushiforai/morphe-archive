@@ -17,7 +17,9 @@ import org.w3c.dom.Element
 private const val RUNTIME =
     "Lio/github/liongalahad/nuviotv/extension/settings/MorpheSettingsRuntime;"
 private const val CATEGORY_METADATA =
-    "io.github.liongalahad.nuviotv.settings.category.ratings"
+    "io.github.liongalahad.nuviotv.settings.provider.rating_visibility"
+private const val CATEGORY_PROVIDER =
+    "io.github.liongalahad.nuviotv.extension.ratings.ratingsvisibility.RatingsSettingsCategory"
 
 private val ratingsCategoryResourcePatch = resourcePatch {
     compatibleWith(NUVIO_COMPATIBILITY)
@@ -26,7 +28,7 @@ private val ratingsCategoryResourcePatch = resourcePatch {
             val application = document.getElementsByTagName("application").item(0) as Element
             application.appendChild(document.createElement("meta-data").apply {
                 setAttribute("android:name", CATEGORY_METADATA)
-                setAttribute("android:value", "true")
+                setAttribute("android:value", CATEGORY_PROVIDER)
             })
         }
     }

@@ -515,38 +515,7 @@ private val h6aCFingerprint = Fingerprint(
     parameters = emptyList(),
 )
 
-// u59: regional gates. U/S/O/F/Z/a0/D all gate on IntlCountryCodeController.k()
-// (returns true when NOT in a restricted region). We force all to true
-// so premium tier availability is unconditional.
-private val u59RegionalGateFingerprint = Fingerprint(
-    classFingerprint = u59ClassFingerprint,
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
-    returnType = "Z",
-    parameters = emptyList(),
-    filters = listOf(
-        methodCall(
-            definingClass = "Lcom/p1/mobile/putong/ab/IntlCountryCodeController;",
-            name = "k",
-        ),
-    ),
-)
 
-// u59.R() — instant-match open-user gate. Unique config key.
-private val u59RFingerprint = Fingerprint(
-    classFingerprint = u59ClassFingerprint,
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
-    returnType = "Z",
-    parameters = emptyList(),
-    filters = listOf(string("intl_instantmatch_open_user")),
-)
-
-private val u59VFingerprint = Fingerprint(
-    classFingerprint = u59ClassFingerprint,
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
-    returnType = "Z",
-    parameters = listOf("Lcom/p1/mobile/putong/data/User;"),
-    filters = listOf(methodCall(name = "isUltraPremium")),
-)
 
 // ugc0.k(PurchaseType) → true (subscription upgraded).
 private val ugc0KFingerprint = Fingerprint(
@@ -590,76 +559,7 @@ private val qgl0DFingerprint = Fingerprint(
     parameters = listOf("Lcom/p1/mobile/putong/core/data/UserPrivilege;"),
 )
 
-// n3b0.q() → false (likers limit not exceeded)
-private val n3b0QFingerprint = Fingerprint(
-    classFingerprint = n3b0ClassFingerprint,
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
-    returnType = "Z",
-    parameters = emptyList(),
-    filters = listOf(
-        fieldAccess(
-            definingClass = "Lcom/p1/mobile/putong/data/LikersLimit;",
-            name = "remaining",
-        ),
-    ),
-)
 
-// n3b0.g() → far-future timestamp
-private val n3b0GFingerprint = Fingerprint(
-    classFingerprint = n3b0ClassFingerprint,
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
-    returnType = "J",
-    parameters = emptyList(),
-    filters = listOf(
-        fieldAccess(
-            definingClass = "Lcom/p1/mobile/putong/data/LikersLimit;",
-            name = "expiresTime",
-        ),
-    ),
-)
-
-// n3b0.d(Counter) → sum of BoostLimit.remaining → 200000
-private val n3b0BoostRemainingFingerprint = Fingerprint(
-    classFingerprint = n3b0ClassFingerprint,
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
-    returnType = "I",
-    parameters = listOf("Lcom/p1/mobile/putong/data/Counter;"),
-    filters = listOf(
-        fieldAccess(
-            definingClass = "Lcom/p1/mobile/putong/data/Counter;",
-            name = "boostLimits",
-        ),
-        fieldAccess(
-            definingClass = "Lcom/p1/mobile/putong/data/BoostLimit;",
-            name = "remaining",
-        ),
-    ),
-)
-
-// n3b0.p() → boostLimits.size() > 0 → true
-private val n3b0BoostHasFingerprint = Fingerprint(
-    classFingerprint = n3b0ClassFingerprint,
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
-    returnType = "Z",
-    parameters = emptyList(),
-    filters = listOf(
-        fieldAccess(
-            definingClass = "Lcom/p1/mobile/putong/data/Counter;",
-            name = "boostLimits",
-        ),
-    ),
-)
-
-// n3b0.o() → boost remaining <= 0 → false (boost available)
-private val n3b0BoostAvailableFingerprint = Fingerprint(
-    classFingerprint = n3b0ClassFingerprint,
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
-    returnType = "Z",
-    parameters = emptyList(),
-    filters = listOf(
-        methodCall(name = "e"),
-    ),
-)
 
 // secretCrush: remaining check (static no-arg → Z, reads CounterSecretCrushLimit.remaining) → false
 private val secretCrushRemainingFingerprint = Fingerprint(
@@ -1226,22 +1126,6 @@ val premiumUnlockPatch = bytecodePatch(
                 }
             }
 
-            // ── Me tab profile privilege pay guide: ProfilePrivilegePayGuide.l0() ──
-            //
-            // The Me tab shows a profile privilege pay guide banner driven by server-side
-            // IntlTabMePayGuide data. l0() checks if the guide was clicked within a time
-            // window. Patching to FALSE makes the banner think it was already dismissed.
-            classDefByOrNull("Lcom/p1/mobile/putong/core/newui/profile/newme/ProfilePrivilegePayGuide;")?.let { classDef ->
-                mutableClassDefBy(classDef).methods.forEach { method ->
-                    if (method.name == "l0" &&
-                        method.parameterTypes.isEmpty() &&
-                        method.returnType == "Z"
-                    ) {
-                        method.addInstructions(0, RETURN_FALSE)
-                    }
-                }
-            }
-
             // ── Me tab dark upgrade card suppression moved to Pass 2 ──
             // Uses jh30ClassFingerprint to avoid scanning every class in Pass 1
 
@@ -1349,6 +1233,96 @@ val premiumUnlockPatch = bytecodePatch(
                             method.parameterTypes.isEmpty() &&
                             method.returnType == "Z" -> {
                             method.addInstructions(0, RETURN_TRUE)
+                        }
+                    }
+                }
+            }
+
+            // ── SwipeRateLimitConfig: disable swipe rate limiting ──
+            // Overwrite enable field to false after every write (protobuf/JSON parse, clone)
+            classDefByOrNull("Lcom/p1/mobile/putong/core/data/SwipeRateLimitConfig;")?.let { classDef ->
+                mutableClassDefBy(classDef).methods.forEach { method ->
+                    val instrs = method.cachedInstructions()
+                    val writeIndices = instrs.withIndex().filter { (_, instr) ->
+                        instr.opcode.name == "iput-byte" &&
+                            instr is ReferenceInstruction &&
+                            instr.reference is FieldReference &&
+                            (instr.reference as FieldReference).name == "enable" &&
+                            (instr.reference as FieldReference).definingClass == "Lcom/p1/mobile/putong/core/data/SwipeRateLimitConfig;"
+                    }.map { it.index }
+
+                    if (writeIndices.isEmpty()) return@forEach
+
+                    writeIndices.reversed().forEach { idx ->
+                        val instr = instrs[idx]
+                        if (instr is TwoRegisterInstruction) {
+                            val objReg = instr.registerB
+                            val fieldRef = (instr as ReferenceInstruction).reference as FieldReference
+                            val tempReg = if (objReg != 0) "v0" else "v1"
+                            method.addInstructions(idx + 1, """
+                                const/4 $tempReg, 0x0
+                                iput-byte $tempReg, v$objReg, ${fieldRef.definingClass}->${fieldRef.name}:${fieldRef.type}
+                            """)
+                        }
+                    }
+                }
+            }
+
+            // ── LeftSwipeLimitConfig: remove left swipe (dislike) limits ──
+            // Overwrite swipeLimit field to null after every write
+            classDefByOrNull("Lcom/p1/mobile/putong/core/data/LeftSwipeLimitConfig;")?.let { classDef ->
+                mutableClassDefBy(classDef).methods.forEach { method ->
+                    val instrs = method.cachedInstructions()
+                    val writeIndices = instrs.withIndex().filter { (_, instr) ->
+                        instr.opcode.name == "iput-object" &&
+                            instr is ReferenceInstruction &&
+                            instr.reference is FieldReference &&
+                            (instr.reference as FieldReference).name == "swipeLimit" &&
+                            (instr.reference as FieldReference).definingClass == "Lcom/p1/mobile/putong/core/data/LeftSwipeLimitConfig;"
+                    }.map { it.index }
+
+                    if (writeIndices.isEmpty()) return@forEach
+
+                    writeIndices.reversed().forEach { idx ->
+                        val instr = instrs[idx]
+                        if (instr is TwoRegisterInstruction) {
+                            val objReg = instr.registerB
+                            val fieldRef = (instr as ReferenceInstruction).reference as FieldReference
+                            val tempReg = if (objReg != 0) "v0" else "v1"
+                            method.addInstructions(idx + 1, """
+                                const/4 $tempReg, 0x0
+                                iput-object $tempReg, v$objReg, ${fieldRef.definingClass}->${fieldRef.name}:${fieldRef.type}
+                            """)
+                        }
+                    }
+                }
+            }
+
+            // ── IntlUltraPremiumConfig: enable ultra premium features ──
+            // Overwrite androidEnable field to true after every write
+            classDefByOrNull("Lcom/p1/mobile/putong/core/data/IntlUltraPremiumConfig;")?.let { classDef ->
+                mutableClassDefBy(classDef).methods.forEach { method ->
+                    val instrs = method.cachedInstructions()
+                    val writeIndices = instrs.withIndex().filter { (_, instr) ->
+                        instr.opcode.name == "iput-byte" &&
+                            instr is ReferenceInstruction &&
+                            instr.reference is FieldReference &&
+                            (instr.reference as FieldReference).name == "androidEnable" &&
+                            (instr.reference as FieldReference).definingClass == "Lcom/p1/mobile/putong/core/data/IntlUltraPremiumConfig;"
+                    }.map { it.index }
+
+                    if (writeIndices.isEmpty()) return@forEach
+
+                    writeIndices.reversed().forEach { idx ->
+                        val instr = instrs[idx]
+                        if (instr is TwoRegisterInstruction) {
+                            val objReg = instr.registerB
+                            val fieldRef = (instr as ReferenceInstruction).reference as FieldReference
+                            val tempReg = if (objReg != 0) "v0" else "v1"
+                            method.addInstructions(idx + 1, """
+                                const/4 $tempReg, 0x1
+                                iput-byte $tempReg, v$objReg, ${fieldRef.definingClass}->${fieldRef.name}:${fieldRef.type}
+                            """)
                         }
                     }
                 }
@@ -1818,7 +1792,7 @@ val premiumUnlockPatch = bytecodePatch(
                 "Lcom/p1/mobile/putong/core/newui/messages/ConversationItemInstantChatGuideView;" to setOf("m"),
                 "Lcom/p1/mobile/putong/core/newui/messages/ConversationItemBlindBoxEntrance;" to setOf("e"),
                 "Lcom/p1/mobile/putong/core/newui/messages/ConversationItemSurpriseBoxEntrance;" to setOf("f"),
-                "Lcom/p1/mobile/putong/core/newui/messages/ConversationItemProfileLikeEntrance;" to setOf("i"),
+                "Lcom/p1/mobile/putong/core/newui/messages/ConversationItemProfileLikeEntrance;" to setOf("i", "show", "display"),
                 "Lcom/p1/mobile/putong/core/newui/messages/ConversationItemPlatinumPinLike;" to setOf("q"),
                 "Lcom/p1/mobile/putong/core/newui/messages/ConversationItemFriendMoments;" to setOf("o", "p", "q"),
                 "Lcom/p1/mobile/putong/core/newui/messages/ConversationItemTeamGroup;" to setOf("o"),
@@ -1845,244 +1819,27 @@ val premiumUnlockPatch = bytecodePatch(
             }
 
         // ----------------------------------------------------------------------
-        // Pass 2: Batch resolution of obfuscated class fingerprints
+        // Pass 2: Batch resolution of obfuscated class fingerprints (unified)
         // ----------------------------------------------------------------------
 
+        val resolver = UnifiedClassResolver(this)
+        resolver.resolve()
+
         val resolved = mutableMapOf<String, com.android.tools.smali.dexlib2.iface.ClassDef>()
-
-        val anchorStrings = setOf(
-            "/summarized-privileges?with=diamond",
-            "intl_receive_like_guide_get", "receive_like_guide_get",
-            "fake_conversation_surprise_gift_box", "fake_conversation_profile_like_enter",
-            "fake_conversation_greeting", "conversation_feed_state", "meet_entrance",
-            "fake_conversation_local_instant_chat_conversation", "fake_conversation_anonymous_greeting",
-            "fake_conversation_local_team_group_conversation", "fake_conversation_local_limited_trial_see_fold",
-            "intlSeeChatRequest", "intl_chat_request_insert_users", "fake_conversation_oof_pick",
-            "matched", "intl_sl_guide_config", "intl_good_c_bage_config",
-            "e_intl_spotlight_activity_card", "ttt_membership_price_diff", "seeUpgradeToPremium",
-            "e_vip_banner", "vas_commercial_card_right_slide_strategy", "暂未激活黑金会员",
-            "picksUser id is not found in users : ", "open_fill_info_debug",
-            "fromWhoLikedMe", "e_red_dot_message_see",
-            "%s people liked you", "MeetLikersNewLikersData", "IntlMeetLikersNewLikersData",
+        val premiumKeys = listOf(
+            "xma", "qa9", "hva", "coreApiFakeConv", "profileLikeEnter", "greetingFakeConv",
+            "feedStateFakeConv", "meetEntranceBanner", "instantChatGuide", "mainUiFakeConv",
+            "coreApiTeamGroup", "coreApiLimitedTrialFold", "intlSeeChatRequestCreator", "r8n",
+            "headRecommendAdapter", "seeAnimBubbleCreator", "sb90Companion", "u59", "tm90",
+            "gqf0", "h6a", "ugc0", "zva0", "th5", "qgl0", "sja", "n3b0", "rbb0", "hl3",
+            "j7d0", "gg50", "qtk", "secretCrush", "greetingCounter", "swipeRateLimit",
+            "leftSwipeLimit", "intlUltraPremium", "coreData", "mb90", "jh30",
+            "businessEntranceAdapter", "pm6", "bhe0", "vqo", "re90", "i0p",
+            "meetNewLikersData", "intlMeetNewLikersData", "intlMeetNewLikersAdapter",
+            "meetNewLikersAdapter", "ysa", "ae9"
         )
-        val anchorFieldNames = setOf(
-            "likersLimit", "secretCrushLimit", "surpriseGiftExpirationTime",
-            "TYPE_ROAMING_PKG", "INTL_SEE_ANIM_BUBBLE", "SEE_ANIM",
-            "localRelationship",
-        )
-        val anchorMethodNames = setOf(
-            "S6", "u6", "isSupremePartnerOpenMystery", "isHideIconFromSVipWithMe",
-            "isVIP", "d", "clear", "isUltraPremium",
-        )
-
-        classDefForEach { classDef ->
-            if (resolved.size == 47) return@classDefForEach
-
-            val classType = classDef.type
-            val isSettingsUi = classType.startsWith("Lcom/p1/mobile/putong/core/ui/settings/")
-
-            val strings = mutableSetOf<String>()
-            val methodCallFull = mutableSetOf<String>()
-            val methodCallNames = mutableSetOf<String>()
-            val fieldAccessFull = mutableSetOf<String>()
-            val fieldNames = mutableSetOf<String>()
-            val methodCallSigs = mutableSetOf<String>()
-            val methodCallFullSigs = mutableSetOf<String>()
-            val methodNameRet = mutableSetOf<String>()
-            var hasZUserMethod = false
-
-            classDef.methods.forEach { method ->
-                if (method.returnType == "Z" && method.parameterTypes.size == 1 && method.parameterTypes[0] == "Lcom/p1/mobile/putong/data/User;") {
-                    hasZUserMethod = true
-                }
-                instructionsOf(method).forEach { instr ->
-                    if (instr is ReferenceInstruction) {
-                        when (val ref = instr.reference) {
-                            is StringReference -> {
-                                strings.add(ref.string)
-                            }
-                            is MethodReference -> {
-                                methodCallNames.add(ref.name)
-                                methodCallFull.add("${ref.definingClass}.${ref.name}")
-                                val sig = "${ref.name}.${ref.parameterTypes.size}.${ref.returnType}"
-                                methodCallSigs.add(sig)
-                                methodCallFullSigs.add("${ref.definingClass}.$sig")
-                                methodNameRet.add("${ref.name}\u0001${ref.returnType}")
-                            }
-                            is FieldReference -> {
-                                fieldAccessFull.add("${ref.definingClass}.${ref.name}")
-                                fieldNames.add(ref.name)
-                            }
-                        }
-                    }
-                }
-            }
-
-            val hasAnchorString = strings.any { it in anchorStrings }
-            val hasAnchorField = fieldNames.any { it in anchorFieldNames }
-            val hasAnchorMethod = methodCallNames.any { it in anchorMethodNames }
-
-            if (!hasAnchorString && !hasAnchorField && !hasAnchorMethod) return@classDefForEach
-
-            val hasConvNew_ = "Lcom/p1/mobile/putong/core/data/Conversation;.new_.0.Lcom/p1/mobile/putong/core/data/Conversation;" in methodCallFullSigs
-
-            if ("xma" !in resolved && !isSettingsUi && "/summarized-privileges?with=diamond" in strings) resolved["xma"] = classDef
-            if ("qa9" !in resolved && "intl_receive_like_guide_get" in strings && hasConvNew_) resolved["qa9"] = classDef
-            if ("hva" !in resolved && "receive_like_guide_get" in strings && hasConvNew_) resolved["hva"] = classDef
-            if ("coreApiFakeConv" !in resolved && "fake_conversation_surprise_gift_box" in strings && hasConvNew_) resolved["coreApiFakeConv"] = classDef
-            if ("profileLikeEnter" !in resolved && "fake_conversation_profile_like_enter" in strings && hasConvNew_) resolved["profileLikeEnter"] = classDef
-            if ("greetingFakeConv" !in resolved && "fake_conversation_greeting" in strings && hasConvNew_) resolved["greetingFakeConv"] = classDef
-            if ("feedStateFakeConv" !in resolved && "conversation_feed_state" in strings && hasConvNew_) resolved["feedStateFakeConv"] = classDef
-            if ("meetEntranceBanner" !in resolved && "meet_entrance" in strings && "w.0.V" in methodCallSigs) resolved["meetEntranceBanner"] = classDef
-            if ("instantChatGuide" !in resolved && "fake_conversation_local_instant_chat_conversation" in strings && hasConvNew_) resolved["instantChatGuide"] = classDef
-            if ("mainUiFakeConv" !in resolved && "fake_conversation_anonymous_greeting" in strings && hasConvNew_) resolved["mainUiFakeConv"] = classDef
-            if ("coreApiTeamGroup" !in resolved && "fake_conversation_local_team_group_conversation" in strings && hasConvNew_) resolved["coreApiTeamGroup"] = classDef
-            if ("coreApiLimitedTrialFold" !in resolved && "fake_conversation_local_limited_trial_see_fold" in strings && hasConvNew_) resolved["coreApiLimitedTrialFold"] = classDef
-            if ("intlSeeChatRequestCreator" !in resolved && "intlSeeChatRequest" in strings && hasConvNew_) resolved["intlSeeChatRequestCreator"] = classDef
-            if ("r8n" !in resolved && "intl_chat_request_insert_users" in strings) resolved["r8n"] = classDef
-            if ("headRecommendAdapter" !in resolved && "fake_conversation_profile_like_enter" in strings && "fake_conversation_oof_pick" in strings && "getItemViewType.1.I" in methodCallSigs) resolved["headRecommendAdapter"] = classDef
-            if ("seeAnimBubbleCreator" !in resolved && "Lcom/p1/mobile/putong/core/api/CoreLikers;.S6" in methodCallFull && "u7\u0001V" in methodNameRet && "Lcom/p051p1/mobile/putong/core/p058ui/poplevel/CorePopLevel;.INTL_SEE_ANIM_BUBBLE" in fieldAccessFull) resolved["seeAnimBubbleCreator"] = classDef
-            // TODO: seeAnimBubbleLifecycle fingerprint disabled - old descriptor no longer exists
-            // if ("seeAnimBubbleLifecycle" !in resolved && "Lcom/p1/mobile/putong/core/newui/home/ViewTreeObserverOnGlobalLayoutListenerC8017b;.u6" in methodCallFull && "Lcom/p051p1/mobile/putong/core/newui/home/bubble/MagicBubble;.SEE_ANIM" in fieldAccessFull) resolved["seeAnimBubbleLifecycle"] = classDef
-            // bubbleDisplayMethod: ViewTreeObserverOnGlobalLayoutListenerC8017b was renamed to C0351b - needs fingerprint-based discovery
-            if ("sb90Companion" !in resolved && !isSettingsUi && "Lcom/p1/mobile/putong/data/User;.localRelationship" in fieldAccessFull && "matched" in strings && "Lcom/p1/mobile/putong/data/User;.isSupremePartnerOpenMystery" in methodCallFull && "Lcom/p1/mobile/putong/data/User;.isHideIconFromSVipWithMe" in methodCallFull && hasZUserMethod) resolved["sb90Companion"] = classDef
-            if ("u59" !in resolved && !isSettingsUi && "intl_sl_guide_config" in strings) resolved["u59"] = classDef
-            if ("tm90" !in resolved && !isSettingsUi && "intl_good_c_bage_config" in strings) resolved["tm90"] = classDef
-            if ("gqf0" !in resolved && !isSettingsUi && "e_intl_spotlight_activity_card" in strings) resolved["gqf0"] = classDef
-            if ("h6a" !in resolved && !isSettingsUi && "ttt_membership_price_diff" in strings) resolved["h6a"] = classDef
-            if ("ugc0" !in resolved && !isSettingsUi && "seeUpgradeToPremium" in strings) resolved["ugc0"] = classDef
-            if ("zva0" !in resolved && !isSettingsUi && "e_vip_banner" in strings) resolved["zva0"] = classDef
-            if ("th5" !in resolved && !isSettingsUi && "vas_commercial_card_right_slide_strategy" in strings) resolved["th5"] = classDef
-            if ("qgl0" !in resolved && !isSettingsUi && "暂未激活黑金会员" in strings) resolved["qgl0"] = classDef
-            // src0 resolution removed
-            if ("sja" !in resolved && !isSettingsUi && "picksUser id is not found in users : " in strings) resolved["sja"] = classDef
-            if ("n3b0" !in resolved && !isSettingsUi && "Lcom/p1/mobile/putong/data/Counter;.likersLimit" in fieldAccessFull) resolved["n3b0"] = classDef
-            // rbb0: Likers limit gate checks (q/r/s methods)
-            // Anchored on LikersLimit.remaining field access + has static Z methods
-            if ("rbb0" !in resolved && !isSettingsUi && "Lcom/p1/mobile/putong/data/LikersLimit;.remaining" in fieldAccessFull) {
-                val hasStaticZWithCounter = classDef.methods.any { 
-                    it.returnType == "Z" && 
-                    AccessFlags.STATIC.isSet(it.accessFlags) && 
-                    it.parameterTypes.size == 1 && 
-                    it.parameterTypes[0] == "Lcom/p1/mobile/putong/data/Counter;"
-                }
-                if (hasStaticZWithCounter) resolved["rbb0"] = classDef
-            }
-            
-            // hl3: Likers dialog creator
-            // hl3.J(Act, int, CoreLikers$a) creates the full modal dialog with LikersDialogView
-            // Anchored on "p_offline_popup" OMS dialog ID + LikersDialogView method calls
-            if ("hl3" !in resolved && "p_offline_popup" in strings &&
-                methodCallFull.any { it.contains("LikersDialogView") }) {
-                resolved["hl3"] = classDef
-            }
-            
-            // j7d0: Dialog orchestrator
-            // j7d0.h0(b240) orchestrates the likers dialog display
-            // Anchored on "last_likers_req_time" + "offline_dialog_show_time" strings
-            if ("j7d0" !in resolved && "last_likers_req_time" in strings &&
-                "offline_dialog_show_time" in strings &&
-                methodCallFull.any { it.contains("hl3") }) {
-                resolved["j7d0"] = classDef
-            }
-            
-            // gg50: Dialog strategy for p_offline_popup
-            // gg50.b() checks if popup should show, gg50.d() executes display
-            // Anchored on "p_offline_popup" + j7d0.h0() method call
-            if ("gg50" !in resolved && "p_offline_popup" in strings &&
-                methodCallFull.any { it.contains("j7d0") && it.contains(".h0") }) {
-                resolved["gg50"] = classDef
-            }
-            
-            // qtk: Return-to-app guide dialog
-            // qtk.B0() generates "你离开后，仍有 %s 个人喜欢着你" text
-            // Anchored on "reBackAppGuideDialog" string
-            if ("qtk" !in resolved && "reBackAppGuideDialog" in strings &&
-                methodCallFull.any { it.contains("hlh0") }) {
-                resolved["qtk"] = classDef
-            }
-            
-            if ("secretCrush" !in resolved && !isSettingsUi && "Lcom/p1/mobile/putong/data/Counter;.secretCrushLimit" in fieldAccessFull && "Lcom/p1/mobile/putong/data/CounterSecretCrushLimit;.remaining" in fieldAccessFull) resolved["secretCrush"] = classDef
-            if ("coreData" !in resolved && !isSettingsUi && "Lcom/p1/mobile/putong/core/data/CoreData;.surpriseGiftExpirationTime" in fieldAccessFull) resolved["coreData"] = classDef
-            if ("mb90" !in resolved && !isSettingsUi && "Lcom/p1/mobile/putong/data/User;.isVIP" in methodCallFull && "Lcom/p1/mobile/putong/core/data/PurchaseType;.TYPE_ROAMING_PKG" in fieldAccessFull && !classDef.type.contains("/ui/settings/")) {
-                val hasPurchaseTypeZ = classDef.methods.any { it.parameterTypes.size == 1 && it.parameterTypes[0] == "Lcom/p1/mobile/putong/core/data/PurchaseType;" && it.returnType == "Z" }
-                if (hasPurchaseTypeZ) resolved["mb90"] = classDef
-            }
-            // joa removed: in 7.3.3 xma and joa are the same class, xma patch handles these methods
-            if ("jh30" !in resolved && "Lcom/p1/mobile/putong/core/newui/profile/newme/NewProfilePrivilegedPager;.d" in methodCallFull) resolved["jh30"] = classDef
-            if ("businessEntranceAdapter" !in resolved && "open_fill_info_debug" in strings && "clear" in methodCallNames) resolved["businessEntranceAdapter"] = classDef
-
-            // pm6: fromWhoLikedMe gate check for international version
-            // pm6.f(Conversation) checks if conversation is a "fromWhoLikedMe" type
-            // Used by ConversationItemHeadView to show "liked me" icon
-            // Anchored on stable string "fromWhoLikedMe"
-            if ("pm6" !in resolved && "fromWhoLikedMe" in strings &&
-                "Lcom/p1/mobile/putong/core/data/Conversation;.property" in fieldAccessFull &&
-                methodCallFull.any { it.contains("isFemale") }) {
-                resolved["pm6"] = classDef
-            }
-
-            // bhe0: Business entrance navigation and analytics
-            // bhe0.d() navigates to LikersAct/IntlMeetAct
-            // bhe0.e()/f() fire analytics events for red dot
-            // Anchored on stable string "e_red_dot_message_see"
-            if ("bhe0" !in resolved && "e_red_dot_message_see" in strings &&
-                "Lcom/p1/mobile/putong/core/newui/messages/business/BusinessEntranceStyle;" in methodCallFullSigs) {
-                resolved["bhe0"] = classDef
-            }
-
-            // vqo, re90, i0p: Banner text generators for "x people liked you"
-            // These classes generate promotional text independently of b8d0
-            val hasCharSeqM = classDef.methods.any { it.name == "m" && it.parameterTypes.isEmpty() && it.returnType == "Ljava/lang/CharSequence;" }
-            val hasCharSeqN = classDef.methods.any { it.name == "n" && it.parameterTypes.isEmpty() && it.returnType == "Ljava/lang/CharSequence;" }
-            
-            if (hasCharSeqM && hasCharSeqN) {
-                val hasPairReturn = classDef.methods.any { it.returnType == "Landroid/util/Pair;" }
-                val hasVPairMethod = classDef.methods.any { it.name == "v" && it.returnType == "Landroid/util/Pair;" }
-                val hasCoreLikersCall = methodCallFull.any { it.startsWith("Lcom/p1/mobile/putong/core/api/CoreLikers;.") }
-                val hasGStringReturn = methodCallFullSigs.any { it.contains(".G.") && it.endsWith(".Ljava/lang/String;") }
-                
-                // vqo: has method v() returning Pair + calls G() for number formatting
-                if ("vqo" !in resolved && hasVPairMethod && hasGStringReturn) {
-                    resolved["vqo"] = classDef
-                }
-                // re90: accesses CoreLikers + no Pair return (base class)
-                else if ("re90" !in resolved && hasCoreLikersCall && !hasPairReturn) {
-                    resolved["re90"] = classDef
-                }
-                // i0p: extends re90 (check superclass)
-                else if ("i0p" !in resolved && hasCoreLikersCall && classDef.superclass?.contains("re90") == true) {
-                    resolved["i0p"] = classDef
-                }
-            }
-
-            // ajy: MeetLikersNewLikersData - has getNewLikersCount() returning int
-            // Anchored on stable string "MeetLikersNewLikersData" in toString()
-            if ("meetNewLikersData" !in resolved && "MeetLikersNewLikersData" in strings &&
-                classDef.methods.any { it.parameterTypes.isEmpty() && it.returnType == "I" && it.name != "hashCode" }) {
-                resolved["meetNewLikersData"] = classDef
-            }
-
-            // ano: IntlMeetLikersNewLikersData - has newLikersCount field
-            // Anchored on stable string "IntlMeetLikersNewLikersData" in toString()
-            if ("intlMeetNewLikersData" !in resolved && "IntlMeetLikersNewLikersData" in strings &&
-                classDef.methods.any { it.parameterTypes.isEmpty() && it.returnType == "I" && it.name != "hashCode" }) {
-                resolved["intlMeetNewLikersData"] = classDef
-            }
-
-            // zmo: IntlMeetLikersNewLikersAdapter - calls IntlMeetLikersNewLikersItem.S()
-            // Anchored on method call to stable CamelCase class
-            if ("intlMeetNewLikersAdapter" !in resolved &&
-                methodCallFull.any { it.contains("Lcom/p1/mobile/putong/core/newui/intlmeet/likers/items/IntlMeetLikersNewLikersItem;") }) {
-                resolved["intlMeetNewLikersAdapter"] = classDef
-            }
-
-            // ziy: MeetLikersNewLikersAdapter - calls MeetLikersNewLikersItem.T()
-            // Anchored on method call to stable CamelCase class
-            if ("meetNewLikersAdapter" !in resolved &&
-                methodCallFull.any { it.contains("Lcom/p1/mobile/putong/core/newui/meet/likers/items/MeetLikersNewLikersItem;") }) {
-                resolved["meetNewLikersAdapter"] = classDef
-            }
+        for (key in premiumKeys) {
+            resolver.getPremiumClass(key)?.let { resolved[key] = it }
         }
 
         resolved["xma"]?.let { xmaClassDef ->
@@ -2330,20 +2087,7 @@ val premiumUnlockPatch = bytecodePatch(
             }
         }
 
-        resolved["seeAnimBubbleLifecycle"]?.let { bubbleLifecycleClassDef ->
-            mutableClassDefBy(bubbleLifecycleClassDef).methods.forEach { method ->
-                if (method.name == "A" && method.parameterTypes.isEmpty() && method.returnType == "I" &&
-                    !AccessFlags.STATIC.isSet(method.accessFlags)) {
-                    method.addInstructions(0, """
-                        const/4 v0, 0x0
-                        return v0
-                    """)
-                }
-            }
-        }
 
-        // bubbleDisplayMethod: ViewTreeObserverOnGlobalLayoutListenerC8017b was renamed to C0351b
-        // Patch disabled - needs fingerprint-based discovery (see TODO in Pass 1)
 
         resolved["sja"]?.let { sjaClassDef ->
             sjaPicksRemainingFingerprint.matchAll(sjaClassDef, 1..5).forEach { match ->
@@ -2601,6 +2345,68 @@ val premiumUnlockPatch = bytecodePatch(
             }
         }
 
+        resolved["greetingCounter"]?.let { greetingCounterClassDef ->
+            mutableClassDefBy(greetingCounterClassDef).methods.forEach { method ->
+                val accessesGreetingCounterField = method.cachedInstructions().any { instr ->
+                    instr is ReferenceInstruction &&
+                        instr.reference is FieldReference &&
+                        (instr.reference as FieldReference).definingClass == "Lcom/p1/mobile/putong/core/data/GreetingCounter;" &&
+                        (instr.reference as FieldReference).name in setOf("remaining", "max", "replyThanksRemain")
+                }
+                if (!accessesGreetingCounterField) return@forEach
+                when (method.returnType) {
+                    "I" -> method.addInstructions(0, RETURN_INT_200000)
+                    "Ljava/lang/Integer;" -> method.addInstructions(0, RETURN_INTEGER_200000)
+                    "Z" -> method.addInstructions(0, RETURN_TRUE)
+                }
+            }
+        }
+
+        resolved["swipeRateLimit"]?.let { swipeRateLimitClassDef ->
+            mutableClassDefBy(swipeRateLimitClassDef).methods.forEach { method ->
+                val accessesEnableField = method.cachedInstructions().any { instr ->
+                    instr is ReferenceInstruction &&
+                        instr.reference is FieldReference &&
+                        (instr.reference as FieldReference).definingClass == "Lcom/p1/mobile/putong/core/data/SwipeRateLimitConfig;" &&
+                        (instr.reference as FieldReference).name == "enable"
+                }
+                if (!accessesEnableField) return@forEach
+                if (method.returnType == "Z") {
+                    method.addInstructions(0, RETURN_FALSE)
+                }
+            }
+        }
+
+        resolved["leftSwipeLimit"]?.let { leftSwipeLimitClassDef ->
+            mutableClassDefBy(leftSwipeLimitClassDef).methods.forEach { method ->
+                val accessesSwipeLimitField = method.cachedInstructions().any { instr ->
+                    instr is ReferenceInstruction &&
+                        instr.reference is FieldReference &&
+                        (instr.reference as FieldReference).definingClass == "Lcom/p1/mobile/putong/core/data/LeftSwipeLimitConfig;" &&
+                        (instr.reference as FieldReference).name == "swipeLimit"
+                }
+                if (!accessesSwipeLimitField) return@forEach
+                if (method.returnType == "Lcom/p1/mobile/putong/core/data/PurchaseDialogConfigTrigger;") {
+                    method.addInstructions(0, "const/4 v0, 0x0\nreturn-object v0")
+                }
+            }
+        }
+
+        resolved["intlUltraPremium"]?.let { intlUltraPremiumClassDef ->
+            mutableClassDefBy(intlUltraPremiumClassDef).methods.forEach { method ->
+                val accessesAndroidEnableField = method.cachedInstructions().any { instr ->
+                    instr is ReferenceInstruction &&
+                        instr.reference is FieldReference &&
+                        (instr.reference as FieldReference).definingClass == "Lcom/p1/mobile/putong/core/data/IntlUltraPremiumConfig;" &&
+                        (instr.reference as FieldReference).name == "androidEnable"
+                }
+                if (!accessesAndroidEnableField) return@forEach
+                if (method.returnType == "Z") {
+                    method.addInstructions(0, RETURN_TRUE)
+                }
+            }
+        }
+
         resolved["coreData"]?.let { coreDataClassDef ->
             coreDataSurpriseGiftFingerprint.matchOrNull(coreDataClassDef)?.let { match ->
                 match.method.addInstructions(0, RETURN_LONG_MAX)
@@ -2780,19 +2586,7 @@ val premiumUnlockPatch = bytecodePatch(
             }
         }
 
-        // wid0: String formatter for "%s people liked you" text
-        // wid0.j(int) returns CharSequence with promotional text
-        // Patch to return empty string
-        resolved["wid0"]?.let { classDef ->
-            mutableClassDefBy(classDef).methods.forEach { method ->
-                if (method.name == "j" && method.parameterTypes.size == 1 && method.parameterTypes[0] == "I" && method.returnType == "Ljava/lang/CharSequence;") {
-                    method.addInstructions(0, """
-                        const-string v0, ""
-                        return-object v0
-                    """)
-                }
-            }
-        }
+
 
         // ajy: MeetLikersNewLikersData - patch getNewLikersCount() to return 0
         // The method returns int and accesses this.newLikersCount field
@@ -2900,6 +2694,54 @@ val premiumUnlockPatch = bytecodePatch(
                 }
             }
         }
+
+        // ── 1. VerifyPremiumIsolationConfig gates (ysa.e/f/g) ─────────────────
+        // Patch all three methods to return FALSE (allow non-verified users)
+        resolved["ysa"]?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.parameterTypes.isEmpty() && method.returnType == "Z" &&
+                    AccessFlags.STATIC.isSet(method.accessFlags) &&
+                    method.name in setOf("e", "f", "g")) {
+                    val instrs = method.cachedInstructions()
+                    val accessesVerifyConfig = instrs.any { instr ->
+                        instr is ReferenceInstruction && instr.reference is FieldReference &&
+                            (instr.reference as FieldReference).definingClass == "Lcom/p1/mobile/putong/core/data/VerifyPremiumIsolationConfig;" &&
+                            (instr.reference as FieldReference).name.startsWith("restrict_non_verified_")
+                    }
+                    if (accessesVerifyConfig) {
+                        method.addInstructions(0, RETURN_FALSE)
+                    }
+                }
+            }
+        }
+
+        // ── 2. UltraRightsUpgradeInfo gate (ae9.j3) ───────────────────────────
+        // Patch to return FALSE (suppress "upgrade to Ultra Premium" prompts)
+        resolved["ae9"]?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.name == "j3" && method.parameterTypes.isEmpty() && method.returnType == "Z") {
+                    method.addInstructions(0, RETURN_FALSE)
+                }
+            }
+        }
+
+        // ── 4. MembershipUpgradeInfo upgrade path (ae9.k3) ────────────────────
+        // Patch to return FALSE (suppress upgrade path prompts)
+        resolved["ae9"]?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.name == "k3" && method.parameterTypes.size == 1 &&
+                    method.parameterTypes[0] == "Lcom/p1/mobile/putong/core/data/ProductCategory;" &&
+                    method.returnType == "Z") {
+                    method.addInstructions(0, RETURN_FALSE)
+                }
+            }
+        }
+
+        // REMOVED: ysa.g1, PremiumWeeklyGuideData.needGuide, SvipResumePurchase limits, FreeTrialConfig gates
+        // These patches used unsafe mid-method injection (addInstructions(idx + 1, ...)) which corrupts
+        // register state and causes app hangs on splash screen. The ysa.g1 patch also attempted to create
+        // a new SwipeRateLimitConfig instance, which could fail if the constructor or field doesn't exist.
+        // Safe patches (ysa.e/f/g, ae9.j3, ae9.k3) that prepend at index 0 are retained above.
 
     }
 }

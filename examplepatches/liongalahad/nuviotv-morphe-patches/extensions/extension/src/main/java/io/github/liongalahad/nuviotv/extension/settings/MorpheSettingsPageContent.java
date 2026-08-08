@@ -1,11 +1,14 @@
 package io.github.liongalahad.nuviotv.extension.settings;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import kotlin.Unit;
 import kotlin.jvm.functions.Function0;
 import kotlin.jvm.functions.Function1;
 import kotlin.jvm.functions.Function3;
 
-/** Native Layout-style scrollable category list for the shared Morphe settings page. */
+/** Generic native category list for the shared Morphe settings page. */
 @SuppressWarnings("unused")
 public final class MorpheSettingsPageContent implements Function3<Object, Object, Object, Unit> {
     private static final Function0<Unit> NO_OP = () -> Unit.INSTANCE;
@@ -29,67 +32,47 @@ public final class MorpheSettingsPageContent implements Function3<Object, Object
         MorpheComposeModeAction.captureRefreshAction(
                 MorpheSettingsRows.booleanStateToggle(refreshState)
         );
-        Object ratingsExpanded = MorpheSettingsRuntime.hasRatingsCategory()
-                ? MorpheSettingsRows.rememberBooleanState(composer, false)
-                : null;
-        Object ratingsFocus = ratingsExpanded != null
-                ? MorpheSettingsRows.rememberFocusRequester(composer)
-                : null;
-        Object subtitlesExpanded = MorpheSettingsRuntime.hasSubtitlesCategory()
-                ? MorpheSettingsRows.rememberBooleanState(composer, false)
-                : null;
-        Object subtitlesFocus = subtitlesExpanded != null
-                ? MorpheSettingsRows.rememberFocusRequester(composer)
-                : null;
-        MorpheSettingsRows.lazyColumn(
-                modifier,
-                composer,
-                new SectionList(
-                        modifier,
-                        ratingsExpanded,
-                        ratingsFocus,
-                        subtitlesExpanded,
-                        subtitlesFocus
-                )
-        );
+
+        List<SectionState> sections = new ArrayList<>();
+        for (MorpheSettingsCategory category : MorpheSettingsRuntime.enabledCategories()) {
+            sections.add(new SectionState(
+                    category,
+                    MorpheSettingsRows.rememberBooleanState(composer, false),
+                    MorpheSettingsRows.rememberFocusRequester(composer)
+            ));
+        }
+        MorpheSettingsRows.lazyColumn(modifier, composer, new SectionList(modifier, sections));
         return Unit.INSTANCE;
+    }
+
+    private static final class SectionState {
+        final MorpheSettingsCategory category;
+        final Object expanded;
+        final Object focus;
+
+        SectionState(MorpheSettingsCategory category, Object expanded, Object focus) {
+            this.category = category;
+            this.expanded = expanded;
+            this.focus = focus;
+        }
     }
 
     private static final class SectionList implements Function1<Object, Unit> {
         private final Object modifier;
-        private final Object ratingsExpanded;
-        private final Object ratingsFocus;
-        private final Object subtitlesExpanded;
-        private final Object subtitlesFocus;
+        private final List<SectionState> sections;
 
-        SectionList(
-                Object modifier,
-                Object ratingsExpanded,
-                Object ratingsFocus,
-                Object subtitlesExpanded,
-                Object subtitlesFocus
-        ) {
+        SectionList(Object modifier, List<SectionState> sections) {
             this.modifier = modifier;
-            this.ratingsExpanded = ratingsExpanded;
-            this.ratingsFocus = ratingsFocus;
-            this.subtitlesExpanded = subtitlesExpanded;
-            this.subtitlesFocus = subtitlesFocus;
+            this.sections = sections;
         }
 
         @Override
         public Unit invoke(Object lazyListScope) {
-            if (ratingsExpanded != null) {
+            for (SectionState section : sections) {
                 MorpheSettingsRows.lazyItem(
                         lazyListScope,
-                        "morphe_ratings_section",
-                        new Section(true, ratingsFocus, modifier, ratingsExpanded)
-                );
-            }
-            if (subtitlesExpanded != null) {
-                MorpheSettingsRows.lazyItem(
-                        lazyListScope,
-                        "morphe_subtitles_section",
-                        new Section(false, subtitlesFocus, modifier, subtitlesExpanded)
+                        "morphe_" + section.category.id() + "_section",
+                        new Section(modifier, section)
                 );
             }
             return Unit.INSTANCE;
@@ -97,33 +80,27 @@ public final class MorpheSettingsPageContent implements Function3<Object, Object
     }
 
     private static final class Section implements Function3<Object, Object, Object, Unit> {
-        private final boolean ratings;
-        private final Object focusRequester;
         private final Object modifier;
-        private final Object expandedState;
+        private final SectionState section;
 
-        Section(boolean ratings, Object focusRequester, Object modifier, Object expandedState) {
-            this.ratings = ratings;
-            this.focusRequester = focusRequester;
+        Section(Object modifier, SectionState section) {
             this.modifier = modifier;
-            this.expandedState = expandedState;
+            this.section = section;
         }
 
         @Override
         public Unit invoke(Object ignoredItemScope, Object composer, Object flags) {
             if (!MorpheSettingsRows.beginComposition(composer, flags)) return Unit.INSTANCE;
+            MorpheSettingsCategory category = section.category;
             MorpheSettingsRows.collapsibleSection(
                     composer,
-                    ratings ? MorpheSettingsRuntime.ratingsCategoryTitle()
-                            : MorpheSettingsRuntime.subtitlesCategoryTitle(),
-                    ratings ? MorpheSettingsRuntime.ratingsCategoryDescription()
-                            : MorpheSettingsRuntime.subtitlesCategoryDescription(),
-                    MorpheSettingsRows.booleanStateValue(expandedState),
-                    MorpheSettingsRows.booleanStateToggle(expandedState),
-                    focusRequester,
+                    category.title(),
+                    category.description(),
+                    MorpheSettingsRows.booleanStateValue(section.expanded),
+                    MorpheSettingsRows.booleanStateToggle(section.expanded),
+                    section.focus,
                     NO_OP,
-                    ratings ? MorpheRatingsGroupContent.create(modifier)
-                            : MorpheSubtitlesGroupContent.create(modifier)
+                    category.content(modifier)
             );
             return Unit.INSTANCE;
         }

@@ -4,5 +4,6 @@ build/
 local.properties
 *.iml
 .idea/
+node_modules/
 patches/src/main/resources/gx-icon-pack/gx-icon-pack-*.zip
 patches/src/main/resources/gx-icon-pack/source.json

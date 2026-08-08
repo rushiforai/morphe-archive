@@ -6,6 +6,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21c
+import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
@@ -194,260 +195,127 @@ val gmsCompatibilityPatch = bytecodePatch(
                 .forEach { it.addInstructions(0, RETURN_TRUE) }
         }
 
-        listOf(
-            "Lcom/google/android/gms/common/internal/zzo;",
-            "Lcom/google/android/gms/common/internal/BaseGmsClient;",
-            "Lcom/google/android/gms/common/internal/GetServiceRequest;",
-            "Lcom/google/android/gms/common/GooglePlayServicesUtil;",
-            "Lcom/google/firebase/messaging/FirebaseMessaging;",
-            "Lcom/google/android/gms/common/GoogleSignatureVerifier;",
-            // Maps SDK classes
-            "Lcom/google/android/gms/maps/SupportMapFragment;",
-            "Lcom/google/android/gms/maps/MapFragment;",
-            "Lcom/google/android/gms/maps/GoogleMapOptions;",
-            "Lcom/google/android/libraries/places/internal/zziw;",
-            "Lcom/google/android/libraries/places/internal/zzki;",
-            "Lcom/google/android/libraries/places/internal/zzjw;",
-        ).forEach { classDescriptor ->
-            classDefByOrNull(classDescriptor)?.let { classDef ->
-                val mutableClass = mutableClassDefBy(classDef)
-                val methodMap = mutableClass.methods.associateBy { 
-                    "${it.name}(${it.parameterTypes.joinToString(",")})" 
-                }
-
-                classDef.methods.forEach { method ->
-                    val implementation = method.implementation ?: return@forEach
-                    val key = "${method.name}(${method.parameterTypes.joinToString(",")})"
-                    val mutableMethod = methodMap[key] ?: return@forEach
-                    val instructions = implementation.instructions.toList()
-
-                    instructions.forEachIndexed { index, instruction ->
-                        val str = (instruction as? Instruction21c)?.reference as? StringReference
-                            ?: return@forEachIndexed
-
-                        if (str.string == "com.google.android.gms") {
-                            mutableMethod.replaceInstruction(
-                                index,
-                                BuilderInstruction21c(
-                                    Opcode.CONST_STRING,
-                                    instruction.registerA,
-                                    ImmutableStringReference(VENDOR_GMS_PACKAGE),
-                                ),
-                            )
-                        }
-                    }
-                }
-            }
-        }
-
-        listOf(
-            "Lcom/google/firebase/installations/remote/FirebaseInstallationServiceClient;",
-            "Lcom/google/firebase/remoteconfig/internal/ConfigFetchHttpClient;",
-            "Lcom/google/firebase/remoteconfig/internal/ConfigRealtimeHttpClient;",
-            "Lcom/google/android/libraries/places/internal/zzki;",
-            "Lcom/google/android/libraries/places/internal/zzjw;",
-            // Maps SDK classes that make API requests
-            "Lcom/google/android/gms/maps/SupportMapFragment;",
-            "Lcom/google/android/gms/maps/MapFragment;",
-            "Lcom/google/android/gms/maps/GoogleMapOptions;",
-            "Lcom/google/android/libraries/places/internal/zziw;",
-        ).forEach { classDescriptor ->
-            classDefByOrNull(classDescriptor)?.let { classDef ->
-                val mutableClass = mutableClassDefBy(classDef)
-                // Key by full signature to handle overloaded methods/constructors
-                val methodMap = mutableClass.methods.associateBy { 
-                    "${it.name}(${it.parameterTypes.joinToString(",")})" 
-                }
-
-                classDef.methods.forEach { method ->
-                    val implementation = method.implementation ?: return@forEach
-                    val key = "${method.name}(${method.parameterTypes.joinToString(",")})"
-                    val mutableMethod = methodMap[key] ?: return@forEach
-                    val instructions = implementation.instructions.toList()
-
-                    instructions.forEachIndexed { index, instruction ->
-                        val strRef = (instruction as? Instruction21c)?.reference as? StringReference
-                            ?: return@forEachIndexed
-                        val replacementValue = when (strRef.string) {
-                            "X-Android-Cert" -> ORIGINAL_SHA1
-                            "X-Android-Package" -> ORIGINAL_PACKAGE
-                            else -> return@forEachIndexed
-                        }
-                        val headerReg = instruction.registerA
-
-                        for (j in index + 1 until minOf(index + 30, instructions.size)) {
-                            val candidate = instructions[j]
-                            val valueRegNum = extractValueRegister(candidate, headerReg) ?: continue
-
-                            for (k in j - 1 downTo 0) {
-                                val valueInst = instructions[k]
-                                if (valueInst is Instruction21c && valueInst.registerA == valueRegNum
-                                    && valueInst.reference is StringReference
-                                ) {
-                                    mutableMethod.replaceInstruction(
-                                        k,
-                                        BuilderInstruction21c(
-                                            Opcode.CONST_STRING,
-                                            valueRegNum,
-                                            ImmutableStringReference(replacementValue),
-                                        ),
-                                    )
-                                    break
-                                }
-                            }
-                            break
-                        }
-                    }
-                }
-            }
-        }
-
-        // ── Broad GMS package name rewriting ──
-        // Rewrites "com.google.android.gms" → "app.revanced.android.gms" across all classes
-        // This ensures Maps SDK and other GMS-dependent code uses MicroG instead of real GMS
-        // Excludes Firebase auth classes to avoid breaking session authentication
-        classDefForEach { classDef ->
-            val hasMethods = classDef.methods.any { it.implementation != null }
-            if (!hasMethods) return@classDefForEach
-
-            val containsTarget = classDef.methods.any { method ->
-                method.implementation?.instructions?.any { instruction ->
-                    (instruction as? Instruction21c)?.reference is StringReference &&
-                            ((instruction as Instruction21c).reference as StringReference).string == "com.google.android.gms"
-                } == true
-            }
-
-            if (!containsTarget) return@classDefForEach
-
-            val type = classDef.type
-            // Exclude Firebase auth classes to prevent session issues
-            if (type.startsWith("Lcom/google/firebase/auth/") ||
-                type.startsWith("Lcom/google/firebase/installations/") ||
-                type.startsWith("Lcom/google/firebase/iid/") ||
-                type == "Lcom/google/android/gms/common/internal/zzf;") {
-                return@classDefForEach
-            }
-
-            val mutableClass = mutableClassDefBy(classDef)
-            val methodMap = classDef.methods.zip(mutableClass.methods).toMap()
-
-            classDef.methods.forEach { method ->
-                val implementation = method.implementation ?: return@forEach
-                val mutableMethod = methodMap[method] ?: return@forEach
-
-                implementation.instructions.forEachIndexed { index, instruction ->
-                    val str = (instruction as? Instruction21c)?.reference as? StringReference
-                        ?: return@forEachIndexed
-
-                    if (str.string == "com.google.android.gms") {
-                        mutableMethod.replaceInstruction(
-                            index,
-                            BuilderInstruction21c(
-                                Opcode.CONST_STRING,
-                                instruction.registerA,
-                                ImmutableStringReference(VENDOR_GMS_PACKAGE),
-                            ),
-                        )
-                    }
-                }
-            }
-        }
-
-        // ── Broad X-Android-Cert header injection ──
-        // Injects original certificate fingerprint into all classes that send X-Android-Cert headers
-        // This ensures Maps API and other Google services accept requests from re-signed APKs
-        // Excludes Firebase classes that handle authentication
-        classDefForEach { classDef ->
-            val hasMethods = classDef.methods.any { it.implementation != null }
-            if (!hasMethods) return@classDefForEach
-
-            val containsTargetStrings = classDef.methods.any { method ->
-                method.implementation?.instructions?.any { instruction ->
-                    val ref = (instruction as? Instruction21c)?.reference as? StringReference
-                        ?: return@any false
-                    ref.string == "X-Android-Cert" || ref.string == "X-Android-Package"
-                } == true
-            }
-
-            if (!containsTargetStrings) return@classDefForEach
-
-            val type = classDef.type
-            // Exclude all Firebase classes to prevent auth/session issues
-            if (type.startsWith("Lcom/google/firebase/")) {
-                return@classDefForEach
-            }
-
-            val mutableClass = mutableClassDefBy(classDef)
-            val methodMap = classDef.methods.zip(mutableClass.methods).toMap()
-
-            classDef.methods.forEach { method ->
-                val implementation = method.implementation ?: return@forEach
-                val mutableMethod = methodMap[method] ?: return@forEach
-
-                data class Injection(val index: Int, val registerName: String, val value: String)
-                val injections = mutableListOf<Injection>()
-
-                val instructions = implementation.instructions.toList()
-
-                instructions.forEachIndexed { index, instruction ->
-                    val strRef = (instruction as? Instruction21c)?.reference as? StringReference
-                        ?: return@forEachIndexed
-                    val replacementValue = when (strRef.string) {
-                        "X-Android-Cert" -> ORIGINAL_SHA1
-                        "X-Android-Package" -> ORIGINAL_PACKAGE
-                        else -> return@forEachIndexed
-                    }
-                    val headerReg = instruction.registerA
-
-                    for (j in index + 1 until minOf(index + 30, instructions.size)) {
-                        val candidate = instructions[j]
-                        val valueRegNum = extractValueRegister(candidate, headerReg) ?: continue
-                        injections.add(Injection(j, "v$valueRegNum", replacementValue))
-                        break
-                    }
-                }
-
-                injections.sortedByDescending { it.index }.forEach { injection ->
-                    mutableMethod.addInstructions(
-                        injection.index,
-                        "const-string ${injection.registerName}, \"${injection.value}\"",
-                    )
-                }
-            }
-        }
-
-        // ── Google Sign-In + Facebook SDK: single-pass scan for all matching classes ──
+        // ── Broad GMS package rewriting, X-Android-Cert injection, and Google Sign-In/Facebook SDK ──
+        // Single merged pass for all three transformations
         val googleSignInClientId = "218526224262-usliqg20cepnb3ql98amgeum18v8uatv.apps.googleusercontent.com"
         val facebookSdkInit = "The SDK has not been initialized"
 
-        classDefForEach { classDef ->
-            var foundGoogleSignIn = false
-            var foundFacebookSdk = false
+        val targetStrings = setOf(
+            "com.google.android.gms",
+            "X-Android-Cert",
+            "X-Android-Package",
+            googleSignInClientId,
+            facebookSdkInit
+        )
 
-            for (method in classDef.methods) {
-                val impl = method.implementation ?: continue
-                for (instruction in impl.instructions) {
-                    val stringRef = (instruction as? Instruction21c)?.reference as? StringReference
-                        ?: continue
-                    val str = stringRef.string
-                    if (str == googleSignInClientId) foundGoogleSignIn = true
-                    if (str == facebookSdkInit) foundFacebookSdk = true
-                    if (foundGoogleSignIn && foundFacebookSdk) break
-                }
-                if (foundGoogleSignIn && foundFacebookSdk) break
+        classDefForEach { classDef ->
+            val type = classDef.type
+            if (type == "Lcom/google/android/gms/common/internal/zzo;") return@classDefForEach
+
+            // Package pre-filter: skip packages that don't contain GMS code
+            if (type.startsWith("Landroid/") ||
+                type.startsWith("Lkotlin/") ||
+                type.startsWith("Ljava/") ||
+                type.startsWith("Lkotlinx/") ||
+                type.startsWith("Lorg/intellij/") ||
+                type.startsWith("Lorg/jetbrains/")) {
+                return@classDefForEach
             }
 
-            if (foundGoogleSignIn) {
-                mutableClassDefBy(classDef).methods
+            // Quick pre-scan: does this class contain ANY target strings?
+            val hasTargetString = classDef.methods.any { method ->
+                method.implementation?.instructions?.any { instr ->
+                    instr is Instruction21c &&
+                        (instr.reference as? StringReference)?.string in targetStrings
+                } == true
+            }
+
+            if (!hasTargetString) return@classDefForEach
+
+            val gmsReplacementsByMethod = mutableMapOf<Method, MutableList<Pair<Int, Int>>>()
+            val certInjectionsByMethod = mutableMapOf<Method, MutableList<Triple<Int, String, String>>>()
+            var hasGoogleSignIn = false
+            var hasFacebookSdk = false
+
+            val excludeGmsRewrite = type.startsWith("Lcom/google/firebase/auth/") ||
+                type.startsWith("Lcom/google/firebase/installations/") ||
+                type.startsWith("Lcom/google/firebase/iid/") ||
+                type == "Lcom/google/android/gms/common/internal/zzf;"
+
+            val excludeCertInjection = type.startsWith("Lcom/google/firebase/")
+
+            for (method in classDef.methods) {
+                if (method.name == "<init>" || method.name == "<clinit>") continue
+                val impl = method.implementation ?: continue
+                val instructions = impl.instructions.toList()
+
+                instructions.forEachIndexed { index, instr ->
+                    val strRef = (instr as? Instruction21c)?.reference as? StringReference ?: return@forEachIndexed
+                    val str = strRef.string
+
+                    when {
+                        str == "com.google.android.gms" && !excludeGmsRewrite -> {
+                            gmsReplacementsByMethod.getOrPut(method) { mutableListOf() }.add(index to instr.registerA)
+                        }
+                        (str == "X-Android-Cert" || str == "X-Android-Package") && !excludeCertInjection -> {
+                            val replacementValue = if (str == "X-Android-Cert") ORIGINAL_SHA1 else ORIGINAL_PACKAGE
+                            val headerReg = instr.registerA
+
+                            for (j in index + 1 until minOf(index + 30, instructions.size)) {
+                                val candidate = instructions[j]
+                                val valueRegNum = extractValueRegister(candidate, headerReg) ?: continue
+                                certInjectionsByMethod.getOrPut(method) { mutableListOf() }.add(Triple(j, "v$valueRegNum", replacementValue))
+                                break
+                            }
+                        }
+                        str == googleSignInClientId -> hasGoogleSignIn = true
+                        str == facebookSdkInit -> hasFacebookSdk = true
+                    }
+                }
+            }
+
+            if (gmsReplacementsByMethod.isEmpty() && certInjectionsByMethod.isEmpty() && !hasGoogleSignIn && !hasFacebookSdk) {
+                return@classDefForEach
+            }
+
+            val mutableClass = mutableClassDefBy(classDef)
+            val methodMap = classDef.methods.zip(mutableClass.methods).toMap()
+
+            gmsReplacementsByMethod.forEach { (method, replacements) ->
+                val mutableMethod = methodMap[method] ?: return@forEach
+                replacements.forEach { (index, registerA) ->
+                    mutableMethod.replaceInstruction(
+                        index,
+                        BuilderInstruction21c(
+                            Opcode.CONST_STRING,
+                            registerA,
+                            ImmutableStringReference(VENDOR_GMS_PACKAGE),
+                        ),
+                    )
+                }
+            }
+
+            certInjectionsByMethod.forEach { (method, injections) ->
+                val mutableMethod = methodMap[method] ?: return@forEach
+                injections.sortedByDescending { it.first }.forEach { (index, registerName, value) ->
+                    mutableMethod.addInstructions(
+                        index,
+                        "const-string $registerName, \"$value\"",
+                    )
+                }
+            }
+
+            if (hasGoogleSignIn) {
+                mutableClass.methods
                     .filter { it.name != "<init>" && it.name != "<clinit>" && it.returnType == "Z" }
                     .forEach { it.addInstructions(0, RETURN_TRUE) }
             }
 
-            if (foundFacebookSdk) {
-                mutableClassDefBy(classDef).methods
+            if (hasFacebookSdk) {
+                mutableClass.methods
                     .filter {
                         it.name != "<init>" && it.name != "<clinit>" &&
-                                it.returnType == "Z" && it.parameterTypes.isEmpty()
+                            it.returnType == "Z" && it.parameterTypes.isEmpty()
                     }
                     .forEach { it.addInstructions(0, RETURN_TRUE) }
             }
@@ -458,21 +326,6 @@ val gmsCompatibilityPatch = bytecodePatch(
             mutableClassDefBy(classDef).methods
                 .filter { it.name == "isInitialized" }
                 .forEach { it.addInstructions(0, RETURN_TRUE) }
-        }
-
-        // ── Firebase Crashlytics: disable collection for re-signed APKs (server rejects reports) ──
-        classDefByOrNull("Lcom/google/firebase/crashlytics/FirebaseCrashlytics;")?.let { classDef ->
-            val mutableClass = mutableClassDefBy(classDef)
-            mutableClass.methods
-                .filter { it.name == "isCrashlyticsCollectionEnabled" }
-                .forEach { it.addInstructions(0, RETURN_FALSE) }
-            mutableClass.methods
-                .filter { it.name == "setCrashlyticsCollectionEnabled" }
-                .forEach {
-                    if (it.parameterTypes.isEmpty() || it.parameterTypes[0] == "Z") {
-                        it.addInstructions(0, "return-void")
-                    }
-                }
         }
 
     }

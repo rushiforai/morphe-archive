@@ -1,4 +1,4 @@
-# [Jman-Github/Awesome-ReVanced](https://github.com/Jman-Github/Awesome-ReVanced)
+﻿# [Jman-Github/Awesome-ReVanced](https://github.com/Jman-Github/Awesome-ReVanced)
 > [!NOTE]
 > 💊 A curated list of ReVanced & Morphe resources, patch repositories, tools, builders, and community projects.   
 > 🔍 Use browser search to find a project, app, maintainer, or patch family quickly.   
@@ -274,6 +274,7 @@ Patch repositories and related integration repositories.
 - [![Logm1lo Patches (uses Morphe)](https://img.shields.io/github/last-commit/logm1lo/logm1lo-patches?label=Logm1lo%20Patches%20(uses%20Morphe)&logo=github)](https://github.com/logm1lo/logm1lo-patches) ![Active](https://img.shields.io/badge/status-active-brightgreen)
 - [![Spooky's Morphe Patches (uses Morphe)](https://img.shields.io/github/last-commit/spookyexe/morphe-patches?label=Spooky%27s%20Morphe%20Patches%20(uses%20Morphe)&logo=github)](https://github.com/spookyexe/morphe-patches) ![Active](https://img.shields.io/badge/status-active-brightgreen)
 - [![PetalMaps Android Auto (uses Morphe)](https://img.shields.io/github/last-commit/andersonlucasg3/PetalMaps-AndroidAuto?label=PetalMaps%20Android%20Auto%20(uses%20Morphe)&logo=github)](https://github.com/andersonlucasg3/PetalMaps-AndroidAuto) ![Active](https://img.shields.io/badge/status-active-brightgreen)
+- [![Personal ReVanced Patches](https://img.shields.io/github/last-commit/dbhavsar76/revanced-patches?label=Personal%20ReVanced%20Patches&logo=github)](https://github.com/dbhavsar76/revanced-patches) ![Active](https://img.shields.io/badge/status-active-brightgreen)
 - [![BiliRoamingX (fork)](https://img.shields.io/github/last-commit/sti-233/BiliRoamingX?label=BiliRoamingX%20(fork)&logo=github)](https://github.com/sti-233/BiliRoamingX) ![Partially maintained](https://img.shields.io/badge/status-partial-yellow)
 - [![Aunali321](https://img.shields.io/github/last-commit/Aunali321/ReVancedExperiments?label=Aunali321&logo=github)](https://github.com/Aunali321/ReVancedExperiments) ![Partially maintained](https://img.shields.io/badge/status-partial-yellow)
 - [![LoV432](https://img.shields.io/github/last-commit/LoV432/revanced-patches?label=LoV432&logo=github)](https://github.com/LoV432/revanced-patches) ![Partially maintained](https://img.shields.io/badge/status-partial-yellow)
@@ -324,6 +325,7 @@ Managers, patching tools, plugin ecosystems, and adjacent ReVanced/Morphe projec
 - [![AmpleReVanced GitHub Organization](https://img.shields.io/badge/GitHub-AmpleReVanced%20GitHub%20Organization-gray?logo=github&labelColor=0F1419)](https://github.com/AmpleReVanced) ![Active](https://img.shields.io/badge/status-active-brightgreen)
 - [![MorpheX](https://img.shields.io/github/last-commit/Svznify/MorpheX?label=MorpheX&logo=github)](https://github.com/Svznify/MorpheX) ![Active](https://img.shields.io/badge/status-active-brightgreen)
 - [![jadx-morphe](https://img.shields.io/github/last-commit/hoo-dles/jadx-morphe?label=jadx--morphe&logo=github)](https://github.com/hoo-dles/jadx-morphe) ![Active](https://img.shields.io/badge/status-active-brightgreen)
+- [![APK Download Helper](https://img.shields.io/github/last-commit/rushiranpise/apk-download-helper?label=APK%20Download%20Helper&logo=github)](https://github.com/rushiranpise/apk-download-helper) ![Active](https://img.shields.io/badge/status-active-brightgreen)
 - [![ReVanced External Bundles](https://img.shields.io/github/last-commit/brosssh/revanced-external-bundles?label=ReVanced%20External%20Bundles&logo=github)](https://github.com/brosssh/revanced-external-bundles) ![Partially maintained](https://img.shields.io/badge/status-partial-yellow)
 - [![Aunali321 Manager Plugins](https://img.shields.io/github/last-commit/Aunali321/revanced-downloader-plugins?label=Aunali321%20Manager%20Plugins&logo=github)](https://github.com/Aunali321/revanced-downloader-plugins) ![Partially maintained](https://img.shields.io/badge/status-partial-yellow)
 - [![ReVanced Web Patcher](https://img.shields.io/github/last-commit/Aunali321/revanced-web-patcher-backend?label=ReVanced%20Web%20Patcher&logo=github)](https://github.com/Aunali321/revanced-web-patcher-backend) ![Inactive](https://img.shields.io/badge/status-inactive-red)
@@ -378,4 +380,4 @@ Automated build repositories, modules, scripts, and packaged app distributions.
 
 ## ⭐ Star History
 
-[![Star History Chart](https://api.star-history.com/chart?repos=Jman-Github/Awesome-ReVanced&type=date&legend=top-left&sealed_token=MP-hAMCzDTZ5mDAB__KggcoHOjqJ1OgVUr8b6xmxRULt5RZIMsRFadrWmmuxLf1_ixBIi-JYV0TPQhC4SRejpupDcdZPCpILZhCMmM8AOzis57kGAMljXw)](https://www.star-history.com/?repos=Jman-Github%2FAwesome-ReVanced&type=date&legend=top-left)
+[![Star History Chart](https://star-history.dera.page/svg?repos=Jman-Github/Awesome-ReVancedtype=date&legend=top-left)](https://star-history.dera.page/#Jman-Github/Awesome-ReVanced&type=date&legend=top-left)

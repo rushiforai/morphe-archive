@@ -44,12 +44,13 @@
   ],
   "inspection": {
     "provider": "io.github.liongalahad.nuviotv.extension.settings.MorpheInitProvider",
-    "metadata": "io.github.liongalahad.nuviotv.settings.category.ratings",
+    "metadata": "io.github.liongalahad.nuviotv.settings.provider.rating_visibility",
     "classes": [
       "io.github.liongalahad.nuviotv.extension.settings.MorpheSettingsRuntime",
       "io.github.liongalahad.nuviotv.extension.settings.MorpheSettingsPageContent",
       "io.github.liongalahad.nuviotv.extension.settings.MorpheSettingsRows",
-      "io.github.liongalahad.nuviotv.extension.settings.MorpheRatingsGroupContent",
+      "io.github.liongalahad.nuviotv.extension.ratings.ratingsvisibility.RatingsSettingsCategory",
+      "io.github.liongalahad.nuviotv.extension.ratings.ratingsvisibility.RatingsSettingsContent",
       "io.github.liongalahad.nuviotv.extension.settings.MorpheOverallRatingsToggleAction",
       "io.github.liongalahad.nuviotv.extension.settings.MorpheEpisodeRatingsDialogAction",
       "io.github.liongalahad.nuviotv.extension.settings.MorpheEpisodeRatingsDialog",

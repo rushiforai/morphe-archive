@@ -36,6 +36,8 @@ class MapScreen(
     }
 
     override fun onGetTemplate(): Template {
+        Log.i(TAG, "onGetTemplate")
+
         val zoomInAction = Action.Builder()
             .setTitle("+")
             .setIcon(

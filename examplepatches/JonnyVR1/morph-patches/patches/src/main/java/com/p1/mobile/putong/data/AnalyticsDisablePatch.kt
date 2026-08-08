@@ -1,13 +1,18 @@
 package com.p1.mobile.putong.data
 
+import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+
+
 
 private const val RETURN_VOID = "return-void"
 
@@ -29,17 +34,7 @@ private const val RETURN_FALSE = """
 private fun isConstructor(method: Method): Boolean =
     method.name == "<init>" || method.name == "<clinit>"
 
-private val ANALYTICS_ANCHOR_STRINGS = setOf(
-    "e_request_none_oaid", "com.tantanapp.beatles", "miit_oaid",
-    "add_payment_info", "com.google.android.gms.ads.identifier.service.START",
-    "mmfile_push_statistic", "BatteryMetrics", "live-PerfTracer",
-    "DNS_SLA", "_getOrCreate", "_compressRecordFile",
-    "getSubmitAlternative", "android_id", "wlan0/address",
-    "[IMEI]", "[MAC]", "[OAID]", "device_fingerprint",
-)
-
 private const val FOX_STATS_DEFAULT_ENV = "Lcom/tantanapp/foxstatistics/DefaultEnvironment;"
-private const val ANALYTICS_TOTAL_EXPECTED = 14
 
 @Suppress("unused")
 @JvmField
@@ -50,41 +45,8 @@ val analyticsDisablePatch = bytecodePatch(
 ) {
     compatibleWith(tantanCompatibility)
     execute {
-        val analyticsClasses = mutableMapOf<String, ClassDef>()
-
-        classDefForEach { classDef ->
-            if (analyticsClasses.size == ANALYTICS_TOTAL_EXPECTED) return@classDefForEach
-
-            val found = mutableSetOf<String>()
-
-            for (method in classDef.methods) {
-                val impl = method.implementation ?: continue
-                for (instr in impl.instructions) {
-                    if (instr is ReferenceInstruction) {
-                        val ref = instr.reference
-                        if (ref is StringReference) {
-                            val s = ref.string
-                            if (s in ANALYTICS_ANCHOR_STRINGS) found.add(s)
-                        }
-                    }
-                }
-            }
-
-            if ("e_request_none_oaid" in found) analyticsClasses.putIfAbsent("foxStats", classDef)
-            if ("com.tantanapp.beatles" in found) analyticsClasses.putIfAbsent("beatles", classDef)
-            if ("miit_oaid" in found) analyticsClasses.putIfAbsent("oaid", classDef)
-            if ("add_payment_info" in found) analyticsClasses.putIfAbsent("firebaseAnalytics", classDef)
-            if ("com.google.android.gms.ads.identifier.service.START" in found) analyticsClasses.putIfAbsent("googleAdId", classDef)
-            if ("mmfile_push_statistic" in found) analyticsClasses.putIfAbsent("pushStats", classDef)
-            if ("BatteryMetrics" in found) analyticsClasses.putIfAbsent("batteryMetrics", classDef)
-            if ("live-PerfTracer" in found) analyticsClasses.putIfAbsent("moLiveApm", classDef)
-            if ("DNS_SLA" in found) analyticsClasses.putIfAbsent("dnsSla", classDef)
-            if ("getSubmitAlternative" in found) analyticsClasses.putIfAbsent("moLiveApm2", classDef)
-            if ("_getOrCreate" in found && "_compressRecordFile" in found) analyticsClasses.putIfAbsent("moTracing", classDef)
-            if ("[IMEI]" in found && "[MAC]" in found && "[OAID]" in found) analyticsClasses.putIfAbsent("deviceFingerprintCollector", classDef)
-            if ("device_fingerprint" in found) analyticsClasses.putIfAbsent("deviceFingerprintHash", classDef)
-            if ("android_id" in found && "wlan0/address" in found) analyticsClasses.putIfAbsent("deviceInfoCollector", classDef)
-        }
+        val resolver = UnifiedClassResolver(this)
+        resolver.resolve()
 
         classDefByOrNull("Lcom/appsflyer/AppsFlyerLib;")?.let { classDef ->
             mutableClassDefBy(classDef).methods.forEach { method ->
@@ -211,7 +173,7 @@ val analyticsDisablePatch = bytecodePatch(
             }
         }
 
-        analyticsClasses["foxStats"]?.let { classDef ->
+        resolver.getAnalyticsClass("foxStats")?.let { classDef ->
             mutableClassDefBy(classDef).methods.forEach { method ->
                 if (method.implementation == null) return@forEach
                 if (isConstructor(method)) return@forEach
@@ -230,7 +192,7 @@ val analyticsDisablePatch = bytecodePatch(
             }
         }
 
-        analyticsClasses["beatles"]?.let { classDef ->
+        resolver.getAnalyticsClass("beatles")?.let { classDef ->
             mutableClassDefBy(classDef).methods.forEach { method ->
                 if (method.implementation == null) return@forEach
                 if (isConstructor(method)) return@forEach
@@ -240,7 +202,7 @@ val analyticsDisablePatch = bytecodePatch(
             }
         }
 
-        analyticsClasses["firebaseAnalytics"]?.let { classDef ->
+        resolver.getAnalyticsClass("firebaseAnalytics")?.let { classDef ->
             mutableClassDefBy(classDef).methods.forEach { method ->
                 if (method.implementation == null) return@forEach
                 if (method.name in setOf("logEvent", "setAnalyticsCollectionEnabled", "setUserId",
@@ -252,7 +214,7 @@ val analyticsDisablePatch = bytecodePatch(
             }
         }
 
-        analyticsClasses["googleAdId"]?.let { classDef ->
+        resolver.getAnalyticsClass("googleAdId")?.let { classDef ->
             mutableClassDefBy(classDef).methods.forEach { method ->
                 if (method.implementation == null) return@forEach
                 if (method.name == "getAdvertisingIdInfo" &&
@@ -264,7 +226,7 @@ val analyticsDisablePatch = bytecodePatch(
             }
         }
 
-        analyticsClasses["pushStats"]?.let { classDef ->
+        resolver.getAnalyticsClass("pushStats")?.let { classDef ->
             mutableClassDefBy(classDef).methods.forEach { method ->
                 if (method.implementation == null) return@forEach
                 if (isConstructor(method)) return@forEach
@@ -275,7 +237,7 @@ val analyticsDisablePatch = bytecodePatch(
             }
         }
 
-        analyticsClasses["batteryMetrics"]?.let { classDef ->
+        resolver.getAnalyticsClass("batteryMetrics")?.let { classDef ->
             mutableClassDefBy(classDef).methods.forEach { method ->
                 if (method.implementation == null) return@forEach
                 if (isConstructor(method)) return@forEach
@@ -285,7 +247,7 @@ val analyticsDisablePatch = bytecodePatch(
             }
         }
 
-        analyticsClasses["moLiveApm"]?.let { classDef ->
+        resolver.getAnalyticsClass("moLiveApm")?.let { classDef ->
             mutableClassDefBy(classDef).methods.forEach { method ->
                 if (method.implementation == null) return@forEach
                 if (isConstructor(method)) return@forEach
@@ -296,7 +258,7 @@ val analyticsDisablePatch = bytecodePatch(
             }
         }
 
-        analyticsClasses["dnsSla"]?.let { classDef ->
+        resolver.getAnalyticsClass("dnsSla")?.let { classDef ->
             mutableClassDefBy(classDef).methods.forEach { method ->
                 if (method.implementation == null) return@forEach
                 if (isConstructor(method)) return@forEach
@@ -307,7 +269,7 @@ val analyticsDisablePatch = bytecodePatch(
             }
         }
 
-        analyticsClasses["moTracing"]?.let { classDef ->
+        resolver.getAnalyticsClass("moTracing")?.let { classDef ->
             mutableClassDefBy(classDef).methods.forEach { method ->
                 if (method.implementation == null) return@forEach
                 if (isConstructor(method)) return@forEach
@@ -325,7 +287,7 @@ val analyticsDisablePatch = bytecodePatch(
             }
         }
 
-        analyticsClasses["moLiveApm2"]?.let { classDef ->
+        resolver.getAnalyticsClass("moLiveApm2")?.let { classDef ->
             mutableClassDefBy(classDef).methods.forEach { method ->
                 if (method.implementation == null) return@forEach
                 if (isConstructor(method)) return@forEach
@@ -338,7 +300,7 @@ val analyticsDisablePatch = bytecodePatch(
             }
         }
 
-        analyticsClasses["deviceFingerprintCollector"]?.let { classDef ->
+        resolver.getAnalyticsClass("deviceFingerprintCollector")?.let { classDef ->
             mutableClassDefBy(classDef).methods.forEach { method ->
                 if (method.implementation == null) return@forEach
                 if (isConstructor(method)) return@forEach
@@ -353,7 +315,7 @@ val analyticsDisablePatch = bytecodePatch(
             }
         }
 
-        analyticsClasses["deviceFingerprintHash"]?.let { classDef ->
+        resolver.getAnalyticsClass("deviceFingerprintHash")?.let { classDef ->
             mutableClassDefBy(classDef).methods.forEach { method ->
                 if (method.implementation == null) return@forEach
                 if (isConstructor(method)) return@forEach
@@ -364,7 +326,7 @@ val analyticsDisablePatch = bytecodePatch(
             }
         }
 
-        analyticsClasses["deviceInfoCollector"]?.let { classDef ->
+        resolver.getAnalyticsClass("deviceInfoCollector")?.let { classDef ->
             mutableClassDefBy(classDef).methods.forEach { method ->
                 if (method.implementation == null) return@forEach
                 if (isConstructor(method)) return@forEach
@@ -375,7 +337,7 @@ val analyticsDisablePatch = bytecodePatch(
             }
         }
 
-        analyticsClasses["oaid"]?.let { classDef ->
+        resolver.getAnalyticsClass("oaid")?.let { classDef ->
             mutableClassDefBy(classDef).methods.forEach { method ->
                 if (method.implementation == null) return@forEach
                 if (isConstructor(method)) return@forEach
@@ -395,23 +357,7 @@ val analyticsDisablePatch = bytecodePatch(
             }
         }
 
-        classDefForEach { classDef ->
-            if (analyticsClasses.containsKey("coreEventLogger")) return@classDefForEach
-            for (method in classDef.methods) {
-                val impl = method.implementation ?: continue
-                for (instr in impl.instructions) {
-                    if (instr is ReferenceInstruction) {
-                        val ref = instr.reference
-                        if (ref is MethodReference && ref.definingClass == FOX_STATS_DEFAULT_ENV) {
-                            analyticsClasses["coreEventLogger"] = classDef
-                            return@classDefForEach
-                        }
-                    }
-                }
-            }
-        }
-
-        analyticsClasses["coreEventLogger"]?.let { classDef ->
+        resolver.getAnalyticsClass("coreEventLogger")?.let { classDef ->
             mutableClassDefBy(classDef).methods.forEach { method ->
                 if (method.implementation == null) return@forEach
                 if (isConstructor(method)) return@forEach
@@ -497,5 +443,341 @@ val analyticsDisablePatch = bytecodePatch(
                 }
             }
         }
+
+        classDefByOrNull("Lcom/google/firebase/crashlytics/FirebaseCrashlytics;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.implementation == null) return@forEach
+                if (isConstructor(method)) return@forEach
+                when {
+                    method.name == "init" && AccessFlags.STATIC.isSet(method.accessFlags) &&
+                    method.returnType.startsWith("L") ->
+                        method.addInstructions(0, RETURN_NULL_OBJECT)
+
+                    method.name == "getInstance" && AccessFlags.STATIC.isSet(method.accessFlags) &&
+                    method.returnType.startsWith("L") ->
+                        method.addInstructions(0, RETURN_NULL_OBJECT)
+
+                    method.name in setOf("recordException", "log", "sendUnsentReports", "deleteUnsentReports",
+                        "setCrashlyticsCollectionEnabled", "setCustomKey", "setCustomKeys", "setUserId") &&
+                    method.returnType == "V" ->
+                        method.addInstructions(0, RETURN_VOID)
+
+                    method.name == "isCrashlyticsCollectionEnabled" && method.returnType == "Z" ->
+                        method.addInstructions(0, RETURN_FALSE)
+
+                    method.name == "didCrashOnPreviousExecution" && method.returnType == "Z" ->
+                        method.addInstructions(0, RETURN_FALSE)
+                }
+            }
+        }
+
+        classDefByOrNull("Lcom/google/firebase/crashlytics/internal/common/CrashlyticsCore;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.implementation == null) return@forEach
+                if (isConstructor(method)) return@forEach
+                when {
+                    method.name == "onPreExecute" && method.returnType == "Z" ->
+                        method.addInstructions(0, RETURN_FALSE)
+
+                    method.name in setOf("log", "logException") && method.returnType == "V" ->
+                        method.addInstructions(0, RETURN_VOID)
+
+                    method.name == "isCrashlyticsCollectionEnabled" && method.returnType == "Z" ->
+                        method.addInstructions(0, RETURN_FALSE)
+                }
+            }
+        }
+
+        classDefByOrNull("Lcom/apm/lite/nativecrash/NativeImpl;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.implementation == null) return@forEach
+                if (isConstructor(method)) return@forEach
+                when {
+                    method.name == "p" && method.returnType == "Z" && method.parameterTypes.isEmpty() ->
+                        method.addInstructions(0, RETURN_FALSE)
+
+                    method.name == "w" && method.returnType == "Z" ->
+                        method.addInstructions(0, RETURN_FALSE)
+
+                    method.name == "k" && method.returnType == "Z" && method.parameterTypes.isEmpty() ->
+                        method.addInstructions(0, RETURN_FALSE)
+
+                    method.name == "n" && method.returnType == "Z" && method.parameterTypes.isEmpty() ->
+                        method.addInstructions(0, RETURN_FALSE)
+
+                    method.returnType == "V" && AccessFlags.STATIC.isSet(method.accessFlags) ->
+                        method.addInstructions(0, RETURN_VOID)
+                }
+            }
+        }
+
+        classDefByOrNull("Lcom/hellogroup/mk/core/log/MKCoreLogManager;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.implementation == null) return@forEach
+                if (isConstructor(method)) return@forEach
+                when {
+                    method.name == "j" && method.returnType == "V" &&
+                    method.parameterTypes.size == 1 &&
+                    method.parameterTypes[0] == "Lcom/hellogroup/mk/core/log/core/MKLogReporter;" ->
+                        method.addInstructions(0, RETURN_VOID)
+
+                    method.name == "d" && AccessFlags.STATIC.isSet(method.accessFlags) &&
+                    method.returnType == "V" ->
+                        method.addInstructions(0, RETURN_VOID)
+
+                    method.name == "k" && method.returnType == "Z" ->
+                        method.addInstructions(0, RETURN_FALSE)
+
+                    method.name in setOf("c", "g", "h") && method.returnType == "V" ->
+                        method.addInstructions(0, RETURN_VOID)
+                }
+            }
+        }
+
+        classDefByOrNull("Lcom/hellogroup/mk/core/log/core/MKLogReporter;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.implementation == null) return@forEach
+                if (isConstructor(method)) return@forEach
+                when (method.returnType) {
+                    "V" -> method.addInstructions(0, RETURN_VOID)
+                    "Z" -> method.addInstructions(0, RETURN_FALSE)
+                }
+            }
+        }
+
+        classDefByOrNull("Lcom/google/firebase/abt/FirebaseABTesting;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.implementation == null) return@forEach
+                if (isConstructor(method)) return@forEach
+                when {
+                    method.name in setOf("replaceAllExperiments", "removeAllExperiments",
+                        "reportActiveExperiment", "validateRunningExperiments") &&
+                    method.returnType == "V" ->
+                        method.addInstructions(0, RETURN_VOID)
+
+                    method.name == "getAllExperiments" && method.returnType.startsWith("L") ->
+                        method.addInstructions(0, RETURN_NULL_OBJECT)
+                }
+            }
+        }
+
+        classDefByOrNull("Lcom/google/firebase/messaging/MessagingAnalytics;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.implementation == null) return@forEach
+                if (isConstructor(method)) return@forEach
+                when {
+                    method.name in setOf("logNotificationDismiss", "logNotificationForeground",
+                        "logNotificationOpen", "logNotificationReceived", "logToScion",
+                        "logToFirelog", "setDeliveryMetricsExportToBigQuery", "setUserPropertyIfRequired") &&
+                    method.returnType == "V" ->
+                        method.addInstructions(0, RETURN_VOID)
+
+                    method.name == "deliveryMetricsExportToBigQueryEnabled" && method.returnType == "Z" ->
+                        method.addInstructions(0, RETURN_FALSE)
+
+                    method.name in setOf("shouldUploadFirelogAnalytics", "shouldUploadScionMetrics") &&
+                    method.returnType == "Z" ->
+                        method.addInstructions(0, RETURN_FALSE)
+                }
+            }
+        }
+
+        classDefByOrNull("Lcom/cosmos/photon/push/thirdparty/ThirdPartyEventReporter;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.implementation == null) return@forEach
+                if (isConstructor(method)) return@forEach
+                when (method.returnType) {
+                    "V" -> method.addInstructions(0, RETURN_VOID)
+                }
+            }
+        }
+
+        classDefByOrNull("Lcom/immomo/android/network/metrics/NetworkMetricsStatistics;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.implementation == null) return@forEach
+                if (isConstructor(method)) return@forEach
+                when {
+                    method.name in setOf("g", "j", "b", "h", "i") && method.returnType == "V" ->
+                        method.addInstructions(0, RETURN_VOID)
+                }
+            }
+        }
+
+        classDefByOrNull("Lcom/tantanapp/common/network/NetReporter;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.implementation == null) return@forEach
+                if (isConstructor(method)) return@forEach
+                when (method.returnType) {
+                    "V" -> method.addInstructions(0, RETURN_VOID)
+                }
+            }
+        }
+
+        classDefByOrNull("Lcom/google/firebase/sessions/api/FirebaseSessionsDependencies;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.implementation == null) return@forEach
+                if (isConstructor(method)) return@forEach
+                when {
+                    method.name == "register" && method.returnType == "V" ->
+                        method.addInstructions(0, RETURN_VOID)
+
+                    method.name == "addDependency" && method.returnType == "V" ->
+                        method.addInstructions(0, RETURN_VOID)
+                }
+            }
+        }
+
+        classDefByOrNull("Lcom/p1/mobile/putong/app/surveysparrow/SurveySparrowHelper;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.implementation == null) return@forEach
+                if (isConstructor(method)) return@forEach
+                when {
+                    method.name in setOf("i", "n", "r", "l", "o") && method.returnType == "V" ->
+                        method.addInstructions(0, RETURN_VOID)
+
+                    method.name == "j" && method.returnType.startsWith("L") ->
+                        method.addInstructions(0, RETURN_NULL_OBJECT)
+                }
+            }
+        }
+
+        classDefByOrNull("Lcom/p1/mobile/putong/core/newui/home/HomeStatisticsHelper;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.implementation == null) return@forEach
+                if (isConstructor(method)) return@forEach
+                if (method.returnType == "V") {
+                    method.addInstructions(0, RETURN_VOID)
+                }
+            }
+        }
+
+        classDefByOrNull("Lcom/p1/mobile/putong/ui/jsbridge/implement/TrackBridgeImplementation;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.implementation == null) return@forEach
+                if (isConstructor(method)) return@forEach
+                method.addInstructions(0, RETURN_VOID)
+            }
+        }
+
+        val omsAdTrackingFingerprint = Fingerprint(
+            filters = listOf(string("e_oms_show_event_report")),
+        )
+        omsAdTrackingFingerprint.matchOrNull()?.classDef?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.implementation == null) return@forEach
+                if (isConstructor(method)) return@forEach
+                if (method.returnType == "V") {
+                    method.addInstructions(0, RETURN_VOID)
+                }
+            }
+        }
+
+        classDefByOrNull("Lcom/p1/mobile/putong/util/TrackMediaUploadUtil;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.implementation == null) return@forEach
+                if (isConstructor(method)) return@forEach
+                if (method.returnType == "V") {
+                    method.addInstructions(0, RETURN_VOID)
+                }
+            }
+        }
+
+        classDefByOrNull("Lcom/tantanapp/beatles/BeatlesProvider;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.implementation == null) return@forEach
+                if (isConstructor(method)) return@forEach
+                when {
+                    method.name == "query" && method.returnType.startsWith("L") ->
+                        method.addInstructions(0, RETURN_NULL_OBJECT)
+
+                    method.name == "onCreate" && method.returnType == "Z" ->
+                        method.addInstructions(0, RETURN_FALSE)
+                }
+            }
+        }
+
+        classDefByOrNull("Lcom/p1/mobile/backtrace/backtrace/WarmUpService;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.implementation == null) return@forEach
+                if (isConstructor(method)) return@forEach
+                when {
+                    method.name == "onCreate" && method.returnType == "V" ->
+                        method.addInstructions(0, RETURN_VOID)
+
+                    method.name == "onBind" && method.returnType.startsWith("L") ->
+                        method.addInstructions(0, RETURN_NULL_OBJECT)
+                }
+            }
+        }
+
+        classDefByOrNull("Lcom/core/glcore/util/ErrorDotStatistics;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.implementation == null) return@forEach
+                if (isConstructor(method)) return@forEach
+                when {
+                    method.name == "addErrInfo" && method.returnType == "V" ->
+                        method.addInstructions(0, RETURN_VOID)
+
+                    method.name == "getInstance" && method.returnType.startsWith("L") ->
+                        method.addInstructions(0, RETURN_NULL_OBJECT)
+                }
+            }
+        }
+
+        classDefByOrNull("Lcom/p1/mobile/putong/core/newui/main/NewMainBaseAct;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.implementation == null) return@forEach
+                if (isConstructor(method)) return@forEach
+                val instructions = method.implementation?.instructions?.toList() ?: return@forEach
+                val callsGetMacAddress = instructions.any { instruction ->
+                    instruction is ReferenceInstruction &&
+                    instruction.reference is MethodReference &&
+                    (instruction.reference as MethodReference).name == "getMacAddress"
+                }
+                if (callsGetMacAddress && method.returnType == "Ljava/lang/String;") {
+                    method.addInstructions(0, RETURN_EMPTY_STRING)
+                }
+            }
+        }
+
+        // NOTE: Network.prepareSimpleXml/prepareXmpXml are NOT analytics - they collect system
+        // properties that are hashed and used in MAC request authentication for ALL API calls.
+        // Returning null here causes NPE in maybeUpdateRequestBeforeCall() breaking all server comms.
+
+        classDefByOrNull("Lcom/p1/mobile/putong/data/ApmConfigSetting;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.implementation == null) return@forEach
+                if (isConstructor(method)) return@forEach
+                val instructions = method.implementation?.instructions?.toList() ?: return@forEach
+                val accessesApmFields = instructions.any { instruction ->
+                    instruction is ReferenceInstruction &&
+                    instruction.reference is FieldReference &&
+                    (instruction.reference as FieldReference).name in setOf("enableMemoryReport", "enableCpuReport")
+                }
+                if (accessesApmFields && method.returnType == "Z") {
+                    method.addInstructions(0, RETURN_FALSE)
+                }
+            }
+        }
+
+        classDefByOrNull("Lcom/google/firebase/analytics/FirebaseAnalytics;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.implementation == null) return@forEach
+                if (isConstructor(method)) return@forEach
+                when {
+                    method.name in setOf("logEvent", "setAnalyticsCollectionEnabled", "setUserId",
+                        "setUserProperty", "resetAnalyticsData", "setCurrentScreen",
+                        "setDefaultEventParameters", "setSessionTimeoutDuration", "setConsent",
+                        "logEventInternal", "setAnalyticsCollectionEnabledInternal") &&
+                    method.returnType == "V" ->
+                        method.addInstructions(0, RETURN_VOID)
+
+                    method.name == "getAppInstanceId" && method.returnType.startsWith("L") ->
+                        method.addInstructions(0, RETURN_NULL_OBJECT)
+                }
+            }
+        }
+
+
     }
 }

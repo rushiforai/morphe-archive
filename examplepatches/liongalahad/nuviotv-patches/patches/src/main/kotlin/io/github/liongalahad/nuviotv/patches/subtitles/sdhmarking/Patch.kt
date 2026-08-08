@@ -17,16 +17,16 @@ import org.w3c.dom.Element
 private const val MARKER =
     "Lio/github/liongalahad/nuviotv/extension/subtitles/sdhmarking/SdhSubtitleMarker;"
 private const val CATEGORY_METADATA =
-    "io.github.liongalahad.nuviotv.settings.category.subtitles"
-private const val FEATURE_METADATA =
-    "io.github.liongalahad.nuviotv.settings.feature.mark_sdh"
+    "io.github.liongalahad.nuviotv.settings.provider.mark_sdh_subtitles"
+private const val CATEGORY_PROVIDER =
+    "io.github.liongalahad.nuviotv.extension.subtitles.sdhmarking.SdhMarkingSettingsCategory"
 
 private val sdhMarkingResourcePatch = resourcePatch {
     compatibleWith(NUVIO_COMPATIBILITY)
     execute {
         document("AndroidManifest.xml").use { document ->
             val application = document.getElementsByTagName("application").item(0) as Element
-            listOf(CATEGORY_METADATA, FEATURE_METADATA).forEach { metadataName ->
+            listOf(CATEGORY_METADATA).forEach { metadataName ->
                 val alreadyPresent = (0 until application.getElementsByTagName("meta-data").length).any { index ->
                     (application.getElementsByTagName("meta-data").item(index) as? Element)
                         ?.getAttribute("android:name") == metadataName
@@ -34,7 +34,7 @@ private val sdhMarkingResourcePatch = resourcePatch {
                 if (!alreadyPresent) {
                     application.appendChild(document.createElement("meta-data").apply {
                         setAttribute("android:name", metadataName)
-                        setAttribute("android:value", "true")
+                        setAttribute("android:value", CATEGORY_PROVIDER)
                     })
                 }
             }
@@ -45,7 +45,7 @@ private val sdhMarkingResourcePatch = resourcePatch {
 @Suppress("unused")
 val sdhmarkingPatch = bytecodePatch(
     name = "Mark SDH Subtitles",
-    description = "Marks detected English SDH tracks in embedded and addon subtitle lists.",
+    description = "Marks explicitly labelled SDH tracks and detected English SDH subtitle files.",
     default = false
 ) {
     compatibleWith(NUVIO_COMPATIBILITY)

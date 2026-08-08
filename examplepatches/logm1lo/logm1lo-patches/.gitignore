@@ -54,3 +54,6 @@ Morphe.keystore
 .opencode/
 AGENTS.md
 opencode.json
+
+# Research docs (not part of release patches)
+PairIP-research-report.md

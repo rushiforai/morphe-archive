@@ -13,3 +13,13 @@ val COMPATIBILITY_CALISTREE = Compatibility(
         AppTarget(version = "5.8.5"),
     )
 )
+
+val COMPATIBILITY_CUBESOLVER = Compatibility(
+    name = "Cube Solver",
+    packageName = "com.jeffprod.cubesolver",
+    appIconColor = 0x4CAF50,
+    apkFileType = ApkFileType.APK,
+    targets = listOf(
+        AppTarget(version = "5.0.3"),
+    )
+)

@@ -34,14 +34,8 @@ public final class MorpheSettingsRuntime {
     public static final int EPISODE_RATINGS_HIDE = 1;
     public static final int EPISODE_RATINGS_HIDE_UNWATCHED = 2;
 
-    private static final String SUBTITLES_METADATA =
-            "io.github.liongalahad.nuviotv.settings.category.subtitles";
-    private static final String RATINGS_METADATA =
-            "io.github.liongalahad.nuviotv.settings.category.ratings";
-    private static final String REMOVE_SDH_FEATURE_METADATA =
-            "io.github.liongalahad.nuviotv.settings.feature.remove_sdh";
-    private static final String SDH_MARKING_FEATURE_METADATA =
-            "io.github.liongalahad.nuviotv.settings.feature.mark_sdh";
+    private static final String CATEGORY_PROVIDER_PREFIX =
+            "io.github.liongalahad.nuviotv.settings.provider.";
 
     private static volatile Application application;
     private static volatile WeakReference<Activity> resumedActivity = new WeakReference<>(null);
@@ -51,10 +45,7 @@ public final class MorpheSettingsRuntime {
     private static volatile boolean sdhMarkingEnabled;
     private static volatile boolean overallRatingsShown = true;
     private static volatile int episodeRatingsMode = EPISODE_RATINGS_SHOW;
-    private static volatile boolean subtitlesCategoryEnabled;
-    private static volatile boolean ratingsCategoryEnabled;
-    private static volatile boolean removeSdhFeatureEnabled;
-    private static volatile boolean sdhMarkingFeatureEnabled;
+    private static volatile List<MorpheSettingsCategory> patchCategories = Collections.emptyList();
 
     private MorpheSettingsRuntime() {}
 
@@ -95,8 +86,6 @@ public final class MorpheSettingsRuntime {
         }
     }
 
-    public static boolean hasRatingsCategory() { return ratingsCategoryEnabled; }
-    public static boolean hasSubtitlesCategory() { return subtitlesCategoryEnabled; }
     public static String ratingsCategoryTitle() { return "Ratings"; }
     public static String ratingsCategoryDescription() {
         return "Configure rating visibility";
@@ -112,6 +101,18 @@ public final class MorpheSettingsRuntime {
                 : "Standard and TMDB ratings hidden; MDBList takes priority.";
     }
     public static String episodeRatingsTitle() { return "Episode Ratings"; }
+    public static List<MorpheSettingsCategory> enabledCategories() {
+        ensureInitialized();
+        Map<String, List<MorpheSettingsCategory>> groups = new LinkedHashMap<>();
+        for (MorpheSettingsCategory category : patchCategories) {
+            groups.computeIfAbsent(category.id(), ignored -> new ArrayList<>()).add(category);
+        }
+        List<MorpheSettingsCategory> categories = new ArrayList<>(groups.size());
+        for (List<MorpheSettingsCategory> group : groups.values()) {
+            categories.add(group.size() == 1 ? group.get(0) : new GroupedCategory(group));
+        }
+        return Collections.unmodifiableList(categories);
+    }
 
     public static boolean isOverallRatingsShown() {
         ensureInitialized();
@@ -287,8 +288,6 @@ public final class MorpheSettingsRuntime {
     public static String sdhDialogTitle() { return "Remove SDH annotations"; }
     public static String currentSdhModeTitle() { return sdhModeTitle(sdhCleanupModeOrdinal()); }
 
-    public static boolean hasRemoveSdhFeature() { return removeSdhFeatureEnabled; }
-    public static boolean hasSdhMarkingFeature() { return sdhMarkingFeatureEnabled; }
     public static String sdhMarkingTitle() { return "Mark SDH subtitles"; }
     public static String sdhMarkingDescription() {
         return "Add SDH to English subtitle titles using metadata and repeated annotation patterns.";
@@ -316,6 +315,12 @@ public final class MorpheSettingsRuntime {
     static Activity resumedActivity() {
         Activity activity = resumedActivity.get();
         return activity != null && !activity.isFinishing() && !activity.isDestroyed() ? activity : null;
+    }
+
+    public static Context applicationContext() {
+        ensureInitialized();
+        Application current = currentApplication();
+        return current == null ? null : current.getApplicationContext();
     }
 
     private static void persistSdhCleanupMode(int mode) {
@@ -406,28 +411,54 @@ public final class MorpheSettingsRuntime {
             ApplicationInfo info = context.getPackageManager().getApplicationInfo(
                     context.getPackageName(), PackageManager.GET_META_DATA);
             Bundle metadata = info.metaData;
-            subtitlesCategoryEnabled =
-                    (metadata != null && metadata.getBoolean(SUBTITLES_METADATA, false)) ||
-                    hasClass(context, "io.github.liongalahad.nuviotv.extension.subtitles.sdh.Extension");
-            ratingsCategoryEnabled =
-                    (metadata != null && metadata.getBoolean(RATINGS_METADATA, false)) ||
-                    hasClass(context, "io.github.liongalahad.nuviotv.extension.ratings.ratingsvisibility.Extension");
-            removeSdhFeatureEnabled = metadata != null && metadata.getBoolean(REMOVE_SDH_FEATURE_METADATA, false);
-            sdhMarkingFeatureEnabled = metadata != null && metadata.getBoolean(SDH_MARKING_FEATURE_METADATA, false);
+            List<MorpheSettingsCategory> discovered = new ArrayList<>();
+            if (metadata != null) {
+                for (String key : metadata.keySet()) {
+                    if (!key.startsWith(CATEGORY_PROVIDER_PREFIX)) continue;
+                    Object providerName = metadata.get(key);
+                    if (!(providerName instanceof String)) continue;
+                    Class<?> providerClass = Class.forName(
+                            (String) providerName, true, context.getClassLoader());
+                    Object provider = providerClass.getDeclaredConstructor().newInstance();
+                    if (!(provider instanceof MorpheSettingsCategory)) {
+                        throw new IllegalStateException("Invalid Morphe settings provider: " + providerName);
+                    }
+                    discovered.add((MorpheSettingsCategory) provider);
+                }
+            }
+            discovered.sort((left, right) -> {
+                int order = Integer.compare(left.order(), right.order());
+                if (order != 0) return order;
+                int id = left.id().compareTo(right.id());
+                return id != 0 ? id : Integer.compare(left.contentOrder(), right.contentOrder());
+            });
+            patchCategories = Collections.unmodifiableList(discovered);
         } catch (Throwable ignored) {
-            subtitlesCategoryEnabled = false;
-            ratingsCategoryEnabled = false;
-            removeSdhFeatureEnabled = false;
-            sdhMarkingFeatureEnabled = false;
+            patchCategories = Collections.emptyList();
         }
     }
 
-    private static boolean hasClass(Context context, String className) {
-        try {
-            Class.forName(className, false, context.getClassLoader());
-            return true;
-        } catch (Throwable ignored) {
-            return false;
+    private static final class GroupedCategory implements MorpheSettingsCategory {
+        private final List<MorpheSettingsCategory> contributions;
+
+        GroupedCategory(List<MorpheSettingsCategory> contributions) {
+            this.contributions = Collections.unmodifiableList(new ArrayList<>(contributions));
+        }
+
+        private MorpheSettingsCategory first() { return contributions.get(0); }
+        @Override public String id() { return first().id(); }
+        @Override public int order() { return first().order(); }
+        @Override public String title() { return first().title(); }
+        @Override public String description() { return first().description(); }
+        @Override public kotlin.jvm.functions.Function3<Object, Object, Object, kotlin.Unit> content(
+                Object modifier
+        ) {
+            return (scope, composer, flags) -> {
+                for (MorpheSettingsCategory contribution : contributions) {
+                    contribution.content(modifier).invoke(scope, composer, flags);
+                }
+                return kotlin.Unit.INSTANCE;
+            };
         }
     }
 

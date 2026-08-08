@@ -13,6 +13,7 @@ import android.util.DisplayMetrics
 import android.util.Log
 import android.view.MotionEvent
 import android.view.Surface
+import androidx.car.app.SurfaceContainer
 import java.lang.reflect.Method
 
 /**
@@ -100,10 +101,74 @@ class CarDisplay(
     // ---- VirtualDisplay management ---------------------------------------
 
     /**
+     * Creates a [VirtualDisplay] from a [SurfaceContainer] provided by the
+     * Android Auto host. This is the preferred entry point called from
+     * [SurfaceCallback.onSurfaceAvailable].
+     *
+     * Extracts the surface, dimensions, and dpi **from the container**
+     * (not from [carContext] phone metrics) and delegates to
+     * [create][create(surface,width,height,density)].
+     *
+     * ## Dimension validation
+     *
+     * If [SurfaceContainer.getWidth] or [SurfaceContainer.getHeight] return
+     * 0 or negative, the container is considered invalid and **no display
+     * is created** — we log an error and return `false`.
+     *
+     * ## Orientation check
+     *
+     * `AutoPetalMapsActivity` is declared `screenOrientation="landscape"`.
+     * We expect `width > height` from the head-unit surface. If the
+     * reported dimensions are portrait (`height > width`) we log a warning
+     * but still use the container values as-is (no swap / invention).
+     *
+     * @return `true` if the VirtualDisplay was created and the activity
+     *         was successfully requested, `false` otherwise.
+     */
+    fun create(container: SurfaceContainer): Boolean {
+        val surface: Surface = container.surface ?: run {
+            Log.e(TAG, "onSurfaceAvailable: surface is null — cannot create VirtualDisplay")
+            return false
+        }
+
+        val width = container.width
+        val height = container.height
+        val dpi = container.dpi
+
+        Log.i(TAG, "onSurfaceAvailable: width=$width, height=$height, density=$dpi")
+
+        // Guard: 0 / negative dimensions → bail out
+        if (width <= 0 || height <= 0) {
+            Log.e(TAG, "Cannot create VirtualDisplay: invalid container dimensions ${width}x${height}")
+            return false
+        }
+
+        // Orientation check: expect landscape (width > height) for AutoPetalMapsActivity
+        if (height > width) {
+            Log.w(
+                TAG,
+                "Surface reports portrait dimensions (${width}x${height}) but " +
+                "AutoPetalMapsActivity is landscape — using container values as-is"
+            )
+        }
+
+        return create(surface, width, height, dpi)
+    }
+
+    /**
      * Creates a [VirtualDisplay] on [surface] and launches the target
-     * activity onto it. Call from [SurfaceCallback.onSurfaceAvailable].
+     * activity onto it. Prefer [create(SurfaceContainer)] for initial
+     * creation; this overload is used for resize / recreation flows
+     * where explicit dimensions are needed (e.g. from
+     * [SurfaceCallback.onStableAreaChanged]).
      */
     fun create(surface: Surface, width: Int, height: Int, density: Int): Boolean {
+        // Guard: 0 / negative dimensions → bail out
+        if (width <= 0 || height <= 0) {
+            Log.e(TAG, "Cannot create VirtualDisplay: invalid dimensions ${width}x${height}")
+            return false
+        }
+
         destroy() // ensure any previous display + callbacks are released first
 
         surfaceWidth = width
@@ -144,6 +209,14 @@ class CarDisplay(
             @Suppress("DEPRECATION")
             context.startActivity(intent, options.toBundle())
             Log.i(TAG, "Activity launch requested on display $displayId")
+        } catch (e: SecurityException) {
+            Log.e(TAG, "SecurityException launching activity on VirtualDisplay: ${e.message}", e)
+            destroy()
+            return false
+        } catch (e: IllegalStateException) {
+            Log.e(TAG, "IllegalStateException launching activity on VirtualDisplay: ${e.message}", e)
+            destroy()
+            return false
         } catch (e: Exception) {
             Log.e(TAG, "Failed to launch activity on VirtualDisplay: ${e.message}", e)
             destroy()

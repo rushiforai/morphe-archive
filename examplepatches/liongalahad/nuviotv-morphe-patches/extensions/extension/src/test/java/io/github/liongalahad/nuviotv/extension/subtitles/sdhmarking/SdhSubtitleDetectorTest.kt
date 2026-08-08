@@ -11,6 +11,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.io.File
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35])
@@ -106,12 +107,16 @@ class SdhSubtitleDetectorTest {
         assertFalse(SdhSubtitleMarker.isExplicitSdh("Chinese", "this-track", "English"))
     }
 
-    @Test fun `non English metadata and addon titles are not marked`() {
-        assertEquals("Spanish", SdhSubtitleMarker.markTitle("Spanish", "SDH", "spa", "2"))
+    @Test fun `explicit SDH metadata is marked for every language while scanning remains English only`() {
+        assertEquals("Spanish SDH", SdhSubtitleMarker.markTitle("Spanish", "SDH", "spa", "2"))
         SdhSubtitleMarker.recordDetectionForTests("sub-es", "https://example.test/es.srt", true)
         assertEquals(
             "Spanish",
             SdhSubtitleMarker.markAddonTitle("Spanish", "sub-es", "https://example.test/es.srt")
+        )
+        assertEquals(
+            "Spanish SDH",
+            SdhSubtitleMarker.markAddonTitle("Spanish", "sub-es-SDH", "https://example.test/es.srt")
         )
     }
 
@@ -121,6 +126,26 @@ class SdhSubtitleDetectorTest {
             "English SDH",
             SdhSubtitleMarker.markAddonTitle("English", "sub-1", "https://example.test/one.srt")
         )
+    }
+
+    @Test fun `English local files are scanned without network access`() {
+        val local = File.createTempFile("english-local-", ".srt")
+        local.writeText((1..20).joinToString("\n\n") { index ->
+            "$index\n00:00:${index.toString().padStart(2, '0')},000 --> 00:00:${index.toString().padStart(2, '0')},500\n[door closes]"
+        })
+        val url = local.toURI().toURL().toString()
+
+        assertEquals("English", SdhSubtitleMarker.markAddonTitle("English", "en\nlocal.srt", url))
+        repeat(100) {
+            if (SdhSubtitleMarker.markAddonTitle("English", "en\nlocal.srt", url) == "English SDH") {
+                local.delete()
+                return
+            }
+            Thread.sleep(10)
+        }
+
+        local.delete()
+        throw AssertionError("Local SDH scan did not publish its detection")
     }
 
     @Test fun `refresh epoch changes without altering a cached title result`() {

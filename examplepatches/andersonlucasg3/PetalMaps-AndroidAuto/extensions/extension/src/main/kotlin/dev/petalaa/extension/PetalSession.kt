@@ -58,7 +58,7 @@ class PetalSession : Session() {
         return object : SurfaceCallback {
 
             override fun onSurfaceAvailable(container: SurfaceContainer) {
-                Log.i(TAG, "onSurfaceAvailable")
+                Log.i(TAG, "onSurfaceAvailable: width=${container.width}, height=${container.height}, density=${container.dpi}")
                 lastContainer = container
                 createDisplayFromContainer(container)
             }
@@ -87,10 +87,11 @@ class PetalSession : Session() {
                                 "(was ${w}x${h}) — recreating VirtualDisplay")
                         val container = lastContainer
                         if (container != null) {
-                            // Re-create on the current surface with new dimensions.
+                            // Re-create on the current surface with new dimensions,
+                            // using the container's own dpi (not carContext phone metrics).
                             carDisplay.destroy()
                             val surface: Surface = container.surface ?: return
-                            val density = carContext.resources.displayMetrics.densityDpi
+                            val density = container.dpi
                             carDisplay.create(surface, stableArea.width(), stableArea.height(), density)
                         }
                     }
@@ -126,18 +127,7 @@ class PetalSession : Session() {
             // -- Internal helper --------------------------------------------
 
             private fun createDisplayFromContainer(container: SurfaceContainer) {
-                val surface: Surface = container.surface ?: run {
-                    Log.e(TAG, "onSurfaceAvailable: surface is null")
-                    return
-                }
-
-                val metrics = carContext.resources.displayMetrics
-                val width = metrics.widthPixels
-                val height = metrics.heightPixels
-                val density = metrics.densityDpi
-
-                Log.i(TAG, "Creating VirtualDisplay: ${width}x${height}, density=$density")
-                val success = carDisplay.create(surface, width, height, density)
+                val success = carDisplay.create(container)
                 if (!success) {
                     Log.e(TAG, "Failed to create VirtualDisplay — map will not render")
                 }

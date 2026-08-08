@@ -100,8 +100,13 @@ env -u GITHUB_TOKEN gh release create "$TAG" "$MPP" --repo "$REPO" --title "$TAG
 
 # ── Step 7/7: Post-publish verification (simulate Morphe Manager) ───────────
 echo "=== Step 7/7: Verify published source (as the Manager sees it) ==="
-sleep 5  # raw.githubusercontent.com propagation
-PUBLISHED_VERSION="$(curl -sL "https://raw.githubusercontent.com/$REPO/main/patches-bundle.json" | grep -o '"version": *"[^"]*"' | cut -d'"' -f4)"
+# raw.githubusercontent.com caches aggressively (~5 min); retry before failing.
+PUBLISHED_VERSION=""
+for i in $(seq 1 20); do
+    sleep 15
+    PUBLISHED_VERSION="$(curl -sL "https://raw.githubusercontent.com/$REPO/main/patches-bundle.json" | grep -o '"version": *"[^"]*"' | cut -d'"' -f4)"
+    [ "$PUBLISHED_VERSION" = "$NEW" ] && break
+done
 [ "$PUBLISHED_VERSION" = "$NEW" ] || fail "published patches-bundle.json reports version '$PUBLISHED_VERSION', expected '$NEW'"
 
 TMP_MPP="$(mktemp --suffix=.mpp)"
