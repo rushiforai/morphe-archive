@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-08-07 02:48 UTC",
+  "generatedAt": "2026-08-08 01:48 UTC",
   "configFile": "morphe_archive_config_v14.json",
   "configVersion": 14,
   "repoCount": 127,
   "appCount": 618,
-  "patchCount": 2242,
+  "patchCount": 2260,
   "universalPatchCount": 168,
   "hostCounts": {
     "github.com": 123,
@@ -202,20 +202,12 @@
       "createdDate": "2026-07-28",
       "updatedDate": "2026-07-28",
       "latestChanges": {
-        "title": "1.4.0 (2026-08-06)",
-        "date": "2026-08-06",
+        "title": "1.4.1 (2026-08-07)",
+        "date": "2026-08-07",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "remove pip cache option from setup-python"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "Support SofaTime v1.2.2 (Fixes #1)"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "add sofa time update checker script and github workflow"
+            "text": "Support SofaTime v1.2.3 (Fixes #2)"
           }
         ]
       },
@@ -521,7 +513,7 @@
       "webUrl": "https://github.com/anddea/revanced-patches",
       "addUrl": "https://morphe.software/add-source?github=anddea/revanced-patches",
       "avatarUrl": "https://github.com/anddea.png?size=96",
-      "patchCount": 114,
+      "patchCount": 123,
       "appCount": 2,
       "createdAt": 1784836028530,
       "updatedAt": 1784836028530,
@@ -569,14 +561,14 @@
         {
           "name": "com.google.android.apps.youtube.music",
           "packageName": "com.google.android.apps.youtube.music",
-          "patchCount": 40,
+          "patchCount": 44,
           "iconUrl": "https://play-lh.googleusercontent.com/MyptZXmcCyF59phIWPsNCfHq6zSO_ojEdw_4rMYYWPOGdikSjqeOXcoszBZ053VYpINe5K7ZR9KV1nkFWgxdOw",
           "iconColor": ""
         },
         {
           "name": "com.google.android.youtube",
           "packageName": "com.google.android.youtube",
-          "patchCount": 68,
+          "patchCount": 73,
           "iconUrl": "https://play-lh.googleusercontent.com/QNmuZQc9I6Zbe3mWnSr0hycnENqGFCI5p3yE29Hkxtf22T0IWS6zTrpxULLyyjWpB7ONAXDsDQXnXcVWokl3eg",
           "iconColor": ""
         }
@@ -4420,24 +4412,16 @@
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "2.5.0 (2026-08-03)",
-        "date": "2026-08-03",
+        "title": "2.6.0 (2026-08-06)",
+        "date": "2026-08-06",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "**Gboard:** add the Clipboard Custom Character Limit patch, allowing you to customize the maximum character count for each text clipboard item."
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "**Gboard:** add an option to render only the first 1,000 characters on each clipboard card."
+            "text": "**Gboard:** add a Show sensitive clipboard contents option to reveal the original text of clipboard items marked as sensitive."
           },
           {
             "category": "\u2728 \u65b0\u529f\u80fd",
-            "text": "**Gboard:** \u65b0\u589e Clipboard Custom Character Limit Patch\uff0c\u53ef\u81ea\u8a02\u6bcf\u500b\u6587\u5b57\u526a\u8cbc\u7c3f\u9805\u76ee\u7684\u6700\u5927\u5b57\u5143\u6578\u3002"
-          },
-          {
-            "category": "\u2728 \u65b0\u529f\u80fd",
-            "text": "**Gboard:** \u65b0\u589e\u9078\u9805\uff0c\u53ef\u8b93\u6bcf\u5f35\u526a\u8cbc\u7c3f\u5361\u7247\u50c5\u6e32\u67d3\u524d 1,000 \u500b\u5b57\u5143\u3002"
+            "text": "**Gboard:** \u65b0\u589e\u300c\u986f\u793a\u654f\u611f\u526a\u8cbc\u7c3f\u5167\u5bb9\u300d\u9078\u9805\uff0c\u53ef\u986f\u793a\u88ab\u6a19\u8a18\u70ba\u654f\u611f\u7684\u526a\u8cbc\u7c3f\u9805\u76ee\u539f\u6587\u3002"
           }
         ]
       },
@@ -5190,12 +5174,12 @@
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.17.0 (2026-07-05)",
-        "date": "2026-07-05",
+        "title": "1.19.0 (2026-08-07)",
+        "date": "2026-08-07",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "add Muscle Motion Strength Training patch"
+            "text": "rollback lifesum"
           }
         ]
       },
@@ -5457,19 +5441,19 @@
       "webUrl": "https://github.com/liongalahad/nuviotv-morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=liongalahad/nuviotv-morphe-patches",
       "avatarUrl": "https://github.com/liongalahad.png?size=96",
-      "patchCount": 3,
+      "patchCount": 6,
       "appCount": 1,
       "createdAt": 1785983280124,
       "updatedAt": 1785983280124,
       "createdDate": "2026-08-06",
       "updatedDate": "2026-08-06",
       "latestChanges": {
-        "title": "1.0.0-dev.14 (2026-08-06)",
-        "date": "2026-08-06",
+        "title": "1.0.0-dev.16 (2026-08-07)",
+        "date": "2026-08-07",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "add SDH subtitle marking and shared settings layout"
+            "text": "add local subtitle importing"
           }
         ]
       },
@@ -5477,7 +5461,7 @@
         {
           "name": "NuvioTV",
           "packageName": "com.nuvio.tv",
-          "patchCount": 3,
+          "patchCount": 6,
           "iconUrl": "",
           "iconColor": "#111827"
         }
@@ -5493,19 +5477,19 @@
       "webUrl": "https://github.com/liongalahad/nuviotv-patches",
       "addUrl": "https://morphe.software/add-source?github=liongalahad/nuviotv-patches",
       "avatarUrl": "https://github.com/liongalahad.png?size=96",
-      "patchCount": 3,
+      "patchCount": 6,
       "appCount": 1,
       "createdAt": 1785897756603,
       "updatedAt": 1785897756603,
       "createdDate": "2026-08-05",
       "updatedDate": "2026-08-05",
       "latestChanges": {
-        "title": "1.0.0-dev.14 (2026-08-06)",
-        "date": "2026-08-06",
+        "title": "1.0.0-dev.16 (2026-08-07)",
+        "date": "2026-08-07",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "add SDH subtitle marking and shared settings layout"
+            "text": "add local subtitle importing"
           }
         ]
       },
@@ -5513,7 +5497,7 @@
         {
           "name": "NuvioTV",
           "packageName": "com.nuvio.tv",
-          "patchCount": 3,
+          "patchCount": 6,
           "iconUrl": "",
           "iconColor": "#111827"
         }
@@ -5529,19 +5513,19 @@
       "webUrl": "https://github.com/logm1lo/logm1lo-patches",
       "addUrl": "https://morphe.software/add-source?github=logm1lo/logm1lo-patches",
       "avatarUrl": "https://github.com/logm1lo.png?size=96",
-      "patchCount": 1,
-      "appCount": 1,
+      "patchCount": 4,
+      "appCount": 2,
       "createdAt": 1785983280370,
       "updatedAt": 1785983280370,
       "createdDate": "2026-08-06",
       "updatedDate": "2026-08-06",
       "latestChanges": {
-        "title": "1.0.10 (2026-08-05)",
-        "date": "2026-08-05",
+        "title": "1.1.0 (2026-08-08)",
+        "date": "2026-08-08",
         "items": [
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "sync lockfile with @semantic-release/git v11"
+            "category": "New Features",
+            "text": "add Cube Solver patches, fix Calistree Dart unlock"
           }
         ]
       },
@@ -5549,7 +5533,14 @@
         {
           "name": "Calistree",
           "packageName": "com.calistree.calistree",
-          "patchCount": 1,
+          "patchCount": 2,
+          "iconUrl": "",
+          "iconColor": "#4CAF50"
+        },
+        {
+          "name": "Cube Solver",
+          "packageName": "com.jeffprod.cubesolver",
+          "patchCount": 2,
           "iconUrl": "",
           "iconColor": "#4CAF50"
         }
@@ -5651,12 +5642,12 @@
       "createdDate": "2026-07-26",
       "updatedDate": "2026-07-26",
       "latestChanges": {
-        "title": "1.0.0 (2026-08-02)",
-        "date": "2026-08-02",
+        "title": "1.0.2 (2026-08-07)",
+        "date": "2026-08-07",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "add Yandex VoT as add-on for Morphe Patches"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Use more verbose error message if morphe patches were not included"
           }
         ]
       },
@@ -9465,12 +9456,12 @@
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.11.6 (2026-08-06)",
-        "date": "2026-08-06",
+        "title": "1.11.8 (2026-08-07)",
+        "date": "2026-08-07",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**ozon:** preserve navbar background"
+            "text": "**ozon:** scope promo navbar removal"
           }
         ]
       },
@@ -11886,8 +11877,8 @@
       ],
       "patches": [
         "Disable PairIP DRM",
-        "Unlock premium",
-        "Unlock Premium"
+        "Unlock Premium",
+        "Unlock premium"
       ],
       "patchDetails": [
         {
@@ -11895,12 +11886,12 @@
           "description": "Disables PairIP signature verification and Google Play LVL license check. Required for the app to launch after re-signing."
         },
         {
-          "name": "Unlock premium",
-          "description": "Unlocks all AT4K premium features by forcing the premium status to true."
-        },
-        {
           "name": "Unlock Premium",
           "description": "Unlocks all premium features by forcing the premium state to true in the purchase manager."
+        },
+        {
+          "name": "Unlock premium",
+          "description": "Unlocks all AT4K premium features by forcing the premium status to true."
         }
       ],
       "versions": [
@@ -12600,12 +12591,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.11.6 (2026-08-06)",
-            "date": "2026-08-06",
+            "title": "1.11.8 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**ozon:** preserve navbar background"
+                "text": "**ozon:** scope promo navbar removal"
               }
             ]
           },
@@ -15971,12 +15962,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/logm1lo/logm1lo-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/logm1lo.png?size=96",
           "latestChanges": {
-            "title": "1.0.10 (2026-08-05)",
-            "date": "2026-08-05",
+            "title": "1.1.0 (2026-08-08)",
+            "date": "2026-08-08",
             "items": [
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "sync lockfile with @semantic-release/git v11"
+                "category": "New Features",
+                "text": "add Cube Solver patches, fix Calistree Dart unlock"
               }
             ]
           },
@@ -15989,6 +15980,10 @@
           },
           "patches": [
             {
+              "name": "Dart Pro gates (libapp.so)",
+              "description": "Applies the 10 Dart AOT hex patches to libapp.so that unlock the native Pro gates."
+            },
+            {
               "name": "Premium Unlock",
               "description": "Unlocks all Calistree PRO features."
             }
@@ -15999,9 +15994,14 @@
         }
       ],
       "patches": [
+        "Dart Pro gates (libapp.so)",
         "Premium Unlock"
       ],
       "patchDetails": [
+        {
+          "name": "Dart Pro gates (libapp.so)",
+          "description": "Applies the 10 Dart AOT hex patches to libapp.so that unlock the native Pro gates."
+        },
         {
           "name": "Premium Unlock",
           "description": "Unlocks all Calistree PRO features."
@@ -21886,24 +21886,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/jasonwu1994/Gboard-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/jasonwu1994.png?size=96",
           "latestChanges": {
-            "title": "2.5.0 (2026-08-03)",
-            "date": "2026-08-03",
+            "title": "2.6.0 (2026-08-06)",
+            "date": "2026-08-06",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**Gboard:** add the Clipboard Custom Character Limit patch, allowing you to customize the maximum character count for each text clipboard item."
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "**Gboard:** add an option to render only the first 1,000 characters on each clipboard card."
+                "text": "**Gboard:** add a Show sensitive clipboard contents option to reveal the original text of clipboard items marked as sensitive."
               },
               {
                 "category": "\u2728 \u65b0\u529f\u80fd",
-                "text": "**Gboard:** \u65b0\u589e Clipboard Custom Character Limit Patch\uff0c\u53ef\u81ea\u8a02\u6bcf\u500b\u6587\u5b57\u526a\u8cbc\u7c3f\u9805\u76ee\u7684\u6700\u5927\u5b57\u5143\u6578\u3002"
-              },
-              {
-                "category": "\u2728 \u65b0\u529f\u80fd",
-                "text": "**Gboard:** \u65b0\u589e\u9078\u9805\uff0c\u53ef\u8b93\u6bcf\u5f35\u526a\u8cbc\u7c3f\u5361\u7247\u50c5\u6e32\u67d3\u524d 1,000 \u500b\u5b57\u5143\u3002"
+                "text": "**Gboard:** \u65b0\u589e\u300c\u986f\u793a\u654f\u611f\u526a\u8cbc\u7c3f\u5167\u5bb9\u300d\u9078\u9805\uff0c\u53ef\u986f\u793a\u88ab\u6a19\u8a18\u70ba\u654f\u611f\u7684\u526a\u8cbc\u7c3f\u9805\u76ee\u539f\u6587\u3002"
               }
             ]
           },
@@ -24003,12 +23995,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/kondratjev/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/kondratjev.png?size=96",
           "latestChanges": {
-            "title": "1.17.0 (2026-07-05)",
-            "date": "2026-07-05",
+            "title": "1.19.0 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Muscle Motion Strength Training patch"
+                "text": "rollback lifesum"
               }
             ]
           },
@@ -24029,12 +24021,12 @@
               "description": "Disables the OneTrust consent/cookies popup on first launch."
             },
             {
-              "name": "Enable SoundCloud Go+",
-              "description": "Enables all premium features, hides upsell UI and ads."
+              "name": "Enable SoundCloud Go",
+              "description": "Enables SoundCloud Go premium features."
             }
           ],
           "versions": [
-            "2026.06.25-release"
+            "2026.07.23-release"
           ]
         },
         {
@@ -24112,7 +24104,6 @@
         "Disable telemetry",
         "Enable offline sync",
         "Enable SoundCloud Go",
-        "Enable SoundCloud Go+",
         "Hide ads"
       ],
       "patchDetails": [
@@ -24138,11 +24129,7 @@
         },
         {
           "name": "Enable SoundCloud Go",
-          "description": "Enables app features locked behind the subscription paywall."
-        },
-        {
-          "name": "Enable SoundCloud Go+",
-          "description": "Enables all premium features, hides upsell UI and ads."
+          "description": "Enables SoundCloud Go premium features."
         },
         {
           "name": "Hide ads",
@@ -24152,7 +24139,7 @@
       "versions": [
         "2025.05.27-release",
         "2026.04.27-release",
-        "2026.06.25-release"
+        "2026.07.23-release"
       ],
       "iconColor": "#000000",
       "iconUrl": "https://play-lh.googleusercontent.com/rfmCNUApzYntPTdAVmor5vpaOGxIUJWNlpED2pwKcDuCTUaf_2vJlOALNzX1PiejSgZIuAT8k0F5xIBU58JG3g"
@@ -24915,8 +24902,8 @@
         }
       ],
       "patches": [
-        "Disable ad-free banner",
         "Disable Ad-Free Banner",
+        "Disable ad-free banner",
         "Disable blog notification reminder",
         "Disable dashboard ads",
         "Disable gift message popup",
@@ -24928,12 +24915,12 @@
       ],
       "patchDetails": [
         {
-          "name": "Disable ad-free banner",
-          "description": "Hides the banner with the frog that prompts you to buy Tumblr Ad-Free."
-        },
-        {
           "name": "Disable Ad-Free Banner",
           "description": "Disables the banner with a frog, prompting you to buy Tumblr Ad-Free."
+        },
+        {
+          "name": "Disable ad-free banner",
+          "description": "Hides the banner with the frog that prompts you to buy Tumblr Ad-Free."
         },
         {
           "name": "Disable blog notification reminder",
@@ -28368,9 +28355,49 @@
       "packageName": "com.jeffprod.cubesolver",
       "name": "Cube Solver",
       "repos": [
+        "logm1lo/logm1lo-patches",
         "MiguelNinja19/miguel-morphe-patches"
       ],
       "sources": [
+        {
+          "repo": "logm1lo/logm1lo-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/logm1lo/logm1lo-patches",
+          "addUrl": "https://morphe.software/add-source?github=logm1lo/logm1lo-patches",
+          "source": "https://raw.githubusercontent.com/logm1lo/logm1lo-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/logm1lo/logm1lo-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/logm1lo.png?size=96",
+          "latestChanges": {
+            "title": "1.1.0 (2026-08-08)",
+            "date": "2026-08-08",
+            "items": [
+              {
+                "category": "New Features",
+                "text": "add Cube Solver patches, fix Calistree Dart unlock"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-jeffprod-cubesolver-logm1lo-logm1lo-patches",
+            "releaseTag": "app-com-jeffprod-cubesolver-logm1lo-logm1lo-patches",
+            "assetName": "cube-solver-logm1lo-logm1lo-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Puzzles Unlock",
+              "description": "Unlocks all puzzles."
+            },
+            {
+              "name": "Remove Ads",
+              "description": "Removes ads."
+            }
+          ],
+          "versions": [
+            "5.0.3"
+          ]
+        },
         {
           "repo": "MiguelNinja19/miguel-morphe-patches",
           "host": "github.com",
@@ -28438,6 +28465,8 @@
       "patches": [
         "Bypass PairIP integrity check",
         "Bypass PairIP manifest",
+        "Puzzles Unlock",
+        "Remove Ads",
         "Remove ads",
         "Unlock all designs"
       ],
@@ -28449,6 +28478,14 @@
         {
           "name": "Bypass PairIP manifest",
           "description": "Modifies AndroidManifest.xml to skip the PairIP Application class, remove LicenseActivity, and remove CHECK_LICENSE permission. Part of the PairIP bypass."
+        },
+        {
+          "name": "Puzzles Unlock",
+          "description": "Unlocks all puzzles."
+        },
+        {
+          "name": "Remove Ads",
+          "description": "Removes ads."
         },
         {
           "name": "Remove ads",
@@ -30859,12 +30896,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/kondratjev/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/kondratjev.png?size=96",
           "latestChanges": {
-            "title": "1.17.0 (2026-07-05)",
-            "date": "2026-07-05",
+            "title": "1.19.0 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Muscle Motion Strength Training patch"
+                "text": "rollback lifesum"
               }
             ]
           },
@@ -30890,7 +30927,7 @@
             }
           ],
           "versions": [
-            "11.6.0.1"
+            "11.7.0.1"
           ]
         }
       ],
@@ -30914,7 +30951,7 @@
         }
       ],
       "versions": [
-        "11.6.0.1"
+        "11.7.0.1"
       ],
       "iconColor": "#00897B",
       "iconUrl": "https://play-lh.googleusercontent.com/dVbMRKkDJvcMVNr9SjMjoEW9fFF1PAQakQ4eASAWORWcH1AsTwHMefo0xOFFmiGfvFk40hpPCG7ezbO0uH03"
@@ -38050,12 +38087,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/kondratjev/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/kondratjev.png?size=96",
           "latestChanges": {
-            "title": "1.17.0 (2026-07-05)",
-            "date": "2026-07-05",
+            "title": "1.19.0 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Muscle Motion Strength Training patch"
+                "text": "rollback lifesum"
               }
             ]
           },
@@ -38912,12 +38949,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/kondratjev/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/kondratjev.png?size=96",
           "latestChanges": {
-            "title": "1.17.0 (2026-07-05)",
-            "date": "2026-07-05",
+            "title": "1.19.0 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Muscle Motion Strength Training patch"
+                "text": "rollback lifesum"
               }
             ]
           },
@@ -38935,7 +38972,7 @@
             }
           ],
           "versions": [
-            "1.575"
+            "1.583"
           ]
         }
       ],
@@ -38955,7 +38992,7 @@
       ],
       "versions": [
         "1.551",
-        "1.575"
+        "1.583"
       ],
       "iconColor": "#000000",
       "iconUrl": "https://play-lh.googleusercontent.com/AX-6eXLHm5zP_VdCnZR5l0JCKpfkA2SgUHHtiLKl-o4zzh5Z21mDbHrjeUYEasrSjDYGWBJDhcKK8e1WjKEM"
@@ -39864,12 +39901,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/kondratjev/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/kondratjev.png?size=96",
           "latestChanges": {
-            "title": "1.17.0 (2026-07-05)",
-            "date": "2026-07-05",
+            "title": "1.19.0 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Muscle Motion Strength Training patch"
+                "text": "rollback lifesum"
               }
             ]
           },
@@ -39887,7 +39924,7 @@
             }
           ],
           "versions": [
-            "9.50.3"
+            "9.51.0"
           ]
         }
       ],
@@ -39901,7 +39938,7 @@
         }
       ],
       "versions": [
-        "9.50.3"
+        "9.51.0"
       ],
       "iconColor": "#00A99D",
       "iconUrl": "https://play-lh.googleusercontent.com/epxe9TPkOYoDDMcBd6yw1AO0CI62rZ1ny-eJZXmFEsMsnoEcfGXKTcE38rzmDbSRW99zWLRB3XtorZSAq9Hj6Q"
@@ -41668,12 +41705,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/kondratjev/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/kondratjev.png?size=96",
           "latestChanges": {
-            "title": "1.17.0 (2026-07-05)",
-            "date": "2026-07-05",
+            "title": "1.19.0 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Muscle Motion Strength Training patch"
+                "text": "rollback lifesum"
               }
             ]
           },
@@ -43710,12 +43747,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/liongalahad/nuviotv-morphe-patches/master/CHANGELOG.md",
           "avatarUrl": "https://github.com/liongalahad.png?size=96",
           "latestChanges": {
-            "title": "1.0.0-dev.14 (2026-08-06)",
-            "date": "2026-08-06",
+            "title": "1.0.0-dev.16 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add SDH subtitle marking and shared settings layout"
+                "text": "add local subtitle importing"
               }
             ]
           },
@@ -43728,8 +43765,20 @@
           },
           "patches": [
             {
+              "name": "Allow Importing Subs from Local Storage",
+              "description": "Adds Local Storage to Nuvio's ExoPlayer subtitle menu and imports subtitle files from the device."
+            },
+            {
+              "name": "Binge Group Manual Fallback",
+              "description": "Adds Morphe > Playback control to open the source picker when no preferred binge-group stream is found."
+            },
+            {
               "name": "Mark SDH Subtitles",
-              "description": "Marks detected English SDH tracks in embedded and addon subtitle lists."
+              "description": "Marks explicitly labelled SDH tracks and detected English SDH subtitle files."
+            },
+            {
+              "name": "Random Episode",
+              "description": "Adds Morphe > Detail Page > Show Random Episode Button and random series playback."
             },
             {
               "name": "Rating Visibility",
@@ -43753,12 +43802,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/liongalahad/nuviotv-patches/master/CHANGELOG.md",
           "avatarUrl": "https://github.com/liongalahad.png?size=96",
           "latestChanges": {
-            "title": "1.0.0-dev.14 (2026-08-06)",
-            "date": "2026-08-06",
+            "title": "1.0.0-dev.16 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add SDH subtitle marking and shared settings layout"
+                "text": "add local subtitle importing"
               }
             ]
           },
@@ -43771,8 +43820,20 @@
           },
           "patches": [
             {
+              "name": "Allow Importing Subs from Local Storage",
+              "description": "Adds Local Storage to Nuvio's ExoPlayer subtitle menu and imports subtitle files from the device."
+            },
+            {
+              "name": "Binge Group Manual Fallback",
+              "description": "Adds Morphe > Playback control to open the source picker when no preferred binge-group stream is found."
+            },
+            {
               "name": "Mark SDH Subtitles",
-              "description": "Marks detected English SDH tracks in embedded and addon subtitle lists."
+              "description": "Marks explicitly labelled SDH tracks and detected English SDH subtitle files."
+            },
+            {
+              "name": "Random Episode",
+              "description": "Adds Morphe > Detail Page > Show Random Episode Button and random series playback."
             },
             {
               "name": "Rating Visibility",
@@ -43789,14 +43850,29 @@
         }
       ],
       "patches": [
+        "Allow Importing Subs from Local Storage",
+        "Binge Group Manual Fallback",
         "Mark SDH Subtitles",
+        "Random Episode",
         "Rating Visibility",
         "Remove SDH Annotations"
       ],
       "patchDetails": [
         {
+          "name": "Allow Importing Subs from Local Storage",
+          "description": "Adds Local Storage to Nuvio's ExoPlayer subtitle menu and imports subtitle files from the device."
+        },
+        {
+          "name": "Binge Group Manual Fallback",
+          "description": "Adds Morphe > Playback control to open the source picker when no preferred binge-group stream is found."
+        },
+        {
           "name": "Mark SDH Subtitles",
-          "description": "Marks detected English SDH tracks in embedded and addon subtitle lists."
+          "description": "Marks explicitly labelled SDH tracks and detected English SDH subtitle files."
+        },
+        {
+          "name": "Random Episode",
+          "description": "Adds Morphe > Detail Page > Show Random Episode Button and random series playback."
         },
         {
           "name": "Rating Visibility",
@@ -44560,12 +44636,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/kondratjev/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/kondratjev.png?size=96",
           "latestChanges": {
-            "title": "1.17.0 (2026-07-05)",
-            "date": "2026-07-05",
+            "title": "1.19.0 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Muscle Motion Strength Training patch"
+                "text": "rollback lifesum"
               }
             ]
           },
@@ -44710,12 +44786,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.11.6 (2026-08-06)",
-            "date": "2026-08-06",
+            "title": "1.11.8 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**ozon:** preserve navbar background"
+                "text": "**ozon:** scope promo navbar removal"
               }
             ]
           },
@@ -44734,7 +44810,8 @@
           ],
           "versions": [
             "19.27.0",
-            "19.28.0"
+            "19.28.0",
+            "19.29.0"
           ]
         }
       ],
@@ -44784,7 +44861,8 @@
       ],
       "versions": [
         "19.27.0",
-        "19.28.0"
+        "19.28.0",
+        "19.29.0"
       ],
       "iconColor": "#005BFF",
       "iconUrl": "https://play-lh.googleusercontent.com/Rz5gPi2gs8Vs8VZVn7mpJQpIB7XzeeErGGNAMIdr9NmWJigvmFpaWtMlpyC2rdieC6gxnpmQ5guTUUMjnZn97g"
@@ -45084,12 +45162,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/kondratjev/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/kondratjev.png?size=96",
           "latestChanges": {
-            "title": "1.17.0 (2026-07-05)",
-            "date": "2026-07-05",
+            "title": "1.19.0 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Muscle Motion Strength Training patch"
+                "text": "rollback lifesum"
               }
             ]
           },
@@ -45920,12 +45998,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/kondratjev/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/kondratjev.png?size=96",
           "latestChanges": {
-            "title": "1.17.0 (2026-07-05)",
-            "date": "2026-07-05",
+            "title": "1.19.0 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Muscle Motion Strength Training patch"
+                "text": "rollback lifesum"
               }
             ]
           },
@@ -45947,7 +46025,7 @@
             }
           ],
           "versions": [
-            "0.6.12"
+            "0.6.18"
           ]
         }
       ],
@@ -45966,7 +46044,7 @@
         }
       ],
       "versions": [
-        "0.6.12"
+        "0.6.18"
       ],
       "iconColor": "#7C4DFF",
       "iconUrl": "https://play-lh.googleusercontent.com/5zIWi1LMtVRPpffktQtKhPoJNRzorFE8ycINm3fl2i0-_8JQZI30qZN7vkla3b6HrOMLO-bo9OpzZohZSnay"
@@ -48322,8 +48400,8 @@
       ],
       "patches": [
         "Disable tracking",
-        "Unlock premium",
-        "Unlock Premium"
+        "Unlock Premium",
+        "Unlock premium"
       ],
       "patchDetails": [
         {
@@ -48331,12 +48409,12 @@
           "description": "Disables analytics and crash reporting."
         },
         {
-          "name": "Unlock premium",
-          "description": "Unlocks all premium features."
-        },
-        {
           "name": "Unlock Premium",
           "description": "Unlocks all premium features by bypassing the native library premium check."
+        },
+        {
+          "name": "Unlock premium",
+          "description": "Unlocks all premium features."
         }
       ],
       "versions": [
@@ -50871,12 +50949,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/kondratjev/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/kondratjev.png?size=96",
           "latestChanges": {
-            "title": "1.17.0 (2026-07-05)",
-            "date": "2026-07-05",
+            "title": "1.19.0 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Muscle Motion Strength Training patch"
+                "text": "rollback lifesum"
               }
             ]
           },
@@ -50914,7 +50992,7 @@
             }
           ],
           "versions": [
-            "1.104.0.2"
+            "1.106.0.3"
           ]
         }
       ],
@@ -50963,7 +51041,6 @@
         }
       ],
       "versions": [
-        "1.104.0.2",
         "1.106.0.3"
       ],
       "iconColor": "#0077FF",
@@ -53024,20 +53101,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/alan7383/sofatime-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/alan7383.png?size=96",
           "latestChanges": {
-            "title": "1.4.0 (2026-08-06)",
-            "date": "2026-08-06",
+            "title": "1.4.1 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "remove pip cache option from setup-python"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "Support SofaTime v1.2.2 (Fixes #1)"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "add sofa time update checker script and github workflow"
+                "text": "Support SofaTime v1.2.3 (Fixes #2)"
               }
             ]
           },
@@ -53067,7 +53136,8 @@
             }
           ],
           "versions": [
-            "1.2.2"
+            "1.2.2",
+            "1.2.3"
           ]
         }
       ],
@@ -53096,7 +53166,8 @@
         }
       ],
       "versions": [
-        "1.2.2"
+        "1.2.2",
+        "1.2.3"
       ],
       "iconColor": "#1E1E2E",
       "iconUrl": ""
@@ -56145,7 +56216,7 @@
           "patches": [
             {
               "name": "Ad Removal",
-              "description": "Removes all ad displays: navigation bar banner, native feed ads, live streaming banner ads, live video feed ads, live square ads, conversation Google ads, marriage guide card, four-select-one card, daily selection card, visitor list ads, likers ads, meet likers ads, meet visitor ads"
+              "description": "Removes all ad displays: navigation bar banner, native feed ads, live streaming banner ads, live video feed ads, live square ads, conversation Google ads, marriage guide card, four-select-one card, daily selection card, visitor list ads, likers ads, meet likers ads, meet visitor ads, splash screen ads, profile photo carousel ads, incentive video ads, fake splash view, video ad player, official advert, ad reward dialogs, live streaming ad user, treasure prize ads"
             },
             {
               "name": "Analytics Disable",
@@ -56153,7 +56224,7 @@
             },
             {
               "name": "Dialog Cleanup",
-              "description": "Removes annoying promotional dialogs: 5-star rating, appstore rating, version upgrade, offline popup, notification permission, phone auth prompts, purchase pages"
+              "description": "Removes annoying promotional dialogs: 5-star rating, appstore rating, version upgrade, offline popup, notification permission, phone auth prompts, purchase pages, purchase confirm, overheat popup, phone verify"
             },
             {
               "name": "GMS Compatibility",
@@ -56165,7 +56236,7 @@
             },
             {
               "name": "Messaging Enhancement",
-              "description": "Removes message limits, unlimited pin chat, voice/video calls, quick chat, typing indicator, free gifts, letter, greeting, ice breaker, read receipts, AI translation, message recall, group chat, live chat, message filter, chat partner config, ODiamond visitor config, prologue config, love buzz data, secret crush limit, boost limit"
+              "description": "Removes message limits, unlimited pin chat, voice/video calls, quick chat, typing indicator, free gifts, letter, greeting, ice breaker, read receipts, AI translation, message recall, group chat, live chat, message filter, chat partner config, ODiamond visitor config, prologue config, love buzz data, secret crush limit, boost limit, message tab revision, collapsible conversation, chat helper AI, call duration, conversation refresh interval"
             },
             {
               "name": "Premium Unlock",
@@ -56204,7 +56275,7 @@
       "patchDetails": [
         {
           "name": "Ad Removal",
-          "description": "Removes all ad displays: navigation bar banner, native feed ads, live streaming banner ads, live video feed ads, live square ads, conversation Google ads, marriage guide card, four-select-one card, daily selection card, visitor list ads, likers ads, meet likers ads, meet visitor ads"
+          "description": "Removes all ad displays: navigation bar banner, native feed ads, live streaming banner ads, live video feed ads, live square ads, conversation Google ads, marriage guide card, four-select-one card, daily selection card, visitor list ads, likers ads, meet likers ads, meet visitor ads, splash screen ads, profile photo carousel ads, incentive video ads, fake splash view, video ad player, official advert, ad reward dialogs, live streaming ad user, treasure prize ads"
         },
         {
           "name": "Analytics Disable",
@@ -56212,7 +56283,7 @@
         },
         {
           "name": "Dialog Cleanup",
-          "description": "Removes annoying promotional dialogs: 5-star rating, appstore rating, version upgrade, offline popup, notification permission, phone auth prompts, purchase pages"
+          "description": "Removes annoying promotional dialogs: 5-star rating, appstore rating, version upgrade, offline popup, notification permission, phone auth prompts, purchase pages, purchase confirm, overheat popup, phone verify"
         },
         {
           "name": "GMS Compatibility",
@@ -56224,7 +56295,7 @@
         },
         {
           "name": "Messaging Enhancement",
-          "description": "Removes message limits, unlimited pin chat, voice/video calls, quick chat, typing indicator, free gifts, letter, greeting, ice breaker, read receipts, AI translation, message recall, group chat, live chat, message filter, chat partner config, ODiamond visitor config, prologue config, love buzz data, secret crush limit, boost limit"
+          "description": "Removes message limits, unlimited pin chat, voice/video calls, quick chat, typing indicator, free gifts, letter, greeting, ice breaker, read receipts, AI translation, message recall, group chat, live chat, message filter, chat partner config, ODiamond visitor config, prologue config, love buzz data, secret crush limit, boost limit, message tab revision, collapsible conversation, chat helper AI, call duration, conversation refresh interval"
         },
         {
           "name": "Premium Unlock",
@@ -56440,12 +56511,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.11.6 (2026-08-06)",
-            "date": "2026-08-06",
+            "title": "1.11.8 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**ozon:** preserve navbar background"
+                "text": "**ozon:** scope promo navbar removal"
               }
             ]
           },
@@ -59145,8 +59216,8 @@
       ],
       "patches": [
         "Disable analytics",
-        "Disable telemetry",
         "Disable Telemetry",
+        "Disable telemetry",
         "Disable update check",
         "Enable premium features",
         "GMS sign-in bypass",
@@ -59190,11 +59261,11 @@
           "description": "Suppresses Truecaller's CleverTap behavioural event tracking to prevent user-activity telemetry."
         },
         {
-          "name": "Disable telemetry",
+          "name": "Disable Telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
-          "name": "Disable Telemetry",
+          "name": "Disable telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
@@ -61812,12 +61883,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.11.6 (2026-08-06)",
-            "date": "2026-08-06",
+            "title": "1.11.8 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**ozon:** preserve navbar background"
+                "text": "**ozon:** scope promo navbar removal"
               }
             ]
           },
@@ -62035,12 +62106,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/kondratjev/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/kondratjev.png?size=96",
           "latestChanges": {
-            "title": "1.17.0 (2026-07-05)",
-            "date": "2026-07-05",
+            "title": "1.19.0 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Muscle Motion Strength Training patch"
+                "text": "rollback lifesum"
               }
             ]
           },
@@ -62728,12 +62799,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/kondratjev/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/kondratjev.png?size=96",
           "latestChanges": {
-            "title": "1.17.0 (2026-07-05)",
-            "date": "2026-07-05",
+            "title": "1.19.0 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Muscle Motion Strength Training patch"
+                "text": "rollback lifesum"
               }
             ]
           },
@@ -62884,6 +62955,10 @@
               "description": "Adds Double-tap to seek values that are specified in patch options."
             },
             {
+              "name": "Custom DPI",
+              "description": "Forces a higher display density for this app only, so the whole UI scales up without changing system density."
+            },
+            {
               "name": "Custom header for YouTube",
               "description": "Applies a custom header in the top left corner within the app."
             },
@@ -62894,10 +62969,6 @@
             {
               "name": "Description components",
               "description": "Adds options to hide and disable description components."
-            },
-            {
-              "name": "Disable forced auto audio tracks",
-              "description": "Adds an option to disable audio tracks from being automatically enabled."
             },
             {
               "name": "Disable forced auto captions",
@@ -62938,6 +63009,10 @@
             {
               "name": "Enable gradient loading screen",
               "description": "Adds an option to enable the gradient loading screen."
+            },
+            {
+              "name": "Force original audio",
+              "description": "Adds an option to disable audio tracks from being automatically enabled."
             },
             {
               "name": "Force player buttons background",
@@ -63024,6 +63099,10 @@
               "description": "Adds options to display useful overlay buttons in the video player."
             },
             {
+              "name": "Playback in feeds",
+              "description": "Adds the 'Playback in feeds' setting of YouTube to the RVX settings, where it is always available even if YouTube hides it."
+            },
+            {
               "name": "Player components",
               "description": "Adds options to hide or change components related to the video player."
             },
@@ -63064,6 +63143,10 @@
               "description": "Applies mandatory patches to implement ReVanced Extended settings into the application."
             },
             {
+              "name": "Settings menu filter",
+              "description": "Adds an option to hide items on the standard YouTube settings screen by their visible name."
+            },
+            {
               "name": "Shorts components",
               "description": "Adds options to hide or change components related to YouTube Shorts."
             },
@@ -63078,6 +63161,10 @@
             {
               "name": "Spoof app version",
               "description": "Adds options to spoof the YouTube client version. This can be used to restore old UI elements and features."
+            },
+            {
+              "name": "Spoof video streams",
+              "description": "Adds options to spoof the client video streams to fix playback."
             },
             {
               "name": "Spoof watch history",
@@ -63110,16 +63197,15 @@
             {
               "name": "Voice Over Translation",
               "description": "Adds an option to enable Yandex voice-over translation of video audio tracks."
+            },
+            {
+              "name": "Wide search bar",
+              "description": "Adds a wide search bar to the top of the home and subscription feed."
             }
           ],
           "versions": [
             "19.43.41",
-            "19.44.39",
-            "19.47.53",
             "20.05.46",
-            "20.21.37",
-            "20.31.42",
-            "20.47.62",
             "20.51.39"
           ]
         },
@@ -63257,12 +63343,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/MarcaDian/morphe-patches-yavot/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/MarcaDian.png?size=96",
           "latestChanges": {
-            "title": "1.0.0 (2026-08-02)",
-            "date": "2026-08-02",
+            "title": "1.0.2 (2026-08-07)",
+            "date": "2026-08-07",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "add Yandex VoT as add-on for Morphe Patches"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Use more verbose error message if morphe patches were not included"
               }
             ]
           },
@@ -64350,6 +64436,7 @@
         "Custom branding icon for YouTube",
         "Custom branding name for YouTube",
         "Custom double tap length",
+        "Custom DPI",
         "Custom header for YouTube",
         "Custom player overlay opacity",
         "Custom Shorts action buttons",
@@ -64421,6 +64508,7 @@
         "Overlay buttons",
         "Override YouTube Music buttons",
         "Play all",
+        "Playback in feeds",
         "Playback speed",
         "Player components",
         "Reload video",
@@ -64548,6 +64636,10 @@
         {
           "name": "Custom double tap length",
           "description": "Adds Double-tap to seek values that are specified in patch options."
+        },
+        {
+          "name": "Custom DPI",
+          "description": "Forces a higher display density for this app only, so the whole UI scales up without changing system density."
         },
         {
           "name": "Custom header for YouTube",
@@ -64832,6 +64924,10 @@
         {
           "name": "Play all",
           "description": "Adds an option to play all the videos from a channel and to display play all button in the video player."
+        },
+        {
+          "name": "Playback in feeds",
+          "description": "Adds the 'Playback in feeds' setting of YouTube to the RVX settings, where it is always available even if YouTube hides it."
         },
         {
           "name": "Playback speed",
@@ -65124,10 +65220,6 @@
               "description": "Adds an option to disable redirection to the next track when clicking the Dislike button."
             },
             {
-              "name": "Disable forced auto audio tracks",
-              "description": "Adds an option to disable audio tracks from being automatically enabled."
-            },
-            {
               "name": "Disable forced auto captions",
               "description": "Adds an option to disable captions from being automatically enabled."
             },
@@ -65150,6 +65242,10 @@
             {
               "name": "Flyout menu components",
               "description": "Adds options to hide or change flyout menu components."
+            },
+            {
+              "name": "Force original audio",
+              "description": "Adds an option to disable audio tracks from being automatically enabled."
             },
             {
               "name": "GmsCore support",
@@ -65216,12 +65312,28 @@
               "description": "Applies mandatory patches to implement ReVanced Extended settings into the application."
             },
             {
+              "name": "Settings menu filter",
+              "description": "Adds an option to hide items on the standard YouTube Music settings screen by their visible name."
+            },
+            {
               "name": "SponsorBlock",
               "description": "Adds options to enable and configure SponsorBlock, which can skip undesired video segments, such as non-music sections."
             },
             {
               "name": "Spoof app version for lyrics",
               "description": "Adds options to spoof the YouTube Music client version. This can be used to restore old lyrics UI."
+            },
+            {
+              "name": "Spoof video streams",
+              "description": "Adds options to spoof the client video streams to fix playback."
+            },
+            {
+              "name": "Third-party lyrics",
+              "description": "Adds an option to show synced lyrics from LRCLIB or KuGou in the lyrics panel."
+            },
+            {
+              "name": "Track crossfade",
+              "description": "Adds a true dual-player crossfade between consecutive tracks. Requires YouTube Music 9.00 or newer; on older versions the patch is a no-op."
             },
             {
               "name": "Translations for YouTube Music",
@@ -65241,15 +65353,10 @@
             }
           ],
           "versions": [
-            "6.20.51",
-            "6.29.59",
-            "6.42.55",
-            "6.51.53",
-            "7.16.53",
-            "7.25.53",
             "8.12.54",
             "8.28.54",
-            "8.30.54"
+            "8.30.54",
+            "9.15.51"
           ]
         },
         {
@@ -66032,6 +66139,8 @@
         "Spoof app version for lyrics",
         "Spoof video streams",
         "Theme",
+        "Third-party lyrics",
+        "Track crossfade",
         "Translations for YouTube Music",
         "Video playback",
         "Visual preferences icons for YouTube Music",
@@ -66298,6 +66407,14 @@
         {
           "name": "Theme",
           "description": "Adds options for theming and applies a custom background theme (dark background theme defaults to pure black)."
+        },
+        {
+          "name": "Third-party lyrics",
+          "description": "Adds an option to show synced lyrics from LRCLIB or KuGou in the lyrics panel."
+        },
+        {
+          "name": "Track crossfade",
+          "description": "Adds a true dual-player crossfade between consecutive tracks. Requires YouTube Music 9.00 or newer; on older versions the patch is a no-op."
         },
         {
           "name": "Translations for YouTube Music",
@@ -67332,12 +67449,12 @@
       "avatarUrl": "https://github.com/kondratjev.png?size=96",
       "patchCount": 3,
       "latestChanges": {
-        "title": "1.17.0 (2026-07-05)",
-        "date": "2026-07-05",
+        "title": "1.19.0 (2026-08-07)",
+        "date": "2026-08-07",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "add Muscle Motion Strength Training patch"
+            "text": "rollback lifesum"
           }
         ]
       },
@@ -67350,7 +67467,7 @@
         {
           "name": "Disable analytics",
           "description": "Disables analytics and tracking from multiple SDKs, including AppMetrica, MyTracker, Firebase, Sentry, Google Analytics, Amplitude, Mixpanel, Adjust, AppsFlyer, Facebook, MoEngage, and comScore.",
-          "default": true
+          "default": false
         },
         {
           "name": "Disable Pairip license check",
@@ -68244,12 +68361,12 @@
       "avatarUrl": "https://github.com/xob0t.png?size=96",
       "patchCount": 13,
       "latestChanges": {
-        "title": "1.11.6 (2026-08-06)",
-        "date": "2026-08-06",
+        "title": "1.11.8 (2026-08-07)",
+        "date": "2026-08-07",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**ozon:** preserve navbar background"
+            "text": "**ozon:** scope promo navbar removal"
           }
         ]
       },
@@ -68369,19 +68486,19 @@
       "webUrl": "https://github.com/logm1lo/logm1lo-patches",
       "addUrl": "https://morphe.software/add-source?github=logm1lo/logm1lo-patches",
       "avatarUrl": "https://github.com/logm1lo.png?size=96",
-      "patchCount": 1,
-      "appCount": 1,
+      "patchCount": 4,
+      "appCount": 2,
       "createdAt": 1785983280370,
       "updatedAt": 1785983280370,
       "createdDate": "2026-08-06",
       "updatedDate": "2026-08-06",
       "latestChanges": {
-        "title": "1.0.10 (2026-08-05)",
-        "date": "2026-08-05",
+        "title": "1.1.0 (2026-08-08)",
+        "date": "2026-08-08",
         "items": [
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "sync lockfile with @semantic-release/git v11"
+            "category": "New Features",
+            "text": "add Cube Solver patches, fix Calistree Dart unlock"
           }
         ]
       },
@@ -68389,7 +68506,14 @@
         {
           "name": "Calistree",
           "packageName": "com.calistree.calistree",
-          "patchCount": 1,
+          "patchCount": 2,
+          "iconUrl": "",
+          "iconColor": "#4CAF50"
+        },
+        {
+          "name": "Cube Solver",
+          "packageName": "com.jeffprod.cubesolver",
+          "patchCount": 2,
           "iconUrl": "",
           "iconColor": "#4CAF50"
         }
@@ -68405,19 +68529,19 @@
       "webUrl": "https://github.com/liongalahad/nuviotv-morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=liongalahad/nuviotv-morphe-patches",
       "avatarUrl": "https://github.com/liongalahad.png?size=96",
-      "patchCount": 3,
+      "patchCount": 6,
       "appCount": 1,
       "createdAt": 1785983280124,
       "updatedAt": 1785983280124,
       "createdDate": "2026-08-06",
       "updatedDate": "2026-08-06",
       "latestChanges": {
-        "title": "1.0.0-dev.14 (2026-08-06)",
-        "date": "2026-08-06",
+        "title": "1.0.0-dev.16 (2026-08-07)",
+        "date": "2026-08-07",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "add SDH subtitle marking and shared settings layout"
+            "text": "add local subtitle importing"
           }
         ]
       },
@@ -68425,7 +68549,7 @@
         {
           "name": "NuvioTV",
           "packageName": "com.nuvio.tv",
-          "patchCount": 3,
+          "patchCount": 6,
           "iconUrl": "",
           "iconColor": "#111827"
         }
@@ -68477,19 +68601,19 @@
       "webUrl": "https://github.com/liongalahad/nuviotv-patches",
       "addUrl": "https://morphe.software/add-source?github=liongalahad/nuviotv-patches",
       "avatarUrl": "https://github.com/liongalahad.png?size=96",
-      "patchCount": 3,
+      "patchCount": 6,
       "appCount": 1,
       "createdAt": 1785897756603,
       "updatedAt": 1785897756603,
       "createdDate": "2026-08-05",
       "updatedDate": "2026-08-05",
       "latestChanges": {
-        "title": "1.0.0-dev.14 (2026-08-06)",
-        "date": "2026-08-06",
+        "title": "1.0.0-dev.16 (2026-08-07)",
+        "date": "2026-08-07",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "add SDH subtitle marking and shared settings layout"
+            "text": "add local subtitle importing"
           }
         ]
       },
@@ -68497,7 +68621,7 @@
         {
           "name": "NuvioTV",
           "packageName": "com.nuvio.tv",
-          "patchCount": 3,
+          "patchCount": 6,
           "iconUrl": "",
           "iconColor": "#111827"
         }
