@@ -1022,10 +1022,11 @@ HTML = """<!doctype html>
     .visitor-stats {
       display: flex;
       align-items: baseline;
-      justify-content: center;
+      justify-content: flex-end;
       gap: 10px 28px;
       flex-wrap: wrap;
-      margin: 4px auto 12px;
+      grid-column: 1 / -1;
+      margin: 2px 0 0;
       font-size: 14px;
     }
     .visitor-stats .vs-item {
@@ -1252,6 +1253,7 @@ HTML = """<!doctype html>
         grid-column: 1 / -1;
       }
       .top, .toolbar, .row { grid-template-columns: 1fr; }
+      .visitor-stats { justify-content: center; }
       .card-head { grid-template-columns: 1fr; }
       .top { padding: 8px 0 10px; }
       h1 {
@@ -1438,6 +1440,12 @@ HTML = """<!doctype html>
           <div class="stat"><strong id="patchCount">0</strong><span>patches</span></div>
           <div class="stat"><strong id="universalCount">0</strong><span>universal</span></div>
         </div>
+        <div class="visitor-stats" aria-label="Visitor statistics">
+          <span class="vs-item"><strong id="vsToday">–</strong><span>today</span></span>
+          <span class="vs-item"><strong id="vsYesterday">–</strong><span>yesterday</span></span>
+          <span class="vs-item"><strong id="vsOnline">–</strong><span>online</span></span>
+          <span class="vs-item"><strong id="vsTotal">–</strong><span>all time</span></span>
+        </div>
       </div>
       <div class="toolbar">
         <div class="tabs">
@@ -1463,12 +1471,6 @@ HTML = """<!doctype html>
         <a href="http://www.freevisitorcounters.com" class="visitors-credit">free counters</a>
         <script type="text/javascript" src="https://www.freevisitorcounters.com/auth.php?id=f0dabb4db81ab3202c8ff62bee44138e7bc9f57e"></script>
         <script type="text/javascript" src="https://www.freevisitorcounters.com/en/home/counter/1603757/t/5"></script>
-      </div>
-      <div class="visitor-stats" aria-label="Visitor statistics">
-        <span class="vs-item"><strong id="vsToday">–</strong><span>today</span></span>
-        <span class="vs-item"><strong id="vsYesterday">–</strong><span>yesterday</span></span>
-        <span class="vs-item"><strong id="vsOnline">–</strong><span>online</span></span>
-        <span class="vs-item"><strong id="vsTotal">–</strong><span>all time</span></span>
       </div>
     </div>
   </main>
