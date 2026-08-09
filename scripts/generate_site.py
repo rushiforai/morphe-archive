@@ -1028,11 +1028,42 @@ HTML = """<!doctype html>
       margin: 2px 0 0;
     }
     .vs-caption {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
       color: var(--muted);
       font-size: 11px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: .12em;
+    }
+    .vs-live {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      color: var(--warn);
+    }
+    .vs-live::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 6px currentColor;
+      animation: vs-blink 1.6s ease-in-out infinite;
+    }
+    .vs-live.live {
+      color: #4ade80;
+    }
+    .vs-live.cached {
+      color: var(--warn);
+    }
+    @keyframes vs-blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: .35; }
     }
     .vs-items {
       display: flex;
@@ -1453,7 +1484,7 @@ HTML = """<!doctype html>
           <div class="stat"><strong id="universalCount">0</strong><span>universal</span></div>
         </div>
         <div class="visitor-stats" aria-label="Visitor statistics">
-          <span class="vs-caption">Visitor Info</span>
+          <span class="vs-caption">Visitor Info <span id="vsLive" class="vs-live" title="">syncing</span></span>
           <div class="vs-items">
             <span class="vs-item"><strong id="vsToday">–</strong><span>today</span></span>
             <span class="vs-item"><strong id="vsYesterday">–</strong><span>yesterday</span></span>
@@ -1960,26 +1991,63 @@ HTML = """<!doctype html>
         if (visitorStats.total != null) {
           document.getElementById("vsTotal").textContent = visitorStats.total;
         }
-        // Refresh visitor stats live from the counter service (via CORS proxy),
-        // keeping the generated values above as an instant fallback.
-        fetch("https://api.allorigins.win/get?url=" + encodeURIComponent("https://www.freevisitorcounters.com/en/home/stats/id/1603757"))
-          .then((response) => response.json())
-          .then((payload) => {
-            const page = payload.contents || "";
+        // Refresh visitor stats live from the counter service via a CORS proxy.
+        // Retries across two proxy endpoints with backoff; marks the badge LIVE on
+        // success or CACHED if every attempt fails, so stale data is never silent.
+        (function refreshVisitorStats() {
+          const badge = document.getElementById("vsLive");
+          if (!badge) return;
+          const statsUrl = "https://www.freevisitorcounters.com/en/home/stats/id/1603757";
+          const endpoints = [
+            "https://api.allorigins.win/raw?url=" + encodeURIComponent(statsUrl),
+            "https://api.allorigins.win/get?url=" + encodeURIComponent(statsUrl),
+          ];
+          const applyStats = (page) => {
             const overview = page.match(/<th colspan="2">Visitors Overview<\/th>([\s\S]*?)<\/tbody>/);
-            if (!overview) return;
+            if (!overview) return false;
             const fields = { Today: "vsToday", Yesterday: "vsYesterday", All: "vsTotal", Online: "vsOnline" };
             const cell = /<td>(.*?)<\/td>\s*<td>(.*?)<\/td>/g;
             let match;
+            let updated = false;
             while ((match = cell.exec(overview[1]))) {
               const label = match[1].trim();
               const value = match[2].trim();
               if (fields[label] && /^\d+$/.test(value)) {
                 document.getElementById(fields[label]).textContent = value;
+                updated = true;
               }
             }
-          })
-          .catch(() => {});
+            return updated;
+          };
+          const tryEndpoint = (index, attempt) => {
+            return fetch(endpoints[index % endpoints.length])
+              .then((response) => {
+                if (!response.ok) throw new Error("proxy " + response.status);
+                return index % 2 === 0 ? response.text() : response.json();
+              })
+              .then((payload) => {
+                const page = index % 2 === 0 ? payload : (payload.contents || "");
+                if (!applyStats(page)) throw new Error("unparseable stats page");
+                badge.classList.remove("cached");
+                badge.classList.add("live");
+                badge.textContent = "live";
+                badge.title = "Updated just now";
+              })
+              .catch((error) => {
+                if (attempt < 5) {
+                  return new Promise((resolve) => setTimeout(resolve, 900 + attempt * 700)).then(() =>
+                    tryEndpoint(index + 1, attempt + 1)
+                  );
+                }
+                throw error;
+              });
+          };
+          tryEndpoint(0, 0).catch(() => {
+            badge.classList.add("cached");
+            badge.textContent = "cached";
+            badge.title = "Live refresh failed; showing last generated values";
+          });
+        })();
         document.getElementById("generatedAt").textContent = `Generated ${data.generatedAt}`;
         const configLink = document.getElementById("configLink");
         configLink.href = data.configFile;
