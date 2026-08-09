@@ -519,11 +519,30 @@
       display: none;
     }
     .site-counter img {
-      height: auto;
-      width: auto;
-      max-height: none;
-      image-rendering: pixelated;
-      border-radius: 4px;
+      display: none;
+    }
+    .odometer {
+      display: inline-flex;
+      overflow: hidden;
+      border: 1px solid #c9cfd8;
+      border-radius: 8px;
+      background: #e9edf2;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, .25);
+    }
+    .odometer .odigit {
+      min-width: 24px;
+      padding: 5px 3px;
+      text-align: center;
+      font-family: "SF Mono", Consolas, "Courier New", monospace;
+      font-size: 17px;
+      font-weight: 700;
+      line-height: 1.15;
+      color: #262b33;
+      background: linear-gradient(180deg, #f6f8fa, #e2e7ee);
+      border-right: 1px solid #c9cfd8;
+    }
+    .odometer .odigit:last-child {
+      border-right: none;
     }
     .visitor-stats {
       display: flex;
@@ -962,6 +981,9 @@
       <div id="list" class="list"></div>
       <div class="site-counter" aria-label="Visitor counter">
         <span class="visitors-label">Visitors</span>
+        <div class="odometer" id="odometer" aria-label="Visitor count">
+          <span class="odigit">0</span><span class="odigit">0</span><span class="odigit">0</span><span class="odigit">0</span><span class="odigit">0</span><span class="odigit">0</span><span class="odigit">0</span>
+        </div>
         <a href="http://www.freevisitorcounters.com">free counters</a>
         <script type="text/javascript" src="https://www.freevisitorcounters.com/auth.php?id=f0dabb4db81ab3202c8ff62bee44138e7bc9f57e"></script>
         <script type="text/javascript" src="https://www.freevisitorcounters.com/en/home/counter/1603757/t/5"></script>
@@ -1430,6 +1452,14 @@
       });
     }
 
+    function renderOdometer(value) {
+      const digits = document.querySelectorAll("#odometer .odigit");
+      const text = String(value == null ? 0 : value).padStart(digits.length, "0");
+      digits.forEach((cell, index) => {
+        cell.textContent = text[index] || "0";
+      });
+    }
+
     fetch("data.json")
       .then((response) => response.json())
       .then((data) => {
@@ -1442,7 +1472,10 @@
         if (visitorStats.today != null) document.getElementById("vsToday").textContent = visitorStats.today;
         if (visitorStats.yesterday != null) document.getElementById("vsYesterday").textContent = visitorStats.yesterday;
         if (visitorStats.online != null) document.getElementById("vsOnline").textContent = visitorStats.online;
-        if (visitorStats.total != null) document.getElementById("vsTotal").textContent = visitorStats.total;
+        if (visitorStats.total != null) {
+          document.getElementById("vsTotal").textContent = visitorStats.total;
+          renderOdometer(visitorStats.total);
+        }
         // Refresh visitor stats live from the counter service (via CORS proxy),
         // keeping the generated values above as an instant fallback.
         fetch("https://api.allorigins.win/get?url=" + encodeURIComponent("https://www.freevisitorcounters.com/en/home/stats/id/1603757"))
@@ -1459,6 +1492,7 @@
               const value = match[2].trim();
               if (fields[label] && /^\d+$/.test(value)) {
                 document.getElementById(fields[label]).textContent = value;
+                if (label === "All") renderOdometer(parseInt(value, 10));
               }
             }
           })
