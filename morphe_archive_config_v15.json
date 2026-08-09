@@ -771,14 +771,6 @@
                 "updatedAt": 1784837694280
             },
             {
-                "name": "morphe-patches",
-                "source": "https://raw.githubusercontent.com/WZSE/morphe-patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 92,
-                "createdAt": 1784837694404,
-                "updatedAt": 1784837694404
-            },
-            {
                 "name": "pichiwa-patches",
                 "source": "https://raw.githubusercontent.com/alejandrobellver/pichiwa-patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -793,14 +785,6 @@
                 "sortOrder": 94,
                 "createdAt": 1784837694852,
                 "updatedAt": 1784837694852
-            },
-            {
-                "name": "morphe-patches",
-                "source": "https://raw.githubusercontent.com/dexnis-dev/morphe-patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 95,
-                "createdAt": 1784837694892,
-                "updatedAt": 1784837694892
             },
             {
                 "name": "morphe-patches",
@@ -1065,6 +1049,30 @@
                 "sortOrder": 129,
                 "createdAt": 1786067248701,
                 "updatedAt": 1786067248701
+            },
+            {
+                "name": "FTL-Patches",
+                "source": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 130,
+                "createdAt": 1786263569063,
+                "updatedAt": 1786263569063
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/ang3lo-azevedo/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 131,
+                "createdAt": 1786263569700,
+                "updatedAt": 1786263569700
+            },
+            {
+                "name": "braintropy-patches",
+                "source": "https://raw.githubusercontent.com/braiNtropy/braintropy-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 132,
+                "createdAt": 1786263569841,
+                "updatedAt": 1786263569841
             }
         ]
     }

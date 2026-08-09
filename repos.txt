@@ -4,6 +4,7 @@ AlexNaga/android-patches
 Almewty/my-morphe-patches
 AmpleReVanced/revanced-patches
 BholeyKaBhakt/android-patches-xtra
+BlazeFTL/FTL-Patches
 Entree3k/Morning-Entree-Patches
 GoldRift/morphe-patches
 Graywizard888/Enhancify
@@ -60,6 +61,7 @@ andersonlucasg3/PetalMaps-AndroidAuto
 andrewliang25/morphe-patches
 andronedev/morphe-patches
 andronedev/morphe-portal-patch
+ang3lo-azevedo/morphe-patches
 arandomhooman/hoomans-morphe-patches
 ariecos/gemini-patches
 arunpdl/morphe-patches
@@ -68,6 +70,7 @@ bdgerszewski/morphe-patches-ihealth
 bernardo7894/remove-permaban-banner-patch
 bigyank/morphe-patches-samsung
 binarymend/morphe-patches
+braiNtropy/braintropy-patches
 brosssh/morphe-patches
 browzomje/browzomje-patches
 bufferk/morphe-patches
