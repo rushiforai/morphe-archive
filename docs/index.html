@@ -546,23 +546,28 @@
     }
     .visitor-stats {
       display: flex;
-      align-items: center;
+      align-items: baseline;
       justify-content: center;
-      gap: 8px 22px;
+      gap: 10px 28px;
       flex-wrap: wrap;
-      margin: 4px auto 14px;
-      color: var(--muted);
-      font-size: 13px;
+      margin: 4px auto 12px;
+      font-size: 14px;
     }
     .visitor-stats .vs-item {
       display: inline-flex;
       align-items: baseline;
-      gap: 6px;
+      gap: 8px;
     }
     .visitor-stats strong {
       color: var(--text);
-      font-size: 16px;
+      font-size: 24px;
+      font-weight: 800;
       font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+    .visitor-stats .vs-item > span {
+      color: var(--muted);
+      font-size: 13px;
     }
     .mobile-footer {
       display: block;
@@ -989,10 +994,10 @@
         <script type="text/javascript" src="https://www.freevisitorcounters.com/en/home/counter/1603757/t/5"></script>
       </div>
       <div class="visitor-stats" aria-label="Visitor statistics">
-        <span class="vs-item"><strong id="vsToday">–</strong> today</span>
-        <span class="vs-item"><strong id="vsYesterday">–</strong> yesterday</span>
-        <span class="vs-item"><strong id="vsOnline">–</strong> online now</span>
-        <span class="vs-item"><strong id="vsTotal">–</strong> all time</span>
+        <span class="vs-item"><strong id="vsToday">–</strong><span>today</span></span>
+        <span class="vs-item"><strong id="vsYesterday">–</strong><span>yesterday</span></span>
+        <span class="vs-item"><strong id="vsOnline">–</strong><span>online</span></span>
+        <span class="vs-item"><strong id="vsTotal">–</strong><span>all time</span></span>
       </div>
     </div>
   </main>
@@ -1453,10 +1458,12 @@
     }
 
     function renderOdometer(value) {
-      const digits = document.querySelectorAll("#odometer .odigit");
-      const text = String(value == null ? 0 : value).padStart(digits.length, "0");
+      const digits = [...document.querySelectorAll("#odometer .odigit")];
+      const text = String(value == null ? 0 : value).slice(-digits.length);
       digits.forEach((cell, index) => {
-        cell.textContent = text[index] || "0";
+        const visible = index >= digits.length - text.length;
+        cell.style.display = visible ? "" : "none";
+        cell.textContent = visible ? text[index - (digits.length - text.length)] : "";
       });
     }
 
