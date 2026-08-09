@@ -525,6 +525,26 @@
       image-rendering: pixelated;
       border-radius: 4px;
     }
+    .visitor-stats {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px 22px;
+      flex-wrap: wrap;
+      margin: 4px auto 14px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .visitor-stats .vs-item {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+    .visitor-stats strong {
+      color: var(--text);
+      font-size: 16px;
+      font-variant-numeric: tabular-nums;
+    }
     .mobile-footer {
       display: block;
       position: fixed;
@@ -945,6 +965,12 @@
         <a href="http://www.freevisitorcounters.com">free counters</a>
         <script type="text/javascript" src="https://www.freevisitorcounters.com/auth.php?id=f0dabb4db81ab3202c8ff62bee44138e7bc9f57e"></script>
         <script type="text/javascript" src="https://www.freevisitorcounters.com/en/home/counter/1603757/t/5"></script>
+      </div>
+      <div class="visitor-stats" aria-label="Visitor statistics">
+        <span class="vs-item"><strong id="vsToday">–</strong> today</span>
+        <span class="vs-item"><strong id="vsYesterday">–</strong> yesterday</span>
+        <span class="vs-item"><strong id="vsOnline">–</strong> online now</span>
+        <span class="vs-item"><strong id="vsTotal">–</strong> all time</span>
       </div>
     </div>
   </main>
@@ -1412,6 +1438,11 @@
         document.getElementById("appCount").textContent = data.appCount;
         document.getElementById("patchCount").textContent = data.patchCount;
         document.getElementById("universalCount").textContent = data.universalPatchCount;
+        const visitorStats = data.visitorStats || {};
+        if (visitorStats.today != null) document.getElementById("vsToday").textContent = visitorStats.today;
+        if (visitorStats.yesterday != null) document.getElementById("vsYesterday").textContent = visitorStats.yesterday;
+        if (visitorStats.online != null) document.getElementById("vsOnline").textContent = visitorStats.online;
+        if (visitorStats.total != null) document.getElementById("vsTotal").textContent = visitorStats.total;
         document.getElementById("generatedAt").textContent = `Generated ${data.generatedAt}`;
         const configLink = document.getElementById("configLink");
         configLink.href = data.configFile;

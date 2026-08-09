@@ -68902,5 +68902,11 @@
         }
       ]
     }
-  ]
+  ],
+  "visitorStats": {
+    "today": 69,
+    "yesterday": 6,
+    "total": 205,
+    "online": 69
+  }
 }

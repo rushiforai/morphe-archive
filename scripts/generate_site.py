@@ -136,6 +136,42 @@ def format_timestamp(ms):
         return ""
 
 
+VISITOR_STATS_URL = "https://www.freevisitorcounters.com/en/home/stats/id/1603757"
+VISITOR_STATS_LABELS = {"Today": "today", "Yesterday": "yesterday", "All": "total", "Online": "online"}
+
+
+def fetch_visitor_stats():
+    """Fetch Today/Yesterday/Total/Online from the public stats page.
+
+    Best-effort: returns {} when the page is unreachable or changes shape.
+    """
+    try:
+        request = urllib.request.Request(
+            VISITOR_STATS_URL,
+            headers={"User-Agent": "Mozilla/5.0"},
+        )
+        with urllib.request.urlopen(request, timeout=TIMEOUT_SECONDS) as response:
+            page = response.read().decode("utf-8", "ignore")
+        match = re.search(
+            r'<th colspan="2">Visitors Overview</th>(.*?)</tbody>',
+            page,
+            re.S,
+        )
+        if not match:
+            return {}
+        stats = {}
+        for label, value in re.findall(
+            r"<td>(.*?)</td>\s*<td>(.*?)</td>", match.group(1), re.S
+        ):
+            label = label.strip()
+            value = value.strip()
+            if label in VISITOR_STATS_LABELS and value.isdigit():
+                stats[VISITOR_STATS_LABELS[label]] = int(value)
+        return stats
+    except (urllib.error.URLError, OSError, ValueError):
+        return {}
+
+
 def clean_markdown(value):
     value = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", value)
     value = re.sub(r"\s+\([0-9a-f]{7,40}\)$", "", value)
@@ -450,6 +486,7 @@ def build_data():
         "patchCount": total_patch_count,
         "universalPatchCount": sum(source["patchCount"] for source in universal_sources),
         "hostCounts": dict(sorted(host_counts.items())),
+        "visitorStats": fetch_visitor_stats(),
         "repos": sorted(repos, key=lambda item: item["repo"].lower()),
         "apps": sorted(apps, key=lambda item: item["name"].lower()),
         "universalSources": sorted(universal_sources, key=lambda item: item["repo"].lower()),
@@ -991,6 +1028,26 @@ HTML = """<!doctype html>
       image-rendering: pixelated;
       border-radius: 4px;
     }
+    .visitor-stats {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px 22px;
+      flex-wrap: wrap;
+      margin: 4px auto 14px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .visitor-stats .vs-item {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+    .visitor-stats strong {
+      color: var(--text);
+      font-size: 16px;
+      font-variant-numeric: tabular-nums;
+    }
     .mobile-footer {
       display: block;
       position: fixed;
@@ -1411,6 +1468,12 @@ HTML = """<!doctype html>
         <a href="http://www.freevisitorcounters.com">free counters</a>
         <script type="text/javascript" src="https://www.freevisitorcounters.com/auth.php?id=f0dabb4db81ab3202c8ff62bee44138e7bc9f57e"></script>
         <script type="text/javascript" src="https://www.freevisitorcounters.com/en/home/counter/1603757/t/5"></script>
+      </div>
+      <div class="visitor-stats" aria-label="Visitor statistics">
+        <span class="vs-item"><strong id="vsToday">–</strong> today</span>
+        <span class="vs-item"><strong id="vsYesterday">–</strong> yesterday</span>
+        <span class="vs-item"><strong id="vsOnline">–</strong> online now</span>
+        <span class="vs-item"><strong id="vsTotal">–</strong> all time</span>
       </div>
     </div>
   </main>
@@ -1878,6 +1941,11 @@ HTML = """<!doctype html>
         document.getElementById("appCount").textContent = data.appCount;
         document.getElementById("patchCount").textContent = data.patchCount;
         document.getElementById("universalCount").textContent = data.universalPatchCount;
+        const visitorStats = data.visitorStats || {};
+        if (visitorStats.today != null) document.getElementById("vsToday").textContent = visitorStats.today;
+        if (visitorStats.yesterday != null) document.getElementById("vsYesterday").textContent = visitorStats.yesterday;
+        if (visitorStats.online != null) document.getElementById("vsOnline").textContent = visitorStats.online;
+        if (visitorStats.total != null) document.getElementById("vsTotal").textContent = visitorStats.total;
         document.getElementById("generatedAt").textContent = `Generated ${data.generatedAt}`;
         const configLink = document.getElementById("configLink");
         configLink.href = data.configFile;
