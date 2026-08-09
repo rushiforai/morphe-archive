@@ -1443,6 +1443,26 @@
         if (visitorStats.yesterday != null) document.getElementById("vsYesterday").textContent = visitorStats.yesterday;
         if (visitorStats.online != null) document.getElementById("vsOnline").textContent = visitorStats.online;
         if (visitorStats.total != null) document.getElementById("vsTotal").textContent = visitorStats.total;
+        // Refresh visitor stats live from the counter service (via CORS proxy),
+        // keeping the generated values above as an instant fallback.
+        fetch("https://api.allorigins.win/get?url=" + encodeURIComponent("https://www.freevisitorcounters.com/en/home/stats/id/1603757"))
+          .then((response) => response.json())
+          .then((payload) => {
+            const page = payload.contents || "";
+            const overview = page.match(/<th colspan="2">Visitors Overview<\/th>([\s\S]*?)<\/tbody>/);
+            if (!overview) return;
+            const fields = { Today: "vsToday", Yesterday: "vsYesterday", All: "vsTotal", Online: "vsOnline" };
+            const cell = /<td>(.*?)<\/td>\s*<td>(.*?)<\/td>/g;
+            let match;
+            while ((match = cell.exec(overview[1]))) {
+              const label = match[1].trim();
+              const value = match[2].trim();
+              if (fields[label] && /^\d+$/.test(value)) {
+                document.getElementById(fields[label]).textContent = value;
+              }
+            }
+          })
+          .catch(() => {});
         document.getElementById("generatedAt").textContent = `Generated ${data.generatedAt}`;
         const configLink = document.getElementById("configLink");
         configLink.href = data.configFile;
