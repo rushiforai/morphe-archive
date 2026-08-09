@@ -1021,12 +1021,25 @@ HTML = """<!doctype html>
     }
     .visitor-stats {
       display: flex;
-      align-items: baseline;
-      justify-content: flex-end;
-      gap: 10px 28px;
-      flex-wrap: wrap;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
       grid-column: 1 / -1;
       margin: 2px 0 0;
+    }
+    .vs-caption {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+    }
+    .vs-items {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 10px 28px;
+      flex-wrap: wrap;
       font-size: 14px;
     }
     .visitor-stats .vs-item {
@@ -1253,7 +1266,6 @@ HTML = """<!doctype html>
         grid-column: 1 / -1;
       }
       .top, .toolbar, .row { grid-template-columns: 1fr; }
-      .visitor-stats { justify-content: center; }
       .card-head { grid-template-columns: 1fr; }
       .top { padding: 8px 0 10px; }
       h1 {
@@ -1441,10 +1453,13 @@ HTML = """<!doctype html>
           <div class="stat"><strong id="universalCount">0</strong><span>universal</span></div>
         </div>
         <div class="visitor-stats" aria-label="Visitor statistics">
-          <span class="vs-item"><strong id="vsToday">–</strong><span>today</span></span>
-          <span class="vs-item"><strong id="vsYesterday">–</strong><span>yesterday</span></span>
-          <span class="vs-item"><strong id="vsOnline">–</strong><span>online</span></span>
-          <span class="vs-item"><strong id="vsTotal">–</strong><span>all time</span></span>
+          <span class="vs-caption">Visitor Info</span>
+          <div class="vs-items">
+            <span class="vs-item"><strong id="vsToday">–</strong><span>today</span></span>
+            <span class="vs-item"><strong id="vsYesterday">–</strong><span>yesterday</span></span>
+            <span class="vs-item"><strong id="vsOnline">–</strong><span>online</span></span>
+            <span class="vs-item"><strong id="vsTotal">–</strong><span>all time</span></span>
+          </div>
         </div>
       </div>
       <div class="toolbar">
