@@ -9,17 +9,15 @@ import javax.crypto.spec.SecretKeySpec;
 final class ClipboardSyncLoopbackAuth {
     static final String CHALLENGE_QUERY = "loopbackChallenge";
     static final String PROOF_FIELD = "loopbackProof";
-    static final String FALLBACK_PROOF_FIELD = "loopbackFallbackProof";
-    private static final String FALLBACK_TOKEN =
-            "gboardpatches-web-clipboard-loopback-fallback-v1";
     private static final String HMAC_ALGORITHM = "HmacSHA256";
+    private static final int MIN_TOKEN_LENGTH = 32;
     private static final int MAX_CHALLENGE_LENGTH = 128;
 
     private ClipboardSyncLoopbackAuth() {
     }
 
     static String proof(String token, String challenge) {
-        if (!hasUsableToken(token) || !hasUsableChallenge(challenge)) {
+        if (!isUsableToken(token) || !hasUsableChallenge(challenge)) {
             return "";
         }
         try {
@@ -41,15 +39,26 @@ final class ClipboardSyncLoopbackAuth {
                 suppliedProof.getBytes(StandardCharsets.UTF_8));
     }
 
-    static String fallbackToken() {
-        return FALLBACK_TOKEN;
+    static boolean tokenMatches(String expectedToken, String suppliedToken) {
+        if (!isUsableToken(expectedToken) || !isUsableToken(suppliedToken)) {
+            return false;
+        }
+        return MessageDigest.isEqual(
+                expectedToken.getBytes(StandardCharsets.UTF_8),
+                suppliedToken.getBytes(StandardCharsets.UTF_8));
     }
 
-    private static boolean hasUsableToken(String token) {
-        return token != null
-                && !token.isEmpty()
-                && token.indexOf('\r') < 0
-                && token.indexOf('\n') < 0;
+    static boolean isUsableToken(String token) {
+        if (token == null || token.length() < MIN_TOKEN_LENGTH) {
+            return false;
+        }
+        for (int index = 0; index < token.length(); index++) {
+            char current = token.charAt(index);
+            if (current <= ' ' || current == '\u007f') {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static boolean hasUsableChallenge(String challenge) {

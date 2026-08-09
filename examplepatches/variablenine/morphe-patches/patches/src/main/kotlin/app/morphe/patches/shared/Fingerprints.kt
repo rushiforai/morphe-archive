@@ -42,9 +42,6 @@ internal object GoogleApiActivityOnCreateFingerprint : Fingerprint(
 // Flag is present in YT 20.23, but bold icons are missing and forcing them crashes the app.
 // 20.31 is the first target with all the bold icons present.
 internal object BoldIconsFeatureFlagFingerprint : Fingerprint(
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    returnType = "Z",
-    parameters = listOf(),
     filters = listOf(
         literal(45685201L)
     )
@@ -56,6 +53,16 @@ internal object CurrentAudioVideoFormatToStringFingerprint : Fingerprint(
     returnType = "Ljava/lang/String;",
     parameters = listOf(),
     strings = listOf("currentVideoFormat=")
+)
+
+internal object MediaSessionSetPlaybackStateFingerprint : Fingerprint(
+    filters = listOf(
+        methodCall(
+            definingClass = "Landroid/media/session/MediaSession;",
+            name = "setPlaybackState",
+            parameters = listOf("Landroid/media/session/PlaybackState;")
+        )
+    )
 )
 
 internal object SpannableStringBuilderFingerprint : Fingerprint(

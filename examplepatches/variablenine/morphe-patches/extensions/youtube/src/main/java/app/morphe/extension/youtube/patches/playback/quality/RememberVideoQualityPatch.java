@@ -11,7 +11,8 @@
 package app.morphe.extension.youtube.patches.playback.quality;
 
 import static app.morphe.extension.shared.StringRef.str;
-import static app.morphe.extension.shared.Utils.NetworkType;
+
+import androidx.annotation.NonNull;
 
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
@@ -25,6 +26,9 @@ import j$.util.Optional;
 
 @SuppressWarnings({"rawtypes", "unused"})
 public class RememberVideoQualityPatch {
+    // Set the access modifier to final to override the flag only after the state snapshot is reloaded.
+    private static final boolean SETTINGS_INITIALIZED = Settings.SETTINGS_INITIALIZED.get();
+    private static final boolean OVERRIDE_INITIAL_VIDEO_QUALITY = Settings.OVERRIDE_INITIAL_VIDEO_QUALITY.get();
 
     private static final IntegerSetting videoQualityWifi = Settings.VIDEO_QUALITY_DEFAULT_WIFI;
     private static final IntegerSetting videoQualityMobile = Settings.VIDEO_QUALITY_DEFAULT_MOBILE;
@@ -40,7 +44,7 @@ public class RememberVideoQualityPatch {
 
     public static int getDefaultQualityResolution() {
         final boolean isShorts = ShortsPlayerState.isOpen();
-        IntegerSetting preference = Utils.getNetworkType() == NetworkType.MOBILE
+        IntegerSetting preference = Utils.getNetworkType() == Utils.NetworkType.MOBILE
                 ? (isShorts ? shortsQualityMobile : videoQualityMobile)
                 : (isShorts ? shortsQualityWifi : videoQualityWifi);
         return preference.get();
@@ -48,7 +52,7 @@ public class RememberVideoQualityPatch {
 
     public static void saveDefaultQuality(int qualityResolution) {
         final boolean shortPlayerOpen = ShortsPlayerState.isOpen();
-        final boolean isMobile = Utils.getNetworkType() == NetworkType.MOBILE;
+        final boolean isMobile = Utils.getNetworkType() == Utils.NetworkType.MOBILE;
         IntegerSetting qualitySetting;
         if (isMobile) {
             qualitySetting = shortPlayerOpen ? shortsQualityMobile : videoQualityMobile;
@@ -65,18 +69,24 @@ public class RememberVideoQualityPatch {
 
         if (Settings.REMEMBER_VIDEO_QUALITY_LAST_SELECTED_TOAST.get()) {
             String qualityLabel = qualityResolution + "p";
-            final String toastStringId;
-            if (shortPlayerOpen && isMobile) {
-                toastStringId = "morphe_remember_video_quality_toast_shorts_mobile";
-            } else if (shortPlayerOpen) {
-                toastStringId = "morphe_remember_video_quality_toast_shorts_wifi";
-            } else if (isMobile) {
-                toastStringId = "morphe_remember_video_quality_toast_mobile";
-            } else {
-                toastStringId = "morphe_remember_video_quality_toast_wifi";
-            }
+            final String toastStringId = getString(shortPlayerOpen, isMobile);
             Utils.showToastShort(str(toastStringId, qualityLabel));
         }
+    }
+
+    @NonNull
+    private static String getString(boolean shortPlayerOpen, boolean isMobile) {
+        final String toastStringId;
+        if (shortPlayerOpen && isMobile) {
+            toastStringId = "morphe_remember_video_quality_toast_shorts_mobile";
+        } else if (shortPlayerOpen) {
+            toastStringId = "morphe_remember_video_quality_toast_shorts_wifi";
+        } else if (isMobile) {
+            toastStringId = "morphe_remember_video_quality_toast_mobile";
+        } else {
+            toastStringId = "morphe_remember_video_quality_toast_wifi";
+        }
+        return toastStringId;
     }
 
     /**
@@ -140,12 +150,14 @@ public class RememberVideoQualityPatch {
 
     /**
      * Injection point.
+     *
+     * @return  If true, default video quality is applied without delay after the video starts.
+     *          Turn this off if you experience playback issues with the Android VR AVC codec.
      */
-    public static boolean overrideBufferingVideoQualityFlag(boolean originalValue) {
-        if ((Settings.VIDEO_QUALITY_DEFAULT_WIFI.get() != VideoInformation.AUTOMATIC_VIDEO_QUALITY_VALUE ||
-                Settings.VIDEO_QUALITY_DEFAULT_MOBILE.get() != VideoInformation.AUTOMATIC_VIDEO_QUALITY_VALUE) && originalValue) {
-            Logger.printDebug(() -> "overrideBufferingVideoQualityFlag new value: " + false);
-            return false;
+    public static boolean overrideInitialVideoQualityFeatureFlag(boolean originalValue) {
+        if (SETTINGS_INITIALIZED) {
+            Logger.printDebug(() -> "Override initial video quality feature flag to " + OVERRIDE_INITIAL_VIDEO_QUALITY);
+            return OVERRIDE_INITIAL_VIDEO_QUALITY;
         }
         return originalValue;
     }

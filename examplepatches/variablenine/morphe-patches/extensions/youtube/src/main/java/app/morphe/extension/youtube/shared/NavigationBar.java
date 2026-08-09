@@ -10,9 +10,6 @@
 
 package app.morphe.extension.youtube.shared;
 
-import static app.morphe.extension.shared.spoof.SpoofAppVersionPatch.isSpoofingToLessThan;
-import static app.morphe.extension.youtube.shared.NavigationBar.NavigationButton.CREATE;
-
 import android.app.Activity;
 import android.graphics.drawable.Drawable;
 import android.view.View;
@@ -21,7 +18,9 @@ import android.widget.FrameLayout;
 import androidx.annotation.Nullable;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +33,7 @@ import app.morphe.extension.shared.ResourceType;
 import app.morphe.extension.shared.ResourceUtils;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.BaseSettings;
+import app.morphe.extension.shared.spoof.SpoofAppVersionPatch;
 import app.morphe.extension.youtube.patches.VersionCheckPatch;
 import app.morphe.extension.youtube.settings.Settings;
 
@@ -45,6 +45,40 @@ public final class NavigationBar {
      */
     public interface AppCompatToolbarPatchInterface {
         Drawable patch_getNavigationIcon();
+    }
+
+    /**
+     * Interface to be notified when the navigation button changes.
+     */
+    public interface OnNavigationButtonChangedListener {
+        /**
+         * @param activeButton Currently selected button. Is null only if the navigation button
+         *                     is a new and unidentified type.
+         */
+        void onNavigationButtonChanged(@Nullable NavigationButton activeButton);
+    }
+
+    private static final List<OnNavigationButtonChangedListener> onNavigationButtonChangedListeners
+            = Collections.synchronizedList(new ArrayList<>());
+
+    /**
+     * Registers a listener to be notified when the navigation button changes.
+     */
+    public static void addOnNavigationButtonChangedListener(OnNavigationButtonChangedListener listener) {
+        onNavigationButtonChangedListeners.add(listener);
+    }
+
+    /**
+     * Unregisters a listener from being notified when the navigation button changes.
+     */
+    public static void removeOnNavigationButtonChangedListener(OnNavigationButtonChangedListener listener) {
+        onNavigationButtonChangedListeners.remove(listener);
+    }
+
+    private static void notifyNavigationButtonChangedListeners(@Nullable NavigationButton button) {
+        for (OnNavigationButtonChangedListener listener : onNavigationButtonChangedListeners) {
+            listener.onNavigationButtonChanged(button);
+        }
     }
 
     //
@@ -238,7 +272,7 @@ public final class NavigationBar {
     public static void navigationImageResourceTabLoaded(View view) {
         // 'You' tab has no YT enum name and the enum hook is not called for it.
         // Compare the last enum to figure out which tab this actually is.
-        if (CREATE.ytEnumNames.contains(lastYTNavigationEnumName)) {
+        if (NavigationBar.NavigationButton.CREATE.ytEnumNames.contains(lastYTNavigationEnumName)) {
             navigationTabLoaded(view);
         } else {
             lastYTNavigationEnumName = NavigationButton.LIBRARY.ytEnumNames.get(0);
@@ -256,6 +290,7 @@ public final class NavigationBar {
             }
 
             NavigationButton button = viewToButtonMap.get(navButtonImageView);
+            NavigationButton oldButton = NavigationButton.selectedNavigationButton;
 
             if (button == null) { // An unknown tab was selected.
                 // Show a toast only if debug mode is enabled.
@@ -264,14 +299,22 @@ public final class NavigationBar {
                 }
 
                 NavigationButton.selectedNavigationButton = null;
+
+                if (oldButton != null) {
+                    notifyNavigationButtonChangedListeners(null);
+                }
                 return;
             }
 
             NavigationButton.selectedNavigationButton = button;
-            Logger.printDebug(() -> "Changed to navigation button: " + button);
 
             // Release any threads waiting for the selected nav button.
             releaseNavButtonLatch();
+
+            if (button != oldButton) {
+                Logger.printDebug(() -> "Changed to navigation button: " + button);
+                notifyNavigationButtonChangedListeners(button);
+            }
         } catch (Exception ex) {
             Logger.printException(() -> "navigationTabSelected failure", ex);
         }
@@ -294,7 +337,7 @@ public final class NavigationBar {
      * Custom cairo notification filled icon to fix unpatched app missing resource.
      */
     private static final int fillBellCairoBlack = ResourceUtils.getIdentifier(ResourceType.DRAWABLE,
-            VersionCheckPatch.IS_20_31_OR_GREATER && !isSpoofingToLessThan("20.31.00")
+            VersionCheckPatch.IS_20_31_OR_GREATER && !SpoofAppVersionPatch.isSpoofingToLessThan("20.31.00")
                     ? "yt_fill_experimental_bell_vd_theme_24"
                     : "morphe_fill_bell_cairo_black_24"
     );

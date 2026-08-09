@@ -1,3 +1,9 @@
+## [1.10.0](https://github.com/cesbar/zpatches/compare/v1.9.1...v1.10.0) (2026-08-08)
+
+### ✨ New Features
+
+* **velov:** Block data collection ([833dc4d](https://github.com/cesbar/zpatches/commit/833dc4d838c79c1b0bb69a487e82ec05cbddc532))
+
 ## [1.9.1](https://github.com/cesbar/zpatches/compare/v1.9.0...v1.9.1) (2026-08-05)
 
 ### 🚀 Updated App Support

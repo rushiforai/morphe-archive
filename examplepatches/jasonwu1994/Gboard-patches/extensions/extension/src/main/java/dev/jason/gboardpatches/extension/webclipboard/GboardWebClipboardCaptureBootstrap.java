@@ -166,9 +166,8 @@ public final class GboardWebClipboardCaptureBootstrap {
             }
             String loopbackIngressToken =
                     WebClipboardPreferences.getLoopbackIngressToken(preferences);
-            if (loopbackIngressToken == null || loopbackIngressToken.isEmpty()) {
-                loopbackIngressToken =
-                        ClipboardSyncLoopbackIngressClient.fallbackLoopbackIngressToken();
+            if (!ClipboardSyncLoopbackAuth.isUsableToken(loopbackIngressToken)) {
+                return RuntimeLookup.unavailable();
             }
             return RuntimeLookup.available(new RuntimeConfig(
                     WebClipboardPreferences.readPort(preferences),

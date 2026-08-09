@@ -49,6 +49,9 @@ import dev.jason.gboardpatches.patches.gboard.features.longpressquickactions.gbo
 import dev.jason.gboardpatches.patches.gboard.features.longpressquickactions.gboardLongPressQuickActionsInputEventPatch
 import dev.jason.gboardpatches.patches.gboard.features.longpressquickactions.gboardLongPressQuickActionsPointerOwnerPatch
 import dev.jason.gboardpatches.patches.gboard.features.longpressquickactions.gboardLongPressQuickActionsSoftKeyPatch
+import dev.jason.gboardpatches.patches.gboard.features.ocr.gboardOcrFeatureMarkerPatch
+import dev.jason.gboardpatches.patches.gboard.features.ocr.gboardOcrFlagValuePatch
+import dev.jason.gboardpatches.patches.gboard.features.ocr.gboardOcrRuntimePatch
 import dev.jason.gboardpatches.patches.gboard.features.packagerename.gboardPackageRenameResourcePatch
 import dev.jason.gboardpatches.patches.gboard.features.settingshomepage.gboardSettingsHomepageBytecodePatch
 import dev.jason.gboardpatches.patches.gboard.features.settingshomepage.gboardSettingsHomepageFeatureMarkerPatch
@@ -381,6 +384,23 @@ val gboardAiWritingToolsPatch = resourcePatch(
 }
 
 @Suppress("unused")
+val gboardOcrScanTextPatch = resourcePatch(
+    name = "Enable OCR / Scan Text",
+    description = "啟用 OCR / 掃描文字功能，支援 拉丁、中文、日文、韓文 與 天城文 辨識後端\n" +
+        "Enable the OCR / Scan Text feature with Latin, Chinese, Japanese, Korean, and Devanagari recognition backends.",
+    default = true,
+) {
+    compatibleWith(COMPATIBILITY_GBOARD)
+
+    dependsOn(
+        gboardPatchesSettingsPatch,
+        gboardOcrFeatureMarkerPatch,
+        gboardOcrFlagValuePatch,
+        gboardOcrRuntimePatch,
+    )
+}
+
+@Suppress("unused")
 val gboardSettingsHomepagePatch = resourcePatch(
     name = "Settings Homepage Override",
     description = "允許切換新版或舊版 Gboard 設定頁面\nAllow switching between the new and legacy Gboard settings pages.",
@@ -471,6 +491,7 @@ object GboardPublishedPatchCatalog {
         gboardInlineSuggestionsFlagPatch,
         gboardKeyShapeSelectionFlagPatch,
         gboardAiWritingToolsPatch,
+        gboardOcrScanTextPatch,
         gboardSettingsHomepagePatch,
         gboardLatinGlobeKeyIgnoreIntervalPatch,
         gboardZhuyinBottomRowWeightPatch,

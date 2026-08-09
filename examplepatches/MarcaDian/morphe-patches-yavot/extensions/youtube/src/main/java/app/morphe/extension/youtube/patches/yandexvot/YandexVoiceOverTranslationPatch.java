@@ -314,6 +314,9 @@ public class YandexVoiceOverTranslationPatch {
         }
         if (pendingVideoId == null || pendingVideoId.isEmpty()) return;
 
+        // Only one voice-over engine should speak at a time.
+        YandexVotCoordinator.deactivateOfficialBeforeStarting();
+
         final String videoId = pendingVideoId;
         final String videoTitle = pendingVideoTitle;
         final double durationSeconds = pendingVideoLength / 1000.0;

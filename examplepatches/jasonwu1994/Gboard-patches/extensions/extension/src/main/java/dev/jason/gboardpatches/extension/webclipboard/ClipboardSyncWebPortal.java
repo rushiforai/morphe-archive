@@ -712,38 +712,8 @@ public final class ClipboardSyncWebPortal {
 
     private boolean isLoopbackIngressAuthorized(Request request) {
         String expectedToken = securityConfig.loopbackIngressToken;
-        if (expectedToken == null || expectedToken.isEmpty()) {
-            return false;
-        }
         String suppliedToken = request == null ? "" : request.header("x-loopback-ingress-token");
-        if (suppliedToken.isBlank()) {
-            suppliedToken = extractField(request == null ? "" : request.body,
-                    "loopbackIngressToken");
-        }
-        if (suppliedToken.isBlank()) {
-            suppliedToken = extractField(request == null ? "" : request.body, "token");
-        }
-        if (constantTimeEquals(expectedToken, suppliedToken)) {
-            return true;
-        }
-        return !expectedToken.isEmpty()
-                && constantTimeEquals(ClipboardSyncLoopbackAuth.fallbackToken(), suppliedToken);
-    }
-
-    private boolean constantTimeEquals(String expected, String supplied) {
-        if (expected == null || supplied == null) {
-            return false;
-        }
-        byte[] expectedBytes = expected.getBytes(StandardCharsets.UTF_8);
-        byte[] suppliedBytes = supplied.getBytes(StandardCharsets.UTF_8);
-        int difference = expectedBytes.length ^ suppliedBytes.length;
-        int maxLength = Math.max(expectedBytes.length, suppliedBytes.length);
-        for (int index = 0; index < maxLength; index++) {
-            byte expectedByte = index < expectedBytes.length ? expectedBytes[index] : 0;
-            byte suppliedByte = index < suppliedBytes.length ? suppliedBytes[index] : 0;
-            difference |= expectedByte ^ suppliedByte;
-        }
-        return difference == 0;
+        return ClipboardSyncLoopbackAuth.tokenMatches(expectedToken, suppliedToken);
     }
 
     private String readHttpLine(InputStream input) throws Exception {
@@ -867,13 +837,6 @@ public final class ClipboardSyncWebPortal {
                 if (!loopbackProof.isEmpty()) {
                     payload.put(ClipboardSyncLoopbackAuth.PROOF_FIELD, loopbackProof);
                 }
-                String fallbackLoopbackProof = fallbackLoopbackProofForStatusRequest(
-                        request,
-                        socket);
-                if (!fallbackLoopbackProof.isEmpty()) {
-                    payload.put(ClipboardSyncLoopbackAuth.FALLBACK_PROOF_FIELD,
-                            fallbackLoopbackProof);
-                }
             } catch (Throwable ignored) {
                 return "{\"ok\":false,\"pairingRequired\":true,\"pairingVerified\":false,\"codeLength\":4,\"clients\":[]}";
             }
@@ -888,20 +851,6 @@ public final class ClipboardSyncWebPortal {
         }
         return ClipboardSyncLoopbackAuth.proof(
                 securityConfig.loopbackIngressToken,
-                request.query(ClipboardSyncLoopbackAuth.CHALLENGE_QUERY));
-    }
-
-    private String fallbackLoopbackProofForStatusRequest(Request request, Socket socket) {
-        if (securityConfig.loopbackIngressToken == null
-                || securityConfig.loopbackIngressToken.isEmpty()) {
-            return "";
-        }
-        if (request == null || socket == null || socket.getInetAddress() == null
-                || !socket.getInetAddress().isLoopbackAddress()) {
-            return "";
-        }
-        return ClipboardSyncLoopbackAuth.proof(
-                ClipboardSyncLoopbackAuth.fallbackToken(),
                 request.query(ClipboardSyncLoopbackAuth.CHALLENGE_QUERY));
     }
 

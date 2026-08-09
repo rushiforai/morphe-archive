@@ -283,6 +283,15 @@ val uiCleanupPatch = bytecodePatch(
             "Lcom/p1/mobile/putong/live/external/intl/view/widgets/IntlLiveActivitiesEntryOrigin;",
 
             "Lcom/p1/mobile/putong/core/newui/intlmeet/visitor/IntlMeetVisitorsEmptyItemView;",
+
+            "Lcom/p1/mobile/putong/core/ui/nightclub/view/IntlNightClubDlgView;",
+            "Lcom/p1/mobile/putong/core/ui/hideandseek/IntlHideAndSeekInfoView;",
+            "Lcom/p1/mobile/putong/core/ui/aialbum/view/AiAlbumTemplatesView;",
+            "Lcom/p1/mobile/putong/core/ui/constellationmatch/ConstellationInfoView;",
+            "Lcom/p1/mobile/putong/feed/newui/photoalbum/view/FeedNewUserBubbleView;",
+            "Lcom/p1/mobile/putong/core/newui/home/themeslide/view/HomeThemeSlideEmptyCardView;",
+            "Lcom/p1/mobile/putong/core/newui/home/HomeEmptyCardView;",
+            "Lcom/p1/mobile/putong/core/ui/dlg/IntlMemberAnimView;",
         )
         guideViewDescriptors.forEach { descriptor ->
             classDefByOrNull(descriptor)?.let { classDef ->

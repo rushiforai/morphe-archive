@@ -12,6 +12,8 @@ import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PixelFormat;
+import android.graphics.RectF;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.preference.Preference;
 import android.view.Gravity;
@@ -19,6 +21,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import app.morphe.extension.tiktok.Utils;
 
@@ -40,14 +44,85 @@ public class MorpheTikTokAboutPreference extends Preference {
     }
 
     @Override
+    protected View onCreateView(ViewGroup parent) {
+        Context context = getContext();
+        LinearLayout row = new LinearLayout(context);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setMinimumHeight(SettingsUi.dp(context, 136));
+        row.setPadding(
+                SettingsUi.dp(context, 38),
+                SettingsUi.dp(context, 16),
+                SettingsUi.dp(context, 38),
+                SettingsUi.dp(context, 16)
+        );
+        row.setBackground(new SupportRowDrawable(context));
+
+        FrameLayout iconFrame = new FrameLayout(context);
+        iconFrame.setId(android.R.id.icon_frame);
+        ImageView icon = new ImageView(context);
+        icon.setId(android.R.id.icon);
+        iconFrame.addView(icon, new FrameLayout.LayoutParams(
+                SettingsUi.dp(context, 22),
+                SettingsUi.dp(context, 22),
+                Gravity.CENTER
+        ));
+        row.addView(iconFrame, new LinearLayout.LayoutParams(
+                SettingsUi.dp(context, 22),
+                SettingsUi.dp(context, 22)
+        ));
+
+        LinearLayout labels = new LinearLayout(context);
+        labels.setGravity(Gravity.CENTER_VERTICAL);
+        labels.setOrientation(LinearLayout.VERTICAL);
+
+        TextView title = SettingsUi.text(context, "", 14.5f, SettingsUi.textPrimary(), 1);
+        title.setId(android.R.id.title);
+        labels.addView(title, new LinearLayout.LayoutParams(-1, -2));
+
+        TextView summary = SettingsUi.text(context, "", 12.8f, SettingsUi.textSecondary(), 0);
+        summary.setId(android.R.id.summary);
+        summary.setMaxLines(3);
+        labels.addView(summary, new LinearLayout.LayoutParams(-1, -2));
+
+        LinearLayout.LayoutParams labelParams = new LinearLayout.LayoutParams(0, -2, 1);
+        labelParams.leftMargin = SettingsUi.dp(context, 14);
+        labelParams.rightMargin = SettingsUi.dp(context, 10);
+        row.addView(labels, labelParams);
+
+        LinearLayout widget = new LinearLayout(context);
+        widget.setId(android.R.id.widget_frame);
+        widget.setGravity(Gravity.CENTER);
+        row.addView(widget, new LinearLayout.LayoutParams(
+                SettingsUi.dp(context, 18),
+                SettingsUi.dp(context, 18)
+        ));
+        return row;
+    }
+
+    @Override
     protected void onBindView(View view) {
         super.onBindView(view);
 
         Utils.setTitleAndSummaryColor(view);
-        view.setMinimumHeight(SettingsUi.dp(getContext(), 88));
-        view.setBackground(new SupportRowDrawable());
+        view.setMinimumHeight(SettingsUi.dp(getContext(), 112));
+        view.setBackground(new SupportRowDrawable(getContext()));
+        styleText(view);
         styleHeart(view);
         addChevron(view);
+    }
+
+    private void styleText(View view) {
+        TextView title = view.findViewById(android.R.id.title);
+        if (title != null) {
+            title.setTextSize(14.5f);
+            title.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        }
+        TextView summary = view.findViewById(android.R.id.summary);
+        if (summary != null) {
+            summary.setTextSize(12.8f);
+            summary.setMaxLines(3);
+        }
     }
 
     private void styleHeart(View view) {
@@ -62,8 +137,8 @@ public class MorpheTikTokAboutPreference extends Preference {
         params.height = iconSize;
         if (params instanceof FrameLayout.LayoutParams) {
             FrameLayout.LayoutParams frameParams = (FrameLayout.LayoutParams) params;
-            frameParams.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
-            frameParams.topMargin = SettingsUi.dp(getContext(), 16);
+            frameParams.gravity = Gravity.CENTER;
+            frameParams.topMargin = 0;
         }
         icon.setLayoutParams(params);
         icon.setScaleType(ImageView.ScaleType.FIT_CENTER);
@@ -187,24 +262,35 @@ public class MorpheTikTokAboutPreference extends Preference {
     private static final class SupportRowDrawable extends Drawable {
         private final Paint fill = new Paint();
         private final Paint line = new Paint();
+        private final float horizontalInset;
+        private final float verticalInset;
+        private final float radius;
 
-        SupportRowDrawable() {
+        SupportRowDrawable(Context context) {
             fill.setColor(SettingsUi.isDarkMode()
-                    ? Color.argb(8, 255, 64, 129)
-                    : Color.argb(7, 255, 64, 129));
+                    ? Color.argb(255, 35, 17, 25)
+                    : Color.argb(255, 255, 247, 250));
+            fill.setStyle(Paint.Style.FILL);
             line.setColor(SettingsUi.isDarkMode()
-                    ? Color.argb(86, 255, 64, 129)
-                    : Color.argb(70, 255, 64, 129));
-            line.setStrokeWidth(1f);
+                    ? Color.argb(56, 240, 45, 99)
+                    : Color.argb(52, 240, 45, 99));
+            line.setStyle(Paint.Style.STROKE);
+            line.setStrokeWidth(Math.max(1, SettingsUi.dp(context, 1)));
+            horizontalInset = SettingsUi.dp(context, 20);
+            verticalInset = SettingsUi.dp(context, 12);
+            radius = SettingsUi.dp(context, 16);
         }
 
         @Override
         public void draw(Canvas canvas) {
-            canvas.drawRect(getBounds(), fill);
-            float top = getBounds().top + 0.5f;
-            float bottom = getBounds().bottom - 0.5f;
-            canvas.drawLine(getBounds().left, top, getBounds().right, top, line);
-            canvas.drawLine(getBounds().left, bottom, getBounds().right, bottom, line);
+            RectF bounds = new RectF(
+                    getBounds().left + horizontalInset,
+                    getBounds().top + verticalInset,
+                    getBounds().right - horizontalInset,
+                    getBounds().bottom - verticalInset
+            );
+            canvas.drawRoundRect(bounds, radius, radius, fill);
+            canvas.drawRoundRect(bounds, radius, radius, line);
         }
 
         @Override

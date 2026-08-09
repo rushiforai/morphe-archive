@@ -63,7 +63,7 @@ internal object StickerPreviewBinderFingerprint : Fingerprint(
         "Ljava/util/Map;",
     ),
     custom = { method, classDef ->
-        if (!classDef.endsWith("/05No;") || method.name != "LIZ") {
+        if (!classDef.endsWith("/0ULN;") || method.name != "LIZ") {
             false
         } else {
             val instructions = method.implementation?.instructions
@@ -82,15 +82,15 @@ internal object StickerPreviewBinderFingerprint : Fingerprint(
                     }
 
                     instruction.getReference<MethodReference>()?.let { methodReference ->
-                        if (methodReference.definingClass == "LX/05No;" &&
+                        if (methodReference.definingClass == "LX/0ULN;" &&
                             methodReference.name == "LIZIZ" &&
-                            methodReference.parameterTypes == listOf("LX/0Daq;", "LX/05Nn;") &&
+                            methodReference.parameterTypes == listOf("LX/0GSy;", "LX/0ULU;") &&
                             methodReference.returnType == "V"
                         ) {
                             bindsActionButton = true
                         }
 
-                        if (methodReference.definingClass == "LX/0zaJ;" &&
+                        if (methodReference.definingClass == "LX/16zb;" &&
                             methodReference.name == "LIZJ"
                         ) {
                             loadsStickerImage = true

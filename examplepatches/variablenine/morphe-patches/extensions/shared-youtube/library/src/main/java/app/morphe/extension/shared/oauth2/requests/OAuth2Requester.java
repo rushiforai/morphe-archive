@@ -8,8 +8,6 @@
 package app.morphe.extension.shared.oauth2.requests;
 
 import static app.morphe.extension.shared.StringRef.str;
-import static app.morphe.extension.shared.oauth2.requests.OAuth2Routes.getJsonConnectionFromRoute;
-import static app.morphe.extension.shared.oauth2.requests.OAuth2Routes.getUrlConnectionFromRoute;
 
 import android.net.Uri;
 
@@ -32,6 +30,8 @@ import app.morphe.extension.shared.oauth2.object.ActivationCodeData;
 import app.morphe.extension.shared.requests.Requester;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.SharedYouTubeSettings;
+import app.morphe.extension.shared.spoof.ClientType;
+import app.morphe.extension.shared.spoof.requests.VisitorIdRequester;
 
 public class OAuth2Requester {
     /**
@@ -63,7 +63,7 @@ public class OAuth2Requester {
      * Available values are [UNKNOWN], [QUEST1], [QUEST2], [QUEST_PRO],
      * [MOOHAN], [PICO4], [QUEST3], [QUEST3S], [PICO4_ULTRA], and [ANDROID_XR].
      */
-    private static final String DEVICE_MODEL = "QUEST1";
+    private static final String DEVICE_MODEL = "PICO4";
 
     /**
      * Access token scope.
@@ -107,6 +107,8 @@ public class OAuth2Requester {
             // Bearer y29.xxx...
             authorization = accessTokenData.tokenType + " " + accessTokenData.accessToken;
         }
+
+        clearVisitorId();
     }
 
     private static void handleConnectionError(String toastMessage, @Nullable Exception ex) {
@@ -130,7 +132,16 @@ public class OAuth2Requester {
             authorization = "";
         }
 
+        clearVisitorId();
         Utils.showToastShort(str("morphe_oauth2_toast_reset"));
+    }
+
+    private static void clearVisitorId() {
+        for (ClientType c : ClientType.values()) {
+            if (c.supportsOAuth2) {
+                VisitorIdRequester.removeVisitorId(c);
+            }
+        }
     }
 
     private static boolean isActivationCodeDataAvailable(ActivationCodeData activationCodeData) {
@@ -200,7 +211,7 @@ public class OAuth2Requester {
 
         synchronized (OAuth2Requester.class) {
             try {
-                HttpURLConnection connection = getJsonConnectionFromRoute(OAuth2Routes.DEVICE_CODE);
+                HttpURLConnection connection = OAuth2Routes.getJsonConnectionFromRoute(OAuth2Routes.DEVICE_CODE);
 
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("client_id", CLIENT_ID);
@@ -246,7 +257,7 @@ public class OAuth2Requester {
                     return null;
                 }
 
-                HttpURLConnection connection = getJsonConnectionFromRoute(OAuth2Routes.ACCESS_TOKEN);
+                HttpURLConnection connection = OAuth2Routes.getJsonConnectionFromRoute(OAuth2Routes.ACCESS_TOKEN);
 
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("client_id", CLIENT_ID);
@@ -299,7 +310,7 @@ public class OAuth2Requester {
         Objects.requireNonNull(refreshToken);
 
         try {
-            HttpURLConnection connection = getJsonConnectionFromRoute(OAuth2Routes.ACCESS_TOKEN);
+            HttpURLConnection connection = OAuth2Routes.getJsonConnectionFromRoute(OAuth2Routes.ACCESS_TOKEN);
 
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("client_id", CLIENT_ID);
@@ -351,7 +362,7 @@ public class OAuth2Requester {
         Utils.verifyOffMainThread();
 
         try {
-            HttpURLConnection connection = getUrlConnectionFromRoute(OAuth2Routes.REVOKE_TOKEN);
+            HttpURLConnection connection = OAuth2Routes.getUrlConnectionFromRoute(OAuth2Routes.REVOKE_TOKEN);
 
             Uri bodyUri = new Uri.Builder()
                     .appendQueryParameter("token", refreshToken)

@@ -584,21 +584,34 @@ public final class GboardPatchesSettingsContract {
     public static class NavigationRow extends Row {
         private final Runnable action;
         private final String trailingText;
+        private final boolean showChevron;
 
         public NavigationRow(CharSequence title, String summary, boolean enabled, Runnable action) {
-            this(title, summary, null, enabled, action, null);
+            this(title, summary, null, enabled, action, null, true);
         }
 
         public NavigationRow(CharSequence title, String summary, String trailingText,
                 boolean enabled, Runnable action) {
-            this(title, summary, trailingText, enabled, action, null);
+            this(title, summary, trailingText, enabled, action, null, true);
+        }
+
+        public NavigationRow(CharSequence title, String summary, String trailingText,
+                boolean enabled, Runnable action, boolean showChevron) {
+            this(title, summary, trailingText, enabled, action, null, showChevron);
         }
 
         public NavigationRow(CharSequence title, String summary, String trailingText,
                 boolean enabled, Runnable action, PreviewSpec previewSpec) {
+            this(title, summary, trailingText, enabled, action, previewSpec, true);
+        }
+
+        public NavigationRow(CharSequence title, String summary, String trailingText,
+                boolean enabled, Runnable action, PreviewSpec previewSpec,
+                boolean showChevron) {
             super(title, summary, enabled, previewSpec);
             this.action = action;
             this.trailingText = trailingText;
+            this.showChevron = showChevron;
         }
 
         public Runnable getAction() {
@@ -607,6 +620,10 @@ public final class GboardPatchesSettingsContract {
 
         public String getTrailingText() {
             return trailingText;
+        }
+
+        public boolean shouldShowChevron() {
+            return showChevron;
         }
     }
 

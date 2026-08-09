@@ -11,11 +11,12 @@ The patch provides `Off`, `Remove SDH, keep lyrics`, and `Full cleanup`. It appl
 
 ## Install in Morphe Manager
 
-1. Add `liongalahad/nuviotv-morphe-patches` as a GitHub patch source. No GitHub PAT is required because the repository is public.
-2. Enable prerelease patches while the bundle remains on `dev`.
-3. Import the official NuvioTV `0.8.2-beta` APK for the target ABI, or the official universal APK.
-4. Select the patch to test. Use the dedicated local test signing identity for repeatable test upgrades.
-5. Install on the dedicated TV test profile. The official app cannot be upgraded in place because the patched APK has a different signature.
+1. Downlaod and install Morphe Manager on your phone or TV https://morphe.software/
+2. Add `liongalahad/nuviotv-morphe-patches` as a GitHub patch source. No GitHub PAT is required because the repository is public.
+3. Enable prerelease patches while the bundle remains on `dev`.
+4. Import the official NuvioTV `0.8.2-beta` APK for the target ABI, or the official universal APK.
+5. Select the patch to test. Use the dedicated local test signing identity for repeatable test upgrades.
+6. Sideload and install on your TV. The official app cannot be upgraded in place because the patched APK has a different signature.
 
 Deep link: `https://morphe.software/add-source?github=liongalahad/nuviotv-morphe-patches`
 

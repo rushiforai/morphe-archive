@@ -2216,8 +2216,11 @@ public final class GboardPatchesSettingsActivity extends Activity
         if (previewButton != null) {
             row.addView(previewButton, trailingLayoutParams(dp(10)));
         }
-        TextView chevronView = buildChevronView();
-        row.addView(chevronView);
+        TextView chevronView = null;
+        if (rowModel.shouldShowChevron()) {
+            chevronView = buildChevronView();
+            row.addView(chevronView);
+        }
         bindActionRowState(row, titleView, summaryView, chevronView, rowModel.isEnabled());
         row.setOnClickListener(view -> {
             if (row.isEnabled()) {

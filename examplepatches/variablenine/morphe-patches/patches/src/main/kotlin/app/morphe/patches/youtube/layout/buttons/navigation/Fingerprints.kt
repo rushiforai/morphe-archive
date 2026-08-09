@@ -64,17 +64,12 @@ internal object CastMenuItemVisibilityFingerprint : Fingerprint(
 )
 
 internal object AnimatedNavigationTabsFeatureFlagFingerprint : Fingerprint(
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    returnType = "Z",
     filters = listOf(
         literal(45680008L)
     )
 )
 
 internal object CollapsingToolbarLayoutFeatureFlagFingerprint : Fingerprint(
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    returnType = "Z",
-    parameters = listOf(),
     filters = listOf(
         literal(45736608L)
     )
@@ -140,8 +135,6 @@ internal object PivotBarChangedFingerprint : Fingerprint(
 )
 
 internal object TranslucentNavigationStatusBarFeatureFlagFingerprint : Fingerprint(
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    returnType = "Z",
     filters = listOf(
         literal(45400535L) // Translucent status bar feature flag.
     )
@@ -151,8 +144,6 @@ internal object TranslucentNavigationStatusBarFeatureFlagFingerprint : Fingerpri
  * YouTube nav buttons.
  */
 internal object TranslucentNavigationButtonsFeatureFlagFingerprint : Fingerprint(
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    returnType = "V",
     filters = listOf(
         literal(45630927L) // Translucent navigation bar buttons feature flag.
     )
@@ -162,33 +153,8 @@ internal object TranslucentNavigationButtonsFeatureFlagFingerprint : Fingerprint
  * Device on screen back/home/recent buttons.
  */
 internal object TranslucentNavigationButtonsSystemFeatureFlagFingerprint : Fingerprint(
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    returnType = "Z",
     filters = listOf(
         literal(45632194L) // Translucent system buttons feature flag.
-    )
-)
-
-internal object SetWordmarkHeaderFingerprint : Fingerprint(
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    returnType = "V",
-    parameters = listOf("Landroid/widget/ImageView;"),
-    filters = listOf(
-        methodCall(returnType = "Z"),
-        resourceLiteral(ResourceType.ATTR, "ytPremiumWordmarkHeader"),
-        resourceLiteral(ResourceType.ATTR, "ytWordmarkHeader")
-    )
-)
-
-/**
- * Matches the same method as [YouTubeDoodlesImageViewFingerprint].
- */
-internal object WideSearchbarLayoutFingerprint : Fingerprint(
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    returnType = "Landroid/view/View;",
-    parameters = listOf("L", "L"),
-    filters = listOf(
-        resourceLiteral(ResourceType.LAYOUT, "action_bar_ringo")
     )
 )
 

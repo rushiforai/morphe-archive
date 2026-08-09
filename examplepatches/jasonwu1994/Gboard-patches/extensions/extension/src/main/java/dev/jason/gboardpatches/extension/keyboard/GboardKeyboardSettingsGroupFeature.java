@@ -8,6 +8,7 @@ import dev.jason.gboardpatches.extension.R;
 import dev.jason.gboardpatches.extension.advancedvoice.GboardAdvancedVoiceSettingsFeature;
 import dev.jason.gboardpatches.extension.bluetoothmicrophone.GboardBluetoothMicrophoneSettingsFeature;
 import dev.jason.gboardpatches.extension.longpressquickactions.GboardLongPressQuickActionsSettingsFeature;
+import dev.jason.gboardpatches.extension.ocr.GboardOcrSettingsFeature;
 import dev.jason.gboardpatches.extension.settings.GboardFeatureGroup;
 import dev.jason.gboardpatches.extension.settings.GboardPatchesSettingsContract;
 import dev.jason.gboardpatches.extension.settings.GboardSettingsText;
@@ -36,6 +37,7 @@ public final class GboardKeyboardSettingsGroupFeature
                         new GboardAdvancedVoiceSettingsFeature(context),
                         new GboardTopRowSwipeSettingsFeature(context),
                         new GboardLongPressQuickActionsSettingsFeature(context),
+                        new GboardOcrSettingsFeature(context),
                         new GboardLatinGlobeKeyIgnoreIntervalSettingsFeature(context),
                         new GboardEnglishUppercaseToggleSettingsFeature(context),
                         new GboardZhuyinBottomRowWeightSettingsFeature(context),

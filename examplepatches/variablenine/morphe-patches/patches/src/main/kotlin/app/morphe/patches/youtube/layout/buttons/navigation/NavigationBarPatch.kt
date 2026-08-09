@@ -16,7 +16,6 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
-import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
@@ -37,6 +36,7 @@ import app.morphe.patches.youtube.misc.navigation.hookNavigationButtonCreated
 import app.morphe.patches.youtube.misc.navigation.navigationBarHookPatch
 import app.morphe.patches.youtube.misc.playservice.is_20_31_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_20_46_or_greater
+import app.morphe.patches.youtube.misc.playservice.is_21_30_or_greater
 import app.morphe.patches.youtube.misc.playservice.versionCheckPatch
 import app.morphe.patches.youtube.misc.settings.PreferenceScreen
 import app.morphe.patches.youtube.misc.settings.settingsPatch
@@ -45,7 +45,6 @@ import app.morphe.patches.youtube.misc.toolbar.toolBarHookPatch
 import app.morphe.patches.youtube.shared.ActionBarSearchResultsFingerprint
 import app.morphe.patches.youtube.shared.Constants.COMPATIBILITY_YOUTUBE
 import app.morphe.util.addInstructionsAtControlFlowLabel
-import app.morphe.util.findInstructionIndicesReversedOrThrow
 import app.morphe.util.getFreeRegisterProvider
 import app.morphe.util.getReference
 import app.morphe.util.insertLiteralOverride
@@ -72,7 +71,7 @@ private const val EXTENSION_SETTING_INTERFACE =
 val navigationBarPatch = bytecodePatch(
     name = "Navigation bar",
     description = "Adds options to hide and change the bottom navigation bar (such as the Shorts button) "
-            + " and the upper navigation toolbar. Patching version 20.21.37 and lower also adds a setting to use a wide searchbar."
+            + " and the upper navigation toolbar."
 ) {
     dependsOn(
         sharedExtensionPatch,
@@ -99,22 +98,22 @@ val navigationBarPatch = bytecodePatch(
             ListPreference("morphe_show_settings_button_index"),
             SwitchPreference("morphe_show_settings_button_type", summary = true),
             SwitchPreference("morphe_swap_create_with_notifications_button", summary = true),
-            SwitchPreference("morphe_hide_navigation_button_labels"),
-            SwitchPreference("morphe_narrow_navigation_buttons", summary = true),
             SwitchPreference("morphe_hide_navigation_bar"),
+            SwitchPreference("morphe_narrow_navigation_buttons", summary = true),
+            SwitchPreference("morphe_hide_navigation_button_labels"),
+            SwitchPreference("morphe_navigation_bar_animations", summary = true),
+            SwitchPreference("morphe_disable_translucent_navigation_bar_light", summary = true),
+            SwitchPreference("morphe_disable_translucent_navigation_bar_dark", summary = true)
         )
-
-        navPreferences += SwitchPreference("morphe_disable_translucent_navigation_bar_light", summary = true)
-        navPreferences += SwitchPreference("morphe_disable_translucent_navigation_bar_dark", summary = true)
-
-        PreferenceScreen.GENERAL.addPreferences(
-            SwitchPreference("morphe_disable_translucent_status_bar", summary = true)
-        )
-
-        navPreferences += SwitchPreference("morphe_navigation_bar_animations", summary = true)
 
         if (is_20_31_or_greater) {
             navPreferences += SwitchPreference("morphe_disable_auto_hide_navigation_bar", summary = true)
+        }
+
+        if (!is_21_30_or_greater) {
+            PreferenceScreen.GENERAL.addPreferences(
+                SwitchPreference("morphe_disable_translucent_status_bar", summary = true)
+            )
         }
 
         PreferenceScreen.GENERAL.addPreferences(
@@ -128,7 +127,7 @@ val navigationBarPatch = bytecodePatch(
         // Swap create with notifications button.
         addOSNameHook(
             Endpoint.GUIDE,
-            "$EXTENSION_CLASS->swapCreateWithNotificationButton(Ljava/lang/String;)Ljava/lang/String;",
+            "$EXTENSION_CLASS->swapCreateWithNotificationButton(Ljava/lang/String;)Ljava/lang/String;"
         )
 
         // Hide navigation button labels.
@@ -140,7 +139,7 @@ val navigationBarPatch = bytecodePatch(
                 addInstruction(
                     setTextIndex,
                     "invoke-static { v$targetRegister }, " +
-                            "$EXTENSION_CLASS->hideNavigationButtonLabels(Landroid/widget/TextView;)V",
+                            "$EXTENSION_CLASS->hideNavigationButtonLabels(Landroid/widget/TextView;)V"
                 )
             }
         }
@@ -152,37 +151,40 @@ val navigationBarPatch = bytecodePatch(
         addBottomBarContainerHook("$EXTENSION_CLASS->hideNavigationBar(Landroid/view/View;)V")
 
         // Force on/off translucent effect on status bar and navigation buttons.
-        TranslucentNavigationStatusBarFeatureFlagFingerprint.let {
+        TranslucentNavigationStatusBarFeatureFlagFingerprint.matchAll().forEach {
+            // 21.30+ inlines the flag lookup and must patch ~60 places.
             it.method.insertLiteralOverride(
                 it.instructionMatches.first().index,
-                "$EXTENSION_CLASS->useTranslucentNavigationStatusBar(Z)Z",
+                "$EXTENSION_CLASS->useTranslucentNavigationStatusBar(Z)Z"
             )
         }
 
-        TranslucentNavigationButtonsFeatureFlagFingerprint.let {
-            it.method.insertLiteralOverride(
-                it.instructionMatches.first().index,
-                "$EXTENSION_CLASS->useTranslucentNavigationButtons(Z)Z",
-            )
-        }
-
-        TranslucentNavigationButtonsSystemFeatureFlagFingerprint.let {
-            it.method.insertLiteralOverride(
-                it.instructionMatches.first().index,
-                "$EXTENSION_CLASS->useTranslucentNavigationButtons(Z)Z",
-            )
-        }
-
-        AnimatedNavigationTabsFeatureFlagFingerprint.let {
+        AnimatedNavigationTabsFeatureFlagFingerprint.matchAll().forEach {
             it.method.insertLiteralOverride(
                 it.instructionMatches.first().index,
                 "$EXTENSION_CLASS->useAnimatedNavigationButtons(Z)Z"
             )
         }
 
+        if (!is_21_30_or_greater) {
+            TranslucentNavigationButtonsSystemFeatureFlagFingerprint.matchAll().forEach {
+                it.method.insertLiteralOverride(
+                    it.instructionMatches.first().index,
+                    "$EXTENSION_CLASS->useTranslucentNavigationButtons(Z)Z"
+                )
+            }
+        }
+
+        TranslucentNavigationButtonsFeatureFlagFingerprint.matchAll().forEach {
+            it.method.insertLiteralOverride(
+                it.instructionMatches.first().index,
+                "$EXTENSION_CLASS->useTranslucentNavigationButtons(Z)Z"
+            )
+        }
+
         if (is_20_46_or_greater) {
             // Feature interferes with translucent status bar and must be forced off.
-            CollapsingToolbarLayoutFeatureFlagFingerprint.let {
+            CollapsingToolbarLayoutFeatureFlagFingerprint.matchAll().forEach {
                 it.method.insertLiteralOverride(
                     it.instructionMatches.first().index,
                     "$EXTENSION_CLASS->allowCollapsingToolbarLayout(Z)Z"
@@ -304,7 +306,7 @@ val navigationBarPatch = bytecodePatch(
                         # Restore MessageLite register one last time for safety
                         move-object/16 v$messageLiteRegister, v$backupRegister
                         nop
-                        """
+                    """
                 )
             }
         }
@@ -371,9 +373,6 @@ val navigationBarPatch = bytecodePatch(
             ListPreference("morphe_show_toolbar_settings_button_index"),
             SwitchPreference("morphe_show_toolbar_settings_button_type", summary = true)
         )
-        if (!is_20_31_or_greater) {
-            toolbarPreferences += SwitchPreference("morphe_wide_searchbar")
-        }
 
         PreferenceScreen.GENERAL.addPreferences(
             PreferenceScreenPreference(
@@ -594,46 +593,6 @@ val navigationBarPatch = bytecodePatch(
                         nop
                     """
                 )
-            }
-        }
-
-        //
-        // Wide searchbar
-        //
-
-        // YT removed the legacy text search text field all code required to use it.
-        // This functionality could be restored by adding a search text field to the toolbar
-        // with a listener that artificially clicks the toolbar search button.
-        if (!is_20_31_or_greater) {
-            SetWordmarkHeaderFingerprint.instructionMatches.first().getMethodCalled().apply {
-                findInstructionIndicesReversedOrThrow(Opcode.RETURN).forEach { index ->
-                    val register = getInstruction<OneRegisterInstruction>(index).registerA
-
-                    addInstructionsAtControlFlowLabel(
-                        index,
-                        """
-                            invoke-static { v$register }, ${EXTENSION_CLASS}->enableWideSearchbar(Z)Z
-                            move-result v$register
-                        """
-                    )
-                }
-            }
-
-            // Fix missing left padding when using wide searchbar.
-            WideSearchbarLayoutFingerprint.method.apply {
-                findInstructionIndicesReversedOrThrow(
-                    methodCall(
-                        definingClass = "Landroid/view/LayoutInflater;",
-                        name = "inflate"
-                    )
-                ).forEach { inflateIndex ->
-                    val register = getInstruction<OneRegisterInstruction>(inflateIndex + 1).registerA
-
-                    addInstruction(
-                        inflateIndex + 2,
-                        "invoke-static { v$register }, $EXTENSION_CLASS->setActionBar(Landroid/view/View;)V"
-                    )
-                }
             }
         }
     }

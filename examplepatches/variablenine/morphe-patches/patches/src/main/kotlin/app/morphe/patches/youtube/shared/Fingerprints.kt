@@ -299,25 +299,6 @@ internal object WatchNextResponseParserFingerprint : Fingerprint(
             Opcode.CHECK_CAST,
             location = MatchAfterImmediately()
         ),
-        literal(46659098L),
-    )
-)
-
-internal val VideoQualityBufferingFlagFingerprint = listOf(
-    Fingerprint( // Platypus
-        accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.CONSTRUCTOR),
-        returnType = "V",
-        filters = listOf(
-            literal(45624008L),
-            opcode(Opcode.MOVE_RESULT, location = MatchAfterWithin(2))
-        )
-    ),
-    Fingerprint(
-        accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-        returnType = "Z",
-        parameters = listOf(),
-        filters = listOf(
-            literal(45408049L)
-        )
+        literal(46659098L)
     )
 )

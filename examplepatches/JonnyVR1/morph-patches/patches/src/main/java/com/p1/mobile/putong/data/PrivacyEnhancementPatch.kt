@@ -36,6 +36,16 @@ private const val RETURN_EMPTY_LIST = """
     return-object v0
 """
 
+private const val RETURN_NULL = """
+    const/4 v0, 0x0
+    return-object v0
+"""
+
+private const val RETURN_EMPTY_STRING = """
+    const-string v0, ""
+    return-object v0
+"""
+
 private fun isConstructor(method: Method): Boolean =
     method.name == "<init>" || method.name == "<clinit>"
 
@@ -50,7 +60,7 @@ private val apkSignatureVerificationFingerprint = Fingerprint(
 @JvmField
 val privacyEnhancementPatch = bytecodePatch(
     name = "Privacy Enhancement",
-    description = "Advanced privacy protections: root/emulator detection bypass, ShuMeng SDK blocking, Facebook SDK emulator detection bypass, APK signature verification bypass, package enumeration prevention",
+    description = "Advanced privacy protections: root/emulator detection bypass, ShuMeng SDK blocking, Facebook SDK emulator detection bypass, APK signature verification bypass, package enumeration prevention, HTTP proxy detection bypass, clipboard read monitoring",
     default = true,
 ) {
     compatibleWith(tantanCompatibility)
@@ -65,8 +75,10 @@ val privacyEnhancementPatch = bytecodePatch(
         val additionalRootAnchors = setOf("/data/local/su", "/system/xbin/su", "/su/bin/su")
         val shuMengAnchors = setOf("shumeng_init", "shuzilm")
         val packageEnumAnchors = setOf("getInstalledPackages", "firstInstallTime")
+        val proxyAnchors = setOf("http.proxyHost", "http.proxyPort")
+        val clipboardAnchors = setOf("getPrimaryClip", "ClipboardManager")
 
-        val allAnchors = jmd0Anchors + mmd0Anchors + ert0Anchors + fbEmulatorAnchors + additionalRootAnchors + shuMengAnchors + packageEnumAnchors
+        val allAnchors = jmd0Anchors + mmd0Anchors + ert0Anchors + fbEmulatorAnchors + additionalRootAnchors + shuMengAnchors + packageEnumAnchors + proxyAnchors + clipboardAnchors
 
         var jmd0Class: ClassDef? = null
         var mmd0Class: ClassDef? = null
@@ -75,10 +87,12 @@ val privacyEnhancementPatch = bytecodePatch(
         var additionalRootClass: ClassDef? = null
         var shuMengClass: ClassDef? = null
         var packageEnumClass: ClassDef? = null
+        var proxyClass: ClassDef? = null
+        var clipboardClass: ClassDef? = null
         var matchedCount = 0
 
         classDefForEach { classDef ->
-            if (matchedCount == 7) return@classDefForEach
+            if (matchedCount == 9) return@classDefForEach
 
             val type = classDef.type
             if (type.startsWith("Landroid/") || type.startsWith("Lkotlin/") || type.startsWith("Ljava/")) {
@@ -108,6 +122,8 @@ val privacyEnhancementPatch = bytecodePatch(
                 additionalRootClass == null && foundStrings.containsAll(additionalRootAnchors) -> { additionalRootClass = classDef; matchedCount++ }
                 shuMengClass == null && foundStrings.containsAll(shuMengAnchors) -> { shuMengClass = classDef; matchedCount++ }
                 packageEnumClass == null && foundStrings.containsAll(packageEnumAnchors) -> { packageEnumClass = classDef; matchedCount++ }
+                proxyClass == null && foundStrings.containsAll(proxyAnchors) -> { proxyClass = classDef; matchedCount++ }
+                clipboardClass == null && foundStrings.containsAll(clipboardAnchors) -> { clipboardClass = classDef; matchedCount++ }
             }
         }
 
@@ -210,6 +226,37 @@ val privacyEnhancementPatch = bytecodePatch(
                     if (hasSuPaths) {
                         method.addInstructions(0, RETURN_FALSE)
                     }
+                }
+            }
+        }
+
+        proxyClass?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.implementation == null) return@forEach
+                if (isConstructor(method)) return@forEach
+                val readsProxyProps = method.cachedInstructions().any { instr ->
+                    instr is ReferenceInstruction && instr.reference is StringReference &&
+                        (instr.reference as StringReference).string in proxyAnchors
+                }
+                if (readsProxyProps) {
+                    when (method.returnType) {
+                        "Ljava/lang/String;" -> method.addInstructions(0, RETURN_EMPTY_STRING)
+                        "Z" -> method.addInstructions(0, RETURN_FALSE)
+                    }
+                }
+            }
+        }
+
+        clipboardClass?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.implementation == null) return@forEach
+                if (isConstructor(method)) return@forEach
+                val readsClipboard = method.cachedInstructions().any { instr ->
+                    instr is ReferenceInstruction && instr.reference is MethodReference &&
+                        (instr.reference as MethodReference).name == "getPrimaryClip"
+                }
+                if (readsClipboard && method.returnType == "Landroid/content/ClipData;") {
+                    method.addInstructions(0, RETURN_NULL)
                 }
             }
         }

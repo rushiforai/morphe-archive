@@ -45,6 +45,8 @@ public final class GboardPatchesFeatureAvailability {
             "dev.jason.gboardpatches.feature.advanced_voice_typing";
     public static final String FEATURE_BLUETOOTH_MICROPHONE =
             "dev.jason.gboardpatches.feature.bluetooth_microphone";
+    public static final String FEATURE_OCR_SCAN_TEXT =
+            "dev.jason.gboardpatches.feature.ocr_scan_text";
 
     private static final String TAG = "GboardPatches";
 

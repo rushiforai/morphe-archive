@@ -1,3 +1,53 @@
+## [2.7.0](https://github.com/jasonwu1994/Gboard-patches/compare/v2.6.0...v2.7.0) (2026-08-08)
+
+### ✨ New Features
+
+* **Gboard:** add the `OCR / Scan Text` patch with support for Latin, Chinese, Japanese, Korean, and Devanagari recognition backends.
+* **Gboard:** add OCR model downloads through Google Play services for the official recognition models.
+
+### 🐛 Bug Fixes
+
+* **Gboard:** harden Web Clipboard loopback authentication.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `OCR / Scan Text` Patch，支援拉丁文、中文、日文、韓文與天城文辨識後端。
+* **Gboard:** OCR 功能新增模型下載，透過 Google Play services 下載官方辨識模型。
+
+### 🐛 修復
+
+* **Gboard:** 強化 Web Clipboard 的 loopback 驗證機制。
+
+## [2.7.0-dev.3](https://github.com/jasonwu1994/Gboard-patches/compare/v2.7.0-dev.2...v2.7.0-dev.3) (2026-08-08)
+
+### 🐛 Bug Fixes
+
+* **Gboard:** harden Web Clipboard loopback authentication.
+
+### 🐛 修復
+
+* **Gboard:** 強化 Web Clipboard 的 loopback 驗證機制。
+
+## [2.7.0-dev.2](https://github.com/jasonwu1994/Gboard-patches/compare/v2.7.0-dev.1...v2.7.0-dev.2) (2026-08-08)
+
+### ✨ New Features
+
+* **Gboard:** add OCR model downloads through Google Play services for the official recognition models.
+
+### ✨ 新功能
+
+* **Gboard:** OCR 功能新增模型下載，透過 Google Play services 下載官方辨識模型。
+
+## [2.7.0-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v2.6.0...v2.7.0-dev.1) (2026-08-07)
+
+### ✨ New Features
+
+* **Gboard:** add the `OCR / Scan Text` patch with support for Latin, Chinese, Japanese, Korean, and Devanagari recognition backends.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `OCR / Scan Text` Patch，支援拉丁文、中文、日文、韓文與天城文辨識後端。
+
 ## [2.6.0](https://github.com/jasonwu1994/Gboard-patches/compare/v2.5.0...v2.6.0) (2026-08-06)
 
 ### ✨ New Features

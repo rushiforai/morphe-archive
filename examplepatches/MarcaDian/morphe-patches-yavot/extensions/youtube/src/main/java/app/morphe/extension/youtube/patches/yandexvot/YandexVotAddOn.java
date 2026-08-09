@@ -33,6 +33,9 @@ public final class YandexVotAddOn {
         AddOnApi.addVideoIdListener(YandexVoiceOverTranslationPatch::onVideoIdChanged);
         AddOnApi.addVideoTimeListener(YandexVoiceOverTranslationPatch::setVideoTime);
         AddOnApi.addVideoStateListener(YandexVoiceOverTranslationPatch::videoStateChanged);
+
+        // Only one voice-over engine should speak at a time.
+        YandexVotCoordinator.register();
     }
 
     private YandexVotAddOn() {

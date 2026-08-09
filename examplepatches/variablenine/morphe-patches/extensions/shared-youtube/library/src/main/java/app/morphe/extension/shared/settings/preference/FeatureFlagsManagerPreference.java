@@ -1,7 +1,6 @@
 package app.morphe.extension.shared.settings.preference;
 
 import static app.morphe.extension.shared.StringRef.str;
-import static app.morphe.extension.shared.ResourceUtils.getIdentifierOrThrow;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
@@ -39,11 +38,11 @@ import java.util.TreeSet;
 
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.ResourceType;
+import app.morphe.extension.shared.ResourceUtils;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.patches.EnableDebuggingPatch;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.SharedYouTubeSettings;
-import app.morphe.extension.shared.settings.preference.AbstractPreferenceFragment;
 import app.morphe.extension.shared.ui.CustomDialog;
 import app.morphe.extension.shared.ui.Dim;
 
@@ -55,19 +54,19 @@ import app.morphe.extension.shared.ui.Dim;
 public class FeatureFlagsManagerPreference extends Preference {
 
     private static final int DRAWABLE_MORPHE_SETTINGS_SELECT_ALL =
-            getIdentifierOrThrow(ResourceType.DRAWABLE, "morphe_settings_select_all");
+            ResourceUtils.getIdentifierOrThrow(ResourceType.DRAWABLE, "morphe_settings_select_all");
     private static final int DRAWABLE_MORPHE_SETTINGS_DESELECT_ALL =
-            getIdentifierOrThrow(ResourceType.DRAWABLE, "morphe_settings_deselect_all");
+            ResourceUtils.getIdentifierOrThrow(ResourceType.DRAWABLE, "morphe_settings_deselect_all");
     private static final int DRAWABLE_MORPHE_SETTINGS_COPY_ALL =
-            getIdentifierOrThrow(ResourceType.DRAWABLE, "morphe_settings_copy_all");
+            ResourceUtils.getIdentifierOrThrow(ResourceType.DRAWABLE, "morphe_settings_copy_all");
     private static final int DRAWABLE_MORPHE_SETTINGS_ARROW_RIGHT_ONE =
-            getIdentifierOrThrow(ResourceType.DRAWABLE, "morphe_settings_arrow_right_one");
+            ResourceUtils.getIdentifierOrThrow(ResourceType.DRAWABLE, "morphe_settings_arrow_right_one");
     private static final int DRAWABLE_MORPHE_SETTINGS_ARROW_RIGHT_DOUBLE =
-            getIdentifierOrThrow(ResourceType.DRAWABLE, "morphe_settings_arrow_right_double");
+            ResourceUtils.getIdentifierOrThrow(ResourceType.DRAWABLE, "morphe_settings_arrow_right_double");
     private static final int DRAWABLE_MORPHE_SETTINGS_ARROW_LEFT_ONE =
-            getIdentifierOrThrow(ResourceType.DRAWABLE, "morphe_settings_arrow_left_one");
+            ResourceUtils.getIdentifierOrThrow(ResourceType.DRAWABLE, "morphe_settings_arrow_left_one");
     private static final int DRAWABLE_MORPHE_SETTINGS_ARROW_LEFT_DOUBLE =
-            getIdentifierOrThrow(ResourceType.DRAWABLE, "morphe_settings_arrow_left_double");
+            ResourceUtils.getIdentifierOrThrow(ResourceType.DRAWABLE, "morphe_settings_arrow_left_double");
 
     /**
      * Flags to hide from the UI.
@@ -603,6 +602,7 @@ public class FeatureFlagsManagerPreference extends Preference {
     private void saveFlags(TreeSet<Long> blockedFlags) {
         StringBuilder flagsString = new StringBuilder();
         for (Long flag : blockedFlags) {
+            //noinspection SizeReplaceableByIsEmpty
             if (flagsString.length() > 0) {
                 flagsString.append("\n");
             }

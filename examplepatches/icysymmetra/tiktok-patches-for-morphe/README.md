@@ -1,12 +1,12 @@
 <p align="center">
-  <img src="assets/readme-header.png" alt="TikTok Patches for Morphe" width="290"/>
+  <img src="assets/readme-header.png" alt="Metra TikTok Patches" width="290"/>
 </p>
 
 <p align="center">
   <a href="LICENSE"><img alt="license" src="https://img.shields.io/badge/license-GPLv3-blue.svg" /></a>
   <a href="https://github.com/MorpheApp/morphe-cli"><img alt="source" src="https://img.shields.io/badge/source-Morphe-00b894.svg" /></a>
   <a href="https://www.android.com/"><img alt="platform" src="https://img.shields.io/badge/platform-Android-3ddc84.svg" /></a>
-  <a href="https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok-including-musical-ly/tiktok-43-8-3-release/tiktok-43-8-3-2-android-apk-download/"><img alt="TikTok 43.8.3" src="https://img.shields.io/badge/TikTok-43.8.3-ff0050.svg" /></a>
+  <a href="https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok-including-musical-ly/tiktok-46-2-3-release/tiktok-46-2-3-android-apk-download/"><img alt="TikTok 46.2.3" src="https://img.shields.io/badge/TikTok-46.2.3-ff0050.svg" /></a>
 </p>
 
 <p align="center">
@@ -19,13 +19,13 @@
   <sub><em>If you are using these patches and want to support the work, it helps me keep testing, improving, and keeping the patches maintained.</em></sub>
 </p>
 
-# TikTok Patches for Morphe
+# Metra TikTok Patches
 
 <br>
 
 **This repository is a Morphe patch source for TikTok.**
 
-**It continues the work from earlier community TikTok patch sets, including ReVanced, with the patches adapted for Morphe and tested against newer TikTok builds. The current target is the global TikTok package, `com.zhiliaoapp.musically`, on [TikTok `43.8.3`](https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok-including-musical-ly/tiktok-43-8-3-release/tiktok-43-8-3-2-android-apk-download/).**
+**It continues the work from earlier community TikTok patch sets, including ReVanced, with the patches adapted for Morphe and tested against newer TikTok builds. The current target is the global TikTok package, `com.zhiliaoapp.musically`, on [TikTok `46.2.3`](https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok-including-musical-ly/tiktok-46-2-3-release/tiktok-46-2-3-android-apk-download/).**
 
 The goal is to keep the existing patch set usable while adding more TikTok-focused features over time. Some features are small fixes, some are quality-of-life changes, and some need deeper testing because TikTok changes its internals often.
 
@@ -39,23 +39,30 @@ The goal is to keep the existing patch set usable while adding more TikTok-focus
 | `Copy comments without username` | Copies only the comment text without including the creator's username. |
 | `Custom offline videos limit` | Adds a custom entry to TikTok's offline videos menu with a configurable limit of up to 500 videos. |
 | `Disable login requirement` | Removes TikTok's mandatory login gate from supported flows. |
+| `Disable long-press quick share` | Keeps long-pressing Share from opening TikTok's quick-share interaction. |
 | `Disable screen capture detection` | Prevents TikTok from detecting screenshots and screen recordings. |
+| `Diagnostic tools` | Adds optional structured Morphe logs, Java crash capture, and clipboard or file report export. |
 | `Downloads` | Adds watermark-free video and photo downloads, comment sticker saving, and configurable download-folder controls. |
-| `Enable Open Debug` | Repurposes TikTok's hidden Open Debug row as the entry point for Morphe settings. Required for the settings menu to appear. |
+| `Enable Live search` | Shows TikTok's search entry in the Live drawer where supported. |
+| `Enable non-personalized search` | Uses TikTok's non-personalized search mode instead of its saved account choice. |
 | `Feature Gate Lab` | Adds a searchable menu for viewing and overriding supported TikTok feature flags and configuration values. Client-side overrides cannot bypass server enforcement. |
 | `Feed filter` | Hides feed ads, TikTok Shop items, livestreams, stories, photo posts, and videos outside configured view or like ranges. |
 | `Feed tab navigation` | Controls which loaded top and bottom navigation tabs remain visible, blocks newly added tabs when requested, and can hide the Tako AI bubble. |
 | `Fix Google login` | Restores Google account sign-in after patching. |
-| `Hide CAPTCHA popups` | Prevents client-side verification puzzle dialogs from opening, including those shown while browsing LIVE. It does not bypass server-side checks. |
+| `Hide CAPTCHA popups` | Hides non-account verification puzzle dialogs, including those shown while browsing LIVE. Account verification remains available, and server checks are not bypassed. |
 | `Hide floating promotions` | Removes floating promotional badges, coin icons, and timer banners from the Home feed. |
+| `Hide quick comment reactions` | Hides TikTok's exposed quick emoji row in supported comment inputs. |
 | `Hold-and-slide 2x lock` | Enables TikTok's native hold, slide down, and release gesture for locking playback at 2x speed. |
 | `Open external links directly` | Opens profile and story website links in the system browser instead of TikTok's in-app browser. |
 | `Playback speed` | Enables playback-speed controls for all videos and remembers the selected speed between videos. |
 | `Remember clear display` | Remembers TikTok's clear-display state between videos. |
+| `Resume videos after scrolling` | Restores a video's prior playback position when returning to it in the feed. |
 | `SIM spoof` | Replaces SIM country and operator values reported to TikTok and provides country presets. TikTok may still use IP address, account history, language, and other region signals. |
 | `Sanitize sharing links` | Removes tracking parameters from TikTok links before they are shared. |
-| `Settings` | Adds the Morphe settings screen inside TikTok. |
+| `Settings` | Adds the Metra patches settings screen inside TikTok. |
 | `Show seekbar` | Shows TikTok's native video seekbar where it would normally be hidden. |
+| `Show seekbar thumbnail` | Shows TikTok's video preview thumbnail while dragging the seekbar. |
+| `Stop video looping` | Stops a completed video instead of automatically replaying it. |
 | `Translate comments` | Adds comment translation controls using TikTok's translation system, with selectable language exclusions. |
 
 <br>
@@ -64,7 +71,7 @@ The goal is to keep the existing patch set usable while adding more TikTok-focus
 
 Open this link on the Android device where Morphe is installed:
 
-[Add TikTok Patches for Morphe](https://morphe.software/add-source?github=icysymmetra/tiktok-patches-for-morphe)
+[Add Metra TikTok Patches](https://morphe.software/add-source?github=icysymmetra/tiktok-patches-for-morphe)
 
 You can also copy this repository URL and paste it into Morphe's add source field:
 
@@ -76,14 +83,14 @@ You can also copy this repository URL and paste it into Morphe's add source fiel
 
 ### In Progress
 
-- [~] Update patch compatibility and bytecode hooks for a newer TikTok version.
+- [~] Finish runtime verification of the TikTok 46.2.3 compatibility port.
 
 <br>
 
 ## Supported Target
 
 - App: TikTok
-- Version: [`43.8.3`](https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok/tiktok-43-8-3-2-release/tiktok-43-8-3-4-android-apk-download/)
+- Version: [`46.2.3`](https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok-including-musical-ly/tiktok-46-2-3-release/tiktok-46-2-3-android-apk-download/)
 - Package: `com.zhiliaoapp.musically`
 
 Only the global package is declared in Morphe compatibility metadata. The JP package may share some internals, but it is not advertised as supported unless it gets its own proof pass again.

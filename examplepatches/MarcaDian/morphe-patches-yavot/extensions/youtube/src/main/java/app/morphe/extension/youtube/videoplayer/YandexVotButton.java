@@ -447,9 +447,9 @@ public final class YandexVotButton {
             if (seconds <= 0) return "\u2026";
             if (seconds >= 60) {
                 int minutes = (seconds + 59) / 60;
-                return str("morphe_yandex_vot_button_time_minutes", minutes);
+                return str("morphe_yandex_vot_time_min", minutes);
             }
-            return str("morphe_yandex_vot_button_time_seconds", seconds);
+            return str("morphe_yandex_vot_time_sec", seconds);
         }
 
         private static int parseColor(String value) {

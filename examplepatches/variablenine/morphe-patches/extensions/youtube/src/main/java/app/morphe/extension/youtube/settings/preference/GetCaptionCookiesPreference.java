@@ -83,7 +83,6 @@ public class GetCaptionCookiesPreference extends Preference implements Preferenc
         return true;
     }
 
-    @SuppressWarnings("ExtractMethodRecommender")
     private String fetchCookieString() {
         List<String> setCookies = null;
 
@@ -129,6 +128,7 @@ public class GetCaptionCookiesPreference extends Preference implements Preferenc
                     String key = entry.substring(0, equalIndex).trim();
 
                     if (COOKIES_HEADER_KEYS.contains(key)) {
+                        //noinspection SizeReplaceableByIsEmpty
                         if (sb.length() > 0) {
                             sb.append("; ");
                         }
@@ -141,5 +141,4 @@ public class GetCaptionCookiesPreference extends Preference implements Preferenc
         }
         return "";
     }
-
 }

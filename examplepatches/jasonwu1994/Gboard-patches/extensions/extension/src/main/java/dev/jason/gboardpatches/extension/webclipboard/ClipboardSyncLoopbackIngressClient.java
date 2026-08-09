@@ -31,15 +31,9 @@ public final class ClipboardSyncLoopbackIngressClient {
         return isExpectedPortal(port, loopbackIngressToken, DEFAULT_TIMEOUT_MS);
     }
 
-    public static String fallbackLoopbackIngressToken() {
-        return ClipboardSyncLoopbackAuth.fallbackToken();
-    }
-
     public static boolean isExpectedPortal(int port, String loopbackIngressToken, int timeoutMs) {
         String safeToken = loopbackIngressToken == null ? "" : loopbackIngressToken;
-        if (safeToken.isEmpty()
-                || safeToken.indexOf('\r') >= 0
-                || safeToken.indexOf('\n') >= 0) {
+        if (!ClipboardSyncLoopbackAuth.isUsableToken(safeToken)) {
             return false;
         }
         return verifyExpectedPortal(
@@ -54,9 +48,7 @@ public final class ClipboardSyncLoopbackIngressClient {
             return false;
         }
         String safeToken = loopbackIngressToken == null ? "" : loopbackIngressToken;
-        if (safeToken.isEmpty()
-                || safeToken.indexOf('\r') >= 0
-                || safeToken.indexOf('\n') >= 0) {
+        if (!ClipboardSyncLoopbackAuth.isUsableToken(safeToken)) {
             return false;
         }
         int safePort = WebClipboardPreferences.sanitizePort(port);
@@ -77,9 +69,7 @@ public final class ClipboardSyncLoopbackIngressClient {
                 writer.write("POST " + INGRESS_PATH + " HTTP/1.1\r\n");
                 writer.write("Host: " + LOOPBACK_HOST + ":" + safePort + "\r\n");
                 writer.write("Content-Type: application/json; charset=utf-8\r\n");
-                if (!safeToken.isEmpty()) {
-                    writer.write(LOOPBACK_INGRESS_TOKEN_HEADER + ": " + safeToken + "\r\n");
-                }
+                writer.write(LOOPBACK_INGRESS_TOKEN_HEADER + ": " + safeToken + "\r\n");
                 writer.write("Content-Length: " + body.length + "\r\n");
                 writer.write("Connection: close\r\n");
                 writer.write("\r\n");
@@ -124,11 +114,7 @@ public final class ClipboardSyncLoopbackIngressClient {
             return ClipboardSyncLoopbackAuth.proofMatches(
                     loopbackIngressToken,
                     challenge,
-                    payload.optString(ClipboardSyncLoopbackAuth.PROOF_FIELD, ""))
-                    || ClipboardSyncLoopbackAuth.proofMatches(
-                            loopbackIngressToken,
-                            challenge,
-                            payload.optString(ClipboardSyncLoopbackAuth.FALLBACK_PROOF_FIELD, ""));
+                    payload.optString(ClipboardSyncLoopbackAuth.PROOF_FIELD, ""));
         } catch (Throwable ignored) {
             return false;
         }

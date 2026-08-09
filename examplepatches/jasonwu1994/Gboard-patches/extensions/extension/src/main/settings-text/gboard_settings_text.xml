@@ -1738,4 +1738,76 @@
         <translation locale="en">It is currently unclear whether another download is needed. Verify that you used a bundle or split APKM and applied the patch in Morphe; a standalone APK cannot work.\nTap to view the APKMirror download page</translation>
         <translation locale="zh-Hant">目前無法判斷是否需要重新下載。請確認使用 bundle 或 split APKM，並在 Morphe 中套用 patch；standalone APK 無法生效。\n點此查看 APKMirror 下載頁</translation>
     </string>
+    <string name="gboard_patches_ocr_title">
+        <translation locale="en">OCR / Scan Text</translation>
+        <translation locale="zh-Hant">OCR / 掃描文字</translation>
+    </string>
+    <string name="gboard_patches_ocr_summary">
+        <translation locale="en">Control the backend engine used for text recognition.</translation>
+        <translation locale="zh-Hant">控制文字辨識的後端引擎。</translation>
+    </string>
+    <string name="gboard_patches_ocr_header_summary">
+        <translation locale="en">Official models must be downloaded through Google Play services.</translation>
+        <translation locale="zh-Hant">需要透過 Google Play services 下載官方模型</translation>
+    </string>
+    <string name="gboard_patches_ocr_error_title">
+        <translation locale="en">OCR settings unavailable</translation>
+        <translation locale="zh-Hant">OCR 設定無法使用</translation>
+    </string>
+    <string name="gboard_patches_ocr_error_summary">
+        <translation locale="en">The OCR settings screen failed to load. Reopen Gboard settings and try again.</translation>
+        <translation locale="zh-Hant">OCR 設定畫面載入失敗。請重新開啟 Gboard 設定再試一次。</translation>
+    </string>
+    <string name="gboard_patches_ocr_engine_title">
+        <translation locale="en">Recognition backend</translation>
+        <translation locale="zh-Hant">文字辨識後端引擎</translation>
+    </string>
+    <string name="gboard_patches_ocr_status_installed">
+        <translation locale="en">Installed</translation>
+        <translation locale="zh-Hant">已安裝</translation>
+    </string>
+    <string name="gboard_patches_ocr_status_not_installed">
+        <translation locale="en">Not installed. Tap to download.</translation>
+        <translation locale="zh-Hant">未安裝，點擊以下載。</translation>
+    </string>
+    <string name="gboard_patches_ocr_status_checking">
+        <translation locale="en">Checking installation status…</translation>
+        <translation locale="zh-Hant">正在檢查安裝狀態…</translation>
+    </string>
+    <string name="gboard_patches_ocr_status_check_failed">
+        <translation locale="en">Unable to verify. Tap to download.</translation>
+        <translation locale="zh-Hant">無法確認，點擊以下載。</translation>
+    </string>
+    <string name="gboard_patches_ocr_status_downloading">
+        <translation locale="en">Downloading…</translation>
+        <translation locale="zh-Hant">下載中…</translation>
+    </string>
+    <string name="gboard_patches_ocr_status_download_failed">
+        <translation locale="en">Download failed. Tap to retry.</translation>
+        <translation locale="zh-Hant">下載失敗，點擊以重試。</translation>
+    </string>
+    <string name="gboard_patches_ocr_status_current">
+        <translation locale="en">Current</translation>
+        <translation locale="zh-Hant">目前使用</translation>
+    </string>
+    <string name="gboard_patches_ocr_engine_latin_label">
+        <translation locale="en">Latin</translation>
+        <translation locale="zh-Hant">拉丁文字</translation>
+    </string>
+    <string name="gboard_patches_ocr_engine_chinese_label">
+        <translation locale="en">Chinese</translation>
+        <translation locale="zh-Hant">中文</translation>
+    </string>
+    <string name="gboard_patches_ocr_engine_japanese_label">
+        <translation locale="en">Japanese</translation>
+        <translation locale="zh-Hant">日文</translation>
+    </string>
+    <string name="gboard_patches_ocr_engine_korean_label">
+        <translation locale="en">Korean</translation>
+        <translation locale="zh-Hant">韓文</translation>
+    </string>
+    <string name="gboard_patches_ocr_engine_devanagari_label">
+        <translation locale="en">Devanagari</translation>
+        <translation locale="zh-Hant">天城文</translation>
+    </string>
 </settings-text>

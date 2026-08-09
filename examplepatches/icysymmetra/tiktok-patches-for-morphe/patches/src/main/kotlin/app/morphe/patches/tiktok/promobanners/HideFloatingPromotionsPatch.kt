@@ -29,7 +29,6 @@ private object TouchPointPendantParserFingerprint : Fingerprint(
             ?.toSet()
             ?: emptySet()
         "Lcom/bytedance/touchpoint/api/model/NormalPendant;" in referencedTypes &&
-            "Lcom/bytedance/touchpoint/api/model/TimerPendant;" in referencedTypes &&
             "Lcom/bytedance/touchpoint/data/parser/notify/PendantViewModel;" in referencedTypes
     },
 )
@@ -41,7 +40,7 @@ val hideFloatingPromotionsPatch = bytecodePatch(
     default = true,
 ) {
     dependsOn(sharedExtensionPatch)
-    compatibleWith(*AppCompatibilities.tiktok4383())
+    compatibleWith(*AppCompatibilities.tiktok4623())
 
     execute {
         SettingsStatusLoadFingerprint.method.addInstruction(

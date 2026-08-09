@@ -223,7 +223,10 @@ public abstract class BaseSearchResultItem {
          */
         private void appendText(StringBuilder builder, CharSequence text) {
             if (!TextUtils.isEmpty(text)) {
-                if (builder.length() > 0) builder.append(" ");
+                //noinspection SizeReplaceableByIsEmpty
+                if (builder.length() > 0) {
+                    builder.append(" ");
+                }
                 builder.append(Utils.normalizeTextToLowercase(text));
             }
         }

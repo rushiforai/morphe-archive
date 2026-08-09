@@ -184,10 +184,10 @@ private val yandexVoiceOverTranslationResourcePatch = resourcePatch {
                     noTitlePreferenceCategory(
                         key = "morphe_yandex_vot_general_category",
                         preferences = listOf(
-                            switchPreference("morphe_yandex_vot_enabled"),
+                            switchPreference("morphe_yandex_vot_enabled", summary = true),
                             listPreference("morphe_yandex_vot_source_language"),
                             listPreference("morphe_yandex_vot_target_language"),
-                            switchPreference("morphe_yandex_vot_use_live_voices"),
+                            switchPreference("morphe_yandex_vot_use_live_voices", summary = true),
                             seekBarPreference("morphe_yandex_vot_translation_volume"),
                             seekBarPreference("morphe_yandex_vot_original_audio_volume"),
                             nonInteractivePreference(

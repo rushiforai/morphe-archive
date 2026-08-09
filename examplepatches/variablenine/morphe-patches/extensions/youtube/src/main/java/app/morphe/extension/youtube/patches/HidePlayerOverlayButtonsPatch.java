@@ -1,13 +1,13 @@
 package app.morphe.extension.youtube.patches;
 
-import static app.morphe.extension.shared.ResourceUtils.getIdentifierOrThrow;
-
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.ResourceType;
+import app.morphe.extension.shared.ResourceUtils;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.youtube.settings.Settings;
 
@@ -66,8 +66,8 @@ public final class HidePlayerOverlayButtonsPatch {
 
         // Adjust layout params if RelativeLayout
         var layoutParams = imageView.getLayoutParams();
-        if (layoutParams instanceof android.widget.RelativeLayout.LayoutParams) {
-            android.widget.RelativeLayout.LayoutParams lp = new android.widget.RelativeLayout.LayoutParams(0, 0);
+        if (layoutParams instanceof RelativeLayout.LayoutParams) {
+            RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(0, 0);
             imageView.setLayoutParams(lp);
         } else {
             Logger.printDebug(() -> "Unknown collapse button layout params: " + layoutParams);
@@ -81,7 +81,7 @@ public final class HidePlayerOverlayButtonsPatch {
         if (!Settings.HIDE_COLLAPSE_BUTTON.get()) return;
 
         var layoutParams = titleAnchorView.getLayoutParams();
-        if (layoutParams instanceof android.widget.RelativeLayout.LayoutParams relativeParams) {
+        if (layoutParams instanceof RelativeLayout.LayoutParams relativeParams) {
             relativeParams.setMarginStart(0);
         } else {
             Logger.printDebug(() -> "Unknown title anchor layout params: " + layoutParams);
@@ -91,10 +91,10 @@ public final class HidePlayerOverlayButtonsPatch {
     private static final boolean HIDE_PLAYER_PREVIOUS_NEXT_BUTTONS_ENABLED
             = Settings.HIDE_PLAYER_PREVIOUS_NEXT_BUTTONS.get();
 
-    private static final int PLAYER_CONTROL_PREVIOUS_BUTTON_TOUCH_AREA_ID = getIdentifierOrThrow(
+    private static final int PLAYER_CONTROL_PREVIOUS_BUTTON_TOUCH_AREA_ID = ResourceUtils.getIdentifierOrThrow(
             ResourceType.ID, "player_control_previous_button_touch_area");
 
-    private static final int PLAYER_CONTROL_NEXT_BUTTON_TOUCH_AREA_ID = getIdentifierOrThrow(
+    private static final int PLAYER_CONTROL_NEXT_BUTTON_TOUCH_AREA_ID = ResourceUtils.getIdentifierOrThrow(
             ResourceType.ID, "player_control_next_button_touch_area");
 
     /**
@@ -114,7 +114,7 @@ public final class HidePlayerOverlayButtonsPatch {
     }
 
 
-    private static final int PLAYER_OVERFLOW_BUTTON_ID = getIdentifierOrThrow(
+    private static final int PLAYER_OVERFLOW_BUTTON_ID = ResourceUtils.getIdentifierOrThrow(
             ResourceType.ID, "player_overflow_button");
     /**
      * Injection point.

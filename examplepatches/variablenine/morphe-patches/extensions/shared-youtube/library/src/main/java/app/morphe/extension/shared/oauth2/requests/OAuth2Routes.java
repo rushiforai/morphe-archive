@@ -7,8 +7,6 @@
 
 package app.morphe.extension.shared.oauth2.requests;
 
-import static app.morphe.extension.shared.requests.Route.Method.POST;
-
 import java.io.IOException;
 import java.net.HttpURLConnection;
 
@@ -20,16 +18,16 @@ final class OAuth2Routes {
     private static final String OAUTH2_GOOGLE_API_URL = "https://oauth2.googleapis.com/";
     private static final String OAUTH2_YOUTUBE_API_URL = "https://www.youtube.com/o/oauth2/";
     private static final String USER_AGENT =
-            "com.google.android.apps.youtube.vr.oculus/1.73.24(Linux; U; Android 10; en_US; Quest Build/QQ3A.200805.001) gzip";
+            "com.google.android.apps.youtube.vr.pico/1.73.21(Linux; U; Android 10; en_US; A8110 Build/5.13.7) gzip";
 
     /**
      * TCP connection and HTTP read timeout.
      */
     private static final int CONNECTION_TIMEOUT_MILLISECONDS = 10 * 1000; // 10 Seconds.
 
-    static final Route ACCESS_TOKEN = new Route(POST, "token");
-    static final Route DEVICE_CODE = new Route(POST, "device/code");
-    static final Route REVOKE_TOKEN = new Route(POST, "revoke");
+    static final Route ACCESS_TOKEN = new Route(Route.Method.POST, "token");
+    static final Route DEVICE_CODE = new Route(Route.Method.POST, "device/code");
+    static final Route REVOKE_TOKEN = new Route(Route.Method.POST, "revoke");
 
     private OAuth2Routes() {
     }

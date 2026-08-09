@@ -10,8 +10,6 @@
 
 package app.morphe.extension.youtube.patches.components;
 
-import static app.morphe.extension.shared.ByteTrieSearch.convertStringsToBytes;
-
 import android.view.View;
 
 import java.util.List;
@@ -42,9 +40,9 @@ public final class AdsFilter extends Filter {
 
     private static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
     private static final ByteTrieSearch statementBannerSearch = new ByteTrieSearch(
-            convertStringsToBytes("statement_banner"));
+            ByteTrieSearch.convertStringsToBytes("statement_banner"));
     private static final ByteTrieSearch yoodleSearch = new ByteTrieSearch(
-            convertStringsToBytes("EgliaWd5b29kbGU")); // Base64 chunk that decodes to 'bigyoodle'
+            ByteTrieSearch.convertStringsToBytes("EgliaWd5b29kbGU")); // Base64 chunk that decodes to 'bigyoodle'
 
     private final StringTrieSearch exceptions = new StringTrieSearch();
 
@@ -73,6 +71,16 @@ public final class AdsFilter extends Filter {
         addIdentifierCallbacks(carouselAd);
 
         // Paths.
+
+        buyMovieAd = new StringFilterGroup(
+                Settings.HIDE_MOVIES_SECTION,
+                "video_lockup_with_attachment.e"
+        );
+
+        buyMovieAdBuffer = new ByteArrayFilterGroup(
+                null,
+                "FEstorefront"
+        );
 
         final var generalAds = new StringFilterGroup(
                 Settings.HIDE_GENERAL_ADS,
@@ -108,6 +116,12 @@ public final class AdsFilter extends Filter {
                 "watch_metadata_app_promo"
         );
 
+        final var merchandise = new StringFilterGroup(
+                Settings.HIDE_MERCHANDISE_BANNERS,
+                "product_carousel",
+                "shopping_carousel.e" // Channel profile shopping shelf.
+        );
+
         final var movieAds = new StringFilterGroup(
                 Settings.HIDE_MOVIES_SECTION,
                 "browsy_bar",
@@ -118,37 +132,8 @@ public final class AdsFilter extends Filter {
                 "offer_module_root"
         );
 
-        buyMovieAd = new StringFilterGroup(
-                Settings.HIDE_MOVIES_SECTION,
-                "video_lockup_with_attachment.e"
-        );
-
-        buyMovieAdBuffer =  new ByteArrayFilterGroup(
-                null,
-                "FEstorefront"
-        );
-
-        final var viewProducts = new StringFilterGroup(
-                Settings.HIDE_PLAYER_POPUP_ADS,
-                "products_in_video",
-                "product_item",
-                "shopping_overlay.e" // Video player overlay shopping links.
-        );
-
-        final var shoppingLinks = new StringFilterGroup(
-                Settings.HIDE_SHOPPING_LINKS,
-                "shopping_description_item.e",
-                "shopping_description_shelf.e"
-        );
-
-        final var merchandise = new StringFilterGroup(
-                Settings.HIDE_MERCHANDISE_BANNERS,
-                "product_carousel",
-                "shopping_carousel.e" // Channel profile shopping shelf.
-        );
-
         final var paidPromotionLabel = new StringFilterGroup(
-                Settings.HIDE_PAID_PROMOTION_LABEL,
+                Settings.HIDE_PAID_PROMOTION_LABELS,
                 "paid_content_overlay",
                 "reel_player_disclosure.e",
                 "shorts_disclosures.e"
@@ -175,14 +160,27 @@ public final class AdsFilter extends Filter {
                 "cta_shelf_card"
         );
 
+        final var shoppingLinks = new StringFilterGroup(
+                Settings.HIDE_SHOPPING_LINKS,
+                "shopping_description_item.e",
+                "shopping_description_shelf.e"
+        );
+
         shortsPaidPromotionLabel = new StringFilterGroup(
-                Settings.HIDE_PAID_PROMOTION_LABEL,
+                Settings.HIDE_PAID_PROMOTION_LABELS,
                 "reel_carousel.e"
         );
 
         shortsPaidPromotionLabelBuffer = new ByteArrayFilterGroup(
                 null,
                 "/youtube?p=ppp" // https://support.google.com/youtube?p=ppp
+        );
+
+        final var viewProducts = new StringFilterGroup(
+                Settings.HIDE_PLAYER_POPUP_ADS,
+                "product_item",
+                "products_in_video",
+                "shopping_overlay.e" // Video player overlay shopping links.
         );
 
         addPathCallbacks(
@@ -232,28 +230,18 @@ public final class AdsFilter extends Filter {
     /**
      * Injection point.
      */
-    public static byte[] hideStatementBanner(byte[] bytes) {
-        try {
-            if (statementBannerSearch.matches(bytes)) {
-                final boolean isDoodle = yoodleSearch.matches(bytes);
+    public static boolean allowAds(boolean original) {
+        if (Settings.HIDE_GENERAL_ADS.get()) return false;
+        return original;
+    }
 
-                if (isDoodle) {
-                    if (Settings.HIDE_YOUTUBE_DOODLES.get()) {
-                        Logger.printDebug(() -> "Hiding YouTube Doodles");
-                        return EMPTY_BYTE_ARRAY;
-                    }
-                } else {
-                    if (Settings.HIDE_YOUTUBE_PREMIUM_PROMOTIONS.get()) {
-                        Logger.printDebug(() -> "Hiding YouTube Premium promotions");
-                        return EMPTY_BYTE_ARRAY;
-                    }
-                }
-            }
-        } catch (Exception ex) {
-            Logger.printException(() -> "hideStatementBanner failure", ex);
-        }
-
-        return bytes;
+    /**
+     * Hide the view, which shows ads in the homepage.
+     *
+     * @param view The view, which shows ads.
+     */
+    public static void hideAdAttributionView(View view) {
+        Utils.hideViewBy0dpUnderCondition(Settings.HIDE_GENERAL_ADS, view);
     }
 
     /**
@@ -266,27 +254,10 @@ public final class AdsFilter extends Filter {
     /**
      * Injection point.
      */
-    public static boolean allowAds(boolean original) {
-        if (Settings.HIDE_GENERAL_ADS.get()) return false;
-        return original;
-    }
-
-    /**
-     * Injection point.
-     */
     public static String hideAds(String osName) {
         return Settings.HIDE_GENERAL_ADS.get()
                 ? "Android Automotive"
                 : osName;
-    }
-
-    /**
-     * Hide the view, which shows ads in the homepage.
-     *
-     * @param view The view, which shows ads.
-     */
-    public static void hideAdAttributionView(View view) {
-        Utils.hideViewBy0dpUnderCondition(Settings.HIDE_GENERAL_ADS, view);
     }
 
     /**
@@ -314,6 +285,13 @@ public final class AdsFilter extends Filter {
     /**
      * Injection point.
      */
+    public static void hideMiniplayerPaidPromotionLabelView(View view) {
+        Utils.hideViewBy0dpUnderCondition(Settings.HIDE_PAID_PROMOTION_LABELS, view);
+    }
+
+    /**
+     * Injection point.
+     */
     public static boolean hidePlayerPopupAds(String panelId) {
         return Settings.HIDE_PLAYER_POPUP_ADS.get()
                 && Utils.containsAny(panelId, PLAYER_POPUP_AD_PANEL_IDS);
@@ -322,8 +300,28 @@ public final class AdsFilter extends Filter {
     /**
      * Injection point.
      */
-    public static void hideMiniplayerPaidPromotionLabelView(View view) {
-        Utils.hideViewBy0dpUnderCondition(Settings.HIDE_PAID_PROMOTION_LABEL, view);
+    public static byte[] hideStatementBanner(byte[] bytes) {
+        try {
+            if (statementBannerSearch.matches(bytes)) {
+                final boolean isDoodle = yoodleSearch.matches(bytes);
+
+                if (isDoodle) {
+                    if (Settings.HIDE_YOUTUBE_DOODLES.get()) {
+                        Logger.printDebug(() -> "Hiding YouTube Doodles");
+                        return EMPTY_BYTE_ARRAY;
+                    }
+                } else {
+                    if (Settings.HIDE_YOUTUBE_PREMIUM_PROMOTIONS.get()) {
+                        Logger.printDebug(() -> "Hiding YouTube Premium promotions");
+                        return EMPTY_BYTE_ARRAY;
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            Logger.printException(() -> "hideStatementBanner failure", ex);
+        }
+
+        return bytes;
     }
 
     /**

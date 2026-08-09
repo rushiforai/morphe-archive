@@ -63,6 +63,12 @@ Gboard Patches is a public Morphe source for a curated set of Gboard enhancement
 </details>
 
 <details>
+  <summary><code>Enable OCR / Scan Text</code></summary>
+
+  Enable the OCR / Scan Text feature with Latin, Chinese, Japanese, Korean, and Devanagari recognition backends.
+</details>
+
+<details>
   <summary><code>Custom Symbols</code></summary>
 
   Adds a dedicated symbols tab and a quick access entry from the comma long-press popup.

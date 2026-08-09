@@ -2321,6 +2321,45 @@ If you know of another working ReVanced or Morphe patch repository that is not l
 **Dev:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/dbhavsar76-patch-bundles/dbhavsar76-dev-patches-bundle.json```
 </details>
 
+---
+### 📦 FTL-Patches-Bundle [Morphe]:
+[🧩 FTL Bundle Patch List](https://github.com/Jman-Github/ReVanced-Patch-Bundles/blob/bundles/patch-bundles/PATCH-LIST-CATALOG.md#-ftl-bundle-patch-list)
+<details>
+<summary><i>Expand For Links</i></summary>
+
+**Latest:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/ftl-patch-bundles/ftl-latest-patches-bundle.json```
+
+**Stable:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/ftl-patch-bundles/ftl-stable-patches-bundle.json```
+
+**Dev:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/ftl-patch-bundles/ftl-dev-patches-bundle.json```
+</details>
+
+---
+### 📦 braiNtropy-Patches-Bundle [Morphe]:
+[🧩 braiNtropy Bundle Patch List](https://github.com/Jman-Github/ReVanced-Patch-Bundles/blob/bundles/patch-bundles/PATCH-LIST-CATALOG.md#-braintropy-bundle-patch-list)
+<details>
+<summary><i>Expand For Links</i></summary>
+
+**Latest:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/braintropy-patch-bundles/braintropy-latest-patches-bundle.json```
+
+**Stable:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/braintropy-patch-bundles/braintropy-stable-patches-bundle.json```
+
+**Dev:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/braintropy-patch-bundles/braintropy-dev-patches-bundle.json```
+</details>
+
+---
+### 📦 Ang3lo-Patches-Bundle [Morphe]:
+[🧩 Ang3lo Bundle Patch List](https://github.com/Jman-Github/ReVanced-Patch-Bundles/blob/bundles/patch-bundles/PATCH-LIST-CATALOG.md#-ang3lo-bundle-patch-list)
+<details>
+<summary><i>Expand For Links</i></summary>
+
+**Latest:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/ang3lo-patch-bundles/ang3lo-latest-patches-bundle.json```
+
+**Stable:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/ang3lo-patch-bundles/ang3lo-stable-patches-bundle.json```
+
+**Dev:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/ang3lo-patch-bundles/ang3lo-dev-patches-bundle.json```
+</details>
+
 ## 📱 Compatible Managers
 
 | Manager | Best For | Source | Downloads |
@@ -2691,6 +2730,12 @@ If you know of another working ReVanced or Morphe patch repository that is not l
 #### 🩹 [PetalMaps-AndroidAuto-Patches-Bundle](https://github.com/andersonlucasg3/PetalMaps-AndroidAuto)
 
 #### ??? [Dbhavsar76-Patches-Bundle](https://github.com/dbhavsar76/revanced-patches)
+
+#### 🩹 [FTL-Patches-Bundle](https://github.com/BlazeFTL/FTL-Patches)
+
+#### 🩹 [braiNtropy-Patches-Bundle](https://github.com/braiNtropy/braintropy-patches)
+
+#### 🩹 [Ang3lo-Patches-Bundle](https://github.com/ang3lo-azevedo/morphe-patches)
 
 ## 🖇 Integrations Repositories In Use
 
