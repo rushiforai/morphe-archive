@@ -1,11 +1,6 @@
 package app.cesbar.patches.thecleanone
 
 import app.morphe.patcher.patch.resourcePatch
-import app.morphe.util.returnEarly
-import app.morphe.patcher.Fingerprint
-import com.android.tools.smali.dexlib2.AccessFlags
-import app.morphe.patcher.patch.AppTarget
-import app.morphe.patcher.patch.Compatibility
 
 
 val removePermissionsPatch = resourcePatch (

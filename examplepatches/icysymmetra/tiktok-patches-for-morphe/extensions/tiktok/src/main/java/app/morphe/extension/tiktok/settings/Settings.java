@@ -71,6 +71,18 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_COMMENT_QUICK_REACTIONS =
             new BooleanSetting("hide_comment_quick_reactions", FALSE);
     public static final StringSetting DOWNLOAD_PATH = new StringSetting("down_path", "DCIM/TikTok");
+    public static final StringSetting DOWNLOAD_VIDEO_FILENAME_TEMPLATE = new StringSetting(
+            "download_video_filename_template",
+            "{creator}_{date}_{video_id}"
+    );
+    public static final StringSetting DOWNLOAD_PHOTO_FILENAME_TEMPLATE = new StringSetting(
+            "download_photo_filename_template",
+            "{creator}_{date}_{video_id}_{index}"
+    );
+    public static final StringSetting DOWNLOAD_COMMENT_MEDIA_FILENAME_TEMPLATE = new StringSetting(
+            "download_comment_media_filename_template",
+            "comment_{date}_{media_id}"
+    );
     public static final BooleanSetting DOWNLOAD_WATERMARK = new BooleanSetting("down_watermark", TRUE);
     public static final BooleanSetting CUSTOM_OFFLINE_VIDEOS = new BooleanSetting("custom_offline_videos", FALSE, true);
     public static final IntegerSetting CUSTOM_OFFLINE_VIDEO_LIMIT = new IntegerSetting(

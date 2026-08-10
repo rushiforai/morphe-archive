@@ -109,8 +109,8 @@ public class YandexVotApiClient {
     private static volatile boolean tokenIsValid = false;
 
     private record CachedResult(TranslationResult result, long createdAt) {
-        boolean isExpired() {
-            return System.currentTimeMillis() - createdAt > CACHE_TTL_MS;
+        boolean isValid() {
+            return System.currentTimeMillis() - createdAt <= CACHE_TTL_MS;
         }
     }
 
@@ -118,13 +118,6 @@ public class YandexVotApiClient {
                                     String translationId, String message) {
     }
 
-    /**
-     * Converts a direct audio URL (S3/Yandex) to a proxied URL.
-     * Used when audio proxy is enabled — routes audio through the configured proxy host.
-     *
-     * @param originalUrl the original audio URL
-     * @return proxied URL, or originalUrl on error
-     */
     private static boolean isProxyEnabled() {
         return YandexVotSettings.YANDEX_VOT_AUDIO_PROXY_ENABLED.get()
                 && !YandexVotSettings.YANDEX_VOT_PROXY_URL.get().trim().isEmpty();
@@ -146,6 +139,13 @@ public class YandexVotApiClient {
                 : "https://" + YANDEX_API_HOST) + path;
     }
 
+    /**
+     * Converts a direct audio URL (S3/Yandex) to a proxied URL.
+     * Used when audio proxy is enabled — routes audio through the configured proxy host.
+     *
+     * @param originalUrl the original audio URL
+     * @return proxied URL, or originalUrl on error
+     */
     @NonNull
     public static String toProxyAudioUrl(@NonNull String originalUrl) {
         if (originalUrl.isEmpty()) {
@@ -277,15 +277,6 @@ public class YandexVotApiClient {
     public static TranslationResult requestTranslation(
             String videoUrl, double duration,
             String sourceLang, String targetLang,
-            String videoTitle
-    ) {
-        return requestTranslation(videoUrl, duration, sourceLang, targetLang, videoTitle,
-                YandexVotSettings.YANDEX_VOT_USE_LIVE_VOICES.get(), true);
-    }
-
-    public static TranslationResult requestTranslation(
-            String videoUrl, double duration,
-            String sourceLang, String targetLang,
             String videoTitle, boolean useLiveVoices
     ) {
         return requestTranslation(videoUrl, duration, sourceLang, targetLang, videoTitle,
@@ -305,7 +296,7 @@ public class YandexVotApiClient {
 
         String cacheKey = videoUrl + "|" + sourceLang + "|" + targetLang + "|" + useLiveVoices;
         CachedResult cached = translationCache.get(cacheKey);
-        if (cached != null && !cached.isExpired()) {
+        if (cached != null && cached.isValid()) {
             Logger.printDebug(() -> "VOT cache hit: " + cacheKey);
             return cached.result();
         }
@@ -391,7 +382,7 @@ public class YandexVotApiClient {
     public static boolean hasCachedTranslation(String videoUrl, String sourceLang, String targetLang, boolean useLiveVoices) {
         String cacheKey = videoUrl + "|" + sourceLang + "|" + targetLang + "|" + useLiveVoices;
         CachedResult cached = translationCache.get(cacheKey);
-        return cached != null && !cached.isExpired();
+        return cached != null && cached.isValid();
     }
 
     private static void invalidateSession() {
@@ -574,7 +565,7 @@ public class YandexVotApiClient {
                 }
 
                 byte[] responseBytes = readBytes(connection.getInputStream());
-                if (responseBytes == null || responseBytes.length == 0) {
+                if (responseBytes.length == 0) {
                     Logger.printDebug(() -> "VOT createSession: empty response");
                     return false;
                 }
@@ -693,7 +684,7 @@ public class YandexVotApiClient {
         try {
             String path = "/video-translation/fail-audio-js";
             String jsonBody = "{\"video_url\":\"" + videoUrl + "\"}";
-            sendJsonRequest(path, jsonBody, "PUT");
+            sendJsonRequest(path, jsonBody);
         } catch (Exception e) {
             Logger.printException(() -> "YandexVotApiClient.sendFailedAudio failed for " + videoUrl, e);
         }
@@ -773,7 +764,7 @@ public class YandexVotApiClient {
     /**
      * Sends a JSON request to the Yandex VOT API (for fail-audio-js endpoint).
      */
-    private static void sendJsonRequest(String path, String jsonBody, String method) throws IOException {
+    private static void sendJsonRequest(String path, String jsonBody) throws IOException {
         Map<String, String> yandexHeaders = new LinkedHashMap<>();
         yandexHeaders.put("Content-Type", "application/json");
         yandexHeaders.put("Accept", "application/json");
@@ -787,7 +778,7 @@ public class YandexVotApiClient {
 
         HttpURLConnection connection = (HttpURLConnection) new URL(requestUrl).openConnection();
         try {
-            connection.setRequestMethod(method);
+            connection.setRequestMethod("PUT");
             if (useProxy) {
                 connection.setRequestProperty("Content-Type", "application/json");
                 connection.setRequestProperty("Accept", "application/json");

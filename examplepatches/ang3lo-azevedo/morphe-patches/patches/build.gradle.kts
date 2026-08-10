@@ -18,10 +18,6 @@ kotlin {
     }
 }
 
-val patchListGeneratorClasspath: Configuration by configurations.creating
-
 dependencies {
-    implementation(libs.morphe.patches.library)
     compileOnly(libs.gson)
-    patchListGeneratorClasspath(libs.gson)
 }

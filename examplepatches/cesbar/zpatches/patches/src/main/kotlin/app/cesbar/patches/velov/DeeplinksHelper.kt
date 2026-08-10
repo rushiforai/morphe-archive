@@ -3,8 +3,6 @@ package app.cesbar.patches.velov
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.util.returnEarly
-import com.android.tools.smali.dexlib2.AccessFlags
 
 object activityOnCreateFingerprint : Fingerprint(
     definingClass = "Lcom/jcdecaux/vls/app/signin/SignInActivity;",

@@ -72,19 +72,19 @@ private const val EXTENSION_ORIGINAL_VOLUME_CLASS =
     "Lapp/morphe/extension/youtube/patches/yandexvot/YandexVotOriginalVolumePatch;"
 
 /**
- * Key of the built in voice over translation preference of Morphe Patches.
+ * Key of the built-in voice over translation preference of Morphe Patches.
  * This add-on is shown right next to it.
  */
 private const val VOICE_OVER_TRANSLATION_SCREEN_KEY = "morphe_vot_screen"
 
 /**
  * Key of the preference of this add-on. Morphe settings screens sort their preferences by key,
- * so the key has to sort right after the built in one to stay next to it.
+ * so the key has to sort right after the built-in one to stay next to it.
  */
 private const val YANDEX_SCREEN_KEY = "${VOICE_OVER_TRANSLATION_SCREEN_KEY}_yandex"
 
 /**
- * Screen the preference is added to if the built in voice over translation patch is not applied.
+ * Screen the preference is added to if the built-in voice over translation patch is not applied.
  */
 private const val VIDEO_SCREEN_KEY = "morphe_settings_screen_12_video"
 

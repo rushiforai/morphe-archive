@@ -237,7 +237,8 @@ public class YandexVoiceOverTranslationBottomSheet {
 
         // Label
         TextView labelView = new TextView(context);
-        labelView.setText(label + ": " + initialValue + "%");
+        labelView.setText(str("morphe_yandex_vot_volume_label_value",
+                label, SeekBarPreference.formatLabel(initialValue, config)));
         labelView.setTextColor(fgColor);
         labelView.setTextSize(14);
         labelView.setTypeface(Typeface.DEFAULT_BOLD);
@@ -272,7 +273,7 @@ public class YandexVoiceOverTranslationBottomSheet {
 
         // Value text
         TextView valueText = new TextView(context);
-        valueText.setText(initialValue + "%");
+        valueText.setText(SeekBarPreference.formatLabel(initialValue, config));
         valueText.setTextColor(fgColor);
         valueText.setTextSize(14);
         valueText.setMinWidth(Dim.dp40);
@@ -294,8 +295,9 @@ public class YandexVoiceOverTranslationBottomSheet {
             vol = Math.max(config.min(), Math.min(config.max(), vol));
             setting.save(vol);
             seekBar.setProgress(SeekBarPreference.valueToProgress(config, vol));
-            valueText.setText(vol + "%");
-            labelView.setText(label + ": " + vol + "%");
+            valueText.setText(SeekBarPreference.formatLabel(vol, config));
+            labelView.setText(str("morphe_yandex_vot_volume_label_value",
+                    label, SeekBarPreference.formatLabel(vol, config)));
             onChanged.accept(vol);
         };
 
@@ -433,6 +435,7 @@ public class YandexVoiceOverTranslationBottomSheet {
     /**
      * Creates a row with title and Switch for a boolean setting, styled like reference createVotSwitchItem.
      */
+    @SuppressWarnings("SameParameterValue") // Generic row builder, like addVolumeControl; only one switch row exists today.
     private static LinearLayout createSwitchRow(Context context, String title,
                                                  app.morphe.extension.shared.settings.Setting<Boolean> setting,
                                                  Runnable onChanged) {
@@ -462,9 +465,9 @@ public class YandexVoiceOverTranslationBottomSheet {
         Switch switchView = new Switch(context);
         switchView.setChecked(setting.get());
         switchView.getThumbDrawable().setColorFilter(
-                Utils.getAppForegroundColor(), PorterDuff.Mode.SRC_ATOP);
+                new PorterDuffColorFilter(Utils.getAppForegroundColor(), PorterDuff.Mode.SRC_ATOP));
         switchView.getTrackDrawable().setColorFilter(
-                Utils.getAppForegroundColor(), PorterDuff.Mode.SRC_ATOP);
+                new PorterDuffColorFilter(Utils.getAppForegroundColor(), PorterDuff.Mode.SRC_ATOP));
         switchView.setOnCheckedChangeListener((v, isChecked) -> {
             setting.save(isChecked);
             if (onChanged != null) onChanged.run();

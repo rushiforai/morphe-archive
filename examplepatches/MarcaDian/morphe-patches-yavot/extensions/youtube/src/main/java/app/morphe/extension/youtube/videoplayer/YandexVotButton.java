@@ -60,7 +60,6 @@ import android.os.Build;
 import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import androidx.annotation.Nullable;
@@ -225,7 +224,6 @@ public final class YandexVotButton {
         private float ringThicknessPx;
         private int remainingSeconds = -1;
         private float progress = -1.0f;
-        private int iconAlpha = 128;
 
         public YandexCountdownButton(Context context) {
             this(context, null);
@@ -266,8 +264,8 @@ public final class YandexVotButton {
             this.ringThicknessPx = Math.max(1.0f, configuredThicknessDp * density);
             this.remainingSeconds = remainingSeconds;
             this.progress = progress;
-            this.iconAlpha = Math.max(0, Math.min(255, iconAlpha));
-            setImageAlpha(this.iconAlpha);
+            int clampedAlpha = Math.max(0, Math.min(255, iconAlpha));
+            setImageAlpha(clampedAlpha);
             invalidate();
         }
 
@@ -444,7 +442,7 @@ public final class YandexVotButton {
         }
 
         private static String formatTimerText(int seconds) {
-            if (seconds <= 0) return "\u2026";
+            if (seconds <= 0) return "…";
             if (seconds >= 60) {
                 int minutes = (seconds + 59) / 60;
                 return str("morphe_yandex_vot_time_min", minutes);

@@ -9,6 +9,7 @@
     <string name="morphe_yandex_vot_translation_volume_summary">Volume of the translated audio track (0-100). Default: 100</string>
     <string name="morphe_yandex_vot_original_audio_volume_title">Original audio volume</string>
     <string name="morphe_yandex_vot_original_audio_volume_summary">Volume of the original video track when translation is playing (0-100). Default: 30</string>
+    <string name="morphe_yandex_vot_volume_label_value">%1$s: %2$s</string>
     <string name="morphe_yandex_vot_audio_proxy_title">Proxy audio stream</string>
     <string name="morphe_yandex_vot_audio_proxy_enabled_summary">Enable only if Yandex servers are unreachable</string>
     <string name="morphe_yandex_vot_proxy_url_title">Proxy server</string>

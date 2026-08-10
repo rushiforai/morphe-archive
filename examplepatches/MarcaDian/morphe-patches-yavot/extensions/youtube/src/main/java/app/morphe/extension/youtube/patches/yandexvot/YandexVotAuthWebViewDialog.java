@@ -40,13 +40,10 @@
 
 package app.morphe.extension.youtube.patches.yandexvot;
 
-import static app.morphe.extension.shared.StringRef.str;
-
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Color;
-import android.net.Uri;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -55,20 +52,16 @@ import android.view.WindowManager;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
 import app.morphe.extension.shared.Logger;
-import app.morphe.extension.youtube.settings.YandexVotSettings;
 
 /**
  * Fullscreen dialog with a WebView that handles the Yandex OAuth flow.
@@ -279,6 +272,9 @@ public class YandexVotAuthWebViewDialog extends Dialog {
         // Clean up WebView to prevent memory leaks
         if (webView != null) {
             webView.stopLoading();
+            // Intentionally clears the client reference before destroy() so the anonymous
+            // WebViewClient (which captures this dialog) cannot keep the WebView alive.
+            //noinspection DataFlowIssue
             webView.setWebViewClient(null);
             webView.destroy();
             webView = null;

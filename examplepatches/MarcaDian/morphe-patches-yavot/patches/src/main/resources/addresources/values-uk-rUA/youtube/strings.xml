@@ -9,6 +9,7 @@
     <string name="morphe_yandex_vot_translation_volume_summary">Гучність перекладеної аудіодоріжки (0-100). За замовчуванням: 100</string>
     <string name="morphe_yandex_vot_original_audio_volume_title">Гучність оригінального аудіо</string>
     <string name="morphe_yandex_vot_original_audio_volume_summary">Гучність оригінальної аудіодоріжки під час відтворення перекладу (0-100). За замовчуванням: 30</string>
+    <string name="morphe_yandex_vot_volume_label_value">%1$s: %2$s</string>
     <string name="morphe_yandex_vot_audio_proxy_title">Проксі-аудіопотік</string>
     <string name="morphe_yandex_vot_audio_proxy_enabled_summary">Вмикайте лише якщо сервери Яндекса недоступні</string>
     <string name="morphe_yandex_vot_proxy_url_title">Проксі-сервер</string>

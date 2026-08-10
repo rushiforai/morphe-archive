@@ -1,3 +1,17 @@
+# [1.24.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.23.0...v1.24.0) (2026-08-09)
+
+
+### Features
+
+* **testing:** autotest profile for Prime Video .mod clone ([#98](https://github.com/ajstrick81/morphe-androidtv-patches/issues/98)) ([f73d6d1](https://github.com/ajstrick81/morphe-androidtv-patches/commit/f73d6d1d3a2dc1cc17658d98b649d2b5dc133e86))
+
+# [1.23.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.22.0...v1.23.0) (2026-08-09)
+
+
+### Features
+
+* **netflix:** opt-in "Suppress Household Prompt" patch ([b99726f](https://github.com/ajstrick81/morphe-androidtv-patches/commit/b99726f37054970ac9071b2fbdb5e4ea2d6612bf))
+
 # [1.22.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.21.1...v1.22.0) (2026-08-09)
 
 

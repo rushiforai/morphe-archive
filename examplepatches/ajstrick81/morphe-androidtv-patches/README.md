@@ -85,6 +85,11 @@ All patches follow the same general workflow using **Morphe Manager**:
 > edge case: very aggressive fast-forward + resume can occasionally nudge the
 > playback position; it self-heals on a full playthrough and normal viewing is
 > unaffected. Please report anything else via an issue.
+>
+> 📄 **Full write-up:** see [`docs/PRIME_VIDEO_ANNOUNCEMENT.md`](docs/PRIME_VIDEO_ANNOUNCEMENT.md)
+> for how the current native (`libpvhook.so`) approach works and complete install
+> recommendations. The original Reddit announcement is archived for transparency at
+> [`docs/archive/2026-07_prime-video-reddit-post.md`](docs/archive/2026-07_prime-video-reddit-post.md).
 
 ---
 
@@ -206,6 +211,11 @@ This patch template is based on the prior work of [ReVanced](https://github.com/
 - [Xtra for Twitch](https://github.com/crackededed/Xtra) (crackededed) — Android-side Twitch ad mitigation prior art
 
 All Twitch techniques were independently re-derived via dex disassembly and are not copied from these projects' source code. See [NOTICE](NOTICE) for full attribution details.
+
+**Netflix household-prompt suppression** is informed by:
+- [Nikflix](https://github.com/YidirK/Nikflix) (YidirK, GPL-3.0) — identified Netflix's household / "you're traveling" enforcement via the `CLCSInterstitialPlaybackAndPostPlayback` interstitial
+
+Our "Suppress Household Prompt" patch shares no source code with Nikflix — it is an independent implementation for the Android TV app (`com.netflix.ninja`), located by analyzing our own on-device appboot heap dumps. Nikflix is credited for identifying the enforcement seam. See [NOTICE](NOTICE).
 
 ---
 

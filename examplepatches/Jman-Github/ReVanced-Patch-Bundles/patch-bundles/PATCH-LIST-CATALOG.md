@@ -43,6 +43,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [MojiRS-RIF](#-mojirs-rif-bundle-patch-list) | 2 | 1 | Generated |
 | [Edge-ReVanced](#-edge-revanced-bundle-patch-list) | 8 | 1 | Generated |
 | [Dbhavsar76](#-dbhavsar76-bundle-patch-list) | 1 | 1 | Generated |
+| [ChMate-ReVanced](#-chmate-revanced-bundle-patch-list) | 1 | 1 | Generated |
 
 ### Morphe
 | Bundle | Patches | Apps | Status |
@@ -91,7 +92,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Lain](#-lain-bundle-patch-list) | 45 | 32 | Generated |
 | [Edge-Morphe](#-edge-morphe-bundle-patch-list) | 3 | 1 | Generated |
 | [Anddea](#-anddea-bundle-patch-list) | 123 | 3 | Generated |
-| [Piko](#-piko-bundle-patch-list) | 127 | 2 | Generated |
+| [Piko](#-piko-bundle-patch-list) | 128 | 2 | Generated |
 | [HK-Morphe](#-hk-morphe-bundle-patch-list) | 11 | 4 | Generated |
 | [BholeyKaBhakt](#-bholeykabhakt-bundle-patch-list) | 24 | 15 | Generated |
 | [Andronedev](#-andronedev-bundle-patch-list) | 2 | 1 | Generated |
@@ -139,7 +140,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Ameen-Morphe](#-ameen-morphe-bundle-patch-list) | 2 | 2 | Generated |
 | [Kolaron](#-kolaron-bundle-patch-list) | 1 | 1 | Generated |
 | [ImmortalZeus](#-immortalzeus-bundle-patch-list) | 2 | 2 | Generated |
-| [Ajstrick81-AndroidTV](#-ajstrick81-androidtv-bundle-patch-list) | 28 | 12 | Generated |
+| [Ajstrick81-AndroidTV](#-ajstrick81-androidtv-bundle-patch-list) | 29 | 12 | Generated |
 | [Icysymmetra-TikTok](#-icysymmetra-tiktok-bundle-patch-list) | 29 | 1 | Generated |
 | [AlexNaga](#-alexnaga-bundle-patch-list) | 2 | 1 | Generated |
 | [Rushiranpise](#-rushiranpise-bundle-patch-list) | 284 | 218 | Generated |
@@ -150,8 +151,8 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [HXReborn](#-hxreborn-bundle-patch-list) | 11 | 4 | Generated |
 | [Ikura](#-ikura-bundle-patch-list) | 6 | 1 | Generated |
 | [DH6K](#-dh6k-bundle-patch-list) | 4 | 5 | Generated |
-| [AndrewLiang25](#-andrewliang25-bundle-patch-list) | 19 | 1 | Generated |
-| [Morning-Entree](#-morning-entree-bundle-patch-list) | 39 | 81 | Generated |
+| [AndrewLiang25](#-andrewliang25-bundle-patch-list) | 20 | 1 | Generated |
+| [Morning-Entree](#-morning-entree-bundle-patch-list) | 40 | 82 | Generated |
 | [VocaColle](#-vocacolle-bundle-patch-list) | 6 | 1 | Generated |
 | [DBTCoach](#-dbtcoach-bundle-patch-list) | 1 | 1 | Generated |
 | [Yandex-VoT](#-yandex-vot-bundle-patch-list) | 1 | 1 | Generated |
@@ -176,7 +177,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Logm1lo](#-logm1lo-bundle-patch-list) | 4 | 2 | Generated |
 | [SpookyEXE](#-spookyexe-bundle-patch-list) | 1 | 1 | Generated |
 | [PetalMaps-AndroidAuto](#-petalmaps-androidauto-bundle-patch-list) | 8 | 1 | Generated |
-| [FTL](#-ftl-bundle-patch-list) | 7 | 1 | Generated |
+| [FTL](#-ftl-bundle-patch-list) | 8 | 1 | Generated |
 | [braiNtropy](#-braintropy-bundle-patch-list) | 1 | 1 | Generated |
 | [Ang3lo](#-ang3lo-bundle-patch-list) | 1 | 1 | Generated |
 
@@ -1716,7 +1717,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 ### 🧩 Piko Bundle Patch List:
 [📦 Piko-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-piko-patches-bundle-morphe)
 <details>
-<summary><b>Piko</b> - 127 patches, 2 apps</summary>
+<summary><b>Piko</b> - 128 patches, 2 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -1760,12 +1761,13 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | ```More options on post``` | ```Adds an overflow menu button to get more options on post/reels, like copy description, copy username etc``` | ```Instagram``` | ```All versions``` |
 | ```More options on profile``` | ```Adds a new button to handle user related data like copy handle, download profile picture etc``` | ```Instagram``` | ```All versions``` |
 | ```Open links externally``` | ```Changes links to always open in your external browser, instead of the in-app browser.``` | ```Instagram``` | ```All versions``` |
+| ```Recommended flags``` | ```Developer flags suggested by the community``` | ```Instagram``` | ```All versions``` |
 | ```Remove build expired popup``` | ```Removes the popup that appears after a while, when the app version ages.``` | ```Instagram``` | ```All versions``` |
 | ```Remove empty bottom space``` | ```Removes empty space below bottom navigation bar``` | ```Instagram``` | ```All versions``` |
 | ```Sanitize share links``` | ```N/A``` | ```Instagram``` | ```All versions``` |
 | ```Save media comment``` | ```Adds a button to save media comments on posts and reels.``` | ```Instagram``` | ```All versions``` |
 | ```Stories audio autoplay``` | ```N/A``` | ```Instagram``` | ```All versions``` |
-| ```Theme``` | ```Adds Material You and AMOLED options to Instagram's Dark mode settings on Android 12 and later. On Android 8–11, it applies a fixed Material You-style theme or an optional AMOLED theme.``` | ```Instagram``` | ```All versions``` |
+| ```Theme``` | ```Adds Material You and AMOLED controls to Piko settings on Android 12 and later. On Android 8–11, it applies a fixed Material You-style theme or an optional AMOLED theme.``` | ```Instagram``` | ```All versions``` |
 | ```Unlock developer options``` | ```Unlocks developer option by long pressing home icon``` | ```Instagram``` | ```All versions``` |
 | ```Unlock employee options``` | ```Unlocks all options using by employee for debugging``` | ```Instagram``` | ```All versions``` |
 | ```Unlock Plus benefits``` | ```Unlocks 'Plus' subscription benefits that are checked locally. USE IT AT YOUR OWN RISK``` | ```Instagram``` | ```All versions``` |
@@ -1800,7 +1802,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | ```Disable auto timeline scroll on launch``` | ```N/A``` | ```Twitter``` | ```All versions``` |
 | ```Disable chirp font``` | ```N/A``` | ```Twitter``` | ```All versions``` |
 | ```Download patch``` | ```Unlocks the ability to download videos and gifs from Twitter/X``` | ```Twitter``` | ```All versions``` |
-| ```Dynamic color``` | ```Adds an option to replace Twitter Blue with the user's Material You palette.``` | ```Twitter``` | ```All versions``` |
+| ```Dynamic color``` | ```Replaces the default Twitter Blue with the user's Material You palette.``` | ```Twitter``` | ```All versions``` |
 | ```Enable debug menu for posts``` | ```N/A``` | ```Twitter``` | ```All versions``` |
 | ```Enable force HD videos``` | ```Videos will be played in highest quality always``` | ```Twitter``` | ```All versions``` |
 | ```Enable PiP mode automatically``` | ```Enables PiP mode when you close the app``` | ```Twitter``` | ```All versions``` |
@@ -4616,7 +4618,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Ajstrick81-AndroidTV Bundle Patch List:
 [📦 Ajstrick81-AndroidTV-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-ajstrick81-androidtv-patches-bundle-morphe)
 <details>
-<summary><b>Ajstrick81-AndroidTV</b> - 28 patches, 12 apps</summary>
+<summary><b>Ajstrick81-AndroidTV</b> - 29 patches, 12 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -4636,6 +4638,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Minimize Network Fingerprint``` | ```Blanks the local IP / MAC / Wi-Fi SSID the Netflix app reports about your network (keeps interface name/type) and stops the app from reporting your advertising ID (GAID) in its ad-collection telemetry. Reduces network + ad fingerprinting. Does NOT stop the server-side "I'm traveling"/household check (that's driven by your public IP — use a VPN for that). Opt-in / experimental; test on-device.``` | ```com.netflix.ninja``` | ```13.0.1 build 25028``` |
 | ```Remove Netflix ads (bundle engine)``` | ```Bundles the in-process ad-kill script (killads.js) and its loader into the app. This is the ad remover: at launch the app runs the script itself (script mode — no PC, no root, no frida server) and empties Netflix's ad breaks (pre-roll, mid-roll) and the pause-screen ad overlay. Pairs with the loader patch. Default ON.``` | ```com.netflix.ninja``` | ```13.0.1 build 25028``` |
 | ```Remove Netflix ads (loader)``` | ```Arms the ad remover: injects the startup call that loads the in-process ad-kill engine (bundled by the companion patch) as early as possible, so ads are emptied before playback. Requires the bundle-engine patch. Default ON.``` | ```com.netflix.ninja``` | ```13.0.1 build 25028``` |
+| ```Suppress Household Prompt``` | ```Hides the Netflix "you're traveling" / update-your-household prompt by keeping the client from activating the misdetection challenge session. Does NOT change what Netflix's servers detect (that's driven by your public IP — use a VPN for that); it only suppresses the on-screen prompt. Opt-in / experimental; only takes visible effect when the account would otherwise be prompted.``` | ```com.netflix.ninja``` | ```13.0.1 build 25028``` |
 | ```Clone Peacock``` | ```Installs the patched Peacock as a separate app alongside the stock one, instead of replacing it. Enable this when Peacock is a preinstalled system app that can't be uninstalled — most commonly on Amazon Fire TV, and on some Android TV boxes and Onn devices. The clone gets its own package (suffix .mod), so it shows up as a second Peacock icon and keeps its own login. Leave OFF if you were able to uninstall the original Peacock first (a normal in-place install is cleaner). Opt-in.``` | ```com.peacocktv.peacockandroid``` | ```7.5.102, 7.6.100``` |
 | ```Disable auto-updates``` | ```Stops the Google Play Store from silently updating Peacock back to the official version and wiping out the patch (which would bring the ads back). Works by setting the patched build's version number far ahead of anything on the Store, so it's treated as already up to date. You can still update deliberately by re-patching a newer APK in Morphe. Recommended to leave ON. Does not apply to mount-installed apps.``` | ```com.peacocktv.peacockandroid``` | ```7.5.102, 7.6.100``` |
 | ```Skip ads``` | ```Disables ad delivery via Sky SDK surgical targets (FreeWheel DI module skip, MediaTailor SSAI layers, ad-break-started no-op), AdBlockInterceptor wiring on both the app NetworkingKt OkHttp client and the Sky SDK addon network client, and a WebView shouldInterceptRequest wrapper. Validated v7.5.102 and v7.6.100.``` | ```com.peacocktv.peacockandroid``` | ```7.5.102, 7.6.100``` |
@@ -4666,7 +4669,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Disable login requirement``` | ```Removes TikTok's mandatory login gate from supported flows.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Disable long-press quick share``` | ```Keeps long-pressing Share from opening TikTok's quick-share interaction.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Disable screen capture detection``` | ```Prevents TikTok from reacting to screenshots and screen recordings.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Downloads``` | ```Adds watermark-free video and photo downloads, comment sticker saving, and configurable download-folder controls.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Downloads``` | ```Adds watermark-free downloads, comment sticker saving, configurable folders, and filename templates.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Enable Live search``` | ```Shows TikTok's search entry in the Live drawer where supported.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Enable non-personalized search``` | ```Uses TikTok's non-personalized search mode instead of its saved account choice.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Feature Gate Lab``` | ```Adds a menu for viewing and overriding supported TikTok feature flags and configuration values.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
@@ -5287,7 +5290,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 AndrewLiang25 Bundle Patch List:
 [📦 AndrewLiang25-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-andrewliang25-patches-bundle-morphe)
 <details>
-<summary><b>AndrewLiang25</b> - 19 patches, 1 app</summary>
+<summary><b>AndrewLiang25</b> - 20 patches, 1 app</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -5307,6 +5310,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Hide VOOM tab``` | ```Removes the VOOM (formerly Timeline) tab from the main bottom navigation.``` | ```LINE``` | ```All versions``` |
 | ```Hide Wallet tab``` | ```Removes the Wallet (LINE Pay) tab from the main bottom navigation, in both the normal and mini-tab layouts.``` | ```LINE``` | ```All versions``` |
 | ```Keep chats unread``` | ```Opening a 1:1 or group chat no longer marks it read — it stays unread and no read receipt is sent. Manually using "Mark as read" / "Mark all as read" still marks the chat read and sends the receipt as normal.``` | ```LINE``` | ```All versions``` |
+| ```Keep unsent messages``` | ```Keeps messages that were unsent in 1:1 and group chats on your device instead of destroying them, and shows the usual "unsent a message" notice directly below the message it kept. Doesn't apply to OpenChat.``` | ```LINE``` | ```All versions``` |
 | ```Open links in external browser``` | ```Opens tapped web links (http/https) in your default browser instead of LINE's in-app browser. LIFF mini-apps and LINE deep links are unaffected.``` | ```LINE``` | ```All versions``` |
 | ```Redirect LINE Pay``` | ```Forwards LINE Pay flows to the standalone LINE Pay app instead of running them in-app, so the device-integrity check that fails on a re-signed build never runs. Messaging is unaffected.``` | ```LINE``` | ```All versions``` |
 | ```Remove banner ads``` | ```Stops LINE from loading Smart Channel banner ads (neutralizes the getBanners and getPrefetchableBanners responses).``` | ```LINE``` | ```All versions``` |
@@ -5317,7 +5321,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Morning-Entree Bundle Patch List:
 [📦 Morning-Entree-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-morning-entree-patches-bundle-morphe)
 <details>
-<summary><b>Morning-Entree</b> - 39 patches, 81 apps</summary>
+<summary><b>Morning-Entree</b> - 40 patches, 82 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -5328,6 +5332,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Unlock all questions``` | ```Unlocks all exam questions``` | ```CCNA 200-301, ServiceNow CSA, SC-900, AWS SAA-C02, ISTQB Foundation, AZ-104, PCEP-30-02, CompTIA A+ Core 1, CCNP 350-401, SC-200, CISM, AWS SCS-C01, AI-900, Salesforce Admin, SnowPro Core, CCNP SCOR 350-701, CompTIA A+ Core 2, AZ-900, CEH v11, AWS CLF-C01, CompTIA Security+, CompTIA Server+, CompTIA CySA+, AZ-500, CompTIA SecurityX, CompTIA PenTest+, AWS MLA-C01, DASM, CAPM, AZ-400, DP-203, PSPO I, AWS SOA-C02, AWS DOP-C01, PSM II, AZ-700, AWS SAP-C01, GCP Associate Cloud Engineer, DP-900, CompTIA Linux+, AWS AIF-C01, PMI-ACP, CompTIA ITF+, AWS DVA-C01, AZ-204, DP-300, CISSP, Tableau Desktop, CompTIA SecAI, Terraform Associate``` | ```All versions``` |
 | ```Enable Premium``` | ```Unlocks Does Not Commute Premium. Just Tap Get Premium and Restore Purchase When Prompted``` | ```Does Not Commute``` | ```All versions``` |
 | ```Enable Premium``` | ```Unlocks EOBD Facile Premium``` | ```EOBD Facile``` | ```All versions``` |
+| ```Enable Premium``` | ```Unlocks Fake GPS Location Premium``` | ```Fake GPS Location``` | ```All versions``` |
 | ```Always incognito mode``` | ```Always opens Gboard in incognito mode to disable typing-history collection and personalization, while keeping clipboard and voice typing working in incognito.``` | ```Gboard``` | ```All versions``` |
 | ```Block tracking and analytics``` | ```Redirects Gboard's known tracking, analytics, and ad host literals to 0.0.0.0 using a built-in blocklist. Note: telemetry sent through Google Play Services is not affected; use the always-incognito patch for that.``` | ```Gboard``` | ```All versions``` |
 | ```Change package name``` | ```Installs Gboard as a clone by appending ".clone" to the package name (configurable), so it installs next to the stock Gboard. Changing an app's package name can lead to unexpected issues.``` | ```Gboard``` | ```All versions``` |
@@ -5337,10 +5342,10 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Enable Premium``` | ```Unlocks Listy Premium``` | ```Listy``` | ```All versions``` |
 | ```Enable Premium``` | ```Unlocks Lose Weight App for Men Premium. Use with Spoof App Signature``` | ```Lose Weight App for Men``` | ```All versions``` |
 | ```Enable Premium``` | ```Unlocks MacroDroid Pro, Use With Spoof App Signature``` | ```MacroDroid``` | ```All versions``` |
-| ```Enable Premium``` | ```Unlocks Material Capsule Pro``` | ```Material Capsule``` | ```All versions``` |
 | ```Disable Analytics & AD Tracking``` | ```Turns off analytics, collection and removes the advertising-ID / ad-services permissions. Pair with "Block Internet Patch" to fully block trackers.``` | ```Nova Launcher``` | ```All versions``` |
 | ```Enable Prime``` | ```Unlocks Nova Launcher Prime``` | ```Nova Launcher``` | ```All versions``` |
 | ```Enable Premium``` | ```Unlocks Obd Mary's Paid Features, Including the Diagnostics Edition``` | ```Obd Mary``` | ```All versions``` |
+| ```Enable Premium``` | ```Unlocks Paisa Premium. Use With Spoof Install Source``` | ```Paisa``` | ```All versions``` |
 | ```Disable Signature Verification``` | ```Disable Signature Verification So The App Doesn't Crash When The APK Signature Changes After Patching``` | ```Panels``` | ```All versions``` |
 | ```Enable Premium``` | ```Unlocks Premium. Use With Spoof Install Source.``` | ```Panels``` | ```All versions``` |
 | ```Enable Premium``` | ```Unlocks Phi Launcher Pro``` | ```Phi Launcher``` | ```All versions``` |
@@ -5788,11 +5793,12 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 FTL Bundle Patch List:
 [📦 FTL-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-ftl-patches-bundle-morphe)
 <details>
-<summary><b>FTL</b> - 7 patches, 1 app</summary>
+<summary><b>FTL</b> - 8 patches, 1 app</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
 | ```APK Junk Cleanup``` | ```Removes build artifacts and metadata that bloat the APK: Play Services / Firebase version files, protobuf descriptors, debug probes, kotlin builtins, META-INF subfolder clutter, and misc junk. Safe — only removes files with no runtime purpose.``` | ```Universal``` | ```All versions``` |
+| ```Custom DPI (Universal)``` | ```Change this app's display size without touching your phone's system settings. Make it bigger if things look too small, or smaller to fit more on screen. Works on any app.``` | ```Universal``` | ```All versions``` |
 | ```Png Optimizer``` | ```Compresses PNG images without losing quality and strips hidden metadata (DPI, timestamps, text) to make the app smaller. Only rewrites files when the result is actually smaller.``` | ```Universal``` | ```All versions``` |
 | ```Remove Ads``` | ```Disables ad SDKs, ruins ad network request URLs, and hides empty ad containers across the app.``` | ```Universal``` | ```All versions``` |
 | ```Remove Analytics``` | ```Disables tracking and crash-reporting tools, corrupts analytics web links inside the code, and removes background tracking services.``` | ```Universal``` | ```All versions``` |
@@ -5825,5 +5831,16 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
 | ```Unlock FirePass Premium``` | ```Unlocks FirePass premium features in Skimboarding: spot filtering by skill level, advanced map features, and session log tools.``` | ```Skimboarding``` | ```1.0.0``` |
+
+</details>
+---
+### ?? ChMate-ReVanced Bundle Patch List:
+[?? ChMate-ReVanced-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-chmate-revanced-patches-bundle-api-v4)
+<details>
+<summary><b>ChMate-ReVanced</b> - 1 patch, 1 app</summary>
+
+| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
+|----------|---------------|---------------------|-------------------------|
+| ```ChMate ReVanced``` | ```Collapses ad slots, blocks ad network traffic, and adds configurable User-Agent and restart controls.``` | ```ChMate``` | ```All versions``` |
 
 </details>

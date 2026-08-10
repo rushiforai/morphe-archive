@@ -104,3 +104,46 @@ internal object StickerPreviewBinderFingerprint : Fingerprint(
     },
 )
 
+internal object StickerPreviewSourceFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = listOf(
+        "Ljava/lang/String;",
+        "Lcom/ss/android/ugc/aweme/im/common/model/StickerItem;",
+        "Landroid/view/View;",
+        "Z",
+        "Ljava/lang/String;",
+        "Ljava/util/Map;",
+        "Lkotlin/jvm/functions/Function0;",
+        "Lkotlin/jvm/functions/Function0;",
+        "Lkotlin/jvm/functions/Function0;",
+    ),
+    custom = { method, classDef ->
+        classDef.endsWith("/0UL9;") &&
+            method.name == "LJ" &&
+            method.implementation?.instructions?.any { instruction ->
+                instruction.getReference<MethodReference>()?.let { reference ->
+                    reference.definingClass == "LX/0ULN;" &&
+                        reference.name == "LIZ" &&
+                        reference.parameterTypes == listOf(
+                            "LX/0ULM;",
+                            "Z",
+                            "Ljava/lang/String;",
+                            "Ljava/util/Map;",
+                        ) &&
+                        reference.returnType == "V"
+                } == true
+            } == true
+    },
+)
+
+internal object DownloadSuccessCoroutineFingerprint : Fingerprint(
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf("Ljava/lang/Object;"),
+    strings = listOf(
+        "DownloadAction@71a5.startDownload\$globalListener\$1\$onSuccess\$1",
+        "filePath",
+        "fileExist",
+    ),
+    custom = { method, _ -> method.name == "invokeSuspend" },
+)
+

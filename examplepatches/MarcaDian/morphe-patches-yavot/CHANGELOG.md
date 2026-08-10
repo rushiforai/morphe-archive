@@ -2,9 +2,10 @@
 
 ### 🐛 Bug Fixes
 
-* Add missing Russian translation for the live-stream error message ([c71f99f](https://github.com/MarcaDian/morphe-patches-yavot/commit/c71f99f076ef63fae2b1550b3fec2bd69a0db34f))
-* Correct string keys for the button countdown timer text ([4cd9251](https://github.com/MarcaDian/morphe-patches-yavot/commit/4cd9251c7c0378e76834aa1413c409cf3bc168e7))
-* Remove unused strings and show summaries for VoT/live voices switches ([aaed377](https://github.com/MarcaDian/morphe-patches-yavot/commit/aaed377a2933e50ffac7df7caf48831d781df8ee))
+* Add missing Russian translation for the live-stream error message ([1caed27](https://github.com/MarcaDian/morphe-patches-yavot/commit/1caed27290a0724ab187a034a19f8a338de427e0))
+* Correct string keys for the button countdown timer text ([2473aec](https://github.com/MarcaDian/morphe-patches-yavot/commit/2473aecb72bec193a11e2943924119aebde13cb3))
+* Remove unused strings and show summaries for VoT/live voices switches ([0cd2c86](https://github.com/MarcaDian/morphe-patches-yavot/commit/0cd2c868083dadd69144bb48aaa3f9d532daa800))
+* Resolve IDE warnings ([f0a7b85](https://github.com/MarcaDian/morphe-patches-yavot/commit/f0a7b8564a50122e2a2e20241ac09d452962d00e))
 
 ## [1.0.3](https://github.com/MarcaDian/morphe-patches-yavot/compare/v1.0.2...v1.0.3) (2026-08-09)
 
