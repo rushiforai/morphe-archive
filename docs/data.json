@@ -1,20 +1,20 @@
 {
-  "generatedAt": "2026-08-09 08:19 UTC",
+  "generatedAt": "2026-08-10 01:44 UTC",
   "configFile": "morphe_archive_config_v15.json",
   "configVersion": 15,
   "repoCount": 128,
-  "appCount": 626,
-  "patchCount": 2318,
-  "universalPatchCount": 178,
+  "appCount": 627,
+  "patchCount": 2327,
+  "universalPatchCount": 180,
   "hostCounts": {
     "github.com": 124,
     "gitlab.com": 4
   },
   "visitorStats": {
-    "today": 110,
-    "yesterday": 6,
-    "total": 246,
-    "online": 2
+    "today": 1,
+    "yesterday": 111,
+    "total": 248,
+    "online": 1
   },
   "repos": [
     {
@@ -67,7 +67,7 @@
       "webUrl": "https://github.com/ajstrick81/morphe-androidtv-patches",
       "addUrl": "https://morphe.software/add-source?github=ajstrick81/morphe-androidtv-patches",
       "avatarUrl": "https://github.com/ajstrick81.png?size=96",
-      "patchCount": 28,
+      "patchCount": 29,
       "appCount": 12,
       "createdAt": 1784836028108,
       "updatedAt": 1784836028108,
@@ -150,7 +150,7 @@
         {
           "name": "com.netflix.ninja",
           "packageName": "com.netflix.ninja",
-          "patchCount": 5,
+          "patchCount": 6,
           "iconUrl": "",
           "iconColor": ""
         },
@@ -215,12 +215,12 @@
       "createdDate": "2026-07-28",
       "updatedDate": "2026-07-28",
       "latestChanges": {
-        "title": "1.4.1 (2026-08-07)",
-        "date": "2026-08-07",
+        "title": "1.4.2 (2026-08-09)",
+        "date": "2026-08-09",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "Support SofaTime v1.2.3 (Fixes #2)"
+            "text": "Support SofaTime v1.2.4 (Fixes #3)"
           }
         ]
       },
@@ -628,19 +628,19 @@
       "webUrl": "https://github.com/andrewliang25/morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=andrewliang25/morphe-patches",
       "avatarUrl": "https://github.com/andrewliang25.png?size=96",
-      "patchCount": 19,
+      "patchCount": 20,
       "appCount": 1,
       "createdAt": 1785034852052,
       "updatedAt": 1785034852052,
       "createdDate": "2026-07-26",
       "updatedDate": "2026-07-26",
       "latestChanges": {
-        "title": "1.4.0 (2026-08-02)",
-        "date": "2026-08-02",
+        "title": "1.5.0 (2026-08-09)",
+        "date": "2026-08-09",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "add \"Fix push notifications\" patch"
+            "text": "add Keep unsent messages patch"
           }
         ]
       },
@@ -648,7 +648,7 @@
         {
           "name": "LINE",
           "packageName": "jp.naver.line.android",
-          "patchCount": 19,
+          "patchCount": 20,
           "iconUrl": "",
           "iconColor": "#06C755"
         }
@@ -1443,47 +1443,23 @@
       "webUrl": "https://github.com/BlazeFTL/FTL-Patches",
       "addUrl": "https://morphe.software/add-source?github=BlazeFTL/FTL-Patches",
       "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
-      "patchCount": 7,
+      "patchCount": 8,
       "appCount": 0,
       "createdAt": 1786263569063,
       "updatedAt": 1786263569063,
       "createdDate": "2026-08-09",
       "updatedDate": "2026-08-09",
       "latestChanges": {
-        "title": "1.20.0 (2026-08-08)",
-        "date": "2026-08-08",
+        "title": "1.22.0 (2026-08-09)",
+        "date": "2026-08-09",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "add debug info patch"
+            "text": "percentage"
           },
           {
             "category": "\u2728 New Features",
-            "text": "debug"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "debug"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "finalize debug info"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "up"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "up"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "up"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "up"
+            "text": "switch to percentage"
           }
         ]
       },
@@ -2705,19 +2681,23 @@
       "webUrl": "https://github.com/Entree3k/Morning-Entree-Patches",
       "addUrl": "https://morphe.software/add-source?github=Entree3k/Morning-Entree-Patches",
       "avatarUrl": "https://github.com/Entree3k.png?size=96",
-      "patchCount": 39,
-      "appCount": 80,
+      "patchCount": 40,
+      "appCount": 81,
       "createdAt": 1785034851561,
       "updatedAt": 1785034851561,
       "createdDate": "2026-07-26",
       "updatedDate": "2026-07-26",
       "latestChanges": {
-        "title": "1.9.0 (2026-08-08)",
-        "date": "2026-08-08",
+        "title": "1.11.0 (2026-08-09)",
+        "date": "2026-08-09",
         "items": [
           {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Removed Patch"
+          },
+          {
             "category": "\u2728 New Features",
-            "text": "Added Support"
+            "text": "added gps faker"
           }
         ]
       },
@@ -3024,6 +3004,13 @@
           "iconColor": "#1565C0"
         },
         {
+          "name": "Fake GPS Location",
+          "packageName": "com.hopefactory2021.fakegpslocation",
+          "patchCount": 1,
+          "iconUrl": "https://play-lh.googleusercontent.com/V0SrtW-4tsGiy79sQQk7Jks0IPUPTOoId6MIEUyRP7gcaPq_GcNZVAEJWS0nopIaiLx3YTGfGWYPJh4L7gmwLw",
+          "iconColor": "#5F7C8A"
+        },
+        {
           "name": "Gboard",
           "packageName": "com.google.android.inputmethod.latin",
           "patchCount": 3,
@@ -3087,13 +3074,6 @@
           "iconColor": "#20334D"
         },
         {
-          "name": "Material Capsule",
-          "packageName": "com.pryshedko.mtisland",
-          "patchCount": 1,
-          "iconUrl": "https://play-lh.googleusercontent.com/mrNuw058MP_GKlWVCLuZrg3QyONOUJAzrw4mCkdTvtGckt5EGUEzbO26z49bMCJTlX5WRs1qP9fSljF30k3xcAk",
-          "iconColor": "#212121"
-        },
-        {
           "name": "Nova Launcher",
           "packageName": "com.teslacoilsw.launcher",
           "patchCount": 2,
@@ -3106,6 +3086,13 @@
           "patchCount": 1,
           "iconUrl": "",
           "iconColor": "#17364C"
+        },
+        {
+          "name": "Paisa",
+          "packageName": "dev.hemanths.paisa",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#009688"
         },
         {
           "name": "Panels",
@@ -4184,12 +4171,12 @@
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.7.0 (2026-08-08)",
-        "date": "2026-08-08",
+        "title": "1.7.1 (2026-08-09)",
+        "date": "2026-08-09",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "Add Fix Inline Images patch (95d7ec8), closes #55 #56"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Disable SyncPredictiveBackPatch for image views"
           }
         ]
       },
@@ -4326,12 +4313,12 @@
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "0.5.0",
-        "date": "",
+        "title": "0.6.1 (2026-08-09)",
+        "date": "2026-08-09",
         "items": [
           {
             "category": "Bug Fixes",
-            "text": "**tiktok:** prevent seekbar recursion on stories"
+            "text": "**morphe:** support patching on older Android versions (01463a0), closes #85"
           }
         ]
       },
@@ -4645,47 +4632,47 @@
       "webUrl": "https://github.com/jkennethcarino/adobo",
       "addUrl": "https://morphe.software/add-source?github=jkennethcarino/adobo",
       "avatarUrl": "https://github.com/jkennethcarino.png?size=96",
-      "patchCount": 37,
+      "patchCount": 42,
       "appCount": 4,
       "createdAt": 1784836037562,
       "updatedAt": 1784836037562,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.2.0 (2026-06-14)",
-        "date": "2026-06-14",
+        "title": "1.3.0 (2026-08-09)",
+        "date": "2026-08-09",
         "items": [
           {
             "category": "Bug Fixes",
-            "text": "**Gboard - Enable Undo feature:** Already enabled by default since 17.3.3.902587967"
+            "text": "**Reddit - Colorize comment indent lines:** Fix broken Show indent line at current depth only option in 2026.14.0"
           },
           {
             "category": "Bug Fixes",
-            "text": "**Reddit - Disable home feed swipe:** Support 2026.14.0 and 2026.04.0"
+            "text": "**Reddit - Remove ads and telemetry:** Consider ad cells when blocking ads and promoted posts"
           },
           {
             "category": "Bug Fixes",
-            "text": "**Reddit - Disable home screen redirect:** Support 2026.14.0 and 2026.04.0"
+            "text": "**Reddit - Remove ads and telemetry:** Remove comment ad placeholder"
           },
           {
             "category": "Bug Fixes",
-            "text": "**Reddit - Disable post detail swipe:** Support 2026.14.0 and 2026.04.0"
+            "text": "**Reddit - Remove ads and telemetry:** Remove promoted profile posts"
           },
           {
             "category": "Bug Fixes",
-            "text": "**Reddit - Hide prominent search bar:** Support 2026.14.0 and 2026.04.0"
+            "text": "**Reddit - Sanitize share links:** Fix broken 'Copy Link' and 'Share via' options"
           },
           {
-            "category": "Bug Fixes",
-            "text": "**Reddit - Hide user flairs:** Support 2026.14.0 and 2026.04.0"
+            "category": "Features",
+            "text": "Add Replace Google Maps API key patch (#27)"
           },
           {
-            "category": "Bug Fixes",
-            "text": "**Reddit - Open external links directly:** Fix fingerprint conflicts"
+            "category": "Features",
+            "text": "**Gboard - Enable OCR feature:** Always show Scan Text option regardless of language (#36)"
           },
           {
-            "category": "Bug Fixes",
-            "text": "**Reddit:** Support the latest version"
+            "category": "Features",
+            "text": "**Gboard:** Add Enable access points menu redesign patch (#35)"
           }
         ]
       },
@@ -4700,7 +4687,7 @@
         {
           "name": "Gboard",
           "packageName": "com.google.android.inputmethod.latin",
-          "patchCount": 7,
+          "patchCount": 8,
           "iconUrl": "https://play-lh.googleusercontent.com/J4vZ82VsZjnsRsI6ckQFXlO36_52QJerqG5-HfLgHffS34I4EfoAFfNdbf6s4wBAsUEf8DOJVEDEHh5tzWbrnA",
           "iconColor": ""
         },
@@ -4714,7 +4701,7 @@
         {
           "name": "Reddit",
           "packageName": "com.reddit.frontpage",
-          "patchCount": 17,
+          "patchCount": 20,
           "iconUrl": "https://play-lh.googleusercontent.com/8FVS0kvM60JwqZWRNzBIlwrZZxJa8vpli8IWaaTo8QXRe1PHmCNJ8UpWoXkGPV3jKEaTY2OVAeYoisOnGJXY",
           "iconColor": ""
         }
@@ -5856,6 +5843,10 @@
           {
             "category": "\ud83d\udc1b Bug Fixes",
             "text": "Remove unused strings and show summaries for VoT/live voices switches"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Resolve IDE warnings"
           }
         ]
       },
@@ -9816,40 +9807,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/jkennethcarino/adobo/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/jkennethcarino.png?size=96",
           "latestChanges": {
-            "title": "1.2.0 (2026-06-14)",
-            "date": "2026-06-14",
+            "title": "1.3.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**Gboard - Enable Undo feature:** Already enabled by default since 17.3.3.902587967"
+                "text": "**Reddit - Colorize comment indent lines:** Fix broken Show indent line at current depth only option in 2026.14.0"
               },
               {
                 "category": "Bug Fixes",
-                "text": "**Reddit - Disable home feed swipe:** Support 2026.14.0 and 2026.04.0"
+                "text": "**Reddit - Remove ads and telemetry:** Consider ad cells when blocking ads and promoted posts"
               },
               {
                 "category": "Bug Fixes",
-                "text": "**Reddit - Disable home screen redirect:** Support 2026.14.0 and 2026.04.0"
+                "text": "**Reddit - Remove ads and telemetry:** Remove comment ad placeholder"
               },
               {
                 "category": "Bug Fixes",
-                "text": "**Reddit - Disable post detail swipe:** Support 2026.14.0 and 2026.04.0"
+                "text": "**Reddit - Remove ads and telemetry:** Remove promoted profile posts"
               },
               {
                 "category": "Bug Fixes",
-                "text": "**Reddit - Hide prominent search bar:** Support 2026.14.0 and 2026.04.0"
+                "text": "**Reddit - Sanitize share links:** Fix broken 'Copy Link' and 'Share via' options"
               },
               {
-                "category": "Bug Fixes",
-                "text": "**Reddit - Hide user flairs:** Support 2026.14.0 and 2026.04.0"
+                "category": "Features",
+                "text": "Add Replace Google Maps API key patch (#27)"
               },
               {
-                "category": "Bug Fixes",
-                "text": "**Reddit - Open external links directly:** Fix fingerprint conflicts"
+                "category": "Features",
+                "text": "**Gboard - Enable OCR feature:** Always show Scan Text option regardless of language (#36)"
               },
               {
-                "category": "Bug Fixes",
-                "text": "**Reddit:** Support the latest version"
+                "category": "Features",
+                "text": "**Gboard:** Add Enable access points menu redesign patch (#35)"
               }
             ]
           },
@@ -10541,12 +10532,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -11778,12 +11773,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -12067,8 +12066,8 @@
       ],
       "patches": [
         "Disable PairIP DRM",
-        "Unlock premium",
-        "Unlock Premium"
+        "Unlock Premium",
+        "Unlock premium"
       ],
       "patchDetails": [
         {
@@ -12076,12 +12075,12 @@
           "description": "Disables PairIP signature verification and Google Play LVL license check. Required for the app to launch after re-signing."
         },
         {
-          "name": "Unlock premium",
-          "description": "Unlocks all AT4K premium features by forcing the premium status to true."
-        },
-        {
           "name": "Unlock Premium",
           "description": "Unlocks all premium features by forcing the premium state to true in the purchase manager."
+        },
+        {
+          "name": "Unlock premium",
+          "description": "Unlocks all AT4K premium features by forcing the premium status to true."
         }
       ],
       "versions": [
@@ -12549,12 +12548,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -12723,12 +12726,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -12966,12 +12973,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -13024,12 +13035,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -13082,12 +13097,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -13140,12 +13159,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -13198,12 +13221,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -13256,12 +13283,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -13314,12 +13345,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -13372,12 +13407,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -13430,12 +13469,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -13546,12 +13589,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -13604,12 +13651,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -13662,12 +13713,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -13720,12 +13775,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -13778,12 +13837,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -13836,12 +13899,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -15214,12 +15281,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -16614,12 +16685,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -16941,12 +17016,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -16999,12 +17078,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -17057,12 +17140,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -17115,12 +17202,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -17954,12 +18045,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -18012,12 +18107,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -22037,12 +22136,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -22225,40 +22328,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/jkennethcarino/adobo/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/jkennethcarino.png?size=96",
           "latestChanges": {
-            "title": "1.2.0 (2026-06-14)",
-            "date": "2026-06-14",
+            "title": "1.3.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**Gboard - Enable Undo feature:** Already enabled by default since 17.3.3.902587967"
+                "text": "**Reddit - Colorize comment indent lines:** Fix broken Show indent line at current depth only option in 2026.14.0"
               },
               {
                 "category": "Bug Fixes",
-                "text": "**Reddit - Disable home feed swipe:** Support 2026.14.0 and 2026.04.0"
+                "text": "**Reddit - Remove ads and telemetry:** Consider ad cells when blocking ads and promoted posts"
               },
               {
                 "category": "Bug Fixes",
-                "text": "**Reddit - Disable home screen redirect:** Support 2026.14.0 and 2026.04.0"
+                "text": "**Reddit - Remove ads and telemetry:** Remove comment ad placeholder"
               },
               {
                 "category": "Bug Fixes",
-                "text": "**Reddit - Disable post detail swipe:** Support 2026.14.0 and 2026.04.0"
+                "text": "**Reddit - Remove ads and telemetry:** Remove promoted profile posts"
               },
               {
                 "category": "Bug Fixes",
-                "text": "**Reddit - Hide prominent search bar:** Support 2026.14.0 and 2026.04.0"
+                "text": "**Reddit - Sanitize share links:** Fix broken 'Copy Link' and 'Share via' options"
               },
               {
-                "category": "Bug Fixes",
-                "text": "**Reddit - Hide user flairs:** Support 2026.14.0 and 2026.04.0"
+                "category": "Features",
+                "text": "Add Replace Google Maps API key patch (#27)"
               },
               {
-                "category": "Bug Fixes",
-                "text": "**Reddit - Open external links directly:** Fix fingerprint conflicts"
+                "category": "Features",
+                "text": "**Gboard - Enable OCR feature:** Always show Scan Text option regardless of language (#36)"
               },
               {
-                "category": "Bug Fixes",
-                "text": "**Reddit:** Support the latest version"
+                "category": "Features",
+                "text": "**Gboard:** Add Enable access points menu redesign patch (#35)"
               }
             ]
           },
@@ -22275,6 +22378,10 @@
               "description": "Always opens Gboard in incognito mode to disable typing history collection and personalization."
             },
             {
+              "name": "Enable access points menu redesign",
+              "description": "Enables the redesign of the additional actions menu."
+            },
+            {
               "name": "Enable clipboard in incognito",
               "description": "Enables clipboard support in incognito mode."
             },
@@ -22284,11 +22391,11 @@
             },
             {
               "name": "Enable OCR feature",
-              "description": "Enables OCR feature to extract text from images and insert it into text fields."
+              "description": "Enables the Scan Text feature to extract text from images and insert them into text fields."
             },
             {
               "name": "Enable Undo feature",
-              "description": "Enables undo feature to quickly undo or correct typing mistakes."
+              "description": "Enables the undo feature to quickly undo or correct typing mistakes."
             },
             {
               "name": "Enable voice typing in incognito",
@@ -22315,6 +22422,7 @@
         "Custom Symbols",
         "Developer options",
         "Emojis, stickers & GIFs Tab Order",
+        "Enable access points menu redesign",
         "Enable clipboard in incognito",
         "Enable Inline Autofill Suggestions",
         "Enable key shape selection",
@@ -22388,6 +22496,10 @@
           "description": "\u81ea\u8a02 Gboard\u300cEmojis, stickers & GIFs\u300d\u5e95\u90e8 tabs \u7684\u6392\u5e8f\uff0c\u652f\u63f4\u62d6\u66f3\u8abf\u6574\nCustomize the bottom tab order in Gboard's Emojis, stickers & GIFs panel with drag-and-drop reordering."
         },
         {
+          "name": "Enable access points menu redesign",
+          "description": "Enables the redesign of the additional actions menu."
+        },
+        {
           "name": "Enable clipboard in incognito",
           "description": "Enables clipboard support in incognito mode."
         },
@@ -22405,11 +22517,11 @@
         },
         {
           "name": "Enable OCR feature",
-          "description": "Enables OCR feature to extract text from images and insert it into text fields."
+          "description": "Enables the Scan Text feature to extract text from images and insert them into text fields."
         },
         {
           "name": "Enable Undo feature",
-          "description": "Enables undo feature to quickly undo or correct typing mistakes."
+          "description": "Enables the undo feature to quickly undo or correct typing mistakes."
         },
         {
           "name": "Enable voice typing in incognito",
@@ -23407,6 +23519,10 @@
             {
               "name": "Remove Netflix ads (loader)",
               "description": "Arms the ad remover: injects the startup call that loads the in-process ad-kill engine (bundled by the companion patch) as early as possible, so ads are emptied before playback. Requires the bundle-engine patch. Default ON."
+            },
+            {
+              "name": "Suppress Household Prompt",
+              "description": "Hides the Netflix \"you're traveling\" / update-your-household prompt by keeping the client from activating the misdetection challenge session. Does NOT change what Netflix's servers detect (that's driven by your public IP \u2014 use a VPN for that); it only suppresses the on-screen prompt. Opt-in / experimental; only takes visible effect when the account would otherwise be prompted."
             }
           ],
           "versions": [
@@ -23419,7 +23535,8 @@
         "Disable Netflix CertCheck",
         "Minimize Network Fingerprint",
         "Remove Netflix ads (bundle engine)",
-        "Remove Netflix ads (loader)"
+        "Remove Netflix ads (loader)",
+        "Suppress Household Prompt"
       ],
       "patchDetails": [
         {
@@ -23441,6 +23558,10 @@
         {
           "name": "Remove Netflix ads (loader)",
           "description": "Arms the ad remover: injects the startup call that loads the in-process ad-kill engine (bundled by the companion patch) as early as possible, so ads are emptied before playback. Requires the bundle-engine patch. Default ON."
+        },
+        {
+          "name": "Suppress Household Prompt",
+          "description": "Hides the Netflix \"you're traveling\" / update-your-household prompt by keeping the client from activating the misdetection challenge session. Does NOT change what Netflix's servers detect (that's driven by your public IP \u2014 use a VPN for that); it only suppresses the on-screen prompt. Opt-in / experimental; only takes visible effect when the account would otherwise be prompted."
         }
       ],
       "versions": [
@@ -26892,12 +27013,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/icysymmetra/tiktok-patches-for-morphe/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/icysymmetra.png?size=96",
           "latestChanges": {
-            "title": "0.5.0",
-            "date": "",
+            "title": "0.6.1 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**tiktok:** prevent seekbar recursion on stories"
+                "text": "**morphe:** support patching on older Android versions (01463a0), closes #85"
               }
             ]
           },
@@ -26939,7 +27060,7 @@
             },
             {
               "name": "Downloads",
-              "description": "Adds watermark-free video and photo downloads, comment sticker saving, and configurable download-folder controls."
+              "description": "Adds watermark-free downloads, comment sticker saving, configurable folders, and filename templates."
             },
             {
               "name": "Enable Live search",
@@ -27226,7 +27347,7 @@
         },
         {
           "name": "Downloads",
-          "description": "Adds watermark-free video and photo downloads, comment sticker saving, and configurable download-folder controls."
+          "description": "Adds watermark-free downloads, comment sticker saving, configurable folders, and filename templates."
         },
         {
           "name": "Enable Live search",
@@ -27346,12 +27467,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -27404,12 +27529,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -27462,12 +27591,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -27520,12 +27653,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -27578,12 +27715,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -27636,12 +27777,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -27694,12 +27839,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -27752,12 +27901,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -27810,12 +27963,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -27868,12 +28025,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -28883,8 +29044,8 @@
         "Bypass PairIP integrity check",
         "Bypass PairIP manifest",
         "Puzzles Unlock",
-        "Remove ads",
         "Remove Ads",
+        "Remove ads",
         "Unlock all designs"
       ],
       "patchDetails": [
@@ -28901,12 +29062,12 @@
           "description": "Unlocks all puzzles."
         },
         {
-          "name": "Remove ads",
-          "description": "Removes all advertisements (rewarded ads and interstitial ads) from the app. When the user taps 'Watch ad to unlock' on a locked design, the ad is skipped and the design is unlocked instantly \u2014 the reward is granted without showing any ad. Also disables rewarded ad preloading to save bandwidth. Note: this patch does NOT automatically unlock designs \u2014 the user must still tap each locked design to unlock it (the ad is just skipped). For automatic unlock of ALL designs at startup, enable the 'Unlock all designs' patch. Requires the 'Bypass PairIP integrity check' patch."
-        },
-        {
           "name": "Remove Ads",
           "description": "Removes ads."
+        },
+        {
+          "name": "Remove ads",
+          "description": "Removes all advertisements (rewarded ads and interstitial ads) from the app. When the user taps 'Watch ad to unlock' on a locked design, the ad is skipped and the design is unlocked instantly \u2014 the reward is granted without showing any ad. Also disables rewarded ad preloading to save bandwidth. Note: this patch does NOT automatically unlock designs \u2014 the user must still tap each locked design to unlock it (the ad is just skipped). For automatic unlock of ALL designs at startup, enable the 'Unlock all designs' patch. Requires the 'Bypass PairIP integrity check' patch."
         },
         {
           "name": "Unlock all designs",
@@ -29140,12 +29301,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -29890,12 +30055,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -30011,12 +30180,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -30069,12 +30242,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -30127,12 +30304,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -30740,12 +30921,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -31323,9 +31508,49 @@
       "packageName": "com.hopefactory2021.fakegpslocation",
       "name": "Fake GPS Location",
       "repos": [
+        "Entree3k/Morning-Entree-Patches",
         "kiraio-moe/Lain-Patches"
       ],
       "sources": [
+        {
+          "repo": "Entree3k/Morning-Entree-Patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/Entree3k/Morning-Entree-Patches",
+          "addUrl": "https://morphe.software/add-source?github=Entree3k/Morning-Entree-Patches",
+          "source": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/Entree3k.png?size=96",
+          "latestChanges": {
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
+            "items": [
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "added gps faker"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-hopefactory2021-fakegpslocation-entree3k-morning-entree-patches",
+            "releaseTag": "app-com-hopefactory2021-fakegpslocation-entree3k-morning-entree-patches",
+            "assetName": "fake-gps-location-entree3k-morning-entree-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Enable Premium",
+              "description": "Unlocks Fake GPS Location Premium"
+            }
+          ],
+          "versions": [
+            "125.0"
+          ]
+        },
         {
           "repo": "kiraio-moe/Lain-Patches",
           "host": "github.com",
@@ -31391,16 +31616,22 @@
         }
       ],
       "patches": [
+        "Enable Premium",
         "Unlock Premium"
       ],
       "patchDetails": [
+        {
+          "name": "Enable Premium",
+          "description": "Unlocks Fake GPS Location Premium"
+        },
         {
           "name": "Unlock Premium",
           "description": "Unlock premium features."
         }
       ],
       "versions": [
-        "113.0"
+        "113.0",
+        "125.0"
       ],
       "iconColor": "#5F7C8A",
       "iconUrl": "https://play-lh.googleusercontent.com/V0SrtW-4tsGiy79sQQk7Jks0IPUPTOoId6MIEUyRP7gcaPq_GcNZVAEJWS0nopIaiLx3YTGfGWYPJh4L7gmwLw"
@@ -32738,12 +32969,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -33108,12 +33343,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -34636,40 +34875,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/jkennethcarino/adobo/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/jkennethcarino.png?size=96",
           "latestChanges": {
-            "title": "1.2.0 (2026-06-14)",
-            "date": "2026-06-14",
+            "title": "1.3.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**Gboard - Enable Undo feature:** Already enabled by default since 17.3.3.902587967"
+                "text": "**Reddit - Colorize comment indent lines:** Fix broken Show indent line at current depth only option in 2026.14.0"
               },
               {
                 "category": "Bug Fixes",
-                "text": "**Reddit - Disable home feed swipe:** Support 2026.14.0 and 2026.04.0"
+                "text": "**Reddit - Remove ads and telemetry:** Consider ad cells when blocking ads and promoted posts"
               },
               {
                 "category": "Bug Fixes",
-                "text": "**Reddit - Disable home screen redirect:** Support 2026.14.0 and 2026.04.0"
+                "text": "**Reddit - Remove ads and telemetry:** Remove comment ad placeholder"
               },
               {
                 "category": "Bug Fixes",
-                "text": "**Reddit - Disable post detail swipe:** Support 2026.14.0 and 2026.04.0"
+                "text": "**Reddit - Remove ads and telemetry:** Remove promoted profile posts"
               },
               {
                 "category": "Bug Fixes",
-                "text": "**Reddit - Hide prominent search bar:** Support 2026.14.0 and 2026.04.0"
+                "text": "**Reddit - Sanitize share links:** Fix broken 'Copy Link' and 'Share via' options"
               },
               {
-                "category": "Bug Fixes",
-                "text": "**Reddit - Hide user flairs:** Support 2026.14.0 and 2026.04.0"
+                "category": "Features",
+                "text": "Add Replace Google Maps API key patch (#27)"
               },
               {
-                "category": "Bug Fixes",
-                "text": "**Reddit - Open external links directly:** Fix fingerprint conflicts"
+                "category": "Features",
+                "text": "**Gboard - Enable OCR feature:** Always show Scan Text option regardless of language (#36)"
               },
               {
-                "category": "Bug Fixes",
-                "text": "**Reddit:** Support the latest version"
+                "category": "Features",
+                "text": "**Gboard:** Add Enable access points menu redesign patch (#35)"
               }
             ]
           },
@@ -36361,12 +36600,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -38708,12 +38951,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -38878,12 +39125,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/andrewliang25/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/andrewliang25.png?size=96",
           "latestChanges": {
-            "title": "1.4.0 (2026-08-02)",
-            "date": "2026-08-02",
+            "title": "1.5.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add \"Fix push notifications\" patch"
+                "text": "add Keep unsent messages patch"
               }
             ]
           },
@@ -38960,6 +39207,10 @@
               "description": "Opening a 1:1 or group chat no longer marks it read \u2014 it stays unread and no read receipt is sent. Manually using \"Mark as read\" / \"Mark all as read\" still marks the chat read and sends the receipt as normal."
             },
             {
+              "name": "Keep unsent messages",
+              "description": "Keeps messages that were unsent in 1:1 and group chats on your device instead of destroying them, and shows the usual \"unsent a message\" notice directly below the message it kept. Doesn't apply to OpenChat."
+            },
+            {
               "name": "Open links in external browser",
               "description": "Opens tapped web links (http/https) in your default browser instead of LINE's in-app browser. LIFF mini-apps and LINE deep links are unaffected."
             },
@@ -38994,6 +39245,7 @@
         "Hide VOOM tab",
         "Hide Wallet tab",
         "Keep chats unread",
+        "Keep unsent messages",
         "Open links in external browser",
         "Redirect LINE Pay",
         "Remove banner ads"
@@ -39064,6 +39316,10 @@
           "description": "Opening a 1:1 or group chat no longer marks it read \u2014 it stays unread and no read receipt is sent. Manually using \"Mark as read\" / \"Mark all as read\" still marks the chat read and sends the receipt as normal."
         },
         {
+          "name": "Keep unsent messages",
+          "description": "Keeps messages that were unsent in 1:1 and group chats on your device instead of destroying them, and shows the usual \"unsent a message\" notice directly below the message it kept. Doesn't apply to OpenChat."
+        },
+        {
           "name": "Open links in external browser",
           "description": "Opens tapped web links (http/https) in your default browser instead of LINE's in-app browser. LIFF mini-apps and LINE deep links are unaffected."
         },
@@ -39099,12 +39355,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -39332,12 +39592,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -39448,12 +39712,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -39787,12 +40055,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -40421,105 +40693,6 @@
       ],
       "iconColor": "#1A1A2E",
       "iconUrl": "https://play-lh.googleusercontent.com/ZQ_qwzq8TIjRrEUZJeOPwd2kyBZPTxRmt_rWZOoBRhBl2Dq0-rmMIr1Tg_nOfO2npMSt9tthHUH_0S3812W2iA"
-    },
-    {
-      "packageName": "com.pryshedko.mtisland",
-      "name": "Material Capsule",
-      "repos": [
-        "Entree3k/Morning-Entree-Patches",
-        "heinrich26/morphe-patches"
-      ],
-      "sources": [
-        {
-          "repo": "Entree3k/Morning-Entree-Patches",
-          "host": "github.com",
-          "webUrl": "https://github.com/Entree3k/Morning-Entree-Patches",
-          "addUrl": "https://morphe.software/add-source?github=Entree3k/Morning-Entree-Patches",
-          "source": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/patches-bundle.json",
-          "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
-          "avatarUrl": "https://github.com/Entree3k.png?size=96",
-          "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
-            "items": [
-              {
-                "category": "\u2728 New Features",
-                "text": "Added Support"
-              }
-            ]
-          },
-          "builder": {
-            "buildId": "com-pryshedko-mtisland-entree3k-morning-entree-patches",
-            "releaseTag": "app-com-pryshedko-mtisland-entree3k-morning-entree-patches",
-            "assetName": "material-capsule-entree3k-morning-entree-patches.apk",
-            "repo": "rushiforai/morphe-builder",
-            "webUrl": "https://github.com/rushiforai/morphe-builder"
-          },
-          "patches": [
-            {
-              "name": "Enable Premium",
-              "description": "Unlocks Material Capsule Pro"
-            }
-          ],
-          "versions": [
-            "15.7"
-          ]
-        },
-        {
-          "repo": "heinrich26/morphe-patches",
-          "host": "github.com",
-          "webUrl": "https://github.com/heinrich26/morphe-patches",
-          "addUrl": "https://morphe.software/add-source?github=heinrich26/morphe-patches",
-          "source": "https://raw.githubusercontent.com/heinrich26/morphe-patches/main/patches-bundle.json",
-          "changelogUrl": "https://raw.githubusercontent.com/heinrich26/morphe-patches/main/CHANGELOG.md",
-          "avatarUrl": "https://github.com/heinrich26.png?size=96",
-          "latestChanges": {
-            "title": "1.0.1 (2026-08-05)",
-            "date": "2026-08-05",
-            "items": [
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "patch should now work"
-              }
-            ]
-          },
-          "builder": {
-            "buildId": "com-pryshedko-mtisland-heinrich26-morphe-patches",
-            "releaseTag": "app-com-pryshedko-mtisland-heinrich26-morphe-patches",
-            "assetName": "material-capsule-heinrich26-morphe-patches.apk",
-            "repo": "rushiforai/morphe-builder",
-            "webUrl": "https://github.com/rushiforai/morphe-builder"
-          },
-          "patches": [
-            {
-              "name": "Unlock Pro",
-              "description": ""
-            }
-          ],
-          "versions": [
-            "15.7"
-          ]
-        }
-      ],
-      "patches": [
-        "Enable Premium",
-        "Unlock Pro"
-      ],
-      "patchDetails": [
-        {
-          "name": "Enable Premium",
-          "description": "Unlocks Material Capsule Pro"
-        },
-        {
-          "name": "Unlock Pro",
-          "description": ""
-        }
-      ],
-      "versions": [
-        "15.7"
-      ],
-      "iconColor": "#212121",
-      "iconUrl": "https://play-lh.googleusercontent.com/mrNuw058MP_GKlWVCLuZrg3QyONOUJAzrw4mCkdTvtGckt5EGUEzbO26z49bMCJTlX5WRs1qP9fSljF30k3xcAk"
     },
     {
       "packageName": "com.pryshedko.materialpods",
@@ -42360,6 +42533,64 @@
       ],
       "iconColor": "#00A9E0",
       "iconUrl": "https://play-lh.googleusercontent.com/hrz4coRvzEr2euUSAUYdqlJkj4iv9aIk0nwg5EVl9Kif4cYRMqC2ussnVdcNjjclNtlbWq1_XaGWfC0SoC7U7A"
+    },
+    {
+      "packageName": "com.pryshedko.mtisland",
+      "name": "MT Capsule",
+      "repos": [
+        "heinrich26/morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "heinrich26/morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/heinrich26/morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=heinrich26/morphe-patches",
+          "source": "https://raw.githubusercontent.com/heinrich26/morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/heinrich26/morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/heinrich26.png?size=96",
+          "latestChanges": {
+            "title": "1.0.1 (2026-08-05)",
+            "date": "2026-08-05",
+            "items": [
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "patch should now work"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-pryshedko-mtisland-heinrich26-morphe-patches",
+            "releaseTag": "app-com-pryshedko-mtisland-heinrich26-morphe-patches",
+            "assetName": "mt-capsule-heinrich26-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Unlock Pro",
+              "description": ""
+            }
+          ],
+          "versions": [
+            "15.7"
+          ]
+        }
+      ],
+      "patches": [
+        "Unlock Pro"
+      ],
+      "patchDetails": [
+        {
+          "name": "Unlock Pro",
+          "description": ""
+        }
+      ],
+      "versions": [
+        "15.7"
+      ],
+      "iconColor": "#FF0045",
+      "iconUrl": "https://play-lh.googleusercontent.com/mrNuw058MP_GKlWVCLuZrg3QyONOUJAzrw4mCkdTvtGckt5EGUEzbO26z49bMCJTlX5WRs1qP9fSljF30k3xcAk"
     },
     {
       "packageName": "com.sdev.mtproxy",
@@ -44325,12 +44556,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -45110,12 +45345,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -45723,6 +45962,68 @@
       "iconUrl": "https://play-lh.googleusercontent.com/Rz5gPi2gs8Vs8VZVn7mpJQpIB7XzeeErGGNAMIdr9NmWJigvmFpaWtMlpyC2rdieC6gxnpmQ5guTUUMjnZn97g"
     },
     {
+      "packageName": "dev.hemanths.paisa",
+      "name": "Paisa",
+      "repos": [
+        "Entree3k/Morning-Entree-Patches"
+      ],
+      "sources": [
+        {
+          "repo": "Entree3k/Morning-Entree-Patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/Entree3k/Morning-Entree-Patches",
+          "addUrl": "https://morphe.software/add-source?github=Entree3k/Morning-Entree-Patches",
+          "source": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/Entree3k.png?size=96",
+          "latestChanges": {
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
+            "items": [
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "added gps faker"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "dev-hemanths-paisa-entree3k-morning-entree-patches",
+            "releaseTag": "app-dev-hemanths-paisa-entree3k-morning-entree-patches",
+            "assetName": "paisa-entree3k-morning-entree-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Enable Premium",
+              "description": "Unlocks Paisa Premium. Use With Spoof Install Source"
+            }
+          ],
+          "versions": [
+            "2026.06.230"
+          ]
+        }
+      ],
+      "patches": [
+        "Enable Premium"
+      ],
+      "patchDetails": [
+        {
+          "name": "Enable Premium",
+          "description": "Unlocks Paisa Premium. Use With Spoof Install Source"
+        }
+      ],
+      "versions": [
+        "2026.06.230"
+      ],
+      "iconColor": "#009688",
+      "iconUrl": ""
+    },
+    {
       "packageName": "com.medibang.android.medibangpro",
       "name": "Paletta",
       "repos": [
@@ -45891,12 +46192,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -46242,12 +46547,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -46474,12 +46783,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -46679,12 +46992,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -46978,12 +47295,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -47036,12 +47357,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -48146,12 +48471,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -49401,8 +49730,8 @@
       ],
       "patches": [
         "Disable tracking",
-        "Unlock premium",
-        "Unlock Premium"
+        "Unlock Premium",
+        "Unlock premium"
       ],
       "patchDetails": [
         {
@@ -49410,12 +49739,12 @@
           "description": "Disables analytics and crash reporting."
         },
         {
-          "name": "Unlock premium",
-          "description": "Unlocks all premium features."
-        },
-        {
           "name": "Unlock Premium",
           "description": "Unlocks all premium features by bypassing the native library premium check."
+        },
+        {
+          "name": "Unlock premium",
+          "description": "Unlocks all premium features."
         }
       ],
       "versions": [
@@ -50071,12 +50400,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -50129,12 +50462,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -50549,40 +50886,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/jkennethcarino/adobo/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/jkennethcarino.png?size=96",
           "latestChanges": {
-            "title": "1.2.0 (2026-06-14)",
-            "date": "2026-06-14",
+            "title": "1.3.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**Gboard - Enable Undo feature:** Already enabled by default since 17.3.3.902587967"
+                "text": "**Reddit - Colorize comment indent lines:** Fix broken Show indent line at current depth only option in 2026.14.0"
               },
               {
                 "category": "Bug Fixes",
-                "text": "**Reddit - Disable home feed swipe:** Support 2026.14.0 and 2026.04.0"
+                "text": "**Reddit - Remove ads and telemetry:** Consider ad cells when blocking ads and promoted posts"
               },
               {
                 "category": "Bug Fixes",
-                "text": "**Reddit - Disable home screen redirect:** Support 2026.14.0 and 2026.04.0"
+                "text": "**Reddit - Remove ads and telemetry:** Remove comment ad placeholder"
               },
               {
                 "category": "Bug Fixes",
-                "text": "**Reddit - Disable post detail swipe:** Support 2026.14.0 and 2026.04.0"
+                "text": "**Reddit - Remove ads and telemetry:** Remove promoted profile posts"
               },
               {
                 "category": "Bug Fixes",
-                "text": "**Reddit - Hide prominent search bar:** Support 2026.14.0 and 2026.04.0"
+                "text": "**Reddit - Sanitize share links:** Fix broken 'Copy Link' and 'Share via' options"
               },
               {
-                "category": "Bug Fixes",
-                "text": "**Reddit - Hide user flairs:** Support 2026.14.0 and 2026.04.0"
+                "category": "Features",
+                "text": "Add Replace Google Maps API key patch (#27)"
               },
               {
-                "category": "Bug Fixes",
-                "text": "**Reddit - Open external links directly:** Fix fingerprint conflicts"
+                "category": "Features",
+                "text": "**Gboard - Enable OCR feature:** Always show Scan Text option regardless of language (#36)"
               },
               {
-                "category": "Bug Fixes",
-                "text": "**Reddit:** Support the latest version"
+                "category": "Features",
+                "text": "**Gboard:** Add Enable access points menu redesign patch (#35)"
               }
             ]
           },
@@ -50597,6 +50934,14 @@
             {
               "name": "Colorize comment indent lines",
               "description": "Replaces the default gray comment indent lines with color-coded lines."
+            },
+            {
+              "name": "Disable bottom navigation bar auto-hide",
+              "description": "Prevents the bottom navigation bar from hiding when scrolling down."
+            },
+            {
+              "name": "Disable home feed auto-refresh",
+              "description": "Disables the automatic refresh of the home feed after viewing a post or after being away from the app."
             },
             {
               "name": "Disable home feed swipe",
@@ -50627,12 +50972,16 @@
               "description": "Hides the community highlights section."
             },
             {
+              "name": "Hide community menu badge",
+              "description": "Hides the red notification badge on the community menu (hamburger menu)."
+            },
+            {
               "name": "Hide post view counts",
               "description": "Removes the \"views\" indicator from the post metadata."
             },
             {
               "name": "Hide prominent search bar",
-              "description": "Hides the new prominent search bar on the main screen."
+              "description": "Hides the new prominent search bar on the main screen. Applicable only to version 2026.24.0 and earlier."
             },
             {
               "name": "Hide share count",
@@ -50663,7 +51012,13 @@
               "description": "Unshortens and removes the tracking query parameters from shared links."
             }
           ],
-          "versions": []
+          "versions": [
+            "2026.14.0",
+            "2026.24.0",
+            "2026.29.0",
+            "2026.30.0",
+            "2026.31.1"
+          ]
         },
         {
           "repo": "kareemlukitomo/morphe-patches",
@@ -50920,6 +51275,8 @@
         "Colorize comment indent lines",
         "Custom branding name for Reddit",
         "Custom font",
+        "Disable bottom navigation bar auto-hide",
+        "Disable home feed auto-refresh",
         "Disable home feed swipe",
         "Disable home screen redirect",
         "Disable modern home",
@@ -50933,6 +51290,7 @@
         "Hide awards",
         "Hide communities shelf",
         "Hide community highlights",
+        "Hide community menu badge",
         "Hide navigation buttons",
         "Hide permanent ban banner",
         "Hide post view counts",
@@ -50975,6 +51333,14 @@
         {
           "name": "Custom font",
           "description": "Adds an option to replace Reddit Sans / Roboto with a custom TTF or OTF font file at runtime."
+        },
+        {
+          "name": "Disable bottom navigation bar auto-hide",
+          "description": "Prevents the bottom navigation bar from hiding when scrolling down."
+        },
+        {
+          "name": "Disable home feed auto-refresh",
+          "description": "Disables the automatic refresh of the home feed after viewing a post or after being away from the app."
         },
         {
           "name": "Disable home feed swipe",
@@ -51029,6 +51395,10 @@
           "description": "Hides the community highlights section."
         },
         {
+          "name": "Hide community menu badge",
+          "description": "Hides the red notification badge on the community menu (hamburger menu)."
+        },
+        {
           "name": "Hide navigation buttons",
           "description": "Adds options to hide buttons in the navigation bar."
         },
@@ -51042,7 +51412,7 @@
         },
         {
           "name": "Hide prominent search bar",
-          "description": "Hides the new prominent search bar on the main screen."
+          "description": "Hides the new prominent search bar on the main screen. Applicable only to version 2026.24.0 and earlier."
         },
         {
           "name": "Hide Reddit search",
@@ -51119,6 +51489,7 @@
         "2026.14.0",
         "2026.17.0",
         "2026.24.0",
+        "2026.29.0",
         "2026.30.0",
         "2026.31.1"
       ],
@@ -52093,12 +52464,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -52284,12 +52659,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -52342,12 +52721,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -52850,12 +53233,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -53303,12 +53690,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -53495,12 +53886,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -53666,12 +54061,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -53907,12 +54306,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -54194,12 +54597,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/alan7383/sofatime-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/alan7383.png?size=96",
           "latestChanges": {
-            "title": "1.4.1 (2026-08-07)",
-            "date": "2026-08-07",
+            "title": "1.4.2 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "Support SofaTime v1.2.3 (Fixes #2)"
+                "text": "Support SofaTime v1.2.4 (Fixes #3)"
               }
             ]
           },
@@ -54230,7 +54633,8 @@
           ],
           "versions": [
             "1.2.2",
-            "1.2.3"
+            "1.2.3",
+            "1.2.4"
           ]
         }
       ],
@@ -54260,7 +54664,8 @@
       ],
       "versions": [
         "1.2.2",
-        "1.2.3"
+        "1.2.3",
+        "1.2.4"
       ],
       "iconColor": "#1E1E2E",
       "iconUrl": ""
@@ -55113,12 +55518,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -56107,12 +56516,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -56400,12 +56813,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/humzakh/HK-Morphe-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/humzakh.png?size=96",
           "latestChanges": {
-            "title": "1.7.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.7.1 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "Add Fix Inline Images patch (95d7ec8), closes #55 #56"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Disable SyncPredictiveBackPatch for image views"
               }
             ]
           },
@@ -56699,12 +57112,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/humzakh/HK-Morphe-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/humzakh.png?size=96",
           "latestChanges": {
-            "title": "1.7.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.7.1 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "Add Fix Inline Images patch (95d7ec8), closes #55 #56"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Disable SyncPredictiveBackPatch for image views"
               }
             ]
           },
@@ -56947,12 +57360,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/humzakh/HK-Morphe-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/humzakh.png?size=96",
           "latestChanges": {
-            "title": "1.7.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.7.1 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "Add Fix Inline Images patch (95d7ec8), closes #55 #56"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Disable SyncPredictiveBackPatch for image views"
               }
             ]
           },
@@ -57194,12 +57607,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -58205,12 +58622,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -58934,12 +59355,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -60353,8 +60778,8 @@
       ],
       "patches": [
         "Disable analytics",
-        "Disable telemetry",
         "Disable Telemetry",
+        "Disable telemetry",
         "Disable update check",
         "Enable premium features",
         "GMS sign-in bypass",
@@ -60398,11 +60823,11 @@
           "description": "Suppresses Truecaller's CleverTap behavioural event tracking to prevent user-activity telemetry."
         },
         {
-          "name": "Disable telemetry",
+          "name": "Disable Telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
-          "name": "Disable Telemetry",
+          "name": "Disable telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
@@ -61123,12 +61548,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -62027,12 +62456,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -62203,12 +62636,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Entree3k/Morning-Entree-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Entree3k.png?size=96",
           "latestChanges": {
-            "title": "1.9.0 (2026-08-08)",
-            "date": "2026-08-08",
+            "title": "1.11.0 (2026-08-09)",
+            "date": "2026-08-09",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Removed Patch"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "Added Support"
+                "text": "added gps faker"
               }
             ]
           },
@@ -64552,6 +64989,10 @@
               {
                 "category": "\ud83d\udc1b Bug Fixes",
                 "text": "Remove unused strings and show summaries for VoT/live voices switches"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Resolve IDE warnings"
               }
             ]
           },
@@ -65705,8 +66146,8 @@
         "Save to watch later",
         "Seekbar",
         "Seekbar components",
-        "Set transcript cookies",
         "Set Transcript Cookies",
+        "Set transcript cookies",
         "Settings for YouTube",
         "Settings menu filter",
         "Shorts autoplay",
@@ -66159,11 +66600,11 @@
           "description": "Adds options to hide or change components related to the seekbar."
         },
         {
-          "name": "Set transcript cookies",
+          "name": "Set Transcript Cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {
-          "name": "Set Transcript Cookies",
+          "name": "Set transcript cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {
@@ -67894,42 +68335,18 @@
       "source": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/patches-bundle.json",
       "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
       "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
-      "patchCount": 7,
+      "patchCount": 8,
       "latestChanges": {
-        "title": "1.20.0 (2026-08-08)",
-        "date": "2026-08-08",
+        "title": "1.22.0 (2026-08-09)",
+        "date": "2026-08-09",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "add debug info patch"
+            "text": "percentage"
           },
           {
             "category": "\u2728 New Features",
-            "text": "debug"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "debug"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "finalize debug info"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "up"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "up"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "up"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "up"
+            "text": "switch to percentage"
           }
         ]
       },
@@ -67937,6 +68354,11 @@
         {
           "name": "APK Junk Cleanup",
           "description": "Removes build artifacts and metadata that bloat the APK: Play Services / Firebase version files, protobuf descriptors, debug probes, kotlin builtins, META-INF subfolder clutter, and misc junk. Safe \u2014 only removes files with no runtime purpose.",
+          "default": false
+        },
+        {
+          "name": "Custom DPI (Universal)",
+          "description": "Change this app's display size without touching your phone's system settings. Make it bigger if things look too small, or smaller to fit more on screen. Works on any app.",
           "default": false
         },
         {
@@ -68199,12 +68621,16 @@
       "avatarUrl": "https://github.com/Entree3k.png?size=96",
       "patchCount": 4,
       "latestChanges": {
-        "title": "1.9.0 (2026-08-08)",
-        "date": "2026-08-08",
+        "title": "1.11.0 (2026-08-09)",
+        "date": "2026-08-09",
         "items": [
           {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Removed Patch"
+          },
+          {
             "category": "\u2728 New Features",
-            "text": "Added Support"
+            "text": "added gps faker"
           }
         ]
       },
@@ -68314,12 +68740,12 @@
       "avatarUrl": "https://github.com/humzakh.png?size=96",
       "patchCount": 1,
       "latestChanges": {
-        "title": "1.7.0 (2026-08-08)",
-        "date": "2026-08-08",
+        "title": "1.7.1 (2026-08-09)",
+        "date": "2026-08-09",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "Add Fix Inline Images patch (95d7ec8), closes #55 #56"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Disable SyncPredictiveBackPatch for image views"
           }
         ]
       },
@@ -68388,42 +68814,42 @@
       "source": "https://raw.githubusercontent.com/jkennethcarino/adobo/main/patches-bundle.json",
       "changelogUrl": "https://raw.githubusercontent.com/jkennethcarino/adobo/main/CHANGELOG.md",
       "avatarUrl": "https://github.com/jkennethcarino.png?size=96",
-      "patchCount": 11,
+      "patchCount": 12,
       "latestChanges": {
-        "title": "1.2.0 (2026-06-14)",
-        "date": "2026-06-14",
+        "title": "1.3.0 (2026-08-09)",
+        "date": "2026-08-09",
         "items": [
           {
             "category": "Bug Fixes",
-            "text": "**Gboard - Enable Undo feature:** Already enabled by default since 17.3.3.902587967"
+            "text": "**Reddit - Colorize comment indent lines:** Fix broken Show indent line at current depth only option in 2026.14.0"
           },
           {
             "category": "Bug Fixes",
-            "text": "**Reddit - Disable home feed swipe:** Support 2026.14.0 and 2026.04.0"
+            "text": "**Reddit - Remove ads and telemetry:** Consider ad cells when blocking ads and promoted posts"
           },
           {
             "category": "Bug Fixes",
-            "text": "**Reddit - Disable home screen redirect:** Support 2026.14.0 and 2026.04.0"
+            "text": "**Reddit - Remove ads and telemetry:** Remove comment ad placeholder"
           },
           {
             "category": "Bug Fixes",
-            "text": "**Reddit - Disable post detail swipe:** Support 2026.14.0 and 2026.04.0"
+            "text": "**Reddit - Remove ads and telemetry:** Remove promoted profile posts"
           },
           {
             "category": "Bug Fixes",
-            "text": "**Reddit - Hide prominent search bar:** Support 2026.14.0 and 2026.04.0"
+            "text": "**Reddit - Sanitize share links:** Fix broken 'Copy Link' and 'Share via' options"
           },
           {
-            "category": "Bug Fixes",
-            "text": "**Reddit - Hide user flairs:** Support 2026.14.0 and 2026.04.0"
+            "category": "Features",
+            "text": "Add Replace Google Maps API key patch (#27)"
           },
           {
-            "category": "Bug Fixes",
-            "text": "**Reddit - Open external links directly:** Fix fingerprint conflicts"
+            "category": "Features",
+            "text": "**Gboard - Enable OCR feature:** Always show Scan Text option regardless of language (#36)"
           },
           {
-            "category": "Bug Fixes",
-            "text": "**Reddit:** Support the latest version"
+            "category": "Features",
+            "text": "**Gboard:** Add Enable access points menu redesign patch (#35)"
           }
         ]
       },
@@ -68466,6 +68892,11 @@
         {
           "name": "Remove internet permission",
           "description": "Removes unnecessary internet permission from apps that can still work without internet access.",
+          "default": false
+        },
+        {
+          "name": "Replace Google Maps API key",
+          "description": "Replaces the Google Maps API key with a custom key.",
           "default": false
         },
         {
@@ -69639,47 +70070,23 @@
       "webUrl": "https://github.com/BlazeFTL/FTL-Patches",
       "addUrl": "https://morphe.software/add-source?github=BlazeFTL/FTL-Patches",
       "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
-      "patchCount": 7,
+      "patchCount": 8,
       "appCount": 0,
       "createdAt": 1786263569063,
       "updatedAt": 1786263569063,
       "createdDate": "2026-08-09",
       "updatedDate": "2026-08-09",
       "latestChanges": {
-        "title": "1.20.0 (2026-08-08)",
-        "date": "2026-08-08",
+        "title": "1.22.0 (2026-08-09)",
+        "date": "2026-08-09",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "add debug info patch"
+            "text": "percentage"
           },
           {
             "category": "\u2728 New Features",
-            "text": "debug"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "debug"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "finalize debug info"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "up"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "up"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "up"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "up"
+            "text": "switch to percentage"
           }
         ]
       },
