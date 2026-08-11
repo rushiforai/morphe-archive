@@ -1,0 +1,13 @@
+[versions]
+morphe-patcher = "1.7.0"
+#noinspection GradleDependency
+smali = "d92701d947"
+gson = "2.13.2"
+annotation = "1.9.1"
+
+[libraries]
+morphe-patcher = { module = "app.morphe:morphe-patcher", version.ref = "morphe-patcher" }
+smali = { module = "com.android.tools.smali:smali", version.ref = "smali" }
+smali-util = { module = "com.android.tools.smali:smali-util", version.ref = "smali" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }

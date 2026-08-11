@@ -1,0 +1,90 @@
+name: Build and publish Morphe bundle
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - patches-bundle.json
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.6.1'
+
+      - name: Read bundle version
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(sed -n 's/^version[[:space:]]*=[[:space:]]*//p' gradle.properties | head -n1 | tr -d '[:space:]')"
+          test -n "$version"
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+
+      - name: Build Morphe patch bundle
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gradle :patches:buildAndroid --no-daemon
+
+      - name: Normalize bundle filename
+        shell: bash
+        run: |
+          set -euo pipefail
+          bundle="$(find patches/build/libs -maxdepth 1 -type f -name '*.mpp' | head -n 1)"
+          test -n "$bundle"
+          cp "$bundle" "patches-${VERSION}.mpp"
+
+      - name: Create or update release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="v${VERSION}"
+          asset="patches-${VERSION}.mpp"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" "$asset" --clobber
+          else
+            gh release create "$tag" "$asset" \
+              --title "$tag" \
+              --notes "Google Clock + Morphe YouTube Music alarm integration. v1.1 adds premium-entitlement status normalization for the external MediaBrowser integration."
+          fi
+
+      - name: Update Morphe source metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          created_at="$(date -u '+%Y-%m-%dT%H:%M:%S')"
+          cat > patches-bundle.json <<JSON
+          {
+            "created_at": "${created_at}",
+            "description": "Google Clock support for Morphe-patched YouTube Music alarms",
+            "download_url": "https://github.com/tadikwa/google-clock-morphe-patches/releases/download/v${VERSION}/patches-${VERSION}.mpp",
+            "signature_download_url": "",
+            "version": "${VERSION}"
+          }
+          JSON
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add patches-bundle.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Update Morphe source metadata to v${VERSION}"
+            git push
+          fi

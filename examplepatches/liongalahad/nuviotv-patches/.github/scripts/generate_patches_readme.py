@@ -80,14 +80,26 @@ def anchor(name):
 
 APP_PATCH_ORDER = {
     "Random Episode": 100,
-    "Binge Group Manual Fallback": 200,
+    "Local Media": 200,
     "Rating Visibility": 300,
     "Remove SDH Annotations": 400,
-    "Mark SDH Subtitles": 500,
+    "Mark SDH Subtitles": 410,
+    "Allow Importing Subs from Local Storage": 420,
+    "Library Mode Focus Fix": 900,
 }
 
 PATCH_CREDITS = {
     "Random Episode": "Original idea and code by [**DeclanSC**](https://github.com/DeclanSC).",
+}
+
+PATCH_DOCS = {
+    "Random Episode": "testing/patches/random-episode/README.md",
+    "Local Media": "testing/patches/local-media/README.md",
+    "Rating Visibility": "testing/patches/ratings-visibility/README.md",
+    "Remove SDH Annotations": "testing/patches/sdh-annotations/README.md",
+    "Mark SDH Subtitles": "testing/patches/sdh-marking/README.md",
+    "Allow Importing Subs from Local Storage": "testing/patches/local-storage-subtitles/README.md",
+    "Library Mode Focus Fix": "testing/patches/library-mode-focus-fix/README.md",
 }
 
 
@@ -113,7 +125,8 @@ def patches_table(patches):
         credit = PATCH_CREDITS.get(p["name"])
         if credit:
             desc = f"{desc}<br>{credit}"
-        rows.append(f"| [{p['name']}](#{a}) | {desc} | {opts_cell} |")
+        docs = PATCH_DOCS.get(p["name"], f"#{a}")
+        rows.append(f"| [{p['name']}]({docs}) | {desc} | {opts_cell} |")
     return "\n".join(rows)
 
 

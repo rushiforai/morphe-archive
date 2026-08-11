@@ -18,11 +18,11 @@ jobs:
       matrix:
         target:
           - name: x86_64
-            url: https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.2-beta/app-full-x86_64-release.apk
-            sha256: 885c30945d91369969c633f7d0b3eb0816fc1db041af83459f1c7e842b9fbb8b
+            url: https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.3-beta/app-full-x86_64-release.apk
+            sha256: 1c3b4cc5147c6963f70e75524622cc06195aafe6854ecf00ea96ec58551571d3
           - name: universal
-            url: https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.2-beta/app-full-universal-release.apk
-            sha256: f3eec9367dabe332bb54d7ad73cc425296d22e1cbd9db699004d0c33f182c030
+            url: https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.3-beta/app-full-universal-release.apk
+            sha256: e4e2a6bb529c7f3b8a4670c9fb0a8376e919a5791d29b68e97e6e21b59f73125
     env:
       GITHUB_ACTOR: liongalahad
       MORPHE_PACKAGES_TOKEN: ${{ secrets.MORPHE_PACKAGES_TOKEN }}
@@ -48,8 +48,16 @@ jobs:
           ./gradlew.bat :extensions:extension:test :patches:buildAndroid --no-daemon
           ./gradlew.bat generatePatchesList --no-daemon
           $list = Get-Content patches-list.json -Raw | ConvertFrom-Json
-          if ($list.patches.name -notcontains 'Remove SDH Annotations') { throw 'Generated list is missing the SDH patch.' }
-          if ($list.patches.name -notcontains 'Rating Visibility') { throw 'Generated list is missing the ratings patch.' }
+          $manifests = Get-ChildItem testing/patches -Recurse -Filter patch.json |
+            ForEach-Object { Get-Content $_.FullName -Raw | ConvertFrom-Json }
+          foreach ($manifest in $manifests) {
+            if ($list.patches.name -notcontains $manifest.name) {
+              throw "Generated list is missing $($manifest.name)."
+            }
+          }
+          if ($list.patches.Count -ne $manifests.Count) {
+            throw "Generated list contains $($list.patches.Count) patches; expected $($manifests.Count)."
+          }
       - name: Download and verify official target
         shell: pwsh
         run: |

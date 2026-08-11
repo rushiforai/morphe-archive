@@ -61,6 +61,10 @@ private val compatibility = Compatibility(
             version = "26.30.09.950492155",
             minSdk = 28,
         ),
+        AppTarget(
+            version = "26.32.06.958047303",
+            minSdk = 28,
+        ),
     ),
 )
 
@@ -464,6 +468,7 @@ private val mapsActivityOnCreateFingerprints = listOf(
     mapsActivityOnCreateFingerprint("Lmzk;"),
     mapsActivityOnCreateFingerprint("Lnaa;"),
     mapsActivityOnCreateFingerprint("Lnap;"),
+    mapsActivityOnCreateFingerprint("Lncb;"),
 )
 
 private fun mapsApplicationOnCreateFingerprint(definingClass: String) = Fingerprint(
@@ -479,6 +484,7 @@ private val mapsApplicationOnCreateFingerprints = listOf(
     mapsApplicationOnCreateFingerprint("Lnxe;"),
     mapsApplicationOnCreateFingerprint("Lnxw;"),
     mapsApplicationOnCreateFingerprint("Lnzo;"),
+    mapsApplicationOnCreateFingerprint("Locb;"),
 )
 
 private val extensionVendorFingerprint = Fingerprint(
@@ -517,6 +523,7 @@ private val googlePlayUtilityFingerprints = listOf(
     googlePlayUtilityFingerprint("Lbjhc;", "n"),
     googlePlayUtilityFingerprint("Lbjkw;", "n"),
     googlePlayUtilityFingerprint("Lbjqa;", "o"),
+    googlePlayUtilityFingerprint("Lbjuz;", "o"),
 )
 
 private val playServicesAvailabilityNotificationFingerprint = Fingerprint(

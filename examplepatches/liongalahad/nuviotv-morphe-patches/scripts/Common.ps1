@@ -51,6 +51,7 @@ function Get-MorpheJar {
 
 function Get-PatchBundle {
     $bundle = Get-ChildItem (Join-Path $script:RepoRoot 'patches\build\libs') -Filter '*.mpp' -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -notmatch '-(?:sources|javadoc)\.mpp$' } |
         Sort-Object LastWriteTime -Descending | Select-Object -First 1
     if (-not $bundle) { throw 'No .mpp bundle exists. Run scripts\build.ps1 first.' }
     $bundle.FullName

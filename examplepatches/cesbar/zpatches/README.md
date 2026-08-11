@@ -4,17 +4,18 @@ A collection of [Morphe](https://github.com/MorpheApp) patches useful to me
 
 ## Patch list
 <!-- PATCHES_START -->
-> **[v1.10.0](https://github.com/cesbar/zpatches/releases/tag/v1.10.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;16 patches total
+> **[v1.11.0](https://github.com/cesbar/zpatches/releases/tag/v1.11.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;17 patches total
 <details open>
-<summary>📦 com.jcdecaux.vls.lyon&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
+<summary>📦 com.jcdecaux.vls.lyon&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
 <br>
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Block data collection](#block-data-collection) | Block Didomi tracking SDK, disable consent prompt. |  |
+| [Block data collection](#block-data-collection) | Block Didomi & Matomo tracking SDKs, hide consent prompts for 3rd party & geolocation data |  |
 | [Disable map animations](#disable-map-animations) | Disable the map zoom-in animation |  |
 | [Easy deeplinks configuration](#easy-deeplinks-configuration) | Allows easy configuration of deeplinks (velov.cyclocity.fr, velov.grandlyon.com) required by the app to sign-in |  |
 | [Google Maps API key](#google-maps-api-key) | Use a different Google Maps API key to fix modified apps | • Google Maps API key |
+| [Hide onboarding screen](#hide-onboarding-screen) | Hide the onboarding "Plan you journey" screen |  |
 | [No geolocalisation check](#no-geolocalisation-check) | Allows you to unlock a bike even if you're not near the station. |  |
 | [Spoof package signature](#spoof-package-signature) | Spoofs the package signature required for Firebase, fixes notifications |  |
 

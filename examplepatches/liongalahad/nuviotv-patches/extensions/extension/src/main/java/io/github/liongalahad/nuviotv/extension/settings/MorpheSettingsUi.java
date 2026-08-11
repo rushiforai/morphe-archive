@@ -3,6 +3,7 @@ package io.github.liongalahad.nuviotv.extension.settings;
 import android.app.Activity;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function0;
+import kotlin.jvm.functions.Function3;
 
 /** Public rendering facade available to isolated patch settings providers. */
 public final class MorpheSettingsUi {
@@ -31,6 +32,28 @@ public final class MorpheSettingsUi {
             Function0<?> action
     ) {
         MorpheSettingsRows.selectorRow(modifier, composer, title, value, action);
+    }
+
+    /** Generic nested settings section using the same expandable card as top-level categories. */
+    public static void nestedSection(
+            Object composer,
+            String title,
+            String description,
+            boolean initiallyExpanded,
+            Function3<Object, Object, Object, Unit> content
+    ) {
+        Object expanded = MorpheSettingsRows.rememberBooleanState(composer, initiallyExpanded);
+        Object focus = MorpheSettingsRows.rememberFocusRequester(composer);
+        MorpheSettingsRows.collapsibleSection(
+                composer,
+                title,
+                description,
+                MorpheSettingsRows.booleanStateValue(expanded),
+                MorpheSettingsRows.booleanStateToggle(expanded),
+                focus,
+                noOp(),
+                content
+        );
     }
 
     public static void refresh() {

@@ -56,7 +56,7 @@ internal val settingsUiPatch = bytecodePatch {
 
         remapResourceLiterals(
             ExperienceSettingsHeaderFingerprint.method,
-            mapOf(0x7f11089a to 0x7f1108bf, 0x7f110552 to 0x7f1108c0)
+            mapOf(0x7f1108ac to 0x7f1108d1, 0x7f110565 to 0x7f1108d2)
         )
 
         fun MethodReference.descriptor() = buildString {
@@ -79,14 +79,18 @@ internal val settingsUiPatch = bytecodePatch {
             .distinctBy { it.descriptor() }
         val groupReference = methodReferences.single {
                 it.returnType == "V" && it.parameterTypes.map(CharSequence::toString).let { parameters ->
-                    parameters.size == 7 && parameters.take(4) == listOf(
-                        "Lu1/q;", "Ljava/lang/String;", "Ljava/lang/String;", "Lo1/t;"
-                    )
+                    parameters.size == 7 &&
+                        parameters.take(3) == listOf(
+                            "Lu1/q;", "Ljava/lang/String;", "Ljava/lang/String;"
+                        ) &&
+                        parameters[3].startsWith("Lo1/") &&
+                        parameters.takeLast(2) == listOf("I", "I")
                 }
             }
+        val contentType = groupReference.parameterTypes[3].toString()
         val composerType = groupReference.parameterTypes[4].toString()
         val lambdaReference = methodReferences.single {
-            it.returnType == "Lo1/t;" && it.parameterTypes.map(CharSequence::toString) ==
+            it.returnType == contentType && it.parameterTypes.map(CharSequence::toString) ==
                 listOf("I", "Lkotlin/Function;", composerType)
         }
 

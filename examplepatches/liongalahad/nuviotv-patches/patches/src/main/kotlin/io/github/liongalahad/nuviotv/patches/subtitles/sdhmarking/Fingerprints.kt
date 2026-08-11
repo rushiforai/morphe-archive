@@ -41,13 +41,13 @@ internal object SubtitleOptionBuilderFingerprint : Fingerprint(
     )
 )
 
-/** Compose content lambda that reads one remembered subtitle option's visible title. */
+/** 0.8.3 Compose content lambda that reads one remembered subtitle option's visible title. */
 internal object SubtitleOptionContentFingerprint : Fingerprint(
     returnType = "Ljava/lang/Object;",
     parameters = listOf("Ljava/lang/Object;", "Ljava/lang/Object;", "Ljava/lang/Object;"),
     filters = listOf(
-        fieldAccess(type = "Ljava/lang/String;", opcode = Opcode.IGET_OBJECT),
         fieldAccess(type = "Z", opcode = Opcode.IGET_BOOLEAN),
+        fieldAccess(type = "Ljava/lang/String;", opcode = Opcode.IGET_OBJECT),
         fieldAccess(type = "Ljava/lang/String;", opcode = Opcode.IGET_OBJECT),
         fieldAccess(type = "Ljava/lang/String;", opcode = Opcode.IGET_OBJECT)
     ),
@@ -60,7 +60,7 @@ internal object SubtitleOptionContentFingerprint : Fingerprint(
 
         optionFields.values.any { fields ->
             fields.map(FieldReference::getType) == listOf(
-                "Ljava/lang/String;", "Z", "Ljava/lang/String;", "Ljava/lang/String;"
+                "Z", "Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/String;"
             )
         }
     }

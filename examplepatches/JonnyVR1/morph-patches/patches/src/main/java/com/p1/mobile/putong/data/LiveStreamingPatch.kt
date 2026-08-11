@@ -42,21 +42,6 @@ private const val RETURN_LONG_999999999 = """
     return-wide v0
 """
 
-private const val RETURN_LONG_MAX = """
-    const-wide v0, 0x7fffffffffffffffL
-    return-wide v0
-"""
-
-private const val RETURN_FLOAT_0 = """
-    const/4 v0, 0x0
-    return v0
-"""
-
-private const val RETURN_INT_MAX = """
-    const v0, 0x7fffffff
-    return v0
-"""
-
 private val instructionCache = java.util.WeakHashMap<com.android.tools.smali.dexlib2.iface.Method, List<com.android.tools.smali.dexlib2.iface.instruction.Instruction>>()
 
 private fun com.android.tools.smali.dexlib2.iface.Method.cachedInstructions(): List<com.android.tools.smali.dexlib2.iface.instruction.Instruction> =
@@ -84,7 +69,7 @@ private fun com.android.tools.smali.dexlib2.iface.Method.accessesAnyField(defini
 @JvmField
 val liveStreamingPatch = bytecodePatch(
     name = "Live Streaming Enhancement",
-    description = "Live streaming enhancement: push limit bypass, swipe card unlimited, chat rate limit removal, voice game access, all-day PK battles, gift leaderboard, knight privileges, entrance limits, permission control, daily payment, noble config, stealth privacy, video chat, voice features, monetization, game operations, star toggle, unlimited coins, free gifts, 1080p streaming, treasure box removal, beauty filters unlock",
+    description = "Live streaming enhancement: push limit bypass, swipe card unlimited, chat rate limit removal, voice game access, all-day PK battles, gift leaderboard, knight privileges, entrance limits, permission control, daily payment, noble config, stealth privacy, video chat, voice features, monetization, game operations, star toggle",
     default = true,
 ) {
     compatibleWith(tantanCompatibility)
@@ -378,89 +363,6 @@ val liveStreamingPatch = bytecodePatch(
                         method.name != "<init>" &&
                         method.name != "<clinit>" &&
                         method.accessesField("Lcom/p1/mobile/putong/live/base/data/BLiveIntlConfig;", "switchStar")
-                }
-                .forEach { it.addInstructions(0, RETURN_BOOLEAN_TRUE) }
-        }
-
-        classDefByOrNull("Lcom/p1/mobile/putong/live/base/data/BLiveCoin;")?.let { classDef ->
-            mutableClassDefBy(classDef).methods
-                .filter { method ->
-                    method.returnType == "J" &&
-                        method.parameterTypes.isEmpty() &&
-                        method.name != "<init>" &&
-                        method.name != "<clinit>" &&
-                        method.accessesField("Lcom/p1/mobile/putong/live/base/data/BLiveCoin;", "available")
-                }
-                .forEach { it.addInstructions(0, RETURN_LONG_MAX) }
-        }
-
-        classDefByOrNull("Lcom/p1/mobile/putong/live/base/data/BLiveGiftDiamondPrice;")?.let { classDef ->
-            val mutableClassDef = mutableClassDefBy(classDef)
-            mutableClassDef.methods
-                .filter { method ->
-                    method.returnType == "F" &&
-                        method.parameterTypes.isEmpty() &&
-                        method.name != "<init>" &&
-                        method.name != "<clinit>" &&
-                        method.accessesField("Lcom/p1/mobile/putong/live/base/data/BLiveGiftDiamondPrice;", "unitPrice")
-                }
-                .forEach { it.addInstructions(0, RETURN_FLOAT_0) }
-            mutableClassDef.methods
-                .filter { method ->
-                    method.returnType == "J" &&
-                        method.parameterTypes.isEmpty() &&
-                        method.name != "<init>" &&
-                        method.name != "<clinit>" &&
-                        method.accessesField("Lcom/p1/mobile/putong/live/base/data/BLiveGiftDiamondPrice;", "purchasePrice")
-                }
-                .forEach { it.addInstructions(0, RETURN_LONG_0) }
-        }
-
-        classDefByOrNull("Lcom/p1/mobile/putong/live/base/data/BLiveVideoQuality;")?.let { classDef ->
-            val mutableClassDef = mutableClassDefBy(classDef)
-            mutableClassDef.methods
-                .filter { method ->
-                    method.returnType == "I" &&
-                        method.parameterTypes.isEmpty() &&
-                        method.name != "<init>" &&
-                        method.name != "<clinit>" &&
-                        method.name != "hashCode" &&
-                        method.accessesAnyField(
-                            "Lcom/p1/mobile/putong/live/base/data/BLiveVideoQuality;",
-                            "pushWidth", "pushHeight", "pushBitrate", "pushFps",
-                            "captureWidth", "captureHeight", "captureFps"
-                        )
-                }
-                .forEach { it.addInstructions(0, RETURN_INT_MAX) }
-            mutableClassDef.methods
-                .filter { method ->
-                    method.returnType == "Z" &&
-                        method.parameterTypes.isEmpty() &&
-                        method.name != "<init>" &&
-                        method.name != "<clinit>" &&
-                        method.accessesField("Lcom/p1/mobile/putong/live/base/data/BLiveVideoQuality;", "downGrade")
-                }
-                .forEach { it.addInstructions(0, RETURN_BOOLEAN_FALSE) }
-        }
-
-        classDefByOrNull("Lcom/p1/mobile/putong/live/base/data/BLiveTreasureBox;")?.let { classDef ->
-            mutableClassDefBy(classDef).methods
-                .filter { method ->
-                    method.name == "canShowTreasureBox" &&
-                        method.returnType == "Z" &&
-                        method.parameterTypes.isEmpty()
-                }
-                .forEach { it.addInstructions(0, RETURN_BOOLEAN_FALSE) }
-        }
-
-        classDefByOrNull("Lcom/p1/mobile/putong/live/base/data/BLiveBeautyFilterConfig;")?.let { classDef ->
-            mutableClassDefBy(classDef).methods
-                .filter { method ->
-                    method.returnType == "Z" &&
-                        method.parameterTypes.isEmpty() &&
-                        method.name != "<init>" &&
-                        method.name != "<clinit>" &&
-                        method.name != "equals"
                 }
                 .forEach { it.addInstructions(0, RETURN_BOOLEAN_TRUE) }
         }

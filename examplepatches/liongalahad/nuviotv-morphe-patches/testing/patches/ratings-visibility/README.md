@@ -1,6 +1,6 @@
 # Rating Visibility
 
-Patch ID: `ratings-visibility`. Target: official NuvioTV `0.8.2-beta` universal and ABI-specific builds.
+Patch ID: `ratings-visibility`. Target: official NuvioTV `0.8.3-beta` universal and ABI-specific builds.
 
 The patch adds `Settings → Morphe → Ratings` with two independent controls. `Overall Ratings` defaults to `Show` and controls standard ratings on Home, collection, hero, and Detail surfaces while leaving configured MDBList providers authoritative. `Episode Ratings` defaults to `Show` and provides `Show`, `Hide`, and `Hide Unwatched`.
 

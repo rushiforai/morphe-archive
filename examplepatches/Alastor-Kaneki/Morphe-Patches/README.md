@@ -5,6 +5,9 @@ patches are added to this project and built together into one `.mpp` bundle.
 
 ## Included patches
 
+<!-- PATCHES_START EXPANDED -->
+<!-- PATCHES_END -->
+
 ### Opera GX — Download GX mods as files
 
 Targets Opera GX Android (`com.opera.gx`). It adds a visible, theme-aware

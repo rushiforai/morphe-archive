@@ -1,3 +1,14 @@
+## [1.11.0](https://github.com/cesbar/zpatches/compare/v1.10.0...v1.11.0) (2026-08-10)
+
+### 🐛 Bug Fixes
+
+* **velov:** Block data collection : block Matomo sdk ([e1c7a42](https://github.com/cesbar/zpatches/commit/e1c7a42effb29c109f4356ce60908ce87ccc725c))
+* **velov:** Block data collection : skip geolocation data consent prompt ([933ea08](https://github.com/cesbar/zpatches/commit/933ea08d8f7bbefd8663d9071dd9e4d4816aae79))
+
+### ✨ New Features
+
+* **velov:** Hide onboarding screen ([2cce15a](https://github.com/cesbar/zpatches/commit/2cce15a9fa52ceb74a55295ab61633bd7d020d61))
+
 ## [1.10.0](https://github.com/cesbar/zpatches/compare/v1.9.1...v1.10.0) (2026-08-08)
 
 ### ✨ New Features

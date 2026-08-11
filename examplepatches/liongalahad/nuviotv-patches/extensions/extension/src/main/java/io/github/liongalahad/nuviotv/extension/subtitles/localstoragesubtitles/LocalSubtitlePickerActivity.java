@@ -47,8 +47,9 @@ public final class LocalSubtitlePickerActivity extends Activity {
         if (resultCode == RESULT_OK && data != null && data.getData() != null) {
             Uri uri = data.getData();
             String name = displayName(uri);
+            String contentKey = getIntent().getStringExtra(LocalSubtitleRuntime.PICKER_CONTENT_KEY_EXTRA);
             try {
-                imported = LocalSubtitleRuntime.importFile(this, uri, name);
+                imported = LocalSubtitleRuntime.importFile(this, uri, name, contentKey);
                 Toast.makeText(this, "Imported " + imported.displayName, Toast.LENGTH_SHORT).show();
             } catch (Throwable error) {
                 String message = error.getMessage();

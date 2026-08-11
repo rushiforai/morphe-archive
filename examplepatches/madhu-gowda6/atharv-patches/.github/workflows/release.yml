@@ -1,0 +1,95 @@
+name: Build and release patches
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: read
+
+concurrency:
+  group: patch-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build and release
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GPR_USER: ${{ secrets.GPR_USER }}
+      GPR_KEY: ${{ secrets.GPR_KEY }}
+
+    steps:
+      - name: Check out full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK components
+        shell: bash
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Configure Gradle Package Registry credentials
+        shell: bash
+        run: |
+          mkdir -p "$HOME/.gradle"
+          if [[ -n "$GPR_USER" ]]; then
+            printf 'gpr.user=%s\n' "$GPR_USER" >> "$HOME/.gradle/gradle.properties"
+          else
+            printf 'gpr.user=%s\n' "$GITHUB_ACTOR" >> "$HOME/.gradle/gradle.properties"
+          fi
+          if [[ -n "$GPR_KEY" ]]; then
+            printf 'gpr.key=%s\n' "$GPR_KEY" >> "$HOME/.gradle/gradle.properties"
+          else
+            printf 'gpr.key=%s\n' "$GITHUB_TOKEN" >> "$HOME/.gradle/gradle.properties"
+          fi
+
+      - name: Ensure the prerelease branch exists
+        shell: bash
+        run: |
+          git fetch origin dev || git push origin HEAD:refs/heads/dev
+
+      - name: Configure release git identity
+        run: |
+          git config user.email "semantic-release-bot@users.noreply.github.com"
+          git config user.name "semantic-release-bot"
+
+      - name: Build MPP and patch metadata
+        run: ./gradlew --no-daemon :patches:buildAndroid :patches:generatePatchesList
+
+      - name: Upload MPP build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: patches-${{ github.sha }}
+          path: patches/build/libs/*.mpp
+          if-no-files-found: error
+
+      - name: Install release tooling
+        run: npm install --no-audit --no-fund
+
+      - name: Run semantic-release
+        run: npx semantic-release

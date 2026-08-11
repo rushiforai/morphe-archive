@@ -10,30 +10,16 @@ import app.morphe.patcher.patch.loadPatchesFromJar
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
 import java.io.File
-import java.net.URLClassLoader
-import java.util.jar.Manifest
 
-fun main() {
-    val patchFiles = setOf(
-        File("build/libs/").listFiles { file ->
-            val fileName = file.name
-            !fileName.contains("javadoc") &&
-                    !fileName.contains("sources") &&
-                    fileName.endsWith(".mpp")
-        }!!.first()
-    )
+fun main(args: Array<String>) {
+    require(args.size == 1) { "Expected the current project version" }
+    val version = args.single()
+    val patchFile = File("build/libs/patches-$version.mpp")
+    require(patchFile.isFile) { "Current patch bundle does not exist: $patchFile" }
+
+    val patchFiles = setOf(patchFile)
     val loadedPatches = loadPatchesFromJar(patchFiles)
-    val patchClassLoader = URLClassLoader(patchFiles.map { it.toURI().toURL() }.toTypedArray())
-    val manifest = patchClassLoader.getResources("META-INF/MANIFEST.MF")
-
-    while (manifest.hasMoreElements()) {
-        Manifest(manifest.nextElement().openStream())
-            .mainAttributes
-            .getValue("Version")
-            ?.let {
-                generatePatchList(it, loadedPatches)
-            }
-    }
+    generatePatchList(version, loadedPatches)
 }
 
 @Suppress("DEPRECATION")
@@ -98,7 +84,7 @@ private fun generatePatchList(version: String, patches: Set<Patch<*>>) {
     jsonObject.addProperty("version", version)
     jsonObject.add("patches", gson.toJsonTree(patchesMap))
 
-    listJson.writeText(gson.toJson(jsonObject))
+    listJson.writeText(gson.toJson(jsonObject) + "\n")
 }
 
 /** JSON representation of a patch entry in patches-list.json. */

@@ -2,6 +2,10 @@ package io.github.liongalahad.nuviotv.patches.subtitles.sdh
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.methodCall
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val CUE_GROUP = "Landroidx/media3/common/text/CueGroup;"
 private const val TEXT_OUTPUT = "Landroidx/media3/exoplayer/text/TextOutput;"
@@ -38,4 +42,37 @@ internal object LegacyCueOutputFingerprint : Fingerprint(
             returnType = "V"
         )
     )
+)
+
+/** 0.8.3's direct sidecar renderer, which bypasses Media3 TextOutput callbacks. */
+internal object SidecarCueRenderFingerprint : Fingerprint(
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf("Ljava/lang/Object;"),
+    custom = { method, classDef ->
+        val instructions = method.implementation?.instructions ?: emptyList()
+        val calls = instructions.mapNotNull { instruction ->
+            (instruction as? ReferenceInstruction)?.reference as? MethodReference
+        }
+        method.name == "invoke" &&
+            "Lkotlin/jvm/functions/Function1;" in classDef.interfaces &&
+            classDef.fields.map { it.type }.sorted() == listOf(
+                "I", "Ljava/lang/String;", "Ljava/util/List;"
+            ).sorted() &&
+            instructions.any { instruction ->
+                (instruction as? WideLiteralInstruction)?.wideLiteral == 0x7f0a00d8L
+            } &&
+            calls.any { reference ->
+                reference.definingClass == "Landroid/view/View;" &&
+                    reference.name == "getTag" &&
+                    reference.parameterTypes.map(CharSequence::toString) == listOf("I") &&
+                    reference.returnType == "Ljava/lang/Object;"
+            } &&
+            calls.any { reference ->
+                reference.definingClass == "Landroidx/media3/ui/SubtitleView;" &&
+                    reference.name == "setCues" &&
+                    reference.parameterTypes.map(CharSequence::toString) ==
+                    listOf("Ljava/util/List;") &&
+                    reference.returnType == "V"
+            }
+    }
 )

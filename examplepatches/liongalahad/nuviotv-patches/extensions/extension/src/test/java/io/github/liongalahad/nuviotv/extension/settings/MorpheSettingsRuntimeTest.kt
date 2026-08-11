@@ -43,6 +43,12 @@ class MorpheSettingsRuntimeTest {
     }
 
     @Test
+    fun `category list leaves native medium spacing arrangement explicit`() {
+        assertEquals(494, MorpheSettingsRows.categoryListDefaultMaskForTesting())
+        assertEquals(0, MorpheSettingsRows.categoryListDefaultMaskForTesting() and 16)
+    }
+
+    @Test
     fun `three modes commit synchronously and expose exact labels`() {
         assertEquals("Off", MorpheSettingsRuntime.sdhModeTitle(0))
         assertEquals("Remove SDH, keep lyrics", MorpheSettingsRuntime.sdhModeTitle(1))

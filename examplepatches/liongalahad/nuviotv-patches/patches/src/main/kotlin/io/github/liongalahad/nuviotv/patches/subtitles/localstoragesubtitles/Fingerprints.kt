@@ -126,6 +126,22 @@ internal object SelectAddonSubtitleFingerprint : Fingerprint(
     }
 )
 
+/** Applies Nuvio's subtitle-disabled state to the active playback engine. */
+internal object DisableSubtitlesFingerprint : Fingerprint(
+    returnType = "V",
+    strings = listOf("disable-subtitles"),
+    custom = { method, _ -> method.parameterTypes.size == 1 }
+)
+
+/** Applies an embedded subtitle track to the active playback engine. */
+internal object SelectInternalSubtitleFingerprint : Fingerprint(
+    returnType = "V",
+    strings = listOf("select-subtitle-track", "Selecting INTERNAL subtitle trackIndex="),
+    custom = { method, _ ->
+        method.parameterNames().let { it.size == 2 && it[1] == "I" }
+    }
+)
+
 /** Restores saved audio/subtitle track preferences after Media3 track updates. */
 internal object RestoreTrackPreferencesFingerprint : Fingerprint(
     returnType = "V",
@@ -158,4 +174,31 @@ internal object SubtitleConfigurationFingerprint : Fingerprint(
         methodCall(definingClass = SUBTITLE, name = "getLang", returnType = "Ljava/lang/String;"),
         methodCall(definingClass = SUBTITLE, name = "getUrl", returnType = "Ljava/lang/String;")
     )
+)
+
+/** Downloads sidecar subtitle text; local imports are supplied before its HTTP-only path. */
+internal object SubtitleTextDownloaderFingerprint : Fingerprint(
+    returnType = "Ljava/lang/String;",
+    strings = listOf(
+        "User-Agent",
+        "text/plain, text/vtt, application/x-subrip, */*"
+    ),
+    filters = listOf(
+        methodCall(
+            definingClass = "Lokhttp3/Request\$Builder;",
+            name = "url",
+            parameters = listOf("Ljava/lang/String;"),
+            returnType = "Lokhttp3/Request\$Builder;"
+        ),
+        methodCall(
+            definingClass = "Lokhttp3/ResponseBody;",
+            name = "string",
+            returnType = "Ljava/lang/String;"
+        )
+    ),
+    custom = { method, _ ->
+        method.parameterNames().let {
+            it.size == 2 && it[1] == "Ljava/lang/String;"
+        }
+    }
 )

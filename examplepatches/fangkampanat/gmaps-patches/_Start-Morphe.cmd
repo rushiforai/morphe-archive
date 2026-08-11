@@ -35,6 +35,13 @@ if errorlevel 1 (
     exit /b 1
 )
 
+set "MORPHE_LOCALE_JAVA_OPTIONS=-Duser.language=en -Duser.country=US"
+if defined JAVA_TOOL_OPTIONS (
+    set "JAVA_TOOL_OPTIONS=%JAVA_TOOL_OPTIONS% %MORPHE_LOCALE_JAVA_OPTIONS%"
+) else (
+    set "JAVA_TOOL_OPTIONS=%MORPHE_LOCALE_JAVA_OPTIONS%"
+)
+
 for %%F in ("%MORPHE_JAR%") do echo Starting %%~nxF with the en-US Java locale
 start "" javaw.exe -Duser.language=en -Duser.country=US -jar "%MORPHE_JAR%"
 

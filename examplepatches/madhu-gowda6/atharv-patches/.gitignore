@@ -1,0 +1,17 @@
+build/
+.gradle/
+.kotlin/
+.idea/
+*.iml
+local.properties
+
+# Eclipse/IDE files
+.project
+.settings/
+.classpath
+bin/
+a.out
+
+# Node
+node_modules/
+package-lock.json

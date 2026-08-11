@@ -55,11 +55,11 @@ val sdhmarkingPatch = bytecodePatch(
     execute {
         listOf(
             TrackInfoConstructorFingerprint,
-            SubtitleOptionBuilderFingerprint,
-            SubtitleOptionContentFingerprint
+            SubtitleOptionBuilderFingerprint
         ).forEach {
             it.matchAll(1..1)
         }
+        val subtitleOptionContentMatches = SubtitleOptionContentFingerprint.matchAll(2..2)
 
         // Display-only name transformation for embedded Media3 and MPV track models.
         TrackInfoConstructorFingerprint.method.addInstructions(
@@ -106,40 +106,42 @@ val sdhmarkingPatch = bytecodePatch(
 
         // Each visible option content scope observes the refresh epoch. Its remembered
         // model and ID stay untouched, so focus and scroll position do not move.
-        SubtitleOptionContentFingerprint.method.apply {
-            val instructions = implementation!!.instructions
-            val optionFieldGroups = instructions.withIndex().mapNotNull { (index, instruction) ->
-                val reference = (instruction as? ReferenceInstruction)?.reference as? FieldReference
-                    ?: return@mapNotNull null
-                if (instruction.opcode != Opcode.IGET_OBJECT && instruction.opcode != Opcode.IGET_BOOLEAN) {
-                    return@mapNotNull null
+        subtitleOptionContentMatches.forEach { match ->
+            match.method.apply {
+                val instructions = implementation!!.instructions
+                val optionFieldGroups = instructions.withIndex().mapNotNull { (index, instruction) ->
+                    val reference = (instruction as? ReferenceInstruction)?.reference as? FieldReference
+                        ?: return@mapNotNull null
+                    if (instruction.opcode != Opcode.IGET_OBJECT && instruction.opcode != Opcode.IGET_BOOLEAN) {
+                        return@mapNotNull null
+                    }
+                    Triple(index, instruction, reference)
+                }.distinctBy { "${it.third.definingClass}->${it.third.name}:${it.third.type}" }
+                    .groupBy { it.third.definingClass }
+                val optionFields = optionFieldGroups.values.single { fields ->
+                    fields.map { it.third.type } == listOf(
+                        "Z", "Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/String;"
+                    )
                 }
-                Triple(index, instruction, reference)
-            }.distinctBy { "${it.third.definingClass}->${it.third.name}:${it.third.type}" }
-                .groupBy { it.third.definingClass }
-            val optionFields = optionFieldGroups.values.single { fields ->
-                fields.map { it.third.type } == listOf(
-                    "Ljava/lang/String;", "Z", "Ljava/lang/String;", "Ljava/lang/String;"
+                val titleAccess = optionFields[2]
+                val titleRegister = (titleAccess.second as? TwoRegisterInstruction)?.registerA
+                    ?: error("Subtitle option title field no longer has an object destination")
+                check(titleRegister <= 15) {
+                    "Subtitle option title register cannot be encoded safely: v$titleRegister"
+                }
+
+                addInstructions(
+                    titleAccess.first + 1,
+                    """
+                        invoke-static { v$titleRegister }, $MARKER->markCurrentOptionTitle(Ljava/lang/String;)Ljava/lang/String;
+                        move-result-object v$titleRegister
+                    """
+                )
+                addInstructions(
+                    0,
+                    "invoke-static/range { p0 .. p0 }, $MARKER->beginOptionRendering(Ljava/lang/Object;)V"
                 )
             }
-            val titleAccess = optionFields[2]
-            val titleRegister = (titleAccess.second as? TwoRegisterInstruction)?.registerA
-                ?: error("Subtitle option title field no longer has an object destination")
-            check(titleRegister <= 15) {
-                "Subtitle option title register cannot be encoded safely: v$titleRegister"
-            }
-
-            addInstructions(
-                titleAccess.first + 1,
-                """
-                    invoke-static { v$titleRegister }, $MARKER->markCurrentOptionTitle(Ljava/lang/String;)Ljava/lang/String;
-                    move-result-object v$titleRegister
-                """
-            )
-            addInstructions(
-                0,
-                "invoke-static/range { p0 .. p0 }, $MARKER->beginOptionRendering(Ljava/lang/Object;)V"
-            )
         }
     }
 }

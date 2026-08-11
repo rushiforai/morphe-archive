@@ -9,15 +9,15 @@ This repository does not distribute Google Maps APKs, whether original or patche
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.9](https://github.com/fangkampanat/gmaps-patches/releases/tag/v1.0.9)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patch total
+> **[v1.0.10](https://github.com/fangkampanat/gmaps-patches/releases/tag/v1.0.10)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patch total
 <details open>
 <summary>📦 Google Maps&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 26.26.04.935742811 | 26.27.05.941319029 | 26.28.03.942936911 | 26.29.02.946673643 | 26.30.09.950492155 |
-| :---: | :---: | :---: | :---: | :---: |
+| 26.26.04.935742811 | 26.27.05.941319029 | 26.28.03.942936911 | 26.29.02.946673643 | 26.30.09.950492155 | 26.32.06.958047303 |
+| :---: | :---: | :---: | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|

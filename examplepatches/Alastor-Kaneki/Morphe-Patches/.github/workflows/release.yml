@@ -56,13 +56,13 @@ jobs:
       - name: Test Chrome page runtime and Material UI
         run: bash tools/test-chrome-runtime-bridge.sh
 
-      - name: Generate patches list
+      - name: Validate patches list generation
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gradle wrapper --gradle-version 9.6.1
-          ./gradlew generatePatchesList
+          ./gradlew generatePatchesList --stacktrace --no-daemon
 
       - name: Release
         uses: cycjimmy/semantic-release-action@v6

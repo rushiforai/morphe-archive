@@ -56,7 +56,11 @@ val removeSdhAnnotationsPatch = bytecodePatch(
     extendWith("extensions/nuviotv.mpe")
 
     execute {
-        listOf(CueGroupOutputFingerprint, LegacyCueOutputFingerprint).forEach {
+        listOf(
+            CueGroupOutputFingerprint,
+            LegacyCueOutputFingerprint,
+            SidecarCueRenderFingerprint
+        ).forEach {
             it.matchAll(1..1)
         }
 
@@ -132,5 +136,36 @@ val removeSdhAnnotationsPatch = bytecodePatch(
             )
         }
         LegacyCueOutputFingerprint.method.hook("Ljava/util/List;", "Ljava/util/List;")
+
+        SidecarCueRenderFingerprint.method.apply {
+            val instructions = implementation!!.instructions
+            val setCuesIndex = instructions.withIndex().single { (_, instruction) ->
+                val reference = (instruction as? ReferenceInstruction)?.reference
+                    as? com.android.tools.smali.dexlib2.iface.reference.MethodReference
+                    ?: return@single false
+                reference.definingClass == "Landroidx/media3/ui/SubtitleView;" &&
+                    reference.name == "setCues" &&
+                    reference.parameterTypes.map(CharSequence::toString) ==
+                        listOf("Ljava/util/List;")
+            }.index
+            val sidecarListRead = instructions.take(setCuesIndex).withIndex().last { (_, instruction) ->
+                if (instruction.opcode != Opcode.IGET_OBJECT) return@last false
+                val reference = (instruction as? ReferenceInstruction)?.reference as? FieldReference
+                    ?: return@last false
+                reference.definingClass == definingClass && reference.type == "Ljava/util/List;"
+            }
+            val listRegister = (sidecarListRead.value as? TwoRegisterInstruction)?.registerA
+                ?: error("Sidecar cue-list read has no object destination")
+            check(listRegister <= 15) {
+                "Sidecar cue-list register cannot be encoded safely: v$listRegister"
+            }
+            addInstructions(
+                sidecarListRead.index + 1,
+                """
+                    invoke-static { v$listRegister }, $CUE_TRANSFORMER->clean(Ljava/util/List;)Ljava/util/List;
+                    move-result-object v$listRegister
+                """
+            )
+        }
     }
 }

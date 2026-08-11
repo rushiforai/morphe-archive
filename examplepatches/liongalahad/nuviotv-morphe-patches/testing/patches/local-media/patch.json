@@ -1,0 +1,87 @@
+{
+  "$schema": "../patch.schema.json",
+  "id": "local-media",
+  "name": "Local Media",
+  "category": "playback",
+  "target": {
+    "application": "NuvioTV",
+    "package": "com.nuvio.tv",
+    "versions": ["0.8.3-beta"],
+    "launchComponent": "com.nuvio.tv/.MainActivity"
+  },
+  "assets": {
+    "universal": {
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.3-beta/app-full-universal-release.apk",
+      "sha256": "e4e2a6bb529c7f3b8a4670c9fb0a8376e919a5791d29b68e97e6e21b59f73125"
+    },
+    "x86_64": {
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.3-beta/app-full-x86_64-release.apk",
+      "sha256": "1c3b4cc5147c6963f70e75524622cc06195aafe6854ecf00ea96ec58551571d3"
+    },
+    "arm64-v8a": {
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.3-beta/app-full-arm64-v8a-release.apk",
+      "sha256": "474a45cacfb14d251240cc27f57fda30dce9eddf2aa6a198b3481365a2942785"
+    },
+    "armeabi-v7a": {
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.3-beta/app-full-armeabi-v7a-release.apk",
+      "sha256": "12380caf445d2e32285d184aa2a7600f8f2558af3ac96d7dda8c3f1987f47830"
+    }
+  },
+  "dependencies": ["settings-hub"],
+  "emulators": {"phone": "Pixel_10", "tv": "Television_4K"},
+  "fingerprints": [
+    "LibraryViewModeRowFingerprint",
+    "LibraryViewModeLabelFingerprint",
+    "LibraryGridContentFingerprint",
+    "LibrarySourceLabelFingerprint",
+    "CloudSearchLabelFingerprint",
+    "NuvioNavHostFingerprint",
+    "PlayerMediaSourceFactoryFingerprint",
+    "FullscreenPlaybackStateListenerFingerprint"
+  ],
+  "inspection": {
+    "provider": "io.github.liongalahad.nuviotv.extension.settings.MorpheInitProvider",
+    "metadata": "io.github.liongalahad.nuviotv.settings.provider.local_media",
+    "classes": [
+      "io.github.liongalahad.nuviotv.extension.playback.localmedia.Extension",
+      "io.github.liongalahad.nuviotv.extension.playback.localmedia.LocalMediaRuntime",
+      "io.github.liongalahad.nuviotv.extension.playback.localmedia.LocalMediaLibraryUi",
+      "io.github.liongalahad.nuviotv.extension.playback.localmedia.LocalMediaFolderPickerActivity",
+      "io.github.liongalahad.nuviotv.extension.playback.localmedia.LocalMediaDefaultFolderAccessActivity",
+      "io.github.liongalahad.nuviotv.extension.playback.localmedia.LocalMediaInternalFolderPickerActivity",
+      "io.github.liongalahad.nuviotv.extension.playback.localmedia.LocalMediaSettingsCategory",
+      "io.github.liongalahad.nuviotv.extension.playback.localmedia.LocalMediaSettingsContent",
+      "io.github.liongalahad.nuviotv.extension.playback.localmedia.LocalMediaToggleAction",
+      "io.github.liongalahad.nuviotv.extension.playback.localmedia.LocalMediaFolderAction"
+    ],
+    "needles": [
+      "MORPHE_STORAGE",
+      "Movies/Nuvio",
+      "Show local storage in Library",
+      "Search storage library",
+      "Refresh storage library"
+    ],
+    "forbiddenNeedles": []
+  },
+  "focusedTests": [
+    "LocalMediaRuntimeTest and LocalMediaFolderPickerActivityTest",
+    "isolated application on all declared APK assets",
+    "combined application with every current optional patch",
+    "TV AVD playback of H.264 MKV with matching same-basename SRT"
+  ],
+  "acceptance": [
+    "Settings > Morphe > Playback > Local Storage contains only the visibility toggle and one actionable folder-location picker row",
+    "Show local storage in Library defaults off, requests durable default-folder access when enabled, creates Movies/Nuvio after the grant, updates immediately and persists after force-stop and reboot",
+    "Library exposes Storage as a peer of Saved and Cloud without changing either native mode",
+    "Storage remains inside Nuvio's native Library screen and uses the same search, card, focus and file-picker visuals as Cloud",
+    "Storage shows STORAGE rather than NUVIO in the source badge",
+    "The Storage library lists direct files plus first-level folder cards with recursive playable-file counts and never lists subtitle files as videos",
+    "A same-basename SRT, VTT, ASS, SSA, TTML or DFXP file is attached as a selectable Media3 subtitle track",
+    "Selecting a video opens Nuvio's existing internal player with the content URI and filename intact",
+    "Local playback completion and Back restore the existing Storage selection view without attempting catalogue metadata lookup",
+    "H.264 MKV video and audio play, seek and return normally from Movies/Nuvio",
+    "Changing the folder updates the in-place Storage library immediately and survives an app restart",
+    "Saved, Cloud, streaming playback and the separate Local Storage subtitle importer remain unchanged",
+    "No crash, ANR, VerifyError or fatal log occurs during folder selection, scan, playback, seeking, subtitle selection or exit"
+  ]
+}

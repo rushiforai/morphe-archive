@@ -18,9 +18,6 @@ import com.p1.mobile.putong.data.*
  *  8. Live Streaming             - Live entry animation, push limit bypass, swipe card unlimited
  *  9. Privacy Enhancement        - Root/emulator detection bypass, ShuMeng SDK blocking, package enumeration prevention
  * 10. Ad Removal                 - Navigation bar ads, native feed ads, live streaming ads, live square ads
- * 11. AB Test Override           - Override A/B test group assignments to force default behavior
- * 12. Remote Config Override     - Override remote configuration values to control feature flags
- * 13. Search Discovery           - Expand liked-user filter radius/age limits
  */
 object PatchRegistry {
     val allPatches: Set<Patch<*>> = setOf(
@@ -34,8 +31,5 @@ object PatchRegistry {
         liveStreamingPatch,
         privacyEnhancementPatch,
         adRemovalPatch,
-        abTestOverridePatch,
-        remoteConfigOverridePatch,
-        searchDiscoveryPatch,
     )
 }
