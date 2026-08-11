@@ -1073,6 +1073,54 @@
                 "sortOrder": 132,
                 "createdAt": 1786263569841,
                 "updatedAt": 1786263569841
+            },
+            {
+                "name": "Morphe-Portal-Patches-New",
+                "source": "https://raw.githubusercontent.com/BlazeFTL/Morphe-Portal-Patches-New/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 133,
+                "createdAt": 1786412608663,
+                "updatedAt": 1786412608663
+            },
+            {
+                "name": "patch",
+                "source": "https://raw.githubusercontent.com/Nagol12344/patch/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 134,
+                "createdAt": 1786412608994,
+                "updatedAt": 1786412608994
+            },
+            {
+                "name": "tiaruebar-patches-vip-fix",
+                "source": "https://raw.githubusercontent.com/electiveDev/tiaruebar-patches-vip-fix/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 135,
+                "createdAt": 1786412609640,
+                "updatedAt": 1786412609640
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/heval99/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 136,
+                "createdAt": 1786412609798,
+                "updatedAt": 1786412609798
+            },
+            {
+                "name": "atharv-patches",
+                "source": "https://raw.githubusercontent.com/madhu-gowda6/atharv-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 137,
+                "createdAt": 1786412610032,
+                "updatedAt": 1786412610032
+            },
+            {
+                "name": "google-clock-morphe-patches",
+                "source": "https://raw.githubusercontent.com/tadikwa/google-clock-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 138,
+                "createdAt": 1786412610180,
+                "updatedAt": 1786412610180
             }
         ]
     }

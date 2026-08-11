@@ -5,6 +5,7 @@ Almewty/my-morphe-patches
 AmpleReVanced/revanced-patches
 BholeyKaBhakt/android-patches-xtra
 BlazeFTL/FTL-Patches
+BlazeFTL/Morphe-Portal-Patches-New
 Entree3k/Morning-Entree-Patches
 GoldRift/morphe-patches
 Graywizard888/Enhancify
@@ -28,6 +29,7 @@ MarcaDian/morphe-patches-yavot
 MiguelNinja19/miguel-morphe-patches
 MoonShadowKeeper/Telegram-patchesMorphe
 MorpheApp/morphe-patches
+Nagol12344/patch
 Nai64/Nai64Patches
 NekoGryphou/gryphous-morphe-patches
 Pa-kon/morphe-screenshot-patches
@@ -91,6 +93,7 @@ drosoCode/morphe-patches
 dumb-software/T2C-App-Patch-Morphe
 durgesh0505/chiggi_morphe_patches
 eZ4RK0/morphe-patches
+electiveDev/tiaruebar-patches-vip-fix
 ethanm6/letterboxd-stremio-morphe-patch
 eyalm2000/tidal-debug-menu
 fangkampanat/gmaps-patches
@@ -102,6 +105,7 @@ gitlab.com/inotia00/proguard-patches
 gitlab.com/inotia00/x-shim
 hackingguy/morphe-patches
 heinrich26/morphe-patches
+heval99/morphe-patches
 hoo-dles/jadx-morphe
 hoo-dles/morphe-patches
 hu-liberator/patches
@@ -124,6 +128,7 @@ liongalahad/nuviotv-patches
 logm1lo/logm1lo-patches
 loskutov/youtube-domain-fronting-patch
 lyyako/realme-link-patches
+madhu-gowda6/atharv-patches
 meridianfresco/morphe-meta-patches
 mxkrgt/dbtcoach-morphe-patches
 nosini/disable-shorts-repeat
@@ -140,6 +145,7 @@ shaun-the-sheep-patches/morphe-patches
 sjshb57/Pairip-Patches
 skulldogged/cobalt-morphe
 spookyexe/morphe-patches
+tadikwa/google-clock-morphe-patches
 tiaruebar1024/tiaruebar-patches
 totsiaw/proxma-patches
 variablenine/morphe-patches
