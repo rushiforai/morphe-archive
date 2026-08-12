@@ -2,10 +2,8 @@ package app.cesbar.patches.velov
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.util.indexOfFirstInstruction
-import app.morphe.util.indexOfFirstInstructionReversed
 import app.morphe.util.returnEarly
 import com.android.tools.smali.dexlib2.Opcode
 
@@ -20,9 +18,9 @@ object isTrackingDialogSeenFingerprint : Fingerprint(
     returnType = "Z"
 )
 
-object onCreateAppFingerprint : Fingerprint(
-    definingClass = "Lcom/jcdecaux/vls/VLSApplication;",
-    name = "onCreate"
+object matomoInitFingerprint : Fingerprint(
+    strings = listOf("tracker.optout"),
+    name = "<init>"
 )
 
 val blockDataCollectionPatch = bytecodePatch(
@@ -56,7 +54,17 @@ val blockDataCollectionPatch = bytecodePatch(
             """
         )
 
-        val initMatomoIndex = onCreateAppFingerprint.method.indexOfFirstInstructionReversed(Opcode.INVOKE_DIRECT)
-        onCreateAppFingerprint.method.removeInstruction(initMatomoIndex)
+        val optoutStringIndex = matomoInitFingerprint.method.indexOfFirstInstruction(Opcode.CONST_STRING)
+        matomoInitFingerprint.method.addInstructions(
+            optoutStringIndex + 1,
+            """
+                invoke-interface {v1}, Landroid/content/SharedPreferences;->edit()Landroid/content/SharedPreferences${'$'}Editor;
+                move-result-object v4
+                const/4 v3, 0x1
+                invoke-interface {v4, v2, v3}, Landroid/content/SharedPreferences${'$'}Editor;->putBoolean(Ljava/lang/String;Z)Landroid/content/SharedPreferences${'$'}Editor;
+                move-result-object v4
+                invoke-interface {v4}, Landroid/content/SharedPreferences${'$'}Editor;->apply()V
+            """
+        )
     }
 }

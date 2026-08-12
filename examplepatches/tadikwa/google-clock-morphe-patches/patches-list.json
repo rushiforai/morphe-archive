@@ -1,5 +1,5 @@
 {
-  "version": "2.1.0",
+  "version": "2.5.0",
   "patches": [
     {
       "name": "Use Morphe YouTube Music for alarms",
@@ -71,6 +71,44 @@
               "version": "9.15.51",
               "isExperimental": true,
               "description": "Experimental upstream MediaBrowser compatibility port for Morphe-patched YT Music 9.15.51."
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Google Clock MediaBrowser full bridge",
+      "description": "Full Google Clock/YT Music MediaBrowser chain: root/entitlement/consent fixes, upstream package identity/certificate compatibility, loadChildren capability and client allow-list bypasses, plus the cached browse-error fast-path bypass that was still returning empty children and the Music Premium PlaybackState ERROR(7).",
+      "default": true,
+      "compatiblePackages": [
+        {
+          "packageName": "app.morphe.android.apps.youtube.music",
+          "name": "YT Music Morphe",
+          "targets": [
+            {
+              "version": "9.15.51",
+              "isExperimental": true,
+              "description": "For Morphe-patched YT Music 9.15.51."
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Google Clock MediaBrowser error stack diagnostic",
+      "description": "Temporary diagnostic that dumps the call stack from both known YT Music MediaBrowser error publishers (Llin.e and Lkzf.f). Depends on the full bridge.",
+      "default": false,
+      "compatiblePackages": [
+        {
+          "packageName": "app.morphe.android.apps.youtube.music",
+          "name": "YT Music Morphe",
+          "targets": [
+            {
+              "version": "9.15.51",
+              "isExperimental": true,
+              "description": "Temporary diagnostic for Morphe-patched YT Music 9.15.51."
             }
           ]
         }

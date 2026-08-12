@@ -1,24 +1,25 @@
 package app.cesbar.patches.velov
 
-import app.morphe.patcher.patch.resourcePatch
-import app.morphe.util.findElementByAttributeValueOrThrow
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.util.returnEarly
+import com.android.tools.smali.dexlib2.AccessFlags
+
+object checkHowToSeenFingerprint : Fingerprint(
+    definingClass = "Lcom/jcdecaux/vls/app/navigation/NavigationFragment;",
+    parameters = listOf(),
+    returnType = "Z",
+    accessFlags = listOf(AccessFlags.PUBLIC)
+)
 
 @Suppress("unused")
-val hideOnboardingPatch = resourcePatch(
+val hideOnboardingPatch = bytecodePatch(
     name = "Hide onboarding screen",
     description = "Hide the onboarding \"Plan you journey\" screen"
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {
-        document("AndroidManifest.xml").use { document ->
-
-            val activityNode = document.childNodes.findElementByAttributeValueOrThrow(
-                "android:name",
-                "com.jcdecaux.vls.app.howto.HowToActivity"
-            )
-
-            activityNode.setAttribute("android:enabled", "false")
-        }
+        checkHowToSeenFingerprint.method.returnEarly(true)
     }
 }

@@ -293,6 +293,216 @@ val dialogCleanupPatch = bytecodePatch(
                         const/4 v0, 0x0
                         return v0
                         :not_blocked25
+                        const-string v0, "p_intl_boost_iap_view"
+                        invoke-virtual {p1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                        move-result v0
+                        if-eqz v0, :not_blocked26
+                        const/4 v0, 0x0
+                        return v0
+                        :not_blocked26
+                        const-string v0, "p_intl_super_like_iap_view"
+                        invoke-virtual {p1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                        move-result v0
+                        if-eqz v0, :not_blocked27
+                        const/4 v0, 0x0
+                        return v0
+                        :not_blocked27
+                        const-string v0, "p_intl_compliment_iap_view"
+                        invoke-virtual {p1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                        move-result v0
+                        if-eqz v0, :not_blocked28
+                        const/4 v0, 0x0
+                        return v0
+                        :not_blocked28
+                        const-string v0, "p_intl_instantmatch_iap_view"
+                        invoke-virtual {p1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                        move-result v0
+                        if-eqz v0, :not_blocked29
+                        const/4 v0, 0x0
+                        return v0
+                        :not_blocked29
+                        const-string v0, "p_intl_compliment_success_popup"
+                        invoke-virtual {p1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                        move-result v0
+                        if-eqz v0, :not_blocked30
+                        const/4 v0, 0x0
+                        return v0
+                        :not_blocked30
+                        const-string v0, "p_intl_ilike_im_popup"
+                        invoke-virtual {p1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                        move-result v0
+                        if-eqz v0, :not_blocked31
+                        const/4 v0, 0x0
+                        return v0
+                        :not_blocked31
+                        const-string v0, "p_intl_ilike_im_overheat_popup"
+                        invoke-virtual {p1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                        move-result v0
+                        if-eqz v0, :not_blocked32
+                        const/4 v0, 0x0
+                        return v0
+                        :not_blocked32
+                        const-string v0, "p_intl_instantmatch_no_ultra_view"
+                        invoke-virtual {p1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                        move-result v0
+                        if-eqz v0, :not_blocked33
+                        const/4 v0, 0x0
+                        return v0
+                        :not_blocked33
+                        const-string v0, "p_intl_horoscope_match_popup"
+                        invoke-virtual {p1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                        move-result v0
+                        if-eqz v0, :not_blocked34
+                        const/4 v0, 0x0
+                        return v0
+                        :not_blocked34
+                        const-string v0, "p_intl_horoscope_match_self_card"
+                        invoke-virtual {p1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                        move-result v0
+                        if-eqz v0, :not_blocked35
+                        const/4 v0, 0x0
+                        return v0
+                        :not_blocked35
+                        const-string v0, "p_intl_horoscope_match_others_card"
+                        invoke-virtual {p1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                        move-result v0
+                        if-eqz v0, :not_blocked36
+                        const/4 v0, 0x0
+                        return v0
+                        :not_blocked36
+                        const-string v0, "p_intl_horoscope_match_pick_cards"
+                        invoke-virtual {p1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                        move-result v0
+                        if-eqz v0, :not_blocked37
+                        const/4 v0, 0x0
+                        return v0
+                        :not_blocked37
+                        const-string v0, "p_intl_popup_relation_goals"
+                        invoke-virtual {p1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                        move-result v0
+                        if-eqz v0, :not_blocked38
+                        const/4 v0, 0x0
+                        return v0
+                        :not_blocked38
+                        const-string v0, "p_intl_must_verify_popup"
+                        invoke-virtual {p1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                        move-result v0
+                        if-eqz v0, :not_blocked39
+                        const/4 v0, 0x0
+                        return v0
+                        :not_blocked39
+                        const-string v0, "p_intl_antispam_alive_popup"
+                        invoke-virtual {p1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                        move-result v0
+                        if-eqz v0, :not_blocked40
+                        const/4 v0, 0x0
+                        return v0
+                        :not_blocked40
+                        const-string v0, "p_intl_mkt_feature_regular_popup"
+                        invoke-virtual {p1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                        move-result v0
+                        if-eqz v0, :not_blocked41
+                        const/4 v0, 0x0
+                        return v0
+                        :not_blocked41
+                        const-string v0, "p_intl_mkt_time_sticker_choose"
+                        invoke-virtual {p1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                        move-result v0
+                        if-eqz v0, :not_blocked42
+                        const/4 v0, 0x0
+                        return v0
+                        :not_blocked42
+                        const-string v0, "p_intl_mkt_catnmouse_full"
+                        invoke-virtual {p1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                        move-result v0
+                        if-eqz v0, :not_blocked43
+                        const/4 v0, 0x0
+                        return v0
+                        :not_blocked43
+                        const-string v0, "p_intl_mkt_twclub_popup"
+                        invoke-virtual {p1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                        move-result v0
+                        if-eqz v0, :not_blocked44
+                        const/4 v0, 0x0
+                        return v0
+                        :not_blocked44
+                        const-string v0, "p_intl_ai_photo_homepopup"
+                        invoke-virtual {p1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                        move-result v0
+                        if-eqz v0, :not_blocked45
+                        const/4 v0, 0x0
+                        return v0
+                        :not_blocked45
+                        const-string v0, "p_intl_ai_photo_self_photo"
+                        invoke-virtual {p1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                        move-result v0
+                        if-eqz v0, :not_blocked46
+                        const/4 v0, 0x0
+                        return v0
+                        :not_blocked46
+                        const-string v0, "p_intl_ai_photo_result"
+                        invoke-virtual {p1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                        move-result v0
+                        if-eqz v0, :not_blocked47
+                        const/4 v0, 0x0
+                        return v0
+                        :not_blocked47
+                        const-string v0, "p_intl_buzz_voice_popup"
+                        invoke-virtual {p1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                        move-result v0
+                        if-eqz v0, :not_blocked48
+                        const/4 v0, 0x0
+                        return v0
+                        :not_blocked48
+                        const-string v0, "p_intl_buzz_video_popup"
+                        invoke-virtual {p1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                        move-result v0
+                        if-eqz v0, :not_blocked49
+                        const/4 v0, 0x0
+                        return v0
+                        :not_blocked49
+                        const-string v0, "p_intl_buzz_memoji_popup"
+                        invoke-virtual {p1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                        move-result v0
+                        if-eqz v0, :not_blocked50
+                        const/4 v0, 0x0
+                        return v0
+                        :not_blocked50
+                        const-string v0, "p_intl_buzz_no_pair_popup"
+                        invoke-virtual {p1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                        move-result v0
+                        if-eqz v0, :not_blocked51
+                        const/4 v0, 0x0
+                        return v0
+                        :not_blocked51
+                        const-string v0, "p_intl_buzz_quit_popup"
+                        invoke-virtual {p1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                        move-result v0
+                        if-eqz v0, :not_blocked52
+                        const/4 v0, 0x0
+                        return v0
+                        :not_blocked52
+                        const-string v0, "p_intl_buzz_superheat_popup"
+                        invoke-virtual {p1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                        move-result v0
+                        if-eqz v0, :not_blocked53
+                        const/4 v0, 0x0
+                        return v0
+                        :not_blocked53
+                        const-string v0, "p_auto_renew_subscriptions_cancel_popup"
+                        invoke-virtual {p1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                        move-result v0
+                        if-eqz v0, :not_blocked54
+                        const/4 v0, 0x0
+                        return v0
+                        :not_blocked54
+                        const-string v0, "p_intl_band_phone_popup"
+                        invoke-virtual {p1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                        move-result v0
+                        if-eqz v0, :not_blocked55
+                        const/4 v0, 0x0
+                        return v0
+                        :not_blocked55
                     """.trimIndent()
                     method.addInstructions(0, blocklistCheck)
                 }

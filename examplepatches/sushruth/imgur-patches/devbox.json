@@ -1,0 +1,31 @@
+{
+  "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.17.5/.schema/devbox.schema.json",
+  "packages": [
+    "jdk21@latest",
+    "jadx@latest",
+    "apktool@latest",
+    "gradle@latest"
+  ],
+  "shell": {
+    "init_hook": [
+      "echo 'Welcome to devbox!' > /dev/null"
+    ],
+    "scripts": {
+      "test": [
+        "echo \"Error: no test specified\" && exit 1"
+      ],
+      "build": [
+        "./gradlew buildAndroid"
+      ],
+      "decode": [
+        "apktool d -f -o work/apktool work/imgur.apk"
+      ],
+      "decompile": [
+        "jadx -d work/jadx work/imgur.apk"
+      ],
+      "patch": [
+        "java -Xms1024m -jar tools/morphe-desktop-1.13.0-all.jar patch --patches patches/build/libs/patches-*.mpp --out \"${2:-work/imgur-patched.apk}\" \"${1:-work/imgur.apk}\""
+      ]
+    }
+  }
+}

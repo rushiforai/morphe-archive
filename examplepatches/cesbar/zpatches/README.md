@@ -4,9 +4,9 @@ A collection of [Morphe](https://github.com/MorpheApp) patches useful to me
 
 ## Patch list
 <!-- PATCHES_START -->
-> **[v1.11.0](https://github.com/cesbar/zpatches/releases/tag/v1.11.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;17 patches total
+> **[v1.12.0](https://github.com/cesbar/zpatches/releases/tag/v1.12.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;18 patches total
 <details open>
-<summary>📦 com.jcdecaux.vls.lyon&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
+<summary>📦 com.jcdecaux.vls.lyon&nbsp;&nbsp;•&nbsp;&nbsp;8 patches</summary>
 <br>
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -18,6 +18,7 @@ A collection of [Morphe](https://github.com/MorpheApp) patches useful to me
 | [Hide onboarding screen](#hide-onboarding-screen) | Hide the onboarding "Plan you journey" screen |  |
 | [No geolocalisation check](#no-geolocalisation-check) | Allows you to unlock a bike even if you're not near the station. |  |
 | [Spoof package signature](#spoof-package-signature) | Spoofs the package signature required for Firebase, fixes notifications |  |
+| [Use multiple devices](#use-multiple-devices) | Fix the login error "Access denied. This account is already in use on another device." by pretending to be the web client |  |
 
 </details>
 

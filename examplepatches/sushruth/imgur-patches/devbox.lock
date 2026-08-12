@@ -1,0 +1,160 @@
+{
+  "lockfile_version": "1",
+  "packages": {
+    "apktool@latest": {
+      "last_modified": "2026-08-01T16:34:20Z",
+      "resolved": "github:NixOS/nixpkgs/a5cbcfe954791221bfffe2307f7d1a1bf61a871e#apktool",
+      "source": "devbox-search",
+      "version": "3.0.3",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/p38qnzbb6x5s9hx68sa6bc9clipqrdfb-apktool-3.0.3",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/p38qnzbb6x5s9hx68sa6bc9clipqrdfb-apktool-3.0.3"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/3gl6z8bh17jmav16y41j2mh3fgr55i1m-apktool-3.0.3",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/3gl6z8bh17jmav16y41j2mh3fgr55i1m-apktool-3.0.3"
+        }
+      }
+    },
+    "github:NixOS/nixpkgs/nixpkgs-unstable": {
+      "last_modified": "2026-08-07T10:21:50Z",
+      "resolved": "github:NixOS/nixpkgs/afb4584a80bbf779ce0f691509ff902d188c2b3d?lastModified=1786098110&narHash=sha256-shi1tjDhCGGd0kIgVPNY03V8NBWSTzhMSFDb7IqSoec%3D"
+    },
+    "gradle@latest": {
+      "last_modified": "2026-08-01T16:34:20Z",
+      "plugin_version": "0.0.1",
+      "resolved": "github:NixOS/nixpkgs/a5cbcfe954791221bfffe2307f7d1a1bf61a871e#gradle",
+      "source": "devbox-search",
+      "version": "8.14.4",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/40ikbxbayb8ai3x555in5mdx4i1l32rb-gradle-8.14.4",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/40ikbxbayb8ai3x555in5mdx4i1l32rb-gradle-8.14.4"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/3z4n1w75frykcz2v6g8ycnp2s8vqw5bf-gradle-8.14.4",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/3z4n1w75frykcz2v6g8ycnp2s8vqw5bf-gradle-8.14.4"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/kwdxjl8kvwya1j2skd7zzyjk3wx1lr2n-gradle-8.14.4",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/kwdxjl8kvwya1j2skd7zzyjk3wx1lr2n-gradle-8.14.4"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/45k2qlh2wqikhf015y8zhy3810xm9gq6-gradle-8.14.4",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/45k2qlh2wqikhf015y8zhy3810xm9gq6-gradle-8.14.4"
+        }
+      }
+    },
+    "jadx@latest": {
+      "last_modified": "2026-08-03T00:04:07Z",
+      "resolved": "github:NixOS/nixpkgs/243895692ae2a2fbd08a05141462c0cc0d3ca10f#jadx",
+      "source": "devbox-search",
+      "version": "1.5.6",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/inba73yvyrc88da0g75d253k4ar6lbvi-jadx-1.5.6",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/inba73yvyrc88da0g75d253k4ar6lbvi-jadx-1.5.6"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/kwv63mablzs0lk1cccfmybgh98bycdkq-jadx-1.5.6",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/kwv63mablzs0lk1cccfmybgh98bycdkq-jadx-1.5.6"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/1yd37v3hwzp7za2a6gf4g36b9x338sb4-jadx-1.5.6",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/1yd37v3hwzp7za2a6gf4g36b9x338sb4-jadx-1.5.6"
+        }
+      }
+    },
+    "jdk21@latest": {
+      "last_modified": "2024-06-12T20:55:33Z",
+      "resolved": "github:NixOS/nixpkgs/a9858885e197f984d92d7fe64e9fff6b2e488d40#jdk",
+      "source": "devbox-search",
+      "version": "21+35",
+      "systems": {
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/f7risq9mlz4gywxr65v46h4mv1a4a0s3-openjdk-21+35",
+              "default": true
+            },
+            {
+              "name": "debug",
+              "path": "/nix/store/lgljxsffciqlijp38iklrh1ki5vi0y4f-openjdk-21+35-debug"
+            }
+          ],
+          "store_path": "/nix/store/f7risq9mlz4gywxr65v46h4mv1a4a0s3-openjdk-21+35"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/bk3x3ia7gxqic1jgr3dz05gwi8zw671y-openjdk-21+35",
+              "default": true
+            },
+            {
+              "name": "debug",
+              "path": "/nix/store/2h6zm6qy04amw9mvir8n5fifn99dzg16-openjdk-21+35-debug"
+            }
+          ],
+          "store_path": "/nix/store/bk3x3ia7gxqic1jgr3dz05gwi8zw671y-openjdk-21+35"
+        }
+      }
+    }
+  }
+}

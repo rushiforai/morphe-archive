@@ -7,6 +7,8 @@ extension {
 }
 
 android {
+    namespace = "app.morphe.extension.sharedyoutube"
+
     buildTypes {
         release {
             // 'libj2v8.so' is already included in the patch.

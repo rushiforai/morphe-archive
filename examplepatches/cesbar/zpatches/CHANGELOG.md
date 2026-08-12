@@ -1,3 +1,14 @@
+## [1.12.0](https://github.com/cesbar/zpatches/compare/v1.11.0...v1.12.0) (2026-08-12)
+
+### 🐛 Bug Fixes
+
+* **velov:** Block data collection : better Matomo optout ([23d844a](https://github.com/cesbar/zpatches/commit/23d844a3bf8d4d07509edd05950b80379ff4f4ca))
+* **velov:** Hide onboarding screen crash app after log out ([7811874](https://github.com/cesbar/zpatches/commit/7811874c4c8cac04837d8bf57d675a7c8f2c81d7))
+
+### ✨ New Features
+
+* **velov:** Use multiple devices ([a66323b](https://github.com/cesbar/zpatches/commit/a66323b5788fef4e76f077337ff05ca067a867af))
+
 ## [1.11.0](https://github.com/cesbar/zpatches/compare/v1.10.0...v1.11.0) (2026-08-10)
 
 ### 🐛 Bug Fixes

@@ -44,7 +44,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Edge-ReVanced](#-edge-revanced-bundle-patch-list) | 8 | 1 | Generated |
 | [Dbhavsar76](#-dbhavsar76-bundle-patch-list) | 1 | 1 | Generated |
 | [ChMate-ReVanced](#-chmate-revanced-bundle-patch-list) | 1 | 1 | Generated |
-| [Simnple](#-simnple-bundle-patch-list) | 14 | 1 | Generated |
+| [Simnple](#-simnple-bundle-patch-list) | 30 | 1 | Generated |
 | [D4NZ](#-d4nz-bundle-patch-list) | 1 | 1 | Generated |
 
 ### Morphe
@@ -120,7 +120,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Docbt](#-docbt-bundle-patch-list) | 6 | 3 | Generated |
 | [PixelPusher247](#-pixelpusher247-bundle-patch-list) | 1 | 1 | Generated |
 | [Rabilrbl](#-rabilrbl-bundle-patch-list) | 2 | 1 | Generated |
-| [Jasonwu1994](#-jasonwu1994-bundle-patch-list) | 24 | 1 | Generated |
+| [Jasonwu1994](#-jasonwu1994-bundle-patch-list) | 25 | 1 | Generated |
 | [RealCyberwash](#-realcyberwash-bundle-patch-list) | 1 | 1 | Generated |
 | [Paresh-Maheshwari](#-paresh-maheshwari-bundle-patch-list) | 60 | 23 | Generated |
 | [Binarymend](#-binarymend-bundle-patch-list) | 11 | 7 | Generated |
@@ -145,7 +145,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Ajstrick81-AndroidTV](#-ajstrick81-androidtv-bundle-patch-list) | 29 | 12 | Generated |
 | [Icysymmetra-TikTok](#-icysymmetra-tiktok-bundle-patch-list) | 29 | 1 | Generated |
 | [AlexNaga](#-alexnaga-bundle-patch-list) | 2 | 1 | Generated |
-| [Rushiranpise](#-rushiranpise-bundle-patch-list) | 284 | 218 | Generated |
+| [Rushiranpise](#-rushiranpise-bundle-patch-list) | 295 | 226 | Generated |
 | [Sjshb57-PairIP](#-sjshb57-pairip-bundle-patch-list) | 4 | 1 | Generated |
 | [RIVanced-Universal](#-rivanced-universal-bundle-patch-list) | 27 | 1 | Generated |
 | [Variablenine](#-variablenine-bundle-patch-list) | 137 | 4 | Generated |
@@ -170,7 +170,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [TikTok-Lite](#-tiktok-lite-bundle-patch-list) | 35 | 2 | Generated |
 | [Niconico-YT](#-niconico-yt-bundle-patch-list) | 1 | 1 | Generated |
 | [Alastor-Kaneki](#-alastor-kaneki-bundle-patch-list) | 1 | 1 | Generated |
-| [NuvioTV](#-nuviotv-bundle-patch-list) | 6 | 1 | Generated |
+| [NuvioTV](#-nuviotv-bundle-patch-list) | 7 | 1 | Generated |
 | [GoldRift](#-goldrift-bundle-patch-list) | 1 | 1 | Generated |
 | [RoundSalmon4](#-roundsalmon4-bundle-patch-list) | 1 | 1 | Generated |
 | [Dexnis](#-dexnis-bundle-patch-list) | 1 | 1 | Generated |
@@ -179,14 +179,15 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Logm1lo](#-logm1lo-bundle-patch-list) | 4 | 2 | Generated |
 | [SpookyEXE](#-spookyexe-bundle-patch-list) | 1 | 1 | Generated |
 | [PetalMaps-AndroidAuto](#-petalmaps-androidauto-bundle-patch-list) | 8 | 1 | Generated |
-| [FTL](#-ftl-bundle-patch-list) | 10 | 2 | Generated |
+| [FTL](#-ftl-bundle-patch-list) | 15 | 4 | Generated |
 | [braiNtropy](#-braintropy-bundle-patch-list) | 1 | 1 | Generated |
 | [Ang3lo](#-ang3lo-bundle-patch-list) | 1 | 1 | Generated |
 | [Heval99](#-heval99-bundle-patch-list) | 1 | 1 | Generated |
 | [Atharv](#-atharv-bundle-patch-list) | 2 | 1 | Generated |
 | [Tiaruebar](#-tiaruebar-bundle-patch-list) | 1 | 1 | Generated |
 | [FTL-Portal](#-ftl-portal-bundle-patch-list) | 3 | 2 | Generated |
-| [Google-Clock](#-google-clock-bundle-patch-list) | 4 | 2 | Generated |
+| [Google-Clock](#-google-clock-bundle-patch-list) | 6 | 2 | Generated |
+| [Imgur](#-imgur-bundle-patch-list) | 1 | 1 | Generated |
 
 ### Legacy
 | Bundle | Patches | Apps | Status |
@@ -3912,94 +3913,94 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Remove 'Sent from' signature``` | ```Removes the 'Sent from Proton Mail mobile' signature from emails.``` | ```ch.protonmail.android``` | ```4.15.0``` |
-| ```Remove free accounts limit``` | ```Removes the limit for maximum free accounts logged in.``` | ```ch.protonmail.android``` | ```4.15.0``` |
-| ```Bypass login``` | ```Allows the use of the app after its discontinuation.``` | ```com.adobe.photoshopmix``` | ```All versions``` |
-| ```Prevent log upload``` | ```Avoid uploading logs when the application crashes.``` | ```com.amazon.mp3``` | ```All versions``` |
-| ```Rename shared permissions``` | ```Rename certain permissions shared across Amazon apps. Applying this patch can fix installation errors, but can also break features in certain apps.``` | ```com.amazon.mp3``` | ```All versions``` |
-| ```Skip ads``` | ```Skip ads between the tracks.``` | ```com.amazon.mp3``` | ```All versions``` |
-| ```Unlimited track skipping``` | ```Unlocks the ability to skip tracks without restriction.``` | ```com.amazon.mp3``` | ```All versions``` |
-| ```Unlock Unlimited``` | ```Unlock Music Unlimited features.``` | ```com.amazon.mp3``` | ```All versions``` |
-| ```Always allow deep-linking``` | ```Open Amazon links, even if the app is not set to handle Amazon links.``` | ```com.amazon.mShop.android.shopping``` | ```All versions``` |
-| ```Remove play limits``` | ```Disables purchase nagging and playback limits of not purchased tracks.``` | ```com.bandcamp.android``` | ```All versions``` |
-| ```Hide ads``` | ```N/A``` | ```com.cricbuzz.android``` | ```6.24.01``` |
-| ```Skip ads``` | ```Automatically skips ads.``` | ```com.disney.disneyplus``` | ```All versions``` |
-| ```Hide ads``` | ```N/A``` | ```com.drinkplusplus.angulus``` | ```All versions``` |
-| ```Hide 'Sponsored Stories'``` | ```N/A``` | ```com.facebook.katana``` | ```490.0.0.63.82``` |
-| ```Hide story ads``` | ```Hides the ads in the Facebook app stories.``` | ```com.facebook.katana``` | ```All versions``` |
-| ```Disable typing indicator``` | ```Disables the indicator while typing a message.``` | ```com.facebook.orca``` | ```All versions``` |
-| ```Hide Facebook buttons``` | ```Hides buttons and shortcuts that open Facebook.``` | ```com.facebook.orca``` | ```All versions``` |
-| ```Hide inbox ads``` | ```Hides ads in inbox.``` | ```com.facebook.orca``` | ```All versions``` |
-| ```Hide inbox stories and notes tray``` | ```Hides the stories and notes horizontal tray at the top of the inbox.``` | ```com.facebook.orca``` | ```All versions``` |
-| ```Hide inbox subtabs``` | ```Hides Home and Channels tabs between active now tray and chats.``` | ```com.facebook.orca``` | ```All versions``` |
-| ```Open links externally``` | ```Always opens links in your default browser instead of the in-app browser, regardless of the in-app setting.``` | ```com.facebook.orca``` | ```All versions``` |
-| ```Remove Meta AI``` | ```Removes UI elements related to Meta AI.``` | ```com.facebook.orca``` | ```All versions``` |
-| ```Spoof package version``` | ```Sets a very high version code so the Play Store treats the app as already up to date and never offers an update.``` | ```com.facebook.orca``` | ```All versions``` |
-| ```Enable CustomTabs``` | ```Enables CustomTabs to open articles in your default browser.``` | ```com.google.android.apps.magazines``` | ```5.108.0.644447823``` |
-| ```GmsCore support``` | ```Allows the app to work without root by using a different package name when patched using a GmsCore instead of Google Play Services.``` | ```com.google.android.apps.magazines``` | ```5.108.0.644447823``` |
-| ```Enable DCIM folders backup control``` | ```Disables always on backup for the Camera and other DCIM folders, allowing you to control backup for each folder individually. This will make the app default to having no folders backed up.``` | ```com.google.android.apps.photos``` | ```All versions``` |
-| ```Fix selected account persistence``` | ```Prevents Google Photos from clearing the selected account after cold start when using MicroG.``` | ```com.google.android.apps.photos``` | ```All versions``` |
-| ```GmsCore support``` | ```Allows the app to work without root by using a different package name when patched using a GmsCore instead of Google Play Services.``` | ```com.google.android.apps.photos``` | ```All versions``` |
-| ```Spoof features``` | ```Spoofs the device to enable Google Pixel exclusive features, including unlimited storage.``` | ```com.google.android.apps.photos``` | ```All versions``` |
-| ```Remove device restrictions``` | ```Removes restrictions from using the app on any device. Requires mounting patched app over original.``` | ```com.google.android.apps.recorder``` | ```All versions``` |
-| ```Hide ads``` | ```Hides sponsored content / ads in Threads.``` | ```com.instagram.barcelona``` | ```382.0.0.51.85``` |
-| ```Hide ads``` | ```N/A``` | ```com.letterboxd.letterboxd``` | ```All versions``` |
-| ```Unlock app icons``` | ```N/A``` | ```com.letterboxd.letterboxd``` | ```All versions``` |
-| ```Hide update popup``` | ```Prevents the update popup from showing up.``` | ```com.microblink.photomath``` | ```All versions``` |
-| ```Spoof device ID``` | ```Spoofs device ID to mitigate manual bans by developers.``` | ```com.microblink.photomath``` | ```All versions``` |
-| ```Unlock plus``` | ```N/A``` | ```com.microblink.photomath``` | ```All versions``` |
-| ```Hide OneDrive migration``` | ```Hides the OneDrive migration prompt when opening Microsoft Office Lens.``` | ```com.microsoft.office.officelens``` | ```All versions``` |
-| ```Disable ads``` | ```N/A``` | ```com.myprog.hexedit``` | ```All versions``` |
-| ```Hide ads``` | ```N/A``` | ```com.nis.app``` | ```All versions``` |
-| ```Show K1 token(s)``` | ```Shows the K1 authentication token(s) in a dialog and logs it to logcat for pairing with GadgetBridge without requiring root access.``` | ```com.nothing.smartcenter``` | ```All versions``` |
-| ```Hide ads``` | ```Hides all video ads.``` | ```com.peacocktv.peacockandroid``` | ```All versions``` |
-| ```Hide purchase reminder``` | ```Hides the popup that reminds you to purchase the app.``` | ```com.rarlab.rar``` | ```All versions``` |
-| ```Disable telemetry``` | ```Disables SoundCloud's telemetry system.``` | ```com.soundcloud.android``` | ```2025.05.27-release``` |
-| ```Enable offline sync``` | ```N/A``` | ```com.soundcloud.android``` | ```2025.05.27-release``` |
-| ```Hide ads``` | ```N/A``` | ```com.soundcloud.android``` | ```2025.05.27-release``` |
-| ```Disable login requirement``` | ```Disables mandatory login for TikTok. (Supports TikTok 43.6.2 + 43.8.3.)``` | ```com.ss.android.ugc.trill, com.zhiliaoapp.musically``` | ```43.6.2, 43.8.3, 43.6.2, 43.8.3``` |
-| ```Downloads``` | ```Removes download restrictions and changes the default download path. (Supports TikTok 43.6.2 + 43.8.3.)``` | ```com.ss.android.ugc.trill, com.zhiliaoapp.musically``` | ```43.6.2, 43.8.3, 43.6.2, 43.8.3``` |
-| ```Enable Open Debug``` | ```Re-enables the hidden "Open debug" entry. Supported on TikTok 43.6.2 only. (Not compatible with 43.8.3.)``` | ```com.ss.android.ugc.trill, com.zhiliaoapp.musically``` | ```43.6.2, 43.6.2``` |
-| ```Feed filter``` | ```Removes ads, livestreams, stories, image videos and videos with a specific amount of views or likes from the feed. (Supports TikTok 43.6.2 + 43.8.3.)``` | ```com.ss.android.ugc.trill, com.zhiliaoapp.musically``` | ```43.6.2, 43.8.3, 43.6.2, 43.8.3``` |
-| ```Fix Google login``` | ```Allows logging in with a Google account. (Supports TikTok 43.6.2 + 43.8.3.)``` | ```com.ss.android.ugc.trill, com.zhiliaoapp.musically``` | ```43.6.2, 43.8.3, 43.6.2, 43.8.3``` |
-| ```Playback speed``` | ```Enables the playback speed option for all videos and retains the speed configurations in between videos. (Supports TikTok 43.6.2 + 43.8.3.)``` | ```com.ss.android.ugc.trill, com.zhiliaoapp.musically``` | ```43.6.2, 43.8.3, 43.6.2, 43.8.3``` |
-| ```Remember clear display``` | ```Remembers the clear display configurations in between videos. (Supports TikTok 43.6.2 + 43.8.3.)``` | ```com.ss.android.ugc.trill, com.zhiliaoapp.musically``` | ```43.6.2, 43.8.3, 43.6.2, 43.8.3``` |
-| ```Sanitize sharing links``` | ```Removes tracking parameters from shared links. (Supports TikTok 43.6.2 + 43.8.3.)``` | ```com.ss.android.ugc.trill, com.zhiliaoapp.musically``` | ```43.6.2, 43.8.3, 43.6.2, 43.8.3``` |
-| ```Settings``` | ```Adds Morphe settings to TikTok. Supported on 43.6.2 only. (Not compatible with 43.8.3.)``` | ```com.ss.android.ugc.trill, com.zhiliaoapp.musically``` | ```43.6.2, 43.6.2``` |
-| ```Show seekbar``` | ```Shows a progress bar for all videos. (Supports TikTok 43.6.2 + 43.8.3.)``` | ```com.ss.android.ugc.trill, com.zhiliaoapp.musically``` | ```43.6.2, 43.8.3, 43.6.2, 43.8.3``` |
-| ```Add 'Give Kudos' button to 'Group Activity'``` | ```Adds a button that triggers the same action as shaking your phone would.``` | ```com.strava``` | ```All versions``` |
-| ```Add media download``` | ```Extends the full-screen media viewer menu with items to copy or open their URLs or download them directly.``` | ```com.strava``` | ```All versions``` |
-| ```Block Snowplow tracking``` | ```Blocks Snowplow analytics. See https://snowplow.io for more information.``` | ```com.strava``` | ```All versions``` |
-| ```Disable Quick Edit``` | ```Prevents the Quick Edit prompt from popping up.``` | ```com.strava``` | ```All versions``` |
-| ```Enable password login``` | ```Re-enables password login after having used an OTP code.``` | ```com.strava``` | ```All versions``` |
-| ```Hide distractions``` | ```Hides elements that are not essential.``` | ```com.strava``` | ```All versions``` |
-| ```Overwrite media upload parameters``` | ```Overwrites the compression, resize and trim media (images and videos) parameters returned by Strava's server before upload.``` | ```com.strava``` | ```All versions``` |
-| ```Unlock subscription features``` | ```Unlocks "Routes", "Matched Runs" and "Segment Efforts".``` | ```com.strava``` | ```All versions``` |
-| ```Disable Ad-Free Banner``` | ```Disables the banner with a frog, prompting you to buy Tumblr Ad-Free.``` | ```com.tumblr``` | ```All versions``` |
-| ```Disable blog notification reminder``` | ```Disables the reminder to enable notifications for blogs you visit.``` | ```com.tumblr``` | ```All versions``` |
-| ```Disable dashboard ads``` | ```Disables ads in the dashboard.``` | ```com.tumblr``` | ```All versions``` |
-| ```Disable gift message popup``` | ```Disables the popup suggesting to buy TumblrMart items for other people.``` | ```com.tumblr``` | ```All versions``` |
-| ```Disable in-app update``` | ```Disables the in-app update check and update prompt.``` | ```com.tumblr``` | ```All versions``` |
-| ```Disable Tumblr TV``` | ```Removes the Tumblr TV navigation button from the bottom navigation bar.``` | ```com.tumblr``` | ```All versions``` |
-| ```Fix old versions``` | ```Fixes old versions of the app (v33.2 and earlier) breaking due to Tumblr removing remnants of Tumblr Live from the API, which causes many requests to fail. This patch has no effect on newer versions of the app.``` | ```com.tumblr``` | ```All versions``` |
-| ```Hide Ads``` | ```Hides ad banners between chats.``` | ```com.viber.voip``` | ```25.9.2.0, 26.1.2.0``` |
-| ```Hide navigation buttons``` | ```Permanently hides navigation bar buttons, such as Explore and Marketplace.``` | ```com.viber.voip``` | ```All versions``` |
-| ```Force enable FreePhone``` | ```Enables the FreePhone menu in the navigation drawer even on devices that do not support eSIM.``` | ```de.gmx.mobile.android.mail``` | ```All versions``` |
-| ```Hide ads``` | ```Hides sponsored ads.``` | ```de.gmx.mobile.android.mail``` | ```All versions``` |
-| ```Hide Premium upgrade button``` | ```Hides the Premium upgrade button in the navigation drawer.``` | ```de.gmx.mobile.android.mail``` | ```All versions``` |
-| ```Unlock pro``` | ```N/A``` | ```ginlemon.iconpackstudio``` | ```2.2 build 016``` |
-| ```Hide ads``` | ```N/A``` | ```jp.pxv.android``` | ```6.141.1``` |
-| ```Remove ads``` | ```N/A``` | ```net.binarymode.android.irplus``` | ```All versions``` |
-| ```Hide ads``` | ```Hide ads and sponsored articles in list pages and remove pre-roll ads on videos.``` | ```nl.sanomamedia.android.nu``` | ```All versions``` |
-| ```Spoof certificate``` | ```Spoofs the X-Android-Cert header to allow push messages.``` | ```nl.sanomamedia.android.nu``` | ```All versions``` |
-| ```Auto claim channel points``` | ```Automatically claim Channel Points.``` | ```tv.twitch.android.app``` | ```16.9.1, 25.3.0``` |
-| ```Block audio ads``` | ```Blocks audio ads in streams and VODs.``` | ```tv.twitch.android.app``` | ```16.9.1, 25.3.0``` |
-| ```Block embedded ads``` | ```Blocks embedded stream ads using services like Luminous or PurpleAdBlocker.``` | ```tv.twitch.android.app``` | ```16.9.1, 25.3.0``` |
-| ```Block video ads``` | ```Blocks video ads in streams and VODs.``` | ```tv.twitch.android.app``` | ```16.9.1, 25.3.0``` |
-| ```Debug mode``` | ```Enables Twitch's internal debugging mode.``` | ```tv.twitch.android.app``` | ```16.9.1, 25.3.0``` |
-| ```Show deleted messages``` | ```Shows deleted chat messages behind a clickable spoiler.``` | ```tv.twitch.android.app``` | ```16.9.1, 25.3.0``` |
+| ```Prevent log upload``` | ```Avoid uploading logs when the application crashes.``` | ```Amazon Music``` | ```All versions``` |
+| ```Rename shared permissions``` | ```Rename certain permissions shared across Amazon apps. Applying this patch can fix installation errors, but can also break features in certain apps.``` | ```Amazon Music``` | ```All versions``` |
+| ```Skip ads``` | ```Skip ads between the tracks.``` | ```Amazon Music``` | ```All versions``` |
+| ```Unlimited track skipping``` | ```Unlocks the ability to skip tracks without restriction.``` | ```Amazon Music``` | ```All versions``` |
+| ```Unlock Unlimited``` | ```Unlock Music Unlimited features.``` | ```Amazon Music``` | ```All versions``` |
+| ```Always allow deep-linking``` | ```Open Amazon links, even if the app is not set to handle Amazon links.``` | ```Amazon Shopping``` | ```All versions``` |
+| ```Hide ads``` | ```N/A``` | ```Angulus``` | ```All versions``` |
+| ```Remove play limits``` | ```Disables purchase nagging and playback limits of not purchased tracks.``` | ```Bandcamp``` | ```All versions``` |
+| ```Hide ads``` | ```N/A``` | ```Cricbuzz``` | ```All versions``` |
+| ```Skip ads``` | ```Automatically skips ads.``` | ```Disney+``` | ```All versions``` |
+| ```Hide 'Sponsored Stories'``` | ```N/A``` | ```Facebook``` | ```All versions``` |
+| ```Hide story ads``` | ```Hides the ads in the Facebook app stories.``` | ```Facebook``` | ```All versions``` |
+| ```Force enable FreePhone``` | ```Enables the FreePhone menu in the navigation drawer even on devices that do not support eSIM.``` | ```GMX Mail``` | ```All versions``` |
+| ```Hide ads``` | ```Hides sponsored ads.``` | ```GMX Mail``` | ```All versions``` |
+| ```Hide Premium upgrade button``` | ```Hides the Premium upgrade button in the navigation drawer.``` | ```GMX Mail``` | ```All versions``` |
+| ```Enable CustomTabs``` | ```Enables CustomTabs to open articles in your default browser.``` | ```Google News``` | ```All versions``` |
+| ```GmsCore support``` | ```Allows the app to work without root by using a different package name when patched using a GmsCore instead of Google Play Services.``` | ```Google News``` | ```All versions``` |
+| ```Enable DCIM folders backup control``` | ```Disables always on backup for the Camera and other DCIM folders, allowing you to control backup for each folder individually. This will make the app default to having no folders backed up.``` | ```Google Photos``` | ```All versions``` |
+| ```Fix selected account persistence``` | ```Prevents Google Photos from clearing the selected account after cold start when using MicroG.``` | ```Google Photos``` | ```All versions``` |
+| ```GmsCore support``` | ```Allows the app to work without root by using a different package name when patched using a GmsCore instead of Google Play Services.``` | ```Google Photos``` | ```All versions``` |
+| ```Spoof features``` | ```Spoofs the device to enable Google Pixel exclusive features, including unlimited storage.``` | ```Google Photos``` | ```All versions``` |
+| ```Remove device restrictions``` | ```Removes restrictions from using the app on any device. Requires mounting patched app over original.``` | ```Google Recorder``` | ```All versions``` |
+| ```Disable ads``` | ```N/A``` | ```Hex Editor``` | ```All versions``` |
+| ```Unlock pro``` | ```N/A``` | ```Icon Pack Studio``` | ```All versions``` |
+| ```Hide ads``` | ```N/A``` | ```Inshorts``` | ```All versions``` |
+| ```Remove ads``` | ```N/A``` | ```irplus``` | ```All versions``` |
+| ```Hide ads``` | ```N/A``` | ```Letterboxd``` | ```All versions``` |
+| ```Unlock app icons``` | ```N/A``` | ```Letterboxd``` | ```All versions``` |
+| ```Disable typing indicator``` | ```Disables the indicator while typing a message.``` | ```Messenger``` | ```All versions``` |
+| ```Hide Facebook buttons``` | ```Hides buttons and shortcuts that open Facebook.``` | ```Messenger``` | ```All versions``` |
+| ```Hide inbox ads``` | ```Hides ads in inbox.``` | ```Messenger``` | ```All versions``` |
+| ```Hide inbox stories and notes tray``` | ```Hides the stories and notes horizontal tray at the top of the inbox.``` | ```Messenger``` | ```All versions``` |
+| ```Hide inbox subtabs``` | ```Hides Home and Channels tabs between active now tray and chats.``` | ```Messenger``` | ```All versions``` |
+| ```Open links externally``` | ```Always opens links in your default browser instead of the in-app browser, regardless of the in-app setting.``` | ```Messenger``` | ```All versions``` |
+| ```Remove Meta AI``` | ```Removes UI elements related to Meta AI.``` | ```Messenger``` | ```All versions``` |
+| ```Spoof package version``` | ```Sets a very high version code so the Play Store treats the app as already up to date and never offers an update.``` | ```Messenger``` | ```All versions``` |
+| ```Hide OneDrive migration``` | ```Hides the OneDrive migration prompt when opening Microsoft Office Lens.``` | ```Microsoft Lens``` | ```All versions``` |
+| ```Show K1 token(s)``` | ```Shows the K1 authentication token(s) in a dialog and logs it to logcat for pairing with GadgetBridge without requiring root access.``` | ```Nothing X``` | ```All versions``` |
+| ```Hide ads``` | ```Hide ads and sponsored articles in list pages and remove pre-roll ads on videos.``` | ```NU.nl``` | ```All versions``` |
+| ```Spoof certificate``` | ```Spoofs the X-Android-Cert header to allow push messages.``` | ```NU.nl``` | ```All versions``` |
+| ```Hide ads``` | ```Hides all video ads.``` | ```Peacock TV``` | ```All versions``` |
+| ```Hide update popup``` | ```Prevents the update popup from showing up.``` | ```Photomath``` | ```All versions``` |
+| ```Spoof device ID``` | ```Spoofs device ID to mitigate manual bans by developers.``` | ```Photomath``` | ```All versions``` |
+| ```Unlock plus``` | ```N/A``` | ```Photomath``` | ```All versions``` |
+| ```Bypass login``` | ```Allows the use of the app after its discontinuation.``` | ```Photoshop Mix``` | ```All versions``` |
+| ```Hide ads``` | ```N/A``` | ```Pixiv``` | ```All versions``` |
+| ```Remove 'Sent from' signature``` | ```Removes the 'Sent from Proton Mail mobile' signature from emails.``` | ```Proton Mail``` | ```All versions``` |
+| ```Remove free accounts limit``` | ```Removes the limit for maximum free accounts logged in.``` | ```Proton Mail``` | ```All versions``` |
+| ```Hide purchase reminder``` | ```Hides the popup that reminds you to purchase the app.``` | ```RAR``` | ```All versions``` |
+| ```Disable telemetry``` | ```Disables SoundCloud's telemetry system.``` | ```SoundCloud``` | ```All versions``` |
+| ```Enable offline sync``` | ```N/A``` | ```SoundCloud``` | ```All versions``` |
+| ```Hide ads``` | ```N/A``` | ```SoundCloud``` | ```All versions``` |
+| ```Add 'Give Kudos' button to 'Group Activity'``` | ```Adds a button that triggers the same action as shaking your phone would.``` | ```Strava``` | ```All versions``` |
+| ```Add media download``` | ```Extends the full-screen media viewer menu with items to copy or open their URLs or download them directly.``` | ```Strava``` | ```All versions``` |
+| ```Block Snowplow tracking``` | ```Blocks Snowplow analytics. See https://snowplow.io for more information.``` | ```Strava``` | ```All versions``` |
+| ```Disable Quick Edit``` | ```Prevents the Quick Edit prompt from popping up.``` | ```Strava``` | ```All versions``` |
+| ```Enable password login``` | ```Re-enables password login after having used an OTP code.``` | ```Strava``` | ```All versions``` |
+| ```Hide distractions``` | ```Hides elements that are not essential.``` | ```Strava``` | ```All versions``` |
+| ```Overwrite media upload parameters``` | ```Overwrites the compression, resize and trim media (images and videos) parameters returned by Strava's server before upload.``` | ```Strava``` | ```All versions``` |
+| ```Unlock subscription features``` | ```Unlocks "Routes", "Matched Runs" and "Segment Efforts".``` | ```Strava``` | ```All versions``` |
+| ```Hide ads``` | ```Hides sponsored content / ads in Threads.``` | ```Threads``` | ```All versions``` |
+| ```Disable login requirement``` | ```Disables mandatory login for TikTok. (Supports TikTok 43.6.2 + 43.8.3.)``` | ```TikTok (JP), TikTok``` | ```All versions``` |
+| ```Downloads``` | ```Removes download restrictions and changes the default download path. (Supports TikTok 43.6.2 + 43.8.3.)``` | ```TikTok (JP), TikTok``` | ```All versions``` |
+| ```Enable Open Debug``` | ```Re-enables the hidden "Open debug" entry. Supported on TikTok 43.6.2 only. (Not compatible with 43.8.3.)``` | ```TikTok (JP), TikTok``` | ```All versions``` |
+| ```Feed filter``` | ```Removes ads, livestreams, stories, image videos and videos with a specific amount of views or likes from the feed. (Supports TikTok 43.6.2 + 43.8.3.)``` | ```TikTok (JP), TikTok``` | ```All versions``` |
+| ```Fix Google login``` | ```Allows logging in with a Google account. (Supports TikTok 43.6.2 + 43.8.3.)``` | ```TikTok (JP), TikTok``` | ```All versions``` |
+| ```Playback speed``` | ```Enables the playback speed option for all videos and retains the speed configurations in between videos. (Supports TikTok 43.6.2 + 43.8.3.)``` | ```TikTok (JP), TikTok``` | ```All versions``` |
+| ```Remember clear display``` | ```Remembers the clear display configurations in between videos. (Supports TikTok 43.6.2 + 43.8.3.)``` | ```TikTok (JP), TikTok``` | ```All versions``` |
+| ```Sanitize sharing links``` | ```Removes tracking parameters from shared links. (Supports TikTok 43.6.2 + 43.8.3.)``` | ```TikTok (JP), TikTok``` | ```All versions``` |
+| ```Settings``` | ```Adds Morphe settings to TikTok. Supported on 43.6.2 only. (Not compatible with 43.8.3.)``` | ```TikTok (JP), TikTok``` | ```All versions``` |
+| ```Show seekbar``` | ```Shows a progress bar for all videos. (Supports TikTok 43.6.2 + 43.8.3.)``` | ```TikTok (JP), TikTok``` | ```All versions``` |
+| ```Disable Ad-Free Banner``` | ```Disables the banner with a frog, prompting you to buy Tumblr Ad-Free.``` | ```Tumblr``` | ```All versions``` |
+| ```Disable blog notification reminder``` | ```Disables the reminder to enable notifications for blogs you visit.``` | ```Tumblr``` | ```All versions``` |
+| ```Disable dashboard ads``` | ```Disables ads in the dashboard.``` | ```Tumblr``` | ```All versions``` |
+| ```Disable gift message popup``` | ```Disables the popup suggesting to buy TumblrMart items for other people.``` | ```Tumblr``` | ```All versions``` |
+| ```Disable in-app update``` | ```Disables the in-app update check and update prompt.``` | ```Tumblr``` | ```All versions``` |
+| ```Disable Tumblr TV``` | ```Removes the Tumblr TV navigation button from the bottom navigation bar.``` | ```Tumblr``` | ```All versions``` |
+| ```Fix old versions``` | ```Fixes old versions of the app (v33.2 and earlier) breaking due to Tumblr removing remnants of Tumblr Live from the API, which causes many requests to fail. This patch has no effect on newer versions of the app.``` | ```Tumblr``` | ```All versions``` |
+| ```Auto claim channel points``` | ```Automatically claim Channel Points.``` | ```Twitch``` | ```All versions``` |
+| ```Block audio ads``` | ```Blocks audio ads in streams and VODs.``` | ```Twitch``` | ```All versions``` |
+| ```Block embedded ads``` | ```Blocks embedded stream ads using services like Luminous or PurpleAdBlocker.``` | ```Twitch``` | ```All versions``` |
+| ```Block video ads``` | ```Blocks video ads in streams and VODs.``` | ```Twitch``` | ```All versions``` |
+| ```Debug mode``` | ```Enables Twitch's internal debugging mode.``` | ```Twitch``` | ```All versions``` |
+| ```Show deleted messages``` | ```Shows deleted chat messages behind a clickable spoiler.``` | ```Twitch``` | ```All versions``` |
 | ```Change package name``` | ```Appends ".morphe" to the package name by default. Changing the package name of the app can lead to unexpected issues. This patch does not work with Reddit.``` | ```Universal``` | ```All versions``` |
 | ```Override certificate pinning``` | ```Overrides certificate pinning, allowing to inspect traffic via a proxy. This patch does not work with Reddit.``` | ```Universal``` | ```All versions``` |
+| ```Hide Ads``` | ```Hides ad banners between chats.``` | ```Viber``` | ```All versions``` |
+| ```Hide navigation buttons``` | ```Permanently hides navigation bar buttons, such as Explore and Marketplace.``` | ```Viber``` | ```All versions``` |
 
 </details>
 
@@ -4126,7 +4127,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Jasonwu1994 Bundle Patch List:
 [📦 Jasonwu1994-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-jasonwu1994-patches-bundle-morphe)
 <details>
-<summary><b>Jasonwu1994</b> - 24 patches, 1 app</summary>
+<summary><b>Jasonwu1994</b> - 25 patches, 1 app</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -4142,6 +4143,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Enable OCR / Scan Text``` | ```啟用 OCR / 掃描文字功能，支援 拉丁、中文、日文、韓文 與 天城文 辨識後端 Enable the OCR / Scan Text feature with Latin, Chinese, Japanese, Korean, and Devanagari recognition backends.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
 | ```English QWERTY Up-Flick Uppercase``` | ```英文 QWERTY 鍵盤上滑大小寫 Flick up on the English QWERTY keyboard to toggle uppercase and lowercase.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
 | ```Grammar Checker``` | ```啟用 修正和建議 > 文法檢查 Enable Text correction > Grammar check.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
+| ```Incognito Mode Toggle``` | ```在 Access Point 工具列新增無痕模式切換按鈕，並可設定無痕模式下是否啟用剪貼簿與語音輸入 Add an Incognito toggle to the Access Point toolbar and configure clipboard and voice typing availability while Incognito mode is active.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
 | ```Inline Suggestions``` | ```啟用 修正和建議 > 智慧撰寫 Enable Text correction > Smart Compose.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
 | ```Key Shape Selection``` | ```啟用圓角按鍵，主題詳情 > 按鍵形狀 Enable Key shape in Theme details.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
 | ```Latin Globe Key Ignore Interval``` | ```新增英文鍵盤地球鍵忽略時間覆寫，可獨立控制輸入後切語言延遲 Add an independent English globe key ignore interval override for post-typing language-switch delay.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
@@ -4675,7 +4677,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Always show publish date``` | ```Always shows the publish date in video author information. Thanks to lyyako for the original implementation.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Copy comments without username``` | ```Copies only the comment text without including the creator's username.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Custom offline videos limit``` | ```Adds a custom entry to TikTok's offline videos menu with a configurable limit of up to 500 videos.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
-| ```Diagnostic tools``` | ```Adds optional Morphe diagnostic logging, filtered reports, and local Java crash capture.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+| ```Diagnostic tools``` | ```Adds optional Morphe diagnostic logging, filtered reports, and local TikTok crash capture.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Disable login requirement``` | ```Removes TikTok's mandatory login gate from supported flows.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Disable long-press quick share``` | ```Keeps long-pressing Share from opening TikTok's quick-share interaction.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Disable screen capture detection``` | ```Prevents TikTok from reacting to screenshots and screen recordings.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
@@ -4721,7 +4723,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Rushiranpise Bundle Patch List:
 [📦 Rushiranpise-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-rushiranpise-patches-bundle-morphe)
 <details>
-<summary><b>Rushiranpise</b> - 284 patches, 217 apps</summary>
+<summary><b>Rushiranpise</b> - 295 patches, 225 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -4737,7 +4739,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Unlock Premium``` | ```Unlocks premium features in app.``` | ```Ace Ex File Manager``` | ```All versions``` |
 | ```Unlock Lifetime Premium``` | ```Unlocks all features locked behind the subscription paywall.``` | ```AdGuard``` | ```All versions``` |
 | ```Unlock Lifetime Premium``` | ```Unlocks all features locked behind the subscription paywall.``` | ```AdGuard for Android TV``` | ```All versions``` |
-| ```Adobe Acrobat Premium``` | ```Unlocks on-device Acrobat Pro tools (edit, organise, crop) without a subscription.``` | ```Adobe Acrobat``` | ```All versions``` |
+| ```Adobe Acrobat Premium``` | ```Unlocks all Acrobat Pro and Studio tools without a subscription.``` | ```Adobe Acrobat``` | ```All versions``` |
 | ```Adobe Scan Premium``` | ```Unlocks all premium scanning and PDF tools in Adobe Scan.``` | ```Adobe Scan``` | ```All versions``` |
 | ```Remove ads``` | ```Stubs all ad loading paths: banner/interstitial loaders, billing callbacks, and ad SDK init.``` | ```AIDA64``` | ```All versions``` |
 | ```Unlock Premium``` | ```Unlocks AiScore Premium Features in app.``` | ```AiScore``` | ```All versions``` |
@@ -4760,14 +4762,18 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Unlock Pro``` | ```Unlocks all Pro features in app.``` | ```App Permission Manager``` | ```All versions``` |
 | ```Unlock Premium``` | ```Unlocks all premium features in Athena by making Settings.getPremiumUnlocked() always return true.``` | ```Athena``` | ```All versions``` |
 | ```Auto Cursor Premium``` | ```Unlocks Auto Cursor Pro by bypassing the local purchase state check.``` | ```Auto Cursor``` | ```All versions``` |
+| ```Unlock Premium``` | ```Removes the 30 running statement limit and unlocks Automate premium features.``` | ```Automate``` | ```All versions``` |
+| ```Aviate License``` | ```Bypasses the Pairip license check to prevent non-licensed app termination.``` | ```Aviate``` | ```All versions``` |
+| ```Aviate Premium``` | ```Unlocks Aviate Pro and Lifetime Pro by patching the Hermes JS subscription gate.``` | ```Aviate``` | ```All versions``` |
 | ```Unlock Premium``` | ```Unlocks all premium features in Awake by bypassing the RC entitlement check chain and the Pairip Play Licensing verification.``` | ```Awake``` | ```All versions``` |
-| ```Unlock Premium``` | ```Unlocks premium and marks the yearly plan as purchased.``` | ```Battery Guru``` | ```All versions``` |
+| ```Unlock Premium``` | ```Unlocks premium and marks the yearly plan as purchased.``` | ```Battery Guru, Battery Guru Community``` | ```All versions``` |
 | ```Unlock Premium``` | ```Unlocks BatteryPods Pro: removes all advertisements and enables premium features including all widget themes and device customization options.``` | ```BatteryPods``` | ```All versions``` |
 | ```Unlock Premium``` | ```Unlocks premium in Beta by Mirko.``` | ```Beta Maniac``` | ```All versions``` |
 | ```Unlock VIP``` | ```Unlock ViP features in app.``` | ```Block Blast!``` | ```All versions``` |
 | ```Remove ads``` | ```Disables Block Puzzle AdMob initialization, banner, and interstitial ads.``` | ```Block Puzzle``` | ```All versions``` |
 | ```Unlock Lifetime``` | ```Unlocks lifetime subscription features in BlockerHero.``` | ```BlockerHero``` | ```All versions``` |
 | ```Unlock Premium``` | ```Unlocks premium features in Blocking Sites.``` | ```Blocking Sites``` | ```All versions``` |
+| ```Blek Premium``` | ```Unlocks all premium features including fullscreen mode and removes the Upgrade navigation item.``` | ```Bluetooth Keyboard & Mouse``` | ```All versions``` |
 | ```Unlock Pro``` | ```Unlocks the Pro upgrade in Bluetooth Volume Manager by forcing isUpgraded=true in the billing Info constructor.``` | ```Bluetooth Volume Manager``` | ```All versions``` |
 | ```Unlock Cloud Service``` | ```Unlocks BluramsGuard cloud storage, AI detection, and playback features.``` | ```Blurams``` | ```All versions``` |
 | ```Unlock Premium``` | ```Unlock Premium Features in app.``` | ```BlurWall``` | ```All versions``` |
@@ -4785,7 +4791,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Unlock Pro``` | ```Unlocks all premium features in Case Tracker — Immigration.``` | ```Case Tracker``` | ```All versions``` |
 | ```Unlock Pro``` | ```Unlock Pro Features in Cashew App``` | ```Cashew``` | ```All versions``` |
 | ```Unlock Premium``` | ```Unlocks Charge Meter premium features.``` | ```Charge Meter``` | ```All versions``` |
-| ```Unlock Pro``` | ```Unlocks all Citizen Plus and Protect features.``` | ```Citizen``` | ```All versions``` |
+| ```Unlock Pro``` | ```Unlocks all Citizen Plus/Protect features: Safety Network, Safety Center, Zones, Live Agent, Offender alerts, Clarity crime map, incident video, and more.``` | ```Citizen``` | ```All versions``` |
 | ```Unlock Club``` | ```Unlocks Citymapper Club Membership. Note: requires a manual purchase attempt inside the app.``` | ```Citymapper``` | ```All versions``` |
 | ```Unlock Premium``` | ```Unlocks premium in Clickmate``` | ```Clickmate``` | ```All versions``` |
 | ```Unlock Plus``` | ```Forces Clue Plus subscription active, unlocking all premium features.``` | ```Clue Period & Cycle Tracker``` | ```All versions``` |
@@ -4799,6 +4805,8 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Unlock Followed Locations``` | ```Unlocks the Followed Locations premium feature.``` | ```Crime Radar``` | ```All versions``` |
 | ```Unlock Premium``` | ```Unlocks Premium Features In the App.``` | ```Crime Radar``` | ```All versions``` |
 | ```Unlock Premium``` | ```Unlocks Premium Features In the App.``` | ```Cube ACR``` | ```All versions``` |
+| ```Puzzles Unlock``` | ```Unlocks all puzzle designs including kilominx and ad-gated variants.``` | ```Cube Solver``` | ```All versions``` |
+| ```Remove Ads``` | ```Removes advertisements and disables crash/analytics telemetry.``` | ```Cube Solver``` | ```All versions``` |
 | ```Unlock Premium``` | ```Unlocks premium features after login.``` | ```Dailyhunt``` | ```All versions``` |
 | ```Unlock Premium``` | ```Unlocks all premium wallpapers.``` | ```Depth Live Wallpaper``` | ```All versions``` |
 | ```Unlock Pro``` | ```Unlocks Drivvo Pro by patching all four gateway methods in the y9 subscription class: isPremium() → true, getPlanType() → 'pro', checkVehicleLimit() → true (no vehicle cap), checkPremiumScreen() → true (no screen lock).``` | ```Drivvo``` | ```All versions``` |
@@ -4816,6 +4824,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Remove Ads``` | ```Removes all ads in app``` | ```Flud``` | ```All versions``` |
 | ```Unlock Premium``` | ```Unlocks Fuelio Premium, restores Google Maps, and suppresses the Limited Promo paywall banner for unlocked users.``` | ```Fuelio``` | ```All versions``` |
 | ```Unlock Ultra``` | ```Unlocks Ultra features in app.``` | ```Genius Scan``` | ```All versions``` |
+| ```Unlock Premium Features``` | ```Unlocks Getcontact Premium Yearly (Tariff 10) — patches all 28 subscription model getters including trial, usage limits, and plan identity.``` | ```Getcontact``` | ```All versions``` |
 | ```AMOLED dark theme``` | ```Makes Google Photos dark surfaces true black.``` | ```Google Photos``` | ```All versions``` |
 | ```Change package name``` | ```Installs Google Photos beside the system Photos app by changing package, permissions, providers, and app name.``` | ```Google Photos``` | ```All versions``` |
 | ```Enable DCIM folders backup control``` | ```Allows controlling Camera and other DCIM folder backup individually.``` | ```Google Photos``` | ```All versions``` |
@@ -4842,6 +4851,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Unlock Platinum``` | ```Unlocks Life360 Platinum feature in app.``` | ```Life360``` | ```All versions``` |
 | ```Remove ads``` | ```Disables LiveScore banner, native, and interstitial ad requests.``` | ```LiveScore``` | ```All versions``` |
 | ```Remove Ads``` | ```Removes interstitial and exit native ads from m-Indicator.``` | ```m-Indicator``` | ```All versions``` |
+| ```Unlock Pro``` | ```Unlocks Pro for MacroDroid - Device Automation.``` | ```MacroDroid``` | ```All versions``` |
 | ```Unlock Deluxe``` | ```Unlocks the Deluxe subscription.``` | ```MANGA Plus by SHUEISHA``` | ```All versions``` |
 | ```Unlock Premium``` | ```Unlocks Premium features in app after login.``` | ```Mapy``` | ```All versions``` |
 | ```Unlock Premium``` | ```Unlocks all pro features.``` | ```MaterialPods``` | ```All versions``` |
@@ -4859,7 +4869,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Unlock premium``` | ```Unlocks NAVITIME Japan Travel Premium features in app``` | ```NAVITIME``` | ```All versions``` |
 | ```Unlock Pro``` | ```Unlocks all pro features in NetGuard.``` | ```NetGuard``` | ```All versions``` |
 | ```Unlock Premium``` | ```Unlocks all premium features.``` | ```NetMonster``` | ```All versions``` |
-| ```Unlock Pro``` | ```Unlock Pro features.``` | ```Network Guru - Net Analyzer``` | ```All versions``` |
+| ```Unlock Pro``` | ```Unlock Pro features.``` | ```Network Guru``` | ```All versions``` |
 | ```Unlock Premium``` | ```Unlocks Premium features in app..``` | ```NewsBreak``` | ```All versions``` |
 | ```Unlock Premium``` | ```Unlocks Ninja VPN premium.``` | ```Ninja VPN``` | ```All versions``` |
 | ```Unlock subscription``` | ```Unlocks subscription in app``` | ```NYT Games``` | ```All versions``` |
@@ -4888,6 +4898,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Unlock Lifetime``` | ```Unlocks all Lifetime features in Proxyman.``` | ```Proxyman``` | ```All versions``` |
 | ```Remove Ads / Unlock Premium``` | ```Forces the subscription gate to report an unlimited subscription, removing ads and the upgrade prompt. Constructs a minimal fake Purchase to prevent NPE/IOOB in call sites that dereference getProducts().get(0).``` | ```Psiphon Pro``` | ```All versions``` |
 | ```Remove Ads``` | ```Unlocks the Remove Ads purchase in qBitConnect by injecting IAP ownership flags into SharedPreferences before Flutter reads them.``` | ```qBitConnect``` | ```All versions``` |
+| ```Unlock Premium``` | ```Unlocks all Rainbow Weather premium features by forcing isPremium=true in the Adapty DataStore write.``` | ```Rainbow Weather``` | ```All versions``` |
 | ```Unlock Pro``` | ```Removes ads and unlocks the no-ads subscription in RAR.``` | ```RAR``` | ```All versions``` |
 | ```Unlock Premium``` | ```Unlocks all premium features in re-Link by forcing the license StateFlow to always emit a Licensed state and the sync purchase check to always return true.``` | ```re-Link``` | ```All versions``` |
 | ```Unlock Premium``` | ```Unlocks RecipeBro premium by patching both CustomerInfo and FeatureFlagResponse premium gates.``` | ```RecipeBro``` | ```All versions``` |
@@ -4900,7 +4911,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Unlock Premium``` | ```Unlocks all premium feature in app.``` | ```SCRL``` | ```All versions``` |
 | ```Unlock Pro``` | ```Unlocks SD Maid SE Pro features.``` | ```SD Maid SE``` | ```All versions``` |
 | ```Remove Ads``` | ```Removes ads.``` | ```Send Files To TV``` | ```All versions``` |
-| ```Unlock Lifetime``` | ```Unlocks SHAREit lifetime premium.``` | ```SHAREit Premium``` | ```All versions``` |
+| ```Unlock Premium``` | ```Unlocks SHAREit Premium and bypasses APK signature tamper check.``` | ```SHAREit Premium``` | ```All versions``` |
 | ```Unlock Premium``` | ```Unlocks all premium features.``` | ```Slopes``` | ```All versions``` |
 | ```Unlock Premium``` | ```Unlocks all Premium features in Snipd: AI Podcast Player by spoofing the RevenueCat CustomerInfo.``` | ```Snipd``` | ```All versions``` |
 | ```Unlock Premium``` | ```Unlocks Premium features.``` | ```Snow-Forecast.com``` | ```All versions``` |
@@ -4951,6 +4962,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Change version code``` | ```Changes android:versionCode.``` | ```Universal``` | ```All versions``` |
 | ```Disable ad SDK calls``` | ```No-ops common ad SDK load/show/init/fetch methods in bundled ad packages.``` | ```Universal``` | ```All versions``` |
 | ```Disable clipboard access``` | ```Blocks app clipboard reads and writes.``` | ```Universal``` | ```All versions``` |
+| ```Disable PairIP license check``` | ```Disables PairIP license verification, VM checks, and repeated background checks.``` | ```Universal``` | ```All versions``` |
 | ```Disable shake ads``` | ```Skips SensorManager.registerListener calls that can power shake-to-ad behavior.``` | ```Universal``` | ```All versions``` |
 | ```Enable Android debugging``` | ```Sets android:debuggable=true.``` | ```Universal``` | ```All versions``` |
 | ```Enable debug build target``` | ```Forces compatible BUILD_TARGET debug providers to debug=true.``` | ```Universal``` | ```All versions``` |
@@ -4966,8 +4978,9 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Hide VPN and proxy``` | ```Hides common VPN transport/interface and Java proxy property checks.``` | ```Universal``` | ```All versions``` |
 | ```Override certificate pinning``` | ```Forces network security config trust anchors to override pins.``` | ```Universal``` | ```All versions``` |
 | ```Predictive back gesture``` | ```Enables Android predictive back gesture.``` | ```Universal``` | ```All versions``` |
-| ```Provide Original app certificate``` | ```By Default it Reads the signing certificate from the original app installed. Required for GmsCore, Firebase, and Signature spoof patches. Only fill options below if the original is uninstalled.``` | ```Universal``` | ```All versions``` |
+| ```Provide Original app certificate``` | ```Automatically reads the signing certificate from the APK you are patching — no original app installed or file provided needed. Only fill the options below if you are patching an APK that was already re-signed (e.g. a previously patched build): in that case point to the original APK file, or enter the certificate manually.``` | ```Universal``` | ```All versions``` |
 | ```Remove ad manifest entries``` | ```Removes common ad SDK permissions, services, providers, libraries, and metadata.``` | ```Universal``` | ```All versions``` |
+| ```Remove internet permission``` | ```Removes the INTERNET permission so the app cannot access the network at all. Blocks all trackers, analytics and ads from phoning home, but also disables any legitimate online features. Only enable for apps you want fully offline.``` | ```Universal``` | ```All versions``` |
 | ```Remove share targets``` | ```Removes chooser/direct share targets.``` | ```Universal``` | ```All versions``` |
 | ```Set target SDK 34``` | ```Sets targetSdkVersion to 34.``` | ```Universal``` | ```All versions``` |
 | ```Spoof Android ID``` | ```Spoofs Settings.Secure android_id reads.``` | ```Universal``` | ```All versions``` |
@@ -5654,12 +5667,13 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 NuvioTV Bundle Patch List:
 [📦 NuvioTV-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-nuviotv-patches-bundle-morphe)
 <details>
-<summary><b>NuvioTV</b> - 6 patches, 1 app</summary>
+<summary><b>NuvioTV</b> - 7 patches, 1 app</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Allow Importing Subs from Local Storage``` | ```Adds Local Storage to Nuvio's ExoPlayer subtitle menu and imports subtitle files from the device.``` | ```NuvioTV``` | ```All versions``` |
-| ```Binge Group Manual Fallback``` | ```Adds Morphe > Playback control to open the source picker when no preferred binge-group stream is found.``` | ```NuvioTV``` | ```All versions``` |
+| ```Allow Importing Subs from Local Storage``` | ```Imports device subtitle files into Nuvio's ExoPlayer subtitle menu without rebuilding active playback.``` | ```NuvioTV``` | ```All versions``` |
+| ```Library Mode Focus Fix``` | ```Returns Library focus to the previously selected Saved or Cloud mode.``` | ```NuvioTV``` | ```All versions``` |
+| ```Local Media``` | ```Adds Library > Storage playback, folder selection, and same-basename sidecar subtitles for local video files.``` | ```NuvioTV``` | ```All versions``` |
 | ```Mark SDH Subtitles``` | ```Marks explicitly labelled SDH tracks and detected English SDH subtitle files.``` | ```NuvioTV``` | ```All versions``` |
 | ```Random Episode``` | ```Adds Morphe > Detail Page > Show Random Episode Button and random series playback.``` | ```NuvioTV``` | ```All versions``` |
 | ```Rating Visibility``` | ```Adds Settings > Morphe > Ratings with independent overall and episode rating controls.``` | ```NuvioTV``` | ```All versions``` |
@@ -5808,10 +5822,15 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 FTL Bundle Patch List:
 [📦 FTL-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-ftl-patches-bundle-morphe)
 <details>
-<summary><b>FTL</b> - 10 patches, 2 apps</summary>
+<summary><b>FTL</b> - 15 patches, 4 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
+| ```Hide local tiles banner``` | ```Collapses the local device tiles banner.``` | ```MX Player Pro, MX Player``` | ```All versions``` |
+| ```Hide Me tab promo items``` | ```Collapses the WhatsApp, Legal, and Help entries on the Me tab.``` | ```MX Player Pro, MX Player``` | ```All versions``` |
+| ```Skip welcome screen``` | ```Moves the launcher intent filters and app shortcuts from the welcome/splash activity to the main activity, so the app boots straight past the splash and update screen.``` | ```MX Player Pro, MX Player``` | ```All versions``` |
+| ```Disable Notification Defaults``` | ```Turns off the Toolbar, Recommended contents, and Tool notifications channels by default.``` | ```SnapTube``` | ```All versions``` |
+| ```Hide Settings Items``` | ```Hides the Download tools and Phone clean categories, and their sub-items, from Settings.``` | ```SnapTube``` | ```All versions``` |
 | ```Remove Watch Ad To Download``` | ```Removes the requirement to watch a rewarded ad before a download starts.``` | ```SnapTube``` | ```All versions``` |
 | ```Add Toast``` | ```Shows a custom toast message when the app starts. Works on any app.``` | ```Universal``` | ```All versions``` |
 | ```APK Junk Cleanup``` | ```Removes build artifacts and metadata that bloat the APK: Play Services / Firebase version files, protobuf descriptors, debug probes, kotlin builtins, META-INF subfolder clutter, and misc junk. Safe — only removes files with no runtime purpose.``` | ```Universal``` | ```All versions``` |
@@ -5866,24 +5885,40 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Simnple Bundle Patch List:
 [📦 Simnple-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-simnple-patches-bundle-api-v4)
 <details>
-<summary><b>Simnple</b> - 14 patches, 1 app</summary>
+<summary><b>Simnple</b> - 30 patches, 1 app</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Disable Adrop Ads``` | ```Prevents the Adrop advertising SDK from initializing and receiving a user ID.``` | ```com.goondori``` | ```5.6.0``` |
-| ```Disable Adrop Metrics``` | ```Stops Adrop user properties and analytics events from crossing the React Native bridge.``` | ```com.goondori``` | ```5.6.0``` |
 | ```Disable Firebase Analytics``` | ```Stops Goondori from logging Firebase events and attaching account or military metadata to Firebase Analytics.``` | ```com.goondori``` | ```5.6.0``` |
 | ```Disable Firebase Logging``` | ```Stops Firebase and Google DataTransport telemetry from sending through firebaselogging.googleapis.com.``` | ```com.goondori``` | ```5.6.0``` |
 | ```Disable Firebase Remote Config``` | ```Prevents Firebase Remote Config from fetching server-controlled settings.``` | ```com.goondori``` | ```5.6.0``` |
 | ```Disable Firebase Startup Collection``` | ```Disables Firebase Analytics collection and advertising-personalization signals at startup.``` | ```com.goondori``` | ```5.6.0``` |
 | ```Disable Funding Choices``` | ```Prevents Google Funding Choices and UMP from requesting advertising consent messages.``` | ```com.goondori``` | ```5.6.0``` |
 | ```Disable Google Play Automatic Protection``` | ```Makes Google Play PairIP accept Goondori installations from outside Google Play.``` | ```com.goondori``` | ```5.6.0``` |
+| ```Disable Hot Updates``` | ```Keeps the embedded patched UI bundle active while allowing HotUpdater startup to complete normally.``` | ```com.goondori``` | ```5.6.0``` |
+| ```Disable Install Referrer``` | ```Stops Goondori from requesting the Google Play install-referrer value.``` | ```com.goondori``` | ```5.6.0``` |
+| ```Disable Push Registration``` | ```Stops FCM and Expo push-token registration. Push notifications will not work.``` | ```com.goondori``` | ```5.6.0``` |
 | ```Disable RevenueCat``` | ```Prevents RevenueCat subscription, entitlement, purchase-status, and paywall requests.``` | ```com.goondori``` | ```5.6.0``` |
 | ```Disable Sentry``` | ```Disables Sentry error and performance telemetry through Android manifest metadata.``` | ```com.goondori``` | ```5.6.0``` |
 | ```Hide Community Tab``` | ```Hides the Community tab from Goondori's bottom navigation.``` | ```com.goondori``` | ```5.6.0``` |
 | ```Hide Content Tab``` | ```Hides the Content tab from Goondori's bottom navigation.``` | ```com.goondori``` | ```5.6.0``` |
+| ```Hide Home Benefits``` | ```Hides Benefits from the Goondori home dashboard.``` | ```com.goondori``` | ```5.6.0``` |
+| ```Hide Home Community``` | ```Hides Community from the Goondori home dashboard.``` | ```com.goondori``` | ```5.6.0``` |
+| ```Hide Home Delivery``` | ```Hides Goondori Delivery from the home dashboard.``` | ```com.goondori``` | ```5.6.0``` |
+| ```Hide Home Feedback``` | ```Hides the 'How was your new home?' feedback card from the Goondori home dashboard.``` | ```com.goondori``` | ```5.6.0``` |
+| ```Hide Home Food Menu``` | ```Hides the Food Menu from the Goondori home dashboard.``` | ```com.goondori``` | ```5.6.0``` |
+| ```Hide Home Mailbox``` | ```Hides Goondori Mailbox from the home dashboard.``` | ```com.goondori``` | ```5.6.0``` |
+| ```Hide Home Vacation``` | ```Hides Vacation from the Goondori home dashboard.``` | ```com.goondori``` | ```5.6.0``` |
+| ```Hide More Benefits``` | ```Hides Benefits from the More menu.``` | ```com.goondori``` | ```5.6.0``` |
+| ```Hide More Celebrity Support``` | ```Hides Celebrity Support from the More menu.``` | ```com.goondori``` | ```5.6.0``` |
+| ```Hide More Delivery``` | ```Hides Goondori Delivery from the More menu.``` | ```com.goondori``` | ```5.6.0``` |
+| ```Hide More Food Menu``` | ```Hides the Food Menu from the More menu.``` | ```com.goondori``` | ```5.6.0``` |
+| ```Hide More Mailbox``` | ```Hides Goondori Mailbox from the More menu.``` | ```com.goondori``` | ```5.6.0``` |
+| ```Hide Premium Promotions``` | ```Hides the Goondori Premium entry without changing entitlement or purchase status.``` | ```com.goondori``` | ```5.6.0``` |
 | ```Hide Store Tab``` | ```Hides the Store tab from Goondori's bottom navigation.``` | ```com.goondori``` | ```5.6.0``` |
 | ```Hide Vacation Tab``` | ```Hides the Vacation tab from Goondori's bottom navigation.``` | ```com.goondori``` | ```5.6.0``` |
+| ```Remove Ads``` | ```Removes ads and their empty layout spaces, preserves the dashboard's ad-free spacing, and blocks Adrop identifiers and metrics without changing Goondori Premium entitlement.``` | ```com.goondori``` | ```5.6.0``` |
+| ```Remove Sensitive Logs``` | ```Removes the access-token console log from Goondori session initialization.``` | ```com.goondori``` | ```5.6.0``` |
 
 </details>
 
@@ -5954,13 +5989,27 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Google-Clock Bundle Patch List:
 [📦 Google-Clock-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-google-clock-patches-bundle-morphe)
 <details>
-<summary><b>Google-Clock</b> - 4 patches, 2 apps</summary>
+<summary><b>Google-Clock</b> - 6 patches, 2 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
 | ```Use Morphe YouTube Music for alarms``` | ```Redirects Google Clock to the Morphe YouTube Music package.``` | ```Clock``` | ```All versions``` |
 | ```Google Clock alarm MediaBrowser bridge``` | ```Short-circuits YT Music's MediaBrowser capability gate before it can publish PlaybackState ERROR(7), keeps browse entitlement metadata coherent, bypasses the DeskClock browse-consent detour, and enables background alarm playback.``` | ```YT Music Morphe``` | ```All versions``` |
 | ```Google Clock alarm MediaBrowser bridge v2``` | ```Adds the YT Music loadChildren gate fix that prevents the Premium PlaybackState error after Google Clock subscribes. Depends on the base Google Clock alarm MediaBrowser bridge.``` | ```YT Music Morphe``` | ```All versions``` |
+| ```Google Clock MediaBrowser error stack diagnostic``` | ```Temporary diagnostic that dumps the call stack from both known YT Music MediaBrowser error publishers (Llin.e and Lkzf.f). Depends on the full bridge.``` | ```YT Music Morphe``` | ```All versions``` |
+| ```Google Clock MediaBrowser full bridge``` | ```Full Google Clock/YT Music MediaBrowser chain: root/entitlement/consent fixes, upstream package identity/certificate compatibility, loadChildren capability and client allow-list bypasses, plus the cached browse-error fast-path bypass that was still returning empty children and the Music Premium PlaybackState ERROR(7).``` | ```YT Music Morphe``` | ```All versions``` |
 | ```Google Clock MediaBrowser upstream compatibility``` | ```Isolated port of the upstream YT Music MediaBrowser unlock: bypasses the caller certificate gate and restores the original com.google.android.apps.youtube.music identity inside search_media_items.``` | ```YT Music Morphe``` | ```All versions``` |
+
+</details>
+
+---
+### 🧩 Imgur Bundle Patch List:
+[📦 Imgur-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-imgur-patches-bundle-morphe)
+<details>
+<summary><b>Imgur</b> - 1 patch, 1 app</summary>
+
+| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
+|----------|---------------|---------------------|-------------------------|
+| ```Remove ads``` | ```Removes all ads in the app by forcing the no-ads (Emerald) entitlement flag.``` | ```Imgur``` | ```All versions``` |
 
 </details>

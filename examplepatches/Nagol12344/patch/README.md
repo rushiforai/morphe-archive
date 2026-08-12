@@ -11,7 +11,7 @@ TODO: Update this about section with a brief introduction/summary about this rep
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.2.1](https://github.com/Nagol12344/patch/releases/tag/v1.2.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
+> **[v1.4.1](https://github.com/Nagol12344/patch/releases/tag/v1.4.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;5 patches total
 <details open>
 <summary>📦 XYZ app&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -28,7 +28,7 @@ TODO: Update this about section with a brief introduction/summary about this rep
 </details>
 
 <details open>
-<summary>📦 Better Place&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 Better Place&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -38,7 +38,8 @@ TODO: Update this about section with a brief introduction/summary about this rep
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Remote script injector](#remote-script-injector) | Hooks WebView to inject integrity-checked userscripts. |  |
+| [Fix file picker camera prompt](#fix-file-picker-camera-prompt) | Strips the capture attribute from file inputs so the file picker doesn't request camera permission. |  |
+| [Remove unnecessary camera permission request](#remove-unnecessary-camera-permission-request) | Prevents the file picker from proactively requesting CAMERA permission. |  |
 
 </details>
 
