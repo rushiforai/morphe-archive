@@ -145,6 +145,7 @@ shaun-the-sheep-patches/morphe-patches
 sjshb57/Pairip-Patches
 skulldogged/cobalt-morphe
 spookyexe/morphe-patches
+sushruth/imgur-patches
 tadikwa/google-clock-morphe-patches
 tiaruebar1024/tiaruebar-patches
 totsiaw/proxma-patches

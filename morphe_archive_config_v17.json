@@ -1121,6 +1121,14 @@
                 "sortOrder": 138,
                 "createdAt": 1786412610180,
                 "updatedAt": 1786412610180
+            },
+            {
+                "name": "imgur-patches",
+                "source": "https://raw.githubusercontent.com/sushruth/imgur-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 139,
+                "createdAt": 1786499517468,
+                "updatedAt": 1786499517468
             }
         ]
     }
