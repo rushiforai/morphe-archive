@@ -1129,6 +1129,14 @@
                 "sortOrder": 139,
                 "createdAt": 1786499517468,
                 "updatedAt": 1786499517468
+            },
+            {
+                "name": "Morphe-Patch",
+                "source": "https://raw.githubusercontent.com/ozeroztas/Morphe-Patch/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 140,
+                "createdAt": 1786586177230,
+                "updatedAt": 1786586177230
             }
         ]
     }

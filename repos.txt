@@ -135,6 +135,7 @@ nosini/disable-shorts-repeat
 nvbangg/builder-for-morphe
 osirisad/teamsnap-patches
 osirisad/ts-patches
+ozeroztas/Morphe-Patch
 polka-bear/morphe-patches
 pseudofractal/morphe-patches
 quantavil/edge-morphe-patches
