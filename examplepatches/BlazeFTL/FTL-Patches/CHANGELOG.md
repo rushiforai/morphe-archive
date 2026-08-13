@@ -1,3 +1,109 @@
+## [1.26.0-dev.9](https://github.com/BlazeFTL/FTL-Patches/compare/v1.26.0-dev.8...v1.26.0-dev.9) (2026-08-12)
+
+### ✨ New Features
+
+* up ([45bfa4b](https://github.com/BlazeFTL/FTL-Patches/commit/45bfa4b08bc672ce8d088ae9cef966c9a0697235))
+
+## [1.26.0-dev.8](https://github.com/BlazeFTL/FTL-Patches/compare/v1.26.0-dev.7...v1.26.0-dev.8) (2026-08-12)
+
+### ✨ New Features
+
+* up ([287958b](https://github.com/BlazeFTL/FTL-Patches/commit/287958bb97309f121c3d46731ea8d9f298ce6278))
+
+## [1.26.0-dev.7](https://github.com/BlazeFTL/FTL-Patches/compare/v1.26.0-dev.6...v1.26.0-dev.7) (2026-08-12)
+
+### ✨ New Features
+
+* es ([f559b27](https://github.com/BlazeFTL/FTL-Patches/commit/f559b272a634fc979cecbc966098559f0bd360cf))
+* up ([1dfbbe1](https://github.com/BlazeFTL/FTL-Patches/commit/1dfbbe12de12ed79751494217ffbe45ed0b2d557))
+* up ([d6b2e1f](https://github.com/BlazeFTL/FTL-Patches/commit/d6b2e1fb99c9004faa46736b32ab4306c15e5429))
+* up ([9038726](https://github.com/BlazeFTL/FTL-Patches/commit/9038726d963a7ffdbc695a9763ca9ea7dada19de))
+
+## [1.26.0-dev.6](https://github.com/BlazeFTL/FTL-Patches/compare/v1.26.0-dev.5...v1.26.0-dev.6) (2026-08-12)
+
+### ✨ New Features
+
+* es ([101aa60](https://github.com/BlazeFTL/FTL-Patches/commit/101aa6066e357bdb4ff7d8d10447289b01db2848))
+
+## [1.26.0-dev.5](https://github.com/BlazeFTL/FTL-Patches/compare/v1.26.0-dev.4...v1.26.0-dev.5) (2026-08-12)
+
+### ✨ New Features
+
+* dpi ([04c9c33](https://github.com/BlazeFTL/FTL-Patches/commit/04c9c33088993f44ae2e61ba3152fcb19e9d48c9))
+
+## [1.26.0-dev.4](https://github.com/BlazeFTL/FTL-Patches/compare/v1.26.0-dev.3...v1.26.0-dev.4) (2026-08-12)
+
+### ✨ New Features
+
+* add es ([a6b2a13](https://github.com/BlazeFTL/FTL-Patches/commit/a6b2a13d9fc0ec7790aa93e2c8acb1bf3fbe3728))
+* up ([a9c5fe3](https://github.com/BlazeFTL/FTL-Patches/commit/a9c5fe3dc63cced221a52ded2bda0100bbdef286))
+* up ([53b8107](https://github.com/BlazeFTL/FTL-Patches/commit/53b810785fdac5aeaa10f341323cbb591d4f82b7))
+
+## [1.26.0-dev.3](https://github.com/BlazeFTL/FTL-Patches/compare/v1.26.0-dev.2...v1.26.0-dev.3) (2026-08-12)
+
+### ✨ New Features
+
+* es ([1340723](https://github.com/BlazeFTL/FTL-Patches/commit/1340723cbc13e0e9278002f20005610cc4098db3))
+
+## [1.26.0-dev.2](https://github.com/BlazeFTL/FTL-Patches/compare/v1.26.0-dev.1...v1.26.0-dev.2) (2026-08-12)
+
+### ✨ New Features
+
+* up ([f687330](https://github.com/BlazeFTL/FTL-Patches/commit/f68733052321ed28e67dc66f24299a3b15c7bb83))
+
+## [1.26.0-dev.1](https://github.com/BlazeFTL/FTL-Patches/compare/v1.25.0...v1.26.0-dev.1) (2026-08-12)
+
+### ✨ New Features
+
+* Es File ([44f9b13](https://github.com/BlazeFTL/FTL-Patches/commit/44f9b13f4142f69f139abf0b85c07867c4defbff))
+* up ([f47796c](https://github.com/BlazeFTL/FTL-Patches/commit/f47796c3206783540868380b3f26d306c7e092ab))
+* up ([d817acd](https://github.com/BlazeFTL/FTL-Patches/commit/d817acd0fe7fff364063588160e81fe119cf1caf))
+
+## [1.25.0](https://github.com/BlazeFTL/FTL-Patches/compare/v1.24.0...v1.25.0) (2026-08-12)
+
+### ✨ New Features
+
+* add mx player hide file transfer, private video,video playlist ([2618076](https://github.com/BlazeFTL/FTL-Patches/commit/26180762887a604a1487f5b4707288bc25b12085))
+
+## [1.25.0-dev.1](https://github.com/BlazeFTL/FTL-Patches/compare/v1.24.0...v1.25.0-dev.1) (2026-08-12)
+
+### ✨ New Features
+
+* add mx player hide file transfer, private video,video playlist ([2618076](https://github.com/BlazeFTL/FTL-Patches/commit/26180762887a604a1487f5b4707288bc25b12085))
+
+## [1.24.0](https://github.com/BlazeFTL/FTL-Patches/compare/v1.23.0...v1.24.0) (2026-08-12)
+
+### ✨ New Features
+
+* up ([1705d96](https://github.com/BlazeFTL/FTL-Patches/commit/1705d96911cc177f75053f232f0ee9163bed3b6e))
+* up ([305f779](https://github.com/BlazeFTL/FTL-Patches/commit/305f779ff155d48951e369dace5f77e1f3f9ec72))
+* up ([9bb5141](https://github.com/BlazeFTL/FTL-Patches/commit/9bb5141eef063f9cb1d21d758c060681e2195396))
+* up ([14ccee0](https://github.com/BlazeFTL/FTL-Patches/commit/14ccee0369da3b3cfb31fd50f5594fd9f6be6165))
+* up ([900c319](https://github.com/BlazeFTL/FTL-Patches/commit/900c319fe383f7a24d4eb1e21858fd79181e5e02))
+* up ([af227e4](https://github.com/BlazeFTL/FTL-Patches/commit/af227e4f9dee8d36fa7e370c05a81cfa1e9ee086))
+* up ([69ac4cb](https://github.com/BlazeFTL/FTL-Patches/commit/69ac4cb4135d9e4e00a1c0cad2b2127a6c48d0dc))
+* update dpi toast ([b9fc3e8](https://github.com/BlazeFTL/FTL-Patches/commit/b9fc3e8d265b900601e663b8536223f6f7132525))
+* update toast dpi ([981901f](https://github.com/BlazeFTL/FTL-Patches/commit/981901faf51fbaf66297e895d877088628499a2b))
+* update toast, dpi ([c7f799c](https://github.com/BlazeFTL/FTL-Patches/commit/c7f799c3ac2bc2d3d811075c153d33c168a46df7))
+
+## [1.24.0-dev.7](https://github.com/BlazeFTL/FTL-Patches/compare/v1.24.0-dev.6...v1.24.0-dev.7) (2026-08-12)
+
+### ✨ New Features
+
+* up ([1705d96](https://github.com/BlazeFTL/FTL-Patches/commit/1705d96911cc177f75053f232f0ee9163bed3b6e))
+
+## [1.24.0-dev.6](https://github.com/BlazeFTL/FTL-Patches/compare/v1.24.0-dev.5...v1.24.0-dev.6) (2026-08-12)
+
+### ✨ New Features
+
+* up ([305f779](https://github.com/BlazeFTL/FTL-Patches/commit/305f779ff155d48951e369dace5f77e1f3f9ec72))
+
+## [1.24.0-dev.5](https://github.com/BlazeFTL/FTL-Patches/compare/v1.24.0-dev.4...v1.24.0-dev.5) (2026-08-12)
+
+### ✨ New Features
+
+* up ([9bb5141](https://github.com/BlazeFTL/FTL-Patches/commit/9bb5141eef063f9cb1d21d758c060681e2195396))
+
 ## [1.24.0-dev.4](https://github.com/BlazeFTL/FTL-Patches/compare/v1.24.0-dev.3...v1.24.0-dev.4) (2026-08-11)
 
 ### ✨ New Features

@@ -15,7 +15,7 @@ object checkHowToSeenFingerprint : Fingerprint(
 @Suppress("unused")
 val hideOnboardingPatch = bytecodePatch(
     name = "Hide onboarding screen",
-    description = "Hide the onboarding \"Plan you journey\" screen"
+    description = "Hide the onboarding \"Plan your journey\" screen"
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

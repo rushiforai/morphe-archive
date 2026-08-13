@@ -1,3 +1,35 @@
+## [1.2.1](https://github.com/RookieEnough/De-Vanced/compare/v1.2.0...v1.2.1) (2026-08-12)
+
+### 🐛 Bug Fixes
+
+* **Messenger:** Change recommended app version to `573.0.0.44.88` ([b58dc31](https://github.com/RookieEnough/De-Vanced/commit/b58dc314f17c1f826fc198486fe3fbeb249e8daf))
+
+## [1.2.1-dev.1](https://github.com/RookieEnough/De-Vanced/compare/v1.2.0...v1.2.1-dev.1) (2026-08-12)
+
+### 🐛 Bug Fixes
+
+* **Messenger:** Change recommended app version to `573.0.0.44.88` ([b58dc31](https://github.com/RookieEnough/De-Vanced/commit/b58dc314f17c1f826fc198486fe3fbeb249e8daf))
+
+## [1.2.0](https://github.com/RookieEnough/De-Vanced/compare/v1.1.1...v1.2.0) (2026-08-12)
+
+### ✨ New Features
+
+* remove outdated apps maintained in other repos ([#94](https://github.com/RookieEnough/De-Vanced/issues/94)) ([e554c2b](https://github.com/RookieEnough/De-Vanced/commit/e554c2b5daeeaccd77279b777a6e5d32388bfdc6))
+
+## [1.1.1](https://github.com/RookieEnough/De-Vanced/compare/v1.1.0...v1.1.1) (2026-08-12)
+
+### 🐛 Bug Fixes
+
+* **Facebook:** Fix version to last known version that patches and works correctly ([133a0e7](https://github.com/RookieEnough/De-Vanced/commit/133a0e77985d2b18b387e297e6af60c5c6d59671))
+* **Messenger:** Fix version to last known version that patches and works correctly ([4f5edef](https://github.com/RookieEnough/De-Vanced/commit/4f5edef137a687f8c504f6edcd23584cdc184cde))
+
+## [1.1.1-dev.1](https://github.com/RookieEnough/De-Vanced/compare/v1.1.0...v1.1.1-dev.1) (2026-08-11)
+
+### 🐛 Bug Fixes
+
+* **Facebook:** Fix version to last known version that patches and works correctly ([133a0e7](https://github.com/RookieEnough/De-Vanced/commit/133a0e77985d2b18b387e297e6af60c5c6d59671))
+* **Messenger:** Fix version to last known version that patches and works correctly ([4f5edef](https://github.com/RookieEnough/De-Vanced/commit/4f5edef137a687f8c504f6edcd23584cdc184cde))
+
 # [1.1.0](https://github.com/RookieEnough/De-Vanced/compare/v1.0.4...v1.1.0) (2026-08-05)
 
 

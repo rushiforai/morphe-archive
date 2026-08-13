@@ -44,15 +44,15 @@ Blocks Firebase Crashlytics and Sessions at the component registration level, di
 ## Patches List
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.4.2](https://github.com/alan7383/sofatime-patches/releases/tag/v1.4.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
+> **[v1.4.3](https://github.com/alan7383/sofatime-patches/releases/tag/v1.4.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
 <details open>
 <summary>📦 SofaTime&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 1.2.2 | 1.2.3 | 1.2.4 |
-| :---: | :---: | :---: |
+| 1.2.2 | 1.2.3 | 1.2.4 | 1.2.5 |
+| :---: | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|

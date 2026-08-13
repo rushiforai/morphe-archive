@@ -20,8 +20,5 @@ dependencies {
     compileOnly(libs.annotation)
 
     implementation(libs.gson)
-    //noinspection UseTomlInstead
-    implementation("com.github.ynab:J2V8:6.2.1-16kb.2@aar")
-
     implementation(project(":extensions:shared:library"))
 }

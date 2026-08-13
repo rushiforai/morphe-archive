@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Shared with YouTube and YT Music -->
+<!--
+
+    Strings with new lines must be raw strings where they're wrapped in quotes and new lines are not encoded.
+    Raw strings still require escaping embedded double quotes but escaping embedded single quotes is optional.
+
+    Raw strings are required because Crowdin AI translations regularly gets confused and
+    replace \n with an encoded new line character.
+
+    Bad:
+        <string name="summary_key">First \'item\' text\nSecond \"item\" text</string>
+
+    Good:
+        <string name="summary_key">"First 'item' text
+Second \"item\" text"</string>
+
+-->
+<resources>
+  <!-- misc.initialization.initializationPatch -->
+  <string name="morphe_restart_first_run">Перезавантажте, щоб завершити налаштування</string>
+  <!-- layout.branding.baseCustomBrandingPatch -->
+  <string name="morphe_custom_branding_name_title">Назва застосунку</string>
+  <!-- interaction.downloads.downloadsPatch -->
+  <string name="morphe_external_downloader_screen_title">Зовнішні завантажувачі</string>
+  <string name="morphe_external_downloader_name_title">Ім\'я пакета завантажувача</string>
+  <string name="morphe_external_downloader_name_summary">Назва пакета вашого встановленого зовнішнього застосунку для завантаження</string>
+  <string name="morphe_external_downloader_other_item_hint">Введіть назву пакету</string>
+  <string name="morphe_external_downloader_other_item">Вказати інший</string>
+  <string name="morphe_external_downloader_not_found_title">Застосунок не встановлено</string>
+  <string name="morphe_external_downloader_not_installed_warning">%s не встановлено. Будь ласка, встановіть його.</string>
+  <string name="morphe_external_downloader_package_not_found_warning">"Не вдалося знайти встановлений застосунок з назвою пакета: %s
+
+Перевірте правильність назви пакета та встановлення застосунку"</string>
+  <string name="morphe_external_downloader_empty_warning">Назва пакету не може бути порожньою</string>
+  <!-- Translations of this should be identical to morphe_custom_branding_icon_entry_7 -->
+  <string name="morphe_custom_branding_name_entry_5">Власна</string>
+  <string name="morphe_custom_branding_icon_title">Іконка застосунку</string>
+  <string name="morphe_custom_branding_icon_entry_1">Оригінальна</string>
+  <string name="morphe_custom_branding_icon_entry_2">Morphe чорна</string>
+  <string name="morphe_custom_branding_icon_entry_3">Morphe темна</string>
+  <string name="morphe_custom_branding_icon_entry_4">Morphe світла</string>
+  <!-- Translation should match morphe_custom_branding_notification_icon_entry_3 -->
+  <string name="morphe_custom_branding_icon_entry_5">Morphe play світла</string>
+  <!-- Translation should match morphe_custom_branding_notification_icon_entry_3 -->
+  <string name="morphe_custom_branding_icon_entry_6">Morphe play чорна</string>
+  <!-- Translations of this should be identical to morphe_custom_branding_name_entry_5 -->
+  <string name="morphe_custom_branding_icon_entry_7">Власна</string>
+  <string name="morphe_custom_branding_notification_icon_title">Іконка сповіщення</string>
+  <string name="morphe_custom_branding_notification_icon_entry_1">Відповідати іконці застосунку</string>
+  <string name="morphe_custom_branding_notification_icon_entry_3">Morphe play</string>
+  <!-- misc.dns.checkWatchHistoryDomainNameResolutionPatch -->
+  <string name="morphe_check_watch_history_domain_name_dialog_title">Повідомлення Morphe</string>
+  <string name="morphe_check_watch_history_domain_name_dialog_message">Ваша історія переглядів не зберігається.&lt;br&gt;&lt;br&gt;Швидше за все, це спричинено блокувальником реклами DNS або мережевим проксі.&lt;br&gt;&lt;br&gt;Щоб це виправити, додайте &lt;b&gt;s.youtube.com&lt;/b&gt; у білий список блокувальника або вимкніть усі DNS блокувальники та проксі.</string>
+  <string name="morphe_check_watch_history_domain_name_dialog_ignore">Більше не показувати</string>
+  <!-- misc.spoof.spoofVideoStreamsPatch -->
+  <string name="morphe_spoof_video_streams_screen_title">Підміна відеопотоків</string>
+  <string name="morphe_spoof_video_streams_screen_summary">Налаштування підміни клієнта для запобігання проблемам з відтворенням</string>
+  <string name="morphe_spoof_video_streams_title">Підміна відеопотоків</string>
+  <string name="morphe_spoof_video_streams_summary">"Виправляє проблеми з відтворенням для більшості користувачів, запитуючи сумісний відеопотік
+
+Якщо ви є користувачем YouTube Premium, це налаштування може не знадобитися"</string>
+  <string name="morphe_spoof_video_streams_no_clients_toast">Не вдалося отримати жодних клієнтських потоків</string>
+  <string name="morphe_spoof_video_streams_user_dialog_message">Вимкнення цього налаштування може спричинити проблеми з відтворенням.</string>
+  <!-- "Spoof video streams" must use the same translation as morphe_spoof_video_streams_title.
+         "Sign in to Android VR" must use the same translation as morphe_spoof_video_streams_sign_in_android_vr_about_title -->
+  <string name="morphe_spoof_video_streams_no_clients_suggest_vr_toast">Спробуйте увімкнути: Підміна відеопотоків > Android VR з входом</string>
+  <string name="morphe_spoof_video_streams_client_type_title">Типовий клієнт</string>
+  <!-- Ensure this translation matches the translation of morphe_spoof_video_streams_no_clients_suggest_vr_toast -->
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_about_title">Android VR з входом</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary">Ви не ввійшли в Android VR. Натисніть тут, щоб увійти</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary_signed_in">Наразі ви ввійшли в Android VR</string>
+  <!-- "Default client" must be the same translated text as morphe_spoof_video_streams_client_type_title -->
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary_disabled">Щоб використовувати цю функцію, змініть \"Типовий клієнт\" на Android VR</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_dialog_title">Увійти в Android VR</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_dialog_not_signed_in_message">"Вхід в Android VR може виправити проблеми з відтворенням для деяких користувачів
+
+Щоб увійти, натисніть \"Продовжити\" нижче"</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_dialog_continue">Продовжити</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_dialog_reset">Вийти</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_activation_code_dialog_title">Інструкції</string>
+  <!-- "Open website" must use the same translation as morphe_spoof_video_streams_sign_in_android_vr_activation_code_dialog_open_website -->
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_activation_code_dialog_message">"Код активації: %s
+
+1. Натисніть \"Відкрити вебсайт\" нижче, щоб відкрити вебсайт \"Підключити пристрій\"
+2. Вставте з буфера обміну (або введіть) код активації, показаний вище
+3. Увійдіть до Google, за потреби. Якщо у вас є кілька облікових записів, виберіть цей обліковий запис YouTube
+4. Натисніть \"Дозволити доступ до YouTube VR\"
+5. Поверніться до застосунку після того, як побачите повідомлення \"Пристрій підключено\""</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_activation_code_dialog_open_website">Відкрити вебсайт</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_toast_get_activation_code_failed">Не вдалося створити код активації</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_toast_get_authorization_code_failed">Не вдалося створити токен автентифікації</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_success_dialog_title">Вхід виконано успішно</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_success_dialog_message">"Автентифікацію збережено
+
+• Налаштування Morphe не імпортують/експортують автентифікацію Android VR
+• Якщо застосунок не використовується 6 місяців, Google видалить цю автентифікацію
+• Вам потрібно буде увійти знову, якщо ви зміните пароль Google або скасуєте реєстрацію цього пристрою в налаштуваннях Google"</string>
+  <string name="morphe_oauth2_connection_failure_timeout">OAuth2 тимчасово недоступний (тайм-аут API)</string>
+  <string name="morphe_oauth2_connection_failure_status_400">Термін дії входу в Android VR закінчився. Спробуйте ввійти у VR ще раз</string>
+  <string name="morphe_oauth2_connection_failure_status">OAuth2 тимчасово недоступний (статус %d)</string>
+  <string name="morphe_oauth2_connection_failure_generic">OAuth2 тимчасово недоступний</string>
+  <string name="morphe_oauth2_connection_failure_auth_not_approved">Не вдається ввійти у VR, автентифікацію вебсайту не схвалено</string>
+  <string name="morphe_oauth2_connection_failure_auth_error">Не вдається ввійти до VR: %s</string>
+  <string name="morphe_oauth2_toast_reset">Ви вийшли з Android VR</string>
+  <string name="morphe_oauth2_toast_invalid">Недійсний токен входу у VR, спробуйте ввійти у VR ще раз</string>
+  <!-- misc.quic.disableQUICProtocolPatch -->
+  <string name="morphe_disable_quic_protocol_title">Вимкнути протокол QUIC</string>
+  <!-- misc.audio.drc.disableDRCAudioPatch  -->
+  <string name="morphe_disable_drc_audio_title">Вимкнути аудіо DRC</string>
+  <!-- misc.audio.tracks.forceOriginalAudioPatch -->
+  <string name="morphe_force_original_audio_title">Примусово оригінальна мова звукової доріжки</string>
+  <string name="morphe_force_original_audio_summary">Завжди відтворює оригінальну аудіодоріжку відео замість дубльованої</string>
+  <!-- misc.proxy.networkProxyPatch -->
+  <string name="morphe_proxy_screen_title">Мережевий проксі</string>
+  <string name="morphe_proxy_screen_summary">Спрямовувати підтримувані мережеві запити через проксі</string>
+  <string name="morphe_proxy_enabled_title">Увімкнути проксі</string>
+  <string name="morphe_proxy_enabled_summary">Спрямовує підтримувані мережеві запити через налаштований HTTP або HTTPS проксі</string>
+  <string name="morphe_proxy_host_title">Хост проксі</string>
+  <string name="morphe_proxy_host_summary">Ім\'я хоста або IP-адреса проксі-сервера</string>
+  <string name="morphe_proxy_port_title">Порт проксі</string>
+  <string name="morphe_proxy_port_summary">Порт проксі-сервера</string>
+  <string name="morphe_proxy_https_title">Використовувати HTTPS проксі</string>
+  <string name="morphe_proxy_https_summary">Використовувати HTTPS для підключення до проксі-сервера замість HTTP</string>
+  <string name="morphe_proxy_auth_enabled_title">Автентифікація проксі</string>
+  <string name="morphe_proxy_auth_enabled_summary">Надсилає базову автентифікацію з запитами проксі</string>
+  <string name="morphe_proxy_auth_username_title">Ім\'я користувача проксі</string>
+  <string name="morphe_proxy_auth_username_summary">Ім\'я користувача для базової автентифікації проксі</string>
+  <string name="morphe_proxy_auth_password_title">Пароль проксі</string>
+  <string name="morphe_proxy_auth_password_summary">Пароль для базової автентифікації проксі</string>
+  <string name="morphe_proxy_allow_direct_fallback_title">Дозволити прямий резерв</string>
+  <string name="morphe_proxy_allow_direct_fallback_summary">Підключатися напряму, якщо проксі недоступний</string>
+  <!-- ad.hideFullscreenAdsPatch -->
+  <string name="morphe_hide_fullscreen_ads_title">Приховати повноекранну рекламу</string>
+  <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
+          'Android Studio' must be kept untranslated. -->
+  <string name="morphe_force_original_audio_not_available">Щоб використовувати цю функцію, змініть клієнт \"Підміни відеопотоків\" на будь-який, окрім \"Android Studio\"</string>
+  <!-- misc.privacy.sanitizeSharingLinksPatch -->
+  <string name="morphe_sanitize_sharing_links_title">Очищувати посилання для поширення</string>
+  <string name="morphe_sanitize_sharing_links_summary">Видаляє параметри відстеження з посилань при поширенні</string>
+  <string name="morphe_replace_music_with_youtube_title">Змінити посилання для поширення на youtube.com</string>
+  <string name="morphe_replace_music_with_youtube_summary">Замінює music.youtube.com на youtube.com у поширених посиланнях</string>
+  <string name="morphe_replace_links_with_shortener_title">Змінити посилання для поширення на youtu.be</string>
+  <string name="morphe_replace_links_with_shortener_summary">Примусово використовує скорочений формат URL youtu.be для відео</string>
+  <!-- misc.debugging.enableDebuggingPatch -->
+  <string name="morphe_debug_protobuffer_title">Налагоджувальний журнал протоколу буфера</string>
+  <string name="morphe_debug_protobuffer_summary">Додає додаткову інформацію в журнал для розробників для ідентифікації компонентів застосунку</string>
+  <string name="morphe_debug_protobuffer_user_dialog_message">"Увімкнення цього налаштування додасть до журналу додаткові дані макета, включно з текстом на екрані для деяких компонентів інтерфейсу.
+
+Це може допомогти визначити компоненти при створенні власних фільтрів.
+
+Однак увімкнення цього також додасть до журналу деякі дані користувача, наприклад вашу IP-адресу."</string>
+  <!-- Custom filter -->
+  <string name="morphe_custom_filter_screen_title">Власний фільтр</string>
+  <string name="morphe_custom_filter_screen_summary">Налаштуйте власні фільтри для приховування будь-яких елементів</string>
+  <string name="morphe_custom_filter_title">Увімкнути власний фільтр</string>
+  <string name="morphe_custom_filter_strings_title">Власний фільтр</string>
+  <!-- 'Component path builder strings' is the technical name for identifying the Litho UI layout items to hide. This is an advanced feature and most users will never use this. -->
+  <string name="morphe_custom_filter_strings_summary">Список рядків конструктора шляху компонента, які потрібно приховати, кожен з нового рядка</string>
+  <string name="morphe_custom_filter_toast_invalid_syntax">Недійсний власний фільтр: %s</string>
+  <!-- layout.hide.settingsmenu.hideSettingsMenuFilterPatch -->
+  <string name="morphe_settings_menu_filter_screen_title">Фільтр меню налаштувань</string>
+  <string name="morphe_settings_menu_filter_screen_summary">Приховати елементи на екрані стандартних налаштувань застосунку за їхньою видимою назвою</string>
+  <string name="morphe_settings_menu_filter_picker_empty">Відкрийте екран стандартних налаштувань застосунку один раз, щоб заповнити список</string>
+  <!-- interaction.dialog.removeViewerDiscretionDialogPatch -->
+  <string name="morphe_remove_viewer_discretion_dialog_title">Вилучити діалог про неприйнятний контент</string>
+  <string name="morphe_remove_viewer_discretion_dialog_summary">Це не обходить вікове обмеження. Просто приймає його автоматично</string>
+  <!-- misc.spoof.appversion.spoofAppVersionPatch -->
+  <string name="morphe_spoof_app_version_title">Підміна версії застосунку</string>
+  <string name="morphe_spoof_app_version_summary">Змушує сервер думати, що ви використовуєте стару версію застосунку, щоб відновити застарілі функції інтерфейсу</string>
+  <string name="morphe_spoof_app_version_user_dialog_message">"Версія застосунку буде підмінено до старішої версії.
+
+Це змінить вигляд і функції застосунку, але можуть виникнути невідомі побічні ефекти.
+
+Якщо пізніше вимкнути, рекомендується очистити дані застосунку, щоб запобігти помилкам інтерфейсу."</string>
+  <string name="morphe_spoof_app_version_target_title">Підмінити версію застосунку на</string>
+  <!-- layout.returnyoutubedislike.returnYouTubeDislikePatch -->
+  <!-- Brief notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
+  <string name="morphe_ryd_failure_connection_timeout">Дизлайки тимчасово недоступні (тайм-аут API)</string>
+  <string name="morphe_ryd_failure_connection_status_code">Дизлайки недоступні (статус %d)</string>
+  <string name="morphe_ryd_failure_client_rate_limit_requested">Дизлайки недоступні (ліміт клієнтів API)</string>
+  <string name="morphe_ryd_failure_generic">Дизлайки недоступні (%s)</string>
+  <!-- Video likes have been set to hidden by the video uploader. -->
+  <string name="morphe_ryd_video_likes_hidden_by_video_owner">Приховано власником</string>
+  <string name="morphe_ryd_enabled_title">Увімкнути Return YouTube Dislike</string>
+  <string name="morphe_ryd_dislike_percentage_title">Показувати дизлайки у відсотках</string>
+  <string name="morphe_ryd_dislike_percentage_summary">Показує дизлайки у відсотках від лайків замість числа</string>
+  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
+  <string name="morphe_ryd_compact_layout_title">Використовувати компактну кнопку \"Лайк\"</string>
+  <string name="morphe_ryd_compact_layout_summary">Зменшує ширину кнопки \"Лайк\", щоб заощадити місце</string>
+  <string name="morphe_ryd_estimated_like_title">Показувати приблизну кількість лайків</string>
+  <string name="morphe_ryd_estimated_like_summary">Показує приблизну кількість лайків на відео, де автор вимкнув лайки</string>
+  <string name="morphe_ryd_toast_on_connection_error_title">Показувати сповіщення про помилки з’єднання</string>
+  <string name="morphe_ryd_toast_on_connection_error_summary">Показує сповіщення, коли сервер Return YouTube Dislike недоступний</string>
+  <string name="morphe_ryd_attribution_summary">"Дані надаються API Return YouTube Dislike
+
+Торкніться тут, щоб відкрити ReturnYouTubeDislike.com"</string>
+  <!-- Statistic strings are shown in the settings only when Morphe debug mode is enabled. Typical users will never see these. -->
+  <string name="morphe_ryd_statistics_category_title">Статистика Return YouTube Dislike для цього пристрою</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeAverage_title">Час відповіді API, середній</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMin_title">Час відповіді API, мінімальний</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMax_title">Час відповіді API, максимальний</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_title">Час відповіді API, останній медіафайл</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_rate_limit_summary">Дизлайки тимчасово недоступні - діє обмеження швидкості клієнтів API</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_title">Отримання голосів API, кількість запитів</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_zero_summary">Мережевих запитів не здійснено </string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_non_zero_summary">%d мережевих запитів здійснено</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_title">Отримання голосів API, кількість помилок</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_zero_summary">Немає мережевих викликів, що перевищили час очікування</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_non_zero_summary">%d мережевих викликів перевищили час очікування</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_title">Обмеження швидкості клієнтів API</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_zero_summary">Обмежень швидкості клієнта не виявлено</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_non_zero_summary">Обмеження швидкості клієнта виникло %d разів</string>
+  <string name="morphe_ryd_statistics_millisecond_text">%d мілісекунд</string>
+</resources>

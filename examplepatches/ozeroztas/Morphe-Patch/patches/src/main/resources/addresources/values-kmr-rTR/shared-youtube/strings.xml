@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Shared with YouTube and YT Music -->
+<!--
+
+    Strings with new lines must be raw strings where they're wrapped in quotes and new lines are not encoded.
+    Raw strings still require escaping embedded double quotes but escaping embedded single quotes is optional.
+
+    Raw strings are required because Crowdin AI translations regularly gets confused and
+    replace \n with an encoded new line character.
+
+    Bad:
+        <string name="summary_key">First \'item\' text\nSecond \"item\" text</string>
+
+    Good:
+        <string name="summary_key">"First 'item' text
+Second \"item\" text"</string>
+
+-->
+<resources>
+  <!-- misc.initialization.initializationPatch -->
+  <string name="morphe_restart_first_run">Dest pê bike ku sazkirinê temam bike</string>
+  <!-- layout.branding.baseCustomBrandingPatch -->
+  <string name="morphe_custom_branding_name_title">Navê sepanê</string>
+  <!-- interaction.downloads.downloadsPatch -->
+  <string name="morphe_external_downloader_screen_title">Daxazkirinê derve</string>
+  <string name="morphe_external_downloader_name_title">Navê pakêta dakêşkerê</string>
+  <string name="morphe_external_downloader_name_summary">Navê pakêta sepanê we yê dakêşkerê yê sazkirî</string>
+  <string name="morphe_external_downloader_other_item_hint">Navê pakêtê têkevin</string>
+  <string name="morphe_external_downloader_other_item">Din</string>
+  <string name="morphe_external_downloader_not_found_title">Sepanê sazkirî nîn e</string>
+  <string name="morphe_external_downloader_not_installed_warning">%s sazkirî nîn e. Ji kerem sazkirin.</string>
+  <string name="morphe_external_downloader_package_not_found_warning">"Naxwest sepana sazkirî bi navê pakêtê %s bibîne
+
+Verast bike navê pakêtê rast e û sepan sazkirî ye"</string>
+  <string name="morphe_external_downloader_empty_warning">Navê pakêtê nikare vala be</string>
+  <!-- Translations of this should be identical to morphe_custom_branding_icon_entry_7 -->
+  <string name="morphe_custom_branding_name_entry_5">Xwerî</string>
+  <string name="morphe_custom_branding_icon_title">Îkonê</string>
+  <string name="morphe_custom_branding_icon_entry_1">Yekta</string>
+  <string name="morphe_custom_branding_icon_entry_2">Morphe reş</string>
+  <string name="morphe_custom_branding_icon_entry_3">Morphe tarî</string>
+  <string name="morphe_custom_branding_icon_entry_4">Morphe rovê</string>
+  <!-- Translation should match morphe_custom_branding_notification_icon_entry_3 -->
+  <string name="morphe_custom_branding_icon_entry_5">Ronahîya kêrê ya Morphe</string>
+  <!-- Translation should match morphe_custom_branding_notification_icon_entry_3 -->
+  <string name="morphe_custom_branding_icon_entry_6">Reşê yê Morphe</string>
+  <!-- Translations of this should be identical to morphe_custom_branding_name_entry_5 -->
+  <string name="morphe_custom_branding_icon_entry_7">Xwerî</string>
+  <string name="morphe_custom_branding_notification_icon_title">Aîkona notifikasyonê</string>
+  <string name="morphe_custom_branding_notification_icon_entry_1">Îkona serîlêdana guhêrîn</string>
+  <string name="morphe_custom_branding_notification_icon_entry_3">Morphe lîstikê</string>
+  <!-- misc.dns.checkWatchHistoryDomainNameResolutionPatch -->
+  <string name="morphe_check_watch_history_domain_name_dialog_title">Îlanê Morphe</string>
+  <string name="morphe_check_watch_history_domain_name_dialog_message">Sergûzastên we têne parvekirin.&lt;br&gt;&lt;br&gt;Ev bi girîngî ji hêla pêşgirê DNS an proxy-ya danînê ve tê bandor kirin.&lt;br&gt;&lt;br&gt;Ji bo çareserî, s.youtube.com veşêre an hemû pêşgirên DNS û proxy-yên vegirtêrê vanqandin.</string>
+  <string name="morphe_check_watch_history_domain_name_dialog_ignore">Ji nûve ne nîşan bide</string>
+  <!-- misc.spoof.spoofVideoStreamsPatch -->
+  <string name="morphe_spoof_video_streams_screen_title">Goşiyên wîdyoyê spoof bikin</string>
+  <string name="morphe_spoof_video_streams_screen_summary">Têkbirina mûşekan a serîlêdanê bicîh bîne da ku ji pirsgirêkên lêçînê pêşî bigire</string>
+  <string name="morphe_spoof_video_streams_title">Goşiyên wîdyoyê spoof bikin</string>
+  <string name="morphe_spoof_video_streams_summary">"Pirsgirêkên lêkirinê ji bo piraniya bikarhêneran bi daxwazkirina herîkek vîdyoyê ya li hevdîtinê çareser dike
+
+Ger hûn bikarhênerê YouTube Premium nebin, ev mîheng dikare pêwîst nebe."</string>
+  <string name="morphe_spoof_video_streams_no_clients_toast">Tiştekî ji goşiyên klijentê neyê pêşbaz kirin</string>
+  <string name="morphe_spoof_video_streams_user_dialog_message">Dibe ku birêveçûna vê naverokê kêmasiyên lêxistinê hebe.</string>
+  <!-- "Spoof video streams" must use the same translation as morphe_spoof_video_streams_title.
+         "Sign in to Android VR" must use the same translation as morphe_spoof_video_streams_sign_in_android_vr_about_title -->
+  <string name="morphe_spoof_video_streams_no_clients_suggest_vr_toast">Bila veşêre: Spoof video streams > Îqneya VR-a Android</string>
+  <string name="morphe_spoof_video_streams_client_type_title">Klijentê default</string>
+  <!-- Ensure this translation matches the translation of morphe_spoof_video_streams_no_clients_suggest_vr_toast -->
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_about_title">Îqneya VR-a Android</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary">Naveçeyîn e ku bi VR-a Android ve hatî qeyd kirin</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary_signed_in">Niha bi VR-a Android ve hatî qeyd kirin</string>
+  <!-- "Default client" must be the same translated text as morphe_spoof_video_streams_client_type_title -->
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary_disabled">Ji bo bikardana vê taybetmendiyê, \'Klijenta default\' biguhezîne VR-a Android</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_dialog_title">Bi VR-a Android ve qeyd bike</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_dialog_not_signed_in_message">"Teqezîya nêzîkê Android VR bikê da ku vexalên lêpêvirîna malandaran ji hin rêzên bidê.
+
+Da ku teqezîya nêzîkê bikin, li jêr bidixin 'bidin pêşbaz'."</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_dialog_continue">Bidawaze</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_dialog_reset">Derveke</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_activation_code_dialog_title">Amûreyên</string>
+  <!-- "Open website" must use the same translation as morphe_spoof_video_streams_sign_in_android_vr_activation_code_dialog_open_website -->
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_activation_code_dialog_message">"Koda aktivasyonê: %s
+
+1. Kilatek 'Malperê veke' li jêr bitarînin da ku malpera 'Cihaskirina alavê' vebxe.
+2. Ji bo çêspêkê (an nivîsê) koda aktivasyonê ku li jor tê nîşandin, vekirin.
+3. Ger hat pêşbazkirin, bi Google-ê têxin nêzîk. Ger mêreka hesabê heya, ev hesabê YouTube-yê hilbijêrin.
+4. Li 'Dibe alavê VR YouTube' bitarînin
+5. Piştî gihîşîya peyamê 'Alav pêwendiya', vegerin serdana ev sepan."</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_activation_code_dialog_open_website">Malperê veke</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_toast_get_activation_code_failed">Ne başa kodu aktivasyonê dabî.</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_toast_get_authorization_code_failed">Ne başa nîşana otantîkasyonê dabî.</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_success_dialog_title">Bi ser ket teqezîya nêzîkê.</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_success_dialog_message">"Saziyên we ji Morphe nebazin/neçênin Android VR teqezîya otantîkasyonê.
+• Ger ev sepan ji 6 mehyan kêmtir neyê bikarîn, Google ev teqezîya ji holê radike.
+• Ger hûn peyva Google-a xwe biguhênin an ev alav ji avakerên Google-a we ji holê rabikin, wê demê divê we îze ba nêzîkê bikin."</string>
+  <string name="morphe_oauth2_connection_failure_timeout">OAuth2 niha rê ne. (API derket).</string>
+  <string name="morphe_oauth2_connection_failure_status_400">Teqezîya VR bi rêz ve ne, teqezîya malpera otantîkasyonê ne-qebûl kirin.</string>
+  <string name="morphe_oauth2_connection_failure_status">OAuth2 niha rê ne (demî %d).</string>
+  <string name="morphe_oauth2_connection_failure_generic">OAuth2 niha rê ne.</string>
+  <string name="morphe_oauth2_connection_failure_auth_not_approved">Ne çawa teqezîya VR bikin: otantîkasyonê malpera qebûl kirin.</string>
+  <string name="morphe_oauth2_connection_failure_auth_error">Ne çawa teqezîya VR bikin: %s.</string>
+  <string name="morphe_oauth2_toast_reset">Ji Android VR derketim.</string>
+  <string name="morphe_oauth2_toast_invalid">Teqezîya VR bi derexaneyê, zî dosya teqezîya nêzîkê bî.</string>
+  <!-- misc.quic.disableQUICProtocolPatch -->
+  <string name="morphe_disable_quic_protocol_title">Protocols QUIC qut bikin</string>
+  <!-- misc.audio.drc.disableDRCAudioPatch  -->
+  <string name="morphe_disable_drc_audio_title">Sazîya DRC dengê qut bikin</string>
+  <!-- misc.audio.tracks.forceOriginalAudioPatch -->
+  <string name="morphe_force_original_audio_title">Zimanê dengê orjinal timê bike</string>
+  <string name="morphe_force_original_audio_summary">Her gav şopa dengê orjînal yê vîdyoyê lê dide şûna guhertoyek dublajkirî</string>
+  <!-- misc.proxy.networkProxyPatch -->
+  <string name="morphe_proxy_screen_title">Nûnerê pêvekirî</string>
+  <string name="morphe_proxy_screen_summary">Daxistina hejarekê da ku daxwazên torê yên piştgirîkirî bidin</string>
+  <string name="morphe_proxy_enabled_title">Proxy çalak bike</string>
+  <string name="morphe_proxy_enabled_summary">Daxwazên torê yên piştgirîkirî tên rêberkirin bi rêya proxy-ê HTTP an HTTPS-ê yê ku hatî konfîgkirin</string>
+  <string name="morphe_proxy_host_title">Hostê proxy-ê</string>
+  <string name="morphe_proxy_host_summary">Navê hostê an adresa IP-ya serverê proxy-ê</string>
+  <string name="morphe_proxy_port_title">Porta proxy-ê</string>
+  <string name="morphe_proxy_port_summary">Porta serverê proxy-ê</string>
+  <string name="morphe_proxy_https_title">Bikar bîne proxy-ê HTTPS</string>
+  <string name="morphe_proxy_https_summary">Bikar bîne HTTPS-ê da ku bi serverê proxy-ê ve girêdayî bibe li şûna HTTP-yê</string>
+  <string name="morphe_proxy_auth_enabled_title">Authentication-a proxy-ê</string>
+  <string name="morphe_proxy_auth_enabled_summary">Şandina authentication-a Basic bi daxwazên proxy-ê re</string>
+  <string name="morphe_proxy_auth_username_title">Navê notrê proxy-ê</string>
+  <string name="morphe_proxy_auth_username_summary">Navê notrê bo authentication-a Basic a proxy-ê</string>
+  <string name="morphe_proxy_auth_password_title">Şîfreya proxy-ê</string>
+  <string name="morphe_proxy_auth_password_summary">Şîfre bo authentication-a Basic a proxy-ê</string>
+  <string name="morphe_proxy_allow_direct_fallback_title">Destûr dayê fallback-a rasterast</string>
+  <string name="morphe_proxy_allow_direct_fallback_summary">Têkeve rasterast heke proxy têk bibe</string>
+  <!-- ad.hideFullscreenAdsPatch -->
+  <string name="morphe_hide_fullscreen_ads_title">Rekel kiradên ekranê tam</string>
+  <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
+          'Android Studio' must be kept untranslated. -->
+  <string name="morphe_force_original_audio_not_available">Bi ku vê taybetmendiyê bikar bîne, guhêrîna \'Hêrîşkirina hûrbînên vîdyoyê\' bi her kûliyê ji bilî \'Android Studio\' bike.</string>
+  <!-- misc.privacy.sanitizeSharingLinksPatch -->
+  <string name="morphe_sanitize_sharing_links_title">Lînkên parvekirinê paqij bike</string>
+  <string name="morphe_sanitize_sharing_links_summary">Parametreyên pirsîna şopandinê ji girêdên parvekirî têne çêkirin</string>
+  <string name="morphe_replace_music_with_youtube_title">Lînkên parvekirî biguhezîne youtube.com</string>
+  <string name="morphe_replace_music_with_youtube_summary">Lînkên parvekirî de music.youtube.com bi youtube.com veguherîne</string>
+  <string name="morphe_replace_links_with_shortener_title">Lînkên parvekirinê biguherîne youtu.be</string>
+  <string name="morphe_replace_links_with_shortener_summary">Vîdyoyê neçar dike ku biçîna forma URL\'ê ya kurt a youtu.be</string>
+  <!-- misc.debugging.enableDebuggingPatch -->
+  <string name="morphe_debug_protobuffer_title">Protokola buffer-a logê çepkirin</string>
+  <string name="morphe_debug_protobuffer_summary">Agahiyên din ên logê ji bo pêşdebiran da ku pêkhêleyên app-ê nas bikin zêde dike</string>
+  <string name="morphe_debug_protobuffer_user_dialog_message">"Çalak kirina vê mîhengê dê agahiyên lêkirinê yên din, tevî nivîsa li ser ekranê ji bo hin pêkhêleyên UI-yê, log bike.
+
+Ew dikare alîkar bike ku pêkhêleyan dema çêkirina fîlterên xwerû nas bikin.
+
+Lê belê, çalak kirina wê dê hin agahiyên bikarhêner wekî navnîşana IP-ya we jî log bike."</string>
+  <!-- Custom filter -->
+  <string name="morphe_custom_filter_screen_title">Filtra niştecî</string>
+  <string name="morphe_custom_filter_screen_summary">Mîhengkirina fîltreên niştecî da ku her pêkhateyek veşêrin</string>
+  <string name="morphe_custom_filter_title">Filtra niştecî bidomîne</string>
+  <string name="morphe_custom_filter_strings_title">Filtra niştecî</string>
+  <!-- 'Component path builder strings' is the technical name for identifying the Litho UI layout items to hide. This is an advanced feature and most users will never use this. -->
+  <string name="morphe_custom_filter_strings_summary">Lîsteya stringên avakera rêya pêkhateyan da ku bi rêyên nû veqetandî fîltre bikin</string>
+  <string name="morphe_custom_filter_toast_invalid_syntax">Filtra niştecî ne heq e: %s</string>
+  <!-- layout.hide.settingsmenu.hideSettingsMenuFilterPatch -->
+  <string name="morphe_settings_menu_filter_screen_title">Filtra menuya ayaran</string>
+  <string name="morphe_settings_menu_filter_screen_summary">Navê dîmenê yê ku li ser ekranê bi navê derbasbûyê xuya dike, li ser ekranê yê ayarên sepîn bike</string>
+  <string name="morphe_settings_menu_filter_picker_empty">Carekê ekranê ayarên sepîn veke da ku navnîşê qewim bike</string>
+  <!-- interaction.dialog.removeViewerDiscretionDialogPatch -->
+  <string name="morphe_remove_viewer_discretion_dialog_title">Dialoga hişyariya temaşevanân bidin der</string>
+  <string name="morphe_remove_viewer_discretion_dialog_summary">Ev rêbaza derbasbûna sînorkirina temenî nîn e. Tenê wê bixwe dinirîne</string>
+  <!-- misc.spoof.appversion.spoofAppVersionPatch -->
+  <string name="morphe_spoof_app_version_title">Guherîna guhertoya sepanê</string>
+  <string name="morphe_spoof_app_version_summary">Serverê dixapînin ku hûn guhertoyek kevnêtir ê sepanê bikar tînin da ku taybetmendiyên berê yên navnîşê vegerînin</string>
+  <string name="morphe_spoof_app_version_user_dialog_message">"Guhertoya sepanê wê bi guhertoyek kevnêtir were guherîn.
+
+Ev ê sînorên peydakirina sepanê biguherîne, lê bandorên nediyar dikarin çêbin.
+
+Ger paşê were veqetandîn, pêşniyar dike ku daneyê sepanê were paqijkirin da ku kêmasiyên navnîşê neyên çêkirin."</string>
+  <string name="morphe_spoof_app_version_target_title">Armancê guherîna guhertoya sepanê</string>
+  <!-- layout.returnyoutubedislike.returnYouTubeDislikePatch -->
+  <!-- Brief notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
+  <string name="morphe_ryd_failure_connection_timeout">Nexweşiyan bi demkî nehelin (API hat serxweşîn)</string>
+  <string name="morphe_ryd_failure_connection_status_code">Nezrêyan niçeber (status %d)</string>
+  <string name="morphe_ryd_failure_client_rate_limit_requested">Nexweşiyan hene nehelin (sînorkirina API-ya mişterî)</string>
+  <string name="morphe_ryd_failure_generic">Nexweşiyan hene nehelin (%s)</string>
+  <!-- Video likes have been set to hidden by the video uploader. -->
+  <string name="morphe_ryd_video_likes_hidden_by_video_owner">Xwedî veşartiye</string>
+  <string name="morphe_ryd_enabled_title">Return YouTube Dislike çalak bike</string>
+  <string name="morphe_ryd_dislike_percentage_title">Nexweşiyan wekî ji sedî nîşan bide</string>
+  <string name="morphe_ryd_dislike_percentage_summary">Nexweşiyan wekî ji sedîyê li şûna hejmarê nîşan dide</string>
+  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
+  <string name="morphe_ryd_compact_layout_title">Bîtnê Like yê bi şeklê kêm bikar bîne</string>
+  <string name="morphe_ryd_compact_layout_summary">Firehiya bîtnê Like yê kêm dike da ku cî bicîre</string>
+  <string name="morphe_ryd_estimated_like_title">Nexweşiyên texmînî nîşan bide</string>
+  <string name="morphe_ryd_estimated_like_summary">Hejmara nexweşiyên texmînî li ser vîdyoyên ku afirîner nexweşiyan dezaktîv kiriye nîşan dide</string>
+  <string name="morphe_ryd_toast_on_connection_error_title">Îşaretên çewtîyê nîşan bide</string>
+  <string name="morphe_ryd_toast_on_connection_error_summary">Dê îşaretê nîşan bide gava ku servera Return YouTube Dislike hewîr be</string>
+  <string name="morphe_ryd_attribution_summary">"Daneyê ji hêla API-ya Return YouTube Dislike ve tê peyda kirin
+
+Li vir bikirtîne da ku ReturnYouTubeDislike.com veke"</string>
+  <!-- Statistic strings are shown in the settings only when Morphe debug mode is enabled. Typical users will never see these. -->
+  <string name="morphe_ryd_statistics_category_title">Statîstîkên API-ya Return YouTube Dislike ya vê cîhazê</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeAverage_title">Demê bersîva API-yê, bi navînî</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMin_title">Demê bersîva API-yê, herî kêm</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMax_title">Demê bersîva API-yê, herî zêde</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_title">Demê bersîva API-yê, medyayê dawîn</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_rate_limit_summary">Nexweşiyan bi demkî nehelin - Sînorkirina API-ya mişterî di heyaşînê de</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_title">Bangên API-yê, hejmara bangên</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_zero_summary">Tîkî bangên tîkînê nehatine kirin</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_non_zero_summary">%d tîkî bangên hatine kirin</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_title">Bangên API-yê, hejmara demên serxweşînê</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_zero_summary">Tîkî bangên serxweşînê hene</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_non_zero_summary">%d tîkî bangên serxweşînê hene</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_title">Sînorkirinên API-yê yên mişterî</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_zero_summary">Tîkî sînorkirinên mişterî hene</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_non_zero_summary">Sînorkirina mişterî %d caran hat dîtin</string>
+  <string name="morphe_ryd_statistics_millisecond_text">%d mîlîsekund</string>
+</resources>

@@ -3,9 +3,11 @@ package app.ftl.patches.dpi
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.longOption
+import app.morphe.patcher.patch.stringOption
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.ftl.util.getFreeRegisterProvider
+import app.ftl.util.registersUsed
 import app.ftl.util.traverseClassHierarchy
 
 private const val EXTENSION_SET_PERCENT =
@@ -31,18 +33,18 @@ val universalDpiPatch = bytecodePatch(
 
     extendWith("extensions/dpi.mpe")
 
-    val dpiOption = longOption(
+    val dpiOption by stringOption(
         key = "dpi",
-        default = 100L,
+        default = "100",
         title = "Display scale",
         description = "Scales this app's display relative to the device's own setting. " +
             "100% = no change, 150% = 1.5x larger, 50% = half size. Range 25-300%.",
-        required = false,
-        validator = { it == null || it in 25L..300L },
+        required = true,
+        validator = { it?.toIntOrNull()?.let { v -> v in 25..300 } ?: false },
     )
 
     execute {
-        val dpi = (dpiOption.value ?: 100L).toInt()
+        val dpi = dpiOption?.toIntOrNull() ?: 100
 
         val applicationClass = AppEntryPoint.applicationClassName
             ?.toClassType()
@@ -78,7 +80,12 @@ private fun BytecodePatchContext.injectApplicationInit(applicationClass: Mutable
             it.name == "onCreate" && it.parameters.isEmpty() && it.returnType == "V"
         } ?: return@traverseClassHierarchy
 
-        val register = onCreate.getFreeRegisterProvider(1, 1).getFreeRegister()
+        val register = try {
+            onCreate.getFreeRegisterProvider(1, 1, onCreate.getInstruction(0).registersUsed).getFreeRegister()
+        } catch (e: IllegalArgumentException) {
+            return@traverseClassHierarchy
+        }
+
         onCreate.addInstructions(
             0,
             """
@@ -111,7 +118,11 @@ private fun BytecodePatchContext.injectActivityInit(activityClass: MutableClass,
         // Only 1 register needed: init(Activity) resolves the Application itself,
         // and also applies density to this activity directly (register()'s
         // ActivityLifecycleCallbacks only cover activities created afterward).
-        val register = onCreate.getFreeRegisterProvider(1, 1).getFreeRegister()
+        val register = try {
+            onCreate.getFreeRegisterProvider(1, 1, onCreate.getInstruction(0).registersUsed).getFreeRegister()
+        } catch (e: IllegalArgumentException) {
+            return@traverseClassHierarchy
+        }
 
         onCreate.addInstructions(
             0,

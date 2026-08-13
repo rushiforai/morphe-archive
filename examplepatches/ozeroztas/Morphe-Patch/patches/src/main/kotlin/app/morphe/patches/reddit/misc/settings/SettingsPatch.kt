@@ -1,0 +1,205 @@
+/*
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
+ *
+ * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ */
+
+package app.morphe.patches.reddit.misc.settings
+
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.string
+import app.morphe.patches.all.misc.fix.openurllinks.removeLinkVerification
+import app.morphe.patches.all.misc.resources.addAppResources
+import app.morphe.patches.all.misc.resources.addResourcesPatch
+import app.morphe.patches.all.misc.resources.localesReddit
+import app.morphe.patches.all.misc.resources.setAddResourceLocale
+import app.morphe.patches.all.misc.resources.setPatchStringsReplaceExisting
+import app.morphe.patches.all.misc.updates.disablePlayStoreUpdatesPatch
+import app.morphe.patches.reddit.misc.extension.hooks.redditActivityOnCreateHook
+import app.morphe.patches.reddit.misc.extension.sharedExtensionPatch
+import app.morphe.patches.reddit.misc.fix.signature.spoofSignaturePatch
+import app.morphe.patches.reddit.misc.version.is_2026_25_0_or_greater
+import app.morphe.patches.reddit.misc.version.is_2026_30_0_or_greater
+import app.morphe.patches.reddit.misc.version.versionCheckPatch
+import app.morphe.patches.reddit.shared.Constants.COMPATIBILITY_REDDIT
+import app.morphe.patches.shared.misc.checks.experimentalAppNoticePatch
+import app.morphe.util.ResourceGroup
+import app.morphe.util.cloneParameters
+import app.morphe.util.copyResources
+import app.morphe.util.findElementByAttributeValue
+import app.morphe.util.findFreeRegister
+import app.morphe.util.removeFromParent
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+
+private const val EXTENSION_CLASS =
+    "Lapp/morphe/extension/reddit/settings/RedditActivityHook;"
+
+val settingsPatch = bytecodePatch(
+    description = "Applies mandatory patches to implement Morphe settings into the application."
+) {
+    compatibleWith(COMPATIBILITY_REDDIT)
+
+    dependsOn(
+        sharedExtensionPatch,
+        disablePlayStoreUpdatesPatch,
+        spoofSignaturePatch,
+        removeLinkVerification,
+        addResourcesPatch,
+        versionCheckPatch,
+        experimentalAppNoticePatch(
+            mainActivityFingerprint = redditActivityOnCreateHook.fingerprint,
+            recommendedAppVersion = COMPATIBILITY_REDDIT.targets.first { !it.isExperimental }.version!!
+        ),
+        resourcePatch {
+            execute {
+                // Remove localized acknowledgement string.
+                get("res").walk().forEach { file ->
+                    if ("strings.xml" == file.name) {
+                        document(file.absolutePath).use { document ->
+                            document.documentElement.childNodes.findElementByAttributeValue(
+                                "name",
+                                "acknowledgements_title",
+                            )?.removeFromParent()
+                        }
+                    }
+                }
+
+                copyResources(
+                    "settings",
+                    ResourceGroup("drawable",
+                        "morphe_ic_dialog_alert.xml",
+                        "morphe_settings_custom_checkmark.xml",
+                        "morphe_settings_custom_checkmark_bold.xml",
+                    ),
+                    ResourceGroup("layout",
+                        "morphe_custom_list_item_checked.xml"
+                    )
+                )
+            }
+        }
+    )
+
+    execute {
+        setAddResourceLocale(localesReddit)
+        addAppResources("shared")
+        addAppResources("reddit")
+
+        if (is_2026_25_0_or_greater) {
+            PreferenceDestinationFingerprint.method.addInstructionsWithLabels(
+                0,
+                """
+                    invoke-static/range { p1 .. p1 }, $EXTENSION_CLASS->openMorpheSettings(Ljava/lang/Enum;)Z
+                    move-result v0
+                    if-eqz v0, :ignore
+                    sget-object v0, Lkotlin/Unit;->a:Lkotlin/Unit;
+                    return-object v0
+                    
+                    :ignore
+                    nop
+                """
+            )
+        }
+
+        if (is_2026_30_0_or_greater) {
+            return@execute
+        }
+
+        /**
+         * Replace settings label and icon
+         */
+        PreferenceManagerLegacyFingerprint.let {
+            it.method.apply {
+                val labelIndex = it.instructionMatches[5].index
+                val labelRegister = getInstruction<OneRegisterInstruction>(labelIndex).registerA
+
+                addInstructions(
+                    labelIndex + 1,
+                    """
+                            invoke-static { }, $EXTENSION_CLASS->getSettingLabel()Ljava/lang/String;
+                            move-result-object v$labelRegister
+                        """
+                )
+
+                val iconIndex = it.instructionMatches[2].index
+                val iconRegister = getInstruction<OneRegisterInstruction>(iconIndex).registerA
+
+                addInstructions(
+                    iconIndex + 1,
+                    """
+                            invoke-static { }, $EXTENSION_CLASS->getSettingIcon()Landroid/graphics/drawable/Drawable;
+                            move-result-object v$iconRegister
+                        """
+                )
+            }
+        }
+
+        PreferenceDestinationLegacyFingerprint.let {
+            val getActivityMethod = Fingerprint(
+                accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+                returnType = RedditActivityFingerprint.originalClassDef.type,
+                parameters = listOf()
+            ).method
+
+            val startActivityMethod = Fingerprint(
+                definingClass = getActivityMethod.definingClass,
+                returnType = "V",
+                parameters = listOf(
+                    "Landroid/content/Intent",
+                    "I",
+                    "Landroid/os/Bundle;"
+                ),
+                filters = listOf(
+                    string(" not attached to Activity"),
+                )
+            ).method
+
+            it.method.cloneParameters().addInstructionsWithLabels(
+                0,
+                """
+                    invoke-static/range { p1 .. p1 }, $EXTENSION_CLASS->isAcknowledgment(Ljava/lang/Enum;)Z
+                    move-result v0
+                    if-eqz v0, :ignore
+                    
+                    invoke-virtual { p0 }, $getActivityMethod
+                    move-result-object v0
+                    invoke-static { v0 }, $EXTENSION_CLASS->initializeByIntent(Landroid/content/Context;)Landroid/content/Intent;
+                    move-result-object v0
+                    
+                    const/4 v1, -1
+                    const/4 v2, 0x0
+                    invoke-virtual { p0, v0, v1, v2 }, ${getActivityMethod.definingClass}->${startActivityMethod.name}(Landroid/content/Intent;ILandroid/os/Bundle;)V
+                    return-void
+                    
+                    :ignore
+                    nop
+                """
+            )
+        }
+
+        WebBrowserActivityOnCreateFingerprint.let {
+            it.method.apply {
+                val insertIndex = it.instructionMatches.first().index
+                val freeRegister = findFreeRegister(insertIndex)
+
+                addInstructionsWithLabels(
+                    insertIndex + 1,
+                    """
+                        invoke-static/range { p0 .. p0 }, $EXTENSION_CLASS->hook(Landroid/app/Activity;)Z
+                        move-result v$freeRegister
+                        if-eqz v$freeRegister, :ignore
+                        return-void
+                        :ignore
+                        nop
+                    """
+                )
+            }
+        }
+    }
+}

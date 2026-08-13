@@ -1,4 +1,4 @@
-rootProject.name = "morphe-patches"
+rootProject.name = "de-vanced"
 
 pluginManagement {
     repositories {

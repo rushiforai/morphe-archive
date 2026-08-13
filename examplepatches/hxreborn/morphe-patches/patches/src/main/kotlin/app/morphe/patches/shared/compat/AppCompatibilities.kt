@@ -13,6 +13,13 @@ import app.morphe.patcher.patch.Compatibility
 
 @Suppress("MemberVisibilityCanBePrivate")
 internal object AppCompatibilities {
+    val AUDIBLE = Compatibility(
+        name = "Audible",
+        packageName = "com.audible.application",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0xF8991C,
+    )
+
     val FORUS = Compatibility(
         name = "ForusApp",
         packageName = "com.myvitale.forus",
@@ -40,5 +47,13 @@ internal object AppCompatibilities {
         packageName = "com.michaldrabik.showly2",
         apkFileType = ApkFileType.APK,
         appIconColor = 0xF44336,
+    )
+
+    val SHOWLY_3_70 = Compatibility(
+        name = "Showly",
+        packageName = "com.michaldrabik.showly2",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0xF44336,
+        targets = listOf(AppTarget(version = "3.70.0", versionCode = 840, minSdk = 23)),
     )
 }

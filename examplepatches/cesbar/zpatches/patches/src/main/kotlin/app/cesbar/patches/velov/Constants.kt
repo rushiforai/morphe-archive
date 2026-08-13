@@ -10,6 +10,4 @@ object Constants {
         appIconColor = 0xF42F34,
         targets = listOf(AppTarget("3.1.1"))
     )
-
-    const val SIGNATURE = "F7A3BCBEF27B68409D77C105243233B9BD7B4889"
 }

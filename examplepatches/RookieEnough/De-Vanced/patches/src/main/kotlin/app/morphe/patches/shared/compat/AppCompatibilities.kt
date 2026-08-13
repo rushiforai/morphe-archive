@@ -8,11 +8,10 @@ package app.morphe.patches.shared.compat
 
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
+import app.morphe.patcher.patch.SupportedAbi
 
 @Suppress("MemberVisibilityCanBePrivate")
 internal object AppCompatibilities {
-    private const val TIKTOK_COLOR = 0xFE2C55
-
     val AMAZON_MUSIC = Compatibility(
         name = "Amazon Music",
         packageName = "com.amazon.mp3",
@@ -67,12 +66,6 @@ internal object AppCompatibilities {
         appIconColor = 0x000000,
     )
 
-    val PEACOCK_TV = Compatibility(
-        name = "Peacock TV",
-        packageName = "com.peacocktv.peacockandroid",
-        appIconColor = 0x000000,
-    )
-
     val NU_NL = Compatibility(
         name = "NU.nl",
         packageName = "nl.sanomamedia.android.nu",
@@ -89,45 +82,36 @@ internal object AppCompatibilities {
         name = "Facebook",
         packageName = "com.facebook.katana",
         appIconColor = 0x0866FF,
-    )
-
-    val FACEBOOK_490 = Compatibility(
-        name = "Facebook",
-        packageName = "com.facebook.katana",
-        appIconColor = 0x0866FF,
-        targets = listOf(AppTarget("490.0.0.63.82")),
+        targets = listOf(
+            AppTarget(
+                version = "490.0.0.63.82",
+                versionCodes = mapOf(
+                    SupportedAbi.ARMEABI_V7A to 457019986,
+                    SupportedAbi.ARM64_V8A to 457019914
+                )
+            )
+        )
     )
 
     val MESSENGER = Compatibility(
         name = "Messenger",
         packageName = "com.facebook.orca",
         appIconColor = 0x0866FF,
-    )
-
-    val THREADS = Compatibility(
-        name = "Threads",
-        packageName = "com.instagram.barcelona",
-        appIconColor = 0x000000,
-        targets = listOf(AppTarget("382.0.0.51.85")),
+        targets = listOf(
+            AppTarget(
+                version = "573.0.0.44.88",
+                versionCodes = mapOf(
+                    SupportedAbi.ARMEABI_V7A to 344611781,
+                    SupportedAbi.ARM64_V8A to 344611864
+                )
+            )
+        )
     )
 
     val GOOGLE_PHOTOS = Compatibility(
         name = "Google Photos",
         packageName = "com.google.android.apps.photos",
         appIconColor = 0xFC3F3C,
-    )
-
-    val GOOGLE_NEWS = Compatibility(
-        name = "Google News",
-        packageName = "com.google.android.apps.magazines",
-        appIconColor = 0x4887F4,
-        targets = listOf(AppTarget("5.108.0.644447823")),
-    )
-
-    val INSHORTS = Compatibility(
-        name = "Inshorts",
-        packageName = "com.nis.app",
-        appIconColor = 0xE53935,
     )
 
     val LETTERBOXD = Compatibility(
@@ -143,12 +127,6 @@ internal object AppCompatibilities {
         targets = listOf(AppTarget("6.141.1")),
     )
 
-    val RAR = Compatibility(
-        name = "RAR",
-        packageName = "com.rarlab.rar",
-        appIconColor = 0xFF9800,
-    )
-
     val CRICBUZZ = Compatibility(
         name = "Cricbuzz",
         packageName = "com.cricbuzz.android",
@@ -162,23 +140,10 @@ internal object AppCompatibilities {
         appIconColor = 0xD73E01,
     )
 
-    val DISNEY_PLUS = Compatibility(
-        name = "Disney+",
-        packageName = "com.disney.disneyplus",
-        appIconColor = 0x09A9B8,
-    )
-
     val PHOTOMATH = Compatibility(
         name = "Photomath",
         packageName = "com.microblink.photomath",
         appIconColor = 0xD23F3F,
-    )
-
-    val PROTON_MAIL = Compatibility(
-        name = "Proton Mail",
-        packageName = "ch.protonmail.android",
-        appIconColor = 0x6D48FF,
-        targets = listOf(AppTarget("4.15.0")),
     )
 
     val ICON_PACK_STUDIO = Compatibility(
@@ -188,23 +153,10 @@ internal object AppCompatibilities {
         targets = listOf(AppTarget("2.2 build 016")),
     )
 
-    val SOUNDCLOUD = Compatibility(
-        name = "SoundCloud",
-        packageName = "com.soundcloud.android",
-        appIconColor = 0x000000,
-        targets = listOf(AppTarget("2025.05.27-release")),
-    )
-
     val STRAVA = Compatibility(
         name = "Strava",
         packageName = "com.strava",
         appIconColor = 0xFC6925,
-    )
-
-    val TUMBLR = Compatibility(
-        name = "Tumblr",
-        packageName = "com.tumblr",
-        appIconColor = 0x001834,
     )
 
     val TWITCH = Compatibility(
@@ -225,67 +177,5 @@ internal object AppCompatibilities {
         packageName = "com.viber.voip",
         appIconColor = 0x7360F2,
         targets = listOf(AppTarget("25.9.2.0"), AppTarget("26.1.2.0")),
-    )
-
-    /** TikTok JP + global, versions 43.6.2 and 43.8.3 (feed filter). */
-    fun tiktok4362And4383(): Array<Compatibility> = arrayOf(
-        Compatibility(
-            name = "TikTok (JP)",
-            packageName = "com.ss.android.ugc.trill",
-            appIconColor = TIKTOK_COLOR,
-            targets = listOf(AppTarget("43.6.2"), AppTarget("43.8.3")),
-        ),
-        Compatibility(
-            name = "TikTok",
-            packageName = "com.zhiliaoapp.musically",
-            appIconColor = TIKTOK_COLOR,
-            targets = listOf(AppTarget("43.6.2"), AppTarget("43.8.3")),
-        ),
-    )
-
-    /** TikTok JP + global, version 43.8.3 only. */
-    fun tiktok4383(): Array<Compatibility> = arrayOf(
-        Compatibility(
-            name = "TikTok (JP)",
-            packageName = "com.ss.android.ugc.trill",
-            appIconColor = TIKTOK_COLOR,
-            targets = listOf(AppTarget("43.8.3")),
-        ),
-        Compatibility(
-            name = "TikTok",
-            packageName = "com.zhiliaoapp.musically",
-            appIconColor = TIKTOK_COLOR,
-            targets = listOf(AppTarget("43.8.3")),
-        ),
-    )
-
-    /** TikTok JP + global, version 43.6.2 only. */
-    fun tiktok4362(): Array<Compatibility> = arrayOf(
-        Compatibility(
-            name = "TikTok (JP)",
-            packageName = "com.ss.android.ugc.trill",
-            appIconColor = TIKTOK_COLOR,
-            targets = listOf(AppTarget("43.6.2")),
-        ),
-        Compatibility(
-            name = "TikTok",
-            packageName = "com.zhiliaoapp.musically",
-            appIconColor = TIKTOK_COLOR,
-            targets = listOf(AppTarget("43.6.2")),
-        ),
-    )
-
-    /** TikTok JP + global, any version. */
-    fun tiktokAny(): Array<Compatibility> = arrayOf(
-        Compatibility(
-            name = "TikTok (JP)",
-            packageName = "com.ss.android.ugc.trill",
-            appIconColor = TIKTOK_COLOR,
-        ),
-        Compatibility(
-            name = "TikTok",
-            packageName = "com.zhiliaoapp.musically",
-            appIconColor = TIKTOK_COLOR,
-        ),
     )
 }

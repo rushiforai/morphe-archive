@@ -1,0 +1,79 @@
+name: Build pull request
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - dev
+
+concurrency:
+  group: compile-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      # Fork PRs cannot access repository secrets by design, so we detect them
+      # here and fall back to an unsigned debug build instead of a signed release.
+      - name: Determine if PR is from a fork
+        id: fork_check
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ] \
+             && [ "${{ github.event.pull_request.head.repo.fork }}" = "true" ]; then
+            echo "is_fork=true" >> "$GITHUB_OUTPUT"
+            echo "gradle_task=assembleDebug" >> "$GITHUB_OUTPUT"
+            echo "apk_dir=app/build/outputs/apk/debug" >> "$GITHUB_OUTPUT"
+            echo "apk_suffix=-debug" >> "$GITHUB_OUTPUT"
+            echo "PR from fork detected: building unsigned debug APK"
+          else
+            echo "is_fork=false" >> "$GITHUB_OUTPUT"
+            echo "gradle_task=assembleRelease" >> "$GITHUB_OUTPUT"
+            echo "apk_dir=app/build/outputs/apk/release" >> "$GITHUB_OUTPUT"
+            echo "apk_suffix=-release" >> "$GITHUB_OUTPUT"
+            echo "Trusted PR/dispatch: building signed release APK"
+          fi
+
+      - name: Restore release keystore
+        if: steps.fork_check.outputs.is_fork == 'false'
+        run: |
+          echo "${{ secrets.KEYSTORE_B64 }}" | base64 -d > app/keystore.jks
+          ls -la app/keystore.jks
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Cache Gradle
+        uses: burrunan/gradle-cache-action@v3
+
+      - name: Build APK
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEYSTORE_ENTRY_ALIAS: ${{ secrets.KEYSTORE_ENTRY_ALIAS }}
+          KEYSTORE_ENTRY_PASSWORD: ${{ secrets.KEYSTORE_ENTRY_PASSWORD }}
+          _JAVA_OPTIONS: "-Djava.awt.headless=true"
+        run: |
+          chmod +x ./gradlew
+          ./gradlew ${{ steps.fork_check.outputs.gradle_task }} --stacktrace
+
+      - name: Rename APK
+        run: |
+          suffix="${{ steps.fork_check.outputs.apk_suffix }}"
+          for f in ${{ steps.fork_check.outputs.apk_dir }}/*${suffix}.apk; do
+            [ -e "$f" ] || continue
+            mv "$f" "${f/${suffix}/}"
+          done
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v7
+        with:
+          archive: false
+          path: ${{ steps.fork_check.outputs.apk_dir }}/*.apk

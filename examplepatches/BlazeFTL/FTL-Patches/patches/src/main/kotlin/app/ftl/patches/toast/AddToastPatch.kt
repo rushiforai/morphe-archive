@@ -8,7 +8,9 @@ import app.morphe.patcher.patch.stringOption
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.ftl.patches.dpi.AppEntryPoint
 import app.ftl.patches.dpi.findAppEntryPointPatch
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.ftl.util.getFreeRegisterProvider
+import app.ftl.util.registersUsed
 import app.ftl.util.traverseClassHierarchy
 
 private const val EXTENSION_SET_MESSAGE =
@@ -90,7 +92,11 @@ private fun BytecodePatchContext.injectApplicationToast(
             it.name == "onCreate" && it.parameters.isEmpty() && it.returnType == "V"
         } ?: return@traverseClassHierarchy
 
-        val register = onCreate.getFreeRegisterProvider(1, 1).getFreeRegister()
+        val register = try {
+            onCreate.getFreeRegisterProvider(1, 1, onCreate.getInstruction(0).registersUsed).getFreeRegister()
+        } catch (e: IllegalArgumentException) {
+            return@traverseClassHierarchy
+        }
 
         onCreate.addInstructions(
             0,
@@ -127,7 +133,11 @@ private fun BytecodePatchContext.injectActivityToast(
                 it.returnType == "V"
         } ?: return@traverseClassHierarchy
 
-        val register = onCreate.getFreeRegisterProvider(1, 1).getFreeRegister()
+        val register = try {
+            onCreate.getFreeRegisterProvider(1, 1, onCreate.getInstruction(0).registersUsed).getFreeRegister()
+        } catch (e: IllegalArgumentException) {
+            return@traverseClassHierarchy
+        }
 
         onCreate.addInstructions(
             0,

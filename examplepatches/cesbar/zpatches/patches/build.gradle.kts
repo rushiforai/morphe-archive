@@ -15,6 +15,7 @@ patches {
 dependencies {
     // Used by JsonGenerator.
     implementation(libs.gson)
+    implementation(libs.morphe.patches.library)
 }
 
 tasks {
@@ -38,5 +39,11 @@ kotlin {
     compilerOptions {
         jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
         freeCompilerArgs.add("-Xcontext-parameters") 
+    }
+}
+
+configurations {
+    runtimeClasspath {
+        exclude(group = "com.github.MorpheApp.smali")
     }
 }

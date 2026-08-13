@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-08-11T09:17:16",
-  "description": "## [1.23.0](https://github.com/BlazeFTL/FTL-Patches/compare/v1.22.0...v1.23.0) (2026-08-11)\r\n\r\n### \u2728 New Features\r\n\r\n* Add Mx Player 3 Patch, SnapTube 3 Patch\r\nTodo : Update Dpi, Toast Patch To Work On Activity Alias Too",
-  "download_url": "https://github.com/BlazeFTL/FTL-Patches/releases/download/v1.23.0/patches-1.23.0.mpp",
+  "created_at": "2026-08-12T09:38:02",
+  "description": "## [1.25.0](https://github.com/BlazeFTL/FTL-Patches/compare/v1.24.0...v1.25.0) (2026-08-12)\n\n### \u2728 New Features\n\n* add mx player hide file transfer, private video,video playlist ([2618076](https://github.com/BlazeFTL/FTL-Patches/commit/26180762887a604a1487f5b4707288bc25b12085))\n",
+  "download_url": "https://github.com/BlazeFTL/FTL-Patches/releases/download/v1.25.0/patches-1.25.0.mpp",
   "signature_download_url": "N/A",
-  "version": "v1.23.0"
+  "version": "v1.25.0"
 }

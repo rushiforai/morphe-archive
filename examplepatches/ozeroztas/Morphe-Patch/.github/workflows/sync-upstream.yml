@@ -1,0 +1,47 @@
+name: Sync upstream
+
+on:
+  workflow_dispatch:
+
+  schedule:
+    - cron: "22 5 * * *"
+      timezone: "Europe/Istanbul"
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
+
+      - name: Sync Morphe Patches
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          mkdir -p /tmp/my-workflows
+          cp -r .github/workflows/. /tmp/my-workflows/
+
+          git remote add upstream https://github.com/MorpheApp/morphe-patches.git
+          git fetch upstream main --force
+
+          git reset --hard upstream/main
+
+          rm -rf .github/workflows
+          mkdir -p .github/workflows
+          cp -r /tmp/my-workflows/. .github/workflows/
+
+          git add -A
+
+          if ! git diff --cached --quiet; then
+            git commit -m "Preserve local workflows"
+          fi
+
+          git push origin main --force

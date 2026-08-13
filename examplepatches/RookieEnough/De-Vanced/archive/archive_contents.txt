@@ -1,0 +1,7 @@
+The De-Vanced project is an independent project derived from the prior work of:
+
+https://gitlab.com/ReVanced/revanced-patches
+
+The archived files preserved in this folder fulfill the requirement under GPLv3 Section 4
+to "preserve all source code notices" (specifically copyright notices, licensing text,
+disclaimers, changelogs, credits, and author attributions present in source code).

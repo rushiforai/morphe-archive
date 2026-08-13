@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Shared with YouTube and YT Music -->
+<!--
+
+    Strings with new lines must be raw strings where they're wrapped in quotes and new lines are not encoded.
+    Raw strings still require escaping embedded double quotes but escaping embedded single quotes is optional.
+
+    Raw strings are required because Crowdin AI translations regularly gets confused and
+    replace \n with an encoded new line character.
+
+    Bad:
+        <string name="summary_key">First \'item\' text\nSecond \"item\" text</string>
+
+    Good:
+        <string name="summary_key">"First 'item' text
+Second \"item\" text"</string>
+
+-->
+<resources>
+  <!-- misc.initialization.initializationPatch -->
+  <string name="morphe_restart_first_run">Käynnistä uudelleen valituksen suorittamiseksi</string>
+  <!-- layout.branding.baseCustomBrandingPatch -->
+  <string name="morphe_custom_branding_name_title">Sovelluksen nimi</string>
+  <!-- interaction.downloads.downloadsPatch -->
+  <string name="morphe_external_downloader_screen_title">Ulkoiset lataukset</string>
+  <string name="morphe_external_downloader_name_title">Lataussovelluksen paketin nimi</string>
+  <string name="morphe_external_downloader_name_summary">Asennetun ulkoisen lataussovelluksen paketin nimi</string>
+  <string name="morphe_external_downloader_other_item_hint">Syötä paketin nimi</string>
+  <string name="morphe_external_downloader_other_item">Muu</string>
+  <string name="morphe_external_downloader_not_found_title">Sovellusta ei ole asennettu</string>
+  <string name="morphe_external_downloader_not_installed_warning">%s ei ole asennettu. Asenna se.</string>
+  <string name="morphe_external_downloader_package_not_found_warning">"Asennettua sovellusta paketin nimellä %s ei löydy.
+
+Tarkista, että paketin nimi on oikein ja sovellus on asennettu"</string>
+  <string name="morphe_external_downloader_empty_warning">Paketin nimi ei voi olla tyhjä</string>
+  <!-- Translations of this should be identical to morphe_custom_branding_icon_entry_7 -->
+  <string name="morphe_custom_branding_name_entry_5">Mukautettu</string>
+  <string name="morphe_custom_branding_icon_title">Sovelluskuvake</string>
+  <string name="morphe_custom_branding_icon_entry_1">Alkuperäinen</string>
+  <string name="morphe_custom_branding_icon_entry_2">Morphe musta</string>
+  <string name="morphe_custom_branding_icon_entry_3">Morphe tumma</string>
+  <string name="morphe_custom_branding_icon_entry_4">Morphe vaalea</string>
+  <!-- Translation should match morphe_custom_branding_notification_icon_entry_3 -->
+  <string name="morphe_custom_branding_icon_entry_5">Morphe vaalea</string>
+  <!-- Translation should match morphe_custom_branding_notification_icon_entry_3 -->
+  <string name="morphe_custom_branding_icon_entry_6">Morphe musta</string>
+  <!-- Translations of this should be identical to morphe_custom_branding_name_entry_5 -->
+  <string name="morphe_custom_branding_icon_entry_7">Mukautettu</string>
+  <string name="morphe_custom_branding_notification_icon_title">Ilmoituksen kuvake</string>
+  <string name="morphe_custom_branding_notification_icon_entry_1">Sovelluksen kuvakkeen vaihtaminen</string>
+  <string name="morphe_custom_branding_notification_icon_entry_3">Morphe musta</string>
+  <!-- misc.dns.checkWatchHistoryDomainNameResolutionPatch -->
+  <string name="morphe_check_watch_history_domain_name_dialog_title">Morphe-huomautus</string>
+  <string name="morphe_check_watch_history_domain_name_dialog_message">Katseluhistoriaasi ei tallenneta.&lt;br&gt;&lt;br&gt;Tämä johtuu todennäköisesti DNS-mainostenestosta tai verkkovälityspalvelimesta.&lt;br&gt;&lt;br&gt;Korjaa ongelma lisäämällä &lt;b&gt;s.youtube.com&lt;/b&gt; sallittujen listalle tai kytke kaikki DNS-estot ja välityspalvelimet pois päältä.</string>
+  <string name="morphe_check_watch_history_domain_name_dialog_ignore">Älä näytä uudelleen</string>
+  <!-- misc.spoof.spoofVideoStreamsPatch -->
+  <string name="morphe_spoof_video_streams_screen_title">Naamioi videovirrat</string>
+  <string name="morphe_spoof_video_streams_screen_summary">Asiakasohjelman videovirtojen naamiointi toisto-ongelmien estämiseksi</string>
+  <string name="morphe_spoof_video_streams_title">Naamioi videovirrat</string>
+  <string name="morphe_spoof_video_streams_summary">"Korjaa toistoon liittyviä ongelmia useimmille käyttäjille pyytämällä yhteensopivaa videovirtaa.
+
+Jos olet YouTube Premium -käyttäjä, tämä asetus ei välttämättä ole tarpeen."</string>
+  <string name="morphe_spoof_video_streams_no_clients_toast">Asiakasvirtoja ei voitu hakea</string>
+  <string name="morphe_spoof_video_streams_user_dialog_message">Tämän asetuksen poistaminen käytöstä voi aiheuttaa toisto-ongelmia.</string>
+  <!-- "Spoof video streams" must use the same translation as morphe_spoof_video_streams_title.
+         "Sign in to Android VR" must use the same translation as morphe_spoof_video_streams_sign_in_android_vr_about_title -->
+  <string name="morphe_spoof_video_streams_no_clients_suggest_vr_toast">Kokeile ottaa käyttöön: Naamioi videovirrat &gt; Android VR -kirjautuminen</string>
+  <string name="morphe_spoof_video_streams_client_type_title">Oletusasiakasohjelma</string>
+  <!-- Ensure this translation matches the translation of morphe_spoof_video_streams_no_clients_suggest_vr_toast -->
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_about_title">Android VR -kirjautuminen</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary">Ei kirjautuneena Android VR -tilaan. Kirjaudu sisään napauttamalla tästä</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary_signed_in">Kirjautuneena Android VR -tilaan</string>
+  <!-- "Default client" must be the same translated text as morphe_spoof_video_streams_client_type_title -->
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary_disabled">Käyttääksesi tätä ominaisuutta, aseta Android VR \'Oletusasiakasohjelma\'\'-asetukseksi</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_dialog_title">Kirjaudu Android VR -tilaan</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_dialog_not_signed_in_message">"Kirjautuminen Android VR -tilaan voi korjata toisto-ongelmia joillakin käyttäjillä.
+
+Kirjaudu sisään painamalla alta Jatka-painiketta."</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_dialog_continue">Jatka</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_dialog_reset">Kirjaudu ulos</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_activation_code_dialog_title">Ohjeet</string>
+  <!-- "Open website" must use the same translation as morphe_spoof_video_streams_sign_in_android_vr_activation_code_dialog_open_website -->
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_activation_code_dialog_message">"Aktivointikoodi: %s
+
+1. Napauta alta ”Avaa verkkosivusto” avataksesi ”Yhdistä laite” -sivun
+2. Liitä leikepöydältä (tai kirjoita) yllä näkyvä aktivointikoodi
+3. Kirjaudu sisään Google-tilillesi, jos sitä pyydetään. Jos sinulla on useita tilejä, valitse tämä YouTube-tili
+4. Napauta ”Salli YouTube VR -pääsy”
+5. Palaa tähän sovellukseen, kun olet päässyt ”Laite yhdistetty” -ilmoitukseen"</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_activation_code_dialog_open_website">Avaa verkkosivusto</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_toast_get_activation_code_failed">Aktivointikoodin luominen epäonnistui</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_toast_get_authorization_code_failed">Tunnistautumistunnuksen luominen epäonnistui</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_success_dialog_title">Kirjautuminen onnistui</string>
+  <string name="morphe_spoof_video_streams_sign_in_android_vr_success_dialog_message">"Tunnistautuminen tallennettu
+
+• Morphe-asetuksesi tuonti/vienti ei sisällä Android VR -tunnistautumista
+• Jos tätä sovellusta ei käytetä 6 kuukauteen, Google poistaa tämän tunnistautumisen
+• Sinun on kirjauduttava uudelleen sisään, jos vaihdat Google-salasanasi tai poistat tämän laitteen rekisteröinnin Google-asetuksistasi"</string>
+  <string name="morphe_oauth2_connection_failure_timeout">OAuth2 ei ole tilapäisesti käytettävissä (API-aikakatkaisu)</string>
+  <string name="morphe_oauth2_connection_failure_status_400">Android VR -kirjautuminen vanhentui, yritä kirjautua uudelleen VR-tilaan</string>
+  <string name="morphe_oauth2_connection_failure_status">OAuth2 ei ole tilapäisesti käytettävissä (tila: %d)</string>
+  <string name="morphe_oauth2_connection_failure_generic">OAuth2 ei ole tilapäisesti käytettävissä</string>
+  <string name="morphe_oauth2_connection_failure_auth_not_approved">Kirjautuminen VR-tilaan epäonnistui, verkkosivuston tunnistautumista ei hyväksytty</string>
+  <string name="morphe_oauth2_connection_failure_auth_error">Kirjautuminen VR-tilaan epäonnistui: %s</string>
+  <string name="morphe_oauth2_toast_reset">Kirjauduttu ulos Android VR -tilasta</string>
+  <string name="morphe_oauth2_toast_invalid">Virheellinen VR-kirjautumistunniste, yritä kirjautua uudelleen VR-tilaan</string>
+  <!-- misc.quic.disableQUICProtocolPatch -->
+  <string name="morphe_disable_quic_protocol_title">Poista QUIC-protokolla käytöstä</string>
+  <!-- misc.audio.drc.disableDRCAudioPatch  -->
+  <string name="morphe_disable_drc_audio_title">Poista DRC-ääni käytöstä</string>
+  <!-- misc.audio.tracks.forceOriginalAudioPatch -->
+  <string name="morphe_force_original_audio_title">Pakota alkuperäinen äänen kieli</string>
+  <string name="morphe_force_original_audio_summary">Toistaa aina videon alkuperäisen ääniraidan dubatun version sijaan</string>
+  <!-- misc.proxy.networkProxyPatch -->
+  <string name="morphe_proxy_screen_title">Verkkoproksi</string>
+  <string name="morphe_proxy_screen_summary">Reititä tuetut verkkopyynnöt välityspalvelimen kautta</string>
+  <string name="morphe_proxy_enabled_title">Ota välityspalvelin käyttöön</string>
+  <string name="morphe_proxy_enabled_summary">Reitittää tuetut verkkopyynnöt määritetyn HTTP- tai HTTPS-proxyn kautta</string>
+  <string name="morphe_proxy_host_title">Proxy-palvelimen osoite</string>
+  <string name="morphe_proxy_host_summary">Proxy-palvelimen nimi tai IP-osoite</string>
+  <string name="morphe_proxy_port_title">Proxy-portti</string>
+  <string name="morphe_proxy_port_summary">Proxy-palvelimen portti</string>
+  <string name="morphe_proxy_https_title">Käytä HTTPS-proxya</string>
+  <string name="morphe_proxy_https_summary">Käytä HTTPS-yhteyttä proxy-palvelimeen HTTP:n sijaan</string>
+  <string name="morphe_proxy_auth_enabled_title">Proxy-todennus</string>
+  <string name="morphe_proxy_auth_enabled_summary">Lähettää Basic-todennuksen proxy-pyyntöjen mukana</string>
+  <string name="morphe_proxy_auth_username_title">Proxy-käyttäjänimi</string>
+  <string name="morphe_proxy_auth_username_summary">Käyttäjänimi Basic-proxy-todennusta varten</string>
+  <string name="morphe_proxy_auth_password_title">Proxy-salasana</string>
+  <string name="morphe_proxy_auth_password_summary">Salasana Basic-proxy-todennusta varten</string>
+  <string name="morphe_proxy_allow_direct_fallback_title">Salli suora yhteys varalla</string>
+  <string name="morphe_proxy_allow_direct_fallback_summary">Yhdistä suoraan, jos proxy epäonnistuu</string>
+  <!-- ad.hideFullscreenAdsPatch -->
+  <string name="morphe_hide_fullscreen_ads_title">Piilota koko näytön mainokset</string>
+  <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
+          'Android Studio' must be kept untranslated. -->
+  <string name="morphe_force_original_audio_not_available">Käyttääksesi tätä ominaisuutta, muuta \"Naamioi videovirrat\" mihin tahansa asiakasohjelmaan paitsi Android Studioon</string>
+  <!-- misc.privacy.sanitizeSharingLinksPatch -->
+  <string name="morphe_sanitize_sharing_links_title">Puhdista jakamislinkit</string>
+  <string name="morphe_sanitize_sharing_links_summary">Poistaa seuranta-kyselyparametrit jaetuista linkeistä</string>
+  <string name="morphe_replace_music_with_youtube_title">Muuta jakolinkit youtube.com-sivustoksi</string>
+  <string name="morphe_replace_music_with_youtube_summary">Korvaa music.youtube.com osoitteella youtube.com jaetuissa linkeissä</string>
+  <string name="morphe_replace_links_with_shortener_title">Muuta jakolinkit youtu.be-sivustoksi</string>
+  <string name="morphe_replace_links_with_shortener_summary">Pakottaa videot käyttämään lyhennettyä youtu.be-URL-muotoa</string>
+  <!-- misc.debugging.enableDebuggingPatch -->
+  <string name="morphe_debug_protobuffer_title">Virheenkorjauslokin protokollapuskuri</string>
+  <string name="morphe_debug_protobuffer_summary">Lisää kehittäjille lisätietoja sovelluksen komponenttien tunnistamiseksi</string>
+  <string name="morphe_debug_protobuffer_user_dialog_message">"Tämän asetuksen käyttöönotto kirjaa lisätietoja asettelusta, mm. joidenkin käyttöliittymän osien näyttötekstiä.
+
+Tämä voi auttaa komponenttien tunnistamisessa, kun luot mukautettuja suodattimia.
+
+Tämän käyttöönotto kirjaa myös joitakin käyttäjätietoja, kuten IP-osoitteesi."</string>
+  <!-- Custom filter -->
+  <string name="morphe_custom_filter_screen_title">Mukautettu suodatin</string>
+  <string name="morphe_custom_filter_screen_summary">Määritä mukautetut suodattimet piilottaaksesi minkä tahansa komponentin</string>
+  <string name="morphe_custom_filter_title">Ota mukautettu suodatin käyttöön</string>
+  <string name="morphe_custom_filter_strings_title">Mukautettu suodatin</string>
+  <!-- 'Component path builder strings' is the technical name for identifying the Litho UI layout items to hide. This is an advanced feature and most users will never use this. -->
+  <string name="morphe_custom_filter_strings_summary">Luettelo komponentin polun rakentajan merkkijonoista suodatettavaksi, erotettuna uudella rivillä</string>
+  <string name="morphe_custom_filter_toast_invalid_syntax">Virheellinen mukautettu suodatin: %s</string>
+  <!-- layout.hide.settingsmenu.hideSettingsMenuFilterPatch -->
+  <string name="morphe_settings_menu_filter_screen_title">Asetusten valikon suodatin</string>
+  <string name="morphe_settings_menu_filter_screen_summary">Piilota kohteet vakiosovellusten asetusten näytöltä niiden näkyvän nimen perusteella</string>
+  <string name="morphe_settings_menu_filter_picker_empty">Avaa vakiosovellusten asetusten näyttö kerran luettelon täyttämiseksi</string>
+  <!-- interaction.dialog.removeViewerDiscretionDialogPatch -->
+  <string name="morphe_remove_viewer_discretion_dialog_title">Poista katsojan harkintaa koskeva valintaikkuna</string>
+  <string name="morphe_remove_viewer_discretion_dialog_summary">Tämä ei ohita ikärajoitusta. Se vain hyväksyy sen automaattisesti</string>
+  <!-- misc.spoof.appversion.spoofAppVersionPatch -->
+  <string name="morphe_spoof_app_version_title">Sovellusversio naamioidaan</string>
+  <string name="morphe_spoof_app_version_summary">Huijaa palvelinta luulemaan, että käytät vanhempaa sovellusversiota palauttaaksesi vanhat käyttöliittymäelementit.</string>
+  <string name="morphe_spoof_app_version_user_dialog_message">"Sovellusversio naamioidaan vanhemmaksi versioksi.
+
+Tämä muuttaa sovelluksen ulkoasua ja ominaisuuksia, mutta tuntemattomia sivuvaikutuksia saattaa esiintyä.
+
+Jos tämä poistetaan myöhemmin käytöstä, on suositeltavaa tyhjentää sovelluksen tiedot käyttöliittymävirheiden välttämiseksi."</string>
+  <string name="morphe_spoof_app_version_target_title">Naamioitava kohdeversio</string>
+  <!-- layout.returnyoutubedislike.returnYouTubeDislikePatch -->
+  <!-- Brief notification (toast) shown if network connection times out. Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
+  <string name="morphe_ryd_failure_connection_timeout">Ei-tykkäykset eivät ole tilapäisesti käytettävissä (API-aikakatkaisu)</string>
+  <string name="morphe_ryd_failure_connection_status_code">Ei-tykkäykset eivät ole saatavilla (tila %d)</string>
+  <string name="morphe_ryd_failure_client_rate_limit_requested">Ei-tykkäykset eivät ole saatavilla (asiakkaan API-raja)</string>
+  <string name="morphe_ryd_failure_generic">Ei-tykkäykset eivät ole saatavilla (%s)</string>
+  <!-- Video likes have been set to hidden by the video uploader. -->
+  <string name="morphe_ryd_video_likes_hidden_by_video_owner">Omistajan piilottama</string>
+  <string name="morphe_ryd_enabled_title">Ota Return YouTube Dislike käyttöön</string>
+  <string name="morphe_ryd_dislike_percentage_title">Näytä ei-tykkäykset prosentteina</string>
+  <string name="morphe_ryd_dislike_percentage_summary">Näyttää ei-tykkäykset tykkäysten prosenttiosuutena numeron sijaan</string>
+  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
+  <string name="morphe_ryd_compact_layout_title">Käytä kompaktia tykkäyspainiketta</string>
+  <string name="morphe_ryd_compact_layout_summary">Pienentää tykkäyspainikkeen leveyttä tilan säästämiseksi</string>
+  <string name="morphe_ryd_estimated_like_title">Näytä arvioidut tykkäykset</string>
+  <string name="morphe_ryd_estimated_like_summary">Näyttää arvioidun tykkäysmäärän videoissa, joissa luoja on poistanut tykkäykset käytöstä</string>
+  <string name="morphe_ryd_toast_on_connection_error_title">Näytä yhteysvirheilmoitukset</string>
+  <string name="morphe_ryd_toast_on_connection_error_summary">Näyttää ilmoituksen, kun Return YouTube Dislike -palvelin ei ole käytettävissä</string>
+  <string name="morphe_ryd_attribution_summary">"Data on tarjotaan Return YouTube Dislike API:n avulla
+
+Napauta tästä avataksesi ReturnYouTubeDislike.com"</string>
+  <!-- Statistic strings are shown in the settings only when Morphe debug mode is enabled. Typical users will never see these. -->
+  <string name="morphe_ryd_statistics_category_title">Return YouTube Dislike -sovelluksen API-tilastot tällä laitteella</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeAverage_title">API-vastausajan keskiarvo</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMin_title">API-vastausajan minimi</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeMax_title">API-vastausajan maksimi</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_title">API-vastausaika, viimeisin media</string>
+  <string name="morphe_ryd_statistics_getFetchCallResponseTimeLast_rate_limit_summary">Ei-tykkäykset eivät ole tilapäisesti käytettävissä – asiakkaan API-nopeusrajoitus on voimassa</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_title">API noutaa äänet, puhelujen määrä</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_zero_summary">Verkkokutsuja ei ole tehty</string>
+  <string name="morphe_ryd_statistics_getFetchCallCount_non_zero_summary">%d verkkopyyntöä tehty</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_title">API noutaa äänet, aikakatkaisujen määrä</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_zero_summary">Verkkopyyntöjä ei ole aikakatkaistu</string>
+  <string name="morphe_ryd_statistics_getFetchCallNumberOfFailures_non_zero_summary">%d verkkopyyntöä aikakatkaistu</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_title">Asiakkaan API-nopeusrajoitukset</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_zero_summary">Asiakkaan nopeusrajoituksia ei havaittu</string>
+  <string name="morphe_ryd_statistics_getNumberOfRateLimitRequestsEncountered_non_zero_summary">Asiakkaan nopeusrajoitus havaittu %d kertaa</string>
+  <string name="morphe_ryd_statistics_millisecond_text">%d millisekuntia</string>
+</resources>
