@@ -4,6 +4,10 @@ import app.morphe.patcher.patch.Patch
 import app.morphe.patcher.patch.resourcePatch
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
+import dev.jason.gboardpatches.patches.gboard.features.accessibilitylayout.gboardAccessibilityLayoutFeatureMarkerPatch
+import dev.jason.gboardpatches.patches.gboard.features.accessibilitylayout.gboardAccessibilityLayoutFlagValuePatch
+import dev.jason.gboardpatches.patches.gboard.features.accesspointsmenu.gboardAccessPointsMenuFeatureMarkerPatch
+import dev.jason.gboardpatches.patches.gboard.features.accesspointsmenu.gboardAccessPointsMenuFlagValuePatch
 import dev.jason.gboardpatches.patches.gboard.features.advancedvoice.gboardAdvancedVoiceFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.advancedvoice.gboardAdvancedVoiceAsrSessionPatch
 import dev.jason.gboardpatches.patches.gboard.features.advancedvoice.gboardAdvancedVoiceFlagValuePatch
@@ -31,6 +35,11 @@ import dev.jason.gboardpatches.patches.gboard.features.clipboard.gboardClipboard
 import dev.jason.gboardpatches.patches.gboard.features.clipboardcontentlimit.gboardClipboardContentLimitFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.clipboardcontentlimit.gboardClipboardContentLimitFlagValuePatch
 import dev.jason.gboardpatches.patches.gboard.features.developeroptions.gboardDeveloperOptionsFeatureMarkerPatch
+import dev.jason.gboardpatches.patches.gboard.features.cursortrackpad.gboardCursorTrackpadFeatureMarkerPatch
+import dev.jason.gboardpatches.patches.gboard.features.cursortrackpad.gboardCursorTrackpadFlagValuePatch
+import dev.jason.gboardpatches.patches.gboard.features.cursortrackpad.gboardCursorTrackpadPreferencePatch
+import dev.jason.gboardpatches.patches.gboard.features.emojisize.gboardEmojiSizeFeatureMarkerPatch
+import dev.jason.gboardpatches.patches.gboard.features.emojisize.gboardEmojiSizeFlagValuePatch
 import dev.jason.gboardpatches.patches.gboard.features.webclipboard.gboardWebClipboardAssetsPatch
 import dev.jason.gboardpatches.patches.gboard.features.webclipboard.gboardWebClipboardCapturePatch
 import dev.jason.gboardpatches.patches.gboard.features.webclipboard.gboardWebClipboardFeatureMarkerPatch
@@ -60,6 +69,9 @@ import dev.jason.gboardpatches.patches.gboard.features.packagerename.gboardPacka
 import dev.jason.gboardpatches.patches.gboard.features.settingshomepage.gboardSettingsHomepageBytecodePatch
 import dev.jason.gboardpatches.patches.gboard.features.settingshomepage.gboardSettingsHomepageFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.signaturebypass.gboardSignatureBypassBytecodePatch
+import dev.jason.gboardpatches.patches.gboard.features.splitkeyboard.gboardSplitKeyboardFeatureMarkerPatch
+import dev.jason.gboardpatches.patches.gboard.features.splitkeyboard.gboardSplitKeyboardAccessPointPatch
+import dev.jason.gboardpatches.patches.gboard.features.splitkeyboard.gboardSplitKeyboardModePatch
 import dev.jason.gboardpatches.patches.gboard.features.symbolfooter.gboardSymbolFooterOrderBytecodePatch
 import dev.jason.gboardpatches.patches.gboard.features.symbolfooter.gboardSymbolFooterOrderFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.toprowswipe.gboardTopRowSwipeFeatureMarkerPatch
@@ -188,6 +200,85 @@ val gboardBluetoothMicrophonePatch = resourcePatch(
         gboardPatchesSettingsPatch,
         gboardBluetoothMicrophoneFeatureMarkerPatch,
         gboardBluetoothMicrophoneFlagValuePatch,
+    )
+}
+
+@Suppress("unused")
+val gboardEmojiSizePatch = resourcePatch(
+    name = "Change emoji size",
+    description = "變更表情符號大小\nChange emoji size.",
+    default = true,
+) {
+    compatibleWith(COMPATIBILITY_GBOARD)
+
+    dependsOn(
+        gboardPatchesSettingsPatch,
+        gboardEmojiSizeFeatureMarkerPatch,
+        gboardEmojiSizeFlagValuePatch,
+    )
+}
+
+@Suppress("unused")
+val gboardCursorTrackpadPatch = resourcePatch(
+    name = "Enable cursor trackpad mode",
+    description = "長按空白鍵開啟游標觸控板與鎖定模式\n" +
+        "Long-press the space bar to use cursor trackpad and lock modes.",
+    default = true,
+) {
+    compatibleWith(COMPATIBILITY_GBOARD)
+
+    dependsOn(
+        gboardPatchesSettingsPatch,
+        gboardCursorTrackpadFeatureMarkerPatch,
+        gboardCursorTrackpadFlagValuePatch,
+        gboardCursorTrackpadPreferencePatch,
+    )
+}
+
+@Suppress("unused")
+val gboardAccessPointsMenuStylePatch = resourcePatch(
+    name = "Access Points menu style",
+    description = "切換新版或舊版 Access Points 選單樣式\n" +
+        "Switch between the new and legacy Access Points menu styles.",
+    default = true,
+) {
+    compatibleWith(COMPATIBILITY_GBOARD)
+
+    dependsOn(
+        gboardPatchesSettingsPatch,
+        gboardAccessPointsMenuFeatureMarkerPatch,
+        gboardAccessPointsMenuFlagValuePatch,
+    )
+}
+
+@Suppress("unused")
+val gboardSplitKeyboardPatch = resourcePatch(
+    name = "Enable split keyboard",
+    description = "啟用分離式鍵盤\nEnable the split keyboard layout.",
+    default = true,
+) {
+    compatibleWith(COMPATIBILITY_GBOARD)
+
+    dependsOn(
+        gboardPatchesSettingsPatch,
+        gboardSplitKeyboardFeatureMarkerPatch,
+        gboardSplitKeyboardAccessPointPatch,
+        gboardSplitKeyboardModePatch,
+    )
+}
+
+@Suppress("unused")
+val gboardAccessibilityLayoutPatch = resourcePatch(
+    name = "Enable accessibility layout",
+    description = "啟用無障礙鍵盤配置\nEnable accessibility layout.",
+    default = true,
+) {
+    compatibleWith(COMPATIBILITY_GBOARD)
+
+    dependsOn(
+        gboardPatchesSettingsPatch,
+        gboardAccessibilityLayoutFeatureMarkerPatch,
+        gboardAccessibilityLayoutFlagValuePatch,
     )
 }
 
@@ -501,6 +592,11 @@ object GboardPublishedPatchCatalog {
         gboardManualIncognitoModePatch,
         gboardAdvancedVoiceTypingPatch,
         gboardBluetoothMicrophonePatch,
+        gboardEmojiSizePatch,
+        gboardCursorTrackpadPatch,
+        gboardAccessPointsMenuStylePatch,
+        gboardSplitKeyboardPatch,
+        gboardAccessibilityLayoutPatch,
         gboardZhuyinQuickTraditionalSimplifiedTogglePatch,
         gboardCustomSymbolsPatch,
         gboardCustomTopRowSwipePatch,

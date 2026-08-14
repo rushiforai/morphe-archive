@@ -41,7 +41,7 @@ internal object SubtitleOptionBuilderFingerprint : Fingerprint(
     )
 )
 
-/** 0.8.3 Compose content lambda that reads one remembered subtitle option's visible title. */
+/** 0.8.4 Compose content lambda that reads one remembered subtitle option's visible title. */
 internal object SubtitleOptionContentFingerprint : Fingerprint(
     returnType = "Ljava/lang/Object;",
     parameters = listOf("Ljava/lang/Object;", "Ljava/lang/Object;", "Ljava/lang/Object;"),

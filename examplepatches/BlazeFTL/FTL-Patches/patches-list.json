@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.26.0-dev.9",
+  "version": "1.30.0",
   "patches": [
     {
       "name": "APK Junk Cleanup",
@@ -116,7 +116,7 @@
     },
     {
       "name": "ES File Explorer Cleanup",
-      "description": "Removes ES File Explorer home tiles/media, menu actions, navigation header, media handler, and web-search entry.",
+      "description": "Removes selected ES File Explorer home tiles, menu actions, navigation header, media handler, and web-search entry.",
       "default": false,
       "dependencies": [],
       "compatiblePackages": [
@@ -167,23 +167,6 @@
               "description": null
             }
           ]
-        },
-        {
-          "packageName": "com.mxtech.videoplayer.ad",
-          "name": "MX Player",
-          "description": null,
-          "apkFileType": null,
-          "appIconColor": null,
-          "signatures": null,
-          "targets": [
-            {
-              "version": null,
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
         }
       ],
       "options": []
@@ -197,23 +180,6 @@
         {
           "packageName": "com.mxtech.videoplayer.pro",
           "name": "MX Player Pro",
-          "description": null,
-          "apkFileType": null,
-          "appIconColor": null,
-          "signatures": null,
-          "targets": [
-            {
-              "version": null,
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        },
-        {
-          "packageName": "com.mxtech.videoplayer.ad",
-          "name": "MX Player",
           "description": null,
           "apkFileType": null,
           "appIconColor": null,
@@ -271,23 +237,6 @@
         {
           "packageName": "com.mxtech.videoplayer.pro",
           "name": "MX Player Pro",
-          "description": null,
-          "apkFileType": null,
-          "appIconColor": null,
-          "signatures": null,
-          "targets": [
-            {
-              "version": null,
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        },
-        {
-          "packageName": "com.mxtech.videoplayer.ad",
-          "name": "MX Player",
           "description": null,
           "apkFileType": null,
           "appIconColor": null,
@@ -427,23 +376,6 @@
         {
           "packageName": "com.mxtech.videoplayer.pro",
           "name": "MX Player Pro",
-          "description": null,
-          "apkFileType": null,
-          "appIconColor": null,
-          "signatures": null,
-          "targets": [
-            {
-              "version": null,
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        },
-        {
-          "packageName": "com.mxtech.videoplayer.ad",
-          "name": "MX Player",
           "description": null,
           "apkFileType": null,
           "appIconColor": null,

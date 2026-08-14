@@ -479,7 +479,12 @@ val localstoragesubtitlesPatch = bytecodePatch(
                     iget-object v2, v4, ${episodeField.descriptor()}
                     invoke-static { v4, v0, v1, v2 }, $RUNTIME->restoredSubtitle(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;)Ljava/lang/Object;
                     move-result-object v3
-                    if-eqz v3, :morphe_local_restore_continue
+                    if-nez v3, :morphe_local_restore_select
+                    invoke-static {}, $RUNTIME->shouldBlockNuvioSubtitleSelection()Z
+                    move-result v0
+                    if-eqz v0, :morphe_local_restore_continue
+                    return-void
+                    :morphe_local_restore_select
                     check-cast v3, $SUBTITLE
                     move-object/from16 v0, p0
                     invoke-static { v0, v3 }, ${selectMethod.descriptor()}

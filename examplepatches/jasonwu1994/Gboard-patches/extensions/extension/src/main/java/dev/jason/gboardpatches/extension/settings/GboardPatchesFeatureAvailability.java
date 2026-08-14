@@ -49,6 +49,16 @@ public final class GboardPatchesFeatureAvailability {
             "dev.jason.gboardpatches.feature.ocr_scan_text";
     public static final String FEATURE_MANUAL_INCOGNITO =
             "dev.jason.gboardpatches.feature.manual_incognito";
+    public static final String FEATURE_EMOJI_SIZE =
+            "dev.jason.gboardpatches.feature.emoji_size";
+    public static final String FEATURE_CURSOR_TRACKPAD =
+            "dev.jason.gboardpatches.feature.cursor_trackpad";
+    public static final String FEATURE_ACCESS_POINTS_MENU_STYLE =
+            "dev.jason.gboardpatches.feature.access_points_menu_style";
+    public static final String FEATURE_SPLIT_KEYBOARD =
+            "dev.jason.gboardpatches.feature.split_keyboard";
+    public static final String FEATURE_ACCESSIBILITY_LAYOUT =
+            "dev.jason.gboardpatches.feature.accessibility_layout";
 
     private static final String TAG = "GboardPatches";
 

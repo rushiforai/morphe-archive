@@ -18,11 +18,11 @@ jobs:
       matrix:
         target:
           - name: x86_64
-            url: https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.3-beta/app-full-x86_64-release.apk
-            sha256: 1c3b4cc5147c6963f70e75524622cc06195aafe6854ecf00ea96ec58551571d3
+            url: https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.4-beta/app-full-x86_64-release.apk
+            sha256: de640cac89855aae026fa76eef33368748a4a995c80db108c9d1f55b0498fc2c
           - name: universal
-            url: https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.3-beta/app-full-universal-release.apk
-            sha256: e4e2a6bb529c7f3b8a4670c9fb0a8376e919a5791d29b68e97e6e21b59f73125
+            url: https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.4-beta/app-full-universal-release.apk
+            sha256: 12f080843d8a97ceed0e6e697f39e1a61589883d26f0854318f671685a18313b
     env:
       GITHUB_ACTOR: liongalahad
       MORPHE_PACKAGES_TOKEN: ${{ secrets.MORPHE_PACKAGES_TOKEN }}

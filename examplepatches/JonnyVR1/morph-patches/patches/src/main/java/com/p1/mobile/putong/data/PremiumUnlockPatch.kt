@@ -1328,6 +1328,129 @@ val premiumUnlockPatch = bytecodePatch(
                 }
             }
 
+            // ── CounterLikeLimit: remove daily like limits ──
+            // Overwrite remaining, total, tribeRemaining, tribeTotalCount to 200000 after every write
+            classDefByOrNull("Lcom/p1/mobile/putong/data/CounterLikeLimit;")?.let { classDef ->
+                mutableClassDefBy(classDef).methods.forEach { method ->
+                    val instrs = method.cachedInstructions()
+                    val likeLimitFields = setOf("remaining", "total", "tribeRemaining", "tribeTotalCount")
+                    val writeIndices = instrs.withIndex().filter { (_, instr) ->
+                        instr.opcode.name == "iput" &&
+                            instr is ReferenceInstruction &&
+                            instr.reference is FieldReference &&
+                            (instr.reference as FieldReference).name in likeLimitFields &&
+                            (instr.reference as FieldReference).definingClass == "Lcom/p1/mobile/putong/data/CounterLikeLimit;"
+                    }.map { it.index }
+
+                    if (writeIndices.isEmpty()) return@forEach
+
+                    writeIndices.reversed().forEach { idx ->
+                        val instr = instrs[idx]
+                        if (instr is TwoRegisterInstruction) {
+                            val objReg = instr.registerB
+                            val fieldRef = (instr as ReferenceInstruction).reference as FieldReference
+                            val tempReg = if (objReg != 0) "v0" else "v1"
+                            method.addInstructions(idx + 1, """
+                                const $tempReg, 0x30d40
+                                iput $tempReg, v$objReg, ${fieldRef.definingClass}->${fieldRef.name}:${fieldRef.type}
+                            """)
+                        }
+                    }
+                }
+            }
+
+            // ── LikersLimit: remove "who liked me" view limits ──
+            // Overwrite remaining, total to 200000 after every write
+            classDefByOrNull("Lcom/p1/mobile/putong/data/LikersLimit;")?.let { classDef ->
+                mutableClassDefBy(classDef).methods.forEach { method ->
+                    val instrs = method.cachedInstructions()
+                    val likersLimitFields = setOf("remaining", "total")
+                    val writeIndices = instrs.withIndex().filter { (_, instr) ->
+                        instr.opcode.name == "iput" &&
+                            instr is ReferenceInstruction &&
+                            instr.reference is FieldReference &&
+                            (instr.reference as FieldReference).name in likersLimitFields &&
+                            (instr.reference as FieldReference).definingClass == "Lcom/p1/mobile/putong/data/LikersLimit;"
+                    }.map { it.index }
+
+                    if (writeIndices.isEmpty()) return@forEach
+
+                    writeIndices.reversed().forEach { idx ->
+                        val instr = instrs[idx]
+                        if (instr is TwoRegisterInstruction) {
+                            val objReg = instr.registerB
+                            val fieldRef = (instr as ReferenceInstruction).reference as FieldReference
+                            val tempReg = if (objReg != 0) "v0" else "v1"
+                            method.addInstructions(idx + 1, """
+                                const $tempReg, 0x30d40
+                                iput $tempReg, v$objReg, ${fieldRef.definingClass}->${fieldRef.name}:${fieldRef.type}
+                            """)
+                        }
+                    }
+                }
+            }
+
+            // ── VerificationLimit: remove tribe verification limits ──
+            // Overwrite tribeTotalCount, tribeSwipeCount to 200000 after every write
+            classDefByOrNull("Lcom/p1/mobile/putong/data/VerificationLimit;")?.let { classDef ->
+                mutableClassDefBy(classDef).methods.forEach { method ->
+                    val instrs = method.cachedInstructions()
+                    val verificationLimitFields = setOf("tribeTotalCount", "tribeSwipeCount")
+                    val writeIndices = instrs.withIndex().filter { (_, instr) ->
+                        instr.opcode.name == "iput" &&
+                            instr is ReferenceInstruction &&
+                            instr.reference is FieldReference &&
+                            (instr.reference as FieldReference).name in verificationLimitFields &&
+                            (instr.reference as FieldReference).definingClass == "Lcom/p1/mobile/putong/data/VerificationLimit;"
+                    }.map { it.index }
+
+                    if (writeIndices.isEmpty()) return@forEach
+
+                    writeIndices.reversed().forEach { idx ->
+                        val instr = instrs[idx]
+                        if (instr is TwoRegisterInstruction) {
+                            val objReg = instr.registerB
+                            val fieldRef = (instr as ReferenceInstruction).reference as FieldReference
+                            val tempReg = if (objReg != 0) "v0" else "v1"
+                            method.addInstructions(idx + 1, """
+                                const $tempReg, 0x30d40
+                                iput $tempReg, v$objReg, ${fieldRef.definingClass}->${fieldRef.name}:${fieldRef.type}
+                            """)
+                        }
+                    }
+                }
+            }
+
+            // ── UserSVIPSettings: force SVIP tier flag ──
+            // Overwrite isSvip field to Boolean.TRUE after every write
+            classDefByOrNull("Lcom/p1/mobile/putong/data/UserSVIPSettings;")?.let { classDef ->
+                mutableClassDefBy(classDef).methods.forEach { method ->
+                    val instrs = method.cachedInstructions()
+                    val writeIndices = instrs.withIndex().filter { (_, instr) ->
+                        instr.opcode.name == "iput-object" &&
+                            instr is ReferenceInstruction &&
+                            instr.reference is FieldReference &&
+                            (instr.reference as FieldReference).name == "isSvip" &&
+                            (instr.reference as FieldReference).definingClass == "Lcom/p1/mobile/putong/data/UserSVIPSettings;"
+                    }.map { it.index }
+
+                    if (writeIndices.isEmpty()) return@forEach
+
+                    writeIndices.reversed().forEach { idx ->
+                        val instr = instrs[idx]
+                        if (instr is TwoRegisterInstruction) {
+                            val objReg = instr.registerB
+                            val fieldRef = (instr as ReferenceInstruction).reference as FieldReference
+                            val tempReg = if (objReg != 0) "v0" else "v1"
+                            method.addInstructions(idx + 1, """
+                                sget-object $tempReg, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
+                                iput-object $tempReg, v$objReg, ${fieldRef.definingClass}->${fieldRef.name}:${fieldRef.type}
+                            """)
+                        }
+                    }
+                }
+            }
+
             // ── CoreProduct.S4(PurchaseType): no purchase needed ──
             // Merged with CoreProduct u4/gate patch above (single classDefByOrNull lookup)
 

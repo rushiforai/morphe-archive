@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-08-12T09:38:02",
-  "description": "## [1.25.0](https://github.com/BlazeFTL/FTL-Patches/compare/v1.24.0...v1.25.0) (2026-08-12)\n\n### \u2728 New Features\n\n* add mx player hide file transfer, private video,video playlist ([2618076](https://github.com/BlazeFTL/FTL-Patches/commit/26180762887a604a1487f5b4707288bc25b12085))\n",
-  "download_url": "https://github.com/BlazeFTL/FTL-Patches/releases/download/v1.25.0/patches-1.25.0.mpp",
+  "created_at": "2026-08-13T16:38:59",
+  "description": "## [1.30.0](https://github.com/BlazeFTL/FTL-Patches/compare/v1.29.0...v1.30.0) (2026-08-13)\r\n\r\n### \u2728 New Features\r\n\r\n* Keep Only Mx Player Pro ([00a3735](https://github.com/BlazeFTL/FTL-Patches/commit/00a3735435038cddf6ad0b6235c37b41c63227c0))",
+  "download_url": "https://github.com/BlazeFTL/FTL-Patches/releases/download/v1.30.0/patches-1.30.0.mpp",
   "signature_download_url": "N/A",
-  "version": "v1.25.0"
+  "version": "v1.30.0"
 }

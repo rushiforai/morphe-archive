@@ -1,9 +1,9 @@
 # Random Episode test plan
 
-- [ ] Unit tests cover default/OFF persistence, eligible filtering, future and malformed dates, current-episode exclusion, route immutability and random-session clearing.
-- [ ] Every fingerprint matches exactly once on universal, x86_64, arm64-v8a and armeabi-v7a 0.8.3 APKs.
-- [ ] Exclusive patch application and manifest/DEX inspection pass on all declared assets.
-- [ ] Combined application passes with Rating Visibility, Remove SDH Annotations and Mark SDH Subtitles.
+- [x] Unit tests cover default/OFF persistence, eligible filtering, future and malformed dates, current-episode exclusion, route immutability and random-session clearing.
+- [x] Every fingerprint matches exactly once on universal, x86_64, arm64-v8a and armeabi-v7a 0.8.4 APKs.
+- [x] Exclusive patch application and manifest/DEX inspection pass on all declared assets.
+- [x] Combined application passes with Rating Visibility, Remove SDH Annotations and Mark SDH Subtitles.
 - [ ] TV AVD verifies the Detail Page category and all eight collapsed/expanded combinations with Ratings and Subtitles.
 - [ ] TV AVD verifies OFF/ON series appearance, D-pad order, click, long press, source selection, H.264/AVC playback, seeking and error return; unit tests verify movie, special and future-episode exclusion.
 - [ ] TV AVD verifies random Next Episode does not repeat the current episode when alternatives exist.

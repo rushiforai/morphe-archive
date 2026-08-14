@@ -104,6 +104,7 @@ internal val settingsUiPatch = bytecodePatch {
             "Native Experience group call no longer uses the expected seven registers"
         }
         check(pageMethod.parameters.size == 4 &&
+            pageMethod.parameters[1].type == "Lz1/y;" &&
             pageMethod.parameters[2].type == composerType) {
             "Native Experience page no longer exposes the Layout-compatible focus/composer parameters"
         }
@@ -116,7 +117,8 @@ internal val settingsUiPatch = bytecodePatch {
             pageGroupIndex,
             """
                 sget-object v${start + 3}, $modifierFieldDescriptor
-                invoke-static { v${start + 3} }, $PAGE_CONTENT->create(Ljava/lang/Object;)Lkotlin/jvm/functions/Function3;
+                move-object/from16 v${start + 6}, p1
+                invoke-static { v${start + 3}, v${start + 6} }, $PAGE_CONTENT->create(Ljava/lang/Object;Ljava/lang/Object;)Lkotlin/jvm/functions/Function3;
                 move-result-object v${start + 3}
                 const v${start + 6}, 0x4d4f5250
                 invoke-static { v${start + 6}, v${start + 3}, v${start + 4} }, $lambdaDescriptor

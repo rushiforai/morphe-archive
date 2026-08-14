@@ -1,3 +1,39 @@
+## [2.9.0](https://github.com/jasonwu1994/Gboard-patches/compare/v2.8.0...v2.9.0) (2026-08-13)
+
+### ✨ New Features
+
+* **Gboard:** add the `Change emoji size` patch, which enables Gboard's emoji size setting.
+* **Gboard:** add the `Enable cursor trackpad mode` patch, which enables long-press-spacebar trackpad and cursor lock modes.
+* **Gboard:** add the `Access Points menu style` patch, which lets you switch between the new and legacy Access Points menu styles.
+* **Gboard:** add the `Enable split keyboard` patch, with Access Point controls and an optional Auto split setting.
+* **Gboard:** add the `Enable accessibility layout` patch, which exposes Gboard's accessibility layout setting.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Change emoji size` Patch，啟用 Gboard 的表情符號大小設定。
+* **Gboard:** 新增 `Enable cursor trackpad mode` Patch，啟用長按空白鍵觸控板與游標鎖定模式。
+* **Gboard:** 新增 `Access Points menu style` Patch，可切換新版與舊版 Access Points 選單樣式。
+* **Gboard:** 新增 `Enable split keyboard` Patch，提供 Access Point 控制與可選的自動分離設定。
+* **Gboard:** 新增 `Enable accessibility layout` Patch，顯示 Gboard 的無障礙鍵盤配置設定。
+
+## [2.9.0-dev.2](https://github.com/jasonwu1994/Gboard-patches/compare/v2.8.0...v2.9.0-dev.2) (2026-08-13)
+
+### ✨ New Features
+
+* **Gboard:** add the `Change emoji size` patch, which enables Gboard's emoji size setting.
+* **Gboard:** add the `Enable cursor trackpad mode` patch, which enables long-press-spacebar trackpad and cursor lock modes.
+* **Gboard:** add the `Access Points menu style` patch, which lets you switch between the new and legacy Access Points menu styles.
+* **Gboard:** add the `Enable split keyboard` patch, with Access Point controls and an optional Auto split setting.
+* **Gboard:** add the `Enable accessibility layout` patch, which exposes Gboard's accessibility layout setting.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Change emoji size` Patch，啟用 Gboard 的表情符號大小設定。
+* **Gboard:** 新增 `Enable cursor trackpad mode` Patch，啟用長按空白鍵觸控板與游標鎖定模式。
+* **Gboard:** 新增 `Access Points menu style` Patch，可切換新版與舊版 Access Points 選單樣式。
+* **Gboard:** 新增 `Enable split keyboard` Patch，提供 Access Point 控制與可選的自動分離設定。
+* **Gboard:** 新增 `Enable accessibility layout` Patch，顯示 Gboard 的無障礙鍵盤配置設定。
+
 ## [2.8.0](https://github.com/jasonwu1994/Gboard-patches/compare/v2.7.0...v2.8.0) (2026-08-12)
 
 ### ✨ New Features

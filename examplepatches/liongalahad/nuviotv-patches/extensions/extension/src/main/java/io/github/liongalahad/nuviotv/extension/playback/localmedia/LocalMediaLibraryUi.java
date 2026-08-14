@@ -1,16 +1,26 @@
 package io.github.liongalahad.nuviotv.extension.playback.localmedia;
 
+import android.app.Activity;
+import android.app.Dialog;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.view.KeyEvent;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.accessibility.AccessibilityNodeProvider;
 
 import io.github.liongalahad.nuviotv.extension.settings.MorpheSettingsRuntime;
+import io.github.liongalahad.nuviotv.extension.settings.MorpheSettingsUi;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.IdentityHashMap;
@@ -40,12 +50,22 @@ public final class LocalMediaLibraryUi {
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
     private static final AtomicBoolean SCAN_RUNNING = new AtomicBoolean();
     private static final AtomicLong SCAN_GENERATION = new AtomicLong();
+    private static final AtomicLong FILE_ACTION_GENERATION = new AtomicLong();
+    private static volatile PendingFileAction pendingFileAction;
     private static final ThreadLocal<Boolean> STORAGE_SEARCH = new ThreadLocal<>();
+    private static final ThreadLocal<StorageKeyTarget> PREPARED_KEY_TARGET = new ThreadLocal<>();
+    private static final Map<Object, StorageKeyTarget> NATIVE_KEY_TARGETS =
+            Collections.synchronizedMap(new IdentityHashMap<>());
     private static volatile boolean storageModeActive;
+    private static volatile boolean libraryDestinationActive;
+    private static volatile LocalMediaRuntime.LibrarySnapshot latestSnapshot;
+    private static volatile StorageKeyTarget pressedKeyTarget;
 
     private static volatile Object snapshotState;
     private static volatile Object queryState;
     private static volatile Object selectedEntryState;
+    private static volatile WeakReference<Object> selectKeyOwner = new WeakReference<>(null);
+    private static volatile String actionRestoreEntryKey = "";
     private static volatile Method lazyItemMethod;
     private static volatile Constructor<?> composableLambdaConstructor;
     private static volatile Method cloudSearchMethod;
@@ -56,6 +76,7 @@ public final class LocalMediaLibraryUi {
     private static volatile Method nativeButtonMethod;
     private static volatile Method nativeButtonColorsMethod;
     private static volatile Method nativeTextMethod;
+    private static volatile Method previewKeyModifierMethod;
 
     private static final Function2<Object, Object, Unit> REFRESH_CONTENT = (composer, flags) -> {
         renderRefreshButton(composer);
@@ -75,13 +96,16 @@ public final class LocalMediaLibraryUi {
      */
     public static boolean populateStorageGridIfActive(Object libraryContentLambda, Object lazyGridScope) {
         boolean storage = capturesStorageMode(libraryContentLambda);
+        boolean enteringStorage = storage && !storageModeActive;
         storageModeActive = storage;
         if (!storage) return false;
         try {
             ensureState(lazyGridScope.getClass().getClassLoader());
+            if (enteringStorage) invalidate();
             String query = stringStateValue(queryState);
             LocalMediaRuntime.LibrarySnapshot snapshot =
                     (LocalMediaRuntime.LibrarySnapshot) stateValue(snapshotState);
+            latestSnapshot = snapshot;
             addItem(lazyGridScope, "morphe_storage_search", (scope, composer, flags) -> {
                 renderSearch(query, composer);
                 return Unit.INSTANCE;
@@ -147,10 +171,327 @@ public final class LocalMediaLibraryUi {
 
     public static void invalidate() {
         SCAN_GENERATION.incrementAndGet();
+        FILE_ACTION_GENERATION.incrementAndGet();
+        pendingFileAction = null;
+        PREPARED_KEY_TARGET.remove();
+        NATIVE_KEY_TARGETS.clear();
+        pressedKeyTarget = null;
         Object state = snapshotState;
         if (state != null) setStateValue(state, null);
         Object selected = selectedEntryState;
         if (selected != null) setStateValue(selected, null);
+        latestSnapshot = null;
+    }
+
+    /** Marks Library route transitions so returning to Storage always performs a fresh scan. */
+    static void observeNavigationDestination(String description) {
+        String value = description == null ? "" : description.toLowerCase(Locale.ROOT);
+        boolean library = value.contains("library");
+        if (library) {
+            libraryDestinationActive = true;
+        } else if (libraryDestinationActive) {
+            libraryDestinationActive = false;
+            storageModeActive = false;
+        }
+    }
+
+    /**
+     * Marks the exact Storage card or file row about to enter Nuvio's native TV Button.
+     * The bytecode hook calls this immediately before the Button call, so the marker cannot
+     * leak from a skipped composable into another control.
+     */
+    public static void prepareStorageKeyTarget(Object nativeModel) {
+        StorageKeyTarget target = NATIVE_KEY_TARGETS.get(nativeModel);
+        if (target == null) PREPARED_KEY_TARGET.remove();
+        else PREPARED_KEY_TARGET.set(target);
+    }
+
+    /** Adds a row-owned preview-key handler to only the prepared Storage TV Button. */
+    public static Object attachPreparedStorageKeyHandler(Object modifier) {
+        StorageKeyTarget target = PREPARED_KEY_TARGET.get();
+        PREPARED_KEY_TARGET.remove();
+        if (target == null || modifier == null) return modifier;
+        try {
+            Method method = previewKeyModifierMethod;
+            if (method == null) {
+                ClassLoader loader = modifier.getClass().getClassLoader();
+                Class<?> modifierClass = Class.forName("u1.q", false, loader);
+                method = Class.forName("m2.d", false, loader).getDeclaredMethod(
+                        "e", modifierClass, Function1.class);
+                method.setAccessible(true);
+                previewKeyModifierMethod = method;
+            }
+            return method.invoke(null, modifier, target.keyHandler);
+        } catch (Throwable error) {
+            PREPARED_KEY_TARGET.remove();
+            Log.e(TAG, "Unable to attach the Storage row key handler", error);
+            return modifier;
+        }
+    }
+
+    private static boolean observeStorageRowKey(
+            StorageKeyTarget target, Object wrappedEvent
+    ) {
+        KeyEvent event = unwrapKeyEvent(wrappedEvent);
+        if (event == null || !isSelectKey(event.getKeyCode())) return false;
+        if (event.getAction() == KeyEvent.ACTION_DOWN) {
+            pressedKeyTarget = target;
+            Log.d(TAG, "Storage row key down target=" + target.displayName());
+            // MainActivity normally starts this timer before Compose dispatch. Calling it here as
+            // well makes the row self-contained on TV builds with a different window boundary;
+            // duplicate DOWN delivery does not restart the timer.
+            LocalMediaRuntime.observeKeyEvent(event);
+        } else if (event.getAction() == KeyEvent.ACTION_UP && pressedKeyTarget == target) {
+            pressedKeyTarget = null;
+        }
+        // Nuvio's native Button still owns short-click behavior and focus visuals.
+        return false;
+    }
+
+    private static KeyEvent unwrapKeyEvent(Object wrappedEvent) {
+        if (wrappedEvent instanceof KeyEvent) return (KeyEvent) wrappedEvent;
+        if (wrappedEvent == null) return null;
+        for (Class<?> type = wrappedEvent.getClass(); type != null; type = type.getSuperclass()) {
+            for (Field field : type.getDeclaredFields()) {
+                if (!KeyEvent.class.isAssignableFrom(field.getType())) continue;
+                try {
+                    field.setAccessible(true);
+                    return (KeyEvent) field.get(wrappedEvent);
+                } catch (Throwable ignored) {
+                    return null;
+                }
+            }
+        }
+        return null;
+    }
+
+    private static boolean isSelectKey(int key) {
+        return key == KeyEvent.KEYCODE_DPAD_CENTER || key == KeyEvent.KEYCODE_ENTER ||
+                key == KeyEvent.KEYCODE_NUMPAD_ENTER || key == KeyEvent.KEYCODE_BUTTON_A;
+    }
+
+    static void pressStorageEntryForTesting(LocalMediaRuntime.LocalMediaEntry entry) {
+        storageModeActive = entry != null;
+        pressedKeyTarget = entry == null ? null : StorageKeyTarget.entry(entry);
+    }
+
+    /** Resolves the row-owned target at the platform long-press timeout. */
+    static boolean onSelectLongPressTimeout() {
+        if (!storageModeActive) return false;
+        StorageKeyTarget direct = pressedKeyTarget;
+        if (direct != null) {
+            pressedKeyTarget = null;
+            Log.d(TAG, "Storage direct long-press timeout target=" + direct.displayName());
+            if (direct.file != null) {
+                openFileDeleteAction(direct.entryKey, direct.file);
+            } else if (direct.entry != null && direct.entry.folder) {
+                LocalMediaRuntime.requestDeleteFolder(direct.entry);
+            } else if (direct.entry != null && !direct.entry.files.isEmpty()) {
+                LocalMediaRuntime.requestDeleteFile(direct.entry.files.get(0));
+            } else {
+                return false;
+            }
+            return true;
+        }
+        PendingFileAction pending = pendingFileAction;
+        if (pending != null && pending.generation == FILE_ACTION_GENERATION.get()) {
+            pendingFileAction = null;
+            FILE_ACTION_GENERATION.incrementAndGet();
+            openFileDeleteAction(pending.entryKey, pending.file);
+            return true;
+        }
+        String focused = focusedAccessibilityText();
+        if (focused.isEmpty()) return false;
+        LocalMediaRuntime.LibrarySnapshot snapshot = latestSnapshot;
+        if (snapshot == null) {
+            Object state = snapshotState;
+            if (state != null) snapshot = (LocalMediaRuntime.LibrarySnapshot) stateValue(state);
+        }
+        if (snapshot == null) return false;
+
+        String selectedKey = selectedEntryState == null ? "" : stringStateValue(selectedEntryState);
+        if (!selectedKey.isEmpty()) {
+            for (LocalMediaRuntime.LocalMediaEntry entry : snapshot.entries) {
+                if (!selectedKey.equals(entry.key)) continue;
+                LocalMediaRuntime.LocalMediaFile file = bestFileMatch(entry.files, focused);
+                if (file != null) {
+                    openFileDeleteAction(entry.key, file);
+                    return true;
+                }
+            }
+            // A folder's file-picker dialog is open. Never reinterpret its focused row as the
+            // underlying folder card if this Compose version withholds descendant semantics.
+            return false;
+        }
+        LocalMediaRuntime.LocalMediaEntry entry = bestEntryMatch(snapshot.entries, focused);
+        if (entry == null) return false;
+        if (entry.folder) LocalMediaRuntime.requestDeleteFolder(entry);
+        else LocalMediaRuntime.requestDeleteFile(entry.files.get(0));
+        return true;
+    }
+
+    static void observeSelectKeyOwner(Object owner) {
+        if (owner == null) return;
+        Object current = selectKeyOwner.get();
+        // The same key can pass through both MainActivity and its Compose Dialog. A visible
+        // dialog is the more specific owner, but a dismissed dialog must not leak into the next
+        // key cycle and hide the focused Storage card from the timeout resolver.
+        if (owner instanceof Dialog || !(current instanceof Dialog) ||
+                !isShowing((Dialog) current)) {
+            selectKeyOwner = new WeakReference<>(owner);
+        }
+    }
+
+    private static boolean isShowing(Dialog dialog) {
+        try {
+            return dialog != null && dialog.isShowing();
+        } catch (RuntimeException ignored) {
+            return false;
+        }
+    }
+
+    static void clearSelectKeyOwner() {
+        selectKeyOwner = new WeakReference<>(null);
+        pressedKeyTarget = null;
+    }
+
+    private static void openFileDeleteAction(
+            String selectedKey, LocalMediaRuntime.LocalMediaFile file
+    ) {
+        actionRestoreEntryKey = selectedKey == null ? "" : selectedKey;
+        Object selected = selectedEntryState;
+        if (selected != null) setStateValue(selected, null);
+        // Let Compose remove its modal window first; otherwise that window remains above the
+        // native action activity even though the activity has already become top-resumed.
+        MAIN.post(() -> LocalMediaRuntime.requestDeleteFile(file));
+    }
+
+    static void restoreFileDialogAfterAction() {
+        String key = actionRestoreEntryKey;
+        actionRestoreEntryKey = "";
+        Object selected = selectedEntryState;
+        if (!key.isEmpty() && storageModeActive && selected != null) setStateValue(selected, key);
+    }
+
+    static void clearFileDialogAfterAction() {
+        actionRestoreEntryKey = "";
+    }
+
+    private static LocalMediaRuntime.LocalMediaEntry bestEntryMatch(
+            List<LocalMediaRuntime.LocalMediaEntry> entries, String focused
+    ) {
+        LocalMediaRuntime.LocalMediaEntry result = null;
+        int length = -1;
+        String haystack = focused.toLowerCase(Locale.ROOT);
+        for (LocalMediaRuntime.LocalMediaEntry entry : entries) {
+            String name = entry.name.toLowerCase(Locale.ROOT);
+            if (name.length() > length && haystack.contains(name)) {
+                result = entry;
+                length = name.length();
+            }
+        }
+        return result;
+    }
+
+    private static LocalMediaRuntime.LocalMediaFile bestFileMatch(
+            List<LocalMediaRuntime.LocalMediaFile> files, String focused
+    ) {
+        LocalMediaRuntime.LocalMediaFile result = null;
+        int length = -1;
+        String haystack = focused.toLowerCase(Locale.ROOT);
+        for (LocalMediaRuntime.LocalMediaFile file : files) {
+            String name = file.name.toLowerCase(Locale.ROOT);
+            String relative = file.relativePath.toLowerCase(Locale.ROOT);
+            if ((haystack.contains(name) || haystack.contains(relative)) && name.length() > length) {
+                result = file;
+                length = name.length();
+            }
+        }
+        return result;
+    }
+
+    private static String focusedAccessibilityText() {
+        Window window = selectKeyWindow();
+        if (window == null) return "";
+        FocusedAccessibility focused = null;
+        try {
+            focused = findFocusedAccessibilityNode(window.getDecorView());
+            return focused == null ? "" : nodeText(focused.node, 0);
+        } catch (Throwable error) {
+            Log.d(TAG, "Unable to inspect focused Storage semantics", error);
+            return "";
+        } finally {
+            if (focused != null) focused.node.recycle();
+        }
+    }
+
+    private static Window selectKeyWindow() {
+        Object owner = selectKeyOwner.get();
+        if (owner instanceof Dialog) return ((Dialog) owner).getWindow();
+        if (owner instanceof Activity) return ((Activity) owner).getWindow();
+        Activity activity = MorpheSettingsUi.resumedActivity();
+        return activity == null ? null : activity.getWindow();
+    }
+
+    private static FocusedAccessibility findFocusedAccessibilityNode(View view) {
+        if (view == null) return null;
+        AccessibilityNodeProvider provider = view.getAccessibilityNodeProvider();
+        if (provider != null) {
+            AccessibilityNodeInfo focused = provider.findFocus(AccessibilityNodeInfo.FOCUS_INPUT);
+            if (focused != null) {
+                try {
+                    focused.setQueryFromAppProcessEnabled(view, true);
+                    return new FocusedAccessibility(focused);
+                } catch (Throwable ignored) {
+                    // Some Compose versions already return a sealed, queryable virtual node.
+                    // Keep it: its own label is enough to resolve a Storage card or file row.
+                    return new FocusedAccessibility(focused);
+                }
+            }
+        }
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int index = 0; index < group.getChildCount(); index++) {
+                FocusedAccessibility focused =
+                        findFocusedAccessibilityNode(group.getChildAt(index));
+                if (focused != null) return focused;
+            }
+        }
+        return null;
+    }
+
+    private static String nodeText(AccessibilityNodeInfo node, int depth) {
+        if (node == null || depth > 12) return "";
+        StringBuilder result = new StringBuilder();
+        if (node.getText() != null) result.append(node.getText());
+        if (node.getContentDescription() != null) {
+            if (result.length() > 0) result.append(' ');
+            result.append(node.getContentDescription());
+        }
+        try {
+            for (int index = 0; index < node.getChildCount(); index++) {
+                AccessibilityNodeInfo child = node.getChild(index);
+                if (child == null) continue;
+                String childText = nodeText(child, depth + 1);
+                child.recycle();
+                if (!childText.isEmpty()) {
+                    if (result.length() > 0) result.append(' ');
+                    result.append(childText);
+                }
+            }
+        } catch (Throwable ignored) {
+            // A sealed provider node can still expose its own label even when descendant queries
+            // are unavailable from the app process.
+        }
+        return result.toString();
+    }
+
+    private static final class FocusedAccessibility {
+        final AccessibilityNodeInfo node;
+
+        FocusedAccessibility(AccessibilityNodeInfo node) {
+            this.node = node;
+        }
     }
 
     private static boolean capturesStorageMode(Object owner) {
@@ -213,6 +554,7 @@ public final class LocalMediaLibraryUi {
                     return;
                 }
                 setStateValue(snapshotState, scanned);
+                latestSnapshot = scanned;
             });
         });
     }
@@ -406,6 +748,26 @@ public final class LocalMediaLibraryUi {
             }
 
             Function0<Unit> click = () -> {
+                // The native file dialog is layered over its folder card. Some TV key dispatchers
+                // deliver the select release to both callbacks; the covered card must leave the
+                // long-press token for the focused file row.
+                if (presentation.entry.folder && presentation.entry.key.equals(
+                        stringStateValue(selectedEntryState))) {
+                    Log.d(TAG, "Ignored covered Storage folder callback: " +
+                            presentation.entry.name);
+                    return Unit.INSTANCE;
+                }
+                boolean longPress = LocalMediaRuntime.consumeSelectLongPress();
+                Log.d(TAG, "Storage card action longPress=" + longPress +
+                        " name=" + presentation.entry.name);
+                if (longPress) {
+                    if (presentation.entry.folder) {
+                        LocalMediaRuntime.requestDeleteFolder(presentation.entry);
+                    } else {
+                        LocalMediaRuntime.requestDeleteFile(presentation.entry.files.get(0));
+                    }
+                    return Unit.INSTANCE;
+                }
                 if (presentation.entry.folder) {
                     setStateValue(selectedEntryState, presentation.entry.key);
                 } else {
@@ -419,18 +781,67 @@ public final class LocalMediaLibraryUi {
                     !presentation.entry.key.equals(stringStateValue(selectedEntryState))) return;
             Function1<Object, Unit> playFile = nativeFile -> {
                 LocalMediaRuntime.LocalMediaFile file = presentation.filesByNativeModel.get(nativeFile);
+                if (file == null) return Unit.INSTANCE;
+                if (LocalMediaRuntime.consumeSelectLongPress()) {
+                    FILE_ACTION_GENERATION.incrementAndGet();
+                    pendingFileAction = null;
+                    openFileDeleteAction(presentation.entry.key, file);
+                    return Unit.INSTANCE;
+                }
+                long generation = FILE_ACTION_GENERATION.incrementAndGet();
+                pendingFileAction = new PendingFileAction(
+                        generation, presentation.entry.key, file);
+                // This callback can run on key-down or key-up depending on the TV device. If the
+                // release was already dispatched, resolve on the next main-loop turn; otherwise
+                // observeKeyEvent resolves it from the real release event with no artificial lag.
+                MAIN.post(() -> {
+                    if (!LocalMediaRuntime.isSelectKeyDown()) {
+                        resolvePendingFileAction(LocalMediaRuntime.consumeSelectLongPress());
+                    }
+                });
                 // Preserve the open folder so popping the local player restores the exact
                 // Storage selection view from which playback started.
-                if (file != null) LocalMediaRuntime.play(file);
                 return Unit.INSTANCE;
             };
             Function0<Unit> dismiss = () -> {
+                FILE_ACTION_GENERATION.incrementAndGet();
+                pendingFileAction = null;
                 setStateValue(selectedEntryState, null);
                 return Unit.INSTANCE;
             };
             dialog.invoke(null, presentation.nativeItem, null, playFile, dismiss, composer, 0);
         } catch (Throwable error) {
             throw new IllegalStateException("Unable to render a native Storage card", error);
+        }
+    }
+
+    /** Called by the MainActivity key hook after the physical select key is released. */
+    static void onSelectKeyReleased(boolean longPress) {
+        MAIN.post(() -> resolvePendingFileAction(longPress));
+    }
+
+    private static void resolvePendingFileAction(boolean longPress) {
+        PendingFileAction pending = pendingFileAction;
+        if (pending == null || pending.generation != FILE_ACTION_GENERATION.get()) return;
+        pendingFileAction = null;
+        FILE_ACTION_GENERATION.incrementAndGet();
+        Log.d(TAG, "Storage file action longPress=" + longPress +
+                " name=" + pending.file.name);
+        if (longPress) openFileDeleteAction(pending.entryKey, pending.file);
+        else LocalMediaRuntime.play(pending.file);
+    }
+
+    private static final class PendingFileAction {
+        final long generation;
+        final String entryKey;
+        final LocalMediaRuntime.LocalMediaFile file;
+
+        PendingFileAction(
+                long generation, String entryKey, LocalMediaRuntime.LocalMediaFile file
+        ) {
+            this.generation = generation;
+            this.entryKey = entryKey;
+            this.file = file;
         }
     }
 
@@ -648,9 +1059,47 @@ public final class LocalMediaLibraryUi {
             }
             if (filesField == null) throw new NoSuchFieldException("Native Cloud item files");
             List<?> nativeFiles = (List<?>) filesField.get(nativeItem);
+            NATIVE_KEY_TARGETS.put(nativeItem, StorageKeyTarget.entry(entry));
             for (int index = 0; index < nativeFiles.size(); index++) {
-                filesByNativeModel.put(nativeFiles.get(index), entry.files.get(index));
+                Object nativeFile = nativeFiles.get(index);
+                LocalMediaRuntime.LocalMediaFile file = entry.files.get(index);
+                filesByNativeModel.put(nativeFile, file);
+                NATIVE_KEY_TARGETS.put(nativeFile, StorageKeyTarget.file(entry.key, file));
             }
+        }
+    }
+
+    private static final class StorageKeyTarget {
+        final String entryKey;
+        final LocalMediaRuntime.LocalMediaEntry entry;
+        final LocalMediaRuntime.LocalMediaFile file;
+        final Function1<Object, Boolean> keyHandler;
+
+        private StorageKeyTarget(
+                String entryKey,
+                LocalMediaRuntime.LocalMediaEntry entry,
+                LocalMediaRuntime.LocalMediaFile file
+        ) {
+            this.entryKey = entryKey;
+            this.entry = entry;
+            this.file = file;
+            this.keyHandler = wrappedEvent ->
+                    Boolean.valueOf(observeStorageRowKey(this, wrappedEvent));
+        }
+
+        static StorageKeyTarget entry(LocalMediaRuntime.LocalMediaEntry entry) {
+            return new StorageKeyTarget(entry.key, entry, null);
+        }
+
+        static StorageKeyTarget file(
+                String entryKey, LocalMediaRuntime.LocalMediaFile file
+        ) {
+            return new StorageKeyTarget(entryKey, null, file);
+        }
+
+        String displayName() {
+            if (file != null) return file.name;
+            return entry == null ? "" : entry.name;
         }
     }
 }

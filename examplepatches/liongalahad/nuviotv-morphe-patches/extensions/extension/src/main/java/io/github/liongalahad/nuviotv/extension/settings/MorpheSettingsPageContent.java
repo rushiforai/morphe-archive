@@ -14,13 +14,18 @@ public final class MorpheSettingsPageContent implements Function3<Object, Object
     private static final Function0<Unit> NO_OP = () -> Unit.INSTANCE;
 
     private final Object modifier;
+    private final Object initialFocusRequester;
 
-    private MorpheSettingsPageContent(Object modifier) {
+    private MorpheSettingsPageContent(Object modifier, Object initialFocusRequester) {
         this.modifier = modifier;
+        this.initialFocusRequester = initialFocusRequester;
     }
 
-    public static Function3<Object, Object, Object, Unit> create(Object modifier) {
-        return new MorpheSettingsPageContent(modifier);
+    public static Function3<Object, Object, Object, Unit> create(
+            Object modifier,
+            Object initialFocusRequester
+    ) {
+        return new MorpheSettingsPageContent(modifier, initialFocusRequester);
     }
 
     @Override
@@ -34,15 +39,33 @@ public final class MorpheSettingsPageContent implements Function3<Object, Object
         );
 
         List<SectionState> sections = new ArrayList<>();
+        int sectionIndex = 0;
         for (MorpheSettingsCategory category : MorpheSettingsRuntime.enabledCategories()) {
+            Object expanded = MorpheSettingsRows.rememberBooleanState(composer, false);
+            Object rememberedFocusRequester = MorpheSettingsRows.rememberFocusRequester(composer);
             sections.add(new SectionState(
                     category,
-                    MorpheSettingsRows.rememberBooleanState(composer, false),
-                    MorpheSettingsRows.rememberFocusRequester(composer)
+                    expanded,
+                    focusRequesterForSection(
+                            initialFocusRequester,
+                            rememberedFocusRequester,
+                            sectionIndex
+                    )
             ));
+            sectionIndex += 1;
         }
         MorpheSettingsRows.lazyColumn(modifier, composer, new SectionList(modifier, sections));
         return Unit.INSTANCE;
+    }
+
+    static Object focusRequesterForSection(
+            Object initialFocusRequester,
+            Object rememberedFocusRequester,
+            int sectionIndex
+    ) {
+        return sectionIndex == 0 && initialFocusRequester != null
+                ? initialFocusRequester
+                : rememberedFocusRequester;
     }
 
     private static final class SectionState {

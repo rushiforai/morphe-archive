@@ -135,6 +135,36 @@ Customize the bottom tab order in Gboard's Emojis, stickers & GIFs panel with dr
 </details>
 
 <details>
+  <summary><code>Change emoji size</code></summary>
+
+  Enables Gboard's emoji size setting.
+</details>
+
+<details>
+  <summary><code>Enable cursor trackpad mode</code></summary>
+
+  Enables the long-press-spacebar trackpad, cursor lock mode, and the required scrub-move preference.
+</details>
+
+<details>
+  <summary><code>Access Points menu style</code></summary>
+
+  Lets you switch between the new and legacy Access Points menu styles.
+</details>
+
+<details>
+  <summary><code>Enable split keyboard</code></summary>
+
+  Enables Gboard's split keyboard layout.
+</details>
+
+<details>
+  <summary><code>Enable accessibility layout</code></summary>
+
+  Enables accessibility layout.
+</details>
+
+<details>
   <summary><code>Settings Homepage Override</code></summary>
 
   Lets you switch between the new and legacy Gboard settings homepage styles.

@@ -454,8 +454,13 @@ public final class MorpheSettingsRuntime {
                 Object modifier
         ) {
             return (scope, composer, flags) -> {
-                for (MorpheSettingsCategory contribution : contributions) {
-                    contribution.content(modifier).invoke(scope, composer, flags);
+                MorpheSettingsUi.beginSharedRowGroup();
+                try {
+                    for (MorpheSettingsCategory contribution : contributions) {
+                        contribution.content(modifier).invoke(scope, composer, flags);
+                    }
+                } finally {
+                    MorpheSettingsUi.endSharedRowGroup();
                 }
                 return kotlin.Unit.INSTANCE;
             };

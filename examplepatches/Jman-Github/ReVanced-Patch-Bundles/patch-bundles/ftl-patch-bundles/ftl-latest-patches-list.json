@@ -1,5 +1,5 @@
 {
-    "version": "v1.26.0-dev.9",
+    "version": "v1.30.0",
     "patches": [
         {
             "compatiblePackages": null,
@@ -128,7 +128,7 @@
             ],
             "default": false,
             "dependencies": [],
-            "description": "Removes ES File Explorer home tiles/media, menu actions, navigation header, media handler, and web-search entry.",
+            "description": "Removes selected ES File Explorer home tiles, menu actions, navigation header, media handler, and web-search entry.",
             "name": "ES File Explorer Cleanup",
             "options": []
         },
@@ -137,15 +137,6 @@
                 {
                     "name": "MX Player Pro",
                     "packageName": "com.mxtech.videoplayer.pro",
-                    "targets": [
-                        {
-                            "isExperimental": false
-                        }
-                    ]
-                },
-                {
-                    "name": "MX Player",
-                    "packageName": "com.mxtech.videoplayer.ad",
                     "targets": [
                         {
                             "isExperimental": false
@@ -169,15 +160,6 @@
                             "isExperimental": false
                         }
                     ]
-                },
-                {
-                    "name": "MX Player",
-                    "packageName": "com.mxtech.videoplayer.ad",
-                    "targets": [
-                        {
-                            "isExperimental": false
-                        }
-                    ]
                 }
             ],
             "default": false,
@@ -191,15 +173,6 @@
                 {
                     "name": "MX Player Pro",
                     "packageName": "com.mxtech.videoplayer.pro",
-                    "targets": [
-                        {
-                            "isExperimental": false
-                        }
-                    ]
-                },
-                {
-                    "name": "MX Player",
-                    "packageName": "com.mxtech.videoplayer.ad",
                     "targets": [
                         {
                             "isExperimental": false
@@ -350,15 +323,6 @@
                 {
                     "name": "MX Player Pro",
                     "packageName": "com.mxtech.videoplayer.pro",
-                    "targets": [
-                        {
-                            "isExperimental": false
-                        }
-                    ]
-                },
-                {
-                    "name": "MX Player",
-                    "packageName": "com.mxtech.videoplayer.ad",
                     "targets": [
                         {
                             "isExperimental": false

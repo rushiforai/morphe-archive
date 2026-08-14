@@ -24,9 +24,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           repository: MorpheApp/morphe-patches
-          # Temporary: the add-on hooks this bundle attaches to are not merged yet.
-          # Remove once https://github.com/MorpheApp/morphe-patches/pull/2295 is released.
-          ref: feat/add-on-support
+          ref: dev
           path: morphe-patches
 
       - name: Checkout morphe-patcher
@@ -43,7 +41,7 @@ jobs:
           path: morphe-patches-library
 
       - name: Setup Java
-        uses: actions/setup-java@v5.6.0
+        uses: actions/setup-java@v5.7.0
         with:
           distribution: 'temurin'
           java-version: '21'

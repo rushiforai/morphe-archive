@@ -12,6 +12,9 @@ import kotlin.jvm.functions.Function3;
 /** Shared renderer for every control placed inside a Morphe settings category. */
 final class MorpheSettingsRows {
     private static final int NATIVE_CATEGORY_LIST_DEFAULT_MASK = 510 & ~16;
+    private static final int NATIVE_SELECTOR_EXPLICIT_ENABLED_MASK = 0x3fb0;
+    private static final String[] NATIVE_SWITCH_CLASS_NAMES = {"sa.v", "sa.u", "sa.ic", "sa.oc"};
+    private static final String[] NATIVE_SELECTOR_CLASS_NAMES = {"sa.nc", "sa.ic", "sa.oc"};
 
     private static volatile Method nativeCardMethod;
     private static volatile Method nativeSwitchMethod;
@@ -75,6 +78,17 @@ final class MorpheSettingsRows {
             String value,
             Function0<?> action
     ) {
+        selectorRow(modifier, composer, title, value, true, action);
+    }
+
+    static void selectorRow(
+            Object modifier,
+            Object composer,
+            String title,
+            String value,
+            boolean enabled,
+            Function0<?> action
+    ) {
         try {
             Method method = nativeCardMethod;
             if (method == null) {
@@ -82,8 +96,9 @@ final class MorpheSettingsRows {
                 nativeCardMethod = method;
             }
             method.invoke(
-                    null, title, value, null, action, modifier, null, false, null, null,
-                    0L, null, null, 0.0f, 0L, composer, 0, 0, 0x3fe0
+                    null, title, value, null, action, null, null, enabled, null, null,
+                    0L, null, null, 0.0f, 0L, composer, 0, 0,
+                    NATIVE_SELECTOR_EXPLICIT_ENABLED_MASK
             );
         } catch (ReflectiveOperationException error) {
             throw new IllegalStateException("Unable to render a native Morphe selector row", error);
@@ -395,9 +410,7 @@ final class MorpheSettingsRows {
     private static Method findNativeMethod(Object composer, boolean switchRow)
             throws ReflectiveOperationException {
         ClassLoader loader = composer.getClass().getClassLoader();
-        String[] classNames = switchRow
-                ? new String[]{"sa.v", "sa.ic"}
-                : new String[]{"sa.nc", "sa.ic"};
+        String[] classNames = switchRow ? NATIVE_SWITCH_CLASS_NAMES : NATIVE_SELECTOR_CLASS_NAMES;
         for (String className : classNames) {
             Class<?> settingsClass;
             try {
@@ -408,15 +421,9 @@ final class MorpheSettingsRows {
             for (Method method : settingsClass.getDeclaredMethods()) {
                 Class<?>[] parameters = method.getParameterTypes();
                 if (!Modifier.isStatic(method.getModifiers()) || method.getReturnType() != Void.TYPE ||
-                        parameters.length != (switchRow && className.equals("sa.v") ? 7 : switchRow ? 10 : 18) ||
-                        parameters[0] != String.class || parameters[1] != String.class) {
-                    continue;
-                }
-                if (switchRow) {
-                    if (parameters[2] != Boolean.TYPE ||
-                            !Function0.class.isAssignableFrom(parameters[3])) continue;
-                } else if (parameters[2] != String.class ||
-                        !Function0.class.isAssignableFrom(parameters[3])) {
+                        !(switchRow
+                                ? matchesNativeSwitchParameters(parameters)
+                                : matchesNativeSelectorParameters(parameters))) {
                     continue;
                 }
                 method.setAccessible(true);
@@ -424,5 +431,44 @@ final class MorpheSettingsRows {
             }
         }
         throw new NoSuchMethodException("Native Nuvio settings row method");
+    }
+
+    private static boolean matchesNativeSwitchParameters(Class<?>[] parameters) {
+        if (parameters.length != 7 && parameters.length != 10) return false;
+        if (parameters[0] != String.class || parameters[1] != String.class ||
+                parameters[2] != Boolean.TYPE ||
+                !Function0.class.isAssignableFrom(parameters[3])) {
+            return false;
+        }
+        if (parameters.length == 7) {
+            return Function0.class.isAssignableFrom(parameters[4]) &&
+                    !parameters[5].isPrimitive() && parameters[6] == Integer.TYPE;
+        }
+        return !parameters[4].isPrimitive() &&
+                Function0.class.isAssignableFrom(parameters[5]) &&
+                parameters[6] == Boolean.TYPE && !parameters[7].isPrimitive() &&
+                parameters[8] == Integer.TYPE && parameters[9] == Integer.TYPE;
+    }
+
+    private static boolean matchesNativeSelectorParameters(Class<?>[] parameters) {
+        return parameters.length == 18 &&
+                parameters[0] == String.class && parameters[1] == String.class &&
+                parameters[2] == String.class &&
+                Function0.class.isAssignableFrom(parameters[3]) &&
+                !parameters[4].isPrimitive() &&
+                Function0.class.isAssignableFrom(parameters[5]) &&
+                parameters[6] == Boolean.TYPE &&
+                parameters[9] == Long.TYPE && parameters[12] == Float.TYPE &&
+                parameters[13] == Long.TYPE && !parameters[14].isPrimitive() &&
+                parameters[15] == Integer.TYPE && parameters[16] == Integer.TYPE &&
+                parameters[17] == Integer.TYPE;
+    }
+
+    static boolean matchesNativeSwitchParametersForTesting(Class<?>[] parameters) {
+        return matchesNativeSwitchParameters(parameters);
+    }
+
+    static boolean matchesNativeSelectorParametersForTesting(Class<?>[] parameters) {
+        return matchesNativeSelectorParameters(parameters);
     }
 }

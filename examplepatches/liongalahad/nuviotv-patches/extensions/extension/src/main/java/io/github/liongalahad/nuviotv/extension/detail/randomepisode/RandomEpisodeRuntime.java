@@ -20,7 +20,7 @@ import io.github.liongalahad.nuviotv.extension.settings.MorpheSettingsRuntime;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function0;
 
-/** Runtime bridge for the 0.8.3 detail, navigation and player hooks. */
+/** Runtime bridge for the 0.8.4 detail, navigation and player hooks. */
 @SuppressWarnings({"unused", "rawtypes", "unchecked", "JavaReflectionMemberAccess"})
 public final class RandomEpisodeRuntime {
     private static final int SHUFFLE_DRAWABLE_ID = 0x7f0800e9;

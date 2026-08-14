@@ -18,9 +18,10 @@ public final class LocalMediaSettingsContent implements Function3<Object, Object
 
     @Override public Unit invoke(Object scope, Object composer, Object flags) {
         if (!MorpheSettingsUi.beginComposition(composer, flags)) return Unit.INSTANCE;
+        LocalMediaRuntime.migrateLegacyStoragePath();
         MorpheSettingsUi.nestedSection(
                 composer,
-                "Local Storage",
+                "Local Media",
                 "Browse and play video files stored on this device",
                 true,
                 (innerScope, innerComposer, innerFlags) -> {
@@ -34,13 +35,6 @@ public final class LocalMediaSettingsContent implements Function3<Object, Object
                             "Add Storage beside Saved and Cloud. Access is requested when enabled.",
                             LocalMediaRuntime.isEnabled(),
                             LocalMediaToggleAction.create()
-                    );
-                    MorpheSettingsUi.selectorRow(
-                            modifier,
-                            innerComposer,
-                            "Folder location",
-                            LocalMediaRuntime.folderDisplayLabel(),
-                            LocalMediaFolderAction.create()
                     );
                     return Unit.INSTANCE;
                 }

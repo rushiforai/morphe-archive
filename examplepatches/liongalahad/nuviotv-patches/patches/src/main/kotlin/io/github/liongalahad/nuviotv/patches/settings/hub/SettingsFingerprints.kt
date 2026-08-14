@@ -7,7 +7,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
-/** Exact 0.8.3-beta settings Composable and its visibility-filter ordinal call. */
+/** Exact 0.8.4-beta settings Composable and its visibility-filter ordinal call. */
 internal object SettingsScreenFingerprint : Fingerprint(
     returnType = "V",
     filters = listOf(

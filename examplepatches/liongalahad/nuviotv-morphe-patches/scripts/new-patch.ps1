@@ -46,7 +46,7 @@ public final class Extension {
   "id": "$Id",
   "name": "$Name",
   "category": "$Category",
-  "target": {"application":"NuvioTV","package":"com.nuvio.tv","versions":["0.8.3-beta"],"launchComponent":"com.nuvio.tv/.MainActivity"},
+  "target": {"application":"NuvioTV","package":"com.nuvio.tv","versions":["0.8.4-beta"],"launchComponent":"com.nuvio.tv/.MainActivity"},
   "assets": {
     "universal": {"url":"TODO","sha256":"TODO"},
     "x86_64": {"url":"TODO","sha256":"TODO"},

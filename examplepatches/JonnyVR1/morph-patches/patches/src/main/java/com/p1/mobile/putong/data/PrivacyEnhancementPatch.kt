@@ -50,7 +50,7 @@ private val apkSignatureVerificationFingerprint = Fingerprint(
 @JvmField
 val privacyEnhancementPatch = bytecodePatch(
     name = "Privacy Enhancement",
-    description = "Advanced privacy protections: root/emulator detection bypass, ShuMeng SDK blocking, Facebook SDK emulator detection bypass, APK signature verification bypass, package enumeration prevention",
+    description = "Advanced privacy protections: root/emulator detection bypass, ShuMeng SDK blocking, Facebook SDK emulator detection bypass, APK signature verification bypass, package enumeration prevention, VPN/proxy detection bypass, overlay detection bypass",
     default = true,
 ) {
     compatibleWith(tantanCompatibility)
@@ -65,8 +65,10 @@ val privacyEnhancementPatch = bytecodePatch(
         val additionalRootAnchors = setOf("/data/local/su", "/system/xbin/su", "/su/bin/su")
         val shuMengAnchors = setOf("shumeng_init", "shuzilm")
         val packageEnumAnchors = setOf("getInstalledPackages", "firstInstallTime")
+        val vpnProxyAnchors = setOf("http.proxyHost", "https.proxyHost")
+        val overlayAnchors = setOf("canDrawOverlays")
 
-        val allAnchors = jmd0Anchors + mmd0Anchors + ert0Anchors + fbEmulatorAnchors + additionalRootAnchors + shuMengAnchors + packageEnumAnchors
+        val allAnchors = jmd0Anchors + mmd0Anchors + ert0Anchors + fbEmulatorAnchors + additionalRootAnchors + shuMengAnchors + packageEnumAnchors + vpnProxyAnchors + overlayAnchors
 
         var jmd0Class: ClassDef? = null
         var mmd0Class: ClassDef? = null
@@ -75,10 +77,12 @@ val privacyEnhancementPatch = bytecodePatch(
         var additionalRootClass: ClassDef? = null
         var shuMengClass: ClassDef? = null
         var packageEnumClass: ClassDef? = null
+        var vpnProxyClass: ClassDef? = null
+        var overlayClass: ClassDef? = null
         var matchedCount = 0
 
         classDefForEach { classDef ->
-            if (matchedCount == 7) return@classDefForEach
+            if (matchedCount == 9) return@classDefForEach
 
             val type = classDef.type
             if (type.startsWith("Landroid/") || type.startsWith("Lkotlin/") || type.startsWith("Ljava/")) {
@@ -108,6 +112,8 @@ val privacyEnhancementPatch = bytecodePatch(
                 additionalRootClass == null && foundStrings.containsAll(additionalRootAnchors) -> { additionalRootClass = classDef; matchedCount++ }
                 shuMengClass == null && foundStrings.containsAll(shuMengAnchors) -> { shuMengClass = classDef; matchedCount++ }
                 packageEnumClass == null && foundStrings.containsAll(packageEnumAnchors) -> { packageEnumClass = classDef; matchedCount++ }
+                vpnProxyClass == null && foundStrings.containsAll(vpnProxyAnchors) -> { vpnProxyClass = classDef; matchedCount++ }
+                overlayClass == null && foundStrings.containsAll(overlayAnchors) -> { overlayClass = classDef; matchedCount++ }
             }
         }
 
@@ -208,6 +214,42 @@ val privacyEnhancementPatch = bytecodePatch(
                             (instr.reference as StringReference).string in suPathStrings
                     }
                     if (hasSuPaths) {
+                        method.addInstructions(0, RETURN_FALSE)
+                    }
+                }
+            }
+        }
+
+        vpnProxyClass?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.implementation == null) return@forEach
+                if (isConstructor(method)) return@forEach
+                if (method.returnType == "Z" && AccessFlags.STATIC.isSet(method.accessFlags)) {
+                    val hasVpnProxyChecks = method.cachedInstructions().any { instr ->
+                        if (instr is ReferenceInstruction && instr.reference is MethodReference) {
+                            val methodName = (instr.reference as MethodReference).name
+                            methodName == "hasTransport" || methodName == "getDefaultProxy"
+                        } else if (instr is ReferenceInstruction && instr.reference is StringReference) {
+                            (instr.reference as StringReference).string in setOf("http.proxyHost", "https.proxyHost")
+                        } else false
+                    }
+                    if (hasVpnProxyChecks) {
+                        method.addInstructions(0, RETURN_FALSE)
+                    }
+                }
+            }
+        }
+
+        overlayClass?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.implementation == null) return@forEach
+                if (isConstructor(method)) return@forEach
+                if (method.returnType == "Z" && method.parameterTypes.size == 1 && method.parameterTypes[0] == "Landroid/content/Context;") {
+                    val hasCanDrawOverlays = method.cachedInstructions().any { instr ->
+                        instr is ReferenceInstruction && instr.reference is MethodReference &&
+                            (instr.reference as MethodReference).name == "canDrawOverlays"
+                    }
+                    if (hasCanDrawOverlays) {
                         method.addInstructions(0, RETURN_FALSE)
                     }
                 }

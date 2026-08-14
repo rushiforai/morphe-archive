@@ -1,26 +1,47 @@
-## [1.43.4](https://github.com/arandomhooman/hoomans-morphe-patches/compare/v1.43.3...v1.43.4) (2026-07-22)
+## [1.44.0](https://github.com/arandomhooman/hoomans-morphe-patches/compare/v1.43.4...v1.44.0) (2026-08-13)
+
+### 🐛 Bug Fixes
+
+* hide DirectChat message-bubble ad in Unlock Premium ([c5b42c4](https://github.com/arandomhooman/hoomans-morphe-patches/commit/c5b42c4c86c4c9ed02d2adeed1738c1bbf17ff3a))
+* resolve reported app regressions ([c24c92c](https://github.com/arandomhooman/hoomans-morphe-patches/commit/c24c92ca14f93893fc086f34c15963b18c2f381b))
+* resolve reported patch regressions ([332560b](https://github.com/arandomhooman/hoomans-morphe-patches/commit/332560b405623d8888802d7fc89c98af0e9235ae))
+* resolve Symfonium playback and Poweramp settings crashes ([7fe01ae](https://github.com/arandomhooman/hoomans-morphe-patches/commit/7fe01aee708e3b2114b1e4f7a47d5c7b78a0e1f3))
+
+### ✨ New Features
+
+* add DirectChat unlock premium patch ([5c670b0](https://github.com/arandomhooman/hoomans-morphe-patches/commit/5c670b05587cd2f24fc8086c397cf2287f6014d6))
+
+## [1.44.0-dev.4](https://github.com/arandomhooman/hoomans-morphe-patches/compare/v1.44.0-dev.3...v1.44.0-dev.4) (2026-08-13)
 
 ### 🐛 Bug Fixes
 
 * handle install residue during release back-merge ([5fe8fb1](https://github.com/arandomhooman/hoomans-morphe-patches/commit/5fe8fb112354c9a3e1b2f41f095ff6176df6b5b3))
-
-## [1.43.3](https://github.com/arandomhooman/hoomans-morphe-patches/compare/v1.43.2...v1.43.3) (2026-07-22)
-
-### 🐛 Bug Fixes
-
 * harden release back-merge against generated metadata ([e4fe869](https://github.com/arandomhooman/hoomans-morphe-patches/commit/e4fe86979e5a1d91e8e936a6f94e6ddb2420de97))
-
-## [1.43.2](https://github.com/arandomhooman/hoomans-morphe-patches/compare/v1.43.1...v1.43.2) (2026-07-22)
-
-### 🐛 Bug Fixes
-
+* resolve reported app regressions ([c24c92c](https://github.com/arandomhooman/hoomans-morphe-patches/commit/c24c92ca14f93893fc086f34c15963b18c2f381b))
 * resolve Symfonium playback and Poweramp settings crashes ([caa0bbc](https://github.com/arandomhooman/hoomans-morphe-patches/commit/caa0bbc8f11a6b81df5c1427874576ba597016f2))
 
-## [1.43.1](https://github.com/arandomhooman/hoomans-morphe-patches/compare/v1.43.0...v1.43.1) (2026-07-20)
+## [1.44.0-dev.3](https://github.com/arandomhooman/hoomans-morphe-patches/compare/v1.44.0-dev.2...v1.44.0-dev.3) (2026-07-22)
 
 ### 🐛 Bug Fixes
 
 * resolve reported patch regressions ([d99af82](https://github.com/arandomhooman/hoomans-morphe-patches/commit/d99af82f4dd1babdf11bd14fdffee0880cce5ad0))
+* resolve Symfonium playback and Poweramp settings crashes ([7fe01ae](https://github.com/arandomhooman/hoomans-morphe-patches/commit/7fe01aee708e3b2114b1e4f7a47d5c7b78a0e1f3))
+
+## [1.44.0-dev.2](https://github.com/arandomhooman/hoomans-morphe-patches/compare/v1.44.0-dev.1...v1.44.0-dev.2) (2026-07-20)
+
+### 🐛 Bug Fixes
+
+* resolve reported patch regressions ([332560b](https://github.com/arandomhooman/hoomans-morphe-patches/commit/332560b405623d8888802d7fc89c98af0e9235ae))
+
+## [1.44.0-dev.1](https://github.com/arandomhooman/hoomans-morphe-patches/compare/v1.43.0...v1.44.0-dev.1) (2026-07-12)
+
+### 🐛 Bug Fixes
+
+* hide DirectChat message-bubble ad in Unlock Premium ([c5b42c4](https://github.com/arandomhooman/hoomans-morphe-patches/commit/c5b42c4c86c4c9ed02d2adeed1738c1bbf17ff3a))
+
+### ✨ New Features
+
+* add DirectChat unlock premium patch ([5c670b0](https://github.com/arandomhooman/hoomans-morphe-patches/commit/5c670b05587cd2f24fc8086c397cf2287f6014d6))
 
 ## [1.43.0](https://github.com/arandomhooman/hoomans-morphe-patches/compare/v1.42.1...v1.43.0) (2026-07-12)
 

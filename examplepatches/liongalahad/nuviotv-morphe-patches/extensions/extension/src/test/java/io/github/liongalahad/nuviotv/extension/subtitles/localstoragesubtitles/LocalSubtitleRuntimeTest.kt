@@ -173,6 +173,44 @@ class LocalSubtitleRuntimeTest {
         }
     }
 
+    @Test fun `saved local selection suppresses stale native tick before track restore`() {
+        val contentId = "movie-a"
+        val movie = LocalSubtitleRuntime.contentKeyForTesting(contentId, null, null)
+        val storedFile = temporaryFolder.newFile("Restored.srt")
+        val stored = LocalSubtitleRuntime.ImportedSubtitle(
+            "Restored.srt", "en", storedFile, 1_000L, movie
+        )
+        val imported = FakeSubtitle(
+            id = "en\nRestored.srt",
+            url = LocalSubtitleRuntime.storedFileUrlForTesting(storedFile)
+        )
+        val english = FakeSubtitle(
+            id = "english", url = "https://example.test/en.srt", lang = "en", addonName = "Addon"
+        )
+
+        try {
+            LocalSubtitleRuntime.setImportStateForTesting(stored, movie)
+            val firstController = Any()
+            LocalSubtitleRuntime.observeController(firstController)
+            assertTrue(LocalSubtitleRuntime.rememberImportedSelection(contentId, null, null, imported))
+
+            // A replacement playback controller clears transient state before Nuvio restores
+            // its tracks. Content observation must recover the saved local choice early enough
+            // for the first subtitle-menu composition to suppress the stale English tick.
+            LocalSubtitleRuntime.observeController(Any())
+            assertFalse(LocalSubtitleRuntime.importedSelectionActiveForTesting())
+            LocalSubtitleRuntime.observeContentIdentity(contentId, null, null)
+
+            assertFalse(LocalSubtitleRuntime.importedSelectionActiveForTesting())
+            assertTrue(LocalSubtitleRuntime.selectableOptionState(false, imported))
+            assertFalse(LocalSubtitleRuntime.selectableOptionState(true, english))
+            assertNotNull(LocalSubtitleRuntime.restoredSubtitle(Any(), contentId, null, null))
+            assertTrue(LocalSubtitleRuntime.importedSelectionActiveForTesting())
+        } finally {
+            LocalSubtitleRuntime.setImportStateForTesting(null, null)
+        }
+    }
+
     @Test fun `saved local subtitle restore is single shot per controller and content`() {
         val contentId = "movie-a"
         val movie = LocalSubtitleRuntime.contentKeyForTesting(contentId, null, null)
@@ -210,13 +248,67 @@ class LocalSubtitleRuntimeTest {
             id = "und\nManual.srt",
             url = LocalSubtitleRuntime.storedFileUrlForTesting(storedFile)
         )
+        val controller = Any()
 
         try {
             LocalSubtitleRuntime.setImportStateForTesting(stored, movie)
+            LocalSubtitleRuntime.observeController(controller)
             assertTrue(LocalSubtitleRuntime.rememberImportedSelection(contentId, null, null, imported))
 
-            assertNull(LocalSubtitleRuntime.restoredSubtitle(Any(), contentId, null, null))
+            assertNull(LocalSubtitleRuntime.restoredSubtitle(controller, contentId, null, null))
             assertTrue(LocalSubtitleRuntime.shouldBlockNuvioSubtitleSelection())
+        } finally {
+            LocalSubtitleRuntime.setImportStateForTesting(null, null)
+        }
+    }
+
+    @Test fun `handled restore keeps stale native reconciliation blocked`() {
+        val contentId = "episode-a"
+        val episode = LocalSubtitleRuntime.contentKeyForTesting(contentId, 1, 2)
+        val storedFile = temporaryFolder.newFile("Handled.srt")
+        val stored = LocalSubtitleRuntime.ImportedSubtitle(
+            "Handled.srt", "en", storedFile, 1_000L, episode
+        )
+        val imported = FakeSubtitle(
+            id = "en\nHandled.srt",
+            url = LocalSubtitleRuntime.storedFileUrlForTesting(storedFile)
+        )
+        val controller = Any()
+
+        try {
+            LocalSubtitleRuntime.setImportStateForTesting(stored, episode)
+            LocalSubtitleRuntime.observeController(controller)
+            assertTrue(LocalSubtitleRuntime.rememberImportedSelection(contentId, 1, 2, imported))
+
+            assertNull(LocalSubtitleRuntime.restoredSubtitle(controller, contentId, 1, 2))
+            assertTrue(LocalSubtitleRuntime.shouldBlockNuvioSubtitleSelection())
+        } finally {
+            LocalSubtitleRuntime.setImportStateForTesting(null, null)
+        }
+    }
+
+    @Test fun `saved local subtitle restores after previous controller is released`() {
+        val contentId = "episode-a"
+        val episode = LocalSubtitleRuntime.contentKeyForTesting(contentId, 1, 2)
+        val storedFile = temporaryFolder.newFile("Episode.srt")
+        val stored = LocalSubtitleRuntime.ImportedSubtitle(
+            "Episode.srt", "en", storedFile, 1_000L, episode
+        )
+        val imported = FakeSubtitle(
+            id = "en\nEpisode.srt",
+            url = LocalSubtitleRuntime.storedFileUrlForTesting(storedFile)
+        )
+
+        try {
+            LocalSubtitleRuntime.setImportStateForTesting(stored, episode)
+            // Persist the prior choice while its old controller reference is no longer live.
+            assertTrue(LocalSubtitleRuntime.rememberImportedSelection(contentId, 1, 2, imported))
+
+            val restored = LocalSubtitleRuntime.restoredSubtitle(Any(), contentId, 1, 2)
+
+            assertNotNull(restored)
+            assertTrue(LocalSubtitleRuntime.importedSelectionActiveForTesting())
+            assertTrue(LocalSubtitleRuntime.selectableOptionState(false, imported))
         } finally {
             LocalSubtitleRuntime.setImportStateForTesting(null, null)
         }

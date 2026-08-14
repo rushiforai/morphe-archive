@@ -12,6 +12,7 @@ private const val FUNCTION0 = "Lkotlin/jvm/functions/Function0;"
 private const val FUNCTION1 = "Lkotlin/jvm/functions/Function1;"
 private const val FUNCTION2 = "Lkotlin/jvm/functions/Function2;"
 private const val FUNCTION3 = "Lkotlin/jvm/functions/Function3;"
+private const val FUNCTION4 = "Lkotlin/jvm/functions/Function4;"
 private const val PLAYER_LISTENER = "Landroidx/media3/common/Player\$Listener;"
 
 internal var libraryModeEnumType: String? = null
@@ -25,6 +26,16 @@ private fun Method.calls(predicate: (MethodReference) -> Boolean): Boolean =
             ?: return@any false
         predicate(reference)
     } == true
+
+/** Native TV Button shape used by Storage, independent of its R8 owner and method name. */
+internal fun MethodReference.isNativeStorageTvButtonReference(): Boolean {
+    val p = parameterTypes.map(CharSequence::toString)
+    return returnType == "V" && p.size == 11 &&
+        p[0] == FUNCTION0 && p[1].startsWith("L") &&
+        p.slice(2..6).all { it.startsWith("L") } &&
+        p[7] == FUNCTION3 && p[8].startsWith("L") &&
+        p[9] == "I" && p[10] == "I"
+}
 
 /** Existing Saved/Cloud row, identified by enum-entry iteration and the TV Button call. */
 internal object LibraryViewModeRowFingerprint : Fingerprint(
@@ -155,5 +166,73 @@ internal object FullscreenPlaybackStateListenerFingerprint : Fingerprint(
     strings = listOf("exo_playback_state", "playbackState="),
     custom = { method, classDef ->
         method.name == "onPlaybackStateChanged" && PLAYER_LISTENER in classDef.interfaces
+    }
+)
+
+/** Main activity key boundary used only to distinguish TV select click from long press. */
+internal object MainActivityKeyEventFingerprint : Fingerprint(
+    returnType = "Z",
+    parameters = listOf("Landroid/view/KeyEvent;"),
+    custom = { method, classDef ->
+        classDef.type == "Lcom/nuvio/tv/MainActivity;" && method.name == "dispatchKeyEvent"
+    }
+)
+
+/** Compose's Android Dialog wrapper, identified structurally across split and universal builds. */
+internal object ComposeDialogTouchEventFingerprint : Fingerprint(
+    returnType = "Z",
+    parameters = listOf("Landroid/view/MotionEvent;"),
+    custom = { method, classDef ->
+        method.name == "onTouchEvent" && classDef.superclass == "Lc/o;" &&
+            classDef.fields.any { it.type == FUNCTION0 } &&
+            classDef.methods.any {
+                it.name == "onKeyUp" && it.returnType == "Z" &&
+                    it.parameterNames() == listOf("I", "Landroid/view/KeyEvent;")
+            } &&
+            classDef.methods.any {
+                it.name == "cancel" && it.returnType == "V" && it.parameterTypes.isEmpty()
+            }
+    }
+)
+
+/** Native Cloud/Storage card composable reused by the injected Storage grid. */
+internal object CloudStorageCardFingerprint : Fingerprint(
+    returnType = "V",
+    custom = { method, _ ->
+        val p = method.parameterNames()
+        p.size == 5 && p[0].startsWith("L") && p[1] == "Z" &&
+            p[2] == FUNCTION0 && p[3].startsWith("L") && p[4] == "I" &&
+            method.calls(MethodReference::isNativeStorageTvButtonReference)
+    }
+)
+
+/** Lazy file-row content used by the native Cloud/Storage folder dialog. */
+internal object CloudStorageFileRowsFingerprint : Fingerprint(
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf(
+        "Ljava/lang/Object;", "Ljava/lang/Object;", "Ljava/lang/Object;", "Ljava/lang/Object;"
+    ),
+    custom = { method, classDef ->
+        method.name == "invoke" && FUNCTION4 in classDef.interfaces &&
+            classDef.fields.count { it.type == "I" } == 1 &&
+            classDef.fields.count { it.type == "Ljava/util/List;" } == 1 &&
+            method.calls { reference ->
+                reference.definingClass == "Ljava/util/ArrayList;" &&
+                    reference.name == "get" && reference.returnType == "Ljava/lang/Object;"
+            } &&
+            method.calls(MethodReference::isNativeStorageTvButtonReference)
+    }
+)
+
+/** TV Button implementation receiving the modifier prepared by the two Storage row hooks. */
+internal object NativeStorageTvButtonFingerprint : Fingerprint(
+    returnType = "V",
+    custom = { method, _ ->
+        method.parameterNames().let { p ->
+            p.size == 11 && p[0] == FUNCTION0 && p[1].startsWith("L") &&
+                p.slice(2..6).all { it.startsWith("L") } &&
+                p[7] == FUNCTION3 && p[8].startsWith("L") &&
+                p[9] == "I" && p[10] == "I"
+        }
     }
 )

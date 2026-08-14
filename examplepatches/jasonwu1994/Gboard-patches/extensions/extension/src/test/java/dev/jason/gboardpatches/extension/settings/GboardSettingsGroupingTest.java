@@ -107,12 +107,17 @@ public final class GboardSettingsGroupingTest {
                 "new GboardTopRowSwipeSettingsFeature(context)",
                 "new GboardManualIncognitoSettingsFeature(context)",
                 "new GboardLongPressQuickActionsSettingsFeature(context)",
+                "new GboardCursorTrackpadSettingsFeature(context)",
                 "new GboardOcrSettingsFeature(context)");
         assertInOrder(layoutGroupSource.substring(layoutGroupSource.indexOf("Arrays.asList(")),
                 "new GboardLatinGlobeKeyIgnoreIntervalSettingsFeature(context)",
                 "new GboardEnglishUppercaseToggleSettingsFeature(context)",
                 "new GboardZhuyinBottomRowWeightSettingsFeature(context)",
-                "new GboardSymbolFooterOrderSettingsFeature(context)");
+                "new GboardSymbolFooterOrderSettingsFeature(context)",
+                "new GboardEmojiSizeSettingsFeature(context)",
+                "new GboardAccessPointsMenuSettingsFeature(context)",
+                "new GboardSplitKeyboardSettingsFeature(context)",
+                "new GboardAccessibilityLayoutSettingsFeature(context)");
         Assert.assertFalse(registrySource.contains("GboardKeyboardSettingsGroupFeature"));
     }
 

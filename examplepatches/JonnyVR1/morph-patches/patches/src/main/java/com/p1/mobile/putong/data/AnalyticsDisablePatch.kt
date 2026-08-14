@@ -8,6 +8,7 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
@@ -39,7 +40,7 @@ private const val FOX_STATS_DEFAULT_ENV = "Lcom/tantanapp/foxstatistics/DefaultE
 @JvmField
 val analyticsDisablePatch = bytecodePatch(
     name = "Analytics Disable",
-    description = "Disables all analytics, telemetry, and device fingerprinting for privacy",
+    description = "Disables all analytics and telemetry for privacy",
     default = true,
 ) {
     compatibleWith(tantanCompatibility)
@@ -295,63 +296,6 @@ val analyticsDisablePatch = bytecodePatch(
                                         "getSubmitAlternative") &&
                     method.returnType == "V") {
                     method.addInstructions(0, RETURN_VOID)
-                }
-            }
-        }
-
-        resolver.getAnalyticsClass("deviceFingerprintCollector")?.let { classDef ->
-            mutableClassDefBy(classDef).methods.forEach { method ->
-                if (method.implementation == null) return@forEach
-                if (isConstructor(method)) return@forEach
-                when {
-                    method.returnType == "Ljava/lang/String;" &&
-                    method.parameterTypes.size == 1 &&
-                    method.parameterTypes[0] == "Ljava/lang/String;" -> method.addInstructions(0, RETURN_NULL_OBJECT)
-
-                    method.returnType == "Ljava/lang/String;" &&
-                    AccessFlags.STATIC.isSet(method.accessFlags) -> method.addInstructions(0, RETURN_EMPTY_STRING)
-                }
-            }
-        }
-
-        resolver.getAnalyticsClass("deviceFingerprintHash")?.let { classDef ->
-            mutableClassDefBy(classDef).methods.forEach { method ->
-                if (method.implementation == null) return@forEach
-                if (isConstructor(method)) return@forEach
-                when (method.returnType) {
-                    "Ljava/lang/String;" -> method.addInstructions(0, RETURN_EMPTY_STRING)
-                    "V" -> method.addInstructions(0, RETURN_VOID)
-                }
-            }
-        }
-
-        resolver.getAnalyticsClass("deviceInfoCollector")?.let { classDef ->
-            mutableClassDefBy(classDef).methods.forEach { method ->
-                if (method.implementation == null) return@forEach
-                if (isConstructor(method)) return@forEach
-                when (method.returnType) {
-                    "Ljava/lang/String;" -> method.addInstructions(0, RETURN_EMPTY_STRING)
-                    "V" -> method.addInstructions(0, RETURN_VOID)
-                }
-            }
-        }
-
-        resolver.getAnalyticsClass("oaid")?.let { classDef ->
-            mutableClassDefBy(classDef).methods.forEach { method ->
-                if (method.implementation == null) return@forEach
-                if (isConstructor(method)) return@forEach
-                when {
-                    method.returnType == "Ljava/lang/String;" &&
-                    AccessFlags.PUBLIC.isSet(method.accessFlags) &&
-                    AccessFlags.STATIC.isSet(method.accessFlags) &&
-                    method.parameterTypes.isEmpty() -> method.addInstructions(0, RETURN_EMPTY_STRING)
-
-                    method.returnType == "V" &&
-                    method.parameterTypes.size == 1 &&
-                    method.parameterTypes[0] == "Landroid/content/Context;" -> method.addInstructions(0, RETURN_VOID)
-
-                    method.returnType == "Z" &&
-                    method.parameterTypes.isEmpty() -> method.addInstructions(0, RETURN_FALSE)
                 }
             }
         }
@@ -719,6 +663,61 @@ val analyticsDisablePatch = bytecodePatch(
 
                     method.name == "getInstance" && method.returnType.startsWith("L") ->
                         method.addInstructions(0, RETURN_NULL_OBJECT)
+                }
+            }
+        }
+
+        // Patchset 2: WiFi MAC block
+        classDefByOrNull("Lcom/p1/mobile/putong/core/newui/main/NewMainBaseAct;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.implementation == null) return@forEach
+                if (isConstructor(method)) return@forEach
+                if (method.name == "x3" &&
+                    AccessFlags.PUBLIC.isSet(method.accessFlags) &&
+                    AccessFlags.STATIC.isSet(method.accessFlags) &&
+                    method.returnType == "Ljava/lang/String;" &&
+                    method.parameterTypes.size == 1 &&
+                    method.parameterTypes[0] == "Landroid/content/Context;") {
+                    method.addInstructions(0, RETURN_EMPTY_STRING)
+                }
+            }
+        }
+
+        // Patchset 2: APM monitoring disable
+        val apmInitFingerprint = Fingerprint(
+            filters = listOf(string("beatles_apm_config")),
+        )
+        apmInitFingerprint.matchOrNull()?.classDef?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.implementation == null) return@forEach
+                if (isConstructor(method)) return@forEach
+                if (method.returnType == "V" &&
+                    method.parameterTypes.isEmpty() &&
+                    AccessFlags.PUBLIC.isSet(method.accessFlags) &&
+                    AccessFlags.STATIC.isSet(method.accessFlags)) {
+                    val accessesApmConfig = method.implementation!!.instructions.any { instr ->
+                        instr is ReferenceInstruction &&
+                        instr.reference is FieldReference &&
+                        (instr.reference as FieldReference).type == "Lcom/p1/mobile/putong/data/ApmConfigSetting;"
+                    }
+                    if (accessesApmConfig) {
+                        method.addInstructions(0, RETURN_VOID)
+                    }
+                }
+            }
+        }
+
+        // Patchset 2: Firebase Analytics events disable
+        classDefByOrNull("Lcom/google/firebase/analytics/FirebaseAnalytics;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.implementation == null) return@forEach
+                if (isConstructor(method)) return@forEach
+                when {
+                    method.name in setOf("logEvent", "setAnalyticsCollectionEnabled", "setUserId",
+                        "setUserProperty", "resetAnalyticsData", "setCurrentScreen",
+                        "setDefaultEventParameters", "setSessionTimeoutDuration", "setConsent") &&
+                    method.returnType == "V" ->
+                        method.addInstructions(0, RETURN_VOID)
                 }
             }
         }

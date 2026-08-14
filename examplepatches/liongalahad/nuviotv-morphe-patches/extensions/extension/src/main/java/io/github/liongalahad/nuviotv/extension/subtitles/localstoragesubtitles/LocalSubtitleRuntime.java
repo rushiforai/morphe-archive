@@ -101,7 +101,10 @@ public final class LocalSubtitleRuntime {
     /** A new runtime controller denotes a new playback session, not a new import lifetime. */
     public static synchronized void observeController(Object controller) {
         Object previous = activeController.get();
-        if (previous != null && previous != controller) {
+        if (previous != controller) {
+            // The controller is held weakly. A released previous player therefore appears as
+            // null here, but a non-null incoming controller still starts a new playback session.
+            // Clear only transient activation state; the per-content saved choice remains.
             importedSelectionActive = false;
             suppressNextTransientDismiss = false;
             activeImportedUrl = null;
@@ -314,8 +317,8 @@ public final class LocalSubtitleRuntime {
         }
         if (importedSelectionActive && key.equals(activeContentKey) &&
                 selectedUrl.equals(activeImportedUrl)) {
-            // A user selection already activated this sidecar. A later track update must not
-            // select the same private file again or let Nuvio's stale preference replace it.
+            // Keep blocking Nuvio's stale saved subtitle. The caller now exits its native
+            // reconciliation path whenever this active guard is set.
             restoredController = new WeakReference<>(controller);
             restoredContentKey = key;
             restoredImportedUrl = selectedUrl;
@@ -425,13 +428,30 @@ public final class LocalSubtitleRuntime {
     /** The picker launcher is an action, so it must never render a selected tick. */
     public static boolean selectableOptionState(boolean selected, Object subtitle) {
         if (isPickerAction(subtitle)) return false;
+        String persistedLocalUrl = selectedLocalUrlForActiveContent();
         if (isImportedSubtitle(subtitle)) {
             String url = subtitleString(subtitle, "getUrl");
             return importedSelectionActive
                     ? url != null && url.equals(activeImportedUrl)
-                    : selected;
+                    : persistedLocalUrl != null
+                            ? persistedLocalUrl.equals(url)
+                            : selected;
         }
-        return importedSelectionActive ? false : selected;
+        return importedSelectionActive || persistedLocalUrl != null ? false : selected;
+    }
+
+    /**
+     * Reads only a valid saved local choice for the active content. This is deliberately
+     * independent from importedSelectionActive: the menu can suppress Nuvio's stale native
+     * tick before Media3 finishes restoring the local sidecar.
+     */
+    private static synchronized String selectedLocalUrlForActiveContent() {
+        if (!featureEnabled || mpvActive || activeContentKey == null) return null;
+        String selectedUrl = SELECTED_BY_CONTENT.get(activeContentKey);
+        if (selectedUrl == null || selectedUrl.trim().isEmpty()) return null;
+        ImportedSubtitle imported = importedByUrl(selectedUrl);
+        return imported != null && imported.storedFile.isFile() &&
+                belongsToContent(imported, activeContentKey) ? selectedUrl : null;
     }
 
     private static void resetRestoreGate() {

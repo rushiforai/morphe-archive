@@ -5,8 +5,10 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLa
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableField
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
@@ -15,9 +17,13 @@ import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableField
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import io.github.liongalahad.nuviotv.patches.settings.hub.settingsUiPatch
 import io.github.liongalahad.nuviotv.patches.shared.Constants.NUVIO_COMPATIBILITY
+import io.github.liongalahad.nuviotv.patches.shared.registerSharedStorageSettings
 import org.w3c.dom.Element
 
 private const val RUNTIME =
@@ -30,6 +36,10 @@ private const val DEFAULT_FOLDER_ACCESS_ACTIVITY =
     "io.github.liongalahad.nuviotv.extension.playback.localmedia.LocalMediaDefaultFolderAccessActivity"
 private const val INTERNAL_FOLDER_PICKER_ACTIVITY =
     "io.github.liongalahad.nuviotv.extension.playback.localmedia.LocalMediaInternalFolderPickerActivity"
+private const val DELETE_ACTIVITY =
+    "io.github.liongalahad.nuviotv.extension.playback.localmedia.LocalMediaDeleteActivity"
+private const val ACTION_ACTIVITY =
+    "io.github.liongalahad.nuviotv.extension.playback.localmedia.LocalMediaActionActivity"
 private const val SETTINGS_METADATA =
     "io.github.liongalahad.nuviotv.settings.provider.local_media"
 private const val SETTINGS_CATEGORY =
@@ -40,6 +50,7 @@ private val localMediaResources = resourcePatch {
     execute {
         document("AndroidManifest.xml").use { document ->
             val application = document.getElementsByTagName("application").item(0) as Element
+            registerSharedStorageSettings(document, application)
             val manifest = document.documentElement
 
             listOf(
@@ -76,7 +87,12 @@ private val localMediaResources = resourcePatch {
                 })
             }
 
-            listOf(PICKER_ACTIVITY, DEFAULT_FOLDER_ACCESS_ACTIVITY).forEach { activityName ->
+            listOf(
+                PICKER_ACTIVITY,
+                DEFAULT_FOLDER_ACCESS_ACTIVITY,
+                DELETE_ACTIVITY,
+                ACTION_ACTIVITY
+            ).forEach { activityName ->
                 application.appendChild(document.createElement("activity").apply {
                     setAttribute("android:name", activityName)
                     setAttribute("android:exported", "false")
@@ -113,8 +129,65 @@ val localmediaPatch = bytecodePatch(
         listOf(
             NuvioNavHostFingerprint,
             PlayerMediaSourceFactoryFingerprint,
-            FullscreenPlaybackStateListenerFingerprint
+            FullscreenPlaybackStateListenerFingerprint,
+            MainActivityKeyEventFingerprint,
+            ComposeDialogTouchEventFingerprint,
+            CloudStorageCardFingerprint,
+            CloudStorageFileRowsFingerprint,
+            NativeStorageTvButtonFingerprint
         ).forEach { it.matchAll(1..1) }
+
+        CloudStorageCardFingerprint.method.apply {
+            val buttonCallIndex = implementation!!.instructions.indexOfFirst { instruction ->
+                val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+                reference?.isNativeStorageTvButtonReference() == true
+            }
+            check(buttonCallIndex >= 0) { "Native Storage card Button call was not found" }
+            addInstructions(
+                buttonCallIndex,
+                "invoke-static/range { p0 .. p0 }, $LIBRARY_UI->prepareStorageKeyTarget(Ljava/lang/Object;)V"
+            )
+        }
+
+        CloudStorageFileRowsFingerprint.method.apply {
+            val instructions = implementation!!.instructions
+            val listGetIndex = instructions.indexOfFirst { instruction ->
+                val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+                reference?.definingClass == "Ljava/util/ArrayList;" &&
+                    reference.name == "get" && reference.returnType == "Ljava/lang/Object;"
+            }
+            check(listGetIndex >= 0) { "Native Storage file-list lookup was not found" }
+            val fileCastIndex = instructions.withIndex().drop(listGetIndex + 1).firstOrNull {
+                it.value.opcode == Opcode.CHECK_CAST &&
+                    (it.value as? ReferenceInstruction)?.reference is TypeReference
+            }?.index ?: -1
+            check(fileCastIndex >= 0) { "Native Storage file model cast was not found" }
+            val fileRegister = (instructions[fileCastIndex] as? OneRegisterInstruction)?.registerA
+                ?: error("Native Storage file model cast has no register")
+            check(instructions.withIndex().drop(fileCastIndex + 1).any {
+                val reference = (it.value as? ReferenceInstruction)?.reference as? MethodReference
+                reference?.isNativeStorageTvButtonReference() == true
+            }) { "Native Storage file-row Button call was not found" }
+            // Capture the model while the cast register is still a y8.a. The composable reuses
+            // that register for an integer key before calling the native Button, so injecting at
+            // the Button call produces invalid bytecode and crashes when a folder is opened.
+            addInstructions(
+                fileCastIndex + 1,
+                "invoke-static/range { v$fileRegister .. v$fileRegister }, $LIBRARY_UI->prepareStorageKeyTarget(Ljava/lang/Object;)V"
+            )
+        }
+
+        NativeStorageTvButtonFingerprint.method.apply {
+            val modifierType = parameterTypes[1].toString()
+            addInstructions(
+                0,
+                """
+                    invoke-static/range { p1 .. p1 }, $LIBRARY_UI->attachPreparedStorageKeyHandler(Ljava/lang/Object;)Ljava/lang/Object;
+                    move-result-object p1
+                    check-cast p1, $modifierType
+                """
+            )
+        }
 
         val rowMethod = LibraryViewModeRowFingerprint.method
         val enumEntriesField = rowMethod.implementation!!.instructions.mapNotNull { instruction ->
@@ -343,5 +416,38 @@ val localmediaPatch = bytecodePatch(
             0,
             "invoke-static/range { p0 .. p1 }, $RUNTIME->onPlaybackStateChanged(Ljava/lang/Object;I)V"
         )
+
+        MainActivityKeyEventFingerprint.method.addInstructions(
+            0,
+            "invoke-static/range { p0 .. p1 }, $RUNTIME->observeKeyEvent(Ljava/lang/Object;Landroid/view/KeyEvent;)V"
+        )
+
+        val composeDialogClass = mutableClassDefBy(ComposeDialogTouchEventFingerprint.classDef)
+        check(composeDialogClass.methods.none {
+            it.name == "dispatchKeyEvent" &&
+                it.parameterTypes.map(CharSequence::toString) == listOf("Landroid/view/KeyEvent;")
+        }) { "Compose dialog already overrides dispatchKeyEvent" }
+        val dialogKeyMethod = ImmutableMethod(
+            composeDialogClass.type,
+            "dispatchKeyEvent",
+            listOf(ImmutableMethodParameter("Landroid/view/KeyEvent;", null, "event")),
+            "Z",
+            AccessFlags.PUBLIC.value,
+            null,
+            null,
+            MutableMethodImplementation(3)
+        ).toMutable().apply {
+            addInstructions(
+                0,
+                """
+                    invoke-static { p0, p1 }, $RUNTIME->observeKeyEvent(Ljava/lang/Object;Landroid/view/KeyEvent;)V
+                    invoke-super { p0, p1 }, Lc/o;->dispatchKeyEvent(Landroid/view/KeyEvent;)Z
+                    move-result v0
+                    return v0
+                """
+            )
+        }
+        composeDialogClass.virtualMethods.add(dialogKeyMethod)
+        composeDialogClass.methods.add(dialogKeyMethod)
     }
 }

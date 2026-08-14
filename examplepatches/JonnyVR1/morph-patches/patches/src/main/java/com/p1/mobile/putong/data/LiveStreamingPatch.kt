@@ -366,5 +366,75 @@ val liveStreamingPatch = bytecodePatch(
                 }
                 .forEach { it.addInstructions(0, RETURN_BOOLEAN_TRUE) }
         }
+
+        classDefByOrNull("Lcom/p1/mobile/putong/live/base/data/BLiveCallSwitch;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods
+                .filter { method ->
+                    method.returnType == "Z" &&
+                        method.parameterTypes.isEmpty() &&
+                        method.name != "<init>" &&
+                        method.name != "<clinit>" &&
+                        method.accessesAnyField("Lcom/p1/mobile/putong/live/base/data/BLiveCallSwitch;", "enable", "on")
+                }
+                .forEach { it.addInstructions(0, RETURN_BOOLEAN_TRUE) }
+        }
+
+        classDefByOrNull("Lcom/p1/mobile/putong/live/base/data/BLiveCoin;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods
+                .filter { method ->
+                    method.returnType == "J" &&
+                        method.parameterTypes.isEmpty() &&
+                        method.name != "<init>" &&
+                        method.name != "<clinit>" &&
+                        method.accessesField("Lcom/p1/mobile/putong/live/base/data/BLiveCoin;", "available")
+                }
+                .forEach { it.addInstructions(0, RETURN_LONG_999999999) }
+        }
+
+        classDefByOrNull("Lcom/p1/mobile/putong/live/base/data/BLiveHourLeaderBoard;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods
+                .filter { method ->
+                    method.returnType == "Z" &&
+                        method.parameterTypes.isEmpty() &&
+                        method.name != "<init>" &&
+                        method.name != "<clinit>" &&
+                        method.accessesField("Lcom/p1/mobile/putong/live/base/data/BLiveHourLeaderBoard;", "isOpen")
+                }
+                .forEach { it.addInstructions(0, RETURN_BOOLEAN_TRUE) }
+        }
+
+        classDefByOrNull("Lcom/p1/mobile/putong/live/base/data/BLiveBreakingLeaderboardConfig;")?.let { classDef ->
+            val mutableClassDef = mutableClassDefBy(classDef)
+            mutableClassDef.methods
+                .filter { method ->
+                    method.returnType == "Z" &&
+                        method.parameterTypes.isEmpty() &&
+                        method.name != "<init>" &&
+                        method.name != "<clinit>" &&
+                        method.accessesField("Lcom/p1/mobile/putong/live/base/data/BLiveBreakingLeaderboardConfig;", "isOpen")
+                }
+                .forEach { it.addInstructions(0, RETURN_BOOLEAN_TRUE) }
+            mutableClassDef.methods
+                .filter { method ->
+                    method.returnType == "J" &&
+                        method.parameterTypes.isEmpty() &&
+                        method.name != "<init>" &&
+                        method.name != "<clinit>" &&
+                        method.accessesField("Lcom/p1/mobile/putong/live/base/data/BLiveBreakingLeaderboardConfig;", "duration")
+                }
+                .forEach { it.addInstructions(0, RETURN_LONG_999999999) }
+        }
+
+        classDefByOrNull("Lcom/p1/mobile/putong/live/base/data/BLiveSmallWindowCloseAlert;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods
+                .filter { method ->
+                    method.returnType == "I" &&
+                        method.parameterTypes.isEmpty() &&
+                        method.name != "<init>" &&
+                        method.name != "<clinit>" &&
+                        method.accessesField("Lcom/p1/mobile/putong/live/base/data/BLiveSmallWindowCloseAlert;", "maxShowCount")
+                }
+                .forEach { it.addInstructions(0, RETURN_INT_9999) }
+        }
     }
 }

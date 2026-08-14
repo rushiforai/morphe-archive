@@ -1870,4 +1870,88 @@
         <translation locale="en">Devanagari</translation>
         <translation locale="zh-Hant">天城文</translation>
     </string>
+    <string name="gboard_patches_flag_patch_error_title">
+        <translation locale="en">Patch setting unavailable</translation>
+        <translation locale="zh-Hant">Patch 設定無法使用</translation>
+    </string>
+    <string name="gboard_patches_flag_patch_error_summary">
+        <translation locale="en">The patch setting screen failed to load. Reopen Gboard settings and try again.</translation>
+        <translation locale="zh-Hant">Patch 設定畫面載入失敗。請重新開啟 Gboard 設定再試一次。</translation>
+    </string>
+    <string name="gboard_patches_flag_patch_section_feature">
+        <translation locale="en">Feature</translation>
+        <translation locale="zh-Hant">功能</translation>
+    </string>
+    <string name="gboard_patches_emoji_size_title">
+        <translation locale="en">Change emoji size</translation>
+        <translation locale="zh-Hant">變更表情符號大小</translation>
+    </string>
+    <string name="gboard_patches_cursor_trackpad_title">
+        <translation locale="en">Enable cursor trackpad mode</translation>
+        <translation locale="zh-Hant">啟用游標觸控板模式</translation>
+    </string>
+    <string name="gboard_patches_cursor_trackpad_summary">
+        <translation locale="en">Long-press the space bar to open a trackpad for moving the cursor freely through your text, with a lock mode for easier control.</translation>
+        <translation locale="zh-Hant">長按空白鍵即可開啟觸控板，在文字中自由移動游標，並提供鎖定模式以便控制。</translation>
+    </string>
+    <string name="gboard_patches_access_points_menu_title">
+        <translation locale="en">Access Points menu style</translation>
+        <translation locale="zh-Hant">Access Points 選單樣式</translation>
+    </string>
+    <string name="gboard_patches_access_points_menu_toggle_title">
+        <translation locale="en">Enable new Access Points menu style</translation>
+        <translation locale="zh-Hant">啟用新版 Access Points 選單樣式</translation>
+    </string>
+    <string name="gboard_patches_split_keyboard_title">
+        <translation locale="en">Split keyboard</translation>
+        <translation locale="zh-Hant">分離式鍵盤</translation>
+    </string>
+    <string name="gboard_patches_split_keyboard_toggle_title">
+        <translation locale="en">Enable split keyboard</translation>
+        <translation locale="zh-Hant">啟用分離式鍵盤</translation>
+    </string>
+    <string name="gboard_patches_split_keyboard_auto_title">
+        <translation locale="en">Auto split</translation>
+        <translation locale="zh-Hant">自動分離</translation>
+    </string>
+    <string name="gboard_patches_split_keyboard_auto_summary">
+        <translation locale="en">Automatically uses split layout when Gboard determines there is enough space.</translation>
+        <translation locale="zh-Hant">當 Gboard 判定空間足夠時，自動使用分離式鍵盤。</translation>
+    </string>
+    <string name="gboard_patches_accessibility_layout_title">
+        <translation locale="en">Show accessibility layout</translation>
+        <translation locale="zh-Hant">顯示無障礙鍵盤配置</translation>
+    </string>
+    <string name="gboard_patches_cursor_trackpad_preview_mode">
+        <translation locale="en">Trackpad mode</translation>
+        <translation locale="zh-Hant">觸控板模式</translation>
+    </string>
+    <string name="gboard_patches_cursor_trackpad_preview_setting">
+        <translation locale="en">Long press spacebar for Trackpad setting</translation>
+        <translation locale="zh-Hant">長按空白鍵啟用觸控板設定</translation>
+    </string>
+    <string name="gboard_patches_access_points_preview_legacy">
+        <translation locale="en">Legacy Access Points menu</translation>
+        <translation locale="zh-Hant">舊版 Access Points 選單</translation>
+    </string>
+    <string name="gboard_patches_access_points_preview_redesigned">
+        <translation locale="en">Redesigned Access Points menu</translation>
+        <translation locale="zh-Hant">新版 Access Points 選單</translation>
+    </string>
+    <string name="gboard_patches_emoji_size_preview_setting">
+        <translation locale="en">Emoji size setting</translation>
+        <translation locale="zh-Hant">表情符號大小設定</translation>
+    </string>
+    <string name="gboard_patches_accessibility_preview_keyboard">
+        <translation locale="en">Accessibility keyboard layout</translation>
+        <translation locale="zh-Hant">無障礙鍵盤配置</translation>
+    </string>
+    <string name="gboard_patches_accessibility_preview_setting">
+        <translation locale="en">Show accessibility layout setting</translation>
+        <translation locale="zh-Hant">顯示無障礙鍵盤配置設定</translation>
+    </string>
+    <string name="gboard_patches_split_keyboard_preview_layout">
+        <translation locale="en">Split keyboard layout</translation>
+        <translation locale="zh-Hant">分離式鍵盤配置</translation>
+    </string>
 </settings-text>

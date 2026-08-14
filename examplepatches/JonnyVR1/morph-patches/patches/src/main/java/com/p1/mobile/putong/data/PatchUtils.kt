@@ -19,12 +19,11 @@ class UnifiedClassResolver(private val context: BytecodePatchContext) {
     private val resolvedClasses = mutableMapOf<String, ClassDef>()
     
     private val analyticsAnchors = setOf(
-        "e_request_none_oaid", "com.tantanapp.beatles", "miit_oaid",
+        "e_request_none_oaid", "com.tantanapp.beatles",
         "add_payment_info", "com.google.android.gms.ads.identifier.service.START",
         "mmfile_push_statistic", "BatteryMetrics", "live-PerfTracer",
         "DNS_SLA", "_getOrCreate", "_compressRecordFile",
-        "getSubmitAlternative", "ANDROIDID", "wlan0/address",
-        "[IMEI]", "[MAC]", "[OAID]", "device_fingerprint"
+        "getSubmitAlternative"
     )
     
     private val FOX_STATS_DEFAULT_ENV = "Lcom/tantanapp/foxstatistics/DefaultEnvironment;"
@@ -105,7 +104,7 @@ class UnifiedClassResolver(private val context: BytecodePatchContext) {
         premiumAnchorStrings
     
     fun resolve() {
-        val totalTargets = 14 + 12 + 6 + 53
+        val totalTargets = 10 + 12 + 6 + 53
         
         context.classDefForEach { classDef ->
             if (resolvedClasses.size >= totalTargets) return@classDefForEach
@@ -177,7 +176,6 @@ class UnifiedClassResolver(private val context: BytecodePatchContext) {
     private fun resolveAnalytics(foundStrings: Set<String>, classDef: ClassDef, hasCoreEventLoggerRef: Boolean) {
         if ("e_request_none_oaid" in foundStrings) resolvedClasses.putIfAbsent("foxStats", classDef)
         if ("com.tantanapp.beatles" in foundStrings) resolvedClasses.putIfAbsent("beatles", classDef)
-        if ("miit_oaid" in foundStrings) resolvedClasses.putIfAbsent("oaid", classDef)
         if ("add_payment_info" in foundStrings) resolvedClasses.putIfAbsent("firebaseAnalytics", classDef)
         if ("com.google.android.gms.ads.identifier.service.START" in foundStrings) resolvedClasses.putIfAbsent("googleAdId", classDef)
         if ("mmfile_push_statistic" in foundStrings) resolvedClasses.putIfAbsent("pushStats", classDef)
@@ -186,9 +184,6 @@ class UnifiedClassResolver(private val context: BytecodePatchContext) {
         if ("DNS_SLA" in foundStrings) resolvedClasses.putIfAbsent("dnsSla", classDef)
         if ("getSubmitAlternative" in foundStrings) resolvedClasses.putIfAbsent("moLiveApm2", classDef)
         if ("_getOrCreate" in foundStrings && "_compressRecordFile" in foundStrings) resolvedClasses.putIfAbsent("moTracing", classDef)
-        if ("[IMEI]" in foundStrings && "[MAC]" in foundStrings && "[OAID]" in foundStrings) resolvedClasses.putIfAbsent("deviceFingerprintCollector", classDef)
-        if ("device_fingerprint" in foundStrings) resolvedClasses.putIfAbsent("deviceFingerprintHash", classDef)
-        if ("ANDROIDID" in foundStrings && "wlan0/address" in foundStrings) resolvedClasses.putIfAbsent("deviceInfoCollector", classDef)
         if (hasCoreEventLoggerRef) resolvedClasses.putIfAbsent("coreEventLogger", classDef)
     }
     

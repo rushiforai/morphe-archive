@@ -6,25 +6,25 @@
   "target": {
     "application": "NuvioTV",
     "package": "com.nuvio.tv",
-    "versions": ["0.8.3-beta"],
+    "versions": ["0.8.4-beta"],
     "launchComponent": "com.nuvio.tv/.MainActivity"
   },
   "assets": {
     "universal": {
-      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.3-beta/app-full-universal-release.apk",
-      "sha256": "e4e2a6bb529c7f3b8a4670c9fb0a8376e919a5791d29b68e97e6e21b59f73125"
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.4-beta/app-full-universal-release.apk",
+      "sha256": "12f080843d8a97ceed0e6e697f39e1a61589883d26f0854318f671685a18313b"
     },
     "x86_64": {
-      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.3-beta/app-full-x86_64-release.apk",
-      "sha256": "1c3b4cc5147c6963f70e75524622cc06195aafe6854ecf00ea96ec58551571d3"
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.4-beta/app-full-x86_64-release.apk",
+      "sha256": "de640cac89855aae026fa76eef33368748a4a995c80db108c9d1f55b0498fc2c"
     },
     "arm64-v8a": {
-      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.3-beta/app-full-arm64-v8a-release.apk",
-      "sha256": "474a45cacfb14d251240cc27f57fda30dce9eddf2aa6a198b3481365a2942785"
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.4-beta/app-full-arm64-v8a-release.apk",
+      "sha256": "325cbee7ffe8ab23391853aa277c3068830dd30d911f2be62fd40dd8aac6794f"
     },
     "armeabi-v7a": {
-      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.3-beta/app-full-armeabi-v7a-release.apk",
-      "sha256": "12380caf445d2e32285d184aa2a7600f8f2558af3ac96d7dda8c3f1987f47830"
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.4-beta/app-full-armeabi-v7a-release.apk",
+      "sha256": "1aecc0423542befaca114c35602c71463f02093296d7133fa92d79ed93da96f2"
     }
   },
   "dependencies": ["settings-hub"],
@@ -35,6 +35,11 @@
     "LibraryGridContentFingerprint",
     "LibrarySourceLabelFingerprint",
     "CloudSearchLabelFingerprint",
+    "MainActivityKeyEventFingerprint",
+    "ComposeDialogTouchEventFingerprint",
+    "CloudStorageCardFingerprint",
+    "CloudStorageFileRowsFingerprint",
+    "NativeStorageTvButtonFingerprint",
     "NuvioNavHostFingerprint",
     "PlayerMediaSourceFactoryFingerprint",
     "FullscreenPlaybackStateListenerFingerprint"
@@ -46,20 +51,32 @@
       "io.github.liongalahad.nuviotv.extension.playback.localmedia.Extension",
       "io.github.liongalahad.nuviotv.extension.playback.localmedia.LocalMediaRuntime",
       "io.github.liongalahad.nuviotv.extension.playback.localmedia.LocalMediaLibraryUi",
+      "io.github.liongalahad.nuviotv.extension.playback.localmedia.LocalMediaDeleteActivity",
+      "io.github.liongalahad.nuviotv.extension.playback.localmedia.LocalMediaActionActivity",
+      "io.github.liongalahad.nuviotv.extension.playback.localmedia.LocalMediaTvUi",
       "io.github.liongalahad.nuviotv.extension.playback.localmedia.LocalMediaFolderPickerActivity",
       "io.github.liongalahad.nuviotv.extension.playback.localmedia.LocalMediaDefaultFolderAccessActivity",
       "io.github.liongalahad.nuviotv.extension.playback.localmedia.LocalMediaInternalFolderPickerActivity",
       "io.github.liongalahad.nuviotv.extension.playback.localmedia.LocalMediaSettingsCategory",
       "io.github.liongalahad.nuviotv.extension.playback.localmedia.LocalMediaSettingsContent",
       "io.github.liongalahad.nuviotv.extension.playback.localmedia.LocalMediaToggleAction",
-      "io.github.liongalahad.nuviotv.extension.playback.localmedia.LocalMediaFolderAction"
+      "io.github.liongalahad.nuviotv.extension.playback.localmedia.LocalMediaFolderAction",
+      "io.github.liongalahad.nuviotv.extension.settings.MorpheStoragePath",
+      "io.github.liongalahad.nuviotv.extension.settings.MorpheStorageConsumers",
+      "io.github.liongalahad.nuviotv.extension.settings.MorpheStorageSettingsCategory",
+      "io.github.liongalahad.nuviotv.extension.settings.MorpheStorageSettingsContent",
+      "io.github.liongalahad.nuviotv.extension.settings.MorpheStorageFolderPickerActivity",
+      "io.github.liongalahad.nuviotv.extension.settings.MorpheStorageInternalFolderPickerActivity"
     ],
     "needles": [
       "MORPHE_STORAGE",
       "Movies/Nuvio",
       "Show local storage in Library",
+      "Local storage path",
       "Search storage library",
-      "Refresh storage library"
+      "Refresh storage library",
+      "Delete Folder",
+      "Delete File"
     ],
     "forbiddenNeedles": []
   },
@@ -70,17 +87,22 @@
     "TV AVD playback of H.264 MKV with matching same-basename SRT"
   ],
   "acceptance": [
-    "Settings > Morphe > Playback > Local Storage contains only the visibility toggle and one actionable folder-location picker row",
+    "Settings > Morphe > Playback contains a Local Media visibility section followed by one unsectioned shared Local storage path row at the bottom",
+    "The shared path is greyed and unfocusable while every installed storage feature is off and actionable when Local Media or Local Downloads is on",
+    "An existing playback.local_media.tree_uri value migrates once into the neutral shared playback.local_storage.path key",
     "Show local storage in Library defaults off, requests durable default-folder access when enabled, creates Movies/Nuvio after the grant, updates immediately and persists after force-stop and reboot",
     "Library exposes Storage as a peer of Saved and Cloud without changing either native mode",
     "Storage remains inside Nuvio's native Library screen and uses the same search, card, focus and file-picker visuals as Cloud",
     "Storage shows STORAGE rather than NUVIO in the source badge",
     "The Storage library lists direct files plus first-level folder cards with recursive playable-file counts and never lists subtitle files as videos",
+    "Holding a Storage folder opens the one-option Delete Folder action popup during Android's native long-press interval and removes only that selected root folder after confirmation",
+    "Holding a Storage file opens the one-option Delete File action popup during the hold, removes its matching subtitle sidecars, and removes the containing root folder when no playable files remain",
     "A same-basename SRT, VTT, ASS, SSA, TTML or DFXP file is attached as a selectable Media3 subtitle track",
     "Selecting a video opens Nuvio's existing internal player with the content URI and filename intact",
     "Local playback completion and Back restore the existing Storage selection view without attempting catalogue metadata lookup",
     "H.264 MKV video and audio play, seek and return normally from Movies/Nuvio",
     "Changing the folder updates the in-place Storage library immediately and survives an app restart",
+    "Storage automatically rescans after Library is fully left and entered again, without requiring the Refresh action",
     "Saved, Cloud, streaming playback and the separate Local Storage subtitle importer remain unchanged",
     "No crash, ANR, VerifyError or fatal log occurs during folder selection, scan, playback, seeking, subtitle selection or exit"
   ]

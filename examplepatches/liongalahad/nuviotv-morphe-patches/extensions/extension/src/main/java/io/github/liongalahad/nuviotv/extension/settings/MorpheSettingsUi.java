@@ -7,6 +7,8 @@ import kotlin.jvm.functions.Function3;
 
 /** Public rendering facade available to isolated patch settings providers. */
 public final class MorpheSettingsUi {
+    private static final ThreadLocal<java.util.Set<String>> SHARED_ROWS = new ThreadLocal<>();
+
     private MorpheSettingsUi() {}
 
     public static boolean beginComposition(Object composer, Object flags) {
@@ -32,6 +34,17 @@ public final class MorpheSettingsUi {
             Function0<?> action
     ) {
         MorpheSettingsRows.selectorRow(modifier, composer, title, value, action);
+    }
+
+    public static void selectorRow(
+            Object modifier,
+            Object composer,
+            String title,
+            String value,
+            boolean enabled,
+            Function0<?> action
+    ) {
+        MorpheSettingsRows.selectorRow(modifier, composer, title, value, enabled, action);
     }
 
     /** Generic nested settings section using the same expandable card as top-level categories. */
@@ -66,5 +79,19 @@ public final class MorpheSettingsUi {
 
     public static Function0<Unit> noOp() {
         return () -> Unit.INSTANCE;
+    }
+
+    static void beginSharedRowGroup() {
+        SHARED_ROWS.set(new java.util.HashSet<>());
+    }
+
+    static void endSharedRowGroup() {
+        SHARED_ROWS.remove();
+    }
+
+    /** Returns true for the first contribution of a shared row in a grouped category. */
+    public static boolean claimSharedRow(String key) {
+        java.util.Set<String> rows = SHARED_ROWS.get();
+        return rows == null || rows.add(key);
     }
 }

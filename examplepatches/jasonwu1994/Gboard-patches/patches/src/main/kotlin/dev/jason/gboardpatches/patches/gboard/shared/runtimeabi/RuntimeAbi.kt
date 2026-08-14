@@ -1,6 +1,8 @@
 package dev.jason.gboardpatches.patches.gboard.shared.runtimeabi
 
 internal enum class RuntimeCallId(internal val encodedAbi: String) {
+    ACCESSIBILITY_LAYOUT_RUNTIME_APPLY_OVERRIDDEN_FLAG_VALUE("Ldev/jason/gboardpatches/extension/accessibilitylayout/GboardAccessibilityLayout1777Runtime;->applyOverriddenFlagValue(Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/Object;"),
+    ACCESS_POINTS_MENU_RUNTIME_APPLY_OVERRIDDEN_FLAG_VALUE("Ldev/jason/gboardpatches/extension/accesspointsmenu/GboardAccessPointsMenu1777Runtime;->applyOverriddenFlagValue(Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/Object;"),
     ADD_SYMBOLS_RUNTIME_APPEND_CUSTOM_CORPUS_ITEM("Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->appendCustomCorpusItem(Ljava/lang/Object;)Ljava/lang/Object;"),
     ADD_SYMBOLS_RUNTIME_BIND_CUSTOM_VIEW_HOLDER("Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->bindCustomViewHolder(Ljava/lang/Object;Ljava/lang/Object;I)Z"),
     ADD_SYMBOLS_RUNTIME_BRIDGE_PROVIDER_RECEIVER("Ldev/jason/gboardpatches/extension/addsymbols/GboardAddSymbolsRuntime;->bridgeProviderReceiver(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"),
@@ -38,6 +40,10 @@ internal enum class RuntimeCallId(internal val encodedAbi: String) {
     CLIPBOARD_RUNTIME_HANDLE_CUSTOM_PRUNE("Ldev/jason/gboardpatches/extension/clipboard/GboardClipboardRuntime;->handleCustomPrune(Ljava/lang/Object;)Z"),
     CLIPBOARD_RUNTIME_MAYBE_BUILD_LOADER_RESULT("Ldev/jason/gboardpatches/extension/clipboard/GboardClipboardRuntime;->maybeBuildLoaderResult(Ljava/lang/Object;)Ljava/lang/Object;"),
     CLIPBOARD_RUNTIME_RESOLVE_COLUMN_COUNT_OVERRIDE("Ldev/jason/gboardpatches/extension/clipboard/GboardClipboardRuntime;->resolveColumnCountOverride(Ljava/lang/Object;)Ljava/lang/Integer;"),
+    CURSOR_TRACKPAD_RUNTIME_APPLY_OVERRIDDEN_FLAG_VALUE("Ldev/jason/gboardpatches/extension/cursortrackpad/GboardCursorTrackpad1777Runtime;->applyOverriddenFlagValue(Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/Object;"),
+    CURSOR_TRACKPAD_RUNTIME_APPLY_OVERRIDDEN_PREFERENCE_VALUE("Ldev/jason/gboardpatches/extension/cursortrackpad/GboardCursorTrackpad1777Runtime;->applyOverriddenPreferenceValue(Ljava/lang/String;Z)Z"),
+    CURSOR_TRACKPAD_RUNTIME_APPLY_OVERRIDDEN_RESOURCE_PREFERENCE_VALUE("Ldev/jason/gboardpatches/extension/cursortrackpad/GboardCursorTrackpad1777Runtime;->applyOverriddenResourcePreferenceValue(IZ)Z"),
+    EMOJI_SIZE_RUNTIME_APPLY_OVERRIDDEN_FLAG_VALUE("Ldev/jason/gboardpatches/extension/emojisize/GboardEmojiSize1777Runtime;->applyOverriddenFlagValue(Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/Object;"),
     FEATURE_FLAGS_RUNTIME_APPLY_OVERRIDDEN_FLAG_VALUE("Ldev/jason/gboardpatches/extension/featureflags/GboardFeatureFlagsRuntime;->applyOverriddenFlagValue(Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/Object;"),
     ENGLISH_UPPERCASE_TOGGLE_RUNTIME_CACHE_PATCHED_METADATA("Ldev/jason/gboardpatches/extension/keyboard/GboardEnglishUppercaseToggleRuntime;->cachePatchedMetadata(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"),
     ENGLISH_UPPERCASE_TOGGLE_RUNTIME_GET_CACHED_PATCHED_METADATA("Ldev/jason/gboardpatches/extension/keyboard/GboardEnglishUppercaseToggleRuntime;->getCachedPatchedMetadata(Ljava/lang/Object;)Ljava/lang/Object;"),
@@ -66,6 +72,10 @@ internal enum class RuntimeCallId(internal val encodedAbi: String) {
     OCR_RUNTIME_APPLY_OPTIONAL_MODULE_NAME("Ldev/jason/gboardpatches/extension/ocr/GboardOcrRuntime;->applyOptionalModuleName(Ljava/lang/String;)Ljava/lang/String;"),
     OCR_RUNTIME_APPLY_OPTIONAL_MODULE_REQUEST("Ldev/jason/gboardpatches/extension/ocr/GboardOcrRuntime;->applyOptionalModuleRequest(Ljava/lang/Object;)Ljava/lang/Object;"),
     SETTINGS_HOMEPAGE_RUNTIME_APPLY_SETTINGS_HOMEPAGE_POLICY("Ldev/jason/gboardpatches/extension/settingshomepage/GboardSettingsHomepageRuntime;->applySettingsHomepagePolicy(Ljava/lang/Object;)V"),
+    SPLIT_KEYBOARD_RUNTIME_APPLY_ACCESS_POINT_STATE("Ldev/jason/gboardpatches/extension/splitkeyboard/GboardSplitKeyboard1777Runtime;->applyAccessPointState(Ljava/lang/String;I)I"),
+    SPLIT_KEYBOARD_RUNTIME_AFTER_MODE_ENVIRONMENT_CHANGED("Ldev/jason/gboardpatches/extension/splitkeyboard/GboardSplitKeyboard1777Runtime;->afterModeEnvironmentChanged(Ljava/lang/Object;)V"),
+    SPLIT_KEYBOARD_RUNTIME_INCLUDE_ACCESS_POINT_IN_ORDER("Ldev/jason/gboardpatches/extension/splitkeyboard/GboardSplitKeyboard1777Runtime;->includeAccessPointInOrder(Ljava/lang/Object;)Ljava/lang/Object;"),
+    SPLIT_KEYBOARD_RUNTIME_INTERCEPT_SPLIT_ACTION("Ldev/jason/gboardpatches/extension/splitkeyboard/GboardSplitKeyboard1777Runtime;->interceptSplitAction(Ljava/lang/Object;)Z"),
     SYMBOL_FOOTER_ORDER_RUNTIME_REORDER_EXPRESSION_CORPUS_LIST("Ldev/jason/gboardpatches/extension/symbolfooter/GboardSymbolFooterOrderRuntime;->reorderExpressionCorpusList(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"),
     TOP_ROW_SWIPE_RUNTIME_AFTER_SOFT_KEY_BOUND("Ldev/jason/gboardpatches/extension/toprowswipe/GboardTopRowSwipeRuntime;->afterSoftKeyBound(Ljava/lang/Object;)V"),
     TOP_ROW_SWIPE_RUNTIME_CLEAR_SWIPE_SESSION("Ldev/jason/gboardpatches/extension/toprowswipe/GboardTopRowSwipeRuntime;->clearSwipeSession(Ljava/lang/Object;)V"),

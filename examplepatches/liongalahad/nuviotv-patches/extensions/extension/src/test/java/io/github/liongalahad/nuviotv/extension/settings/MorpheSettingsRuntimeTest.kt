@@ -10,6 +10,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import kotlin.jvm.functions.Function0
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35])
@@ -46,6 +47,72 @@ class MorpheSettingsRuntimeTest {
     fun `category list leaves native medium spacing arrangement explicit`() {
         assertEquals(494, MorpheSettingsRows.categoryListDefaultMaskForTesting())
         assertEquals(0, MorpheSettingsRows.categoryListDefaultMaskForTesting() and 16)
+    }
+
+    @Test
+    fun `native switch bridge accepts wrapper and full 0_8_4 row shapes`() {
+        assertTrue(
+            MorpheSettingsRows.matchesNativeSwitchParametersForTesting(
+                arrayOf(
+                    String::class.java,
+                    String::class.java,
+                    Boolean::class.javaPrimitiveType!!,
+                    Function0::class.java,
+                    Function0::class.java,
+                    Any::class.java,
+                    Int::class.javaPrimitiveType!!
+                )
+            )
+        )
+        assertTrue(
+            MorpheSettingsRows.matchesNativeSwitchParametersForTesting(
+                arrayOf(
+                    String::class.java,
+                    String::class.java,
+                    Boolean::class.javaPrimitiveType!!,
+                    Function0::class.java,
+                    Any::class.java,
+                    Function0::class.java,
+                    Boolean::class.javaPrimitiveType!!,
+                    Any::class.java,
+                    Int::class.javaPrimitiveType!!,
+                    Int::class.javaPrimitiveType!!
+                )
+            )
+        )
+        assertFalse(
+            MorpheSettingsRows.matchesNativeSwitchParametersForTesting(
+                arrayOf(String::class.java, String::class.java, Boolean::class.javaPrimitiveType!!)
+            )
+        )
+    }
+
+    @Test
+    fun `native selector bridge accepts the 0_8_4 card shape`() {
+        assertTrue(
+            MorpheSettingsRows.matchesNativeSelectorParametersForTesting(
+                arrayOf(
+                    String::class.java,
+                    String::class.java,
+                    String::class.java,
+                    Function0::class.java,
+                    Any::class.java,
+                    Function0::class.java,
+                    Boolean::class.javaPrimitiveType!!,
+                    Any::class.java,
+                    Any::class.java,
+                    Long::class.javaPrimitiveType!!,
+                    Any::class.java,
+                    Integer::class.java,
+                    Float::class.javaPrimitiveType!!,
+                    Long::class.javaPrimitiveType!!,
+                    Any::class.java,
+                    Int::class.javaPrimitiveType!!,
+                    Int::class.javaPrimitiveType!!,
+                    Int::class.javaPrimitiveType!!
+                )
+            )
+        )
     }
 
     @Test

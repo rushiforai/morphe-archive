@@ -81,6 +81,7 @@ def anchor(name):
 APP_PATCH_ORDER = {
     "Random Episode": 100,
     "Local Media": 200,
+    "Local Downloads": 210,
     "Rating Visibility": 300,
     "Remove SDH Annotations": 400,
     "Mark SDH Subtitles": 410,
@@ -95,6 +96,7 @@ PATCH_CREDITS = {
 PATCH_DOCS = {
     "Random Episode": "testing/patches/random-episode/README.md",
     "Local Media": "testing/patches/local-media/README.md",
+    "Local Downloads": "testing/patches/local-downloads/README.md",
     "Rating Visibility": "testing/patches/ratings-visibility/README.md",
     "Remove SDH Annotations": "testing/patches/sdh-annotations/README.md",
     "Mark SDH Subtitles": "testing/patches/sdh-marking/README.md",

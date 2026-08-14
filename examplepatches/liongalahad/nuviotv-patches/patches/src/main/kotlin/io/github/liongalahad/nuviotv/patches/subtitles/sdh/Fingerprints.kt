@@ -44,7 +44,7 @@ internal object LegacyCueOutputFingerprint : Fingerprint(
     )
 )
 
-/** 0.8.3's direct sidecar renderer, which bypasses Media3 TextOutput callbacks. */
+/** 0.8.4's direct sidecar renderer, which bypasses Media3 TextOutput callbacks. */
 internal object SidecarCueRenderFingerprint : Fingerprint(
     returnType = "Ljava/lang/Object;",
     parameters = listOf("Ljava/lang/Object;"),

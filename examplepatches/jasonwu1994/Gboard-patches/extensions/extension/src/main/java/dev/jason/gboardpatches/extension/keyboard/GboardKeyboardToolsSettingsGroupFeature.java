@@ -5,6 +5,7 @@ import android.content.Context;
 import java.util.Arrays;
 
 import dev.jason.gboardpatches.extension.R;
+import dev.jason.gboardpatches.extension.cursortrackpad.GboardCursorTrackpadSettingsFeature;
 import dev.jason.gboardpatches.extension.longpressquickactions.GboardLongPressQuickActionsSettingsFeature;
 import dev.jason.gboardpatches.extension.manualincognito.GboardManualIncognitoSettingsFeature;
 import dev.jason.gboardpatches.extension.ocr.GboardOcrSettingsFeature;
@@ -34,6 +35,7 @@ public final class GboardKeyboardToolsSettingsGroupFeature
                         new GboardTopRowSwipeSettingsFeature(context),
                         new GboardManualIncognitoSettingsFeature(context),
                         new GboardLongPressQuickActionsSettingsFeature(context),
+                        new GboardCursorTrackpadSettingsFeature(context),
                         new GboardOcrSettingsFeature(context)));
     }
 

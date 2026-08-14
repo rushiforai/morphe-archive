@@ -97,6 +97,12 @@ private const val COLLAPSIBLE_CONVERSATION_CONFIG_CLASS = "Lcom/p1/mobile/putong
 private const val CHAT_HELPER_CONFIG_CLASS = "Lcom/p1/mobile/putong/core/data/ChatHelperConfig;"
 private const val CALL_RECORD_CLASS = "Lcom/p1/mobile/putong/core/data/CallRecord;"
 private const val CONVERSATION_REFRESH_INTERVAL_CONFIG_CLASS = "Lcom/p1/mobile/putong/core/data/ConversationRefreshIntervalConfig;"
+private const val HEARTBEAT_MATCH_DATA_CLASS = "Lcom/p1/mobile/putong/core/data/HeartbeatMatchData;"
+private const val MESSAGE_INTEGRATION_CLASS = "Lcom/p1/mobile/putong/core/data/MessageIntegration;"
+private const val ASSISTANT_MESSAGE_CLEAR_CLASS = "Lcom/p1/mobile/putong/core/data/AssistantMessageClear;"
+private const val LOVE_BUZZ_DATA_CLASS = "Lcom/p1/mobile/putong/core/data/LoveBuzzData;"
+private const val ICE_BREAK_DLG_CONFIG_CLASS = "Lcom/p1/mobile/putong/core/data/IceBreakDlgConfig;"
+private const val CONTINUES_OP_CONV_CONFIG_CLASS = "Lcom/p1/mobile/putong/core/data/ContinuesOpConvConfig;"
 
 private val instructionCache = java.util.WeakHashMap<com.android.tools.smali.dexlib2.iface.Method, List<Instruction>>()
 
@@ -117,7 +123,7 @@ private fun com.android.tools.smali.dexlib2.iface.Method.accessesField(definingC
 @JvmField
 val messagingPatch = bytecodePatch(
     name = "Messaging Enhancement",
-    description = "Removes message limits, unlimited pin chat, voice/video calls, quick chat, typing indicator, free gifts, letter, greeting, ice breaker, read receipts, AI translation, message recall, group chat, live chat, message filter, chat partner config, ODiamond visitor config, prologue config, love buzz data, secret crush limit, boost limit, message tab revision, collapsible conversation, chat helper AI, call duration, conversation refresh interval",
+    description = "Removes message limits, unlimited pin chat, voice/video calls, quick chat, typing indicator, free gifts, letter, greeting, ice breaker, read receipts, AI translation, message recall, group chat, live chat, message filter, chat partner config, ODiamond visitor config, prologue config, love buzz data, secret crush limit, boost limit, message tab revision, collapsible conversation, chat helper AI, call duration, conversation refresh interval, heartbeat match, message integration, assistant message clear, love buzz prolong count, ice break dialog config, continues op conv config",
     default = true,
 ) {
     compatibleWith(tantanCompatibility)
@@ -576,6 +582,102 @@ val messagingPatch = bytecodePatch(
                         method.accessesField(CONVERSATION_REFRESH_INTERVAL_CONFIG_CLASS, "monitorEnable") &&
                         method.returnType == "Z" &&
                         method.parameterTypes.isEmpty() -> method.addInstructions(0, RETURN_TRUE)
+                }
+            }
+        }
+
+        classDefByOrNull(HEARTBEAT_MATCH_DATA_CLASS)?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                when {
+                    method.name !in EXCLUDED_METHODS &&
+                        method.accessesField(HEARTBEAT_MATCH_DATA_CLASS, "remaining") &&
+                        method.returnType == "I" &&
+                        method.parameterTypes.isEmpty() -> method.addInstructions(0, RETURN_INT_9999)
+
+                    method.name !in EXCLUDED_METHODS &&
+                        method.accessesField(HEARTBEAT_MATCH_DATA_CLASS, "expiredTime") &&
+                        method.returnType == "D" &&
+                        method.parameterTypes.isEmpty() -> method.addInstructions(0, RETURN_LONG_MAX)
+                }
+            }
+        }
+
+        classDefByOrNull(MESSAGE_INTEGRATION_CLASS)?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                when {
+                    method.name !in EXCLUDED_METHODS &&
+                        method.accessesField(MESSAGE_INTEGRATION_CLASS, "enable") &&
+                        method.returnType == "Z" &&
+                        method.parameterTypes.isEmpty() -> method.addInstructions(0, RETURN_TRUE)
+
+                    method.name !in EXCLUDED_METHODS &&
+                        method.accessesField(MESSAGE_INTEGRATION_CLASS, "limit") &&
+                        method.returnType == "I" &&
+                        method.parameterTypes.isEmpty() -> method.addInstructions(0, RETURN_INT_9999)
+                }
+            }
+        }
+
+        classDefByOrNull(ASSISTANT_MESSAGE_CLEAR_CLASS)?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                when {
+                    method.name !in EXCLUDED_METHODS &&
+                        method.accessesField(ASSISTANT_MESSAGE_CLEAR_CLASS, "enabled") &&
+                        method.returnType == "Z" &&
+                        method.parameterTypes.isEmpty() -> method.addInstructions(0, RETURN_TRUE)
+
+                    method.name !in EXCLUDED_METHODS &&
+                        method.accessesField(ASSISTANT_MESSAGE_CLEAR_CLASS, "limit_days") &&
+                        method.returnType == "I" &&
+                        method.parameterTypes.isEmpty() -> method.addInstructions(0, RETURN_INT_9999)
+                }
+            }
+        }
+
+        classDefByOrNull(LOVE_BUZZ_DATA_CLASS)?.let { classDef ->
+            mutableClassDefBy(classDef).methods
+                .filter { method ->
+                    method.name !in EXCLUDED_METHODS &&
+                        method.accessesField(LOVE_BUZZ_DATA_CLASS, "remainingProlongCount") &&
+                        method.returnType == "I" &&
+                        method.parameterTypes.isEmpty()
+                }
+                .forEach { it.addInstructions(0, RETURN_INT_9999) }
+        }
+
+        classDefByOrNull(ICE_BREAK_DLG_CONFIG_CLASS)?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                when {
+                    method.name !in EXCLUDED_METHODS &&
+                        method.accessesField(ICE_BREAK_DLG_CONFIG_CLASS, "maxNum") &&
+                        method.returnType == "I" &&
+                        method.parameterTypes.isEmpty() -> method.addInstructions(0, RETURN_INT_9999)
+
+                    method.name !in EXCLUDED_METHODS &&
+                        method.accessesField(ICE_BREAK_DLG_CONFIG_CLASS, "timeInterval") &&
+                        method.returnType == "I" &&
+                        method.parameterTypes.isEmpty() -> method.addInstructions(0, RETURN_INT_9999)
+                }
+            }
+        }
+
+        classDefByOrNull(CONTINUES_OP_CONV_CONFIG_CLASS)?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                when {
+                    method.name !in EXCLUDED_METHODS &&
+                        method.accessesField(CONTINUES_OP_CONV_CONFIG_CLASS, "enable") &&
+                        method.returnType == "Z" &&
+                        method.parameterTypes.isEmpty() -> method.addInstructions(0, RETURN_TRUE)
+
+                    method.name !in EXCLUDED_METHODS &&
+                        method.accessesField(CONTINUES_OP_CONV_CONFIG_CLASS, "max_count") &&
+                        method.returnType == "I" &&
+                        method.parameterTypes.isEmpty() -> method.addInstructions(0, RETURN_INT_9999)
+
+                    method.name !in EXCLUDED_METHODS &&
+                        method.accessesField(CONTINUES_OP_CONV_CONFIG_CLASS, "branch_size") &&
+                        method.returnType == "I" &&
+                        method.parameterTypes.isEmpty() -> method.addInstructions(0, RETURN_INT_9999)
                 }
             }
         }

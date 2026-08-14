@@ -1,11 +1,18 @@
 package io.github.liongalahad.nuviotv.extension.playback.localmedia;
 
 import io.github.liongalahad.nuviotv.extension.settings.MorpheSettingsCategory;
+import io.github.liongalahad.nuviotv.extension.settings.MorpheStorageConsumers;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function3;
 
 /** Settings category owned exclusively by Local Media. */
 public final class LocalMediaSettingsCategory implements MorpheSettingsCategory {
+    public LocalMediaSettingsCategory() {
+        MorpheStorageConsumers.register(
+                "playback.local_media",
+                LocalMediaRuntime::isEnabled
+        );
+    }
     @Override public String id() { return "playback"; }
     @Override public int order() { return 200; }
     @Override public int contentOrder() { return 100; }
