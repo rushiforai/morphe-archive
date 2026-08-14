@@ -1,19 +1,19 @@
 {
-  "generatedAt": "2026-08-13 01:57 UTC",
-  "configFile": "morphe_archive_config_v18.json",
-  "configVersion": 18,
-  "repoCount": 136,
-  "appCount": 651,
-  "patchCount": 2504,
+  "generatedAt": "2026-08-14 01:54 UTC",
+  "configFile": "morphe_archive_config_v19.json",
+  "configVersion": 19,
+  "repoCount": 135,
+  "appCount": 650,
+  "patchCount": 2514,
   "universalPatchCount": 190,
   "hostCounts": {
-    "github.com": 132,
+    "github.com": 131,
     "gitlab.com": 4
   },
   "visitorStats": {
     "today": 0,
-    "yesterday": 4,
-    "total": 255,
+    "yesterday": 5,
+    "total": 260,
     "online": 0
   },
   "repos": [
@@ -728,19 +728,35 @@
       "webUrl": "https://github.com/arandomhooman/hoomans-morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=arandomhooman/hoomans-morphe-patches",
       "avatarUrl": "https://github.com/arandomhooman.png?size=96",
-      "patchCount": 53,
-      "appCount": 40,
+      "patchCount": 54,
+      "appCount": 41,
       "createdAt": 1784836029535,
       "updatedAt": 1784836029535,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.43.4 (2026-07-22)",
-        "date": "2026-07-22",
+        "title": "1.44.0 (2026-08-13)",
+        "date": "2026-08-13",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "handle install residue during release back-merge"
+            "text": "hide DirectChat message-bubble ad in Unlock Premium"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "resolve reported app regressions"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "resolve reported patch regressions"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "resolve Symfonium playback and Poweramp settings crashes"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "add DirectChat unlock premium patch"
           }
         ]
       },
@@ -828,6 +844,13 @@
           "patchCount": 1,
           "iconUrl": "https://play-lh.googleusercontent.com/shvWrgOoaKY8px_CZpBessRwXbWpLczVLUpuXmXeEyRGYRBE0EWrUNjFlKmwRGnS7yx-VsYT9ea4Gzc_Y0yxLg",
           "iconColor": "#F26B21"
+        },
+        {
+          "name": "DirectChat",
+          "packageName": "net.uniquegem.directchat",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#2196F3"
         },
         {
           "name": "Essence",
@@ -1443,27 +1466,31 @@
       "webUrl": "https://github.com/BlazeFTL/FTL-Patches",
       "addUrl": "https://morphe.software/add-source?github=BlazeFTL/FTL-Patches",
       "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
-      "patchCount": 16,
+      "patchCount": 17,
       "appCount": 3,
       "createdAt": 1786263569063,
       "updatedAt": 1786263569063,
       "createdDate": "2026-08-09",
       "updatedDate": "2026-08-09",
       "latestChanges": {
-        "title": "1.25.0 (2026-08-12)",
-        "date": "2026-08-12",
+        "title": "1.30.0 (2026-08-13)",
+        "date": "2026-08-13",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "add mx player hide file transfer, private video,video playlist"
+            "text": "Keep Only Mx Player Pro"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "up"
           }
         ]
       },
       "apps": [
         {
-          "name": "MX Player",
-          "packageName": "com.mxtech.videoplayer.ad",
-          "patchCount": 4,
+          "name": "ES File Explorer",
+          "packageName": "com.estrongs.android.pop",
+          "patchCount": 1,
           "iconUrl": "",
           "iconColor": ""
         },
@@ -1785,19 +1812,23 @@
       "webUrl": "https://github.com/byehi98/okish-morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=byehi98/okish-morphe-patches",
       "avatarUrl": "https://github.com/byehi98.png?size=96",
-      "patchCount": 13,
-      "appCount": 8,
+      "patchCount": 15,
+      "appCount": 9,
       "createdAt": 1784836032190,
       "updatedAt": 1784836032190,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.7.0 (2026-08-09)",
-        "date": "2026-08-09",
+        "title": "1.8.0 (2026-08-13)",
+        "date": "2026-08-13",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "add Hill Climb Racing patches (ad removal, rewarded video, free store)"
+            "text": "add Into the Dead 2.9.3 patches (free IAP, instant rewards, remove ads incl. app open)"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "consolidate Into the Dead patches into Ad Removal + Billing Bypass"
           }
         ]
       },
@@ -1829,6 +1860,13 @@
           "patchCount": 3,
           "iconUrl": "",
           "iconColor": "#2E7D32"
+        },
+        {
+          "name": "Into the Dead",
+          "packageName": "com.sidheinteractive.sif.DR",
+          "patchCount": 2,
+          "iconUrl": "",
+          "iconColor": "#8B0000"
         },
         {
           "name": "Jetpack Joyride",
@@ -4838,39 +4876,47 @@
       "webUrl": "https://github.com/jasonwu1994/Gboard-patches",
       "addUrl": "https://morphe.software/add-source?github=jasonwu1994/Gboard-patches",
       "avatarUrl": "https://github.com/jasonwu1994.png?size=96",
-      "patchCount": 25,
+      "patchCount": 30,
       "appCount": 1,
       "createdAt": 1784836037428,
       "updatedAt": 1784836037428,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "2.8.0 (2026-08-12)",
-        "date": "2026-08-12",
+        "title": "2.9.0 (2026-08-13)",
+        "date": "2026-08-13",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "**Gboard:** add the Incognito Mode Toggle patch, which adds an Incognito toggle to the Access Point toolbar and lets you configure clipboard and voice typing availability while Incognito mode is active."
+            "text": "**Gboard:** add the Change emoji size patch, which enables Gboard's emoji size setting."
           },
           {
             "category": "\u2728 New Features",
-            "text": "**Gboard:** refactor the Patches settings page with clearer feature categories and improved navigation and scroll-position handling."
+            "text": "**Gboard:** add the Enable cursor trackpad mode patch, which enables long-press-spacebar trackpad and cursor lock modes."
           },
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**Gboard:** disable the custom top row by default to reduce confusion after users repeatedly mistook the feature for a bug and reported it on Reddit."
+            "category": "\u2728 New Features",
+            "text": "**Gboard:** add the Access Points menu style patch, which lets you switch between the new and legacy Access Points menu styles."
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "**Gboard:** add the Enable split keyboard patch, with Access Point controls and an optional Auto split setting."
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "**Gboard:** add the Enable accessibility layout patch, which exposes Gboard's accessibility layout setting."
           },
           {
             "category": "\u2728 \u65b0\u529f\u80fd",
-            "text": "**Gboard:** \u65b0\u589e Incognito Mode Toggle Patch\uff0c\u5728 Access Point \u5de5\u5177\u5217\u52a0\u5165\u7121\u75d5\u6a21\u5f0f\u5207\u63db\u6309\u9215\uff0c\u4e26\u53ef\u8a2d\u5b9a\u7121\u75d5\u6a21\u5f0f\u555f\u7528\u6642\u662f\u5426\u5141\u8a31\u4f7f\u7528\u526a\u8cbc\u7c3f\u8207\u8a9e\u97f3\u8f38\u5165\u3002"
+            "text": "**Gboard:** \u65b0\u589e Change emoji size Patch\uff0c\u555f\u7528 Gboard \u7684\u8868\u60c5\u7b26\u865f\u5927\u5c0f\u8a2d\u5b9a\u3002"
           },
           {
             "category": "\u2728 \u65b0\u529f\u80fd",
-            "text": "**Gboard:** \u91cd\u69cb Patches \u8a2d\u5b9a\u9801\uff0c\u91cd\u65b0\u6574\u7406\u529f\u80fd\u5206\u985e\uff0c\u4e26\u6539\u5584\u9801\u9762\u5c0e\u89bd\u8207\u6372\u52d5\u4f4d\u7f6e\u4fdd\u7559\u9ad4\u9a57\u3002"
+            "text": "**Gboard:** \u65b0\u589e Enable cursor trackpad mode Patch\uff0c\u555f\u7528\u9577\u6309\u7a7a\u767d\u9375\u89f8\u63a7\u677f\u8207\u6e38\u6a19\u9396\u5b9a\u6a21\u5f0f\u3002"
           },
           {
-            "category": "\ud83d\udc1b \u4fee\u5fa9",
-            "text": "**Gboard:** \u56e0\u591a\u4f4d\u4f7f\u7528\u8005\u8aa4\u5c07\u81ea\u8a02\u9802\u90e8\u5217\u8996\u70ba Bug \u4e26\u5728 Reddit \u56de\u5831\uff0c\u73fe\u5c07\u6b64\u529f\u80fd\u6539\u70ba\u9810\u8a2d\u505c\u7528\uff0c\u4ee5\u6e1b\u5c11\u4f7f\u7528\u4e0a\u7684\u56f0\u60d1\u3002"
+            "category": "\u2728 \u65b0\u529f\u80fd",
+            "text": "**Gboard:** \u65b0\u589e Access Points menu style Patch\uff0c\u53ef\u5207\u63db\u65b0\u7248\u8207\u820a\u7248 Access Points \u9078\u55ae\u6a23\u5f0f\u3002"
           }
         ]
       },
@@ -4878,7 +4924,7 @@
         {
           "name": "com.google.android.inputmethod.latin",
           "packageName": "com.google.android.inputmethod.latin",
-          "patchCount": 25,
+          "patchCount": 30,
           "iconUrl": "https://play-lh.googleusercontent.com/J4vZ82VsZjnsRsI6ckQFXlO36_52QJerqG5-HfLgHffS34I4EfoAFfNdbf6s4wBAsUEf8DOJVEDEHh5tzWbrnA",
           "iconColor": ""
         }
@@ -5050,7 +5096,7 @@
       "webUrl": "https://github.com/JonnyVR1/morph-patches",
       "addUrl": "https://morphe.software/add-source?github=JonnyVR1/morph-patches",
       "avatarUrl": "https://github.com/JonnyVR1.png?size=96",
-      "patchCount": 10,
+      "patchCount": 13,
       "appCount": 1,
       "createdAt": 1785983278208,
       "updatedAt": 1785983278208,
@@ -5065,7 +5111,7 @@
         {
           "name": "Tantan",
           "packageName": "com.tantantribe.tribe",
-          "patchCount": 10,
+          "patchCount": 13,
           "iconUrl": "",
           "iconColor": ""
         }
@@ -5890,19 +5936,23 @@
       "webUrl": "https://github.com/liongalahad/nuviotv-morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=liongalahad/nuviotv-morphe-patches",
       "avatarUrl": "https://github.com/liongalahad.png?size=96",
-      "patchCount": 7,
+      "patchCount": 9,
       "appCount": 1,
       "createdAt": 1785983280124,
       "updatedAt": 1785983280124,
       "createdDate": "2026-08-06",
       "updatedDate": "2026-08-06",
       "latestChanges": {
-        "title": "1.0.0-dev.18 (2026-08-10)",
-        "date": "2026-08-10",
+        "title": "1.0.0-dev.20 (2026-08-13)",
+        "date": "2026-08-13",
         "items": [
           {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "resolve subtitle workers across architectures"
+          },
+          {
             "category": "\u2728 New Features",
-            "text": "update patch suite for NuvioTV 0.8.3-beta"
+            "text": "restore source picker selection"
           }
         ]
       },
@@ -5910,7 +5960,7 @@
         {
           "name": "NuvioTV",
           "packageName": "com.nuvio.tv",
-          "patchCount": 7,
+          "patchCount": 9,
           "iconUrl": "",
           "iconColor": "#111827"
         }
@@ -5926,19 +5976,23 @@
       "webUrl": "https://github.com/liongalahad/nuviotv-patches",
       "addUrl": "https://morphe.software/add-source?github=liongalahad/nuviotv-patches",
       "avatarUrl": "https://github.com/liongalahad.png?size=96",
-      "patchCount": 7,
+      "patchCount": 9,
       "appCount": 1,
       "createdAt": 1785897756603,
       "updatedAt": 1785897756603,
       "createdDate": "2026-08-05",
       "updatedDate": "2026-08-05",
       "latestChanges": {
-        "title": "1.0.0-dev.18 (2026-08-10)",
-        "date": "2026-08-10",
+        "title": "1.0.0-dev.20 (2026-08-13)",
+        "date": "2026-08-13",
         "items": [
           {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "resolve subtitle workers across architectures"
+          },
+          {
             "category": "\u2728 New Features",
-            "text": "update patch suite for NuvioTV 0.8.3-beta"
+            "text": "restore source picker selection"
           }
         ]
       },
@@ -5946,7 +6000,7 @@
         {
           "name": "NuvioTV",
           "packageName": "com.nuvio.tv",
-          "patchCount": 7,
+          "patchCount": 9,
           "iconUrl": "",
           "iconColor": "#111827"
         }
@@ -9372,44 +9426,6 @@
       ]
     },
     {
-      "name": "google-clock-morphe-patches",
-      "repo": "tadikwa/google-clock-morphe-patches",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/tadikwa/google-clock-morphe-patches/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/tadikwa/google-clock-morphe-patches/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/tadikwa/google-clock-morphe-patches/main/CHANGELOG.md",
-      "webUrl": "https://github.com/tadikwa/google-clock-morphe-patches",
-      "addUrl": "https://morphe.software/add-source?github=tadikwa/google-clock-morphe-patches",
-      "avatarUrl": "https://github.com/tadikwa.png?size=96",
-      "patchCount": 6,
-      "appCount": 2,
-      "createdAt": 1786412610180,
-      "updatedAt": 1786412610180,
-      "createdDate": "2026-08-11",
-      "updatedDate": "2026-08-11",
-      "latestChanges": {
-        "title": "",
-        "date": "",
-        "items": []
-      },
-      "apps": [
-        {
-          "name": "Clock",
-          "packageName": "com.google.android.deskclock",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": ""
-        },
-        {
-          "name": "YT Music Morphe",
-          "packageName": "app.morphe.android.apps.youtube.music",
-          "patchCount": 5,
-          "iconUrl": "",
-          "iconColor": ""
-        }
-      ]
-    },
-    {
       "name": "abeja-morphe-patches",
       "repo": "TheRealCrazyfuy/abeja-morphe-patches",
       "host": "github.com",
@@ -10069,12 +10085,12 @@
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.11.12 (2026-08-11)",
-        "date": "2026-08-11",
+        "title": "1.11.13 (2026-08-13)",
+        "date": "2026-08-13",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**ozon:** support version 19.30.0"
+            "text": "**wildberries:** support version 7.7.5003-rustore"
           }
         ]
       },
@@ -10853,12 +10869,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -11026,12 +11058,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -11084,12 +11132,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -11769,12 +11833,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -13020,12 +13100,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -13154,8 +13250,8 @@
       ],
       "patches": [
         "Disable PairIP DRM",
-        "Unlock Premium",
-        "Unlock premium"
+        "Unlock premium",
+        "Unlock Premium"
       ],
       "patchDetails": [
         {
@@ -13163,12 +13259,12 @@
           "description": "Disables PairIP signature verification and Google Play LVL license check. Required for the app to launch after re-signing."
         },
         {
-          "name": "Unlock Premium",
-          "description": "Unlocks all premium features by forcing the premium state to true in the purchase manager."
-        },
-        {
           "name": "Unlock premium",
           "description": "Unlocks all AT4K premium features by forcing the premium status to true."
+        },
+        {
+          "name": "Unlock Premium",
+          "description": "Unlocks all premium features by forcing the premium state to true in the purchase manager."
         }
       ],
       "versions": [
@@ -14106,12 +14202,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.11.12 (2026-08-11)",
-            "date": "2026-08-11",
+            "title": "1.11.13 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**ozon:** support version 19.30.0"
+                "text": "**wildberries:** support version 7.7.5003-rustore"
               }
             ]
           },
@@ -15399,12 +15495,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -15516,12 +15628,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -16180,12 +16308,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -18633,12 +18777,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -19108,12 +19268,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -19902,59 +20078,6 @@
       "iconUrl": "https://play-lh.googleusercontent.com/VK0AYuzpuiYdeqrDPE0o9PoYCh-pP44Q6rj3pLxsEWwWXCQ26oc6ceFfNESC-VPvYwknfhVGs6l5EtgqkdDuikA"
     },
     {
-      "packageName": "com.google.android.deskclock",
-      "name": "Clock",
-      "repos": [
-        "tadikwa/google-clock-morphe-patches"
-      ],
-      "sources": [
-        {
-          "repo": "tadikwa/google-clock-morphe-patches",
-          "host": "github.com",
-          "webUrl": "https://github.com/tadikwa/google-clock-morphe-patches",
-          "addUrl": "https://morphe.software/add-source?github=tadikwa/google-clock-morphe-patches",
-          "source": "https://raw.githubusercontent.com/tadikwa/google-clock-morphe-patches/main/patches-bundle.json",
-          "changelogUrl": "https://raw.githubusercontent.com/tadikwa/google-clock-morphe-patches/main/CHANGELOG.md",
-          "avatarUrl": "https://github.com/tadikwa.png?size=96",
-          "latestChanges": {
-            "title": "",
-            "date": "",
-            "items": []
-          },
-          "builder": {
-            "buildId": "com-google-android-deskclock-tadikwa-google-clock-morphe-patches",
-            "releaseTag": "app-com-google-android-deskclock-tadikwa-google-clock-morphe-patches",
-            "assetName": "clock-tadikwa-google-clock-morphe-patches.apk",
-            "repo": "rushiforai/morphe-builder",
-            "webUrl": "https://github.com/rushiforai/morphe-builder"
-          },
-          "patches": [
-            {
-              "name": "Use Morphe YouTube Music for alarms",
-              "description": "Redirects Google Clock to the Morphe YouTube Music package."
-            }
-          ],
-          "versions": [
-            "9.0 (943154005)"
-          ]
-        }
-      ],
-      "patches": [
-        "Use Morphe YouTube Music for alarms"
-      ],
-      "patchDetails": [
-        {
-          "name": "Use Morphe YouTube Music for alarms",
-          "description": "Redirects Google Clock to the Morphe YouTube Music package."
-        }
-      ],
-      "versions": [
-        "9.0 (943154005)"
-      ],
-      "iconColor": "",
-      "iconUrl": ""
-    },
-    {
       "packageName": "com.clue.android",
       "name": "Clue Period & Cycle Tracker",
       "repos": [
@@ -20122,12 +20245,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -22545,32 +22684,40 @@
           "changelogUrl": "https://raw.githubusercontent.com/jasonwu1994/Gboard-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/jasonwu1994.png?size=96",
           "latestChanges": {
-            "title": "2.8.0 (2026-08-12)",
-            "date": "2026-08-12",
+            "title": "2.9.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**Gboard:** add the Incognito Mode Toggle patch, which adds an Incognito toggle to the Access Point toolbar and lets you configure clipboard and voice typing availability while Incognito mode is active."
+                "text": "**Gboard:** add the Change emoji size patch, which enables Gboard's emoji size setting."
               },
               {
                 "category": "\u2728 New Features",
-                "text": "**Gboard:** refactor the Patches settings page with clearer feature categories and improved navigation and scroll-position handling."
+                "text": "**Gboard:** add the Enable cursor trackpad mode patch, which enables long-press-spacebar trackpad and cursor lock modes."
               },
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Gboard:** disable the custom top row by default to reduce confusion after users repeatedly mistook the feature for a bug and reported it on Reddit."
+                "category": "\u2728 New Features",
+                "text": "**Gboard:** add the Access Points menu style patch, which lets you switch between the new and legacy Access Points menu styles."
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**Gboard:** add the Enable split keyboard patch, with Access Point controls and an optional Auto split setting."
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**Gboard:** add the Enable accessibility layout patch, which exposes Gboard's accessibility layout setting."
               },
               {
                 "category": "\u2728 \u65b0\u529f\u80fd",
-                "text": "**Gboard:** \u65b0\u589e Incognito Mode Toggle Patch\uff0c\u5728 Access Point \u5de5\u5177\u5217\u52a0\u5165\u7121\u75d5\u6a21\u5f0f\u5207\u63db\u6309\u9215\uff0c\u4e26\u53ef\u8a2d\u5b9a\u7121\u75d5\u6a21\u5f0f\u555f\u7528\u6642\u662f\u5426\u5141\u8a31\u4f7f\u7528\u526a\u8cbc\u7c3f\u8207\u8a9e\u97f3\u8f38\u5165\u3002"
+                "text": "**Gboard:** \u65b0\u589e Change emoji size Patch\uff0c\u555f\u7528 Gboard \u7684\u8868\u60c5\u7b26\u865f\u5927\u5c0f\u8a2d\u5b9a\u3002"
               },
               {
                 "category": "\u2728 \u65b0\u529f\u80fd",
-                "text": "**Gboard:** \u91cd\u69cb Patches \u8a2d\u5b9a\u9801\uff0c\u91cd\u65b0\u6574\u7406\u529f\u80fd\u5206\u985e\uff0c\u4e26\u6539\u5584\u9801\u9762\u5c0e\u89bd\u8207\u6372\u52d5\u4f4d\u7f6e\u4fdd\u7559\u9ad4\u9a57\u3002"
+                "text": "**Gboard:** \u65b0\u589e Enable cursor trackpad mode Patch\uff0c\u555f\u7528\u9577\u6309\u7a7a\u767d\u9375\u89f8\u63a7\u677f\u8207\u6e38\u6a19\u9396\u5b9a\u6a21\u5f0f\u3002"
               },
               {
-                "category": "\ud83d\udc1b \u4fee\u5fa9",
-                "text": "**Gboard:** \u56e0\u591a\u4f4d\u4f7f\u7528\u8005\u8aa4\u5c07\u81ea\u8a02\u9802\u90e8\u5217\u8996\u70ba Bug \u4e26\u5728 Reddit \u56de\u5831\uff0c\u73fe\u5c07\u6b64\u529f\u80fd\u6539\u70ba\u9810\u8a2d\u505c\u7528\uff0c\u4ee5\u6e1b\u5c11\u4f7f\u7528\u4e0a\u7684\u56f0\u60d1\u3002"
+                "category": "\u2728 \u65b0\u529f\u80fd",
+                "text": "**Gboard:** \u65b0\u589e Access Points menu style Patch\uff0c\u53ef\u5207\u63db\u65b0\u7248\u8207\u820a\u7248 Access Points \u9078\u55ae\u6a23\u5f0f\u3002"
               }
             ]
           },
@@ -22583,6 +22730,10 @@
           },
           "patches": [
             {
+              "name": "Access Points menu style",
+              "description": "\u5207\u63db\u65b0\u7248\u6216\u820a\u7248 Access Points \u9078\u55ae\u6a23\u5f0f\nSwitch between the new and legacy Access Points menu styles."
+            },
+            {
               "name": "Add Gboard Signature Bypass",
               "description": "\u6514\u622a Gboard \u7684\u7c3d\u7ae0\u767d\u540d\u55ae\u6aa2\u67e5\u4e26\u5f37\u5236\u901a\u904e\nBypass Gboard signature whitelist checks and force them to pass."
             },
@@ -22593,6 +22744,10 @@
             {
               "name": "AI Writing Tools",
               "description": "\u555f\u7528 AI \u64b0\u5beb\u5de5\u5177\uff0c\u652f\u63f4\u6240\u6709\u8a9e\u8a00\nEnable AI writing tools with support for all languages."
+            },
+            {
+              "name": "Change emoji size",
+              "description": "\u8b8a\u66f4\u8868\u60c5\u7b26\u865f\u5927\u5c0f\nChange emoji size."
             },
             {
               "name": "Clipboard Custom Character Limit",
@@ -22615,12 +22770,24 @@
               "description": "\u81ea\u8a02 Gboard\u300cEmojis, stickers & GIFs\u300d\u5e95\u90e8 tabs \u7684\u6392\u5e8f\uff0c\u652f\u63f4\u62d6\u66f3\u8abf\u6574\nCustomize the bottom tab order in Gboard's Emojis, stickers & GIFs panel with drag-and-drop reordering."
             },
             {
+              "name": "Enable accessibility layout",
+              "description": "\u555f\u7528\u7121\u969c\u7919\u9375\u76e4\u914d\u7f6e\nEnable accessibility layout."
+            },
+            {
+              "name": "Enable cursor trackpad mode",
+              "description": "\u9577\u6309\u7a7a\u767d\u9375\u958b\u555f\u6e38\u6a19\u89f8\u63a7\u677f\u8207\u9396\u5b9a\u6a21\u5f0f\nLong-press the space bar to use cursor trackpad and lock modes."
+            },
+            {
               "name": "Enable Inline Autofill Suggestions",
               "description": "\u555f\u7528\u5167\u5d4c\u81ea\u52d5\u586b\u5165\u5efa\u8b70\nEnable Inline Autofill Suggestions"
             },
             {
               "name": "Enable OCR / Scan Text",
               "description": "\u555f\u7528 OCR / \u6383\u63cf\u6587\u5b57\u529f\u80fd\uff0c\u652f\u63f4 \u62c9\u4e01\u3001\u4e2d\u6587\u3001\u65e5\u6587\u3001\u97d3\u6587 \u8207 \u5929\u57ce\u6587 \u8fa8\u8b58\u5f8c\u7aef\nEnable the OCR / Scan Text feature with Latin, Chinese, Japanese, Korean, and Devanagari recognition backends."
+            },
+            {
+              "name": "Enable split keyboard",
+              "description": "\u555f\u7528\u5206\u96e2\u5f0f\u9375\u76e4\nEnable the split keyboard layout."
             },
             {
               "name": "English QWERTY Up-Flick Uppercase",
@@ -22778,12 +22945,14 @@
         }
       ],
       "patches": [
+        "Access Points menu style",
         "Add Gboard Signature Bypass",
         "Advanced Voice Typing",
         "AI Writing Tools",
         "Always incognito mode",
         "Always-incognito mode",
         "Block tracking and analytics",
+        "Change emoji size",
         "Change package name",
         "Clipboard Custom Character Limit",
         "Clipboard Enhancements",
@@ -22791,11 +22960,14 @@
         "Developer options",
         "Emojis, stickers & GIFs Tab Order",
         "Enable access points menu redesign",
+        "Enable accessibility layout",
         "Enable clipboard in incognito",
+        "Enable cursor trackpad mode",
         "Enable Inline Autofill Suggestions",
         "Enable key shape selection",
         "Enable OCR / Scan Text",
         "Enable OCR feature",
+        "Enable split keyboard",
         "Enable Undo feature",
         "Enable voice typing in incognito",
         "English QWERTY Up-Flick Uppercase",
@@ -22816,6 +22988,10 @@
         "Zhuyin Slide Input"
       ],
       "patchDetails": [
+        {
+          "name": "Access Points menu style",
+          "description": "\u5207\u63db\u65b0\u7248\u6216\u820a\u7248 Access Points \u9078\u55ae\u6a23\u5f0f\nSwitch between the new and legacy Access Points menu styles."
+        },
         {
           "name": "Add Gboard Signature Bypass",
           "description": "\u6514\u622a Gboard \u7684\u7c3d\u7ae0\u767d\u540d\u55ae\u6aa2\u67e5\u4e26\u5f37\u5236\u901a\u904e\nBypass Gboard signature whitelist checks and force them to pass."
@@ -22839,6 +23015,10 @@
         {
           "name": "Block tracking and analytics",
           "description": "Redirects Gboard's known tracking, analytics, and ad host literals to 0.0.0.0 using a built-in blocklist. Note: telemetry sent through Google Play Services is not affected; use the always-incognito patch for that."
+        },
+        {
+          "name": "Change emoji size",
+          "description": "\u8b8a\u66f4\u8868\u60c5\u7b26\u865f\u5927\u5c0f\nChange emoji size."
         },
         {
           "name": "Change package name",
@@ -22869,8 +23049,16 @@
           "description": "Enables the redesign of the additional actions menu."
         },
         {
+          "name": "Enable accessibility layout",
+          "description": "\u555f\u7528\u7121\u969c\u7919\u9375\u76e4\u914d\u7f6e\nEnable accessibility layout."
+        },
+        {
           "name": "Enable clipboard in incognito",
           "description": "Enables clipboard support in incognito mode."
+        },
+        {
+          "name": "Enable cursor trackpad mode",
+          "description": "\u9577\u6309\u7a7a\u767d\u9375\u958b\u555f\u6e38\u6a19\u89f8\u63a7\u677f\u8207\u9396\u5b9a\u6a21\u5f0f\nLong-press the space bar to use cursor trackpad and lock modes."
         },
         {
           "name": "Enable Inline Autofill Suggestions",
@@ -22887,6 +23075,10 @@
         {
           "name": "Enable OCR feature",
           "description": "Enables the Scan Text feature to extract text from images and insert them into text fields."
+        },
+        {
+          "name": "Enable split keyboard",
+          "description": "\u555f\u7528\u5206\u96e2\u5f0f\u9375\u76e4\nEnable the split keyboard layout."
         },
         {
           "name": "Enable Undo feature",
@@ -27397,12 +27589,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -28583,6 +28791,80 @@
       "iconUrl": "https://play-lh.googleusercontent.com/D7ZeEeEbTOHre_sCohLA-jZ0anMOstAaSmS9Q1-tSRuclV29i5vg4tQfr_7RP5crq3e3bcZCt3wTthLGq-C35A"
     },
     {
+      "packageName": "net.uniquegem.directchat",
+      "name": "DirectChat",
+      "repos": [
+        "arandomhooman/hoomans-morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "arandomhooman/hoomans-morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/arandomhooman/hoomans-morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=arandomhooman/hoomans-morphe-patches",
+          "source": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/arandomhooman.png?size=96",
+          "latestChanges": {
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
+            "items": [
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "net-uniquegem-directchat-arandomhooman-hoomans-morphe-patches",
+            "releaseTag": "app-net-uniquegem-directchat-arandomhooman-hoomans-morphe-patches",
+            "assetName": "directchat-arandomhooman-hoomans-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Unlock Premium",
+              "description": "Unlocks DirectChat's premium without the in-app purchase, so the chat-head styles and themes, extra bubble options and the other paid settings all open, and the ad inside the message bubble is hidden too. Premium is a local flag the app seeds from its own purchase, so the unlock holds across restarts on a free account."
+            }
+          ],
+          "versions": [
+            "1.9.8"
+          ]
+        }
+      ],
+      "patches": [
+        "Unlock Premium"
+      ],
+      "patchDetails": [
+        {
+          "name": "Unlock Premium",
+          "description": "Unlocks DirectChat's premium without the in-app purchase, so the chat-head styles and themes, extra bubble options and the other paid settings all open, and the ad inside the message bubble is hidden too. Premium is a local flag the app seeds from its own purchase, so the unlock holds across restarts on a free account."
+        }
+      ],
+      "versions": [
+        "1.9.8"
+      ],
+      "iconColor": "#2196F3",
+      "iconUrl": ""
+    },
+    {
       "packageName": "com.cv.docscanner",
       "name": "Document Scanner",
       "repos": [
@@ -28814,12 +29096,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.7.0 (2026-08-09)",
-            "date": "2026-08-09",
+            "title": "1.8.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Hill Climb Racing patches (ad removal, rewarded video, free store)"
+                "text": "add Into the Dead 2.9.3 patches (free IAP, instant rewards, remove ads incl. app open)"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "consolidate Into the Dead patches into Ad Removal + Billing Bypass"
               }
             ]
           },
@@ -29046,12 +29332,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.7.0 (2026-08-09)",
-            "date": "2026-08-09",
+            "title": "1.8.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Hill Climb Racing patches (ad removal, rewarded video, free store)"
+                "text": "add Into the Dead 2.9.3 patches (free IAP, instant rewards, remove ads incl. app open)"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "consolidate Into the Dead patches into Ad Removal + Billing Bypass"
               }
             ]
           },
@@ -29844,9 +30134,49 @@
       "packageName": "com.estrongs.android.pop",
       "name": "ES File Explorer",
       "repos": [
+        "BlazeFTL/FTL-Patches",
         "rushiranpise/morphe-patches"
       ],
       "sources": [
+        {
+          "repo": "BlazeFTL/FTL-Patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/BlazeFTL/FTL-Patches",
+          "addUrl": "https://morphe.software/add-source?github=BlazeFTL/FTL-Patches",
+          "source": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
+          "latestChanges": {
+            "title": "1.30.0 (2026-08-13)",
+            "date": "2026-08-13",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "Keep Only Mx Player Pro"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "up"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-estrongs-android-pop-blazeftl-ftl-patches",
+            "releaseTag": "app-com-estrongs-android-pop-blazeftl-ftl-patches",
+            "assetName": "es-file-explorer-blazeftl-ftl-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "ES File Explorer Cleanup",
+              "description": "Removes selected ES File Explorer home tiles, menu actions, navigation header, media handler, and web-search entry."
+            }
+          ],
+          "versions": [
+            "4.4.3.7"
+          ]
+        },
         {
           "repo": "rushiranpise/morphe-patches",
           "host": "github.com",
@@ -29897,12 +30227,17 @@
       ],
       "patches": [
         "Disable Tracking",
+        "ES File Explorer Cleanup",
         "Unlock VIP Lifetime"
       ],
       "patchDetails": [
         {
           "name": "Disable Tracking",
           "description": "Disables analytics and telemetry in ES File Explorer"
+        },
+        {
+          "name": "ES File Explorer Cleanup",
+          "description": "Removes selected ES File Explorer home tiles, menu actions, navigation header, media handler, and web-search entry."
         },
         {
           "name": "Unlock VIP Lifetime",
@@ -29931,12 +30266,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -30668,12 +31019,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -31141,12 +31508,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -31435,12 +31818,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -31873,12 +32272,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.7.0 (2026-08-09)",
-            "date": "2026-08-09",
+            "title": "1.8.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Hill Climb Racing patches (ad removal, rewarded video, free store)"
+                "text": "add Into the Dead 2.9.3 patches (free IAP, instant rewards, remove ads incl. app open)"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "consolidate Into the Dead patches into Ad Removal + Billing Bypass"
               }
             ]
           },
@@ -33293,12 +33696,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -33557,12 +33976,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.7.0 (2026-08-09)",
-            "date": "2026-08-09",
+            "title": "1.8.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Hill Climb Racing patches (ad removal, rewarded video, free store)"
+                "text": "add Into the Dead 2.9.3 patches (free IAP, instant rewards, remove ads incl. app open)"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "consolidate Into the Dead patches into Ad Removal + Billing Bypass"
               }
             ]
           },
@@ -34098,12 +34521,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -35201,12 +35640,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -36106,6 +36561,77 @@
       "iconUrl": "https://play-lh.googleusercontent.com/gZegND2p4cCle70hA9KVvESOb8-f0_MILCQ11kkr8sTN8IQX1l3AxjqwbhTJWclQlIRFH4c5cgan9hM9rkV83A"
     },
     {
+      "packageName": "com.sidheinteractive.sif.DR",
+      "name": "Into the Dead",
+      "repos": [
+        "byehi98/okish-morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "byehi98/okish-morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/byehi98/okish-morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=byehi98/okish-morphe-patches",
+          "source": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/byehi98.png?size=96",
+          "latestChanges": {
+            "title": "1.8.0 (2026-08-13)",
+            "date": "2026-08-13",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "add Into the Dead 2.9.3 patches (free IAP, instant rewards, remove ads incl. app open)"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "consolidate Into the Dead patches into Ad Removal + Billing Bypass"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-sidheinteractive-sif-dr-byehi98-okish-morphe-patches",
+            "releaseTag": "app-com-sidheinteractive-sif-dr-byehi98-okish-morphe-patches",
+            "assetName": "into-the-dead-byehi98-okish-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Into the Dead Ad Removal",
+              "description": "Removes all ads and grants rewarded-video rewards instantly: rewarded videos (legacy IronSource and LevelPlay), interstitials, launch, banner and AdMob App Open ads are all eliminated."
+            },
+            {
+              "name": "Into the Dead Billing Bypass",
+              "description": "Unlocks all in-app purchases for free and bypasses SHA1withRSA receipt verification: every store item is granted instantly without launching the Google Play payment dialog, and any fabricated receipt is accepted."
+            }
+          ],
+          "versions": [
+            "2.9.3"
+          ]
+        }
+      ],
+      "patches": [
+        "Into the Dead Ad Removal",
+        "Into the Dead Billing Bypass"
+      ],
+      "patchDetails": [
+        {
+          "name": "Into the Dead Ad Removal",
+          "description": "Removes all ads and grants rewarded-video rewards instantly: rewarded videos (legacy IronSource and LevelPlay), interstitials, launch, banner and AdMob App Open ads are all eliminated."
+        },
+        {
+          "name": "Into the Dead Billing Bypass",
+          "description": "Unlocks all in-app purchases for free and bypasses SHA1withRSA receipt verification: every store item is granted instantly without launching the Google Play payment dialog, and any fabricated receipt is accepted."
+        }
+      ],
+      "versions": [
+        "2.9.3"
+      ],
+      "iconColor": "#8B0000",
+      "iconUrl": ""
+    },
+    {
       "packageName": "app.simple.inure.play",
       "name": "Inure App Manager",
       "repos": [
@@ -36883,12 +37409,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.7.0 (2026-08-09)",
-            "date": "2026-08-09",
+            "title": "1.8.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Hill Climb Racing patches (ad removal, rewarded video, free store)"
+                "text": "add Into the Dead 2.9.3 patches (free IAP, instant rewards, remove ads incl. app open)"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "consolidate Into the Dead patches into Ad Removal + Billing Bypass"
               }
             ]
           },
@@ -39627,12 +40157,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -42074,12 +42620,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -42480,12 +43042,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -42539,12 +43117,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -42566,7 +43160,7 @@
             },
             {
               "name": "Use your own Maps API key [REQUIRED]",
-              "description": "Required for the map to load. Patching breaks Moovit's built-in Google Maps key, so you have to supply your own from a free Google Cloud project. In this patch's option, create a project, enable Maps SDK for Android, turn on billing, make an API key, and paste it in (leaving it unrestricted is easiest). Remove ads and Unlock Moovit+ both pull this in, so the map keeps working with either."
+              "description": "Required for maps and exact-address search. Patching breaks Moovit's built-in Google Maps Platform key, so supply your own from a Google Cloud project. Enable Maps SDK for Android, Places API (New), and Geocoding API, turn on billing, create an API key, and paste it in (leaving it unrestricted is easiest). Remove ads and Unlock Moovit+ both pull this in."
             }
           ],
           "versions": [
@@ -42633,7 +43227,7 @@
         },
         {
           "name": "Use your own Maps API key [REQUIRED]",
-          "description": "Required for the map to load. Patching breaks Moovit's built-in Google Maps key, so you have to supply your own from a free Google Cloud project. In this patch's option, create a project, enable Maps SDK for Android, turn on billing, make an API key, and paste it in (leaving it unrestricted is easiest). Remove ads and Unlock Moovit+ both pull this in, so the map keeps working with either."
+          "description": "Required for maps and exact-address search. Patching breaks Moovit's built-in Google Maps Platform key, so supply your own from a Google Cloud project. Enable Maps SDK for Android, Places API (New), and Geocoding API, turn on billing, create an API key, and paste it in (leaving it unrestricted is easiest). Remove ads and Unlock Moovit+ both pull this in."
         }
       ],
       "versions": [
@@ -43202,87 +43796,6 @@
       "iconUrl": "https://play-lh.googleusercontent.com/k3r3bMRWlDUuKAx2MWdrvOQGDa6gsziPvOeHJ6bj3GrsLVrdYMArGTL9mtyDfqYl7EqghuMf0ZhIqtYPxwRE0Q"
     },
     {
-      "packageName": "com.mxtech.videoplayer.ad",
-      "name": "MX Player",
-      "repos": [
-        "BlazeFTL/FTL-Patches"
-      ],
-      "sources": [
-        {
-          "repo": "BlazeFTL/FTL-Patches",
-          "host": "github.com",
-          "webUrl": "https://github.com/BlazeFTL/FTL-Patches",
-          "addUrl": "https://morphe.software/add-source?github=BlazeFTL/FTL-Patches",
-          "source": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/patches-bundle.json",
-          "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
-          "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
-          "latestChanges": {
-            "title": "1.25.0 (2026-08-12)",
-            "date": "2026-08-12",
-            "items": [
-              {
-                "category": "\u2728 New Features",
-                "text": "add mx player hide file transfer, private video,video playlist"
-              }
-            ]
-          },
-          "builder": {
-            "buildId": "com-mxtech-videoplayer-ad-blazeftl-ftl-patches",
-            "releaseTag": "app-com-mxtech-videoplayer-ad-blazeftl-ftl-patches",
-            "assetName": "mx-player-blazeftl-ftl-patches.apk",
-            "repo": "rushiforai/morphe-builder",
-            "webUrl": "https://github.com/rushiforai/morphe-builder"
-          },
-          "patches": [
-            {
-              "name": "Hide File Transfer, Video Playlist, Private Folder tiles",
-              "description": "Removes the File Transfer, Video Playlist, and Private Folder tiles from the tools tile list."
-            },
-            {
-              "name": "Hide local tiles banner",
-              "description": "Collapses the local device tiles banner."
-            },
-            {
-              "name": "Hide Me tab promo items",
-              "description": "Collapses the WhatsApp, Legal, and Help entries on the Me tab."
-            },
-            {
-              "name": "Skip welcome screen",
-              "description": "Moves the launcher intent filters and app shortcuts from the welcome/splash activity to the main activity, so the app boots straight past the splash and update screen."
-            }
-          ],
-          "versions": []
-        }
-      ],
-      "patches": [
-        "Hide File Transfer, Video Playlist, Private Folder tiles",
-        "Hide local tiles banner",
-        "Hide Me tab promo items",
-        "Skip welcome screen"
-      ],
-      "patchDetails": [
-        {
-          "name": "Hide File Transfer, Video Playlist, Private Folder tiles",
-          "description": "Removes the File Transfer, Video Playlist, and Private Folder tiles from the tools tile list."
-        },
-        {
-          "name": "Hide local tiles banner",
-          "description": "Collapses the local device tiles banner."
-        },
-        {
-          "name": "Hide Me tab promo items",
-          "description": "Collapses the WhatsApp, Legal, and Help entries on the Me tab."
-        },
-        {
-          "name": "Skip welcome screen",
-          "description": "Moves the launcher intent filters and app shortcuts from the welcome/splash activity to the main activity, so the app boots straight past the splash and update screen."
-        }
-      ],
-      "versions": [],
-      "iconColor": "",
-      "iconUrl": ""
-    },
-    {
       "packageName": "com.mxtech.videoplayer.pro",
       "name": "MX Player Pro",
       "repos": [
@@ -43300,12 +43813,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
           "latestChanges": {
-            "title": "1.25.0 (2026-08-12)",
-            "date": "2026-08-12",
+            "title": "1.30.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add mx player hide file transfer, private video,video playlist"
+                "text": "Keep Only Mx Player Pro"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "up"
               }
             ]
           },
@@ -45298,12 +45815,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/liongalahad/nuviotv-morphe-patches/master/CHANGELOG.md",
           "avatarUrl": "https://github.com/liongalahad.png?size=96",
           "latestChanges": {
-            "title": "1.0.0-dev.18 (2026-08-10)",
-            "date": "2026-08-10",
+            "title": "1.0.0-dev.20 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve subtitle workers across architectures"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "update patch suite for NuvioTV 0.8.3-beta"
+                "text": "restore source picker selection"
               }
             ]
           },
@@ -45324,6 +45845,10 @@
               "description": "Returns Library focus to the previously selected Saved or Cloud mode."
             },
             {
+              "name": "Local Downloads",
+              "description": "Downloads selected direct movie and episode sources to local storage for exact local playback."
+            },
+            {
               "name": "Local Media",
               "description": "Adds Library > Storage playback, folder selection, and same-basename sidecar subtitles for local video files."
             },
@@ -45342,10 +45867,14 @@
             {
               "name": "Remove SDH Annotations",
               "description": "Adds Settings \u2192 Morphe \u2192 Subtitles and removes SDH annotations from Media3 subtitles when enabled."
+            },
+            {
+              "name": "Restore Source Selection",
+              "description": "Returns the source picker to the source played before leaving the player."
             }
           ],
           "versions": [
-            "0.8.3-beta"
+            "0.8.4-beta"
           ]
         },
         {
@@ -45357,12 +45886,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/liongalahad/nuviotv-patches/master/CHANGELOG.md",
           "avatarUrl": "https://github.com/liongalahad.png?size=96",
           "latestChanges": {
-            "title": "1.0.0-dev.18 (2026-08-10)",
-            "date": "2026-08-10",
+            "title": "1.0.0-dev.20 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve subtitle workers across architectures"
+              },
+              {
                 "category": "\u2728 New Features",
-                "text": "update patch suite for NuvioTV 0.8.3-beta"
+                "text": "restore source picker selection"
               }
             ]
           },
@@ -45383,6 +45916,10 @@
               "description": "Returns Library focus to the previously selected Saved or Cloud mode."
             },
             {
+              "name": "Local Downloads",
+              "description": "Downloads selected direct movie and episode sources to local storage for exact local playback."
+            },
+            {
               "name": "Local Media",
               "description": "Adds Library > Storage playback, folder selection, and same-basename sidecar subtitles for local video files."
             },
@@ -45401,21 +45938,27 @@
             {
               "name": "Remove SDH Annotations",
               "description": "Adds Settings \u2192 Morphe \u2192 Subtitles and removes SDH annotations from Media3 subtitles when enabled."
+            },
+            {
+              "name": "Restore Source Selection",
+              "description": "Returns the source picker to the source played before leaving the player."
             }
           ],
           "versions": [
-            "0.8.3-beta"
+            "0.8.4-beta"
           ]
         }
       ],
       "patches": [
         "Allow Importing Subs from Local Storage",
         "Library Mode Focus Fix",
+        "Local Downloads",
         "Local Media",
         "Mark SDH Subtitles",
         "Random Episode",
         "Rating Visibility",
-        "Remove SDH Annotations"
+        "Remove SDH Annotations",
+        "Restore Source Selection"
       ],
       "patchDetails": [
         {
@@ -45425,6 +45968,10 @@
         {
           "name": "Library Mode Focus Fix",
           "description": "Returns Library focus to the previously selected Saved or Cloud mode."
+        },
+        {
+          "name": "Local Downloads",
+          "description": "Downloads selected direct movie and episode sources to local storage for exact local playback."
         },
         {
           "name": "Local Media",
@@ -45445,10 +45992,14 @@
         {
           "name": "Remove SDH Annotations",
           "description": "Adds Settings \u2192 Morphe \u2192 Subtitles and removes SDH annotations from Media3 subtitles when enabled."
+        },
+        {
+          "name": "Restore Source Selection",
+          "description": "Returns the source picker to the source played before leaving the player."
         }
       ],
       "versions": [
-        "0.8.3-beta"
+        "0.8.4-beta"
       ],
       "iconColor": "#111827",
       "iconUrl": ""
@@ -46613,12 +47164,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.11.12 (2026-08-11)",
-            "date": "2026-08-11",
+            "title": "1.11.13 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**ozon:** support version 19.30.0"
+                "text": "**wildberries:** support version 7.7.5003-rustore"
               }
             ]
           },
@@ -50739,12 +51290,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -50890,12 +51457,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -51035,8 +51618,8 @@
       ],
       "patches": [
         "Disable tracking",
-        "Unlock Premium",
-        "Unlock premium"
+        "Unlock premium",
+        "Unlock Premium"
       ],
       "patchDetails": [
         {
@@ -51044,12 +51627,12 @@
           "description": "Disables analytics and crash reporting."
         },
         {
-          "name": "Unlock Premium",
-          "description": "Unlocks Projectivy Launcher Premium"
-        },
-        {
           "name": "Unlock premium",
           "description": "Unlocks all premium features."
+        },
+        {
+          "name": "Unlock Premium",
+          "description": "Unlocks Projectivy Launcher Premium"
         }
       ],
       "versions": [
@@ -52224,12 +52807,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -53626,12 +54225,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -54127,12 +54742,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -55875,12 +56506,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -56046,12 +56693,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.7.0 (2026-08-09)",
-            "date": "2026-08-09",
+            "title": "1.8.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Hill Climb Racing patches (ad removal, rewarded video, free store)"
+                "text": "add Into the Dead 2.9.3 patches (free IAP, instant rewards, remove ads incl. app open)"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "consolidate Into the Dead patches into Ad Removal + Billing Bypass"
               }
             ]
           },
@@ -56144,12 +56795,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
           "latestChanges": {
-            "title": "1.25.0 (2026-08-12)",
-            "date": "2026-08-12",
+            "title": "1.30.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add mx player hide file transfer, private video,video playlist"
+                "text": "Keep Only Mx Player Pro"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "up"
               }
             ]
           },
@@ -56615,12 +57270,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -58210,12 +58881,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -59175,12 +59862,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.7.0 (2026-08-09)",
-            "date": "2026-08-09",
+            "title": "1.8.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Hill Climb Racing patches (ad removal, rewarded video, free store)"
+                "text": "add Into the Dead 2.9.3 patches (free IAP, instant rewards, remove ads incl. app open)"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "consolidate Into the Dead patches into Ad Removal + Billing Bypass"
               }
             ]
           },
@@ -59234,12 +59925,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -60270,12 +60977,16 @@
           },
           "patches": [
             {
+              "name": "AB Test Override",
+              "description": "Overrides A/B test values to enable beneficial features: instant match, quick message, batch icebreak, chat optimization, letter features, me tab revamp, push enhancements, verified chat, tiered membership, platinum membership, surprise box, anti-harass customization"
+            },
+            {
               "name": "Ad Removal",
               "description": "Removes all ad displays: navigation bar banner, native feed ads, live streaming banner ads, live video feed ads, live square ads, conversation Google ads, marriage guide card, four-select-one card, daily selection card, visitor list ads, likers ads, meet likers ads, meet visitor ads, splash screen ads, profile photo carousel ads, incentive video ads, fake splash view, video ad player, official advert, ad reward dialogs, live streaming ad user, treasure prize ads"
             },
             {
               "name": "Analytics Disable",
-              "description": "Disables all analytics, telemetry, and device fingerprinting for privacy"
+              "description": "Disables all analytics and telemetry for privacy"
             },
             {
               "name": "Dialog Cleanup",
@@ -60291,7 +61002,7 @@
             },
             {
               "name": "Messaging Enhancement",
-              "description": "Removes message limits, unlimited pin chat, voice/video calls, quick chat, typing indicator, free gifts, letter, greeting, ice breaker, read receipts, AI translation, message recall, group chat, live chat, message filter, chat partner config, ODiamond visitor config, prologue config, love buzz data, secret crush limit, boost limit, message tab revision, collapsible conversation, chat helper AI, call duration, conversation refresh interval"
+              "description": "Removes message limits, unlimited pin chat, voice/video calls, quick chat, typing indicator, free gifts, letter, greeting, ice breaker, read receipts, AI translation, message recall, group chat, live chat, message filter, chat partner config, ODiamond visitor config, prologue config, love buzz data, secret crush limit, boost limit, message tab revision, collapsible conversation, chat helper AI, call duration, conversation refresh interval, heartbeat match, message integration, assistant message clear, love buzz prolong count, ice break dialog config, continues op conv config"
             },
             {
               "name": "Premium Unlock",
@@ -60303,7 +61014,15 @@
             },
             {
               "name": "Privacy Enhancement",
-              "description": "Advanced privacy protections: root/emulator detection bypass, ShuMeng SDK blocking, Facebook SDK emulator detection bypass, APK signature verification bypass, package enumeration prevention"
+              "description": "Advanced privacy protections: root/emulator detection bypass, ShuMeng SDK blocking, Facebook SDK emulator detection bypass, APK signature verification bypass, package enumeration prevention, VPN/proxy detection bypass, overlay detection bypass"
+            },
+            {
+              "name": "Remote Config Override",
+              "description": "Overrides remote configuration values: disables popup scheduling, prevents aggressive token expiry, removes quick chat limits, disables text buzz auto-delete"
+            },
+            {
+              "name": "Search Discovery",
+              "description": "Enhances search and discovery: disables auto-adjust radius, removes invisible radius, enables Gaea distance algorithm, expands liked user and visitor filter ranges"
             },
             {
               "name": "UI Cleanup",
@@ -60316,6 +61035,7 @@
         }
       ],
       "patches": [
+        "AB Test Override",
         "Ad Removal",
         "Analytics Disable",
         "Dialog Cleanup",
@@ -60325,16 +61045,22 @@
         "Premium Unlock",
         "Privacy Controls",
         "Privacy Enhancement",
+        "Remote Config Override",
+        "Search Discovery",
         "UI Cleanup"
       ],
       "patchDetails": [
+        {
+          "name": "AB Test Override",
+          "description": "Overrides A/B test values to enable beneficial features: instant match, quick message, batch icebreak, chat optimization, letter features, me tab revamp, push enhancements, verified chat, tiered membership, platinum membership, surprise box, anti-harass customization"
+        },
         {
           "name": "Ad Removal",
           "description": "Removes all ad displays: navigation bar banner, native feed ads, live streaming banner ads, live video feed ads, live square ads, conversation Google ads, marriage guide card, four-select-one card, daily selection card, visitor list ads, likers ads, meet likers ads, meet visitor ads, splash screen ads, profile photo carousel ads, incentive video ads, fake splash view, video ad player, official advert, ad reward dialogs, live streaming ad user, treasure prize ads"
         },
         {
           "name": "Analytics Disable",
-          "description": "Disables all analytics, telemetry, and device fingerprinting for privacy"
+          "description": "Disables all analytics and telemetry for privacy"
         },
         {
           "name": "Dialog Cleanup",
@@ -60350,7 +61076,7 @@
         },
         {
           "name": "Messaging Enhancement",
-          "description": "Removes message limits, unlimited pin chat, voice/video calls, quick chat, typing indicator, free gifts, letter, greeting, ice breaker, read receipts, AI translation, message recall, group chat, live chat, message filter, chat partner config, ODiamond visitor config, prologue config, love buzz data, secret crush limit, boost limit, message tab revision, collapsible conversation, chat helper AI, call duration, conversation refresh interval"
+          "description": "Removes message limits, unlimited pin chat, voice/video calls, quick chat, typing indicator, free gifts, letter, greeting, ice breaker, read receipts, AI translation, message recall, group chat, live chat, message filter, chat partner config, ODiamond visitor config, prologue config, love buzz data, secret crush limit, boost limit, message tab revision, collapsible conversation, chat helper AI, call duration, conversation refresh interval, heartbeat match, message integration, assistant message clear, love buzz prolong count, ice break dialog config, continues op conv config"
         },
         {
           "name": "Premium Unlock",
@@ -60362,7 +61088,15 @@
         },
         {
           "name": "Privacy Enhancement",
-          "description": "Advanced privacy protections: root/emulator detection bypass, ShuMeng SDK blocking, Facebook SDK emulator detection bypass, APK signature verification bypass, package enumeration prevention"
+          "description": "Advanced privacy protections: root/emulator detection bypass, ShuMeng SDK blocking, Facebook SDK emulator detection bypass, APK signature verification bypass, package enumeration prevention, VPN/proxy detection bypass, overlay detection bypass"
+        },
+        {
+          "name": "Remote Config Override",
+          "description": "Overrides remote configuration values: disables popup scheduling, prevents aggressive token expiry, removes quick chat limits, disables text buzz auto-delete"
+        },
+        {
+          "name": "Search Discovery",
+          "description": "Enhances search and discovery: disables auto-adjust radius, removes invisible radius, enables Gaea distance algorithm, expands liked user and visitor filter ranges"
         },
         {
           "name": "UI Cleanup",
@@ -60566,12 +61300,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.11.12 (2026-08-11)",
-            "date": "2026-08-11",
+            "title": "1.11.13 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**ozon:** support version 19.30.0"
+                "text": "**wildberries:** support version 7.7.5003-rustore"
               }
             ]
           },
@@ -60637,12 +61371,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -62263,12 +63013,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -62717,12 +63483,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -63621,8 +64403,8 @@
       ],
       "patches": [
         "Disable analytics",
-        "Disable telemetry",
         "Disable Telemetry",
+        "Disable telemetry",
         "Disable update check",
         "Enable premium features",
         "GMS sign-in bypass",
@@ -63666,11 +64448,11 @@
           "description": "Suppresses Truecaller's CleverTap behavioural event tracking to prevent user-activity telemetry."
         },
         {
-          "name": "Disable telemetry",
+          "name": "Disable Telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
-          "name": "Disable Telemetry",
+          "name": "Disable telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
@@ -63841,12 +64623,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.7.0 (2026-08-09)",
-            "date": "2026-08-09",
+            "title": "1.8.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Hill Climb Racing patches (ad removal, rewarded video, free store)"
+                "text": "add Into the Dead 2.9.3 patches (free IAP, instant rewards, remove ads incl. app open)"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "consolidate Into the Dead patches into Ad Removal + Billing Bypass"
               }
             ]
           },
@@ -63961,12 +64747,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -64322,12 +65124,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -65278,12 +66096,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -66187,12 +67021,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -66542,12 +67392,28 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.43.4 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.44.0 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "handle install residue during release back-merge"
+                "text": "hide DirectChat message-bubble ad in Unlock Premium"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported app regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve reported patch regressions"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "resolve Symfonium playback and Poweramp settings crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add DirectChat unlock premium patch"
               }
             ]
           },
@@ -66600,12 +67466,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.11.12 (2026-08-11)",
-            "date": "2026-08-11",
+            "title": "1.11.13 (2026-08-13)",
+            "date": "2026-08-13",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**ozon:** support version 19.30.0"
+                "text": "**wildberries:** support version 7.7.5003-rustore"
               }
             ]
           },
@@ -66628,7 +67494,9 @@
             "7.7.3001",
             "7.7.3001-rustore",
             "7.7.4003",
-            "7.7.4003-rustore"
+            "7.7.4003-rustore",
+            "7.7.5003",
+            "7.7.5003-rustore"
           ]
         }
       ],
@@ -66647,7 +67515,9 @@
         "7.7.3001",
         "7.7.3001-rustore",
         "7.7.4003",
-        "7.7.4003-rustore"
+        "7.7.4003-rustore",
+        "7.7.5003",
+        "7.7.5003-rustore"
       ],
       "iconColor": "#A73AFD",
       "iconUrl": "https://play-lh.googleusercontent.com/_3OFXp7p3aaOt6lJdqOPNS8frRjGW7SrlgUELTcxMZNbvQtBN0ez_lrXtMk-X9Yk_kfdesM7fOcRpMl3Ebhgpg"
@@ -71841,95 +72711,6 @@
       "iconUrl": "https://play-lh.googleusercontent.com/MyptZXmcCyF59phIWPsNCfHq6zSO_ojEdw_4rMYYWPOGdikSjqeOXcoszBZ053VYpINe5K7ZR9KV1nkFWgxdOw"
     },
     {
-      "packageName": "app.morphe.android.apps.youtube.music",
-      "name": "YT Music Morphe",
-      "repos": [
-        "tadikwa/google-clock-morphe-patches"
-      ],
-      "sources": [
-        {
-          "repo": "tadikwa/google-clock-morphe-patches",
-          "host": "github.com",
-          "webUrl": "https://github.com/tadikwa/google-clock-morphe-patches",
-          "addUrl": "https://morphe.software/add-source?github=tadikwa/google-clock-morphe-patches",
-          "source": "https://raw.githubusercontent.com/tadikwa/google-clock-morphe-patches/main/patches-bundle.json",
-          "changelogUrl": "https://raw.githubusercontent.com/tadikwa/google-clock-morphe-patches/main/CHANGELOG.md",
-          "avatarUrl": "https://github.com/tadikwa.png?size=96",
-          "latestChanges": {
-            "title": "",
-            "date": "",
-            "items": []
-          },
-          "builder": {
-            "buildId": "app-morphe-android-apps-youtube-music-tadikwa-google-clock-morphe-patches",
-            "releaseTag": "app-app-morphe-android-apps-youtube-music-tadikwa-google-clock-morphe-patches",
-            "assetName": "yt-music-morphe-tadikwa-google-clock-morphe-patches.apk",
-            "repo": "rushiforai/morphe-builder",
-            "webUrl": "https://github.com/rushiforai/morphe-builder"
-          },
-          "patches": [
-            {
-              "name": "Google Clock alarm MediaBrowser bridge",
-              "description": "Short-circuits YT Music's MediaBrowser capability gate before it can publish PlaybackState ERROR(7), keeps browse entitlement metadata coherent, bypasses the DeskClock browse-consent detour, and enables background alarm playback."
-            },
-            {
-              "name": "Google Clock alarm MediaBrowser bridge v2",
-              "description": "Adds the YT Music loadChildren gate fix that prevents the Premium PlaybackState error after Google Clock subscribes. Depends on the base Google Clock alarm MediaBrowser bridge."
-            },
-            {
-              "name": "Google Clock MediaBrowser error stack diagnostic",
-              "description": "Temporary diagnostic that dumps the call stack from both known YT Music MediaBrowser error publishers (Llin.e and Lkzf.f). Depends on the full bridge."
-            },
-            {
-              "name": "Google Clock MediaBrowser full bridge",
-              "description": "Full Google Clock/YT Music MediaBrowser chain: root/entitlement/consent fixes, upstream package identity/certificate compatibility, loadChildren capability and client allow-list bypasses, plus the cached browse-error fast-path bypass that was still returning empty children and the Music Premium PlaybackState ERROR(7)."
-            },
-            {
-              "name": "Google Clock MediaBrowser upstream compatibility",
-              "description": "Isolated port of the upstream YT Music MediaBrowser unlock: bypasses the caller certificate gate and restores the original com.google.android.apps.youtube.music identity inside search_media_items."
-            }
-          ],
-          "versions": [
-            "9.15.51"
-          ]
-        }
-      ],
-      "patches": [
-        "Google Clock alarm MediaBrowser bridge",
-        "Google Clock alarm MediaBrowser bridge v2",
-        "Google Clock MediaBrowser error stack diagnostic",
-        "Google Clock MediaBrowser full bridge",
-        "Google Clock MediaBrowser upstream compatibility"
-      ],
-      "patchDetails": [
-        {
-          "name": "Google Clock alarm MediaBrowser bridge",
-          "description": "Short-circuits YT Music's MediaBrowser capability gate before it can publish PlaybackState ERROR(7), keeps browse entitlement metadata coherent, bypasses the DeskClock browse-consent detour, and enables background alarm playback."
-        },
-        {
-          "name": "Google Clock alarm MediaBrowser bridge v2",
-          "description": "Adds the YT Music loadChildren gate fix that prevents the Premium PlaybackState error after Google Clock subscribes. Depends on the base Google Clock alarm MediaBrowser bridge."
-        },
-        {
-          "name": "Google Clock MediaBrowser error stack diagnostic",
-          "description": "Temporary diagnostic that dumps the call stack from both known YT Music MediaBrowser error publishers (Llin.e and Lkzf.f). Depends on the full bridge."
-        },
-        {
-          "name": "Google Clock MediaBrowser full bridge",
-          "description": "Full Google Clock/YT Music MediaBrowser chain: root/entitlement/consent fixes, upstream package identity/certificate compatibility, loadChildren capability and client allow-list bypasses, plus the cached browse-error fast-path bypass that was still returning empty children and the Music Premium PlaybackState ERROR(7)."
-        },
-        {
-          "name": "Google Clock MediaBrowser upstream compatibility",
-          "description": "Isolated port of the upstream YT Music MediaBrowser unlock: bypasses the caller certificate gate and restores the original com.google.android.apps.youtube.music identity inside search_media_items."
-        }
-      ],
-      "versions": [
-        "9.15.51"
-      ],
-      "iconColor": "",
-      "iconUrl": ""
-    },
-    {
       "packageName": "com.android.gallery3d",
       "name": "ZTE Gallery",
       "repos": [
@@ -72185,12 +72966,16 @@
       "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
       "patchCount": 9,
       "latestChanges": {
-        "title": "1.25.0 (2026-08-12)",
-        "date": "2026-08-12",
+        "title": "1.30.0 (2026-08-13)",
+        "date": "2026-08-13",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "add mx player hide file transfer, private video,video playlist"
+            "text": "Keep Only Mx Player Pro"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "up"
           }
         ]
       },
@@ -73843,12 +74628,12 @@
       "avatarUrl": "https://github.com/xob0t.png?size=96",
       "patchCount": 13,
       "latestChanges": {
-        "title": "1.11.12 (2026-08-11)",
-        "date": "2026-08-11",
+        "title": "1.11.13 (2026-08-13)",
+        "date": "2026-08-13",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**ozon:** support version 19.30.0"
+            "text": "**wildberries:** support version 7.7.5003-rustore"
           }
         ]
       },
@@ -74256,27 +75041,31 @@
       "webUrl": "https://github.com/BlazeFTL/FTL-Patches",
       "addUrl": "https://morphe.software/add-source?github=BlazeFTL/FTL-Patches",
       "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
-      "patchCount": 16,
+      "patchCount": 17,
       "appCount": 3,
       "createdAt": 1786263569063,
       "updatedAt": 1786263569063,
       "createdDate": "2026-08-09",
       "updatedDate": "2026-08-09",
       "latestChanges": {
-        "title": "1.25.0 (2026-08-12)",
-        "date": "2026-08-12",
+        "title": "1.30.0 (2026-08-13)",
+        "date": "2026-08-13",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "add mx player hide file transfer, private video,video playlist"
+            "text": "Keep Only Mx Player Pro"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "up"
           }
         ]
       },
       "apps": [
         {
-          "name": "MX Player",
-          "packageName": "com.mxtech.videoplayer.ad",
-          "patchCount": 4,
+          "name": "ES File Explorer",
+          "packageName": "com.estrongs.android.pop",
+          "patchCount": 1,
           "iconUrl": "",
           "iconColor": ""
         },
@@ -74385,19 +75174,23 @@
       "webUrl": "https://github.com/liongalahad/nuviotv-morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=liongalahad/nuviotv-morphe-patches",
       "avatarUrl": "https://github.com/liongalahad.png?size=96",
-      "patchCount": 7,
+      "patchCount": 9,
       "appCount": 1,
       "createdAt": 1785983280124,
       "updatedAt": 1785983280124,
       "createdDate": "2026-08-06",
       "updatedDate": "2026-08-06",
       "latestChanges": {
-        "title": "1.0.0-dev.18 (2026-08-10)",
-        "date": "2026-08-10",
+        "title": "1.0.0-dev.20 (2026-08-13)",
+        "date": "2026-08-13",
         "items": [
           {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "resolve subtitle workers across architectures"
+          },
+          {
             "category": "\u2728 New Features",
-            "text": "update patch suite for NuvioTV 0.8.3-beta"
+            "text": "restore source picker selection"
           }
         ]
       },
@@ -74405,7 +75198,7 @@
         {
           "name": "NuvioTV",
           "packageName": "com.nuvio.tv",
-          "patchCount": 7,
+          "patchCount": 9,
           "iconUrl": "",
           "iconColor": "#111827"
         }

@@ -1115,14 +1115,6 @@
                 "updatedAt": 1786412610032
             },
             {
-                "name": "google-clock-morphe-patches",
-                "source": "https://raw.githubusercontent.com/tadikwa/google-clock-morphe-patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 138,
-                "createdAt": 1786412610180,
-                "updatedAt": 1786412610180
-            },
-            {
                 "name": "imgur-patches",
                 "source": "https://raw.githubusercontent.com/sushruth/imgur-patches/main/patches-bundle.json",
                 "autoUpdate": true,
