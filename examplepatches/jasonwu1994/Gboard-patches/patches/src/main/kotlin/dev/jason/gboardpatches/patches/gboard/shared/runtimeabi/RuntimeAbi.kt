@@ -76,6 +76,8 @@ internal enum class RuntimeCallId(internal val encodedAbi: String) {
     SPLIT_KEYBOARD_RUNTIME_AFTER_MODE_ENVIRONMENT_CHANGED("Ldev/jason/gboardpatches/extension/splitkeyboard/GboardSplitKeyboard1777Runtime;->afterModeEnvironmentChanged(Ljava/lang/Object;)V"),
     SPLIT_KEYBOARD_RUNTIME_INCLUDE_ACCESS_POINT_IN_ORDER("Ldev/jason/gboardpatches/extension/splitkeyboard/GboardSplitKeyboard1777Runtime;->includeAccessPointInOrder(Ljava/lang/Object;)Ljava/lang/Object;"),
     SPLIT_KEYBOARD_RUNTIME_INTERCEPT_SPLIT_ACTION("Ldev/jason/gboardpatches/extension/splitkeyboard/GboardSplitKeyboard1777Runtime;->interceptSplitAction(Ljava/lang/Object;)Z"),
+    SPACEBAR_LOGO_RUNTIME_AFTER_SOFT_KEY_BOUND("Ldev/jason/gboardpatches/extension/spacebarlogo/GboardSpacebarLogo1777Runtime;->afterSoftKeyBound(Ljava/lang/Object;Ljava/lang/Object;)V"),
+    SPACEBAR_LOGO_RUNTIME_BEFORE_SOFT_KEY_BOUND("Ldev/jason/gboardpatches/extension/spacebarlogo/GboardSpacebarLogo1777Runtime;->beforeSoftKeyBound(Ljava/lang/Object;Ljava/lang/Object;)V"),
     SYMBOL_FOOTER_ORDER_RUNTIME_REORDER_EXPRESSION_CORPUS_LIST("Ldev/jason/gboardpatches/extension/symbolfooter/GboardSymbolFooterOrderRuntime;->reorderExpressionCorpusList(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"),
     TOP_ROW_SWIPE_RUNTIME_AFTER_SOFT_KEY_BOUND("Ldev/jason/gboardpatches/extension/toprowswipe/GboardTopRowSwipeRuntime;->afterSoftKeyBound(Ljava/lang/Object;)V"),
     TOP_ROW_SWIPE_RUNTIME_CLEAR_SWIPE_SESSION("Ldev/jason/gboardpatches/extension/toprowswipe/GboardTopRowSwipeRuntime;->clearSwipeSession(Ljava/lang/Object;)V"),

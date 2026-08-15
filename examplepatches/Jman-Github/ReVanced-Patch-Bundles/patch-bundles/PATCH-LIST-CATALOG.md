@@ -108,7 +108,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Fin-Tweaks](#-fin-tweaks-bundle-patch-list) | - | - | Pending patch list |
 | [Kondratjev](#-kondratjev-bundle-patch-list) | 25 | 13 | Generated |
 | [Hoo-dles](#-hoo-dles-bundle-patch-list) | 78 | 54 | Generated |
-| [AmpleReVanced](#-amplerevanced-bundle-patch-list) | 113 | 6 | Generated |
+| [AmpleReVanced](#-amplerevanced-bundle-patch-list) | 112 | 6 | Generated |
 | [Morphe](#-morphe-bundle-patch-list) | 136 | 4 | Generated |
 | [Patcheddit](#-patcheddit-bundle-patch-list) | 39 | 19 | Generated |
 | [RVX-Morphed](#-rvx-morphed-bundle-patch-list) | 113 | 3 | Generated |
@@ -120,7 +120,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Docbt](#-docbt-bundle-patch-list) | 6 | 3 | Generated |
 | [PixelPusher247](#-pixelpusher247-bundle-patch-list) | 1 | 1 | Generated |
 | [Rabilrbl](#-rabilrbl-bundle-patch-list) | 2 | 1 | Generated |
-| [Jasonwu1994](#-jasonwu1994-bundle-patch-list) | 30 | 1 | Generated |
+| [Jasonwu1994](#-jasonwu1994-bundle-patch-list) | 31 | 1 | Generated |
 | [RealCyberwash](#-realcyberwash-bundle-patch-list) | 1 | 1 | Generated |
 | [Paresh-Maheshwari](#-paresh-maheshwari-bundle-patch-list) | 60 | 23 | Generated |
 | [Binarymend](#-binarymend-bundle-patch-list) | 11 | 7 | Generated |
@@ -154,7 +154,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Ikura](#-ikura-bundle-patch-list) | 6 | 1 | Generated |
 | [DH6K](#-dh6k-bundle-patch-list) | 5 | 7 | Generated |
 | [AndrewLiang25](#-andrewliang25-bundle-patch-list) | 21 | 1 | Generated |
-| [Morning-Entree](#-morning-entree-bundle-patch-list) | 52 | 93 | Generated |
+| [Morning-Entree](#-morning-entree-bundle-patch-list) | 53 | 94 | Generated |
 | [VocaColle](#-vocacolle-bundle-patch-list) | 7 | 1 | Generated |
 | [DBTCoach](#-dbtcoach-bundle-patch-list) | 1 | 1 | Generated |
 | [Yandex-VoT](#-yandex-vot-bundle-patch-list) | 1 | 1 | Generated |
@@ -179,7 +179,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Logm1lo](#-logm1lo-bundle-patch-list) | 4 | 2 | Generated |
 | [SpookyEXE](#-spookyexe-bundle-patch-list) | 1 | 1 | Generated |
 | [PetalMaps-AndroidAuto](#-petalmaps-androidauto-bundle-patch-list) | 8 | 1 | Generated |
-| [FTL](#-ftl-bundle-patch-list) | 17 | 4 | Generated |
+| [FTL](#-ftl-bundle-patch-list) | 18 | 5 | Generated |
 | [braiNtropy](#-braintropy-bundle-patch-list) | 1 | 1 | Generated |
 | [Ang3lo](#-ang3lo-bundle-patch-list) | 1 | 1 | Generated |
 | [Heval99](#-heval99-bundle-patch-list) | 1 | 1 | Generated |
@@ -188,6 +188,8 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [FTL-Portal](#-ftl-portal-bundle-patch-list) | 3 | 2 | Generated |
 | [Google-Clock](#-google-clock-bundle-patch-list) | 6 | 2 | Generated |
 | [Imgur](#-imgur-bundle-patch-list) | 1 | 1 | Generated |
+| [aapam](#-aapam-bundle-patch-list) | 4 | 1 | Generated |
+| [RabehX](#-rabehx-bundle-patch-list) | 10 | 3 | Generated |
 
 ### Legacy
 | Bundle | Patches | Apps | Status |
@@ -210,13 +212,13 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```10x Bullet Damage``` | ```Multiplies the player's bullet damage by 10 in the Bullet Hell minigame (damage 1 -> 10), applied to both enemies and bosses.``` | ```Roost``` | ```All versions``` |
+| ```10x Bullet Damage``` | ```Multiplies the player's bullet damage by 10 in the Bullet Hell minigame (Normal: 1→10, Focused: 2→20), applied to both enemies and bosses.``` | ```Roost``` | ```All versions``` |
 | ```Beam of Death (10x Fire Rate)``` | ```Multiplies the player's firing speed by 10 in the Bullet Hell minigame (fire interval 0.15 -> 0.015) for a near-continuous beam.``` | ```Roost``` | ```All versions``` |
 | ```Bypass Play Store license check``` | ```Disables the PairIP Play-license check so a non-Play (e.g. patched/sideloaded) install no longer redirects to the "get it on Google Play" wall on launch.``` | ```Roost``` | ```All versions``` |
-| ```Free Nest Egg (bypass claim cooldown)``` | ```Removes the client-side cooldown timer check on the nest-egg free-bird claim button so the claim request is sent to the server on every tap. The server still controls eligibility; this only stops the client from blocking the request.``` | ```Roost``` | ```All versions``` |
 | ```Redirect Google login to microG``` | ```Routes Roost's Google Play Services calls to microG RE so a patched install can sign in with Google. Requires microG RE (app.revanced.android.gms) installed.``` | ```Roost``` | ```All versions``` |
 | ```Skip Play Integrity (fix microG Firebase delay)``` | ```Makes Play Integrity attestation fail fast instead of hanging ~60s under microG, removing the delay before Firebase logins, leaderboards, and other backend calls.``` | ```Roost``` | ```All versions``` |
 | ```Triple Bullet Size``` | ```Triples the on-screen size of the player's bullets in the Bullet Hell minigame (sizePx 6.0 -> 18.0).``` | ```Roost``` | ```All versions``` |
+| ```Unlock Modifier Cap``` | ```Removes the 5.00 modifier cap in the Bullet Hell minigame. Beyond 100 grazes the modifier continues to grow linearly (≈ +0.04x per additional graze, e.g. 200 grazes ≈ 8.9x).``` | ```Roost``` | ```All versions``` |
 
 </details>
 
@@ -675,8 +677,8 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 </details>
 
 ---
-### ?? Nai64 Bundle Patch List:
-[?? Nai64-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-nai64-patches-bundle-morphe)
+### 🧩 Nai64 Bundle Patch List:
+[📦 Nai64-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-nai64-patches-bundle-morphe)
 <details>
 <summary><b>Nai64</b> - 9 patches, 1 app</summary>
 
@@ -695,8 +697,8 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 </details>
 
 ---
-### ?? Morphe-Google Bundle Patch List:
-[?? Morphe-Google-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-morphe-google-patches-bundle-morphe)
+### 🧩 Morphe-Google Bundle Patch List:
+[📦 Morphe-Google-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-morphe-google-patches-bundle-morphe)
 <details>
 <summary><b>Morphe-Google</b> - 2 patches, 1 app</summary>
 
@@ -924,7 +926,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 
 ---
 ### 🧩 Zpatches Bundle Patch List:
-[?? Zpatches-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-zpatches-patches-bundle-morphe)
+[📦 Zpatches-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-zpatches-patches-bundle-morphe)
 <details>
 <summary><b>Zpatches</b> - 13 patches, 6 apps</summary>
 
@@ -947,8 +949,8 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 </details>
 
 ---
-### ?? iHealth-Morphe Bundle Patch List:
-[?? iHealth-Morphe-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-ihealth-morphe-patches-bundle-morphe)
+### 🧩 iHealth-Morphe Bundle Patch List:
+[📦 iHealth-Morphe-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-ihealth-morphe-patches-bundle-morphe)
 <details>
 <summary><b>iHealth-Morphe</b> - 6 patches, 2 apps</summary>
 
@@ -964,8 +966,8 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 </details>
 
 ---
-### ?? Hoomans-Morphe Bundle Patch List:
-[?? Hoomans-Morphe-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-hoomans-morphe-patches-bundle-morphe)
+### 🧩 Hoomans-Morphe Bundle Patch List:
+[📦 Hoomans-Morphe-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-hoomans-morphe-patches-bundle-morphe)
 <details>
 <summary><b>Hoomans-Morphe</b> - 54 patches, 41 apps</summary>
 
@@ -3270,7 +3272,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 AmpleReVanced Bundle Patch List:
 [📦 AmpleReVanced-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-amplerevanced-patches-bundle-morphe)
 <details>
-<summary><b>AmpleReVanced</b> - 113 patches, 6 apps</summary>
+<summary><b>AmpleReVanced</b> - 112 patches, 6 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -3343,7 +3345,6 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Disable Talk Share Log``` | ```Disable talk share log``` | ```Kakao Talk``` | ```All versions``` |
 | ```Disable verifying signature``` | ```Disables the signature verification check that prevents the app from running.``` | ```Kakao Talk``` | ```All versions``` |
 | ```Enable Markdown``` | ```Render plain text messages with markdown-style formatting.``` | ```Kakao Talk``` | ```All versions``` |
-| ```Enable reaction mention flag``` | ```Enables the reaction mention flag in KakaoTalk chat logs.``` | ```Kakao Talk``` | ```All versions``` |
 | ```Enable send big text``` | ```Allows sending big text messages in KakaoTalk.``` | ```Kakao Talk``` | ```All versions``` |
 | ```Force enable debug mode``` | ```Enables debug mode in the app.``` | ```Kakao Talk``` | ```All versions``` |
 | ```Force enable emoticon plus feature``` | ```Force enable emoticon plus feature (Unpurchased emoticon can be sent once per day)``` | ```Kakao Talk``` | ```All versions``` |
@@ -4102,7 +4103,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Jasonwu1994 Bundle Patch List:
 [📦 Jasonwu1994-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-jasonwu1994-patches-bundle-morphe)
 <details>
-<summary><b>Jasonwu1994</b> - 30 patches, 1 app</summary>
+<summary><b>Jasonwu1994</b> - 31 patches, 1 app</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -4122,6 +4123,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Enable OCR / Scan Text``` | ```啟用 OCR / 掃描文字功能，支援 拉丁、中文、日文、韓文 與 天城文 辨識後端 Enable the OCR / Scan Text feature with Latin, Chinese, Japanese, Korean, and Devanagari recognition backends.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
 | ```Enable split keyboard``` | ```啟用分離式鍵盤 Enable the split keyboard layout.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
 | ```English QWERTY Up-Flick Uppercase``` | ```英文 QWERTY 鍵盤上滑大小寫 Flick up on the English QWERTY keyboard to toggle uppercase and lowercase.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
+| ```G Logo on Spacebar``` | ```在空白鍵顯示 G Logo，並隱藏語言名稱 Show the G Logo on the spacebar and hide the language label.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
 | ```Grammar Checker``` | ```啟用 修正和建議 > 文法檢查 Enable Text correction > Grammar check.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
 | ```Incognito Mode Toggle``` | ```在 Access Point 工具列新增無痕模式切換按鈕，並可設定無痕模式下是否啟用剪貼簿與語音輸入 Add an Incognito toggle to the Access Point toolbar and configure clipboard and voice typing availability while Incognito mode is active.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
 | ```Inline Suggestions``` | ```啟用 修正和建議 > 智慧撰寫 Enable Text correction > Smart Compose.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
@@ -4460,7 +4462,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Hide professional sellers``` | ```Adds a maximum seller review count to Avito search filters and hides or dims offers from sellers above that limit.``` | ```Avito``` | ```All versions``` |
 | ```Morphe settings``` | ```Adds a "Настройки Morphe" entry to Avito's settings that hosts the configuration for the other Morphe patches.``` | ```Avito``` | ```All versions``` |
 | ```Remove ads``` | ```Disables Avito ads by removing ad SDK entry points and short-circuiting commercial banner loading.``` | ```Avito``` | ```All versions``` |
-| ```UI tweaks``` | ```Optional interface tweaks, each toggleable in Настройки Morphe: single-row home categories, hide the "Подписки" tab in Избранное, hide installments (Рассрочка) and the "Спросите у продавца" block on offers, expand descriptions by default (no "Читать далее"), hide offer recommendations, hide profile raffle, referral and Avito Pro promos, and hide the Avi assistant tab in the bottom navigation.``` | ```Avito``` | ```All versions``` |
+| ```UI tweaks``` | ```Optional interface tweaks, each toggleable in Настройки Morphe: single-row home categories, hide the "Подписки" tab in Избранное, hide installments (Рассрочка) and the "Спросите у продавца" block on offers, expand descriptions by default (no "Читать далее"), hide reserved offers and offer recommendations, hide profile raffle, referral and Avito Pro promos, and hide the Avi assistant tab in the bottom navigation.``` | ```Avito``` | ```All versions``` |
 | ```Remove Ozon ads``` | ```Removes Ozon ad widgets, banner carousels, video ads, and PDP promo blocks.``` | ```Ozon``` | ```All versions``` |
 | ```Bypass anti-tamper``` | ```Stubs TBank's native RASP executor calls and neutralizes tamper flag reporting.``` | ```TBank``` | ```All versions``` |
 | ```Remove TBank ads``` | ```Removes TBank stories and promotional surfaces.``` | ```TBank``` | ```All versions``` |
@@ -5356,7 +5358,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Morning-Entree Bundle Patch List:
 [📦 Morning-Entree-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-morning-entree-patches-bundle-morphe)
 <details>
-<summary><b>Morning-Entree</b> - 52 patches, 93 apps</summary>
+<summary><b>Morning-Entree</b> - 53 patches, 94 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -5397,6 +5399,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Enable Premium``` | ```Unlocks Pinnit Pro. Just Tap Restore Purchase When Prompted. Must be installed with either ADB/InstallerX Revived/Inure so it is not in Restricted Mode``` | ```Pinnit``` | ```All versions``` |
 | ```Enable Premium``` | ```Unlocks PinOut Premium. Just Tap Get Premium and Restore Purchase When Prompted``` | ```PinOut``` | ```All versions``` |
 | ```Unlock Premium``` | ```Unlocks Projectivy Launcher Premium``` | ```Projectivy Launcher``` | ```All versions``` |
+| ```Enable Premium``` | ```Unlocks Premium``` | ```Six Pack in 30 Days``` | ```All versions``` |
 | ```Enable Premium``` | ```Unlocks Sleep as Android Premium. Tap Wait I already Paid when Prompted``` | ```Sleep as Android``` | ```All versions``` |
 | ```Enable Full Version``` | ```Unlocks the full version of Smart AudioBook Player``` | ```Smart AudioBook Player``` | ```All versions``` |
 | ```Enable Premium``` | ```Unlocks Smash Hit. Just Tap Get Premium and Restore Purchase When Prompted``` | ```Smash Hit``` | ```All versions``` |
@@ -5776,7 +5779,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Premium Unlock``` | ```Unlocks all premium features, tier statuses, subscription validation, and display``` | ```Tantan``` | ```All versions``` |
 | ```Privacy Controls``` | ```Unlocks privacy features: hide from nearby, visitor footprint hiding, mysterious mode, nearby people access, read receipt unlock, read receipt dialog suppression, contact access block, location privacy, privacy settings force enable, hide activity time, hide age, hide icon, frozen activity, frozen time, hide distance, core service privacy gate, hide active from SVip, disable ad suggestions, live stealth privacy, online status visibility, hide VIP badge, heartbeat disable, verified user messages, online reminder, unreplied reminder, greeting do not disturb, only show about me inside``` | ```Tantan``` | ```All versions``` |
 | ```Privacy Enhancement``` | ```Advanced privacy protections: root/emulator detection bypass, ShuMeng SDK blocking, Facebook SDK emulator detection bypass, APK signature verification bypass, package enumeration prevention, VPN/proxy detection bypass, overlay detection bypass``` | ```Tantan``` | ```All versions``` |
-| ```Remote Config Override``` | ```Overrides remote configuration values: disables popup scheduling, prevents aggressive token expiry, removes quick chat limits, disables text buzz auto-delete``` | ```Tantan``` | ```All versions``` |
+| ```Remote Config Override``` | ```Overrides remote configuration values: removes quick chat limits, disables text buzz auto-delete``` | ```Tantan``` | ```All versions``` |
 | ```Search Discovery``` | ```Enhances search and discovery: disables auto-adjust radius, removes invisible radius, enables Gaea distance algorithm, expands liked user and visitor filter ranges``` | ```Tantan``` | ```All versions``` |
 | ```UI Cleanup``` | ```Removes guides, banners, stickers, decorations, and AI prompts``` | ```Tantan``` | ```All versions``` |
 
@@ -5829,8 +5832,8 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 </details>
 
 ---
-### ?? Dbhavsar76 Bundle Patch List:
-[?? Dbhavsar76-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-dbhavsar76-patches-bundle-api-v4)
+### 🧩 Dbhavsar76 Bundle Patch List:
+[📦 Dbhavsar76-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-dbhavsar76-patches-bundle-api-v4)
 <details>
 <summary><b>Dbhavsar76</b> - 1 patch, 1 app</summary>
 
@@ -5844,7 +5847,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 FTL Bundle Patch List:
 [📦 FTL-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-ftl-patches-bundle-morphe)
 <details>
-<summary><b>FTL</b> - 17 patches, 4 apps</summary>
+<summary><b>FTL</b> - 18 patches, 5 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -5865,6 +5868,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Remove Debug Info``` | ```Removes debug information (line numbers, variable names, source file references) from every class in the .dex files to reduce overall APK size.``` | ```Universal``` | ```All versions``` |
 | ```Remove Duplicate Graphics``` | ```Keeps images for only one screen density (like xhdpi) and removes copies for all other densities. Android will automatically scale the kept images, making the app significantly smaller.``` | ```Universal``` | ```All versions``` |
 | ```Remove Languages``` | ```Removes translations for languages you don't use across ALL resource types (strings, drawables, layouts, raw, xml, etc.). Only keeps the languages you pick. Base resources with no language code are always preserved.``` | ```Universal``` | ```All versions``` |
+| ```Speed up splash screen``` | ```Enters the main activity directly after the splash permission check instead of delaying for the additional external-storage check.``` | ```Xender``` | ```All versions``` |
 
 </details>
 
@@ -5894,8 +5898,8 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 
 </details>
 ---
-### ?? ChMate-ReVanced Bundle Patch List:
-[?? ChMate-ReVanced-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-chmate-revanced-patches-bundle-api-v4)
+### 🧩 ChMate-ReVanced Bundle Patch List:
+[📦 ChMate-ReVanced-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-chmate-revanced-patches-bundle-api-v4)
 <details>
 <summary><b>ChMate-ReVanced</b> - 1 patch, 1 app</summary>
 
@@ -6035,5 +6039,41 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
 | ```Remove ads``` | ```Removes all ads in the app by forcing the no-ads (Emerald) entitlement flag.``` | ```Imgur``` | ```All versions``` |
+
+</details>
+
+---
+### 🧩 aapam Bundle Patch List:
+[📦 aapam-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-aapam-patches-bundle-morphe)
+<details>
+<summary><b>aapam</b> - 4 patches, 1 app</summary>
+
+| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
+|----------|---------------|---------------------|-------------------------|
+| ```Disable ads``` | ```Removes Google IMA ad insertion (client-side and server-side DAI) from the ZEE5 player. The media source factory is returned DRM-configured but with ad-insertion components never attached, so content and DRM playback are unaffected.``` | ```ZEE5 Android TV``` | ```All versions``` |
+| ```Disable analytics``` | ```Disables all third-party analytics (CleverTap, Firebase, Mixpanel, videoanalytics) by short-circuiting the central analytics dispatch method. No tracking data is sent.``` | ```ZEE5 Android TV``` | ```All versions``` |
+| ```Disable CleverTap``` | ```Prevents the CleverTap analytics SDK from initializing, stopping behavioral tracking and advertising-id (GAID) collection.``` | ```ZEE5 Android TV``` | ```All versions``` |
+| ```Disable Firebase analytics``` | ```Prevents Firebase Analytics from initializing, stopping event and user-property reporting to Google.``` | ```ZEE5 Android TV``` | ```All versions``` |
+
+</details>
+
+---
+### 🧩 RabehX Bundle Patch List:
+[📦 RabehX-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-rabehx-patches-bundle-morphe)
+<details>
+<summary><b>RabehX</b> - 10 patches, 3 apps</summary>
+
+| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
+|----------|---------------|---------------------|-------------------------|
+| ```Bypass certificate checks``` | ```Bypasses certificate pinning so intercepted TLS connections are accepted.``` | ```BaridiMob``` | ```All versions``` |
+| ```Disable analytics and crash reporting``` | ```Disables analytics and crash reporting while keeping push notifications.``` | ```BaridiMob``` | ```All versions``` |
+| ```Disable root detection``` | ```Disables the rooted-device check so the app runs on rooted devices.``` | ```BaridiMob``` | ```All versions``` |
+| ```Disable developer options detection``` | ```Stops the app from detecting that Developer Options or USB debugging are enabled on the device, removing the blocking security dialog.``` | ```My Ooredoo``` | ```All versions``` |
+| ```Disable Play Integrity``` | ```Short-circuits the Google Play Integrity attestation request with a "DISABLED" response, avoiding failures on modified or non-Play builds.``` | ```My Ooredoo``` | ```All versions``` |
+| ```Disable root & emulator detection``` | ```Forces every root, jailbreak, emulator and frida check in the app to report a clean device, so no blocking dialog is shown on modified/rooted environments.``` | ```My Ooredoo``` | ```All versions``` |
+| ```Remove CleverTap tracking``` | ```Removes CleverTap analytics initialization, stopping the app from collecting the phone number as an identity key and from reporting usage data.``` | ```My Ooredoo``` | ```All versions``` |
+| ```Allow screenshots``` | ```Removes the screen capture block so screenshots and recordings work.``` | ```Webetu``` | ```All versions``` |
+| ```Enable 30-day Resto reservations``` | ```Allows reserving Resto meals up to 30 days in advance.``` | ```Webetu``` | ```All versions``` |
+| ```Remove PairIP protection``` | ```Removes Google Play's PairIP anti-tamper wrapper so the app runs without license checks. Restores the original Application class in the manifest, removes all injected com.pairip.* components, and neuters PairIP's license client.``` | ```Webetu``` | ```All versions``` |
 
 </details>

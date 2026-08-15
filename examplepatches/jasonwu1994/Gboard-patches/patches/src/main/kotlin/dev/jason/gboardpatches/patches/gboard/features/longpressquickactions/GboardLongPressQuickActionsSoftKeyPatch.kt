@@ -5,11 +5,14 @@ import dev.jason.gboardpatches.patches.gboard.shared.generated.GboardVersionBind
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import dev.jason.gboardpatches.patches.gboard.shared.VerifiedTransformationPlan
 import dev.jason.gboardpatches.patches.gboard.shared.VerifiedTransformationState
 import dev.jason.gboardpatches.patches.gboard.shared.applyVerified
@@ -26,6 +29,17 @@ private val SOFT_KEY_RUNTIME_DESCRIPTOR = RuntimeAbiCatalog.abi(
     RuntimeCallId.LONG_PRESS_QUICK_ACTIONS_RUNTIME_MAYBE_PATCH_METADATA,
 ).reference
 private const val SOFT_KEY_STOCK_ENTRY_STRING = "SoftKeyView.setSoftKeyDef"
+private val KNOWN_SOFT_KEY_AFTER_BIND_DELEGATES = mapOf(
+    RuntimeAbiCatalog.abi(RuntimeCallId.SPACEBAR_LOGO_RUNTIME_AFTER_SOFT_KEY_BOUND).reference to
+        listOf(0, 1),
+    RuntimeAbiCatalog.abi(RuntimeCallId.TOP_ROW_SWIPE_RUNTIME_AFTER_SOFT_KEY_BOUND).reference to
+        listOf(0),
+    RuntimeAbiCatalog.abi(RuntimeCallId.ZHUYIN_BOTTOM_ROW_WEIGHT_RUNTIME_AFTER_SOFT_KEY_BOUND).reference to
+        listOf(0),
+    RuntimeAbiCatalog.abi(
+        RuntimeCallId.ZHUYIN_TRADITIONAL_SIMPLIFIED_TOGGLE_RUNTIME_AFTER_SOFT_KEY_BOUND,
+    ).reference to listOf(0),
+)
 
 internal val LONG_PRESS_QUICK_ACTIONS_SOFT_KEY_DELEGATE = """
     ${RuntimeCallEmitter.invoke(
@@ -89,11 +103,82 @@ private fun MutableMethod.requireLongPressSoftKeyStockBodyFingerprint(): Int {
     check(stockEntryIndex >= 0) {
         "Missing stock entry anchor in ${GboardVersionBindings.softKeyBind.reference}"
     }
-    val actual = gboardStructuralFingerprint(stockEntryIndex)
+    val normalized = copyWithoutKnownSoftKeyAfterBindDelegates()
+    val normalizedStockEntryIndex = normalized.implementation!!.instructions.indexOfFirst { instruction ->
+        ((instruction as? ReferenceInstruction)?.reference as? StringReference)?.string ==
+            SOFT_KEY_STOCK_ENTRY_STRING
+    }
+    check(normalizedStockEntryIndex >= 0) {
+        "Missing normalized stock entry anchor in ${GboardVersionBindings.softKeyBind.reference}"
+    }
+    val actual = normalized.gboardStructuralFingerprint(normalizedStockEntryIndex)
     check(actual == GboardLongPressQuickActions1777Fingerprints.softKeyStock) {
         "Stock body drift in ${GboardVersionBindings.softKeyBind.reference}: $actual"
     }
     return stockEntryIndex
+}
+
+private fun MutableMethod.copyWithoutKnownSoftKeyAfterBindDelegates(): MutableMethod {
+    val stock = implementation ?: error("SoftKey bind target has no implementation")
+    val instructions = stock.instructions
+    val parameterRegisterCount = parameterTypes.sumOf { type ->
+        if (type == "J" || type == "D") 2 else 1
+    }
+    val p0 = stock.registerCount - parameterRegisterCount - 1
+    val delegateIndices = instructions.mapIndexedNotNull { index, instruction ->
+        val descriptor = (instruction as? ReferenceInstruction)?.reference?.toString()
+            ?: return@mapIndexedNotNull null
+        val expectedRegisters = KNOWN_SOFT_KEY_AFTER_BIND_DELEGATES[descriptor]
+            ?: return@mapIndexedNotNull null
+        val invoke = instruction as? FiveRegisterInstruction
+        val actualRegisters = listOfNotNull(
+            invoke?.registerC,
+            invoke?.registerD?.takeIf { invoke.registerCount >= 2 },
+        )
+        check(
+            instruction.opcode == Opcode.INVOKE_STATIC &&
+                invoke?.registerCount == expectedRegisters.size &&
+                actualRegisters == expectedRegisters.map(p0::plus),
+        ) {
+            "Malformed known SoftKey after-bind delegate $descriptor"
+        }
+        check(
+            instructions.drop(index + 1).firstOrNull { following ->
+                val followingDescriptor =
+                    (following as? ReferenceInstruction)?.reference?.toString()
+                followingDescriptor !in KNOWN_SOFT_KEY_AFTER_BIND_DELEGATES
+            }?.opcode in setOf(
+                Opcode.RETURN,
+                Opcode.RETURN_OBJECT,
+                Opcode.RETURN_VOID,
+                Opcode.RETURN_WIDE,
+            ),
+        ) {
+            "Known SoftKey after-bind delegate is not immediately before a return: $descriptor"
+        }
+        index
+    }
+    if (delegateIndices.isEmpty()) return this
+
+    val normalized = ImmutableMethod(
+        definingClass,
+        name,
+        parameters,
+        returnType,
+        accessFlags,
+        annotations,
+        hiddenApiRestrictions,
+        ImmutableMethodImplementation(
+            stock.registerCount,
+            stock.instructions,
+            stock.tryBlocks,
+            stock.debugItems,
+        ),
+    ).toMutable()
+    delegateIndices.asReversed().forEach { index ->
+        normalized.implementation!!.removeInstruction(index)
+    }
+    return normalized
 }
 
 private fun MutableMethod.requireValidLongPressSoftKeyDelegate(stockEntryIndex: Int) {

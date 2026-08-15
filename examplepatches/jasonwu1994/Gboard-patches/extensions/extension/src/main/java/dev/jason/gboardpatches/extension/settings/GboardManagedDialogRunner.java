@@ -14,13 +14,17 @@ final class GboardManagedDialogRunner {
         AtomicBoolean completed = new AtomicBoolean(false);
         Runnable completeOnce = () -> {
             if (completed.compareAndSet(false, true) && onDismissed != null) {
-                onDismissed.run();
+                try {
+                    onDismissed.run();
+                } catch (Throwable ignored) {
+                    // Asynchronous dialog lifecycle callbacks must not affect the host app.
+                }
             }
         };
-        if (onShown != null) {
-            onShown.run();
-        }
         try {
+            if (onShown != null) {
+                onShown.run();
+            }
             if (!action.show(completeOnce)) {
                 completeOnce.run();
             }

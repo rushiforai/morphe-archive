@@ -1,3 +1,23 @@
+## [2.10.0](https://github.com/jasonwu1994/Gboard-patches/compare/v2.9.0...v2.10.0) (2026-08-14)
+
+### ✨ New Features
+
+* **Gboard:** add the `G Logo on Spacebar` patch.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `G Logo on Spacebar` Patch。
+
+## [2.10.0-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v2.9.0...v2.10.0-dev.1) (2026-08-14)
+
+### ✨ New Features
+
+* **Gboard:** add the `G Logo on Spacebar` patch.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `G Logo on Spacebar` Patch。
+
 ## [2.9.0](https://github.com/jasonwu1994/Gboard-patches/compare/v2.8.0...v2.9.0) (2026-08-13)
 
 ### ✨ New Features

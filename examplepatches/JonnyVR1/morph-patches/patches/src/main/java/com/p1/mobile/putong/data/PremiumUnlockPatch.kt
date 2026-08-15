@@ -1959,7 +1959,7 @@ val premiumUnlockPatch = bytecodePatch(
             "leftSwipeLimit", "intlUltraPremium", "coreData", "mb90", "jh30",
             "businessEntranceAdapter", "pm6", "bhe0", "vqo", "re90", "i0p",
             "meetNewLikersData", "intlMeetNewLikersData", "intlMeetNewLikersAdapter",
-            "meetNewLikersAdapter", "ysa", "ae9"
+            "meetNewLikersAdapter", "ysa", "ae9", "c4m0"
         )
         for (key in premiumKeys) {
             resolver.getPremiumClass(key)?.let { resolved[key] = it }
@@ -2856,6 +2856,22 @@ val premiumUnlockPatch = bytecodePatch(
                     method.parameterTypes[0] == "Lcom/p1/mobile/putong/core/data/ProductCategory;" &&
                     method.returnType == "Z") {
                     method.addInstructions(0, RETURN_FALSE)
+                }
+            }
+        }
+
+        // ── 5. VIP roaming location UI gate (c4m0.n) ──────────────────────────
+        // Patch static method n(String, Act, String)Z to return TRUE (always allow roaming)
+        resolved["c4m0"]?.let { classDef ->
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                if (method.name == "n" && 
+                    AccessFlags.STATIC.isSet(method.accessFlags) &&
+                    method.returnType == "Z" &&
+                    method.parameterTypes.size == 3 &&
+                    method.parameterTypes[0] == "Ljava/lang/String;" &&
+                    method.parameterTypes[1] == "Lcom/p1/mobile/android/app/Act;" &&
+                    method.parameterTypes[2] == "Ljava/lang/String;") {
+                    method.addInstructions(0, RETURN_TRUE)
                 }
             }
         }

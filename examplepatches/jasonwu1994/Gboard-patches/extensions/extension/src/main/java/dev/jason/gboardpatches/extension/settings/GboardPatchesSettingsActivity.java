@@ -71,6 +71,7 @@ import java.util.concurrent.RejectedExecutionException;
 import dev.jason.gboardpatches.extension.R;
 import dev.jason.gboardpatches.extension.BuildConfig;
 import dev.jason.gboardpatches.extension.clipboard.GboardClipboardSettingsFeature;
+import dev.jason.gboardpatches.extension.settings.keyboardpreview.GboardKeyboardPreviewController;
 
 public final class GboardPatchesSettingsActivity extends Activity
         implements GboardPatchesSettingsContract.Host {
@@ -124,6 +125,7 @@ public final class GboardPatchesSettingsActivity extends Activity
     private LinearLayout panelContainer;
     private ScrollView contentScrollView;
     private LinearLayout contentColumn;
+    private GboardKeyboardPreviewController keyboardPreviewController;
     private List<GboardPatchesSettingsContract.Feature> features;
     private final GboardPatchesSettingsOrchestrator<GboardPatchesSettingsContract.Feature,
             GboardPatchesSettingsContract.Intent>
@@ -220,6 +222,7 @@ public final class GboardPatchesSettingsActivity extends Activity
         cancelDeferredRender();
         cancelOfflineSpeechLanguageQuery();
         unregisterBackCallback();
+        detachKeyboardPreviewSafely();
         screenBuildExecutor.shutdownNow();
         backgroundStateExecutor.shutdownNow();
         super.onDestroy();
@@ -1037,14 +1040,20 @@ public final class GboardPatchesSettingsActivity extends Activity
     }
 
     private View buildContentView() {
-        LinearLayout root = new LinearLayout(this);
-        root.setOrientation(LinearLayout.VERTICAL);
+        FrameLayout root = new FrameLayout(this);
         root.setBackgroundColor(palette.windowBackground);
         root.setLayoutParams(new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));
 
-        root.addView(buildToolbar());
+        LinearLayout shell = new LinearLayout(this);
+        shell.setOrientation(LinearLayout.VERTICAL);
+        shell.setLayoutParams(new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT));
+        root.addView(shell);
+
+        shell.addView(buildToolbar());
 
         contentScrollView = new ScrollView(this);
         contentScrollView.setClipToPadding(false);
@@ -1066,7 +1075,15 @@ public final class GboardPatchesSettingsActivity extends Activity
         contentColumn.addView(buildPanelCard());
 
         contentScrollView.addView(contentColumn);
-        root.addView(contentScrollView);
+        shell.addView(contentScrollView);
+        keyboardPreviewController = new GboardKeyboardPreviewController(
+                this,
+                this::targetSettingsPackages,
+                this::onManagedDialogShown,
+                this::onManagedDialogDismissed,
+                palette.accent,
+                palette.windowBackground);
+        keyboardPreviewController.attachTo(root);
         return root;
     }
 
@@ -1522,9 +1539,25 @@ public final class GboardPatchesSettingsActivity extends Activity
 
     private void installWindowInsetsHandling(View root) {
         root.setOnApplyWindowInsetsListener((view, insets) -> {
-            updateToolbarInsets(resolveTopInset(insets));
-            if (contentScrollView != null) {
-                contentScrollView.setPadding(0, 0, 0, resolveBottomInset(insets));
+            try {
+                updateToolbarInsets(resolveTopInset(insets));
+                int bottomInset = resolveBottomInset(insets);
+                if (contentScrollView != null) {
+                    int bottomPadding = keyboardPreviewController == null
+                            ? bottomInset
+                            : keyboardPreviewController.contentBottomPadding(bottomInset);
+                    contentScrollView.setPadding(0, 0, 0, bottomPadding);
+                }
+                if (keyboardPreviewController != null) {
+                    keyboardPreviewController.updateSafeAreaInsets(resolveRightInset(insets),
+                            bottomInset);
+                }
+            } catch (Throwable throwable) {
+                try {
+                    Log.w(TAG, "Failed to apply patches settings insets", throwable);
+                } catch (Throwable ignored) {
+                    // Insets are optional UI polish and must not affect the settings host.
+                }
             }
             return insets;
         });
@@ -1780,6 +1813,14 @@ public final class GboardPatchesSettingsActivity extends Activity
         return insets.getSystemWindowInsetBottom();
     }
 
+    private int resolveRightInset(WindowInsets insets) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            Insets systemBarsInsets = insets.getInsets(WindowInsets.Type.systemBars());
+            return systemBarsInsets.right;
+        }
+        return insets.getSystemWindowInsetRight();
+    }
+
     private void renderCurrentScreenSafely() {
         initializeFeaturesAndRenderSafely();
     }
@@ -1927,6 +1968,7 @@ public final class GboardPatchesSettingsActivity extends Activity
         settingsOrchestrator.accept(GboardPatchesSettingsOrchestrator.Event.fatal());
         cancelScheduledScreenRefresh();
         Log.e(TAG, reason, throwable);
+        detachKeyboardPreviewSafely();
         if (palette == null) {
             palette = Palette.forConfiguration(getResources().getConfiguration());
         }
@@ -1973,6 +2015,21 @@ public final class GboardPatchesSettingsActivity extends Activity
         root.addView(titleView);
         root.addView(summaryView, summaryParams);
         return root;
+    }
+
+    private void detachKeyboardPreviewSafely() {
+        GboardKeyboardPreviewController controller = keyboardPreviewController;
+        keyboardPreviewController = null;
+        if (controller == null) return;
+        try {
+            controller.detach();
+        } catch (Throwable throwable) {
+            try {
+                Log.w(TAG, "Failed to detach keyboard preview", throwable);
+            } catch (Throwable ignored) {
+                // Activity teardown must continue even if diagnostics fail.
+            }
+        }
     }
 
     private GboardPatchesSettingsContract.Screen buildRootScreen() {

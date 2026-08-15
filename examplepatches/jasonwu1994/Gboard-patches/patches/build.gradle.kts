@@ -70,7 +70,7 @@ sourceSets.test {
     runtimeClasspath += bindingCompilerSourceSet.output
 }
 
-val generatePatchBuildInfo by tasks.registering {
+val generatePatchBuildInfo = tasks.register("generatePatchBuildInfo") {
     val outputDir = generatedPatchInfoDir
     val patchVersion = project.version.toString()
 
@@ -93,7 +93,7 @@ val generatePatchBuildInfo by tasks.registering {
     }
 }
 
-val generatePreviewAssetsIndex by tasks.registering {
+val generatePreviewAssetsIndex = tasks.register("generatePreviewAssetsIndex") {
     val sourceDir = previewAssetsSourceDir
     val outputFile = generatedPreviewAssetsResourcesDir.map { directory ->
         directory.file("settings-previews/index.txt")
@@ -130,7 +130,9 @@ val generatePreviewAssetsIndex by tasks.registering {
     }
 }
 
-val generateGboardVersionBindings by tasks.registering(GenerateTargetBindingsTask::class) {
+val generateGboardVersionBindings = tasks.register<GenerateTargetBindingsTask>(
+    "generateGboardVersionBindings"
+) {
     val outputFile = generatedVersionBindingsDir.map { directory ->
         directory.file(
             "dev/jason/gboardpatches/patches/gboard/shared/generated/GboardVersionBindings.kt"

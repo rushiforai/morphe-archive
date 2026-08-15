@@ -1,3 +1,23 @@
+## [1.32.0-dev.1](https://github.com/BlazeFTL/FTL-Patches/compare/v1.31.0...v1.32.0-dev.1) (2026-08-14)
+
+### ✨ New Features
+
+* es ([c82f6fe](https://github.com/BlazeFTL/FTL-Patches/commit/c82f6fec95d7bf6bfb75c45d76ca2b7558b8d257))
+* update Es Des ([4a7022e](https://github.com/BlazeFTL/FTL-Patches/commit/4a7022e8253e0f91eebb653cb93e1d137236250a))
+
+## [1.31.0](https://github.com/BlazeFTL/FTL-Patches/compare/v1.30.0...v1.31.0) (2026-08-14)
+
+### ✨ New Features
+
+* Add Xender Splash Time Boost ([df92a4b](https://github.com/BlazeFTL/FTL-Patches/commit/df92a4b380753984909135831cf3f19ed862bfc6))
+* up ([25f8525](https://github.com/BlazeFTL/FTL-Patches/commit/25f8525f9c7079b22d2b486e346110b3c29d0fc8))
+
+## [1.31.0-dev.1](https://github.com/BlazeFTL/FTL-Patches/compare/v1.30.0...v1.31.0-dev.1) (2026-08-14)
+
+### ✨ New Features
+
+* Add Xender Splash Time Boost ([df92a4b](https://github.com/BlazeFTL/FTL-Patches/commit/df92a4b380753984909135831cf3f19ed862bfc6))
+
 ## [1.30.0](https://github.com/BlazeFTL/FTL-Patches/compare/v1.29.0...v1.30.0) (2026-08-13)
 
 ### ✨ New Features

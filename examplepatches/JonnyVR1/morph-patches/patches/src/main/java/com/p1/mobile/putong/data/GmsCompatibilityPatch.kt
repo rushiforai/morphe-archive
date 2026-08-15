@@ -118,6 +118,11 @@ private val RETURN_FALSE = """
     return v0
 """
 
+private val RETURN_NULL = """
+    const/4 v0, 0x0
+    return-object v0
+"""
+
 @Suppress("unused")
 @JvmField
 val gmsCompatibilityPatch = bytecodePatch(
@@ -193,6 +198,46 @@ val gmsCompatibilityPatch = bytecodePatch(
             mutableClassDefBy(classDef).methods
                 .filter { it.name == "hasGoogleMap" }
                 .forEach { it.addInstructions(0, RETURN_TRUE) }
+        }
+
+        // ── Block all GMS error resolution intents ──
+        // When GMS error codes (1/2/3) surface through connection failures, these methods create
+        // intents that open the microG-RE app settings page. Patching them to return null/void
+        // prevents the app from navigating away to microG-RE settings.
+        // This does NOT break Maps compatibility — Maps works via the isGooglePlayServicesAvailable
+        // patches (returning 0/SUCCESS) and signature spoofing, not through error resolution flows.
+
+        // GoogleApiAvailabilityLight: getErrorResolutionIntent() → null, getErrorResolutionPendingIntent() → null
+        classDefByOrNull("Lcom/google/android/gms/common/GoogleApiAvailabilityLight;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods
+                .filter { it.name == "getErrorResolutionIntent" && it.returnType == "Landroid/content/Intent;" }
+                .forEach { it.addInstructions(0, RETURN_NULL) }
+            mutableClassDefBy(classDef).methods
+                .filter { it.name == "getErrorResolutionPendingIntent" && it.returnType == "Landroid/app/PendingIntent;" }
+                .forEach { it.addInstructions(0, RETURN_NULL) }
+        }
+
+        // GoogleApiAvailability: getErrorResolutionIntent() → null, getErrorResolutionPendingIntent() → null, showErrorNotification() → void
+        classDefByOrNull("Lcom/google/android/gms/common/GoogleApiAvailability;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods
+                .filter { it.name == "getErrorResolutionIntent" && it.returnType == "Landroid/content/Intent;" }
+                .forEach { it.addInstructions(0, RETURN_NULL) }
+            mutableClassDefBy(classDef).methods
+                .filter { it.name == "getErrorResolutionPendingIntent" && it.returnType == "Landroid/app/PendingIntent;" }
+                .forEach { it.addInstructions(0, RETURN_NULL) }
+            mutableClassDefBy(classDef).methods
+                .filter { it.name == "showErrorNotification" && it.returnType == "V" }
+                .forEach { it.addInstructions(0, "return-void") }
+        }
+
+        // GooglePlayServicesUtilLight: getGooglePlayServicesAvailabilityRecoveryIntent() → null, getErrorPendingIntent() → null
+        classDefByOrNull("Lcom/google/android/gms/common/GooglePlayServicesUtilLight;")?.let { classDef ->
+            mutableClassDefBy(classDef).methods
+                .filter { it.name == "getGooglePlayServicesAvailabilityRecoveryIntent" && it.returnType == "Landroid/content/Intent;" }
+                .forEach { it.addInstructions(0, RETURN_NULL) }
+            mutableClassDefBy(classDef).methods
+                .filter { it.name == "getErrorPendingIntent" && it.returnType == "Landroid/app/PendingIntent;" }
+                .forEach { it.addInstructions(0, RETURN_NULL) }
         }
 
         // ── Broad GMS package rewriting, X-Android-Cert injection, and Google Sign-In/Facebook SDK ──

@@ -85,9 +85,9 @@ android {
     }
 
     sourceSets.named("main") {
-        java.srcDir(generatedQuickJsPayloadDir.get().asFile)
-        java.srcDir(generatedSettingsTextJavaDir.get().asFile)
-        res.srcDir(generatedSettingsTextResDir.get().asFile)
+        java.directories.add(generatedQuickJsPayloadDir.get().asFile.absolutePath)
+        java.directories.add(generatedSettingsTextJavaDir.get().asFile.absolutePath)
+        res.directories.add(generatedSettingsTextResDir.get().asFile.absolutePath)
     }
 }
 
@@ -96,7 +96,7 @@ dependencies {
     testImplementation("org.robolectric:robolectric:4.14.1")
 }
 
-val generateQuickJsNativePayload by tasks.registering {
+val generateQuickJsNativePayload = tasks.register("generateQuickJsNativePayload") {
     val payloadFile = quickJsPayloadSourceDir.file("libgboardpatches_quickjs.so")
     val outputFile = generatedQuickJsPayloadDir.map { directory ->
         directory.file(
@@ -172,7 +172,7 @@ $renderedChunks
     }
 }
 
-val generateSettingsText by tasks.registering {
+val generateSettingsText = tasks.register("generateSettingsText") {
     inputs.file(settingsTextAuthority)
     outputs.dir(generatedSettingsTextResDir)
     outputs.dir(generatedSettingsTextJavaDir)

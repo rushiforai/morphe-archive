@@ -131,3 +131,6 @@ node_modules/
 # Ignore IDEA files
 .idea/
 local.properties
+
+# Local reverse-engineering notes — never commit
+MYOADAPT.md

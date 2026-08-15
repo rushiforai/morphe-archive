@@ -1,3 +1,9 @@
+## [1.0.2](https://github.com/RoundSalmon4/morphe-patches-template/compare/v1.0.1...v1.0.2) (2026-08-14)
+
+### 🚀 Updated App Support
+
+* add SeriesGuide v2026.4.0 target ([360a5ff](https://github.com/RoundSalmon4/morphe-patches-template/commit/360a5ffb716779d00b7dc8138d8c607802e2defc))
+
 ## [1.0.1](https://github.com/RoundSalmon4/morphe-patches-template/compare/v1.0.0...v1.0.1) (2026-07-15)
 
 ### 🚀 Updated App Support

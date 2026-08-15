@@ -1,7 +1,7 @@
 # Morph - Tantan Android Patch Project
 
 ## Overview
-This repository contains patches and tools for the Tantan Android APK (international version, v7.3.3). The project includes 10 patchsets covering premium feature unlocking, privacy protection, analytics disabling, messaging enhancements, dialog cleanup, ad removal, root/emulator detection bypass, live streaming features, UI cleanup, and Google Maps compatibility.
+This repository contains patches and tools for the Tantan Android APK (international version, v7.3.3). The project includes 11 patchsets covering premium feature unlocking, privacy protection, analytics disabling, messaging enhancements, dialog cleanup, ad removal, root/emulator detection bypass, live streaming features, UI cleanup, Google Maps compatibility, and remote config overrides.
 
 **Target:** International version only. China-specific features (WeChat Pay, Alipay, QQ login, Huawei services) are dead code in the international APK and should NOT be patched.
 
@@ -205,6 +205,15 @@ Advanced privacy protections:
 - Package enumeration prevention (o0e - installed app list collection)
 
 ### Shared Constants (`Constants.kt`)
+
+### Remote Config Override (`RemoteConfigOverridePatch.kt`)
+Overrides remote configuration values for beneficial defaults:
+- `F()` (string getter): returns `{}` for `popup_schedule_config` (disables popup scheduling), returns `""` for `ttt_tab_bar_bottom_banner` (disables nav bar ads)
+- `s()` (boolean exists): returns false for `bad_token_exprie_control` (prevents aggressive token expiry)
+- `z()` (int with default): returns 9999 for `showQuickChatCardSwipedCount` (removes quick chat limit)
+- `B()` (long with default): returns 0L for `intl_text_buzz_auto_delete_interval` (disables text buzz auto-delete)
+
+### Shared Constants (`Constants.kt`)
 Shared constants: `TANTAN_PACKAGE_NAME`, `TANTAN_USER_CLASS`, `tantanCompatibility`.
 
 All tier overrides MUST use `isMe()` guards to ensure they only affect the current user, not other users' profiles.
@@ -295,6 +304,7 @@ Patches MUST survive obfuscation churn between app versions. **Never match obfus
 | LiveChatLimit | `fieldAccess(remaining)` + `fieldAccess(total)` |
 | ODiamondVisitorMessageGuideConfig | `fieldAccess(total_limit_daily)` + `fieldAccess(user_limit_daily)` |
 | PrologueConfig | `fieldAccess(enter_conv_limit)` + `fieldAccess(untalked_daily_show_count)` |
+| RemoteConfig | CamelCase stable (`com/p1/mobile/putong/remote_config/RemoteConfig`) — override `s()` (boolean), `y()`/`z()` (int), `A()`/`B()` (long), `F()` (string) for specific config keys |
 
 For groups of byte-identical overloaded methods (e.g. u59's U/S/O/F/Z/a0/D all return `!IntlCountryCodeController.k()`), fingerprint them as one cluster — they cannot be reliably separated.
 

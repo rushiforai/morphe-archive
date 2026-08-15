@@ -1,0 +1,47 @@
+{
+    "version": "v1.1.0-dev.1",
+    "patches": [
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "XAPK",
+                    "appIconColor": "#111111",
+                    "name": "MyoAdapt",
+                    "packageName": "com.myoadapt.app.android",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "1.5.1"
+                        }
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Unlocks all premium content and fixes logouts.",
+            "name": "Unlock Premium",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#1C1B33",
+                    "name": "Waking Up",
+                    "packageName": "org.wakingup.android",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "3.24.1"
+                        }
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Unlocks all premium content and removes subscription banners.",
+            "name": "Unlock Premium",
+            "options": []
+        }
+    ]
+}

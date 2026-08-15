@@ -46,7 +46,7 @@ class GboardSettingsHomepagePatchContractTest {
             it.get("name").asString == "Settings Homepage Override"
         }
 
-        assertEquals(30, patchesList.size)
+        assertEquals(31, patchesList.size)
         assertEquals(1, settings.size)
         assertEquals(true, settings.single().get("use").asBoolean)
         assertEquals(
@@ -72,7 +72,7 @@ class GboardSettingsHomepagePatchContractTest {
     }
 
     @Test
-    fun generatedPatchInventoryRemainsAtFiveFlagPortDigest() {
+    fun generatedPatchInventoryMatchesSpacebarLogoPortDigest() {
         val repository = repositoryRoot()
 
         assertEquals(
@@ -161,7 +161,7 @@ class GboardSettingsHomepagePatchContractTest {
         const val BINDINGS_PATH =
             "patches/src/main/resources/gboard/gboard-version-bindings.json"
         const val PATCH_INVENTORY_SHA256 =
-            "766BA069BA1AB02BF46741149A882DC19F13F433916C81AFE39D071F19FDD946"
+            "59CFBFCC16B841E6C46B72E903BD70338314E9704C6D180CA418B02EDD5CBFED"
         const val BINDINGS_SHA256 =
             "EA4D35FDC483DCA17E1461BA5C494EAA788CEE8028942E6722C7C02C48140BDC"
     }

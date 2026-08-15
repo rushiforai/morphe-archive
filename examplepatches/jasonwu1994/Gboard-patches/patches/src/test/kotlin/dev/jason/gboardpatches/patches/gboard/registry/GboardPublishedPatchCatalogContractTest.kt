@@ -14,8 +14,8 @@ class GboardPublishedPatchCatalogContractTest {
     fun catalogExposesEachPublishedMorpheRegistrationExactlyOnce() {
         val registrations = GboardPublishedPatchCatalog.morpheRegistrations
 
-        assertEquals(30, registrations.size)
-        assertEquals(30, registrations.map { patch -> patch.name }.distinct().size)
+        assertEquals(31, registrations.size)
+        assertEquals(31, registrations.map { patch -> patch.name }.distinct().size)
         assertSame(
             gboardInlineSuggestionsFlagPatch,
             registrations.single { patch -> patch.name == "Inline Suggestions" },

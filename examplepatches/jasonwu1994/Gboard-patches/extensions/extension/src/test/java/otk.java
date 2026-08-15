@@ -15,6 +15,10 @@ public final class otk {
         n = labels;
     }
 
+    public oud b() {
+        return d == null || d.length == 0 ? null : d[0];
+    }
+
     @Override
     public boolean equals(Object other) {
         if (this == other) {

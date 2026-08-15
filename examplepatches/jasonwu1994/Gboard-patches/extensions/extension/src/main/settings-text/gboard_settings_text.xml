@@ -44,6 +44,18 @@
         <translation locale="en">Close</translation>
         <translation locale="zh-Hant">關閉</translation>
     </string>
+    <string name="gboard_patches_keyboard_preview_action">
+        <translation locale="en">Open keyboard</translation>
+        <translation locale="zh-Hant">打開鍵盤</translation>
+    </string>
+    <string name="gboard_patches_keyboard_preview_title">
+        <translation locale="en">Gboard Patches</translation>
+        <translation locale="zh-Hant">Gboard Patches</translation>
+    </string>
+    <string name="gboard_patches_keyboard_preview_input_accessibility">
+        <translation locale="en">Keyboard test field</translation>
+        <translation locale="zh-Hant">鍵盤測試輸入框</translation>
+    </string>
     <string name="gboard_patches_dialog_error_positive">
         <translation locale="en">Enter a positive number.</translation>
         <translation locale="zh-Hant">請輸入正整數。</translation>
@@ -1953,5 +1965,113 @@
     <string name="gboard_patches_split_keyboard_preview_layout">
         <translation locale="en">Split keyboard layout</translation>
         <translation locale="zh-Hant">分離式鍵盤配置</translation>
+    </string>
+    <string name="gboard_patches_spacebar_logo_title">
+        <translation locale="en">G logo</translation>
+        <translation locale="zh-Hant">G logo</translation>
+    </string>
+    <string name="gboard_patches_spacebar_logo_summary">
+        <translation locale="en">Show an icon instead of the language name on the spacebar</translation>
+        <translation locale="zh-Hant">在空白鍵顯示圖示並隱藏語言名稱</translation>
+    </string>
+    <string name="gboard_patches_spacebar_logo_section_appearance">
+        <translation locale="en">Appearance</translation>
+        <translation locale="zh-Hant">外觀</translation>
+    </string>
+    <string name="gboard_patches_spacebar_logo_icon_title">
+        <translation locale="en">Spacebar icon</translation>
+        <translation locale="zh-Hant">空白鍵圖示</translation>
+    </string>
+    <string name="gboard_patches_spacebar_logo_icon_summary">
+        <translation locale="en">Choose the icon shown on the spacebar</translation>
+        <translation locale="zh-Hant">選擇空白鍵上顯示的圖示</translation>
+    </string>
+    <string name="gboard_patches_spacebar_logo_icon_dialog_title">
+        <translation locale="en">Spacebar icon</translation>
+        <translation locale="zh-Hant">空白鍵圖示</translation>
+    </string>
+    <string name="gboard_patches_spacebar_logo_icon_google_g">
+        <translation locale="en">Google G</translation>
+        <translation locale="zh-Hant">Google G</translation>
+    </string>
+    <string name="gboard_patches_spacebar_logo_icon_heart">
+        <translation locale="en">Heart</translation>
+        <translation locale="zh-Hant">愛心</translation>
+    </string>
+    <string name="gboard_patches_spacebar_logo_icon_emoji">
+        <translation locale="en">Emoji</translation>
+        <translation locale="zh-Hant">表情符號</translation>
+    </string>
+    <string name="gboard_patches_spacebar_logo_color_title">
+        <translation locale="en">Logo color</translation>
+        <translation locale="zh-Hant">Logo 顏色</translation>
+    </string>
+    <string name="gboard_patches_spacebar_logo_color_summary">
+        <translation locale="en">Use the original icon color or choose a fixed color</translation>
+        <translation locale="zh-Hant">使用圖示原色或選擇固定顏色</translation>
+    </string>
+    <string name="gboard_patches_spacebar_logo_color_dialog_title">
+        <translation locale="en">Logo color</translation>
+        <translation locale="zh-Hant">Logo 顏色</translation>
+    </string>
+    <string name="gboard_patches_spacebar_logo_color_automatic">
+        <translation locale="en">Automatic</translation>
+        <translation locale="zh-Hant">自動</translation>
+    </string>
+    <string name="gboard_patches_spacebar_logo_color_automatic_summary">
+        <translation locale="en">Original icon color</translation>
+        <translation locale="zh-Hant">圖示原色</translation>
+    </string>
+    <string name="gboard_patches_spacebar_logo_color_google_blue">
+        <translation locale="en">Google Blue</translation>
+        <translation locale="zh-Hant">Google 藍</translation>
+    </string>
+    <string name="gboard_patches_spacebar_logo_color_google_red">
+        <translation locale="en">Google Red</translation>
+        <translation locale="zh-Hant">Google 紅</translation>
+    </string>
+    <string name="gboard_patches_spacebar_logo_color_google_yellow">
+        <translation locale="en">Google Yellow</translation>
+        <translation locale="zh-Hant">Google 黃</translation>
+    </string>
+    <string name="gboard_patches_spacebar_logo_color_google_green">
+        <translation locale="en">Google Green</translation>
+        <translation locale="zh-Hant">Google 綠</translation>
+    </string>
+    <string name="gboard_patches_spacebar_logo_color_black">
+        <translation locale="en">Black</translation>
+        <translation locale="zh-Hant">黑色</translation>
+    </string>
+    <string name="gboard_patches_spacebar_logo_color_white">
+        <translation locale="en">White</translation>
+        <translation locale="zh-Hant">白色</translation>
+    </string>
+    <string name="gboard_patches_spacebar_logo_color_custom">
+        <translation locale="en">Custom</translation>
+        <translation locale="zh-Hant">自訂</translation>
+    </string>
+    <string name="gboard_patches_spacebar_logo_color_opacity">
+        <translation locale="en">Opacity</translation>
+        <translation locale="zh-Hant">不透明度</translation>
+    </string>
+    <string name="gboard_patches_spacebar_logo_color_code">
+        <translation locale="en">Color code</translation>
+        <translation locale="zh-Hant">色碼</translation>
+    </string>
+    <string name="gboard_patches_spacebar_logo_color_code_hint">
+        <translation locale="en">#RRGGBB or #AARRGGBB</translation>
+        <translation locale="zh-Hant">#RRGGBB 或 #AARRGGBB</translation>
+    </string>
+    <string name="gboard_patches_spacebar_logo_color_code_invalid">
+        <translation locale="en">Enter #RRGGBB or #AARRGGBB</translation>
+        <translation locale="zh-Hant">請輸入 #RRGGBB 或 #AARRGGBB</translation>
+    </string>
+    <string name="gboard_patches_spacebar_logo_error_title">
+        <translation locale="en">Spacebar Logo unavailable</translation>
+        <translation locale="zh-Hant">無法載入空白鍵 Logo</translation>
+    </string>
+    <string name="gboard_patches_spacebar_logo_error_summary">
+        <translation locale="en">The feature settings could not be loaded.</translation>
+        <translation locale="zh-Hant">目前無法載入這項功能的設定。</translation>
     </string>
 </settings-text>

@@ -53,6 +53,15 @@ public final class owd {
         return new owd(keyId, actions);
     }
 
+    public static owd actionWithKeyCode(int keyId, int keyCode) {
+        EnumMap<oth, otk> actions = new EnumMap<oth, otk>(oth.class);
+        actions.put(oth.PRESS, new otk(
+                oth.PRESS,
+                new oud[] {new oud(keyCode, null, null)},
+                new String[0]));
+        return new owd(keyId, actions);
+    }
+
     public static owd key(int keyId, String primaryLabel, String pressText,
             String[] longPressTokens, String nativeSlideUp, String nativeSlideDown) {
         EnumMap<oth, otk> actions = new EnumMap<oth, otk>(oth.class);

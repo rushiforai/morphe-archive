@@ -1,0 +1,10 @@
+The Yandex VoT add-on is an independent project derived from the prior work of:
+
+https://github.com/Jav1x
+https://github.com/anddea/revanced-patches/tree/84e91edb3d6afb3cbb058cb9dd56e375ac2bd62c
+
+The archived files preserved in this folder fulfill the requirement under GPLv3 Section 4
+to "preserve all source code notices" (specifically copyright notices, licensing text,
+disclaimers, changelogs, credits, and author attributions present in source code).
+
+No interactive (in‑app) notices were present in the original prior works.

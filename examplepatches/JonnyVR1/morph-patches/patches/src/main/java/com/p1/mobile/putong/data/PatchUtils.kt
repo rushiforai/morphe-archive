@@ -104,7 +104,7 @@ class UnifiedClassResolver(private val context: BytecodePatchContext) {
         premiumAnchorStrings
     
     fun resolve() {
-        val totalTargets = 10 + 12 + 6 + 53
+        val totalTargets = 10 + 12 + 6 + 54
         
         context.classDefForEach { classDef ->
             if (resolvedClasses.size >= totalTargets) return@classDefForEach
@@ -428,6 +428,23 @@ class UnifiedClassResolver(private val context: BytecodePatchContext) {
             "Lcom/p1/mobile/putong/ab/IntlCountryCodeController;.k" in foundMethods &&
             "Lcom/p1/mobile/putong/core/data/MembershipUpgradeInfo;" in foundFields) {
             resolvedClasses["ae9"] = classDef
+        }
+        
+        // c4m0: VIP roaming location UI gate - has static method n(String, Act, String)Z
+        // that checks PurchaseType.TYPE_ROAMING_PKG and references VipLocationHistoryAct
+        if ("c4m0" !in resolvedClasses && !isSettingsUi &&
+            "Lcom/p1/mobile/putong/core/data/PurchaseType;.TYPE_ROAMING_PKG" in foundFields &&
+            methodCallFull.any { it.contains("Lcom/p1/mobile/putong/core/ui/vip/VipLocationHistoryAct;") }) {
+            val hasStaticNMethod = classDef.methods.any { 
+                it.name == "n" && 
+                AccessFlags.STATIC.isSet(it.accessFlags) &&
+                it.returnType == "Z" &&
+                it.parameterTypes.size == 3 &&
+                it.parameterTypes[0] == "Ljava/lang/String;" &&
+                it.parameterTypes[1] == "Lcom/p1/mobile/android/app/Act;" &&
+                it.parameterTypes[2] == "Ljava/lang/String;"
+            }
+            if (hasStaticNMethod) resolvedClasses["c4m0"] = classDef
         }
     }
     

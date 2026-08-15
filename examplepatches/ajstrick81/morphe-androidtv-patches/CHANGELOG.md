@@ -1,3 +1,24 @@
+## [1.26.3](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.26.2...v1.26.3) (2026-08-14)
+
+
+### Bug Fixes
+
+* **primevideo:** stop native ad-strip causing the mid-roll/resume restart ([#14](https://github.com/ajstrick81/morphe-androidtv-patches/issues/14)) ([0e7a4fe](https://github.com/ajstrick81/morphe-androidtv-patches/commit/0e7a4fe5922065244f932665d15dadd96175d880))
+
+## [1.26.2](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.26.1...v1.26.2) (2026-08-14)
+
+
+### Bug Fixes
+
+* **twitchatv:** strip client-side ad-pod tags so the "Ad 1 of 3" break is gone ([9e77b17](https://github.com/ajstrick81/morphe-androidtv-patches/commit/9e77b17898766c0693aa8cc4ba926718211942e6)), closes [#EXT-X-DATERANGE](https://github.com/ajstrick81/morphe-androidtv-patches/issues/EXT-X-DATERANGE) [#EXT-X-DATERANGE](https://github.com/ajstrick81/morphe-androidtv-patches/issues/EXT-X-DATERANGE) [#75](https://github.com/ajstrick81/morphe-androidtv-patches/issues/75)
+
+## [1.26.1](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.26.0...v1.26.1) (2026-08-14)
+
+
+### Bug Fixes
+
+* **netflix:** re-anchor legacy ad-strip to _syncAdsLength (metadata.ads path) ([#105](https://github.com/ajstrick81/morphe-androidtv-patches/issues/105)) ([0bb8497](https://github.com/ajstrick81/morphe-androidtv-patches/commit/0bb84973dbd4813de0f81a80c40c9e11cd49eb9b))
+
 # [1.26.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.25.0...v1.26.0) (2026-08-14)
 
 

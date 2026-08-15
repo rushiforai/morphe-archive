@@ -11,6 +11,7 @@ import dev.jason.gboardpatches.extension.emojisize.GboardEmojiSizeSettingsFeatur
 import dev.jason.gboardpatches.extension.settings.GboardFeatureGroup;
 import dev.jason.gboardpatches.extension.settings.GboardPatchesSettingsContract;
 import dev.jason.gboardpatches.extension.settings.GboardSettingsText;
+import dev.jason.gboardpatches.extension.spacebarlogo.GboardSpacebarLogoSettingsFeature;
 import dev.jason.gboardpatches.extension.symbolfooter.GboardSymbolFooterOrderSettingsFeature;
 import dev.jason.gboardpatches.extension.splitkeyboard.GboardSplitKeyboardSettingsFeature;
 import dev.jason.gboardpatches.extension.zhuyinbottomrow.GboardZhuyinBottomRowWeightSettingsFeature;
@@ -33,6 +34,7 @@ public final class GboardKeyboardLayoutSettingsGroupFeature
                 GboardSettingsText.get(context,
                         R.string.gboard_patches_group_keyboard_empty_summary),
                 Arrays.asList(
+                        new GboardSpacebarLogoSettingsFeature(context),
                         new GboardLatinGlobeKeyIgnoreIntervalSettingsFeature(context),
                         new GboardEnglishUppercaseToggleSettingsFeature(context),
                         new GboardZhuyinBottomRowWeightSettingsFeature(context),

@@ -72,6 +72,8 @@ import dev.jason.gboardpatches.patches.gboard.features.signaturebypass.gboardSig
 import dev.jason.gboardpatches.patches.gboard.features.splitkeyboard.gboardSplitKeyboardFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.splitkeyboard.gboardSplitKeyboardAccessPointPatch
 import dev.jason.gboardpatches.patches.gboard.features.splitkeyboard.gboardSplitKeyboardModePatch
+import dev.jason.gboardpatches.patches.gboard.features.spacebarlogo.gboardSpacebarLogoFeatureMarkerPatch
+import dev.jason.gboardpatches.patches.gboard.features.spacebarlogo.gboardSpacebarLogoSoftKeyPatch
 import dev.jason.gboardpatches.patches.gboard.features.symbolfooter.gboardSymbolFooterOrderBytecodePatch
 import dev.jason.gboardpatches.patches.gboard.features.symbolfooter.gboardSymbolFooterOrderFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.toprowswipe.gboardTopRowSwipeFeatureMarkerPatch
@@ -144,6 +146,22 @@ val gboardLongPressQuickActionsPatch = resourcePatch(
         gboardLongPressQuickActionsSoftKeyPatch,
         gboardLongPressQuickActionsInputEventPatch,
         gboardLongPressQuickActionsPointerOwnerPatch,
+    )
+}
+
+@Suppress("unused")
+val gboardSpacebarLogoPatch = resourcePatch(
+    name = "G Logo on Spacebar",
+    description = "在空白鍵顯示 G Logo，並隱藏語言名稱\n" +
+        "Show the G Logo on the spacebar and hide the language label.",
+    default = true,
+) {
+    compatibleWith(COMPATIBILITY_GBOARD)
+
+    dependsOn(
+        gboardPatchesSettingsPatch,
+        gboardSpacebarLogoFeatureMarkerPatch,
+        gboardSpacebarLogoSoftKeyPatch,
     )
 }
 
@@ -589,6 +607,7 @@ object GboardPublishedPatchCatalog {
         gboardZhuyinSlideInputPatch,
         gboardEnglishQwertySlideUppercaseTogglePatch,
         gboardLongPressQuickActionsPatch,
+        gboardSpacebarLogoPatch,
         gboardManualIncognitoModePatch,
         gboardAdvancedVoiceTypingPatch,
         gboardBluetoothMicrophonePatch,
