@@ -39,6 +39,7 @@ PixelPusher247/morphe-patches
 PrathxmOp/Prathxm-Patches
 PrathxmOp/ytmusic-patches
 Quantro100/Morphe-patches
+RabehX/rabehx-patches
 RealCyberwash/max-patches
 Ripthulhu/morphe-google-patches
 RookieEnough/De-Vanced
@@ -49,6 +50,7 @@ TheRealCrazyfuy/abeja-morphe-patches
 Tornillo2/movistar-block-ads-morphe
 Trimpsuz/morphe-busuu
 Utsavrajputt/Modx-patches
+WZSE/aapam-patches
 WZSE/morphe-patches
 Xhehab/Xhehab-Patches
 Xisrr1/Revancify-Xisr

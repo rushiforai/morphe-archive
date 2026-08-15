@@ -619,14 +619,6 @@
                 "updatedAt": 1784836038279
             },
             {
-                "name": "npci-bhim-morphe-patches",
-                "source": "https://raw.githubusercontent.com/kun-codes/npci-bhim-morphe-patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 73,
-                "createdAt": 1784836038418,
-                "updatedAt": 1784836038418
-            },
-            {
                 "name": "youtube-domain-fronting-patch",
                 "source": "https://raw.githubusercontent.com/loskutov/youtube-domain-fronting-patch/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -1129,6 +1121,30 @@
                 "sortOrder": 140,
                 "createdAt": 1786586177230,
                 "updatedAt": 1786586177230
+            },
+            {
+                "name": "rabehx-patches",
+                "source": "https://raw.githubusercontent.com/RabehX/rabehx-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 141,
+                "createdAt": 1786756261453,
+                "updatedAt": 1786756261453
+            },
+            {
+                "name": "aapam-patches",
+                "source": "https://raw.githubusercontent.com/WZSE/aapam-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 142,
+                "createdAt": 1786756261910,
+                "updatedAt": 1786756261910
+            },
+            {
+                "name": "itsthejoker-patches",
+                "source": "https://raw.githubusercontent.com/itsthejoker/itsthejoker-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 143,
+                "createdAt": 1786756263632,
+                "updatedAt": 1786756263632
             }
         ]
     }
