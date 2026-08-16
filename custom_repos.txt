@@ -1,3 +1,4 @@
 # Add one "owner/repo" per line to always include these repos in repos.txt,
 # even if they're never found by the discovery scripts.
 # Lines starting with # are ignored.
+hxreborn/hxreborn-tiktok-patches
