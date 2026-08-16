@@ -112,6 +112,7 @@ hoo-dles/jadx-morphe
 hoo-dles/morphe-patches
 hu-liberator/patches
 humzakh/HK-Morphe-Patches
+hxreborn/hxreborn-tiktok-patches
 hxreborn/morphe-patches
 icysymmetra/tiktok-patches-for-morphe
 ilikeadofai/vocacolle-morphe-patches
