@@ -1075,14 +1075,6 @@
                 "updatedAt": 1786412608663
             },
             {
-                "name": "patch",
-                "source": "https://raw.githubusercontent.com/Nagol12344/patch/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 134,
-                "createdAt": 1786412608994,
-                "updatedAt": 1786412608994
-            },
-            {
                 "name": "tiaruebar-patches-vip-fix",
                 "source": "https://raw.githubusercontent.com/electiveDev/tiaruebar-patches-vip-fix/main/patches-bundle.json",
                 "autoUpdate": true,
