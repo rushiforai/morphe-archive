@@ -12,6 +12,7 @@ import java.util.Set;
 
 public final class GboardAdvancedVoice1777RuntimeSettingsTest {
     private static final String ENABLED_KEY = "pref_advanced_voice_typing_enabled";
+    private static final String BACKEND_KEY = "pref_advanced_voice_backend";
     private static final String ZH_TW_PUNCTUATION_KEY =
             "pref_advanced_voice_zh_tw_punctuation_enabled";
 
@@ -20,6 +21,7 @@ public final class GboardAdvancedVoice1777RuntimeSettingsTest {
         GboardAdvancedVoice1777RuntimeSettings.Snapshot nullSnapshot =
                 GboardAdvancedVoice1777RuntimeSettings.snapshotFromPreferences(null);
         Assert.assertFalse(nullSnapshot.enabled);
+        Assert.assertEquals(GboardVoiceInputMode.STANDARD, nullSnapshot.effectiveMode);
         Assert.assertFalse(nullSnapshot.zhTwPunctuationEnabled);
         Assert.assertFalse(nullSnapshot.isZhTwPunctuationInterventionEnabled());
 
@@ -27,6 +29,7 @@ public final class GboardAdvancedVoice1777RuntimeSettingsTest {
                 GboardAdvancedVoice1777RuntimeSettings.snapshotFromPreferences(
                         new TestSharedPreferences());
         Assert.assertFalse(emptySnapshot.enabled);
+        Assert.assertEquals(GboardVoiceInputMode.STANDARD, emptySnapshot.effectiveMode);
         Assert.assertFalse(emptySnapshot.zhTwPunctuationEnabled);
         Assert.assertFalse(emptySnapshot.isZhTwPunctuationInterventionEnabled());
     }
@@ -53,6 +56,40 @@ public final class GboardAdvancedVoice1777RuntimeSettingsTest {
     }
 
     @Test
+    public void backendSelectionProducesOneExclusiveEffectiveMode() {
+        Assert.assertEquals(GboardVoiceInputMode.STANDARD,
+                snapshot(false, true, GboardAdvancedVoiceSettings.BACKEND_RAMBLER)
+                        .effectiveMode);
+        Assert.assertEquals(GboardVoiceInputMode.ADVANCED,
+                snapshot(true, true, GboardAdvancedVoiceSettings.BACKEND_ADVANCED)
+                        .effectiveMode);
+        GboardAdvancedVoice1777RuntimeSettings.Snapshot rambler = snapshot(
+                true,
+                true,
+                GboardAdvancedVoiceSettings.BACKEND_RAMBLER);
+        Assert.assertEquals(GboardVoiceInputMode.RAMBLER, rambler.effectiveMode);
+        Assert.assertFalse(rambler.isZhTwPunctuationInterventionEnabled());
+    }
+
+    @Test
+    public void backendStoreSeedsAdvancedAndSanitizesUnknownValues() {
+        TestSharedPreferences preferences = new TestSharedPreferences();
+        GboardAdvancedVoiceSettings.ensureDefaults(preferences);
+        Assert.assertEquals(GboardAdvancedVoiceSettings.BACKEND_ADVANCED,
+                GboardAdvancedVoiceSettings.readBackend(preferences));
+
+        Assert.assertTrue(GboardAdvancedVoiceSettings.writeBackend(
+                preferences,
+                GboardAdvancedVoiceSettings.BACKEND_RAMBLER));
+        Assert.assertEquals(GboardAdvancedVoiceSettings.BACKEND_RAMBLER,
+                GboardAdvancedVoiceSettings.readBackend(preferences));
+
+        Assert.assertTrue(GboardAdvancedVoiceSettings.writeBackend(preferences, "invalid"));
+        Assert.assertEquals(GboardAdvancedVoiceSettings.BACKEND_ADVANCED,
+                GboardAdvancedVoiceSettings.readBackend(preferences));
+    }
+
+    @Test
     public void zhTwPunctuationInvalidValueFailsClosed() {
         TestSharedPreferences preferences = new TestSharedPreferences();
         preferences.values.put(ENABLED_KEY, Boolean.TRUE);
@@ -75,6 +112,11 @@ public final class GboardAdvancedVoice1777RuntimeSettingsTest {
             GboardAdvancedVoice1777RuntimeSettings.setEnabledOverrideForTest(true);
             Assert.assertTrue(GboardAdvancedVoice1777RuntimeSettings.isEnabled());
 
+            GboardAdvancedVoice1777RuntimeSettings.setBackendOverrideForTest(
+                    GboardAdvancedVoiceSettings.BACKEND_RAMBLER);
+            Assert.assertFalse(GboardAdvancedVoice1777RuntimeSettings.isEnabled());
+            Assert.assertTrue(GboardAdvancedVoice1777RuntimeSettings.isRamblerEnabled());
+
             GboardAdvancedVoice1777RuntimeSettings
                     .setZhTwPunctuationEnabledOverrideForTest(false);
             Assert.assertFalse(GboardAdvancedVoice1777RuntimeSettings
@@ -82,6 +124,11 @@ public final class GboardAdvancedVoice1777RuntimeSettingsTest {
 
             GboardAdvancedVoice1777RuntimeSettings
                     .setZhTwPunctuationEnabledOverrideForTest(true);
+            Assert.assertFalse(GboardAdvancedVoice1777RuntimeSettings
+                    .isZhTwPunctuationInterventionEnabled());
+
+            GboardAdvancedVoice1777RuntimeSettings.setBackendOverrideForTest(
+                    GboardAdvancedVoiceSettings.BACKEND_ADVANCED);
             Assert.assertTrue(GboardAdvancedVoice1777RuntimeSettings
                     .isZhTwPunctuationInterventionEnabled());
 
@@ -96,8 +143,19 @@ public final class GboardAdvancedVoice1777RuntimeSettingsTest {
     private static GboardAdvancedVoice1777RuntimeSettings.Snapshot snapshot(
             boolean enabled,
             boolean zhTwPunctuationEnabled) {
+        return snapshot(
+                enabled,
+                zhTwPunctuationEnabled,
+                GboardAdvancedVoiceSettings.BACKEND_ADVANCED);
+    }
+
+    private static GboardAdvancedVoice1777RuntimeSettings.Snapshot snapshot(
+            boolean enabled,
+            boolean zhTwPunctuationEnabled,
+            String backend) {
         TestSharedPreferences preferences = new TestSharedPreferences();
         preferences.values.put(ENABLED_KEY, Boolean.valueOf(enabled));
+        preferences.values.put(BACKEND_KEY, backend);
         preferences.values.put(
                 ZH_TW_PUNCTUATION_KEY,
                 Boolean.valueOf(zhTwPunctuationEnabled));
@@ -156,7 +214,75 @@ public final class GboardAdvancedVoice1777RuntimeSettingsTest {
 
         @Override
         public Editor edit() {
-            throw new UnsupportedOperationException();
+            return new Editor() {
+                private final Map<String, Object> pending = new HashMap<String, Object>();
+
+                @Override
+                public Editor putString(String key, String value) {
+                    pending.put(key, value);
+                    return this;
+                }
+
+                @Override
+                public Editor putStringSet(String key, Set<String> value) {
+                    pending.put(key, value);
+                    return this;
+                }
+
+                @Override
+                public Editor putInt(String key, int value) {
+                    pending.put(key, Integer.valueOf(value));
+                    return this;
+                }
+
+                @Override
+                public Editor putLong(String key, long value) {
+                    pending.put(key, Long.valueOf(value));
+                    return this;
+                }
+
+                @Override
+                public Editor putFloat(String key, float value) {
+                    pending.put(key, Float.valueOf(value));
+                    return this;
+                }
+
+                @Override
+                public Editor putBoolean(String key, boolean value) {
+                    pending.put(key, Boolean.valueOf(value));
+                    return this;
+                }
+
+                @Override
+                public Editor remove(String key) {
+                    pending.put(key, null);
+                    return this;
+                }
+
+                @Override
+                public Editor clear() {
+                    values.clear();
+                    pending.clear();
+                    return this;
+                }
+
+                @Override
+                public boolean commit() {
+                    apply();
+                    return true;
+                }
+
+                @Override
+                public void apply() {
+                    for (Map.Entry<String, Object> entry : pending.entrySet()) {
+                        if (entry.getValue() == null) {
+                            values.remove(entry.getKey());
+                        } else {
+                            values.put(entry.getKey(), entry.getValue());
+                        }
+                    }
+                }
+            };
         }
 
         @Override

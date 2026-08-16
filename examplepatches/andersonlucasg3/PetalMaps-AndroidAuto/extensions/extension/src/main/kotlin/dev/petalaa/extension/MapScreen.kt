@@ -1,6 +1,5 @@
 package dev.petalaa.extension
 
-import android.util.Log
 import androidx.car.app.CarContext
 import androidx.car.app.Screen
 import androidx.car.app.model.Action
@@ -27,16 +26,12 @@ class MapScreen(
     private val carDisplay: CarDisplay
 ) : Screen(carContext) {
 
-    companion object {
-        private const val TAG = "PetalAA"
-    }
-
     init {
-        Log.i(TAG, "MapScreen created")
+        AALogger.i("MapScreen created")
     }
 
     override fun onGetTemplate(): Template {
-        Log.i(TAG, "onGetTemplate")
+        AALogger.i("onGetTemplate")
 
         val zoomInAction = Action.Builder()
             .setTitle("+")

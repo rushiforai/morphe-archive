@@ -1,6 +1,5 @@
 package dev.petalaa.extension
 
-import android.util.Log
 import androidx.car.app.CarAppService
 import androidx.car.app.Session
 import androidx.car.app.validation.HostValidator
@@ -14,8 +13,10 @@ import androidx.car.app.validation.HostValidator
  */
 class PetalCarAppService : CarAppService() {
 
-    companion object {
-        private const val TAG = "PetalAA"
+    override fun onCreate() {
+        super.onCreate()
+        AALogger.init(this)
+        AALogger.installCrashHandler()
     }
 
     override fun createHostValidator(): HostValidator {
@@ -25,7 +26,7 @@ class PetalCarAppService : CarAppService() {
     }
 
     override fun onCreateSession(): Session {
-        Log.i(TAG, "onCreateSession: creating PetalSession")
+        AALogger.i("onCreateSession: creating PetalSession")
         return PetalSession()
     }
 }

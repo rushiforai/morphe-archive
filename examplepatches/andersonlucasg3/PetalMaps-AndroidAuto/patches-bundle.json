@@ -1,7 +1,7 @@
 {
-    "version": "1.1.10",
-    "created_at": "2026-08-07T22:50:53",
-    "description": "Fix car projection: create the VirtualDisplay from the SurfaceContainer dimensions/dpi (was using the phone's displayMetrics — could create an invalid display). Adds PetalAA log markers across the whole car flow (session, template, surface, display, launch, resize) and logs launch exceptions.\n\n- **Android Auto**: injects PetalCarAppService and projects the built-in HiCar automotive UI (AutoPetalMapsActivity) onto the head-unit surface via VirtualDisplay, with synthetic pan/zoom/recenter gestures.\n- **Anti-Repack Bypass**: neutralises the native SecurityDetect.irpj() integrity check that kills the process on re-signed APKs.\n- **Manufacturer Check Bypass**: removes the Huawei/Honor-only device gate.\n- **Change package name**: install alongside the original app (default: morphe.huawei.petal.maps).",
-    "download_url": "https://github.com/andersonlucasg3/PetalMaps-AndroidAuto/releases/download/v1.1.10/patches-1.1.10.mpp",
+    "version": "1.1.16",
+    "created_at": "2026-08-15T23:39:27",
+    "description": "Fix black screen on the car: launch the automotive activity via root 'am start --display <id>' (stock Android blocks launchDisplayId for regular apps). Shared RootShell helper (su --mount-master) between tweaker and CarDisplay; fallback to direct startActivity without root.\n\n- **Android Auto**: injects PetalCarAppService and projects the built-in HiCar automotive UI (AutoPetalMapsActivity) onto the head-unit surface via VirtualDisplay, with synthetic pan/zoom/recenter gestures.\n- **Anti-Repack Bypass**: neutralises the native SecurityDetect.irpj() integrity check that kills the process on re-signed APKs.\n- **Manufacturer Check Bypass**: removes the Huawei/Honor-only device gate.\n- **Change package name**: install alongside the original app (default: morphe.huawei.petal.maps).",
+    "download_url": "https://github.com/andersonlucasg3/PetalMaps-AndroidAuto/releases/download/v1.1.16/patches-1.1.16.mpp",
     "signature_download_url": ""
 }

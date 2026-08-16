@@ -95,6 +95,7 @@ val androidAutoManifestPatch = resourcePatch(
                 manifestRoot.insertBefore(permNode, applicationNode)
             }
 
+            addPermissionIfMissing("androidx.car.app.ACCESS_SURFACE")
             addPermissionIfMissing("androidx.car.app.NAVIGATION_TEMPLATES")
         }
     }

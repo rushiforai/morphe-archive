@@ -1662,6 +1662,30 @@
         <translation locale="en">When Advanced Voice Typing is active, a colorful microphone icon appears. Force-stop and restart Gboard for changes to take effect.</translation>
         <translation locale="zh-Hant">使用進階語音輸入功能時，畫面上會顯示彩色麥克風圖示，需要強制停止並重新啟動才會生效。</translation>
     </string>
+    <string name="gboard_patches_advanced_voice_backend_title">
+        <translation locale="en">Voice typing backend</translation>
+        <translation locale="zh-Hant">語音輸入後端</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_backend_summary">
+        <translation locale="en">Force-stop and restart Gboard after switching for changes to take effect</translation>
+        <translation locale="zh-Hant">切換後須強制停止並重新啟動 Gboard 才會生效</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_backend_dialog_title">
+        <translation locale="en">Choose voice typing backend</translation>
+        <translation locale="zh-Hant">選擇語音輸入後端</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_backend_advanced_label">
+        <translation locale="en">Advanced Voice Typing</translation>
+        <translation locale="zh-Hant">Advanced Voice Typing</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_backend_rambler_current_label">
+        <translation locale="en">Rambler (online only)</translation>
+        <translation locale="zh-Hant">Rambler(限線上)</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_backend_rambler_label">
+        <translation locale="en">Rambler (online only)</translation>
+        <translation locale="zh-Hant">Rambler(限線上)</translation>
+    </string>
     <string name="gboard_patches_advanced_voice_zh_tw_punctuation_title">
         <translation locale="en">Automatically Add Punctuation to Chinese Input</translation>
         <translation locale="zh-Hant">中文輸入自動添加標點符號</translation>

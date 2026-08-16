@@ -31,6 +31,11 @@
     "pointer_owner": {"kind": "method", "class_type": "Lpbl;", "method_name": "B", "parameter_types": ["Lcom/google/android/libraries/inputmethod/widgets/SoftKeyView;", "F", "F", "J", "I"], "return_type": "V", "confidence": 0.9},
     "pointer_owner_type": {"kind": "type", "source": {"binding": "pointer_owner", "component": "owner"}, "confidence": 1},
     "pointer_reset": {"kind": "method", "class_type": "Lpbl;", "method_name": "C", "parameter_types": [], "return_type": "V", "confidence": 0.9},
+    "rambler_nga_eligibility": {"kind": "method", "class_type": "Lhoa;", "method_name": "k", "parameter_types": ["Lhmc;"], "return_type": "Z", "confidence": 1},
+    "rambler_session_builder": {"kind": "method", "class_type": "Ljmy;", "method_name": "t", "parameter_types": ["Landroid/view/inputmethod/EditorInfo;", "Ljava/lang/Object;"], "return_type": "Ljpg;", "confidence": 1},
+    "rambler_stock_voice_handler": {"kind": "method", "class_type": "Ljmz;", "method_name": "f", "parameter_types": ["Lnbj;"], "return_type": "Z", "confidence": 1},
+    "rambler_switcher_fallback": {"kind": "method", "class_type": "Lhng;", "method_name": "k", "parameter_types": [], "return_type": "V", "confidence": 1},
+    "rambler_switcher_launch": {"kind": "method", "class_type": "Lhng;", "method_name": "f", "parameter_types": ["Lnbj;"], "return_type": "Z", "confidence": 1},
     "soft_key_bind": {"kind": "method", "class_type": "Lcom/google/android/libraries/inputmethod/widgets/SoftKeyView;", "method_name": "q", "parameter_types": ["Lowd;", "J"], "return_type": "Z", "confidence": 0.9},
     "soft_key_metadata_type": {"kind": "type", "source": {"binding": "soft_key_bind", "component": "parameter", "index": 0}, "confidence": 1}
   }

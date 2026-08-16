@@ -1,3 +1,29 @@
+## [1.33.0-dev.2](https://github.com/BlazeFTL/FTL-Patches/compare/v1.33.0-dev.1...v1.33.0-dev.2) (2026-08-15)
+
+### ✨ New Features
+
+* ads up 2 ([eb52cd0](https://github.com/BlazeFTL/FTL-Patches/commit/eb52cd03cb9200a765f0b733d505b8fb7def31f9))
+
+## [1.33.0-dev.1](https://github.com/BlazeFTL/FTL-Patches/compare/v1.32.0...v1.33.0-dev.1) (2026-08-15)
+
+### ✨ New Features
+
+* update ads ([e737935](https://github.com/BlazeFTL/FTL-Patches/commit/e737935f7e4cb07c61927f273b34dd3b9ed65fed))
+
+## [1.32.0](https://github.com/BlazeFTL/FTL-Patches/compare/v1.31.0...v1.32.0) (2026-08-15)
+
+### ✨ New Features
+
+* es ([c82f6fe](https://github.com/BlazeFTL/FTL-Patches/commit/c82f6fec95d7bf6bfb75c45d76ca2b7558b8d257))
+* make snaptube watch ad patch more robust ([0378fb2](https://github.com/BlazeFTL/FTL-Patches/commit/0378fb20f57b20e0b27280845ea2fd414fc025fd))
+* update Es Des ([4a7022e](https://github.com/BlazeFTL/FTL-Patches/commit/4a7022e8253e0f91eebb653cb93e1d137236250a))
+
+## [1.32.0-dev.2](https://github.com/BlazeFTL/FTL-Patches/compare/v1.32.0-dev.1...v1.32.0-dev.2) (2026-08-15)
+
+### ✨ New Features
+
+* make snaptube watch ad patch more robust ([0378fb2](https://github.com/BlazeFTL/FTL-Patches/commit/0378fb20f57b20e0b27280845ea2fd414fc025fd))
+
 ## [1.32.0-dev.1](https://github.com/BlazeFTL/FTL-Patches/compare/v1.31.0...v1.32.0-dev.1) (2026-08-14)
 
 ### ✨ New Features

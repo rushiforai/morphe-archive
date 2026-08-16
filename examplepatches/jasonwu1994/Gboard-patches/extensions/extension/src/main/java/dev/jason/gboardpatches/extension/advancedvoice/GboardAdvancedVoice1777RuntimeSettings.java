@@ -18,6 +18,7 @@ public final class GboardAdvancedVoice1777RuntimeSettings {
 
     private static volatile Snapshot cachedSnapshot;
     private static volatile Boolean enabledOverrideForTest;
+    private static volatile String backendOverrideForTest;
     private static volatile Boolean zhTwPunctuationEnabledOverrideForTest;
     private static volatile Context applicationContext;
 
@@ -25,31 +26,44 @@ public final class GboardAdvancedVoice1777RuntimeSettings {
     }
 
     public static boolean isEnabled() {
-        Boolean override = enabledOverrideForTest;
-        if (override != null) {
-            return override.booleanValue();
-        }
         try {
-            return snapshot().enabled;
+            return effectiveMode() == GboardVoiceInputMode.ADVANCED;
         } catch (Throwable ignored) {
             return false;
         }
     }
 
-    public static boolean isZhTwPunctuationInterventionEnabled() {
+    public static boolean isRamblerEnabled() {
         try {
-            Boolean enabledOverride = enabledOverrideForTest;
-            Boolean punctuationOverride = zhTwPunctuationEnabledOverrideForTest;
-            Snapshot current = enabledOverride == null || punctuationOverride == null
-                    ? snapshot()
-                    : null;
+            return effectiveMode() == GboardVoiceInputMode.RAMBLER;
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
+    public static GboardVoiceInputMode effectiveMode() {
+        Boolean enabledOverride = enabledOverrideForTest;
+        String backendOverride = backendOverrideForTest;
+        if (enabledOverride != null || backendOverride != null) {
             boolean enabled = enabledOverride != null
                     ? enabledOverride.booleanValue()
-                    : current.enabled;
+                    : GboardAdvancedVoiceSettings.DEFAULT_ENABLED;
+            String backend = backendOverride != null
+                    ? backendOverride
+                    : GboardAdvancedVoiceSettings.DEFAULT_BACKEND;
+            return GboardVoiceInputMode.resolve(enabled, backend);
+        }
+        return snapshot().effectiveMode;
+    }
+
+    public static boolean isZhTwPunctuationInterventionEnabled() {
+        try {
+            Boolean punctuationOverride = zhTwPunctuationEnabledOverrideForTest;
             boolean punctuationEnabled = punctuationOverride != null
                     ? punctuationOverride.booleanValue()
-                    : current.zhTwPunctuationEnabled;
-            return enabled && punctuationEnabled;
+                    : snapshot().zhTwPunctuationEnabled;
+            return effectiveMode() == GboardVoiceInputMode.ADVANCED
+                    && punctuationEnabled;
         } catch (Throwable ignored) {
             return false;
         }
@@ -78,6 +92,7 @@ public final class GboardAdvancedVoice1777RuntimeSettings {
         try {
             return new Snapshot(
                     GboardAdvancedVoiceSettings.readEnabled(preferences),
+                    GboardAdvancedVoiceSettings.readBackend(preferences),
                     GboardAdvancedVoiceSettings.readZhTwPunctuationEnabled(preferences),
                     "local");
         } catch (Throwable failure) {
@@ -94,8 +109,13 @@ public final class GboardAdvancedVoice1777RuntimeSettings {
         zhTwPunctuationEnabledOverrideForTest = Boolean.valueOf(enabled);
     }
 
+    public static void setBackendOverrideForTest(String backend) {
+        backendOverrideForTest = backend;
+    }
+
     public static void clearEnabledOverrideForTest() {
         enabledOverrideForTest = null;
+        backendOverrideForTest = null;
         zhTwPunctuationEnabledOverrideForTest = null;
         cachedSnapshot = null;
         applicationContext = null;
@@ -118,7 +138,11 @@ public final class GboardAdvancedVoice1777RuntimeSettings {
     }
 
     private static Snapshot defaultSnapshot(String source) {
-        return new Snapshot(false, false, source);
+        return new Snapshot(
+                GboardAdvancedVoiceSettings.DEFAULT_ENABLED,
+                GboardAdvancedVoiceSettings.DEFAULT_BACKEND,
+                GboardAdvancedVoiceSettings.DEFAULT_ZH_TW_PUNCTUATION_ENABLED,
+                source);
     }
 
     private static Context resolveContext() {
@@ -166,17 +190,24 @@ public final class GboardAdvancedVoice1777RuntimeSettings {
 
     static final class Snapshot {
         final boolean enabled;
+        final String backend;
+        final GboardVoiceInputMode effectiveMode;
         final boolean zhTwPunctuationEnabled;
         final String source;
 
-        Snapshot(boolean enabled, boolean zhTwPunctuationEnabled, String source) {
+        Snapshot(boolean enabled, String backend, boolean zhTwPunctuationEnabled,
+                String source) {
             this.enabled = enabled;
+            this.backend = backend == null
+                    ? GboardAdvancedVoiceSettings.DEFAULT_BACKEND : backend;
+            this.effectiveMode = GboardVoiceInputMode.resolve(enabled, this.backend);
             this.zhTwPunctuationEnabled = zhTwPunctuationEnabled;
             this.source = source == null ? "unknown" : source;
         }
 
         boolean isZhTwPunctuationInterventionEnabled() {
-            return enabled && zhTwPunctuationEnabled;
+            return effectiveMode == GboardVoiceInputMode.ADVANCED
+                    && zhTwPunctuationEnabled;
         }
     }
 }

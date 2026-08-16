@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-08-07T22:50:58",
-  "description": "Fix car projection: create the VirtualDisplay from the SurfaceContainer dimensions/dpi (was using the phone's displayMetrics \u2014 could create an invalid display). Adds PetalAA log markers across the whole car flow (session, template, surface, display, launch, resize) and logs launch exceptions.",
-  "download_url": "https://github.com/andersonlucasg3/PetalMaps-AndroidAuto/releases/download/v1.1.10/patches-1.1.10.mpp",
+  "created_at": "2026-08-15T23:39:33",
+  "description": "Fix black screen on the car: launch the automotive activity via root 'am start --display <id>' (stock Android blocks launchDisplayId for regular apps). Shared RootShell helper (su --mount-master) between tweaker and CarDisplay; fallback to direct startActivity without root.",
+  "download_url": "https://github.com/andersonlucasg3/PetalMaps-AndroidAuto/releases/download/v1.1.16/patches-1.1.16.mpp",
   "signature_download_url": "N/A",
-  "version": "v1.1.10"
+  "version": "v1.1.16"
 }

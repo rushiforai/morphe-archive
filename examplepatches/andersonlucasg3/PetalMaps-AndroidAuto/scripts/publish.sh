@@ -53,13 +53,15 @@ TAG="v$NEW"
 # buildAndroid must run LAST so classes.dex is added after the jar is final.
 # PatchListGenerator picks the FIRST .mpp found in build/libs/, so stale
 # bundles from previous versions must be removed first.
-# A clean build is required: incremental buildAndroid may skip dexing when
-# only the version changed, silently producing a bundle without classes.dex.
-echo "=== Step 2/7: Build patches (clean, generatePatchesList, then buildAndroid) ==="
+# generatePatchesList triggers 'build', whose jar task may re-run AFTER
+# buildAndroid (its .mpp output was modified externally = not up-to-date),
+# overwriting the bundle without classes.dex. The final buildAndroid must
+# therefore re-run forcibly so dexing happens after the last jar execution.
+echo "=== Step 2/7: Build patches (clean, generatePatchesList, then buildAndroid --rerun-tasks) ==="
 rm -f patches/build/libs/*.mpp
 ./gradlew :patches:clean --no-daemon
 ./gradlew :patches:generatePatchesList --no-daemon
-./gradlew :patches:buildAndroid --no-daemon
+./gradlew :patches:buildAndroid --rerun-tasks --no-daemon
 
 [ -f "$MPP" ] || fail "bundle not found: $MPP"
 

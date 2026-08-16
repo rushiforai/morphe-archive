@@ -21,6 +21,7 @@ import dev.jason.gboardpatches.extension.settings.GboardSettingsText;
 public final class GboardAdvancedVoiceSettingsFeature
         implements GboardPatchesSettingsContract.Feature {
     private static final String TAG = "GboardPatches";
+    private static final String VALUE_UNUSED = "__unused__";
     private static final String APKMIRROR_DOWNLOAD_URL =
             "https://www.apkmirror.com/apk/google-inc/gboard/gboard-the-google-keyboard-17-7-7-932364120-release/gboard-the-google-keyboard-17-7-7-932364120-release-arm64-v8a-android-apk-download/";
     private static final String ADVANCED_VOICE_GITHUB_URL =
@@ -34,6 +35,12 @@ public final class GboardAdvancedVoiceSettingsFeature
     private final String errorSummary;
     private final String enabledTitle;
     private final String enabledSummary;
+    private final String backendTitle;
+    private final String backendSummary;
+    private final String backendDialogTitle;
+    private final String ramblerCurrentLabel;
+    private final String[] backendLabels;
+    private final String[] backendValues;
     private final String zhTwPunctuationTitle;
     private final String zhTwPunctuationSummary;
     private final String sectionBehavior;
@@ -87,6 +94,24 @@ public final class GboardAdvancedVoiceSettingsFeature
                 R.string.gboard_patches_advanced_voice_enabled_title);
         enabledSummary = GboardSettingsText.get(context,
                 R.string.gboard_patches_advanced_voice_enabled_summary);
+        backendTitle = GboardSettingsText.get(context,
+                R.string.gboard_patches_advanced_voice_backend_title);
+        backendSummary = GboardSettingsText.get(context,
+                R.string.gboard_patches_advanced_voice_backend_summary);
+        backendDialogTitle = GboardSettingsText.get(context,
+                R.string.gboard_patches_advanced_voice_backend_dialog_title);
+        ramblerCurrentLabel = GboardSettingsText.get(context,
+                R.string.gboard_patches_advanced_voice_backend_rambler_current_label);
+        backendLabels = new String[] {
+                GboardSettingsText.get(context,
+                        R.string.gboard_patches_advanced_voice_backend_advanced_label),
+                GboardSettingsText.get(context,
+                        R.string.gboard_patches_advanced_voice_backend_rambler_label)
+        };
+        backendValues = new String[] {
+                GboardAdvancedVoiceSettings.BACKEND_ADVANCED,
+                GboardAdvancedVoiceSettings.BACKEND_RAMBLER
+        };
         zhTwPunctuationTitle = GboardSettingsText.get(context,
                 R.string.gboard_patches_advanced_voice_zh_tw_punctuation_title);
         zhTwPunctuationSummary = GboardSettingsText.get(context,
@@ -193,6 +218,7 @@ public final class GboardAdvancedVoiceSettingsFeature
             SharedPreferences preferences = GboardAdvancedVoiceSettings.preferences(context);
             GboardAdvancedVoiceSettings.ensureDefaults(preferences);
             boolean enabled = GboardAdvancedVoiceSettings.readEnabled(preferences);
+            String backend = GboardAdvancedVoiceSettings.readBackend(preferences);
             boolean zhTwPunctuationEnabled =
                     GboardAdvancedVoiceSettings.readZhTwPunctuationEnabled(preferences);
             GboardDictationPayloadDetector.Detection payloadDetection =
@@ -204,6 +230,7 @@ public final class GboardAdvancedVoiceSettingsFeature
             GboardPatchesSettingsContract.OfflineSpeechLanguages offlineSpeechLanguages =
                     host.getOfflineSpeechLanguages();
             Log.i(TAG, "Loaded Advanced Voice Typing enabled=" + enabled
+                    + ", backend=" + backend
                     + ", zhTwPunctuationEnabled=" + zhTwPunctuationEnabled
                     + ", payloadStatus=" + payloadDetection.getStatus()
                     + ", payloadPackage=" + payloadDetection.getPackageName()
@@ -220,21 +247,19 @@ public final class GboardAdvancedVoiceSettingsFeature
                     enabledSummary,
                     true,
                     enabled,
-                    value -> {
-                        GboardAdvancedVoiceSettings.writeEnabled(context, value);
-                        Log.i(TAG, "Saved Advanced Voice Typing enabled=" + value);
-                    }));
+                    value -> saveEnabled(host, context, value)));
+            behaviorRows.add(new GboardPatchesSettingsContract.SelectorRow(
+                    backendTitle,
+                    backendSummary,
+                    labelForBackend(backend),
+                    enabled,
+                    () -> showBackendDialog(host, preferences, backend)));
             behaviorRows.add(new GboardPatchesSettingsContract.ToggleRow(
                     zhTwPunctuationTitle,
                     zhTwPunctuationSummary,
-                    true,
+                    enabled && GboardAdvancedVoiceSettings.BACKEND_ADVANCED.equals(backend),
                     zhTwPunctuationEnabled,
-                    value -> {
-                        GboardAdvancedVoiceSettings.writeZhTwPunctuationEnabled(
-                                context,
-                                value);
-                        Log.i(TAG, "Saved zh-TW punctuation enabled=" + value);
-                    }));
+                    value -> saveZhTwPunctuationEnabled(context, value)));
 
             List<GboardPatchesSettingsContract.Row> informationRows =
                     new ArrayList<GboardPatchesSettingsContract.Row>();
@@ -322,6 +347,66 @@ public final class GboardAdvancedVoiceSettingsFeature
                 headerSummary,
                 statusBlocks,
                 Collections.emptyList());
+    }
+
+    private void showBackendDialog(GboardPatchesSettingsContract.FeatureHost host,
+            SharedPreferences preferences, String currentBackend) {
+        GboardPatchesSettingsContract.showChoiceDialog(
+                host,
+                backendDialogTitle,
+                backendLabels,
+                backendValues,
+                currentBackend,
+                VALUE_UNUSED,
+                () -> {
+                },
+                value -> saveBackend(host, preferences, value));
+    }
+
+    private void saveEnabled(GboardPatchesSettingsContract.FeatureHost host,
+            Context context, boolean enabled) {
+        try {
+            GboardAdvancedVoiceSettings.writeEnabled(context, enabled);
+            Log.i(TAG, "Saved Advanced Voice Typing enabled=" + enabled);
+        } catch (Throwable throwable) {
+            Log.w(TAG, "Failed to save enhanced voice typing state", throwable);
+        }
+        refreshSafely(host);
+    }
+
+    private void saveBackend(GboardPatchesSettingsContract.FeatureHost host,
+            SharedPreferences preferences, String backend) {
+        try {
+            GboardAdvancedVoiceSettings.writeBackend(preferences, backend);
+            Log.i(TAG, "Saved voice typing backend=" + backend);
+        } catch (Throwable throwable) {
+            Log.w(TAG, "Failed to save voice typing backend", throwable);
+        }
+        refreshSafely(host);
+    }
+
+    private void saveZhTwPunctuationEnabled(Context context, boolean enabled) {
+        try {
+            GboardAdvancedVoiceSettings.writeZhTwPunctuationEnabled(context, enabled);
+            Log.i(TAG, "Saved zh-TW punctuation enabled=" + enabled);
+        } catch (Throwable throwable) {
+            Log.w(TAG, "Failed to save zh-TW punctuation state", throwable);
+        }
+    }
+
+    private void refreshSafely(GboardPatchesSettingsContract.FeatureHost host) {
+        try {
+            GboardPatchesSettingsContract.refresh(host);
+        } catch (Throwable throwable) {
+            Log.w(TAG, "Failed to refresh Advanced Voice Typing settings", throwable);
+        }
+    }
+
+    private String labelForBackend(String backend) {
+        if (GboardAdvancedVoiceSettings.BACKEND_RAMBLER.equals(backend)) {
+            return ramblerCurrentLabel;
+        }
+        return backendLabels[0];
     }
 
     private PayloadGuidance buildPayloadGuidance(

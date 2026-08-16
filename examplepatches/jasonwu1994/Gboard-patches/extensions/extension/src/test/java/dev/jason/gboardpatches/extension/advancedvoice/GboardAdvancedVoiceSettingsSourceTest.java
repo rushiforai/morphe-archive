@@ -21,11 +21,21 @@ public final class GboardAdvancedVoiceSettingsSourceTest {
         String availability = read(root,
                 "extensions/extension/src/main/java/dev/jason/gboardpatches/extension/"
                         + "settings/GboardPatchesFeatureAvailability.java");
+        String settingsText = read(root,
+                "extensions/extension/src/main/settings-text/gboard_settings_text.xml");
 
         Assert.assertTrue(keyboardGroup.contains(
                 "new GboardAdvancedVoiceSettingsFeature(context)"));
         Assert.assertEquals(2, count(feature,
                 "new GboardPatchesSettingsContract.ToggleRow("));
+        Assert.assertEquals(1, count(feature,
+                "new GboardPatchesSettingsContract.SelectorRow("));
+        Assert.assertTrue(feature.contains("GboardAdvancedVoiceSettings.readBackend("));
+        Assert.assertTrue(feature.contains("showBackendDialog("));
+        Assert.assertTrue(feature.contains("saveBackend("));
+        Assert.assertTrue(feature.contains("refreshSafely("));
+        Assert.assertTrue(feature.contains(
+                "enabled && GboardAdvancedVoiceSettings.BACKEND_ADVANCED.equals(backend)"));
         Assert.assertTrue(feature.contains(
                 "new GboardPatchesSettingsContract.DetailRow("));
         Assert.assertTrue(feature.contains(
@@ -58,6 +68,10 @@ public final class GboardAdvancedVoiceSettingsSourceTest {
         Assert.assertTrue(availability.contains("FEATURE_ADVANCED_VOICE_TYPING"));
         Assert.assertTrue(availability.contains(
                 "dev.jason.gboardpatches.feature.advanced_voice_typing"));
+        Assert.assertTrue(settingsText.contains("Rambler(限線上)"));
+        Assert.assertTrue(settingsText.contains(
+                "切換後須強制停止並重新啟動 Gboard 才會生效"));
+        Assert.assertFalse(settingsText.contains("Experimental Rambler"));
 
     }
 

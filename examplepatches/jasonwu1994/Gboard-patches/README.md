@@ -11,6 +11,10 @@
   <a href="https://github.com/jasonwu1994/Gboard-patches"><img alt="GitHub stars" src="https://img.shields.io/github/stars/jasonwu1994/Gboard-patches?style=social"></a>
 </p>
 
+<p align="center">
+  <a href="https://ko-fi.com/jasonwu1994"><img height="40" alt="Buy me a coffee on Ko-fi" src="https://storage.ko-fi.com/cdn/kofi5.png?v=3"></a>
+</p>
+
 ## Overview
 
 Gboard Patches is a public Morphe source for a curated set of Gboard enhancements, including both global usability improvements and Taiwan-focused features for local input habits and day-to-day use.
@@ -144,6 +148,12 @@ Customize the bottom tab order in Gboard's Emojis, stickers & GIFs panel with dr
   <summary><code>Enable cursor trackpad mode</code></summary>
 
   Enables the long-press-spacebar trackpad, cursor lock mode, and the required scrub-move preference.
+</details>
+
+<details>
+  <summary><code>G Logo on Spacebar</code></summary>
+
+  Show the G Logo on the spacebar and hide the language label.
 </details>
 
 <details>

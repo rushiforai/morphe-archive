@@ -65,6 +65,7 @@ import dev.jason.gboardpatches.patches.gboard.features.manualincognito.gboardMan
 import dev.jason.gboardpatches.patches.gboard.features.ocr.gboardOcrFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.ocr.gboardOcrFlagValuePatch
 import dev.jason.gboardpatches.patches.gboard.features.ocr.gboardOcrRuntimePatch
+import dev.jason.gboardpatches.patches.gboard.features.rambler.gboardRambler1777RoutePatch
 import dev.jason.gboardpatches.patches.gboard.features.packagerename.gboardPackageRenameResourcePatch
 import dev.jason.gboardpatches.patches.gboard.features.settingshomepage.gboardSettingsHomepageBytecodePatch
 import dev.jason.gboardpatches.patches.gboard.features.settingshomepage.gboardSettingsHomepageFeatureMarkerPatch
@@ -202,6 +203,7 @@ val gboardAdvancedVoiceTypingPatch = resourcePatch(
         gboardAdvancedVoiceMddProvisioningPatch,
         gboardAdvancedVoiceFormatterPatch,
         gboardAdvancedVoiceS3AirplanePatch,
+        gboardRambler1777RoutePatch,
     )
 }
 

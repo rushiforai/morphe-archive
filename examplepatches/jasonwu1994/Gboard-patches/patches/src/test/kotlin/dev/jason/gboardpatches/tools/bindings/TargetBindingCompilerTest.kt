@@ -113,7 +113,7 @@ internal object GboardVersionBindings {
 
     private companion object {
         const val AUTHORITATIVE_SOURCE_SHA256 =
-            "1fae018db1f194f479b87fff4cc76dc75928506f3528a6f9e192dbc4fab8cbad"
+            "719f5ab815fb71de2116821ca773588ffed31f6aceab4b64368939b5207565ae"
         val REQUIRED_BINDINGS = setOf(
             "advanced_voice_asr_session_reset",
             "advanced_voice_formatter_constructor",
@@ -121,6 +121,11 @@ internal object GboardVersionBindings {
             "advanced_voice_mdd_provider_constructor",
             "advanced_voice_native_readiness",
             "advanced_voice_s3_network_availability",
+            "rambler_nga_eligibility",
+            "rambler_session_builder",
+            "rambler_stock_voice_handler",
+            "rambler_switcher_fallback",
+            "rambler_switcher_launch",
             "ai_writing_tools_ambiguity_constructor",
             "ai_writing_tools_classification_run",
             "ai_writing_tools_classifier_init",

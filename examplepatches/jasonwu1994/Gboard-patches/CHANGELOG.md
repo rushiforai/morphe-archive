@@ -1,3 +1,23 @@
+## [2.11.0](https://github.com/jasonwu1994/Gboard-patches/compare/v2.10.0...v2.11.0) (2026-08-15)
+
+### ✨ New Features
+
+* **Gboard:** nothing was added.
+
+### ✨ 新功能
+
+* **Gboard:** 什麼都沒有添加。
+
+## [2.11.0-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v2.10.0...v2.11.0-dev.1) (2026-08-14)
+
+### ✨ New Features
+
+* **Gboard:** nothing was added.
+
+### ✨ 新功能
+
+* **Gboard:** 什麼都沒有添加。
+
 ## [2.10.0](https://github.com/jasonwu1994/Gboard-patches/compare/v2.9.0...v2.10.0) (2026-08-14)
 
 ### ✨ New Features

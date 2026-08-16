@@ -1,5 +1,5 @@
 {
-    "version": "v1.31.0",
+    "version": "v1.33.0-dev.2",
     "patches": [
         {
             "compatiblePackages": null,
@@ -128,8 +128,8 @@
             ],
             "default": false,
             "dependencies": [],
-            "description": "Removes selected ES File Explorer home tiles, menu actions, navigation header, media handler, and web-search entry.",
-            "name": "ES File Explorer Cleanup",
+            "description": "Removes BookMark, New Files, Cleaner Row In HomePage, Cleans More menu actions",
+            "name": "ES File Explorer Ui Cleanup",
             "options": []
         },
         {
@@ -217,16 +217,6 @@
             "dependencies": [],
             "description": "Compresses PNG images without losing quality and strips hidden metadata (DPI, timestamps, text) to make the app smaller. Only rewrites files when the result is actually smaller.",
             "name": "Png Optimizer",
-            "options": []
-        },
-        {
-            "compatiblePackages": null,
-            "default": false,
-            "dependencies": [
-                "ResourcePatch"
-            ],
-            "description": "Disables ad SDKs, ruins ad network request URLs, and hides empty ad containers across the app.",
-            "name": "Remove Ads",
             "options": []
         },
         {
@@ -353,6 +343,14 @@
             "dependencies": [],
             "description": "Enters the main activity directly after the splash permission check instead of delaying for the additional external-storage check.",
             "name": "Speed up splash screen",
+            "options": []
+        },
+        {
+            "compatiblePackages": null,
+            "default": false,
+            "dependencies": [],
+            "description": "Stubs known ad SDK entry points and poisons ad-network URL strings across the whole app.",
+            "name": "Universal Remove Ads",
             "options": []
         }
     ]
