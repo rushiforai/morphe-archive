@@ -4,7 +4,6 @@ import android.content.Intent
 import android.graphics.Rect
 import android.os.Handler
 import android.os.Looper
-import android.view.Surface
 import androidx.car.app.AppManager
 import androidx.car.app.Screen
 import androidx.car.app.Session
@@ -17,8 +16,9 @@ import kotlin.math.abs
  * the [SurfaceCallback] lifecycle.
  *
  * The [SurfaceCallback] is registered with [AppManager] once per session
- * and survives screen transitions. It creates a [VirtualDisplay] on the
- * host-provided surface and projects `PetalMapsActivity` onto it.
+ * and survives screen transitions. It hands the host-provided surface to
+ * [CarDisplay], which projects `PetalMapsActivity` onto a decoupled
+ * VirtualDisplay and draws the captured frames onto the car surface.
  *
  * ## Resize handling
  *
@@ -184,9 +184,10 @@ class PetalSession : Session() {
                     AALogger.w("Cannot recreate VirtualDisplay at ${width}x${height}: no surface container")
                     return
                 }
-                val surface: Surface = container.surface ?: return
+                // The display renders onto its own ImageReader-backed
+                // surface; the car surface is already held by CarDisplay.
                 // Use the container's own dpi (not carContext phone metrics).
-                carDisplay.create(surface, width, height, container.dpi)
+                carDisplay.create(width, height, container.dpi)
             }
         }
     }

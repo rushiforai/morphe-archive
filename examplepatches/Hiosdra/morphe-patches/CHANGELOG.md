@@ -1,3 +1,9 @@
+## [1.3.1](https://github.com/Hiosdra/morphe-patches/compare/v1.3.0...v1.3.1) (2026-08-17)
+
+### 🐛 Bug Fixes
+
+* remove compile-only example patch ([0a7d7b3](https://github.com/Hiosdra/morphe-patches/commit/0a7d7b3c6f828cf4fe2f533df0cc2754028228df))
+
 ## [1.3.0](https://github.com/Hiosdra/morphe-patches/compare/v1.2.2...v1.3.0) (2026-07-27)
 
 ### ✨ New Features

@@ -2503,6 +2503,71 @@ If you know of another working ReVanced or Morphe patch repository that is not l
 **Dev:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/rabehx-patch-bundles/rabehx-dev-patches-bundle.json```
 </details>
 
+---
+### 📦 Tiaruebar1024-Patches-Bundle [Morphe]:
+[🧩 Tiaruebar1024 Bundle Patch List](https://github.com/Jman-Github/ReVanced-Patch-Bundles/blob/bundles/patch-bundles/PATCH-LIST-CATALOG.md#-tiaruebar1024-bundle-patch-list)
+<details>
+<summary><i>Expand For Links</i></summary>
+
+**Latest:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/tiaruebar1024-patch-bundles/tiaruebar1024-latest-patches-bundle.json```
+
+**Stable:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/tiaruebar1024-patch-bundles/tiaruebar1024-stable-patches-bundle.json```
+
+**Dev:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/tiaruebar1024-patch-bundles/tiaruebar1024-dev-patches-bundle.json```
+</details>
+
+---
+### 📦 Slight-Patches-Bundle [Morphe]:
+[🧩 Slight Bundle Patch List](https://github.com/Jman-Github/ReVanced-Patch-Bundles/blob/bundles/patch-bundles/PATCH-LIST-CATALOG.md#-slight-bundle-patch-list)
+<details>
+<summary><i>Expand For Links</i></summary>
+
+**Latest:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/slight-patch-bundles/slight-latest-patches-bundle.json```
+
+**Stable:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/slight-patch-bundles/slight-stable-patches-bundle.json```
+
+**Dev:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/slight-patch-bundles/slight-dev-patches-bundle.json```
+</details>
+
+---
+### 📦 Riky-Patches-Bundle [Morphe]:
+[🧩 Riky Bundle Patch List](https://github.com/Jman-Github/ReVanced-Patch-Bundles/blob/bundles/patch-bundles/PATCH-LIST-CATALOG.md#-riky-bundle-patch-list)
+<details>
+<summary><i>Expand For Links</i></summary>
+
+**Latest:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/riky-patch-bundles/riky-latest-patches-bundle.json```
+
+**Stable:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/riky-patch-bundles/riky-stable-patches-bundle.json```
+
+**Dev:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/riky-patch-bundles/riky-dev-patches-bundle.json```
+</details>
+
+---
+### 📦 iPusnas-Patches-Bundle [Morphe]:
+[🧩 iPusnas Bundle Patch List](https://github.com/Jman-Github/ReVanced-Patch-Bundles/blob/bundles/patch-bundles/PATCH-LIST-CATALOG.md#-ipusnas-bundle-patch-list)
+<details>
+<summary><i>Expand For Links</i></summary>
+
+**Latest:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/ipusnas-patch-bundles/ipusnas-latest-patches-bundle.json```
+
+**Stable:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/ipusnas-patch-bundles/ipusnas-stable-patches-bundle.json```
+
+**Dev:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/ipusnas-patch-bundles/ipusnas-dev-patches-bundle.json```
+</details>
+
+---
+### 📦 HXReborn-TikTok-Patches-Bundle [Morphe]:
+[🧩 HXReborn-TikTok Bundle Patch List](https://github.com/Jman-Github/ReVanced-Patch-Bundles/blob/bundles/patch-bundles/PATCH-LIST-CATALOG.md#-hxreborn-tiktok-bundle-patch-list)
+<details>
+<summary><i>Expand For Links</i></summary>
+
+**Latest:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/hxreborn-tiktok-patch-bundles/hxreborn-tiktok-latest-patches-bundle.json```
+
+**Stable:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/hxreborn-tiktok-patch-bundles/hxreborn-tiktok-stable-patches-bundle.json```
+
+**Dev:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/hxreborn-tiktok-patch-bundles/hxreborn-tiktok-dev-patches-bundle.json```
+</details>
+
 ## 📱 Compatible Managers
 
 | Manager | Best For | Source | Downloads |
@@ -2898,6 +2963,16 @@ If you know of another working ReVanced or Morphe patch repository that is not l
 
 #### 🩹 [RabehX-Patches-Bundle](https://github.com/RabehX/rabehx-patches)
 
+#### 🩹 [Tiaruebar1024-Patches-Bundle](https://github.com/tiaruebar1024/tiaruebar-patches)
+
+#### 🩹 [Slight-Patches-Bundle](https://github.com/HSlightsteel/slight-patches)
+
+#### 🩹 [Riky-Patches-Bundle](https://github.com/riky-dev/morphe-patches)
+
+#### 🩹 [iPusnas-Patches-Bundle](https://github.com/kuchingneko28/ipusnas-patches)
+
+#### 🩹 [HXReborn-TikTok-Patches-Bundle](https://github.com/hxreborn/hxreborn-tiktok-patches)
+
 ## 🖇 Integrations Repositories In Use
 
 > [!NOTE]
@@ -2950,5 +3025,10 @@ Implemented a patch serializer for all `.rvp` (API v4) patch bundles in this
 
 ## ⭐ Star History
 
-[![Star History Chart](https://star-history.dera.page/svg?repos=Jman-Github/Revanced-Patch-Bundlestype=date&legend=top-left)](https://star-history.dera.page/#Jman-Github/Revanced-Patch-Bundles&type=date&legend=top-left)
-
+<a href="https://star-history.dera.page/#Jman-Github/Revanced-Patch-Bundles">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://star-history.dera.page/svg?repos=Jman-Github/Revanced-Patch-Bundles&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://star-history.dera.page/svg?repos=Jman-Github/Revanced-Patch-Bundles" />
+   <img alt="Star History Chart" src="https://star-history.dera.page/svg?repos=Jman-Github/Revanced-Patch-Bundles" />
+ </picture>
+</a>

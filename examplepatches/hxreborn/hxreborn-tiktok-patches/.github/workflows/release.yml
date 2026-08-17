@@ -1,0 +1,73 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    name: Release
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+      attestations: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Cache Gradle
+        uses: burrunan/gradle-cache-action@v3
+
+      - name: Build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:buildAndroid generatePatchesList clean
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Release
+        uses: cycjimmy/semantic-release-action@v5
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Rewrite release notes with author attribution
+        if: steps.release.outputs.new_release_published == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          tag='${{ steps.release.outputs.new_release_git_tag }}'
+          prev=$(git describe --tags --abbrev=0 --exclude='*-*' "$tag^")
+          npx git-cliff --config .github/cliff.toml "$prev..$tag" --ignore-tags '.*-.*' --strip all > /tmp/notes.md
+          if ! grep -q '^- ' /tmp/notes.md; then
+            echo "::error::Release notes for $tag are empty (range $prev..$tag)."
+            exit 1
+          fi
+          gh release edit "$tag" --notes-file /tmp/notes.md
+
+      - name: Attest
+        if: steps.release.outputs.new_release_published == 'true'
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-name: 'Morphe Patches ${{ steps.release.outputs.new_release_git_tag }}'
+          subject-path: patches/build/libs/patches-*.mpp

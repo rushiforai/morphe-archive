@@ -95,4 +95,60 @@ object RootShell {
             Triple(-1, "", t.message ?: "")
         }
     }
+
+    /**
+     * Runs [command] through `su -c` and returns stdout as **raw bytes**.
+     * Use for binary output (`screencap` raw frames) — the string-based
+     * [run] would corrupt binary data. stderr is drained on a separate
+     * thread to avoid deadlock. Returns `null` on any error, non-zero exit
+     * code, or timeout. Never throws.
+     */
+    @JvmStatic
+    fun runBytes(command: String, timeoutSec: Int = 15): ByteArray? {
+        return try {
+            val process = ProcessBuilder(*suArgs.toTypedArray(), command).start()
+            var out: ByteArray? = null
+            val outThread = Thread {
+                try {
+                    out = process.inputStream.readBytes()
+                } catch (_: Throwable) {
+                    // best-effort — binary stdout is the caller's concern
+                }
+            }.apply { isDaemon = true; start() }
+            val errThread = Thread {
+                try {
+                    process.errorStream.readBytes()
+                } catch (_: Throwable) {
+                    // stderr is drained only to avoid deadlock
+                }
+            }.apply { isDaemon = true; start() }
+            val deadlineMs = System.currentTimeMillis() + timeoutSec * 1000L
+            var exitCode: Int? = null
+            while (System.currentTimeMillis() < deadlineMs) {
+                try {
+                    exitCode = process.exitValue()
+                    break
+                } catch (_: IllegalThreadStateException) {
+                    Thread.sleep(50)
+                }
+            }
+            outThread.join(1000)
+            errThread.join(1000)
+            when {
+                exitCode == null -> {
+                    process.destroy()
+                    AALogger.w("RootShell: runBytes timed out after ${timeoutSec}s: $command")
+                    null
+                }
+                exitCode != 0 -> {
+                    AALogger.w("RootShell: runBytes exit=$exitCode for: $command")
+                    null
+                }
+                else -> out
+            }
+        } catch (t: Throwable) {
+            AALogger.e("RootShell: runBytes failed for: $command", t)
+            null
+        }
+    }
 }
