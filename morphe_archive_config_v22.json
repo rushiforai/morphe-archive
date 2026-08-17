@@ -1129,14 +1129,6 @@
                 "sortOrder": 142,
                 "createdAt": 1786756261910,
                 "updatedAt": 1786756261910
-            },
-            {
-                "name": "itsthejoker-patches",
-                "source": "https://raw.githubusercontent.com/itsthejoker/itsthejoker-patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 143,
-                "createdAt": 1786756263632,
-                "updatedAt": 1786756263632
             }
         ]
     }

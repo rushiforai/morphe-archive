@@ -1,20 +1,20 @@
 {
-  "generatedAt": "2026-08-16 01:16 UTC",
-  "configFile": "morphe_archive_config_v21.json",
-  "configVersion": 21,
-  "repoCount": 136,
-  "appCount": 656,
-  "patchCount": 2530,
+  "generatedAt": "2026-08-17 01:22 UTC",
+  "configFile": "morphe_archive_config_v22.json",
+  "configVersion": 22,
+  "repoCount": 135,
+  "appCount": 662,
+  "patchCount": 2540,
   "universalPatchCount": 188,
   "hostCounts": {
-    "github.com": 132,
+    "github.com": 131,
     "gitlab.com": 4
   },
   "visitorStats": {
-    "today": 0,
-    "yesterday": 3,
-    "total": 268,
-    "online": 0
+    "today": 1,
+    "yesterday": 1,
+    "total": 270,
+    "online": 1
   },
   "repos": [
     {
@@ -187,12 +187,12 @@
       "createdDate": "2026-07-28",
       "updatedDate": "2026-07-28",
       "latestChanges": {
-        "title": "1.4.3 (2026-08-12)",
-        "date": "2026-08-12",
+        "title": "1.4.4 (2026-08-16)",
+        "date": "2026-08-16",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "Support SofaTime v1.2.5 (Fixes #4)"
+            "text": "Support SofaTime v1.2.7 (Fixes #5)"
           }
         ]
       },
@@ -569,7 +569,7 @@
       "webUrl": "https://github.com/andersonlucasg3/PetalMaps-AndroidAuto",
       "addUrl": "https://morphe.software/add-source?github=andersonlucasg3/PetalMaps-AndroidAuto",
       "avatarUrl": "https://github.com/andersonlucasg3.png?size=96",
-      "patchCount": 9,
+      "patchCount": 10,
       "appCount": 1,
       "createdAt": 1786067248701,
       "updatedAt": 1786067248701,
@@ -584,7 +584,7 @@
         {
           "name": "Petal Maps",
           "packageName": "com.huawei.maps.app",
-          "patchCount": 9,
+          "patchCount": 10,
           "iconUrl": "",
           "iconColor": "#E60012"
         }
@@ -700,19 +700,19 @@
       "webUrl": "https://github.com/arandomhooman/hoomans-morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=arandomhooman/hoomans-morphe-patches",
       "avatarUrl": "https://github.com/arandomhooman.png?size=96",
-      "patchCount": 55,
-      "appCount": 42,
+      "patchCount": 60,
+      "appCount": 43,
       "createdAt": 1784836029535,
       "updatedAt": 1784836029535,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.45.0 (2026-08-15)",
-        "date": "2026-08-15",
+        "title": "1.48.0 (2026-08-16)",
+        "date": "2026-08-16",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "add Moneta Unlock Plus patch"
+            "text": "fix Twitch login on patched builds"
           }
         ]
       },
@@ -865,6 +865,13 @@
           "iconColor": "#6750A4"
         },
         {
+          "name": "Microsoft SwiftKey",
+          "packageName": "com.touchtype.swiftkey",
+          "patchCount": 2,
+          "iconUrl": "",
+          "iconColor": "#00A4EF"
+        },
+        {
           "name": "Mixel",
           "packageName": "com.cfdrink",
           "patchCount": 1,
@@ -979,14 +986,14 @@
         {
           "name": "Tumblr",
           "packageName": "com.tumblr",
-          "patchCount": 7,
+          "patchCount": 8,
           "iconUrl": "https://play-lh.googleusercontent.com/BWSIac9IjPlQwOwxZ3aLzaX_rmP5Dfvkwn1HtSztT16WBOHdJZ6D0JSIz_lo_GatSlql3GlSFZcHuzWqAP5n8g",
           "iconColor": "#001935"
         },
         {
           "name": "Twitch",
           "packageName": "tv.twitch.android.app",
-          "patchCount": 4,
+          "patchCount": 6,
           "iconUrl": "https://play-lh.googleusercontent.com/JHCM4AIyomRp6Lo2-5ugoznlGdsZmNnejVN8DLvtWFHShcz8YRgUE170f1CyOfrleYbtFL2g8tQ3VqlQNAgqoA",
           "iconColor": "#9147FF"
         },
@@ -1429,31 +1436,38 @@
       "webUrl": "https://github.com/BlazeFTL/FTL-Patches",
       "addUrl": "https://morphe.software/add-source?github=BlazeFTL/FTL-Patches",
       "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
-      "patchCount": 18,
-      "appCount": 4,
+      "patchCount": 20,
+      "appCount": 5,
       "createdAt": 1786263569063,
       "updatedAt": 1786263569063,
       "createdDate": "2026-08-09",
       "updatedDate": "2026-08-09",
       "latestChanges": {
-        "title": "1.32.0 (2026-08-15)",
-        "date": "2026-08-15",
+        "title": "1.33.0 (2026-08-16)",
+        "date": "2026-08-16",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "es"
+            "text": "add allvideo downloader"
           },
           {
             "category": "\u2728 New Features",
-            "text": "make snaptube watch ad patch more robust"
+            "text": "ads up 2"
           },
           {
             "category": "\u2728 New Features",
-            "text": "update Es Des"
+            "text": "update ads"
           }
         ]
       },
       "apps": [
+        {
+          "name": "All Video Downloader & Ace Player",
+          "packageName": "videoplayer.videodownloader.downloader",
+          "patchCount": 2,
+          "iconUrl": "",
+          "iconColor": ""
+        },
         {
           "name": "ES File Explorer",
           "packageName": "com.estrongs.android.pop",
@@ -1794,27 +1808,30 @@
       "webUrl": "https://github.com/byehi98/okish-morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=byehi98/okish-morphe-patches",
       "avatarUrl": "https://github.com/byehi98.png?size=96",
-      "patchCount": 15,
-      "appCount": 9,
+      "patchCount": 21,
+      "appCount": 11,
       "createdAt": 1784836032190,
       "updatedAt": 1784836032190,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.8.0 (2026-08-13)",
-        "date": "2026-08-13",
+        "title": "1.10.0 (2026-08-16)",
+        "date": "2026-08-16",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "add Into the Dead 2.9.3 patches (free IAP, instant rewards, remove ads incl. app open)"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "consolidate Into the Dead patches into Ad Removal + Billing Bypass"
+            "text": "relocate patches package structure under app namespace"
           }
         ]
       },
       "apps": [
+        {
+          "name": "Big Hunter",
+          "packageName": "com.kakarod.bighunter",
+          "patchCount": 4,
+          "iconUrl": "",
+          "iconColor": "#8B4513"
+        },
         {
           "name": "Doodle Jump",
           "packageName": "com.lima.doodlejump",
@@ -1856,6 +1873,13 @@
           "patchCount": 1,
           "iconUrl": "",
           "iconColor": "#F57F17"
+        },
+        {
+          "name": "Rodeo Stampede: Sky Zoo Safari",
+          "packageName": "com.yodo1.rodeo.safari",
+          "patchCount": 2,
+          "iconUrl": "",
+          "iconColor": "#689F38"
         },
         {
           "name": "Smash Hit",
@@ -4446,19 +4470,19 @@
       "webUrl": "https://github.com/humzakh/HK-Morphe-Patches",
       "addUrl": "https://morphe.software/add-source?github=humzakh/HK-Morphe-Patches",
       "avatarUrl": "https://github.com/humzakh.png?size=96",
-      "patchCount": 11,
+      "patchCount": 12,
       "appCount": 3,
       "createdAt": 1784836036887,
       "updatedAt": 1784836036887,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.7.1 (2026-08-09)",
-        "date": "2026-08-09",
+        "title": "1.8.0 (2026-08-16)",
+        "date": "2026-08-16",
         "items": [
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "Disable SyncPredictiveBackPatch for image views"
+            "category": "\u2728 New Features",
+            "text": "Add Hacker News Feed patch"
           }
         ]
       },
@@ -4466,21 +4490,21 @@
         {
           "name": "Sync for Reddit",
           "packageName": "com.laurencedawson.reddit_sync",
-          "patchCount": 10,
+          "patchCount": 11,
           "iconUrl": "",
           "iconColor": ""
         },
         {
           "name": "Sync for Reddit Dev",
           "packageName": "com.laurencedawson.reddit_sync.dev",
-          "patchCount": 10,
+          "patchCount": 11,
           "iconUrl": "",
           "iconColor": ""
         },
         {
           "name": "Sync for Reddit Pro",
           "packageName": "com.laurencedawson.reddit_sync.pro",
-          "patchCount": 10,
+          "patchCount": 11,
           "iconUrl": "",
           "iconColor": ""
         }
@@ -4527,19 +4551,23 @@
       "webUrl": "https://github.com/hxreborn/morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=hxreborn/morphe-patches",
       "avatarUrl": "https://github.com/hxreborn.png?size=96",
-      "patchCount": 13,
-      "appCount": 6,
+      "patchCount": 17,
+      "appCount": 9,
       "createdAt": 1784837695114,
       "updatedAt": 1784837695114,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.5.1 (2026-08-15)",
-        "date": "2026-08-15",
+        "title": "1.7.0 (2026-08-16)",
+        "date": "2026-08-16",
         "items": [
           {
-            "category": "Bug Fixes",
-            "text": "**Symfonium - Unlock premium:** force the native key check that halts playback"
+            "category": "New Features",
+            "text": "**ReadEra - Remove nags:** add patch"
+          },
+          {
+            "category": "New Features",
+            "text": "**Trainline - Hide ads:** add patch"
           }
         ]
       },
@@ -4547,7 +4575,7 @@
         {
           "name": "Audible",
           "packageName": "com.audible.application",
-          "patchCount": 1,
+          "patchCount": 2,
           "iconUrl": "",
           "iconColor": "#F8991C"
         },
@@ -4557,6 +4585,13 @@
           "patchCount": 1,
           "iconUrl": "https://play-lh.googleusercontent.com/HQl7wIZjPOMZHojduQcS9jOnT_vsDIYp3ydapBQzBbuVpAsqtkcaxUP24VXmDAa4CM3q2AaqbG0EGYawBFVf-_M",
           "iconColor": "#0772BA"
+        },
+        {
+          "name": "Perplexity",
+          "packageName": "ai.perplexity.app.android",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#20808D"
         },
         {
           "name": "Projectivy Launcher",
@@ -4573,6 +4608,13 @@
           "iconColor": "#6D4AFF"
         },
         {
+          "name": "ReadEra",
+          "packageName": "org.readera",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#0061BD"
+        },
+        {
           "name": "Showly",
           "packageName": "com.michaldrabik.showly2",
           "patchCount": 2,
@@ -4585,6 +4627,13 @@
           "patchCount": 1,
           "iconUrl": "https://play-lh.googleusercontent.com/Rc1boOlAWnUlwZNG8LCm9IFn3ZRnDTdRhFe8wegH-OHzH1An9E97D5XmRGurbwN2HNg14Zubg9H460Ywgug0",
           "iconColor": "#E22728"
+        },
+        {
+          "name": "Trainline",
+          "packageName": "com.thetrainline",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#00A88F"
         }
       ]
     },
@@ -4855,46 +4904,6 @@
           "patchCount": 3,
           "iconUrl": "https://play-lh.googleusercontent.com/IsLsCD4eLC2CYvlkgTI6Z5TROj0BJIBgUF7BZ5eliTzyyTjqG_mbofeG4kw2s7oG_JZMSi5ErLz_qsDi169C8w",
           "iconColor": "#000000"
-        }
-      ]
-    },
-    {
-      "name": "itsthejoker-patches",
-      "repo": "itsthejoker/itsthejoker-patches",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/itsthejoker/itsthejoker-patches/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/itsthejoker/itsthejoker-patches/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/itsthejoker/itsthejoker-patches/main/CHANGELOG.md",
-      "webUrl": "https://github.com/itsthejoker/itsthejoker-patches",
-      "addUrl": "https://morphe.software/add-source?github=itsthejoker/itsthejoker-patches",
-      "avatarUrl": "https://github.com/itsthejoker.png?size=96",
-      "patchCount": 7,
-      "appCount": 1,
-      "createdAt": 1786756263632,
-      "updatedAt": 1786756263632,
-      "createdDate": "2026-08-15",
-      "updatedDate": "2026-08-15",
-      "latestChanges": {
-        "title": "1.5.0 (2026-07-28)",
-        "date": "2026-07-28",
-        "items": [
-          {
-            "category": "\u2728 New Features",
-            "text": "**roost:** add free nest egg patch"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "**roost:** force deploy"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "Roost",
-          "packageName": "com.rookery.courier",
-          "patchCount": 7,
-          "iconUrl": "",
-          "iconColor": "#2A1E9E"
         }
       ]
     },
@@ -5908,23 +5917,19 @@
       "webUrl": "https://github.com/liongalahad/nuviotv-morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=liongalahad/nuviotv-morphe-patches",
       "avatarUrl": "https://github.com/liongalahad.png?size=96",
-      "patchCount": 9,
+      "patchCount": 10,
       "appCount": 1,
       "createdAt": 1785983280124,
       "updatedAt": 1785983280124,
       "createdDate": "2026-08-06",
       "updatedDate": "2026-08-06",
       "latestChanges": {
-        "title": "1.0.0-dev.20 (2026-08-13)",
-        "date": "2026-08-13",
+        "title": "1.0.0-dev.21 (2026-08-16)",
+        "date": "2026-08-16",
         "items": [
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "resolve subtitle workers across architectures"
-          },
-          {
             "category": "\u2728 New Features",
-            "text": "restore source picker selection"
+            "text": "update patch suite and add side-by-side installs"
           }
         ]
       },
@@ -5932,7 +5937,7 @@
         {
           "name": "NuvioTV",
           "packageName": "com.nuvio.tv",
-          "patchCount": 9,
+          "patchCount": 10,
           "iconUrl": "",
           "iconColor": "#111827"
         }
@@ -5948,23 +5953,19 @@
       "webUrl": "https://github.com/liongalahad/nuviotv-patches",
       "addUrl": "https://morphe.software/add-source?github=liongalahad/nuviotv-patches",
       "avatarUrl": "https://github.com/liongalahad.png?size=96",
-      "patchCount": 9,
+      "patchCount": 10,
       "appCount": 1,
       "createdAt": 1785897756603,
       "updatedAt": 1785897756603,
       "createdDate": "2026-08-05",
       "updatedDate": "2026-08-05",
       "latestChanges": {
-        "title": "1.0.0-dev.20 (2026-08-13)",
-        "date": "2026-08-13",
+        "title": "1.0.0-dev.21 (2026-08-16)",
+        "date": "2026-08-16",
         "items": [
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "resolve subtitle workers across architectures"
-          },
-          {
             "category": "\u2728 New Features",
-            "text": "restore source picker selection"
+            "text": "update patch suite and add side-by-side installs"
           }
         ]
       },
@@ -5972,7 +5973,7 @@
         {
           "name": "NuvioTV",
           "packageName": "com.nuvio.tv",
-          "patchCount": 9,
+          "patchCount": 10,
           "iconUrl": "",
           "iconColor": "#111827"
         }
@@ -6225,35 +6226,19 @@
       "webUrl": "https://github.com/MiguelNinja19/miguel-morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=MiguelNinja19/miguel-morphe-patches",
       "avatarUrl": "https://github.com/MiguelNinja19.png?size=96",
-      "patchCount": 19,
-      "appCount": 8,
+      "patchCount": 15,
+      "appCount": 7,
       "createdAt": 1784836022970,
       "updatedAt": 1784836022970,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.13.5 (2026-07-31)",
-        "date": "2026-07-31",
+        "title": "1.13.6 (2026-08-16)",
+        "date": "2026-08-16",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**cubesolver:** move openPlayStore no-op to BypassPairIPPatch"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
+            "text": "**cubesolver:** remove"
           }
         ]
       },
@@ -6271,13 +6256,6 @@
           "patchCount": 2,
           "iconUrl": "https://play-lh.googleusercontent.com/VK0AYuzpuiYdeqrDPE0o9PoYCh-pP44Q6rj3pLxsEWwWXCQ26oc6ceFfNESC-VPvYwknfhVGs6l5EtgqkdDuikA",
           "iconColor": "#4CAF50"
-        },
-        {
-          "name": "Cube Solver",
-          "packageName": "com.jeffprod.cubesolver",
-          "patchCount": 4,
-          "iconUrl": "",
-          "iconColor": "#F57C00"
         },
         {
           "name": "CubeX Solver",
@@ -9465,12 +9443,32 @@
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.3.2 (2026-07-22)",
-        "date": "2026-07-22",
+        "title": "1.4.0 (2026-08-16)",
+        "date": "2026-08-16",
         "items": [
           {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "remove temp mail, has quite good pairip, didn't figure out how to bypass it"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "use correct patcher APIs for Temp Mail patches"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "add Play Integrity check bypass to Temp Mail (fixes startup redirect)"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "add Play Store redirect bypass to Temp Mail premium patch"
+          },
+          {
             "category": "\ud83d\ude80 Updated App Support",
-            "text": "remove apps actually"
+            "text": "I'm sorry changelog"
+          },
+          {
+            "category": "\ud83d\ude80 Updated App Support",
+            "text": "placeholder fully"
           }
         ]
       },
@@ -10892,12 +10890,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -11065,12 +11063,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -11123,12 +11121,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -11735,6 +11733,81 @@
       "iconUrl": "https://play-lh.googleusercontent.com/ukyw7ov7yMyPUhiudTMlZErtWgkoMLjsB2dwi5O_OTKDKU7jTrxwhQ4Vf0TAJLcPLibQ9wTZ_TG1RsxzD2y142M"
     },
     {
+      "packageName": "videoplayer.videodownloader.downloader",
+      "name": "All Video Downloader & Ace Player",
+      "repos": [
+        "BlazeFTL/FTL-Patches"
+      ],
+      "sources": [
+        {
+          "repo": "BlazeFTL/FTL-Patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/BlazeFTL/FTL-Patches",
+          "addUrl": "https://morphe.software/add-source?github=BlazeFTL/FTL-Patches",
+          "source": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
+          "latestChanges": {
+            "title": "1.33.0 (2026-08-16)",
+            "date": "2026-08-16",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "add allvideo downloader"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "ads up 2"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "update ads"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "videoplayer-videodownloader-downloader-blazeftl-ftl-patches",
+            "releaseTag": "app-videoplayer-videodownloader-downloader-blazeftl-ftl-patches",
+            "assetName": "all-video-downloader-and-ace-player-blazeftl-ftl-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Disable ad dialog when reopening app",
+              "description": "Prevents the full-screen \"loading ad\" dialog from appearing when the app is reopened after being minimized."
+            },
+            {
+              "name": "Skip splash and language screens",
+              "description": "Jumps straight to the main activity from the splash screen, skipping the splash animation, the language-selection screen, and any ad/app-open dialog normally shown first."
+            }
+          ],
+          "versions": [
+            "1.9.7"
+          ]
+        }
+      ],
+      "patches": [
+        "Disable ad dialog when reopening app",
+        "Skip splash and language screens"
+      ],
+      "patchDetails": [
+        {
+          "name": "Disable ad dialog when reopening app",
+          "description": "Prevents the full-screen \"loading ad\" dialog from appearing when the app is reopened after being minimized."
+        },
+        {
+          "name": "Skip splash and language screens",
+          "description": "Jumps straight to the main activity from the splash screen, skipping the splash animation, the language-selection screen, and any ad/app-open dialog normally shown first."
+        }
+      ],
+      "versions": [
+        "1.9.7"
+      ],
+      "iconColor": "",
+      "iconUrl": ""
+    },
+    {
       "packageName": "com.alltrails.alltrails",
       "name": "AllTrails",
       "repos": [
@@ -11812,12 +11885,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -12480,28 +12553,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/MiguelNinja19/miguel-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/MiguelNinja19.png?size=96",
           "latestChanges": {
-            "title": "1.13.5 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.13.6 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** move openPlayStore no-op to BypassPairIPPatch"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
+                "text": "**cubesolver:** remove"
               }
             ]
           },
@@ -13071,12 +13128,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -13205,8 +13262,8 @@
       ],
       "patches": [
         "Disable PairIP DRM",
-        "Unlock premium",
-        "Unlock Premium"
+        "Unlock Premium",
+        "Unlock premium"
       ],
       "patchDetails": [
         {
@@ -13214,12 +13271,12 @@
           "description": "Disables PairIP signature verification and Google Play LVL license check. Required for the app to launch after re-signing."
         },
         {
-          "name": "Unlock premium",
-          "description": "Unlocks all AT4K premium features by forcing the premium status to true."
-        },
-        {
           "name": "Unlock Premium",
           "description": "Unlocks all premium features by forcing the premium state to true in the purchase manager."
+        },
+        {
+          "name": "Unlock premium",
+          "description": "Unlocks all AT4K premium features by forcing the premium status to true."
         }
       ],
       "versions": [
@@ -13551,12 +13608,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.5.1 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.7.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
-                "category": "Bug Fixes",
-                "text": "**Symfonium - Unlock premium:** force the native key check that halts playback"
+                "category": "New Features",
+                "text": "**ReadEra - Remove nags:** add patch"
+              },
+              {
+                "category": "New Features",
+                "text": "**Trainline - Hide ads:** add patch"
               }
             ]
           },
@@ -13569,6 +13630,10 @@
           },
           "patches": [
             {
+              "name": "Hide membership upselling",
+              "description": "Hides the membership promotion on the Home screen and the free trial bottom sheet."
+            },
+            {
               "name": "Open Library on launch",
               "description": "Opens the Library tab instead of Home on launch. Applies only while signed in."
             }
@@ -13577,9 +13642,14 @@
         }
       ],
       "patches": [
+        "Hide membership upselling",
         "Open Library on launch"
       ],
       "patchDetails": [
+        {
+          "name": "Hide membership upselling",
+          "description": "Hides the membership promotion on the Home screen and the free trial bottom sheet."
+        },
         {
           "name": "Open Library on launch",
           "description": "Opens the Library tab instead of Home on launch. Applies only while signed in."
@@ -15514,12 +15584,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -15715,12 +15785,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -15739,7 +15809,8 @@
           ],
           "versions": [
             "2.4.8.1",
-            "2.5.0.2-beta1"
+            "2.5.0.2-beta1",
+            "2.5.0.6"
           ]
         },
         {
@@ -16001,6 +16072,91 @@
       "iconUrl": "https://play-lh.googleusercontent.com/cvamBkdg3UQgYgQwlLbursoGoTRWi6DzmY7rph_dwWC9XCxUveVgU4NOx_lMj2dE0d8klY_tC1Y_9YdIOVYD"
     },
     {
+      "packageName": "com.kakarod.bighunter",
+      "name": "Big Hunter",
+      "repos": [
+        "byehi98/okish-morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "byehi98/okish-morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/byehi98/okish-morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=byehi98/okish-morphe-patches",
+          "source": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/byehi98.png?size=96",
+          "latestChanges": {
+            "title": "1.10.0 (2026-08-16)",
+            "date": "2026-08-16",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "relocate patches package structure under app namespace"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-kakarod-bighunter-byehi98-okish-morphe-patches",
+            "releaseTag": "app-com-kakarod-bighunter-byehi98-okish-morphe-patches",
+            "assetName": "big-hunter-byehi98-okish-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Big Hunter Fake Purchase",
+              "description": "Tapping any store item grants the product immediately (via the game's own confirmed-purchase path -> native applyProduct) without opening Google Play billing. Entitlements persist across restarts."
+            },
+            {
+              "name": "Big Hunter PairIP License Bypass",
+              "description": "Disables the PairIP license check (installer verification + Google Play licensing service validation + paywall/exit dialog). Required for patched APKs \u2014 the original check fails on any non-Play signature and force-closes the app."
+            },
+            {
+              "name": "Big Hunter Remove Ads",
+              "description": "Interstitial ads are never shown (show() short-circuits via the ad-not-ready path on all three network bridges: AdMob, AppLovin, Unity Ads)."
+            },
+            {
+              "name": "Big Hunter Rewards Without Ads",
+              "description": "Rewarded video requests grant the reward immediately via the game's own native rewardCallback() without loading or showing any ad (AdMob, AppLovin, Unity Ads)."
+            }
+          ],
+          "versions": [
+            "3.1.1"
+          ]
+        }
+      ],
+      "patches": [
+        "Big Hunter Fake Purchase",
+        "Big Hunter PairIP License Bypass",
+        "Big Hunter Remove Ads",
+        "Big Hunter Rewards Without Ads"
+      ],
+      "patchDetails": [
+        {
+          "name": "Big Hunter Fake Purchase",
+          "description": "Tapping any store item grants the product immediately (via the game's own confirmed-purchase path -> native applyProduct) without opening Google Play billing. Entitlements persist across restarts."
+        },
+        {
+          "name": "Big Hunter PairIP License Bypass",
+          "description": "Disables the PairIP license check (installer verification + Google Play licensing service validation + paywall/exit dialog). Required for patched APKs \u2014 the original check fails on any non-Play signature and force-closes the app."
+        },
+        {
+          "name": "Big Hunter Remove Ads",
+          "description": "Interstitial ads are never shown (show() short-circuits via the ad-not-ready path on all three network bridges: AdMob, AppLovin, Unity Ads)."
+        },
+        {
+          "name": "Big Hunter Rewards Without Ads",
+          "description": "Rewarded video requests grant the reward immediately via the game's own native rewardCallback() without loading or showing any ad (AdMob, AppLovin, Unity Ads)."
+        }
+      ],
+      "versions": [
+        "3.1.1"
+      ],
+      "iconColor": "#8B4513",
+      "iconUrl": ""
+    },
+    {
       "packageName": "com.x8bit.bitwarden",
       "name": "Bitwarden",
       "repos": [
@@ -16209,12 +16365,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -18674,12 +18830,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -19165,12 +19321,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -19897,28 +20053,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/MiguelNinja19/miguel-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/MiguelNinja19.png?size=96",
           "latestChanges": {
-            "title": "1.13.5 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.13.6 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** move openPlayStore no-op to BypassPairIPPatch"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
+                "text": "**cubesolver:** remove"
               }
             ]
           },
@@ -20134,12 +20274,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -20888,7 +21028,7 @@
           "patches": [
             {
               "name": "Paramount+ Android TV",
-              "description": "Removes VOD pre-roll ads and pause ads while preserving live TV."
+              "description": "Removes VOD pre-roll/mid-roll ads and pause ads, and replaces live sports commercial breaks with the \"Commercial in Progress\" slate, while preserving playback."
             }
           ],
           "versions": [
@@ -20904,7 +21044,7 @@
       "patchDetails": [
         {
           "name": "Paramount+ Android TV",
-          "description": "Removes VOD pre-roll ads and pause ads while preserving live TV."
+          "description": "Removes VOD pre-roll/mid-roll ads and pause ads, and replaces live sports commercial breaks with the \"Commercial in Progress\" slate, while preserving playback."
         }
       ],
       "versions": [
@@ -27211,12 +27351,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -27234,7 +27374,7 @@
             }
           ],
           "versions": [
-            "4.56.0"
+            "4.57.4"
           ]
         }
       ],
@@ -27248,7 +27388,7 @@
         }
       ],
       "versions": [
-        "4.56.0"
+        "4.57.4"
       ],
       "iconColor": "#F26B21",
       "iconUrl": "https://play-lh.googleusercontent.com/shvWrgOoaKY8px_CZpBessRwXbWpLczVLUpuXmXeEyRGYRBE0EWrUNjFlKmwRGnS7yx-VsYT9ea4Gzc_Y0yxLg"
@@ -27440,7 +27580,6 @@
       "name": "Cube Solver",
       "repos": [
         "logm1lo/logm1lo-patches",
-        "MiguelNinja19/miguel-morphe-patches",
         "rushiranpise/morphe-patches"
       ],
       "sources": [
@@ -27477,69 +27616,6 @@
             {
               "name": "Remove Ads",
               "description": "Removes ads."
-            }
-          ],
-          "versions": [
-            "5.0.3"
-          ]
-        },
-        {
-          "repo": "MiguelNinja19/miguel-morphe-patches",
-          "host": "github.com",
-          "webUrl": "https://github.com/MiguelNinja19/miguel-morphe-patches",
-          "addUrl": "https://morphe.software/add-source?github=MiguelNinja19/miguel-morphe-patches",
-          "source": "https://raw.githubusercontent.com/MiguelNinja19/miguel-morphe-patches/main/patches-bundle.json",
-          "changelogUrl": "https://raw.githubusercontent.com/MiguelNinja19/miguel-morphe-patches/main/CHANGELOG.md",
-          "avatarUrl": "https://github.com/MiguelNinja19.png?size=96",
-          "latestChanges": {
-            "title": "1.13.5 (2026-07-31)",
-            "date": "2026-07-31",
-            "items": [
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** move openPlayStore no-op to BypassPairIPPatch"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
-              }
-            ]
-          },
-          "builder": {
-            "buildId": "com-jeffprod-cubesolver-miguelninja19-miguel-morphe-patches",
-            "releaseTag": "app-com-jeffprod-cubesolver-miguelninja19-miguel-morphe-patches",
-            "assetName": "cube-solver-miguelninja19-miguel-morphe-patches.apk",
-            "repo": "rushiforai/morphe-builder",
-            "webUrl": "https://github.com/rushiforai/morphe-builder"
-          },
-          "patches": [
-            {
-              "name": "Bypass PairIP integrity check",
-              "description": "Completely bypasses Google Play's PairIP by (1) disabling the PairIP VM (prevents native integrity checks and Play Store redirects from libpairipcore.so), (2) replacing MainActivity.onCreate with direct WebView setup (no VM needed), and (3) no-oping openPlayStore. The native library libpairipcore.so is never loaded, so it can't do JNI-based redirects. Also applies the manifest modifications from the companion 'Bypass PairIP manifest' patch. REQUIRED for all other patches."
-            },
-            {
-              "name": "Bypass PairIP manifest",
-              "description": "Modifies AndroidManifest.xml to skip the PairIP Application class, remove LicenseActivity, and remove CHECK_LICENSE permission. Part of the PairIP bypass."
-            },
-            {
-              "name": "Remove ads",
-              "description": "Removes all advertisements (rewarded ads and interstitial ads) from the app. When the user taps 'Watch ad to unlock' on a locked design, the ad is skipped and the design is unlocked instantly \u2014 the reward is granted without showing any ad. Also disables rewarded ad preloading to save bandwidth. Note: this patch does NOT automatically unlock designs \u2014 the user must still tap each locked design to unlock it (the ad is just skipped). For automatic unlock of ALL designs at startup, enable the 'Unlock all designs' patch. Requires the 'Bypass PairIP integrity check' patch."
-            },
-            {
-              "name": "Unlock all designs",
-              "description": "Unlocks all puzzle designs (kilominx, mirror 2x2x2, and all other premium designs) by injecting localStorage[\"ulcsall\"] = \"ok\" into the WebView when the app starts. The JS-side isPaidUser() function checks this key and, when it returns true, treats every design as unlocked. Also skips the GDPR consent popup. Note: setting ulcsall=ok also removes all ads as a side effect (because the JS ad functions check isPaidUser first), so this patch is a superset of the 'Remove ads' patch. If you only want to remove ads without unlocking everything, use only the 'Remove ads' patch. Requires the 'Bypass PairIP integrity check' patch."
             }
           ],
           "versions": [
@@ -27595,22 +27671,10 @@
         }
       ],
       "patches": [
-        "Bypass PairIP integrity check",
-        "Bypass PairIP manifest",
         "Puzzles Unlock",
-        "Remove Ads",
-        "Remove ads",
-        "Unlock all designs"
+        "Remove Ads"
       ],
       "patchDetails": [
-        {
-          "name": "Bypass PairIP integrity check",
-          "description": "Completely bypasses Google Play's PairIP by (1) disabling the PairIP VM (prevents native integrity checks and Play Store redirects from libpairipcore.so), (2) replacing MainActivity.onCreate with direct WebView setup (no VM needed), and (3) no-oping openPlayStore. The native library libpairipcore.so is never loaded, so it can't do JNI-based redirects. Also applies the manifest modifications from the companion 'Bypass PairIP manifest' patch. REQUIRED for all other patches."
-        },
-        {
-          "name": "Bypass PairIP manifest",
-          "description": "Modifies AndroidManifest.xml to skip the PairIP Application class, remove LicenseActivity, and remove CHECK_LICENSE permission. Part of the PairIP bypass."
-        },
         {
           "name": "Puzzles Unlock",
           "description": "Unlocks all puzzles."
@@ -27618,20 +27682,12 @@
         {
           "name": "Remove Ads",
           "description": "Removes ads."
-        },
-        {
-          "name": "Remove ads",
-          "description": "Removes all advertisements (rewarded ads and interstitial ads) from the app. When the user taps 'Watch ad to unlock' on a locked design, the ad is skipped and the design is unlocked instantly \u2014 the reward is granted without showing any ad. Also disables rewarded ad preloading to save bandwidth. Note: this patch does NOT automatically unlock designs \u2014 the user must still tap each locked design to unlock it (the ad is just skipped). For automatic unlock of ALL designs at startup, enable the 'Unlock all designs' patch. Requires the 'Bypass PairIP integrity check' patch."
-        },
-        {
-          "name": "Unlock all designs",
-          "description": "Unlocks all puzzle designs (kilominx, mirror 2x2x2, and all other premium designs) by injecting localStorage[\"ulcsall\"] = \"ok\" into the WebView when the app starts. The JS-side isPaidUser() function checks this key and, when it returns true, treats every design as unlocked. Also skips the GDPR consent popup. Note: setting ulcsall=ok also removes all ads as a side effect (because the JS ad functions check isPaidUser first), so this patch is a superset of the 'Remove ads' patch. If you only want to remove ads without unlocking everything, use only the 'Remove ads' patch. Requires the 'Bypass PairIP integrity check' patch."
         }
       ],
       "versions": [
         "5.0.3"
       ],
-      "iconColor": "#F57C00",
+      "iconColor": "#FF6600",
       "iconUrl": ""
     },
     {
@@ -27650,28 +27706,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/MiguelNinja19/miguel-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/MiguelNinja19.png?size=96",
           "latestChanges": {
-            "title": "1.13.5 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.13.6 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** move openPlayStore no-op to BypassPairIPPatch"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
+                "text": "**cubesolver:** remove"
               }
             ]
           },
@@ -28358,12 +28398,32 @@
           "changelogUrl": "https://raw.githubusercontent.com/tiaruebar1024/tiaruebar-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/tiaruebar1024.png?size=96",
           "latestChanges": {
-            "title": "1.3.2 (2026-07-22)",
-            "date": "2026-07-22",
+            "title": "1.4.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "remove temp mail, has quite good pairip, didn't figure out how to bypass it"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "use correct patcher APIs for Temp Mail patches"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add Play Integrity check bypass to Temp Mail (fixes startup redirect)"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add Play Store redirect bypass to Temp Mail premium patch"
+              },
+              {
                 "category": "\ud83d\ude80 Updated App Support",
-                "text": "remove apps actually"
+                "text": "I'm sorry changelog"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "placeholder fully"
               }
             ]
           },
@@ -28416,12 +28476,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -28694,16 +28754,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.8.0 (2026-08-13)",
-            "date": "2026-08-13",
+            "title": "1.10.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Into the Dead 2.9.3 patches (free IAP, instant rewards, remove ads incl. app open)"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "consolidate Into the Dead patches into Ad Removal + Billing Bypass"
+                "text": "relocate patches package structure under app namespace"
               }
             ]
           },
@@ -28942,16 +28998,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.8.0 (2026-08-13)",
-            "date": "2026-08-13",
+            "title": "1.10.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Into the Dead 2.9.3 patches (free IAP, instant rewards, remove ads incl. app open)"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "consolidate Into the Dead patches into Ad Removal + Billing Bypass"
+                "text": "relocate patches package structure under app namespace"
               }
             ]
           },
@@ -29761,20 +29813,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
           "latestChanges": {
-            "title": "1.32.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.33.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "es"
+                "text": "add allvideo downloader"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "make snaptube watch ad patch more robust"
+                "text": "ads up 2"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "update Es Des"
+                "text": "update ads"
               }
             ]
           },
@@ -29884,12 +29936,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -30625,12 +30677,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -31098,12 +31150,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -31396,12 +31448,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -31507,12 +31559,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.5.1 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.7.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
-                "category": "Bug Fixes",
-                "text": "**Symfonium - Unlock premium:** force the native key check that halts playback"
+                "category": "New Features",
+                "text": "**ReadEra - Remove nags:** add patch"
+              },
+              {
+                "category": "New Features",
+                "text": "**Trainline - Hide ads:** add patch"
               }
             ]
           },
@@ -31826,16 +31882,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.8.0 (2026-08-13)",
-            "date": "2026-08-13",
+            "title": "1.10.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Into the Dead 2.9.3 patches (free IAP, instant rewards, remove ads incl. app open)"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "consolidate Into the Dead patches into Ad Removal + Billing Bypass"
+                "text": "relocate patches package structure under app namespace"
               }
             ]
           },
@@ -33258,12 +33310,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -33522,16 +33574,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.8.0 (2026-08-13)",
-            "date": "2026-08-13",
+            "title": "1.10.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Into the Dead 2.9.3 patches (free IAP, instant rewards, remove ads incl. app open)"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "consolidate Into the Dead patches into Ad Removal + Billing Bypass"
+                "text": "relocate patches package structure under app namespace"
               }
             ]
           },
@@ -33862,28 +33910,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/MiguelNinja19/miguel-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/MiguelNinja19.png?size=96",
           "latestChanges": {
-            "title": "1.13.5 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.13.6 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** move openPlayStore no-op to BypassPairIPPatch"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
+                "text": "**cubesolver:** remove"
               }
             ]
           },
@@ -34075,12 +34107,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -35178,12 +35210,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -36098,16 +36130,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.8.0 (2026-08-13)",
-            "date": "2026-08-13",
+            "title": "1.10.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Into the Dead 2.9.3 patches (free IAP, instant rewards, remove ads incl. app open)"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "consolidate Into the Dead patches into Ad Removal + Billing Bypass"
+                "text": "relocate patches package structure under app namespace"
               }
             ]
           },
@@ -36939,16 +36967,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.8.0 (2026-08-13)",
-            "date": "2026-08-13",
+            "title": "1.10.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Into the Dead 2.9.3 patches (free IAP, instant rewards, remove ads incl. app open)"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "consolidate Into the Dead patches into Ad Removal + Billing Bypass"
+                "text": "relocate patches package structure under app namespace"
               }
             ]
           },
@@ -39699,12 +39723,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -41821,6 +41845,73 @@
       "iconUrl": ""
     },
     {
+      "packageName": "com.touchtype.swiftkey",
+      "name": "Microsoft SwiftKey",
+      "repos": [
+        "arandomhooman/hoomans-morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "arandomhooman/hoomans-morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/arandomhooman/hoomans-morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=arandomhooman/hoomans-morphe-patches",
+          "source": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/arandomhooman.png?size=96",
+          "latestChanges": {
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "fix Twitch login on patched builds"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-touchtype-swiftkey-arandomhooman-hoomans-morphe-patches",
+            "releaseTag": "app-com-touchtype-swiftkey-arandomhooman-hoomans-morphe-patches",
+            "assetName": "microsoft-swiftkey-arandomhooman-hoomans-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Disable cloud sign-in prompt",
+              "description": "Keeps the optional Microsoft cloud sign-in onboarding from replacing SwiftKey's launcher, so local keyboard setup and settings remain usable without an account. This does not sign in or unlock cloud sync and other account-backed features."
+            },
+            {
+              "name": "Disable telemetry",
+              "description": "Stops SwiftKey's first-party telemetry records and uploads, Adjust attribution, Crashlytics, Firebase Sessions, legacy Google Analytics, and app exception reporting. Push messaging and the multipurpose job service stay enabled."
+            }
+          ],
+          "versions": [
+            "9.13.13.5"
+          ]
+        }
+      ],
+      "patches": [
+        "Disable cloud sign-in prompt",
+        "Disable telemetry"
+      ],
+      "patchDetails": [
+        {
+          "name": "Disable cloud sign-in prompt",
+          "description": "Keeps the optional Microsoft cloud sign-in onboarding from replacing SwiftKey's launcher, so local keyboard setup and settings remain usable without an account. This does not sign in or unlock cloud sync and other account-backed features."
+        },
+        {
+          "name": "Disable telemetry",
+          "description": "Stops SwiftKey's first-party telemetry records and uploads, Adjust attribution, Crashlytics, Firebase Sessions, legacy Google Analytics, and app exception reporting. Push messaging and the multipurpose job service stay enabled."
+        }
+      ],
+      "versions": [
+        "9.13.13.5"
+      ],
+      "iconColor": "#00A4EF",
+      "iconUrl": ""
+    },
+    {
       "packageName": "com.tecso.MigraConnect",
       "name": "MigraConnect",
       "repos": [
@@ -42158,12 +42249,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -42564,12 +42655,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -42622,12 +42713,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -42681,12 +42772,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -43361,20 +43452,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
           "latestChanges": {
-            "title": "1.32.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.33.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "es"
+                "text": "add allvideo downloader"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "make snaptube watch ad patch more robust"
+                "text": "ads up 2"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "update Es Des"
+                "text": "update ads"
               }
             ]
           },
@@ -45464,16 +45555,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/liongalahad/nuviotv-morphe-patches/master/CHANGELOG.md",
           "avatarUrl": "https://github.com/liongalahad.png?size=96",
           "latestChanges": {
-            "title": "1.0.0-dev.20 (2026-08-13)",
-            "date": "2026-08-13",
+            "title": "1.0.0-dev.21 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "resolve subtitle workers across architectures"
-              },
-              {
                 "category": "\u2728 New Features",
-                "text": "restore source picker selection"
+                "text": "update patch suite and add side-by-side installs"
               }
             ]
           },
@@ -45515,11 +45602,15 @@
             },
             {
               "name": "Remove SDH Annotations",
-              "description": "Adds Settings \u2192 Morphe \u2192 Subtitles and removes SDH annotations from Media3 subtitles when enabled."
+              "description": "Adds Settings \u2192 Morphe \u2192 Subtitles to normalize music symbols and remove SDH annotations from Media3 subtitles."
             },
             {
               "name": "Restore Source Selection",
               "description": "Returns the source picker to the source played before leaving the player."
+            },
+            {
+              "name": "Side-by-side installation",
+              "description": "Installs the patched app separately as Nuvio Morphe instead of replacing NuvioTV."
             }
           ],
           "versions": [
@@ -45535,16 +45626,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/liongalahad/nuviotv-patches/master/CHANGELOG.md",
           "avatarUrl": "https://github.com/liongalahad.png?size=96",
           "latestChanges": {
-            "title": "1.0.0-dev.20 (2026-08-13)",
-            "date": "2026-08-13",
+            "title": "1.0.0-dev.21 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "resolve subtitle workers across architectures"
-              },
-              {
                 "category": "\u2728 New Features",
-                "text": "restore source picker selection"
+                "text": "update patch suite and add side-by-side installs"
               }
             ]
           },
@@ -45586,11 +45673,15 @@
             },
             {
               "name": "Remove SDH Annotations",
-              "description": "Adds Settings \u2192 Morphe \u2192 Subtitles and removes SDH annotations from Media3 subtitles when enabled."
+              "description": "Adds Settings \u2192 Morphe \u2192 Subtitles to normalize music symbols and remove SDH annotations from Media3 subtitles."
             },
             {
               "name": "Restore Source Selection",
               "description": "Returns the source picker to the source played before leaving the player."
+            },
+            {
+              "name": "Side-by-side installation",
+              "description": "Installs the patched app separately as Nuvio Morphe instead of replacing NuvioTV."
             }
           ],
           "versions": [
@@ -45607,7 +45698,8 @@
         "Random Episode",
         "Rating Visibility",
         "Remove SDH Annotations",
-        "Restore Source Selection"
+        "Restore Source Selection",
+        "Side-by-side installation"
       ],
       "patchDetails": [
         {
@@ -45640,11 +45732,15 @@
         },
         {
           "name": "Remove SDH Annotations",
-          "description": "Adds Settings \u2192 Morphe \u2192 Subtitles and removes SDH annotations from Media3 subtitles when enabled."
+          "description": "Adds Settings \u2192 Morphe \u2192 Subtitles to normalize music symbols and remove SDH annotations from Media3 subtitles."
         },
         {
           "name": "Restore Source Selection",
           "description": "Returns the source picker to the source played before leaving the player."
+        },
+        {
+          "name": "Side-by-side installation",
+          "description": "Installs the patched app separately as Nuvio Morphe instead of replacing NuvioTV."
         }
       ],
       "versions": [
@@ -46270,28 +46366,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/MiguelNinja19/miguel-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/MiguelNinja19.png?size=96",
           "latestChanges": {
-            "title": "1.13.5 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.13.6 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** move openPlayStore no-op to BypassPairIPPatch"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
+                "text": "**cubesolver:** remove"
               }
             ]
           },
@@ -47677,6 +47757,64 @@
       "iconUrl": "https://play-lh.googleusercontent.com/Avvq84tDNB49hhXn06aDd9TcqTH8b4VUw7VntAqcNoDgS8PFoDJS5dN0uiJ24pyEUtBxj5Pa14FqhEUdFMgi"
     },
     {
+      "packageName": "ai.perplexity.app.android",
+      "name": "Perplexity",
+      "repos": [
+        "hxreborn/morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "hxreborn/morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/hxreborn/morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=hxreborn/morphe-patches",
+          "source": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/hxreborn.png?size=96",
+          "latestChanges": {
+            "title": "1.7.0 (2026-08-16)",
+            "date": "2026-08-16",
+            "items": [
+              {
+                "category": "New Features",
+                "text": "**ReadEra - Remove nags:** add patch"
+              },
+              {
+                "category": "New Features",
+                "text": "**Trainline - Hide ads:** add patch"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "ai-perplexity-app-android-hxreborn-morphe-patches",
+            "releaseTag": "app-ai-perplexity-app-android-hxreborn-morphe-patches",
+            "assetName": "perplexity-hxreborn-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "AMOLED dark theme",
+              "description": "Replaces the dark theme background with pure black."
+            }
+          ],
+          "versions": []
+        }
+      ],
+      "patches": [
+        "AMOLED dark theme"
+      ],
+      "patchDetails": [
+        {
+          "name": "AMOLED dark theme",
+          "description": "Replaces the dark theme background with pure black."
+        }
+      ],
+      "versions": [],
+      "iconColor": "#20808D",
+      "iconUrl": ""
+    },
+    {
       "packageName": "com.huawei.maps.app",
       "name": "Petal Maps",
       "repos": [
@@ -47729,6 +47867,10 @@
               "description": "Neutralizes the native integrity check (SecurityDetect.irpj) that kills the process upon detecting APK re-signing."
             },
             {
+              "name": "Automotive orientation fix (main activity)",
+              "description": "Changes PetalMapsActivity's screenOrientation from behind to sensorLandscape so it renders in landscape on the car display."
+            },
+            {
               "name": "Change package name",
               "description": "Changes the package name from com.huawei.maps.app to morphe.huawei.petal.maps by default, allowing the patched app to coexist with the original. Changing the package name can lead to unexpected issues."
             },
@@ -47753,6 +47895,7 @@
         "Android Auto Manifest",
         "Android Auto Resources",
         "Anti-Repack Bypass",
+        "Automotive orientation fix (main activity)",
         "Change package name",
         "Huawei login fix",
         "Manufacturer Check Bypass"
@@ -47781,6 +47924,10 @@
         {
           "name": "Anti-Repack Bypass",
           "description": "Neutralizes the native integrity check (SecurityDetect.irpj) that kills the process upon detecting APK re-signing."
+        },
+        {
+          "name": "Automotive orientation fix (main activity)",
+          "description": "Changes PetalMapsActivity's screenOrientation from behind to sensorLandscape so it renders in landscape on the car display."
         },
         {
           "name": "Change package name",
@@ -49358,28 +49505,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/MiguelNinja19/miguel-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/MiguelNinja19.png?size=96",
           "latestChanges": {
-            "title": "1.13.5 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.13.6 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** move openPlayStore no-op to BypassPairIPPatch"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
+                "text": "**cubesolver:** remove"
               }
             ]
           },
@@ -50988,12 +51119,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -51139,12 +51270,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -51214,12 +51345,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.5.1 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.7.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
-                "category": "Bug Fixes",
-                "text": "**Symfonium - Unlock premium:** force the native key check that halts playback"
+                "category": "New Features",
+                "text": "**ReadEra - Remove nags:** add patch"
+              },
+              {
+                "category": "New Features",
+                "text": "**Trainline - Hide ads:** add patch"
               }
             ]
           },
@@ -51280,8 +51415,8 @@
       ],
       "patches": [
         "Disable tracking",
-        "Unlock premium",
-        "Unlock Premium"
+        "Unlock Premium",
+        "Unlock premium"
       ],
       "patchDetails": [
         {
@@ -51289,12 +51424,12 @@
           "description": "Disables analytics and crash reporting."
         },
         {
-          "name": "Unlock premium",
-          "description": "Unlocks all premium features."
-        },
-        {
           "name": "Unlock Premium",
           "description": "Unlocks Projectivy Launcher Premium"
+        },
+        {
+          "name": "Unlock premium",
+          "description": "Unlocks all premium features."
         }
       ],
       "versions": [
@@ -51501,12 +51636,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.5.1 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.7.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
-                "category": "Bug Fixes",
-                "text": "**Symfonium - Unlock premium:** force the native key check that halts playback"
+                "category": "New Features",
+                "text": "**ReadEra - Remove nags:** add patch"
+              },
+              {
+                "category": "New Features",
+                "text": "**Trainline - Hide ads:** add patch"
               }
             ]
           },
@@ -52469,12 +52608,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -52707,6 +52846,68 @@
         "2.0.13"
       ],
       "iconColor": "#FF6F00",
+      "iconUrl": ""
+    },
+    {
+      "packageName": "org.readera",
+      "name": "ReadEra",
+      "repos": [
+        "hxreborn/morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "hxreborn/morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/hxreborn/morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=hxreborn/morphe-patches",
+          "source": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/hxreborn.png?size=96",
+          "latestChanges": {
+            "title": "1.7.0 (2026-08-16)",
+            "date": "2026-08-16",
+            "items": [
+              {
+                "category": "New Features",
+                "text": "**ReadEra - Remove nags:** add patch"
+              },
+              {
+                "category": "New Features",
+                "text": "**Trainline - Hide ads:** add patch"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "org-readera-hxreborn-morphe-patches",
+            "releaseTag": "app-org-readera-hxreborn-morphe-patches",
+            "assetName": "readera-hxreborn-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Remove nags",
+              "description": "Removes the rate this app dialog and the promotional dialogs shown on startup."
+            }
+          ],
+          "versions": [
+            "26.05.20+2300"
+          ]
+        }
+      ],
+      "patches": [
+        "Remove nags"
+      ],
+      "patchDetails": [
+        {
+          "name": "Remove nags",
+          "description": "Removes the rate this app dialog and the promotional dialogs shown on startup."
+        }
+      ],
+      "versions": [
+        "26.05.20+2300"
+      ],
+      "iconColor": "#0061BD",
       "iconUrl": ""
     },
     {
@@ -53871,12 +54072,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -53980,119 +54181,70 @@
       "iconUrl": "https://play-lh.googleusercontent.com/1Vo_ixB4gB-cXR5MMr24xonI_6XVuvHzpDrmPJyZQaXBZUfv90OlxZmpAzthrm_hM64_ZCXbiQ0vgyKYhEYXxh8"
     },
     {
-      "packageName": "com.rookery.courier",
-      "name": "Roost",
+      "packageName": "com.yodo1.rodeo.safari",
+      "name": "Rodeo Stampede: Sky Zoo Safari",
       "repos": [
-        "itsthejoker/itsthejoker-patches"
+        "byehi98/okish-morphe-patches"
       ],
       "sources": [
         {
-          "repo": "itsthejoker/itsthejoker-patches",
+          "repo": "byehi98/okish-morphe-patches",
           "host": "github.com",
-          "webUrl": "https://github.com/itsthejoker/itsthejoker-patches",
-          "addUrl": "https://morphe.software/add-source?github=itsthejoker/itsthejoker-patches",
-          "source": "https://raw.githubusercontent.com/itsthejoker/itsthejoker-patches/main/patches-bundle.json",
-          "changelogUrl": "https://raw.githubusercontent.com/itsthejoker/itsthejoker-patches/main/CHANGELOG.md",
-          "avatarUrl": "https://github.com/itsthejoker.png?size=96",
+          "webUrl": "https://github.com/byehi98/okish-morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=byehi98/okish-morphe-patches",
+          "source": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.5.0 (2026-07-28)",
-            "date": "2026-07-28",
+            "title": "1.10.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**roost:** add free nest egg patch"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "**roost:** force deploy"
+                "text": "relocate patches package structure under app namespace"
               }
             ]
           },
           "builder": {
-            "buildId": "com-rookery-courier-itsthejoker-itsthejoker-patches",
-            "releaseTag": "app-com-rookery-courier-itsthejoker-itsthejoker-patches",
-            "assetName": "roost-itsthejoker-itsthejoker-patches.apk",
+            "buildId": "com-yodo1-rodeo-safari-byehi98-okish-morphe-patches",
+            "releaseTag": "app-com-yodo1-rodeo-safari-byehi98-okish-morphe-patches",
+            "assetName": "rodeo-stampede-sky-zoo-safari-byehi98-okish-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
           "patches": [
             {
-              "name": "10x Bullet Damage",
-              "description": "Multiplies the player's bullet damage by 10 in the Bullet Hell minigame (damage 1 -> 10), applied to both enemies and bosses."
+              "name": "Rodeo Stampede Ad-Free (Ads blocked + instant rewards)",
+              "description": "Blocks banner/app-open/native ads and turns rewarded + interstitial ads into instant no-ad events so the game never fetches or displays ads."
             },
             {
-              "name": "Beam of Death (10x Fire Rate)",
-              "description": "Multiplies the player's firing speed by 10 in the Bullet Hell minigame (fire interval 0.15 -> 0.015) for a near-continuous beam."
-            },
-            {
-              "name": "Bypass Play Store license check",
-              "description": "Disables the PairIP Play-license check so a non-Play (e.g. patched/sideloaded) install no longer redirects to the \"get it on Google Play\" wall on launch."
-            },
-            {
-              "name": "Free Nest Egg (bypass claim cooldown)",
-              "description": "Removes the client-side cooldown timer check on the nest-egg free-bird claim button so the claim request is sent to the server on every tap. The server still controls eligibility; this only stops the client from blocking the request."
-            },
-            {
-              "name": "Redirect Google login to microG",
-              "description": "Routes Roost's Google Play Services calls to microG RE so a patched install can sign in with Google. Requires microG RE (app.revanced.android.gms) installed."
-            },
-            {
-              "name": "Skip Play Integrity (fix microG Firebase delay)",
-              "description": "Makes Play Integrity attestation fail fast instead of hanging ~60s under microG, removing the delay before Firebase logins, leaderboards, and other backend calls."
-            },
-            {
-              "name": "Triple Bullet Size",
-              "description": "Triples the on-screen size of the player's bullets in the Bullet Hell minigame (sizePx 6.0 -> 18.0)."
+              "name": "Rodeo Stampede Free Purchase",
+              "description": "Spoofs in-app purchases as instantly successful at the Yodo1 purchase funnel."
             }
           ],
           "versions": [
-            "1.4.12"
+            "4.23.0"
           ]
         }
       ],
       "patches": [
-        "10x Bullet Damage",
-        "Beam of Death (10x Fire Rate)",
-        "Bypass Play Store license check",
-        "Free Nest Egg (bypass claim cooldown)",
-        "Redirect Google login to microG",
-        "Skip Play Integrity (fix microG Firebase delay)",
-        "Triple Bullet Size"
+        "Rodeo Stampede Ad-Free (Ads blocked + instant rewards)",
+        "Rodeo Stampede Free Purchase"
       ],
       "patchDetails": [
         {
-          "name": "10x Bullet Damage",
-          "description": "Multiplies the player's bullet damage by 10 in the Bullet Hell minigame (damage 1 -> 10), applied to both enemies and bosses."
+          "name": "Rodeo Stampede Ad-Free (Ads blocked + instant rewards)",
+          "description": "Blocks banner/app-open/native ads and turns rewarded + interstitial ads into instant no-ad events so the game never fetches or displays ads."
         },
         {
-          "name": "Beam of Death (10x Fire Rate)",
-          "description": "Multiplies the player's firing speed by 10 in the Bullet Hell minigame (fire interval 0.15 -> 0.015) for a near-continuous beam."
-        },
-        {
-          "name": "Bypass Play Store license check",
-          "description": "Disables the PairIP Play-license check so a non-Play (e.g. patched/sideloaded) install no longer redirects to the \"get it on Google Play\" wall on launch."
-        },
-        {
-          "name": "Free Nest Egg (bypass claim cooldown)",
-          "description": "Removes the client-side cooldown timer check on the nest-egg free-bird claim button so the claim request is sent to the server on every tap. The server still controls eligibility; this only stops the client from blocking the request."
-        },
-        {
-          "name": "Redirect Google login to microG",
-          "description": "Routes Roost's Google Play Services calls to microG RE so a patched install can sign in with Google. Requires microG RE (app.revanced.android.gms) installed."
-        },
-        {
-          "name": "Skip Play Integrity (fix microG Firebase delay)",
-          "description": "Makes Play Integrity attestation fail fast instead of hanging ~60s under microG, removing the delay before Firebase logins, leaderboards, and other backend calls."
-        },
-        {
-          "name": "Triple Bullet Size",
-          "description": "Triples the on-screen size of the player's bullets in the Bullet Hell minigame (sizePx 6.0 -> 18.0)."
+          "name": "Rodeo Stampede Free Purchase",
+          "description": "Spoofs in-app purchases as instantly successful at the Yodo1 purchase funnel."
         }
       ],
       "versions": [
-        "1.4.12"
+        "4.23.0"
       ],
-      "iconColor": "#2A1E9E",
+      "iconColor": "#689F38",
       "iconUrl": ""
     },
     {
@@ -54488,12 +54640,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -55788,12 +55940,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.5.1 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.7.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
-                "category": "Bug Fixes",
-                "text": "**Symfonium - Unlock premium:** force the native key check that halts playback"
+                "category": "New Features",
+                "text": "**ReadEra - Remove nags:** add patch"
+              },
+              {
+                "category": "New Features",
+                "text": "**Trainline - Hide ads:** add patch"
               }
             ]
           },
@@ -56312,12 +56468,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -56487,16 +56643,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.8.0 (2026-08-13)",
-            "date": "2026-08-13",
+            "title": "1.10.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Into the Dead 2.9.3 patches (free IAP, instant rewards, remove ads incl. app open)"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "consolidate Into the Dead patches into Ad Removal + Billing Bypass"
+                "text": "relocate patches package structure under app namespace"
               }
             ]
           },
@@ -56593,20 +56745,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
           "latestChanges": {
-            "title": "1.32.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.33.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "es"
+                "text": "add allvideo downloader"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "make snaptube watch ad patch more robust"
+                "text": "ads up 2"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "update Es Des"
+                "text": "update ads"
               }
             ]
           },
@@ -57076,12 +57228,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -57215,12 +57367,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/alan7383/sofatime-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/alan7383.png?size=96",
           "latestChanges": {
-            "title": "1.4.3 (2026-08-12)",
-            "date": "2026-08-12",
+            "title": "1.4.4 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "Support SofaTime v1.2.5 (Fixes #4)"
+                "text": "Support SofaTime v1.2.7 (Fixes #5)"
               }
             ]
           },
@@ -57253,7 +57405,8 @@
             "1.2.2",
             "1.2.3",
             "1.2.4",
-            "1.2.5"
+            "1.2.5",
+            "1.2.7"
           ]
         }
       ],
@@ -57285,7 +57438,8 @@
         "1.2.2",
         "1.2.3",
         "1.2.4",
-        "1.2.5"
+        "1.2.5",
+        "1.2.7"
       ],
       "iconColor": "#1E1E2E",
       "iconUrl": ""
@@ -58675,12 +58829,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -59644,16 +59798,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.8.0 (2026-08-13)",
-            "date": "2026-08-13",
+            "title": "1.10.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Into the Dead 2.9.3 patches (free IAP, instant rewards, remove ads incl. app open)"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "consolidate Into the Dead patches into Ad Removal + Billing Bypass"
+                "text": "relocate patches package structure under app namespace"
               }
             ]
           },
@@ -59708,12 +59858,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -59782,12 +59932,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.5.1 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.7.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
-                "category": "Bug Fixes",
-                "text": "**Symfonium - Unlock premium:** force the native key check that halts playback"
+                "category": "New Features",
+                "text": "**ReadEra - Remove nags:** add patch"
+              },
+              {
+                "category": "New Features",
+                "text": "**Trainline - Hide ads:** add patch"
               }
             ]
           },
@@ -59811,18 +59965,18 @@
         }
       ],
       "patches": [
-        "Unlock premium",
         "Unlock Premium",
+        "Unlock premium",
         "Unlock Symfonium"
       ],
       "patchDetails": [
         {
-          "name": "Unlock premium",
-          "description": "Unlocks all premium features."
-        },
-        {
           "name": "Unlock Premium",
           "description": "Turns on Symfonium's paid features. The build ships as a public beta with a built-in trial, so this also prevents the expired-beta screen. The license is checked locally and the unlock does not require an account. Connecting Plex, Jellyfin and other media servers is untouched."
+        },
+        {
+          "name": "Unlock premium",
+          "description": "Unlocks all premium features."
         },
         {
           "name": "Unlock Symfonium",
@@ -59854,12 +60008,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/humzakh/HK-Morphe-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/humzakh.png?size=96",
           "latestChanges": {
-            "title": "1.7.1 (2026-08-09)",
-            "date": "2026-08-09",
+            "title": "1.8.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "Disable SyncPredictiveBackPatch for image views"
+                "category": "\u2728 New Features",
+                "text": "Add Hacker News Feed patch"
               }
             ]
           },
@@ -59898,6 +60052,10 @@
             {
               "name": "Fix Reddit Video Links",
               "description": "Fixes reddit video links (reddit.com/link/.../video) so they open in the native video player."
+            },
+            {
+              "name": "Hacker News Feed",
+              "description": "Integrates Hacker News (news.ycombinator.com) into Reddit Sync as a custom feed."
             },
             {
               "name": "Predictive back gesture (Reddit Sync)",
@@ -60046,6 +60204,7 @@
         "Fix Reddit Video Links",
         "Fix Redgifs API",
         "Fix video downloads",
+        "Hacker News Feed",
         "Modify login WebView",
         "Predictive back gesture (Reddit Sync)",
         "Spoof client",
@@ -60110,6 +60269,10 @@
           "description": "Fixes a bug in Sync's MPD parser resulting in only the audio-track being saved."
         },
         {
+          "name": "Hacker News Feed",
+          "description": "Integrates Hacker News (news.ycombinator.com) into Reddit Sync as a custom feed."
+        },
+        {
           "name": "Modify login WebView",
           "description": "Modify the WebView used for logging into reddit to prevent login issues"
         },
@@ -60153,12 +60316,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/humzakh/HK-Morphe-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/humzakh.png?size=96",
           "latestChanges": {
-            "title": "1.7.1 (2026-08-09)",
-            "date": "2026-08-09",
+            "title": "1.8.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "Disable SyncPredictiveBackPatch for image views"
+                "category": "\u2728 New Features",
+                "text": "Add Hacker News Feed patch"
               }
             ]
           },
@@ -60197,6 +60360,10 @@
             {
               "name": "Fix Reddit Video Links",
               "description": "Fixes reddit video links (reddit.com/link/.../video) so they open in the native video player."
+            },
+            {
+              "name": "Hacker News Feed",
+              "description": "Integrates Hacker News (news.ycombinator.com) into Reddit Sync as a custom feed."
             },
             {
               "name": "Predictive back gesture (Reddit Sync)",
@@ -60302,6 +60469,7 @@
         "Fix Reddit Video Links",
         "Fix Redgifs API",
         "Fix video downloads",
+        "Hacker News Feed",
         "Modify login WebView",
         "Predictive back gesture (Reddit Sync)",
         "Spoof client",
@@ -60358,6 +60526,10 @@
           "description": "Fixes a bug in Sync's MPD parser resulting in only the audio-track being saved."
         },
         {
+          "name": "Hacker News Feed",
+          "description": "Integrates Hacker News (news.ycombinator.com) into Reddit Sync as a custom feed."
+        },
+        {
           "name": "Modify login WebView",
           "description": "Modify the WebView used for logging into reddit to prevent login issues"
         },
@@ -60401,12 +60573,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/humzakh/HK-Morphe-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/humzakh.png?size=96",
           "latestChanges": {
-            "title": "1.7.1 (2026-08-09)",
-            "date": "2026-08-09",
+            "title": "1.8.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "Disable SyncPredictiveBackPatch for image views"
+                "category": "\u2728 New Features",
+                "text": "Add Hacker News Feed patch"
               }
             ]
           },
@@ -60445,6 +60617,10 @@
             {
               "name": "Fix Reddit Video Links",
               "description": "Fixes reddit video links (reddit.com/link/.../video) so they open in the native video player."
+            },
+            {
+              "name": "Hacker News Feed",
+              "description": "Integrates Hacker News (news.ycombinator.com) into Reddit Sync as a custom feed."
             },
             {
               "name": "Predictive back gesture (Reddit Sync)",
@@ -60550,6 +60726,7 @@
         "Fix Reddit Video Links",
         "Fix Redgifs API",
         "Fix video downloads",
+        "Hacker News Feed",
         "Modify login WebView",
         "Predictive back gesture (Reddit Sync)",
         "Spoof client",
@@ -60604,6 +60781,10 @@
         {
           "name": "Fix video downloads",
           "description": "Fixes a bug in Sync's MPD parser resulting in only the audio-track being saved."
+        },
+        {
+          "name": "Hacker News Feed",
+          "description": "Integrates Hacker News (news.ycombinator.com) into Reddit Sync as a custom feed."
         },
         {
           "name": "Modify login WebView",
@@ -61183,12 +61364,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -62068,28 +62249,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/MiguelNinja19/miguel-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/MiguelNinja19.png?size=96",
           "latestChanges": {
-            "title": "1.13.5 (2026-07-31)",
-            "date": "2026-07-31",
+            "title": "1.13.6 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** move openPlayStore no-op to BypassPairIPPatch"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
-              },
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
+                "text": "**cubesolver:** remove"
               }
             ]
           },
@@ -62821,12 +62986,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -63275,12 +63440,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -63565,6 +63730,68 @@
       ],
       "iconColor": "#2962FF",
       "iconUrl": "https://play-lh.googleusercontent.com/bRMYA4FYUqYgSnAB3ukCsx_P80UYLmCYmjURoVodvWWg6fPnXTX17K1bSkTHWSafgWFVPr-Oa_0Vv1hIql9b53E"
+    },
+    {
+      "packageName": "com.thetrainline",
+      "name": "Trainline",
+      "repos": [
+        "hxreborn/morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "hxreborn/morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/hxreborn/morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=hxreborn/morphe-patches",
+          "source": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/hxreborn.png?size=96",
+          "latestChanges": {
+            "title": "1.7.0 (2026-08-16)",
+            "date": "2026-08-16",
+            "items": [
+              {
+                "category": "New Features",
+                "text": "**ReadEra - Remove nags:** add patch"
+              },
+              {
+                "category": "New Features",
+                "text": "**Trainline - Hide ads:** add patch"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-thetrainline-hxreborn-morphe-patches",
+            "releaseTag": "app-com-thetrainline-hxreborn-morphe-patches",
+            "assetName": "trainline-hxreborn-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Hide ads",
+              "description": "Removes the adverts shown between search results."
+            }
+          ],
+          "versions": [
+            "407.0.0.178994"
+          ]
+        }
+      ],
+      "patches": [
+        "Hide ads"
+      ],
+      "patchDetails": [
+        {
+          "name": "Hide ads",
+          "description": "Removes the adverts shown between search results."
+        }
+      ],
+      "versions": [
+        "407.0.0.178994"
+      ],
+      "iconColor": "#00A88F",
+      "iconUrl": ""
     },
     {
       "packageName": "com.trainwiseapp.app",
@@ -64179,8 +64406,8 @@
       ],
       "patches": [
         "Disable analytics",
-        "Disable telemetry",
         "Disable Telemetry",
+        "Disable telemetry",
         "Disable update check",
         "Enable premium features",
         "GMS sign-in bypass",
@@ -64224,11 +64451,11 @@
           "description": "Suppresses Truecaller's CleverTap behavioural event tracking to prevent user-activity telemetry."
         },
         {
-          "name": "Disable telemetry",
+          "name": "Disable Telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
-          "name": "Disable Telemetry",
+          "name": "Disable telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
@@ -64399,16 +64626,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.8.0 (2026-08-13)",
-            "date": "2026-08-13",
+            "title": "1.10.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Into the Dead 2.9.3 patches (free IAP, instant rewards, remove ads incl. app open)"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "consolidate Into the Dead patches into Ad Removal + Billing Bypass"
+                "text": "relocate patches package structure under app namespace"
               }
             ]
           },
@@ -64523,12 +64746,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -64557,6 +64780,10 @@
               "description": "Turns off the in-app update check and the update prompt."
             },
             {
+              "name": "Disable screenshot sharing",
+              "description": "Stops the share sheet that pops up when you take a screenshot in the app."
+            },
+            {
               "name": "Disable Tumblr TV",
               "description": "Removes the Tumblr TV tab from the bottom navigation bar."
             },
@@ -64570,7 +64797,7 @@
             }
           ],
           "versions": [
-            "45.0.0.109"
+            "45.8.0.110"
           ]
         }
       ],
@@ -64579,6 +64806,7 @@
         "Disable blog notification reminder",
         "Disable gift message popup",
         "Disable in-app update",
+        "Disable screenshot sharing",
         "Disable Tumblr TV",
         "Enable premium UI",
         "Remove ads"
@@ -64601,6 +64829,10 @@
           "description": "Turns off the in-app update check and the update prompt."
         },
         {
+          "name": "Disable screenshot sharing",
+          "description": "Stops the share sheet that pops up when you take a screenshot in the app."
+        },
+        {
           "name": "Disable Tumblr TV",
           "description": "Removes the Tumblr TV tab from the bottom navigation bar."
         },
@@ -64614,7 +64846,7 @@
         }
       ],
       "versions": [
-        "45.0.0.109"
+        "45.8.0.110"
       ],
       "iconColor": "#001935",
       "iconUrl": "https://play-lh.googleusercontent.com/BWSIac9IjPlQwOwxZ3aLzaX_rmP5Dfvkwn1HtSztT16WBOHdJZ6D0JSIz_lo_GatSlql3GlSFZcHuzWqAP5n8g"
@@ -64828,12 +65060,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -64846,12 +65078,20 @@
           },
           "patches": [
             {
+              "name": "7TV and BTTV emotes",
+              "description": "Renders global and current-channel 7TV and BTTV emotes in incoming live chat. Type an emote code normally to send it; this patch does not add a picker or provider login."
+            },
+            {
               "name": "Auto claim channel points",
               "description": "Claims the channel points bonus chest for you automatically. Whenever Twitch makes a bonus available, the claim fires on its own so you don't have to tap the chest."
             },
             {
               "name": "Block live ads",
               "description": "Routes live streams through a free third-party proxy that strips the ads baked into the stream, so the proxy has to be up for playback to work; turn this patch off if it goes down. Mid-stream ads get dropped reliably, but a single preroll can still slip through when you first open a channel and Twitch has flagged the shared proxy. VOD ads aren't covered."
+            },
+            {
+              "name": "Fix login",
+              "description": "Fixes the \"This app version/OS is not currently supported\" error that blocks login after the app has been patched. Twitch runs a Play Integrity check in the background and reports the result to its login server; re-signing makes that check fail, so the server refuses the login. This stops the app from sending that attestation, so it looks like a device without Google Play, where login works normally. It does not change anything else about how you log in."
             },
             {
               "name": "Hide display ads",
@@ -64863,7 +65103,7 @@
             }
           ],
           "versions": [
-            "29.9.1"
+            "30.7.2"
           ]
         },
         {
@@ -64924,6 +65164,7 @@
         }
       ],
       "patches": [
+        "7TV and BTTV emotes",
         "Auto claim channel points",
         "Block audio ads",
         "Block embedded ads",
@@ -64931,11 +65172,16 @@
         "Block TV ads",
         "Block video ads",
         "Debug mode",
+        "Fix login",
         "Hide display ads",
         "Show deleted messages",
         "Skip ads"
       ],
       "patchDetails": [
+        {
+          "name": "7TV and BTTV emotes",
+          "description": "Renders global and current-channel 7TV and BTTV emotes in incoming live chat. Type an emote code normally to send it; this patch does not add a picker or provider login."
+        },
         {
           "name": "Auto claim channel points",
           "description": "Claims the channel points bonus chest for you automatically. Whenever Twitch makes a bonus available, the claim fires on its own so you don't have to tap the chest."
@@ -64965,6 +65211,10 @@
           "description": "Enables Twitch's internal debugging mode."
         },
         {
+          "name": "Fix login",
+          "description": "Fixes the \"This app version/OS is not currently supported\" error that blocks login after the app has been patched. Twitch runs a Play Integrity check in the background and reports the result to its login server; re-signing makes that check fail, so the server refuses the login. This stops the app from sending that attestation, so it looks like a device without Google Play, where login works normally. It does not change anything else about how you log in."
+        },
+        {
           "name": "Hide display ads",
           "description": "Hides the banner, overlay, and in-feed display ads Twitch shows around the app. This doesn't touch the video ads in the stream itself."
         },
@@ -64981,8 +65231,8 @@
         "13.0.0.2",
         "16.9.1",
         "25.3.0",
-        "29.9.1",
-        "30.2.2"
+        "30.2.2",
+        "30.7.2"
       ],
       "iconColor": "#9146FF",
       "iconUrl": "https://play-lh.googleusercontent.com/JHCM4AIyomRp6Lo2-5ugoznlGdsZmNnejVN8DLvtWFHShcz8YRgUE170f1CyOfrleYbtFL2g8tQ3VqlQNAgqoA"
@@ -65788,12 +66038,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -66713,12 +66963,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -67152,12 +67402,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.45.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.48.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Moneta Unlock Plus patch"
+                "text": "fix Twitch login on patched builds"
               }
             ]
           },
@@ -67782,20 +68032,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
           "latestChanges": {
-            "title": "1.32.0 (2026-08-15)",
-            "date": "2026-08-15",
+            "title": "1.33.0 (2026-08-16)",
+            "date": "2026-08-16",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "es"
+                "text": "add allvideo downloader"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "make snaptube watch ad patch more robust"
+                "text": "ads up 2"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "update Es Des"
+                "text": "update ads"
               }
             ]
           },
@@ -70301,8 +70551,8 @@
         "Video playback",
         "Video quality",
         "Visual preferences icons for YouTube",
-        "Voice Over Translation",
         "Voice over translation",
+        "Voice Over Translation",
         "Voice Over Translation (Yandex)",
         "Watch history",
         "Watch later button",
@@ -70820,12 +71070,12 @@
           "description": "Adds icons to specific preferences in the settings."
         },
         {
-          "name": "Voice Over Translation",
-          "description": "Adds an option to enable Yandex voice-over translation of video audio tracks."
-        },
-        {
           "name": "Voice over translation",
           "description": "Adds additional voice over languages using text-to-speech synchronized to the video playback."
+        },
+        {
+          "name": "Voice Over Translation",
+          "description": "Adds an option to enable Yandex voice-over translation of video audio tracks."
         },
         {
           "name": "Voice Over Translation (Yandex)",
@@ -72824,20 +73074,20 @@
       "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
       "patchCount": 9,
       "latestChanges": {
-        "title": "1.32.0 (2026-08-15)",
-        "date": "2026-08-15",
+        "title": "1.33.0 (2026-08-16)",
+        "date": "2026-08-16",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "es"
+            "text": "add allvideo downloader"
           },
           {
             "category": "\u2728 New Features",
-            "text": "make snaptube watch ad patch more robust"
+            "text": "ads up 2"
           },
           {
             "category": "\u2728 New Features",
-            "text": "update Es Des"
+            "text": "update ads"
           }
         ]
       },
@@ -72864,7 +73114,7 @@
         },
         {
           "name": "Remove Ads",
-          "description": "Disables ad SDKs, ruins ad network request URLs, and hides empty ad containers across the app.",
+          "description": "Stubs known ad SDK entry points and poisons ad-network URL strings across the whole app.",
           "default": false
         },
         {
@@ -73249,12 +73499,12 @@
       "avatarUrl": "https://github.com/humzakh.png?size=96",
       "patchCount": 1,
       "latestChanges": {
-        "title": "1.7.1 (2026-08-09)",
-        "date": "2026-08-09",
+        "title": "1.8.0 (2026-08-16)",
+        "date": "2026-08-16",
         "items": [
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "Disable SyncPredictiveBackPatch for image views"
+            "category": "\u2728 New Features",
+            "text": "Add Hacker News Feed patch"
           }
         ]
       },
@@ -73574,28 +73824,12 @@
       "avatarUrl": "https://github.com/MiguelNinja19.png?size=96",
       "patchCount": 2,
       "latestChanges": {
-        "title": "1.13.5 (2026-07-31)",
-        "date": "2026-07-31",
+        "title": "1.13.6 (2026-08-16)",
+        "date": "2026-08-16",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**cubesolver:** disable PairIP VM entirely and replace onCreate"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**cubesolver:** move openPlayStore no-op to BypassPairIPPatch"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**cubesolver:** split PairIP bypass into resource + bytecode patches (fixes CI)"
+            "text": "**cubesolver:** remove"
           }
         ]
       },
@@ -74542,46 +74776,6 @@
   ],
   "recentSources": [
     {
-      "name": "itsthejoker-patches",
-      "repo": "itsthejoker/itsthejoker-patches",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/itsthejoker/itsthejoker-patches/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/itsthejoker/itsthejoker-patches/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/itsthejoker/itsthejoker-patches/main/CHANGELOG.md",
-      "webUrl": "https://github.com/itsthejoker/itsthejoker-patches",
-      "addUrl": "https://morphe.software/add-source?github=itsthejoker/itsthejoker-patches",
-      "avatarUrl": "https://github.com/itsthejoker.png?size=96",
-      "patchCount": 7,
-      "appCount": 1,
-      "createdAt": 1786756263632,
-      "updatedAt": 1786756263632,
-      "createdDate": "2026-08-15",
-      "updatedDate": "2026-08-15",
-      "latestChanges": {
-        "title": "1.5.0 (2026-07-28)",
-        "date": "2026-07-28",
-        "items": [
-          {
-            "category": "\u2728 New Features",
-            "text": "**roost:** add free nest egg patch"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "**roost:** force deploy"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "Roost",
-          "packageName": "com.rookery.courier",
-          "patchCount": 7,
-          "iconUrl": "",
-          "iconColor": "#2A1E9E"
-        }
-      ]
-    },
-    {
       "name": "aapam-patches",
       "repo": "WZSE/aapam-patches",
       "host": "github.com",
@@ -74974,31 +75168,38 @@
       "webUrl": "https://github.com/BlazeFTL/FTL-Patches",
       "addUrl": "https://morphe.software/add-source?github=BlazeFTL/FTL-Patches",
       "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
-      "patchCount": 18,
-      "appCount": 4,
+      "patchCount": 20,
+      "appCount": 5,
       "createdAt": 1786263569063,
       "updatedAt": 1786263569063,
       "createdDate": "2026-08-09",
       "updatedDate": "2026-08-09",
       "latestChanges": {
-        "title": "1.32.0 (2026-08-15)",
-        "date": "2026-08-15",
+        "title": "1.33.0 (2026-08-16)",
+        "date": "2026-08-16",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "es"
+            "text": "add allvideo downloader"
           },
           {
             "category": "\u2728 New Features",
-            "text": "make snaptube watch ad patch more robust"
+            "text": "ads up 2"
           },
           {
             "category": "\u2728 New Features",
-            "text": "update Es Des"
+            "text": "update ads"
           }
         ]
       },
       "apps": [
+        {
+          "name": "All Video Downloader & Ace Player",
+          "packageName": "videoplayer.videodownloader.downloader",
+          "patchCount": 2,
+          "iconUrl": "",
+          "iconColor": ""
+        },
         {
           "name": "ES File Explorer",
           "packageName": "com.estrongs.android.pop",
@@ -75062,6 +75263,49 @@
           "patchCount": 1,
           "iconUrl": "",
           "iconColor": "#FFCF00"
+        }
+      ]
+    },
+    {
+      "name": "logm1lo-patches",
+      "repo": "logm1lo/logm1lo-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/logm1lo/logm1lo-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/logm1lo/logm1lo-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/logm1lo/logm1lo-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/logm1lo/logm1lo-patches",
+      "addUrl": "https://morphe.software/add-source?github=logm1lo/logm1lo-patches",
+      "avatarUrl": "https://github.com/logm1lo.png?size=96",
+      "patchCount": 4,
+      "appCount": 2,
+      "createdAt": 1785983280370,
+      "updatedAt": 1785983280370,
+      "createdDate": "2026-08-06",
+      "updatedDate": "2026-08-06",
+      "latestChanges": {
+        "title": "1.1.0 (2026-08-08)",
+        "date": "2026-08-08",
+        "items": [
+          {
+            "category": "New Features",
+            "text": "add Cube Solver patches, fix Calistree Dart unlock"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Calistree",
+          "packageName": "com.calistree.calistree",
+          "patchCount": 2,
+          "iconUrl": "",
+          "iconColor": "#4CAF50"
+        },
+        {
+          "name": "Cube Solver",
+          "packageName": "com.jeffprod.cubesolver",
+          "patchCount": 2,
+          "iconUrl": "",
+          "iconColor": "#4CAF50"
         }
       ]
     }
