@@ -32,6 +32,11 @@ public final class MorpheStorageFolderPickerActivity extends Activity {
 
     private void launch() {
         started = true;
+        if (MorpheStorageInternalFolderPickerActivity.hasDirectAccess(this)) {
+            startActivityForResult(
+                    new Intent(this, MorpheStorageInternalFolderPickerActivity.class), REQUEST_TREE);
+            return;
+        }
         Intent source = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).addFlags(
                 Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION |
                         Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION |

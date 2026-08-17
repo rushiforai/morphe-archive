@@ -2,7 +2,7 @@
 
 ## Unit
 
-- [x] Default/OFF behavior delegates the player callback and never arms restoration.
+- [x] Fresh-default On, stored Off, and disabled behavior are covered; Off delegates the player callback and never arms restoration.
 - [x] Enabled behavior arms, survives forward-transition recomposition, confirms player entry and consumes one non-first restoration only after normal or error Back.
 - [x] The queued viewport request positions the selected row before Nuvio's focus effect and is cleared by its completion callback.
 - [x] Player activity without a manual source selection cannot create a restoration.

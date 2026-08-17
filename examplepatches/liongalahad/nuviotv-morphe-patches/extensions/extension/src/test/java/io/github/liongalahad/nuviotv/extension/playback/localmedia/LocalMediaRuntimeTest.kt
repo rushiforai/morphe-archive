@@ -37,17 +37,20 @@ class LocalMediaRuntimeTest {
             .remove(LocalMediaRuntime.ENABLED_KEY)
             .remove(LocalMediaRuntime.TREE_URI_KEY)
             .remove(LocalMediaRuntime.LEGACY_TREE_URI_KEY)
+            .putBoolean(LocalMediaRuntime.ENABLED_KEY, false)
             .commit()
     }
 
     @Test
-    fun `local playback defaults off and owns its namespaced setting`() {
+    fun `local playback defaults on and a stored choice remains authoritative`() {
         assertEquals("playback.local_media.enabled", LocalMediaRuntime.ENABLED_KEY)
-        assertFalse(LocalMediaRuntime.isEnabled())
-
-        LocalMediaRuntime.setEnabled(true)
-
+        application.getSharedPreferences(MorpheSettingsRuntime.PREFERENCES_NAME, 0)
+            .edit().remove(LocalMediaRuntime.ENABLED_KEY).commit()
         assertTrue(LocalMediaRuntime.isEnabled())
+
+        LocalMediaRuntime.setEnabled(false)
+
+        assertFalse(LocalMediaRuntime.isEnabled())
     }
 
     @Test
@@ -67,6 +70,7 @@ class LocalMediaRuntimeTest {
 
         assertEquals(selected.toString(), LocalMediaRuntime.treeUriString())
         assertEquals("Download/TV", LocalMediaRuntime.folderDisplayLabel())
+        assertTrue(LocalMediaRuntime.hasStorageAccess(application))
     }
 
     @Test
@@ -131,6 +135,20 @@ class LocalMediaRuntimeTest {
         assertTrue(route.contains("&filename=Test%20Clip.mkv"))
         assertTrue(route.contains("&videoSize=1048576"))
         assertTrue(route.contains("&launchStartedAtMs="))
+    }
+
+    @Test
+    @Config(sdk = [28, 30, 35])
+    fun `player route UTF-8 encoding works across supported Android TV APIs`() {
+        val route = LocalMediaRuntime.buildPlayerRoute(
+            "file:///storage/emulated/0/Movies/Nuvio/Amélie & 50%.mp4",
+            "Amélie & 50%.mp4",
+            2_048L
+        )
+
+        assertTrue(route.startsWith("player/file%3A%2F%2F%2F"))
+        assertTrue(route.contains("Am%C3%A9lie%20%26%2050%25"))
+        assertTrue(route.contains("filename=Am%C3%A9lie%20%26%2050%25.mp4"))
     }
 
     @Test

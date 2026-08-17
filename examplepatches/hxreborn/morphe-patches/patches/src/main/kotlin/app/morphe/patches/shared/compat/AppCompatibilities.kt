@@ -27,6 +27,13 @@ internal object AppCompatibilities {
         appIconColor = 0x0772BA,
     )
 
+    val PERPLEXITY = Compatibility(
+        name = "Perplexity",
+        packageName = "ai.perplexity.app.android",
+        apkFileType = ApkFileType.APKS,
+        appIconColor = 0x20808D,
+    )
+
     val PROJECTIVY = Compatibility(
         name = "Projectivy Launcher",
         packageName = "com.spocky.projengmenu",
@@ -40,6 +47,14 @@ internal object AppCompatibilities {
         apkFileType = ApkFileType.APK,
         appIconColor = 0x6D4AFF,
         targets = listOf(AppTarget(version = "7.10.4", versionCode = 17667, minSdk = 29)),
+    )
+
+    val READERA = Compatibility(
+        name = "ReadEra",
+        packageName = "org.readera",
+        apkFileType = ApkFileType.APKS,
+        appIconColor = 0x0061BD,
+        targets = listOf(AppTarget(version = "26.05.20+2300", versionCode = 2300, minSdk = 16)),
     )
 
     val SHOWLY = Compatibility(
@@ -66,5 +81,13 @@ internal object AppCompatibilities {
             AppTarget(version = "14.0.0", versionCode = 127708, minSdk = 28),
             AppTarget(version = "14.1.0", versionCode = 127734, minSdk = 32),
         ),
+    )
+
+    val TRAINLINE = Compatibility(
+        name = "Trainline",
+        packageName = "com.thetrainline",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x00A88F,
+        targets = listOf(AppTarget(version = "407.0.0.178994", versionCode = 1278994, minSdk = 26)),
     )
 }

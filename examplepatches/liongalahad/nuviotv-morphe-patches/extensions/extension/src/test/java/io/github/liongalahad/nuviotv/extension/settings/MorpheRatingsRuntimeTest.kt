@@ -54,6 +54,26 @@ class MorpheRatingsRuntimeTest {
     }
 
     @Test
+    fun `fresh rating preferences show overall and hide unwatched episode ratings`() {
+        application.getSharedPreferences(MorpheSettingsRuntime.PREFERENCES_NAME, 0)
+            .edit()
+            .remove(MorpheSettingsRuntime.OVERALL_RATINGS_KEY)
+            .remove(MorpheSettingsRuntime.EPISODE_RATINGS_KEY)
+            .commit()
+        MorpheSettingsRuntime::class.java.getDeclaredField("preferences").apply {
+            isAccessible = true
+            set(null, null)
+        }
+        MorpheSettingsRuntime.initialize(application)
+
+        assertTrue(MorpheSettingsRuntime.isOverallRatingsShown())
+        assertEquals(
+            MorpheSettingsRuntime.EPISODE_RATINGS_HIDE_UNWATCHED,
+            MorpheSettingsRuntime.episodeRatingsModeOrdinal()
+        )
+    }
+
+    @Test
     fun `episode modes implement show hide and hide unwatched`() {
         val rating = 9.1
         assertEquals(rating, MorpheSettingsRuntime.filterEpisodeRating(rating, false)!!, 0.0)

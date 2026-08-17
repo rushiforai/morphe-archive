@@ -93,16 +93,11 @@ PATCH_CREDITS = {
     "Random Episode": "Original idea and code by [**DeclanSC**](https://github.com/DeclanSC).",
 }
 
-PATCH_DOCS = {
-    "Random Episode": "testing/patches/random-episode/README.md",
-    "Local Media": "testing/patches/local-media/README.md",
-    "Local Downloads": "testing/patches/local-downloads/README.md",
-    "Rating Visibility": "testing/patches/ratings-visibility/README.md",
-    "Remove SDH Annotations": "testing/patches/sdh-annotations/README.md",
-    "Mark SDH Subtitles": "testing/patches/sdh-marking/README.md",
-    "Allow Importing Subs from Local Storage": "testing/patches/local-storage-subtitles/README.md",
-    "Library Mode Focus Fix": "testing/patches/library-mode-focus-fix/README.md",
-}
+PATCH_DOCS = {}
+for manifest_path in Path("testing/patches").glob("*/patch.json"):
+    with open(manifest_path, encoding="utf-8-sig") as manifest_file:
+        manifest = json.load(manifest_file)
+    PATCH_DOCS[manifest["name"]] = (manifest_path.parent / "README.md").as_posix()
 
 
 def patches_table(patches):
@@ -113,7 +108,11 @@ def patches_table(patches):
     ]
     for p in sorted(
         patches,
-        key=lambda x: (APP_PATCH_ORDER.get(x["name"], 10_000), x["name"]),
+        key=lambda x: (
+            0 if x.get("default") else 1,
+            APP_PATCH_ORDER.get(x["name"], 10_000),
+            x["name"],
+        ),
     ):
         a = anchor(p["name"])
         options = p.get("options") or []

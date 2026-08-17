@@ -69,7 +69,7 @@
   ],
   "acceptance": [
     "Selecting only Restore Source Selection shows Morphe > Playback and no unrelated patch setting",
-    "Restore source selection defaults off, updates immediately and persists after force-stop and reboot",
+    "Restore source selection defaults on for a fresh preference, updates immediately, and a stored On or Off choice persists after force-stop and reboot",
     "With the setting off, returning from internal playback retains Nuvio's original top-of-list behavior",
     "With the setting on, returning from internal playback focuses the source that launched playback and restores its list viewport",
     "The first, middle, last visible and far-off-screen source positions return without an out-of-range focus request",

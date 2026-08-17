@@ -48,7 +48,7 @@ private val sdhCategoryResourcePatch = resourcePatch {
 @Suppress("unused")
 val removeSdhAnnotationsPatch = bytecodePatch(
     name = "Remove SDH Annotations",
-    description = "Adds Settings → Morphe → Subtitles and removes SDH annotations from Media3 subtitles when enabled.",
+    description = "Adds Settings → Morphe → Subtitles to normalize music symbols and remove SDH annotations from Media3 subtitles.",
     default = false
 ) {
     compatibleWith(NUVIO_COMPATIBILITY)
@@ -64,13 +64,23 @@ val removeSdhAnnotationsPatch = bytecodePatch(
             it.matchAll(1..1)
         }
 
-        fun MutableMethod.hook(parameter: String, returnType: String) = addInstructions(
+        fun MutableMethod.bindRecognitionSession() = addInstructions(
+            0,
+            """
+                invoke-static/range { p0 .. p0 }, $CUE_TRANSFORMER->beginSession(Ljava/lang/Object;)V
+            """
+        )
+
+        fun MutableMethod.hook(parameter: String, returnType: String) {
+            addInstructions(
             0,
             """
                 invoke-static/range { p1 .. p1 }, $CUE_TRANSFORMER->clean($parameter)$returnType
                 move-result-object p1
             """
-        )
+            )
+            bindRecognitionSession()
+        }
 
         CueGroupOutputFingerprint.method.apply {
             val instructions = implementation!!.instructions
@@ -134,6 +144,7 @@ val removeSdhAnnotationsPatch = bytecodePatch(
                     nop
                 """
             )
+            bindRecognitionSession()
         }
         LegacyCueOutputFingerprint.method.hook("Ljava/util/List;", "Ljava/util/List;")
 
@@ -166,6 +177,7 @@ val removeSdhAnnotationsPatch = bytecodePatch(
                     move-result-object v$listRegister
                 """
             )
+            bindRecognitionSession()
         }
     }
 }

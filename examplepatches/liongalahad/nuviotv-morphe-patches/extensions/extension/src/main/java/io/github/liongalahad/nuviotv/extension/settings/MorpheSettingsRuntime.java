@@ -30,6 +30,7 @@ public final class MorpheSettingsRuntime {
     public static final int SDH_MODE_OFF = 0;
     public static final int SDH_MODE_KEEP_LYRICS = 1;
     public static final int SDH_MODE_REMOVE_LYRICS = 2;
+    public static final int SDH_MODE_NORMALIZE_MUSIC_SYMBOLS = 3;
     public static final int EPISODE_RATINGS_SHOW = 0;
     public static final int EPISODE_RATINGS_HIDE = 1;
     public static final int EPISODE_RATINGS_HIDE_UNWATCHED = 2;
@@ -41,10 +42,10 @@ public final class MorpheSettingsRuntime {
     private static volatile WeakReference<Activity> resumedActivity = new WeakReference<>(null);
     private static volatile boolean activityCallbacksRegistered;
     private static volatile SharedPreferences preferences;
-    private static volatile int sdhCleanupMode = SDH_MODE_OFF;
-    private static volatile boolean sdhMarkingEnabled;
+    private static volatile int sdhCleanupMode = SDH_MODE_NORMALIZE_MUSIC_SYMBOLS;
+    private static volatile boolean sdhMarkingEnabled = true;
     private static volatile boolean overallRatingsShown = true;
-    private static volatile int episodeRatingsMode = EPISODE_RATINGS_SHOW;
+    private static volatile int episodeRatingsMode = EPISODE_RATINGS_HIDE_UNWATCHED;
     private static volatile List<MorpheSettingsCategory> patchCategories = Collections.emptyList();
 
     private MorpheSettingsRuntime() {}
@@ -233,7 +234,8 @@ public final class MorpheSettingsRuntime {
 
     public static boolean isRemoveSdhEnabled() {
         ensureInitialized();
-        return sdhCleanupMode != SDH_MODE_OFF;
+        return sdhCleanupMode == SDH_MODE_KEEP_LYRICS ||
+                sdhCleanupMode == SDH_MODE_REMOVE_LYRICS;
     }
 
     public static void setRemoveSdhEnabled(Context context, boolean enabled) {
@@ -269,6 +271,7 @@ public final class MorpheSettingsRuntime {
 
     public static String sdhModeTitle(int mode) {
         switch (sanitizeSdhMode(mode)) {
+            case SDH_MODE_NORMALIZE_MUSIC_SYMBOLS: return "Normalize music symbols only";
             case SDH_MODE_KEEP_LYRICS: return "Remove SDH, keep lyrics";
             case SDH_MODE_REMOVE_LYRICS: return "Full cleanup";
             default: return "Off";
@@ -277,15 +280,17 @@ public final class MorpheSettingsRuntime {
 
     public static String sdhModeDescription(int mode) {
         switch (sanitizeSdhMode(mode)) {
+            case SDH_MODE_NORMALIZE_MUSIC_SYMBOLS:
+                return "Replace repeated or misdecoded lyric markers with music-note symbols without removing text.";
             case SDH_MODE_KEEP_LYRICS:
-                return "Remove annotations, sound descriptions and speaker labels while preserving likely song lyrics.";
+                return "Remove annotations, sound descriptions and speaker labels while preserving and normalizing likely song lyrics.";
             case SDH_MODE_REMOVE_LYRICS:
-                return "Also remove all text enclosed by normal or misdecoded music-note markers.";
-            default: return "Do not remove any subtitle text.";
+                return "Also remove all text enclosed by normal, inferred or misdecoded music-note markers.";
+            default: return "Do not alter subtitle text.";
         }
     }
 
-    public static String sdhDialogTitle() { return "Remove SDH annotations"; }
+    public static String sdhDialogTitle() { return "SDH subtitle processing"; }
     public static String currentSdhModeTitle() { return sdhModeTitle(sdhCleanupModeOrdinal()); }
 
     public static String sdhMarkingTitle() { return "Mark SDH subtitles"; }
@@ -332,9 +337,13 @@ public final class MorpheSettingsRuntime {
 
     private static int readSdhCleanupMode(SharedPreferences prefs) {
         String stored = prefs.getString(SDH_CLEANUP_MODE_KEY, null);
+        if ("NORMALIZE_MUSIC_SYMBOLS".equals(stored)) return SDH_MODE_NORMALIZE_MUSIC_SYMBOLS;
         if ("KEEP_LYRICS".equals(stored) || "FULL".equals(stored)) return SDH_MODE_KEEP_LYRICS;
         if ("REMOVE_LYRICS".equals(stored)) return SDH_MODE_REMOVE_LYRICS;
-        if (stored == null && prefs.getBoolean(REMOVE_SDH_KEY, false)) return SDH_MODE_KEEP_LYRICS;
+        if (stored == null) {
+            return prefs.getBoolean(REMOVE_SDH_KEY, false)
+                    ? SDH_MODE_KEEP_LYRICS : SDH_MODE_NORMALIZE_MUSIC_SYMBOLS;
+        }
         return SDH_MODE_OFF;
     }
 
@@ -345,7 +354,7 @@ public final class MorpheSettingsRuntime {
     }
 
     private static boolean readSdhMarkingEnabled(SharedPreferences prefs) {
-        try { return prefs.getBoolean(SDH_MARKING_KEY, false); }
+        try { return prefs.getBoolean(SDH_MARKING_KEY, true); }
         catch (ClassCastException ignored) { return false; }
     }
 
@@ -359,11 +368,12 @@ public final class MorpheSettingsRuntime {
         if ("HIDE_UNWATCHED".equals(stored) || "HIDE_UNWATCHED_EPISODES".equals(stored)) {
             return EPISODE_RATINGS_HIDE_UNWATCHED;
         }
-        return EPISODE_RATINGS_SHOW;
+        return stored == null ? EPISODE_RATINGS_HIDE_UNWATCHED : EPISODE_RATINGS_SHOW;
     }
 
     private static int sanitizeSdhMode(int mode) {
-        return mode >= SDH_MODE_OFF && mode <= SDH_MODE_REMOVE_LYRICS ? mode : SDH_MODE_OFF;
+        return mode >= SDH_MODE_OFF && mode <= SDH_MODE_NORMALIZE_MUSIC_SYMBOLS
+                ? mode : SDH_MODE_OFF;
     }
 
     private static int sanitizeEpisodeMode(int mode) {
@@ -373,6 +383,7 @@ public final class MorpheSettingsRuntime {
 
     private static String storedSdhModeName(int mode) {
         switch (sanitizeSdhMode(mode)) {
+            case SDH_MODE_NORMALIZE_MUSIC_SYMBOLS: return "NORMALIZE_MUSIC_SYMBOLS";
             case SDH_MODE_KEEP_LYRICS: return "KEEP_LYRICS";
             case SDH_MODE_REMOVE_LYRICS: return "REMOVE_LYRICS";
             default: return "OFF";

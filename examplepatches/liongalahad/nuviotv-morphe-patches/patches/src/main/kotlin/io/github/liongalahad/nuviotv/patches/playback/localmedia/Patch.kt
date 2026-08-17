@@ -40,6 +40,8 @@ private const val DELETE_ACTIVITY =
     "io.github.liongalahad.nuviotv.extension.playback.localmedia.LocalMediaDeleteActivity"
 private const val ACTION_ACTIVITY =
     "io.github.liongalahad.nuviotv.extension.playback.localmedia.LocalMediaActionActivity"
+private const val PLAYBACK_DIAGNOSTIC_ACTIVITY =
+    "io.github.liongalahad.nuviotv.extension.playback.localmedia.LocalMediaPlaybackDiagnosticActivity"
 private const val SETTINGS_METADATA =
     "io.github.liongalahad.nuviotv.settings.provider.local_media"
 private const val SETTINGS_CATEGORY =
@@ -100,6 +102,12 @@ private val localMediaResources = resourcePatch {
                     setAttribute("android:theme", "@android:style/Theme.Translucent.NoTitleBar")
                 })
             }
+            application.appendChild(document.createElement("activity").apply {
+                setAttribute("android:name", PLAYBACK_DIAGNOSTIC_ACTIVITY)
+                setAttribute("android:exported", "false")
+                setAttribute("android:excludeFromRecents", "true")
+                setAttribute("android:theme", "@android:style/Theme.Translucent.NoTitleBar")
+            })
             application.appendChild(document.createElement("activity").apply {
                 setAttribute("android:name", INTERNAL_FOLDER_PICKER_ACTIVITY)
                 setAttribute("android:exported", "false")

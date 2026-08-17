@@ -1,12 +1,14 @@
 # Local Media test plan
 
-- [x] Unit tests cover disabled-by-default persistence, idempotent nested default-folder creation, picker-handler filtering, file classification, exact sidecar matching, and immutable Player-route construction.
+- [x] Unit tests cover fresh-default On and stored Off persistence, idempotent nested default-folder creation, picker-handler filtering, file classification, exact sidecar matching, and immutable Player-route construction.
+- [ ] Confirm launch and toggling Local Media never opens a permission screen; first entry into Library > Storage requests access once when needed, denial shows a retry action, and a selected path suppresses the request.
 - [x] Every fingerprint matches exactly once on universal, x86_64, arm64-v8a, and armeabi-v7a NuvioTV 0.8.4-beta APKs.
 - [x] Isolated patch application and manifest/DEX inspection pass on all declared assets.
 - [x] Combined x86_64 and universal builds apply all eight current patches without a fingerprint, resource, or DEX conflict.
 - [x] Turning Local Storage on without access opens Android's storage-access consent automatically, creates `Movies/Nuvio` immediately after the grant, and exposes no separate permission setting.
 - [x] `Folder location` is the only folder action; the manifest makes `OPEN_DOCUMENT_TREE` handlers package-visible, enumerates real handlers, and never accepts Android TV's stub as the final answer.
 - [x] If no real folder-tree handler exists, a patch-owned D-pad folder browser opens and persists the selected path instead of reporting that no picker is installed.
+- [x] With direct access, verify the D-pad browser lists and opens an emulated removable volume using Android's mounted-volume inventory rather than direct `/storage` directory scanning.
 - [x] TV AVD grants `Movies/Nuvio`, lists an H.264 MKV, and reports its exact-basename SRT.
 - [x] TV AVD verifies video, audio, seek, subtitle discovery/selection, folder navigation, search/filtering, refresh, back navigation, and relaunch persistence.
 - [x] TV AVD verifies the Storage search placeholder, focus state and typed text use the native Cloud search field's size, colors and behavior.
@@ -25,6 +27,21 @@
 - [x] Local Downloads plus Local Media shows one shared path row, ordered after both feature sections.
 - [x] The path is greyed and skipped by D-pad focus when both features are off, and enabled when either feature is on.
 - [x] A saved `playback.local_media.tree_uri` value migrates to `playback.local_storage.path` without losing the selected folder.
+
+## 2026-08-15 evidence
+
+- Android 36's emulated public volume appeared beside Internal storage in the patch-owned D-pad picker through `StorageManager`, accepted `SDCARD/Movies`, and survived force-stop/relaunch and an unmount/remount cycle.
+- With Local Media enabled, Library > Storage scanned the selected removable volume, displayed `Bluey - Season 1` with its downloaded MKV, and short-pressing the folder opened its file picker without the earlier `VerifyError` or a crash.
+- Local Media applied alone on all four declared assets. Local Media plus Local Downloads applied together on x86_64 and universal, and the complete nine-patch universal application applied with no failed patch.
+
+## 2026-08-16 Android TV compatibility evidence
+
+- Local player-route encoding now uses Android's API-1 `URLEncoder.encode(String, String)` overload instead of the API-33 `Charset` overload that caused `NoSuchMethodError` on Android TV 11 and older devices such as NVIDIA Shield.
+- Route construction is inside the existing diagnostic guard, so any future URI-construction or Nuvio-navigation failure produces the retained Save log file popup instead of escaping without evidence.
+- Robolectric route tests passed on API 28, API 30 and API 35, including a UTF-8 path, and the built DEX was inspected to confirm the compatible string overload.
+- The exact signed side-by-side universal APK played the same local H.264/AAC file from Library > Storage through ExoPlayer on headless Android TV API 28 (x86), API 30 (x86, Shield-like profile) and API 36 (x86_64). Every run reached `isPlaying=true`, naturally ended, released the player, and contained no app fatal exception, `NoSuchMethodError`, unable-to-play toast or diagnostic failure popup.
+- The complete extension suite passed 168 tests with zero failures, errors or skips; the universal bundle applied all nine patches with no failed patch.
+- The all-nine side-by-side universal APK is zip-aligned, v2/v3 signed, contains all four native ABIs, and was copied byte-for-byte over the existing Google Drive filename. SHA-256: `A82A89010645BCEA1CD49AB739C9E4B2B1698B4104B3DEA90E0F61D4719369A5`.
 
 ## 2026-08-10 evidence
 

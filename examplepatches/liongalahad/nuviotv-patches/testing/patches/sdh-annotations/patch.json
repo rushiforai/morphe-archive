@@ -47,6 +47,8 @@
     ],
     "needles": [
       "subtitles.sdh_cleanup_mode",
+      "NORMALIZE_MUSIC_SYMBOLS",
+      "Normalize music symbols only",
       "Landroidx/media3/common/text/CueGroup;"
     ],
     "forbiddenNeedles": ["Lcom/google/common/collect/ImmutableList;"]
@@ -55,13 +57,14 @@
   "acceptance": [
     "Unpatched NuvioTV has no Morphe entry",
     "Patched NuvioTV shows Settings → Morphe → Subtitles",
-    "Subtitles expands in the existing pane and shows one native Remove SDH annotations selector with its current value",
-    "The selector opens the same three-choice modal layout, focus treatment, typography, spacing, selected fill, checkmark, and D-pad order as Nuvio's Playback selector",
-    "Exactly one of Off, Remove SDH, keep lyrics, and Full cleanup is selected in the modal",
-    "Mode defaults to Off and persists after force-stop and reboot",
-    "Off preserves the full subtitle text",
-    "Remove SDH, keep lyrics removes annotations while preserving likely lyrics",
-    "Full cleanup also removes all text enclosed by normal or supported mojibake music-note markers",
+    "Subtitles expands in the existing pane and shows one native SDH subtitle processing selector with its current value",
+    "The selector opens the same native choice-modal layout, focus treatment, typography, spacing, selected fill, checkmark, and D-pad order as Nuvio's Playback selector",
+    "Exactly one of Off, Normalize music symbols only, Remove SDH, keep lyrics, and Full cleanup is selected in the modal",
+    "A fresh installation defaults to Normalize music symbols only, while every stored mode persists after force-stop and reboot",
+    "Off preserves the full subtitle text and source identity",
+    "Normalize music symbols only replaces supported mojibake and boundary tokens inferred after three total or two consecutive case-insensitive occurrences without removing text",
+    "Remove SDH, keep lyrics removes complete single-line and multiline annotations while preserving likely lyrics with normalized markers",
+    "Full cleanup also removes all text enclosed by normal, supported mojibake, or evidence-inferred music-note markers",
     "No crash, ANR, VerifyError, or fatal log during launch, settings, playback, seeking, or track changes"
   ]
 }

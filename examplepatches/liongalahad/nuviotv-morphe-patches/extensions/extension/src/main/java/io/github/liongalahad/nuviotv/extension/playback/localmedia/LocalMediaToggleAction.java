@@ -1,7 +1,5 @@
 package io.github.liongalahad.nuviotv.extension.playback.localmedia;
 
-import android.app.Activity;
-
 import io.github.liongalahad.nuviotv.extension.settings.MorpheSettingsUi;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function0;
@@ -19,10 +17,6 @@ public final class LocalMediaToggleAction implements Function0<Unit> {
         LocalMediaRuntime.setEnabled(enabling);
         LocalMediaLibraryUi.invalidate();
         MorpheSettingsUi.refresh();
-        if (enabling) {
-            Activity activity = MorpheSettingsUi.resumedActivity();
-            if (activity != null) LocalMediaRuntime.prepareDefaultFolder(activity);
-        }
         return Unit.INSTANCE;
     }
 }

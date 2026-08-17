@@ -2,7 +2,9 @@ package io.github.liongalahad.nuviotv.extension.settings;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
@@ -26,10 +28,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
-import java.util.Set;
 
 /** D-pad folder browser used when Android TV has no usable document-tree picker. */
 public final class MorpheStorageInternalFolderPickerActivity extends Activity {
@@ -47,7 +46,7 @@ public final class MorpheStorageInternalFolderPickerActivity extends Activity {
         accessStarted = state != null && state.getBoolean("accessStarted", false);
         String restored = state == null ? null : state.getString("current");
         if (restored != null) current = canonical(new File(restored));
-        if (hasDirectAccess()) createBrowser();
+        if (hasDirectAccess(this)) createBrowser();
         else if (!accessStarted) requestAccess();
     }
 
@@ -59,11 +58,15 @@ public final class MorpheStorageInternalFolderPickerActivity extends Activity {
 
     @Override protected void onResume() {
         super.onResume();
-        if (list == null && hasDirectAccess()) createBrowser();
+        if (list == null && hasDirectAccess(this)) createBrowser();
     }
 
-    private boolean hasDirectAccess() {
-        return Build.VERSION.SDK_INT < Build.VERSION_CODES.R || Environment.isExternalStorageManager();
+    static boolean hasDirectAccess(Context context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            return Environment.isExternalStorageManager();
+        }
+        return context.checkSelfPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE) ==
+                PackageManager.PERMISSION_GRANTED;
     }
 
     private void requestAccess() {
@@ -91,7 +94,7 @@ public final class MorpheStorageInternalFolderPickerActivity extends Activity {
     @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode != REQUEST_ACCESS) return;
-        if (hasDirectAccess()) createBrowser();
+        if (hasDirectAccess(this)) createBrowser();
         else {
             Toast.makeText(this, "Storage access is required to choose a folder",
                     Toast.LENGTH_LONG).show();
@@ -102,7 +105,7 @@ public final class MorpheStorageInternalFolderPickerActivity extends Activity {
     @Override public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] results) {
         super.onRequestPermissionsResult(requestCode, permissions, results);
         if (requestCode == REQUEST_ACCESS) {
-            if (hasDirectAccess()) createBrowser();
+            if (hasDirectAccess(this)) createBrowser();
             else finish();
         }
     }
@@ -162,7 +165,8 @@ public final class MorpheStorageInternalFolderPickerActivity extends Activity {
         rows.clear();
         File primary = canonical(Environment.getExternalStorageDirectory());
         for (File root : storageRoots()) rows.add(new FolderRow(FOLDER,
-                same(root, primary) ? "Internal storage" : root.getName(), root));
+                same(root, primary) ? "Internal storage" :
+                        MorpheStoragePath.displayLabelForPath(root.getAbsolutePath()), root));
         location.setText("Storage devices");
         refreshRows();
     }
@@ -205,13 +209,13 @@ public final class MorpheStorageInternalFolderPickerActivity extends Activity {
         else showFolder(current.getParentFile());
     }
 
-    static boolean isAllowedFolder(File folder) {
+    private boolean isAllowedFolder(File folder) {
         if (folder == null || !folder.isDirectory()) return false;
         for (File root : storageRoots()) if (contains(root, folder)) return true;
         return false;
     }
 
-    private static File containingRoot(File folder) {
+    private File containingRoot(File folder) {
         File best = null;
         for (File root : storageRoots()) {
             if (contains(root, folder) && (best == null ||
@@ -220,21 +224,8 @@ public final class MorpheStorageInternalFolderPickerActivity extends Activity {
         return best;
     }
 
-    private static List<File> storageRoots() {
-        List<File> roots = new ArrayList<>();
-        Set<String> paths = new HashSet<>();
-        addRoot(roots, paths, Environment.getExternalStorageDirectory());
-        File[] mounted = new File("/storage").listFiles(File::isDirectory);
-        if (mounted != null) for (File root : mounted) {
-            String name = root.getName().toLowerCase(Locale.ROOT);
-            if (!"emulated".equals(name) && !"self".equals(name)) addRoot(roots, paths, root);
-        }
-        return roots;
-    }
-
-    private static void addRoot(List<File> roots, Set<String> paths, File candidate) {
-        File root = canonical(candidate);
-        if (root != null && root.isDirectory() && paths.add(root.getAbsolutePath())) roots.add(root);
+    private List<File> storageRoots() {
+        return MorpheStoragePath.mountedStorageRoots(this);
     }
 
     private static boolean contains(File root, File folder) {

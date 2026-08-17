@@ -1,7 +1,7 @@
 {
-  "created_at": "N/A",
-  "description": "N/A",
-  "download_url": "N/A",
+  "created_at": "2026-08-16T16:56:52",
+  "description": "## [1.14.0-dev.4](https://github.com/MiguelNinja19/miguel-morphe-patches/compare/v1.14.0-dev.3...v1.14.0-dev.4) (2026-08-16)\n\n### \ud83d\udc1b Bug Fixes\n\n* **supreme:** fix black screen crash by removing unsafe hex patches ([fe3c040](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/fe3c0407d494ca8af3f635b68062b1400ab74124))\n* **supreme:** fix black screen crash by removing unsafe hex patches ([e020eb6](https://github.com/MiguelNinja19/miguel-morphe-patches/commit/e020eb61fc7c140760aa532e726f1b54578d7609))\n",
+  "download_url": "https://github.com/MiguelNinja19/miguel-morphe-patches/releases/download/v1.14.0-dev.4/patches-1.14.0-dev.4.mpp",
   "signature_download_url": "N/A",
-  "version": "N/A"
+  "version": "v1.14.0-dev.4"
 }

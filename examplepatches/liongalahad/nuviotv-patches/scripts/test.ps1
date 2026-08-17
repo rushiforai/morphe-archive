@@ -10,6 +10,13 @@ param(
 . "$PSScriptRoot\Common.ps1"
 $config = Initialize-NuvioEnvironment
 $manifest = Get-PatchManifest $Patch
+$outputIdentity = $manifest.PSObject.Properties['output']
+$installedPackage = if ($outputIdentity) { $outputIdentity.Value.package } else { $manifest.target.package }
+$launchComponent = if ($outputIdentity) {
+    $outputIdentity.Value.launchComponent
+} else {
+    $manifest.target.launchComponent
+}
 
 if ($Device -eq 'real') {
     if (-not $Serial) {
@@ -66,14 +73,14 @@ if ($install.ExitCode -ne 0 -and $install.Output -match 'UPDATE_INCOMPATIBLE') {
     if ($Device -eq 'real' -and -not $ReplaceOfficial) {
         throw 'The installed app has a different signature. Re-run with -ReplaceOfficial to explicitly uninstall it and lose its local data.'
     }
-    & adb -s $Serial uninstall $manifest.target.package | Out-Null
+    & adb -s $Serial uninstall $installedPackage | Out-Null
     $install = Install-TestApk
 }
 $install.Output | Set-Content -Encoding UTF8 (Join-Path $run 'install.log')
 if ($install.ExitCode -ne 0 -or $install.Output -notmatch 'Success') { throw "Install failed: $($install.Output)" }
 
-& adb -s $Serial shell am force-stop $manifest.target.package | Out-Null
-& adb -s $Serial shell am start -n $manifest.target.launchComponent | Out-Null
+& adb -s $Serial shell am force-stop $installedPackage | Out-Null
+& adb -s $Serial shell am start -n $launchComponent | Out-Null
 Start-Sleep -Seconds 8
 & adb -s $Serial logcat -d -v threadtime | Set-Content -Encoding UTF8 (Join-Path $run 'logcat.txt')
 & adb -s $Serial shell uiautomator dump /sdcard/nuviotv-window.xml | Out-Null
@@ -91,7 +98,8 @@ $facts = [ordered]@{
 }
 $facts | ConvertTo-Json | Set-Content -Encoding UTF8 (Join-Path $run 'device.json')
 
-$fatal = Select-String -Path (Join-Path $run 'logcat.txt') -Pattern 'FATAL EXCEPTION|VerifyError|ANR in com\.nuvio\.tv' -Quiet
+$fatalPackage = [regex]::Escape($installedPackage)
+$fatal = Select-String -Path (Join-Path $run 'logcat.txt') -Pattern "FATAL EXCEPTION|VerifyError|ANR in $fatalPackage" -Quiet
 $checklist = ($manifest.acceptance | ForEach-Object { "- [ ] $_" }) -join [Environment]::NewLine
 $status = if ($fatal) { 'FAILED: fatal startup log found' } else { 'AUTOMATION PASSED; MANUAL RUNTIME CHECKS PENDING' }
 @"

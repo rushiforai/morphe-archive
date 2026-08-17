@@ -11,9 +11,6 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
-import android.os.StatFs;
-import android.os.storage.StorageManager;
-import android.os.storage.StorageVolume;
 import android.provider.DocumentsContract;
 import android.util.Log;
 
@@ -79,13 +76,20 @@ public final class LocalDownloadsService extends Service {
         OutputTarget target = null;
         try {
             if (LocalDownloadsRuntime.isCancelRequested()) throw new CancelledException();
+            LocalDownloadsStorageStats.Snapshot storage =
+                    LocalDownloadsStorageStats.snapshot(this, MorpheStoragePath.uri());
+            if (!storage.isAvailable()) {
+                throw new IOException(
+                        "Selected storage is unavailable. Reconnect it or choose another local storage path."
+                );
+            }
             connection = open(request.url, request.headers);
             int status = connection.getResponseCode();
             if (status < 200 || status >= 300) throw new IOException("Source returned HTTP " + status);
             long responseSize = connection.getContentLengthLong();
             long declaredSize = request.declaredSize != null ? request.declaredSize : -1L;
             long expected = Math.max(declaredSize, responseSize);
-            long free = freeBytes();
+            long free = storage.availableBytes;
             long allowed = allowedBytes(free, LocalDownloadsSettings.freePercent());
             Log.i(TAG, "Capacity check declared=" + declaredSize + " response=" + responseSize +
                     " expected=" + expected + " free=" + free + " allowed=" + allowed);
@@ -287,45 +291,6 @@ public final class LocalDownloadsService extends Service {
 
     private void clearActiveConnection(HttpURLConnection connection) {
         if (activeConnection == connection) activeConnection = null;
-    }
-
-    private long freeBytes() {
-        Uri location = MorpheStoragePath.uri();
-        File folder = storageLocation(location);
-        File statTarget = folder;
-        while (statTarget != null && !statTarget.exists()) statTarget = statTarget.getParentFile();
-        if (statTarget == null) statTarget = android.os.Environment.getExternalStorageDirectory();
-        return new StatFs(statTarget.getAbsolutePath()).getAvailableBytes();
-    }
-
-    /** Resolves the actual selected volume where Android exposes it, including USB/SD trees. */
-    private File storageLocation(Uri location) {
-        if (location != null && "file".equalsIgnoreCase(location.getScheme()) &&
-                location.getPath() != null) return new File(location.getPath());
-        if (location != null && "content".equalsIgnoreCase(location.getScheme())) {
-            try {
-                StorageManager manager = getSystemService(StorageManager.class);
-                StorageVolume volume = manager == null ? null : manager.getStorageVolume(location);
-                if (volume != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
-                        volume.getDirectory() != null) return volume.getDirectory();
-            } catch (Throwable error) {
-                Log.w(TAG, "Unable to resolve selected document volume", error);
-            }
-            try {
-                if ("com.android.externalstorage.documents".equals(location.getAuthority())) {
-                    String documentId = DocumentsContract.getTreeDocumentId(location);
-                    int separator = documentId.indexOf(':');
-                    String volumeId = separator < 0 ? documentId : documentId.substring(0, separator);
-                    if ("primary".equalsIgnoreCase(volumeId))
-                        return android.os.Environment.getExternalStorageDirectory();
-                    File mounted = new File("/storage", volumeId);
-                    if (mounted.exists()) return mounted;
-                }
-            } catch (Throwable error) {
-                Log.w(TAG, "Unable to resolve selected external-storage tree", error);
-            }
-        }
-        return MorpheStoragePath.defaultFolder();
     }
 
     private void createNotificationChannel() {

@@ -1,3 +1,9 @@
+## [1.0.0-dev.21](https://github.com/liongalahad/nuviotv-morphe-patches/compare/v1.0.0-dev.20...v1.0.0-dev.21) (2026-08-16)
+
+### ✨ New Features
+
+* update patch suite and add side-by-side installs ([d18802b](https://github.com/liongalahad/nuviotv-morphe-patches/commit/d18802ba3daf75fb056af26dd62c4763c300dcf2))
+
 ## [1.0.0-dev.20](https://github.com/liongalahad/nuviotv-morphe-patches/compare/v1.0.0-dev.19...v1.0.0-dev.20) (2026-08-13)
 
 ### 🐛 Bug Fixes

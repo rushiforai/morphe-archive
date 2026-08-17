@@ -77,7 +77,7 @@
   ],
   "acceptance": [
     "Selecting only Random Episode shows Morphe > Detail Page and no unrelated category",
-    "Show Random Episode Button defaults off, updates immediately and persists after force-stop and reboot",
+    "Show Random Episode Button defaults on for a fresh preference, updates immediately, and a stored On or Off choice persists after force-stop and reboot",
     "The enabled shuffle action appears before Library only on series with an eligible aired episode",
     "Click chooses an aired non-special episode and opens its normal stream selection or autoplay flow",
     "Long press preserves Nuvio's manual-play choice for the selected random episode",

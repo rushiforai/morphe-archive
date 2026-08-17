@@ -4,6 +4,7 @@ import android.app.Activity
 import android.view.Gravity
 import android.view.ViewGroup
 import org.junit.After
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Test
@@ -23,10 +24,31 @@ class MorpheSdhModeDialogTest {
     }
 
     @Test
+    fun `dialog displays all modes in user-facing order`() {
+        val field = MorpheSdhModeDialog::class.java.getDeclaredField("DISPLAY_MODES")
+        field.isAccessible = true
+        assertArrayEquals(
+            intArrayOf(
+                MorpheSettingsRuntime.SDH_MODE_OFF,
+                MorpheSettingsRuntime.SDH_MODE_NORMALIZE_MUSIC_SYMBOLS,
+                MorpheSettingsRuntime.SDH_MODE_KEEP_LYRICS,
+                MorpheSettingsRuntime.SDH_MODE_REMOVE_LYRICS
+            ),
+            field.get(null) as IntArray
+        )
+    }
+
+    @Test
     fun `dialog has final centered geometry before first frame for every mode`() {
         val expectedWidth = Math.round(440 * activity.resources.displayMetrics.density)
 
-        for (mode in MorpheSettingsRuntime.SDH_MODE_OFF..MorpheSettingsRuntime.SDH_MODE_REMOVE_LYRICS) {
+        val modes = listOf(
+            MorpheSettingsRuntime.SDH_MODE_OFF,
+            MorpheSettingsRuntime.SDH_MODE_NORMALIZE_MUSIC_SYMBOLS,
+            MorpheSettingsRuntime.SDH_MODE_KEEP_LYRICS,
+            MorpheSettingsRuntime.SDH_MODE_REMOVE_LYRICS
+        )
+        for (mode in modes) {
             MorpheSettingsRuntime.setSdhCleanupMode(activity, mode)
 
             val dialog = MorpheSdhModeDialog.create(activity)

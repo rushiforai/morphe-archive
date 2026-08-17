@@ -67,8 +67,13 @@ rm -f patches/build/libs/*.mpp
 
 # ── Step 3/7: Local bundle verification ─────────────────────────────────────
 echo "=== Step 3/7: Verify bundle ==="
-unzip -l "$MPP" | grep -q "classes.dex" \
-    || fail "$MPP is missing classes.dex (Manager would reject it). Never publish the output of the plain 'build' task."
+# NOTE: do not pipe `unzip -l` into grep -q — with pipefail, grep closing the
+# pipe early kills unzip with SIGPIPE (141) and the check false-fails.
+MPP_LISTING="$(unzip -Z1 "$MPP")"
+case "$MPP_LISTING" in
+    *classes.dex*) : ;;
+    *) fail "$MPP is missing classes.dex (Manager would reject it). Never publish the output of the plain 'build' task." ;;
+esac
 "$JAVA_HOME/bin/java.exe" -jar "$MORPHE_CLI" list-patches --patches "$MPP" 2>/dev/null | grep -q "Android Auto" \
     || fail "morphe-cli cannot read patches from $MPP"
 echo "Bundle OK: classes.dex present, patches readable."
@@ -113,7 +118,10 @@ done
 
 TMP_MPP="$(mktemp --suffix=.mpp)"
 curl -sL -o "$TMP_MPP" "https://github.com/$REPO/releases/download/$TAG/patches-$NEW.mpp"
-unzip -l "$TMP_MPP" | grep -q "classes.dex" || fail "PUBLISHED asset is missing classes.dex"
+case "$(unzip -Z1 "$TMP_MPP")" in
+    *classes.dex*) : ;;
+    *) fail "PUBLISHED asset is missing classes.dex" ;;
+esac
 rm -f "$TMP_MPP"
 
 echo ""

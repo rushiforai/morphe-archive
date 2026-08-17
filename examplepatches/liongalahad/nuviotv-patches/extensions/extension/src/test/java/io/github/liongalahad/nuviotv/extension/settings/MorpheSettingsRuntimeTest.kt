@@ -116,18 +116,23 @@ class MorpheSettingsRuntimeTest {
     }
 
     @Test
-    fun `three modes commit synchronously and expose exact labels`() {
+    fun `four modes commit synchronously and expose exact labels`() {
         assertEquals("Off", MorpheSettingsRuntime.sdhModeTitle(0))
         assertEquals("Remove SDH, keep lyrics", MorpheSettingsRuntime.sdhModeTitle(1))
         assertEquals("Full cleanup", MorpheSettingsRuntime.sdhModeTitle(2))
-        assertEquals("Remove SDH annotations", MorpheSettingsRuntime.sdhDialogTitle())
-        assertEquals("Do not remove any subtitle text.", MorpheSettingsRuntime.sdhModeDescription(0))
+        assertEquals("Normalize music symbols only", MorpheSettingsRuntime.sdhModeTitle(3))
+        assertEquals("SDH subtitle processing", MorpheSettingsRuntime.sdhDialogTitle())
+        assertEquals("Do not alter subtitle text.", MorpheSettingsRuntime.sdhModeDescription(0))
         assertEquals(
-            "Remove annotations, sound descriptions and speaker labels while preserving likely song lyrics.",
+            "Replace repeated or misdecoded lyric markers with music-note symbols without removing text.",
+            MorpheSettingsRuntime.sdhModeDescription(3)
+        )
+        assertEquals(
+            "Remove annotations, sound descriptions and speaker labels while preserving and normalizing likely song lyrics.",
             MorpheSettingsRuntime.sdhModeDescription(1)
         )
         assertEquals(
-            "Also remove all text enclosed by normal or misdecoded music-note markers.",
+            "Also remove all text enclosed by normal, inferred or misdecoded music-note markers.",
             MorpheSettingsRuntime.sdhModeDescription(2)
         )
 
@@ -141,14 +146,45 @@ class MorpheSettingsRuntimeTest {
         assertEquals("Full cleanup", MorpheSettingsRuntime.currentSdhModeTitle())
         assertTrue(MorpheSettingsRuntime.isRemoveSdhEnabled())
 
+        MorpheSettingsRuntime.setSdhCleanupMode(
+            application,
+            MorpheSettingsRuntime.SDH_MODE_NORMALIZE_MUSIC_SYMBOLS
+        )
+        assertEquals(3, MorpheSettingsRuntime.sdhCleanupModeOrdinal())
+        assertEquals("Normalize music symbols only", MorpheSettingsRuntime.currentSdhModeTitle())
+        assertFalse(MorpheSettingsRuntime.isRemoveSdhEnabled())
+
         MorpheSettingsRuntime.setSdhCleanupMode(application, 99)
         assertEquals(0, MorpheSettingsRuntime.sdhCleanupModeOrdinal())
         assertFalse(MorpheSettingsRuntime.isRemoveSdhEnabled())
     }
 
     @Test
-    fun `sdh marking defaults off and persists independently`() {
+    fun `fresh SDH preference defaults to music-symbol normalization`() {
+        val preferences = application.getSharedPreferences("fresh-sdh-default", 0)
+        preferences.edit().clear().commit()
+        val reader = MorpheSettingsRuntime::class.java.getDeclaredMethod(
+            "readSdhCleanupMode",
+            android.content.SharedPreferences::class.java
+        )
+        reader.isAccessible = true
+        assertEquals(
+            MorpheSettingsRuntime.SDH_MODE_NORMALIZE_MUSIC_SYMBOLS,
+            reader.invoke(null, preferences)
+        )
+        preferences.edit()
+            .putString(MorpheSettingsRuntime.SDH_CLEANUP_MODE_KEY, "OFF")
+            .commit()
+        assertEquals(MorpheSettingsRuntime.SDH_MODE_OFF, reader.invoke(null, preferences))
+    }
+
+    @Test
+    fun `sdh marking defaults on and persists independently`() {
         val application = ApplicationProvider.getApplicationContext<android.app.Application>()
+        application.getSharedPreferences(MorpheSettingsRuntime.PREFERENCES_NAME, 0)
+            .edit().remove(MorpheSettingsRuntime.SDH_MARKING_KEY).commit()
+        assertTrue(MorpheSettingsRuntime.isSdhMarkingEnabled())
+
         MorpheSettingsRuntime.setSdhMarkingEnabled(application, false)
         assertFalse(MorpheSettingsRuntime.isSdhMarkingEnabled())
 

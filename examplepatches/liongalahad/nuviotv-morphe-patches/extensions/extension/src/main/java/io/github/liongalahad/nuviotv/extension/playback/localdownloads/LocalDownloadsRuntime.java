@@ -31,9 +31,9 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Constructor;
 import java.lang.ref.WeakReference;
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -61,6 +61,7 @@ import kotlin.coroutines.EmptyCoroutineContext;
 @SuppressWarnings({"unused", "rawtypes", "unchecked", "JavaReflectionMemberAccess"})
 public final class LocalDownloadsRuntime {
     private static final String TAG = "MorpheDownloads";
+    static final String DOWNLOAD_IN_PROGRESS_LABEL = "Download in progress...";
     private static final String ENTRIES_KEY = "playback.local_downloads.entries.v1";
     private static final long ACTION_TIMEOUT_MS = 10L * 60L * 1000L;
     private static final String[] SUBTITLE_WORKER_CLASS_NAMES = {"x9.q3", "v9.j3"};
@@ -173,6 +174,7 @@ public final class LocalDownloadsRuntime {
     public static void observeNavController(Object controller) {
         if (controller != null) {
             navController = controller;
+            LocalDownloadsPlaybackDiagnosticActivity.install(application());
             scheduleSourcePickerWatch();
         }
     }
@@ -194,7 +196,23 @@ public final class LocalDownloadsRuntime {
                 LocalDownloadsSettings.isAutoplayEnabled() &&
                 !identity.manualSelection) {
             DownloadedEntry entry = findEntry(identity);
-            if (entry != null && entry.isReadable(application())) return entry.playerRoute();
+            if (entry != null && entry.isReadable(application())) {
+                LocalDownloadsPlaybackDiagnosticActivity.arm(
+                        application(), "Automatic local playback", entry.mediaUri,
+                        null, navController);
+                try {
+                    String localRoute = entry.playerRoute();
+                    LocalDownloadsPlaybackDiagnosticActivity.arm(
+                            application(), "Automatic local playback", entry.mediaUri,
+                            localRoute, navController);
+                    return localRoute;
+                } catch (Throwable error) {
+                    Log.e(TAG, "Unable to create the automatic local player route", error);
+                    LocalDownloadsPlaybackDiagnosticActivity.report(
+                            application(), "Automatic local route creation", error);
+                    return route;
+                }
+            }
         }
         return route;
     }
@@ -278,9 +296,48 @@ public final class LocalDownloadsRuntime {
                 PackageManager.PERMISSION_GRANTED;
     }
 
+    static boolean hasStorageAccess(Context context) {
+        return MorpheStoragePath.value() != null || hasDefaultFolderAccess(context);
+    }
+
+    private static boolean requestStorageAccessForDownload() {
+        Context context = application();
+        if (hasStorageAccess(context)) return true;
+        toast("Storage access required");
+        Activity activity = MorpheSettingsUi.resumedActivity();
+        if (activity != null) prepareDefaultFolder(activity);
+        return false;
+    }
+
     public static boolean isDownloadRunning() {
         DownloadState state = downloadState;
         return state.status == Status.PREPARING || state.status == Status.DOWNLOADING;
+    }
+
+    /** True only when the currently running transfer belongs to this exact movie or episode. */
+    static boolean isTargetDownloadRunning(Object target) {
+        DownloadRequest request = activeRequest;
+        return request != null && isDownloadRunning() &&
+                targetMatchesIdentity(target, activeHeroMeta, activeHeroVideo, request.identity);
+    }
+
+    static String downloadActionLabel(Object target) {
+        return isTargetDownloadRunning(target) ? DOWNLOAD_IN_PROGRESS_LABEL :
+                "Download to storage";
+    }
+
+    private static boolean isHeroDownloadRunning(HeroContext context) {
+        DownloadRequest request = activeRequest;
+        return context != null && request != null && isDownloadRunning() &&
+                targetMatchesIdentity(null, context.meta, context.video, request.identity);
+    }
+
+    /** Restores a hidden active-transfer popup without creating or replacing a transfer. */
+    static boolean reopenActiveProgress() {
+        if (!isDownloadRunning() || activeRequest == null) return false;
+        dialogHidden = false;
+        showProgress(false);
+        return true;
     }
 
     static DownloadRequest takeActiveRequest() { return activeRequest; }
@@ -752,7 +809,15 @@ public final class LocalDownloadsRuntime {
         showProgress(true);
     }
 
-    private static void updateState(DownloadState state) { downloadState = state; }
+    private static void updateState(DownloadState state) {
+        DownloadState previous = downloadState;
+        downloadState = state;
+        boolean wasActive = previous.status == Status.PREPARING ||
+                previous.status == Status.DOWNLOADING;
+        boolean isActive = state.status == Status.PREPARING ||
+                state.status == Status.DOWNLOADING;
+        if (wasActive != isActive) LocalDownloadsRefreshState.invalidate();
+    }
 
     static Context application() {
         Context context = MorpheSettingsRuntime.applicationContext();
@@ -761,6 +826,7 @@ public final class LocalDownloadsRuntime {
     }
 
     private static void begin(PendingAction action, Function0<?> callback) {
+        if (action == PendingAction.DOWNLOAD && !requestStorageAccessForDownload()) return;
         pendingAction = action;
         pendingRoute = null;
         pendingAtMs = SystemClock.elapsedRealtime();
@@ -887,6 +953,7 @@ public final class LocalDownloadsRuntime {
             LocalDownloadsRefreshState.observeForCompose();
             DownloadedEntry entry = entryForTarget(null, false);
             boolean downloaded = entry != null && entry.isReadable(application());
+            boolean downloading = !downloaded && isHeroDownloadRunning(context);
             Class<?> owner = heroActionOwner;
             if (owner == null) {
                 owner = findHeroActionOwner(composer);
@@ -901,7 +968,8 @@ public final class LocalDownloadsRuntime {
                     null,
                     downloadedBadgeIcon(),
                     null,
-                    downloaded ? "Downloaded" : "Download to storage",
+                    downloaded ? "Downloaded" :
+                            downloading ? DOWNLOAD_IN_PROGRESS_LABEL : "Download to storage",
                     click,
                     null,
                     true,
@@ -970,6 +1038,9 @@ public final class LocalDownloadsRuntime {
 
     static boolean hasPendingMovieAction() { return pendingMovieAction != null; }
     static DownloadedEntry pendingMovieActionEntry() { return pendingMovieActionEntry; }
+    static boolean isPendingMovieActionDownloading() {
+        return pendingMovieActionEntry == null && isHeroDownloadRunning(pendingMovieAction);
+    }
     static String pendingMovieActionTitle() {
         HeroContext context = pendingMovieAction;
         String title = context == null ? null : stringProperty(context.meta, "getName");
@@ -1379,7 +1450,12 @@ public final class LocalDownloadsRuntime {
             toast("Nuvio navigation is not ready");
             return false;
         }
+        LocalDownloadsPlaybackDiagnosticActivity.arm(
+                application(), "Downloaded item action", entry.mediaUri, null, controller);
         try {
+            String route = entry.playerRoute();
+            LocalDownloadsPlaybackDiagnosticActivity.arm(
+                    application(), "Downloaded item action", entry.mediaUri, route, controller);
             for (Class<?> owner = controller.getClass(); owner != null; owner = owner.getSuperclass()) {
                 for (Method method : owner.getDeclaredMethods()) {
                     Class<?>[] parameters = method.getParameterTypes();
@@ -1388,7 +1464,7 @@ public final class LocalDownloadsRuntime {
                             parameters[3] != Integer.TYPE ||
                             !parameters[0].isAssignableFrom(controller.getClass())) continue;
                     method.setAccessible(true);
-                    method.invoke(null, controller, entry.playerRoute(), null, 2);
+                    method.invoke(null, controller, route, null, 2);
                     Log.i(TAG, "Started direct local playback for contentId=" + entry.contentId +
                             " videoId=" + entry.videoId);
                     return true;
@@ -1397,6 +1473,8 @@ public final class LocalDownloadsRuntime {
             throw new NoSuchMethodException("Nuvio navigation helper");
         } catch (Throwable error) {
             Log.e(TAG, "Unable to navigate to the downloaded local file", error);
+            LocalDownloadsPlaybackDiagnosticActivity.report(
+                    application(), "Downloaded route creation or Nuvio navigation handoff", error);
             toast("Unable to start local playback");
             return false;
         }
@@ -1570,6 +1648,52 @@ public final class LocalDownloadsRuntime {
         return value instanceof Number ? ((Number) value).intValue() : null;
     }
 
+    private static boolean targetMatchesIdentity(
+            Object target, Object heroMeta, Object heroVideo, RouteIdentity identity
+    ) {
+        if (identity == null) return false;
+        Object candidate = target != null ? target : heroVideo;
+        String videoId = stringProperty(candidate, "getId");
+        String contentId = target == null ? stringProperty(heroMeta, "getId") :
+                deepStringProperty(target, "getContentId", 2);
+        String contentTitle = target == null ? stringProperty(heroMeta, "getName") : null;
+        String contentType = target == null ? stringProperty(heroMeta, "getApiType") : null;
+        Integer season = integerProperty(candidate, "getSeason");
+        Integer episode = integerProperty(candidate, "getEpisode");
+        String episodeTitle = stringProperty(candidate, "getTitle");
+        if (target != null) {
+            String nestedVideo = deepStringProperty(target, "getVideoId", 2);
+            if (nestedVideo != null) videoId = nestedVideo;
+        }
+        if (contentId == null) contentId = stringProperty(heroMeta, "getId");
+
+        if (videoId != null && videoId.equals(identity.videoId)) return true;
+        if (contentId != null && contentId.equals(identity.contentId) &&
+                identity.season == null && identity.episode == null &&
+                (target == null || "movie".equalsIgnoreCase(contentType))) return true;
+        if (contentId != null && contentId.equals(identity.contentId) &&
+                sameEpisode(identity, season, episode)) return true;
+        if (episodeTitle != null && episodeTitle.equalsIgnoreCase(identity.episodeTitle) &&
+                sameEpisode(identity, season, episode)) return true;
+        if (contentId != null && contentId.equals(identity.contentId) &&
+                identity.videoId.isEmpty()) return true;
+        if (target == null && "movie".equalsIgnoreCase(contentType) && contentTitle != null &&
+                identity.season == null && identity.episode == null) {
+            String routeTitle = identity.contentName.isEmpty() ? identity.title : identity.contentName;
+            return contentTitle.equalsIgnoreCase(routeTitle);
+        }
+        return false;
+    }
+
+    private static boolean sameEpisode(
+            RouteIdentity identity, Integer candidateSeason, Integer candidateEpisode
+    ) {
+        return identity.season != null && identity.episode != null &&
+                candidateSeason != null && candidateEpisode != null &&
+                identity.season.equals(candidateSeason) &&
+                identity.episode.equals(candidateEpisode);
+    }
+
     private static String deepStringProperty(Object target, String getter, int depth) {
         String direct = stringProperty(target, getter);
         if (direct != null || target == null || depth <= 0) return direct;
@@ -1640,7 +1764,13 @@ public final class LocalDownloadsRuntime {
     }
 
     private static String encode(String value) {
-        return URLEncoder.encode(value == null ? "" : value, StandardCharsets.UTF_8).replace("+", "%20");
+        try {
+            // Keep route construction compatible with the patch's Android TV API 28 minimum.
+            // URLEncoder.encode(String, Charset) does not exist before API 33.
+            return URLEncoder.encode(value == null ? "" : value, "UTF-8").replace("+", "%20");
+        } catch (UnsupportedEncodingException impossible) {
+            throw new AssertionError("UTF-8 is unavailable", impossible);
+        }
     }
     private static String decode(String value) {
         try { return URLDecoder.decode(value == null ? "" : value, "UTF-8"); }
@@ -1707,6 +1837,10 @@ public final class LocalDownloadsRuntime {
                     playLocal(context.target); return Unit.INSTANCE;
                 }, () -> {
                     requestDeleteLocal(context.target); return Unit.INSTANCE;
+                });
+            } else if (isTargetDownloadRunning(context.target)) {
+                renderButton(composer, downloadActionLabel(context.target), () -> {
+                    reopenActiveProgress(); return Unit.INSTANCE;
                 });
             } else {
                 renderButton(composer, "Download to storage", () -> {

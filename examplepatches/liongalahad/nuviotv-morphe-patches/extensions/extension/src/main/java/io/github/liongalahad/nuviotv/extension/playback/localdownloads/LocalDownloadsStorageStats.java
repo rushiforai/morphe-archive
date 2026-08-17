@@ -1,25 +1,40 @@
 package io.github.liongalahad.nuviotv.extension.playback.localdownloads;
 
-import android.os.Environment;
+import android.content.Context;
+import android.net.Uri;
 import android.os.StatFs;
 
+import java.io.File;
 import java.util.Locale;
 
-/** Internal-storage capacity text owned by Local Downloads. */
+import io.github.liongalahad.nuviotv.extension.settings.MorpheSettingsRuntime;
+import io.github.liongalahad.nuviotv.extension.settings.MorpheStoragePath;
+
+/** Capacity text and free space for the currently selected local-storage volume. */
 final class LocalDownloadsStorageStats {
     private static final double GIB = 1_073_741_824.0;
 
     private LocalDownloadsStorageStats() {}
 
     static Snapshot snapshot() {
+        Context context = MorpheSettingsRuntime.applicationContext();
+        return context == null ? Snapshot.unavailable() : snapshot(context, MorpheStoragePath.uri());
+    }
+
+    static Snapshot snapshot(Context context, Uri location) {
+        File root = MorpheStoragePath.selectedStorageRoot(context, location);
+        return snapshot(root);
+    }
+
+    static Snapshot snapshot(File root) {
+        if (root == null || !root.isDirectory()) return Snapshot.unavailable();
         try {
-            StatFs stats = new StatFs(Environment.getDataDirectory().getAbsolutePath());
+            StatFs stats = new StatFs(root.getAbsolutePath());
             long total = Math.max(0L, stats.getTotalBytes());
-            long available = Math.max(0L, stats.getAvailableBytes());
-            long used = Math.max(0L, total - Math.min(total, available));
-            return new Snapshot(used, total);
+            long available = Math.max(0L, Math.min(total, stats.getAvailableBytes()));
+            return new Snapshot(total - available, total, available);
         } catch (RuntimeException ignored) {
-            return new Snapshot(0L, 0L);
+            return Snapshot.unavailable();
         }
     }
 
@@ -28,14 +43,24 @@ final class LocalDownloadsStorageStats {
     static final class Snapshot {
         final long usedBytes;
         final long totalBytes;
+        final long availableBytes;
 
         Snapshot(long usedBytes, long totalBytes) {
-            this.usedBytes = Math.max(0L, usedBytes);
-            this.totalBytes = Math.max(0L, totalBytes);
+            this(usedBytes, totalBytes, Math.max(0L, totalBytes - usedBytes));
         }
 
+        Snapshot(long usedBytes, long totalBytes, long availableBytes) {
+            this.usedBytes = Math.max(0L, usedBytes);
+            this.totalBytes = Math.max(0L, totalBytes);
+            this.availableBytes = Math.max(0L, Math.min(this.totalBytes, availableBytes));
+        }
+
+        static Snapshot unavailable() { return new Snapshot(0L, 0L, 0L); }
+
+        boolean isAvailable() { return totalBytes > 0L; }
+
         String caption() {
-            if (totalBytes <= 0L) return "Internal storage usage unavailable";
+            if (!isAvailable()) return "Selected storage usage unavailable";
             double percent = usedBytes * 100.0 / totalBytes;
             return String.format(Locale.US, "%.1f GB used / %.1f GB total (%.0f%% full)",
                     usedBytes / GIB, totalBytes / GIB, percent);

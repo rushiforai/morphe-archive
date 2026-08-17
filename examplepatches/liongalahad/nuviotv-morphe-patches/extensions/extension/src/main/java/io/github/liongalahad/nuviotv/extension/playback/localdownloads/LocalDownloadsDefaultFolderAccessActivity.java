@@ -51,7 +51,9 @@ public final class LocalDownloadsDefaultFolderAccessActivity extends Activity {
             Toast.makeText(this, "Local storage path: Movies/Nuvio", Toast.LENGTH_SHORT).show();
             setResult(RESULT_OK); MorpheSettingsUi.refresh();
         } else {
-            Toast.makeText(this, "Storage access was not granted", Toast.LENGTH_LONG).show();
+            Toast.makeText(this,
+                    "Storage access required. Select Download to retry.",
+                    Toast.LENGTH_LONG).show();
             setResult(RESULT_CANCELED);
         }
         finish();

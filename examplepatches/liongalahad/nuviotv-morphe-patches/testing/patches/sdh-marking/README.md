@@ -2,7 +2,7 @@
 
 Patch ID: `sdh-marking`. Target: official NuvioTV `0.8.4-beta`.
 
-The patch adds `Settings > Morphe > Subtitles > Mark SDH subtitles`, a native switch stored under `subtitles.mark_sdh` in private `morphe_patches` preferences. It defaults to off.
+The patch adds `Settings > Morphe > Subtitles > Mark SDH subtitles`, a native switch stored under `subtitles.mark_sdh` in private `morphe_patches` preferences. It defaults On when the preference is absent; a stored On or Off choice remains authoritative.
 
 When enabled, embedded and addon subtitle titles gain one `SDH` suffix when the track name, language metadata, ID, or URL explicitly indicates SDH/HI/HOH/closed captions. English addon subtitle text may also be sampled in the background, including private `file:` sources supplied by the independent Allow Importing Subs from Local Storage patch. Content detection requires at least 20 bracketed `(...)` or `[...]` annotation blocks in addition to the existing evidence score. Music notes, song lyrics, and speaker labels count as zero bracketed annotations and cannot qualify by themselves. Addon samples are processed sequentially in displayed list order, and each positive result updates its existing row immediately without closing or reopening the subtitle list.
 

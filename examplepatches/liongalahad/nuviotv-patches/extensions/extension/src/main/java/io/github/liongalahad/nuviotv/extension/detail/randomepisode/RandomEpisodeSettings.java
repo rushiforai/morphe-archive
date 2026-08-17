@@ -38,7 +38,7 @@ public final class RandomEpisodeSettings {
     }
 
     private static boolean read(SharedPreferences preferences) {
-        try { return preferences.getBoolean(KEY, false); }
+        try { return preferences.getBoolean(KEY, true); }
         catch (ClassCastException ignored) { return false; }
     }
 }

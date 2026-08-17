@@ -19,6 +19,7 @@ import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import java.net.HttpURLConnection
 import java.net.URL
@@ -39,21 +40,33 @@ class LocalDownloadsRuntimeTest {
         application = ApplicationProvider.getApplicationContext()
         MorpheSettingsRuntime.initialize(application)
         application.getSharedPreferences(MorpheSettingsRuntime.PREFERENCES_NAME, 0)
-            .edit().clear().commit()
+            .edit().clear()
+            .putBoolean(LocalDownloadsSettings.ENABLED_KEY, false)
+            .putBoolean(LocalDownloadsSettings.AUTOPLAY_KEY, false)
+            .commit()
+        resetActiveDownloadState()
+        setStaticField("pendingAction", null)
+        setStaticField("pendingRoute", null)
+        (getStaticField("cancelRequested") as java.util.concurrent.atomic.AtomicBoolean).set(false)
     }
 
     @Test
-    fun `download settings default off and use the requested slider steps`() {
-        assertFalse(LocalDownloadsSettings.isEnabled())
-        assertFalse(LocalDownloadsSettings.isAutoplayEnabled())
-        assertEquals(80, LocalDownloadsSettings.freePercent())
-
-        LocalDownloadsSettings.setEnabled(true)
-        LocalDownloadsSettings.setAutoplayEnabled(true)
-        LocalDownloadsSettings.setFreePercent(35)
-
+    fun `download settings default on and use the requested slider steps`() {
+        application.getSharedPreferences(MorpheSettingsRuntime.PREFERENCES_NAME, 0)
+            .edit()
+            .remove(LocalDownloadsSettings.ENABLED_KEY)
+            .remove(LocalDownloadsSettings.AUTOPLAY_KEY)
+            .commit()
         assertTrue(LocalDownloadsSettings.isEnabled())
         assertTrue(LocalDownloadsSettings.isAutoplayEnabled())
+        assertEquals(80, LocalDownloadsSettings.freePercent())
+
+        LocalDownloadsSettings.setEnabled(false)
+        LocalDownloadsSettings.setAutoplayEnabled(false)
+        LocalDownloadsSettings.setFreePercent(35)
+
+        assertFalse(LocalDownloadsSettings.isEnabled())
+        assertFalse(LocalDownloadsSettings.isAutoplayEnabled())
         assertEquals(35, LocalDownloadsSettings.freePercent())
         assertEquals(7, LocalDownloadsSettings.sliderIndex())
         assertEquals(1, LocalDownloadsSettings.percentageAtSliderIndex(0))
@@ -195,6 +208,27 @@ class LocalDownloadsRuntimeTest {
         assertTrue(route.contains("&contentId=tt1&contentType=series&contentName=Show"))
         assertTrue(route.contains("&videoId=tt1%3A1%3A1&season=1&episode=1"))
         assertTrue(route.contains("&filename=Pilot.mp4&videoHash=&videoSize=1024"))
+    }
+
+    @Test
+    @Config(sdk = [28, 30, 35])
+    fun `downloaded player route UTF-8 encoding works across supported Android TV APIs`() {
+        val identity = LocalDownloadsRuntime.RouteIdentity.fromRoute(
+            "stream/tt2/movie/Am%C3%A9lie?contentId=tt2&contentName=Am%C3%A9lie%20%26%20Co"
+        )!!
+        val entry = LocalDownloadsRuntime.DownloadedEntry(
+            identity,
+            "file:///storage/emulated/0/Movies/Nuvio/Amélie & Co/Amélie 50%.mp4",
+            "Amélie 50%.mp4",
+            2_048,
+            emptyList()
+        )
+
+        val route = entry.playerRoute()
+
+        assertTrue(route.startsWith("player/file%3A%2F%2F%2F"))
+        assertTrue(route.contains("contentName=Am%C3%A9lie%20%26%20Co"))
+        assertTrue(route.contains("filename=Am%C3%A9lie%2050%25.mp4"))
     }
 
     @Test
@@ -540,11 +574,20 @@ class LocalDownloadsRuntimeTest {
     }
 
     @Test
-    fun `internal storage caption uses one decimal GB and percentage`() {
+    fun `selected storage caption uses one decimal GB and percentage`() {
         val gib = 1_073_741_824L
         val caption = LocalDownloadsStorageStats.Snapshot(5 * gib, 20 * gib).caption()
 
         assertEquals("5.0 GB used / 20.0 GB total (25% full)", caption)
+    }
+
+    @Test
+    fun `unavailable selected storage does not fall back to internal storage`() {
+        val snapshot = LocalDownloadsStorageStats.Snapshot.unavailable()
+
+        assertFalse(snapshot.isAvailable())
+        assertEquals(0L, snapshot.availableBytes)
+        assertEquals("Selected storage usage unavailable", snapshot.caption())
     }
 
     @Test
@@ -671,6 +714,83 @@ class LocalDownloadsRuntimeTest {
     }
 
     @Test
+    fun `hidden active movie download action restores its progress popup`() {
+        val identity = LocalDownloadsRuntime.RouteIdentity.fromRoute(
+            "stream/source-id/movie/Movie?contentId=tt1&contentName=Movie"
+        )!!
+        val request = LocalDownloadsRuntime.DownloadRequest.from(
+            FakePlaybackInfo(url = "https://example.test/movie.mp4", filename = "movie.mp4"),
+            identity
+        )!!
+        setStaticField("activeRequest", request)
+        setStaticField("downloadState", LocalDownloadsRuntime.DownloadState.preparing("Movie"))
+        setStaticField("dialogHidden", true)
+        setStaticField("progressDialogVisible", false)
+        LocalDownloadsRuntime.prepareMovieActionForTesting(
+            null, FakeMovieMeta("tt1", "Movie")
+        )
+        val controller = Robolectric.buildActivity(LocalDownloadsMovieActionActivity::class.java)
+            .create().resume()
+
+        try {
+            assertEquals(
+                listOf(LocalDownloadsRuntime.DOWNLOAD_IN_PROGRESS_LABEL),
+                buttonLabels(controller.get().window.decorView)
+            )
+            findButton(
+                controller.get().window.decorView,
+                LocalDownloadsRuntime.DOWNLOAD_IN_PROGRESS_LABEL
+            )!!.performClick()
+
+            assertFalse(getStaticField("dialogHidden") as Boolean)
+            assertTrue(getStaticField("progressDialogVisible") as Boolean)
+            assertFalse(LocalDownloadsRuntime.hasPendingMovieAction())
+            assertEquals(
+                LocalDownloadsProgressActivity::class.java.name,
+                shadowOf(application).nextStartedActivity.component!!.className
+            )
+        } finally {
+            controller.pause().destroy()
+            resetActiveDownloadState()
+        }
+    }
+
+    @Test
+    fun `only the exact active episode replaces download with progress action`() {
+        val identity = LocalDownloadsRuntime.RouteIdentity.fromRoute(
+            "stream/tt1%3A1%3A2/series/Second?contentId=tt1&contentName=Show" +
+                "&season=1&episode=2&episodeName=Second"
+        )!!
+        val request = LocalDownloadsRuntime.DownloadRequest.from(
+            FakePlaybackInfo(url = "https://example.test/second.mp4", filename = "second.mp4"),
+            identity
+        )!!
+        setStaticField("activeRequest", request)
+        setStaticField(
+            "downloadState",
+            LocalDownloadsRuntime.DownloadState.downloading("Show · S01E02", 50, 100)
+        )
+
+        try {
+            val sameEpisode = FakeEpisodeTarget("tt1:1:2", "tt1", 1, 2, "Second")
+            val nextEpisode = FakeEpisodeTarget("tt1:1:3", "tt1", 1, 3, "Second")
+
+            assertTrue(LocalDownloadsRuntime.isTargetDownloadRunning(sameEpisode))
+            assertEquals(
+                LocalDownloadsRuntime.DOWNLOAD_IN_PROGRESS_LABEL,
+                LocalDownloadsRuntime.downloadActionLabel(sameEpisode)
+            )
+            assertFalse(LocalDownloadsRuntime.isTargetDownloadRunning(nextEpisode))
+            assertEquals(
+                "Download to storage",
+                LocalDownloadsRuntime.downloadActionLabel(nextEpisode)
+            )
+        } finally {
+            resetActiveDownloadState()
+        }
+    }
+
+    @Test
     fun `movie detail action shows play and delete for a downloaded movie`() {
         val media = temporaryFolder.newFile("movie-action.mp4").apply { writeText("video") }
         val identity = LocalDownloadsRuntime.RouteIdentity.fromRoute(
@@ -763,6 +883,22 @@ class LocalDownloadsRuntimeTest {
         fun getId() = id
     }
 
+    @Suppress("unused")
+    private data class FakeEpisodeTarget(
+        private val id: String,
+        private val contentId: String,
+        private val season: Int,
+        private val episode: Int,
+        private val title: String
+    ) {
+        fun getId() = id
+        fun getVideoId() = id
+        fun getContentId() = contentId
+        fun getSeason() = season
+        fun getEpisode() = episode
+        fun getTitle() = title
+    }
+
     private class TrackingConnection : HttpURLConnection(URL("https://example.test/video.mp4")) {
         var disconnected = false
         override fun disconnect() { disconnected = true }
@@ -786,6 +922,24 @@ class LocalDownloadsRuntimeTest {
         val own = if (view is Button) listOf(view.text.toString()) else emptyList()
         if (view !is ViewGroup) return own
         return own + (0 until view.childCount).flatMap { buttonLabels(view.getChildAt(it)) }
+    }
+
+    private fun findButton(view: View, label: String): Button? {
+        if (view is Button && view.text.toString() == label) return view
+        if (view !is ViewGroup) return null
+        return (0 until view.childCount).firstNotNullOfOrNull {
+            findButton(view.getChildAt(it), label)
+        }
+    }
+
+    private fun resetActiveDownloadState() {
+        setStaticField("activeRequest", null)
+        setStaticField("downloadState", LocalDownloadsRuntime.DownloadState.idle())
+        setStaticField("dialogHidden", false)
+        setStaticField("progressDialogVisible", false)
+        setStaticField("activeHeroMeta", null)
+        setStaticField("activeHeroVideo", null)
+        LocalDownloadsRuntime.cancelPendingMovieAction()
     }
 
     @Suppress("UNUSED_PARAMETER")

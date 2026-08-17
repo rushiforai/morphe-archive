@@ -49,6 +49,16 @@ class SourceSelectionRestoreRuntimeTest {
     }
 
     @Test
+    fun `fresh setting defaults on while a stored choice remains authoritative`() {
+        application.getSharedPreferences(MorpheSettingsRuntime.PREFERENCES_NAME, 0)
+            .edit().remove(SourceSelectionRestoreSettings.KEY).commit()
+        assertTrue(SourceSelectionRestoreSettings.isEnabled())
+
+        SourceSelectionRestoreSettings.setEnabled(application, false)
+        assertFalse(SourceSelectionRestoreSettings.isEnabled())
+    }
+
+    @Test
     fun `disabled callback preserves native behavior and never arms restore`() {
         var received: Any? = null
         val delegate: (Any?) -> Any? = { value ->

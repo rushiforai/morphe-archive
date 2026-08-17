@@ -1,6 +1,6 @@
 # Test plan
 
-1. Run extension tests covering off/default behavior, explicit metadata in any language, English-only content scanning, repeated content evidence, isolated false positives, local `file:` sampling, and suffix idempotence.
+1. Run extension tests covering fresh-default On, stored Off behavior, explicit metadata in any language, English-only content scanning, repeated content evidence, isolated false positives, local `file:` sampling, and suffix idempotence.
 2. Apply only `Mark SDH Subtitles` to the hash-pinned x86_64 and universal APKs.
 3. Confirm all three structural fingerprints match exactly once and inspect the manifest, injected runtime, preference key, and title hooks.
 4. On `Television_4K`, verify the native switch, D-pad navigation, persistence, metadata-based embedded/addon marking, delayed background addon marking, and unchanged playback startup.

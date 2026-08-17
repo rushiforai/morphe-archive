@@ -101,7 +101,10 @@ public final class LocalMediaLibraryUi {
         if (!storage) return false;
         try {
             ensureState(lazyGridScope.getClass().getClassLoader());
-            if (enteringStorage) invalidate();
+            if (enteringStorage) {
+                LocalMediaRuntime.requestStorageAccessOnFirstUse();
+                invalidate();
+            }
             String query = stringStateValue(queryState);
             LocalMediaRuntime.LibrarySnapshot snapshot =
                     (LocalMediaRuntime.LibrarySnapshot) stateValue(snapshotState);
@@ -119,9 +122,17 @@ public final class LocalMediaLibraryUi {
             }
             if (!snapshot.hasFolderAccess) {
                 addMessage(lazyGridScope, "morphe_storage_access",
-                        "Folder access required",
-                        "Open Settings > Morphe > Playback > Local Storage to allow " +
-                                LocalMediaRuntime.DEFAULT_FOLDER_LABEL + ".");
+                        "Storage access required",
+                        "Grant access to use " + LocalMediaRuntime.DEFAULT_FOLDER_LABEL +
+                                ", or choose a Local Storage Path in Morphe settings.");
+                addItem(lazyGridScope, "morphe_storage_access_retry",
+                        (scope, composer, flags) -> {
+                            renderActionButton("Grant storage access", () -> {
+                                LocalMediaRuntime.requestStorageAccessOnFirstUse();
+                                return Unit.INSTANCE;
+                            }, composer);
+                            return Unit.INSTANCE;
+                        });
                 return true;
             }
             if (snapshot.error != null && !snapshot.error.isEmpty()) {
@@ -872,6 +883,15 @@ public final class LocalMediaLibraryUi {
     }
 
     private static void renderRefreshButton(Object composer) {
+        renderActionButton("Refresh storage library", () -> {
+            refresh();
+            return Unit.INSTANCE;
+        }, composer);
+    }
+
+    private static void renderActionButton(
+            String title, Function0<Unit> action, Object composer
+    ) {
         try {
             ClassLoader loader = composer.getClass().getClassLoader();
             Method button = nativeButtonMethod;
@@ -892,12 +912,8 @@ public final class LocalMediaLibraryUi {
                 nativeButtonMethod = button;
             }
             Object colors = nativeButtonColors(composer);
-            Function0<Unit> action = () -> {
-                refresh();
-                return Unit.INSTANCE;
-            };
             Function3<Object, Object, Object, Unit> label = (scope, labelComposer, flags) -> {
-                renderNativeText("Refresh storage library", labelComposer);
+                renderNativeText(title, labelComposer);
                 return Unit.INSTANCE;
             };
             button.invoke(null, action, null, true, null, null, colors, null, null,

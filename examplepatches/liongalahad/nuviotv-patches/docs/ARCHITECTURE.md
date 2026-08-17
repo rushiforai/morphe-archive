@@ -15,7 +15,7 @@ The repository's concrete package root is `io.github.liongalahad.nuviotv`; the l
 
 The internal settings-hub resource patch injects one initialization provider and per-patch metadata registration. On 0.8.4-beta, Nuvio already compiles a hidden `EXPERIENCE` settings section. The patch changes its label to `Morphe`, maps that slot to a visible branch inside the exact settings filter, and converts its native mode card into inline patch compartments. Navigation remains in the current Settings window and inherits Nuvio's typography, focus treatment, spacing, colors, selector-card styling, and D-pad behavior. Selecting Morphe transfers Nuvio's native detail-pane focus requester to the first visible Morphe category.
 
-Each choice writes private `morphe_patches` storage synchronously, closes the modal, and redraws the selector subtitle immediately. The legacy dev.7 Boolean migrates to `Remove SDH, keep lyrics`. Preferences never enter Nuvio profiles, account sync, telemetry, playback reports, or backend DTOs.
+Each choice writes private `morphe_patches` storage synchronously, closes the modal, and redraws the selector subtitle immediately. The SDH selector provides `Off`, symbol normalization without removal, annotation removal with lyric preservation, and full cleanup. The legacy dev.7 Boolean migrates to `Remove SDH, keep lyrics`. Preferences never enter Nuvio profiles, account sync, telemetry, playback reports, or backend DTOs.
 
 ### Settings skeleton invariants
 

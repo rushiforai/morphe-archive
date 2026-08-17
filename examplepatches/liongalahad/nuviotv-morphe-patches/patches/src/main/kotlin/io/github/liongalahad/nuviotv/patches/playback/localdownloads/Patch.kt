@@ -33,6 +33,8 @@ private const val DOWNLOADS_MANAGER =
     "io.github.liongalahad.nuviotv.extension.playback.localdownloads.LocalDownloadsManagerActivity"
 private const val DOWNLOAD_ACTION =
     "io.github.liongalahad.nuviotv.extension.playback.localdownloads.LocalDownloadsEntryActionActivity"
+private const val PLAYBACK_DIAGNOSTIC =
+    "io.github.liongalahad.nuviotv.extension.playback.localdownloads.LocalDownloadsPlaybackDiagnosticActivity"
 private const val MOVIE_ACTION =
     "io.github.liongalahad.nuviotv.extension.playback.localdownloads.LocalDownloadsMovieActionActivity"
 private const val DELETE_ALL =
@@ -78,7 +80,8 @@ private val localDownloadsResources = resourcePatch {
                 })
             })
 
-            listOf(DEFAULT_ACCESS, PROGRESS, DELETE, DOWNLOAD_ACTION, MOVIE_ACTION, DELETE_ALL).forEach { name ->
+            listOf(DEFAULT_ACCESS, PROGRESS, DELETE, DOWNLOAD_ACTION, MOVIE_ACTION, DELETE_ALL)
+                .forEach { name ->
                 application.appendChild(document.createElement("activity").apply {
                     setAttribute("android:name", name)
                     setAttribute("android:exported", "false")
@@ -86,6 +89,12 @@ private val localDownloadsResources = resourcePatch {
                     setAttribute("android:theme", "@android:style/Theme.Translucent.NoTitleBar")
                 })
             }
+            application.appendChild(document.createElement("activity").apply {
+                setAttribute("android:name", PLAYBACK_DIAGNOSTIC)
+                setAttribute("android:exported", "false")
+                setAttribute("android:excludeFromRecents", "true")
+                setAttribute("android:theme", "@android:style/Theme.Translucent.NoTitleBar")
+            })
             application.appendChild(document.createElement("activity").apply {
                 setAttribute("android:name", DOWNLOADS_MANAGER)
                 setAttribute("android:exported", "false")

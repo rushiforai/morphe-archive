@@ -2,7 +2,7 @@
 
 Patch ID: `source-selection-restore`.
 
-This optional patch adds **Settings > Morphe > Playback > Restore source selection**. It defaults off. When enabled, leaving Nuvio's internal player returns the source picker to the source that launched playback instead of focusing the first source.
+This optional patch adds **Settings > Morphe > Playback > Restore source selection**. It defaults On when no preference has been stored; a stored On or Off choice remains authoritative. When enabled, leaving Nuvio's internal player returns the source picker to the source that launched playback instead of focusing the first source.
 
 ## Behavior and storage
 

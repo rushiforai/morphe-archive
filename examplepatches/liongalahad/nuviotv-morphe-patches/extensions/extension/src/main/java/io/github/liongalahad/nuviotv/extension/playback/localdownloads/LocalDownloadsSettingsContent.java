@@ -87,7 +87,7 @@ public final class LocalDownloadsSettingsContent implements Function3<Object, Ob
             };
             slider.invoke(null,
                     icon,
-                    "Maximum usable internal storage",
+                    "Maximum usable selected storage",
                     LocalDownloadsSettings.sliderIndex(),
                     percentage + "%",
                     0,

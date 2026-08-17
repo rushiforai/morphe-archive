@@ -41,10 +41,15 @@ public final class LocalDownloadsMovieActionActivity extends Activity {
 
         Button initialFocus;
         if (entry == null) {
-            Button download = LocalDownloadsTvUi.button(this, "Download to storage");
+            boolean downloading = LocalDownloadsRuntime.isPendingMovieActionDownloading();
+            Button download = LocalDownloadsTvUi.button(this,
+                    downloading ? LocalDownloadsRuntime.DOWNLOAD_IN_PROGRESS_LABEL :
+                            "Download to storage");
             actions.addView(download, new LinearLayout.LayoutParams(-1, dp(56)));
             download.setOnClickListener(view -> {
-                actionCompleted = LocalDownloadsRuntime.startPendingMovieDownload();
+                actionCompleted = downloading ? LocalDownloadsRuntime.reopenActiveProgress() :
+                        LocalDownloadsRuntime.startPendingMovieDownload();
+                if (downloading) LocalDownloadsRuntime.cancelPendingMovieAction();
                 finish();
             });
             initialFocus = download;

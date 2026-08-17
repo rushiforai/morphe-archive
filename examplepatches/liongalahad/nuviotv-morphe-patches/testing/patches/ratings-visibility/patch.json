@@ -76,7 +76,7 @@
     "Overall Ratings defaults to Show, toggles immediately, and persists after force-stop and reboot",
     "Overall Ratings Hide removes standard ratings from classic, grid, modern, hero, collection, and Detail screens",
     "Configured MDBList providers remain independent and authoritative on Detail screens",
-    "Episode Ratings defaults to Show and offers Show, Hide, and Hide Unwatched in TV D-pad order",
+    "Episode Ratings defaults to Hide Unwatched for a fresh preference and offers Show, Hide, and Hide Unwatched in TV D-pad order",
     "Hide removes episode-card ratings and removes the Ratings tab",
     "Hide Unwatched shows ratings only for watched episodes",
     "No crash, ANR, VerifyError, or fatal log occurs during launch, settings, navigation, and playback"

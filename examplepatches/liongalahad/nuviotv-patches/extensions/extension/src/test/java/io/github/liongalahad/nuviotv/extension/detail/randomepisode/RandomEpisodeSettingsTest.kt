@@ -35,4 +35,14 @@ class RandomEpisodeSettingsTest {
         assertTrue(RandomEpisodeSettings.toggle())
         assertTrue(RandomEpisodeSettings.isEnabled())
     }
+
+    @Test
+    fun `fresh setting defaults on while a stored choice remains authoritative`() {
+        application.getSharedPreferences(MorpheSettingsRuntime.PREFERENCES_NAME, 0)
+            .edit().remove(RandomEpisodeSettings.KEY).commit()
+        assertTrue(RandomEpisodeSettings.isEnabled())
+
+        RandomEpisodeSettings.setEnabled(application, false)
+        assertFalse(RandomEpisodeSettings.isEnabled())
+    }
 }

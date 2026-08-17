@@ -1,6 +1,6 @@
 # Random Episode test plan
 
-- [x] Unit tests cover default/OFF persistence, eligible filtering, future and malformed dates, current-episode exclusion, route immutability and random-session clearing.
+- [x] Unit tests cover fresh-default On, stored Off persistence, eligible filtering, future and malformed dates, current-episode exclusion, route immutability and random-session clearing.
 - [x] Every fingerprint matches exactly once on universal, x86_64, arm64-v8a and armeabi-v7a 0.8.4 APKs.
 - [x] Exclusive patch application and manifest/DEX inspection pass on all declared assets.
 - [x] Combined application passes with Rating Visibility, Remove SDH Annotations and Mark SDH Subtitles.

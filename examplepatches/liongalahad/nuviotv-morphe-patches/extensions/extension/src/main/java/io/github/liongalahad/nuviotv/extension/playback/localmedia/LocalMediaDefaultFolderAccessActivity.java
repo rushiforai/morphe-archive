@@ -81,7 +81,7 @@ public final class LocalMediaDefaultFolderAccessActivity extends Activity {
     private void finishWithFolderResult() {
         if (!LocalMediaRuntime.hasDefaultFolderAccess(this)) {
             Toast.makeText(this,
-                    "Storage access was not granted; Movies/Nuvio was not created",
+                    "Storage access required. Return to Library > Storage to retry.",
                     Toast.LENGTH_LONG).show();
         } else if (!LocalMediaRuntime.ensureDefaultFolder(this)) {
             Toast.makeText(this,

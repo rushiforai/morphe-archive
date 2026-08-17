@@ -25,11 +25,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
-import java.util.Set;
 
+import io.github.liongalahad.nuviotv.extension.settings.MorpheSettingsRuntime;
+import io.github.liongalahad.nuviotv.extension.settings.MorpheStoragePath;
 import io.github.liongalahad.nuviotv.extension.settings.MorpheSettingsUi;
 
 /** D-pad folder browser used when Android TV has no real ACTION_OPEN_DOCUMENT_TREE handler. */
@@ -306,24 +305,7 @@ public final class LocalMediaInternalFolderPickerActivity extends Activity {
     }
 
     private static List<File> storageRoots() {
-        List<File> roots = new ArrayList<>();
-        Set<String> paths = new HashSet<>();
-        addStorageRoot(roots, paths, Environment.getExternalStorageDirectory());
-        File storage = new File("/storage");
-        File[] mounted = storage.listFiles(File::isDirectory);
-        if (mounted != null) {
-            for (File root : mounted) {
-                String name = root.getName().toLowerCase(Locale.ROOT);
-                if ("emulated".equals(name) || "self".equals(name)) continue;
-                addStorageRoot(roots, paths, root);
-            }
-        }
-        return roots;
-    }
-
-    private static void addStorageRoot(List<File> roots, Set<String> paths, File candidate) {
-        File root = canonicalFile(candidate);
-        if (root != null && root.isDirectory() && paths.add(root.getAbsolutePath())) roots.add(root);
+        return MorpheStoragePath.mountedStorageRoots(MorpheSettingsRuntime.applicationContext());
     }
 
     private static boolean contains(File root, File folder) {

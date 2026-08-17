@@ -1,21 +1,24 @@
 package dev.petalaa.extension
 
 import android.app.Activity
+import android.app.ActivityManager
 import android.app.Application
 import android.content.Context
 import android.content.Intent
+import android.graphics.Matrix
 import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
 import android.os.Build
 import android.os.Bundle
 import android.util.DisplayMetrics
+import android.view.Display
 import android.view.MotionEvent
 import android.view.Surface
+import android.view.View
 import androidx.car.app.SurfaceContainer
-import java.lang.reflect.Method
 
 /**
- * Helper that manages a [VirtualDisplay] projecting `AutoPetalMapsActivity`
+ * Helper that manages a [VirtualDisplay] projecting `PetalMapsActivity`
  * onto the [Surface] provided by Android Auto.
  *
  * ## Input injection strategy
@@ -33,11 +36,10 @@ import java.lang.reflect.Method
  * when `onActivityCreated` fires for an activity whose display ID matches
  * our VirtualDisplay, we save the reference for touch dispatch.
  *
- * ## Re-center
- *
- * Calls `AutoLocationHelper.v().moveToLocation(mode)` via reflection.
- * The mode is obtained from `mj9.F().i()` (0=3D car, 1=visual car, 2=normal).
- * This is the same call chain the HiCar location button uses.
+ * On `onActivityResumed`, the attached activity is forced into
+ * `SCREEN_ORIENTATION_SENSOR_LANDSCAPE` (once per activity instance) to
+ * avoid a portrait/letterboxed window, and its live bounds are logged
+ * ~2s later for remote letterbox diagnosis.
  */
 class CarDisplay(
     private val context: Context,
@@ -45,8 +47,8 @@ class CarDisplay(
 ) {
 
     companion object {
-        /** Fully-qualified class name of the Petal Maps automotive activity. */
-        const val TARGET_ACTIVITY_CLASS = "com.huawei.maps.auto.activity.AutoPetalMapsActivity"
+        /** Fully-qualified class name of the Petal Maps activity. */
+        const val TARGET_ACTIVITY_CLASS = "com.huawei.maps.app.petalmaps.PetalMapsActivity"
 
         /** Name passed to DisplayManager.createVirtualDisplay(). */
         private const val VIRTUAL_DISPLAY_NAME = "PetalAA-VirtualDisplay"
@@ -69,6 +71,9 @@ class CarDisplay(
         private val VIRTUAL_DISPLAY_FLAGS =
             DisplayManager.VIRTUAL_DISPLAY_FLAG_OWN_CONTENT_ONLY or
             DisplayManager.VIRTUAL_DISPLAY_FLAG_PRESENTATION
+
+        /** Delay before logging post-orientation window bounds for diagnosis. */
+        private const val ORIENTATION_BOUNDS_LOG_DELAY_MS = 2_000L
     }
 
     // ---- state -----------------------------------------------------------
@@ -80,6 +85,14 @@ class CarDisplay(
     private var surfaceHeight: Int = 0
     private var surfaceDensity: Int = DisplayMetrics.DENSITY_DEFAULT
 
+    /**
+     * Last known valid landscape dimensions (width > height).
+     * Used as a fallback when the host reports transient portrait dims
+     * (e.g. 579x804) that would cause letterboxing on a landscape-only activity.
+     */
+    private var lastLandscapeW: Int = 0
+    private var lastLandscapeH: Int = 0
+
     /** Most recent touch position — used as anchor for scroll/fling. */
     private var lastTouchX: Float = 0f
     private var lastTouchY: Float = 0f
@@ -87,12 +100,18 @@ class CarDisplay(
     /** Whether a gesture stream is in progress (DOWN already sent). */
     private var gestureInProgress: Boolean = false
 
+    /** Whether the scroll anchor (live window center) has been logged once. */
+    private var scrollAnchorLogged: Boolean = false
+
     /** Cached Application reference for lifecycle callbacks registration. */
     private val app: Application =
         (context.applicationContext as Application)
 
     /** Our lifecycle callbacks; stored so we can unregister on destroy. */
     private var lifecycleCallbacks: Application.ActivityLifecycleCallbacks? = null
+
+    /** Activity we already forced landscape on — applied once per instance. */
+    private var orientationForcedOn: Activity? = null
 
     // ---- VirtualDisplay management ---------------------------------------
 
@@ -111,12 +130,20 @@ class CarDisplay(
      * 0 or negative, the container is considered invalid and **no display
      * is created** — we log an error and return `false`.
      *
-     * ## Orientation check
+     * ## Orientation check (portrait guard)
      *
-     * `AutoPetalMapsActivity` is declared `screenOrientation="landscape"`.
-     * We expect `width > height` from the head-unit surface. If the
-     * reported dimensions are portrait (`height > width`) we log a warning
-     * but still use the container values as-is (no swap / invention).
+     * The projected activity is expected to run in landscape; the host may
+     * transiently report portrait dimensions (e.g. 579x804)
+     * during initialization or rotation, which causes letterboxing.
+     *
+     * - If dims are landscape (width > height): create/update normally,
+     *   and remember as the last valid landscape.
+     * - If dims are portrait and we have a previous landscape: use the
+     *   last known landscape dimensions instead (avoid letterbox).
+     * - If dims are portrait and we have NO previous landscape: **do not
+     *   create the display** — wait for the next stable area update that
+     *   reports landscape. This keeps the template buttons visible while
+     *   the map stays out until we have correct dimensions.
      *
      * @return `true` if the VirtualDisplay was created and the activity
      *         was successfully requested, `false` otherwise.
@@ -139,15 +166,31 @@ class CarDisplay(
             return false
         }
 
-        // Orientation check: expect landscape (width > height) for AutoPetalMapsActivity
-        if (height > width) {
-            AALogger.w(
-                "Surface reports portrait dimensions (${width}x${height}) but " +
-                "AutoPetalMapsActivity is landscape — using container values as-is"
-            )
+        val isLandscape = width > height
+
+        if (isLandscape) {
+            // Normal case: landscape dims — use them and remember.
+            lastLandscapeW = width
+            lastLandscapeH = height
+            return create(surface, width, height, dpi)
         }
 
-        return create(surface, width, height, dpi)
+        // Portrait reported — host sent transient dims (e.g. 579x804).
+        if (lastLandscapeW > 0 && lastLandscapeH > 0) {
+            // We have a previous valid landscape — use it to avoid letterbox.
+            AALogger.w(
+                "Surface reports portrait (${width}x${height}) but we have a valid " +
+                "landscape (${lastLandscapeW}x${lastLandscapeH}) — using last landscape"
+            )
+            return create(surface, lastLandscapeW, lastLandscapeH, dpi)
+        }
+
+        // No previous landscape known — wait for the host to send proper dims.
+        AALogger.w(
+            "Surface reports portrait (${width}x${height}) with no prior landscape — " +
+            "skipping VirtualDisplay creation (waiting for stable landscape dims)"
+        )
+        return false
     }
 
     /**
@@ -170,6 +213,12 @@ class CarDisplay(
         surfaceHeight = height
         surfaceDensity = density
 
+        // Remember valid landscape dims for fallback on transient portrait reports.
+        if (width > height) {
+            lastLandscapeW = width
+            lastLandscapeH = height
+        }
+
         val displayManager = context.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
 
         try {
@@ -189,10 +238,26 @@ class CarDisplay(
         val vd = virtualDisplay ?: return false
         displayId = vd.display.displayId
         AALogger.i("VirtualDisplay created: id=$displayId, ${width}x${height}, density=$density")
+        AALogger.shareableCopy()
 
         // Register lifecycle callbacks BEFORE launching the activity so we
         // can catch onActivityCreated and auto-attach it.
         registerLifecycleCallbacks()
+
+        // If the activity is already attached and alive on the current
+        // display, skip the am start — with MULTIPLE_TASK removed a relaunch
+        // would just reuse the same task anyway.
+        val attached = projectedActivity
+        if (attached != null && !attached.isFinishing && !attached.isDestroyed) {
+            AALogger.i("CarDisplay: activity already attached on display $displayId — skipping am start")
+            AALogger.shareableCopy()
+            return true
+        }
+
+        // A previous creation may leave a task with stale (portrait/
+        // letterboxed) bounds that am start would inherit — remove it so
+        // the relaunch starts fresh (best-effort).
+        removeStaleTask()
 
         // Launch the activity on the virtual display via `am start` as root.
         // Ordinary apps cannot use ActivityOptions.setLaunchDisplayId on a
@@ -200,9 +265,14 @@ class CarDisplay(
         // The `am start --display <id>` approach works because it runs as
         // system server via su.
         val componentName = "${context.packageName}/$targetActivityClass"
-        // Flags: NEW_TASK(0x10000000) | MULTIPLE_TASK(0x00080000) | EXCLUDE_FROM_RECENTS(0x00002000)
-        val flagsDecimal = 0x10000000 or 0x00080000 or 0x00002000 // 269967936
-        val amCmd = "am start -n $componentName --display $displayId -f $flagsDecimal"
+        // Flags: NEW_TASK(0x10000000) | EXCLUDE_FROM_RECENTS(0x00002000)
+        // MULTIPLE_TASK was removed: each relaunch used to spawn a NEW task,
+        // leaving orphan windows with inherited/letterboxed bounds.
+        val flagsDecimal = 0x10000000 or 0x00002000 // 268443648
+        // --windowingMode 1 = WINDOWING_MODE_FULLSCREEN: force the window
+        // into fullscreen bounds on the display instead of inheriting stale
+        // bounds from a reused task.
+        val amCmd = "am start -n $componentName --display $displayId -f $flagsDecimal --windowingMode 1"
         AALogger.i("CarDisplay: launching via root: $amCmd")
 
         val (exitCode, stdout, stderr) = RootShell.run(amCmd, timeoutSec = 15)
@@ -214,6 +284,7 @@ class CarDisplay(
             if (stderr.isNotBlank()) {
                 AALogger.d("CarDisplay: am start stderr=${stderr.trim()}")
             }
+            AALogger.shareableCopy()
         } else {
             AALogger.w(
                 "CarDisplay: am start failed (exit=$exitCode, out='${stdout.trim()}', " +
@@ -227,7 +298,6 @@ class CarDisplay(
                     setClassName(context.packageName, targetActivityClass)
                     addFlags(
                         Intent.FLAG_ACTIVITY_NEW_TASK or
-                        Intent.FLAG_ACTIVITY_MULTIPLE_TASK or
                         Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
                     )
                 }
@@ -235,19 +305,25 @@ class CarDisplay(
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     options.launchDisplayId = displayId
                 }
+                // Note: ActivityOptions.setLaunchWindowingMode is @hide —
+                // not exposed to apps. The fullscreen windowing mode is
+                // only applied via `--windowingMode 1` in the am command.
                 @Suppress("DEPRECATION")
                 context.startActivity(intent, options.toBundle())
                 AALogger.i("CarDisplay: fallback startActivity succeeded")
             } catch (e: SecurityException) {
                 AALogger.e("CarDisplay: fallback startActivity blocked: ${e.message}", e)
+                AALogger.shareableCopy()
                 destroy()
                 return false
             } catch (e: IllegalStateException) {
                 AALogger.e("CarDisplay: fallback startActivity error: ${e.message}", e)
+                AALogger.shareableCopy()
                 destroy()
                 return false
             } catch (e: Exception) {
                 AALogger.e("CarDisplay: fallback startActivity failed: ${e.message}", e)
+                AALogger.shareableCopy()
                 destroy()
                 return false
             }
@@ -261,6 +337,20 @@ class CarDisplay(
      * the surface. Call from [SurfaceCallback.onSurfaceDestroyed].
      */
     fun destroy() {
+        // Finish the projected activity BEFORE releasing the display so no
+        // orphan windows are left on a dead display.
+        val activity = projectedActivity
+        if (activity != null) {
+            try {
+                AALogger.i("Finishing projected activity before destroying display (id=$displayId)")
+                activity.finish()
+            } catch (e: Exception) {
+                AALogger.w("Failed to finish projected activity: ${e.message}")
+            }
+            projectedActivity = null
+            orientationForcedOn = null
+        }
+
         unregisterLifecycleCallbacks()
 
         val vd = virtualDisplay
@@ -273,9 +363,9 @@ class CarDisplay(
             }
             virtualDisplay = null
         }
-        projectedActivity = null
         displayId = -1
         gestureInProgress = false
+        scrollAnchorLogged = false
     }
 
     /**
@@ -283,6 +373,64 @@ class CarDisplay(
      * Used to detect whether a resize is needed.
      */
     fun currentDimensions(): Pair<Int, Int> = surfaceWidth to surfaceHeight
+
+    // ---- task cleanup / window bounds -------------------------------------
+
+    /**
+     * Best-effort removal of any pre-existing task for the target activity.
+     *
+     * A previous creation may leave a task whose window bounds are stale
+     * (e.g. portrait/letterboxed). `am start` would reuse that task and
+     * inherit its bounds, so we remove it before relaunching.
+     *
+     * Uses [ActivityManager.getAppTasks]: the task belongs to our own UID
+     * (we run inside the Petal Maps process), so no permission is needed.
+     * Deprecated since API 29 but still functional for own-app tasks.
+     * Identifying the task's base component requires `AppTask.getTaskInfo`
+     * (API 29+); on older APIs we can't identify it and skip removal.
+     */
+    private fun removeStaleTask() {
+        try {
+            val am = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+            @Suppress("DEPRECATION")
+            val tasks = am.appTasks
+            if (tasks.isNullOrEmpty()) return
+            for (task in tasks) {
+                val baseClass = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    task.taskInfo?.baseActivity?.className
+                } else null
+                if (baseClass == targetActivityClass) {
+                    AALogger.w(
+                        "CarDisplay: removing stale task for $targetActivityClass " +
+                            "(would inherit old window bounds)"
+                    )
+                    task.finishAndRemoveTask()
+                }
+            }
+        } catch (e: Exception) {
+            AALogger.w("CarDisplay: removeStaleTask failed: ${e.message}")
+        }
+    }
+
+    /**
+     * Logs the live window bounds in display space as
+     * `[left, top, right, bottom] (WxH)`. Best-effort: at attach time the
+     * window may not be fully laid out yet, so values can be provisional.
+     */
+    private fun logWindowBounds(activity: Activity, tag: String) {
+        try {
+            val decor = activity.window?.decorView ?: return
+            val loc = IntArray(2)
+            decor.getLocationOnScreen(loc)
+            AALogger.i(
+                "CarDisplay: $tag window bounds=[${loc[0]},${loc[1]}," +
+                    "${loc[0] + decor.width},${loc[1] + decor.height}] " +
+                    "(${decor.width}x${decor.height})"
+            )
+        } catch (e: Exception) {
+            AALogger.w("CarDisplay: failed to read window bounds ($tag): ${e.message}")
+        }
+    }
 
     // ---- Activity lifecycle detection ------------------------------------
 
@@ -299,10 +447,15 @@ class CarDisplay(
                 }
                 AALogger.d("onActivityCreated: ${activity.javaClass.simpleName} on display $activityDisplayId")
 
-                if (activityDisplayId == targetId &&
+                // Attach ONLY if the activity lives on the CURRENT live
+                // display — never attach an instance from a destroyed one.
+                if (displayId != -1 && virtualDisplay != null &&
+                    activityDisplayId == displayId &&
                     activity.javaClass.name == targetActivityClass) {
                     projectedActivity = activity
-                    AALogger.i("Activity auto-attached for touch dispatch: ${activity.javaClass.simpleName}")
+                    AALogger.i("Activity auto-attached for touch dispatch: ${activity.javaClass.simpleName} on display $activityDisplayId")
+                    logWindowBounds(activity, "launch")
+                    AALogger.shareableCopy()
                 }
             }
 
@@ -312,10 +465,44 @@ class CarDisplay(
                     gestureInProgress = false
                     AALogger.i("Projected activity destroyed, detached")
                 }
+                if (activity === orientationForcedOn) {
+                    orientationForcedOn = null
+                }
             }
 
             override fun onActivityStarted(activity: Activity) {}
-            override fun onActivityResumed(activity: Activity) {}
+            override fun onActivityResumed(activity: Activity) {
+                // Attached instance only, and once per activity instance —
+                // re-applying on every resume would restart the activity.
+                if (activity !== projectedActivity || orientationForcedOn === activity) return
+                orientationForcedOn = activity
+
+                val before = activity.requestedOrientation
+                AALogger.i(
+                    "CarDisplay: forcing landscape on ${activity.javaClass.simpleName} " +
+                        "(requestedOrientation=$before)"
+                )
+                activity.requestedOrientation =
+                    android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+                AALogger.i(
+                    "CarDisplay: requestedOrientation=${activity.requestedOrientation} " +
+                        "(SCREEN_ORIENTATION_SENSOR_LANDSCAPE=" +
+                        "${android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE})"
+                )
+                AALogger.shareableCopy()
+
+                // After ~2s the window has (re)laid out — log live bounds to
+                // diagnose letterboxing remotely.
+                activity.window?.decorView?.postDelayed(
+                    {
+                        if (projectedActivity === activity) {
+                            logWindowBounds(activity, "post-orientation")
+                            AALogger.shareableCopy()
+                        }
+                    },
+                    ORIENTATION_BOUNDS_LOG_DELAY_MS
+                )
+            }
             override fun onActivityPaused(activity: Activity) {}
             override fun onActivityStopped(activity: Activity) {}
             override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
@@ -342,9 +529,104 @@ class CarDisplay(
     /**
      * Low-level dispatch — sends [event] to the projected activity's decor
      * view. Silently dropped if the activity hasn't been attached yet.
+     *
+     * ## Coordinate transform
+     *
+     * The host sends touch coordinates in **display space**, but
+     * `View.dispatchTouchEvent` expects **window-local** coordinates. The
+     * window can be offset on the display (e.g. letterboxing) and/or
+     * rotated (`Display.getRotation()` != 0), so before dispatch every
+     * pointer is mapped with an affine transform (via [Matrix]):
+     *
+     * 1. Subtract the window's on-screen location
+     *    ([android.view.View.getLocationOnScreen]) from the event
+     *    coordinates — this compensates the window offset.
+     * 2. If the display reports rotation, apply the inverse rotation using
+     *    the display's current real dimensions:
+     *    - `ROTATION_90`  (1): (x, y) → (y, w-1-x)
+     *    - `ROTATION_180` (2): (x, y) → (w-1-x, h-1-y)
+     *    - `ROTATION_270` (3): (x, y) → (h-1-y, x)
+     *
+     * The transform is applied to **every pointer** of the event, so
+     * multi-pointer gestures (pinch) are covered uniformly.
      */
     private fun dispatchToActivity(event: MotionEvent) {
-        projectedActivity?.window?.decorView?.dispatchTouchEvent(event)
+        val activity = projectedActivity ?: return
+        // Never dispatch touch to an instance living on a destroyed display.
+        if (displayId == -1 || virtualDisplay == null) return
+        val activityDisplayId = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            activity.display?.displayId ?: -1
+        } else {
+            @Suppress("DEPRECATION")
+            activity.windowManager.defaultDisplay?.displayId ?: -1
+        }
+        if (activityDisplayId != displayId) {
+            AALogger.w("dispatchToActivity: activity on stale display $activityDisplayId (current=$displayId) — detaching and dropping event")
+            projectedActivity = null
+            gestureInProgress = false
+            return
+        }
+
+        val decor: View = activity.window?.decorView ?: return
+        val display: Display = decor.display ?: run {
+            decor.dispatchTouchEvent(event)
+            return
+        }
+
+        // Window offset in display space (letterboxing shifts the window).
+        val loc = IntArray(2)
+        decor.getLocationOnScreen(loc)
+        val rotation = display.rotation
+        val rotated = rotation != Surface.ROTATION_0
+
+        // Log transform parameters once per gesture (first event only),
+        // to avoid spamming the log on every MOVE.
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> {
+                if (loc[0] != 0 || loc[1] != 0) {
+                    AALogger.d("CarDisplay: window offset=(${loc[0]},${loc[1]}) — compensating input coordinates")
+                }
+                if (rotated) {
+                    AALogger.w("CarDisplay: display rotation=$rotation — applying inverse rotation to touch input")
+                }
+            }
+        }
+
+        // Fast path: identity transform.
+        if (!rotated && loc[0] == 0 && loc[1] == 0) {
+            decor.dispatchTouchEvent(event)
+            return
+        }
+
+        val matrix = Matrix()
+        if (rotated) {
+            val metrics = DisplayMetrics()
+            @Suppress("DEPRECATION")
+            display.getRealMetrics(metrics)
+            val w = metrics.widthPixels
+            val h = metrics.heightPixels
+            when (rotation) {
+                Surface.ROTATION_90 -> {
+                    // (x, y) → (y, w-1-x), composed with the window offset.
+                    matrix.setRotate(-90f)
+                    matrix.postTranslate(-loc[1].toFloat(), (w - 1 + loc[0]).toFloat())
+                }
+                Surface.ROTATION_180 -> {
+                    // (x, y) → (w-1-x, h-1-y), composed with the window offset.
+                    matrix.setRotate(180f)
+                    matrix.postTranslate((w - 1 + loc[0]).toFloat(), (h - 1 + loc[1]).toFloat())
+                }
+                Surface.ROTATION_270 -> {
+                    // (x, y) → (h-1-y, x), composed with the window offset.
+                    matrix.setRotate(90f)
+                    matrix.postTranslate((h - 1 + loc[1]).toFloat(), -loc[0].toFloat())
+                }
+            }
+        } else {
+            matrix.postTranslate(-loc[0].toFloat(), -loc[1].toFloat())
+        }
+        event.transform(matrix)
+        decor.dispatchTouchEvent(event)
     }
 
     // -- click -------------------------------------------------------------
@@ -499,11 +781,43 @@ class CarDisplay(
     // -- gesture stream helpers --------------------------------------------
 
     /**
-     * If no gesture stream is active, emit ACTION_DOWN at the last known
-     * touch position to start one.
+     * If no gesture stream is active, emit ACTION_DOWN to start one.
+     *
+     * The anchor is the **center of the live window in display space**,
+     * not the last click position: the host sends only deltas for
+     * scroll/fling, and `lastTouchX/Y` may be stale or lie outside the
+     * (offset) window — the initial DOWN would then land off-window and
+     * the map never drags.
+     *
+     * The center is `getLocationOnScreen` + half the decor size, which is
+     * already display space (window → display is the inverse of the
+     * dispatch transform; the rectangle center is invariant under the
+     * window rotation), so the dispatch transform still applies exactly
+     * once — it is NOT applied here.
      */
     private fun ensureGestureDown() {
         if (gestureInProgress) return
+
+        val activity = projectedActivity
+        val decor = activity?.window?.decorView
+        if (decor != null) {
+            val loc = IntArray(2)
+            decor.getLocationOnScreen(loc)
+            lastTouchX = (loc[0] + decor.width / 2).toFloat()
+            lastTouchY = (loc[1] + decor.height / 2).toFloat()
+
+            // Log bounds + anchor once per display lifecycle (first scroll),
+            // not per event — MOVE events would spam the log.
+            if (!scrollAnchorLogged) {
+                scrollAnchorLogged = true
+                AALogger.i(
+                    "CarDisplay: scroll anchor at window center=($lastTouchX,$lastTouchY) " +
+                        "bounds=[${loc[0]},${loc[1]},${loc[0] + decor.width},${loc[1] + decor.height}] " +
+                        "(${decor.width}x${decor.height})"
+                )
+            }
+        }
+
         val now = System.currentTimeMillis()
         val down = MotionEvent.obtain(
             now, now, MotionEvent.ACTION_DOWN, lastTouchX, lastTouchY, 0
@@ -526,58 +840,4 @@ class CarDisplay(
         up.recycle()
         gestureInProgress = false
     }
-
-    // ---- ActionStrip button handlers -------------------------------------
-
-    /** Notify that a zoom-in button was pressed. */
-    fun zoomIn() {
-        val cx = surfaceWidth / 2f
-        val cy = surfaceHeight / 2f
-        dispatchScale(1.5f, cx, cy)
-    }
-
-    /** Notify that a zoom-out button was pressed. */
-    fun zoomOut() {
-        val cx = surfaceWidth / 2f
-        val cy = surfaceHeight / 2f
-        dispatchScale(0.67f, cx, cy)
-    }
-
-    /**
-     * Re-center the map on the user's current location.
-     *
-     * Calls `AutoLocationHelper.v().moveToLocation(mode)` via reflection,
-     * replicating the HiCar location-button flow. The visual mode is read
-     * from `mj9.F().i()` (0=3D car heading, 1=visual car, 2=normal).
-     *
-     * If reflection fails (class/method not found), falls back to a
-     * center-click and logs a warning.
-     */
-    @Suppress("UNCHECKED_CAST")
-    fun reCenter() {
-        try {
-            // Read the current visual mode: mj9.F().i()
-            val mj9Class = Class.forName("defpackage.mj9")
-            val fMethod: Method = mj9Class.getMethod("F")
-            val mj9Instance = fMethod.invoke(null)
-            val iMethod: Method = mj9Class.getMethod("i")
-            val mode = (iMethod.invoke(mj9Instance) as Int?) ?: 2
-
-            // Call AutoLocationHelper.v().moveToLocation(mode)
-            val autoLocClass = Class.forName("com.huawei.maps.auto.location.AutoLocationHelper")
-            val vMethod: Method = autoLocClass.getMethod("v")
-            val locInstance = vMethod.invoke(null)
-            val moveMethod: Method = autoLocClass.getMethod("moveToLocation", Int::class.javaPrimitiveType)
-            moveMethod.invoke(locInstance, mode)
-
-            AALogger.i("reCenter: called AutoLocationHelper.v().moveToLocation($mode)")
-        } catch (e: Exception) {
-            AALogger.w("reCenter: reflection failed (${e.message}), falling back to center-click")
-            // Fallback: tap the center of the screen
-            val cx = surfaceWidth / 2f
-            val cy = surfaceHeight / 2f
-            dispatchClick(cx, cy)
-        }
-    }
-
-    }
+}

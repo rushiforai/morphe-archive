@@ -46,7 +46,7 @@
   "focusedTests": ["SdhSubtitleDetectorTest including local file sampling", "isolated x86_64 and universal exclusive-mode application"],
   "acceptance": [
     "Patched NuvioTV shows Settings > Morphe > Subtitles > Mark SDH subtitles as a native switch",
-    "The switch defaults off and persists after force-stop and reboot",
+    "The switch defaults on for a fresh preference and a stored On or Off choice persists after force-stop and reboot",
     "Off preserves every subtitle title",
     "Tracks in any language with explicit SDH, HI, HOH, CC, hearing-impaired, or closed-caption evidence display SDH once",
     "Addon tracks with explicit metadata display SDH immediately",

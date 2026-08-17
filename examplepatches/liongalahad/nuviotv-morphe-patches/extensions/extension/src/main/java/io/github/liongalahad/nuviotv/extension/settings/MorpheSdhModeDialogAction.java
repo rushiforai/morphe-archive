@@ -5,7 +5,7 @@ import android.app.Activity;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function0;
 
-/** Opens the TV-native three-choice SDH mode dialog over Nuvio's current settings pane. */
+/** Opens the TV-native SDH mode dialog over Nuvio's current settings pane. */
 @SuppressWarnings("unused")
 public final class MorpheSdhModeDialogAction implements Function0<Unit> {
     private MorpheSdhModeDialogAction() {}

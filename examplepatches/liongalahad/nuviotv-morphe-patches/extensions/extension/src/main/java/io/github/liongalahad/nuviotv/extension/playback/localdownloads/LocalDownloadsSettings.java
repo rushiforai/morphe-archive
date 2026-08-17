@@ -21,7 +21,7 @@ public final class LocalDownloadsSettings {
     private LocalDownloadsSettings() {}
 
     public static boolean isEnabled() {
-        try { return preferences().getBoolean(ENABLED_KEY, false); }
+        try { return preferences().getBoolean(ENABLED_KEY, true); }
         catch (ClassCastException ignored) { return false; }
     }
 
@@ -30,7 +30,7 @@ public final class LocalDownloadsSettings {
     }
 
     public static boolean isAutoplayEnabled() {
-        try { return preferences().getBoolean(AUTOPLAY_KEY, false); }
+        try { return preferences().getBoolean(AUTOPLAY_KEY, true); }
         catch (ClassCastException ignored) { return false; }
     }
 

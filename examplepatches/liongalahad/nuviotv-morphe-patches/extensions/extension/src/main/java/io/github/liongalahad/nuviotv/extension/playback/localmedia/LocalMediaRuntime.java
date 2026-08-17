@@ -28,12 +28,12 @@ import io.github.liongalahad.nuviotv.extension.settings.MorpheStoragePath;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -91,7 +91,7 @@ public final class LocalMediaRuntime {
     public static boolean isEnabled() {
         SharedPreferences preferences = preferences();
         try {
-            return preferences.getBoolean(ENABLED_KEY, false);
+            return preferences.getBoolean(ENABLED_KEY, true);
         } catch (ClassCastException ignored) {
             return false;
         }
@@ -165,12 +165,26 @@ public final class LocalMediaRuntime {
                 android.content.pm.PackageManager.PERMISSION_GRANTED;
     }
 
+    public static boolean hasStorageAccess(Context context) {
+        return treeUriString() != null || hasDefaultFolderAccess(context);
+    }
+
+    /** Requests storage only after the user enters Library > Storage. */
+    public static void requestStorageAccessOnFirstUse() {
+        Activity activity = MorpheSettingsUi.resumedActivity();
+        if (activity != null) requestStorageAccess(activity);
+    }
+
+    public static boolean requestStorageAccess(Activity activity) {
+        if (hasStorageAccess(activity)) return false;
+        Toast.makeText(activity, "Storage access required", Toast.LENGTH_LONG).show();
+        activity.startActivity(new Intent(activity, LocalMediaDefaultFolderAccessActivity.class));
+        return true;
+    }
+
     public static void prepareDefaultFolder(Activity activity) {
         if (treeUriString() != null) return;
-        if (!hasDefaultFolderAccess(activity)) {
-            activity.startActivity(new Intent(activity, LocalMediaDefaultFolderAccessActivity.class));
-            return;
-        }
+        if (requestStorageAccess(activity)) return;
         if (!ensureDefaultFolder(activity)) {
             Toast.makeText(activity,
                     "Movies/Nuvio could not be created",
@@ -619,6 +633,7 @@ public final class LocalMediaRuntime {
     public static void observeNavController(Object controller) {
         if (controller != null) {
             navController = controller;
+            LocalMediaPlaybackDiagnosticActivity.install(MorpheSettingsRuntime.applicationContext());
             observeCurrentDestination();
         }
     }
@@ -649,9 +664,14 @@ public final class LocalMediaRuntime {
             toast("Nuvio navigation is not ready");
             return false;
         }
-        String route = buildPlayerRoute(file.uri.toString(), file.name, file.size);
-        beginLocalPlayback(file.uri.toString());
+        Context context = MorpheSettingsRuntime.applicationContext();
+        LocalMediaPlaybackDiagnosticActivity.arm(
+                context, "Library Storage item", file.uri.toString(), null, controller);
         try {
+            String route = buildPlayerRoute(file.uri.toString(), file.name, file.size);
+            LocalMediaPlaybackDiagnosticActivity.arm(
+                    context, "Library Storage item", file.uri.toString(), route, controller);
+            beginLocalPlayback(file.uri.toString());
             for (Class<?> owner = controller.getClass(); owner != null; owner = owner.getSuperclass()) {
                 for (Method method : owner.getDeclaredMethods()) {
                     Class<?>[] parameters = method.getParameterTypes();
@@ -667,11 +687,16 @@ public final class LocalMediaRuntime {
         } catch (Throwable error) {
             Log.e(TAG, "Unable to navigate to the local player route", error);
             cancelPendingLocalPlayback();
+            LocalMediaPlaybackDiagnosticActivity.report(
+                    context, "Local route creation or Nuvio navigation handoff", error);
             toast("Unable to start local playback");
             return false;
         }
         Log.e(TAG, "Nuvio navigation helper was not found");
         cancelPendingLocalPlayback();
+        LocalMediaPlaybackDiagnosticActivity.report(
+                MorpheSettingsRuntime.applicationContext(), "Nuvio navigation helper lookup",
+                new NoSuchMethodException("Nuvio navigation helper"));
         toast("Unable to start local playback");
         return false;
     }
@@ -1065,7 +1090,13 @@ public final class LocalMediaRuntime {
     }
 
     private static String encode(String value) {
-        return URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20");
+        try {
+            // The Charset overload was added in Android 13/API 33. Nuvio supports Android TV
+            // API 28+, so use the API 1 String overload even though UTF-8 is always available.
+            return URLEncoder.encode(value == null ? "" : value, "UTF-8").replace("+", "%20");
+        } catch (UnsupportedEncodingException impossible) {
+            throw new AssertionError("UTF-8 is unavailable", impossible);
+        }
     }
 
     private static String extensionOf(String name) {

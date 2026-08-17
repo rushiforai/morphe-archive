@@ -1,6 +1,6 @@
 # Remove SDH Annotations: exact behavior
 
-This page specifies what the production patch does. It provides `Off`, `Remove SDH, keep lyrics`, and `Full cleanup`, matching the updated Nuvio SDH cleaner's `OFF`, `KEEP_LYRICS`, and `REMOVE_LYRICS` behavior.
+This page specifies what the production patch does. It provides `Off`, `Normalize music symbols only`, `Remove SDH, keep lyrics`, and `Full cleanup`.
 
 ## Scope and runtime flow
 
@@ -9,23 +9,48 @@ The patch supports only the official NuvioTV `0.8.4-beta` Media3/ExoPlayer subti
 When selected in Morphe, the patch:
 
 1. exposes Nuvio's hidden settings destination as `Settings → Morphe`;
-2. renders one native `Remove SDH annotations` selector row showing the current value;
-3. opens Nuvio's three-choice modal pattern containing `Off`, `Remove SDH, keep lyrics`, and `Full cleanup`;
-4. stores the mode in private `morphe_patches` preferences under `subtitles.sdh_cleanup_mode`, defaulting to `OFF`;
+2. renders one native `SDH subtitle processing` selector row showing the current value;
+3. opens Nuvio's native choice-modal pattern containing `Off`, `Normalize music symbols only`, `Remove SDH, keep lyrics`, and `Full cleanup`;
+4. stores the mode in private `morphe_patches` preferences under `subtitles.sdh_cleanup_mode`, defaulting to `NORMALIZE_MUSIC_SYMBOLS` on a fresh installation;
 5. intercepts every outgoing Media3 cue list immediately before Nuvio constructs and forwards its `CueGroup`;
-6. returns the original cue list unchanged in `Off`; and
-7. in either cleanup mode, cleans text cues, suppresses cues that become empty, and leaves non-text cues unchanged.
+6. returns the original cue list unchanged in `Off`;
+7. in `Normalize music symbols only`, replaces supported misdecoded and inferred lyric-boundary tokens without removing text; and
+8. in either cleanup mode, cleans text cues, suppresses cues that become empty, normalizes retained lyric markers, and leaves non-text cues unchanged.
 
-The preference is checked for every outgoing cue list, so changes apply to the next subtitle update without restarting playback. The setting persists across process and device restarts and is not synchronized to a Nuvio account or sent to Nuvio's backend. A legacy dev.7 Boolean value of `true` migrates to `Remove SDH, keep lyrics`.
+The preference is checked for every outgoing cue list, so changes apply to the next subtitle update without restarting playback. The setting persists across process and device restarts and is not synchronized to a Nuvio account or sent to Nuvio's backend. Existing stored mode selections remain unchanged. A legacy dev.7 Boolean value of `true` migrates to `Remove SDH, keep lyrics`; an installation with no old or current SDH preference starts in `Normalize music symbols only`.
+
+## Symbol normalization
+
+All modes except `Off` recognize the normal `♪`/`♫` characters and the common CP1252/UTF-8 mojibake forms represented by `\u00E2\u2122\u00AA` and `\u00E2\u2122\u00AB`. The mojibake forms become `♪` and `♫` respectively when their text survives.
+
+The cleaner also infers an unknown music marker when all of these conditions hold:
+
+- a subtitle block has the form `<token> text <same token>`;
+- the token is isolated from the text by whitespace;
+- the same case-insensitive token appears at both boundaries;
+- the token contains no digit and is no longer than four Unicode code points; and
+- the same token combination occurs either three times in total or twice consecutively in the active playback subtitle-callback session.
+
+Every inferred boundary token becomes the canonical `♪` symbol. Matching is case-insensitive. Straight and curly apostrophes match one another, and straight and curly double quotes match one another; an apostrophe combination and a double-quote combination remain distinct tokens. Thus `AB" ... ab”` matches, while `AB" ... ab'` does not.
+
+A wrapped block may occupy one physical line or span several physical lines. `J" word word\nword j"` counts as one occurrence, not two. If the next subtitle block is `J" word word word j"`, the pair counts as two consecutive occurrences. A cue list is scanned before it is transformed, so all qualifying occurrences delivered together are corrected together. Across separately timed callback deliveries, recognition begins on the second consecutive or third total occurrence; earlier cues that have already been displayed cannot be changed retroactively. Re-delivery of an identical cue snapshot and a cue retained while another overlapping cue is introduced do not add evidence.
+
+Evidence is isolated to the active playback subtitle callback and resets when Nuvio creates a new callback instance or the user changes the SDH mode. The Media3 hook does not expose a stable subtitle-track identifier, so a track change that reuses the exact same callback instance can retain evidence until that playback callback is replaced.
+
+Bare quotes, dialogue hyphens, supported brackets/parentheses, digit-containing tokens, empty tokens, and whitespace-only tokens are not learned as markers. Self-evident legacy-glyph wrappers do not require repetition: a matching pair of isolated single ASCII letters other than the valid English words `A` and `I`, including quote variants such as `j'` and `J"`, is normalized immediately. Thus `J" lyrics j"` becomes `♪ lyrics ♪`, and `J Julee Cruise's "Falling" playing j` becomes `♪ Julee Cruise's "Falling" playing ♪`. `I told you I` remains unchanged.
+
+Marker-only lines are handled separately. Repeated copies of the same short legacy glyph, such as `JJJ`, become the same number of `♪` symbols. A single isolated ASCII legacy glyph other than the valid English words `A` and `I`, including an apostrophe variant such as `j'`, becomes one `♪`. Short repeated Unicode symbol glyphs are treated the same way. Ordinary punctuation-only lines are preserved. Cleanup modes suppress a marker-only line after normalization; `Normalize music symbols only` leaves the resulting note symbols visible.
+
+`Normalize music symbols only` applies only these substitutions. It does not remove bracketed text, parentheticals, speaker labels, descriptions, lyrics, blank lines, or cues.
 
 ## Exact rules in both cleanup modes
 
 ### 1. Complete square-bracket blocks
 
-Every complete block matching either form is removed without inspecting its vocabulary, language, capitalization, or punctuation:
+Every complete balanced block matching either form is removed without inspecting its vocabulary, language, capitalization, punctuation, length, or number of lines:
 
-- ASCII `[text]`, with a one-line body of 1–80 characters;
-- full-width `［text］`, with a one-line body of 1–80 characters.
+- ASCII `[text]`;
+- full-width `［text］`.
 
 Examples removed:
 
@@ -33,13 +58,14 @@ Examples removed:
 - `[AN UNKNOWN SOUND!]`
 - `[person on PA speaking indistinctly]`
 - `[literal spoken content]`
+- `[annotation spanning\nmultiple lines]`
 - `［dramatic music］`
 
-Multiple blocks in the same line are removed independently.
+Multiple blocks in the same cue are removed independently. Nested blocks using the same delimiter are removed as one complete outer block.
 
 ### 2. Complete parenthetical blocks
 
-Every complete non-nested ASCII `(text)` block with a one-line body of 1–60 characters is removed without inspecting its contents.
+Every complete balanced ASCII `(text)` block is removed without inspecting its contents, length, or number of lines.
 
 Examples removed:
 
@@ -47,6 +73,7 @@ Examples removed:
 - `(door closes)`
 - `(in Italian)`
 - `(and I meant it)`
+- `(speaking very\nsoftly)`
 - the qualifier in `JOHN (ON PHONE): Hello.`
 
 This is intentionally aggressive. Ordinary dialogue written inside parentheses is removed too.
@@ -81,7 +108,7 @@ If a recognized speaker prefix has no dialogue after it, the line is suppressed.
 
 ### 4. Music-description cues and likely lyrics
 
-The cleaner recognizes both real `♪`/`♫` characters and the common CP1252/UTF-8 mojibake forms represented by `\u00E2\u2122\u00AA` or `\u00E2\u2122\u00AB`.
+The cleaner evaluates real, normalized mojibake, and evidence-inferred music markers using the same music-description and lyric rules.
 
 Music text is evaluated when:
 
@@ -105,14 +132,15 @@ An empty body between markers is suppressed. A candidate containing one of these
 
 `i`, `i'm`, `i’m`, `me`, `my`, `mine`, `we`, `our`, `ours`, `you`, `your`, `yours`, `he`, `him`, `his`, `she`, `her`, `hers`, `they`, `them`, `their`, `this`, `that`, `who`, `what`, `where`, `when`, `why`, `how`, or `please`.
 
-In `Remove SDH, keep lyrics`, this preserves the tested lyric `♪ Hello darkness, my old friend ♪`, but lyric-versus-description detection remains heuristic.
+In `Remove SDH, keep lyrics`, this preserves the tested lyric `♪ Hello darkness, my old friend ♪`. Retained lyrics surrounded by mojibake or inferred markers are normalized to real note symbols, but lyric-versus-description detection remains heuristic.
 
-In `Full cleanup`, any complete cue that begins and ends with recognised normal or mojibake music-note markers is suppressed regardless of its contents. Any inline one-line segment of up to 80 characters enclosed by paired recognised markers is also removed regardless of its contents. An unmatched marker is preserved.
+In `Full cleanup`, any complete cue that begins and ends with recognized normal, mojibake, or inferred music-note markers is suppressed regardless of its contents. Any inline one-line segment of up to 80 characters enclosed by paired recognized markers is also removed regardless of its contents. An unmatched marker is preserved.
 
 Examples unique to `Full cleanup`:
 
 - `♪ when the music's over, turn on the light ♪` is suppressed;
 - `â™ª Hello darkness, my old friend â™ª` is suppressed; and
+- a recognized `j lyric one j` block is suppressed; and
 - `Wait here. ♪ wordless singing ♪ Do not move.` becomes `Wait here. Do not move.`
 
 ### 5. Empty-result suppression and spacing
@@ -128,6 +156,7 @@ Examples unique to `Full cleanup`:
 ## What is preserved
 
 - In `Off`, the original cue list and text objects are returned unchanged.
+- In `Normalize music symbols only`, all text and cue objects remain unchanged unless a supported marker is replaced.
 - In either cleanup mode, text outside the removed ranges remains.
 - Android character spans attached to surviving text ranges remain.
 - Media3 cue timing, position, alignment, size, window/color data, and other cue properties remain.
@@ -140,15 +169,11 @@ Examples unique to `Full cleanup`:
 Supported blocks are removed aggressively, but these forms are not recognized:
 
 - `{text}`, `<text>`, full-width parentheses, and other delimiter styles;
-- square-bracket bodies longer than 80 characters;
-- parenthetical bodies longer than 60 characters;
-- nested blocks;
-- malformed or unclosed blocks; and
-- content spanning a line break inside one block.
+- malformed or unclosed blocks.
 
 Complex speaker labels such as `MRS. BOWDEN:`, `MAN #1:`, labels longer than 32 characters, or labels with more than three words may survive.
 
-The aggressive rule also creates deliberate false positives: ordinary text in a supported complete bracket or parenthetical block is removed. Keep the mode `Off` for subtitle tracks where brackets or parentheses contain dialogue that must be retained. `Full cleanup` deliberately removes lyrics enclosed by supported note markers.
+The aggressive rule also creates deliberate false positives: ordinary text in a supported complete bracket or parenthetical block is removed. Repeated legitimate blocks using the same short boundary token can also be inferred as lyrics and normalized or removed. Keep the mode `Off` for subtitle tracks where exact source text must be retained. `Full cleanup` deliberately removes lyrics enclosed by supported or inferred note markers.
 
 When reporting a remaining miss, include the exact raw subtitle text, including delimiters, capitalization, punctuation, and line breaks. Also record the subtitle language/track and confirm that playback uses Media3/ExoPlayer.
 

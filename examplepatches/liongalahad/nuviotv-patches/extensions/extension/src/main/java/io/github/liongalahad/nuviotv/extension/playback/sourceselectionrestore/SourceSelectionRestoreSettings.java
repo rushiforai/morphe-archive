@@ -43,7 +43,7 @@ public final class SourceSelectionRestoreSettings {
 
     private static boolean read(SharedPreferences preferences) {
         try {
-            return preferences.getBoolean(KEY, false);
+            return preferences.getBoolean(KEY, true);
         } catch (ClassCastException ignored) {
             return false;
         }

@@ -90,7 +90,7 @@
     "Settings > Morphe > Playback contains a Local Media visibility section followed by one unsectioned shared Local storage path row at the bottom",
     "The shared path is greyed and unfocusable while every installed storage feature is off and actionable when Local Media or Local Downloads is on",
     "An existing playback.local_media.tree_uri value migrates once into the neutral shared playback.local_storage.path key",
-    "Show local storage in Library defaults off, requests durable default-folder access when enabled, creates Movies/Nuvio after the grant, updates immediately and persists after force-stop and reboot",
+    "Show local storage in Library defaults on for a fresh preference without prompting at startup or toggle time; first entry into Library > Storage requests access when needed, denial leaves the setting on with a retry action, and stored choices persist",
     "Library exposes Storage as a peer of Saved and Cloud without changing either native mode",
     "Storage remains inside Nuvio's native Library screen and uses the same search, card, focus and file-picker visuals as Cloud",
     "Storage shows STORAGE rather than NUVIO in the source badge",

@@ -1,5 +1,5 @@
 {
-    "version": "v1.45.0",
+    "version": "v1.48.0",
     "patches": [
         {
             "compatiblePackages": [
@@ -10,7 +10,27 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "29.9.1"
+                            "version": "30.7.2"
+                        }
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Renders global and current-channel 7TV and BTTV emotes in incoming live chat. Type an emote code normally to send it; this patch does not add a picker or provider login.",
+            "name": "7TV and BTTV emotes",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "appIconColor": "#9147FF",
+                    "name": "Twitch",
+                    "packageName": "tv.twitch.android.app",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "30.7.2"
                         }
                     ]
                 }
@@ -30,7 +50,7 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "29.9.1"
+                            "version": "30.7.2"
                         }
                     ]
                 }
@@ -50,7 +70,7 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "45.0.0.109"
+                            "version": "45.8.0.110"
                         }
                     ]
                 }
@@ -72,7 +92,7 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "45.0.0.109"
+                            "version": "45.8.0.110"
                         }
                     ]
                 }
@@ -86,13 +106,35 @@
         {
             "compatiblePackages": [
                 {
+                    "appIconColor": "#00A4EF",
+                    "name": "Microsoft SwiftKey",
+                    "packageName": "com.touchtype.swiftkey",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "9.13.13.5"
+                        }
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [
+                "ResourcePatch"
+            ],
+            "description": "Keeps the optional Microsoft cloud sign-in onboarding from replacing SwiftKey's launcher, so local keyboard setup and settings remain usable without an account. This does not sign in or unlock cloud sync and other account-backed features.",
+            "name": "Disable cloud sign-in prompt",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
                     "appIconColor": "#001935",
                     "name": "Tumblr",
                     "packageName": "com.tumblr",
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "45.0.0.109"
+                            "version": "45.8.0.110"
                         }
                     ]
                 }
@@ -112,7 +154,7 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "45.0.0.109"
+                            "version": "45.8.0.110"
                         }
                     ]
                 }
@@ -134,7 +176,51 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "45.0.0.109"
+                            "version": "45.8.0.110"
+                        }
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [
+                "BytecodePatch"
+            ],
+            "description": "Stops the share sheet that pops up when you take a screenshot in the app.",
+            "name": "Disable screenshot sharing",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "appIconColor": "#00A4EF",
+                    "name": "Microsoft SwiftKey",
+                    "packageName": "com.touchtype.swiftkey",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "9.13.13.5"
+                        }
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [
+                "ResourcePatch"
+            ],
+            "description": "Stops SwiftKey's first-party telemetry records and uploads, Adjust attribution, Crashlytics, Firebase Sessions, legacy Google Analytics, and app exception reporting. Push messaging and the multipurpose job service stay enabled.",
+            "name": "Disable telemetry",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "appIconColor": "#001935",
+                    "name": "Tumblr",
+                    "packageName": "com.tumblr",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "45.8.0.110"
                         }
                     ]
                 }
@@ -176,7 +262,7 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "45.0.0.109"
+                            "version": "45.8.0.110"
                         }
                     ]
                 }
@@ -196,7 +282,27 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "29.9.1"
+                            "version": "30.7.2"
+                        }
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Fixes the \"This app version/OS is not currently supported\" error that blocks login after the app has been patched. Twitch runs a Play Integrity check in the background and reports the result to its login server; re-signing makes that check fail, so the server refuses the login. This stops the app from sending that attestation, so it looks like a device without Google Play, where login works normally. It does not change anything else about how you log in.",
+            "name": "Fix login",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "appIconColor": "#9147FF",
+                    "name": "Twitch",
+                    "packageName": "tv.twitch.android.app",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "30.7.2"
                         }
                     ]
                 }
@@ -300,7 +406,7 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "45.0.0.109"
+                            "version": "45.8.0.110"
                         }
                     ]
                 }
@@ -340,7 +446,7 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "29.9.1"
+                            "version": "30.7.2"
                         }
                     ]
                 }
@@ -424,7 +530,7 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "4.56.0"
+                            "version": "4.57.4"
                         }
                     ]
                 }
@@ -855,6 +961,10 @@
                         {
                             "isExperimental": false,
                             "version": "2.5.0.2-beta1"
+                        },
+                        {
+                            "isExperimental": false,
+                            "version": "2.5.0.6"
                         }
                     ]
                 }

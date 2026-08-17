@@ -18,6 +18,12 @@ import android.widget.TextView;
 
 /** View implementation matching Nuvio's RenderTypeSettingsItem choice dialog. */
 final class MorpheSdhModeDialog {
+    private static final int[] DISPLAY_MODES = {
+            MorpheSettingsRuntime.SDH_MODE_OFF,
+            MorpheSettingsRuntime.SDH_MODE_NORMALIZE_MUSIC_SYMBOLS,
+            MorpheSettingsRuntime.SDH_MODE_KEEP_LYRICS,
+            MorpheSettingsRuntime.SDH_MODE_REMOVE_LYRICS
+    };
     private static final int DIALOG_WIDTH_DP = 440;
     private static final int BACKGROUND_CARD = Color.rgb(35, 35, 35);
     private static final int SELECTED_BACKGROUND = Color.rgb(58, 58, 58);
@@ -52,14 +58,14 @@ final class MorpheSdhModeDialog {
 
         int selected = MorpheSettingsRuntime.sdhCleanupModeOrdinal();
         ModeOptionView first = null;
-        for (int mode = MorpheSettingsRuntime.SDH_MODE_OFF;
-             mode <= MorpheSettingsRuntime.SDH_MODE_REMOVE_LYRICS; mode++) {
+        for (int index = 0; index < DISPLAY_MODES.length; index++) {
+            int mode = DISPLAY_MODES[index];
             ModeOptionView option = new ModeOptionView(activity, mode, mode == selected, dialog);
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT
             );
-            params.topMargin = dp(activity, mode == MorpheSettingsRuntime.SDH_MODE_OFF ? 16 : 8);
+            params.topMargin = dp(activity, index == 0 ? 16 : 8);
             content.addView(option, params);
             if (first == null) first = option;
         }

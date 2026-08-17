@@ -1,3 +1,27 @@
+## [1.10.0](https://github.com/byehi98/okish-morphe-patches/compare/v1.9.0...v1.10.0) (2026-08-16)
+
+### ✨ New Features
+
+* relocate patches package structure under app namespace ([5627eea](https://github.com/byehi98/okish-morphe-patches/commit/5627eeadf0acf97654ffe3792ee30b69046a4e68))
+
+## [1.10.0-dev.1](https://github.com/byehi98/okish-morphe-patches/compare/v1.9.0...v1.10.0-dev.1) (2026-08-16)
+
+### ✨ New Features
+
+* relocate patches package structure under app namespace ([5627eea](https://github.com/byehi98/okish-morphe-patches/commit/5627eeadf0acf97654ffe3792ee30b69046a4e68))
+
+## [1.9.0](https://github.com/byehi98/okish-morphe-patches/compare/v1.8.0...v1.9.0) (2026-08-16)
+
+### ✨ New Features
+
+* add Rodeo Stampede Safari patches (free purchase + ad-free) ([da9a1b0](https://github.com/byehi98/okish-morphe-patches/commit/da9a1b0dccd168cd580339787204dd0e399ea22d))
+
+## [1.9.0-dev.1](https://github.com/byehi98/okish-morphe-patches/compare/v1.8.0...v1.9.0-dev.1) (2026-08-16)
+
+### ✨ New Features
+
+* add Rodeo Stampede Safari patches (free purchase + ad-free) ([da9a1b0](https://github.com/byehi98/okish-morphe-patches/commit/da9a1b0dccd168cd580339787204dd0e399ea22d))
+
 ## [1.8.0](https://github.com/byehi98/okish-morphe-patches/compare/v1.7.0...v1.8.0) (2026-08-13)
 
 ### ✨ New Features
