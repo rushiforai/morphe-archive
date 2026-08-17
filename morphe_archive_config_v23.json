@@ -1129,6 +1129,38 @@
                 "sortOrder": 142,
                 "createdAt": 1786756261910,
                 "updatedAt": 1786756261910
+            },
+            {
+                "name": "slight-patches",
+                "source": "https://raw.githubusercontent.com/HSlightsteel/slight-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 143,
+                "createdAt": 1786989241950,
+                "updatedAt": 1786989241950
+            },
+            {
+                "name": "hxreborn-tiktok-patches",
+                "source": "https://raw.githubusercontent.com/hxreborn/hxreborn-tiktok-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 144,
+                "createdAt": 1786989244733,
+                "updatedAt": 1786989244733
+            },
+            {
+                "name": "ipusnas-patches",
+                "source": "https://raw.githubusercontent.com/kuchingneko28/ipusnas-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 145,
+                "createdAt": 1786989245102,
+                "updatedAt": 1786989245102
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/riky-dev/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 146,
+                "createdAt": 1786989245628,
+                "updatedAt": 1786989245628
             }
         ]
     }
