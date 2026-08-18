@@ -16,6 +16,7 @@ HvQ/eksi-morphe
 IMXEren/mix-patches
 Ikuradachi/ikura-patches
 ImmortalZeus/ImmortalZeus-Morphe-Patches
+JZ6/Flexboard
 Jl4cTuk/morphe-patches
 Jman-Github/Awesome-ReVanced
 Jman-Github/ReVanced-Patch-Bundles
@@ -117,6 +118,7 @@ hxreborn/hxreborn-tiktok-patches
 hxreborn/morphe-patches
 icysymmetra/tiktok-patches-for-morphe
 ilikeadofai/vocacolle-morphe-patches
+isuruhg/cricinfo-tweaks
 isuruhg/fin-tweaks
 itsthejoker/itsthejoker-patches
 jasonwu1994/Gboard-patches

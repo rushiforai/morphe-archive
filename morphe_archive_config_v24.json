@@ -1161,6 +1161,22 @@
                 "sortOrder": 146,
                 "createdAt": 1786989245628,
                 "updatedAt": 1786989245628
+            },
+            {
+                "name": "Flexboard",
+                "source": "https://raw.githubusercontent.com/JZ6/Flexboard/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 147,
+                "createdAt": 1787015482954,
+                "updatedAt": 1787015482954
+            },
+            {
+                "name": "cricinfo-tweaks",
+                "source": "https://raw.githubusercontent.com/isuruhg/cricinfo-tweaks/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 148,
+                "createdAt": 1787015485088,
+                "updatedAt": 1787015485088
             }
         ]
     }

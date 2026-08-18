@@ -1,20 +1,20 @@
 {
-  "generatedAt": "2026-08-17 17:54 UTC",
-  "configFile": "morphe_archive_config_v23.json",
-  "configVersion": 23,
-  "repoCount": 139,
+  "generatedAt": "2026-08-18 01:12 UTC",
+  "configFile": "morphe_archive_config_v24.json",
+  "configVersion": 24,
+  "repoCount": 141,
   "appCount": 682,
-  "patchCount": 2618,
+  "patchCount": 2629,
   "universalPatchCount": 187,
   "hostCounts": {
-    "github.com": 135,
+    "github.com": 137,
     "gitlab.com": 4
   },
   "visitorStats": {
-    "today": 8,
-    "yesterday": 1,
-    "total": 277,
-    "online": 0
+    "today": 1,
+    "yesterday": 8,
+    "total": 278,
+    "online": 1
   },
   "repos": [
     {
@@ -67,7 +67,7 @@
       "webUrl": "https://github.com/ajstrick81/morphe-androidtv-patches",
       "addUrl": "https://morphe.software/add-source?github=ajstrick81/morphe-androidtv-patches",
       "avatarUrl": "https://github.com/ajstrick81.png?size=96",
-      "patchCount": 30,
+      "patchCount": 31,
       "appCount": 12,
       "createdAt": 1784836028108,
       "updatedAt": 1784836028108,
@@ -108,7 +108,7 @@
         {
           "name": "com.disney.disneyplus",
           "packageName": "com.disney.disneyplus",
-          "patchCount": 1,
+          "patchCount": 2,
           "iconUrl": "https://play-lh.googleusercontent.com/AEX_3Bk5_SEZfR4fUcJsWiyqW_RRVcLED9AM2HMUVHAPVTZhZHfP2q3M35mRe4LtCXlb712DtkKwkZa_nJ-0",
           "iconColor": ""
         },
@@ -1450,27 +1450,39 @@
       "webUrl": "https://github.com/BlazeFTL/FTL-Patches",
       "addUrl": "https://morphe.software/add-source?github=BlazeFTL/FTL-Patches",
       "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
-      "patchCount": 20,
-      "appCount": 5,
+      "patchCount": 23,
+      "appCount": 6,
       "createdAt": 1786263569063,
       "updatedAt": 1786263569063,
       "createdDate": "2026-08-09",
       "updatedDate": "2026-08-09",
       "latestChanges": {
-        "title": "1.33.0 (2026-08-16)",
-        "date": "2026-08-16",
+        "title": "1.34.0 (2026-08-17)",
+        "date": "2026-08-17",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "add allvideo downloader"
+            "text": "Add Clean More Action Rs File"
           },
           {
             "category": "\u2728 New Features",
-            "text": "ads up 2"
+            "text": "Add Hide BookMark,Tools In HomeScreen Rs"
           },
           {
             "category": "\u2728 New Features",
-            "text": "update ads"
+            "text": "Add Rs File Explorer Skip Splash"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "Fix Rs File Explorer Patch"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "Rs File Explorer Skip Splash"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "Rs File Explorer Skip Splash Screen"
           }
         ]
       },
@@ -1494,6 +1506,13 @@
           "packageName": "com.mxtech.videoplayer.pro",
           "patchCount": 4,
           "iconUrl": "",
+          "iconColor": ""
+        },
+        {
+          "name": "RS File Manager",
+          "packageName": "com.rs.explorer.filemanager",
+          "patchCount": 3,
+          "iconUrl": "https://play-lh.googleusercontent.com/qk5ZNXn_E2bAi_9JSHhMB_pn1b1NloWWCeMr16cJIAsv05Gy5Rm8nlmd5KjnLOIisgiMtNrG5LOjmdlF_ksQk8o",
           "iconColor": ""
         },
         {
@@ -5060,6 +5079,37 @@
       ]
     },
     {
+      "name": "cricinfo-tweaks",
+      "repo": "isuruhg/cricinfo-tweaks",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/isuruhg/cricinfo-tweaks/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/isuruhg/cricinfo-tweaks/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/isuruhg/cricinfo-tweaks/main/CHANGELOG.md",
+      "webUrl": "https://github.com/isuruhg/cricinfo-tweaks",
+      "addUrl": "https://morphe.software/add-source?github=isuruhg/cricinfo-tweaks",
+      "avatarUrl": "https://github.com/isuruhg.png?size=96",
+      "patchCount": 3,
+      "appCount": 1,
+      "createdAt": 1787015485088,
+      "updatedAt": 1787015485088,
+      "createdDate": "2026-08-18",
+      "updatedDate": "2026-08-18",
+      "latestChanges": {
+        "title": "1.1.0 (2026-08-17)",
+        "date": "2026-08-17",
+        "items": []
+      },
+      "apps": [
+        {
+          "name": "ESPNcricinfo",
+          "packageName": "com.july.cricinfo",
+          "patchCount": 3,
+          "iconUrl": "",
+          "iconColor": "#C8102E"
+        }
+      ]
+    },
+    {
       "name": "Gboard-patches",
       "repo": "jasonwu1994/Gboard-patches",
       "host": "github.com",
@@ -5496,6 +5546,37 @@
           "patchCount": 1,
           "iconUrl": "https://play-lh.googleusercontent.com/AdmVEf1YsnbcTx7OFNNbJkqLbLewomf6xR4wWnazycJJC4llEXjmBOixxcgGt3TFa_IZszY9gw-4UOGYKlaKMw",
           "iconColor": "#42484B"
+        }
+      ]
+    },
+    {
+      "name": "Flexboard",
+      "repo": "JZ6/Flexboard",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/JZ6/Flexboard/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/JZ6/Flexboard/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/JZ6/Flexboard/main/CHANGELOG.md",
+      "webUrl": "https://github.com/JZ6/Flexboard",
+      "addUrl": "https://morphe.software/add-source?github=JZ6/Flexboard",
+      "avatarUrl": "https://github.com/JZ6.png?size=96",
+      "patchCount": 5,
+      "appCount": 1,
+      "createdAt": 1787015482954,
+      "updatedAt": 1787015482954,
+      "createdDate": "2026-08-18",
+      "updatedDate": "2026-08-18",
+      "latestChanges": {
+        "title": "",
+        "date": "",
+        "items": []
+      },
+      "apps": [
+        {
+          "name": "Gboard",
+          "packageName": "com.google.android.inputmethod.latin",
+          "patchCount": 5,
+          "iconUrl": "https://play-lh.googleusercontent.com/J4vZ82VsZjnsRsI6ckQFXlO36_52QJerqG5-HfLgHffS34I4EfoAFfNdbf6s4wBAsUEf8DOJVEDEHh5tzWbrnA",
+          "iconColor": "#1A73E8"
         }
       ]
     },
@@ -7437,12 +7518,12 @@
       "createdDate": "2026-08-17",
       "updatedDate": "2026-08-17",
       "latestChanges": {
-        "title": "1.0.0 (2026-08-16)",
-        "date": "2026-08-16",
+        "title": "1.1.0 (2026-08-17)",
+        "date": "2026-08-17",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "add Hide Ads patch for 3B Meteo"
+            "text": "add agent-friendly patch development framework"
           }
         ]
       },
@@ -7723,19 +7804,19 @@
       "webUrl": "https://github.com/rushiranpise/morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=rushiranpise/morphe-patches",
       "avatarUrl": "https://github.com/rushiranpise.png?size=96",
-      "patchCount": 326,
-      "appCount": 241,
+      "patchCount": 325,
+      "appCount": 240,
       "createdAt": 1784837376882,
       "updatedAt": 1784837376882,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.18.2 (2026-08-17)",
+        "title": "1.18.3 (2026-08-17)",
         "date": "2026-08-17",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "clean up"
+            "text": "remove broken patch"
           }
         ]
       },
@@ -9372,13 +9453,6 @@
           "iconColor": "#2196F3"
         },
         {
-          "name": "WetterOnline",
-          "packageName": "de.wetteronline.wetterapp",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#0066CC"
-        },
-        {
           "name": "Widget 2026",
           "packageName": "com.remi.widget",
           "patchCount": 1,
@@ -10556,12 +10630,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -10632,12 +10706,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -10690,12 +10764,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/riky-dev/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/riky-dev.png?size=96",
           "latestChanges": {
-            "title": "1.0.0 (2026-08-16)",
-            "date": "2026-08-16",
+            "title": "1.1.0 (2026-08-17)",
+            "date": "2026-08-17",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add Hide Ads patch for 3B Meteo"
+                "text": "add agent-friendly patch development framework"
               }
             ]
           },
@@ -10836,12 +10910,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -10903,12 +10977,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -10961,12 +11035,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -11019,12 +11093,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -11077,12 +11151,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -11175,12 +11249,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -11275,12 +11349,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -11334,12 +11408,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -11628,12 +11702,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -11686,12 +11760,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -11995,12 +12069,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -12053,20 +12127,32 @@
           "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
           "latestChanges": {
-            "title": "1.33.0 (2026-08-16)",
-            "date": "2026-08-16",
+            "title": "1.34.0 (2026-08-17)",
+            "date": "2026-08-17",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add allvideo downloader"
+                "text": "Add Clean More Action Rs File"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "ads up 2"
+                "text": "Add Hide BookMark,Tools In HomeScreen Rs"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "update ads"
+                "text": "Add Rs File Explorer Skip Splash"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "Fix Rs File Explorer Patch"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "Rs File Explorer Skip Splash"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "Rs File Explorer Skip Splash Screen"
               }
             ]
           },
@@ -12374,12 +12460,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -12500,12 +12586,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -12558,12 +12644,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -12616,12 +12702,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -12760,12 +12846,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -12818,12 +12904,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -12988,12 +13074,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -13046,12 +13132,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -13104,12 +13190,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -13162,12 +13248,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -13679,8 +13765,8 @@
       ],
       "patches": [
         "Disable PairIP DRM",
-        "Unlock premium",
-        "Unlock Premium"
+        "Unlock Premium",
+        "Unlock premium"
       ],
       "patchDetails": [
         {
@@ -13688,12 +13774,12 @@
           "description": "Disables PairIP signature verification and Google Play LVL license check. Required for the app to launch after re-signing."
         },
         {
-          "name": "Unlock premium",
-          "description": "Unlocks all AT4K premium features by forcing the premium status to true."
-        },
-        {
           "name": "Unlock Premium",
           "description": "Unlocks AT4K Launcher's premium features without paying, like more apps per row and the premium wallpaper options. It all runs on the device, so nothing stays locked."
+        },
+        {
+          "name": "Unlock premium",
+          "description": "Unlocks all AT4K premium features by forcing the premium status to true."
         }
       ],
       "versions": [
@@ -13719,12 +13805,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -14171,12 +14257,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -14367,12 +14453,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -14617,12 +14703,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -14862,12 +14948,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -16258,12 +16344,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -16323,12 +16409,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -16439,12 +16525,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -16642,12 +16728,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -16700,12 +16786,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -16794,12 +16880,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -16915,12 +17001,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -16973,12 +17059,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -17071,12 +17157,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -17129,12 +17215,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -17187,12 +17273,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -17245,12 +17331,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -17603,12 +17689,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -17911,12 +17997,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -18140,12 +18226,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -18389,12 +18475,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -18514,12 +18600,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -18572,12 +18658,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -18778,12 +18864,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -18851,12 +18937,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -18971,12 +19057,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -19029,12 +19115,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -19087,12 +19173,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -19181,12 +19267,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -19240,12 +19326,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -19546,12 +19632,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -20279,12 +20365,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -20337,12 +20423,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -20464,12 +20550,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -20666,12 +20752,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -21443,12 +21529,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -21531,6 +21617,10 @@
             {
               "name": "Disney+ Android TV",
               "description": "Removes mid-roll / pre-roll ads and pause ads."
+            },
+            {
+              "name": "Suppress Household Prompt",
+              "description": "Hides the Disney+ \"Verify Household Network\" / out-of-household prompt by forcing the client's out-of-household check to report in-household, so the app routes straight to home. Does NOT change what Disney's servers detect (that's driven by your public IP \u2014 use a VPN for that); it only suppresses the on-screen prompt/routing. Opt-in / experimental; only takes visible effect when the device would otherwise be prompted."
             }
           ],
           "versions": [
@@ -21542,12 +21632,17 @@
         }
       ],
       "patches": [
-        "Disney+ Android TV"
+        "Disney+ Android TV",
+        "Suppress Household Prompt"
       ],
       "patchDetails": [
         {
           "name": "Disney+ Android TV",
           "description": "Removes mid-roll / pre-roll ads and pause ads."
+        },
+        {
+          "name": "Suppress Household Prompt",
+          "description": "Hides the Disney+ \"Verify Household Network\" / out-of-household prompt by forcing the client's out-of-household check to report in-household, so the app routes straight to home. Does NOT change what Disney's servers detect (that's driven by your public IP \u2014 use a VPN for that); it only suppresses the on-screen prompt/routing. Opt-in / experimental; only takes visible effect when the device would otherwise be prompted."
         }
       ],
       "versions": [
@@ -21665,12 +21760,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -22814,7 +22909,8 @@
       "repos": [
         "Entree3k/Morning-Entree-Patches",
         "jasonwu1994/Gboard-patches",
-        "jkennethcarino/adobo"
+        "jkennethcarino/adobo",
+        "JZ6/Flexboard"
       ],
       "sources": [
         {
@@ -23109,6 +23205,52 @@
             }
           ],
           "versions": []
+        },
+        {
+          "repo": "JZ6/Flexboard",
+          "host": "github.com",
+          "webUrl": "https://github.com/JZ6/Flexboard",
+          "addUrl": "https://morphe.software/add-source?github=JZ6/Flexboard",
+          "source": "https://raw.githubusercontent.com/JZ6/Flexboard/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/JZ6/Flexboard/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/JZ6.png?size=96",
+          "latestChanges": {
+            "title": "",
+            "date": "",
+            "items": []
+          },
+          "builder": {
+            "buildId": "com-google-android-inputmethod-latin-jz6-flexboard",
+            "releaseTag": "app-com-google-android-inputmethod-latin-jz6-flexboard",
+            "assetName": "com-google-android-inputmethod-latin-jz6-flexboard.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Bypass Gboard Signature",
+              "description": "Bypass Gboard's signature whitelist checks and force them to pass."
+            },
+            {
+              "name": "Flick Keys for Symbols",
+              "description": "Turn on Gboard's \"Flick keys to enter symbols\" \u2014 pull down on a key to enter the symbol hinted in its corner. Written once as a default, so it can still be turned off in Gboard's own settings."
+            },
+            {
+              "name": "Install as Gboard Clone",
+              "description": "Rename the package to dev.jz6.com.google.android.inputmethod.latin so the patched build installs alongside the official Gboard instead of replacing it."
+            },
+            {
+              "name": "Swipe Right to Undo",
+              "description": "Swipe right after deleting to put the words back. Uses Gboard's own undo, which already records what a delete swipe removed."
+            },
+            {
+              "name": "Swipe to Delete",
+              "description": "Swipe left anywhere on the keyboard to delete the previous word, and swipe right to restore it. Uses Gboard's own word-scrub engine, so it behaves exactly like swiping on the backspace key already does \u2014 only it can start anywhere."
+            }
+          ],
+          "versions": [
+            "18.0.3.954559732-release-arm64-v8a"
+          ]
         }
       ],
       "patches": [
@@ -23119,6 +23261,7 @@
         "Always incognito mode",
         "Always-incognito mode",
         "Block tracking and analytics",
+        "Bypass Gboard Signature",
         "Change emoji size",
         "Change package name",
         "Clipboard Custom Character Limit",
@@ -23138,15 +23281,19 @@
         "Enable Undo feature",
         "Enable voice typing in incognito",
         "English QWERTY Up-Flick Uppercase",
+        "Flick Keys for Symbols",
         "G Logo on Spacebar",
         "Grammar Checker",
         "Incognito Mode Toggle",
         "Inline Suggestions",
+        "Install as Gboard Clone",
         "Key Shape Selection",
         "Latin Globe Key Ignore Interval",
         "Long-Press Editing Shortcuts",
         "Package Rename",
         "Settings Homepage Override",
+        "Swipe Right to Undo",
+        "Swipe to Delete",
         "Swipeable Custom Top Row",
         "Toggle feature flags",
         "Use Bluetooth Microphone",
@@ -23183,6 +23330,10 @@
         {
           "name": "Block tracking and analytics",
           "description": "Redirects Gboard's known tracking, analytics, and ad host literals to 0.0.0.0 using a built-in blocklist. Note: telemetry sent through Google Play Services is not affected; use the always-incognito patch for that."
+        },
+        {
+          "name": "Bypass Gboard Signature",
+          "description": "Bypass Gboard's signature whitelist checks and force them to pass."
         },
         {
           "name": "Change emoji size",
@@ -23261,6 +23412,10 @@
           "description": "\u82f1\u6587 QWERTY \u9375\u76e4\u4e0a\u6ed1\u5927\u5c0f\u5beb\nFlick up on the English QWERTY keyboard to toggle uppercase and lowercase."
         },
         {
+          "name": "Flick Keys for Symbols",
+          "description": "Turn on Gboard's \"Flick keys to enter symbols\" \u2014 pull down on a key to enter the symbol hinted in its corner. Written once as a default, so it can still be turned off in Gboard's own settings."
+        },
+        {
           "name": "G Logo on Spacebar",
           "description": "\u5728\u7a7a\u767d\u9375\u986f\u793a G Logo\uff0c\u4e26\u96b1\u85cf\u8a9e\u8a00\u540d\u7a31\nShow the G Logo on the spacebar and hide the language label."
         },
@@ -23275,6 +23430,10 @@
         {
           "name": "Inline Suggestions",
           "description": "\u555f\u7528 \u4fee\u6b63\u548c\u5efa\u8b70 > \u667a\u6167\u64b0\u5beb\nEnable Text correction > Smart Compose."
+        },
+        {
+          "name": "Install as Gboard Clone",
+          "description": "Rename the package to dev.jz6.com.google.android.inputmethod.latin so the patched build installs alongside the official Gboard instead of replacing it."
         },
         {
           "name": "Key Shape Selection",
@@ -23295,6 +23454,14 @@
         {
           "name": "Settings Homepage Override",
           "description": "\u5141\u8a31\u5207\u63db\u65b0\u7248\u6216\u820a\u7248 Gboard \u8a2d\u5b9a\u9801\u9762\nAllow switching between the new and legacy Gboard settings pages."
+        },
+        {
+          "name": "Swipe Right to Undo",
+          "description": "Swipe right after deleting to put the words back. Uses Gboard's own undo, which already records what a delete swipe removed."
+        },
+        {
+          "name": "Swipe to Delete",
+          "description": "Swipe left anywhere on the keyboard to delete the previous word, and swipe right to restore it. Uses Gboard's own word-scrub engine, so it behaves exactly like swiping on the backspace key already does \u2014 only it can start anywhere."
         },
         {
           "name": "Swipeable Custom Top Row",
@@ -23326,9 +23493,10 @@
         }
       ],
       "versions": [
-        "17.7.7.932364120-release-arm64-v8a"
+        "17.7.7.932364120-release-arm64-v8a",
+        "18.0.3.954559732-release-arm64-v8a"
       ],
-      "iconColor": "",
+      "iconColor": "#1A73E8",
       "iconUrl": "https://play-lh.googleusercontent.com/J4vZ82VsZjnsRsI6ckQFXlO36_52QJerqG5-HfLgHffS34I4EfoAFfNdbf6s4wBAsUEf8DOJVEDEHh5tzWbrnA"
     },
     {
@@ -24513,12 +24681,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -27244,12 +27412,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -27302,12 +27470,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -27743,12 +27911,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -27975,12 +28143,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -28073,12 +28241,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -28271,12 +28439,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -28718,12 +28886,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -29492,12 +29660,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -30075,12 +30243,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -30291,20 +30459,32 @@
           "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
           "latestChanges": {
-            "title": "1.33.0 (2026-08-16)",
-            "date": "2026-08-16",
+            "title": "1.34.0 (2026-08-17)",
+            "date": "2026-08-17",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add allvideo downloader"
+                "text": "Add Clean More Action Rs File"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "ads up 2"
+                "text": "Add Hide BookMark,Tools In HomeScreen Rs"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "update ads"
+                "text": "Add Rs File Explorer Skip Splash"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "Fix Rs File Explorer Patch"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "Rs File Explorer Skip Splash"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "Rs File Explorer Skip Splash Screen"
               }
             ]
           },
@@ -30334,12 +30514,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -30389,6 +30569,79 @@
         "4.4.3.7"
       ],
       "iconColor": "#1976D2",
+      "iconUrl": ""
+    },
+    {
+      "packageName": "com.july.cricinfo",
+      "name": "ESPNcricinfo",
+      "repos": [
+        "isuruhg/cricinfo-tweaks"
+      ],
+      "sources": [
+        {
+          "repo": "isuruhg/cricinfo-tweaks",
+          "host": "github.com",
+          "webUrl": "https://github.com/isuruhg/cricinfo-tweaks",
+          "addUrl": "https://morphe.software/add-source?github=isuruhg/cricinfo-tweaks",
+          "source": "https://raw.githubusercontent.com/isuruhg/cricinfo-tweaks/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/isuruhg/cricinfo-tweaks/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/isuruhg.png?size=96",
+          "latestChanges": {
+            "title": "1.1.0 (2026-08-17)",
+            "date": "2026-08-17",
+            "items": []
+          },
+          "builder": {
+            "buildId": "com-july-cricinfo-isuruhg-cricinfo-tweaks",
+            "releaseTag": "app-com-july-cricinfo-isuruhg-cricinfo-tweaks",
+            "assetName": "espncricinfo-isuruhg-cricinfo-tweaks.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Block tracking & telemetry",
+              "description": "Stops AppsFlyer, comScore, Conviva and Adobe Marketing from initializing, so they collect or send no attribution/analytics data. Leaves CleverTap intact to preserve push notifications."
+            },
+            {
+              "name": "Remove ads",
+              "description": "Stops ESPNcricinfo from fetching or showing banner, interstitial, native, rewarded and app-open ads (Google Ad Manager, Meta Audience Network, Taboola) by severing the Flutter ad plugins and skipping the ad SDK setup."
+            },
+            {
+              "name": "Remove splash ad, startup delay & forced update",
+              "description": "Removes the full-screen splash ad shown on every cold start (the main cause of the slow boot), the GPT interstitial, and the \"you must update\" blocking screen, by hiding their Firebase Remote Config keys from the app. Other remote config is untouched."
+            }
+          ],
+          "versions": [
+            "26.05.11",
+            "26.07.24"
+          ]
+        }
+      ],
+      "patches": [
+        "Block tracking & telemetry",
+        "Remove ads",
+        "Remove splash ad, startup delay & forced update"
+      ],
+      "patchDetails": [
+        {
+          "name": "Block tracking & telemetry",
+          "description": "Stops AppsFlyer, comScore, Conviva and Adobe Marketing from initializing, so they collect or send no attribution/analytics data. Leaves CleverTap intact to preserve push notifications."
+        },
+        {
+          "name": "Remove ads",
+          "description": "Stops ESPNcricinfo from fetching or showing banner, interstitial, native, rewarded and app-open ads (Google Ad Manager, Meta Audience Network, Taboola) by severing the Flutter ad plugins and skipping the ad SDK setup."
+        },
+        {
+          "name": "Remove splash ad, startup delay & forced update",
+          "description": "Removes the full-screen splash ad shown on every cold start (the main cause of the slow boot), the GPT interstitial, and the \"you must update\" blocking screen, by hiding their Firebase Remote Config keys from the app. Other remote config is untouched."
+        }
+      ],
+      "versions": [
+        "26.05.11",
+        "26.07.24"
+      ],
+      "iconColor": "#C8102E",
       "iconUrl": ""
     },
     {
@@ -30531,12 +30784,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -31140,12 +31393,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -31198,12 +31451,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -31431,12 +31684,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -31489,12 +31742,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -31646,12 +31899,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -31748,12 +32001,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -31822,12 +32075,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -31920,12 +32173,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -32538,12 +32791,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -32716,12 +32969,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -32774,12 +33027,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -33182,12 +33435,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -33449,12 +33702,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -33577,12 +33830,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -33635,12 +33888,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -34023,12 +34276,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -34243,12 +34496,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -34301,12 +34554,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -34399,12 +34652,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -34463,12 +34716,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -34628,12 +34881,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -35283,12 +35536,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -35585,12 +35838,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -35711,12 +35964,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -37333,12 +37586,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -38083,12 +38336,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -38977,12 +39230,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -39035,12 +39288,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -39094,12 +39347,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -39244,12 +39497,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -39308,12 +39561,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -39366,12 +39619,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -39539,12 +39792,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -40372,12 +40625,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -40492,12 +40745,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -40771,12 +41024,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -40964,12 +41217,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -41157,12 +41410,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -41283,12 +41536,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -41404,12 +41657,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -41585,12 +41838,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -41956,12 +42209,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -42198,12 +42451,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -42364,12 +42617,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -42681,12 +42934,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -42739,12 +42992,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -42859,12 +43112,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -43037,12 +43290,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -43245,12 +43498,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -43303,12 +43556,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -43477,12 +43730,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -43579,12 +43832,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -43701,12 +43954,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -44068,20 +44321,32 @@
           "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
           "latestChanges": {
-            "title": "1.33.0 (2026-08-16)",
-            "date": "2026-08-16",
+            "title": "1.34.0 (2026-08-17)",
+            "date": "2026-08-17",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add allvideo downloader"
+                "text": "Add Clean More Action Rs File"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "ads up 2"
+                "text": "Add Hide BookMark,Tools In HomeScreen Rs"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "update ads"
+                "text": "Add Rs File Explorer Skip Splash"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "Fix Rs File Explorer Patch"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "Rs File Explorer Skip Splash"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "Rs File Explorer Skip Splash Screen"
               }
             ]
           },
@@ -44736,12 +45001,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -45074,12 +45339,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -45306,12 +45571,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -45365,12 +45630,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -45463,12 +45728,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -45521,12 +45786,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -45579,12 +45844,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -45701,12 +45966,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -46383,12 +46648,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -46481,12 +46746,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -46774,12 +47039,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -46894,12 +47159,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -47081,12 +47346,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -47321,12 +47586,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -47856,12 +48121,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -47950,12 +48215,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -48060,12 +48325,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -48124,12 +48389,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -48244,12 +48509,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -48556,12 +48821,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -48891,12 +49156,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -48949,12 +49214,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -49007,12 +49272,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -49105,12 +49370,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -49743,12 +50008,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -50031,12 +50296,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -50165,12 +50430,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -50390,12 +50655,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -50656,12 +50921,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -50714,12 +50979,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -50772,12 +51037,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -50830,12 +51095,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -50888,12 +51153,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -50946,12 +51211,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -51004,12 +51269,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -51062,12 +51327,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -51120,12 +51385,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -51178,12 +51443,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -51236,12 +51501,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -51294,12 +51559,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -51352,12 +51617,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -51481,12 +51746,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -51539,12 +51804,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -52174,12 +52439,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -52211,8 +52476,8 @@
         "Remove 'Sent from' signature",
         "Remove free accounts limit",
         "Spoof signature",
-        "Unlock Custom Time Picker",
         "Unlock custom time picker",
+        "Unlock Custom Time Picker",
         "Unlock Unlimited Plan"
       ],
       "patchDetails": [
@@ -52237,12 +52502,12 @@
           "description": "Restores push notifications by spoofing the original app signature."
         },
         {
-          "name": "Unlock Custom Time Picker",
-          "description": "Unlocks the custom scheduled send date/time picker for all users."
-        },
-        {
           "name": "Unlock custom time picker",
           "description": "Enables picking a custom date and time when snoozing conversations and scheduling messages."
+        },
+        {
+          "name": "Unlock Custom Time Picker",
+          "description": "Unlocks the custom scheduled send date/time picker for all users."
         },
         {
           "name": "Unlock Unlimited Plan",
@@ -52272,12 +52537,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -52485,12 +52750,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -52663,12 +52928,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -52721,12 +52986,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -52965,12 +53230,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -53221,12 +53486,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -53279,12 +53544,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -53337,12 +53602,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -53511,12 +53776,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -54034,12 +54299,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -54217,11 +54482,11 @@
         "Disable modern home",
         "Disable post detail swipe",
         "Disable screenshot banner",
-        "Disable screenshot popup",
         "Disable Screenshot Popup",
+        "Disable screenshot popup",
         "Force system font",
-        "Hide ads",
         "Hide Ads",
+        "Hide ads",
         "Hide Ask button",
         "Hide Ask button from search bar",
         "Hide awards",
@@ -54229,18 +54494,18 @@
         "Hide communities shelf",
         "Hide community highlights",
         "Hide community menu badge",
-        "Hide navigation buttons",
         "Hide Navigation Buttons",
+        "Hide navigation buttons",
         "Hide permanent ban banner",
         "Hide post view counts",
         "Hide prominent search bar",
         "Hide Promoted Posts",
         "Hide Reddit search",
         "Hide share count",
-        "Hide sidebar components",
         "Hide Sidebar Components",
-        "Hide Trending shelves",
+        "Hide sidebar components",
         "Hide Trending Shelves",
+        "Hide Trending shelves",
         "Hide upvote scores",
         "Hide user community badges",
         "Hide user flairs",
@@ -54252,8 +54517,8 @@
         "Remove Subreddit Dialogs",
         "Sanitize Reddit share links",
         "Sanitize share links",
-        "Sanitize Sharing Links",
         "Sanitize sharing links",
+        "Sanitize Sharing Links",
         "Show view count",
         "Spoof signature",
         "Unlock Premium"
@@ -54308,24 +54573,24 @@
           "description": "Disables the banner that shows up after taking a screenshot."
         },
         {
-          "name": "Disable screenshot popup",
-          "description": "Adds an option to disable the popup that appears when taking a screenshot."
-        },
-        {
           "name": "Disable Screenshot Popup",
           "description": "Suppresses the share prompt that appears after taking a screenshot."
+        },
+        {
+          "name": "Disable screenshot popup",
+          "description": "Adds an option to disable the popup that appears when taking a screenshot."
         },
         {
           "name": "Force system font",
           "description": "Adds an option that renders Reddit with the device system font instead of Reddit Sans / Roboto."
         },
         {
-          "name": "Hide ads",
-          "description": "Adds options to hide ads."
-        },
-        {
           "name": "Hide Ads",
           "description": "Removes promoted posts and comment ads without requiring Reddit Premium unlock."
+        },
+        {
+          "name": "Hide ads",
+          "description": "Adds options to hide ads."
         },
         {
           "name": "Hide Ask button",
@@ -54356,12 +54621,12 @@
           "description": "Hides the red notification badge on the community menu (hamburger menu)."
         },
         {
-          "name": "Hide navigation buttons",
-          "description": "Adds options to hide buttons in the navigation bar."
-        },
-        {
           "name": "Hide Navigation Buttons",
           "description": "Removes the Create Post button from the bottom navigation bar."
+        },
+        {
+          "name": "Hide navigation buttons",
+          "description": "Adds options to hide buttons in the navigation bar."
         },
         {
           "name": "Hide permanent ban banner",
@@ -54388,20 +54653,20 @@
           "description": "Hides the share count on Reddit posts."
         },
         {
-          "name": "Hide sidebar components",
-          "description": "Adds options to hide the sidebar components."
-        },
-        {
           "name": "Hide Sidebar Components",
           "description": "Hides About, Resources, and Reddit Pro sections from the community sidebar."
         },
         {
-          "name": "Hide Trending shelves",
-          "description": "Adds an option to hide the Trending shelves from feed and search suggestions."
+          "name": "Hide sidebar components",
+          "description": "Adds options to hide the sidebar components."
         },
         {
           "name": "Hide Trending Shelves",
           "description": "Removes Trending Today from the feed and trending searches from the search screen."
+        },
+        {
+          "name": "Hide Trending shelves",
+          "description": "Adds an option to hide the Trending shelves from feed and search suggestions."
         },
         {
           "name": "Hide upvote scores",
@@ -54448,12 +54713,12 @@
           "description": "Unshortens and removes the tracking query parameters from shared links."
         },
         {
-          "name": "Sanitize Sharing Links",
-          "description": "Returns the raw permalink before UTM tracking parameters are appended to shared Reddit URLs."
-        },
-        {
           "name": "Sanitize sharing links",
           "description": "Adds an option to sanitize sharing links by removing tracking query parameters."
+        },
+        {
+          "name": "Sanitize Sharing Links",
+          "description": "Returns the raw permalink before UTM tracking parameters are appended to shared Reddit URLs."
         },
         {
           "name": "Show view count",
@@ -54586,12 +54851,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -54644,12 +54909,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -54760,12 +55025,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -54986,9 +55251,73 @@
       "packageName": "com.rs.explorer.filemanager",
       "name": "RS File Manager",
       "repos": [
+        "BlazeFTL/FTL-Patches",
         "rushiranpise/morphe-patches"
       ],
       "sources": [
+        {
+          "repo": "BlazeFTL/FTL-Patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/BlazeFTL/FTL-Patches",
+          "addUrl": "https://morphe.software/add-source?github=BlazeFTL/FTL-Patches",
+          "source": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
+          "latestChanges": {
+            "title": "1.34.0 (2026-08-17)",
+            "date": "2026-08-17",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "Add Clean More Action Rs File"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "Add Hide BookMark,Tools In HomeScreen Rs"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "Add Rs File Explorer Skip Splash"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "Fix Rs File Explorer Patch"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "Rs File Explorer Skip Splash"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "Rs File Explorer Skip Splash Screen"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-rs-explorer-filemanager-blazeftl-ftl-patches",
+            "releaseTag": "app-com-rs-explorer-filemanager-blazeftl-ftl-patches",
+            "assetName": "rs-file-manager-blazeftl-ftl-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Hide more actions",
+              "description": "Hides Hide, Add to desktop, Encrypt, Decrypt, Add bookmark, Web Search, Copy to, Move to, Transfer, and Playing from the \"More actions\" menu."
+            },
+            {
+              "name": "Hide network, tools and bookmarks on home page",
+              "description": "Hides the Network, Tools and Bookmarks sections from the home page section list."
+            },
+            {
+              "name": "Skip splash screen",
+              "description": "Moves the launcher intent filter to the main activity and calls the all-files-access permission request directly, instead of showing the splash activity and its full-screen 'grant storage access' dialog."
+            }
+          ],
+          "versions": [
+            "2.3.0.4"
+          ]
+        },
         {
           "repo": "rushiranpise/morphe-patches",
           "host": "github.com",
@@ -54998,12 +55327,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -55026,9 +55355,24 @@
         }
       ],
       "patches": [
+        "Hide more actions",
+        "Hide network, tools and bookmarks on home page",
+        "Skip splash screen",
         "Unlock Premium"
       ],
       "patchDetails": [
+        {
+          "name": "Hide more actions",
+          "description": "Hides Hide, Add to desktop, Encrypt, Decrypt, Add bookmark, Web Search, Copy to, Move to, Transfer, and Playing from the \"More actions\" menu."
+        },
+        {
+          "name": "Hide network, tools and bookmarks on home page",
+          "description": "Hides the Network, Tools and Bookmarks sections from the home page section list."
+        },
+        {
+          "name": "Skip splash screen",
+          "description": "Moves the launcher intent filter to the main activity and calls the all-files-access permission request directly, instead of showing the splash activity and its full-screen 'grant storage access' dialog."
+        },
         {
           "name": "Unlock Premium",
           "description": "Unlocks premium features in app."
@@ -55517,12 +55861,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -55894,12 +56238,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -55952,12 +56296,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -56105,12 +56449,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -56226,12 +56570,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -56346,12 +56690,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -56466,12 +56810,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -57025,12 +57369,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -57361,20 +57705,32 @@
           "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
           "latestChanges": {
-            "title": "1.33.0 (2026-08-16)",
-            "date": "2026-08-16",
+            "title": "1.34.0 (2026-08-17)",
+            "date": "2026-08-17",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add allvideo downloader"
+                "text": "Add Clean More Action Rs File"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "ads up 2"
+                "text": "Add Hide BookMark,Tools In HomeScreen Rs"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "update ads"
+                "text": "Add Rs File Explorer Skip Splash"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "Fix Rs File Explorer Patch"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "Rs File Explorer Skip Splash"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "Rs File Explorer Skip Splash Screen"
               }
             ]
           },
@@ -57445,12 +57801,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -57565,12 +57921,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -57685,12 +58041,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -57743,12 +58099,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -58780,12 +59136,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -58849,12 +59205,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -59019,12 +59375,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -59146,12 +59502,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -59271,12 +59627,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -59573,12 +59929,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -59631,12 +59987,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -59809,12 +60165,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -59965,12 +60321,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -60098,12 +60454,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -60542,18 +60898,18 @@
         }
       ],
       "patches": [
-        "Unlock premium",
         "Unlock Premium",
+        "Unlock premium",
         "Unlock Symfonium"
       ],
       "patchDetails": [
         {
-          "name": "Unlock premium",
-          "description": "Unlocks all premium features."
-        },
-        {
           "name": "Unlock Premium",
           "description": "Turns on Symfonium's paid features. The build ships as a public beta with a built-in trial, so this also prevents the expired-beta screen. The license is checked locally and the unlock does not require an account. Connecting Plex, Jellyfin and other media servers is untouched."
+        },
+        {
+          "name": "Unlock premium",
+          "description": "Unlocks all premium features."
         },
         {
           "name": "Unlock Symfonium",
@@ -61468,12 +61824,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -62296,12 +62652,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -62487,12 +62843,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -62662,12 +63018,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -62782,12 +63138,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -62907,12 +63263,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -63269,12 +63625,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -63535,12 +63891,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -63713,12 +64069,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -63771,12 +64127,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -63829,12 +64185,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -63887,12 +64243,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -63945,12 +64301,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -64003,12 +64359,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -64119,12 +64475,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -64294,12 +64650,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -65472,12 +65828,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -65890,12 +66246,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -66026,12 +66382,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -66160,12 +66516,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -66218,12 +66574,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -66276,12 +66632,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -66693,12 +67049,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -67168,12 +67524,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -67226,12 +67582,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -67412,12 +67768,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -67528,12 +67884,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -67586,12 +67942,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -67771,64 +68127,6 @@
       "iconUrl": "https://play-lh.googleusercontent.com/he2lEwx_2GRMBKxpN78dcnwbtTntaOOvUlnBpPJ0G5xXBetmzkdXgYuu_6xqwMTrjlYMb74NW1bb5RUwvp2pmQ"
     },
     {
-      "packageName": "de.wetteronline.wetterapp",
-      "name": "WetterOnline",
-      "repos": [
-        "rushiranpise/morphe-patches"
-      ],
-      "sources": [
-        {
-          "repo": "rushiranpise/morphe-patches",
-          "host": "github.com",
-          "webUrl": "https://github.com/rushiranpise/morphe-patches",
-          "addUrl": "https://morphe.software/add-source?github=rushiranpise/morphe-patches",
-          "source": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/patches-bundle.json",
-          "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
-          "avatarUrl": "https://github.com/rushiranpise.png?size=96",
-          "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
-            "date": "2026-08-17",
-            "items": [
-              {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
-              }
-            ]
-          },
-          "builder": {
-            "buildId": "de-wetteronline-wetterapp-rushiranpise-morphe-patches",
-            "releaseTag": "app-de-wetteronline-wetterapp-rushiranpise-morphe-patches",
-            "assetName": "wetteronline-rushiranpise-morphe-patches.apk",
-            "repo": "rushiforai/morphe-builder",
-            "webUrl": "https://github.com/rushiforai/morphe-builder"
-          },
-          "patches": [
-            {
-              "name": "Unlock Premium",
-              "description": "Unlocks premium and unblocks logo screen freeze by bypassing billing callbacks and all local access checks."
-            }
-          ],
-          "versions": [
-            "2026.16.1"
-          ]
-        }
-      ],
-      "patches": [
-        "Unlock Premium"
-      ],
-      "patchDetails": [
-        {
-          "name": "Unlock Premium",
-          "description": "Unlocks premium and unblocks logo screen freeze by bypassing billing callbacks and all local access checks."
-        }
-      ],
-      "versions": [
-        "2026.16.1"
-      ],
-      "iconColor": "#0066CC",
-      "iconUrl": ""
-    },
-    {
       "packageName": "com.remi.widget",
       "name": "Widget 2026",
       "repos": [
@@ -67844,12 +68142,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -67974,12 +68272,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -68072,12 +68370,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -68194,12 +68492,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -68252,12 +68550,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -68310,12 +68608,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -68501,20 +68799,32 @@
           "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
           "latestChanges": {
-            "title": "1.33.0 (2026-08-16)",
-            "date": "2026-08-16",
+            "title": "1.34.0 (2026-08-17)",
+            "date": "2026-08-17",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "add allvideo downloader"
+                "text": "Add Clean More Action Rs File"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "ads up 2"
+                "text": "Add Hide BookMark,Tools In HomeScreen Rs"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "update ads"
+                "text": "Add Rs File Explorer Skip Splash"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "Fix Rs File Explorer Patch"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "Rs File Explorer Skip Splash"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "Rs File Explorer Skip Splash Screen"
               }
             ]
           },
@@ -68828,12 +69138,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/rushiranpise/morphe-patches/refs/heads/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/rushiranpise.png?size=96",
           "latestChanges": {
-            "title": "1.18.2 (2026-08-17)",
+            "title": "1.18.3 (2026-08-17)",
             "date": "2026-08-17",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "clean up"
+                "text": "remove broken patch"
               }
             ]
           },
@@ -70993,8 +71303,8 @@
         "Save to watch later",
         "Seekbar",
         "Seekbar components",
-        "Set Transcript Cookies",
         "Set transcript cookies",
+        "Set Transcript Cookies",
         "Settings for YouTube",
         "Settings menu filter",
         "Shorts autoplay",
@@ -71012,8 +71322,8 @@
         "Video playback",
         "Video quality",
         "Visual preferences icons for YouTube",
-        "Voice Over Translation",
         "Voice over translation",
+        "Voice Over Translation",
         "Voice Over Translation (Yandex)",
         "Watch history",
         "Watch later button",
@@ -71455,11 +71765,11 @@
           "description": "Adds options to hide or change components related to the seekbar."
         },
         {
-          "name": "Set Transcript Cookies",
+          "name": "Set transcript cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {
-          "name": "Set transcript cookies",
+          "name": "Set Transcript Cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {
@@ -71531,12 +71841,12 @@
           "description": "Adds icons to specific preferences in the settings."
         },
         {
-          "name": "Voice Over Translation",
-          "description": "Adds an option to enable Yandex voice-over translation of video audio tracks."
-        },
-        {
           "name": "Voice over translation",
           "description": "Adds additional voice over languages using text-to-speech synchronized to the video playback."
+        },
+        {
+          "name": "Voice Over Translation",
+          "description": "Adds an option to enable Yandex voice-over translation of video audio tracks."
         },
         {
           "name": "Voice Over Translation (Yandex)",
@@ -73535,20 +73845,32 @@
       "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
       "patchCount": 9,
       "latestChanges": {
-        "title": "1.33.0 (2026-08-16)",
-        "date": "2026-08-16",
+        "title": "1.34.0 (2026-08-17)",
+        "date": "2026-08-17",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "add allvideo downloader"
+            "text": "Add Clean More Action Rs File"
           },
           {
             "category": "\u2728 New Features",
-            "text": "ads up 2"
+            "text": "Add Hide BookMark,Tools In HomeScreen Rs"
           },
           {
             "category": "\u2728 New Features",
-            "text": "update ads"
+            "text": "Add Rs File Explorer Skip Splash"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "Fix Rs File Explorer Patch"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "Rs File Explorer Skip Splash"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "Rs File Explorer Skip Splash Screen"
           }
         ]
       },
@@ -74522,12 +74844,12 @@
       "avatarUrl": "https://github.com/rushiranpise.png?size=96",
       "patchCount": 38,
       "latestChanges": {
-        "title": "1.18.2 (2026-08-17)",
+        "title": "1.18.3 (2026-08-17)",
         "date": "2026-08-17",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "clean up"
+            "text": "remove broken patch"
           }
         ]
       },
@@ -75218,12 +75540,12 @@
       "createdDate": "2026-08-17",
       "updatedDate": "2026-08-17",
       "latestChanges": {
-        "title": "1.0.0 (2026-08-16)",
-        "date": "2026-08-16",
+        "title": "1.1.0 (2026-08-17)",
+        "date": "2026-08-17",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "add Hide Ads patch for 3B Meteo"
+            "text": "add agent-friendly patch development framework"
           }
         ]
       },
