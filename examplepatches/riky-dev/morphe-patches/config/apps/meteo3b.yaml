@@ -1,0 +1,24 @@
+id: meteo3b
+package: com.Meteosolutions.Meteo3b
+display_name: 3BMeteo
+apk_file_type: APKM
+apkpure_slug: vn/3b-meteo-weather-forecasts
+analysis_dir: analysis/meteo3b
+
+# Optional: smoke-test assertions after verify_patch.sh applies the .mpp.
+# Add your own when you know what your patches change.
+verify:
+  apk: analysis/meteo3b/extract/com.Meteosolutions.Meteo3b.apk
+  assertions:
+    - file: com/Meteosolutions/Meteo3b/manager/adv/BannerManager.java
+      pattern: 'return "none";'
+      label: evaluateProvider
+    - file: com/Meteosolutions/Meteo3b/manager/adv/BannerManager.java
+      pattern: 'return "no_adv";'
+      label: evaluateFallback
+    - file: com/Meteosolutions/Meteo3b/data/models/User.java
+      pattern: 'return true;'
+      label: isPremium
+    - file: com/Meteosolutions/Meteo3b/data/models/User.java
+      pattern: 'return true;'
+      label: isConsentlessPremium

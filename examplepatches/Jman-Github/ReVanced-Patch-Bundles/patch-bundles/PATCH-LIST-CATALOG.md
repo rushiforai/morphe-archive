@@ -142,10 +142,10 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Ameen-Morphe](#-ameen-morphe-bundle-patch-list) | 2 | 2 | Generated |
 | [Kolaron](#-kolaron-bundle-patch-list) | 1 | 1 | Generated |
 | [ImmortalZeus](#-immortalzeus-bundle-patch-list) | 2 | 2 | Generated |
-| [Ajstrick81-AndroidTV](#-ajstrick81-androidtv-bundle-patch-list) | 30 | 12 | Generated |
+| [Ajstrick81-AndroidTV](#-ajstrick81-androidtv-bundle-patch-list) | 31 | 12 | Generated |
 | [Icysymmetra-TikTok](#-icysymmetra-tiktok-bundle-patch-list) | 29 | 1 | Generated |
 | [AlexNaga](#-alexnaga-bundle-patch-list) | 2 | 1 | Generated |
-| [Rushiranpise](#-rushiranpise-bundle-patch-list) | 326 | 242 | Generated |
+| [Rushiranpise](#-rushiranpise-bundle-patch-list) | 325 | 241 | Generated |
 | [Sjshb57-PairIP](#-sjshb57-pairip-bundle-patch-list) | 4 | 1 | Generated |
 | [RIVanced-Universal](#-rivanced-universal-bundle-patch-list) | 27 | 1 | Generated |
 | [Variablenine](#-variablenine-bundle-patch-list) | 137 | 4 | Generated |
@@ -195,6 +195,8 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Riky](#-riky-bundle-patch-list) | 1 | 1 | Generated |
 | [iPusnas](#-ipusnas-bundle-patch-list) | 6 | 1 | Generated |
 | [HXReborn-TikTok](#-hxreborn-tiktok-bundle-patch-list) | 33 | 1 | Generated |
+| [Flexboard](#-flexboard-bundle-patch-list) | 5 | 1 | Generated |
+| [Cricinfo-Tweaks](#-cricinfo-tweaks-bundle-patch-list) | 3 | 1 | Generated |
 
 ### Legacy
 | Bundle | Patches | Apps | Status |
@@ -4644,7 +4646,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Ajstrick81-AndroidTV Bundle Patch List:
 [📦 Ajstrick81-AndroidTV-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-ajstrick81-androidtv-patches-bundle-morphe)
 <details>
-<summary><b>Ajstrick81-AndroidTV</b> - 30 patches, 12 apps</summary>
+<summary><b>Ajstrick81-AndroidTV</b> - 31 patches, 12 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -4658,6 +4660,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```MLB At Bat Android TV``` | ```Removes VOD ads and shows a commercial-break overlay over live gambling ads while preserving live game playback.``` | ```com.bamnetworks.mobile.android.gameday.atbat``` | ```26.8.1.1``` |
 | ```Paramount+ Android TV``` | ```Removes VOD pre-roll/mid-roll ads and pause ads, and replaces live sports commercial breaks with the "Commercial in Progress" slate, while preserving playback.``` | ```com.cbs.ott``` | ```16.17.0, 16.12.0, 16.8.0``` |
 | ```Disney+ Android TV``` | ```Removes mid-roll / pre-roll ads and pause ads.``` | ```com.disney.disneyplus``` | ```26.6.0+rc5-2026.04.21, 26.8.0+rc6-2026.05.20, 26.9.2+rc1-2026.06.12, 26.12.1+rc1-2026.07.15``` |
+| ```Suppress Household Prompt``` | ```Hides the Disney+ "Verify Household Network" / out-of-household prompt by forcing the client's out-of-household check to report in-household, so the app routes straight to home. Does NOT change what Disney's servers detect (that's driven by your public IP — use a VPN for that); it only suppresses the on-screen prompt/routing. Opt-in / experimental; only takes visible effect when the device would otherwise be prompted.``` | ```com.disney.disneyplus``` | ```26.6.0+rc5-2026.04.21, 26.8.0+rc6-2026.05.20, 26.9.2+rc1-2026.06.12, 26.12.1+rc1-2026.07.15``` |
 | ```Skip ads``` | ```Suppresses all ad delivery systems in Fox One Android TV: Google IMA/DAI for VOD, Yospace SSAI for live content.``` | ```com.fox.foxone``` | ```1.9.2``` |
 | ```Clone Netflix``` | ```Installs the patched Netflix as a separate app alongside the stock one (package suffix .clone), instead of replacing it. Required on devices where Netflix is a preinstalled system app that can't be uninstalled (Onn, Fire TV, most Android TV boxes). Keep the stock Netflix installed + enabled — the clone borrows its signature to pass Netflix's native tamper check (stock auto-updating is fine). You just launch the clone instead. Recommended: leave ON.``` | ```com.netflix.ninja``` | ```13.0.1 build 25028``` |
 | ```Disable Netflix CertCheck``` | ```Neutralises Netflix's DexGuard signing-certificate anti-tamper check so a re-signed build doesn't self-crash on launch. Required for every Netflix patch.``` | ```com.netflix.ninja``` | ```13.0.1 build 25028``` |
@@ -4738,7 +4741,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Rushiranpise Bundle Patch List:
 [📦 Rushiranpise-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-rushiranpise-patches-bundle-morphe)
 <details>
-<summary><b>Rushiranpise</b> - 326 patches, 242 apps</summary>
+<summary><b>Rushiranpise</b> - 325 patches, 241 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -5061,7 +5064,6 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Unlock Premium``` | ```Unlocks lifetime Premium in Wallverse.``` | ```Wallverse``` | ```All versions``` |
 | ```Unlock Premium``` | ```Unlocks all Wavve Boating GPS premium features: charts, weather, tide data, and removes subscription paywall.``` | ```Wavve Boating``` | ```All versions``` |
 | ```Unlock donation``` | ```Forces h0() to return "yes" so donate dialog never shows and providers unlock.``` | ```Weawow``` | ```All versions``` |
-| ```Unlock Premium``` | ```Unlocks premium and unblocks logo screen freeze by bypassing billing callbacks and all local access checks.``` | ```WetterOnline``` | ```All versions``` |
 | ```Unlock Premium``` | ```Unlocks all premium widgets, themes, and features in Widget 2026 by bypassing the PremiumHelper SDK subscription check at both the public API (d.b()) and SharedPreferences root (yd/e.j()).``` | ```Widget 2026``` | ```All versions``` |
 | ```Unlock Premium``` | ```Unlocks Windscribe premium account.``` | ```Windscribe VPN``` | ```All versions``` |
 | ```Unlock Premium``` | ```Unlocks Windy Pro features by patching the versioned JS bundle. Sets subscription store default to 'premium' (P1), forces gr=true (P2) and hasAny()=true (P3) at module load. Prevents cu() from clearing the subscription store (P4) and flips its body class call from remove to add (P5), ensuring the 'subs-premium' CSS class persists on <body> even when the server reports no active subscription. Unlocks higher tile zoom, 1-hour forecast steps, premium minifest API params, the premium calendar view, and all premium UI.``` | ```Windy``` | ```All versions``` |
@@ -5902,7 +5904,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Hide local tiles banner``` | ```Collapses the local device tiles banner.``` | ```MX Player Pro``` | ```All versions``` |
 | ```Hide Me tab promo items``` | ```Collapses the WhatsApp, Legal, and Help entries on the Me tab.``` | ```MX Player Pro``` | ```All versions``` |
 | ```Skip welcome screen``` | ```Moves the launcher intent filters and app shortcuts from the welcome/splash activity to the main activity, so the app boots straight past the splash and update screen.``` | ```MX Player Pro``` | ```All versions``` |
-| ```Hide more actions``` | ```Hides Hide, Add to desktop, Encrypt, Add bookmark, Web Search, Copy to, Move to, and Transfer from the "More actions" menu.``` | ```RS File Manager``` | ```All versions``` |
+| ```Hide more actions``` | ```Hides Hide, Add to desktop, Encrypt, Decrypt, Add bookmark, Web Search, Copy to, Move to, Transfer, and Playing from the "More actions" menu.``` | ```RS File Manager``` | ```All versions``` |
 | ```Hide network, tools and bookmarks on home page``` | ```Hides the Network, Tools and Bookmarks sections from the home page section list.``` | ```RS File Manager``` | ```All versions``` |
 | ```Skip splash screen``` | ```Moves the launcher intent filter to the main activity and calls the all-files-access permission request directly, instead of showing the splash activity and its full-screen 'grant storage access' dialog.``` | ```RS File Manager``` | ```All versions``` |
 | ```Disable Notification Defaults``` | ```Turns off the Toolbar, Recommended contents, and Tool notifications channels by default.``` | ```SnapTube``` | ```All versions``` |
@@ -6229,5 +6231,36 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```SIM spoof``` | ```Spoofs SIM country and operator information retrieved by TikTok, with country presets for easier setup.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Stop video looping``` | ```Stops videos at the end instead of replaying them.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
 | ```Translate comments``` | ```Adds comment translation controls using TikTok's translation system, with selectable language exclusions.``` | ```com.zhiliaoapp.musically``` | ```46.2.3``` |
+
+</details>
+
+---
+### 🧩 Flexboard Bundle Patch List:
+[📦 Flexboard-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-flexboard-patches-bundle-morphe)
+<details>
+<summary><b>Flexboard</b> - 5 patches, 1 app</summary>
+
+| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
+|----------|---------------|---------------------|-------------------------|
+| ```Bypass Gboard Signature``` | ```Bypass Gboard's signature whitelist checks and force them to pass.``` | ```Gboard``` | ```All versions``` |
+| ```Flick Keys for Symbols``` | ```Turn on Gboard's "Flick keys to enter symbols" — pull down on a key to enter the symbol hinted in its corner. Written once as a default, so it can still be turned off in Gboard's own settings.``` | ```Gboard``` | ```All versions``` |
+| ```Install as Gboard Clone``` | ```Rename the package to dev.jz6.com.google.android.inputmethod.latin so the patched build installs alongside the official Gboard instead of replacing it.``` | ```Gboard``` | ```All versions``` |
+| ```Swipe Right to Undo``` | ```Swipe right after deleting to put the words back. Uses Gboard's own undo, which already records what a delete swipe removed.``` | ```Gboard``` | ```All versions``` |
+| ```Swipe to Delete``` | ```Swipe left anywhere on the keyboard to delete the previous word, and swipe right to restore it. Uses Gboard's own word-scrub engine, so it behaves exactly like swiping on the backspace key already does — only it can start anywhere.``` | ```Gboard``` | ```All versions``` |
+
+</details>
+
+
+---
+### 🧩 Cricinfo-Tweaks Bundle Patch List:
+[📦 Cricinfo-Tweaks-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-cricinfo-tweaks-patches-bundle-morphe)
+<details>
+<summary><b>Cricinfo-Tweaks</b> - 3 patches, 1 app</summary>
+
+| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
+|----------|---------------|---------------------|-------------------------|
+| ```Block tracking & telemetry``` | ```Stops AppsFlyer, comScore, Conviva and Adobe Marketing from initializing, so they collect or send no attribution/analytics data. Leaves CleverTap intact to preserve push notifications.``` | ```ESPNcricinfo``` | ```All versions``` |
+| ```Remove ads``` | ```Stops ESPNcricinfo from fetching or showing banner, interstitial, native, rewarded and app-open ads (Google Ad Manager, Meta Audience Network, Taboola) by severing the Flutter ad plugins and skipping the ad SDK setup.``` | ```ESPNcricinfo``` | ```All versions``` |
+| ```Remove splash ad, startup delay & forced update``` | ```Removes the full-screen splash ad shown on every cold start (the main cause of the slow boot), the GPT interstitial, and the "you must update" blocking screen, by hiding their Firebase Remote Config keys from the app. Other remote config is untouched.``` | ```ESPNcricinfo``` | ```All versions``` |
 
 </details>

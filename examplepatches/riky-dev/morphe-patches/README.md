@@ -6,8 +6,6 @@ Patches for apps I like.
 
 Ad-removal patches for Android apps, published as a Morphe patch bundle. Currently removes ads from **3B Meteo**.
 
-The first release will clean up the development instructions below and replace the patch list placeholder with the real generated list.
-
 ### How to use these patches
 
 Click here to add these patches to Morphe: https://morphe.software/add-source?github=riky-dev/morphe-patches
@@ -15,7 +13,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.0](https://github.com/riky-dev/morphe-patches/releases/tag/v1.0.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
+> **[v1.1.0](https://github.com/riky-dev/morphe-patches/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
 <details open>
 <summary>📦 3BMeteo&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -35,10 +33,25 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 
 ### 🛠️ Building locally
 
-- Run `./gradlew buildAndroid`
-- The built patches .mpp file is found in `patches/build/libs/patches-*.mpp`
-- Patch the mpp file using [Morphe-Desktop](https://github.com/MorpheApp/morphe-desktop)
-  like any other patch bundle.
+```bash
+make build
+# or: ./gradlew :patches:buildAndroid
+```
+
+The built `.mpp` is at `patches/build/libs/patches-*.mpp`. Apply it with [Morphe-Desktop](https://github.com/MorpheApp/morphe-desktop) or Morphe Manager.
+
+### 🧑‍💻 Developing patches
+
+See **[AGENTS.md](AGENTS.md)** for the full agent-oriented guide. Independent tools live in `scripts/` and `Makefile`:
+
+```bash
+make check                    # environment preflight
+make fetch APP=meteo3b        # download app bundle
+make extract APP=meteo3b        # unzip to analysis/meteo3b/extract/
+make decompile APP=meteo3b      # jadx + apktool output
+make analyze APP=meteo3b        # optional analysis hints (not a patch plan)
+make build && make verify APP=meteo3b
+```
 
 See the [Morphe documentation](https://github.com/MorpheApp/morphe-documentation) for more information.
 

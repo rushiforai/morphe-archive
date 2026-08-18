@@ -1,14 +1,13 @@
 group = "app.riky"
 
 patches {
-    // TODO: Update this section with your project details.
     about {
-        name = "riky-dev Patches"
-        description = "Patches for apps I use"
+        name = "Riky Morphe Patches"
+        description = "Ad-removal patches for Android apps"
         source = "git@github.com:riky-dev/morphe-patches.git"
         author = "riky-dev"
         contact = "na"
-        website = "na"
+        website = "https://morphe.software/add-source?github=riky-dev/morphe-patches"
         license = "GPLv3"
     }
 }

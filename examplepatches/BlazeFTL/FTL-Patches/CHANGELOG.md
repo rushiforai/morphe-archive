@@ -1,3 +1,39 @@
+## [1.35.0-dev.3](https://github.com/BlazeFTL/FTL-Patches/compare/v1.35.0-dev.2...v1.35.0-dev.3) (2026-08-17)
+
+### ✨ New Features
+
+* add xender skip splash and clean ui Patch ([810e4d8](https://github.com/BlazeFTL/FTL-Patches/commit/810e4d81e618b5b7ecb8444ca02c1a80dedb7d04))
+
+## [1.35.0-dev.2](https://github.com/BlazeFTL/FTL-Patches/compare/v1.35.0-dev.1...v1.35.0-dev.2) (2026-08-17)
+
+### ✨ New Features
+
+* update analytics ([13c899f](https://github.com/BlazeFTL/FTL-Patches/commit/13c899f5ad882edca7c734db49d09eb2888a0e12))
+* update analytics ([4a052ac](https://github.com/BlazeFTL/FTL-Patches/commit/4a052ac04a95826823c1634f919508be44311628))
+
+## [1.35.0-dev.1](https://github.com/BlazeFTL/FTL-Patches/compare/v1.34.0...v1.35.0-dev.1) (2026-08-17)
+
+### ✨ New Features
+
+* update apk junk clean ([6e4cf59](https://github.com/BlazeFTL/FTL-Patches/commit/6e4cf5957894650b4ae9891b9f1121e753e88bcd))
+
+## [1.34.0](https://github.com/BlazeFTL/FTL-Patches/compare/v1.33.0...v1.34.0) (2026-08-17)
+
+### ✨ New Features
+
+* Add Clean More Action Rs File ([831c4ec](https://github.com/BlazeFTL/FTL-Patches/commit/831c4ec183d202f33ca28109838e4754b61d18a3))
+* Add Hide BookMark,Tools In HomeScreen Rs ([f5cb31a](https://github.com/BlazeFTL/FTL-Patches/commit/f5cb31a2b885da1225ea4bd12167e1f8cbd7ccf5))
+* Add Rs File Explorer Skip Splash ([214e2e0](https://github.com/BlazeFTL/FTL-Patches/commit/214e2e07b10f0526ec5036d1479eceb400c2877d))
+* Fix Rs File Explorer Patch ([c2ddab0](https://github.com/BlazeFTL/FTL-Patches/commit/c2ddab0102117e313bb0c57eb496a7507f7cfb4e))
+* Rs File Explorer Skip Splash ([6e476a0](https://github.com/BlazeFTL/FTL-Patches/commit/6e476a065d7ba905fb1f2e11649961687acc3df1))
+* Rs File Explorer Skip Splash Screen ([2e72006](https://github.com/BlazeFTL/FTL-Patches/commit/2e72006b81038142775494402a80db7b7adea991))
+
+## [1.34.0-dev.6](https://github.com/BlazeFTL/FTL-Patches/compare/v1.34.0-dev.5...v1.34.0-dev.6) (2026-08-17)
+
+### ✨ New Features
+
+* Fix Rs File Explorer Patch ([c2ddab0](https://github.com/BlazeFTL/FTL-Patches/commit/c2ddab0102117e313bb0c57eb496a7507f7cfb4e))
+
 ## [1.34.0-dev.5](https://github.com/BlazeFTL/FTL-Patches/compare/v1.34.0-dev.4...v1.34.0-dev.5) (2026-08-17)
 
 ### ✨ New Features

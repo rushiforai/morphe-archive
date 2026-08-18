@@ -1,6 +1,7 @@
 package app.ftl.patches.analytics
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.instructionsOrNull
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
@@ -9,6 +10,7 @@ import app.morphe.patcher.patch.resourcePatch
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import org.w3c.dom.Element
 
@@ -111,6 +113,19 @@ private val ANALYTICS_SDK_PACKAGE_PREFIXES = listOf(
     "Lcom/adjust/sdk/",
 )
 
+private fun isConstString(opcode: Opcode) =
+    opcode == Opcode.CONST_STRING || opcode == Opcode.CONST_STRING_JUMBO
+
+// Some analytics/crash SDKs verify their own signing cert (anti-repackage
+// check) and disable themselves if it doesn't match. Force verify() to
+// always report success so the stubbed-out SDK above doesn't get flagged.
+// Real, unobfuscated SDK method — safe to pin directly, no fingerprint needed.
+private fun isSignatureVerifyCall(reference: MethodReference) =
+    reference.definingClass == "Ljava/security/Signature;" &&
+        reference.name == "verify" &&
+        reference.parameterTypes.singleOrNull() == "[B" &&
+        reference.returnType == "Z"
+
 // name = null keeps this out of PatchLoader's top-level list (removeAnalyticsPatch
 // pulls it in via dependsOn), so it doesn't show as its own toggle in the UI.
 val stripFirebaseManifestComponentsPatch = resourcePatch(
@@ -166,26 +181,60 @@ val removeAnalyticsPatch = bytecodePatch(
         AdjustTrackEventFingerprint.methodOrNull?.addInstructions(0, "return-void")
 
         classDefForEach { classDef ->
-            if (ANALYTICS_SDK_PACKAGE_PREFIXES.any { classDef.type.startsWith(it) }) return@classDefForEach
+            val isSdkInternal = ANALYTICS_SDK_PACKAGE_PREFIXES.any { classDef.type.startsWith(it) }
 
-            val hasMatch = classDef.methods.any { method ->
+            val hasStringMatch = !isSdkInternal && classDef.methods.any { method ->
                 (method.instructionsOrNull ?: emptyList()).any { instruction ->
-                    instruction.opcode == Opcode.CONST_STRING &&
+                    isConstString(instruction.opcode) &&
                         ANALYTICS_STRING_BLACKLIST.any { term ->
                             ((instruction as ReferenceInstruction).reference as StringReference)
                                 .string.contains(term, ignoreCase = true)
                         }
                 }
             }
-            if (!hasMatch) return@classDefForEach
+
+            val hasSignatureVerifyCall = classDef.methods.any { method ->
+                val instructions = (method.instructionsOrNull ?: emptyList()).toList()
+                instructions.indices.any { i ->
+                    val instruction = instructions[i]
+                    (instruction.opcode == Opcode.INVOKE_VIRTUAL || instruction.opcode == Opcode.INVOKE_VIRTUAL_RANGE) &&
+                        (instruction as? ReferenceInstruction)?.reference is MethodReference &&
+                        isSignatureVerifyCall(instruction.reference as MethodReference) &&
+                        instructions.getOrNull(i + 1)?.opcode == Opcode.MOVE_RESULT
+                }
+            }
+
+            if (!hasStringMatch && !hasSignatureVerifyCall) return@classDefForEach
 
             mutableClassDefBy(classDef).methods.forEach { method ->
-                (method.instructionsOrNull ?: emptyList()).forEachIndexed { index, instruction ->
-                    if (instruction.opcode != Opcode.CONST_STRING) return@forEachIndexed
-                    val value = ((instruction as ReferenceInstruction).reference as StringReference).string
-                    if (ANALYTICS_STRING_BLACKLIST.none { value.contains(it, ignoreCase = true) }) return@forEachIndexed
-                    val register = (instruction as OneRegisterInstruction).registerA
-                    method.replaceInstruction(index, "const-string v$register, \"$ANALYTICS_STRING_REPLACEMENT\"")
+                if (!isSdkInternal) {
+                    (method.instructionsOrNull ?: emptyList()).forEachIndexed { index, instruction ->
+                        if (!isConstString(instruction.opcode)) return@forEachIndexed
+                        val value = ((instruction as ReferenceInstruction).reference as StringReference).string
+                        if (ANALYTICS_STRING_BLACKLIST.none { value.contains(it, ignoreCase = true) }) return@forEachIndexed
+                        val register = (instruction as OneRegisterInstruction).registerA
+                        method.replaceInstruction(index, "const-string v$register, \"$ANALYTICS_STRING_REPLACEMENT\"")
+                    }
+                }
+
+                val instructions = method.instructionsOrNull ?: return@forEach
+                val insertions = mutableListOf<Pair<Int, Int>>() // insertAt to destRegister
+
+                instructions.indices.forEach { i ->
+                    val instruction = instructions[i]
+                    if (instruction.opcode != Opcode.INVOKE_VIRTUAL && instruction.opcode != Opcode.INVOKE_VIRTUAL_RANGE) return@forEach
+                    val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: return@forEach
+                    if (!isSignatureVerifyCall(reference)) return@forEach
+
+                    val moveResult = instructions.getOrNull(i + 1) ?: return@forEach
+                    if (moveResult.opcode != Opcode.MOVE_RESULT) return@forEach
+
+                    val destRegister = (moveResult as OneRegisterInstruction).registerA
+                    insertions += (i + 2) to destRegister
+                }
+
+                insertions.sortedByDescending { it.first }.forEach { (insertAt, register) ->
+                    method.addInstruction(insertAt, "const/4 v$register, 0x1")
                 }
             }
         }

@@ -131,3 +131,6 @@ local.properties
 
 # Analysis artifacts (APKs, decompiled output)
 analysis/
+
+# Throwaway verify project
+build/verify-one/

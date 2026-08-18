@@ -1,54 +1,63 @@
 #!/usr/bin/env bash
 #
-# fetch_apk.sh — deterministic download of the latest working 3B Meteo XAPK.
+# fetch_apk.sh — download the latest APK/XAPK/APKM for an app.
 #
-# Source: apkpure.net CDN (d.apkpure.net) which serves XAPK (split APK bundle)
-# without JS/CAPTCHA for the direct `?version=latest` endpoint.
+# Usage: scripts/fetch_apk.sh <app_id>
 #
-# Outputs into ./analysis/ with a versioned filename and writes a metadata
-# dump (analysis/metadata.txt).
+# Writes bundle to analysis/<app>/ and metadata.txt.
+# Source: apkpure.net CDN (d.apkpure.net).
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(dirname "$SCRIPT_DIR")"
-ANALYSIS_DIR="$ROOT_DIR/analysis"
-PKG="com.Meteosolutions.Meteo3b"
-UA="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36"
+# shellcheck source=lib/common.sh
+source "$SCRIPT_DIR/lib/common.sh"
+# shellcheck source=lib/config.sh
+source "$SCRIPT_DIR/lib/config.sh"
 
-mkdir -p "$ANALYSIS_DIR"
-
-echo "==> Fetching latest XAPK info for $PKG"
-# The download page embeds links like:
-#   https://d.apkpure.net/b/XAPK/com.Meteosolutions.Meteo3b?version=latest
-DL_PAGE="https://apkpure.net/vn/3b-meteo-weather-forecasts/$PKG/download"
-curl -fsSL -A "$UA" "$DL_PAGE" -o /tmp/fetch_dlpage.html
-
-VERSION_CODE=$(grep -oP 'versionCode=[0-9]+' /tmp/fetch_dlpage.html | head -1 | grep -oP '[0-9]+')
-# version string shown on download page
-VERSION_LABEL=$(grep -oP 'version-name" content="[^"]*"' /tmp/fetch_dlpage.html | head -1 | sed 's/.*content="//;s/"//')
-if [ -z "$VERSION_CODE" ]; then
-  echo "ERROR: could not determine versionCode from download page" >&2
-  exit 1
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" || $# -lt 1 ]]; then
+  usage "$(basename "$0")" "Downloads the latest bundle from apkpure.net."
+  exit 0
 fi
 
-echo "==> versionCode=$VERSION_CODE versionLabel=${VERSION_LABEL:-unknown}"
+load_app_config "$1"
+require_cmd curl
+require_cmd grep
 
-XAPK_URL="https://d.apkpure.net/b/XAPK/$PKG?version=latest"
-OUT="$ANALYSIS_DIR/${PKG}_${VERSION_LABEL:-latest}_vc${VERSION_CODE}.xapk"
+[[ -n "${APP_APKPURE_SLUG:-}" ]] || die "apkpure_slug missing in config for $APP_ID"
 
-echo "==> Downloading $XAPK_URL"
-curl -fL -A "$UA" -e "https://apkpure.net/" "$XAPK_URL" -o "$OUT"
+mkdir -p "$APP_ANALYSIS_DIR"
 
-echo "==> Recording metadata"
-cat > "$ANALYSIS_DIR/metadata.txt" <<EOF
-package: $PKG
+log "Fetching latest bundle info for $APP_PACKAGE ($APP_DISPLAY_NAME)"
+DL_PAGE="https://apkpure.net/${APP_APKPURE_SLUG}/${APP_PACKAGE}/download"
+curl -fsSL -A "$UA" "$DL_PAGE" -o /tmp/fetch_dlpage.html
+
+VERSION_CODE=$(grep -oP 'versionCode=[0-9]+' /tmp/fetch_dlpage.html | head -1 | grep -oP '[0-9]+' || true)
+VERSION_LABEL=$(grep -oP 'version-name" content="[^"]*"' /tmp/fetch_dlpage.html | head -1 | sed 's/.*content="//;s/"//' || true)
+[[ -n "$VERSION_CODE" ]] || die "could not determine versionCode from download page"
+
+log "versionCode=$VERSION_CODE versionLabel=${VERSION_LABEL:-unknown}"
+
+BUNDLE_TYPE="${APP_APK_FILE_TYPE:-XAPK}"
+DOWNLOAD_URL="https://d.apkpure.net/b/${BUNDLE_TYPE}/${APP_PACKAGE}?version=latest"
+EXT="$(echo "$BUNDLE_TYPE" | tr '[:upper:]' '[:lower:]')"
+OUT="$APP_ANALYSIS_DIR/${APP_PACKAGE}_${VERSION_LABEL:-latest}_vc${VERSION_CODE}.${EXT}"
+
+log "Downloading $DOWNLOAD_URL"
+curl -fL -A "$UA" -e "https://apkpure.net/" "$DOWNLOAD_URL" -o "$OUT"
+
+log "Recording metadata"
+cat > "$APP_METADATA" <<EOF
+app_id: $APP_ID
+package: $APP_PACKAGE
+display_name: ${APP_DISPLAY_NAME:-}
 source: apkpure.net (d.apkpure.net CDN)
 version: ${VERSION_LABEL:-latest}
 versionCode: $VERSION_CODE
-xapk: $(basename "$OUT")
+bundle: $(basename "$OUT")
+bundle_type: $BUNDLE_TYPE
 size: $(stat -c%s "$OUT") bytes
 fetched: $(date -u +%Y-%m-%dT%H:%M:%SZ)
 EOF
 
-echo "==> Done: $OUT"
+log "Done: $OUT"

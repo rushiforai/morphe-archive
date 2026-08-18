@@ -1,0 +1,15 @@
+# Copy to config/apps/<app_id>.yaml and fill in values.
+id: example
+package: com.example.app
+display_name: ExampleApp
+apk_file_type: APK          # APK, APKM, or XAPK
+apkpure_slug: example/app-slug-on-apkpure
+analysis_dir: analysis/example
+
+# Optional verify block — add after you know what your patches change:
+# verify:
+#   apk: analysis/example/extract/com.example.app.apk
+#   assertions:
+#     - file: com/example/SomeClass.java
+#       pattern: 'return true;'
+#       label: someMethod
