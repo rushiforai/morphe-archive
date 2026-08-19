@@ -1,10 +1,10 @@
-# 👋🧩 Riky Morphe Patches
-
-Patches for apps I like.
+# 👋🧩 Riky's Morphe Patches
 
 ## ❓ About
 
-Ad-removal patches for Android apps, published as a Morphe patch bundle. Currently removes ads from **3B Meteo**.
+Ad-removal and premium-unlock patches for Android apps, published as a Morphe patch bundle.
+
+This project is a fork of the [Morphe patches template](https://github.com/MorpheApp/morphe-patches-template) by the Morphe contributors, extended with additional patches and development tooling.
 
 ### How to use these patches
 
@@ -13,7 +13,22 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.1.0](https://github.com/riky-dev/morphe-patches/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
+> **[v1.3.3](https://github.com/riky-dev/morphe-patches/releases/tag/v1.3.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
+<details open>
+<summary>📦 Electron: battery health info&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 3.0.3 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Hide ads](#hide-ads) | Spoofs premium/unlocked state to disable ad-gated behavior. |  |
+
+</details>
+
 <details open>
 <summary>📦 3BMeteo&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -57,4 +72,8 @@ See the [Morphe documentation](https://github.com/MorpheApp/morphe-documentation
 
 ## 📜 License
 
-Riky Morphe Patches are licensed under the [GNU General Public License v3.0](LICENSE)
+Riky's Morphe Patches are licensed under the [GNU General Public License v3.0](LICENSE).
+
+This project is based on the [Morphe patches template](https://github.com/MorpheApp/morphe-patches-template). Copyright (C) 2025 Morphe contributors. Modifications copyright (C) 2026 [riky-dev](https://github.com/riky-dev).
+
+See [NOTICE](NOTICE) for Morphe branding restrictions and additional terms.

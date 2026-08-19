@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application
+        android:allowBackup="false"
+        android:label="Petal Maps Hidden API Unlock">
+
+        <!-- Marks this APK as an LSPosed module (legacy module format). -->
+        <meta-data
+            android:name="xposedmodule"
+            android:value="true" />
+        <meta-data
+            android:name="xposedminversion"
+            android:value="93" />
+        <meta-data
+            android:name="xposeddescription"
+            android:value="Isenta hidden APIs (ScreenCapture/SurfaceControl) no processo com.huawei.maps.app" />
+        <meta-data
+            android:name="xposedscope"
+            android:value="com.huawei.maps.app;android" />
+    </application>
+
+</manifest>

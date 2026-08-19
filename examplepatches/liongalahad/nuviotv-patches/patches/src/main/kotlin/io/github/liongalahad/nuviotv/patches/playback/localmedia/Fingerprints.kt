@@ -119,6 +119,50 @@ internal object CloudSearchLabelFingerprint : Fingerprint(
     }
 )
 
+/** Native empty/status row used by the Library grid. */
+internal object NativeLibraryEmptyStateFingerprint : Fingerprint(
+    returnType = "V",
+    custom = { method, _ ->
+        method.parameterNames().let { p ->
+            p.size == 8 && p[0] == "Ljava/lang/String;" &&
+                p[1] == "Ljava/lang/String;" && p[2] == "Lh2/f;" &&
+                p[3].startsWith("L") && p[4] == "F" &&
+                p[5].startsWith("L") && p[6] == "I" && p[7] == "I"
+        }
+    }
+)
+
+/** Library empty-state content lambda that selects the native bookmark icon. */
+internal object NativeLibraryEmptyContentFingerprint : Fingerprint(
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf("Ljava/lang/Object;", "Ljava/lang/Object;", "Ljava/lang/Object;"),
+    custom = { method, classDef ->
+        method.name == "invoke" && FUNCTION3 in classDef.interfaces &&
+            method.implementation?.instructions?.any { instruction ->
+                val reference = (instruction as? ReferenceInstruction)?.reference
+                val librarySourceMode = "Lcom/nuvio/tv/domain/model/LibrarySourceMode;"
+                when (reference) {
+                    is TypeReference -> reference.type == librarySourceMode
+                    is FieldReference -> reference.definingClass == librarySourceMode ||
+                        reference.type == librarySourceMode
+                    is MethodReference -> reference.definingClass == librarySourceMode ||
+                        reference.returnType == librarySourceMode ||
+                        reference.parameterTypes.any { it.toString() == librarySourceMode }
+                    else -> false
+                }
+            } == true &&
+            method.calls { reference ->
+                reference.returnType == "V" &&
+                    reference.parameterTypes.map(CharSequence::toString).let { p ->
+                        p.size == 8 && p[0] == "Ljava/lang/String;" &&
+                            p[1] == "Ljava/lang/String;" && p[2] == "Lh2/f;" &&
+                            p[4] == "F" && p[6] == "I" && p[7] == "I"
+                    }
+            } &&
+            method.calls { it.returnType == "Lh2/f;" && it.parameterTypes.isEmpty() }
+    }
+)
+
 /** Root Nuvio navigation host, identified without relying on its obfuscated owner. */
 internal object NuvioNavHostFingerprint : Fingerprint(
     returnType = "V",

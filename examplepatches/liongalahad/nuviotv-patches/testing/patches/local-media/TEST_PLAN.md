@@ -93,3 +93,29 @@
 - The final all-eight universal side-by-side APK is package `com.nuvio.morphe`, label `Nuvio Morphe`, contains all four native ABIs and seven unique renamed authorities, is zip-aligned and v2/v3 signed, installs beside `com.nuvio.tv`, and was copied byte-for-byte to `G:\My Drive`. SHA-256: `10A1F072BEE21F8127DA1031BEB002C0D6D8940CE45294D02B4CDDA9A055C62C`.
 - Follow-up short-press testing found that the file-row hook had been inserted after its model register was reused as an integer key, causing Android to reject `na.y` with a `VerifyError` when a folder opened. The hook now captures the exact `y8.a` model immediately after its checked cast, before any register reuse.
 - On the corrected all-eight x86_64 build, short-pressing `Fist of the North Star` opened its native file dialog and one Back restored the Storage grid. Timed three-second holds still opened `Delete Folder` and `Delete File` at the 750 ms sample before release, and one Back dismissed each action. The complete run contained no app fatal exception or `VerifyError`.
+
+## NuvioTV 0.8.5-beta automated port evidence
+
+- [x] The 198-test extension suite passed with zero failures, errors, or skips.
+- [x] This patch applied alone with an exact single match on x86_64, arm64-v8a, armeabi-v7a, and universal official APKs.
+- [x] Each isolated output passed SHA-256 input verification plus post-patch manifest, injected-class, and forbidden-type inspection.
+- [x] The combined ten-patch x86_64 and universal builds applied without a failed patch and passed APK signature and alignment verification.
+- [x] The combined x86_64 side-by-side build installed and launched on `Television_4K`; its process remained alive with no startup `FATAL EXCEPTION`, `VerifyError`, or package ANR.
+- [ ] Patch-specific D-pad, persistence, navigation, playback, and media behavior remains manual and is not marked passed by this automated port.
+- [ ] Real Android TV acceptance remains pending.
+
+## 2026-08-18 NuvioTV 0.8.5-beta runtime regression evidence
+
+- The original port crashed when Library opened because it still constructed 0.8.4-obfuscated Compose and library model types. The patch now discovers the target's native button, text, search, card, dialog, empty-state, icon, cloud-item and file-model owners before configuring the isolated Local Media runtime.
+- On `Television_4K`, the final ten-patch x86_64 build opened Library Saved, Cloud and Storage, rendered the storage search and folder/file rows, opened `Movies`, and displayed its native file-choice dialog without a fatal exception or `NoWhenBranchMatchedException`.
+- `Storage.Movie.Sample.mkv` and `Nuvio.Local.Media.Sample.mkv` both reached visible H.264 playback. The final playback logs contain no app fatal, `VerifyError`, `PlaybackException` or `ExoPlaybackException`.
+- The final 0.8.5-beta Local Media patch applied alone on x86_64, arm64-v8a, armeabi-v7a and universal. The complete ten-patch x86_64 and universal outputs applied all ten patches with no failure and passed alignment/signature verification.
+- Real Android TV acceptance remains pending because no physical TV was connected to this workspace.
+
+## 2026-08-19 NuvioTV 0.8.6-beta port evidence
+
+- [x] The final 198-test extension suite and three patcher manifest tests passed with zero failures, errors, or skips.
+- [x] This patch applied alone on the official x86_64, arm64-v8a, armeabi-v7a, and universal APKs with no fingerprint, rebuild, signing, manifest, injected-class, or forbidden-type inspection failure.
+- [x] The final combined x86_64 and universal builds applied all ten patches with zero failures and passed APK alignment plus v2/v3 signature verification.
+- [x] The final x86_64 side-by-side build installed on `Television_4K`; Morphe settings, Library Saved/Cloud/Storage, H.264 Media3 playback, and end-of-file return to Storage completed without an app fatal, `VerifyError`, or package ANR.
+- [ ] Patch-specific external-service, removable-storage, network, source-selection, subtitle-content, and real-TV behavior remains manual unless separately recorded above.

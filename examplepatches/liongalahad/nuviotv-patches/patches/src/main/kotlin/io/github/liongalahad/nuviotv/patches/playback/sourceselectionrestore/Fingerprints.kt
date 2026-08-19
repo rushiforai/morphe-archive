@@ -55,18 +55,17 @@ internal object StreamsListFingerprint : Fingerprint(
         parameters.size == 19 &&
             parameters[0] == LIST && parameters[1] == FUNCTION1 &&
             parameters[2] == "I" && parameters[3] == "Z" &&
-            parameters[4] == FUNCTION0 && parameters[5] == "Z" &&
-            parameters[6] == FUNCTION0 && parameters[7] == LIST &&
-            parameters[8] == "Ljava/lang/String;" &&
-            parameters[9] == "Z" && parameters[10] == "Z" &&
-            parameters[12] == "Z" && parameters[13] == FUNCTION1 &&
-            parameters[14] == LIST && parameters[15] == LIST &&
-            parameters[16] == FUNCTION1 && parameters[17] == "Le1/m0;" &&
+            parameters[4] == FUNCTION0 && parameters[5] == "I" &&
+            parameters[6] == LIST && parameters[7] == "Ljava/lang/String;" &&
+            parameters[8] == "Z" && parameters[9] == "Z" &&
+            parameters[11] == "Z" && parameters[12] == FUNCTION1 &&
+            parameters[13] == LIST && parameters[14] == FUNCTION1 &&
+            parameters[15] == FUNCTION0 && parameters[16] == FUNCTION1 &&
+            parameters[17] == "Le1/m0;" &&
             parameters[18] == "I" &&
             method.calls { reference ->
-                reference.definingClass == STREAM && reference.name == "getAddonName"
-            } && method.calls { reference ->
-                reference.definingClass == STREAM && reference.name == "getInfoHash"
+                reference.definingClass == STREAM && reference.returnType == "Ljava/lang/String;" &&
+                    reference.parameterTypes.map(CharSequence::toString) == listOf("I")
             }
     }
 )

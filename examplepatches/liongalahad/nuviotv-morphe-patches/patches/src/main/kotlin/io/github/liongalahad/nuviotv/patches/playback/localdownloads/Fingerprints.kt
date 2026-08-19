@@ -76,7 +76,7 @@ internal object EpisodeOptionsDialogFingerprint : Fingerprint(
             p[11] == FUNCTION0 && p[12] == "Z" && p.slice(13..16) == List(4) { FUNCTION0 } &&
             p[17] == "Le1/m0;" && p[18] == "I" && p[19] == "I" &&
             method.implementation?.instructions?.any {
-                (it as? WideLiteralInstruction)?.wideLiteral == 0x7f1104c8L
+                (it as? WideLiteralInstruction)?.wideLiteral == 0x7f1104e9L
             } == true && method.buildsComposableLambda()
     }
 )
@@ -91,11 +91,7 @@ internal object EpisodeCardContentFingerprint : Fingerprint(
         method.name == "invoke" && FUNCTION3 in classDef.interfaces &&
             classDef.fields.count { it.type == VIDEO } == 1 &&
             method.calls { reference ->
-                reference.definingClass == "Lx0/a;" && reference.name == "j" &&
-                    reference.returnType == "Lh2/f;"
-            } && method.calls { reference ->
-                reference.definingClass == "Lp5/k0;" && reference.name == "b" &&
-                    reference.returnType == "V"
+                reference.returnType == "Lh2/f;" && reference.parameterTypes.isEmpty()
             }
     }
 )
@@ -109,7 +105,7 @@ internal object ContinueOptionsDialogFingerprint : Fingerprint(
                     FUNCTION0, FUNCTION0, FUNCTION0, FUNCTION0, "Z", FUNCTION0, "Le1/m0;", "I"
                 )
         } && method.implementation?.instructions?.any {
-            (it as? WideLiteralInstruction)?.wideLiteral == 0x7f110356L
+            (it as? WideLiteralInstruction)?.wideLiteral == 0x7f110377L
         } == true && method.buildsComposableLambda()
     }
 )

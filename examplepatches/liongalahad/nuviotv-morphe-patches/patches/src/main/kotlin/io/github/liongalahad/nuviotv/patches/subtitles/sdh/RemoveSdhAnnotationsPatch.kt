@@ -1,7 +1,6 @@
 package io.github.liongalahad.nuviotv.patches.subtitles.sdh
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
@@ -12,6 +11,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import io.github.liongalahad.nuviotv.patches.settings.hub.settingsUiPatch
 import io.github.liongalahad.nuviotv.patches.shared.Constants.NUVIO_COMPATIBILITY
 import org.w3c.dom.Element
@@ -92,8 +92,9 @@ val removeSdhAnnotationsPatch = bytecodePatch(
             }
             val listRegister = (cueListRead.value as? TwoRegisterInstruction)?.registerA
                 ?: error("CueGroup cue-list read has no destination register")
-            check(listRegister == 0 && implementation!!.registerCount >= 7) {
-                "CueGroup callback no longer exposes the expected safe scratch registers"
+            check(listRegister == 2 && implementation!!.registerCount == 7) {
+                "CueGroup callback no longer has the verified 0.8.6 register layout: " +
+                    "list=v$listRegister, registerCount=${implementation!!.registerCount}"
             }
             val presentationTimeField = instructions.mapNotNull { instruction ->
                 if (instruction.opcode != Opcode.IGET_WIDE) return@mapNotNull null
@@ -107,6 +108,14 @@ val removeSdhAnnotationsPatch = bytecodePatch(
                     .append(presentationTimeField.name)
                     .append(":")
                     .append(presentationTimeField.type)
+            }
+            val cueListDescriptor = buildString {
+                val reference = (cueListRead.value as ReferenceInstruction).reference as FieldReference
+                append(reference.definingClass)
+                    .append("->")
+                    .append(reference.name)
+                    .append(":")
+                    .append(reference.type)
             }
 
             val constructorIndex = CueGroupOutputFingerprint.instructionMatches.first().index
@@ -126,22 +135,30 @@ val removeSdhAnnotationsPatch = bytecodePatch(
                 """
             )
 
-            // Nuvio normally forwards the original CueGroup without executing its own
-            // reconstruction branch. Rebuild p1 here only when cleanup changed the list,
-            // while leaving Nuvio's statically typed local untouched for bytecode verification.
-            // The conditional reconstruction path is cleaned separately above.
-            addInstructionsWithLabels(
-                cueListRead.index + 1,
+            // When Nuvio's own normalizer is disabled, it forwards the incoming CueGroup
+            // directly. Rebuild that group in the direct-forward branch, where v0 and
+            // v2..v4 are dead, so the injected code cannot corrupt the typed locals used
+            // by Nuvio's conditional reconstruction branch.
+            val directForwardIndex = instructions.withIndex().first { (_, instruction) ->
+                val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+                    ?: return@first false
+                reference.definingClass == "Landroidx/media3/exoplayer/text/TextOutput;" &&
+                    reference.name == "onCues" &&
+                    reference.parameterTypes.map(CharSequence::toString) == listOf(CUE_GROUP)
+            }.index
+            check(directForwardIndex < constructorIndex) {
+                "CueGroup direct-forward call no longer precedes reconstruction"
+            }
+            addInstructions(
+                directForwardIndex,
                 """
-                    invoke-static { v$listRegister }, $CUE_TRANSFORMER->clean(Ljava/util/List;)Ljava/util/List;
-                    move-result-object v1
-                    if-eq v$listRegister, v1, :morphe_sdh_group_unchanged
-                    iget-wide v2, p1, $presentationTimeDescriptor
-                    new-instance v4, $CUE_GROUP
-                    invoke-direct { v4, v1, v2, v3 }, $CUE_GROUP-><init>(Ljava/util/List;J)V
-                    move-object p1, v4
-                    :morphe_sdh_group_unchanged
-                    nop
+                    iget-object v2, p1, $cueListDescriptor
+                    invoke-static { v2 }, $CUE_TRANSFORMER->clean(Ljava/util/List;)Ljava/util/List;
+                    move-result-object v2
+                    iget-wide v3, p1, $presentationTimeDescriptor
+                    new-instance v0, $CUE_GROUP
+                    invoke-direct { v0, v2, v3, v4 }, $CUE_GROUP-><init>(Ljava/util/List;J)V
+                    move-object p1, v0
                 """
             )
             bindRecognitionSession()

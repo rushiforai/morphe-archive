@@ -119,3 +119,28 @@
 - The Library > Storage hold fix remains entirely in the Local Media patch. Fresh Local Media-only and all-eight applications passed on x86_64 and universal, while Downloads retained its existing working long-press path.
 - External-deletion reconciliation remains covered in the 141-test extension suite: a missing indexed video is excluded from the Downloads count/list without erasing its index record, and becomes visible again when the same storage item is readable after reconnection.
 - The final all-eight universal side-by-side APK was copied byte-for-byte to `G:\My Drive`. SHA-256: `10A1F072BEE21F8127DA1031BEB002C0D6D8940CE45294D02B4CDDA9A055C62C`.
+
+## NuvioTV 0.8.5-beta automated port evidence
+
+- [x] The 198-test extension suite passed with zero failures, errors, or skips.
+- [x] This patch applied alone with an exact single match on x86_64, arm64-v8a, armeabi-v7a, and universal official APKs.
+- [x] Each isolated output passed SHA-256 input verification plus post-patch manifest, injected-class, and forbidden-type inspection.
+- [x] The combined ten-patch x86_64 and universal builds applied without a failed patch and passed APK signature and alignment verification.
+- [x] The combined x86_64 side-by-side build installed and launched on `Television_4K`; its process remained alive with no startup `FATAL EXCEPTION`, `VerifyError`, or package ANR.
+- [ ] Patch-specific D-pad, persistence, navigation, playback, and media behavior remains manual and is not marked passed by this automated port.
+- [ ] Real Android TV acceptance remains pending.
+
+## 2026-08-18 NuvioTV 0.8.5-beta settings regression evidence
+
+- Expanding Morphe > Playback in the first combined port crashed because Nuvio 0.8.5 moved the native Timer icon factory from `x0.e.v()` to `x0.d.v()`. The Local Downloads settings compartment now discovers the static zero-argument Timer-icon factory from the supported native icon owners.
+- The final ten-patch x86_64 build expanded Playback, rendered Restore source selection, Local Downloads and Allow local downloads, and retained a live process with no slider-render failure, `NoSuchMethodException` or fatal exception.
+- Local Downloads was reapplied alone after the fix on x86_64, arm64-v8a, armeabi-v7a and universal. The complete x86_64 and universal outputs applied all ten patches with no failure and passed alignment/signature verification.
+- Live source discovery and a new network download were not repeated in this emulator pass; those behaviors remain covered by the existing unit and prior Android TV evidence. Real Android TV acceptance remains pending.
+
+## 2026-08-19 NuvioTV 0.8.6-beta port evidence
+
+- [x] The final 198-test extension suite and three patcher manifest tests passed with zero failures, errors, or skips.
+- [x] This patch applied alone on the official x86_64, arm64-v8a, armeabi-v7a, and universal APKs with no fingerprint, rebuild, signing, manifest, injected-class, or forbidden-type inspection failure.
+- [x] The final combined x86_64 and universal builds applied all ten patches with zero failures and passed APK alignment plus v2/v3 signature verification.
+- [x] The final x86_64 side-by-side build installed on `Television_4K`; Morphe settings, Library Saved/Cloud/Storage, H.264 Media3 playback, and end-of-file return to Storage completed without an app fatal, `VerifyError`, or package ANR.
+- [ ] Patch-specific external-service, removable-storage, network, source-selection, subtitle-content, and real-TV behavior remains manual unless separately recorded above.

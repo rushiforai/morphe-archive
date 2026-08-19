@@ -6,8 +6,17 @@ android {
     namespace = "io.github.liongalahad.nuviotv.extension"
     compileSdk = 36
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
         minSdk = 28
+        buildConfigField(
+            "String",
+            "MORPHE_PATCH_VERSION",
+            "\"${project.version}\""
+        )
     }
 
     testOptions {

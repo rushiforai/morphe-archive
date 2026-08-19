@@ -7,6 +7,7 @@ val COMPATIBILITY_T2C = Compatibility(
     name = "T2C",
     packageName = "fr.t2c.t2c",
     targets = listOf(
-        AppTarget("3.2.0")
+        AppTarget("3.2.0"),
+        AppTarget("3.2.2")
     )
 )

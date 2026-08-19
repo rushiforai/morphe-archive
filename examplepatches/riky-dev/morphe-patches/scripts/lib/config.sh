@@ -68,6 +68,12 @@ for raw in path.read_text().splitlines():
         current_item = None
         continue
 
+    if in_verify and key == 'smali_assertions' and val == '':
+        current_list_key = 'smali_assertions'
+        current_list = data['verify'].setdefault('smali_assertions', [])
+        current_item = None
+        continue
+
     if in_verify and key == 'apk':
         data['verify']['apk'] = val
         current_list = None
@@ -145,4 +151,9 @@ config_verify_apk() {
 config_verify_assertions() {
   local app_id="$1"
   _parse_config "$app_id" verify.assertions 2>/dev/null || echo '[]'
+}
+
+config_verify_smali_assertions() {
+  local app_id="$1"
+  _parse_config "$app_id" verify.smali_assertions 2>/dev/null || echo '[]'
 }

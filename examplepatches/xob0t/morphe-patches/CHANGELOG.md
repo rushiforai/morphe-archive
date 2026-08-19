@@ -1,3 +1,21 @@
+## [1.12.2](https://github.com/xob0t/morphe-patches/compare/v1.12.1...v1.12.2) (2026-08-18)
+
+### 🐛 Bug Fixes
+
+* **ozon:** support common cell migration in 19.31 ([7619fcf](https://github.com/xob0t/morphe-patches/commit/7619fcfb1c40209d0c1f8f9908b05699d27ce599))
+
+## [1.12.2-dev.1](https://github.com/xob0t/morphe-patches/compare/v1.12.1...v1.12.2-dev.1) (2026-08-18)
+
+### 🐛 Bug Fixes
+
+* **ozon:** support common cell migration in 19.31 ([7619fcf](https://github.com/xob0t/morphe-patches/commit/7619fcfb1c40209d0c1f8f9908b05699d27ce599))
+
+## [1.12.1](https://github.com/xob0t/morphe-patches/compare/v1.12.0...v1.12.1) (2026-08-18)
+
+### 🐛 Bug Fixes
+
+* **avito:** support version 231.0 ([57b844a](https://github.com/xob0t/morphe-patches/commit/57b844a7183321feee778151baeabd5cb49276f7))
+
 ## [1.12.0](https://github.com/xob0t/morphe-patches/compare/v1.11.13...v1.12.0) (2026-08-14)
 
 ### ✨ New Features

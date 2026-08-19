@@ -6,8 +6,14 @@
 package hoodles.morphe.patches.myfitnesspal.premium
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.fieldAccess
 
 object GetPremiumPlusFingerprint : Fingerprint(
-    name = "getPremiumPlusEnabled",
-    definingClass = "/SubscriptionPreferences;"
+    parameters = emptyList(),
+    returnType = "Z",
+    filters = listOf(
+        fieldAccess(
+            name = "premiumPlusEnabled_"
+        )
+    )
 )

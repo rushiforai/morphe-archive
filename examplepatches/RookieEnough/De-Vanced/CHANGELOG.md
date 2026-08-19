@@ -1,3 +1,9 @@
+## [1.2.2](https://github.com/RookieEnough/De-Vanced/compare/v1.2.1...v1.2.2) (2026-08-18)
+
+### 🐛 Bug Fixes
+
+* **Strava:** Add app recommendation of the latest fully working app version ([8e2074e](https://github.com/RookieEnough/De-Vanced/commit/8e2074e89c917e9e4c64d103954d2035ca8b5a7b))
+
 ## [1.2.1](https://github.com/RookieEnough/De-Vanced/compare/v1.2.0...v1.2.1) (2026-08-12)
 
 ### 🐛 Bug Fixes

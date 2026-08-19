@@ -1,6 +1,6 @@
 # Remove SDH Annotations
 
-Patch ID: `sdh-annotations`. Target: official NuvioTV `0.8.4-beta`, Media3/ExoPlayer only.
+Patch ID: `sdh-annotations`. Target: official NuvioTV `0.8.6-beta`, Media3/ExoPlayer only.
 
 The patch adds `Settings → Morphe → Subtitles` with one native `SDH subtitle processing` selector. Opening it shows Nuvio's native modal pattern with `Off`, `Normalize music symbols only`, `Remove SDH, keep lyrics`, and `Full cleanup`. A fresh installation defaults to `Normalize music symbols only`; an existing stored selection remains authoritative. The mode is stored in private `morphe_patches` preferences under `subtitles.sdh_cleanup_mode`.
 

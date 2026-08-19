@@ -35,9 +35,9 @@ Both keyboards stay installed, so you can switch back whenever you like.
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.0](https://github.com/JZ6/Flexboard/releases/tag/v1.0.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;5 patches total
+> **[v1.1.1](https://github.com/JZ6/Flexboard/releases/tag/v1.1.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
 <details open>
-<summary>📦 Gboard&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
+<summary>📦 Gboard&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -47,9 +47,11 @@ Both keyboards stay installed, so you can switch back whenever you like.
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
+| [Bigger Toolbar](#bigger-toolbar) | Makes the number of icons on the toolbar above the keyboard adjustable, from Gboard's own settings. Anything past the limit stays in the overflow menu. |  |
 | [Bypass Gboard Signature](#bypass-gboard-signature) | Bypass Gboard's signature whitelist checks and force them to pass. |  |
 | [Flick Keys for Symbols](#flick-keys-for-symbols) | Turn on Gboard's "Flick keys to enter symbols" — pull down on a key to enter the symbol hinted in its corner. Written once as a default, so it can still be turned off in Gboard's own settings. |  |
 | [Install as Gboard Clone](#install-as-gboard-clone) | Rename the package to dev.jz6.com.google.android.inputmethod.latin so the patched build installs alongside the official Gboard instead of replacing it. |  |
+| [Select All Button](#select-all-button) | Add a Select all button to the toolbar above the keyboard. One tap selects everything in the text field, without opening Gboard's text editing panel first. |  |
 | [Swipe Right to Undo](#swipe-right-to-undo) | Swipe right after deleting to put the words back. Uses Gboard's own undo, which already records what a delete swipe removed. |  |
 | [Swipe to Delete](#swipe-to-delete) | Swipe left anywhere on the keyboard to delete the previous word, and swipe right to restore it. Uses Gboard's own word-scrub engine, so it behaves exactly like swiping on the backspace key already does — only it can start anywhere. |  |
 
@@ -87,31 +89,64 @@ Removing Flexboard leaves glide typing off — tick it back on in Gboard's own s
 
 ## Settings
 
-Gboard's settings gain a **Flexboard** entry that opens a screen with two switches and three
-sliders:
+Gboard's settings gain a **Flexboard** entry that opens a screen of sliders. Three of them shape
+the swipe-anywhere gesture; the backspace key keeps Gboard's own behaviour, see below.
 
 | Setting | Default | What it does |
 |---|---|---|
-| **Swipe anywhere** | on | The master switch. Off puts Gboard back as it shipped — see below. Also appears in Gboard's own **Glide typing** screen, as the same setting rather than a copy. |
-| **Swipe length** | 36% | How far to swipe per deleted word, as a percent of Gboard's own distance. Lower deletes more words for the same swipe. |
+| **Swipe length** | 100% | How far to swipe per deleted word, as a percent of Gboard's own distance. Lower deletes more words for the same swipe. |
 | **Max words per swipe** | 1 | The most words one swipe can delete. At 1 a swipe deletes a single word however far it travels; 10 means no limit. Swiping back still restores. |
 | **Hold delay** | 0 ms | How long the swipe must be held before it starts deleting. Gboard's own delete swipe uses 200 ms, which is what makes it feel like a press-and-drag rather than a flick. |
-| **Swipe right to undo** | on | Whether a rightward swipe after a delete puts the words back. Off leaves it doing nothing, as in stock Gboard. Independent of the master switch — see below. |
 
-All five are read out of Gboard's own preference store, so there is no separate settings app and
-nothing to keep in sync. Setting the three sliders to 100%, 10 and 200 ms puts each of them back to
-Gboard's own value; why they do not start there is in [`docs/design.md`](docs/design.md).
+The screen also carries **Icons on the toolbar** and **Icons when unfolded**, which belong to the
+Bigger Toolbar patch and are described [further down](#bigger-toolbar).
 
-**Turning the switch off does not turn the delete swipe off** — it hands it back to Gboard. The
-swipe works on the backspace key again and nowhere else, at Gboard's own distance and its 200 ms
-hold, and the three sliders grey out. That is the difference between the switch and unticking the
-patch in Morphe: the switch changes behaviour, unticking it means the code is never installed.
+Every value is read out of Gboard's own preference store, so there is no separate settings app and
+nothing to keep in sync. Swipe length already ships at Gboard's own distance; setting the other two
+to 10 and 200 ms puts those back as well, and why they do not start there is in
+[`docs/design.md`](docs/design.md).
 
-Two things it deliberately does not do. **Glide typing stays off** — Flexboard turned it off and
-does not turn it back on, so tick it back on in Gboard's settings if you want it; the switch does
-stop Flexboard rewriting it, so it will stay on once you do. And changes are not instant: the
-gesture picks up the new setting the next time the keyboard is opened, and the preference writes
-stop at the next time Gboard's process starts.
+Changes are not instant: a new setting is picked up the next time the keyboard is opened.
+
+The screen shows every section whether or not you ticked the patch it belongs to — it is one merged
+class and cannot tell which patches you chose. A slider for a patch you did not apply moves and
+stores and does nothing.
+
+### The backspace key still behaves the way Gboard built it
+
+The sliders above apply to swipes that start **anywhere on the letters**. A swipe that starts on the
+**backspace key** — the one place Gboard's own word-delete has always worked — keeps Gboard's
+distance per word and is not capped, so it still deletes as many words as you drag across.
+
+That is deliberate. A one-word cap and a short swipe are right for a gesture you trigger by accident
+sometimes; they are wrong for the deliberate press-and-drag on backspace that people already have
+muscle memory for. Flexboard adds a gesture rather than replacing one.
+
+It works because Gboard keeps the key a gesture started on for the gesture's whole life, so the
+engine can still tell the two apart even though Flexboard widened the gate that used to distinguish
+them. The derivation is in [`docs/motion-event-handlers.md`](docs/motion-event-handlers.md).
+
+Hold delay is the exception: it is decided before a gesture activates, and is shared. At the default
+of 0 ms neither swipe has a hold.
+
+### There is no on/off switch, and that is deliberate
+
+Flexboard used to carry a master switch, and a separate one for undo. Both are gone. **Untick the
+patch in Morphe instead** — that is the off switch.
+
+They were removed because of what they cost rather than what they did. Reading a preference from
+patched bytecode means finding registers that are provably dead at the point the read is inserted,
+and R8 re-runs register allocation on every Gboard release — so each switch was a fresh derivation
+to redo, and a fresh chance to get one wrong, every single version bump. Between them the two
+switches accounted for most of the work in the 17.7.7 → 18.0.3 port. The sliders stay because their
+values genuinely vary by thumb and screen; an on/off switch duplicates something Morphe already
+does properly.
+
+**One consequence is user-visible: glide typing is off for as long as Swipe to Delete is applied.**
+A leftward drag across the letters is also a glide input, so the two cannot both be live. Flexboard
+forces glide typing off at every app start and greys out the two affected rows in Gboard's **Glide
+typing** screen, with a note saying what is doing it. Getting glide typing back means re-patching
+without Swipe to Delete.
 
 ## Swipe right to undo
 
@@ -124,8 +159,25 @@ Two limits worth knowing, both inherited rather than chosen:
   almost any other input, so typing a character after the delete loses the undo.
 - **One level.** Undo once and the slot is empty; a second right-swipe does nothing.
 
-Its switch is deliberately **not** greyed out by the master switch: Gboard fills the same undo slot
-when you swipe on the backspace key, so undo keeps working even with swipe-anywhere off.
+It is always on when the patch is applied. Swiping right after a delete did nothing at all in stock
+Gboard, so nothing is being taken away by giving it a meaning — and Gboard fills the same undo slot
+when you swipe on the backspace key, so it works there too.
+
+## Select all
+
+Adds a **Select all** button to the toolbar above the keyboard. One tap selects everything in the
+text field.
+
+Gboard can already do this, behind its **Text editing** toolbar button — open that panel, then tap
+select all. This is the same action without the panel.
+
+The button takes the first slot on the toolbar, which pushes whatever used to be last into the
+overflow menu behind the chevron. Long-press the toolbar to reorder it like any other button.
+
+The icon is Material's own select-all mark — the dashed square with a filled centre. Gboard ships
+it and never draws it anywhere: its text editing panel spells "Select all" out in words rather than
+using an icon, which is why this button first borrowed the panel's icon instead. The label is
+Gboard's own "Select all". Flexboard still adds no images of its own.
 
 ## Flick keys for symbols
 
@@ -140,6 +192,39 @@ numbers**, so while that is off the flick row shows as on but greyed out — the
 just cannot toggle it from there. Enabling "Touch & hold keys for numbers" un-greys it. Flexboard
 deliberately does not change that setting for you, since nothing at runtime needs it.
 
+## Bigger toolbar
+
+The row of icons above the keyboard — Gboard calls it the access points bar — holds five, and
+everything past that sits in the overflow menu behind the chevron. This makes that number a slider,
+from 3 to 12, under **Toolbar** in Flexboard's settings.
+
+Five is not a layout constant. Gboard works out how many icons the bar gets each time the list is
+rebuilt, starting from a ceiling it computes from a server-side flag and then lowering it — for its
+own count preference if you have one set, and to three if it has decided your screen is short on
+room. Flexboard replaces the answer rather than the starting point, so the slider is the last word
+on it.
+
+Leaving the slider alone changes nothing at all: with no value stored, Flexboard's code falls
+straight through and Gboard's own runs untouched. A value outside 3–12 is treated the same way as no
+value rather than being forced into range.
+
+**Icons get narrower, not smaller in number.** The bar divides its width by the number of items, so
+at 10 they are about half the width they are at 5, and at 12 narrower still. Eight is as far as
+Google's own layout has been built against; past that you are the first person testing it. Nothing
+clips or crashes — the icons just get tight, and on a narrow phone 12 will be very tight indeed.
+
+Drag-to-reorder and long-press-to-customise keep working at every setting; this only changes where
+the line between the bar and the overflow menu falls.
+
+**On a foldable, the two screens keep their own counts.** Gboard already works this way — the inner
+screen is wider and fits more — so Flexboard's settings carry a second slider, **Icons when
+unfolded**, that applies only while the phone is open. Leave it alone and the main slider covers
+both screens; move it and the inner screen gets its own number. On anything that does not fold the
+second slider does nothing.
+
+This shipped once before, in `1.1.0-dev.1`, and did nothing — it moved the ceiling rather than the
+count. If you tried it then, it is a different patch now.
+
 ## Install as Gboard clone
 
 Renames the package so the patched build installs beside the official Gboard rather than replacing
@@ -150,11 +235,18 @@ Untick it and the patched build replaces the Gboard you already have.
 
 ## Bypass Gboard signature
 
-Gboard checks its own signing certificate against a list baked into the app. A patched build is
-re-signed, so that check fails and the features sitting behind it stop working.
+Gboard hashes its own signing certificate and compares it against a list baked into the app. A
+patched build is re-signed, so that check fails. Flexboard forces it to pass.
 
-Nothing about this one is visible when it works — it exists so that re-signing does not silently
-switch parts of Gboard off.
+Nothing about this one is visible either way, and it turns out that nothing is behind it. The
+check gates no feature: its only real caller does nothing except the check itself, and throws if
+it fails. Patched **without** this one the keyboard still opens — the exception lands on a
+background thread during startup and everything carries on. So it removes a startup crash rather
+than restoring anything.
+
+It is kept anyway, because an exception on every cold start is worth silencing even when it is
+survivable, and because assuming it stays harmless on every device is a worse bet than simply
+patching it out.
 
 ## Development
 

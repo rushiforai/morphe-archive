@@ -56,7 +56,6 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Abeja](#-abeja-bundle-patch-list) | 3 | 1 | Generated |
 | [Proxma](#-proxma-bundle-patch-list) | 12 | 6 | Generated |
 | [Jouss](#-jouss-bundle-patch-list) | 58 | 23 | Generated |
-| [Babyhuehnchen](#-babyhuehnchen-bundle-patch-list) | 1 | 1 | Generated |
 | [Cobalt-Morphe](#-cobalt-morphe-bundle-patch-list) | 1 | 1 | Generated |
 | [Pichiwa](#-pichiwa-bundle-patch-list) | 19 | 1 | Generated |
 | [Saiesh](#-saiesh-bundle-patch-list) | 10 | 4 | Generated |
@@ -67,7 +66,6 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Shaun-Sheep](#-shaun-sheep-bundle-patch-list) | 4 | 4 | Generated |
 | [Bufferk](#-bufferk-bundle-patch-list) | 13 | 7 | Generated |
 | [Franticg33k](#-franticg33k-bundle-patch-list) | 20 | 11 | Generated |
-| [Modx](#-modx-bundle-patch-list) | 7 | 1 | Generated |
 | [Gryphous-Morphe](#-gryphous-morphe-bundle-patch-list) | 1 | 1 | Generated |
 | [Okish-Morphe](#-okish-morphe-bundle-patch-list) | 24 | 12 | Generated |
 | [Xhehab](#-xhehab-bundle-patch-list) | 14 | 13 | Generated |
@@ -115,11 +113,11 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [IMXEren](#-imxeren-bundle-patch-list) | 2 | 2 | Generated |
 | [Almewty](#-almewty-bundle-patch-list) | 3 | 2 | Generated |
 | [Anddea-Morphed](#-anddea-morphed-bundle-patch-list) | 133 | 6 | Generated |
-| [RookieEnough](#-rookieenough-bundle-patch-list) | 59 | 24 | Generated |
+| [RookieEnough](#-rookieenough-bundle-patch-list) | 58 | 24 | Generated |
 | [Adobo](#-adobo-bundle-patch-list) | 42 | 5 | Generated |
 | [Docbt](#-docbt-bundle-patch-list) | 6 | 3 | Generated |
 | [PixelPusher247](#-pixelpusher247-bundle-patch-list) | 1 | 1 | Generated |
-| [Rabilrbl](#-rabilrbl-bundle-patch-list) | 2 | 1 | Generated |
+| [Rabilrbl](#-rabilrbl-bundle-patch-list) | 1 | 1 | Generated |
 | [Jasonwu1994](#-jasonwu1994-bundle-patch-list) | 31 | 1 | Generated |
 | [RealCyberwash](#-realcyberwash-bundle-patch-list) | 1 | 1 | Generated |
 | [Paresh-Maheshwari](#-paresh-maheshwari-bundle-patch-list) | 60 | 23 | Generated |
@@ -135,22 +133,21 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Abhis1n](#-abhis1n-bundle-patch-list) | 1 | 1 | Generated |
 | [PawiX25](#-pawix25-bundle-patch-list) | 17 | 10 | Generated |
 | [Ameenalasady](#-ameenalasady-bundle-patch-list) | 1 | 1 | Generated |
-| [Lynx6319](#-lynx6319-bundle-patch-list) | 1 | 1 | Generated |
 | [Xob0t](#-xob0t-bundle-patch-list) | 25 | 5 | Generated |
 | [Bannerhub](#-bannerhub-bundle-patch-list) | 63 | 2 | Generated |
 | [Eksi](#-eksi-bundle-patch-list) | 2 | 1 | Generated |
 | [Ameen-Morphe](#-ameen-morphe-bundle-patch-list) | 2 | 2 | Generated |
 | [Kolaron](#-kolaron-bundle-patch-list) | 1 | 1 | Generated |
 | [ImmortalZeus](#-immortalzeus-bundle-patch-list) | 2 | 2 | Generated |
-| [Ajstrick81-AndroidTV](#-ajstrick81-androidtv-bundle-patch-list) | 31 | 12 | Generated |
+| [Ajstrick81-AndroidTV](#-ajstrick81-androidtv-bundle-patch-list) | 32 | 12 | Generated |
 | [Icysymmetra-TikTok](#-icysymmetra-tiktok-bundle-patch-list) | 29 | 1 | Generated |
 | [AlexNaga](#-alexnaga-bundle-patch-list) | 2 | 1 | Generated |
-| [Rushiranpise](#-rushiranpise-bundle-patch-list) | 325 | 241 | Generated |
+| [Rushiranpise](#-rushiranpise-bundle-patch-list) | 328 | 244 | Generated |
 | [Sjshb57-PairIP](#-sjshb57-pairip-bundle-patch-list) | 4 | 1 | Generated |
 | [RIVanced-Universal](#-rivanced-universal-bundle-patch-list) | 27 | 1 | Generated |
 | [Variablenine](#-variablenine-bundle-patch-list) | 137 | 4 | Generated |
 | [Stylus](#-stylus-bundle-patch-list) | 5 | 2 | Generated |
-| [HXReborn](#-hxreborn-bundle-patch-list) | 17 | 9 | Generated |
+| [HXReborn](#-hxreborn-bundle-patch-list) | 19 | 11 | Generated |
 | [Ikura](#-ikura-bundle-patch-list) | 6 | 1 | Generated |
 | [DH6K](#-dh6k-bundle-patch-list) | 6 | 7 | Generated |
 | [AndrewLiang25](#-andrewliang25-bundle-patch-list) | 21 | 1 | Generated |
@@ -164,39 +161,38 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Jl4cTuk](#-jl4ctuk-bundle-patch-list) | 16 | 3 | Generated |
 | [LaBlazer](#-lablazer-bundle-patch-list) | 1 | 1 | Generated |
 | [D0NJ](#-d0nj-bundle-patch-list) | 1 | 1 | Generated |
-| [Morphe-NL](#-morphe-nl-bundle-patch-list) | 3 | 1 | Generated |
 | [TIDAL](#-tidal-bundle-patch-list) | 1 | 1 | Generated |
 | [Zarko](#-zarko-bundle-patch-list) | 2 | 1 | Generated |
-| [TikTok-Lite](#-tiktok-lite-bundle-patch-list) | 35 | 2 | Generated |
 | [Niconico-YT](#-niconico-yt-bundle-patch-list) | 1 | 1 | Generated |
-| [Alastor-Kaneki](#-alastor-kaneki-bundle-patch-list) | 1 | 1 | Generated |
+| [Alastor-Kaneki](#-alastor-kaneki-bundle-patch-list) | 6 | 4 | Generated |
 | [NuvioTV](#-nuviotv-bundle-patch-list) | 10 | 1 | Generated |
 | [GoldRift](#-goldrift-bundle-patch-list) | 1 | 1 | Generated |
 | [RoundSalmon4](#-roundsalmon4-bundle-patch-list) | 1 | 1 | Generated |
-| [Dexnis](#-dexnis-bundle-patch-list) | 1 | 1 | Generated |
 | [HU-Liberator](#-hu-liberator-bundle-patch-list) | 11 | 2 | Generated |
 | [JonnyVR1](#-jonnyvr1-bundle-patch-list) | 13 | 1 | Generated |
 | [Logm1lo](#-logm1lo-bundle-patch-list) | 4 | 2 | Generated |
 | [SpookyEXE](#-spookyexe-bundle-patch-list) | 1 | 1 | Generated |
-| [PetalMaps-AndroidAuto](#-petalmaps-androidauto-bundle-patch-list) | 10 | 1 | Generated |
-| [FTL](#-ftl-bundle-patch-list) | 23 | 7 | Generated |
+| [PetalMaps-AndroidAuto](#-petalmaps-androidauto-bundle-patch-list) | 4 | 1 | Generated |
+| [FTL](#-ftl-bundle-patch-list) | 25 | 7 | Generated |
 | [braiNtropy](#-braintropy-bundle-patch-list) | 1 | 1 | Generated |
 | [Ang3lo](#-ang3lo-bundle-patch-list) | 1 | 1 | Generated |
 | [Heval99](#-heval99-bundle-patch-list) | 1 | 1 | Generated |
 | [Atharv](#-atharv-bundle-patch-list) | 2 | 1 | Generated |
 | [Tiaruebar](#-tiaruebar-bundle-patch-list) | 1 | 1 | Generated |
 | [FTL-Portal](#-ftl-portal-bundle-patch-list) | 3 | 2 | Generated |
-| [Google-Clock](#-google-clock-bundle-patch-list) | 6 | 2 | Generated |
 | [Imgur](#-imgur-bundle-patch-list) | 1 | 1 | Generated |
 | [aapam](#-aapam-bundle-patch-list) | 4 | 1 | Generated |
 | [RabehX](#-rabehx-bundle-patch-list) | 10 | 3 | Generated |
 | [Tiaruebar1024](#-tiaruebar1024-bundle-patch-list) | 4 | 2 | Generated |
 | [Slight](#-slight-bundle-patch-list) | 2 | 2 | Generated |
-| [Riky](#-riky-bundle-patch-list) | 1 | 1 | Generated |
+| [Riky](#-riky-bundle-patch-list) | 2 | 2 | Generated |
 | [iPusnas](#-ipusnas-bundle-patch-list) | 6 | 1 | Generated |
 | [HXReborn-TikTok](#-hxreborn-tiktok-bundle-patch-list) | 33 | 1 | Generated |
-| [Flexboard](#-flexboard-bundle-patch-list) | 5 | 1 | Generated |
+| [Flexboard](#-flexboard-bundle-patch-list) | 7 | 1 | Generated |
 | [Cricinfo-Tweaks](#-cricinfo-tweaks-bundle-patch-list) | 3 | 1 | Generated |
+| [RuStore-Privacy](#-rustore-privacy-bundle-patch-list) | 9 | 1 | Generated |
+| [Abhishek-Bhujang](#-abhishek-bhujang-bundle-patch-list) | 2 | 2 | Generated |
+| [MauroGamerVN](#-maurogamervn-bundle-patch-list) | 1 | 1 | Generated |
 
 ### Legacy
 | Bundle | Patches | Apps | Status |
@@ -356,18 +352,6 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | ```Neutralize third-party SDKs``` | ```Disables telemetry, ad, and tracking SDK initializations. Fixes #84.``` | ```Truecaller``` | ```All versions``` |
 | ```Truecaller Premium``` | ```Unlocks premium features.``` | ```Truecaller``` | ```All versions``` |
 | ```VN Premium``` | ```Unlocks premium features, removes watermark, and hides Pro tab.``` | ```VN``` | ```All versions``` |
-
-</details>
-
----
-### 🧩 Babyhuehnchen Bundle Patch List:
-[📦 Babyhuehnchen-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-babyhuehnchen-patches-bundle-morphe)
-<details>
-<summary><b>Babyhuehnchen</b> - 1 patch, 1 app</summary>
-
-| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
-|----------|---------------|---------------------|-------------------------|
-| ```Force dark mode``` | ```Enables hidden dark mode setting``` | ```ESApp``` | ```All versions``` |
 
 </details>
 
@@ -601,24 +585,6 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | ```Remove Ads``` | ```Blocks all ad display in Provide Lite by forcing the app's central ad gate (in libapp.so) to always take its 'skip' path. Two branch instructions are rewritten to unconditional skips: the global 'ad enabled' flag check (tbz -> b #skip) and the interstitial/rewarded cooldown gate (b.ge -> b #skip). Verified on v1.4.6 (Dart 3.7.0, arm64, obfuscated) — no ad-show invocation is reached.``` | ```Provide Lite``` | ```All versions``` |
 | ```Remove License Activity``` | ```Removes the PairIP LicenseActivity and LicenseContentProvider from AndroidManifest.xml and the com.android.vending.CHECK_LICENSE permission, so the app runs without a valid Play Store license (required because the APK is re-signed during patching).``` | ```Provide Lite``` | ```All versions``` |
 | ```Unlock Premium``` | ```Patches the Dart AOT-compiled libapp.so to unlock all premium / VIP features. Forces the VIP state to always be true by rewriting the constant-pool loads (add xN, x22, #0x30 -> add xN, x22, #0x20) inside the cacheIsVipKey readers (getter + 3 callers). Verified on v1.4.6 (Dart 3.7.0, arm64, obfuscated) — flutter.cacheIsVipKey=true on device.``` | ```Provide Lite``` | ```All versions``` |
-
-</details>
-
----
-### 🧩 Modx Bundle Patch List:
-[📦 Modx-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-modx-patches-bundle-morphe)
-<details>
-<summary><b>Modx</b> - 7 patches, 1 app</summary>
-
-| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
-|----------|---------------|---------------------|-------------------------|
-| ```Capture tab host for programmatic tab switching``` | ```Lets extension Activities (Tools/About) trigger a real MX Player tab switch instead of just finishing back to whatever tab was last visible.``` | ```MX Player``` | ```All versions``` |
-| ```Disable video ads``` | ```Disables video ads by patching the native library.``` | ```MX Player``` | ```All versions``` |
-| ```Hide Video/OTT tab``` | ```Hides the Video/OTT download tab from the home screen by forcing its visibility flag to always report disabled.``` | ```MX Player``` | ```All versions``` |
-| ```Register Modx extension activities``` | ```Adds the ToolsActivity/AboutActivity/tool screens and FileProvider from the extensions/core module to the app's AndroidManifest.xml so they can actually be launched.``` | ```MX Player``` | ```All versions``` |
-| ```Repurpose Search/Games tabs to Tools/About``` | ```Redirects the Search tab to the Modx Tools screen and the Games tab to the Modx About screen.``` | ```MX Player``` | ```All versions``` |
-| ```Restyle Search/Games tab icons to Tools/About``` | ```Overrides the native Search/Games bottom-nav icons with the Modx Tools/About artwork.``` | ```MX Player``` | ```All versions``` |
-| ```Restyle Search/Games tab labels to Tools/About``` | ```Renames the native Search/Games tab labels to Tools/About.``` | ```MX Player``` | ```All versions``` |
 
 </details>
 
@@ -1003,7 +969,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | ```Enable Premium``` | ```Unlocks BlockerHero's premium features without a subscription or Google sign-in, like uninstall protection, focus mode, custom blocklists, daily and weekly time limits, and more.``` | ```BlockerHero``` | ```All versions``` |
 | ```Unlock Pro``` | ```Unlocks Cashew's Pro features without a purchase: unlimited budgets and goals, the full past-period budget history, the complete color picker, and no more upgrade popups. Everything here is computed on-device. Google Drive cloud sync is gated separately and won't unlock, and it relies on Google sign-in, which breaks once the app is re-signed.``` | ```Cashew``` | ```All versions``` |
 | ```Unlock Premium``` | ```Turns on ChatBoost premium so the app's paid features and UI open up. Premium is decided by a single internal flag holder whose two flags both ship hardcoded off, so forcing them on makes the entitlement flow report premium no matter what Google Play Billing says, and every gate reads that one flow. One thing to know: ChatBoost is bring your own key, so the AI runs on your own provider API keys and was never part of the subscription. This unlocks the client-side paid features and UX, not free AI usage. The AI already runs on your keys.``` | ```ChatBoost``` | ```All versions``` |
-| ```Unlock Premium``` | ```Unlocks Collectr's premium features without a subscription, like unlimited collections, price alerts, and the advanced analytics. This is the arm64 build. Anything Collectr serves from its own servers still needs the real subscription.``` | ```Collectr``` | ```All versions``` |
+| ```Unlock Premium``` | ```Unlocks Collectr's premium features without a subscription, like unlimited collections, price alerts, and the advanced analytics, and stops the blocking "Update App Required" popup that otherwise locks patched installs out. This is the arm64 build. Anything Collectr serves from its own servers still needs the real subscription.``` | ```Collectr``` | ```All versions``` |
 | ```Unlock Gold``` | ```Unlocks Cronometer Gold without a subscription, like custom charts, advanced reports, the fasting tracker, custom biometrics, an ad-free view, and more. Anything Cronometer works out on its own servers still needs Gold.``` | ```Cronometer``` | ```All versions``` |
 | ```Unlock Premium``` | ```Unlocks DirectChat's premium without the in-app purchase, so the chat-head styles and themes, extra bubble options and the other paid settings all open, and the ad inside the message bubble is hidden too. Premium is a local flag the app seeds from its own purchase, so the unlock holds across restarts on a free account.``` | ```DirectChat``` | ```All versions``` |
 | ```Unlock Pro``` | ```Unlocks Essence's premium tools without a subscription, like the detailed statistics and insights, custom themes, app lock, data export, and more. They run on your device, so they work offline. The AI recovery coach and anything else Essence makes on its servers still needs the real subscription.``` | ```Essence``` | ```All versions``` |
@@ -1045,7 +1011,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | ```Disable Tumblr TV``` | ```Removes the Tumblr TV tab from the bottom navigation bar.``` | ```Tumblr``` | ```All versions``` |
 | ```Enable premium UI``` | ```Turns on the cosmetic Tumblr Premium look: the premium badge and the premium settings entry. This only changes how the app looks on your device. It does not buy or unlock anything on Tumblr's side, so ad-free, the badge on your blog, and anything the server checks still need a real subscription. Use "Remove ads" for an actually ad-free feed.``` | ```Tumblr``` | ```All versions``` |
 | ```Remove ads``` | ```Removes the ads in Tumblr: the dashboard ads from the ad networks and the Blaze posts (the paid-promoted posts other people pay to inject into the feed). It leaves your own following feed and reblogs untouched. Premium content like ad-free badges and TumblrMart items are sold by Tumblr's servers and still need a purchase.``` | ```Tumblr``` | ```All versions``` |
-| ```7TV and BTTV emotes``` | ```Renders global and current-channel 7TV and BTTV emotes in incoming live chat. Type an emote code normally to send it; this patch does not add a picker or provider login.``` | ```Twitch``` | ```All versions``` |
+| ```7TV and BTTV emotes``` | ```Displays 7TV and BTTV emotes directly in Twitch live chat. It loads the global emote sets and the emotes for the channel you are watching, then replaces matching emote codes in incoming messages with their emote images. Sending works through normal Twitch chat: type an emote's text code and send it normally. The patch does not add an emote picker, 7TV/BTTV login, or account linking.``` | ```Twitch``` | ```All versions``` |
 | ```Auto claim channel points``` | ```Claims the channel points bonus chest for you automatically. Whenever Twitch makes a bonus available, the claim fires on its own so you don't have to tap the chest.``` | ```Twitch``` | ```All versions``` |
 | ```Block live ads``` | ```Routes live streams through a free third-party proxy that strips the ads baked into the stream, so the proxy has to be up for playback to work; turn this patch off if it goes down. Mid-stream ads get dropped reliably, but a single preroll can still slip through when you first open a channel and Twitch has flagged the shared proxy. VOD ads aren't covered.``` | ```Twitch``` | ```All versions``` |
 | ```Fix login``` | ```Fixes the "This app version/OS is not currently supported" error that blocks login after the app has been patched. Twitch runs a Play Integrity check in the background and reports the result to its login server; re-signing makes that check fail, so the server refuses the login. This stops the app from sending that attestation, so it looks like a device without Google Play, where login works normally. It does not change anything else about how you log in.``` | ```Twitch``` | ```All versions``` |
@@ -3948,7 +3914,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 RookieEnough Bundle Patch List:
 [📦 RookieEnough-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-rookieenough-patches-bundle-morphe)
 <details>
-<summary><b>RookieEnough</b> - 59 patches, 24 apps</summary>
+<summary><b>RookieEnough</b> - 58 patches, 24 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -4008,7 +3974,6 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Debug mode``` | ```Enables Twitch's internal debugging mode.``` | ```Twitch``` | ```All versions``` |
 | ```Show deleted messages``` | ```Shows deleted chat messages behind a clickable spoiler.``` | ```Twitch``` | ```All versions``` |
 | ```Change package name``` | ```Appends ".morphe" to the package name by default. Changing the package name of the app can lead to unexpected issues. This patch does not work with Reddit.``` | ```Universal``` | ```All versions``` |
-| ```Override certificate pinning``` | ```Overrides certificate pinning, allowing to inspect traffic via a proxy. This patch does not work with Reddit.``` | ```Universal``` | ```All versions``` |
 | ```Hide Ads``` | ```Hides ad banners between chats.``` | ```Viber``` | ```All versions``` |
 | ```Hide navigation buttons``` | ```Permanently hides navigation bar buttons, such as Explore and Marketplace.``` | ```Viber``` | ```All versions``` |
 
@@ -4124,12 +4089,11 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Rabilrbl Bundle Patch List:
 [📦 Rabilrbl-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-rabilrbl-patches-bundle-morphe)
 <details>
-<summary><b>Rabilrbl</b> - 2 patches, 1 app</summary>
+<summary><b>Rabilrbl</b> - 1 patch, 1 app</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Remove ads``` | ```Bypasses ad-removal premium checks by forcing PremiumState.isRemoveAdPremium() to always return true.``` | ```droom.sleepIfUCan``` | ```26.23.0``` |
-| ```Unlock Pro subscription``` | ```Bypasses premium checks by forcing PremiumState.isPremium() to always return true.``` | ```droom.sleepIfUCan``` | ```26.23.0``` |
+| ```Unlock Premium``` | ```Unlocks premium features and disables ads by forcing both premium gates true.``` | ```droom.sleepIfUCan``` | ```26.32.1``` |
 
 </details>
 
@@ -4470,18 +4434,6 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 </details>
 
 ---
-### 🧩 Lynx6319 Bundle Patch List:
-[📦 Lynx6319-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-Lynx6319-patches-bundle-morphe)
-<details>
-<summary><b>Lynx6319</b> - 1 patch, 1 app</summary>
-
-| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
-|----------|---------------|---------------------|-------------------------|
-| ```Disable Shorts scroll``` | ```Disables swiping up/down between Shorts while still allowing a single Short to be opened and watched normally.``` | ```YouTube``` | ```All versions``` |
-
-</details>
-
----
 ### 🧩 Xob0t Bundle Patch List:
 [📦 Xob0t-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-xob0t-patches-bundle-morphe)
 <details>
@@ -4646,7 +4598,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Ajstrick81-AndroidTV Bundle Patch List:
 [📦 Ajstrick81-AndroidTV-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-ajstrick81-androidtv-patches-bundle-morphe)
 <details>
-<summary><b>Ajstrick81-AndroidTV</b> - 31 patches, 12 apps</summary>
+<summary><b>Ajstrick81-AndroidTV</b> - 32 patches, 12 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -4674,7 +4626,8 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Skip ads``` | ```Suppresses all ad delivery systems in Tubi Android TV.``` | ```com.tubitv``` | ```10.28.5000``` |
 | ```Override certificate pinning``` | ```Allows HTTPS traffic inspection tools like AdGuard Premium to intercept app connections. Enables ViX live (Lura SSAI) ad suppression when used alongside AdGuard Premium.``` | ```com.univision.prendetv``` | ```4.46.0_tv, 4.47.2_tv``` |
 | ```Skip ads``` | ```Suppresses ViX ad delivery by stopping the LuraPlayer linear ad-break scheduler (client-side VAST) and preventing the Innovid SSAI ad overlay from mounting.``` | ```com.univision.prendetv``` | ```4.46.0_tv, 4.47.2_tv``` |
-| ```HBO Max - Disable Ads``` | ```Suppresses nonlinear overlay ads (Bolt), SSAI linear ad timeline registration (GMSS/AdSparx), and live stream preroll ad timeline entry generation for all content types.``` | ```com.wbd.hbomax``` | ```7.7.0.78, 7.5.0.73, 7.2.0.41``` |
+| ```HBO Max - Block SSAI Ad Origins``` | ```Reproduces the AdGuard DNS ad-block inside the app: fails media3 segment requests to HBO's SSAI ad origins (amer-free/emea-free.prd.media.max.com, gmss, FreeWheel) so the player's resiliency layer falls back to the clean, ad-free manifest — removing the stitched ad VIDEO the default Disable Ads patch leaves behind. Opt-in / experimental; verify playback on-device.``` | ```com.wbd.hbomax``` | ```7.9.0.61, 7.7.0.78, 7.5.0.73, 7.2.0.41``` |
+| ```HBO Max - Disable Ads``` | ```Suppresses nonlinear overlay ads (Bolt), SSAI linear ad timeline registration (GMSS/AdSparx), and live stream preroll ad timeline entry generation for all content types.``` | ```com.wbd.hbomax``` | ```7.9.0.61, 7.7.0.78, 7.5.0.73, 7.2.0.41``` |
 | ```Clone Pluto TV``` | ```Installs the patched Pluto TV as a separate app alongside the stock one, instead of replacing it. Enable this when Pluto TV is a preinstalled system app that can't be uninstalled — most commonly on Amazon Fire TV, and on some Android TV boxes and Onn devices. The clone gets its own package (suffix .mod), so it shows up as a second Pluto TV icon and keeps its own settings. Leave OFF if you were able to uninstall the original Pluto TV first (a normal in-place install is cleaner). Opt-in.``` | ```tv.pluto.android``` | ```5.66.0-leanback``` |
 | ```Disable auto-updates``` | ```Stops the Google Play Store from silently updating Pluto TV back to the official version and wiping out the patch (which would bring the ads back). Works by setting the patched build's version number far ahead of anything on the Store, so it's treated as already up to date. You can still update deliberately by re-patching a newer APK in Morphe. Recommended to leave ON. Does not apply to mount-installed apps.``` | ```tv.pluto.android``` | ```5.66.0-leanback``` |
 | ```Override certificate pinning``` | ```Edits Pluto's network_security_config to trust user CAs (system + user, overridePins) on both a new base-config and every existing domain-config — including the pluto.tv entry that is otherwise system-only — so an HTTPS-filtering proxy can inspect the HLS manifest. Optional adjunct to the manifest-rewrite ad approach.``` | ```tv.pluto.android``` | ```5.66.0-leanback``` |
@@ -4741,7 +4694,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Rushiranpise Bundle Patch List:
 [📦 Rushiranpise-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-rushiranpise-patches-bundle-morphe)
 <details>
-<summary><b>Rushiranpise</b> - 325 patches, 241 apps</summary>
+<summary><b>Rushiranpise</b> - 328 patches, 244 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -4772,7 +4725,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Remove ads``` | ```Hides sponsored and ad content in Amazon Shopping via CSS injection.``` | ```Amazon Shopping, Amazon India``` | ```All versions``` |
 | ```Unlock premium``` | ```Unlocks AmoledPix premium features and disables ads.``` | ```AmoledPix``` | ```All versions``` |
 | ```Unlock Premium``` | ```Unlocks the Remove Ads purchase in Ampere by bypassing the isProVersion getter and purchase verifier.``` | ```Ampere``` | ```All versions``` |
-| ```Bypass developer verification``` | ```Forces all APK install verification sessions to be bypassed, preventing the verifier from blocking sideloaded or unsigned apps on Android 16+ devices.Important: Requires pushing the patched APK as a system app replacement (e.g. via Magisk module or ADB with root)since the original holds DEVELOPER_VERIFICATION_AGENT permission. ADB installs are exempt from verification regardless.``` | ```Android Developer Verifier``` | ```All versions``` |
+| ```Bypass developer verification``` | ```Forces all APK install verification sessions to be bypassed, preventing the verifier from blocking sideloaded or unsigned apps on Android 16+ devices. Only available for root (mount) installations.Important: Requires pushing the patched APK as a system app replacement (e.g. via Magisk module or ADB with root)since the original holds DEVELOPER_VERIFICATION_AGENT permission. ADB installs are exempt from verification regardless.``` | ```Android Developer Verifier``` | ```All versions``` |
 | ```Unlock Premium``` | ```Unlocks AndroPods Pro: voice call integration, assistant control, ear detection auto-pause/resume, and all premium preferences.``` | ```AndroPods``` | ```All versions``` |
 | ```Unlock Premium``` | ```Unlocks AnExplorer Pro: hides paywall and removes all purchase gates.``` | ```AnExplorer``` | ```All versions``` |
 | ```Unlock Premium``` | ```Unlocks all premium wallpapers.``` | ```Anime Depth Wallpapers``` | ```All versions``` |
@@ -4857,6 +4810,8 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Unlock Pro``` | ```Unlocks all pro features and removes ads in Hydro Coach by forcing the master premium gate, ads gate, and no-ads SKU check to return true/false respectively.``` | ```Hydro Coach``` | ```All versions``` |
 | ```Unlock Premium``` | ```Unlocks all premium features in Image & Video Date Fixer.``` | ```Image & Video Date Fixer``` | ```All versions``` |
 | ```Unlock Pro``` | ```Unlock Pro Features in app.``` | ```Inmigreat``` | ```All versions``` |
+| ```Unlock Full Version``` | ```Bypasses the 15-day trial gate and unlocks all premium features in Inure App Manager.``` | ```Inure App Manager``` | ```All versions``` |
+| ```Inure — Unlock Full Version (GitHub)``` | ```Bypasses the 15-day trial gate and unlocks all premium features in Inure App Manager (GitHub).``` | ```Inure App Manager (GitHub)``` | ```All versions``` |
 | ```Unlock Elite``` | ```Unlocks JEFIT Elite features in app.``` | ```JEFIT``` | ```All versions``` |
 | ```Unlock Gold``` | ```Unlocks Kahoot! Plus Gold features in app.``` | ```Kahoot!``` | ```All versions``` |
 | ```Unlock Pro``` | ```Unlocks all pro features in KillApps.``` | ```KillApps``` | ```All versions``` |
@@ -4893,7 +4848,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Unlock Premium``` | ```Unlock all premium widgets.``` | ```Minimal Widgets``` | ```All versions``` |
 | ```Unlock Pro``` | ```Unlocks all pro features in ML Manager.``` | ```ML Manager``` | ```All versions``` |
 | ```Unlock Premium``` | ```Unlocks MobiOffice premium and removes ads.``` | ```MobiOffice``` | ```All versions``` |
-| ```Unlock Premium``` | ```Unlocks all premium features in Monet by forcing the billing cache to always report premium as active.``` | ```Monet``` | ```All versions``` |
+| ```Unlock Premium``` | ```Unlocks all Monet Launcher premium features by forcing the billing cache to always report premium as active.``` | ```Monet``` | ```All versions``` |
 | ```Unlock VIP``` | ```Unlocks VIP and shows Life Member status for Money Manager - Budget & Meow.``` | ```Money Manager``` | ```All versions``` |
 | ```Unlock Moovit+``` | ```Unlocks Moovit+ premium features, removes ads, and suppresses all upgrade paywalls and UI.``` | ```Moovit``` | ```All versions``` |
 | ```Unlock VIP``` | ```Unlocks VIP features in MovieBox TV.``` | ```MovieBox TV``` | ```All versions``` |
@@ -5070,6 +5025,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Unlock Professional``` | ```Unlocks Professional features inapp.``` | ```WolframAlpha``` | ```All versions``` |
 | ```Unlock Word``` | ```Removes login requirement, unlocks premium, blocks ads, bypasses signature and code transparency checks.``` | ```Word``` | ```All versions``` |
 | ```Unlock VIP``` | ```Unlocks Yatri VIP by forcing active plan status and spoofing active plan DB query.``` | ```Yatri``` | ```All versions``` |
+| ```Unlock Premium``` | ```Unlocks Driver's Ed premium features by patching the Flutter subscription gate.``` | ```Zutobi``` | ```All versions``` |
 
 </details>
 
@@ -5307,12 +5263,13 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 HXReborn Bundle Patch List:
 [📦 HXReborn-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-hxreborn-patches-bundle-morphe)
 <details>
-<summary><b>HXReborn</b> - 17 patches, 9 apps</summary>
+<summary><b>HXReborn</b> - 19 patches, 11 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
 | ```Hide membership upselling``` | ```Hides the membership promotion on the Home screen and the free trial bottom sheet.``` | ```Audible``` | ```All versions``` |
 | ```Open Library on launch``` | ```Opens the Library tab instead of Home on launch. Applies only while signed in.``` | ```Audible``` | ```All versions``` |
+| ```Hide ads``` | ```Removes promoted listings and the "with Ads" label from search results.``` | ```Etsy``` | ```All versions``` |
 | ```Unlock premium``` | ```Unlocks all premium features.``` | ```ForusApp``` | ```All versions``` |
 | ```AMOLED dark theme``` | ```Replaces the dark theme background with pure black.``` | ```Perplexity``` | ```All versions``` |
 | ```Disable tracking``` | ```Disables analytics and crash reporting.``` | ```Projectivy Launcher``` | ```All versions``` |
@@ -5323,6 +5280,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Remove free accounts limit``` | ```Removes the limit for maximum free accounts logged in.``` | ```Proton Mail``` | ```All versions``` |
 | ```Spoof signature``` | ```Restores push notifications by spoofing the original app signature.``` | ```Proton Mail``` | ```All versions``` |
 | ```Unlock custom time picker``` | ```Enables picking a custom date and time when snoozing conversations and scheduling messages.``` | ```Proton Mail``` | ```All versions``` |
+| ```Hide ads``` | ```Disables banner, interstitial, and native ads.``` | ```QR & Barcode Scanner``` | ```All versions``` |
 | ```Remove nags``` | ```Removes the rate this app dialog and the promotional dialogs shown on startup.``` | ```ReadEra``` | ```All versions``` |
 | ```AMOLED dark theme``` | ```Replaces the dark theme background with pure black.``` | ```Showly``` | ```All versions``` |
 | ```Unlock premium``` | ```Unlocks ad removal, light theme, custom images, list view types, quick ratings, and transparent widgets. The News feed is not included.``` | ```Showly``` | ```All versions``` |
@@ -5618,20 +5576,6 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 </details>
 
 ---
-### 🧩 Morphe-NL Bundle Patch List:
-[📦 Morphe-NL-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-morphe-nl-patches-bundle-morphe)
-<details>
-<summary><b>Morphe-NL</b> - 3 patches, 1 app</summary>
-
-| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
-|----------|---------------|---------------------|-------------------------|
-| ```Bypass license check``` | ```Bypasses the Google Play license and APK signature checks so the app starts without the "Get this app from Google Play" paywall.``` | ```Flitsmeister``` | ```All versions``` |
-| ```Remove ads``` | ```Disables general advertisements and keeps the ads setting turned off.``` | ```Flitsmeister``` | ```All versions``` |
-| ```Unlock PRO``` | ```Unlocks Flitsmeister PRO status and enables all PRO features on the client.``` | ```Flitsmeister``` | ```All versions``` |
-
-</details>
-
----
 ### 🧩 TIDAL Bundle Patch List:
 [📦 TIDAL-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-tidal-patches-bundle-morphe)
 <details>
@@ -5657,52 +5601,6 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 </details>
 
 ---
-### 🧩 TikTok-Lite Bundle Patch List:
-[📦 TikTok-Lite-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-tiktok-lite-patches-bundle-morphe)
-<details>
-<summary><b>TikTok-Lite</b> - 35 patches, 2 apps</summary>
-
-| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
-|----------|---------------|---------------------|-------------------------|
-| ```Always show publish date``` | ```Always shows the publish date in video author information. Thanks to lyyako for the original implementation.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
-| ```Copy comments without username``` | ```Copies only the comment text without including the creator's username.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
-| ```Custom offline videos limit``` | ```Adds a custom entry to TikTok's offline videos menu with a configurable limit of up to 500 videos.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
-| ```Disable login requirement``` | ```Removes TikTok's mandatory login gate from supported flows.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
-| ```Disable screen capture detection``` | ```Prevents TikTok from detecting screenshots and screen recordings.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
-| ```Downloads``` | ```Adds watermark-free video and photo downloads, comment sticker saving, and configurable download-folder controls.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
-| ```Enable Open Debug``` | ```Uses TikTok's hidden Open Debug settings cell as the entry point for Morphe settings. Required for the Morphe settings menu to appear. Supports TikTok 43.8.3.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
-| ```Feature Gate Lab``` | ```Adds a menu for viewing and overriding supported TikTok feature flags and configuration values.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
-| ```Feed filter``` | ```Hides feed ads, TikTok Shop items, livestreams, stories, photo posts, and videos outside configured view or like ranges.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
-| ```Feed tab navigation``` | ```Controls which loaded top and bottom navigation tabs remain visible, blocks newly added tabs when requested, and can hide the Tako AI bubble.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
-| ```Fix Google login``` | ```Restores Google account sign-in after patching.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
-| ```Hide CAPTCHA popups``` | ```Prevents client-side verification puzzle dialogs from opening, including those shown while browsing LIVE. This does not bypass server-side checks.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
-| ```Hide floating promotions``` | ```Removes floating promotional badges, coin icons, and timer banners from the Home feed.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
-| ```Hold-and-slide 2x lock``` | ```Enables TikTok's native hold, slide down, and release gesture to lock 2x speed.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
-| ```Open external links directly``` | ```Opens profile and story website links in the system browser instead of TikTok's in-app browser. Thanks to lyyako for the original implementation.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
-| ```Playback speed``` | ```Enables playback-speed controls for all videos and remembers the selected speed between videos.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
-| ```Remember clear display``` | ```Remembers TikTok's clear-display state between videos.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
-| ```Sanitize sharing links``` | ```Removes tracking parameters from TikTok links before they are shared.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
-| ```Settings``` | ```Adds the Morphe settings screen inside TikTok.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
-| ```Show seekbar``` | ```Shows TikTok's native video seekbar where it would normally be hidden.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
-| ```SIM spoof``` | ```Spoofs SIM country and operator information retrieved by TikTok, with country presets for easier setup.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
-| ```Translate comments``` | ```Adds comment translation controls using TikTok's translation system, with selectable language exclusions.``` | ```com.zhiliaoapp.musically``` | ```43.8.3``` |
-| ```Disable login requirement``` | ```Removes TikTok's mandatory login gate from supported flows.``` | ```com.zhiliaoapp.musically.go``` | ```44.9.2``` |
-| ```Disable screen capture detection``` | ```Prevents TikTok from detecting screenshots and screen recordings.``` | ```com.zhiliaoapp.musically.go``` | ```44.9.2``` |
-| ```Downloads``` | ```Adds watermark-free video downloads and configurable download-folder controls.``` | ```com.zhiliaoapp.musically.go``` | ```44.9.2``` |
-| ```Feature Gate Lab``` | ```Adds a menu for viewing and overriding supported TikTok feature flags and configuration values.``` | ```com.zhiliaoapp.musically.go``` | ```44.9.2``` |
-| ```Fix Google login``` | ```Restores Google account sign-in after patching.``` | ```com.zhiliaoapp.musically.go``` | ```44.9.2``` |
-| ```Hide CAPTCHA popups``` | ```Prevents client-side verification puzzle dialogs from opening. This does not bypass server-side checks.``` | ```com.zhiliaoapp.musically.go``` | ```44.9.2``` |
-| ```Hide floating promotions``` | ```Removes floating promotional badges, coin icons, and timer banners from the Home feed.``` | ```com.zhiliaoapp.musically.go``` | ```44.9.2``` |
-| ```Open external links directly``` | ```Opens profile and story website links in the system browser instead of TikTok's in-app browser. Thanks to lyyako for the original implementation.``` | ```com.zhiliaoapp.musically.go``` | ```44.9.2``` |
-| ```Playback speed``` | ```Enables playback-speed controls for all videos and remembers the selected speed between videos.``` | ```com.zhiliaoapp.musically.go``` | ```44.9.2``` |
-| ```Region bypass``` | ```Spoofs the store country reported to TikTok across every region signal (cookie, store region, sys_region, carrier region, TTP JSON) and suppresses the TTP region alert, so the app is not detected as being used in an unsupported region.``` | ```com.zhiliaoapp.musically.go``` | ```44.9.2``` |
-| ```Sanitize share URLs``` | ```Removes tracking (campaign) parameters from shared links.``` | ```com.zhiliaoapp.musically.go``` | ```44.9.2``` |
-| ```Settings``` | ```Adds a native 'Premium features' row to the stock 'Settings and privacy' popup, opening the Morphe settings screen.``` | ```com.zhiliaoapp.musically.go``` | ```44.9.2``` |
-| ```SIM spoof``` | ```Spoofs SIM country and operator information retrieved by TikTok, with country presets for easier setup.``` | ```com.zhiliaoapp.musically.go``` | ```44.9.2``` |
-
-</details>
-
----
 ### 🧩 Niconico-YT Bundle Patch List:
 [📦 Niconico-YT-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-niconico-yt-patches-bundle-morphe)
 <details>
@@ -5718,11 +5616,16 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Alastor-Kaneki Bundle Patch List:
 [📦 Alastor-Kaneki-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-alastor-kaneki-patches-bundle-morphe)
 <details>
-<summary><b>Alastor-Kaneki</b> - 1 patch, 1 app</summary>
+<summary><b>Alastor-Kaneki</b> - 6 patches, 4 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
+| ```MonkeyScript userscript manager``` | ```Adds a Chrome 150 Material You userscript manager using a Violentmonkey-derived parser, native app-menu integration, guaranteed Fork-page installation, Greasy Fork/Sleazy Fork support, publishing, and configurable app/package cloning.``` | ```Google Chrome``` | ```All versions``` |
 | ```Download GX mods as files``` | ```Adds a visible Download Mod button in Opera GX, with URL auto-detection and a Share fallback.``` | ```Opera GX``` | ```All versions``` |
+| ```GX icon pack``` | ```Adds a separate native selector for all 56 Opera GX launcher icons. Open it from the GX Icon Pack long-press shortcut.``` | ```Opera GX``` | ```All versions``` |
+| ```Remove ads``` | ```Hard-disables Pixilart native/Cordova ads, drawing-editor web ads, and promoted/feed ad cards.``` | ```Pixilart``` | ```All versions``` |
+| ```Customize Suno branding``` | ```Clones Suno to a different package name, with optional app-name and launcher-icon customization. Accepts Morphe's adaptive custom-icon folder layout or a simple icon.png folder.``` | ```Suno``` | ```All versions``` |
+| ```Download timestamped lyrics``` | ```Adds an in-app Lyrics button and share target that exports Suno timing data as LRC, enhanced LRC, SRT, WebVTT, or JSON.``` | ```Suno``` | ```All versions``` |
 
 </details>
 
@@ -5768,18 +5671,6 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
 | ```Unlock Premium``` | ```Unlocks all premium features.``` | ```SeriesGuide``` | ```All versions``` |
-
-</details>
-
----
-### 🧩 Dexnis Bundle Patch List:
-[📦 Dexnis-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-dexnis-patches-bundle-morphe)
-<details>
-<summary><b>Dexnis</b> - 1 patch, 1 app</summary>
-
-| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
-|----------|---------------|---------------------|-------------------------|
-| ```Unlock premium``` | ```Spoofs the premium subscription check.``` | ```IDOS``` | ```All versions``` |
 
 </details>
 
@@ -5860,17 +5751,11 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 PetalMaps-AndroidAuto Bundle Patch List:
 [📦 PetalMaps-AndroidAuto-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-petalmaps-androidauto-patches-bundle-morphe)
 <details>
-<summary><b>PetalMaps-AndroidAuto</b> - 10 patches, 1 app</summary>
+<summary><b>PetalMaps-AndroidAuto</b> - 4 patches, 1 app</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Android Auto``` | ```Injects full Android Auto support into Petal Maps, including CarAppService, manifest declarations, and required resources. Also apply 'Anti-Repack Bypass' and 'Manufacturer Check Bypass' for full functionality on non-Huawei devices.``` | ```Petal Maps``` | ```All versions``` |
-| ```Android Auto allowlist (root)``` | ```Registers the app in Android Auto's allowlist on startup when root is available; no-op without root.``` | ```Petal Maps``` | ```All versions``` |
-| ```Android Auto API Level File``` | ```Adds car-app-api.level to the APK root for androidx.car.app compatibility.``` | ```Petal Maps``` | ```All versions``` |
-| ```Android Auto Manifest``` | ```Adds the Android Auto CarAppService declaration, meta-data, and permissions to AndroidManifest.xml.``` | ```Petal Maps``` | ```All versions``` |
-| ```Android Auto Resources``` | ```Adds the automotive_app_desc.xml resource required by Android Auto.``` | ```Petal Maps``` | ```All versions``` |
 | ```Anti-Repack Bypass``` | ```Neutralizes the native integrity check (SecurityDetect.irpj) that kills the process upon detecting APK re-signing.``` | ```Petal Maps``` | ```All versions``` |
-| ```Automotive orientation fix (main activity)``` | ```Changes PetalMapsActivity's screenOrientation from behind to sensorLandscape so it renders in landscape on the car display.``` | ```Petal Maps``` | ```All versions``` |
 | ```Change package name``` | ```Changes the package name from com.huawei.maps.app to morphe.huawei.petal.maps by default, allowing the patched app to coexist with the original. Changing the package name can lead to unexpected issues.``` | ```Petal Maps``` | ```All versions``` |
 | ```Huawei login fix``` | ```Forces the Account Picker sign-in flow with WebView fallback, fixing login on devices without HMS Core.``` | ```Petal Maps``` | ```All versions``` |
 | ```Manufacturer Check Bypass``` | ```Forces the Huawei manufacturer check to always return true, allowing non-Huawei devices to use the app.``` | ```Petal Maps``` | ```All versions``` |
@@ -5893,7 +5778,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 FTL Bundle Patch List:
 [📦 FTL-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-ftl-patches-bundle-morphe)
 <details>
-<summary><b>FTL</b> - 23 patches, 7 apps</summary>
+<summary><b>FTL</b> - 25 patches, 7 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -5919,6 +5804,8 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Remove Debug Info``` | ```Removes debug information (line numbers, variable names, source file references) from every class in the .dex files to reduce overall APK size.``` | ```Universal``` | ```All versions``` |
 | ```Remove Duplicate Graphics``` | ```Keeps images for only one screen density (like xhdpi) and removes copies for all other densities. Android will automatically scale the kept images, making the app significantly smaller.``` | ```Universal``` | ```All versions``` |
 | ```Remove Languages``` | ```Removes translations for languages you don't use across ALL resource types (strings, drawables, layouts, raw, xml, etc.). Only keeps the languages you pick. Base resources with no language code are always preserved.``` | ```Universal``` | ```All versions``` |
+| ```Clean up main UI``` | ```Hides the nav drawer's Guide/Rate/Help/About items and the bottom navigation view, and keeps the Connect/Create/Join buttons on top.``` | ```Xender``` | ```All versions``` |
+| ```Skip splash screen``` | ```Jumps straight to the main activity from the splash screen, skipping the splash animation entirely. Also restores the storage-permission request and local media scan that the splash screen normally performs, so the Apps/Photo/Video tabs still load.``` | ```Xender``` | ```All versions``` |
 | ```Speed up splash screen``` | ```Enters the main activity directly after the splash permission check instead of delaying for the additional external-storage check.``` | ```Xender``` | ```All versions``` |
 
 </details>
@@ -6065,23 +5952,6 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 </details>
 
 ---
-### 🧩 Google-Clock Bundle Patch List:
-[📦 Google-Clock-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-google-clock-patches-bundle-morphe)
-<details>
-<summary><b>Google-Clock</b> - 6 patches, 2 apps</summary>
-
-| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
-|----------|---------------|---------------------|-------------------------|
-| ```Use Morphe YouTube Music for alarms``` | ```Redirects Google Clock to the Morphe YouTube Music package.``` | ```Clock``` | ```All versions``` |
-| ```Google Clock alarm MediaBrowser bridge``` | ```Short-circuits YT Music's MediaBrowser capability gate before it can publish PlaybackState ERROR(7), keeps browse entitlement metadata coherent, bypasses the DeskClock browse-consent detour, and enables background alarm playback.``` | ```YT Music Morphe``` | ```All versions``` |
-| ```Google Clock alarm MediaBrowser bridge v2``` | ```Adds the YT Music loadChildren gate fix that prevents the Premium PlaybackState error after Google Clock subscribes. Depends on the base Google Clock alarm MediaBrowser bridge.``` | ```YT Music Morphe``` | ```All versions``` |
-| ```Google Clock MediaBrowser error stack diagnostic``` | ```Temporary diagnostic that dumps the call stack from both known YT Music MediaBrowser error publishers (Llin.e and Lkzf.f). Depends on the full bridge.``` | ```YT Music Morphe``` | ```All versions``` |
-| ```Google Clock MediaBrowser full bridge``` | ```Full Google Clock/YT Music MediaBrowser chain: root/entitlement/consent fixes, upstream package identity/certificate compatibility, loadChildren capability and client allow-list bypasses, plus the cached browse-error fast-path bypass that was still returning empty children and the Music Premium PlaybackState ERROR(7).``` | ```YT Music Morphe``` | ```All versions``` |
-| ```Google Clock MediaBrowser upstream compatibility``` | ```Isolated port of the upstream YT Music MediaBrowser unlock: bypasses the caller certificate gate and restores the original com.google.android.apps.youtube.music identity inside search_media_items.``` | ```YT Music Morphe``` | ```All versions``` |
-
-</details>
-
----
 ### 🧩 Imgur Bundle Patch List:
 [📦 Imgur-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-imgur-patches-bundle-morphe)
 <details>
@@ -6163,11 +6033,12 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Riky Bundle Patch List:
 [📦 Riky-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-riky-patches-bundle-morphe)
 <details>
-<summary><b>Riky</b> - 1 patch, 1 app</summary>
+<summary><b>Riky</b> - 2 patches, 2 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
 | ```Hide ads``` | ```Removes banner, native, cover and interstitial ads and unlocks premium features.``` | ```3BMeteo``` | ```All versions``` |
+| ```Hide ads``` | ```Spoofs premium/unlocked state to disable ad-gated behavior.``` | ```Electron: battery health info``` | ```All versions``` |
 
 </details>
 
@@ -6238,13 +6109,15 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Flexboard Bundle Patch List:
 [📦 Flexboard-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-flexboard-patches-bundle-morphe)
 <details>
-<summary><b>Flexboard</b> - 5 patches, 1 app</summary>
+<summary><b>Flexboard</b> - 7 patches, 1 app</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
+| ```Bigger Toolbar``` | ```Makes the number of icons on the toolbar above the keyboard adjustable, from Gboard's own settings. Anything past the limit stays in the overflow menu.``` | ```Gboard``` | ```All versions``` |
 | ```Bypass Gboard Signature``` | ```Bypass Gboard's signature whitelist checks and force them to pass.``` | ```Gboard``` | ```All versions``` |
 | ```Flick Keys for Symbols``` | ```Turn on Gboard's "Flick keys to enter symbols" — pull down on a key to enter the symbol hinted in its corner. Written once as a default, so it can still be turned off in Gboard's own settings.``` | ```Gboard``` | ```All versions``` |
 | ```Install as Gboard Clone``` | ```Rename the package to dev.jz6.com.google.android.inputmethod.latin so the patched build installs alongside the official Gboard instead of replacing it.``` | ```Gboard``` | ```All versions``` |
+| ```Select All Button``` | ```Add a Select all button to the toolbar above the keyboard. One tap selects everything in the text field, without opening Gboard's text editing panel first.``` | ```Gboard``` | ```All versions``` |
 | ```Swipe Right to Undo``` | ```Swipe right after deleting to put the words back. Uses Gboard's own undo, which already records what a delete swipe removed.``` | ```Gboard``` | ```All versions``` |
 | ```Swipe to Delete``` | ```Swipe left anywhere on the keyboard to delete the previous word, and swipe right to restore it. Uses Gboard's own word-scrub engine, so it behaves exactly like swiping on the backspace key already does — only it can start anywhere.``` | ```Gboard``` | ```All versions``` |
 
@@ -6262,5 +6135,50 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Block tracking & telemetry``` | ```Stops AppsFlyer, comScore, Conviva and Adobe Marketing from initializing, so they collect or send no attribution/analytics data. Leaves CleverTap intact to preserve push notifications.``` | ```ESPNcricinfo``` | ```All versions``` |
 | ```Remove ads``` | ```Stops ESPNcricinfo from fetching or showing banner, interstitial, native, rewarded and app-open ads (Google Ad Manager, Meta Audience Network, Taboola) by severing the Flutter ad plugins and skipping the ad SDK setup.``` | ```ESPNcricinfo``` | ```All versions``` |
 | ```Remove splash ad, startup delay & forced update``` | ```Removes the full-screen splash ad shown on every cold start (the main cause of the slow boot), the GPT interstitial, and the "you must update" blocking screen, by hiding their Firebase Remote Config keys from the app. Other remote config is untouched.``` | ```ESPNcricinfo``` | ```All versions``` |
+
+</details>
+
+---
+### 🧩 RuStore-Privacy Bundle Patch List:
+[📦 RuStore-Privacy-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-rustore-privacy-patches-bundle-morphe)
+<details>
+<summary><b>RuStore-Privacy</b> - 9 patches, 1 app</summary>
+
+| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
+|----------|---------------|---------------------|-------------------------|
+| ```Disable advertisements``` | ```Removes ad providers and ad identifiers, returns an empty ad list, and keeps advertising consent disabled.``` | ```RuStore``` | ```All versions``` |
+| ```Disable analytics and trackers``` | ```Disables AppMetrica, MyTracker, AltCraft, Radar, install referrer, metrics, and audited logging transports.``` | ```RuStore``` | ```All versions``` |
+| ```Disable background hooks``` | ```Disables audited boot, network-state, VPN, and Connect session hooks.``` | ```RuStore``` | ```All versions``` |
+| ```Disable invasive permissions``` | ```Removes privileged install, location, storage, billing, USB, and vendor data access while preserving user-driven installs.``` | ```RuStore``` | ```All versions``` |
+| ```Disable Kaspersky background scan``` | ```Disables periodic Kaspersky scheduling and reports disabled workers as successfully completed.``` | ```RuStore``` | ```All versions``` |
+| ```Disable push services``` | ```Disables RuStore and VK push initialization, services, and audited push receivers.``` | ```RuStore``` | ```All versions``` |
+| ```Disable verification hooks``` | ```Disables audited SMS, call, phone-state, SID, and Mail.ru verification hooks.``` | ```RuStore``` | ```All versions``` |
+| ```Hide gaming profile``` | ```Removes the gaming profile permission, hides both gaming buttons, and blocks navigation to the gaming profile.``` | ```RuStore``` | ```All versions``` |
+| ```Skip update authentication``` | ```Skips the update authentication suggestion and returns a valid completed result.``` | ```RuStore``` | ```All versions``` |
+
+</details>
+
+---
+### 🧩 Abhishek-Bhujang Bundle Patch List:
+[📦 Abhishek-Bhujang-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-abhishek-bhujang-patches-bundle-morphe)
+<details>
+<summary><b>Abhishek-Bhujang</b> - 2 patches, 2 apps</summary>
+
+| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
+|----------|---------------|---------------------|-------------------------|
+| ```Unlock Pro``` | ```Unlocks all Pro features, taals, variations, scales, and removes ads.``` | ```com.psslabs.rhythm``` | ```All versions``` |
+| ```Remove Ads``` | ```Removes all banner ads, interstitial ads, open app ads, and enables permanent ad-free status.``` | ```harmonium.music.gameg.real.harmoniumfree``` | ```All versions``` |
+
+</details>
+
+---
+### 🧩 MauroGamerVN Bundle Patch List:
+[📦 MauroGamerVN-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-maurogamervn-patches-bundle-morphe)
+<details>
+<summary><b>MauroGamerVN</b> - 1 patch, 1 app</summary>
+
+| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
+|----------|---------------|---------------------|-------------------------|
+| ```Disable ads``` | ```Elimina anuncios de banner, interstitial, rewarded y app-open (AdMob).``` | ```Multi Run - Parallel Dual App``` | ```All versions``` |
 
 </details>

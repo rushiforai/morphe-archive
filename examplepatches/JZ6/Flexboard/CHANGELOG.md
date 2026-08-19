@@ -1,3 +1,62 @@
+# [1.1.1](https://github.com/JZ6/Flexboard/compare/v1.1.1-dev.2...v1.1.1) (2026-08-19)
+
+* **Gboard:** bump to 1.1.1
+
+# [1.1.1-dev.2](https://github.com/JZ6/Flexboard/compare/v1.1.1-dev.1...v1.1.1-dev.2) (2026-08-18)
+
+* **Gboard:** bump to 1.1.1-dev.2
+* **Gboard:** give a fold's two screens their own toolbar counts
+
+# [1.1.1-dev.1](https://github.com/JZ6/Flexboard/compare/v1.1.0...v1.1.1-dev.1) (2026-08-18)
+
+* **Gboard:** bump to 1.1.1-dev.1
+* **Gboard:** tools: match stripped drawables against Material Icons by geometry
+* **Gboard:** record that the toolbar slider collapses a fold's two counts into one
+* **Gboard:** give Select all its own icon
+* **Gboard:** raise the toolbar slider's maximum to 12
+
+# [1.1.0](https://github.com/JZ6/Flexboard/compare/v1.1.0-dev.3...v1.1.0) (2026-08-18)
+
+* **Gboard:** bump to 1.1.0
+* **Gboard:** record that Bigger Toolbar works on a device
+
+# [1.1.0-dev.3](https://github.com/JZ6/Flexboard/compare/v1.1.0-dev.2...v1.1.0-dev.3) (2026-08-18)
+
+* **Gboard:** bump to 1.1.0-dev.3
+* **Gboard:** make Bigger Toolbar move the count, not the capacity
+* **Gboard:** correct what the signature bypass actually gates
+* **Gboard:** add a Select all button to the toolbar
+
+# [1.1.0-dev.2](https://github.com/JZ6/Flexboard/compare/v1.1.0-dev.1...v1.1.0-dev.2) (2026-08-18)
+
+* **Gboard:** bump to 1.1.0-dev.2
+* **Gboard:** withhold Bigger Toolbar, which does not work on device
+* **Gboard:** default the swipe length to Gboard's own distance
+* **Gboard:** sync the gradle wrapper with the template
+
+# [1.1.0-dev.1](https://github.com/JZ6/Flexboard/compare/v1.0.1-dev.2...v1.1.0-dev.1) (2026-08-18)
+
+* **Gboard:** bump to 1.1.0-dev.1
+* **Gboard:** make the toolbar's icon count adjustable
+* **Gboard:** keep Gboard's own behaviour for swipes from the backspace key
+* **Gboard:** update the roadmap
+* **Gboard:** remove the master and undo switches
+
+# [1.0.1](https://github.com/JZ6/Flexboard/compare/v1.0.1-dev.2...v1.0.1) (2026-08-18)
+
+* **Gboard:** 1.0.1 release
+
+# [1.0.1-dev.2](https://github.com/JZ6/Flexboard/compare/v1.0.1-dev.1...v1.0.1-dev.2) (2026-08-17)
+
+* **Gboard:** bump 1.0.1-dev.2
+* **Gboard:** track the swipe across the full keyboard height
+
+# [1.0.1-dev.1](https://github.com/JZ6/Flexboard/compare/v1.0.0...v1.0.1-dev.1) (2026-08-17)
+
+* **Gboard:** bump to 1.0.1-dev.1
+* **Gboard:** derive the obfuscated names that have look-alike siblings
+* **Gboard:** add welcome video
+
 # [1.0.0](https://github.com/JZ6/Flexboard/compare/v1.0.0-dev.1...v1.0.0) (2026-08-17)
 
 * **Gboard:** bump to 1.0.0

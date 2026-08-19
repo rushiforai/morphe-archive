@@ -30,7 +30,7 @@ Each target app has metadata in `config/apps/<app_id>.yaml`:
 
 Copy `config/apps/_template.yaml` for a new app. Config tells you **where things are**, not **what to patch**.
 
-Current apps: `meteo3b` (3B Meteo — reference implementation).
+Current apps: `meteo3b` (3B Meteo — reference implementation), `electron` (battery health info).
 
 ## Sandbox layout
 
@@ -110,10 +110,20 @@ Extensions (`.mpe` Java modules) live in `extensions/extension/` — only needed
 
 ## Release rules
 
-- Develop on `dev` branch; merge to `main` for stable releases
+This is a personal repo: **one branch (`main`) only**. There is no `dev` branch, prerelease flow, or backmerge — push to `main` and semantic-release handles versioning.
+
+- Develop on `main`; semantic-release publishes from pushes to `main`
 - Use [conventional commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `bump:`)
 - **Never hand-edit** `patches-list.json`, `patches-bundle.json`, or `CHANGELOG.md` — semantic-release generates them
 - CI runs `./gradlew :patches:buildAndroid` on non-release pushes
+
+## License and attribution
+
+Fork of [Morphe patches template](https://github.com/MorpheApp/morphe-patches-template). GPL-3.0 — see `LICENSE` and `NOTICE`.
+
+- Credit Morphe contributors for template-derived tooling; credit modifications in `NOTICE` / README
+- Product name: **Riky's Morphe Patches** (distinct from Morphe itself; see `NOTICE` branding rules)
+- Erasing git history is fine for GPL if distributed source keeps notices and states modifications
 
 ## Prerequisites
 

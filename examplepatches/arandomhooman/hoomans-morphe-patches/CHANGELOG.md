@@ -1,3 +1,31 @@
+## [1.50.3](https://github.com/arandomhooman/hoomans-morphe-patches/compare/v1.50.2...v1.50.3) (2026-08-19)
+
+### 🐛 Bug Fixes
+
+* drop server-inserted sponsored timeline cards in Tumblr Remove ads ([9e872d0](https://github.com/arandomhooman/hoomans-morphe-patches/commit/9e872d037671e4edb3580c6eb5714ac7de2f169e))
+
+## [1.50.2](https://github.com/arandomhooman/hoomans-morphe-patches/compare/v1.50.1...v1.50.2) (2026-08-18)
+
+### 🐛 Bug Fixes
+
+* clarify Twitch 7TV and BTTV patch details ([702146d](https://github.com/arandomhooman/hoomans-morphe-patches/commit/702146df60fa1ffc9c8b76ef52ba50510252c625))
+
+## [1.50.1](https://github.com/arandomhooman/hoomans-morphe-patches/compare/v1.50.0...v1.50.1) (2026-08-18)
+
+### 🐛 Bug Fixes
+
+* stop the Twitch 7TV/BTTV emotes patch from breaking chat ([57d24ee](https://github.com/arandomhooman/hoomans-morphe-patches/commit/57d24ee1cec93c34622613d0cf749ba6311767f2))
+
+## [1.50.0](https://github.com/arandomhooman/hoomans-morphe-patches/compare/v1.49.1...v1.50.0) (2026-08-18)
+
+### ✨ New Features
+
+* support Adobe Acrobat 26.7.1.47181 ([ca40497](https://github.com/arandomhooman/hoomans-morphe-patches/commit/ca404977baf342a1d73b2a93975471a1104899cd))
+* support Cashew 6.6.11 ([8e7cc11](https://github.com/arandomhooman/hoomans-morphe-patches/commit/8e7cc113dcc8ba7009f89c195859214c1d999bec))
+* support Collectr 2.5.6 ([1f54080](https://github.com/arandomhooman/hoomans-morphe-patches/commit/1f54080d4a8db9b1f9a954424703f8b105f21672))
+* support Cronometer 4.57.2 ([bbf8199](https://github.com/arandomhooman/hoomans-morphe-patches/commit/bbf81998808855ac92ed979c80ca5cb249f0a050))
+* support FolderSync 4.12.0 ([1d08212](https://github.com/arandomhooman/hoomans-morphe-patches/commit/1d08212f96c64d1569eafee1a8e3284f48318d3d))
+
 ## [1.49.1](https://github.com/arandomhooman/hoomans-morphe-patches/compare/v1.49.0...v1.49.1) (2026-08-17)
 
 ### 🐛 Bug Fixes

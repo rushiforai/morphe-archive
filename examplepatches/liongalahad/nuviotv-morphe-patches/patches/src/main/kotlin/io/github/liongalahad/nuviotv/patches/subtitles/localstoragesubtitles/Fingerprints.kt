@@ -183,19 +183,6 @@ internal object SubtitleTextDownloaderFingerprint : Fingerprint(
         "User-Agent",
         "text/plain, text/vtt, application/x-subrip, */*"
     ),
-    filters = listOf(
-        methodCall(
-            definingClass = "Lokhttp3/Request\$Builder;",
-            name = "url",
-            parameters = listOf("Ljava/lang/String;"),
-            returnType = "Lokhttp3/Request\$Builder;"
-        ),
-        methodCall(
-            definingClass = "Lokhttp3/ResponseBody;",
-            name = "string",
-            returnType = "Ljava/lang/String;"
-        )
-    ),
     custom = { method, _ ->
         method.parameterNames().let {
             it.size == 2 && it[1] == "Ljava/lang/String;"

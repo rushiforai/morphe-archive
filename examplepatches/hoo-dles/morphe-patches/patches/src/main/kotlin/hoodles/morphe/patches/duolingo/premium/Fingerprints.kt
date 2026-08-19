@@ -11,6 +11,7 @@ import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.opcode
 import app.morphe.patcher.string
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
 // Matches LoggedInState.toString()
@@ -24,13 +25,12 @@ object UserFingerprint : Fingerprint(
 )
 
 object UserIsPaidFieldUsageFingerprint : Fingerprint(
-    parameters = listOf("Lcom/duolingo/data/user/User;", "Lcom/duolingo/data/home/CoursePathInfo;", "Z", "Lcom/duolingo/core/experiments/ExperimentsRepository\$TreatmentRecord;"),
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     returnType = "Z",
+    parameters = listOf("Lcom/duolingo/data/user/User;", "L"),
     filters = listOf(
-        fieldAccess(
-            definingClass = "Lcom/duolingo/data/user/User;",
-            type = "Z"
-        )
+        methodCall(name = "getClass"),
+        fieldAccess(definingClass = "Lcom/duolingo/data/user/User;")
     )
 )
 
@@ -69,3 +69,9 @@ fun getVideoCallTabCtaButtonStateFieldFingerprint(field: String) : Fingerprint {
         )
     )
 }
+
+object EnergyConfigCtorFingerprint : Fingerprint(
+    definingClass = "Lcom/duolingo/core/energy/models/EnergyConfig;",
+    name = "<init>",
+    parameters = listOf("I", "I", "J", "J", "J", "I", "J")
+)

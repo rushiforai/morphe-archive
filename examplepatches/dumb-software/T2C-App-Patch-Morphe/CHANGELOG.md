@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/dumb-software/T2C-App-Patch-Morphe/compare/v1.5.0...v1.6.0) (2026-08-18)
+
+
+### Features
+
+* **compatibility:** support T2C app v3.2.2 and update microservices endpoints ([ecd5219](https://github.com/dumb-software/T2C-App-Patch-Morphe/commit/ecd52195b0a9b5228968ccad29ecad768b348c34))
+
 # [1.5.0](https://github.com/dumb-software/T2C-App-Patch-Morphe/compare/v1.4.0...v1.5.0) (2026-06-23)
 
 

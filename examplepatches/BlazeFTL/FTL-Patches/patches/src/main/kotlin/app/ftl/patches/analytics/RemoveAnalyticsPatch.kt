@@ -12,6 +12,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import kotlin.random.Random
 import org.w3c.dom.Element
 
 internal object FirebaseAnalyticsLogEventFingerprint : Fingerprint(
@@ -97,21 +98,160 @@ internal val ANALYTICS_STRING_BLACKLIST = listOf(
     "YandexMetricaNativeModule",
 )
 
-private const val ANALYTICS_STRING_REPLACEMENT = ""
-
-// SDK's own bytecode: entry points already stubbed via fingerprints above.
-// Poisoning strings inside the SDK's own internals can break its init-time
-// validation and crash the app before any tracking call is even made.
-private val ANALYTICS_SDK_PACKAGE_PREFIXES = listOf(
-    "Lcom/google/firebase/",
-    "Lcom/google/android/gms/analytics/",
-    "Lcom/google/android/gms/measurement/",
-    "Lcom/google/android/gms/internal/measurement/",
-    "Lcom/flurry/android/",
-    "Lcom/yandex/metrica/",
-    "Lcom/appsflyer/",
-    "Lcom/adjust/sdk/",
+// Ad-SDK keyword list, ported verbatim from Mpatch's AntiAnalytics blocklist.
+// In the original tool this list is only ever checked against strings that
+// start with "http://"/"https://" (its source regex is `https?://.*(term).*`).
+// Bare terms like "admob"/"branch"/"azure"/"adsdk"/"analytics"/"measurement"
+// also collide with internal SDK config keys, adapter class names, and plain
+// English words (e.g. "appenda" ⊂ "appendable") when matched outside that
+// URL context — see isBlockedAnalyticsLiteral below, which enforces it.
+internal val AD_SDK_STRING_BLACKLIST = listOf(
+    "61.145.124.238",
+    "ad.api.kaffnet",
+    "ad.mail.ru",
+    "ad.myinstashot.com",
+    "adc3-launch",
+    "adbuddiz",
+    "adcolony",
+    "addapptr",
+    "adincube",
+    "adjust",
+    "adkmob",
+    "adknowledge",
+    "admarvel",
+    "admob",
+    "admost",
+    "adnw_logging",
+    "adsafeprotected",
+    "adsdk",
+    "adsert",
+    "adserver",
+    "adservice",
+    "advertising",
+    "adview",
+    "adz.wattpad",
+    "aerserv",
+    "airpush",
+    "altamob",
+    "alta.eqmob",
+    "amazon-adsystem",
+    "amazonaws",
+    "analytics",
+    "appAdForce",
+    "appboy",
+    "appbrain",
+    "appenda",
+    "appia",
+    "applifier.com",
+    "applovin",
+    "applvn",
+    "appnext",
+    "appnexus",
+    "appodeal",
+    "apprupt",
+    "apsalar",
+    "appsdt",
+    "appsflyer",
+    "avocarrot",
+    "azure",
+    "boxdigital/sdk/ad",
+    "branch",
+    "ca-app-pub",
+    "certificate.mobile.yandex.net",
+    "chartboost",
+    "cloudfront",
+    "code.google.com/p/android/issues/detail",
+    "crashlytics",
+    "csi.gstatic.com",
+    "doubleclick.net",
+    "dsp.batmobil",
+    "duapps",
+    "firebaseapp",
+    "flurry",
+    "fyber",
+    "g.doubleclick",
+    "google/android/gms/internal",
+    "google.com/safebrowsing/clientreport",
+    "googleapis.com/auth/games",
+    "googleads",
+    "googlesyndication",
+    "graph.facebook",
+    "greystripe",
+    "heyzap",
+    "hockeyapp",
+    "hyprmx",
+    "InlineAd",
+    "inmobi",
+    "inneractive",
+    "instreamatic",
+    "integralads",
+    "ironsource",
+    "jirbo",
+    "jumptap",
+    "kochava",
+    "Leadbolt",
+    "localytics",
+    "loopme",
+    "madnet.ru",
+    "mdotm",
+    "measurement",
+    "mediabrix",
+    "metrica",
+    "millennialmedia",
+    "mngads",
+    "moat",
+    "mobclix",
+    "mobfox",
+    "mobvista",
+    "montexi",
+    "moolah",
+    "mopub",
+    "mp.mydas.mobi",
+    "my/target",
+    "NativeInterstitial",
+    "net.rayjump",
+    "network_ads_common",
+    "nexage",
+    "onelouder/adlib",
+    "openx",
+    "pagead/ads",
+    "plus1.wapstart.ru",
+    "pubmatic",
+    "pubnative",
+    "r.my.com/mobile",
+    "revmob",
+    "sb.scorecardresearch",
+    "smaato/SOMA",
+    "startapp",
+    "startup.mobile.yandex.net",
+    "supersonicads",
+    "tagmanager",
+    "tapas",
+    "tapjoy",
+    "udm.scorecardresearch",
+    "unity3d/ads",
+    "unityads",
+    "vdopia",
+    "vungle",
+    "www.dummy",
+    "wzrkt",
+    "xtify",
+    "yandexadexchange",
+    "zestadz",
 )
+
+private val URL_SCHEME_PREFIXES = listOf("http://", "https://")
+
+private fun String.isBlockedAnalyticsLiteral(): Boolean =
+    ANALYTICS_STRING_BLACKLIST.any { contains(it, ignoreCase = true) } ||
+        (URL_SCHEME_PREFIXES.any { startsWith(it, ignoreCase = true) } &&
+            AD_SDK_STRING_BLACKLIST.any { contains(it, ignoreCase = true) })
+
+private const val RANDOM_STRING_CHARSET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+private const val RANDOM_STRING_LENGTH = 7
+
+private fun randomAnalyticsReplacement(): String =
+    (1..RANDOM_STRING_LENGTH).map { RANDOM_STRING_CHARSET[Random.nextInt(RANDOM_STRING_CHARSET.length)] }.joinToString("")
 
 private fun isConstString(opcode: Opcode) =
     opcode == Opcode.CONST_STRING || opcode == Opcode.CONST_STRING_JUMBO
@@ -130,7 +270,7 @@ private fun isSignatureVerifyCall(reference: MethodReference) =
 // pulls it in via dependsOn), so it doesn't show as its own toggle in the UI.
 val stripFirebaseManifestComponentsPatch = resourcePatch(
     name = null,
-    description = "Removes Firebase Analytics/Crashlytics receiver and service declarations from AndroidManifest.xml.",
+    description = "Removes Firebase Analytics/Crashlytics provider, receiver, and service declarations from AndroidManifest.xml.",
 ) {
     execute {
         document("AndroidManifest.xml").use { document ->
@@ -141,6 +281,14 @@ val stripFirebaseManifestComponentsPatch = resourcePatch(
             for (i in 0 until children.length) {
                 val node = children.item(i) as? Element ?: continue
                 when (node.tagName) {
+                    // FirebaseInitProvider runs before Application.onCreate() and
+                    // kicks off all Firebase auto-init/auto-collection on its own —
+                    // stubbing logEvent() etc. does nothing to stop this.
+                    "provider" -> {
+                        if (node.getAttribute("android:name").startsWith("com.google.firebase")) {
+                            toRemove += node
+                        }
+                    }
                     "receiver" -> {
                         if (node.getAttribute("android:name").startsWith("com.google.firebase")) {
                             toRemove += node
@@ -181,15 +329,11 @@ val removeAnalyticsPatch = bytecodePatch(
         AdjustTrackEventFingerprint.methodOrNull?.addInstructions(0, "return-void")
 
         classDefForEach { classDef ->
-            val isSdkInternal = ANALYTICS_SDK_PACKAGE_PREFIXES.any { classDef.type.startsWith(it) }
-
-            val hasStringMatch = !isSdkInternal && classDef.methods.any { method ->
+            val hasStringMatch = classDef.methods.any { method ->
                 (method.instructionsOrNull ?: emptyList()).any { instruction ->
                     isConstString(instruction.opcode) &&
-                        ANALYTICS_STRING_BLACKLIST.any { term ->
-                            ((instruction as ReferenceInstruction).reference as StringReference)
-                                .string.contains(term, ignoreCase = true)
-                        }
+                        ((instruction as ReferenceInstruction).reference as StringReference)
+                            .string.isBlockedAnalyticsLiteral()
                 }
             }
 
@@ -207,13 +351,13 @@ val removeAnalyticsPatch = bytecodePatch(
             if (!hasStringMatch && !hasSignatureVerifyCall) return@classDefForEach
 
             mutableClassDefBy(classDef).methods.forEach { method ->
-                if (!isSdkInternal) {
+                if (hasStringMatch) {
                     (method.instructionsOrNull ?: emptyList()).forEachIndexed { index, instruction ->
                         if (!isConstString(instruction.opcode)) return@forEachIndexed
                         val value = ((instruction as ReferenceInstruction).reference as StringReference).string
-                        if (ANALYTICS_STRING_BLACKLIST.none { value.contains(it, ignoreCase = true) }) return@forEachIndexed
+                        if (!value.isBlockedAnalyticsLiteral()) return@forEachIndexed
                         val register = (instruction as OneRegisterInstruction).registerA
-                        method.replaceInstruction(index, "const-string v$register, \"$ANALYTICS_STRING_REPLACEMENT\"")
+                        method.replaceInstruction(index, "const-string v$register, \"${randomAnalyticsReplacement()}\"")
                     }
                 }
 

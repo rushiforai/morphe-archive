@@ -77,15 +77,17 @@ private const val RESOURCE_ID_REGISTER =
 and assert the frame rather than adapting to it, so a Gboard change fails loudly instead of
 silently writing to the wrong register.
 
-## Why upstream never hit it
-Two reasons:
+## Why an emitter can avoid this by accident
 
-- it resolves `pN` to a concrete `vN` before emitting, through a register contract that records
-  the mapping explicitly (`legacyP0Register = 14` … `legacyP3Register = 17`)
-- its delegates read coordinates from low locals `v0`/`v1` rather than from parameters
+Two properties keep every emitted call inside 35c's range, and an emitter with both will never see
+the fault:
 
-Which puts every emitted call inside 35c's range — by exactly one register. Inheriting the
-emitter without inheriting the contract is what exposed the bug.
+- resolving `pN` to a concrete `vN` before emitting, through a register contract that records the
+  mapping explicitly
+- delegates that read coordinates from low locals `v0`/`v1` rather than from parameters
+
+Here the margin was exactly one register. Writing an emitter without that contract is what exposed
+it.
 
 ## Guarding it
 

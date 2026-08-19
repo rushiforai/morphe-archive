@@ -36,7 +36,7 @@ internal object MetaRatingGetterFingerprint : Fingerprint(
 
 /** Modern Continue Watching and Upcoming mapper, whose ratings do not use MetaPreview. */
 internal object ModernContinueWatchingRatingFingerprint : Fingerprint(
-    filters = listOf(literal(0x7f110360)),
+    filters = listOf(literal(0x7f110381)),
     custom = { method, _ ->
         val parameters = method.parameterNames()
         method.returnType != "V" && parameters.size == 5 &&
@@ -70,7 +70,7 @@ internal object EpisodeCardRatingFingerprint : Fingerprint(
 /** Episode ratings tab renderer, gated off completely in Hide mode. */
 internal object EpisodeRatingsSectionFingerprint : Fingerprint(
     returnType = "V",
-    filters = listOf(literal(0x7f11087e)),
+    filters = listOf(literal(0x7f1108ad)),
     custom = { method, _ ->
         val parameters = method.parameterNames()
         parameters.size >= 10 && parameters[0] == "Ljava/util/List;" &&
@@ -81,7 +81,7 @@ internal object EpisodeRatingsSectionFingerprint : Fingerprint(
 
 internal object MetaDetailsContentFingerprint : Fingerprint(
     returnType = "V",
-    filters = listOf(literal(0x7f110472)),
+    filters = listOf(literal(0x7f110493)),
     custom = { method, _ ->
         val parameters = method.parameterNames()
         parameters.size > 90 && parameters[1] == META &&

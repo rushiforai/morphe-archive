@@ -4,7 +4,7 @@
 
 APP ?= meteo3b
 
-.PHONY: help check fetch extract decompile analyze build verify
+.PHONY: help check fetch extract decompile analyze build verify check-apk spoof-crc
 
 help:
 	@echo "Targets (set APP=<app_id>, default: meteo3b):"
@@ -15,6 +15,8 @@ help:
 	@echo "  make analyze APP=meteo3b    Write optional analysis hints"
 	@echo "  make build                  Build patches .mpp"
 	@echo "  make verify APP=meteo3b     Apply .mpp to base APK"
+	@echo "  make check-apk APK=... APP=meteo3b  Smali-check a Morphe-patched APK"
+	@echo "  make spoof-crc ORIG=... PATCHED=...  Copy original CRC onto patched APK"
 
 check:
 	@scripts/check_env.sh
@@ -36,3 +38,11 @@ build:
 
 verify:
 	@scripts/verify_patch.sh $(APP)
+
+check-apk:
+	@test -n "$(APK)" && test -n "$(APP)" || (echo "Usage: make check-apk APK=/path/to/patched.apk APP=meteo3b" && exit 1)
+	@scripts/check_patched_apk.sh "$(APK)" $(APP)
+
+spoof-crc:
+	@test -n "$(ORIG)" && test -n "$(PATCHED)" || (echo "Usage: make spoof-crc ORIG=base.apk PATCHED=patched.apk [OUT=out.apk]" && exit 1)
+	@python3 scripts/spoof_apk_crc.py "$(ORIG)" "$(PATCHED)" $(if $(OUT),-o "$(OUT)",)

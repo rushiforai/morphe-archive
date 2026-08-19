@@ -23,7 +23,6 @@ public class EnablePremiumPatch {
         // Patch `hasAny()` function
         put(Pattern.compile("\\w+\\.get\\(`subscription`\\)!==null,"), "true,");
         // Patch logic run when null subscription is set
-        put(Pattern.compile("\\w+\\.set\\(`detail1h`,!1\\),"), "");
         put(Pattern.compile("set\\(`subscription`,null\\),"), "set(\"subscription\",\"premium\"),");
         put(Pattern.compile("\\w+&&document\\.body\\.classList\\.remove\\(`subs-\\$\\{\\w+\\}`\\),"), "document.body.classList.add(\"subs-premium\"),");
     }};

@@ -15,10 +15,14 @@ import dev.jz6.flexboard.patches.features.scrubdelete.HANDLER_CONTEXT_FIELD
 import dev.jz6.flexboard.patches.features.scrubdelete.HANDLER_CONTEXT_FIELD_NAME
 import dev.jz6.flexboard.patches.features.scrubdelete.HANDLER_CONTEXT_OWNER
 import dev.jz6.flexboard.patches.features.scrubdelete.INTEGER_VALUE_OF
-import dev.jz6.flexboard.patches.features.scrubdelete.PREFERENCE_GET_INT
+import dev.jz6.flexboard.patches.features.scrubdelete.checkPreferenceStorePins
+import dev.jz6.flexboard.patches.features.scrubdelete.resolvePreferenceGetInt
 import dev.jz6.flexboard.patches.features.scrubdelete.PREFERENCE_STORE_GET
 import dev.jz6.flexboard.patches.features.scrubdelete.SCRUB_DELETE_MOTION_EVENT_HANDLER
 import dev.jz6.flexboard.patches.features.scrubdelete.SCRUB_MOTION_EVENT_HANDLER
+import dev.jz6.flexboard.patches.features.scrubdelete.StartKeyChain
+import dev.jz6.flexboard.patches.features.scrubdelete.branchOnStartKey
+import dev.jz6.flexboard.patches.features.scrubdelete.resolveStartKeyChain
 import dev.jz6.flexboard.patches.features.scrubdelete.ScrubDeleteConstructorFingerprint
 import dev.jz6.flexboard.patches.features.scrubdelete.ScrubDispatchFingerprint
 import dev.jz6.flexboard.patches.features.scrubdelete.ScrubEngineConstructorFingerprint
@@ -68,9 +72,16 @@ internal val scrubTuningPatch = bytecodePatch(
     extendWith("extensions/extension.mpe")
 
     execute {
+        checkPreferenceStorePins()
+
+        // Resolved once and handed to both edits below. Reading it is what lets them ask, mid
+        // gesture, which key the finger went down on — see `scrubdelete/StartKey.kt`.
+        val startKey = resolveStartKeyChain()
+
         ScrubEngineConstructorFingerprint.method.substituteHoldDelay(this)
         ScrubDeleteConstructorFingerprint.method.scaleStepTable(this)
-        ScrubDispatchFingerprint.method.capWordCount(this)
+        ScrubDispatchFingerprint.method.useStockDistanceFromBackspace(this, startKey)
+        ScrubDispatchFingerprint.method.capWordCount(this, startKey)
     }
 }
 
@@ -89,17 +100,25 @@ internal const val HOLD_DELAY_KEY = "flexboard_scrub_hold_ms"
 internal const val MAX_WORDS_KEY = "flexboard_max_words"
 
 /**
- * Percent of Gboard's own swipe distance. A shorter swipe per word is the point of the gesture —
- * Gboard's stock distance assumes a thumb travelling from the backspace key, which is exactly the
- * journey this patch removes.
+ * Percent of Gboard's own swipe distance. Ships at Gboard's own value, so the gesture is the one
+ * Gboard built and the slider is what shortens it — a shorter swipe per word is available to anyone
+ * who wants it, rather than assumed for everyone.
+ *
+ * This was 36 up to `1.1.0-dev.1`, on the reasoning that Gboard's distance assumes a thumb
+ * travelling from the backspace key and a gesture starting under your thumb wants less. That is
+ * sound in principle and turned out to be too aggressive in practice.
  */
-internal const val STEP_SCALE_DEFAULT = 36
+internal const val STEP_SCALE_DEFAULT = 100
 
 /**
  * The percentage at which scaling is a no-op, so the table is left alone rather than multiplied by
- * 1.0. **Not the default**: these were one constant until the default moved off 100, at which point
- * sharing them would have made the new default mean "do nothing" — the one value asked for being the
- * one value with no effect.
+ * 1.0.
+ *
+ * **Deliberately a separate constant from [STEP_SCALE_DEFAULT] even though the two now hold the same
+ * number.** They were one constant once; when the default moved off 100 that made the sentinel
+ * follow it, so the one value the user had asked for became the one value with no effect. The
+ * default has since come back to 100, which makes them look redundant — they are not. Splitting
+ * them is what lets the default move again without dragging the sentinel along.
  */
 internal const val STEP_SCALE_IDENTITY = 100
 
@@ -159,6 +178,10 @@ private const val STEPS_DONE_LABEL = "flexboard_steps_done"
  * id can silently mislead it.
  */
 private fun MutableMethod.substituteHoldDelay(context: BytecodePatchContext) {
+    // Resolved, not named: the store has a second (String, I)I method that reads the value as
+    // text and parses it. Emitting that one would compile, verify and quietly parse a
+    // preference that was never written as a string.
+    val getInt = context.resolvePreferenceGetInt()
     val registerCount = implementation?.registerCount
         ?: error("$THREE_ARGUMENT_ENGINE_CONSTRUCTOR has no implementation")
     check(registerCount == ENGINE_CONSTRUCTOR_REGISTER_COUNT) {
@@ -207,7 +230,7 @@ private fun MutableMethod.substituteHoldDelay(context: BytecodePatchContext) {
             move-result-object v$scratchRegister
             const-string v$delayRegister, "$HOLD_DELAY_KEY"
             const/16 v$delayHigh, $HOLD_DELAY_DEFAULT
-            invoke-virtual { v$scratchRegister, v$delayRegister, v$delayHigh }, $PREFERENCE_GET_INT
+            invoke-virtual { v$scratchRegister, v$delayRegister, v$delayHigh }, $getInt
             move-result v$scratchRegister
             int-to-long v$delayRegister, v$scratchRegister
         """,
@@ -245,6 +268,10 @@ private fun MutableMethod.substituteHoldDelay(context: BytecodePatchContext) {
  * static* fallback, so the scaling is skipped rather than corrupting global state.
  */
 private fun MutableMethod.scaleStepTable(context: BytecodePatchContext) {
+    // Resolved, not named: the store has a second (String, I)I method that reads the value as
+    // text and parses it. Emitting that one would compile, verify and quietly parse a
+    // preference that was never written as a string.
+    val getInt = context.resolvePreferenceGetInt()
     val registerCount = implementation?.registerCount
         ?: error("$SCRUB_DELETE_MOTION_EVENT_HANDLER-><init> has no implementation")
     check(registerCount == DELETE_CONSTRUCTOR_REGISTER_COUNT) {
@@ -298,7 +325,7 @@ private fun MutableMethod.scaleStepTable(context: BytecodePatchContext) {
             move-result-object v$store
             const-string v$table, "$STEP_SCALE_KEY"
             const/16 v$length, $STEP_SCALE_DEFAULT
-            invoke-virtual { v$store, v$table, v$length }, $PREFERENCE_GET_INT
+            invoke-virtual { v$store, v$table, v$length }, $getInt
             move-result v$store
             const/16 v$table, $STEP_SCALE_IDENTITY
             if-eq v$store, v$table, :$STEPS_DONE_LABEL
@@ -357,7 +384,14 @@ private fun MutableMethod.scaleStepTable(context: BytecodePatchContext) {
  * opcode bytes directly — `binop2addrb2` is `0xb2` and `binop92` is `0x92` — and the Dalvik spec
  * fixes those as `mul-int/2addr` and `mul-int`.
  */
-private fun MutableMethod.capWordCount(context: BytecodePatchContext) {
+private fun MutableMethod.capWordCount(
+    context: BytecodePatchContext,
+    startKey: StartKeyChain,
+) {
+    // Resolved, not named: the store has a second (String, I)I method that reads the value as
+    // text and parses it. Emitting that one would compile, verify and quietly parse a
+    // preference that was never written as a string.
+    val getInt = context.resolvePreferenceGetInt()
     val registerCount = implementation?.registerCount
         ?: error("$SCRUB_MOTION_EVENT_HANDLER->r has no implementation")
     check(registerCount == DISPATCH_REGISTER_COUNT) {
@@ -437,11 +471,14 @@ private fun MutableMethod.capWordCount(context: BytecodePatchContext) {
     producers.sortedDescending().forEachIndexed { ordinal, producerIndex ->
         val done = "${CAP_DONE_LABEL}_$ordinal"
         val low = "${CAP_LOW_LABEL}_$ordinal"
+        val clamp = "${CAP_CLAMP_LABEL}_$ordinal"
         val resume = instructions[producerIndex + 1]
 
         addInstructionsWithLabels(
             producerIndex + 1,
             """
+                ${startKey.branchOnStartKey(thisRegister, store, key, done, clamp)}
+                :$clamp
                 iget-object v$store, v$thisRegister, $CONFIG_FIELD
                 iget v$store, v$store, $CONFIG_START_KEY_FIELD
                 if-gez v$store, :$done
@@ -450,7 +487,7 @@ private fun MutableMethod.capWordCount(context: BytecodePatchContext) {
                 move-result-object v$store
                 const-string v$key, "$MAX_WORDS_KEY"
                 const/16 v$limit, $MAX_WORDS_DEFAULT
-                invoke-virtual { v$store, v$key, v$limit }, $PREFERENCE_GET_INT
+                invoke-virtual { v$store, v$key, v$limit }, $getInt
                 move-result v$store
                 const/16 v$key, $MAX_WORDS_NO_LIMIT
                 if-ge v$store, v$key, :$done
@@ -487,6 +524,149 @@ private const val EXPECTED_COUNT_PRODUCERS = 2
 
 private const val CAP_DONE_LABEL = "flexboard_capped"
 private const val CAP_LOW_LABEL = "flexboard_cap_low"
+private const val CAP_CLAMP_LABEL = "flexboard_clamp"
+
+/**
+ * Scratch for the distance edit, which inserts **earlier** in `r()` than the clamp does and cannot
+ * reuse [CLAMP_SCRATCH_REGISTERS] — v5 is still live there, carrying the -1 the count multiply
+ * consumes.
+ *
+ * Established by backward liveness across the whole method, not by reading forward from the
+ * insertion point. That distinction is not pedantry: reading forward says v3 is free, because the
+ * `add-int/lit8` at the head of the table walk writes it. It is **wrong**. The `if-gt` guarding the
+ * walk branches straight past that write to the extrapolation path, which reads v3 as the previous
+ * bucket's threshold — zero, on the first iteration, from the `const/4` above. Borrowing v3 would
+ * have silently corrupted the extrapolated word count for swipes past the end of the table, on a
+ * path that only fires for long swipes. Nothing would have crashed.
+ *
+ * At the delta subtraction, v6 through v9 are all genuinely dead on every path. Three are taken
+ * here and v6 left alone, since the next instruction overwrites it anyway.
+ */
+private val DISTANCE_SCRATCH_REGISTERS = listOf(7, 8, 9)
+
+/** Unique in `r()`, and its `move-result` is the magnitude the table walk consumes. */
+private const val MATH_ABS_FLOAT = "Ljava/lang/Math;->abs(F)F"
+
+private const val STOCK_DISTANCE_LABEL = "flexboard_stock_distance"
+private const val SCALE_DELTA_LABEL = "flexboard_scale_delta"
 
 /** A `35c` invoke addresses its registers in 4-bit nibbles, so v15 is the highest usable one. */
 private const val PACKED_INVOKE_REGISTER_LIMIT = 16
+
+/**
+ * Gives a swipe that started on the backspace key Gboard's own distance per word, undoing
+ * [scaleStepTable] for that one case.
+ *
+ * ## Why a multiply rather than a second table
+ *
+ * [scaleStepTable] rewrites `Lpvs;->h:[F` in place at construction, so by the time `r()` walks the
+ * table the stock thresholds are gone. Restoring them would mean keeping a copy and swapping which
+ * array the walk reads — two arrays to maintain, and a field to swap them through.
+ *
+ * The arithmetic makes that unnecessary. The walk compares `|delta|` against the table, and the
+ * table has been multiplied through by `scale/100`. Comparing `|delta| · scale/100` against
+ * `T · scale/100` is the same test as comparing `|delta|` against `T`, so multiplying the delta by
+ * the *same* factor exactly recovers the stock thresholds. One `mul-float`, no second array, and
+ * `scaleStepTable` is left exactly as it was.
+ *
+ * It also means the cost falls on the case that is rarer for a Flexboard user: a swipe-anywhere
+ * gesture does no extra arithmetic at all, because the table it walks is already the one it wants.
+ *
+ * ## Where it goes
+ *
+ * `Math.abs(F)F` is called exactly once in `r()`, and its `move-result` is the `|delta|` the walk
+ * then consumes. Inserting immediately after it means the multiply lands after every path that
+ * produces a delta and before every path that reads one, which is not something an offset could
+ * promise.
+ *
+ * Reading the scale preference here rather than caching it mirrors [capWordCount], which already
+ * reads `flexboard_max_words` from this same method on every event that produces a count. The store
+ * resolves to a process-wide singleton over an in-memory map, so this is a lookup rather than I/O —
+ * and doing it the same way as the code beside it is worth more than saving one of them.
+ */
+private fun MutableMethod.useStockDistanceFromBackspace(
+    context: BytecodePatchContext,
+    startKey: StartKeyChain,
+) {
+    val getInt = context.resolvePreferenceGetInt()
+    val registerCount = implementation?.registerCount
+        ?: error("$SCRUB_MOTION_EVENT_HANDLER->r has no implementation")
+    check(registerCount == DISPATCH_REGISTER_COUNT) {
+        "$SCRUB_MOTION_EVENT_HANDLER->r has $registerCount registers, expected " +
+            "$DISPATCH_REGISTER_COUNT — refusing to guess which registers are free"
+    }
+
+    val handler = TypedRegister(registerCount - DISPATCH_PARAMETER_WORDS, definingClass)
+    val thisRegister = handler.register
+
+    val handlerContext = context.findInstanceField(HANDLER_CONTEXT_OWNER, HANDLER_CONTEXT_FIELD_NAME)
+        ?: error(
+            "Neither $HANDLER_CONTEXT_OWNER nor anything above it declares a " +
+                "`$HANDLER_CONTEXT_FIELD_NAME` field — the handler's Context has moved",
+        )
+    val resolvedHandlerContext =
+        "${handlerContext.definingClass}->${handlerContext.name}:${handlerContext.type}"
+    context.checkAssignable(
+        handler,
+        handlerContext.definingClass,
+        "`this` in $SCRUB_MOTION_EVENT_HANDLER->r",
+    )
+    context.checkAssignable(
+        handlerContext.type,
+        ANDROID_CONTEXT,
+        "The value of $resolvedHandlerContext, which $PREFERENCE_STORE_GET is handed",
+    )
+
+    // `Math.abs` is the one unambiguous landmark in the walk; the delta is simply what it is
+    // handed. Walking back to where that register was last written finds the subtraction, which is
+    // the insertion point — far enough up the method that registers are still free there.
+    val absIndex = instructions.indexOfSoleCall(MATH_ABS_FLOAT, "$SCRUB_MOTION_EVENT_HANDLER->r")
+    val deltaRegister = instructions[absIndex].invokeRegisterAt(0)
+    val subtractIndex = (absIndex - 1 downTo 0).firstOrNull {
+        (instructions[it] as? OneRegisterInstruction)?.registerA == deltaRegister &&
+            !instructions[it].opcodeName().startsWith("IF_")
+    } ?: error(
+        "Nothing writes v$deltaRegister before $MATH_ABS_FLOAT in $SCRUB_MOTION_EVENT_HANDLER->r",
+    )
+    check(instructions[subtractIndex].opcodeName() == "SUB_FLOAT_2ADDR") {
+        "Expected the magnitude to come from a `sub-float/2addr` in " +
+            "$SCRUB_MOTION_EVENT_HANDLER->r, found " +
+            "`${instructions[subtractIndex].opcode.name}` — the delta is computed differently now"
+    }
+
+    val (store, key, fallback) = DISTANCE_SCRATCH_REGISTERS
+    check(DISTANCE_SCRATCH_REGISTERS.distinct().size == DISTANCE_SCRATCH_REGISTERS.size) {
+        "Scratch registers $DISTANCE_SCRATCH_REGISTERS are not distinct"
+    }
+    check(deltaRegister !in DISTANCE_SCRATCH_REGISTERS &&
+        thisRegister !in DISTANCE_SCRATCH_REGISTERS) {
+        "Scratch registers $DISTANCE_SCRATCH_REGISTERS collide with the magnitude " +
+            "(v$deltaRegister) or `this` (v$thisRegister) in $SCRUB_MOTION_EVENT_HANDLER->r"
+    }
+    check(DISTANCE_SCRATCH_REGISTERS.all { it < PACKED_INVOKE_REGISTER_LIMIT }) {
+        "Scratch registers $DISTANCE_SCRATCH_REGISTERS do not all fit a 35c invoke's nibbles"
+    }
+
+    val resume = instructions[subtractIndex + 1]
+
+    addInstructionsWithLabels(
+        subtractIndex + 1,
+        """
+            ${startKey.branchOnStartKey(thisRegister, store, key, SCALE_DELTA_LABEL, STOCK_DISTANCE_LABEL)}
+            :$SCALE_DELTA_LABEL
+            iget-object v$store, v$thisRegister, $resolvedHandlerContext
+            invoke-static { v$store }, $PREFERENCE_STORE_GET
+            move-result-object v$store
+            const-string v$key, "$STEP_SCALE_KEY"
+            const/16 v$fallback, $STEP_SCALE_DEFAULT
+            invoke-virtual { v$store, v$key, v$fallback }, $getInt
+            move-result v$store
+            if-lez v$store, :$STOCK_DISTANCE_LABEL
+            int-to-float v$store, v$store
+            const/high16 v$key, $ONE_HUNDRED_FLOAT
+            div-float/2addr v$store, v$key
+            mul-float/2addr v$deltaRegister, v$store
+        """,
+        ExternalLabel(STOCK_DISTANCE_LABEL, resume),
+    )
+}

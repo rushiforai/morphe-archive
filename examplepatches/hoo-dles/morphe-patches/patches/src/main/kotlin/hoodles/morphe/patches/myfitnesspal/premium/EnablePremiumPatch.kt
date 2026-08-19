@@ -19,7 +19,7 @@ val enablePremiumPatch = bytecodePatch(
         name = "MyFitnessPal",
         packageName = "com.myfitnesspal.android",
         appIconColor = 0x0072BC,
-        targets = listOf(AppTarget("26.21.1"))
+        targets = listOf(AppTarget("26.31.0"))
     ))
 
     execute {

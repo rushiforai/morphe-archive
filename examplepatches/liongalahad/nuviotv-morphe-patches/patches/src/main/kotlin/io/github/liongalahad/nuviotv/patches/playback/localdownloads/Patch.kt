@@ -228,11 +228,10 @@ val localdownloadsPatch = bytecodePatch(
             val watchedIconIndex = instructions.indexOfFirst { instruction ->
                 val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
                     ?: return@indexOfFirst false
-                reference.definingClass == "Lx0/a;" && reference.name == "j" &&
-                    reference.returnType == "Lh2/f;"
+                reference.returnType == "Lh2/f;" && reference.parameterTypes.isEmpty()
             }
             check(watchedIconIndex >= 0) { "Episode watched icon call was not found" }
-            val watchedRead = instructions.withIndex().take(watchedIconIndex).lastOrNull {
+            val watchedRead = instructions.withIndex().firstOrNull {
                     (index, instruction) ->
                 val field = (instruction as? ReferenceInstruction)?.reference as? FieldReference
                 instruction.opcode == Opcode.IGET_BOOLEAN && field?.definingClass == cardOwner &&

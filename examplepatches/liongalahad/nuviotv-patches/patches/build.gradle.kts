@@ -29,6 +29,13 @@ dependencies {
 }
 
 tasks {
+    processResources {
+        inputs.property("morphePatchVersion", project.version.toString())
+        filesMatching("morphe-build.properties") {
+            expand("version" to project.version.toString())
+        }
+    }
+
     register<JavaExec>("generatePatchesList") {
         description = "Build patch with patch list"
 

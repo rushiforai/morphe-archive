@@ -6,6 +6,54 @@ patches are added to this project and built together into one `.mpp` bundle.
 ## Included patches
 
 <!-- PATCHES_START EXPANDED -->
+> **[v1.13.4](https://github.com/Alastor-Kaneki/Morphe-Patches/releases/tag/v1.13.4)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;6 patches total
+<details open>
+<summary>📦 Suno&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Customize Suno branding](#customize-suno-branding) | Clones Suno to a different package name, with optional app-name and launcher-icon customization. Accepts Morphe's adaptive custom-icon folder layout or a simple icon.png folder. | • App name<br>• Package name<br>• Custom icon |
+| [Download timestamped lyrics](#download-timestamped-lyrics) | Adds an in-app Lyrics button and share target that exports Suno timing data as LRC, enhanced LRC, SRT, WebVTT, or JSON. |  |
+
+</details>
+
+<details open>
+<summary>📦 Opera GX&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Download GX mods as files](#download-gx-mods-as-files) | Adds a visible Download Mod button in Opera GX, with URL auto-detection and a Share fallback. |  |
+| [GX icon pack](#gx-icon-pack) | Adds a separate native selector for all 56 Opera GX launcher icons. Open it from the GX Icon Pack long-press shortcut. |  |
+
+</details>
+
+<details open>
+<summary>📦 Google Chrome&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [MonkeyScript userscript manager](#monkeyscript-userscript-manager) | Adds a Chrome 150 Material You userscript manager using a Violentmonkey-derived parser, native app-menu integration, guaranteed Fork-page installation, Greasy Fork/Sleazy Fork support, publishing, and configurable app/package cloning. |  |
+
+</details>
+
+<details open>
+<summary>📦 Pixilart&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.9.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Remove ads](#remove-ads) | Hard-disables Pixilart native/Cordova ads, drawing-editor web ads, and promoted/feed ad cards. |  |
+
+</details>
+
 <!-- PATCHES_END -->
 
 ### Opera GX — Download GX mods as files

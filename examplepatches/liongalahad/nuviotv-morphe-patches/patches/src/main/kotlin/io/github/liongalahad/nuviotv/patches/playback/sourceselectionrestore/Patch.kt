@@ -50,7 +50,7 @@ val sourceSelectionRestorePatch = bytecodePatch(
         val lazyListStateCallIndex = originalInstructions.indexOfFirst { instruction ->
             val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
                 ?: return@indexOfFirst false
-            reference.returnType == "Le0/i0;" &&
+            reference.returnType == "Le0/h0;" &&
                 reference.parameterTypes.map(CharSequence::toString).let { parameters ->
                     parameters.size == 5 && parameters.take(2) == listOf("I", "I") &&
                         parameters[2] == "Le1/m0;"

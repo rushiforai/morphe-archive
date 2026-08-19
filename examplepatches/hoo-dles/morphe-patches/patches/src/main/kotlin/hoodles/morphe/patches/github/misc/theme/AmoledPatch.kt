@@ -13,7 +13,6 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.findElementByAttributeValue
-import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction35c
 
 val bytecodeOverrides = bytecodePatch {
@@ -53,7 +52,7 @@ val amoledPatch = resourcePatch(
         name = "GitHub",
         packageName = "com.github.android",
         appIconColor = 0x000000,
-        targets = listOf(AppTarget("1.267.0"))
+        targets = listOf(AppTarget("1.271.1"))
     ))
 
     execute {

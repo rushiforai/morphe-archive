@@ -1,17 +1,17 @@
 name: ⭐ Feature request
 description: Create a detailed request for a new feature.
 title: 'feat: '
-labels: ['feature']
+labels: ['feat']
 body:
   - type: markdown
     attributes:
       value: |
-        # Morphe Patches feature request
+        # De-Vanced Patches feature request
 
         Before creating a new feature request, please keep the following in mind:
 
-        - We are currently only accept feature requests for YouTube, YT Music, and Reddit.
-        - **Do not submit a duplicate feature request**: Search for existing feature requests, including closed issues, [here](https://github.com/MorpheApp/morphe-patches/issues?q=is%3Aissue).
+        - We are currently only accept feature requests for existing apps.
+        - **Do not submit a duplicate feature request**: Search for existing feature requests, including closed issues, [here](https://github.com/RookieEnough/De-Vanced/issues?q=state%3Aopen).
   - type: textarea
     attributes:
       label: Feature description
@@ -37,5 +37,5 @@ body:
       options:
         - label: I have checked all open and closed feature requests and this is not a duplicate
           required: true
-        - label: This is a feature request for YouTube, YT Music, or Reddit
+        - label: This is a feature request for an existing De-Vanced app
           required: true

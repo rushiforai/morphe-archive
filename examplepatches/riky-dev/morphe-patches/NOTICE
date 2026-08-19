@@ -1,6 +1,21 @@
 Morphe NOTICE
 =============
 
+Copyright and modifications
+---------------------------
+
+This repository is a modified derivative of the Morphe patches template:
+https://github.com/MorpheApp/morphe-patches-template
+
+Copyright (C) 2025 Morphe contributors
+Copyright (C) 2026 riky-dev
+
+Portions of the build tooling, release workflow, and patch bundle layout
+originate from that template. This modified version adds app-specific patches
+and agent-oriented development scripts.
+
+Modified: August 2026
+
 7c. Project Name Restriction
 ----------------------------
 

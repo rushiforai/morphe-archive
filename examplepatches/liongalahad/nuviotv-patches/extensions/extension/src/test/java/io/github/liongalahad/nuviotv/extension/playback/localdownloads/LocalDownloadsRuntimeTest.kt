@@ -74,7 +74,7 @@ class LocalDownloadsRuntimeTest {
     }
 
     @Test
-    fun `storage slider bridge accepts the 0_8_4 native shape`() {
+    fun `storage slider bridge accepts the 0_8_6 native shape`() {
         assertTrue(
             LocalDownloadsSettingsContent.matchesNativeSliderParametersForTesting(
                 arrayOf(

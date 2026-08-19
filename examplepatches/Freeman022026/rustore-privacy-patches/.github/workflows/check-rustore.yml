@@ -1,0 +1,169 @@
+name: Check RuStore upstream
+
+on:
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+    inputs:
+      force_full_check:
+        description: Run the full audit even when HTTP metadata is unchanged
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: rustore-upstream-audit
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    name: Cheap metadata probe
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      changed: ${{ steps.probe.outputs.changed }}
+    steps:
+      - name: Checkout the stable branch
+        uses: actions/checkout@v7
+        with:
+          ref: main
+
+      - name: Compare size, date, and ETag
+        id: probe
+        run: >-
+          python3 scripts/rustore_upstream.py probe
+          --url https://static.rustore.ru/release/RuStore.apk
+          --state upstream/rustore.json
+          --metadata "${{ runner.temp }}/rustore-head.json"
+          --github-output "$GITHUB_OUTPUT"
+          ${{ inputs.force_full_check && '--force' || '' }}
+
+      - name: Preserve changed metadata
+        if: steps.probe.outputs.changed == 'true'
+        uses: actions/upload-artifact@v6
+        with:
+          name: rustore-head
+          path: ${{ runner.temp }}/rustore-head.json
+          retention-days: 1
+
+  audit:
+    name: Full download and patch audit
+    needs: probe
+    if: needs.probe.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: write
+      packages: read
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout the stable branch
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Restore changed metadata
+        uses: actions/download-artifact@v7
+        with:
+          name: rustore-head
+          path: build/metadata
+
+      - name: Setup Java
+        uses: actions/setup-java@v5.7.0
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install Android build tools
+        run: |
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "build-tools;36.0.0"
+
+      - name: Download changed official APK
+        run: curl --fail --location --retry 3 --output build/RuStore.apk https://static.rustore.ru/release/RuStore.apk
+
+      - name: Verify official package, version, and signer
+        id: inspect
+        run: >-
+          python3 scripts/rustore_upstream.py inspect
+          --apk build/RuStore.apk
+          --aapt "$ANDROID_HOME/build-tools/36.0.0/aapt"
+          --apksigner "$ANDROID_HOME/build-tools/36.0.0/apksigner"
+          --output build/rustore-apk.json
+          --github-output "$GITHUB_OUTPUT"
+          --require-official-signer
+
+      - name: Build the Morphe patch bundle
+        run: ./gradlew clean :patches:buildAndroid --no-daemon
+
+      - name: Download Morphe Desktop
+        run: gh release download --repo MorpheApp/morphe-desktop --pattern '*-all.jar' --dir build/morphe
+
+      - name: Apply every fail-closed patch check
+        run: |
+          PATCH_BUNDLE=$(find patches/build/libs -maxdepth 1 -name '*.mpp' ! -name '*sources*' ! -name '*javadoc*' -print -quit)
+          DESKTOP_JAR=$(find build/morphe -name '*-all.jar' -print -quit)
+          java -jar "$DESKTOP_JAR" patch --force --patches "$PATCH_BUNDLE" --out build/rustore-privacy.apk --result-file build/patch-result.json build/RuStore.apk
+
+      - name: Audit patched manifest
+        run: >-
+          python3 scripts/rustore_upstream.py audit-patched
+          --apk build/rustore-privacy.apk
+          --aapt "$ANDROID_HOME/build-tools/36.0.0/aapt"
+
+      - name: Record the audited upstream build
+        id: promote
+        run: >-
+          python3 scripts/rustore_upstream.py promote
+          --metadata build/metadata/rustore-head.json
+          --inspection build/rustore-apk.json
+          --state upstream/rustore.json
+          --constants patches/src/main/kotlin/dev/freeman022026/rustore/patches/Constants.kt
+          --github-output "$GITHUB_OUTPUT"
+
+      - name: Commit verified support to main
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add upstream/rustore.json patches/src/main/kotlin/dev/freeman022026/rustore/patches/Constants.kt
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          if [ "${{ steps.promote.outputs.version_changed }}" = 'true' ]; then
+            git commit -m "bump: support RuStore ${{ steps.inspect.outputs.version_name }}"
+          else
+            git commit -m 'chore: refresh RuStore upstream metadata'
+          fi
+          git push origin HEAD:main
+
+      - name: Publish a verified compatibility update
+        if: steps.promote.outputs.version_changed == 'true'
+        run: gh workflow run release.yml --ref main
+
+      - name: Upload audit reports on failure
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: rustore-audit-failure-${{ github.run_id }}
+          path: |
+            build/rustore-apk.json
+            build/patch-result.json
+            build/metadata/rustore-head.json
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Open a review issue on failure
+        if: failure()
+        run: |
+          TITLE='RuStore upstream audit needs review'
+          BODY="The cheap metadata gate detected a changed RuStore APK, but the full signer, manifest, patch-anchor, or output audit failed. No compatibility update was published. Review run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          ISSUE_NUMBER=$(gh issue list --state open --json number,title --jq ".[] | select(.title == \"$TITLE\") | .number" | head -n 1)
+          if [ -n "$ISSUE_NUMBER" ]; then
+            gh issue comment "$ISSUE_NUMBER" --body "$BODY"
+          else
+            gh issue create --title "$TITLE" --body "$BODY"
+          fi

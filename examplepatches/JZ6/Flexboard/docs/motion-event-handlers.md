@@ -104,8 +104,20 @@ Everything downstream of offset 114 is key-agnostic. In particular the tracking 
 129: iput  v7, v6, Landroid/graphics/Rect;->right:I
 ```
 
-with only `top`/`bottom` inset by `Lpbu;->g:F`. So the engine already tracks across the whole
-keyboard once a gesture starts — the key restriction applies solely to where it *begins*.
+with `top`/`bottom` widened by `Lpbu;->g:F` — 4mm, `sub-float` on the top edge and `add-float` on
+the bottom. It is an **outset**, not an inset, whatever the field is named. So the engine already
+tracks across the whole keyboard *horizontally* once a gesture starts, and the key restriction
+applies solely to where it begins; but *vertically* the corridor is only the starting key's own
+height plus 4mm either side.
+
+**That asymmetry is a problem specific to Flexboard, and `swipeToDeletePatch` now removes it.**
+Stock Gboard only ever starts this gesture on backspace, so a corridor anchored to one known key is
+generous. Once the gesture can start anywhere, it is anchored wherever the finger landed, and a
+swipe that begins on the top letter row and drifts downward leaves it — the gesture cancels rather
+than degrading, which reads as the swipe simply not working. The patch mirrors what Google already
+does on the other axis: `top = 0`, `bottom = getHeight()`, gated on the wildcard sentinel so the
+spacebar cursor drag and the inline-suggestion scrub keep their one-key corridor. Leaving the
+keyboard entirely still cancels, because the rect is measured in `SoftKeyboardView` coordinates.
 
 ## The engine is bidirectional by construction
 
@@ -184,7 +196,7 @@ that way deliberately.
 | `d:F` | `0x7f070910` | 16pt | per-step distance when `Lpbv;->j` is 1 (scrub move) |
 | `e:F` | `0x7f07090e` | 8pt | per-step distance otherwise (scrub delete) |
 | `f:J` | `0x7f0c00ed` | 1000 ms | delay before the `noScrubbing` toast |
-| `g:F` | `0x7f07090d` | 4mm | vertical inset applied to the tracking rect |
+| `g:F` | `0x7f07090d` | 4mm | vertical **outset** applied to the tracking rect (`0x7f070935` on 18.0.3) |
 
 `b:J` is the one that shapes the feel. `p(Landroid/view/MotionEvent;I)Z` opens with it
 (`regs=10, ins=3`, so v7 is `this`, v8 the event, v9 the pointer id):
@@ -521,3 +533,138 @@ where `:handled` is the stock treat-as-handled exit. A patch that wants that exi
 switch. It also avoids an early `return`, which would skip the `Trace.endSection()` in the epilogue
 and leave the trace stack unbalanced — the method body sits inside a `try` whose handler exists to
 call it.
+
+## The two preference reads that were removed, and how they were derived
+
+Flexboard had a master on/off switch and an undo on/off switch. Both were removed — the reasoning is
+in [`design.md`](design.md); what follows is the part that was expensive to establish and would have
+to be redone from scratch if either is ever wanted back. The code is gone, so this is the only
+record of it.
+
+Both were removed because a preference read is an *insertion*, and an insertion needs registers
+proved dead at the point it goes in. R8 re-runs register allocation on every Gboard build, so every
+fact below is a fact about **one** build and has to be re-derived on each bump. That is the whole
+cost argument in one sentence.
+
+### Master switch: reading `flexboard_enabled` in `ScrubDeleteMotionEventHandler.<init>`
+
+The patch kept Gboard's `const/16 vN, 67` and conditionally overwrote it, so that "off" meant
+byte-for-byte stock:
+
+```
+const/16 v1, 67                 <- stock, untouched
+invoke-static { vCtx }, Lqhy;->I(Context)Lqhy;
+move-result-object vStore
+const-string vKey, "flexboard_enabled"
+const/4 vFallback, 0x1
+invoke-virtual { vStore, vKey, vFallback }, Lqhy;->k(String,Z)Z
+move-result vStore
+if-eqz vStore, :stock_start_key
+const/16 v1, -1
+:stock_start_key
+```
+
+Four things had to hold, none of them free:
+
+- **Every instruction between the keycode constant and `Lpvs;-><init>` is itself a `const`.** That
+  is what proved the registers they write are dead at the insertion point — written before anything
+  reads them, so borrowing three of them cannot lose a live value. If Gboard ever *computes* one of
+  those arguments, the proof collapses.
+- **Three scratch registers, all below v16**, because a `35c` invoke packs its registers into
+  nibbles and cannot address higher.
+- **The `Context` parameter register, derived from the Dalvik calling convention** — parameters
+  occupy the last `ins` registers — and shown not to be written before the insertion point.
+- **The uninitialised `Lpvs;` in v0 is fine across the inserted branch.** `new-instance` runs before
+  the arguments are built, so an uninitialised reference is live over the block. This verifies: it
+  is the shape javac emits for `new Foo(cond ? a : b)`, where a forward branch merges the same
+  uninitialised type from the same allocation site. Only a *backward* branch, or an exception
+  handler, with an uninitialised reference live is rejected.
+
+On 18.0.3 the constructor had 12 registers and parameters `(Context, Lpvo;)`.
+
+### Undo switch: reading `flexboard_undo_enabled` inside the dispatcher
+
+This one needed a `Context` from a class that is not one. `LatinIme` extends `AbstractIme` extends
+`Object` — no `Service`, no `ContextWrapper` — so passing `this` to the preference store assembles
+cleanly and then fails ART's verifier at run time, taking the dispatcher and therefore the whole
+keyboard with it. That shipped as `0.0.1-dev.1`.
+
+The way through was `AbstractIme->B:Landroid/content/Context;`, resolved from the field table rather
+than named, with two assertions: that the IME register is assignable to the class *declaring* the
+field (needed for the `iget-object` to verify at all), and that the field's type really is a
+`Context`. The declaring class must be named on `AbstractIme` rather than `LatinIme`, because being
+at least an `AbstractIme` is all the patch can prove about that register — Gboard's own reads spell
+it `LatinIme->B`, which is correct for Gboard and a claim the patch cannot make.
+
+It also had to borrow a register for `getBoolean`'s `true` fallback. Both scratch registers were
+already carrying the store and the key, so the **suppression flag** register was borrowed and then
+restored by re-reading the same field the prologue read:
+
+```
+const/4 vFlag, 0x1
+invoke-virtual { vSlot, vKey, vFlag }, Lqhy;->k(String,Z)Z
+move-result vSlot
+iget-boolean vFlag, vThis, <suppression field>   <- restore, identical to the prologue's read
+if-eqz vSlot, :not_rightward
+```
+
+That restore was load-bearing. The exit jumps to the stock `if-nez` which tests exactly that
+register, so leaving a borrowed `1` there would tell Gboard every delete finish was already handled
+and swallow it.
+
+## Telling apart where a gesture started, after the gate has been widened
+
+`swipeToDeletePatch` replaces the configured start keycode with a wildcard, so `Lpvs;->a:I` no
+longer says anything about where the finger went down. The natural conclusion — that the engine can
+no longer distinguish a backspace swipe from a letter swipe — is wrong, and `scrubsettings` relies
+on it being wrong to give the backspace key Gboard's own feel back.
+
+**Gboard keeps the starting key itself.** `ScrubMotionEventHandler->m:Landroid/view/View;` is:
+
+| | |
+|---|---|
+| written | `g()` offset 188, on the `ACTION_DOWN` path just after the gate passes |
+| read | `s(Z)V`, which is how the key under the finger gets its pressed state |
+| cleared | `l()` offset 20, the reset |
+
+So it holds the starting `SoftKeyView` for exactly the lifetime of one gesture. Walking it back to a
+keycode is the same four steps `g()` performs at offsets 88–108:
+
+```
+sget-object   Lpmy;->a:Lpmy;
+SoftKeyView->f(Lpmy;)ActionDef      →   ActionDef->b()Lpnu;   →   Lpnu;->c:I
+```
+
+None of those names is pinned. They are read out of `g()`, anchored on the one unambiguous member:
+`ActionDef->b()Lpnu;` is called **once**, whereas `f(Lpmy;)` is called **twice** — for the action
+the gate requires present and the action it requires absent — so `f` cannot be identified on its
+own. Walking back from `b()` picks out which `f()` call feeds it, and therefore which of the two
+`Lpmy;` constants is the right one. Anchor on the unique thing and the ambiguous things resolve.
+
+### Undoing the step-table scaling for one case
+
+`scaleStepTable` multiplies `Lpvs;->h:[F` through by `scale/100` at construction, so the stock
+thresholds are gone by the time `r()` walks the table. Restoring them for backspace does not need a
+second array: the walk compares `|delta|` against the table, so comparing `|delta| · scale/100`
+against `T · scale/100` is the same test as `|delta|` against `T`. Multiplying the delta by the
+*same* factor recovers stock distance exactly, with one `mul-float` and no extra state.
+
+The multiply goes in right after the delta subtraction rather than after `Math.abs`, and both the
+reason and the near-miss are worth recording.
+
+**A forward "is the next touch a write?" scan is not sound for choosing scratch registers here.**
+Run one from the magnitude and it reports v3 free, because the `add-int/lit8` at the head of the
+table walk writes it. That is wrong: the `if-gt` guarding the walk branches straight past that write
+to the extrapolation path, which reads v3 as the previous bucket's threshold — zero on the first
+iteration, from the `const/4` above the loop. Borrowing v3 would have produced a wrong extrapolated
+word count for swipes past the end of the table, on a path that only fires for long swipes, with
+nothing crashing to say so.
+
+Real backward liveness over the control flow says only **v8 and v9** are dead at the magnitude,
+which is one short of what a preference read needs. At the delta subtraction, four registers are
+dead. So the insertion moved up, which is sound because the factor is positive: scaling before
+`abs` scales the sign test and the magnitude consistently, and zero stays zero so the
+delta-is-zero early-out is unchanged.
+
+`tools/apk/preflight.py` does the same fixpoint and asserts both halves — that the chosen registers
+are dead, *and* that v3 is not among them.

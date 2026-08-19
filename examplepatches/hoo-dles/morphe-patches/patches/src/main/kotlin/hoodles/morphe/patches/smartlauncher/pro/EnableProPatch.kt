@@ -27,8 +27,10 @@ val enableProPatch = bytecodePatch(
     execute {
         PurchaseItemsCtor.apply {
             val sputInstr =  this.instructionMatches[2].getInstruction<Instruction21c>()
-            val purchasableItemField = sputInstr.getReference<FieldReference>()!!
-            val purchasableItemType = classDefBy(purchasableItemField.type)
+            val lifetimeField = sputInstr.getReference<FieldReference>()!!
+            val purchasableItemType = classDefBy(lifetimeField.type)
+
+            val singletonField = this.classDef.staticFields.first { f -> f.type == this.classDef.type }
 
             val itemSetMethod = PurchasableItemSetFingerprint.match(purchasableItemType).originalMethod
             val itemGetMethod = PurchasableItemGetFingerprint.match(purchasableItemType).originalMethod
@@ -37,14 +39,16 @@ val enableProPatch = bytecodePatch(
             this.method.addInstructionsWithLabels(
                 this.method.instructions.size - 1,
                 """
-                    invoke-virtual {v0}, ${purchasableItemField.type}->${itemGetMethod.name}()Z
-                    move-result v0
-                    if-nez v0, :end
-	                sget-object v0, ${this.classDef.type}->${purchasableItemField.name}:${purchasableItemField.type}
-                    invoke-static {}, ${GetAppFingerprint.classDef.type}->${GetAppFingerprint.method.name}()${GetAppFingerprint.method.returnType}
+                    sget-object v0, $lifetimeField
+                    invoke-virtual {v0}, $itemGetMethod
+                    move-result v1
+                    if-nez v1, :end
+                    invoke-static {}, ${GetAppFingerprint.method}
                     move-result-object v1
                     const/4 v2, 0x1
-                    invoke-virtual {v0, v1, v2}, ${purchasableItemField.type}->${itemSetMethod.name}(Landroid/content/Context;Z)V
+                    invoke-virtual {v0, v1, v2}, $itemSetMethod
+                    sget-object v0, $singletonField
+                    invoke-static {v0, v1, v2}, ${HasChangedIntentFingerprint.method}
                 """.trimIndent(),
                 ExternalLabel("end", this.method.instructions.last())
             )

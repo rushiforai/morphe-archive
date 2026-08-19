@@ -21,8 +21,14 @@ object PurchaseItemsCtor : Fingerprint(
     )
 )
 
-object PurchasableItemSetFingerprint : Fingerprint(
+object HasChangedIntentFingerprint : Fingerprint(
+    classFingerprint = PurchaseItemsCtor,
     strings = listOf("ginlemon.action.hasPremiumAccessChanged")
+)
+
+object PurchasableItemSetFingerprint : Fingerprint(
+    parameters = listOf("Landroid/content/Context;", "Z"),
+    returnType = "V"
 )
 
 object PurchasableItemGetFingerprint : Fingerprint(

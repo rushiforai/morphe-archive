@@ -20,4 +20,15 @@ object Constants {
             AppTarget(version = "4.9.15")
         )
     )
+
+    // Electron: battery health info: https://apkpure.net/app/com.mahersafadi.electron
+    val COMPATIBILITY_ELECTRON = Compatibility(
+        name = "Electron: battery health info",
+        packageName = "com.mahersafadi.electron",
+        apkFileType = ApkFileType.XAPK,
+        appIconColor = 0x2E7D32,
+        targets = listOf(
+            AppTarget(version = "3.0.3")
+        )
+    )
 }

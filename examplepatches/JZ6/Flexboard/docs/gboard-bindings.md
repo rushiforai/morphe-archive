@@ -43,20 +43,47 @@ bodies — not by guessing that the alphabet shifted.
 | `contains` by id | `Lpnp;->ar(I)Z` | `Lqhy;->ak(I)Z` |
 | Word-count getter | `La;->W(Lnbj;)I` | `La;->X(Lnur;)I` |
 
-**`AbstractIme->N:Z` → `O:Z` is the dangerous one.** Gboard 18 inserted a field, shifting every
-letter from `C` down by one — and `N` still exists on 18 as an unrelated boolean. Carrying the
-letter over would have assembled, passed verification and silently tested the wrong field, which no
-type assertion can catch. It is pinned from a read count instead: the suppression flag is the only
-`AbstractIme` boolean read exactly four times in the dispatcher, in both builds.
-
 Unchanged across the move, and worth knowing because they carry most of the load:
 `ScrubMotionEventHandler` and its `g`/`r`/`<init>` names, `AbstractMotionEventHandler->o:Context`,
-`AbstractIme->B:Context`, `AbstractIme->s`, `LatinIme->y`, `Lpvs;->a`/`g`/`h`, and the store's
-string-keyed `b`/`k`. The two signing-certificate digests are also identical, so
-`COMPATIBILITY_GBOARD.signatures` needed no edit.
+`AbstractIme->B:Context`, `LatinIme->y`, `Lpvs;->a`/`g`/`h`, and the store's string-keyed `b`/`k`.
+The two signing-certificate digests are also identical, so `COMPATIBILITY_GBOARD.signatures` needed
+no edit.
+
+## Which of these are still pinned, and which are not
+
+**A name with a same-shaped sibling is not pinned any more.** Two bugs came from letters that moved
+onto a different member of the right shape: `AbstractIme->N:Z` became `O` while `N` went on existing
+as an unrelated boolean, and the undo re-commit went `s` → `t` while a smaller method inherited `s`.
+Both assembled, verified and ran. Nothing static catches that, because there is nothing wrong with
+the emitted code — it calls a real method with the right types. Only *what Gboard itself does with
+the member* tells them apart.
+
+So the table above is now a record of what these were, not a set of inputs. What the patches
+actually do:
+
+| member | how it is identified | why |
+|---|---|---|
+| suppression flag | the `move-result` / `iget-boolean` / `if-nez` run before the sole takeText call | `N` still exists on 18 as something else |
+| undo re-commit | the one `AbstractIme->…(L…;Z)V` call in the dispatcher | `s` and `t` are indistinguishable by shape |
+| committable text | the parameter type of that call | falls out of the same match |
+| slot field, availability, clear | the register the Optional getter is called on, walked out from the re-commit | `()Z` has three candidates on the slot, `()V` has nine |
+| store `getInt` | the `(String, I)I` that does **not** call `Integer.parseInt` | its sibling reads the value as text |
+| store `contains` | the `(I)Z` that calls `SharedPreferences.contains` | its sibling delegates to a boolean getter |
+
+Still pinned, and safely so — each was checked to be **signature-unique** on its class, so a rename
+makes it vanish rather than letting the letter survive on the wrong member. `checkPreferenceStorePins`
+and the existence helpers in `shared/Resolve.kt` assert they are still there:
+
+`Lqhy;->I(Context)`, `Lqhy;->k(String,Z)Z`, `Lqhy;->T(I,Object)V`, `LatinIme->y`, and the slot's
+`a()Lj$/util/Optional;`.
+
+The rule to apply to anything added later: **if a member has a same-signature sibling, derive it; if
+it does not, assert it exists.** Which applies is a fact about the APK, so check before choosing.
 
 Resource ids all moved: `enable_scrub_delete` `0x7f140995`→`0x7f140a1f`, `enable_gesture_input`
-`0x7f14097b`→`0x7f140a05`, `pref_enable_flick_symbols` `0x7f140977`→`0x7f140a01`.
+`0x7f14097b`→`0x7f140a05`, `pref_enable_flick_symbols` `0x7f140977`→`0x7f140a01`. The scrub engine's
+tuning dimens moved too — the vertical rect outset `Lpvr;->g:F` is `0x7f070935` on 18.0.3 (raw
+`0x405`: mantissa 4, unit `MM`), was `0x7f07090d` on 17.7.7.
 
 ## Touch and dispatch
 
@@ -92,6 +119,64 @@ carries a given preference; do not guess.
 
 Full derivation of the glide preference id and why the write path is used:
 [`glide-detection.md`](glide-detection.md).
+
+## The access points bar (the toolbar), 18.0.3
+
+The row of icons above the keyboard. Unusually friendly territory: the widget classes keep their
+real names, because layouts address them as strings and R8 cannot rename what XML names.
+
+| Binding | What it is |
+|---|---|
+| `…/accesspoint/widget/AccessPointsBar` | The bar itself. `extends ViewGroup` — one row, custom `onMeasure`/`onLayout`, **no scrolling and no touch callbacks of its own**. Declared in `res/HNz.xml`. |
+| — capacity | `AccessPointsBar->m:I` | **Not the icon count.** Written once in `<init>(Context, AttributeSet)` at offset 72, and read in eight places that all ask the same question: *is the bar full?* — the chevron swap in `T()`, the odd-count spacer in `onMeasure`, the reserved slot in `L()`, and `y(Lmic;I)`, which evicts the last child before inserting when it believes the answer is yes. |
+| — capacity getter | `AccessPointsBar->i()I` | Reached through `Lmhm;->i()I`. Feeds `Lmku;->b(I)I` as its *argument*. |
+| — the render | `AccessPointsBar->m(List)V` | Sets `d = list.size()` with **no clamp against `m`**, then `W(List)` builds one child per element. The bar draws whatever list it is handed; the count is decided before this. |
+| — item width | `AccessPointsBar->K(II)I` | `min((width + 2·(e + f))/(n + 1), width/n)`. Items shrink as the count grows; nothing clips. |
+| — visible count | `AccessPointsBar->L()I` | Counts non-`GONE` children, plus the drag placeholder and the expand key. |
+| `AccessPointsBar->a:Lnxp;` | The Phenotype flag supplier, built in `<clinit>` from `config_max_access_points` with a `ro.com.google.ime.top_icon_num` system-property override and a default of `-1`. |
+| `…/accesspoint/widget/AccessPointsPanel` | The overflow panel. |
+| `…/accesspoint/widget/AccessPointsPanelViewPager` | `extends BidiViewPager` — the panel already pages. **The bar does not.** |
+| `Lmlh;->C(Ljava/util/List;)V` | The split. `n = min(Lmku;->b(bar.i()), size)`; `subList(0, n)` goes to the bar via `Lmhm;->m(List)`, the rest to the panel via `Lmhp;->m(List)`. |
+| `Lmku;->b(I)I` | **The icon count.** Gboard's own name for it, from the log line in `Lmlf;->c()V`: `definedCountOnBar`. Takes the capacity as an argument and puts it through both gates below, so its return value — not `->m:I` — is what decides how many icons land on the bar. Five callers, and two different capacities reach it: `Lmlh;->C` passes the bar's `m`, while `Lmln;->fn` passes a theme attribute (`0x7f0400ad`, default 5) with no bar in sight. |
+| `Lmlf;->c()V` | `AccessPointsListHolderController$7.onFinishUpdatingOrder`, and the anchor for the above. Logs `oldVisibleCountOnBar %d, currentVisibleCountOnBar %d, definedCountOnBar %d` and contains exactly one `(I)I` call — so a string R8 cannot rewrite names the value the obfuscated letter returns. |
+| `Lmku;->b:Lqhy;` | The preference store, `Lqhy;->I(context)` cached in `<init>`. Read inside `b(I)I` itself, which is where `toolbarCountPatch` derives it — no `Context` needed at the insertion point. |
+| `Lmku;->h:Lnmm;` | The device class, and what `b(I)I` picks its preference key on. Written in `<init>` from `Lnmp;->a()`, and again by `Lmkt;->a(Lnmm;)V`, the change listener — which also calls `Lmku;->d()` to rebuild. So it is **live**: opening a fold changes the class and therefore the key. |
+| `Lnmm;` | `DEVICE_PHONE` `a`, `DEVICE_TABLET` `b`, `DEVICE_TV` `c`, `DEVICE_WATCH` `d`, `DEVICE_CAR` `e`, **`DEVICE_FOLDABLE` `f`**, `DEVICE_TABLET_LARGE` `g`, `DEVICE_TABLET_HUGE` `h`, `DEVICE_UNKNOWN` `i`. The names are literals in `<clinit>`, so a constant can be identified by name even though its field cannot — which is how `toolbarCountPatch` tells the foldable branch from the tablet one beside it. |
+| `Lnmp;->a()Lnmm;` | `DeviceModeNotification.getCurrentDeviceMode`, unobfuscated in its own log strings. Returns `DEVICE_UNKNOWN` before the notification initialises. |
+| `Lmjv;->a(II)I` | `pref >= 0 ? min(pref, cap) : b(cap)`. **The preference can only lower the count.** |
+| `Lmjv;->b(I)I` | `m() ? min(3, cap) : cap` — the reduced-mode floor. |
+| `Lmjr;->b(Landroid/content/Context;Z)Z` | Gboard's own "reduce your toolbar icons" flow, which writes the same preference. |
+
+Preference ids: `0x7f1409af` = `access_points_count_on_bar`, `0x7f140a43` =
+`foldable_access_points_count_on_bar`. Neither appears in any settings XML — they are written from
+code only.
+
+How the capacity is computed, and the shape the second of the patch's two insertions anchors on.
+Worth reading with the row above in mind: this is the number that shipped patched in `1.1.0-dev.1`
+with nothing to show for it, because the table already said `Lmjv;->a` can only lower the count and
+that fact was not carried through to the conclusion.
+
+```
+44: const/4 v4, #5
+45: v2 = typedArray.getInt(2, v4)               # the style attribute on res/HNz.xml
+49: sget-object v5, AccessPointsBar->a:Lnxp;
+51: v4 = ((Long) v5.g()).intValue()
+63: if (v4 > 8 || v4 < 3) v4 = v2               # the flag is honoured only within [3, 8]
+72: iput v4, v6, ->m:I
+```
+
+`toolbarCountPatch` inserts before offset 72 and leaves the `iput` alone, so the field's obfuscated
+letter is never written down. **This insertion is bookkeeping, not the feature** — it keeps the
+bar's own "am I full?" tests agreeing with the count set at `Lmku;->b(I)I`, and on its own it moves
+nothing. It finds the site by walking from the single `Lnxp;->g()` call to the
+single following `iput` whose **field type** is `I` — filtering on the opcode would also match
+`->e:F` and `->f:F` at 79 and 85, since `iput` (`0x59`) covers int and float alike, and starting
+after the flag call is what excludes `->y:I` at 31.
+
+`v2` and `v5` are dead at offset 72; `v0` (the `TypedArray`), `v1`, `v3` and `v7` (the `Context`) are
+not. Offset 72 is also the start of a `try` range covering 72–86 whose handler recycles the
+`TypedArray` and rethrows — benign in both directions, since a throw propagates out of the
+constructor either way.
 
 ## Gesture and decoding
 

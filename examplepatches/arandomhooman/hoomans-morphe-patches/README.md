@@ -10,7 +10,7 @@ Personal [Morphe](https://morphe.software) patches for paid Android apps.
 ## 🩹 Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.49.1](https://github.com/arandomhooman/hoomans-morphe-patches/releases/tag/v1.49.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;63 patches total
+> **[v1.50.3](https://github.com/arandomhooman/hoomans-morphe-patches/releases/tag/v1.50.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;63 patches total
 <details>
 <summary>📦 Twitch&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
 <br>
@@ -22,7 +22,7 @@ Personal [Morphe](https://morphe.software) patches for paid Android apps.
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [7TV and BTTV emotes](#7tv-and-bttv-emotes) | Renders global and current-channel 7TV and BTTV emotes in incoming live chat. Type an emote code normally to send it; this patch does not add a picker or provider login. |  |
+| [7TV and BTTV emotes](#7tv-and-bttv-emotes) | Displays 7TV and BTTV emotes directly in Twitch live chat. It loads the global emote sets and the emotes for the channel you are watching, then replaces matching emote codes in incoming messages with their emote images. Sending works through normal Twitch chat: type an emote's text code and send it normally. The patch does not add an emote picker, 7TV/BTTV login, or account linking. |  |
 | [Auto claim channel points](#auto-claim-channel-points) | Claims the channel points bonus chest for you automatically. Whenever Twitch makes a bonus available, the claim fires on its own so you don't have to tap the chest. |  |
 | [Block live ads](#block-live-ads) | Routes live streams through a free third-party proxy that strips the ads baked into the stream, so the proxy has to be up for playback to work; turn this patch off if it goes down. Mid-stream ads get dropped reliably, but a single preroll can still slip through when you first open a channel and Twitch has flagged the shared proxy. VOD ads aren't covered. |  |
 | [Fix login](#fix-login) | Fixes the "This app version/OS is not currently supported" error that blocks login after the app has been patched. Twitch runs a Play Integrity check in the background and reports the result to its login server; re-signing makes that check fail, so the server refuses the login. This stops the app from sending that attestation, so it looks like a device without Google Play, where login works normally. It does not change anything else about how you log in. |  |
@@ -230,8 +230,8 @@ Personal [Morphe](https://morphe.software) patches for paid Android apps.
 
 **🎯 Supported versions:**
 
-| 4.56.0 |
-| :---: |
+| 4.56.0 | 4.57.2 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -365,12 +365,12 @@ Personal [Morphe](https://morphe.software) patches for paid Android apps.
 
 **🎯 Supported versions:**
 
-| 2.5.0 |
+| 2.5.6 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Unlock Premium](#unlock-premium) | Unlocks Collectr's premium features without a subscription, like unlimited collections, price alerts, and the advanced analytics. This is the arm64 build. Anything Collectr serves from its own servers still needs the real subscription. |  |
+| [Unlock Premium](#unlock-premium) | Unlocks Collectr's premium features without a subscription, like unlimited collections, price alerts, and the advanced analytics, and stops the blocking "Update App Required" popup that otherwise locks patched installs out. This is the arm64 build. Anything Collectr serves from its own servers still needs the real subscription. |  |
 
 </details>
 
@@ -395,8 +395,8 @@ Personal [Morphe](https://morphe.software) patches for paid Android apps.
 
 **🎯 Supported versions:**
 
-| 4.9.3 |
-| :---: |
+| 4.9.3 | 4.12.0 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -530,7 +530,7 @@ Personal [Morphe](https://morphe.software) patches for paid Android apps.
 
 **🎯 Supported versions:**
 
-| 26.5.0.45958 |
+| 26.7.1.47181 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -545,7 +545,7 @@ Personal [Morphe](https://morphe.software) patches for paid Android apps.
 
 **🎯 Supported versions:**
 
-| 5.3.4 |
+| 6.6.11 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |

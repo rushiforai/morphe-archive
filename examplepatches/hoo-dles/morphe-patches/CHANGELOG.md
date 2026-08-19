@@ -1,3 +1,47 @@
+# [1.41.0](https://github.com/hoo-dles/morphe-patches/compare/v1.40.0...v1.41.0) (2026-08-18)
+
+
+### Bug Fixes
+
+* **Duolingo:** Force max energy ([969359c](https://github.com/hoo-dles/morphe-patches/commit/969359c24d2d3ac6d75e06eb052c0f3cc7911b62))
+
+
+### Features
+
+* **Duolingo:** Update patches to support `6.92.5` ([dca61c3](https://github.com/hoo-dles/morphe-patches/commit/dca61c3c602aecb8c0b6fcc79a4368c4bb59cf67))
+* **MyFitnessPal:** Update patches to support `26.31.0` ([4d50bf9](https://github.com/hoo-dles/morphe-patches/commit/4d50bf9db7d4bd1ac32f393036683090429232c2))
+* **Smart Launcher:** Update patches to support `6.6 build 016` ([1218a1d](https://github.com/hoo-dles/morphe-patches/commit/1218a1d902fd28e90528765c8e6396df28d8981e))
+* **Windy:** Update patches to support `51.0.1` ([634ad8a](https://github.com/hoo-dles/morphe-patches/commit/634ad8aa627ce3f35ecc023d0e0df0f015b4c53c))
+
+# [1.41.0-dev.4](https://github.com/hoo-dles/morphe-patches/compare/v1.41.0-dev.3...v1.41.0-dev.4) (2026-08-18)
+
+
+### Bug Fixes
+
+* **Duolingo:** Force max energy ([969359c](https://github.com/hoo-dles/morphe-patches/commit/969359c24d2d3ac6d75e06eb052c0f3cc7911b62))
+
+# [1.41.0-dev.3](https://github.com/hoo-dles/morphe-patches/compare/v1.41.0-dev.2...v1.41.0-dev.3) (2026-08-17)
+
+
+### Features
+
+* **Duolingo:** Update patches to support `6.92.5` ([dca61c3](https://github.com/hoo-dles/morphe-patches/commit/dca61c3c602aecb8c0b6fcc79a4368c4bb59cf67))
+
+# [1.41.0-dev.2](https://github.com/hoo-dles/morphe-patches/compare/v1.41.0-dev.1...v1.41.0-dev.2) (2026-08-17)
+
+
+### Features
+
+* **Windy:** Update patches to support `51.0.1` ([634ad8a](https://github.com/hoo-dles/morphe-patches/commit/634ad8aa627ce3f35ecc023d0e0df0f015b4c53c))
+
+# [1.41.0-dev.1](https://github.com/hoo-dles/morphe-patches/compare/v1.40.0...v1.41.0-dev.1) (2026-08-16)
+
+
+### Features
+
+* **MyFitnessPal:** Update patches to support `26.31.0` ([4d50bf9](https://github.com/hoo-dles/morphe-patches/commit/4d50bf9db7d4bd1ac32f393036683090429232c2))
+* **Smart Launcher:** Update patches to support `6.6 build 016` ([1218a1d](https://github.com/hoo-dles/morphe-patches/commit/1218a1d902fd28e90528765c8e6396df28d8981e))
+
 # [1.40.0](https://github.com/hoo-dles/morphe-patches/compare/v1.39.0...v1.40.0) (2026-08-07)
 
 

@@ -1,0 +1,43 @@
+{
+    "version": "v1.4.2",
+    "patches": [
+        {
+            "compatiblePackages": [
+                {
+                    "name": "harmonium.music.gameg.real.harmoniumfree",
+                    "packageName": "harmonium.music.gameg.real.harmoniumfree",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "29.0.1"
+                        }
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Removes all banner ads, interstitial ads, open app ads, and enables permanent ad-free status.",
+            "name": "Remove Ads",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "name": "com.psslabs.rhythm",
+                    "packageName": "com.psslabs.rhythm",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "6.23"
+                        }
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Unlocks all Pro features, taals, variations, scales, and removes ads.",
+            "name": "Unlock Pro",
+            "options": []
+        }
+    ]
+}

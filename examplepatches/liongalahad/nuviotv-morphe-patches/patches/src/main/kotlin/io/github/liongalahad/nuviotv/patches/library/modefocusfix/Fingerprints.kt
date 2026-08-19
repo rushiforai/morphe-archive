@@ -46,12 +46,12 @@ internal object LibraryFilterRowFingerprint : Fingerprint(
     returnType = "V",
     custom = { method, _ ->
         val parameters = method.parameterNames()
-        parameters.size == 21 && parameters.firstOrNull() ==
+        parameters.size == 23 && parameters.firstOrNull() ==
             "Lcom/nuvio/tv/domain/model/LibrarySourceMode;" &&
             parameters.subList(1, 6).all { it == "Ljava/util/List;" } &&
-            parameters[11] == "Lz1/y;" && parameters[13] == FUNCTION2 &&
-            parameters.subList(14, 19).all { it == FUNCTION1 } &&
-            parameters[19] == "Le1/m0;" && parameters[20] == "I" &&
+            parameters[12] == "Lz1/y;" && parameters[14] == FUNCTION2 &&
+            parameters.subList(15, 21).all { it == FUNCTION1 } &&
+            parameters[21] == "Le1/m0;" && parameters[22] == "I" &&
             method.implementation?.instructions?.count { instruction ->
                 val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
                 reference?.definingClass == "Lz1/d;" && reference.name == "d" &&
@@ -66,14 +66,18 @@ internal object CloudLibraryFilterRowFingerprint : Fingerprint(
     returnType = "V",
     custom = { method, _ ->
         val parameters = method.parameterNames()
-        parameters == listOf(
-            "Ljava/util/List;", "Ljava/util/List;", "Ljava/lang/String;", "Ly8/c;",
-            "Ljava/lang/String;", FUNCTION2, FUNCTION1, FUNCTION1, "Le1/m0;", "I"
-        ) && method.implementation?.instructions?.count { instruction ->
-            val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
-            reference?.definingClass == "Lc0/w1;" && reference.name == "a" &&
-                reference.parameterTypes.map(CharSequence::toString) == listOf("Lu1/q;", "F") &&
-                reference.returnType == "Lu1/q;"
-        } == 2
+        parameters.size == 10 &&
+            parameters.take(3) == listOf(
+                "Ljava/util/List;", "Ljava/util/List;", "Ljava/lang/String;"
+            ) && parameters[3].startsWith("L") &&
+            parameters[3] != "Ljava/lang/String;" &&
+            parameters.drop(4) == listOf(
+                "Ljava/lang/String;", FUNCTION2, FUNCTION1, FUNCTION1, "Le1/m0;", "I"
+            ) && method.implementation?.instructions?.count { instruction ->
+                val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+                reference?.definingClass == "Lc0/x1;" && reference.name == "a" &&
+                    reference.parameterTypes.map(CharSequence::toString) == listOf("Lu1/q;", "F") &&
+                    reference.returnType == "Lu1/q;"
+            } == 2
     }
 )

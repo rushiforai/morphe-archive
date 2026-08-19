@@ -10,7 +10,8 @@ import kotlin.jvm.functions.Function3;
 
 /** Native Morphe settings content owned by Local Downloads. */
 public final class LocalDownloadsSettingsContent implements Function3<Object, Object, Object, Unit> {
-    private static final String[] NATIVE_SLIDER_CLASS_NAMES = {"sa.h6", "sa.f6"};
+    private static final String[] NATIVE_SLIDER_CLASS_NAMES = {"sa.g6"};
+    private static final String[] NATIVE_SLIDER_ICON_CLASS_NAMES = {"x0.d"};
     private final Object modifier;
 
     private LocalDownloadsSettingsContent(Object modifier) { this.modifier = modifier; }
@@ -69,7 +70,7 @@ public final class LocalDownloadsSettingsContent implements Function3<Object, Ob
             ClassLoader loader = composer.getClass().getClassLoader();
             Class<?> iconClass = Class.forName("h2.f", false, loader);
             Class<?> composerClass = Class.forName("e1.m0", false, loader);
-            Method iconFactory = Class.forName("x0.e", false, loader).getDeclaredMethod("v");
+            Method iconFactory = findNativeSliderIcon(loader, iconClass);
             iconFactory.setAccessible(true);
             Object icon = iconFactory.invoke(null);
             Method slider = findNativeSlider(loader, iconClass, composerClass);
@@ -129,6 +130,31 @@ public final class LocalDownloadsSettingsContent implements Function3<Object, Ob
             }
         }
         throw new NoSuchMethodException("Native Nuvio storage slider method");
+    }
+
+    private static Method findNativeSliderIcon(
+            ClassLoader loader,
+            Class<?> iconClass
+    ) throws ReflectiveOperationException {
+        for (String className : NATIVE_SLIDER_ICON_CLASS_NAMES) {
+            Class<?> owner;
+            try {
+                owner = Class.forName(className, false, loader);
+            } catch (ClassNotFoundException ignored) {
+                continue;
+            }
+            try {
+                Method candidate = owner.getDeclaredMethod("v");
+                if (Modifier.isStatic(candidate.getModifiers()) &&
+                        candidate.getReturnType() == iconClass) {
+                    candidate.setAccessible(true);
+                    return candidate;
+                }
+            } catch (NoSuchMethodException ignored) {
+                // A failed exact match must stop rendering for this supported Nuvio version.
+            }
+        }
+        throw new NoSuchMethodException("Native Nuvio storage slider icon");
     }
 
     private static boolean matchesNativeSliderParameters(

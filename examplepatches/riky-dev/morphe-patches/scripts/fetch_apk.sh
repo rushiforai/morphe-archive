@@ -32,8 +32,9 @@ log "Fetching latest bundle info for $APP_PACKAGE ($APP_DISPLAY_NAME)"
 DL_PAGE="https://apkpure.net/${APP_APKPURE_SLUG}/${APP_PACKAGE}/download"
 curl -fsSL -A "$UA" "$DL_PAGE" -o /tmp/fetch_dlpage.html
 
-VERSION_CODE=$(grep -oP 'versionCode=[0-9]+' /tmp/fetch_dlpage.html | head -1 | grep -oP '[0-9]+' || true)
+VERSION_CODE=$(grep -oP '(versionCode|version_code|data-version-code)="?[0-9]+' /tmp/fetch_dlpage.html | head -1 | grep -oP '[0-9]+' || true)
 VERSION_LABEL=$(grep -oP 'version-name" content="[^"]*"' /tmp/fetch_dlpage.html | head -1 | sed 's/.*content="//;s/"//' || true)
+VERSION_LABEL=${VERSION_LABEL:-$(grep -oP 'data-dt-version="[^"]*"' /tmp/fetch_dlpage.html | head -1 | sed 's/.*="//;s/"//' || true)}
 [[ -n "$VERSION_CODE" ]] || die "could not determine versionCode from download page"
 
 log "versionCode=$VERSION_CODE versionLabel=${VERSION_LABEL:-unknown}"

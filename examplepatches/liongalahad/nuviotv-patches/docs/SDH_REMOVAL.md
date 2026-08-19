@@ -4,7 +4,7 @@ This page specifies what the production patch does. It provides `Off`, `Normaliz
 
 ## Scope and runtime flow
 
-The patch supports only the official NuvioTV `0.8.4-beta` Media3/ExoPlayer subtitle paths. MPV/libass subtitles are not processed.
+The patch supports only the official NuvioTV `0.8.5-beta` Media3/ExoPlayer subtitle paths. MPV/libass subtitles are not processed.
 
 When selected in Morphe, the patch:
 

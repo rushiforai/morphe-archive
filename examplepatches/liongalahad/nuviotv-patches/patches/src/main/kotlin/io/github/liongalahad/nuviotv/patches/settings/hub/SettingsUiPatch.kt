@@ -46,17 +46,24 @@ internal val settingsUiPatch = bytecodePatch {
         }
 
         fun remapResourceLiterals(method: MutableMethod, replacements: Map<Int, Int>) {
+            val replaced = mutableSetOf<Int>()
             method.implementation!!.instructions.withIndex().forEach { (index, instruction) ->
                 val literal = instruction as? WideLiteralInstruction ?: return@forEach
-                val replacement = replacements[literal.wideLiteral.toInt()] ?: return@forEach
+                val source = literal.wideLiteral.toInt()
+                val replacement = replacements[source] ?: return@forEach
                 val register = (instruction as OneRegisterInstruction).registerA
                 method.replaceInstruction(index, "const v$register, 0x${replacement.toString(16)}")
+                replaced += source
+            }
+            check(replaced == replacements.keys) {
+                "Native Experience header resource mapping is incomplete: " +
+                    "expected ${replacements.keys}, replaced $replaced"
             }
         }
 
         remapResourceLiterals(
             ExperienceSettingsHeaderFingerprint.method,
-            mapOf(0x7f1108ac to 0x7f1108d1, 0x7f110565 to 0x7f1108d2)
+            mapOf(0x7f1108df to 0x7f110904, 0x7f110586 to 0x7f110905)
         )
 
         fun MethodReference.descriptor() = buildString {

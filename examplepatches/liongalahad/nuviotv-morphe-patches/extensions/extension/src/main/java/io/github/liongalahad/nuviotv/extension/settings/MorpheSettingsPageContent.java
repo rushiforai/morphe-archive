@@ -12,6 +12,7 @@ import kotlin.jvm.functions.Function3;
 @SuppressWarnings("unused")
 public final class MorpheSettingsPageContent implements Function3<Object, Object, Object, Unit> {
     private static final Function0<Unit> NO_OP = () -> Unit.INSTANCE;
+    private static final String ABOUT_SECTION_KEY = "morphe_about_section";
 
     private final Object modifier;
     private final Object initialFocusRequester;
@@ -54,7 +55,13 @@ public final class MorpheSettingsPageContent implements Function3<Object, Object
             ));
             sectionIndex += 1;
         }
-        MorpheSettingsRows.lazyColumn(modifier, composer, new SectionList(modifier, sections));
+        Object aboutExpanded = MorpheSettingsRows.rememberBooleanState(composer, false);
+        Object aboutFocusRequester = MorpheSettingsRows.rememberFocusRequester(composer);
+        MorpheSettingsRows.lazyColumn(
+                modifier,
+                composer,
+                new SectionList(modifier, sections, aboutExpanded, aboutFocusRequester)
+        );
         return Unit.INSTANCE;
     }
 
@@ -83,10 +90,19 @@ public final class MorpheSettingsPageContent implements Function3<Object, Object
     private static final class SectionList implements Function1<Object, Unit> {
         private final Object modifier;
         private final List<SectionState> sections;
+        private final Object aboutExpanded;
+        private final Object aboutFocus;
 
-        SectionList(Object modifier, List<SectionState> sections) {
+        SectionList(
+                Object modifier,
+                List<SectionState> sections,
+                Object aboutExpanded,
+                Object aboutFocus
+        ) {
             this.modifier = modifier;
             this.sections = sections;
+            this.aboutExpanded = aboutExpanded;
+            this.aboutFocus = aboutFocus;
         }
 
         @Override
@@ -98,6 +114,39 @@ public final class MorpheSettingsPageContent implements Function3<Object, Object
                         new Section(modifier, section)
                 );
             }
+            MorpheSettingsRows.lazyItem(
+                    lazyListScope,
+                    ABOUT_SECTION_KEY,
+                    new AboutSection(modifier, aboutExpanded, aboutFocus)
+            );
+            return Unit.INSTANCE;
+        }
+    }
+
+    private static final class AboutSection implements Function3<Object, Object, Object, Unit> {
+        private final Object modifier;
+        private final Object expanded;
+        private final Object focus;
+
+        AboutSection(Object modifier, Object expanded, Object focus) {
+            this.modifier = modifier;
+            this.expanded = expanded;
+            this.focus = focus;
+        }
+
+        @Override
+        public Unit invoke(Object ignoredItemScope, Object composer, Object flags) {
+            if (!MorpheSettingsRows.beginComposition(composer, flags)) return Unit.INSTANCE;
+            MorpheSettingsRows.collapsibleSection(
+                    composer,
+                    "About",
+                    "Morphe Patches information and project links",
+                    MorpheSettingsRows.booleanStateValue(expanded),
+                    MorpheSettingsRows.booleanStateToggle(expanded),
+                    focus,
+                    NO_OP,
+                    MorpheAboutSettingsContent.create(modifier)
+            );
             return Unit.INSTANCE;
         }
     }

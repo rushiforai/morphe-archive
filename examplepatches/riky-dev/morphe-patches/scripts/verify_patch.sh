@@ -19,6 +19,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/common.sh"
 # shellcheck source=lib/config.sh
 source "$SCRIPT_DIR/lib/config.sh"
+# shellcheck source=lib/smali_assertions.sh
+source "$SCRIPT_DIR/lib/smali_assertions.sh"
 
 show_help() {
   usage "$(basename "$0")" "[base_apk_path] [--assert file pattern [label] ...]
@@ -92,10 +94,14 @@ fi
 
 [[ -f "$MPP" ]] || die "patch bundle not found: $MPP (run build.sh first)"
 [[ -n "$APK" && -f "$APK" ]] || die "base APK not found (run extract_apk.sh or pass path)"
+APK="$(readlink -f "$APK")"
 
 if [[ "$ASSERT_MODE" == "config" ]]; then
   ASSERTIONS_JSON="$(config_verify_assertions "$APP_ID")"
 fi
+
+SMALI_ASSERTIONS_JSON="$(config_verify_smali_assertions "$APP_ID")"
+SMALI_ASSERT_COUNT="$(python3 -c "import json,sys; print(len(json.loads(sys.argv[1])))" "$SMALI_ASSERTIONS_JSON")"
 
 log "MPP: $MPP"
 log "APK: $APK"
@@ -146,8 +152,12 @@ fun main(args: Array<String>) {
     val mpp = File(args[0])
     val apk = File(args[1])
     val out = File(args[2])
-    val patches = loadPatchesFromJar(setOf(mpp))
-    println("Loaded ${patches.size} patch(es): ${patches.map { it.name }}")
+    val packageName = args[3]
+    val patches = loadPatchesFromJar(setOf(mpp)).filter { patch ->
+        patch.compatibility?.any { it.packageName == packageName } == true
+    }.toSet()
+    check(patches.isNotEmpty()) { "No patches found for package: $packageName" }
+    println("Loaded ${patches.size} patch(es) for $packageName: ${patches.map { it.name }}")
     val patcher = Patcher(
         PatcherConfig(apkFile = apk, temporaryFilesPath = File(out, "tmp"))
     )
@@ -175,27 +185,40 @@ EOF
 
 log "Applying patches..."
 cd "$WORK"
-"$ROOT_DIR/gradlew" -p "$WORK" run --args="$MPP $APK $WORK/out" --console=plain 2>&1 | tail -20
+"$ROOT_DIR/gradlew" -p "$WORK" run --args="$MPP $APK $WORK/out $APP_PACKAGE" --console=plain
 
 ASSERT_COUNT="$(python3 -c "import json,sys; print(len(json.loads(sys.argv[1])))" "$ASSERTIONS_JSON")"
+PATCHED_DEX_DIR="$WORK/out/tmp/patched/dex"
+
+if [[ "$SMALI_ASSERT_COUNT" != "0" ]]; then
+  [[ -d "$PATCHED_DEX_DIR" ]] || die "patched dex dir not found at $PATCHED_DEX_DIR"
+  log "Checking smali assertions..."
+  mapfile -t PATCHED_DEX_FILES < <(find "$PATCHED_DEX_DIR" -name 'classes*.dex' | sort)
+  [[ ${#PATCHED_DEX_FILES[@]} -gt 0 ]] || die "no patched dex files under $PATCHED_DEX_DIR"
+  if ! run_smali_assertions "$SMALI_ASSERTIONS_JSON" "${PATCHED_DEX_FILES[@]}"; then
+    die "smali assertion check(s) failed"
+  fi
+fi
+
 if [[ "$ASSERT_COUNT" == "0" ]]; then
-  log "No assertions configured — patch apply check only."
+  log "No jadx assertions configured — patch apply + smali checks only."
   exit 0
 fi
 
-NEWDEX="$WORK/out/tmp/patched/dex/classes.dex"
+NEWDEX="$PATCHED_DEX_DIR/classes.dex"
 [[ -f "$NEWDEX" ]] || die "patched dex not found at $NEWDEX"
 
 JADX_OUT="$WORK/out/jadx"
-log "Decompiling patched dex for assertion checks..."
+log "Decompiling patched dex for jadx assertion checks..."
 if [[ -n "${JAVA_HOME:-}" && -x "${JAVA_HOME}/bin/java" ]] && [[ -d "${HOME}/.local/jadx/lib" ]]; then
   "${JAVA_HOME}/bin/java" -Xmx2g -cp "${HOME}/.local/jadx/lib/*" \
-    jadx.cli.JadxCLI "$NEWDEX" -d "$JADX_OUT" --no-res >/dev/null 2>&1
+    jadx.cli.JadxCLI "$NEWDEX" -d "$JADX_OUT" --no-res >/dev/null 2>&1 || true
 elif command -v jadx >/dev/null 2>&1; then
-  jadx -d "$JADX_OUT" "$NEWDEX" --no-res >/dev/null 2>&1
+  jadx -d "$JADX_OUT" "$NEWDEX" --no-res >/dev/null 2>&1 || true
 else
   die "jadx required for assertion checks"
 fi
+[[ -d "$JADX_OUT/sources" ]] || die "jadx produced no output under $JADX_OUT"
 
 FAILED=0
 while IFS= read -r line; do

@@ -14,7 +14,7 @@ final class MorpheSettingsRows {
     private static final int NATIVE_CATEGORY_LIST_DEFAULT_MASK = 510 & ~16;
     private static final int NATIVE_SELECTOR_EXPLICIT_ENABLED_MASK = 0x3fb0;
     private static final String[] NATIVE_SWITCH_CLASS_NAMES = {"sa.v", "sa.u", "sa.ic", "sa.oc"};
-    private static final String[] NATIVE_SELECTOR_CLASS_NAMES = {"sa.nc", "sa.ic", "sa.oc"};
+    private static final String[] NATIVE_SELECTOR_CLASS_NAMES = {"sa.mc"};
 
     private static volatile Method nativeCardMethod;
     private static volatile Method nativeSwitchMethod;

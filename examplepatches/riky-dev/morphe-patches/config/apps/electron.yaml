@@ -1,0 +1,6 @@
+id: electron
+package: com.mahersafadi.electron
+display_name: "Electron: battery health info"
+apk_file_type: XAPK
+apkpure_slug: electron-battery-health-info
+analysis_dir: analysis/electron

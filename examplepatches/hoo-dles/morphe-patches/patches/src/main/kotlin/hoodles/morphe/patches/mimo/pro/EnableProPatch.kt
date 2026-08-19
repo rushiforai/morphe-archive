@@ -23,7 +23,7 @@ val enableProPatch = bytecodePatch(
         name = "Mimo",
         packageName = "com.getmimo",
         appIconColor = 0x7E4BDE,
-        targets = listOf(AppTarget("9.11"))
+        targets = listOf(AppTarget("9.24"))
     ))
 
     dependsOn(spoofSignatureHeaderPatch)

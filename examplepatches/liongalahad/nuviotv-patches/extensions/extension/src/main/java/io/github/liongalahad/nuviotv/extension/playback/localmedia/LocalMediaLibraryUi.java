@@ -77,6 +77,20 @@ public final class LocalMediaLibraryUi {
     private static volatile Method nativeButtonColorsMethod;
     private static volatile Method nativeTextMethod;
     private static volatile Method previewKeyModifierMethod;
+    private static volatile String nativeButtonOwnerName;
+    private static volatile String nativeTextOwnerName;
+    private static volatile String cloudSearchOwnerName;
+    private static volatile String cloudSearchMethodName;
+    private static volatile String cloudCardOwnerName;
+    private static volatile String cloudCardMethodName;
+    private static volatile String cloudDialogOwnerName;
+    private static volatile String cloudDialogMethodName;
+    private static volatile String emptyStateOwnerName;
+    private static volatile String emptyStateMethodName;
+    private static volatile String emptyStateIconOwnerName;
+    private static volatile String emptyStateIconMethodName;
+    private static volatile String cloudItemOwnerName;
+    private static volatile String cloudFileOwnerName;
 
     private static final Function2<Object, Object, Unit> REFRESH_CONTENT = (composer, flags) -> {
         renderRefreshButton(composer);
@@ -84,6 +98,39 @@ public final class LocalMediaLibraryUi {
     };
 
     private LocalMediaLibraryUi() {}
+
+    /** Receives version-specific optimized Compose owners discovered from the target APK. */
+    public static void configureNativeUi(
+            String buttonOwnerName,
+            String textOwnerName,
+            String searchOwnerName,
+            String searchMethodName,
+            String cardOwnerName,
+            String cardMethodName,
+            String dialogOwnerName,
+            String dialogMethodName,
+            String statusOwnerName,
+            String statusMethodName,
+            String statusIconOwnerName,
+            String statusIconMethodName,
+            String itemOwnerName,
+            String fileOwnerName
+    ) {
+        nativeButtonOwnerName = buttonOwnerName;
+        nativeTextOwnerName = textOwnerName;
+        cloudSearchOwnerName = searchOwnerName;
+        cloudSearchMethodName = searchMethodName;
+        cloudCardOwnerName = cardOwnerName;
+        cloudCardMethodName = cardMethodName;
+        cloudDialogOwnerName = dialogOwnerName;
+        cloudDialogMethodName = dialogMethodName;
+        emptyStateOwnerName = statusOwnerName;
+        emptyStateMethodName = statusMethodName;
+        emptyStateIconOwnerName = statusIconOwnerName;
+        emptyStateIconMethodName = statusIconMethodName;
+        cloudItemOwnerName = itemOwnerName;
+        cloudFileOwnerName = fileOwnerName;
+    }
 
     /** Replaces the optional Cloud refresh slot only while the injected mode is active. */
     public static Function2 storageRefreshContent(Object mode, Function2 nativeContent) {
@@ -685,8 +732,12 @@ public final class LocalMediaLibraryUi {
         try {
             Method method = cloudSearchMethod;
             if (method == null) {
-                Class<?> owner = Class.forName("na.f0", false, composer.getClass().getClassLoader());
-                method = owner.getDeclaredMethod("d", String.class, Function1.class,
+                Class<?> owner = Class.forName(
+                        requiredNativeOwner(cloudSearchOwnerName, "Library search"), false,
+                        composer.getClass().getClassLoader());
+                method = owner.getDeclaredMethod(
+                        requiredNativeOwner(cloudSearchMethodName, "Library search method"),
+                        String.class, Function1.class,
                         Class.forName("e1.m0", false, composer.getClass().getClassLoader()), Integer.TYPE);
                 method.setAccessible(true);
                 cloudSearchMethod = method;
@@ -707,7 +758,8 @@ public final class LocalMediaLibraryUi {
     private static Object nativeCloudItem(LocalMediaRuntime.LocalMediaEntry entry)
             throws ReflectiveOperationException {
         ClassLoader loader = LocalMediaLibraryUi.class.getClassLoader();
-        Class<?> fileClass = Class.forName("y8.a", false, loader);
+        Class<?> fileClass = Class.forName(
+                requiredNativeOwner(cloudFileOwnerName, "Cloud file model"), false, loader);
         Constructor<?> fileConstructor = fileClass.getDeclaredConstructor(
                 String.class, String.class, Long.class, String.class, Boolean.TYPE, String.class);
         fileConstructor.setAccessible(true);
@@ -724,13 +776,24 @@ public final class LocalMediaLibraryUi {
                     "video/*", true, file.uri.toString()));
         }
 
-        Class<?> typeClass = Class.forName("y8.c", false, loader);
+        Class<?> itemClass = Class.forName(
+                requiredNativeOwner(cloudItemOwnerName, "Cloud item model"), false, loader);
+        Constructor<?> itemConstructor = null;
+        for (Constructor<?> candidate : itemClass.getDeclaredConstructors()) {
+            Class<?>[] parameters = candidate.getParameterTypes();
+            if (parameters.length == 9 && parameters[0] == String.class &&
+                    parameters[1] == String.class && parameters[2] == String.class &&
+                    parameters[3].isEnum() && parameters[4] == String.class &&
+                    parameters[5] == String.class && parameters[6] == Long.class &&
+                    parameters[7] == Float.class && List.class.isAssignableFrom(parameters[8])) {
+                itemConstructor = candidate;
+                break;
+            }
+        }
+        if (itemConstructor == null) throw new NoSuchMethodException("Native Cloud item model");
+        Class<?> typeClass = itemConstructor.getParameterTypes()[3];
         @SuppressWarnings({"rawtypes", "unchecked"})
         Object fileType = Enum.valueOf((Class<? extends Enum>) typeClass.asSubclass(Enum.class), "File");
-        Class<?> itemClass = Class.forName("y8.b", false, loader);
-        Constructor<?> itemConstructor = itemClass.getDeclaredConstructor(
-                String.class, String.class, String.class, typeClass, String.class, String.class,
-                Long.class, Float.class, List.class);
         itemConstructor.setAccessible(true);
         Long size = entry.folder ? null : Long.valueOf(entry.files.get(0).size);
         return itemConstructor.newInstance(
@@ -742,17 +805,24 @@ public final class LocalMediaLibraryUi {
             Method card = cloudCardMethod;
             Method dialog = cloudFileDialogMethod;
             ClassLoader loader = composer.getClass().getClassLoader();
-            Class<?> itemClass = Class.forName("y8.b", false, loader);
+            Class<?> itemClass = Class.forName(
+                    requiredNativeOwner(cloudItemOwnerName, "Cloud item model"), false, loader);
             Class<?> composerClass = Class.forName("e1.m0", false, loader);
             if (card == null) {
-                card = Class.forName("na.f0", false, loader).getDeclaredMethod(
-                        "b", itemClass, Boolean.TYPE, Function0.class, composerClass, Integer.TYPE);
+                card = Class.forName(
+                        requiredNativeOwner(cloudCardOwnerName, "Library card"), false, loader
+                ).getDeclaredMethod(
+                        requiredNativeOwner(cloudCardMethodName, "Library card method"),
+                        itemClass, Boolean.TYPE, Function0.class, composerClass, Integer.TYPE);
                 card.setAccessible(true);
                 cloudCardMethod = card;
             }
             if (dialog == null) {
-                dialog = Class.forName("na.f0", false, loader).getDeclaredMethod(
-                        "a", itemClass, String.class, Function1.class, Function0.class,
+                dialog = Class.forName(
+                        requiredNativeOwner(cloudDialogOwnerName, "Library dialog"), false, loader
+                ).getDeclaredMethod(
+                        requiredNativeOwner(cloudDialogMethodName, "Library dialog method"),
+                        itemClass, String.class, Function1.class, Function0.class,
                         composerClass, Integer.TYPE);
                 dialog.setAccessible(true);
                 cloudFileDialogMethod = dialog;
@@ -862,8 +932,11 @@ public final class LocalMediaLibraryUi {
             Method method = emptyStateMethod;
             if (method == null) {
                 Class<?> iconClass = Class.forName("h2.f", false, loader);
-                method = Class.forName("da.y2", false, loader).getDeclaredMethod(
-                        "j", String.class, String.class, iconClass,
+                method = Class.forName(
+                        requiredNativeOwner(emptyStateOwnerName, "Library status"), false, loader
+                ).getDeclaredMethod(
+                        requiredNativeOwner(emptyStateMethodName, "Library status method"),
+                        String.class, String.class, iconClass,
                         Class.forName("u1.q", false, loader), Float.TYPE,
                         Class.forName("e1.m0", false, loader), Integer.TYPE, Integer.TYPE);
                 method.setAccessible(true);
@@ -871,7 +944,10 @@ public final class LocalMediaLibraryUi {
             }
             Object icon = emptyStateIcon;
             if (icon == null) {
-                Method iconFactory = Class.forName("n.b", false, loader).getDeclaredMethod("x");
+                Method iconFactory = Class.forName(
+                        requiredNativeOwner(emptyStateIconOwnerName, "Library status icon"),
+                        false, loader).getDeclaredMethod(
+                        requiredNativeOwner(emptyStateIconMethodName, "Library status icon method"));
                 iconFactory.setAccessible(true);
                 icon = iconFactory.invoke(null);
                 emptyStateIcon = icon;
@@ -896,7 +972,9 @@ public final class LocalMediaLibraryUi {
             ClassLoader loader = composer.getClass().getClassLoader();
             Method button = nativeButtonMethod;
             if (button == null) {
-                for (Method candidate : Class.forName("p5.a1", false, loader).getDeclaredMethods()) {
+                for (Method candidate : Class.forName(
+                        requiredNativeOwner(nativeButtonOwnerName, "Button"), false, loader
+                ).getDeclaredMethods()) {
                     Class<?>[] parameters = candidate.getParameterTypes();
                     if (Modifier.isStatic(candidate.getModifiers()) && candidate.getReturnType() == Void.TYPE &&
                             parameters.length == 13 && Function0.class.isAssignableFrom(parameters[0]) &&
@@ -987,7 +1065,8 @@ public final class LocalMediaLibraryUi {
         try {
             Method method = nativeTextMethod;
             if (method == null) {
-                for (Method candidate : Class.forName("p5.a2", false,
+                for (Method candidate : Class.forName(
+                        requiredNativeOwner(nativeTextOwnerName, "text"), false,
                         composer.getClass().getClassLoader()).getDeclaredMethods()) {
                     Class<?>[] parameters = candidate.getParameterTypes();
                     if (Modifier.isStatic(candidate.getModifiers()) && candidate.getReturnType() == Void.TYPE &&
@@ -1017,6 +1096,13 @@ public final class LocalMediaLibraryUi {
         } catch (Throwable error) {
             throw new IllegalStateException("Unable to render native Storage text", error);
         }
+    }
+
+    private static String requiredNativeOwner(String ownerName, String component) {
+        if (ownerName == null || ownerName.isEmpty()) {
+            throw new IllegalStateException("Native " + component + " owner was not configured");
+        }
+        return ownerName;
     }
 
     private static Object stateValue(Object state) {

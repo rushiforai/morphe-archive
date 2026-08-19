@@ -34,6 +34,7 @@ a patch needs rewriting too.
 """
 import os
 import re
+import struct
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -52,9 +53,12 @@ SCRUB_DELETE = ('Lcom/google/android/libraries/inputmethod/motioneventhandler/sc
                 'ScrubDeleteMotionEventHandler;')
 ABSTRACT_HANDLER = ('Lcom/google/android/libraries/inputmethod/motioneventhandler/'
                     'AbstractMotionEventHandler;')
+KEYBOARD_VIEW = 'Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;'
 LATIN_IME = 'Lcom/google/android/apps/inputmethod/libs/latin5/LatinIme;'
 ABSTRACT_IME = 'Lcom/google/android/libraries/inputmethod/ime/AbstractIme;'
 LATIN_APP = 'Lcom/google/android/apps/inputmethod/latin/LatinApp;'
+ACCESS_POINTS_BAR = ('Lcom/google/android/libraries/inputmethod/accesspoint/widget/'
+                     'AccessPointsBar;')
 CONTEXT = 'Landroid/content/Context;'
 
 # `AbstractIme->…(L…;Z)V` — the shape of the undo re-commit, whatever it is called this build.
@@ -71,7 +75,12 @@ BINDINGS = {
     'undo_slot': 'Lqyc;',
     'committable': 'Lojt;',
     'sigcheck': 'Lrpv;',
-    'sigcheck_flag': 'Lrox;',
+    # Not a cached signature verdict, despite the company it keeps here. Lrox;->b:Z is the global
+    # test-environment flag (Build.FINGERPRINT.equals("robolectric")), permanently false on a
+    # device and read in ~40 unrelated places. The signature check reads it once, as the value to
+    # return when the caller's digest cannot be computed -- an input, never an output. It is
+    # tracked only because reading it is part of what identifies the check.
+    'test_environment': 'Lrox;',
 }
 
 EXPECTED = {
@@ -81,21 +90,64 @@ EXPECTED = {
     'store_singleton': 'I',              # Lqhy;->I(Context)Lqhy;
     'store_contains': 'ak',              # contains, keyed by resource id
     'store_write': 'T',                  # (I, Object) -> void
-    'ime_context_field': 'B',
     'handler_context_field': 'o',
     'undo_slot_field': 'y',
     'recommit': 'Lcom/google/android/libraries/inputmethod/ime/AbstractIme;->t(Lojt;Z)V',
     'recommit_window': 40,
+    'slot_field': 'Lcom/google/android/apps/inputmethod/libs/latin5/LatinIme;->y:Lqyc;',
+    'slot_available': 'Lqyc;->d()Z',
+    'slot_clear': 'Lqyc;->c()V',
+    'get_int': 'Lqhy;->b(Ljava/lang/String;I)I',
+    'contains': 'Lqhy;->ak(I)Z',
     'scrub_g_registers': 13,
     'scrub_r_registers': 13,
-    'delete_ctor_registers': 12,
     'engine_ctor_registers': 11,
     'apply_preferences_registers': 13,
     'sigcheck_registers': 8,
     'sigcheck_returns': [6, 4, 3],
     'undo_scratch': [2, 3],
     'clamp_scratch': [5, 7, 9],
+    'distance_scratch': [7, 8, 9],
     'stock_start_keycode': 67,
+    'toolbar_scratch': [2, 5],
+    'toolbar_ctor_registers': 9,
+    'toolbar_ctor_ins': 3,
+    # Gboard's own log line for the order-update callback. The anchor for the *count*, as opposed to
+    # the capacity the constructor writes -- and unusually good for one, because it does not merely
+    # locate a method, it says in Google's own words what the value returned there is.
+    'toolbar_count_log': 'oldVisibleCountOnBar %d, currentVisibleCountOnBar %d, definedCountOnBar %d',
+    # Gboard's own name for the device class an open fold reports. The enum's <clinit> hands it to
+    # each constant's constructor as a literal, and R8 rewrites the field but never the string, so
+    # this is what tells the foldable constant apart from DEVICE_TABLET sitting next to it.
+    'toolbar_foldable_name': 'DEVICE_FOLDABLE',
+    'toolbar_count_registers': 5,
+    'toolbar_count_ins': 2,
+    'toolbar_count_scratch': [0, 1, 2],
+    # Gboard's own stock icon count, the default of the getInt in the bar's constructor. Not used by
+    # the patch -- it reads the preference with whatever Gboard computed -- but it is the number the
+    # settings slider displays while unset, so it has to stay true.
+    'toolbar_stock_count': 5,
+    # ---- select all button
+    # The three resource ids Gboard's text-editing access-point seed uses together. The patch finds
+    # the seed by them and then reads the builder's setters out of it by the value each is handed,
+    # because five setters share the signature (I)V and naming one would be a bet on R8's letters.
+    'selectall_seed_literals': [0x7f080546, 0x7f140720, 0x7f141218],
+    # Gboard's own "Select all", already present for the text editing panel. Asserted because the
+    # button would otherwise be labelled with whatever the id came to mean.
+    'selectall_label': 0x7f140576,
+    # Material's select_all glyph, which Gboard ships and never draws -- its own text-editing panel
+    # labels the key in words and gives it no icon. Found by shape, because 1,679 drawables have had
+    # their names collapsed by aapt2, and asserted the same way: the tail of the path is the inner
+    # filled square inside the dashed marquee, which nothing else in the app draws.
+    'selectall_icon': 0x7f080218,
+    'selectall_glyph': 'M9,9h6v6L9,15L9,9z',
+    'selectall_split_registers': 7,
+    'selectall_split_ins': 2,
+    'selectall_split_scratch': [0, 1, 2, 3, 4],
+    'selectall_oncreate_registers': 12,
+    # The keycode Gboard wraps a Runnable in, and the dispatcher that runs it. Two other classes
+    # test this keycode and decline it, so "something tests it" is not the check that matters.
+    'selectall_runnable_keycode': -40007,
 }
 
 # --------------------------------------------------------------------------- dex helpers
@@ -166,6 +218,42 @@ def find_instance_field(dl, type_, name):
     return None
 
 
+def switch_keys(dex, c):
+    """Every case key of every switch in a method, including the ones no literal search can find.
+
+    A packed-switch payload stores only its *first* key and a count; the rest are implied by
+    position, so a keycode handled by one appears nowhere as a `const` and a literal search
+    reports it unhandled. That is not a hypothetical -- it is how -10086 was first, wrongly,
+    concluded to be handled, and how the -40007 dispatcher was first, wrongly, concluded absent.
+    """
+    b, keys = dex.b, set()
+    base = c['insns_off']
+    end = base + 2 * c['insns_size']
+    p = base
+    while p < end:
+        unit = struct.unpack_from('<H', b, p)[0]
+        op = unit & 0xff
+        if op == 0x00 and unit >> 8:
+            ident = unit >> 8
+            if ident == 1:                                     # packed-switch payload
+                size = struct.unpack_from('<H', b, p + 2)[0]
+                first = struct.unpack_from('<i', b, p + 4)[0]
+                keys.update(range(first, first + size))
+                n = size * 2 + 4
+            elif ident == 2:                                   # sparse-switch payload
+                size = struct.unpack_from('<H', b, p + 2)[0]
+                keys.update(struct.unpack_from(f'<{size}i', b, p + 4))
+                n = size * 4 + 2
+            else:                                              # fill-array-data
+                width = struct.unpack_from('<H', b, p + 2)[0]
+                size = struct.unpack_from('<I', b, p + 4)[0]
+                n = (size * width + 1) // 2 + 4
+            p += 2 * n
+            continue
+        p += 2 * dexlib._L[op]
+    return keys
+
+
 def body(dl, descriptor):
     d, c, maf = ddis.find(descriptor, dl)
     if not c:
@@ -175,6 +263,71 @@ def body(dl, descriptor):
 
 def regs(arg):
     return [int(x) for x in re.findall(r'v(\d+)', arg)]
+
+
+# Mnemonics whose first register operand is a *source*, not a destination. Everything else that
+# names a register writes the first one, which is what makes `writes_before` usable as a liveness
+# test rather than a guess.
+READS_FIRST_OPERAND = ('if-', 'invoke', 'iput', 'sput', 'aput', 'return', 'throw', 'monitor',
+                       'fill-array', 'packed-switch', 'sparse-switch')
+
+
+def writes_before(ins, reg, after_pc, before_pc):
+    """Instructions in (after_pc, before_pc] that overwrite vreg."""
+    return [(pc, n) for pc, n, a in ins
+            if after_pc < pc <= before_pc
+            and not n.startswith(READS_FIRST_OPERAND)
+            and regs(a)[:1] == [reg]]
+
+
+def live_free(ins, register_count, at_pc):
+    """Registers that are dead at `at_pc`, by backward liveness over the real control flow.
+
+    A forward "is the next touch a write?" scan is not sound here and gets a real answer wrong:
+    in `r()` it reports v3 free because the table walk writes it, but the `if-gt` guarding that
+    walk branches straight past the write to a path that reads v3. Borrowing it would corrupt the
+    extrapolated word count on long swipes, silently. So this does the fixpoint properly.
+    """
+    n = len(ins)
+    pcs = [i[0] for i in ins]
+    index = {p: k for k, p in enumerate(pcs)}
+
+    def successors(k):
+        _, mnemonic, args = ins[k]
+        match = re.search(r'-> (\d+)', args)
+        if mnemonic.startswith('goto'):
+            return [index[int(match.group(1))]] if match else []
+        if mnemonic.startswith(('return', 'throw')):
+            return []
+        out = [index[int(match.group(1))]] if match else []
+        if k + 1 < n:
+            out.append(k + 1)
+        return out
+
+    live = [set() for _ in range(n + 1)]
+    for _ in range(500):
+        changed = False
+        for k in range(n - 1, -1, -1):
+            _, mnemonic, args = ins[k]
+            r = regs(args)
+            out = set()
+            for t in successors(k):
+                out |= live[t]
+            if mnemonic.startswith(READS_FIRST_OPERAND):
+                sources, destination = r, None
+            else:
+                sources, destination = r[1:], (r[0] if r else None)
+            new = set(out)
+            if destination is not None:
+                new.discard(destination)
+            new |= set(sources)
+            if new != live[k]:
+                live[k] = new
+                changed = True
+        if not changed:
+            break
+    at = live[index[at_pc]]
+    return [r for r in range(register_count) if r not in at]
 
 
 # --------------------------------------------------------------------------- checks
@@ -187,18 +340,35 @@ class Report:
         self.rows.append((bool(ok), name, detail))
         return bool(ok)
 
+    def skip(self, name, why):
+        """A check that could not run.
+
+        Deliberately not the same thing as a pass. A check that silently does not run is the
+        failure mode this tool exists to prevent, so a skip is printed and counted apart from the
+        pass total rather than being folded into it.
+        """
+        self.rows.append((None, name, why))
+        return False
+
     def finish(self):
         width = max(len(n) for _, n, _ in self.rows)
-        failed = 0
+        failed = skipped = 0
         for ok, name, detail in self.rows:
-            failed += not ok
-            line = f'{"PASS" if ok else "FAIL"}  {name:<{width}}  {detail if not ok else ""}'
-            print(line.rstrip())
-        print(f'\n{len(self.rows) - failed}/{len(self.rows)} passed')
+            if ok is None:
+                skipped += 1
+                state = 'SKIP'
+            else:
+                failed += not ok
+                state = 'PASS' if ok else 'FAIL'
+            shown = detail if ok is not True else ''
+            print(f'{state}  {name:<{width}}  {shown}'.rstrip())
+        total = len(self.rows) - skipped
+        tail = f', {skipped} skipped' if skipped else ''
+        print(f'\n{total - failed}/{total} passed{tail}')
         return failed
 
 
-def run(dl):
+def run(dl, apk=None):
     B, E = BINDINGS, EXPECTED
     store, config, delegate = B['store'], B['config'], B['delegate']
     check = Report()
@@ -242,44 +412,98 @@ def run(dl):
                       f'count=v{count_reg} this=v{ime_reg} flag=v{flag_reg} '
                       f'scratch={E["undo_scratch"]}')
 
-    ime_ctx = find_instance_field(dl, ABSTRACT_IME, E['ime_context_field'])
-    check('undo: IME Context field resolves', ime_ctx is not None, str(ime_ctx))
-    check('undo: its value is a Context', bool(ime_ctx) and ime_ctx.endswith(':' + CONTEXT),
-          str(ime_ctx))
+    # The IME's Context field used to be checked here, because the undo patch reached the
+    # preference store through it to read an on/off toggle. Undo is unconditional now, so nothing
+    # resolves a Context inside the dispatcher and there is nothing left to assert.
 
-    slot = B['undo_slot']
-    for sig in (f'{slot}->d()Z', f'{slot}->a()Lj$/util/Optional;', f'{slot}->c()V'):
-        c, _ = body(dl, sig)
-        check(f'undo: {sig}', c is not None)
-
-    # The re-commit, resolved the way the patch resolves it: from the call Gboard's own undo makes.
+    # The undo cluster, resolved the way the patch resolves it: from the handler that performs
+    # Gboard's own undo, anchored on the re-commit's *shape* rather than any name.
     #
-    # Checking only that a named method *exists* is what let `0.0.3-dev.1` ship broken. On 18 the
-    # re-commit is `AbstractIme->t`, while `s` — the 17.7.7 name — still exists with a
-    # signature-compatible shape and an empty base declaration. Both resolve, both verify, and the
-    # wrong one silently does nothing. Only the stock handler distinguishes them.
+    # Checking that a named method merely *exists* is what let `0.0.3-dev.1` ship broken. Four of
+    # these share a signature with siblings on the same class — `AbstractIme->s`/`t`, the slot's
+    # three `()Z` methods, its nine `()V` methods — so existence proves nothing. Only the call site
+    # distinguishes them, and this mirrors that resolution so a drift shows up here first.
+    slot = B['undo_slot']
     c, ins = body(dl, dispatch)
     if ins:
-        gets = [i for i, (pc, n, a) in enumerate(ins) if f'{slot}->a()Lj$/util/Optional;' in a]
-        if check('undo: undo-slot get is unique in the dispatcher', len(gets) == 1,
-                 f'found {len(gets)}'):
-            window = ins[gets[0] + 1:gets[0] + 1 + E['recommit_window']]
-            found = [a.split(', ')[-1] for pc, n, a in window
-                     if n.startswith('invoke') and RECOMMIT_RE.match(a.split(', ')[-1])]
-            if check('undo: stock undo re-commits via an AbstractIme hook', bool(found),
-                     'no AbstractIme->…(L…;Z)V call follows the slot read'):
-                resolved = found[0]
-                check('undo: the re-commit is the expected one',
-                      resolved == E['recommit'], f'stock calls {resolved}')
-                committable = RECOMMIT_RE.match(resolved).group(1)
-                check('undo: committable-text type matches the cast',
-                      committable == B['committable'],
-                      f'stock casts to {committable}, bindings say {B["committable"]}')
-                # An empty base declaration means the subclass override is what runs; that is
-                # exactly why the two hooks are indistinguishable without this call site.
-                owner_free = resolved.replace(ABSTRACT_IME, LATIN_IME)
-                c2, _ = body(dl, owner_free)
-                check('undo: LatinIme overrides it', c2 is not None, owner_free)
+        anchors = [i for i, (pc, n, a) in enumerate(ins)
+                   if n.startswith('invoke') and RECOMMIT_RE.match(a.split(', ')[-1])]
+        if check('undo: the re-commit anchor is unique in the dispatcher', len(anchors) == 1,
+                 f'found {len(anchors)} AbstractIme->…(L…;Z)V calls'):
+            ai = anchors[0]
+            resolved = ins[ai][2].split(', ')[-1]
+            check('undo: resolved re-commit matches the expected one',
+                  resolved == E['recommit'], f'stock calls {resolved}')
+            check('undo: committable-text type matches the cast',
+                  RECOMMIT_RE.match(resolved).group(1) == B['committable'],
+                  f'stock casts to {RECOMMIT_RE.match(resolved).group(1)}')
+            # An empty base declaration means the subclass override is what runs; that is exactly
+            # why the two hooks are indistinguishable without this call site.
+            c2, _ = body(dl, resolved.replace(ABSTRACT_IME, LATIN_IME))
+            check('undo: LatinIme overrides the re-commit', c2 is not None)
+
+            # The slot is the receiver of the call *returning* an Optional. Matching on the type
+            # appearing anywhere would catch Optional's own isPresent/get instead.
+            start = max(0, ai - E['recommit_window'])
+            gets = [i for i in range(start, ai)
+                    if ins[i][1].startswith('invoke')
+                    and ins[i][2].split(', ')[-1].endswith(')Lj$/util/Optional;')]
+            if check('undo: an Optional getter precedes the re-commit', bool(gets)):
+                gi = gets[-1]
+                got = ins[gi][2].split(', ')[-1]
+                slot_reg = regs(ins[gi][2])[0]
+                check('undo: the Optional getter is on the expected slot',
+                      got.startswith(slot), f'resolved slot is {got.split("->")[0]}')
+
+                def on_slot(i, ret):
+                    d_ = ins[i][2].split(', ')[-1]
+                    return (ins[i][1].startswith('invoke') and d_.startswith(slot)
+                            and d_.endswith(f'(){ret}') and regs(ins[i][2])[:1] == [slot_reg])
+
+                avail = [ins[i][2].split(', ')[-1]
+                         for i in range(gi - 1, start - 1, -1) if on_slot(i, 'Z')]
+                clear = [ins[i][2].split(', ')[-1]
+                         for i in range(ai + 1, min(len(ins), ai + 1 + E['recommit_window']))
+                         if on_slot(i, 'V')]
+                check('undo: resolved availability check',
+                      bool(avail) and avail[0] == E['slot_available'],
+                      f'resolved {avail[:1]}, expected {E["slot_available"]}')
+                check('undo: resolved slot clear', bool(clear) and clear[0] == E['slot_clear'],
+                      f'resolved {clear[:1]}, expected {E["slot_clear"]}')
+
+                fields = [ins[i][2].split(', ')[-1]
+                          for i in range(gi - 1, start - 1, -1)
+                          if ins[i][1] == 'iget-object' and regs(ins[i][2])[:1] == [slot_reg]]
+                check('undo: resolved slot field', bool(fields) and fields[0] == E['slot_field'],
+                      f'resolved {fields[:1]}, expected {E["slot_field"]}')
+
+    # Store members whose signature is NOT unique, so the patches derive them by behaviour. These
+    # mirror that derivation; a mismatch means the letter has moved onto the sibling.
+    def sole_with_signature(owner, signature, calling=None, not_calling=None):
+        d_, sup_, cd_ = find_class(dl, owner)
+        out = []
+        for m in (d_.class_methods(cd_) if cd_ else []):
+            desc, af_, co_ = m
+            if not desc.endswith(signature):
+                continue
+            c_ = d_.code(co_)
+            calls = ''
+            if c_:
+                calls = ' '.join(str(r) for _, _, _, r in d_.walk(c_) if r)
+            if calling and calling not in calls:
+                continue
+            if not_calling and not_calling in calls:
+                continue
+            out.append(desc)
+        return out
+
+    got = sole_with_signature(store, '(Ljava/lang/String;I)I',
+                              not_calling='Ljava/lang/Integer;->parseInt')
+    check('store: getInt resolves uniquely by behaviour', len(got) == 1 and got[0] == E['get_int'],
+          f'resolved {got}, expected {E["get_int"]}')
+    got = sole_with_signature(store, '(I)Z', calling='Landroid/content/SharedPreferences;->contains')
+    check('store: contains resolves uniquely by behaviour',
+          len(got) == 1 and got[0] == E['contains'], f'resolved {got}, expected {E["contains"]}')
 
     d, sup, cd = find_class(dl, LATIN_IME)
     held = [fd for fd, static in class_fields(d, cd)
@@ -289,9 +513,12 @@ def run(dl):
     # ---- swipe to delete
     ctor = f'{SCRUB_DELETE}-><init>({CONTEXT}{delegate})V'
     c, ins = body(dl, ctor)
+    # The patch now replaces the keycode constant outright rather than reading a preference to
+    # decide it, so the checks that proved three registers dead here are gone with the insertion
+    # they justified — the free-register scan, the all-arguments-are-consts window, and the Context
+    # parameter's liveness. What remains is what still has to be true: exactly one keycode constant,
+    # and it is the one feeding the config.
     if check('scrubdelete: delete ctor exists', ins is not None, ctor):
-        check('scrubdelete: delete ctor register count',
-              c['registers'] == E['delete_ctor_registers'], f'got {c["registers"]}')
         keys = [i for i, (pc, n, a) in enumerate(ins)
                 if n == 'const/16' and a.endswith(f'#{E["stock_start_keycode"]}')]
         cfgs = [i for i, (pc, n, a) in enumerate(ins) if f'{config}-><init>(IZIIIIII)V' in a]
@@ -301,19 +528,6 @@ def run(dl):
                      f'found {len(cfgs)}')
         if ok_k and ok_c:
             check('scrubdelete: keycode precedes the config ctor', keys[0] < cfgs[0])
-            window = ins[keys[0] + 1:cfgs[0]]
-            computed = [n for pc, n, a in window if not n.startswith('const')]
-            check('scrubdelete: every argument between them is a const', not computed,
-                  str(computed))
-            key_reg = regs(ins[keys[0]][2])[0]
-            ctx_reg = c['registers'] - 3 + 1
-            free = [r for pc, n, a in window for r in regs(a)[:1]]
-            free = [r for r in dict.fromkeys(free)
-                    if r not in (key_reg, ctx_reg) and r < 16]
-            check('scrubdelete: three scratch registers are free', len(free) >= 3, str(free))
-            clobbered = any(regs(a)[:1] == [ctx_reg] for pc, n, a in ins[:keys[0]])
-            check('scrubdelete: Context register is not clobbered first', not clobbered,
-                  f'v{ctx_reg}')
 
     c, ins = body(dl, f'{SCRUB}->g(Landroid/view/MotionEvent;)V')
     if check('scrubdelete: g() exists', ins is not None):
@@ -321,11 +535,72 @@ def run(dl):
               f'got {c["registers"]}')
         reads = [i for i, (pc, n, a) in enumerate(ins)
                  if n == 'iget' and f'{config}->a:I' in a]
+        # The patch selects the gate by shape — the read `if-ne` tests — because it adds a second
+        # read of the same field for the full-height rect. Both predicates hold on a stock dex.
+        gated = [i for i in reads if ins[i + 1][1] == 'if-ne']
         if check('scrubdelete: start-key read is unique', len(reads) == 1, f'found {len(reads)}'):
             gate = ins[reads[0] + 1]
             check('scrubdelete: if-ne follows the read', gate[1] == 'if-ne', gate[1])
             check('scrubdelete: the if-ne compares that register',
                   regs(ins[reads[0]][2])[0] in regs(gate[2])[:2])
+        check('scrubdelete: exactly one if-ne-gated start-key read', len(gated) == 1,
+              f'found {len(gated)}')
+        # All reads must go through one object register, which is how trackAcrossFullKeyboard
+        # finds the config without depending on which patch edited g() first.
+        objs = {regs(ins[i][2])[1] for i in reads}
+        check('scrubdelete: start-key reads share one object register', len(objs) == 1, str(objs))
+
+        # ---- the tracking rect, which trackAcrossFullKeyboard gives the full keyboard height
+        rect_regs = {}
+        for edge in ('left', 'right', 'top', 'bottom'):
+            w = [i for i, (pc, n, a) in enumerate(ins)
+                 if n == 'iput' and f'Landroid/graphics/Rect;->{edge}:I' in a]
+            if check(f'scrubdelete: one write to Rect.{edge}', len(w) == 1, f'found {len(w)}'):
+                rect_regs[edge] = regs(ins[w[0]][2])
+        check('scrubdelete: every Rect edge is the same object',
+              len({v[1] for v in rect_regs.values()}) == 1,
+              str({k: v[1] for k, v in rect_regs.items()}))
+
+        width = [i for i, (pc, n, a) in enumerate(ins)
+                 if f'{KEYBOARD_VIEW}->getWidth()I' in a]
+        # Gboard's own full-width override is the precedent the vertical edit mirrors. If it ever
+        # stops widening horizontally, "we widen the other axis the same way" needs re-examining.
+        if check('scrubdelete: getWidth is called once in g()', len(width) == 1,
+                 f'found {len(width)}'):
+            bottom = [i for i, (pc, n, a) in enumerate(ins)
+                      if n == 'iput' and 'Landroid/graphics/Rect;->bottom:I' in a]
+            check('scrubdelete: getWidth precedes the bottom write',
+                  bool(bottom) and width[0] < bottom[0])
+        # The stock outset that the full-height write replaces the effect of. `unop82` is
+        # int-to-float and `unop87` float-to-int; c7 is sub-float/2addr and c6 add-float/2addr, so
+        # this confirms the top edge is widened upward and the bottom downward — an outset, not an
+        # inset, whatever the field is named.
+        outset = [n for pc, n, a in ins if n in ('binop2addrc6', 'binop2addrc7')]
+        check('scrubdelete: the stock rect outset is one sub + one add',
+              outset.count('binop2addrc7') >= 1 and outset.count('binop2addrc6') >= 1,
+              str(outset))
+
+        # The three registers the inserted block reads have to still hold what it assumes at the
+        # insertion point. This is the argument the patch cannot make for itself — it derives each
+        # register from the instruction that loads it and then trusts it across a gap — so it is
+        # made here instead, against the real method body.
+        if rect_regs and width:
+            bottom_pc = [pc for pc, n, a in ins
+                         if n == 'iput' and 'Landroid/graphics/Rect;->bottom:I' in a][0]
+            loads = {
+                'config': (regs(ins[reads[0]][2])[1], f':{config}'),
+                'keyboard view': (regs(ins[width[0]][2])[0], f'{SCRUB}->d:'),
+                'rect': (rect_regs['bottom'][1], f'{SCRUB}->h:'),
+            }
+            for what, (reg, marker) in loads.items():
+                src = [pc for pc, n, a in ins
+                       if n == 'iget-object' and marker in a and regs(a)[:1] == [reg]]
+                if not check(f'scrubdelete: the {what} register is loaded in g()', bool(src),
+                             f'v{reg} {marker}'):
+                    continue
+                clobbered = writes_before(ins, reg, src[-1], bottom_pc)
+                check(f'scrubdelete: the {what} register survives to the insertion point',
+                      not clobbered, f'v{reg} rewritten at {clobbered}')
 
     # ---- tuning
     c, _ = body(dl, f'{SCRUB}-><init>({CONTEXT}{delegate}{config})V')
@@ -343,6 +618,59 @@ def run(dl):
           bool(handler_ctx) and handler_ctx.endswith(':' + CONTEXT))
     chain = superclass_chain(dl, SCRUB)
     check('tuning: `this` in r() can legally read it', ABSTRACT_HANDLER in chain, str(chain))
+
+    # ---- start-key recovery, for the backspace-keeps-stock-behaviour edits
+    c, ins = body(dl, f'{SCRUB}->g(Landroid/view/MotionEvent;)V')
+    if ins:
+        views = [i for i, (pc, n, a) in enumerate(ins)
+                 if n == 'iput-object' and a.endswith(':Landroid/view/View;')]
+        check('startkey: one View field written in g()', len(views) == 1, f'found {len(views)}')
+        kd = [i for i, (pc, n, a) in enumerate(ins)
+              if n.startswith('invoke') and a.endswith(')Lpnu;')]
+        if check('startkey: one no-arg call returning Lpnu;', len(kd) == 1, f'found {len(kd)}'):
+            # The chain is walked back from that unique anchor; f() itself is called twice, so it
+            # can only be identified by which call feeds the key-data accessor.
+            action_reg = regs(ins[kd[0]][2])[0]
+            ri = [i for i in range(kd[0] - 1, -1, -1)
+                  if ins[i][1] == 'move-result-object' and regs(ins[i][2])[0] == action_reg]
+            if check('startkey: the ActionDef feeding it is produced in g()', bool(ri)):
+                acc = ins[ri[0] - 1][2]
+                check('startkey: it comes from an ActionDef accessor',
+                      acc.endswith(')Lcom/google/android/libraries/inputmethod/metadata/ActionDef;'),
+                      acc[-60:])
+                sel_reg = regs(acc.split('}')[0])[1]
+                si = [i for i in range(ri[0] - 2, -1, -1)
+                      if ins[i][1] == 'sget-object' and regs(ins[i][2])[0] == sel_reg]
+                check('startkey: its action selector is loaded in g()', bool(si))
+                # Two Lpmy; statics are read in g(); the walk must land on the one the gate uses.
+                if si:
+                    sels = [a for pc, n, a in ins if n == 'sget-object' and 'Lpmy;' in a]
+                    check('startkey: the selector is disambiguated, not guessed', len(sels) > 1,
+                          f'only {len(sels)} candidate(s) — check is not discriminating')
+        kc = [i for i, (pc, n, a) in enumerate(ins) if n == 'iget' and 'Lpnu;->' in a]
+        check('startkey: one Lpnu; field read in g()', len(kc) == 1, f'found {len(kc)}')
+
+    c, ins = body(dl, f'{SCRUB}->r(Landroid/view/MotionEvent;Z)V')
+    if ins:
+        absi = [i for i, (pc, n, a) in enumerate(ins) if 'Ljava/lang/Math;->abs(F)F' in a]
+        if check('distance: Math.abs(F)F is unique in r()', len(absi) == 1, f'found {len(absi)}'):
+            delta = regs(ins[absi[0]][2])[0]
+            sub = [i for i in range(absi[0] - 1, -1, -1)
+                   if regs(ins[i][2])[:1] == [delta] and not ins[i][1].startswith('if-')]
+            if check('distance: the delta is written before it', bool(sub)):
+                # binop2addrc7 is sub-float/2addr (0xc7).
+                check('distance: it comes from a sub-float/2addr',
+                      ins[sub[0]][1] == 'binop2addrc7', ins[sub[0]][1])
+                # The scratch set, checked by real backward liveness rather than a forward scan --
+                # a forward scan wrongly reports v3 free, because the if-gt guarding the table walk
+                # branches past the write that makes it look dead.
+                site = sub[0] + 1
+                free = live_free(ins, c['registers'], ins[site][0])
+                want = E['distance_scratch']
+                check('distance: the scratch registers are dead at the insertion point',
+                      all(r in free for r in want), f'free={free} want={want}')
+                check('distance: v3 is correctly NOT among them', 3 not in free,
+                      'v3 looks free but is read on the extrapolation path')
 
     c, ins = body(dl, f'{SCRUB}->r(Landroid/view/MotionEvent;Z)V')
     if check('tuning: r() exists', ins is not None):
@@ -373,6 +701,372 @@ def run(dl):
                       not (set(scratch) & live),
                       f'scratch={scratch} live at/after {convergence}={sorted(live)}')
 
+    # ---- toolbar icon count
+    #
+    # The bar's own class name survives R8 (a layout addresses it as a string), and the anchor for
+    # the ceiling is a *string literal*, which R8 never rewrites. So unlike everything above, only
+    # the register numbers here can move between builds.
+    _, clinit = body(dl, f'{ACCESS_POINTS_BAR}-><clinit>()V')
+    check('toolbar: the bar declares config_max_access_points',
+          clinit is not None and any('config_max_access_points' in a for pc, n, a in clinit),
+          'the flag naming this class as the toolbar cap is gone')
+
+    ctor = f'{ACCESS_POINTS_BAR}-><init>({CONTEXT}Landroid/util/AttributeSet;)V'
+    c, ins = body(dl, ctor)
+    if check('toolbar: the bar constructor exists', ins is not None, ctor):
+        check('toolbar: its register count',
+              c['registers'] == E['toolbar_ctor_registers'], f'got {c["registers"]}')
+        check('toolbar: its parameter words',
+              c['ins'] == E['toolbar_ctor_ins'], f'got {c["ins"]}')
+
+        # The displayed default, so the settings slider does not claim a number Gboard stopped
+        # using. Read off the getInt the flag falls back to rather than written down twice.
+        gi = [i for i, (pc, n, a) in enumerate(ins)
+              if 'Landroid/content/res/TypedArray;->getInt(II)I' in a]
+        if check('toolbar: one getInt on the styled attributes', len(gi) == 1, f'found {len(gi)}'):
+            default_reg = regs(ins[gi[0]][2])[2]
+            src = [i for i in range(gi[0] - 1, -1, -1)
+                   if ins[i][1].startswith('const') and regs(ins[i][2])[:1] == [default_reg]]
+            literal = re.search(r'#(-?\d+)', ins[src[0]][2]) if src else None
+            check('toolbar: the stock count still matches the settings slider',
+                  literal is not None and int(literal.group(1)) == E['toolbar_stock_count'],
+                  f'got {literal and literal.group(1)}, '
+                  f'slider shows {E["toolbar_stock_count"]}')
+
+        flag = [i for i, (pc, n, a) in enumerate(ins) if 'Lnxp;->g()Ljava/lang/Object;' in a]
+        if check('toolbar: one flag read in the constructor', len(flag) == 1, f'found {len(flag)}'):
+            # By field *type*, not by opcode: `iput` (0x59) covers int and float alike, and the two
+            # dimensions read out of the same TypedArray follow just below. Restricting to after the
+            # flag read is what excludes `->y:I`, written near the top.
+            puts = [i for i, (pc, n, a) in enumerate(ins)
+                    if i > flag[0] and n == 'iput' and a.rstrip().endswith(':I')]
+            if check('toolbar: one int field written after it', len(puts) == 1,
+                     f'found {len(puts)}'):
+                site = ins[puts[0]][0]
+                ceiling = regs(ins[puts[0]][2])[0]
+                free = live_free(ins, c['registers'], site)
+                want = E['toolbar_scratch']
+                check('toolbar: the scratch registers are dead at the insertion point',
+                      all(r in free for r in want), f'free={free} want={want}')
+                # The standing guard. Everything else at this point is live: the TypedArray, the two
+                # constants the dimension reads still need, and the Context the store is handed.
+                held = [r for r in (0, 1, 3, 7) if r in free]
+                check('toolbar: v0, v1, v3 and v7 are correctly NOT among them', not held,
+                      f'{held} look free but are read after the ceiling is written')
+                check('toolbar: the capacity register is not borrowed as scratch',
+                      ceiling not in want, f'v{ceiling} is in {want}')
+
+    # The capacity checked above is not the icon count, and mistaking one for the other is what
+    # shipped this patch broken once. The count is `definedCountOnBar`, which Gboard names for us in
+    # a log line and which sits after both gates that can override the capacity. These checks guard
+    # the derivation that finds it, since it is an obfuscated letter that is never written down.
+    log_hits = []
+    for dex in dl:
+        for _cls_name, _af, cls_data in dex.classes():
+            if not cls_data:
+                continue
+            for m_name, _maf, m_off in dex.class_methods(cls_data):
+                if not m_off:
+                    continue
+                try:
+                    mc = dex.code(m_off)
+                except Exception:
+                    continue
+                if any(mn == 'const-string' and txt and E['toolbar_count_log'] in txt
+                       for _pc, _op, mn, txt in dex.walk(mc)):
+                    log_hits.append(m_name)
+    if check('toolbar: exactly one method logs definedCountOnBar', len(log_hits) == 1,
+             str(log_hits)):
+        _c, ins = body(dl, log_hits[0])
+
+        def called(a):
+            return a.split('}, ')[-1]
+
+        counts = sorted({called(a) for _pc, mn, a in ins
+                         if mn.startswith('invoke') and called(a).endswith('(I)I')})
+        # One, not "at least one". The patch takes the sole (I)I call as the count; a second would
+        # be picked between silently, and the log line says nothing about which is which.
+        if check('toolbar: one (I)I call in it', len(counts) == 1, str(counts)):
+            c, ins = body(dl, counts[0])
+            if check('toolbar: the count method has a body', ins is not None, counts[0]):
+                check('toolbar: its register count',
+                      c['registers'] == E['toolbar_count_registers'], f'got {c["registers"]}')
+                check('toolbar: its parameter words',
+                      c['ins'] == E['toolbar_count_ins'], f'got {c["ins"]}')
+                # The insertion is at method entry, so the proof that the scratch registers are
+                # free is arithmetic rather than a liveness fixpoint: locals below the parameters
+                # hold nothing before the first instruction runs.
+                locals_ = c['registers'] - c['ins']
+                check('toolbar: the scratch registers are locals at entry',
+                      locals_ == len(E['toolbar_count_scratch']),
+                      f'{locals_} locals, insertion needs {len(E["toolbar_count_scratch"])}')
+                this_reg = c['registers'] - c['ins']
+                capacity_reg = c['registers'] - 1
+                # The device-class branch the unfolded override rides on. Gboard picks its own
+                # preference key from device class, and a fold changes class when it opens, so this
+                # is what makes the inner and outer screens separately configurable.
+                sgets = [a for _pc, mn, a in ins if mn == 'sget-object']
+                if check('toolbar: one enum constant chooses the preference key',
+                         len(sgets) == 1, f'found {len(sgets)}'):
+                    mode_type = sgets[0].rsplit(':', 1)[-1].strip()
+                    constant = sgets[0].split(', ')[-1].strip()
+                    # Resolved by name out of the enum's <clinit>, never by its letter: R8 rewrites
+                    # the field and leaves the string. A letter that moved onto DEVICE_TABLET would
+                    # put the override on the wrong screens and nothing else would notice.
+                    _cc, cins = body(dl, f'{mode_type}-><clinit>()V')
+                    named = next((i for i, (_pc, _mn, a) in enumerate(cins or [])
+                                  if E['toolbar_foldable_name'] in a), None)
+                    if check(f'toolbar: {mode_type} names {E["toolbar_foldable_name"]}',
+                             named is not None):
+                        stored = next((a for _pc, mn, a in cins[named:]
+                                       if mn == 'sput-object' and a.rstrip().endswith(mode_type)),
+                                      None)
+                        check('toolbar: the key branch tests the foldable constant',
+                              stored is not None and stored.split(', ')[-1].strip() == constant,
+                              f'branch tests {constant}, foldable is {stored}')
+                    modes = [a for _pc, mn, a in ins
+                             if mn == 'iget-object' and a.rstrip().endswith(f':{mode_type}')]
+                    if check('toolbar: one device-mode field read', len(modes) == 1,
+                             f'found {len(modes)}'):
+                        check('toolbar: the device mode is read off the receiver',
+                              regs(modes[0])[1] == this_reg,
+                              f'read off v{regs(modes[0])[1]}, receiver is v{this_reg}')
+                # What makes this the method that *finishes* the calculation rather than a step
+                # inside it. Insert before the gate and the value goes back where Gboard's own
+                # count preference and its reduced mode can each override it.
+                #
+                # Signature alone is not enough to find it -- the store's own id-keyed getInt is
+                # (II)I as well, and this check failed on that before it was narrowed. The gate is
+                # the (II)I call the *capacity parameter* flows into; the store read is a call that
+                # has nothing to do with it.
+                gates = [i for i, (_pc, mn, a) in enumerate(ins)
+                         if mn.startswith('invoke') and called(a).endswith('(II)I')
+                         and capacity_reg in regs(a.split('}, ')[0])]
+                if check('toolbar: it still applies the count gate', len(gates) == 1,
+                         f'found {len(gates)}'):
+                    # The other half, and the half that stops the check above from passing on a
+                    # coincidence: the gate's result must be what the method hands back. Input and
+                    # output together say the body is `return gate(..., capacity)`, which is the
+                    # property the patch actually depends on -- overriding at entry outranks the
+                    # gate only if the gate is the last word on the value.
+                    i = gates[0]
+                    flows = (i + 2 < len(ins)
+                             and ins[i + 1][1] == 'move-result'
+                             and ins[i + 2][1] == 'return'
+                             and regs(ins[i + 1][2]) == regs(ins[i + 2][2]))
+                    check('toolbar: the gate result is what it returns', flows,
+                          f'{[n for _pc, n, _a in ins[i:i + 3]]}')
+                stores = [a for _pc, mn, a in ins
+                          if mn == 'iget-object' and a.rstrip().endswith(f':{B["store"]}')]
+                # The preference store is read out of this method rather than named, so exactly one
+                # such field must be touched -- and off the receiver, or `iget-object ... p0` in the
+                # emitted code reads the wrong object.
+                if check('toolbar: one preference-store field read in it', len(stores) == 1,
+                         f'found {len(stores)}'):
+                    check('toolbar: it is read off the receiver',
+                          regs(stores[0])[1] == this_reg,
+                          f'read off v{regs(stores[0])[1]}, receiver is v{this_reg}')
+
+    # ---- select all button
+    #
+    # Both insertion points are derived structurally rather than named, so what these checks guard
+    # is the *shape* the derivation relies on -- that each one still resolves to exactly one method.
+    # A second match is as much a failure as none: the patch would pick one and give no sign.
+    seed_literals = set(E['selectall_seed_literals'])
+    keycode = E['selectall_runnable_keycode']
+    keycode_masked = keycode & 0xffffffff
+    seeds, splits, runners = [], [], []
+    for dex in dl:
+        for cls_name, _af, cls_data in dex.classes():
+            if not cls_data:
+                continue
+            for m_name, _maf, m_off in dex.class_methods(cls_data):
+                if not m_off:
+                    continue
+                try:
+                    mc = dex.code(m_off)
+                except Exception:
+                    continue
+                lits, calls = set(), []
+                for _pc, _op, mn, txt in dex.walk(mc):
+                    if mn and mn.startswith('const') and txt:
+                        try:
+                            lits.add(int(txt, 16))
+                        except ValueError:
+                            pass
+                    elif mn and mn.startswith('invoke') and txt:
+                        calls.append(txt)
+                if seed_literals <= lits:
+                    seeds.append(m_name)
+                if m_name.endswith('(Ljava/util/List;)V'):
+                    subs = calls.count('Ljava/util/List;->subList(II)Ljava/util/List;')
+                    if subs == 2 and 'Ljava/lang/Math;->min(II)I' in calls:
+                        splits.append(m_name)
+                # The dispatcher that makes the button do anything: it both sees the Runnable
+                # keycode and calls run(). Two other classes test that keycode and *decline* it,
+                # so "something mentions the keycode" would be the wrong test.
+                #
+                # The keycode reaches the real dispatcher through a packed-switch, so it is not a
+                # literal there and switch_keys is what finds it. Checking only `lits` reports the
+                # dispatcher missing on a build where it is present and working.
+                if 'Ljava/lang/Runnable;->run()V' in calls:
+                    if (keycode in lits or keycode_masked in lits
+                            or keycode in switch_keys(dex, mc)):
+                        runners.append(m_name)
+
+    check('selectall: a dispatcher turns the Runnable keycode into run()', bool(runners),
+          f'no method both sees {hex(keycode_masked)} and calls Runnable.run()')
+
+    if check('selectall: exactly one access-point seed method', len(seeds) == 1, str(seeds)):
+        c, ins = body(dl, seeds[0])
+        # The setters are told apart by the literal handed to each, so each literal must appear
+        # once. Two occurrences and the derivation picks the first, silently.
+        for want in E['selectall_seed_literals']:
+            n = sum(1 for _pc, mn, a in ins
+                    if mn.startswith('const') and re.search(r'0x[0-9a-f]+', a)
+                    and int(re.search(r'0x[0-9a-f]+', a).group(), 16) == want)
+            check(f'selectall: seed loads {hex(want)} exactly once', n == 1, f'found {n}')
+        # `args` is "{v0, v1}, Lowner;->name(...)ret" -- the descriptor is what follows the
+        # register list, so parsing has to drop that first.
+        def called(a):
+            return a.split('}, ')[-1]
+
+        builder = access_point = None
+        for _pc, mn, a in ins:
+            if mn.startswith('invoke') and '()' in called(a) and not called(a).endswith(')V'):
+                builder = called(a).split(')')[-1]
+                # The type declaring the factory is also what the build method returns, which is
+                # what the patch derives it as.
+                access_point = called(a).split('->')[0]
+                break
+        if check('selectall: the seed opens a builder', builder is not None):
+            setters = [called(a) for _pc, mn, a in ins
+                       if mn.startswith('invoke') and called(a).startswith(f'{builder}->')
+                       and called(a).endswith('(I)V')]
+            # Distinct, not merely three calls. The patch tells the icon, label and content
+            # description apart *by which setter each literal reaches*; if all three literals
+            # came to reach the same setter, counting call sites would still say three and the
+            # button would be built with two of its three properties silently unset.
+            check('selectall: it drives three distinct (I)V setters',
+                  len(set(setters)) == 3, f'found {len(set(setters))} distinct of {len(setters)}')
+            # The very ambiguity the derivation exists to route around -- if this ever drops to
+            # one, naming the setter would have been safe and this machinery is over-built.
+            d_b, sup_b, cd_b = find_class(dl, builder)
+            if check('selectall: the builder class is present', d_b is not None):
+                same = [m for m, _a, _o in d_b.class_methods(cd_b) if m.endswith('(I)V')]
+                check('selectall: (I)V is still ambiguous on the builder', len(same) > 1,
+                      f'only {len(same)}: naming it would now be safe')
+                # Mirrors the patch's soleBuilderMethod assertions. All four, not three -- the
+                # build method is as much a derivation as the setters, and leaving it out means a
+                # Gboard bump that grows a sibling returning the access-point type reports green
+                # here and throws at apply time.
+                for sig, what in (('(Ljava/lang/String;)V', 'id setter'),
+                                  ('(Ljava/lang/Runnable;)V', 'action setter'),
+                                  ('(Ljava/lang/String;Ljava/lang/Object;)V', 'extras setter'),
+                                  (f'(){access_point}', 'build method')):
+                    n = sum(1 for m, _a, _o in d_b.class_methods(cd_b) if m.endswith(sig))
+                    check(f'selectall: exactly one {what} on the builder', n == 1, f'found {n}')
+
+                # The other half of the mechanism: the action setter is what bakes the keycode the
+                # dispatcher above switches on. If it stops doing that, the button still builds
+                # and still renders, and tapping it does nothing at all.
+                action = next((m for m, _a, _o in d_b.class_methods(cd_b)
+                               if m.endswith('(Ljava/lang/Runnable;)V')), None)
+                if check('selectall: the builder has a Runnable setter to inspect', action):
+                    _ac, a_ins = body(dl, action)
+                    lits = set()
+                    for _pc, mn, a in a_ins or []:
+                        m = re.search(r'#(-?0x[0-9a-f]+|-?\d+)', a)
+                        if mn.startswith('const') and m:
+                            lits.add(int(m.group(1), 0) & 0xffffffff)
+                    check('selectall: the action setter still bakes the Runnable keycode',
+                          keycode_masked in lits,
+                          f'{hex(keycode_masked)} not among {sorted(hex(x) for x in lits)}')
+
+    # The label id is the one fact this feature rests on that has NO anchor in the dex: unlike the
+    # icon, 0x7f140576 has zero const sites, because nothing in stock Gboard loads it the way the
+    # patch does. So it cannot be checked without the resource table, and until the APK argument
+    # existed this constant sat in EXPECTED asserted by nothing while its comment claimed
+    # otherwise. A bump renumbers string resources, and the button would ship labelled with
+    # whatever the id came to mean.
+    if apk is None:
+        check.skip('selectall: the label id still reads "Select all"',
+                   'no APK given; pass one as the second argument to check resource ids')
+    else:
+        try:
+            import zipfile
+
+            import arsc
+            table = arsc.load(zipfile.ZipFile(apk).read('resources.arsc'))
+            label = table.value(E['selectall_label'])
+            check('selectall: the label id still reads "Select all"', label == 'Select all',
+                  f'{hex(E["selectall_label"])} now reads {label!r}')
+            icon = table.name(E['selectall_seed_literals'][0])
+            check('selectall: the seed icon id is still a drawable',
+                  str(icon).startswith('drawable/'), f'reads {icon!r}')
+            # The icon the button is actually given, which is a different id from the seed above and
+            # has no dex anchor either -- nothing in stock Gboard ever loads it. Checking the type
+            # is not enough on its own: a bump renumbers drawables, and landing on some other
+            # drawable would still read as 'drawable/'. So the glyph is checked, by the path
+            # signature it was found by in the first place.
+            shown = table.name(E['selectall_icon'])
+            if check('selectall: the button icon id is still a drawable',
+                     str(shown).startswith('drawable/'), f'reads {shown!r}'):
+                import re as _re
+                import axml
+                zf = zipfile.ZipFile(apk)
+                src = str(table.value(E['selectall_icon']))
+                m = _re.search(r"res/[^']+\.xml", src)
+                blob = ''
+                if m:
+                    for _d, _t, at in axml.parse(zf.read(m.group(0))):
+                        blob += str(at.get('pathData', ''))
+                check('selectall: it is still the select-all glyph',
+                      E['selectall_glyph'] in blob,
+                      f'{hex(E["selectall_icon"])} no longer draws the marquee')
+        except Exception as exc:
+            check('selectall: the label id still reads "Select all"', False,
+                  f'could not read resources from {apk}: {exc}')
+
+    if check('selectall: exactly one access-points split method', len(splits) == 1, str(splits)):
+        c, ins = body(dl, splits[0])
+        check('selectall: the split register count',
+              c['registers'] == E['selectall_split_registers'], f'got {c["registers"]}')
+        check('selectall: the split parameter words',
+              c['ins'] == E['selectall_split_ins'], f'got {c["ins"]}')
+        free = live_free(ins, c['registers'], 0)
+        want = E['selectall_split_scratch']
+        check('selectall: the scratch registers are dead at the split entry',
+              all(r in free for r in want), f'free={free} want={want}')
+        # The list parameter is substituted wholesale at entry, so it has to still be genuinely an
+        # input: some path must read it before writing it.
+        #
+        # "Never written" is the wrong test and fails here for a benign reason. The method opens
+        # with an early return taken when the bar view is null, and that path reuses the parameter
+        # register as scratch before returning -- it never reads the list at all. Backward liveness
+        # over the real CFG answers the question that actually matters, and answers it soundly:
+        # if the parameter is live at entry, every path that reads it reads what was passed in.
+        p1 = c['registers'] - c['ins'] + 1
+        check('selectall: the list parameter is live at entry', p1 not in free,
+              f'v{p1} is dead at entry, so substituting it would reach nothing')
+
+    # Read superclasses straight out of each class_def rather than resolving every class through
+    # find_class, which is a scan per class and turns this into minutes.
+    imes = []
+    for dex in dl:
+        for i in range(dex.cls_n):
+            ci, _af, su, _io, _sf, _ao, _cd, _sv = struct.unpack_from(
+                '<8I', dex.b, dex.cls_o + 32 * i)
+            if su != 0xffffffff and dex.type(su) == 'Landroid/inputmethodservice/InputMethodService;':
+                imes.append(dex.type(ci))
+    if check('selectall: exactly one InputMethodService subclass', len(imes) == 1, str(imes)):
+        c, ins = body(dl, f'{imes[0]}->onCreate()V')
+        if check('selectall: it declares onCreate()V', ins is not None):
+            check('selectall: its register count',
+                  c['registers'] == E['selectall_oncreate_registers'], f'got {c["registers"]}')
+            free = live_free(ins, c['registers'], 0)
+            check('selectall: v0 is dead at onCreate entry', 0 in free, f'free={free}')
+
     # ---- forced preferences and flick symbols share this hook
     c, _ = body(dl, f'{LATIN_APP}->d({store})V')
     check('prefs: applyPreferenceValues exists', c is not None)
@@ -390,28 +1084,30 @@ def run(dl):
         check('bypass: return registers', returns == E['sigcheck_returns'], str(returns))
         seen = {a.split(', ')[-1] for pc, n, a in ins if n.startswith(('sget', 'iget'))}
         for fd in (f'{sig_cls}->e:[B', f'{sig_cls}->d:[B', f'{sig_cls}->c:[B',
-                   f'{B["sigcheck_flag"]}->b:Z'):
+                   f'{B["test_environment"]}->b:Z'):
             check(f'bypass: reads {fd}', fd in seen)
         c2, _ = body(dl, f'{sig_cls}->c({CONTEXT}Ljava/lang/String;)[B')
         check('bypass: digest method exists', c2 is not None)
 
     failed = check.finish()
-    print('resolved IME Context field:     ', ime_ctx)
     print('resolved handler Context field: ', handler_ctx)
     return failed
 
 
 def main():
-    if len(sys.argv) != 2:
+    if len(sys.argv) not in (2, 3):
         print(__doc__.strip().split('## Use')[1].split('## Updating')[0].strip(), file=sys.stderr)
         return 2
     tree = sys.argv[1]
+    # Optional, because most checks only need the dex. The resource ids a patch emits cannot be
+    # checked without it, and those checks report SKIP rather than passing when it is absent.
+    apk = sys.argv[2] if len(sys.argv) == 3 else None
     dl = dexlib.load(tree)
     if not dl:
         print(f'no .dex files in {tree}', file=sys.stderr)
         return 2
     print(f'{len(dl)} dex files from {tree}\n')
-    return 1 if run(dl) else 0
+    return 1 if run(dl, apk) else 0
 
 
 if __name__ == '__main__':

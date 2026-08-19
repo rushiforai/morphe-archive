@@ -93,7 +93,7 @@ private fun MutableMethod.filterModernContinueWatchingRatingResults() {
 private fun MutableMethod.filterEpisodeRatingsTab() {
     val instructions = implementation!!.instructions
     val ratingsLabelIndex = instructions.indexOfFirst { instruction ->
-        (instruction as? WideLiteralInstruction)?.wideLiteral == 0x7f110472L
+        (instruction as? WideLiteralInstruction)?.wideLiteral == 0x7f110493L
     }
     check(ratingsLabelIndex >= 0) { "Ratings tab label was not found" }
     val listBuilderIndex = instructions.withIndex().firstOrNull { (index, instruction) ->

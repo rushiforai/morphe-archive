@@ -19,5 +19,4 @@ configure<ApplicationExtension> {
             proguardFiles("../proguard-rules.pro")
         }
     }
-
 }

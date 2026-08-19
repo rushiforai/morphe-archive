@@ -60,7 +60,7 @@ val enablePremiumPatch = bytecodePatch(
         // These fields are calculated in constructor, but not serialized. So we have to find their
         // name and set it late.
         val isPaidField = UserIsPaidFieldUsageFingerprint.let {
-            val isPaidIndex = it.instructionMatches.first().index
+            val isPaidIndex = it.instructionMatches.last().index
             it.method.getInstruction<ReferenceInstruction>(isPaidIndex).getReference<FieldReference>()!!
         }
         val hasGoldField = UserHasGoldFieldUsageFingerprint.let {
@@ -107,6 +107,9 @@ val enablePremiumPatch = bytecodePatch(
                 patchIndex, instrSb.toString()
             )
         }
+
+        // Set current energy to max energy param
+        EnergyConfigCtorFingerprint.method.addInstructions(0, "move p1, p2")
 
         if (optionIsMax) {
             // I can't seem to find where SubscriptionFeatureGroup is stored in memory, so let's just

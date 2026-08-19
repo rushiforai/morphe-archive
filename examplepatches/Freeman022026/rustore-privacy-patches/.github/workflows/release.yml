@@ -1,0 +1,93 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  release:
+    name: Release
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+      attestations: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v5.7.0
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Android build tools
+        if: github.ref_name == 'main' || github.ref_name == 'dev'
+        run: |
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "build-tools;36.0.0"
+
+      - name: Download the audited RuStore APK
+        if: github.ref_name == 'main' || github.ref_name == 'dev'
+        run: |
+          mkdir -p build
+          curl --fail --location --retry 3 --output build/RuStore.apk https://static.rustore.ru/release/RuStore.apk
+
+      - name: Build and apply the patch bundle
+        if: github.ref_name == 'main' || github.ref_name == 'dev'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ./gradlew clean :patches:buildAndroid --no-daemon
+          mkdir -p build/morphe
+          gh release download --repo MorpheApp/morphe-desktop --pattern '*-all.jar' --dir build/morphe
+          PATCH_BUNDLE=$(find patches/build/libs -maxdepth 1 -name '*.mpp' ! -name '*sources*' ! -name '*javadoc*' -print -quit)
+          DESKTOP_JAR=$(find build/morphe -name '*-all.jar' -print -quit)
+          java -jar "$DESKTOP_JAR" patch --force --patches "$PATCH_BUNDLE" --out build/rustore-privacy.apk --result-file build/patch-result.json build/RuStore.apk
+
+      - name: Audit launch-critical manifest components
+        if: github.ref_name == 'main' || github.ref_name == 'dev'
+        run: >-
+          python3 scripts/rustore_upstream.py audit-patched
+          --apk build/rustore-privacy.apk
+          --aapt "$ANDROID_HOME/build-tools/36.0.0/aapt"
+
+      - name: Clean integration-test artifacts
+        if: github.ref_name == 'main' || github.ref_name == 'dev'
+        run: rm -rf patches/build
+
+      # Semantic release runs its own Gradle build command.
+      # Only dev and main branch will generate a release as specified by .releaserc
+      - name: Release
+        uses: cycjimmy/semantic-release-action@v6
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Attest
+        if: steps.release.outputs.new_release_published == 'true'
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-name: 'Morphe Patches ${{ steps.release.outputs.new_release_git_tag }}'
+          subject-path: patches/build/libs/patches-*.mpp
+
+      # Always verify compilation when semantic-release did not publish a release.
+      # This covers non-main/dev branches, chore commits, docs commits, etc.
+      - name: Verify project compiles
+        if: steps.release.outputs.new_release_published != 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:buildAndroid clean --no-daemon

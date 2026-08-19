@@ -582,11 +582,12 @@ public final class LocalMediaRuntime {
     }
 
     /** Renders the third enum label before Nuvio's exhaustive two-value Kotlin branch executes. */
-    public static boolean renderStorageModeLabel(Object labelLambda, Object composer, Object flags) {
+    public static boolean renderStorageModeLabel(
+            Object labelLambda, Object composer, Object flags, String textOwnerName) {
         Enum<?> mode = capturedStorageMode(labelLambda);
         if (mode == null) return false;
         try {
-            Class<?> textOwner = Class.forName("p5.a2");
+            Class<?> textOwner = Class.forName(textOwnerName);
             for (Method method : textOwner.getDeclaredMethods()) {
                 Class<?>[] parameters = method.getParameterTypes();
                 if (!Modifier.isStatic(method.getModifiers()) || method.getReturnType() != Void.TYPE ||

@@ -20,9 +20,16 @@ val customEndpointPatch = rawResourcePatch(
     )
 
     execute {
+        val baseUrl = (customUrl ?: "https://api.t2c.fr").trimEnd('/')
         updateEnvVariables(
-            fileNames = listOf(".env.prod"),
-            updates = mapOf("API_URL" to (customUrl ?: "https://api.t2c.fr"))
+            fileNames = listOf(".env.prod", ".env.dev"),
+            updates = mapOf(
+                "URL_EDITORIAL" to "$baseUrl/editorial",
+                "URL_SIV" to "$baseUrl/siv",
+                "URL_NOTIFICATIONS" to "$baseUrl/notification",
+                "URL_FAVORITES" to "$baseUrl/favorite",
+                "URL_STATUS" to "$baseUrl/status"
+            )
         )
     }
 }

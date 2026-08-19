@@ -198,6 +198,18 @@ val localmediaPatch = bytecodePatch(
         }
 
         val rowMethod = LibraryViewModeRowFingerprint.method
+        val libraryModeButtonOwner = rowMethod.implementation!!.instructions
+            .mapNotNull { instruction ->
+                (instruction as? ReferenceInstruction)?.reference as? MethodReference
+            }.filter { reference ->
+                reference.returnType == "V" &&
+                    reference.parameterTypes.map(CharSequence::toString).let { parameters ->
+                        parameters.size == 13 && parameters[0] == "Lkotlin/jvm/functions/Function0;" &&
+                            parameters[8] == "Lkotlin/jvm/functions/Function3;" &&
+                            parameters.takeLast(3) == listOf("I", "I", "I")
+                    }
+            }.map { it.definingClass }.distinct().single()
+            .removePrefix("L").removeSuffix(";").replace('/', '.')
         val enumEntriesField = rowMethod.implementation!!.instructions.mapNotNull { instruction ->
             (instruction as? ReferenceInstruction)?.reference as? FieldReference
         }.single { it.type == "Lkotlin/enums/EnumEntries;" }
@@ -213,9 +225,79 @@ val localmediaPatch = bytecodePatch(
             "Lkotlin/jvm/functions/Function3;" in mutableClassDefBy(owner).interfaces
         }
         LibraryViewModeLabelFingerprint.matchAll(1..1)
+        val libraryModeTextOwner = LibraryViewModeLabelFingerprint.method.implementation!!
+            .instructions.mapNotNull { instruction ->
+                (instruction as? ReferenceInstruction)?.reference as? MethodReference
+            }.filter { reference ->
+                reference.returnType == "V" &&
+                    reference.parameterTypes.map(CharSequence::toString).let { parameters ->
+                        parameters.size == 19 &&
+                            parameters.firstOrNull() == "Ljava/lang/String;" &&
+                            parameters.takeLast(3) == listOf("I", "I", "I")
+                    }
+            }.map(MethodReference::getDefiningClass).distinct().single()
+            .removePrefix("L").removeSuffix(";").replace('/', '.')
         LibraryGridContentFingerprint.matchAll(1..1)
         LibrarySourceLabelFingerprint.matchAll(1..1)
         CloudSearchLabelFingerprint.matchAll(1..1)
+        NativeLibraryEmptyStateFingerprint.matchAll(1..1)
+        NativeLibraryEmptyContentFingerprint.matchAll(1..1)
+        val cloudCardOwner = CloudStorageCardFingerprint.classDef.type
+        val cloudCardMethodName = CloudStorageCardFingerprint.method.name
+        val cloudItemType = CloudStorageCardFingerprint.method.parameterTypes[0].toString()
+        val cloudFileRowsInstructions = CloudStorageFileRowsFingerprint.method.implementation!!.instructions
+        val cloudFileListGetIndex = cloudFileRowsInstructions.indexOfFirst { instruction ->
+            val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+            reference?.definingClass == "Ljava/util/ArrayList;" &&
+                reference.name == "get" && reference.returnType == "Ljava/lang/Object;"
+        }
+        check(cloudFileListGetIndex >= 0) { "Native Cloud file-list lookup was not found" }
+        val cloudFileType = cloudFileRowsInstructions.withIndex().drop(cloudFileListGetIndex + 1)
+            .firstOrNull { it.value.opcode == Opcode.CHECK_CAST }
+            ?.let { (it.value as? ReferenceInstruction)?.reference as? TypeReference }
+            ?.type ?: error("Native Cloud file model cast was not found")
+        val cloudSearchReference = mutableClassDefBy(cloudCardOwner).methods.filter { method ->
+            method.returnType == "V" &&
+                method.parameterTypes.map(CharSequence::toString).let { parameters ->
+                    parameters.size == 4 && parameters[0] == "Ljava/lang/String;" &&
+                        parameters[1] == "Lkotlin/jvm/functions/Function1;" &&
+                        parameters[2].startsWith("L") && parameters[3] == "I"
+                }
+        }.single()
+        val cloudDialogReference = mutableClassDefBy(cloudCardOwner).methods.filter { method ->
+            method.returnType == "V" &&
+                method.parameterTypes.map(CharSequence::toString).let { parameters ->
+                    parameters.size == 6 && parameters[0] == cloudItemType &&
+                        parameters[1] == "Ljava/lang/String;" &&
+                        parameters[2] == "Lkotlin/jvm/functions/Function1;" &&
+                        parameters[3] == "Lkotlin/jvm/functions/Function0;" &&
+                        parameters[4].startsWith("L") && parameters[5] == "I"
+                }
+        }.single()
+        fun javaOwner(type: String) = type.removePrefix("L").removeSuffix(";").replace('/', '.')
+        val cloudSearchOwnerName = javaOwner(cloudSearchReference.definingClass)
+        val cloudCardOwnerName = javaOwner(cloudCardOwner)
+        val cloudDialogOwnerName = javaOwner(cloudDialogReference.definingClass)
+        val emptyStateOwnerName = javaOwner(NativeLibraryEmptyStateFingerprint.classDef.type)
+        val emptyStateMethodName = NativeLibraryEmptyStateFingerprint.method.name
+        val emptyContentInstructions =
+            NativeLibraryEmptyContentFingerprint.method.implementation!!.instructions
+        val emptyStateIconReference = emptyContentInstructions.withIndex()
+            .mapNotNull { (index, instruction) ->
+                val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+                if (reference?.definingClass != NativeLibraryEmptyStateFingerprint.classDef.type ||
+                    reference.name != emptyStateMethodName
+                ) return@mapNotNull null
+                emptyContentInstructions.subList(maxOf(0, index - 24), index).asReversed()
+                    .firstNotNullOfOrNull { preceding ->
+                        ((preceding as? ReferenceInstruction)?.reference as? MethodReference)?.takeIf {
+                            it.returnType == "Lh2/f;" && it.parameterTypes.isEmpty()
+                        }
+                    }
+            }.distinctBy { "${it.definingClass}->${it.name}" }.single()
+        val emptyStateIconOwnerName = javaOwner(emptyStateIconReference.definingClass)
+        val cloudItemOwnerName = javaOwner(cloudItemType)
+        val cloudFileOwnerName = javaOwner(cloudFileType)
         val enumClass = mutableClassDefBy(enumType)
         val storageFieldName = "MORPHE_STORAGE"
         check(enumClass.staticFields.none { it.name == storageFieldName }) {
@@ -292,6 +374,21 @@ val localmediaPatch = bytecodePatch(
         rowMethod.addInstructions(
             0,
             """
+                const-string v2, "$libraryModeButtonOwner"
+                const-string v3, "$libraryModeTextOwner"
+                const-string v4, "$cloudSearchOwnerName"
+                const-string v5, "${cloudSearchReference.name}"
+                const-string v6, "$cloudCardOwnerName"
+                const-string v7, "$cloudCardMethodName"
+                const-string v8, "$cloudDialogOwnerName"
+                const-string v9, "${cloudDialogReference.name}"
+                const-string v10, "$emptyStateOwnerName"
+                const-string v11, "$emptyStateMethodName"
+                const-string v12, "$emptyStateIconOwnerName"
+                const-string v13, "${emptyStateIconReference.name}"
+                const-string v14, "$cloudItemOwnerName"
+                const-string v15, "$cloudFileOwnerName"
+                invoke-static/range { v2 .. v15 }, $LIBRARY_UI->configureNativeUi(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
                 move-object/from16 v0, p0
                 move-object/from16 v1, p3
                 invoke-static { v0, v1 }, $LIBRARY_UI->storageRefreshContent(Ljava/lang/Object;Lkotlin/jvm/functions/Function2;)Lkotlin/jvm/functions/Function2;
@@ -307,7 +404,8 @@ val localmediaPatch = bytecodePatch(
                 move-object/from16 v0, p0
                 move-object/from16 v1, p2
                 move-object/from16 v2, p3
-                invoke-static { v0, v1, v2 }, $RUNTIME->renderStorageModeLabel(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Z
+                const-string v3, "$libraryModeTextOwner"
+                invoke-static { v0, v1, v2, v3 }, $RUNTIME->renderStorageModeLabel(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)Z
                 move-result v0
                 if-eqz v0, :morphe_local_media_label_continue
                 sget-object v0, Lkotlin/Unit;->INSTANCE:Lkotlin/Unit;

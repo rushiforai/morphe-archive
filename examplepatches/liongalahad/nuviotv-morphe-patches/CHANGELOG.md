@@ -1,3 +1,27 @@
+## [1.0.0-dev.25](https://github.com/liongalahad/nuviotv-morphe-patches/compare/v1.0.0-dev.24...v1.0.0-dev.25) (2026-08-19)
+
+### 🚀 Updated App Support
+
+* support NuvioTV 0.8.6-beta ([fb75801](https://github.com/liongalahad/nuviotv-morphe-patches/commit/fb7580145e60235dec5de0742c663270d38f7d6f))
+
+## [1.0.0-dev.24](https://github.com/liongalahad/nuviotv-morphe-patches/compare/v1.0.0-dev.23...v1.0.0-dev.24) (2026-08-18)
+
+### 🐛 Bug Fixes
+
+* repair Nuvio 0.8.5 runtime compatibility ([d493069](https://github.com/liongalahad/nuviotv-morphe-patches/commit/d4930694efde4faba33101b05bb58a899cbbabcb))
+
+## [1.0.0-dev.23](https://github.com/liongalahad/nuviotv-morphe-patches/compare/v1.0.0-dev.22...v1.0.0-dev.23) (2026-08-18)
+
+### 🐛 Bug Fixes
+
+* release corrected Morphe settings header ([4a31937](https://github.com/liongalahad/nuviotv-morphe-patches/commit/4a31937e0f272280cb2e759849d4e62e6f8bf65c))
+
+## [1.0.0-dev.22](https://github.com/liongalahad/nuviotv-morphe-patches/compare/v1.0.0-dev.21...v1.0.0-dev.22) (2026-08-18)
+
+### ✨ New Features
+
+* support NuvioTV 0.8.5-beta ([e80d483](https://github.com/liongalahad/nuviotv-morphe-patches/commit/e80d483dac9230f2bb82111c758acae59c0c3bef))
+
 ## [1.0.0-dev.21](https://github.com/liongalahad/nuviotv-morphe-patches/compare/v1.0.0-dev.20...v1.0.0-dev.21) (2026-08-16)
 
 ### ✨ New Features

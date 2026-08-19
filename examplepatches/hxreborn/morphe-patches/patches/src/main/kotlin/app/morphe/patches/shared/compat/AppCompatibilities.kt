@@ -20,11 +20,27 @@ internal object AppCompatibilities {
         appIconColor = 0xF8991C,
     )
 
+    val ETSY = Compatibility(
+        name = "Etsy",
+        packageName = "com.etsy.android",
+        apkFileType = ApkFileType.APKS,
+        appIconColor = 0xF1641E,
+        targets = listOf(AppTarget(version = "7.90.0", versionCode = 79000153, minSdk = 32)),
+    )
+
     val FORUS = Compatibility(
         name = "ForusApp",
         packageName = "com.myvitale.forus",
         apkFileType = ApkFileType.APK,
         appIconColor = 0x0772BA,
+    )
+
+    val GAMMA_SCAN = Compatibility(
+        name = "QR & Barcode Scanner",
+        packageName = "com.gamma.scan",
+        apkFileType = ApkFileType.APKS,
+        appIconColor = 0x2196F3,
+        targets = listOf(AppTarget(version = "2.2.221", versionCode = 221, minSdk = 24)),
     )
 
     val PERPLEXITY = Compatibility(

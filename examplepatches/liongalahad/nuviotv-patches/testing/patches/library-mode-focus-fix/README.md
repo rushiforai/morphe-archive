@@ -1,6 +1,6 @@
 # Library Mode Focus Fix
 
-This setting-free patch corrects NuvioTV 0.8.4-beta's native Library focus path. When the user moves down from Saved or Cloud into the first filter and then moves back up, focus returns to the selected mode instead of jumping to another mode.
+This setting-free patch corrects NuvioTV 0.8.6-beta's native Library focus path. When the user moves down from Saved or Cloud into the first filter and then moves back up, focus returns to the selected mode instead of jumping to another mode.
 
 The patch is independent of Local Media. Its runtime, fingerprints, bytecode changes, tests, and documentation live only in the `library-mode-focus-fix` compartment.
 

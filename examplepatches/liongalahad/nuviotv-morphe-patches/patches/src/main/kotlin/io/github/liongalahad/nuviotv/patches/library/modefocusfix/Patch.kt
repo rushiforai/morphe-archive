@@ -152,7 +152,7 @@ val libraryModeFocusFixPatch = bytecodePatch(
         val cloudFilterModifierResults = cloudFilterInstructions.mapIndexedNotNull { index, instruction ->
             val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
                 ?: return@mapIndexedNotNull null
-            if (reference.definingClass != "Lc0/w1;" || reference.name != "a" ||
+            if (reference.definingClass != "Lc0/x1;" || reference.name != "a" ||
                 reference.parameterTypes.map(CharSequence::toString) !=
                 listOf("Lu1/q;", "F") || reference.returnType != "Lu1/q;"
             ) return@mapIndexedNotNull null

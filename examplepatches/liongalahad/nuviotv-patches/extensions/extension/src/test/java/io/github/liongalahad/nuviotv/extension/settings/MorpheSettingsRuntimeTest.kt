@@ -88,7 +88,7 @@ class MorpheSettingsRuntimeTest {
     }
 
     @Test
-    fun `native selector bridge accepts the 0_8_4 card shape`() {
+    fun `native selector bridge accepts the 0_8_6 card shape`() {
         assertTrue(
             MorpheSettingsRows.matchesNativeSelectorParametersForTesting(
                 arrayOf(

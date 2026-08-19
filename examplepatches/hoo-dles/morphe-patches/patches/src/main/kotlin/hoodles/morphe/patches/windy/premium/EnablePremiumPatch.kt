@@ -30,13 +30,13 @@ val enablePremiumPatch = bytecodePatch(
         name = "Windy",
         packageName = "com.windyty.android",
         appIconColor = 0x9D0300,
-        targets = listOf(AppTarget("50.1.1"))
+        targets = listOf(AppTarget("51.0.1"))
     ))
 
     dependsOn(extensionPatch)
 
     execute {
-        IsPremiumForWidgetFingerprint.method.returnBoxedBooleanEarly(true)
+        IsPremiumForWidgetFingerprint.method.returnEarly(true)
 
         ShouldInterceptRequestFingerprint.method.apply {
             val returnObjReg = getInstruction<OneRegisterInstruction>(instructions.size - 1).registerA

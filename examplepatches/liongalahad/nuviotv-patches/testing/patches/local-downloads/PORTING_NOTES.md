@@ -1,8 +1,8 @@
 # Porting notes
 
-Target: NuvioTV `0.8.4-beta`. The older phase-two prompt described a single `0.8.2` patch dependent on Local Media; the current requirement supersedes that architecture.
+Target: NuvioTV `0.8.6-beta`. The older phase-two prompt described a single `0.8.2` patch dependent on Local Media; the current requirement supersedes that architecture.
 
-The three options-dialog fingerprints cover the only 0.8.4-beta render sites for `Play manually`: detail hero, episode options and Continue Watching options. They wrap the native composable content before NuvioDialog receives it, retaining the native TV Button/Text implementation.
+The three options-dialog fingerprints cover the only 0.8.6-beta render sites for `Play manually`: detail hero, episode options and Continue Watching options. They wrap the native composable content before NuvioDialog receives it, retaining the native TV Button/Text implementation.
 
 The stream-route hook captures exact content/video/season/episode identity and may replace a normal route with a completed local player route. The StreamScreen hook wraps both resolved callbacks so the normal source picker and debrid resolution remain Nuvio-owned while a pending download consumes the final direct source.
 
