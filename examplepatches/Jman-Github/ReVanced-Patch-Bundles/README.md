@@ -1553,7 +1553,7 @@ If you know of another working ReVanced or Morphe patch repository that is not l
 
 ---
 ### 📦 Nai64-Patches-Bundle [Morphe]:
-[?? Nai64 Bundle Patch List](https://github.com/Jman-Github/ReVanced-Patch-Bundles/blob/bundles/patch-bundles/PATCH-LIST-CATALOG.md#-nai64-bundle-patch-list)
+[🧩 Nai64 Bundle Patch List](https://github.com/Jman-Github/ReVanced-Patch-Bundles/blob/bundles/patch-bundles/PATCH-LIST-CATALOG.md#-nai64-bundle-patch-list)
 <details>
 <summary><i>Expand For Links</i></summary>
 
@@ -1566,7 +1566,7 @@ If you know of another working ReVanced or Morphe patch repository that is not l
 
 ---
 ### 📦 Morphe-Google-Patches-Bundle [Morphe]:
-[?? Morphe-Google Bundle Patch List](https://github.com/Jman-Github/ReVanced-Patch-Bundles/blob/bundles/patch-bundles/PATCH-LIST-CATALOG.md#-morphe-google-bundle-patch-list)
+[🧩 Morphe-Google Bundle Patch List](https://github.com/Jman-Github/ReVanced-Patch-Bundles/blob/bundles/patch-bundles/PATCH-LIST-CATALOG.md#-morphe-google-bundle-patch-list)
 <details>
 <summary><i>Expand For Links</i></summary>
 
@@ -2152,6 +2152,7 @@ If you know of another working ReVanced or Morphe patch repository that is not l
 
 **Dev:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/goldrift-patch-bundles/goldrift-dev-patches-bundle.json```
 </details>
+
 ---
 ### 📦 RoundSalmon4-Patches-Bundle [Morphe]:
 [🧩 RoundSalmon4 Bundle Patch List](https://github.com/Jman-Github/ReVanced-Patch-Bundles/blob/bundles/patch-bundles/PATCH-LIST-CATALOG.md#-roundsalmon4-bundle-patch-list)
@@ -2232,7 +2233,7 @@ If you know of another working ReVanced or Morphe patch repository that is not l
 
 ---
 ### 📦 Dbhavsar76-Patches-Bundle [API v4]:
-[?? Dbhavsar76 Bundle Patch List](https://github.com/Jman-Github/ReVanced-Patch-Bundles/blob/bundles/patch-bundles/PATCH-LIST-CATALOG.md#-dbhavsar76-bundle-patch-list)
+[🧩 Dbhavsar76 Bundle Patch List](https://github.com/Jman-Github/ReVanced-Patch-Bundles/blob/bundles/patch-bundles/PATCH-LIST-CATALOG.md#-dbhavsar76-bundle-patch-list)
 <details>
 <summary><i>Expand For Links</i></summary>
 
@@ -2284,7 +2285,7 @@ If you know of another working ReVanced or Morphe patch repository that is not l
 
 ---
 ### 📦 ChMate-ReVanced-Patches-Bundle [API v4]:
-[?? ChMate-ReVanced Bundle Patch List](https://github.com/Jman-Github/ReVanced-Patch-Bundles/blob/bundles/patch-bundles/PATCH-LIST-CATALOG.md#-chmate-revanced-bundle-patch-list)
+[🧩 ChMate-ReVanced Bundle Patch List](https://github.com/Jman-Github/ReVanced-Patch-Bundles/blob/bundles/patch-bundles/PATCH-LIST-CATALOG.md#-chmate-revanced-bundle-patch-list)
 <details>
 <summary><i>Expand For Links</i></summary>
 
@@ -2542,6 +2543,19 @@ If you know of another working ReVanced or Morphe patch repository that is not l
 **Dev:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/maurogamervn-patch-bundles/maurogamervn-dev-patches-bundle.json```
 </details>
 
+---
+### 📦 Skywarp-Patches-Bundle [Morphe]:
+[🧩 Skywarp Bundle Patch List](https://github.com/Jman-Github/ReVanced-Patch-Bundles/blob/bundles/patch-bundles/PATCH-LIST-CATALOG.md#-skywarp-bundle-patch-list)
+<details>
+<summary><i>Expand For Links</i></summary>
+
+**Latest:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/skywarp-patch-bundles/skywarp-latest-patches-bundle.json```
+
+**Stable:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/skywarp-patch-bundles/skywarp-stable-patches-bundle.json```
+
+**Dev:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/skywarp-patch-bundles/skywarp-dev-patches-bundle.json```
+</details>
+
 ## 📱 Compatible Managers
 
 | Manager | Best For | Source | Downloads |
@@ -2671,7 +2685,7 @@ If you know of another working ReVanced or Morphe patch repository that is not l
 
 #### 🏷️ [Blazskufca-Patches-Bundle](https://github.com/blazskufca/revanced-patch)
 
-#### 🏷️ [IMXEren-Patches-Bundle](https://github.com/IMXEren/mix-patches)
+#### 🏷️ [IMXEren-Patches-Bundle](https://gitlab.com/IMXEren/mix-patches)
 
 #### 🏷️ [Almewty-Patches-Bundle](https://github.com/Almewty/my-morphe-patches)
 
@@ -2942,6 +2956,8 @@ If you know of another working ReVanced or Morphe patch repository that is not l
 #### 🩹 [Abhishek-Bhujang-Patches-Bundle](https://github.com/theabhishekbhujang/morphe-patches)
 
 #### 🩹 [MauroGamerVN-Patches-Bundle](https://github.com/MauroGamerVN/morphe-patches)
+
+#### 🩹 [Skywarp-Patches-Bundle](https://github.com/TheRealSkywarp/morphe-patches)
 
 ## 🖇 Integrations Repositories In Use
 

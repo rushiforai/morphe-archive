@@ -1,3 +1,52 @@
+## [1.5.0](https://gitlab.com/IMXEren/mix-patches/compare/v1.4.2...v1.5.0) (2026-08-19)
+
+### 🐛 Bug Fixes
+
+* **ci:** provision Android SDK for extension builds ([c13abcf](https://gitlab.com/IMXEren/mix-patches/commit/c13abcf7ba27afff65957c231f717349ee49ae40))
+* **ci:** restrict release job to release branches ([64576ec](https://gitlab.com/IMXEren/mix-patches/commit/64576ec00bdbe4dcaa59dbe5635fa55fd91c1110))
+* create release marker cross-platform ([5471e98](https://gitlab.com/IMXEren/mix-patches/commit/5471e985b94e43afe2d2ad0cac201c9d91dd2c76))
+
+### ✨ New Features
+
+* **firebase:** add certificate hash spoofing ([f3e5cfa](https://gitlab.com/IMXEren/mix-patches/commit/f3e5cfa11245c6e2ce41844ed8bf8a885004ecfc))
+* **native:** add native library patching ([8c91a78](https://gitlab.com/IMXEren/mix-patches/commit/8c91a78708ccec772eab163c9983e63e80455395))
+* **railone:** bypass developer option checks ([3399653](https://gitlab.com/IMXEren/mix-patches/commit/3399653c473745eafbd05f839fbb101751cf961e))
+* **railone:** bypass signature verification ([d70c7a0](https://gitlab.com/IMXEren/mix-patches/commit/d70c7a03e2f9b9d3740e10dfbd8270966b58564e))
+* **signature:** add package manager signature spoofing ([ecefa2a](https://gitlab.com/IMXEren/mix-patches/commit/ecefa2a08bc275ca874f5cbe67afd37d615cfa6f))
+
+## [1.5.0-dev.1](https://gitlab.com/IMXEren/mix-patches/compare/v1.4.3-dev.1...v1.5.0-dev.1) (2026-08-19)
+
+### 🐛 Bug Fixes
+
+* **ci:** provision Android SDK for extension builds ([c13abcf](https://gitlab.com/IMXEren/mix-patches/commit/c13abcf7ba27afff65957c231f717349ee49ae40))
+* create release marker cross-platform ([5471e98](https://gitlab.com/IMXEren/mix-patches/commit/5471e985b94e43afe2d2ad0cac201c9d91dd2c76))
+
+### ✨ New Features
+
+* **firebase:** add certificate hash spoofing ([f3e5cfa](https://gitlab.com/IMXEren/mix-patches/commit/f3e5cfa11245c6e2ce41844ed8bf8a885004ecfc))
+* **native:** add native library patching ([8c91a78](https://gitlab.com/IMXEren/mix-patches/commit/8c91a78708ccec772eab163c9983e63e80455395))
+* **railone:** bypass developer option checks ([3399653](https://gitlab.com/IMXEren/mix-patches/commit/3399653c473745eafbd05f839fbb101751cf961e))
+* **railone:** bypass signature verification ([d70c7a0](https://gitlab.com/IMXEren/mix-patches/commit/d70c7a03e2f9b9d3740e10dfbd8270966b58564e))
+* **signature:** add package manager signature spoofing ([ecefa2a](https://gitlab.com/IMXEren/mix-patches/commit/ecefa2a08bc275ca874f5cbe67afd37d615cfa6f))
+
+## [1.4.3-dev.1](https://gitlab.com/IMXEren/mix-patches/compare/v1.4.2...v1.4.3-dev.1) (2026-08-18)
+
+### 🐛 Bug Fixes
+
+* **ci:** restrict release job to release branches ([64576ec](https://gitlab.com/IMXEren/mix-patches/commit/64576ec00bdbe4dcaa59dbe5635fa55fd91c1110))
+
+## [1.4.2](https://gitlab.com/IMXEren/mix-patches/compare/v1.4.1...v1.4.2) (2026-08-18)
+
+### 🐛 Bug Fixes
+
+* **release:** use GitLab assets in patch bundle ([71af8f8](https://gitlab.com/IMXEren/mix-patches/commit/71af8f8c9a7fb3d41630161c4ea432447890596f))
+
+## [1.4.2-dev.1](https://gitlab.com/IMXEren/mix-patches/compare/v1.4.1...v1.4.2-dev.1) (2026-08-18)
+
+### 🐛 Bug Fixes
+
+* **release:** use GitLab assets in patch bundle ([71af8f8](https://gitlab.com/IMXEren/mix-patches/commit/71af8f8c9a7fb3d41630161c4ea432447890596f))
+
 ## [1.4.1](https://github.com/IMXEren/mix-patches/compare/v1.4.0...v1.4.1) (2026-07-23)
 
 ### 🚀 Updated App Support

@@ -1,5 +1,5 @@
 {
-    "version": "v1.6.0",
+    "version": "v1.9.3",
     "patches": [
         {
             "compatiblePackages": [
@@ -12,6 +12,9 @@
                             "isExperimental": false,
                             "version": "1.0.50.20"
                         }
+                    ],
+                    "versions": [
+                        "1.0.50.20"
                     ]
                 }
             ],
@@ -19,6 +22,25 @@
             "dependencies": [],
             "description": "Elimina anuncios de banner, interstitial, rewarded y app-open (AdMob).",
             "name": "Disable ads",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "appIconColor": "#E53935",
+                    "name": "MasterDex - Complete Pokedex",
+                    "packageName": "com.lorenzogreco.pokedex_provider",
+                    "targets": [
+                        {
+                            "isExperimental": false
+                        }
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Habilita funciones Pro (RevenueCat/Flutter): construye EntitlementInfo real activo, como parches de la comunidad (Relane).",
+            "name": "Unlock Pro",
             "options": []
         }
     ]

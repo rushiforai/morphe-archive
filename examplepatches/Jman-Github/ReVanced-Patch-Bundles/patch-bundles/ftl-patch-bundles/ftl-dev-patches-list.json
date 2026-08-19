@@ -1,5 +1,5 @@
 {
-    "version": "v1.37.0-dev.2",
+    "version": "v1.37.0-dev.7",
     "patches": [
         {
             "compatiblePackages": null,
@@ -72,13 +72,16 @@
                             "isExperimental": false,
                             "version": "18.8.0.prime"
                         }
+                    ],
+                    "versions": [
+                        "18.8.0.prime"
                     ]
                 }
             ],
             "default": false,
             "dependencies": [],
-            "description": "Hides the nav drawer's Guide/Rate/Help/About items and the bottom navigation view, and keeps the Connect/Create/Join buttons on top.",
-            "name": "Clean up main UI",
+            "description": "Hides the bottom navigation bar, the top-right guide icon, and the Rate/Help/About drawer items, and brings the connect/create/join buttons to front. Reapplied on create, resume, and drawer open (and retried for ~1.8s after each) since some of these views are inflated lazily.",
+            "name": "Clean main UI",
             "options": []
         },
         {
@@ -117,6 +120,9 @@
                                 "X86_64": 24011893
                             }
                         }
+                    ],
+                    "versions": [
+                        "1.9.7"
                     ]
                 }
             ],
@@ -142,6 +148,9 @@
                                 "X86_64": 76450210
                             }
                         }
+                    ],
+                    "versions": [
+                        "7.64.0.76450210"
                     ]
                 }
             ],
@@ -167,6 +176,9 @@
                                 "X86_64": 10353
                             }
                         }
+                    ],
+                    "versions": [
+                        "4.4.3.7"
                     ]
                 }
             ],
@@ -246,6 +258,9 @@
                                 "X86_64": 239
                             }
                         }
+                    ],
+                    "versions": [
+                        "2.3.0.4"
                     ]
                 }
             ],
@@ -271,6 +286,9 @@
                                 "X86_64": 239
                             }
                         }
+                    ],
+                    "versions": [
+                        "2.3.0.4"
                     ]
                 }
             ],
@@ -296,6 +314,9 @@
                                 "X86_64": 76450210
                             }
                         }
+                    ],
+                    "versions": [
+                        "7.64.0.76450210"
                     ]
                 }
             ],
@@ -401,6 +422,9 @@
                                 "X86_64": 76450210
                             }
                         }
+                    ],
+                    "versions": [
+                        "7.64.0.76450210"
                     ]
                 }
             ],
@@ -426,6 +450,9 @@
                                 "X86_64": 24011893
                             }
                         }
+                    ],
+                    "versions": [
+                        "1.9.7"
                     ]
                 }
             ],
@@ -451,6 +478,9 @@
                                 "X86_64": 239
                             }
                         }
+                    ],
+                    "versions": [
+                        "2.3.0.4"
                     ]
                 }
             ],
@@ -472,6 +502,9 @@
                             "isExperimental": false,
                             "version": "18.8.0.prime"
                         }
+                    ],
+                    "versions": [
+                        "18.8.0.prime"
                     ]
                 }
             ],
@@ -509,6 +542,9 @@
                             "isExperimental": false,
                             "version": "18.8.0.prime"
                         }
+                    ],
+                    "versions": [
+                        "18.8.0.prime"
                     ]
                 }
             ],

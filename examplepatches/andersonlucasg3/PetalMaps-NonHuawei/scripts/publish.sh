@@ -105,20 +105,6 @@ echo "=== Step 6/7: Create GitHub release $TAG ==="
 env -u GITHUB_TOKEN gh release delete "$TAG" --repo "$REPO" --yes 2>/dev/null && echo "Replaced existing $TAG." || true
 env -u GITHUB_TOKEN gh release create "$TAG" "$MPP" --repo "$REPO" --title "$TAG" --notes "${NOTES:-Release $TAG}"
 
-# ── Step 6b/7: LSPosed companion module ──────────────────────────────────────
-echo "=== Step 6b/7: Build & upload LSPosed module ==="
-if [ -f lsposed/settings.gradle.kts ]; then
-    (cd lsposed && ../gradlew.bat -p . assembleRelease --no-daemon >/dev/null 2>&1) \
-        || echo "WARNING: lsposed module build failed — release published without it"
-    MODULE_APK="$PROJECT_DIR/lsposed/app/build/outputs/apk/release/app-release.apk"
-    if [ -f "$MODULE_APK" ]; then
-        MODULE_NAME="petal-nh-lsposed-module-$TAG.apk"
-        cp "$MODULE_APK" "$PROJECT_DIR/build/$MODULE_NAME"
-        env -u GITHUB_TOKEN gh release upload "$TAG" "$PROJECT_DIR/build/$MODULE_NAME" \
-            --repo "$REPO" --clobber
-    fi
-fi
-
 # ── Step 7/7: Post-publish verification (simulate Morphe Manager) ───────────
 echo "=== Step 7/7: Verify published source (as the Manager sees it) ==="
 # raw.githubusercontent.com caches aggressively (~5 min); retry before failing.

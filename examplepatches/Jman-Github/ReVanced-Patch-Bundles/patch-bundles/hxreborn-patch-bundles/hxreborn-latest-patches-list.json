@@ -1,6 +1,26 @@
 {
-    "version": "v1.8.0",
+    "version": "v1.9.0",
     "patches": [
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APKS",
+                    "appIconColor": "#53FC18",
+                    "name": "Kick",
+                    "packageName": "com.kick.mobile",
+                    "targets": [
+                        {
+                            "isExperimental": false
+                        }
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Replaces the dark theme background with pure black. Disables over-the-air updates that would restore the original background.",
+            "name": "AMOLED dark theme",
+            "options": []
+        },
         {
             "compatiblePackages": [
                 {
@@ -42,6 +62,9 @@
                                 "X86_64": 17667
                             }
                         }
+                    ],
+                    "versions": [
+                        "7.10.4"
                     ]
                 }
             ],
@@ -112,6 +135,9 @@
                                 "X86_64": 79000153
                             }
                         }
+                    ],
+                    "versions": [
+                        "7.90.0"
                     ]
                 }
             ],
@@ -140,6 +166,9 @@
                                 "X86_64": 221
                             }
                         }
+                    ],
+                    "versions": [
+                        "2.2.221"
                     ]
                 }
             ],
@@ -168,6 +197,9 @@
                                 "X86_64": 1278994
                             }
                         }
+                    ],
+                    "versions": [
+                        "407.0.0.178994"
                     ]
                 }
             ],
@@ -216,6 +248,9 @@
                                 "X86_64": 17667
                             }
                         }
+                    ],
+                    "versions": [
+                        "7.10.4"
                     ]
                 }
             ],
@@ -266,6 +301,9 @@
                                 "X86_64": 17667
                             }
                         }
+                    ],
+                    "versions": [
+                        "7.10.4"
                     ]
                 }
             ],
@@ -294,6 +332,9 @@
                                 "X86_64": 17667
                             }
                         }
+                    ],
+                    "versions": [
+                        "7.10.4"
                     ]
                 }
             ],
@@ -322,6 +363,9 @@
                                 "X86_64": 2300
                             }
                         }
+                    ],
+                    "versions": [
+                        "26.05.20+2300"
                     ]
                 }
             ],
@@ -350,6 +394,9 @@
                                 "X86_64": 17667
                             }
                         }
+                    ],
+                    "versions": [
+                        "7.10.4"
                     ]
                 }
             ],
@@ -378,6 +425,9 @@
                                 "X86_64": 17667
                             }
                         }
+                    ],
+                    "versions": [
+                        "7.10.4"
                     ]
                 }
             ],
@@ -446,6 +496,9 @@
                                 "X86_64": 840
                             }
                         }
+                    ],
+                    "versions": [
+                        "3.70.0"
                     ]
                 }
             ],
@@ -487,6 +540,10 @@
                                 "X86_64": 127734
                             }
                         }
+                    ],
+                    "versions": [
+                        "14.0.0",
+                        "14.1.0"
                     ]
                 }
             ],
