@@ -7,6 +7,7 @@ BholeyKaBhakt/android-patches-xtra
 BlazeFTL/FTL-Patches
 BlazeFTL/Morphe-Portal-Patches-New
 Entree3k/Morning-Entree-Patches
+Freeman022026/rustore-privacy-patches
 GoldRift/morphe-patches
 Graywizard888/Enhancify
 HSlightsteel/slight-patches
@@ -21,13 +22,13 @@ Jl4cTuk/morphe-patches
 Jman-Github/Awesome-ReVanced
 Jman-Github/ReVanced-Patch-Bundles
 Jman-Github/Universal-ReVanced-Manager
-JonnyVR1/morph-patches
 Joristdh/Platypatch
 Joussflls10/Jouss-Patches
 LaBlazer/morphe-patches
 LaKakaReal/LaKakaShitPatches
 Lynx6319/patch-youtube-scroll-block
 MarcaDian/morphe-patches-yavot
+MauroGamerVN/Morphe-Patches
 MiguelNinja19/miguel-morphe-patches
 MoonShadowKeeper/Telegram-patchesMorphe
 MorpheApp/morphe-patches
@@ -64,6 +65,7 @@ ameenalasady/ameen-morphe
 ameenalasady/photogrid-morphe
 anddea/revanced-patches
 andersonlucasg3/PetalMaps-AndroidAuto
+andersonlucasg3/PetalMaps-NonHuawei
 andrewliang25/morphe-patches
 andronedev/morphe-patches
 andronedev/morphe-portal-patch
@@ -156,6 +158,7 @@ skulldogged/cobalt-morphe
 spookyexe/morphe-patches
 sushruth/imgur-patches
 tadikwa/google-clock-morphe-patches
+theabhishekbhujang/morphe-patches
 tiaruebar1024/tiaruebar-patches
 totsiaw/proxma-patches
 variablenine/morphe-patches

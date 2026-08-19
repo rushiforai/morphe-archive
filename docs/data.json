@@ -1,20 +1,20 @@
 {
-  "generatedAt": "2026-08-18 01:12 UTC",
-  "configFile": "morphe_archive_config_v24.json",
-  "configVersion": 24,
-  "repoCount": 141,
-  "appCount": 682,
-  "patchCount": 2629,
-  "universalPatchCount": 187,
+  "generatedAt": "2026-08-19 01:13 UTC",
+  "configFile": "morphe_archive_config_v25.json",
+  "configVersion": 25,
+  "repoCount": 145,
+  "appCount": 691,
+  "patchCount": 2642,
+  "universalPatchCount": 179,
   "hostCounts": {
-    "github.com": 137,
+    "github.com": 141,
     "gitlab.com": 4
   },
   "visitorStats": {
-    "today": 1,
-    "yesterday": 8,
-    "total": 278,
-    "online": 1
+    "today": 0,
+    "yesterday": 9,
+    "total": 286,
+    "online": 0
   },
   "repos": [
     {
@@ -67,7 +67,7 @@
       "webUrl": "https://github.com/ajstrick81/morphe-androidtv-patches",
       "addUrl": "https://morphe.software/add-source?github=ajstrick81/morphe-androidtv-patches",
       "avatarUrl": "https://github.com/ajstrick81.png?size=96",
-      "patchCount": 31,
+      "patchCount": 32,
       "appCount": 12,
       "createdAt": 1784836028108,
       "updatedAt": 1784836028108,
@@ -150,7 +150,7 @@
         {
           "name": "com.wbd.hbomax",
           "packageName": "com.wbd.hbomax",
-          "patchCount": 1,
+          "patchCount": 2,
           "iconUrl": "https://play-lh.googleusercontent.com/0Xve4so8vFKdWH1nadrPraSJ2XoKlc2Fd4BToADo0f8gXTbljiwzuEA-OZXV86i5ubZ9uw8giaVVP3d1g_jm",
           "iconColor": ""
         },
@@ -216,18 +216,52 @@
       "webUrl": "https://github.com/Alastor-Kaneki/Morphe-Patches",
       "addUrl": "https://morphe.software/add-source?github=Alastor-Kaneki/Morphe-Patches",
       "avatarUrl": "https://github.com/Alastor-Kaneki.png?size=96",
-      "patchCount": 0,
-      "appCount": 0,
+      "patchCount": 6,
+      "appCount": 4,
       "createdAt": 1785897755305,
       "updatedAt": 1785897755305,
       "createdDate": "2026-08-05",
       "updatedDate": "2026-08-05",
       "latestChanges": {
-        "title": "",
-        "date": "",
-        "items": []
+        "title": "1.13.4 (2026-08-18)",
+        "date": "2026-08-18",
+        "items": [
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**pixilart:** block Cordova ad bridge"
+          }
+        ]
       },
-      "apps": []
+      "apps": [
+        {
+          "name": "Google Chrome",
+          "packageName": "com.android.chrome",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#4285F4"
+        },
+        {
+          "name": "Opera GX",
+          "packageName": "com.opera.gx",
+          "patchCount": 2,
+          "iconUrl": "",
+          "iconColor": "#A31AFF"
+        },
+        {
+          "name": "Pixilart",
+          "packageName": "com.pixilart.app",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#FF315A"
+        },
+        {
+          "name": "Suno",
+          "packageName": "com.suno.android",
+          "patchCount": 2,
+          "iconUrl": "",
+          "iconColor": "#8B5CF6"
+        }
+      ]
     },
     {
       "name": "pichiwa-patches",
@@ -569,7 +603,7 @@
       "webUrl": "https://github.com/andersonlucasg3/PetalMaps-AndroidAuto",
       "addUrl": "https://morphe.software/add-source?github=andersonlucasg3/PetalMaps-AndroidAuto",
       "avatarUrl": "https://github.com/andersonlucasg3.png?size=96",
-      "patchCount": 10,
+      "patchCount": 4,
       "appCount": 1,
       "createdAt": 1786067248701,
       "updatedAt": 1786067248701,
@@ -584,7 +618,38 @@
         {
           "name": "Petal Maps",
           "packageName": "com.huawei.maps.app",
-          "patchCount": 10,
+          "patchCount": 4,
+          "iconUrl": "",
+          "iconColor": "#E60012"
+        }
+      ]
+    },
+    {
+      "name": "PetalMaps-NonHuawei",
+      "repo": "andersonlucasg3/PetalMaps-NonHuawei",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/andersonlucasg3/PetalMaps-NonHuawei/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/andersonlucasg3/PetalMaps-NonHuawei/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/andersonlucasg3/PetalMaps-NonHuawei/main/CHANGELOG.md",
+      "webUrl": "https://github.com/andersonlucasg3/PetalMaps-NonHuawei",
+      "addUrl": "https://morphe.software/add-source?github=andersonlucasg3/PetalMaps-NonHuawei",
+      "avatarUrl": "https://github.com/andersonlucasg3.png?size=96",
+      "patchCount": 4,
+      "appCount": 1,
+      "createdAt": 1787101958443,
+      "updatedAt": 1787101958443,
+      "createdDate": "2026-08-19",
+      "updatedDate": "2026-08-19",
+      "latestChanges": {
+        "title": "",
+        "date": "",
+        "items": []
+      },
+      "apps": [
+        {
+          "name": "Petal Maps",
+          "packageName": "com.huawei.maps.app",
+          "patchCount": 4,
           "iconUrl": "",
           "iconColor": "#E60012"
         }
@@ -707,12 +772,12 @@
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.49.1 (2026-08-17)",
-        "date": "2026-08-17",
+        "title": "1.50.3 (2026-08-19)",
+        "date": "2026-08-19",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+            "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
           }
         ]
       },
@@ -1457,32 +1522,12 @@
       "createdDate": "2026-08-09",
       "updatedDate": "2026-08-09",
       "latestChanges": {
-        "title": "1.34.0 (2026-08-17)",
-        "date": "2026-08-17",
+        "title": "1.36.0 (2026-08-18)",
+        "date": "2026-08-18",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "Add Clean More Action Rs File"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "Add Hide BookMark,Tools In HomeScreen Rs"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "Add Rs File Explorer Skip Splash"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "Fix Rs File Explorer Patch"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "Rs File Explorer Skip Splash"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "Rs File Explorer Skip Splash Screen"
+            "text": "up"
           }
         ]
       },
@@ -3803,6 +3848,42 @@
       ]
     },
     {
+      "name": "rustore-privacy-patches",
+      "repo": "Freeman022026/rustore-privacy-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/Freeman022026/rustore-privacy-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/Freeman022026/rustore-privacy-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/Freeman022026/rustore-privacy-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/Freeman022026/rustore-privacy-patches",
+      "addUrl": "https://morphe.software/add-source?github=Freeman022026/rustore-privacy-patches",
+      "avatarUrl": "https://github.com/Freeman022026.png?size=96",
+      "patchCount": 9,
+      "appCount": 1,
+      "createdAt": 1787101955887,
+      "updatedAt": 1787101955887,
+      "createdDate": "2026-08-19",
+      "updatedDate": "2026-08-19",
+      "latestChanges": {
+        "title": "1.1.3 (2026-08-18)",
+        "date": "2026-08-18",
+        "items": [
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Resolve Update All crash"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "RuStore",
+          "packageName": "ru.vk.store",
+          "patchCount": 9,
+          "iconUrl": "",
+          "iconColor": "#0A85FF"
+        }
+      ]
+    },
+    {
       "name": "morphe-patches",
       "repo": "GoldRift/morphe-patches",
       "host": "github.com",
@@ -4063,7 +4144,7 @@
       "webUrl": "https://github.com/hoo-dles/morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=hoo-dles/morphe-patches",
       "avatarUrl": "https://github.com/hoo-dles.png?size=96",
-      "patchCount": 78,
+      "patchCount": 77,
       "appCount": 53,
       "createdAt": 1784836036710,
       "updatedAt": 1784836036710,
@@ -4360,7 +4441,7 @@
         {
           "name": "Smart Launcher",
           "packageName": "ginlemon.flowerfree",
-          "patchCount": 2,
+          "patchCount": 1,
           "iconUrl": "https://play-lh.googleusercontent.com/AM7MidChVOk5Uj7Vf7xM0ZaOYnGBea4PZBH5O5wlllmksRKCdMgRzPnPSgg-K7bQ0DXv2Bb7F9-kfyCVyG3JNtQ",
           "iconColor": "#000000"
         },
@@ -4722,23 +4803,23 @@
       "webUrl": "https://github.com/hxreborn/morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=hxreborn/morphe-patches",
       "avatarUrl": "https://github.com/hxreborn.png?size=96",
-      "patchCount": 17,
-      "appCount": 9,
+      "patchCount": 19,
+      "appCount": 11,
       "createdAt": 1784837695114,
       "updatedAt": 1784837695114,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.7.0 (2026-08-16)",
-        "date": "2026-08-16",
+        "title": "1.8.0 (2026-08-18)",
+        "date": "2026-08-18",
         "items": [
           {
             "category": "New Features",
-            "text": "**ReadEra - Remove nags:** add patch"
+            "text": "**Etsy - Hide ads:** drop promoted listings from search results"
           },
           {
             "category": "New Features",
-            "text": "**Trainline - Hide ads:** add patch"
+            "text": "**QR & Barcode Scanner - Hide ads:** disable all AdMob ad loads"
           }
         ]
       },
@@ -4749,6 +4830,13 @@
           "patchCount": 2,
           "iconUrl": "",
           "iconColor": "#F8991C"
+        },
+        {
+          "name": "Etsy",
+          "packageName": "com.etsy.android",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#F1641E"
         },
         {
           "name": "ForusApp",
@@ -4777,6 +4865,13 @@
           "patchCount": 6,
           "iconUrl": "https://play-lh.googleusercontent.com/TrxNlz9xizn4GBiVB2gWyws0majvL7tuCS1OsoaZxK1Sbi-uWFd51vo7eO9ghIDR6jQkIRF47mHoudd73KHazmI",
           "iconColor": "#6D4AFF"
+        },
+        {
+          "name": "QR & Barcode Scanner",
+          "packageName": "com.gamma.scan",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#2196F3"
         },
         {
           "name": "ReadEra",
@@ -5559,7 +5654,7 @@
       "webUrl": "https://github.com/JZ6/Flexboard",
       "addUrl": "https://morphe.software/add-source?github=JZ6/Flexboard",
       "avatarUrl": "https://github.com/JZ6.png?size=96",
-      "patchCount": 5,
+      "patchCount": 7,
       "appCount": 1,
       "createdAt": 1787015482954,
       "updatedAt": 1787015482954,
@@ -5574,7 +5669,7 @@
         {
           "name": "Gboard",
           "packageName": "com.google.android.inputmethod.latin",
-          "patchCount": 5,
+          "patchCount": 7,
           "iconUrl": "https://play-lh.googleusercontent.com/J4vZ82VsZjnsRsI6ckQFXlO36_52QJerqG5-HfLgHffS34I4EfoAFfNdbf6s4wBAsUEf8DOJVEDEHh5tzWbrnA",
           "iconColor": "#1A73E8"
         }
@@ -6193,12 +6288,12 @@
       "createdDate": "2026-08-06",
       "updatedDate": "2026-08-06",
       "latestChanges": {
-        "title": "1.0.0-dev.21 (2026-08-16)",
-        "date": "2026-08-16",
+        "title": "1.0.0-dev.25 (2026-08-19)",
+        "date": "2026-08-19",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "update patch suite and add side-by-side installs"
+            "category": "\ud83d\ude80 Updated App Support",
+            "text": "support NuvioTV 0.8.6-beta"
           }
         ]
       },
@@ -6229,12 +6324,12 @@
       "createdDate": "2026-08-05",
       "updatedDate": "2026-08-05",
       "latestChanges": {
-        "title": "1.0.0-dev.21 (2026-08-16)",
-        "date": "2026-08-16",
+        "title": "1.0.0-dev.25 (2026-08-19)",
+        "date": "2026-08-19",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "update patch suite and add side-by-side installs"
+            "category": "\ud83d\ude80 Updated App Support",
+            "text": "support NuvioTV 0.8.6-beta"
           }
         ]
       },
@@ -6446,6 +6541,37 @@
           "patchCount": 1,
           "iconUrl": "https://play-lh.googleusercontent.com/QNmuZQc9I6Zbe3mWnSr0hycnENqGFCI5p3yE29Hkxtf22T0IWS6zTrpxULLyyjWpB7ONAXDsDQXnXcVWokl3eg",
           "iconColor": "#FF0033"
+        }
+      ]
+    },
+    {
+      "name": "Morphe-Patches",
+      "repo": "MauroGamerVN/Morphe-Patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/MauroGamerVN/Morphe-Patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/MauroGamerVN/Morphe-Patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/MauroGamerVN/Morphe-Patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/MauroGamerVN/Morphe-Patches",
+      "addUrl": "https://morphe.software/add-source?github=MauroGamerVN/Morphe-Patches",
+      "avatarUrl": "https://github.com/MauroGamerVN.png?size=96",
+      "patchCount": 1,
+      "appCount": 1,
+      "createdAt": 1787101957410,
+      "updatedAt": 1787101957410,
+      "createdDate": "2026-08-19",
+      "updatedDate": "2026-08-19",
+      "latestChanges": {
+        "title": "",
+        "date": "",
+        "items": []
+      },
+      "apps": [
+        {
+          "name": "Multi Run - Parallel Dual App",
+          "packageName": "com.dong.multirun",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#2196F3"
         }
       ]
     },
@@ -6723,19 +6849,19 @@
       "webUrl": "https://github.com/Nai64/Nai64Patches",
       "addUrl": "https://morphe.software/add-source?github=Nai64/Nai64Patches",
       "avatarUrl": "https://github.com/Nai64.png?size=96",
-      "patchCount": 9,
+      "patchCount": 2,
       "appCount": 0,
       "createdAt": 1784836023539,
       "updatedAt": 1784836023539,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.18.0 (2026-08-02)",
-        "date": "2026-08-02",
+        "title": "1.18.1 (2026-08-18)",
+        "date": "2026-08-18",
         "items": [
           {
-            "category": "New Features",
-            "text": "add Unity Ads v4 support to Ads Free Rewards patch"
+            "category": "Bug Fixes",
+            "text": "make MAX Unity ad injections register-safe for any method layout"
           }
         ]
       },
@@ -7511,19 +7637,19 @@
       "webUrl": "https://github.com/riky-dev/morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=riky-dev/morphe-patches",
       "avatarUrl": "https://github.com/riky-dev.png?size=96",
-      "patchCount": 1,
-      "appCount": 1,
+      "patchCount": 2,
+      "appCount": 2,
       "createdAt": 1786989245628,
       "updatedAt": 1786989245628,
       "createdDate": "2026-08-17",
       "updatedDate": "2026-08-17",
       "latestChanges": {
-        "title": "1.1.0 (2026-08-17)",
-        "date": "2026-08-17",
+        "title": "1.3.3 (2026-08-18)",
+        "date": "2026-08-18",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "add agent-friendly patch development framework"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**devcheck:** remove unsupported DevCheck patches (PairIP native protection)"
           }
         ]
       },
@@ -7534,6 +7660,13 @@
           "patchCount": 1,
           "iconUrl": "",
           "iconColor": "#30639B"
+        },
+        {
+          "name": "Electron: battery health info",
+          "packageName": "com.mahersafadi.electron",
+          "patchCount": 1,
+          "iconUrl": "https://play-lh.googleusercontent.com/0t-xeeDB6UuldF-nGTXFlE1Yvzm1NVBx-bYdnVYCdMfIyyT0niQNLa9dYLketH9ESOpeF4YzuihgI_Mz6SnlgQ",
+          "iconColor": "#2E7D32"
         }
       ]
     },
@@ -7578,19 +7711,19 @@
       "webUrl": "https://github.com/RookieEnough/De-Vanced",
       "addUrl": "https://morphe.software/add-source?github=RookieEnough/De-Vanced",
       "avatarUrl": "https://github.com/RookieEnough.png?size=96",
-      "patchCount": 59,
+      "patchCount": 58,
       "appCount": 23,
       "createdAt": 1784836025414,
       "updatedAt": 1784836025414,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.2.1 (2026-08-12)",
-        "date": "2026-08-12",
+        "title": "1.2.2 (2026-08-18)",
+        "date": "2026-08-18",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**Messenger:** Change recommended app version to 573.0.0.44.88"
+            "text": "**Strava:** Add app recommendation of the latest fully working app version"
           }
         ]
       },
@@ -9821,6 +9954,49 @@
       ]
     },
     {
+      "name": "morphe-patches",
+      "repo": "theabhishekbhujang/morphe-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/theabhishekbhujang/morphe-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/theabhishekbhujang/morphe-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/theabhishekbhujang/morphe-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/theabhishekbhujang/morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=theabhishekbhujang/morphe-patches",
+      "avatarUrl": "https://github.com/theabhishekbhujang.png?size=96",
+      "patchCount": 2,
+      "appCount": 2,
+      "createdAt": 1787101964368,
+      "updatedAt": 1787101964368,
+      "createdDate": "2026-08-19",
+      "updatedDate": "2026-08-19",
+      "latestChanges": {
+        "title": "1.4.2 (2026-08-18)",
+        "date": "2026-08-18",
+        "items": [
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "update GitHub workflows to valid action versions and correct gradle tasks"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "com.psslabs.rhythm",
+          "packageName": "com.psslabs.rhythm",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": ""
+        },
+        {
+          "name": "harmonium.music.gameg.real.harmoniumfree",
+          "packageName": "harmonium.music.gameg.real.harmoniumfree",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": ""
+        }
+      ]
+    },
+    {
       "name": "abeja-morphe-patches",
       "repo": "TheRealCrazyfuy/abeja-morphe-patches",
       "host": "github.com",
@@ -10536,12 +10712,12 @@
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.12.0 (2026-08-14)",
-        "date": "2026-08-14",
+        "title": "1.12.2 (2026-08-18)",
+        "date": "2026-08-18",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "**avito:** hide reserved offers"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**ozon:** support common cell migration in 19.31"
           }
         ]
       },
@@ -10764,12 +10940,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/riky-dev/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/riky-dev.png?size=96",
           "latestChanges": {
-            "title": "1.1.0 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.3.3 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "add agent-friendly patch development framework"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**devcheck:** remove unsupported DevCheck patches (PairIP native protection)"
               }
             ]
           },
@@ -11314,12 +11490,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -11337,7 +11513,7 @@
             }
           ],
           "versions": [
-            "26.5.0.45958"
+            "26.7.1.47181"
           ]
         },
         {
@@ -11386,8 +11562,8 @@
         }
       ],
       "versions": [
-        "26.5.0.45958",
-        "26.7.0.47169"
+        "26.7.0.47169",
+        "26.7.1.47181"
       ],
       "iconColor": "#B30B00",
       "iconUrl": "https://play-lh.googleusercontent.com/VIohTA3wyJgKJ-SZzoJeYuykxyVFCbSmXFAjefIGQybY57FX44VCHyVa3CTOZROzWLbMc-VFwL4CEDj47LeRpM0"
@@ -11466,12 +11642,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -11524,12 +11700,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -12127,32 +12303,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
           "latestChanges": {
-            "title": "1.34.0 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.36.0 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Add Clean More Action Rs File"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "Add Hide BookMark,Tools In HomeScreen Rs"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "Add Rs File Explorer Skip Splash"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "Fix Rs File Explorer Patch"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "Rs File Explorer Skip Splash"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "Rs File Explorer Skip Splash Screen"
+                "text": "up"
               }
             ]
           },
@@ -12276,12 +12432,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -12336,12 +12492,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.2.1 (2026-08-12)",
-            "date": "2026-08-12",
+            "title": "1.2.2 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Messenger:** Change recommended app version to 573.0.0.44.88"
+                "text": "**Strava:** Add app recommendation of the latest fully working app version"
               }
             ]
           },
@@ -12427,12 +12583,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.2.1 (2026-08-12)",
-            "date": "2026-08-12",
+            "title": "1.2.2 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Messenger:** Change recommended app version to 573.0.0.44.88"
+                "text": "**Strava:** Add app recommendation of the latest fully working app version"
               }
             ]
           },
@@ -13020,12 +13176,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.2.1 (2026-08-12)",
-            "date": "2026-08-12",
+            "title": "1.2.2 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Messenger:** Change recommended app version to 573.0.0.44.88"
+                "text": "**Strava:** Add app recommendation of the latest fully working app version"
               }
             ]
           },
@@ -13572,12 +13728,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -14104,16 +14260,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.7.0 (2026-08-16)",
-            "date": "2026-08-16",
+            "title": "1.8.0 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
                 "category": "New Features",
-                "text": "**ReadEra - Remove nags:** add patch"
+                "text": "**Etsy - Hide ads:** drop promoted listings from search results"
               },
               {
                 "category": "New Features",
-                "text": "**Trainline - Hide ads:** add patch"
+                "text": "**QR & Barcode Scanner - Hide ads:** disable all AdMob ad loads"
               }
             ]
           },
@@ -14636,12 +14792,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -14761,12 +14917,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.12.0 (2026-08-14)",
-            "date": "2026-08-14",
+            "title": "1.12.2 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**avito:** hide reserved offers"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**ozon:** support common cell migration in 19.31"
               }
             ]
           },
@@ -14814,7 +14970,8 @@
           "versions": [
             "229.1",
             "230.0",
-            "230.5"
+            "230.5",
+            "231.0"
           ]
         }
       ],
@@ -14865,7 +15022,8 @@
       "versions": [
         "229.1",
         "230.0",
-        "230.5"
+        "230.5",
+        "231.0"
       ],
       "iconColor": "#00AAFF",
       "iconUrl": ""
@@ -16052,12 +16210,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.2.1 (2026-08-12)",
-            "date": "2026-08-12",
+            "title": "1.2.2 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Messenger:** Change recommended app version to 573.0.0.44.88"
+                "text": "**Strava:** Add app recommendation of the latest fully working app version"
               }
             ]
           },
@@ -16106,12 +16264,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -16307,12 +16465,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -16845,12 +17003,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -19232,12 +19390,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -19255,7 +19413,7 @@
             }
           ],
           "versions": [
-            "5.3.4"
+            "6.6.11"
           ]
         },
         {
@@ -19304,7 +19462,6 @@
         }
       ],
       "versions": [
-        "5.3.4",
         "6.6.11"
       ],
       "iconColor": "#F6B858",
@@ -19765,12 +19922,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -20694,12 +20851,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -20713,11 +20870,11 @@
           "patches": [
             {
               "name": "Unlock Premium",
-              "description": "Unlocks Collectr's premium features without a subscription, like unlimited collections, price alerts, and the advanced analytics. This is the arm64 build. Anything Collectr serves from its own servers still needs the real subscription."
+              "description": "Unlocks Collectr's premium features without a subscription, like unlimited collections, price alerts, and the advanced analytics, and stops the blocking \"Update App Required\" popup that otherwise locks patched installs out. This is the arm64 build. Anything Collectr serves from its own servers still needs the real subscription."
             }
           ],
           "versions": [
-            "2.5.0"
+            "2.5.6"
           ]
         }
       ],
@@ -20727,11 +20884,11 @@
       "patchDetails": [
         {
           "name": "Unlock Premium",
-          "description": "Unlocks Collectr's premium features without a subscription, like unlimited collections, price alerts, and the advanced analytics. This is the arm64 build. Anything Collectr serves from its own servers still needs the real subscription."
+          "description": "Unlocks Collectr's premium features without a subscription, like unlimited collections, price alerts, and the advanced analytics, and stops the blocking \"Update App Required\" popup that otherwise locks patched installs out. This is the arm64 build. Anything Collectr serves from its own servers still needs the real subscription."
         }
       ],
       "versions": [
-        "2.5.0"
+        "2.5.6"
       ],
       "iconColor": "#00204B",
       "iconUrl": "https://play-lh.googleusercontent.com/2Vpkd-pzgzbBlVMAa_jhrdRX9XnvW-Uq9b3849Wh8nzwywrxnP0YwiNbxON8B3XSTEpH8x6K2IL-jBxp3kdkJQ"
@@ -21748,7 +21905,7 @@
             }
           ],
           "versions": [
-            "6.86.5"
+            "6.92.5"
           ]
         },
         {
@@ -21831,8 +21988,8 @@
         }
       ],
       "versions": [
-        "6.86.5",
-        "6.90.3"
+        "6.90.3",
+        "6.92.5"
       ],
       "iconColor": "#58CC02",
       "iconUrl": "https://play-lh.googleusercontent.com/wRh3wXmWiBlqdUSH6Q6IQzVdodOMWDI2kgE00Cd7CyBtfcILa0Hh7zF1S6Jx__E2ED8ldXGn-onqmA478YY0SQ"
@@ -22278,7 +22435,7 @@
             }
           ],
           "versions": [
-            "1.267.0"
+            "1.271.1"
           ]
         }
       ],
@@ -22337,8 +22494,8 @@
         }
       ],
       "versions": [
-        "1.267.0",
-        "1.270.0"
+        "1.270.0",
+        "1.271.1"
       ],
       "iconColor": "#000000",
       "iconUrl": "https://play-lh.googleusercontent.com/nxpwi4UD84GNJuJ42S9U0f3lGDsHu8VkIDPCccFmJL6kyNVb1O3pTY1rl1YZICLBk6EcWIaX6n9prCbdUoQEOw"
@@ -23228,6 +23385,10 @@
           },
           "patches": [
             {
+              "name": "Bigger Toolbar",
+              "description": "Makes the number of icons on the toolbar above the keyboard adjustable, from Gboard's own settings. Anything past the limit stays in the overflow menu."
+            },
+            {
               "name": "Bypass Gboard Signature",
               "description": "Bypass Gboard's signature whitelist checks and force them to pass."
             },
@@ -23238,6 +23399,10 @@
             {
               "name": "Install as Gboard Clone",
               "description": "Rename the package to dev.jz6.com.google.android.inputmethod.latin so the patched build installs alongside the official Gboard instead of replacing it."
+            },
+            {
+              "name": "Select All Button",
+              "description": "Add a Select all button to the toolbar above the keyboard. One tap selects everything in the text field, without opening Gboard's text editing panel first."
             },
             {
               "name": "Swipe Right to Undo",
@@ -23260,6 +23425,7 @@
         "AI Writing Tools",
         "Always incognito mode",
         "Always-incognito mode",
+        "Bigger Toolbar",
         "Block tracking and analytics",
         "Bypass Gboard Signature",
         "Change emoji size",
@@ -23291,6 +23457,7 @@
         "Latin Globe Key Ignore Interval",
         "Long-Press Editing Shortcuts",
         "Package Rename",
+        "Select All Button",
         "Settings Homepage Override",
         "Swipe Right to Undo",
         "Swipe to Delete",
@@ -23326,6 +23493,10 @@
         {
           "name": "Always-incognito mode",
           "description": "Always opens Gboard in incognito mode to disable typing history collection and personalization."
+        },
+        {
+          "name": "Bigger Toolbar",
+          "description": "Makes the number of icons on the toolbar above the keyboard adjustable, from Gboard's own settings. Anything past the limit stays in the overflow menu."
         },
         {
           "name": "Block tracking and analytics",
@@ -23450,6 +23621,10 @@
         {
           "name": "Package Rename",
           "description": "\u5c07\u5957\u4ef6\u540d\u7a31\u6539\u6210 dev.jason.com.google.android.inputmethod.latin \u4ee5\u4fbf\u5171\u5b58\u5b89\u88dd\nRename the package to dev.jason.com.google.android.inputmethod.latin so it can be installed alongside the official Gboard."
+        },
+        {
+          "name": "Select All Button",
+          "description": "Add a Select all button to the toolbar above the keyboard. One tap selects everything in the text field, without opening Gboard's text editing panel first."
         },
         {
           "name": "Settings Homepage Override",
@@ -24274,6 +24449,64 @@
       ],
       "iconColor": "",
       "iconUrl": "https://play-lh.googleusercontent.com/FdlQY6tEE0p3FsJT9EbxB0BzKdXB1U84nNzAUl_YCC9HxRO1J82i8-XWuN_BD1zReblXht3-cvUreuogHrPk-A"
+    },
+    {
+      "packageName": "com.psslabs.rhythm",
+      "name": "com.psslabs.rhythm",
+      "repos": [
+        "theabhishekbhujang/morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "theabhishekbhujang/morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/theabhishekbhujang/morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=theabhishekbhujang/morphe-patches",
+          "source": "https://raw.githubusercontent.com/theabhishekbhujang/morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/theabhishekbhujang/morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/theabhishekbhujang.png?size=96",
+          "latestChanges": {
+            "title": "1.4.2 (2026-08-18)",
+            "date": "2026-08-18",
+            "items": [
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "update GitHub workflows to valid action versions and correct gradle tasks"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-psslabs-rhythm-theabhishekbhujang-morphe-patches",
+            "releaseTag": "app-com-psslabs-rhythm-theabhishekbhujang-morphe-patches",
+            "assetName": "com-psslabs-rhythm-theabhishekbhujang-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Unlock Pro",
+              "description": "Unlocks all Pro features, taals, variations, scales, and removes ads."
+            }
+          ],
+          "versions": [
+            "6.23"
+          ]
+        }
+      ],
+      "patches": [
+        "Unlock Pro"
+      ],
+      "patchDetails": [
+        {
+          "name": "Unlock Pro",
+          "description": "Unlocks all Pro features, taals, variations, scales, and removes ads."
+        }
+      ],
+      "versions": [
+        "6.23"
+      ],
+      "iconColor": "",
+      "iconUrl": ""
     },
     {
       "packageName": "com.quickcursor",
@@ -25874,6 +26107,10 @@
           },
           "patches": [
             {
+              "name": "HBO Max - Block SSAI Ad Origins",
+              "description": "Reproduces the AdGuard DNS ad-block inside the app: fails media3 segment requests to HBO's SSAI ad origins (amer-free/emea-free.prd.media.max.com, gmss, FreeWheel) so the player's resiliency layer falls back to the clean, ad-free manifest \u2014 removing the stitched ad VIDEO the default Disable Ads patch leaves behind. Opt-in / experimental; verify playback on-device."
+            },
+            {
               "name": "HBO Max - Disable Ads",
               "description": "Suppresses nonlinear overlay ads (Bolt), SSAI linear ad timeline registration (GMSS/AdSparx), and live stream preroll ad timeline entry generation for all content types."
             }
@@ -25881,14 +26118,20 @@
           "versions": [
             "7.2.0.41",
             "7.5.0.73",
-            "7.7.0.78"
+            "7.7.0.78",
+            "7.9.0.61"
           ]
         }
       ],
       "patches": [
+        "HBO Max - Block SSAI Ad Origins",
         "HBO Max - Disable Ads"
       ],
       "patchDetails": [
+        {
+          "name": "HBO Max - Block SSAI Ad Origins",
+          "description": "Reproduces the AdGuard DNS ad-block inside the app: fails media3 segment requests to HBO's SSAI ad origins (amer-free/emea-free.prd.media.max.com, gmss, FreeWheel) so the player's resiliency layer falls back to the clean, ad-free manifest \u2014 removing the stitched ad VIDEO the default Disable Ads patch leaves behind. Opt-in / experimental; verify playback on-device."
+        },
         {
           "name": "HBO Max - Disable Ads",
           "description": "Suppresses nonlinear overlay ads (Bolt), SSAI linear ad timeline registration (GMSS/AdSparx), and live stream preroll ad timeline entry generation for all content types."
@@ -25897,7 +26140,8 @@
       "versions": [
         "7.2.0.41",
         "7.5.0.73",
-        "7.7.0.78"
+        "7.7.0.78",
+        "7.9.0.61"
       ],
       "iconColor": "",
       "iconUrl": "https://play-lh.googleusercontent.com/0Xve4so8vFKdWH1nadrPraSJ2XoKlc2Fd4BToADo0f8gXTbljiwzuEA-OZXV86i5ubZ9uw8giaVVP3d1g_jm"
@@ -27842,12 +28086,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.2.1 (2026-08-12)",
-            "date": "2026-08-12",
+            "title": "1.2.2 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Messenger:** Change recommended app version to 573.0.0.44.88"
+                "text": "**Strava:** Add app recommendation of the latest fully working app version"
               }
             ]
           },
@@ -27969,12 +28213,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -27992,7 +28236,8 @@
             }
           ],
           "versions": [
-            "4.56.0"
+            "4.56.0",
+            "4.57.2"
           ]
         }
       ],
@@ -28006,7 +28251,8 @@
         }
       ],
       "versions": [
-        "4.56.0"
+        "4.56.0",
+        "4.57.2"
       ],
       "iconColor": "#F26B21",
       "iconUrl": "https://play-lh.googleusercontent.com/shvWrgOoaKY8px_CZpBessRwXbWpLczVLUpuXmXeEyRGYRBE0EWrUNjFlKmwRGnS7yx-VsYT9ea4Gzc_Y0yxLg"
@@ -29062,12 +29308,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -30231,9 +30477,45 @@
       "packageName": "com.mahersafadi.electron",
       "name": "Electron",
       "repos": [
+        "riky-dev/morphe-patches",
         "rushiranpise/morphe-patches"
       ],
       "sources": [
+        {
+          "repo": "riky-dev/morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/riky-dev/morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=riky-dev/morphe-patches",
+          "source": "https://raw.githubusercontent.com/riky-dev/morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/riky-dev/morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/riky-dev.png?size=96",
+          "latestChanges": {
+            "title": "1.3.3 (2026-08-18)",
+            "date": "2026-08-18",
+            "items": [
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**devcheck:** remove unsupported DevCheck patches (PairIP native protection)"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-mahersafadi-electron-riky-dev-morphe-patches",
+            "releaseTag": "app-com-mahersafadi-electron-riky-dev-morphe-patches",
+            "assetName": "electron-riky-dev-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Hide ads",
+              "description": "Spoofs premium/unlocked state to disable ad-gated behavior."
+            }
+          ],
+          "versions": [
+            "3.0.3"
+          ]
+        },
         {
           "repo": "rushiranpise/morphe-patches",
           "host": "github.com",
@@ -30271,9 +30553,14 @@
         }
       ],
       "patches": [
+        "Hide ads",
         "Unlock Premium"
       ],
       "patchDetails": [
+        {
+          "name": "Hide ads",
+          "description": "Spoofs premium/unlocked state to disable ad-gated behavior."
+        },
         {
           "name": "Unlock Premium",
           "description": "Unlocks Electron premium features"
@@ -30459,32 +30746,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
           "latestChanges": {
-            "title": "1.34.0 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.36.0 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Add Clean More Action Rs File"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "Add Hide BookMark,Tools In HomeScreen Rs"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "Add Rs File Explorer Skip Splash"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "Fix Rs File Explorer Patch"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "Rs File Explorer Skip Splash"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "Rs File Explorer Skip Splash Screen"
+                "text": "up"
               }
             ]
           },
@@ -30660,12 +30927,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -30766,6 +31033,68 @@
         "2025.01"
       ],
       "iconColor": "#FF6B35",
+      "iconUrl": ""
+    },
+    {
+      "packageName": "com.etsy.android",
+      "name": "Etsy",
+      "repos": [
+        "hxreborn/morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "hxreborn/morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/hxreborn/morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=hxreborn/morphe-patches",
+          "source": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/hxreborn.png?size=96",
+          "latestChanges": {
+            "title": "1.8.0 (2026-08-18)",
+            "date": "2026-08-18",
+            "items": [
+              {
+                "category": "New Features",
+                "text": "**Etsy - Hide ads:** drop promoted listings from search results"
+              },
+              {
+                "category": "New Features",
+                "text": "**QR & Barcode Scanner - Hide ads:** disable all AdMob ad loads"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-etsy-android-hxreborn-morphe-patches",
+            "releaseTag": "app-com-etsy-android-hxreborn-morphe-patches",
+            "assetName": "etsy-hxreborn-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Hide ads",
+              "description": "Removes promoted listings and the \"with Ads\" label from search results."
+            }
+          ],
+          "versions": [
+            "7.90.0"
+          ]
+        }
+      ],
+      "patches": [
+        "Hide ads"
+      ],
+      "patchDetails": [
+        {
+          "name": "Hide ads",
+          "description": "Removes promoted listings and the \"with Ads\" label from search results."
+        }
+      ],
+      "versions": [
+        "7.90.0"
+      ],
+      "iconColor": "#F1641E",
       "iconUrl": ""
     },
     {
@@ -31113,12 +31442,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.2.1 (2026-08-12)",
-            "date": "2026-08-12",
+            "title": "1.2.2 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Messenger:** Change recommended app version to 573.0.0.44.88"
+                "text": "**Strava:** Add app recommendation of the latest fully working app version"
               }
             ]
           },
@@ -31509,12 +31838,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -31958,12 +32287,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -32232,12 +32561,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -32255,6 +32584,7 @@
             }
           ],
           "versions": [
+            "4.12.0",
             "4.9.3"
           ]
         }
@@ -32269,6 +32599,7 @@
         }
       ],
       "versions": [
+        "4.12.0",
         "4.9.3"
       ],
       "iconColor": "#406FB8",
@@ -32343,16 +32674,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.7.0 (2026-08-16)",
-            "date": "2026-08-16",
+            "title": "1.8.0 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
                 "category": "New Features",
-                "text": "**ReadEra - Remove nags:** add patch"
+                "text": "**Etsy - Hide ads:** drop promoted listings from search results"
               },
               {
                 "category": "New Features",
-                "text": "**Trainline - Hide ads:** add patch"
+                "text": "**QR & Barcode Scanner - Hide ads:** disable all AdMob ad loads"
               }
             ]
           },
@@ -32518,7 +32849,8 @@
             }
           ],
           "versions": [
-            "3.2.0"
+            "3.2.0",
+            "3.2.2"
           ]
         }
       ],
@@ -32557,7 +32889,8 @@
         }
       ],
       "versions": [
-        "3.2.0"
+        "3.2.0",
+        "3.2.2"
       ],
       "iconColor": "",
       "iconUrl": "https://play-lh.googleusercontent.com/-3EKIVKVpdjiUpK8mk82aZ12p3PrQBB5sOkjVTJmZS5nlbqGVXC6bYQtMk0IqOjFwtSoWPZNJ-dWb89aRhwUGw"
@@ -33085,12 +33418,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.2.1 (2026-08-12)",
-            "date": "2026-08-12",
+            "title": "1.2.2 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Messenger:** Change recommended app version to 573.0.0.44.88"
+                "text": "**Strava:** Add app recommendation of the latest fully working app version"
               }
             ]
           },
@@ -33314,6 +33647,60 @@
       "iconUrl": "https://play-lh.googleusercontent.com/xqk8hd6dMyffxE6iQa59cUt75EA-0YDvjnJlxH4z8W63-e5KwaWXbrNob6Q-OoH5SSDa78Y0I0YA3BB0zDVnB8w"
     },
     {
+      "packageName": "com.android.chrome",
+      "name": "Google Chrome",
+      "repos": [
+        "Alastor-Kaneki/Morphe-Patches"
+      ],
+      "sources": [
+        {
+          "repo": "Alastor-Kaneki/Morphe-Patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/Alastor-Kaneki/Morphe-Patches",
+          "addUrl": "https://morphe.software/add-source?github=Alastor-Kaneki/Morphe-Patches",
+          "source": "https://raw.githubusercontent.com/Alastor-Kaneki/Morphe-Patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/Alastor-Kaneki/Morphe-Patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/Alastor-Kaneki.png?size=96",
+          "latestChanges": {
+            "title": "1.13.4 (2026-08-18)",
+            "date": "2026-08-18",
+            "items": [
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**pixilart:** block Cordova ad bridge"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-android-chrome-alastor-kaneki-morphe-patches",
+            "releaseTag": "app-com-android-chrome-alastor-kaneki-morphe-patches",
+            "assetName": "google-chrome-alastor-kaneki-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "MonkeyScript userscript manager",
+              "description": "Adds a Chrome 150 Material You userscript manager using a Violentmonkey-derived parser, native app-menu integration, guaranteed Fork-page installation, Greasy Fork/Sleazy Fork support, publishing, and configurable app/package cloning."
+            }
+          ],
+          "versions": []
+        }
+      ],
+      "patches": [
+        "MonkeyScript userscript manager"
+      ],
+      "patchDetails": [
+        {
+          "name": "MonkeyScript userscript manager",
+          "description": "Adds a Chrome 150 Material You userscript manager using a Violentmonkey-derived parser, native app-menu integration, guaranteed Fork-page installation, Greasy Fork/Sleazy Fork support, publishing, and configurable app/package cloning."
+        }
+      ],
+      "versions": [],
+      "iconColor": "#4285F4",
+      "iconUrl": ""
+    },
+    {
       "packageName": "com.google.android.dialer",
       "name": "Google Phone",
       "repos": [
@@ -33329,12 +33716,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -33390,12 +33777,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.2.1 (2026-08-12)",
-            "date": "2026-08-12",
+            "title": "1.2.2 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Messenger:** Change recommended app version to 573.0.0.44.88"
+                "text": "**Strava:** Add app recommendation of the latest fully working app version"
               }
             ]
           },
@@ -33581,12 +33968,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.2.1 (2026-08-12)",
-            "date": "2026-08-12",
+            "title": "1.2.2 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Messenger:** Change recommended app version to 573.0.0.44.88"
+                "text": "**Strava:** Add app recommendation of the latest fully working app version"
               }
             ]
           },
@@ -33813,6 +34200,64 @@
       "versions": [],
       "iconColor": "#E2231A",
       "iconUrl": "https://play-lh.googleusercontent.com/FW2G3tMfU1wF4NF5gE4oX4w7rY3oPVBBWdBew4sMM7vnPFPP-FWPSsFe0HKvfc2wO7ICCqL3K3nCRg5g85t8Lg"
+    },
+    {
+      "packageName": "harmonium.music.gameg.real.harmoniumfree",
+      "name": "harmonium.music.gameg.real.harmoniumfree",
+      "repos": [
+        "theabhishekbhujang/morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "theabhishekbhujang/morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/theabhishekbhujang/morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=theabhishekbhujang/morphe-patches",
+          "source": "https://raw.githubusercontent.com/theabhishekbhujang/morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/theabhishekbhujang/morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/theabhishekbhujang.png?size=96",
+          "latestChanges": {
+            "title": "1.4.2 (2026-08-18)",
+            "date": "2026-08-18",
+            "items": [
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "update GitHub workflows to valid action versions and correct gradle tasks"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "harmonium-music-gameg-real-harmoniumfree-theabhishekbhujang-morphe-patches",
+            "releaseTag": "app-harmonium-music-gameg-real-harmoniumfree-theabhishekbhujang-morphe-patches",
+            "assetName": "harmonium-music-gameg-real-harmoniumfree-theabhishekbhujang-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Remove Ads",
+              "description": "Removes all banner ads, interstitial ads, open app ads, and enables permanent ad-free status."
+            }
+          ],
+          "versions": [
+            "29.0.1"
+          ]
+        }
+      ],
+      "patches": [
+        "Remove Ads"
+      ],
+      "patchDetails": [
+        {
+          "name": "Remove Ads",
+          "description": "Removes all banner ads, interstitial ads, open app ads, and enables permanent ad-free status."
+        }
+      ],
+      "versions": [
+        "29.0.1"
+      ],
+      "iconColor": "",
+      "iconUrl": ""
     },
     {
       "packageName": "hd.uhd.live.wallpapers.topwallpapers",
@@ -34164,12 +34609,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -34222,12 +34667,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.2.1 (2026-08-12)",
-            "date": "2026-08-12",
+            "title": "1.2.2 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Messenger:** Change recommended app version to 573.0.0.44.88"
+                "text": "**Strava:** Add app recommendation of the latest fully working app version"
               }
             ]
           },
@@ -35012,12 +35457,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -35132,12 +35577,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.2.1 (2026-08-12)",
-            "date": "2026-08-12",
+            "title": "1.2.2 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Messenger:** Change recommended app version to 573.0.0.44.88"
+                "text": "**Strava:** Add app recommendation of the latest fully working app version"
               }
             ]
           },
@@ -36091,12 +36536,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -37314,12 +37759,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.2.1 (2026-08-12)",
-            "date": "2026-08-12",
+            "title": "1.2.2 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Messenger:** Change recommended app version to 573.0.0.44.88"
+                "text": "**Strava:** Add app recommendation of the latest fully working app version"
               }
             ]
           },
@@ -39714,12 +40159,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.2.1 (2026-08-12)",
-            "date": "2026-08-12",
+            "title": "1.2.2 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Messenger:** Change recommended app version to 573.0.0.44.88"
+                "text": "**Strava:** Add app recommendation of the latest fully working app version"
               }
             ]
           },
@@ -40503,12 +40948,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -42388,12 +42833,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.2.1 (2026-08-12)",
-            "date": "2026-08-12",
+            "title": "1.2.2 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Messenger:** Change recommended app version to 573.0.0.44.88"
+                "text": "**Strava:** Add app recommendation of the latest fully working app version"
               }
             ]
           },
@@ -42813,12 +43258,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.2.1 (2026-08-12)",
-            "date": "2026-08-12",
+            "title": "1.2.2 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Messenger:** Change recommended app version to 573.0.0.44.88"
+                "text": "**Strava:** Add app recommendation of the latest fully working app version"
               }
             ]
           },
@@ -42867,12 +43312,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -43077,7 +43522,7 @@
             }
           ],
           "versions": [
-            "9.11"
+            "9.24"
           ]
         }
       ],
@@ -43091,7 +43536,7 @@
         }
       ],
       "versions": [
-        "9.11"
+        "9.24"
       ],
       "iconColor": "#7E4BDE",
       "iconUrl": "https://play-lh.googleusercontent.com/L6b68qSB3yeqDkTd9cmBvImYgPmn4bHujX75G-3mdXgeXi6ZAzaUPkKD-bvj3_HNOVpaRRymixZQ0-22xLra"
@@ -43232,12 +43677,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -43614,12 +44059,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -43672,12 +44117,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -43789,12 +44234,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -44179,6 +44624,59 @@
       "iconUrl": "https://play-lh.googleusercontent.com/3oWdlQ3-P2vws89VcjZnsbMPzuY_rkvPl0CpS7vGLlLIaaug2SGFsV5Kb86-5rGLZ9PAJIl6lN_0DTYqnSvVsjE"
     },
     {
+      "packageName": "com.dong.multirun",
+      "name": "Multi Run - Parallel Dual App",
+      "repos": [
+        "MauroGamerVN/Morphe-Patches"
+      ],
+      "sources": [
+        {
+          "repo": "MauroGamerVN/Morphe-Patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/MauroGamerVN/Morphe-Patches",
+          "addUrl": "https://morphe.software/add-source?github=MauroGamerVN/Morphe-Patches",
+          "source": "https://raw.githubusercontent.com/MauroGamerVN/Morphe-Patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/MauroGamerVN/Morphe-Patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/MauroGamerVN.png?size=96",
+          "latestChanges": {
+            "title": "",
+            "date": "",
+            "items": []
+          },
+          "builder": {
+            "buildId": "com-dong-multirun-maurogamervn-morphe-patches",
+            "releaseTag": "app-com-dong-multirun-maurogamervn-morphe-patches",
+            "assetName": "multi-run-parallel-dual-app-maurogamervn-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Disable ads",
+              "description": "Elimina anuncios de banner, interstitial, rewarded y app-open (AdMob)."
+            }
+          ],
+          "versions": [
+            "1.0.50.20"
+          ]
+        }
+      ],
+      "patches": [
+        "Disable ads"
+      ],
+      "patchDetails": [
+        {
+          "name": "Disable ads",
+          "description": "Elimina anuncios de banner, interstitial, rewarded y app-open (AdMob)."
+        }
+      ],
+      "versions": [
+        "1.0.50.20"
+      ],
+      "iconColor": "#2196F3",
+      "iconUrl": ""
+    },
+    {
       "packageName": "com.persapps.multitimer",
       "name": "MultiTimer - Multiple Timers",
       "repos": [
@@ -44321,32 +44819,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
           "latestChanges": {
-            "title": "1.34.0 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.36.0 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Add Clean More Action Rs File"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "Add Hide BookMark,Tools In HomeScreen Rs"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "Add Rs File Explorer Skip Splash"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "Fix Rs File Explorer Patch"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "Rs File Explorer Skip Splash"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "Rs File Explorer Skip Splash Screen"
+                "text": "up"
               }
             ]
           },
@@ -44789,7 +45267,7 @@
             }
           ],
           "versions": [
-            "26.21.1"
+            "26.31.0"
           ]
         }
       ],
@@ -44803,7 +45281,7 @@
         }
       ],
       "versions": [
-        "26.21.1"
+        "26.31.0"
       ],
       "iconColor": "#0072BC",
       "iconUrl": "https://play-lh.googleusercontent.com/VDmmLoS__AlWJdUzOEOaw9dukSLIFlhehgV0FgqShqhQ7kHVkH0k4QImbjeX_CKCz2UfUhZ9NH0441ZqnLQV"
@@ -46097,12 +46575,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.2.1 (2026-08-12)",
-            "date": "2026-08-12",
+            "title": "1.2.2 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Messenger:** Change recommended app version to 573.0.0.44.88"
+                "text": "**Strava:** Add app recommendation of the latest fully working app version"
               }
             ]
           },
@@ -46262,12 +46740,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.2.1 (2026-08-12)",
-            "date": "2026-08-12",
+            "title": "1.2.2 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Messenger:** Change recommended app version to 573.0.0.44.88"
+                "text": "**Strava:** Add app recommendation of the latest fully working app version"
               }
             ]
           },
@@ -46438,12 +46916,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/liongalahad/nuviotv-morphe-patches/master/CHANGELOG.md",
           "avatarUrl": "https://github.com/liongalahad.png?size=96",
           "latestChanges": {
-            "title": "1.0.0-dev.21 (2026-08-16)",
-            "date": "2026-08-16",
+            "title": "1.0.0-dev.25 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "update patch suite and add side-by-side installs"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "support NuvioTV 0.8.6-beta"
               }
             ]
           },
@@ -46497,7 +46975,7 @@
             }
           ],
           "versions": [
-            "0.8.4-beta"
+            "0.8.6-beta"
           ]
         },
         {
@@ -46509,12 +46987,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/liongalahad/nuviotv-patches/master/CHANGELOG.md",
           "avatarUrl": "https://github.com/liongalahad.png?size=96",
           "latestChanges": {
-            "title": "1.0.0-dev.21 (2026-08-16)",
-            "date": "2026-08-16",
+            "title": "1.0.0-dev.25 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "update patch suite and add side-by-side installs"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "support NuvioTV 0.8.6-beta"
               }
             ]
           },
@@ -46568,7 +47046,7 @@
             }
           ],
           "versions": [
-            "0.8.4-beta"
+            "0.8.6-beta"
           ]
         }
       ],
@@ -46627,7 +47105,7 @@
         }
       ],
       "versions": [
-        "0.8.4-beta"
+        "0.8.6-beta"
       ],
       "iconColor": "#111827",
       "iconUrl": ""
@@ -47331,6 +47809,69 @@
       "iconUrl": ""
     },
     {
+      "packageName": "com.opera.gx",
+      "name": "Opera GX",
+      "repos": [
+        "Alastor-Kaneki/Morphe-Patches"
+      ],
+      "sources": [
+        {
+          "repo": "Alastor-Kaneki/Morphe-Patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/Alastor-Kaneki/Morphe-Patches",
+          "addUrl": "https://morphe.software/add-source?github=Alastor-Kaneki/Morphe-Patches",
+          "source": "https://raw.githubusercontent.com/Alastor-Kaneki/Morphe-Patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/Alastor-Kaneki/Morphe-Patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/Alastor-Kaneki.png?size=96",
+          "latestChanges": {
+            "title": "1.13.4 (2026-08-18)",
+            "date": "2026-08-18",
+            "items": [
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**pixilart:** block Cordova ad bridge"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-opera-gx-alastor-kaneki-morphe-patches",
+            "releaseTag": "app-com-opera-gx-alastor-kaneki-morphe-patches",
+            "assetName": "opera-gx-alastor-kaneki-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Download GX mods as files",
+              "description": "Adds a visible Download Mod button in Opera GX, with URL auto-detection and a Share fallback."
+            },
+            {
+              "name": "GX icon pack",
+              "description": "Adds a separate native selector for all 56 Opera GX launcher icons. Open it from the GX Icon Pack long-press shortcut."
+            }
+          ],
+          "versions": []
+        }
+      ],
+      "patches": [
+        "Download GX mods as files",
+        "GX icon pack"
+      ],
+      "patchDetails": [
+        {
+          "name": "Download GX mods as files",
+          "description": "Adds a visible Download Mod button in Opera GX, with URL auto-detection and a Share fallback."
+        },
+        {
+          "name": "GX icon pack",
+          "description": "Adds a separate native selector for all 56 Opera GX launcher icons. Open it from the GX Icon Pack long-press shortcut."
+        }
+      ],
+      "versions": [],
+      "iconColor": "#A31AFF",
+      "iconUrl": ""
+    },
+    {
       "packageName": "com.opera.app.news",
       "name": "Opera News",
       "repos": [
@@ -47736,12 +48277,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.12.0 (2026-08-14)",
-            "date": "2026-08-14",
+            "title": "1.12.2 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**avito:** hide reserved offers"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**ozon:** support common cell migration in 19.31"
               }
             ]
           },
@@ -47762,7 +48303,8 @@
             "19.27.0",
             "19.28.0",
             "19.29.0",
-            "19.30.0"
+            "19.30.0",
+            "19.31.0"
           ]
         }
       ],
@@ -47814,7 +48356,8 @@
         "19.27.0",
         "19.28.0",
         "19.29.0",
-        "19.30.0"
+        "19.30.0",
+        "19.31.0"
       ],
       "iconColor": "#005BFF",
       "iconUrl": "https://play-lh.googleusercontent.com/Rz5gPi2gs8Vs8VZVn7mpJQpIB7XzeeErGGNAMIdr9NmWJigvmFpaWtMlpyC2rdieC6gxnpmQ5guTUUMjnZn97g"
@@ -48567,16 +49110,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.7.0 (2026-08-16)",
-            "date": "2026-08-16",
+            "title": "1.8.0 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
                 "category": "New Features",
-                "text": "**ReadEra - Remove nags:** add patch"
+                "text": "**Etsy - Hide ads:** drop promoted listings from search results"
               },
               {
                 "category": "New Features",
-                "text": "**Trainline - Hide ads:** add patch"
+                "text": "**QR & Barcode Scanner - Hide ads:** disable all AdMob ad loads"
               }
             ]
           },
@@ -48613,7 +49156,8 @@
       "packageName": "com.huawei.maps.app",
       "name": "Petal Maps",
       "repos": [
-        "andersonlucasg3/PetalMaps-AndroidAuto"
+        "andersonlucasg3/PetalMaps-AndroidAuto",
+        "andersonlucasg3/PetalMaps-NonHuawei"
       ],
       "sources": [
         {
@@ -48638,32 +49182,50 @@
           },
           "patches": [
             {
-              "name": "Android Auto",
-              "description": "Injects full Android Auto support into Petal Maps, including CarAppService, manifest declarations, and required resources. Also apply 'Anti-Repack Bypass' and 'Manufacturer Check Bypass' for full functionality on non-Huawei devices."
-            },
-            {
-              "name": "Android Auto allowlist (root)",
-              "description": "Registers the app in Android Auto's allowlist on startup when root is available; no-op without root."
-            },
-            {
-              "name": "Android Auto API Level File",
-              "description": "Adds car-app-api.level to the APK root for androidx.car.app compatibility."
-            },
-            {
-              "name": "Android Auto Manifest",
-              "description": "Adds the Android Auto CarAppService declaration, meta-data, and permissions to AndroidManifest.xml."
-            },
-            {
-              "name": "Android Auto Resources",
-              "description": "Adds the automotive_app_desc.xml resource required by Android Auto."
-            },
-            {
               "name": "Anti-Repack Bypass",
               "description": "Neutralizes the native integrity check (SecurityDetect.irpj) that kills the process upon detecting APK re-signing."
             },
             {
-              "name": "Automotive orientation fix (main activity)",
-              "description": "Changes PetalMapsActivity's screenOrientation from behind to sensorLandscape so it renders in landscape on the car display."
+              "name": "Change package name",
+              "description": "Changes the package name from com.huawei.maps.app to morphe.huawei.petal.maps by default, allowing the patched app to coexist with the original. Changing the package name can lead to unexpected issues."
+            },
+            {
+              "name": "Huawei login fix",
+              "description": "Forces the Account Picker sign-in flow with WebView fallback, fixing login on devices without HMS Core."
+            },
+            {
+              "name": "Manufacturer Check Bypass",
+              "description": "Forces the Huawei manufacturer check to always return true, allowing non-Huawei devices to use the app."
+            }
+          ],
+          "versions": [
+            "4.7.0.322(001)"
+          ]
+        },
+        {
+          "repo": "andersonlucasg3/PetalMaps-NonHuawei",
+          "host": "github.com",
+          "webUrl": "https://github.com/andersonlucasg3/PetalMaps-NonHuawei",
+          "addUrl": "https://morphe.software/add-source?github=andersonlucasg3/PetalMaps-NonHuawei",
+          "source": "https://raw.githubusercontent.com/andersonlucasg3/PetalMaps-NonHuawei/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/andersonlucasg3/PetalMaps-NonHuawei/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/andersonlucasg3.png?size=96",
+          "latestChanges": {
+            "title": "",
+            "date": "",
+            "items": []
+          },
+          "builder": {
+            "buildId": "com-huawei-maps-app-andersonlucasg3-petalmaps-nonhuawei",
+            "releaseTag": "app-com-huawei-maps-app-andersonlucasg3-petalmaps-nonhuawei",
+            "assetName": "petal-maps-andersonlucasg3-petalmaps-nonhuawei.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Anti-Repack Bypass",
+              "description": "Neutralizes the native integrity check (SecurityDetect.irpj) that kills the process upon detecting APK re-signing."
             },
             {
               "name": "Change package name",
@@ -48684,45 +49246,15 @@
         }
       ],
       "patches": [
-        "Android Auto",
-        "Android Auto allowlist (root)",
-        "Android Auto API Level File",
-        "Android Auto Manifest",
-        "Android Auto Resources",
         "Anti-Repack Bypass",
-        "Automotive orientation fix (main activity)",
         "Change package name",
         "Huawei login fix",
         "Manufacturer Check Bypass"
       ],
       "patchDetails": [
         {
-          "name": "Android Auto",
-          "description": "Injects full Android Auto support into Petal Maps, including CarAppService, manifest declarations, and required resources. Also apply 'Anti-Repack Bypass' and 'Manufacturer Check Bypass' for full functionality on non-Huawei devices."
-        },
-        {
-          "name": "Android Auto allowlist (root)",
-          "description": "Registers the app in Android Auto's allowlist on startup when root is available; no-op without root."
-        },
-        {
-          "name": "Android Auto API Level File",
-          "description": "Adds car-app-api.level to the APK root for androidx.car.app compatibility."
-        },
-        {
-          "name": "Android Auto Manifest",
-          "description": "Adds the Android Auto CarAppService declaration, meta-data, and permissions to AndroidManifest.xml."
-        },
-        {
-          "name": "Android Auto Resources",
-          "description": "Adds the automotive_app_desc.xml resource required by Android Auto."
-        },
-        {
           "name": "Anti-Repack Bypass",
           "description": "Neutralizes the native integrity check (SecurityDetect.irpj) that kills the process upon detecting APK re-signing."
-        },
-        {
-          "name": "Automotive orientation fix (main activity)",
-          "description": "Changes PetalMapsActivity's screenOrientation from behind to sensorLandscape so it renders in landscape on the car display."
         },
         {
           "name": "Change package name",
@@ -48968,12 +49500,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.2.1 (2026-08-12)",
-            "date": "2026-08-12",
+            "title": "1.2.2 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Messenger:** Change recommended app version to 573.0.0.44.88"
+                "text": "**Strava:** Add app recommendation of the latest fully working app version"
               }
             ]
           },
@@ -49102,12 +49634,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.2.1 (2026-08-12)",
-            "date": "2026-08-12",
+            "title": "1.2.2 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Messenger:** Change recommended app version to 573.0.0.44.88"
+                "text": "**Strava:** Add app recommendation of the latest fully working app version"
               }
             ]
           },
@@ -50223,6 +50755,64 @@
       "iconUrl": "https://play-lh.googleusercontent.com/sau_UnfHaOkp1-1SLDxGvM5v-dxjVGMeU7_dWLNGlGnsoIz7vJOdMneEeUaQ1ebehoZNfqK1hH-yTYR7-VX9_bE"
     },
     {
+      "packageName": "com.pixilart.app",
+      "name": "Pixilart",
+      "repos": [
+        "Alastor-Kaneki/Morphe-Patches"
+      ],
+      "sources": [
+        {
+          "repo": "Alastor-Kaneki/Morphe-Patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/Alastor-Kaneki/Morphe-Patches",
+          "addUrl": "https://morphe.software/add-source?github=Alastor-Kaneki/Morphe-Patches",
+          "source": "https://raw.githubusercontent.com/Alastor-Kaneki/Morphe-Patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/Alastor-Kaneki/Morphe-Patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/Alastor-Kaneki.png?size=96",
+          "latestChanges": {
+            "title": "1.13.4 (2026-08-18)",
+            "date": "2026-08-18",
+            "items": [
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**pixilart:** block Cordova ad bridge"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-pixilart-app-alastor-kaneki-morphe-patches",
+            "releaseTag": "app-com-pixilart-app-alastor-kaneki-morphe-patches",
+            "assetName": "pixilart-alastor-kaneki-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Remove ads",
+              "description": "Hard-disables Pixilart native/Cordova ads, drawing-editor web ads, and promoted/feed ad cards."
+            }
+          ],
+          "versions": [
+            "1.9.0"
+          ]
+        }
+      ],
+      "patches": [
+        "Remove ads"
+      ],
+      "patchDetails": [
+        {
+          "name": "Remove ads",
+          "description": "Hard-disables Pixilart native/Cordova ads, drawing-editor web ads, and promoted/feed ad cards."
+        }
+      ],
+      "versions": [
+        "1.9.0"
+      ],
+      "iconColor": "#FF315A",
+      "iconUrl": ""
+    },
+    {
       "packageName": "jp.pxv.android",
       "name": "Pixiv",
       "repos": [
@@ -50238,12 +50828,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.2.1 (2026-08-12)",
-            "date": "2026-08-12",
+            "title": "1.2.2 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Messenger:** Change recommended app version to 573.0.0.44.88"
+                "text": "**Strava:** Add app recommendation of the latest fully working app version"
               }
             ]
           },
@@ -51862,12 +52452,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -52013,12 +52603,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -52088,16 +52678,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.7.0 (2026-08-16)",
-            "date": "2026-08-16",
+            "title": "1.8.0 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
                 "category": "New Features",
-                "text": "**ReadEra - Remove nags:** add patch"
+                "text": "**Etsy - Hide ads:** drop promoted listings from search results"
               },
               {
                 "category": "New Features",
-                "text": "**Trainline - Hide ads:** add patch"
+                "text": "**QR & Barcode Scanner - Hide ads:** disable all AdMob ad loads"
               }
             ]
           },
@@ -52380,16 +52970,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.7.0 (2026-08-16)",
-            "date": "2026-08-16",
+            "title": "1.8.0 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
                 "category": "New Features",
-                "text": "**ReadEra - Remove nags:** add patch"
+                "text": "**Etsy - Hide ads:** drop promoted listings from search results"
               },
               {
                 "category": "New Features",
-                "text": "**Trainline - Hide ads:** add patch"
+                "text": "**QR & Barcode Scanner - Hide ads:** disable all AdMob ad loads"
               }
             ]
           },
@@ -53273,6 +53863,68 @@
       "iconUrl": "https://play-lh.googleusercontent.com/exyBNKGLN6cGAt8T9koU60_B0WCH3gUN740fY19zzyoLsNrP-clAFnEaEaU8RB31gdyHphlhzXoREE37P-Y-ig"
     },
     {
+      "packageName": "com.gamma.scan",
+      "name": "QR & Barcode Scanner",
+      "repos": [
+        "hxreborn/morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "hxreborn/morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/hxreborn/morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=hxreborn/morphe-patches",
+          "source": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/hxreborn.png?size=96",
+          "latestChanges": {
+            "title": "1.8.0 (2026-08-18)",
+            "date": "2026-08-18",
+            "items": [
+              {
+                "category": "New Features",
+                "text": "**Etsy - Hide ads:** drop promoted listings from search results"
+              },
+              {
+                "category": "New Features",
+                "text": "**QR & Barcode Scanner - Hide ads:** disable all AdMob ad loads"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-gamma-scan-hxreborn-morphe-patches",
+            "releaseTag": "app-com-gamma-scan-hxreborn-morphe-patches",
+            "assetName": "qr-and-barcode-scanner-hxreborn-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Hide ads",
+              "description": "Disables banner, interstitial, and native ads."
+            }
+          ],
+          "versions": [
+            "2.2.221"
+          ]
+        }
+      ],
+      "patches": [
+        "Hide ads"
+      ],
+      "patchDetails": [
+        {
+          "name": "Hide ads",
+          "description": "Disables banner, interstitial, and native ads."
+        }
+      ],
+      "versions": [
+        "2.2.221"
+      ],
+      "iconColor": "#2196F3",
+      "iconUrl": ""
+    },
+    {
       "packageName": "net.quetta.browser",
       "name": "Quetta Browser",
       "repos": [
@@ -53428,12 +54080,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -53660,16 +54312,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.7.0 (2026-08-16)",
-            "date": "2026-08-16",
+            "title": "1.8.0 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
                 "category": "New Features",
-                "text": "**ReadEra - Remove nags:** add patch"
+                "text": "**Etsy - Hide ads:** drop promoted listings from search results"
               },
               {
                 "category": "New Features",
-                "text": "**Trainline - Hide ads:** add patch"
+                "text": "**QR & Barcode Scanner - Hide ads:** disable all AdMob ad loads"
               }
             ]
           },
@@ -54482,20 +55134,20 @@
         "Disable modern home",
         "Disable post detail swipe",
         "Disable screenshot banner",
-        "Disable Screenshot Popup",
         "Disable screenshot popup",
+        "Disable Screenshot Popup",
         "Force system font",
         "Hide Ads",
         "Hide ads",
         "Hide Ask button",
         "Hide Ask button from search bar",
         "Hide awards",
-        "Hide Communities Shelf",
         "Hide communities shelf",
+        "Hide Communities Shelf",
         "Hide community highlights",
         "Hide community menu badge",
-        "Hide Navigation Buttons",
         "Hide navigation buttons",
+        "Hide Navigation Buttons",
         "Hide permanent ban banner",
         "Hide post view counts",
         "Hide prominent search bar",
@@ -54504,8 +55156,8 @@
         "Hide share count",
         "Hide Sidebar Components",
         "Hide sidebar components",
-        "Hide Trending Shelves",
         "Hide Trending shelves",
+        "Hide Trending Shelves",
         "Hide upvote scores",
         "Hide user community badges",
         "Hide user flairs",
@@ -54517,8 +55169,8 @@
         "Remove Subreddit Dialogs",
         "Sanitize Reddit share links",
         "Sanitize share links",
-        "Sanitize sharing links",
         "Sanitize Sharing Links",
+        "Sanitize sharing links",
         "Show view count",
         "Spoof signature",
         "Unlock Premium"
@@ -54573,12 +55225,12 @@
           "description": "Disables the banner that shows up after taking a screenshot."
         },
         {
-          "name": "Disable Screenshot Popup",
-          "description": "Suppresses the share prompt that appears after taking a screenshot."
-        },
-        {
           "name": "Disable screenshot popup",
           "description": "Adds an option to disable the popup that appears when taking a screenshot."
+        },
+        {
+          "name": "Disable Screenshot Popup",
+          "description": "Suppresses the share prompt that appears after taking a screenshot."
         },
         {
           "name": "Force system font",
@@ -54605,12 +55257,12 @@
           "description": "Hides the awards on Reddit posts and comments."
         },
         {
-          "name": "Hide Communities Shelf",
-          "description": "Hides the related or suggested communities shelf in subreddits."
-        },
-        {
           "name": "Hide communities shelf",
           "description": "Adds an option to hide the related or suggested communities shelf in subreddits."
+        },
+        {
+          "name": "Hide Communities Shelf",
+          "description": "Hides the related or suggested communities shelf in subreddits."
         },
         {
           "name": "Hide community highlights",
@@ -54621,12 +55273,12 @@
           "description": "Hides the red notification badge on the community menu (hamburger menu)."
         },
         {
-          "name": "Hide Navigation Buttons",
-          "description": "Removes the Create Post button from the bottom navigation bar."
-        },
-        {
           "name": "Hide navigation buttons",
           "description": "Adds options to hide buttons in the navigation bar."
+        },
+        {
+          "name": "Hide Navigation Buttons",
+          "description": "Removes the Create Post button from the bottom navigation bar."
         },
         {
           "name": "Hide permanent ban banner",
@@ -54661,12 +55313,12 @@
           "description": "Adds options to hide the sidebar components."
         },
         {
-          "name": "Hide Trending Shelves",
-          "description": "Removes Trending Today from the feed and trending searches from the search screen."
-        },
-        {
           "name": "Hide Trending shelves",
           "description": "Adds an option to hide the Trending shelves from feed and search suggestions."
+        },
+        {
+          "name": "Hide Trending Shelves",
+          "description": "Removes Trending Today from the feed and trending searches from the search screen."
         },
         {
           "name": "Hide upvote scores",
@@ -54713,12 +55365,12 @@
           "description": "Unshortens and removes the tracking query parameters from shared links."
         },
         {
-          "name": "Sanitize sharing links",
-          "description": "Adds an option to sanitize sharing links by removing tracking query parameters."
-        },
-        {
           "name": "Sanitize Sharing Links",
           "description": "Returns the raw permalink before UTM tracking parameters are appended to shared Reddit URLs."
+        },
+        {
+          "name": "Sanitize sharing links",
+          "description": "Adds an option to sanitize sharing links by removing tracking query parameters."
         },
         {
           "name": "Show view count",
@@ -54967,12 +55619,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -55264,32 +55916,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
           "latestChanges": {
-            "title": "1.34.0 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.36.0 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Add Clean More Action Rs File"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "Add Hide BookMark,Tools In HomeScreen Rs"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "Add Rs File Explorer Skip Splash"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "Fix Rs File Explorer Patch"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "Rs File Explorer Skip Splash"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "Rs File Explorer Skip Splash Screen"
+                "text": "up"
               }
             ]
           },
@@ -55598,12 +56230,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -55644,10 +56276,78 @@
       "packageName": "ru.vk.store",
       "name": "RuStore",
       "repos": [
+        "Freeman022026/rustore-privacy-patches",
         "Jl4cTuk/morphe-patches",
         "kondratjev/morphe-patches"
       ],
       "sources": [
+        {
+          "repo": "Freeman022026/rustore-privacy-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/Freeman022026/rustore-privacy-patches",
+          "addUrl": "https://morphe.software/add-source?github=Freeman022026/rustore-privacy-patches",
+          "source": "https://raw.githubusercontent.com/Freeman022026/rustore-privacy-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/Freeman022026/rustore-privacy-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/Freeman022026.png?size=96",
+          "latestChanges": {
+            "title": "1.1.3 (2026-08-18)",
+            "date": "2026-08-18",
+            "items": [
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Resolve Update All crash"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "ru-vk-store-freeman022026-rustore-privacy-patches",
+            "releaseTag": "app-ru-vk-store-freeman022026-rustore-privacy-patches",
+            "assetName": "rustore-freeman022026-rustore-privacy-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Disable advertisements",
+              "description": "Removes ad providers and ad identifiers, returns an empty ad list, and keeps advertising consent disabled."
+            },
+            {
+              "name": "Disable analytics and trackers",
+              "description": "Disables AppMetrica, MyTracker, AltCraft, Radar, install referrer, metrics, and audited logging transports."
+            },
+            {
+              "name": "Disable background hooks",
+              "description": "Disables audited boot, network-state, VPN, and Connect session hooks."
+            },
+            {
+              "name": "Disable invasive permissions",
+              "description": "Removes privileged install, location, storage, billing, USB, and vendor data access while preserving user-driven installs."
+            },
+            {
+              "name": "Disable Kaspersky background scan",
+              "description": "Disables periodic Kaspersky scheduling and reports disabled workers as successfully completed."
+            },
+            {
+              "name": "Disable push services",
+              "description": "Disables RuStore and VK push initialization, services, and audited push receivers."
+            },
+            {
+              "name": "Disable verification hooks",
+              "description": "Disables audited SMS, call, phone-state, SID, and Mail.ru verification hooks."
+            },
+            {
+              "name": "Hide gaming profile",
+              "description": "Removes the gaming profile permission, hides both gaming buttons, and blocks navigation to the gaming profile."
+            },
+            {
+              "name": "Skip update authentication",
+              "description": "Skips the update authentication suggestion and returns a valid completed result."
+            }
+          ],
+          "versions": [
+            "1.107.0.3"
+          ]
+        },
         {
           "repo": "Jl4cTuk/morphe-patches",
           "host": "github.com",
@@ -55797,13 +56497,22 @@
       ],
       "patches": [
         "Disable ads",
+        "Disable advertisements",
         "Disable analytics",
+        "Disable analytics and trackers",
+        "Disable background hooks",
         "Disable background scan",
         "Disable gaming profile",
+        "Disable invasive permissions",
+        "Disable Kaspersky background scan",
         "Disable Mine redesign",
+        "Disable push services",
+        "Disable verification hooks",
         "Hide Featured and Games tabs",
+        "Hide gaming profile",
         "Hide notification buttons",
-        "Skip update auth"
+        "Skip update auth",
+        "Skip update authentication"
       ],
       "patchDetails": [
         {
@@ -55811,8 +56520,20 @@
           "description": "Removes advertisements and recommendations from search."
         },
         {
+          "name": "Disable advertisements",
+          "description": "Removes ad providers and ad identifiers, returns an empty ad list, and keeps advertising consent disabled."
+        },
+        {
           "name": "Disable analytics",
           "description": "Disables analytics and tracking in RuStore."
+        },
+        {
+          "name": "Disable analytics and trackers",
+          "description": "Disables AppMetrica, MyTracker, AltCraft, Radar, install referrer, metrics, and audited logging transports."
+        },
+        {
+          "name": "Disable background hooks",
+          "description": "Disables audited boot, network-state, VPN, and Connect session hooks."
         },
         {
           "name": "Disable background scan",
@@ -55823,12 +56544,32 @@
           "description": "Removes the Game Profile section from the Mine screen, including the button and the usage statistics screen."
         },
         {
+          "name": "Disable invasive permissions",
+          "description": "Removes privileged install, location, storage, billing, USB, and vendor data access while preserving user-driven installs."
+        },
+        {
+          "name": "Disable Kaspersky background scan",
+          "description": "Disables periodic Kaspersky scheduling and reports disabled workers as successfully completed."
+        },
+        {
           "name": "Disable Mine redesign",
           "description": "Reverts the Mine screen to the classic layout, disabling the redesigned V2/V3 interface."
         },
         {
+          "name": "Disable push services",
+          "description": "Disables RuStore and VK push initialization, services, and audited push receivers."
+        },
+        {
+          "name": "Disable verification hooks",
+          "description": "Disables audited SMS, call, phone-state, SID, and Mail.ru verification hooks."
+        },
+        {
           "name": "Hide Featured and Games tabs",
           "description": "Removes the Featured and Games tabs and opens Apps by default."
+        },
+        {
+          "name": "Hide gaming profile",
+          "description": "Removes the gaming profile permission, hides both gaming buttons, and blocks navigation to the gaming profile."
         },
         {
           "name": "Hide notification buttons",
@@ -55837,10 +56578,15 @@
         {
           "name": "Skip update auth",
           "description": "Removes the login requirement when updating apps."
+        },
+        {
+          "name": "Skip update authentication",
+          "description": "Skips the update authentication suggestion and returns a valid completed result."
         }
       ],
       "versions": [
-        "1.106.0.3"
+        "1.106.0.3",
+        "1.107.0.3"
       ],
       "iconColor": "#0077FF",
       "iconUrl": ""
@@ -56908,16 +57654,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.7.0 (2026-08-16)",
-            "date": "2026-08-16",
+            "title": "1.8.0 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
                 "category": "New Features",
-                "text": "**ReadEra - Remove nags:** add patch"
+                "text": "**Etsy - Hide ads:** drop promoted listings from search results"
               },
               {
                 "category": "New Features",
-                "text": "**Trainline - Hide ads:** add patch"
+                "text": "**QR & Barcode Scanner - Hide ads:** disable all AdMob ad loads"
               }
             ]
           },
@@ -57428,12 +58174,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -57553,35 +58299,26 @@
           },
           "patches": [
             {
-              "name": "Disable signature check",
-              "description": "Removes the anti-tamper protection, which verifies apk signature, causing the app to force close."
-            },
-            {
               "name": "Enable Pro",
               "description": "Enables app features locked behind the subscription paywall."
             }
           ],
           "versions": [
-            "6.6 build 014"
+            "6.6 build 016"
           ]
         }
       ],
       "patches": [
-        "Disable signature check",
         "Enable Pro"
       ],
       "patchDetails": [
-        {
-          "name": "Disable signature check",
-          "description": "Removes the anti-tamper protection, which verifies apk signature, causing the app to force close."
-        },
         {
           "name": "Enable Pro",
           "description": "Enables app features locked behind the subscription paywall."
         }
       ],
       "versions": [
-        "6.6 build 014"
+        "6.6 build 016"
       ],
       "iconColor": "#000000",
       "iconUrl": "https://play-lh.googleusercontent.com/AM7MidChVOk5Uj7Vf7xM0ZaOYnGBea4PZBH5O5wlllmksRKCdMgRzPnPSgg-K7bQ0DXv2Bb7F9-kfyCVyG3JNtQ"
@@ -57705,32 +58442,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
           "latestChanges": {
-            "title": "1.34.0 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.36.0 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Add Clean More Action Rs File"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "Add Hide BookMark,Tools In HomeScreen Rs"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "Add Rs File Explorer Skip Splash"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "Fix Rs File Explorer Patch"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "Rs File Explorer Skip Splash"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "Rs File Explorer Skip Splash Screen"
+                "text": "up"
               }
             ]
           },
@@ -58159,12 +58876,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -59802,12 +60519,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -60104,12 +60821,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.2.1 (2026-08-12)",
-            "date": "2026-08-12",
+            "title": "1.2.2 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Messenger:** Change recommended app version to 573.0.0.44.88"
+                "text": "**Strava:** Add app recommendation of the latest fully working app version"
               }
             ]
           },
@@ -60154,7 +60871,9 @@
               "description": "Unlocks \"Routes\", \"Matched Runs\" and \"Segment Efforts\"."
             }
           ],
-          "versions": []
+          "versions": [
+            "473.11"
+          ]
         },
         {
           "repo": "rushiranpise/morphe-patches",
@@ -60242,6 +60961,7 @@
         }
       ],
       "versions": [
+        "473.11",
         "475.11"
       ],
       "iconColor": "#FC6925",
@@ -60362,6 +61082,69 @@
       ],
       "iconColor": "#1565C0",
       "iconUrl": "https://play-lh.googleusercontent.com/av9eXXziNDbeT8eubEph_TIfLVB53bPcusIVnbF7aCjMEA6bX_y0HITrfk9039DeK3siiVGgCCSzYuDRIpFS"
+    },
+    {
+      "packageName": "com.suno.android",
+      "name": "Suno",
+      "repos": [
+        "Alastor-Kaneki/Morphe-Patches"
+      ],
+      "sources": [
+        {
+          "repo": "Alastor-Kaneki/Morphe-Patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/Alastor-Kaneki/Morphe-Patches",
+          "addUrl": "https://morphe.software/add-source?github=Alastor-Kaneki/Morphe-Patches",
+          "source": "https://raw.githubusercontent.com/Alastor-Kaneki/Morphe-Patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/Alastor-Kaneki/Morphe-Patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/Alastor-Kaneki.png?size=96",
+          "latestChanges": {
+            "title": "1.13.4 (2026-08-18)",
+            "date": "2026-08-18",
+            "items": [
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**pixilart:** block Cordova ad bridge"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-suno-android-alastor-kaneki-morphe-patches",
+            "releaseTag": "app-com-suno-android-alastor-kaneki-morphe-patches",
+            "assetName": "suno-alastor-kaneki-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Customize Suno branding",
+              "description": "Clones Suno to a different package name, with optional app-name and launcher-icon customization. Accepts Morphe's adaptive custom-icon folder layout or a simple icon.png folder."
+            },
+            {
+              "name": "Download timestamped lyrics",
+              "description": "Adds an in-app Lyrics button and share target that exports Suno timing data as LRC, enhanced LRC, SRT, WebVTT, or JSON."
+            }
+          ],
+          "versions": []
+        }
+      ],
+      "patches": [
+        "Customize Suno branding",
+        "Download timestamped lyrics"
+      ],
+      "patchDetails": [
+        {
+          "name": "Customize Suno branding",
+          "description": "Clones Suno to a different package name, with optional app-name and launcher-icon customization. Accepts Morphe's adaptive custom-icon folder layout or a simple icon.png folder."
+        },
+        {
+          "name": "Download timestamped lyrics",
+          "description": "Adds an in-app Lyrics button and share target that exports Suno timing data as LRC, enhanced LRC, SRT, WebVTT, or JSON."
+        }
+      ],
+      "versions": [],
+      "iconColor": "#8B5CF6",
+      "iconUrl": ""
     },
     {
       "packageName": "com.laironcorp.sunrisealarm",
@@ -60791,12 +61574,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -60865,16 +61648,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.7.0 (2026-08-16)",
-            "date": "2026-08-16",
+            "title": "1.8.0 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
                 "category": "New Features",
-                "text": "**ReadEra - Remove nags:** add patch"
+                "text": "**Etsy - Hide ads:** drop promoted listings from search results"
               },
               {
                 "category": "New Features",
-                "text": "**Trainline - Hide ads:** add patch"
+                "text": "**QR & Barcode Scanner - Hide ads:** disable all AdMob ad loads"
               }
             ]
           },
@@ -62218,12 +63001,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.12.0 (2026-08-14)",
-            "date": "2026-08-14",
+            "title": "1.12.2 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**avito:** hide reserved offers"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**ozon:** support common cell migration in 19.31"
               }
             ]
           },
@@ -62289,12 +63072,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -64011,12 +64794,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -64417,12 +65200,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -64708,16 +65491,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.7.0 (2026-08-16)",
-            "date": "2026-08-16",
+            "title": "1.8.0 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
                 "category": "New Features",
-                "text": "**ReadEra - Remove nags:** add patch"
+                "text": "**Etsy - Hide ads:** drop promoted listings from search results"
               },
               {
                 "category": "New Features",
-                "text": "**Trainline - Hide ads:** add patch"
+                "text": "**QR & Barcode Scanner - Hide ads:** disable all AdMob ad loads"
               }
             ]
           },
@@ -65367,8 +66150,8 @@
       ],
       "patches": [
         "Disable analytics",
-        "Disable Telemetry",
         "Disable telemetry",
+        "Disable Telemetry",
         "Disable update check",
         "Enable premium features",
         "GMS sign-in bypass",
@@ -65412,11 +66195,11 @@
           "description": "Suppresses Truecaller's CleverTap behavioural event tracking to prevent user-activity telemetry."
         },
         {
-          "name": "Disable Telemetry",
+          "name": "Disable telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
-          "name": "Disable telemetry",
+          "name": "Disable Telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
@@ -65707,12 +66490,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -66013,12 +66796,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -66032,7 +66815,7 @@
           "patches": [
             {
               "name": "7TV and BTTV emotes",
-              "description": "Renders global and current-channel 7TV and BTTV emotes in incoming live chat. Type an emote code normally to send it; this patch does not add a picker or provider login."
+              "description": "Displays 7TV and BTTV emotes directly in Twitch live chat. It loads the global emote sets and the emotes for the channel you are watching, then replaces matching emote codes in incoming messages with their emote images. Sending works through normal Twitch chat: type an emote's text code and send it normally. The patch does not add an emote picker, 7TV/BTTV login, or account linking."
             },
             {
               "name": "Auto claim channel points",
@@ -66068,12 +66851,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.2.1 (2026-08-12)",
-            "date": "2026-08-12",
+            "title": "1.2.2 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Messenger:** Change recommended app version to 573.0.0.44.88"
+                "text": "**Strava:** Add app recommendation of the latest fully working app version"
               }
             ]
           },
@@ -66133,7 +66916,7 @@
       "patchDetails": [
         {
           "name": "7TV and BTTV emotes",
-          "description": "Renders global and current-channel 7TV and BTTV emotes in incoming live chat. Type an emote code normally to send it; this patch does not add a picker or provider login."
+          "description": "Displays 7TV and BTTV emotes directly in Twitch live chat. It loads the global emote sets and the emotes for the channel you are watching, then replaces matching emote codes in incoming messages with their emote images. Sending works through normal Twitch chat: type an emote's text code and send it normally. The patch does not add an emote picker, 7TV/BTTV login, or account linking."
         },
         {
           "name": "Auto claim channel points",
@@ -66864,12 +67647,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/RookieEnough.png?size=96",
           "latestChanges": {
-            "title": "1.2.1 (2026-08-12)",
-            "date": "2026-08-12",
+            "title": "1.2.2 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Messenger:** Change recommended app version to 573.0.0.44.88"
+                "text": "**Strava:** Add app recommendation of the latest fully working app version"
               }
             ]
           },
@@ -66933,12 +67716,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -67826,12 +68609,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -68084,12 +68867,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/arandomhooman/hoomans-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/arandomhooman.png?size=96",
           "latestChanges": {
-            "title": "1.49.1 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.50.3 (2026-08-19)",
+            "date": "2026-08-19",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**Cronometer:** temporarily remove 4.57.4 support until it is fixed"
+                "text": "drop server-inserted sponsored timeline cards in Tumblr Remove ads"
               }
             ]
           },
@@ -68200,12 +68983,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.12.0 (2026-08-14)",
-            "date": "2026-08-14",
+            "title": "1.12.2 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**avito:** hide reserved offers"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**ozon:** support common cell migration in 19.31"
               }
             ]
           },
@@ -68358,7 +69141,7 @@
             }
           ],
           "versions": [
-            "50.1.1"
+            "51.0.1"
           ]
         },
         {
@@ -68412,7 +69195,6 @@
         }
       ],
       "versions": [
-        "50.1.1",
         "51.0.1"
       ],
       "iconColor": "#9D0300",
@@ -68799,32 +69581,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
           "latestChanges": {
-            "title": "1.34.0 (2026-08-17)",
-            "date": "2026-08-17",
+            "title": "1.36.0 (2026-08-18)",
+            "date": "2026-08-18",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "Add Clean More Action Rs File"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "Add Hide BookMark,Tools In HomeScreen Rs"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "Add Rs File Explorer Skip Splash"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "Fix Rs File Explorer Patch"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "Rs File Explorer Skip Splash"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "Rs File Explorer Skip Splash Screen"
+                "text": "up"
               }
             ]
           },
@@ -68904,7 +69666,7 @@
             }
           ],
           "versions": [
-            "10.17.1"
+            "11.0.0"
           ]
         }
       ],
@@ -68918,7 +69680,7 @@
         }
       ],
       "versions": [
-        "10.17.1"
+        "11.0.0"
       ],
       "iconColor": "#C82C40",
       "iconUrl": "https://play-lh.googleusercontent.com/AmBoaxTjw_jERw2p8YUqv52zctH_P5K9Hxb1OXBEIrKFXV_KDi4HYEQ1303G2e_cQwnIDsHR225tySjFYJCxDg"
@@ -71322,8 +72084,8 @@
         "Video playback",
         "Video quality",
         "Visual preferences icons for YouTube",
-        "Voice over translation",
         "Voice Over Translation",
+        "Voice over translation",
         "Voice Over Translation (Yandex)",
         "Watch history",
         "Watch later button",
@@ -71841,12 +72603,12 @@
           "description": "Adds icons to specific preferences in the settings."
         },
         {
-          "name": "Voice over translation",
-          "description": "Adds additional voice over languages using text-to-speech synchronized to the video playback."
-        },
-        {
           "name": "Voice Over Translation",
           "description": "Adds an option to enable Yandex voice-over translation of video audio tracks."
+        },
+        {
+          "name": "Voice over translation",
+          "description": "Adds additional voice over languages using text-to-speech synchronized to the video playback."
         },
         {
           "name": "Voice Over Translation (Yandex)",
@@ -73845,32 +74607,12 @@
       "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
       "patchCount": 9,
       "latestChanges": {
-        "title": "1.34.0 (2026-08-17)",
-        "date": "2026-08-17",
+        "title": "1.36.0 (2026-08-18)",
+        "date": "2026-08-18",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "Add Clean More Action Rs File"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "Add Hide BookMark,Tools In HomeScreen Rs"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "Add Rs File Explorer Skip Splash"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "Fix Rs File Explorer Patch"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "Rs File Explorer Skip Splash"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "Rs File Explorer Skip Splash Screen"
+            "text": "up"
           }
         ]
       },
@@ -74652,14 +75394,14 @@
       "source": "https://raw.githubusercontent.com/Nai64/Nai64Patches/main/patches-bundle.json",
       "changelogUrl": "https://raw.githubusercontent.com/Nai64/Nai64Patches/main/CHANGELOG.md",
       "avatarUrl": "https://github.com/Nai64.png?size=96",
-      "patchCount": 9,
+      "patchCount": 2,
       "latestChanges": {
-        "title": "1.18.0 (2026-08-02)",
-        "date": "2026-08-02",
+        "title": "1.18.1 (2026-08-18)",
+        "date": "2026-08-18",
         "items": [
           {
-            "category": "New Features",
-            "text": "add Unity Ads v4 support to Ads Free Rewards patch"
+            "category": "Bug Fixes",
+            "text": "make MAX Unity ad injections register-safe for any method layout"
           }
         ]
       },
@@ -74670,42 +75412,7 @@
           "default": false
         },
         {
-          "name": "Custom App Resolution (Experimental)",
-          "description": "",
-          "default": false
-        },
-        {
-          "name": "Disable Root Checks",
-          "description": "",
-          "default": false
-        },
-        {
-          "name": "Disable Telemetry",
-          "description": "",
-          "default": false
-        },
-        {
-          "name": "Disable Update Checks",
-          "description": "",
-          "default": false
-        },
-        {
-          "name": "No Ads",
-          "description": "",
-          "default": false
-        },
-        {
-          "name": "Pairip Bypass (Experimental)",
-          "description": "",
-          "default": false
-        },
-        {
           "name": "Spoof Play Store Install Source",
-          "description": "",
-          "default": false
-        },
-        {
-          "name": "Unlock RevenueCat Entitlements",
           "description": "",
           "default": false
         }
@@ -74810,14 +75517,14 @@
       "source": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/patches-bundle.json",
       "changelogUrl": "https://raw.githubusercontent.com/RookieEnough/De-Vanced/main/CHANGELOG.md",
       "avatarUrl": "https://github.com/RookieEnough.png?size=96",
-      "patchCount": 2,
+      "patchCount": 1,
       "latestChanges": {
-        "title": "1.2.1 (2026-08-12)",
-        "date": "2026-08-12",
+        "title": "1.2.2 (2026-08-18)",
+        "date": "2026-08-18",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**Messenger:** Change recommended app version to 573.0.0.44.88"
+            "text": "**Strava:** Add app recommendation of the latest fully working app version"
           }
         ]
       },
@@ -74825,11 +75532,6 @@
         {
           "name": "Change package name",
           "description": "Appends \".morphe\" to the package name by default. Changing the package name of the app can lead to unexpected issues. This patch does not work with Reddit.",
-          "default": false
-        },
-        {
-          "name": "Override certificate pinning",
-          "description": "Overrides certificate pinning, allowing to inspect traffic via a proxy. This patch does not work with Reddit.",
           "default": false
         }
       ]
@@ -75444,12 +76146,12 @@
       "avatarUrl": "https://github.com/xob0t.png?size=96",
       "patchCount": 13,
       "latestChanges": {
-        "title": "1.12.0 (2026-08-14)",
-        "date": "2026-08-14",
+        "title": "1.12.2 (2026-08-18)",
+        "date": "2026-08-18",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "**avito:** hide reserved offers"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**ozon:** support common cell migration in 19.31"
           }
         ]
       },
@@ -75525,6 +76227,85 @@
   "recentSources": [
     {
       "name": "morphe-patches",
+      "repo": "theabhishekbhujang/morphe-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/theabhishekbhujang/morphe-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/theabhishekbhujang/morphe-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/theabhishekbhujang/morphe-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/theabhishekbhujang/morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=theabhishekbhujang/morphe-patches",
+      "avatarUrl": "https://github.com/theabhishekbhujang.png?size=96",
+      "patchCount": 2,
+      "appCount": 2,
+      "createdAt": 1787101964368,
+      "updatedAt": 1787101964368,
+      "createdDate": "2026-08-19",
+      "updatedDate": "2026-08-19",
+      "latestChanges": {
+        "title": "1.4.2 (2026-08-18)",
+        "date": "2026-08-18",
+        "items": [
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "update GitHub workflows to valid action versions and correct gradle tasks"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "com.psslabs.rhythm",
+          "packageName": "com.psslabs.rhythm",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": ""
+        },
+        {
+          "name": "harmonium.music.gameg.real.harmoniumfree",
+          "packageName": "harmonium.music.gameg.real.harmoniumfree",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": ""
+        }
+      ]
+    },
+    {
+      "name": "rustore-privacy-patches",
+      "repo": "Freeman022026/rustore-privacy-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/Freeman022026/rustore-privacy-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/Freeman022026/rustore-privacy-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/Freeman022026/rustore-privacy-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/Freeman022026/rustore-privacy-patches",
+      "addUrl": "https://morphe.software/add-source?github=Freeman022026/rustore-privacy-patches",
+      "avatarUrl": "https://github.com/Freeman022026.png?size=96",
+      "patchCount": 9,
+      "appCount": 1,
+      "createdAt": 1787101955887,
+      "updatedAt": 1787101955887,
+      "createdDate": "2026-08-19",
+      "updatedDate": "2026-08-19",
+      "latestChanges": {
+        "title": "1.1.3 (2026-08-18)",
+        "date": "2026-08-18",
+        "items": [
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Resolve Update All crash"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "RuStore",
+          "packageName": "ru.vk.store",
+          "patchCount": 9,
+          "iconUrl": "",
+          "iconColor": "#0A85FF"
+        }
+      ]
+    },
+    {
+      "name": "morphe-patches",
       "repo": "riky-dev/morphe-patches",
       "host": "github.com",
       "source": "https://raw.githubusercontent.com/riky-dev/morphe-patches/main/patches-bundle.json",
@@ -75533,19 +76314,19 @@
       "webUrl": "https://github.com/riky-dev/morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=riky-dev/morphe-patches",
       "avatarUrl": "https://github.com/riky-dev.png?size=96",
-      "patchCount": 1,
-      "appCount": 1,
+      "patchCount": 2,
+      "appCount": 2,
       "createdAt": 1786989245628,
       "updatedAt": 1786989245628,
       "createdDate": "2026-08-17",
       "updatedDate": "2026-08-17",
       "latestChanges": {
-        "title": "1.1.0 (2026-08-17)",
-        "date": "2026-08-17",
+        "title": "1.3.3 (2026-08-18)",
+        "date": "2026-08-18",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "add agent-friendly patch development framework"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**devcheck:** remove unsupported DevCheck patches (PairIP native protection)"
           }
         ]
       },
@@ -75556,6 +76337,13 @@
           "patchCount": 1,
           "iconUrl": "",
           "iconColor": "#30639B"
+        },
+        {
+          "name": "Electron: battery health info",
+          "packageName": "com.mahersafadi.electron",
+          "patchCount": 1,
+          "iconUrl": "https://play-lh.googleusercontent.com/0t-xeeDB6UuldF-nGTXFlE1Yvzm1NVBx-bYdnVYCdMfIyyT0niQNLa9dYLketH9ESOpeF4YzuihgI_Mz6SnlgQ",
+          "iconColor": "#2E7D32"
         }
       ]
     },
@@ -75983,101 +76771,6 @@
           "patchCount": 1,
           "iconUrl": "https://play-lh.googleusercontent.com/D7ZeEeEbTOHre_sCohLA-jZ0anMOstAaSmS9Q1-tSRuclV29i5vg4tQfr_7RP5crq3e3bcZCt3wTthLGq-C35A",
           "iconColor": "#1565C0"
-        }
-      ]
-    },
-    {
-      "name": "Morphe-Portal-Patches-New",
-      "repo": "BlazeFTL/Morphe-Portal-Patches-New",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/BlazeFTL/Morphe-Portal-Patches-New/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/BlazeFTL/Morphe-Portal-Patches-New/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/Morphe-Portal-Patches-New/main/CHANGELOG.md",
-      "webUrl": "https://github.com/BlazeFTL/Morphe-Portal-Patches-New",
-      "addUrl": "https://morphe.software/add-source?github=BlazeFTL/Morphe-Portal-Patches-New",
-      "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
-      "patchCount": 3,
-      "appCount": 2,
-      "createdAt": 1786412608663,
-      "updatedAt": 1786412608663,
-      "createdDate": "2026-08-11",
-      "updatedDate": "2026-08-11",
-      "latestChanges": {
-        "title": "1.0.0 (2026-08-10)",
-        "date": "2026-08-10",
-        "items": [
-          {
-            "category": "\u2728 New Features",
-            "text": "initial"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "up"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "up"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "YouTube",
-          "packageName": "com.google.android.youtube",
-          "patchCount": 3,
-          "iconUrl": "https://play-lh.googleusercontent.com/QNmuZQc9I6Zbe3mWnSr0hycnENqGFCI5p3yE29Hkxtf22T0IWS6zTrpxULLyyjWpB7ONAXDsDQXnXcVWokl3eg",
-          "iconColor": ""
-        },
-        {
-          "name": "YouTube Music",
-          "packageName": "com.google.android.apps.youtube.music",
-          "patchCount": 3,
-          "iconUrl": "https://play-lh.googleusercontent.com/MyptZXmcCyF59phIWPsNCfHq6zSO_ojEdw_4rMYYWPOGdikSjqeOXcoszBZ053VYpINe5K7ZR9KV1nkFWgxdOw",
-          "iconColor": ""
-        }
-      ]
-    },
-    {
-      "name": "braintropy-patches",
-      "repo": "braiNtropy/braintropy-patches",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/braiNtropy/braintropy-patches/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/braiNtropy/braintropy-patches/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/braiNtropy/braintropy-patches/main/CHANGELOG.md",
-      "webUrl": "https://github.com/braiNtropy/braintropy-patches",
-      "addUrl": "https://morphe.software/add-source?github=braiNtropy/braintropy-patches",
-      "avatarUrl": "https://github.com/braiNtropy.png?size=96",
-      "patchCount": 1,
-      "appCount": 1,
-      "createdAt": 1786263569841,
-      "updatedAt": 1786263569841,
-      "createdDate": "2026-08-09",
-      "updatedDate": "2026-08-09",
-      "latestChanges": {
-        "title": "2.0.0 (2026-08-14)",
-        "date": "2026-08-14",
-        "items": [
-          {
-            "category": "\u26a0 BREAKING CHANGES",
-            "text": "The MyoAdapt patch is removed and no longer ships in"
-          },
-          {
-            "category": "\u26a0 BREAKING CHANGES",
-            "text": "the patches bundle."
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "Remove MyoAdapt \"Unlock Premium\" patch"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "Waking Up",
-          "packageName": "org.wakingup.android",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#1C1B33"
         }
       ]
     }

@@ -1177,6 +1177,38 @@
                 "sortOrder": 148,
                 "createdAt": 1787015485088,
                 "updatedAt": 1787015485088
+            },
+            {
+                "name": "rustore-privacy-patches",
+                "source": "https://raw.githubusercontent.com/Freeman022026/rustore-privacy-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 149,
+                "createdAt": 1787101955887,
+                "updatedAt": 1787101955887
+            },
+            {
+                "name": "Morphe-Patches",
+                "source": "https://raw.githubusercontent.com/MauroGamerVN/Morphe-Patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 150,
+                "createdAt": 1787101957410,
+                "updatedAt": 1787101957410
+            },
+            {
+                "name": "PetalMaps-NonHuawei",
+                "source": "https://raw.githubusercontent.com/andersonlucasg3/PetalMaps-NonHuawei/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 151,
+                "createdAt": 1787101958443,
+                "updatedAt": 1787101958443
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/theabhishekbhujang/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 152,
+                "createdAt": 1787101964368,
+                "updatedAt": 1787101964368
             }
         ]
     }
