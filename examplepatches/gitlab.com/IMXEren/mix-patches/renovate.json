@@ -1,0 +1,72 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "schedule:monthly"
+  ],
+  "baseBranchPatterns": [
+    "dev"
+  ],
+  "enabledManagers": [
+    "custom.regex",
+    "github-actions",
+    "gitlabci",
+    "gitlabci-include",
+    "gradle",
+    "npm"
+  ],
+  "dependencyDashboard": true,
+  "osvVulnerabilityAlerts": true,
+  "pruneStaleBranches": true,
+  "semanticCommits": "enabled",
+  "gitlabci-include": {
+    "managerFilePatterns": [
+      "/(^|/)\\.gitlab-ci\\.ya?ml$/",
+      "/^\\.gitlab/ci/.+\\.ya?ml$/"
+    ]
+  },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^\\.gitlab/ci/release\\.yml$/"
+      ],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\s+MISE_VERSION: (?<currentValue>v?\\d+\\.\\d+\\.\\d+)"
+      ],
+      "versioningTemplate": "semver-coerced"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^\\.gitlab/ci/renovate\\.yml$/"
+      ],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\s+CI_RENOVATE_IMAGE: \\S+:(?<currentValue>[^@\\s]+)@(?<currentDigest>sha256:[a-f0-9]+)"
+      ],
+      "versioningTemplate": "docker"
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "Update Morphe dependencies manually",
+      "matchDatasources": [
+        "maven"
+      ],
+      "matchPackageNames": [
+        "/^app\\.morphe(?:[.:]|$)/"
+      ],
+      "enabled": false
+    },
+    {
+      "description": "Keep release-note generation compatible",
+      "matchManagers": [
+        "npm"
+      ],
+      "matchPackageNames": [
+        "conventional-changelog-conventionalcommits"
+      ],
+      "allowedVersions": "<10"
+    }
+  ]
+}

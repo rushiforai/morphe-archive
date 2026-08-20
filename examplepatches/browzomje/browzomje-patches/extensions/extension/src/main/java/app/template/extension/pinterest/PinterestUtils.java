@@ -1,6 +1,8 @@
 package app.browzomje.extension.pinterest;
 
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Application;
 import android.app.WallpaperManager;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -66,6 +68,10 @@ public final class PinterestUtils {
         if (bitmap != null) {
             currentPinBitmap = bitmap;
         }
+        if (view instanceof View) {
+            // Occasione per sapere qual è l'Activity in primo piano: vedi rememberActivityFrom.
+            rememberActivityFrom(((View) view).getContext());
+        }
         if (view != null) {
             try {
                 Class<?> clazz = view.getClass();
@@ -108,25 +114,58 @@ public final class PinterestUtils {
         }
     }
 
-    public static void addDownloadVideoOption(final Object menuContainer) {
-        MorpheLog.hookFired(MorpheLog.VIDEO,
-                "menu " + (menuContainer == null ? "null" : menuContainer.getClass().getName()));
-        try {
-            VideoDownloadHandler.addDownloadVideoOption(menuContainer);
-        } catch (Throwable t) {
-            MorpheLog.e(MorpheLog.VIDEO, "could not add the \"download video\" entry", t);
+    /**
+     * Rimanda {@code action} a quando la view del menu è finita di costruirsi.
+     *
+     * <p>Le tre voci che aggiungiamo al menu "…" del pin si agganciano subito dopo la chiamata al
+     * costruttore della superclasse: è l'unico punto del costruttore in cui la view è raggiungibile
+     * con certezza (vedi {@code addInstructionsAfterSuperConstructor} lato patch). Lì però la view è
+     * appena nata — i campi non sono valorizzati e le righe del menu non sono ancora state aggiunte —
+     * quindi lavorarci subito vorrebbe dire mettere le nostre voci in cima e cercare il pin dove
+     * ancora non c'è.
+     *
+     * <p>{@link View#post(Runnable)} risolve entrambe le cose: su una view non ancora attaccata
+     * accoda l'azione e la esegue al momento dell'attach, cioè quando il menu è completo e visibile.
+     * Se l'oggetto non fosse una view, si esegue subito: meglio provarci che non fare niente.
+     */
+    private static void whenMenuIsReady(final Object menuContainer, final Runnable action) {
+        if (menuContainer instanceof View) {
+            rememberActivityFrom(((View) menuContainer).getContext());
+            ((View) menuContainer).post(action);
+        } else {
+            action.run();
         }
     }
 
+    public static void addDownloadVideoOption(final Object menuContainer) {
+        MorpheLog.hookFired(MorpheLog.VIDEO,
+                "menu " + (menuContainer == null ? "null" : menuContainer.getClass().getName()));
+        whenMenuIsReady(menuContainer, new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    VideoDownloadHandler.addDownloadVideoOption(menuContainer);
+                } catch (Throwable t) {
+                    MorpheLog.e(MorpheLog.VIDEO, "could not add the \"download video\" entry", t);
+                }
+            }
+        });
+    }
+
     // Delegate for wallpaper
-    public static void addWallpaperOption(Object menuContainer) {
+    public static void addWallpaperOption(final Object menuContainer) {
         MorpheLog.hookFired(MorpheLog.WALLPAPER,
                 "menu " + (menuContainer == null ? "null" : menuContainer.getClass().getName()));
-        try {
-            WallpaperHandler.addWallpaperOption(menuContainer);
-        } catch (Throwable t) {
-            MorpheLog.e(MorpheLog.WALLPAPER, "could not add the \"set wallpaper\" entry", t);
-        }
+        whenMenuIsReady(menuContainer, new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    WallpaperHandler.addWallpaperOption(menuContainer);
+                } catch (Throwable t) {
+                    MorpheLog.e(MorpheLog.WALLPAPER, "could not add the \"set wallpaper\" entry", t);
+                }
+            }
+        });
     }
 
     /**
@@ -155,9 +194,21 @@ public final class PinterestUtils {
     }
 
     // Copy Link Logic
-    public static void addCopyLinkOption(Object menuContainer) {
+    public static void addCopyLinkOption(final Object menuContainer) {
         MorpheLog.hookFired(MorpheLog.COPY_LINK,
                 menuContainer == null ? "null" : menuContainer.getClass().getName());
+        whenMenuIsReady(menuContainer, new Runnable() {
+            @Override
+            public void run() {
+                addCopyLinkOptionNow(menuContainer);
+            }
+        });
+    }
+
+    private static void addCopyLinkOptionNow(Object menuContainer) {
+        // Si fa comunque, anche se poi la voce non venisse aggiunta: serve al sanificatore dei
+        // link, che così può scrivere il link canonico senza chiedere niente alla rete.
+        CurrentPin.captureFrom(menuContainer);
 
         if (!(menuContainer instanceof ViewGroup)) {
             MorpheLog.e(MorpheLog.COPY_LINK, "expected a ViewGroup, got "
@@ -173,7 +224,7 @@ public final class PinterestUtils {
             View.OnClickListener onClickListener = new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    dismissMenu();
+                    dismissMenu(v.getContext());
                     copyLinkToClipboard(v.getContext());
                 }
             };
@@ -188,6 +239,7 @@ public final class PinterestUtils {
                 MorpheLog.setStatus(MorpheLog.COPY_LINK, "ok — fallback row (different style)");
             }
             if (row != null) {
+                matchRowTextAppearance(container, row);
                 container.addView(row);
             }
         } catch (Throwable t) {
@@ -234,9 +286,54 @@ public final class PinterestUtils {
     /** Come {@link #totalAdsRemoved}, per i pin di prodotto: sono due opzioni distinte. */
     private static volatile int totalShoppingPinsRemoved;
 
-    /** @return true se almeno una delle due opzioni di filtro del feed è accesa. */
+    /** @return true se almeno una delle opzioni di filtro del feed è accesa. */
     private static boolean isFilteringEnabled() {
-        return MorpheSettingsStore.isAdsDisabled() || MorpheSettingsStore.isShoppingPinsHidden();
+        return MorpheSettingsStore.isAdsDisabled()
+                || MorpheSettingsStore.isShoppingPinsHidden()
+                || MorpheSettingsStore.isSearchBoardModulesHidden();
+    }
+
+    /**
+     * Hook sul menu circolare del pin (pressione prolungata): accoda il tasto "scarica" alla lista
+     * dei tasti prima che il menu li disponga sull'arco. Vedi {@link ContextMenuDownload}.
+     */
+    @SuppressWarnings("unchecked")
+    public static void addContextMenuDownloadItem(Object menuView, java.util.List<?> items) {
+        MorpheLog.hookFired(MorpheLog.BOARD,
+                "long-press menu " + (menuView == null ? "null" : menuView.getClass().getName()));
+        try {
+            ContextMenuDownload.addItem(menuView, (java.util.List<Object>) items);
+        } catch (Throwable t) {
+            MorpheLog.e(MorpheLog.BOARD, "could not add the long-press download button", t);
+        }
+    }
+
+    /**
+     * Collassa a zero una view che serve solo a mostrare pubblicità, se il blocco è acceso.
+     *
+     * <p>Hook sui costruttori delle view pubblicitarie di Pinterest (vedi {@code HideAdViewsPatch}).
+     * È una rete di sicurezza dietro a {@link #filterSponsoredPinsFromFeed(Object)}, non un
+     * doppione: il filtro toglie i contenuti sponsorizzati dalle risposte di rete, ma l'app può
+     * comunque decidere di costruire una di queste view — per esempio al primissimo caricamento del
+     * feed dopo un'installazione pulita, prima che il filtro abbia visto passare qualcosa. Qui la
+     * view viene costruita lo stesso (iniezioni Dagger, inflate del layout, listener: tutto gira,
+     * così chi ne tiene un riferimento non trova null) ma non disegna e non occupa spazio, perché
+     * {@code GONE} salta sia la misura sia il disegno.
+     *
+     * <p>Il controllo dell'interruttore sta qui e non nel bytecode di proposito: se stesse nel
+     * patch, spegnere "Disabilita pubblicità" dalla schermata Morphe non rimetterebbe indietro
+     * queste view, e l'interruttore mentirebbe.
+     */
+    public static void hideAdView(View view) {
+        if (view == null || !MorpheSettingsStore.isAdsDisabled()) {
+            return;
+        }
+        try {
+            view.setVisibility(View.GONE);
+            MorpheLog.hookFired(MorpheLog.ADS, "ad view collassata: " + view.getClass().getName());
+        } catch (Throwable t) {
+            MorpheLog.w(MorpheLog.ADS, "non sono riuscito a collassare la ad view", t);
+        }
     }
 
     /**
@@ -383,12 +480,14 @@ public final class PinterestUtils {
         }
         boolean removeAds = MorpheSettingsStore.isAdsDisabled();
         boolean removeShopping = MorpheSettingsStore.isShoppingPinsHidden();
+        boolean removeSearchModules = MorpheSettingsStore.isSearchBoardModulesHidden();
         try {
             synchronized (items) {
                 int total = items.size();
                 int matching = 0;
                 for (Object item : items) {
-                    if (isAd(item, removeAds) || isShoppingPin(item, removeShopping)) {
+                    if (isAd(item, removeAds) || isShoppingPin(item, removeShopping)
+                            || isSearchModule(item, removeSearchModules)) {
                         matching++;
                     }
                 }
@@ -411,11 +510,13 @@ public final class PinterestUtils {
 
                 int ads = 0;
                 int shopping = 0;
+                int modules = 0;
                 java.util.Iterator<?> iterator = items.iterator();
                 while (iterator.hasNext()) {
                     Object item = iterator.next();
                     boolean ad = isAd(item, removeAds);
-                    if (!ad && !isShoppingPin(item, removeShopping)) {
+                    boolean module = !ad && isSearchModule(item, removeSearchModules);
+                    if (!ad && !module && !isShoppingPin(item, removeShopping)) {
                         continue;
                     }
                     try {
@@ -427,6 +528,8 @@ public final class PinterestUtils {
                     }
                     if (ad) {
                         ads++;
+                    } else if (module) {
+                        modules++;
                     } else {
                         shopping++;
                     }
@@ -440,6 +543,12 @@ public final class PinterestUtils {
                             + " product pins)");
                     MorpheLog.setStatus(MorpheLog.ADS, "ok — " + totalAdsRemoved + " ads and "
                             + totalShoppingPinsRemoved + " product pins removed so far");
+                }
+                if (modules > 0) {
+                    // Canale a sé: sono moduli della ricerca, non annunci, e tenerli distinti
+                    // rende leggibile in logcat quale delle due opzioni ha tolto cosa.
+                    MorpheLog.i(MorpheLog.SEARCH_MODULES, "removed " + modules
+                            + " search board modules out of " + total);
                 }
             }
         } catch (Throwable t) {
@@ -455,6 +564,75 @@ public final class PinterestUtils {
     /** @param enabled se false non si guarda nemmeno il modello: l'opzione è spenta. */
     private static boolean isShoppingPin(Object item, boolean enabled) {
         return enabled && AdDetector.isShoppingPin(item);
+    }
+
+    /** @param enabled se false non si guarda nemmeno il modello: l'opzione è spenta. */
+    private static boolean isSearchModule(Object item, boolean enabled) {
+        return enabled && SearchModuleDetector.isUnwantedSearchModule(item);
+    }
+
+    // ------------------------------------------------------------- screenshot (issue #32)
+
+    /**
+     * Percorso legacy: chiamata all'ingresso del metodo che, dopo uno screenshot, registra
+     * l'evento e apre il pannello di condivisione.
+     *
+     * @param fragment il fragment del closeup, usato solo per il log.
+     * @return true se il metodo deve uscire subito senza fare nulla.
+     */
+    public static boolean blockLegacyScreenshotFlow(Object fragment) {
+        MorpheLog.hookFired(MorpheLog.SCREENSHOT, "legacy funnel on "
+                + (fragment == null ? "null" : fragment.getClass().getName()));
+
+        if (!MorpheSettingsStore.isScreenshotShareDisabled()) {
+            MorpheLog.d(MorpheLog.SCREENSHOT, "option off: letting the panel through");
+            return false;
+        }
+        MorpheLog.ok(MorpheLog.SCREENSHOT, "screenshot panel blocked (legacy path)");
+        return true;
+    }
+
+    /**
+     * Percorso SBA: chiamata all'ingresso del processore degli effetti screenshot.
+     *
+     * <p>Blocca l'intero processore, quindi anche gli effetti che <em>avviano</em> la
+     * sorveglianza degli screenshot: con l'opzione attiva la rilevazione non parte affatto.
+     *
+     * @param effect l'effetto in arrivo. Il suo {@code toString()} è leggibile
+     *     ({@code StartScreenshotObservation}, {@code ShowScreenshotUpsell}, …), quindi finisce
+     *     nel log: è il modo più diretto per vedere cosa stava per succedere.
+     * @return true se il processore deve uscire subito.
+     */
+    /**
+     * Rilevatore screenshot generico, usato fuori dal closeup (feed, bacheche).
+     *
+     * <p>Chiamata all'ingresso del metodo che <em>avvia</em> l'osservazione: se si esce subito,
+     * né il {@code FileObserver} né la callback di Android 14 vengono registrati, quindi non c'è
+     * proprio niente che possa poi aprire il pannello.
+     *
+     * @return true se l'osservazione non deve partire.
+     */
+    public static boolean blockScreenshotObserver() {
+        MorpheLog.hookFired(MorpheLog.SCREENSHOT, "generic observer starting");
+
+        if (!MorpheSettingsStore.isScreenshotShareDisabled()) {
+            MorpheLog.d(MorpheLog.SCREENSHOT, "option off: letting the observer start");
+            return false;
+        }
+        MorpheLog.ok(MorpheLog.SCREENSHOT, "screenshot observation not started");
+        return true;
+    }
+
+    public static boolean blockScreenshotEffect(Object effect) {
+        String what = effect == null ? "null" : String.valueOf(effect);
+        MorpheLog.hookFired(MorpheLog.SCREENSHOT, "SBA effect " + what);
+
+        if (!MorpheSettingsStore.isScreenshotShareDisabled()) {
+            MorpheLog.d(MorpheLog.SCREENSHOT, "option off: running effect " + what);
+            return false;
+        }
+        MorpheLog.ok(MorpheLog.SCREENSHOT, "blocked effect " + what);
+        return true;
     }
 
     // ---------------------------------------------------------------- barra di navigazione
@@ -1121,30 +1299,188 @@ public final class PinterestUtils {
         return Math.round(value * density);
     }
 
+    /**
+     * Mostra un messaggio nello stile di Pinterest: striscia scura arrotondata in alto.
+     *
+     * <p>Lo disegna {@link MorpheToast}, che non nomina nessuna classe dell'app — il tentativo
+     * precedente di riusare il toast nativo per nome offuscato costruiva silenziosamente l'oggetto
+     * sbagliato su 14.32.0. Il toast di sistema resta solo come ultima rete, per quando non c'è
+     * un'Activity a cui attaccare la striscia.
+     */
     static void showNativeToast(final Context context, final String message) {
         new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
             public void run() {
-                if (PinterestReflection.showGestaltToast(message, 7000)) {
-                    MorpheLog.d(MorpheLog.REFLECTION, "native toast shown: " + message);
+                // Prima il toast vero di Pinterest, così i messaggi di Morphe sono
+                // indistinguibili da quelli dell'app. La striscia disegnata da noi resta come
+                // ripiego per quando il modello nativo non è disponibile.
+                if (PinterestReflection.showGestaltToast(context, message, 5000)) {
                     return;
                 }
-                MorpheLog.w(MorpheLog.REFLECTION,
-                        "native toast not available, using the system one: " + message);
+                if (MorpheToast.show(context, message)) {
+                    return;
+                }
+                MorpheLog.d(MorpheLog.REFLECTION,
+                        "no Activity for the Morphe toast, using the system one: " + message);
                 Toast.makeText(context.getApplicationContext(), message, Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    static void dismissMenu() {
+    /**
+     * Chiude il menu aperto, esattamente come farebbe l'utente premendo "indietro".
+     *
+     * <p>Prima si provava a mandare all'EventManager un evento "chiudi il menu contestuale",
+     * cercandone la classe fra due nomi offuscati: su 14.32.0 nessuno dei due esiste più e il menu
+     * restava aperto sotto al messaggio di conferma.
+     *
+     * <p>Il menu del pin è un modale, e i modali di Pinterest si chiudono col tasto indietro. Il
+     * modo più solido di chiuderlo è quindi chiedere all'Activity di gestire un "indietro" invece
+     * di ricostruire l'evento interno: `onBackPressed` è API pubblica di Android, non cambia mai, e
+     * fa passare la chiusura per la strada normale dell'app — animazione e stato di navigazione
+     * compresi.
+     *
+     * <p>Si chiama solo mentre un menu è effettivamente aperto (dal gestore di una sua voce), quindi
+     * non c'è il rischio che l'"indietro" venga interpretato come una navigazione.
+     *
+     * @param context il Context della riga premuta: da lì si risale all'Activity.
+     */
+    @SuppressWarnings("deprecation")
+    static void dismissMenu(final Context context) {
         new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
             public void run() {
-                if (PinterestReflection.dismissContextualMenu()) {
-                    MorpheLog.d(MorpheLog.REFLECTION, "context menu dismissed");
+                Activity activity = activityOf(context);
+                if (activity == null) {
+                    MorpheLog.d(MorpheLog.REFLECTION, "no Activity: the menu stays open");
+                    return;
+                }
+                try {
+                    activity.onBackPressed();
+                    MorpheLog.d(MorpheLog.REFLECTION, "menu closed with back");
+                } catch (Throwable t) {
+                    MorpheLog.w(MorpheLog.REFLECTION, "could not close the menu", t);
                 }
             }
         });
+    }
+
+    /**
+     * L'Activity a cui appartiene {@code context}, o quella in primo piano se non si arriva a
+     * un'Activity per quella strada.
+     *
+     * <p>Il Context di una View è quasi sempre un wrapper attorno all'Activity, quindi la catena si
+     * risale. Ma non tutti i punti da cui serve chiudere un menu o mostrare un messaggio hanno una
+     * View sottomano — la voce di download della bacheca, per esempio, ha solo il Context
+     * dell'Application, da cui non si risale a niente. Per quei casi c'è
+     * {@link #foregroundActivity()}.
+     */
+    static Activity activityOf(Context context) {
+        Activity fromChain = activityFromContextChain(context);
+        return fromChain != null ? fromChain : foregroundActivity();
+    }
+
+    /** @return l'Activity risalendo i wrapper di {@code context}, o null se non ce n'è una. */
+    private static Activity activityFromContextChain(Context context) {
+        Context current = context;
+        for (int i = 0; i < 10 && current != null; i++) {
+            if (current instanceof Activity) {
+                return (Activity) current;
+            }
+            if (!(current instanceof android.content.ContextWrapper)) {
+                return null;
+            }
+            current = ((android.content.ContextWrapper) current).getBaseContext();
+        }
+        return null;
+    }
+
+    /**
+     * Prende nota dell'Activity a cui appartiene questa View, se non l'abbiamo già.
+     *
+     * <p>Serve ai punti che un'Activity non ce l'hanno: la voce "scarica bacheca" arriva da una
+     * callback del modello del menu, che riceve solo l'indice della riga toccata e da cui si può
+     * risalire al massimo al Context dell'Application — dal quale non si arriva a nessuna Activity,
+     * quindi né il menu si chiudeva né il messaggio compariva nello stile giusto.
+     *
+     * <p>Il ciclo di vita da solo non basta a coprire il buco: {@code registerActivityLifecycleCallbacks}
+     * notifica solo gli eventi <em>futuri</em>, e in Pinterest l'unica Activity va in primo piano
+     * all'avvio, prima che qualunque codice di Morphe giri. Da lì in poi si naviga fra fragment, e
+     * un altro {@code onActivityResumed} non arriva più: il riferimento sarebbe rimasto vuoto per
+     * tutta la sessione.
+     *
+     * <p>Le View invece ci passano di continuo per le mani — ogni immagine del feed, ogni menu — e
+     * ognuna conosce la propria Activity.
+     */
+    static void rememberActivityFrom(Context context) {
+        Activity activity = activityFromContextChain(context);
+        if (activity == null) {
+            return;
+        }
+        Activity known = foreground == null ? null : foreground.get();
+        if (known != activity) {
+            foreground = new java.lang.ref.WeakReference<>(activity);
+        }
+    }
+
+    /** L'ultima Activity andata in primo piano, o null se non ne è ancora passata nessuna. */
+    private static java.lang.ref.WeakReference<Activity> foreground;
+
+    private static volatile boolean lifecycleWatchInstalled;
+
+    static Activity foregroundActivity() {
+        installLifecycleWatch();
+        java.lang.ref.WeakReference<Activity> reference = foreground;
+        return reference == null ? null : reference.get();
+    }
+
+    /**
+     * Si mette in ascolto del ciclo di vita delle Activity per sapere qual è quella in primo piano.
+     *
+     * <p>Riferimento **debole**: tenerne uno forte impedirebbe all'Activity di essere liberata
+     * quando l'utente la chiude, che è una perdita di memoria vera e delle peggiori.
+     *
+     * <p>L'ascolto si installa alla prima richiesta e non all'avvio del processo: se nessuna
+     * funzione di Morphe ha bisogno di sapere qual è l'Activity corrente, non paghiamo niente.
+     */
+    private static void installLifecycleWatch() {
+        if (lifecycleWatchInstalled) {
+            return;
+        }
+        Application application = MorpheSettingsStore.appContext();
+        if (application == null) {
+            return;
+        }
+        lifecycleWatchInstalled = true;
+        try {
+            application.registerActivityLifecycleCallbacks(
+                    new Application.ActivityLifecycleCallbacks() {
+                        @Override
+                        public void onActivityResumed(Activity activity) {
+                            foreground = new java.lang.ref.WeakReference<>(activity);
+                        }
+
+                        @Override
+                        public void onActivityCreated(Activity activity, android.os.Bundle b) {}
+
+                        @Override
+                        public void onActivityStarted(Activity activity) {}
+
+                        @Override
+                        public void onActivityPaused(Activity activity) {}
+
+                        @Override
+                        public void onActivityStopped(Activity activity) {}
+
+                        @Override
+                        public void onActivitySaveInstanceState(Activity a, android.os.Bundle b) {}
+
+                        @Override
+                        public void onActivityDestroyed(Activity activity) {}
+                    });
+        } catch (Throwable t) {
+            MorpheLog.w(MorpheLog.REFLECTION, "could not watch the activity lifecycle", t);
+        }
     }
 
     /**
@@ -1256,6 +1592,46 @@ public final class PinterestUtils {
         return null;
     }
 
+    /**
+     * Allinea il testo di una riga che abbiamo aggiunto a quello delle righe già presenti nel menu.
+     *
+     * <p>La fabbrica nativa delle righe prende, oltre a testo e icona, due flag che decidono come
+     * il testo viene composto: il menu li valorizza leggendo il proprio stato, noi non possiamo
+     * saperli e passiamo il valore neutro. Il risultato è una riga giusta in tutto tranne che nel
+     * corpo del testo, che veniva più grande delle altre.
+     *
+     * <p>Invece di indovinare i flag — che sono due oggi e potrebbero essere tre domani — si copia
+     * il risultato: dimensione, carattere e colore si prendono dalla prima riga già nel menu, che
+     * per definizione è composta come Pinterest vuole. Si adatta da sé a qualunque variante il menu
+     * stia usando, e non nomina niente.
+     *
+     * @param container il menu, con dentro le righe di Pinterest
+     * @param row la riga appena costruita, non ancora aggiunta
+     */
+    static void matchRowTextAppearance(ViewGroup container, View row) {
+        try {
+            TextView ours = findTextView(row);
+            if (ours == null) {
+                return;
+            }
+            for (int i = 0; i < container.getChildCount(); i++) {
+                TextView theirs = findTextView(container.getChildAt(i));
+                if (theirs == null || theirs == ours || theirs.getTextSize() <= 0f) {
+                    continue;
+                }
+                ours.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, theirs.getTextSize());
+                ours.setTypeface(theirs.getTypeface());
+                ours.setTextColor(theirs.getTextColors());
+                MorpheLog.d(MorpheLog.REFLECTION, "row text aligned with the menu ("
+                        + theirs.getTextSize() + "px)");
+                return;
+            }
+            MorpheLog.d(MorpheLog.REFLECTION, "no existing row to copy the text style from");
+        } catch (Throwable t) {
+            MorpheLog.d(MorpheLog.REFLECTION, "could not align the row text: " + t);
+        }
+    }
+
     static TextView findTextView(View v) {
         if (v instanceof TextView) {
             return (TextView) v;
@@ -1334,6 +1710,38 @@ public final class PinterestUtils {
             if (isTr) return "Doğrudan bağlantıyı kopyala";
             if (isAr) return "نسخ الرابط المباشر";
             return "Copy direct link";
+        }
+        if ("download_image_label".equals(key)) {
+            if (isIt) return "Scarica";
+            if (isEs) return "Descargar";
+            if (isFr) return "Télécharger";
+            if (isDe) return "Herunterladen";
+            if (isPt) return "Baixar";
+            if (isRu) return "Скачать";
+            if (isJa) return "ダウンロード";
+            if (isZh) return "下载";
+            if (isKo) return "다운로드";
+            if (isPl) return "Pobierz";
+            if (isNl) return "Downloaden";
+            if (isTr) return "İndir";
+            if (isAr) return "تنزيل";
+            return "Download";
+        }
+        if ("download_image_started".equals(key)) {
+            if (isIt) return "Immagine in download…";
+            if (isEs) return "Descargando la imagen…";
+            if (isFr) return "Téléchargement de l'image…";
+            if (isDe) return "Bild wird heruntergeladen…";
+            if (isPt) return "A baixar a imagem…";
+            if (isRu) return "Изображение загружается…";
+            if (isJa) return "画像をダウンロード中…";
+            if (isZh) return "正在下载图片…";
+            if (isKo) return "이미지 다운로드 중…";
+            if (isPl) return "Pobieranie obrazu…";
+            if (isNl) return "Afbeelding downloaden…";
+            if (isTr) return "Görsel indiriliyor…";
+            if (isAr) return "جارٍ تنزيل الصورة…";
+            return "Downloading image…";
         }
         if ("download_video_label".equals(key)) {
             if (isIt) return "Scarica video";
@@ -1442,6 +1850,21 @@ public final class PinterestUtils {
             if (isTr) return "%1 resim ve %2 video indirildi.";
             if (isAr) return "تم تنزيل %1 صورة و%2 فيديو.";
             return "Downloaded %1 images and %2 videos.";
+        }
+        if ("board_download_already".equals(key)) {
+            if (isIt) return "%d già presenti, saltati.";
+            if (isEs) return "%d ya presentes, omitidos.";
+            if (isFr) return "%d déjà présents, ignorés.";
+            if (isDe) return "%d bereits vorhanden, übersprungen.";
+            if (isPt) return "%d já presentes, ignorados.";
+            if (isRu) return "%d уже есть, пропущено.";
+            if (isJa) return "%d 件は既にあるためスキップしました。";
+            if (isZh) return "%d 个已存在，已跳过。";
+            if (isKo) return "%d개는 이미 있어 건너뛰었습니다.";
+            if (isNl) return "%d al aanwezig, overgeslagen.";
+            if (isTr) return "%d zaten var, atlandı.";
+            if (isAr) return "%d موجودة بالفعل، تم تخطيها.";
+            return "%d already there, skipped.";
         }
         if ("board_download_skipped".equals(key)) {
             if (isIt) return "%d video saltati: richiedono un'app esterna (yt-dlp).";

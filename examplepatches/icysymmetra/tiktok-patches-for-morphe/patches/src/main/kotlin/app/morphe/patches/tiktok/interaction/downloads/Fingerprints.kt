@@ -31,7 +31,9 @@ internal object AclCommonShare3Fingerprint : Fingerprint(
     returnType = "I",
 )
 
-internal object DownloadUriFingerprint : Fingerprint(
+internal object VideoDownloadUriFingerprint : Fingerprint(
+    definingClass = "/0L4Q;",
+    name = "LIZLLL",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     returnType = "Landroid/net/Uri;",
     parameters = listOf("Landroid/content/Context;", "Ljava/lang/String;"),
@@ -101,6 +103,96 @@ internal object StickerPreviewBinderFingerprint : Fingerprint(
                 readsUrlModel && bindsActionButton && loadsStickerImage
             }
         }
+    },
+)
+
+internal object PhotoDownloadUriFingerprint : Fingerprint(
+    definingClass = "/0L4Q;",
+    name = "LIZIZ",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "Landroid/net/Uri;",
+    parameters = listOf("Landroid/content/Context;", "Ljava/lang/String;", "Ljava/lang/String;"),
+    strings = listOf("/", "/Camera", "/Camera/"),
+)
+
+internal object VideoLookupUriFingerprint : Fingerprint(
+    definingClass = "/0L4Q;",
+    name = "LJIIIIZZ",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "Landroid/net/Uri;",
+    parameters = listOf("Landroid/content/Context;", "Ljava/lang/String;"),
+    strings = listOf("/Camera/", "video/*", "(relative_path=? OR relative_path=?) AND _display_name=?"),
+)
+
+internal object PhotoLookupUriFingerprint : Fingerprint(
+    definingClass = "/0L4Q;",
+    name = "LJFF",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "Landroid/net/Uri;",
+    parameters = listOf("Landroid/content/Context;", "Ljava/lang/String;", "Ljava/lang/String;"),
+    strings = listOf("/Camera/", "image/*", "(relative_path=? OR relative_path=?) AND _display_name=?"),
+)
+
+internal object VideoMediaStoreInsertFingerprint : Fingerprint(
+    definingClass = "/0L4Q;",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "Landroid/net/Uri;",
+    parameters = listOf(
+        "Landroid/content/Context;",
+        "Ljava/lang/String;",
+        "Ljava/lang/String;",
+        "Ljava/lang/String;",
+    ),
+    custom = { method, _ ->
+        method.implementation?.instructions?.any { instruction ->
+            instruction.getReference<MethodReference>()?.let { reference ->
+                reference.definingClass == "Landroid/provider/MediaStore\$Video\$Media;" &&
+                    reference.name == "getContentUri"
+            } == true
+        } == true
+    },
+)
+
+internal object PhotoMediaStoreInsertFingerprint : Fingerprint(
+    definingClass = "/0L4Q;",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "Landroid/net/Uri;",
+    parameters = listOf(
+        "Landroid/content/Context;",
+        "Ljava/lang/String;",
+        "Ljava/lang/String;",
+        "Ljava/lang/String;",
+    ),
+    custom = { method, _ ->
+        method.implementation?.instructions?.any { instruction ->
+            instruction.getReference<MethodReference>()?.let { reference ->
+                reference.definingClass == "Landroid/provider/MediaStore\$Images\$Media;" &&
+                    reference.name == "getContentUri"
+            } == true
+        } == true
+    },
+)
+
+internal object ImagePostMediaCopyFingerprint : Fingerprint(
+    definingClass = "/0L4G;",
+    name = "LJJIJIIJI",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "Landroid/net/Uri;",
+    parameters = listOf(
+        "Landroid/content/Context;",
+        "Ljava/lang/String;",
+        "Ljava/lang/String;",
+        "Z",
+        "Ljava/lang/String;",
+        "I",
+    ),
+    strings = listOf("/Camera/", "video/mp4", "image/jpeg"),
+    custom = { method, _ ->
+        val calls = method.implementation?.instructions?.mapNotNull { instruction ->
+            instruction.getReference<MethodReference>()
+        } ?: emptyList()
+        calls.any { it.definingClass == "LX/0L4Q;" && it.name == "LJ" } &&
+            calls.any { it.definingClass == "LX/0L4Q;" && it.name == "LIZJ" }
     },
 )
 

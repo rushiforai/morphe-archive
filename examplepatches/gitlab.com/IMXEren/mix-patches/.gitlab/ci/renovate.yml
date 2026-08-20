@@ -1,0 +1,20 @@
+include:
+  - project: renovate-bot/renovate-runner
+    ref: v26.1.0
+    file: /templates/renovate.gitlab-ci.yml
+
+variables:
+  # renovate: datasource=docker depName=ghcr.io/renovatebot/renovate
+  CI_RENOVATE_IMAGE: ghcr.io/renovatebot/renovate:44.33.2-full@sha256:a47e731477a50154fdd5535bd18de43d388445c8282a38c948e4ffb7cbab00a9
+
+renovate:
+  stage: automate
+  resource_group: renovate
+  before_script:
+    - ': "${RENOVATE_TOKEN:?Set RENOVATE_TOKEN to a dedicated GitLab token with read_user, api, and write_repository scopes}"'
+    - ': "${GITHUB_ACTOR:?Set GITHUB_ACTOR to the GitHub account used for packages}"'
+    - ': "${GITHUB_TOKEN:?Set GITHUB_TOKEN to a GitHub token with packages read access}"'
+    - export RENOVATE_GITHUB_COM_TOKEN="$GITHUB_TOKEN"
+    - export RENOVATE_HOST_RULES="[{\"matchHost\":\"maven.pkg.github.com\",\"username\":\"$GITHUB_ACTOR\",\"password\":\"$GITHUB_TOKEN\"}]"
+  script:
+    - renovate "$CI_PROJECT_PATH"

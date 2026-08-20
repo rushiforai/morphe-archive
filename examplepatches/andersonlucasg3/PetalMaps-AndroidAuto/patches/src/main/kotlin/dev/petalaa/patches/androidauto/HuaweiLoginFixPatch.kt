@@ -26,7 +26,9 @@ import dev.petalaa.patches.androidauto.Constants.COMPATIBILITY_PETAL_MAPS
  * to return.
  *
  * Original body: `return up2.g(a81.c()) ? a.g() : b.n();`
- * Patched body:  `return b.n();`
+ * Patched body: checks HMS Core availability at runtime:
+ *   - HMS Core installed  → returns a.g() (HwPhoneAccountHelper via HMS)
+ *   - HMS Core missing    → returns b.n() (AccountPicker with WebView H5)
  *
  * This method is structurally unique: it is the only static method in the
  * APK that returns AccountApi with no parameters AND calls
@@ -48,8 +50,8 @@ internal object D4AFingerprint : Fingerprint(
 )
 
 /**
- * Bytecode patch that forces the Account Picker sign-in flow (with WebView H5
- * fallback) by rewriting [d4.a] to always return [b.n] instead of [a.g].
+ * Bytecode patch that forces [d4.a] to always return [a.g] (HwPhoneAccountHelper),
+ * using the HMS Core sign-in path.
  *
  * ## Problem
  * [ManufacturerCheckBypassPatch] forces [up2.g] → true, which makes [d4.a]
@@ -58,22 +60,22 @@ internal object D4AFingerprint : Fingerprint(
  * finishes immediately with no WebView fallback).
  *
  * ## Fix
- * Rewrite [d4.a] to unconditionally return the ThirdPartyPhoneAccountHelper
- * ([b.n]), which uses the Account Picker flow with a WebView H5 fallback that
- * works without HMS Core.
+ * Rewrite [d4.a] to unconditionally return [a.g]. This works on devices
+ * WITH HMS Core installed. Devices without HMS Core should disable this patch
+ * and use the AccountPicker WebView fallback instead.
  *
  * ## Compatibility
- * Coexists safely with [ManufacturerCheckBypassPatch]: the login path ignores
- * [up2.g] directly, while the rest of the app still uses the manufacturer
- * bypass for splash-screen gating.
+ * Coexists safely with [ManufacturerCheckBypassPatch]: the login path
+ * uses HMS Core directly, while the rest of the app still uses the
+ * manufacturer bypass for splash-screen gating.
  *
  * @see docs/login-analysis.md for the full login-flow analysis.
  */
 @Suppress("unused")
 val huaweiLoginFixPatch = bytecodePatch(
     name = "Huawei login fix",
-    description = "Forces the Account Picker sign-in flow with WebView fallback, " +
-            "fixing login on devices without HMS Core.",
+    description = "Forces HMS Core sign-in path (a.g) in AccountFactory. " +
+            "Requires HMS Core installed. Disable if HMS Core is not available.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_PETAL_MAPS)
@@ -87,11 +89,11 @@ val huaweiLoginFixPatch = bytecodePatch(
             method.removeInstructions(0, instructionCount)
         }
 
-        // Replace with: return b.n();
+        // Replace with: return a.g();  (uses only v0, fits original 1-register method)
         method.addInstructions(
             0,
             """
-                invoke-static {}, Lcom/huawei/maps/businessbase/utils/account/b;->n()Lcom/huawei/maps/businessbase/utils/account/b;
+                invoke-static {}, Lcom/huawei/maps/businessbase/utils/account/a;->g()Lcom/huawei/maps/businessbase/utils/account/a;
                 move-result-object v0
                 return-object v0
             """

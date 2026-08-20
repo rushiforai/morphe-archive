@@ -30,9 +30,19 @@ final class MorpheStrings {
     static final String SEARCH_HISTORY_TITLE = "search_history_title";
     static final String SEARCH_HISTORY_DESCRIPTION = "search_history_description";
     static final String EMAIL_DIALOG_TITLE = "email_dialog_title";
+    static final String SEARCH_MODULES_TITLE = "search_modules_title";
+    static final String SEARCH_MODULES_DESCRIPTION = "search_modules_description";
+    static final String SCREENSHOT_TITLE = "screenshot_title";
+    static final String SCREENSHOT_DESCRIPTION = "screenshot_description";
+    static final String SANITIZE_LINKS_TITLE = "sanitize_links_title";
+    static final String SANITIZE_LINKS_DESCRIPTION = "sanitize_links_description";
+    static final String SHARE_LINK_ONLY_TITLE = "share_link_only_title";
+    static final String SHARE_LINK_ONLY_DESCRIPTION = "share_link_only_description";
 
     static final String BOARD_DOWNLOAD_TITLE = "board_download_title";
     static final String BOARD_DOWNLOAD_DESCRIPTION = "board_download_description";
+    static final String LONG_PRESS_DOWNLOAD_TITLE = "long_press_download_title";
+    static final String LONG_PRESS_DOWNLOAD_DESCRIPTION = "long_press_download_description";
 
     static final String HIDE_SEARCH_TITLE = "hide_search_title";
     static final String HIDE_CREATE_TITLE = "hide_create_title";
@@ -117,6 +127,122 @@ final class MorpheStrings {
             "Ukryj produkty sponsorowane", "Gesponsorde producten verbergen",
             "Sponsorlu ürünleri gizle", "إخفاء المنتجات المموّلة");
 
+        put(SEARCH_MODULES_TITLE,
+            "Hide board modules in search",
+            "Nascondi moduli a bacheche nella ricerca", "Ocultar módulos de tableros en la búsqueda",
+            "Masquer les modules de tableaux dans la recherche", "Pinnwand-Module in der Suche ausblenden",
+            "Ocultar módulos de pastas na pesquisa", "Скрыть блоки досок в поиске",
+            "検索のボードモジュールを非表示", "隐藏搜索中的图板模块", "검색의 보드 모듈 숨기기",
+            "Ukryj moduły tablic w wyszukiwaniu", "Bordmodules in zoeken verbergen",
+            "Aramada pano modüllerini gizle", "إخفاء وحدات اللوحات في البحث");
+
+        put(SEARCH_MODULES_DESCRIPTION,
+            "Sponsored carousel and featured boards. \"Ideas for you\" stays.",
+            "Carosello sponsorizzato e bacheche in evidenza. \"Idee per te\" resta.",
+            "Carrusel patrocinado y tableros destacados. \"Ideas para ti\" se mantiene.",
+            "Carrousel sponsorisé et tableaux à la une. « Idées pour vous » reste.",
+            "Gesponsertes Karussell und vorgestellte Pinnwände. \"Ideen für dich\" bleibt.",
+            "Carrossel patrocinado e pastas em destaque. \"Ideias para si\" fica.",
+            "Спонсируемая карусель и рекомендованные доски. \"Идеи для вас\" остаются.",
+            "スポンサーカルーセルと注目のボード。「あなたへのアイデア」は残ります。",
+            "赞助轮播和精选图板。“为你推荐”会保留。",
+            "스폰서 캐러셀과 추천 보드. \"회원님을 위한 아이디어\"는 유지됩니다.",
+            "Sponsorowana karuzela i polecane tablice. \"Pomysły dla Ciebie\" zostają.",
+            "Gesponsorde carrousel en uitgelichte borden. \"Ideeën voor jou\" blijft.",
+            "Sponsorlu karusel ve öne çıkan panolar. \"Senin için fikirler\" kalır.",
+            "الدوّار المموّل واللوحات المميزة. تبقى \"أفكار لك\".");
+
+        put(SCREENSHOT_TITLE,
+            "Hide screenshot share menu",
+            "Nascondi menu condivisione screenshot", "Ocultar menú de compartir captura",
+            "Masquer le menu de partage de capture", "Screenshot-Teilen-Menü ausblenden",
+            "Ocultar menu de partilha de captura", "Скрыть меню отправки скриншота",
+            "スクリーンショット共有メニューを非表示", "隐藏截图分享菜单",
+            "스크린샷 공유 메뉴 숨기기", "Ukryj menu udostępniania zrzutu",
+            "Deelmenu voor schermafbeeldingen verbergen", "Ekran görüntüsü paylaşım menüsünü gizle",
+            "إخفاء قائمة مشاركة لقطة الشاشة");
+
+        put(SCREENSHOT_DESCRIPTION,
+            "Also stops Pinterest from watching for screenshots, where possible.",
+            "Impedisce anche a Pinterest di sorvegliare gli screenshot, dove possibile.",
+            "También impide que Pinterest vigile las capturas, cuando es posible.",
+            "Empêche aussi Pinterest de surveiller les captures, quand c'est possible.",
+            "Hindert Pinterest zudem daran, Screenshots zu überwachen, wo möglich.",
+            "Também impede o Pinterest de vigiar as capturas, quando possível.",
+            "Также мешает Pinterest следить за скриншотами, где это возможно.",
+            "可能な場合、Pinterest によるスクリーンショットの監視も止めます。",
+            "在可能的情况下，也会阻止 Pinterest 监视截图。",
+            "가능한 경우 Pinterest의 스크린샷 감시도 중단합니다.",
+            "Uniemożliwia też Pinterestowi śledzenie zrzutów ekranu, gdy to możliwe.",
+            "Voorkomt ook dat Pinterest schermafbeeldingen bewaakt, waar mogelijk.",
+            "Mümkün olduğunda Pinterest'in ekran görüntülerini izlemesini de engeller.",
+            "يمنع أيضًا Pinterest من مراقبة لقطات الشاشة، حيثما أمكن.");
+
+        put(SANITIZE_LINKS_TITLE,
+            "Clean shared links",
+            "Ripulisci i link condivisi", "Limpiar los enlaces compartidos",
+            "Nettoyer les liens partagés", "Geteilte Links bereinigen",
+            "Limpar as ligações partilhadas", "Очищать отправляемые ссылки",
+            "共有リンクをクリーンにする", "清理分享链接", "공유 링크 정리",
+            "Czyść udostępniane linki", "Gedeelde links opschonen",
+            "Paylaşılan bağlantıları temizle", "تنظيف الروابط المشاركة");
+
+        put(SANITIZE_LINKS_DESCRIPTION,
+            "Removes tracking parameters and turns pin.it short links into the plain pin link. "
+                + "Resolving a short link costs one network request.",
+            "Toglie i parametri di tracciamento e trasforma gli short link pin.it nel link "
+                + "normale del pin. Risolvere uno short link costa una richiesta di rete.",
+            "Quita los parámetros de seguimiento y convierte los enlaces cortos pin.it en el "
+                + "enlace normal del pin. Resolverlos cuesta una petición de red.",
+            "Supprime les paramètres de suivi et transforme les liens courts pin.it en lien "
+                + "normal du pin. Résoudre un lien court coûte une requête réseau.",
+            "Entfernt Tracking-Parameter und wandelt pin.it-Kurzlinks in den normalen Pin-Link "
+                + "um. Das Auflösen kostet eine Netzwerkanfrage.",
+            "Remove os parâmetros de rastreio e converte as ligações curtas pin.it na ligação "
+                + "normal do pin. Resolver uma ligação curta custa um pedido de rede.",
+            "Убирает параметры отслеживания и превращает короткие ссылки pin.it в обычную "
+                + "ссылку на пин. Разрешение короткой ссылки требует сетевого запроса.",
+            "トラッキングパラメータを削除し、pin.it の短縮リンクを通常のピンのリンクに変換します。"
+                + "短縮リンクの解決には通信が 1 回必要です。",
+            "移除跟踪参数，并把 pin.it 短链接还原为普通的 Pin 链接。解析短链接需要一次网络请求。",
+            "추적 매개변수를 제거하고 pin.it 단축 링크를 일반 핀 링크로 바꿉니다. "
+                + "단축 링크 해석에는 네트워크 요청이 한 번 필요합니다.",
+            "Usuwa parametry śledzenia i zamienia krótkie linki pin.it na zwykły link do pinu. "
+                + "Rozwinięcie krótkiego linku kosztuje jedno zapytanie sieciowe.",
+            "Verwijdert trackingparameters en zet pin.it-verkorte links om in de gewone pinlink. "
+                + "Het oplossen kost één netwerkverzoek.",
+            "Takip parametrelerini kaldırır ve pin.it kısa bağlantılarını normal pin "
+                + "bağlantısına çevirir. Çözümlemek bir ağ isteğine mal olur.",
+            "يزيل معاملات التتبع ويحوّل روابط pin.it المختصرة إلى رابط الدبوس العادي. "
+                + "يتطلب حل الرابط المختصر طلب شبكة واحدًا.");
+
+        put(SHARE_LINK_ONLY_TITLE,
+            "Share the link only",
+            "Condividi solo il link", "Compartir solo el enlace",
+            "Partager seulement le lien", "Nur den Link teilen",
+            "Partilhar apenas a ligação", "Отправлять только ссылку",
+            "リンクだけを共有", "只分享链接", "링크만 공유",
+            "Udostępniaj tylko link", "Alleen de link delen",
+            "Yalnızca bağlantıyı paylaş", "مشاركة الرابط فقط");
+
+        put(SHARE_LINK_ONLY_DESCRIPTION,
+            "Drops the promotional sentence Pinterest puts in front of the link (\"Take a look at "
+                + "this Pin! ➡️\").",
+            "Toglie la frase promozionale che Pinterest antepone al link (\"Dai un'occhiata a "
+                + "questa idea ➡️\").",
+            "Quita la frase promocional que Pinterest antepone al enlace.",
+            "Supprime la phrase promotionnelle que Pinterest ajoute devant le lien.",
+            "Entfernt den Werbesatz, den Pinterest vor den Link setzt.",
+            "Remove a frase promocional que o Pinterest coloca antes da ligação.",
+            "Убирает рекламную фразу, которую Pinterest ставит перед ссылкой.",
+            "Pinterest がリンクの前に付ける宣伝文を削除します。",
+            "移除 Pinterest 加在链接前面的推广语句。",
+            "Pinterest가 링크 앞에 붙이는 홍보 문구를 제거합니다.",
+            "Usuwa zdanie promocyjne, które Pinterest dodaje przed linkiem.",
+            "Verwijdert de promotiezin die Pinterest voor de link zet.",
+            "Pinterest'in bağlantının önüne koyduğu tanıtım cümlesini kaldırır.",
+            "يزيل العبارة الترويجية التي يضعها Pinterest قبل الرابط.");
+
         put(SEARCH_HISTORY_TITLE,
             "Hide search history",
             "Nascondi cronologia ricerche", "Ocultar historial de búsqueda",
@@ -157,6 +283,31 @@ final class MorpheStrings {
             "Dialoogvenster \"bevestig je e-mail\" uitschakelen",
             "\"E-postanı doğrula\" penceresini devre dışı bırak",
             "تعطيل نافذة «أكِّد بريدك الإلكتروني»");
+
+        put(LONG_PRESS_DOWNLOAD_TITLE,
+            "Download button on long press",
+            "Tasto scarica alla pressione prolungata", "Botón de descarga al mantener pulsado",
+            "Bouton de téléchargement en appui long", "Download-Taste beim langen Drücken",
+            "Botão de transferência ao premir longamente", "Кнопка загрузки при долгом нажатии",
+            "長押しでダウンロードボタン", "长按显示下载按钮", "길게 눌러 다운로드 버튼",
+            "Przycisk pobierania przy długim naciśnięciu", "Downloadknop bij lang indrukken",
+            "Uzun basmada indirme düğmesi", "زر التنزيل عند الضغط المطوّل");
+
+        put(LONG_PRESS_DOWNLOAD_DESCRIPTION,
+            "Adds a download button to the circular menu, so a pin can be saved without opening it.",
+            "Aggiunge un tasto al menu circolare, per salvare un pin senza aprirlo.",
+            "Añade un botón al menú circular, para guardar un pin sin abrirlo.",
+            "Ajoute un bouton au menu circulaire, pour enregistrer un pin sans l'ouvrir.",
+            "Fügt dem Kreismenü eine Taste hinzu, um einen Pin zu speichern, ohne ihn zu öffnen.",
+            "Adiciona um botão ao menu circular, para guardar um pin sem o abrir.",
+            "Добавляет кнопку в круговое меню, чтобы сохранить пин, не открывая его.",
+            "円形メニューにボタンを追加し、ピンを開かずに保存できます。",
+            "在圆形菜单中添加按钮，无需打开即可保存 Pin。",
+            "원형 메뉴에 버튼을 추가해 핀을 열지 않고 저장합니다.",
+            "Dodaje przycisk do menu kołowego, aby zapisać pin bez otwierania go.",
+            "Voegt een knop toe aan het cirkelmenu om een pin op te slaan zonder hem te openen.",
+            "Dairesel menüye bir düğme ekler, böylece pin açılmadan kaydedilir.",
+            "يضيف زرًا إلى القائمة الدائرية لحفظ الدبوس دون فتحه.");
 
         put(BOARD_DOWNLOAD_TITLE,
             "Download whole board",

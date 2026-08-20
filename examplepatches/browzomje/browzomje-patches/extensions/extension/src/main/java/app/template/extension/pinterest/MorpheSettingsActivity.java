@@ -89,15 +89,35 @@ public final class MorpheSettingsActivity extends Activity {
         addToggleRow(root, MorpheStrings.get(MorpheStrings.SHOPPING_PINS_TITLE), null,
                 MorpheSettingsStore.KEY_HIDE_SHOPPING_PINS,
                 MorpheSettingsStore.isShoppingPinsHidden());
+        addToggleRow(root, MorpheStrings.get(MorpheStrings.SEARCH_MODULES_TITLE),
+                MorpheStrings.get(MorpheStrings.SEARCH_MODULES_DESCRIPTION),
+                MorpheSettingsStore.KEY_HIDE_SEARCH_BOARD_MODULES,
+                MorpheSettingsStore.isSearchBoardModulesHidden());
         addToggleRow(root, MorpheStrings.get(MorpheStrings.SEARCH_HISTORY_TITLE),
                 MorpheStrings.get(MorpheStrings.SEARCH_HISTORY_DESCRIPTION),
                 MorpheSettingsStore.KEY_HIDE_SEARCH_HISTORY,
                 MorpheSettingsStore.isSearchHistoryHidden());
+        addToggleRow(root, MorpheStrings.get(MorpheStrings.SCREENSHOT_TITLE),
+                MorpheStrings.get(MorpheStrings.SCREENSHOT_DESCRIPTION),
+                MorpheSettingsStore.KEY_DISABLE_SCREENSHOT_SHARE,
+                MorpheSettingsStore.isScreenshotShareDisabled());
+        addToggleRow(root, MorpheStrings.get(MorpheStrings.SANITIZE_LINKS_TITLE),
+                MorpheStrings.get(MorpheStrings.SANITIZE_LINKS_DESCRIPTION),
+                MorpheSettingsStore.KEY_SANITIZE_LINKS,
+                MorpheSettingsStore.isLinkSanitizerEnabled());
+        addToggleRow(root, MorpheStrings.get(MorpheStrings.SHARE_LINK_ONLY_TITLE),
+                MorpheStrings.get(MorpheStrings.SHARE_LINK_ONLY_DESCRIPTION),
+                MorpheSettingsStore.KEY_SHARE_LINK_ONLY,
+                MorpheSettingsStore.isShareLinkOnlyEnabled());
         addToggleRow(root, MorpheStrings.get(MorpheStrings.EMAIL_DIALOG_TITLE), null,
                 MorpheSettingsStore.KEY_DISABLE_EMAIL_CONFIRM_DIALOG,
                 MorpheSettingsStore.isEmailConfirmDialogDisabled());
 
         addSectionHeader(root, MorpheStrings.get(MorpheStrings.SECTION_DOWNLOAD), "ic_vr_download_gestalt");
+        addToggleRow(root, MorpheStrings.get(MorpheStrings.LONG_PRESS_DOWNLOAD_TITLE),
+                MorpheStrings.get(MorpheStrings.LONG_PRESS_DOWNLOAD_DESCRIPTION),
+                MorpheSettingsStore.KEY_LONG_PRESS_DOWNLOAD,
+                MorpheSettingsStore.isLongPressDownloadEnabled());
         addToggleRow(root, MorpheStrings.get(MorpheStrings.BOARD_DOWNLOAD_TITLE),
                 MorpheStrings.get(MorpheStrings.BOARD_DOWNLOAD_DESCRIPTION),
                 MorpheSettingsStore.KEY_BOARD_DOWNLOAD,

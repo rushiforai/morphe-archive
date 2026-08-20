@@ -1,5 +1,7 @@
 package app.browzomje.extension.pinterest;
 
+import android.app.Activity;
+import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
@@ -30,21 +32,6 @@ final class PinterestReflection {
      */
     private static final String[] DISMISS_EVENT_CANDIDATES = {
             "ii0.o", "ai0.u"
-    };
-
-    /** Toast "a stringa": costruttore {@code (String testo, int durataMs)}. */
-    private static final String[] TOAST_CANDIDATES = {
-            "xs2.e", "ir2.f"
-    };
-
-    /** Evento "mostra questo toast": costruttore che prende la classe base dei toast. */
-    private static final String[] TOAST_EVENT_CANDIDATES = {
-            "xs2.g", "ir2.h"
-    };
-
-    /** Classe base astratta dei toast, parametro del costruttore qui sopra. */
-    private static final String[] TOAST_BASE_CANDIDATES = {
-            "vw1.p", "kw1.p", "ww1.o"
     };
 
     /** Holder statico dell'EventManager, usato solo se non si riesce a ricavarlo dagli oggetti. */
@@ -102,25 +89,85 @@ final class PinterestReflection {
         return null;
     }
 
-    /** {@code RelativeLayout a(CharSequence, String, <enum icone>, boolean)}. */
+    /**
+     * Il metodo con cui il "view creator" del menu costruisce una riga.
+     *
+     * <p>Su 14.28.0 era {@code RelativeLayout a(CharSequence, String, <enum icone>, boolean)}. Su
+     * 14.32.0 ha preso un parametro in più — {@code a(CharSequence, String, <enum>, boolean,
+     * boolean)} — e siccome il vecchio riconoscimento pretendeva <em>esattamente</em> quattro
+     * parametri non lo trovava più: le nostre due voci finivano nella riga di ripiego, con font,
+     * icona e allineamento diversi da tutte le altre.
+     *
+     * <p>È lo stesso errore descritto nel PATCHING_MEMORY a proposito di
+     * {@code ModelListWithBookmark}: l'ancora serve a trovare il membro, ma ogni vincolo in più
+     * è una cosa in più che si può rompere. Qui quindi si pretende solo ciò che rende il metodo
+     * riconoscibile e utilizzabile:
+     *
+     * <ul>
+     *   <li>restituisce una {@link View} — è la riga;
+     *   <li>il primo parametro è la {@link CharSequence} del testo;
+     *   <li>c'è un parametro enum, che è l'icona.
+     * </ul>
+     *
+     * Tutto il resto (quanti parametri, in che ordine, di che tipo) lo riempie
+     * {@link #buildFactoryArguments}. Un parametro aggiunto in una versione futura non romperà più
+     * nulla.
+     */
     static Method findRowFactoryMethod(Class<?> viewCreatorClass) {
         for (Method method : viewCreatorClass.getMethods()) {
-            if (method.getReturnType() != RelativeLayout.class) {
+            if (!View.class.isAssignableFrom(method.getReturnType())) {
                 continue;
             }
             Class<?>[] parameters = method.getParameterTypes();
-            if (parameters.length != 4) {
+            if (parameters.length < 4 || parameters[0] != CharSequence.class) {
                 continue;
             }
-            if (parameters[0] != CharSequence.class
-                    || parameters[1] != String.class
-                    || !parameters[2].isEnum()
-                    || parameters[3] != boolean.class) {
+            if (indexOfEnumParameter(parameters) < 0) {
                 continue;
             }
             return method;
         }
         return null;
+    }
+
+    /** @return la posizione del primo parametro enum (l'icona), o -1 se non ce n'è. */
+    private static int indexOfEnumParameter(Class<?>[] parameters) {
+        for (int i = 1; i < parameters.length; i++) {
+            if (parameters[i].isEnum()) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Riempie gli argomenti della fabbrica: il testo, l'icona, e per tutto il resto il valore
+     * neutro del tipo.
+     *
+     * <p>I parametri che non conosciamo sono opzioni di presentazione (riga compatta, badge, …):
+     * passando il valore neutro si ottiene la riga standard, cioè esattamente quella che vogliamo.
+     */
+    private static Object[] buildFactoryArguments(Class<?>[] parameters, CharSequence label,
+                                                  Object icon, int iconIndex) {
+        Object[] arguments = new Object[parameters.length];
+        for (int i = 0; i < parameters.length; i++) {
+            if (i == 0) {
+                arguments[i] = label;
+            } else if (i == iconIndex) {
+                arguments[i] = icon;
+            } else if (parameters[i] == boolean.class) {
+                arguments[i] = Boolean.FALSE;
+            } else if (parameters[i] == int.class) {
+                arguments[i] = Integer.valueOf(0);
+            } else if (parameters[i] == long.class) {
+                arguments[i] = Long.valueOf(0L);
+            } else if (parameters[i].isPrimitive()) {
+                arguments[i] = Integer.valueOf(0);
+            } else {
+                arguments[i] = null;
+            }
+        }
+        return arguments;
     }
 
     /**
@@ -147,7 +194,9 @@ final class PinterestReflection {
             return null;
         }
 
-        Class<?> iconEnum = factory.getParameterTypes()[2];
+        Class<?>[] parameters = factory.getParameterTypes();
+        int iconIndex = indexOfEnumParameter(parameters);
+        Class<?> iconEnum = parameters[iconIndex];
         Object icon = null;
         try {
             icon = Enum.valueOf((Class<Enum>) iconEnum, iconName);
@@ -158,10 +207,12 @@ final class PinterestReflection {
 
         try {
             factory.setAccessible(true);
-            RelativeLayout row = (RelativeLayout) factory.invoke(creator, label, null, icon, false);
-            if (row == null) {
+            Object built = factory.invoke(creator,
+                    buildFactoryArguments(parameters, label, icon, iconIndex));
+            if (!(built instanceof View)) {
                 return null;
             }
+            View row = (View) built;
             row.setOnClickListener(onClick);
             return row;
         } catch (Throwable t) {
@@ -291,25 +342,84 @@ final class PinterestReflection {
      * @return true se il toast nativo è stato inviato; false se il chiamante deve ripiegare su
      *     {@link android.widget.Toast}.
      */
-    static boolean showGestaltToast(String message, int durationMs) {
-        Class<?> toastClass = findFirstClass(TOAST_CANDIDATES);
-        Class<?> eventClass = findFirstClass(TOAST_EVENT_CANDIDATES);
-        Class<?> baseClass = findFirstClass(TOAST_BASE_CANDIDATES);
-        if (toastClass == null || eventClass == null || baseClass == null) {
-            MorpheLog.w(MorpheLog.REFLECTION, "Gestalt toast classes not resolved (toast="
-                    + toastClass + ", event=" + eventClass + ", base=" + baseClass
-                    + "): falling back to the system Toast.");
+    /**
+     * Il metodo con cui l'Activity di Pinterest mostra un toast. Nome pulito: è API pubblica
+     * dell'Activity, non una funzione interna, quindi R8 non lo accorcia.
+     */
+    private static final String SHOW_TOAST = "showToast";
+
+    /**
+     * Mostra un messaggio con il toast vero di Pinterest — sfondo chiaro, testo scuro, in alto —
+     * invece della striscia disegnata da noi.
+     *
+     * <p><b>Perché passa dall'Activity.</b> Il primo tentativo cercava il contenitore dei toast
+     * nell'albero delle view e ci consegnava il modello. Non funzionava, e il log lo diceva:
+     * <em>PinterestToastContainer not in the view tree</em>. Il contenitore non è sempre montato —
+     * viene creato quando serve — quindi cercarlo è una corsa che si perde quasi sempre.
+     *
+     * <p>Pinterest stessa non lo cerca: manda un evento, e l'Activity che lo riceve chiama
+     * {@code showToast(modello)}. Quella è la porta d'ingresso vera, ed è raggiungibile
+     * direttamente: {@code MainActivity} ha un nome pulito perché è dichiarata nel manifest, e
+     * {@code showToast} è un metodo pubblico dell'Activity, quindi nemmeno lui viene accorciato.
+     * Saltare l'evento e chiamare il metodo evita sia la corsa sia il bisogno di indovinare quale
+     * classe-evento sia quella giusta.
+     *
+     * @return false se il toast nativo non è utilizzabile: il chiamante disegna il suo.
+     */
+    static boolean showGestaltToast(Context context, String message, int durationMs) {
+        String modelClassName = MorpheRuntimeNames.textToastClass;
+        if (modelClassName == null || modelClassName.isEmpty()) {
+            MorpheLog.w(MorpheLog.REFLECTION, "TOAST: the patch did not deliver a toast class "
+                    + "(is \"Morphe runtime names\" enabled?) — drawing our own");
             return false;
         }
+
         try {
-            Constructor<?> toastCtor = toastClass.getConstructor(String.class, int.class);
-            Object toast = toastCtor.newInstance(message, durationMs);
-            Constructor<?> eventCtor = eventClass.getConstructor(baseClass);
-            return postEvent(eventCtor.newInstance(toast));
+            Activity activity = PinterestUtils.activityOf(context);
+            if (activity == null) {
+                MorpheLog.w(MorpheLog.REFLECTION, "TOAST: no Activity — drawing our own");
+                return false;
+            }
+
+            Object model = Class.forName(modelClassName)
+                    .getConstructor(String.class, int.class)
+                    .newInstance(message, durationMs);
+
+            Method show = findShowToastMethod(activity.getClass(), model);
+            if (show == null) {
+                MorpheLog.w(MorpheLog.REFLECTION, "TOAST: " + activity.getClass().getName()
+                        + " has no " + SHOW_TOAST + "(<toast model>) — drawing our own");
+                return false;
+            }
+
+            show.setAccessible(true);
+            show.invoke(activity, model);
+            MorpheLog.i(MorpheLog.REFLECTION, "TOAST: shown with Pinterest's own toast ("
+                    + modelClassName + " -> " + activity.getClass().getSimpleName() + "."
+                    + show.getName() + ")");
+            return true;
         } catch (Throwable t) {
-            MorpheLog.w(MorpheLog.REFLECTION, "could not create the Gestalt toast", t);
+            MorpheLog.w(MorpheLog.REFLECTION, "TOAST: native toast failed — drawing our own", t);
             return false;
         }
+    }
+
+    /**
+     * {@code showToast(<modello>)} sull'Activity, cercato per nome e per compatibilità del
+     * parametro — non per tipo esatto, così regge se l'Activity dichiara la superclasse dei modelli
+     * invece del tipo concreto.
+     */
+    private static Method findShowToastMethod(Class<?> activityClass, Object model) {
+        for (Method method : activityClass.getMethods()) {
+            if (!SHOW_TOAST.equals(method.getName())) {
+                continue;
+            }
+            Class<?>[] parameters = method.getParameterTypes();
+            if (parameters.length == 1 && parameters[0].isInstance(model)) {
+                return method;
+            }
+        }
+        return null;
     }
 
     // ------------------------------------------------------------------ modello Pin

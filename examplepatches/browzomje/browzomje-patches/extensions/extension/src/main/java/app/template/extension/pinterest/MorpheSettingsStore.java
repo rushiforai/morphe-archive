@@ -21,6 +21,11 @@ public final class MorpheSettingsStore {
     public static final String KEY_DISABLE_EMAIL_CONFIRM_DIALOG = "disable_email_confirm_dialog";
     public static final String KEY_VERBOSE_LOGGING = "verbose_logging";
     public static final String KEY_BOARD_DOWNLOAD = "board_download";
+    public static final String KEY_HIDE_SEARCH_BOARD_MODULES = "hide_search_board_modules";
+    public static final String KEY_DISABLE_SCREENSHOT_SHARE = "disable_screenshot_share";
+    public static final String KEY_SANITIZE_LINKS = "sanitize_links";
+    public static final String KEY_LONG_PRESS_DOWNLOAD = "long_press_download";
+    public static final String KEY_SHARE_LINK_ONLY = "share_link_only";
 
     /**
      * Le impostazioni che si esportano e si importano, nell'ordine in cui compaiono a schermo.
@@ -32,9 +37,14 @@ public final class MorpheSettingsStore {
     public static final String[] KEYS = {
         KEY_DISABLE_ADS,
         KEY_HIDE_SHOPPING_PINS,
+        KEY_HIDE_SEARCH_BOARD_MODULES,
         KEY_HIDE_SEARCH_HISTORY,
+        KEY_DISABLE_SCREENSHOT_SHARE,
+        KEY_SANITIZE_LINKS,
+        KEY_SHARE_LINK_ONLY,
         KEY_DISABLE_EMAIL_CONFIRM_DIALOG,
         KEY_BOARD_DOWNLOAD,
+        KEY_LONG_PRESS_DOWNLOAD,
         KEY_HIDE_SEARCH_BUTTON,
         KEY_HIDE_CREATE_BUTTON,
         KEY_HIDE_NOTIFICATIONS_BUTTON,
@@ -107,7 +117,12 @@ public final class MorpheSettingsStore {
             case KEY_HIDE_SHOPPING_PINS:
             case KEY_DISABLE_EMAIL_CONFIRM_DIALOG:
             case KEY_BOARD_DOWNLOAD:
+            case KEY_LONG_PRESS_DOWNLOAD:
             case KEY_VERBOSE_LOGGING:
+            case KEY_HIDE_SEARCH_BOARD_MODULES:
+            case KEY_DISABLE_SCREENSHOT_SHARE:
+            case KEY_SANITIZE_LINKS:
+            case KEY_SHARE_LINK_ONLY:
                 return true;
             default:
                 return false;
@@ -139,6 +154,50 @@ public final class MorpheSettingsStore {
         return effective(KEY_HIDE_SEARCH_HISTORY);
     }
 
+    /**
+     * Carosello sponsorizzato e bacheche in evidenza nella schermata di ricerca (issue #30).
+     *
+     * <p>Interruttore separato da {@link #isAdsDisabled()} perché tocca solo la ricerca e perché
+     * la regola sulle bacheche in evidenza è euristica: chi la trovasse troppo aggressiva deve
+     * poterla spegnere senza rinunciare al blocco della pubblicità.
+     */
+    public static boolean isSearchBoardModulesHidden() {
+        return effective(KEY_HIDE_SEARCH_BOARD_MODULES);
+    }
+
+    /**
+     * Pannello "Share screenshot" che Pinterest apre dopo uno screenshot, e la rilevazione che lo
+     * precede (issue #32).
+     */
+    public static boolean isScreenshotShareDisabled() {
+        return effective(KEY_DISABLE_SCREENSHOT_SHARE);
+    }
+
+    /**
+     * Ripulitura dei link che escono dall'app: parametri di tracciamento tolti dalla query e short
+     * link {@code pin.it} risolti nel link canonico del pin.
+     *
+     * <p>È un interruttore e non una scelta fatta una volta per tutte in fase di patch perché
+     * risolvere uno short link costa una richiesta di rete mentre l'utente aspetta: chi ha una
+     * connessione lenta e preferisce la condivisione istantanea deve poterlo spegnere. Vedi
+     * {@link UrlSanitizer}.
+     */
+    public static boolean isLinkSanitizerEnabled() {
+        return effective(KEY_SANITIZE_LINKS);
+    }
+
+    /**
+     * Condivide il solo link, senza la frase promozionale che Pinterest ci antepone ("Take a
+     * look at this Pin! ➡️").
+     *
+     * <p>Interruttore separato da {@link #isLinkSanitizerEnabled()} perché è una decisione diversa:
+     * quello toglie il tracciamento, questo toglie del testo che qualcuno potrebbe volere. Vedi
+     * {@link UrlSanitizer#stripToUrls(String)}.
+     */
+    public static boolean isShareLinkOnlyEnabled() {
+        return effective(KEY_SHARE_LINK_ONLY);
+    }
+
     public static boolean isSearchButtonHidden() {
         return effective(KEY_HIDE_SEARCH_BUTTON);
     }
@@ -167,6 +226,11 @@ public final class MorpheSettingsStore {
      * Voce di download nel menu "…" della bacheca. Quando è attiva, i pin delle bacheche
      * visitate vengono tenuti in memoria per poterli scaricare in blocco.
      */
+    /** Tasto "scarica" nel menu circolare che compare tenendo premuto un pin. */
+    public static boolean isLongPressDownloadEnabled() {
+        return effective(KEY_LONG_PRESS_DOWNLOAD);
+    }
+
     public static boolean isBoardDownloadEnabled() {
         return effective(KEY_BOARD_DOWNLOAD);
     }

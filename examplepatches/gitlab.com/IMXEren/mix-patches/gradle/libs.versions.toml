@@ -1,0 +1,11 @@
+[versions]
+morphe-patcher = "1.6.0"
+morphe-patches-library = "1.5.1"
+smali = "d92701d947"
+gson = "2.14.0"
+hiddenapi = "6.1"
+
+[libraries]
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+morphe-patches-library = { module = "app.morphe:morphe-patches-library", version.ref = "morphe-patches-library" }
+lsposed-hiddenApiBypass = { module = "org.lsposed.hiddenapibypass:hiddenapibypass", version.ref = "hiddenapi" }

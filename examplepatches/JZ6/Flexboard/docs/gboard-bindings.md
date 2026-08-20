@@ -39,8 +39,8 @@ bodies — not by guessing that the alphabet shifted.
 | Event dispatcher | `LatinIme->d(Lnbj;)Z` | `LatinIme->q(Lnur;)Z` |
 | Suppression flag | `AbstractIme->N:Z` | **`AbstractIme->O:Z`** |
 | Store singleton | `Lpnp;->N(Context)` | `Lqhy;->I(Context)` |
-| Preference writer | `Lpnp;->aa(I,Object)V` | `Lqhy;->T(I,Object)V` |
-| `contains` by id | `Lpnp;->ar(I)Z` | `Lqhy;->ak(I)Z` |
+| Preference writer | `Lpnp;->aa(I,Object)V` | `Lqhy;->T(I,Object)V` — *no longer used, see below* |
+| `contains` by id | `Lpnp;->ar(I)Z` | `Lqhy;->ak(I)Z` — *no longer used, see below* |
 | Word-count getter | `La;->W(Lnbj;)I` | `La;->X(Lnur;)I` |
 
 Unchanged across the move, and worth knowing because they carry most of the load:
@@ -74,8 +74,25 @@ Still pinned, and safely so — each was checked to be **signature-unique** on i
 makes it vanish rather than letting the letter survive on the wrong member. `checkPreferenceStorePins`
 and the existence helpers in `shared/Resolve.kt` assert they are still there:
 
-`Lqhy;->I(Context)`, `Lqhy;->k(String,Z)Z`, `Lqhy;->T(I,Object)V`, `LatinIme->y`, and the slot's
-`a()Lj$/util/Optional;`.
+`Lqhy;->I(Context)`, `Lqhy;->k(String,Z)Z`, `LatinIme->y`, and the slot's `a()Lj$/util/Optional;`.
+
+### Nothing writes a preference through the store any more
+
+`Lqhy;->T(I,Object)V` and `Lqhy;->ak(I)Z` were how the two startup patches wrote Gboard's own
+settings, and the second needed *deriving* rather than naming: two methods take `(I)` and return
+`Z`, and the other resolves the id to a key and delegates to a boolean **getter**, so a moved letter
+would turn "has the user ever set this?" into "is it currently true?".
+
+All of that was avoidable. `Lqhy;->T` resolves its id through `Lqht;` — `PreferenceKeyCache`, whose
+`a(I)` is `Resources.getString` behind a `ConcurrentHashMap` — so **a Gboard preference key is just
+a string resource's value**, and the file beneath is an ordinary `SharedPreferences`. The extension
+opens the same file already, to store what the settings screen writes.
+
+So the patches now hand the extension a `Context` at Application start and it writes in Java, with
+`getString(id)` for the key and the framework's own `contains`. Two derivations gone, one of them a
+documented silently-wrong trap, and `SharedPreferences.contains` has no sibling to confuse it with.
+The resource ids are still pinned — and now checked, which they never were while they lived in
+Kotlin. See `shared/AppStart.kt` and the extension's `GboardSettings`.
 
 The rule to apply to anything added later: **if a member has a same-signature sibling, derive it; if
 it does not, assert it exists.** Which applies is a fact about the APK, so check before choosing.
@@ -151,6 +168,51 @@ Preference ids: `0x7f1409af` = `access_points_count_on_bar`, `0x7f140a43` =
 `foldable_access_points_count_on_bar`. Neither appears in any settings XML — they are written from
 code only.
 
+### The access point and its builder
+
+| | |
+|---|---|
+| `Lmic;` | One toolbar button. 19-argument constructor, always built through the builder. |
+| `Lmhx;` | The builder. `Lmic;->c()Lmhx;` is the static factory; `Lmhx;->a()Lmic;` builds. |
+| `Lmhx;->q(Ljava/lang/Runnable;)V` | The "run arbitrary code on tap" setter — it stores no field, and wraps the `Runnable` as key data with keycode **-40007**, dispatched at IME level by `Lmln;->m(Lnur;)Z`. This is what every Flexboard button is built on. |
+| `Lmhx;->q:B` | The AutoValue completeness mask. `a()` refuses to build unless it reads `0x3f`, and names what is missing — `" icon"`, `" label"`, `" contentDescription"`, `" additionalContentDescription"`, `" a11yClickActionLabel"`, `" id"` — each tested against one bit. |
+
+**That mask is how the five `(I)V` setters are told apart.** Each ORs exactly one bit, so a bit
+leads from a setter to a string literal naming what it sets, and string literals survive R8. On
+18.0.3 the mapping is `i`→`0x1` icon, `j`→`0x2` label, `h`→`0x4` content description, `g`→`0x8`
+additional content description, `d`→`0x10` a11y click label, `l(String)`→`0x20` id. **Derive it;
+do not copy that row.** `k(I)V` also has signature `(I)V` and is not a property setter at all — it
+is a convenience that marks the point disabled — which is why the mask write, not the signature, is
+the test.
+
+**Every property is a resource id and a literal, side by side.** The constructor takes them in
+pairs, and `a()` reads the builder's fields into the argument registers in that order:
+
+| Constructor argument | Builder field | Access point field |
+|---|---|---|
+| 1 id `String` | `r` | — |
+| 2 icon resource id | `s` | `c:I` |
+| 3 icon literal `Icon` | `c` | `d:Landroid/graphics/drawable/Icon;` |
+| 4 label resource id | `t` | `e:I` |
+| 5 label literal `String` | `d` | `f:Ljava/lang/String;` |
+| 6 content description resource id | `u` | `g:I` |
+| 7 content description literal `String` | `e` | `h:Ljava/lang/String;` |
+
+The builder exposes setters only for the resource ids. The literals are pass-throughs `a()` never
+validates, so a patch writing one writes the field.
+
+**Which of the two wins, and what a zero id means.** `Lmic;->h(Landroid/content/Context;)String`
+returns `getString(e)` when `e != 0` and the literal `f` otherwise — and that accessor, `equals`,
+`hashCode` and `Lmhx;-><init>(Lmic;)V` are its **only** readers, so a zero label id cannot reach a
+rendering path. The content description is different: `Lmhe;->x`, `Lmhf;->f`, `Lmmv;->d` and
+`Lmxy;->y` all read `g:I` directly — but each guards with `if-eqz` before `getString`, so zero is
+"no resource" rather than a lookup of resource 0. Both facts are asserted by
+[`../tools/apk/preflight.py`](../tools/apk/README.md); the second is what keeps a literal-labelled
+button from throwing `NotFoundException` while the bar is being built.
+
+`Lmic;->b(Landroid/content/Context;)Drawable` is the same shape for the icon: the literal `Icon` if
+there is one, otherwise `null`, with the resource-id path elsewhere.
+
 How the capacity is computed, and the shape the second of the patch's two insertions anchors on.
 Worth reading with the row above in mind: this is the number that shipped patched in `1.1.0-dev.1`
 with nothing to show for it, because the table already said `Lmjv;->a` can only lower the count and
@@ -221,6 +283,64 @@ address `res/xml/settings.xml` but not the keyboard layout — Android resolves 
 runtime, so they could not be collapsed.
 
 Resolve ids with [`../tools/apk/arsc.py`](../tools/apk/README.md).
+
+### Material icons Gboard bundles
+
+Drawable names are collapsed too, so an icon can only be found by its geometry. Matching **all
+2,170 published Material Icons** against the APK's 496 vector drawables gives the complete list of
+what a patch can put on a button without shipping an image of its own: **29 shapes, at 35 ids.**
+
+| Glyph | Id(s) |
+|---|---|
+| `arrow_back` | `0x7f08054e`, `0x7f0806f4` |
+| `arrow_drop_down` | `0x7f0806b2`, `0x7f08076f` |
+| `arrow_drop_up` | `0x7f0806b3` |
+| `arrow_left` | `0x7f0806f7` |
+| `arrow_right` | `0x7f0806f9` |
+| `auto_awesome` | `0x7f0806fc` |
+| `cancel` | `0x7f0806b4` |
+| `check_box` | `0x7f08074e` |
+| `check_circle` | `0x7f080622` |
+| `circle` | `0x7f080702` |
+| `clear` / `close` *(same glyph)* | `0x7f080211`, `0x7f08058d`, `0x7f08061a`, `0x7f0806af` |
+| `content_copy` | `0x7f080214` |
+| `content_cut` | `0x7f080215` |
+| `content_paste` | `0x7f080217` |
+| `done` | `0x7f080623` |
+| `error` | `0x7f0806b8` |
+| `grade` / `star` *(same glyph)* | `0x7f080239` |
+| `help` | `0x7f080714` |
+| `help_outline` | `0x7f080713` |
+| `keyboard` | `0x7f080400`, `0x7f080612` |
+| `keyboard_capslock` | `0x7f08071c` |
+| `keyboard_tab` | `0x7f080720` |
+| `launch` / `open_in_new` *(same glyph)* | `0x7f080724` |
+| `radio_button_unchecked` | `0x7f080733` |
+| `select_all` | `0x7f080218` |
+| `share` | `0x7f080219` |
+| `spellcheck` | `0x7f080742` |
+| `unfold_more` | `0x7f08074b` |
+| `visibility_off` | `0x7f0803ca` |
+
+**Consult this rather than guessing.** The hit rate is 1.3%, and the misses are not the ones
+intuition predicts: `undo`, `redo`, `search`, `send`, `add`, `edit`, `favorite`, `bookmark`,
+`star_border` and every numbered glyph (`looks_one`…`looks_6`, `filter_1`…`filter_6`) match
+nothing, while `spellcheck` and `auto_awesome` are present. `content_copy`, `content_cut`,
+`content_paste` and `select_all` sit at consecutive ids because they arrived as an import block —
+and Gboard draws none of the four, since its text editing panel spells those actions out in words.
+
+Two limits on the list. It covers only the **496 vector** drawables of 1,679; the rest are
+gradients, shapes and ripples, invisible to a path comparison. And it says nothing about Gboard's
+own custom icons, which are the majority of those vectors and match no published set by
+construction — an icon absent here may still exist in the APK, drawn by Google rather than lifted
+from Material.
+
+Of the 2,209 icons in the reference set, 39 could not be tested: they have no filled
+`materialicons` variant in Google's repository, and all 39 are battery, wifi or cellular signal
+indicators.
+
+How this is done, and how to regenerate it after a Gboard bump, is in
+[`../tools/apk/README.md`](../tools/apk/README.md#find-an-icon-when-every-drawable-is-called-0_resource_name_obfuscated).
 
 ## How to re-derive these
 

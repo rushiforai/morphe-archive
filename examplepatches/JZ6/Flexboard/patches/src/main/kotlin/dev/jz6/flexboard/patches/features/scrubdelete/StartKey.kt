@@ -5,7 +5,9 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import dev.jz6.flexboard.patches.shared.descriptor
 import dev.jz6.flexboard.patches.shared.fieldDescriptor
+import dev.jz6.flexboard.patches.shared.fieldReferenceOrNull
 import dev.jz6.flexboard.patches.shared.invokeRegisterAt
 import dev.jz6.flexboard.patches.shared.opcodeName
 
@@ -180,15 +182,9 @@ private fun app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.instruction
     implementation?.instructions?.toList()
         ?: error("$SCRUB_MOTION_EVENT_HANDLER->g has no implementation")
 
-private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction.fieldReferenceOrNull() =
-    (this as? ReferenceInstruction)?.reference as? FieldReference
-
 private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction.methodReferenceOrNull() =
     (this as? ReferenceInstruction)?.reference as? MethodReference
 
-private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction.methodDescriptor(): String {
-    val reference = methodReferenceOrNull()
+private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction.methodDescriptor(): String =
+    methodReferenceOrNull()?.descriptor()
         ?: error("Not a method invocation: `${opcode.name}`")
-    return "${reference.definingClass}->${reference.name}" +
-        "(${reference.parameterTypes.joinToString("")})${reference.returnType}"
-}

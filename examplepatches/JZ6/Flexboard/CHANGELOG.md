@@ -1,3 +1,47 @@
+# [1.2.0](https://github.com/JZ6/Flexboard/compare/v1.2.0-dev.5...v1.2.0) (2026-08-19)
+
+* **Gboard:** release v1.2.0
+
+# [1.2.0-dev.5](https://github.com/JZ6/Flexboard/compare/v1.2.0-dev.4...v1.2.0-dev.5) (2026-08-19)
+
+* **Gboard:** bump to 1.2.0-dev.5
+* **Gboard:** drop orphaned preflight checks for store contains and write by id
+* **Gboard:** one-pass methodsMatching helper in TextActionsPatch
+* **Gboard:** delete the 4 inline "Resolved, not named" comments
+* **Gboard:** finish the r() prologue dedup — extract resolveDispatchEntry
+* **Gboard:** drop the dead sentinel gate and stale switch-era doc in scaleStepTable
+
+# [1.2.0-dev.4](https://github.com/JZ6/Flexboard/compare/v1.2.0-dev.3...v1.2.0-dev.4) (2026-08-19)
+
+* **Gboard:** bump to 1.2.0-dev.4
+* **Gboard:** route the signature-check register-count check through the helper too
+* **Gboard:** deduplicate patch helpers and constants
+
+# [1.2.0-dev.3](https://github.com/JZ6/Flexboard/compare/v1.2.0-dev.2...v1.2.0-dev.3) (2026-08-19)
+
+* **Gboard:** bump to 1.2.0-dev.3
+* **Gboard:** note the swipe length may be inverted on the delete key
+* **Gboard:** write Gboard's own preferences from Java too
+
+# [1.2.0-dev.2](https://github.com/JZ6/Flexboard/compare/v1.2.0-dev.1...v1.2.0-dev.2) (2026-08-19)
+
+* **Gboard:** bump to 1.2.0-dev.2
+* **Gboard:** start at 60% swipe length, 6 toolbar icons, 12 unfolded
+
+# [1.2.0-dev.1](https://github.com/JZ6/Flexboard/compare/v1.1.1...v1.2.0-dev.1) (2026-08-19)
+
+* **Gboard:** bump to 1.2.0-dev.1
+* **Gboard:** six toolbar hotkeys that type a string you choose
+* **Gboard:** record every Material icon Gboard bundles
+* **Gboard:** release v1.1.2-dev.1 [skip ci]
+* **Gboard:** bump to 1.1.2-dev.1
+* **Gboard:** add Copy and Paste buttons beside Select all
+
+# [1.1.2-dev.1](https://github.com/JZ6/Flexboard/compare/v1.1.1-dev.2...v1.1.2-dev.1) (2026-08-19)
+
+* **Gboard:** bump to 1.1.2-dev.1
+* **Gboard:** add Copy and Paste buttons beside Select all
+
 # [1.1.1](https://github.com/JZ6/Flexboard/compare/v1.1.1-dev.2...v1.1.1) (2026-08-19)
 
 * **Gboard:** bump to 1.1.1

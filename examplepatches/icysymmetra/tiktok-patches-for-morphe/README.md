@@ -41,7 +41,7 @@ The goal is to keep the existing patch set usable while adding more TikTok-focus
 | `Disable login requirement` | Removes TikTok's mandatory login gate from supported flows. |
 | `Disable long-press quick share` | Keeps long-pressing Share from opening TikTok's quick-share interaction. |
 | `Disable screen capture detection` | Prevents TikTok from detecting screenshots and screen recordings. |
-| `Diagnostic tools` | Adds optional structured Morphe logs, Java crash capture, and clipboard or file report export. |
+| `Diagnostic tools` | Adds optional structured Morphe logs, TikTok crash capture, and clipboard or file report export. |
 | `Downloads` | Adds watermark-free downloads, filename templates, and comment sticker saving with animated-media preservation. |
 | `Enable Live search` | Shows TikTok's search entry in the Live drawer where supported. |
 | `Enable non-personalized search` | Uses TikTok's non-personalized search mode instead of its saved account choice. |

@@ -53,7 +53,7 @@ class WallpaperHandler {
             View.OnClickListener onClickListener = new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    PinterestUtils.dismissMenu();
+                    PinterestUtils.dismissMenu(v.getContext());
                     showWallpaperDialog(v.getContext());
                 }
             };
@@ -65,6 +65,7 @@ class WallpaperHandler {
                 row = PinterestUtils.buildRowFallback(context, labelText, container, android.R.drawable.ic_menu_gallery, onClickListener);
             }
             if (row != null) {
+                PinterestUtils.matchRowTextAppearance(container, row);
                 container.addView(row);
             }
         } catch (Throwable t) {

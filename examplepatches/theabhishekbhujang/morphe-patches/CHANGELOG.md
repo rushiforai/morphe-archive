@@ -1,3 +1,38 @@
+## [1.5.3](https://github.com/theabhishekbhujang/morphe-patches/compare/v1.5.2...v1.5.3) (2026-08-19)
+
+### 🐛 Bug Fixes
+
+* **rhythm:** use addInstructions to force isPro false without breaking constructor field initialization ([d6fd8f3](https://github.com/theabhishekbhujang/morphe-patches/commit/d6fd8f35c7b5766a6b8736eec92b016fd6c8efd6))
+
+## [1.5.2](https://github.com/theabhishekbhujang/morphe-patches/compare/v1.5.1...v1.5.2) (2026-08-19)
+
+### 🐛 Bug Fixes
+
+* **rhythm:** match 18 instruction count in replacement smali for m4.f constructor ([82a2445](https://github.com/theabhishekbhujang/morphe-patches/commit/82a2445f072ed136701c0f5148d47b8b1eff0030))
+* **rhythm:** specify instruction count in replaceInstructions to fix IndexOutOfBoundsException ([4d4dc23](https://github.com/theabhishekbhujang/morphe-patches/commit/4d4dc231317399af861f382d9082f4e7b88d72c0))
+
+## [1.5.1](https://github.com/theabhishekbhujang/morphe-patches/compare/v1.5.0...v1.5.1) (2026-08-19)
+
+### 🐛 Bug Fixes
+
+* **ci:** update setup-java to v5, node to 22 and trigger clean build ([6e850a7](https://github.com/theabhishekbhujang/morphe-patches/commit/6e850a7fd973fe0ead6a560d8519eb16060ed6c9))
+* escape dollar sign in Smali type descriptor ([b3a0936](https://github.com/theabhishekbhujang/morphe-patches/commit/b3a0936e2b4b1cd0b3db57580ebd420afb5b32db))
+* **rhythm:** fix invalid register usage in m4.f constructor patch ([8bd98ef](https://github.com/theabhishekbhujang/morphe-patches/commit/8bd98ef61828639e9b19f23e48ccc6f8411e1a79))
+* **rhythm:** trigger release build workflow ([4f61a7e](https://github.com/theabhishekbhujang/morphe-patches/commit/4f61a7e7b0ca800936c93e74c7ec36b4687059f4))
+* **rhythm:** unlock pro features and taals in m4.f constructor ([6ea002e](https://github.com/theabhishekbhujang/morphe-patches/commit/6ea002e7de3a09354eb9d8cb5d40f9b2c357933b))
+
+## [1.5.0](https://github.com/theabhishekbhujang/morphe-patches/compare/v1.4.3...v1.5.0) (2026-08-19)
+
+### ✨ New Features
+
+* **harmonium:** update supported version to harmony_29.0.1 ([c923c2f](https://github.com/theabhishekbhujang/morphe-patches/commit/c923c2f0c8b64043178b1fbcf305f542a621344a))
+
+## [1.4.3](https://github.com/theabhishekbhujang/morphe-patches/compare/v1.4.2...v1.4.3) (2026-08-19)
+
+### 🐛 Bug Fixes
+
+* **rhythm:** remove non-existent m4.f.f fingerprint ([2144e6e](https://github.com/theabhishekbhujang/morphe-patches/commit/2144e6eb7369e80c6eae4788a580f39e24392520))
+
 ## [1.4.2](https://github.com/theabhishekbhujang/morphe-patches/compare/v1.4.1...v1.4.2) (2026-08-18)
 
 ### 🐛 Bug Fixes

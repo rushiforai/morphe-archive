@@ -1,5 +1,6 @@
 package app.ftl.patches.xender
 
+import app.ftl.util.returnEarly
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
@@ -51,9 +52,24 @@ private object MainActivityDrawerEnterClickFingerprint : Fingerprint(
     parameters = emptyList(),
 )
 
+/**
+ * Matches ConnectButtonView.hiddenView(), the app's own real (unobfuscated) method
+ * that animates the Connect/Create/Join buttons off-screen (translationX/Y). Class +
+ * name + signature alone are unique, no filters needed. Stubbing this out is what
+ * keeps those buttons permanently visible, regardless of what internally triggers
+ * the hide (a Handler-posted message via consumePendingAnim()/switchShowOrHidden()) -
+ * bringToFront()/GONE on the drawer/nav ids alone doesn't stop this animation.
+ */
+private object ConnectButtonHiddenViewFingerprint : Fingerprint(
+    definingClass = "Lcn/xender/views/ConnectButtonView;",
+    name = "hiddenView",
+    returnType = "V",
+    parameters = emptyList(),
+)
+
 val cleanMainUiPatch = bytecodePatch(
     name = "Clean main UI",
-    description = "Hides the bottom navigation bar, the top-right guide icon, and the Rate/Help/About drawer items, and brings the connect/create/join buttons to front. Reapplied on create, resume, and drawer open (and retried for ~1.8s after each) since some of these views are inflated lazily.",
+    description = "Hides the bottom navigation bar, the top-right guide icon, and the Rate/Help/About drawer items, keeps the connect/create/join buttons on top, and stops them from being auto-hidden. Reapplied on create, resume, and drawer open (and retried for ~1.8s after each) since some of these views are inflated lazily.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_XENDER)
@@ -73,6 +89,10 @@ val cleanMainUiPatch = bytecodePatch(
 
         MainActivityDrawerEnterClickFingerprint.let { fingerprint ->
             fingerprint.method.addInstructions(0, "invoke-static {p0}, $EXTENSION_APPLY_UI")
+        }
+
+        ConnectButtonHiddenViewFingerprint.let { fingerprint ->
+            fingerprint.method.returnEarly()
         }
     }
 }

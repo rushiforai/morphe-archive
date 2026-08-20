@@ -1,0 +1,63 @@
+release:
+  stage: automate
+  image: ubuntu:24.04
+  resource_group: semantic-release
+  interruptible: false
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: never
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "dev"'
+  variables:
+    GIT_DEPTH: "0"
+    # renovate: datasource=github-releases depName=jdx/mise
+    MISE_VERSION: v2026.8.8
+    MISE_DATA_DIR: "$CI_PROJECT_DIR/.mise"
+    ANDROID_SDK_CLI_VERSION: "22.0"
+    ANDROID_COMPILE_SDK: "36"
+    ANDROID_BUILD_TOOLS: "36.0.0"
+    npm_config_cache: "$CI_PROJECT_DIR/.npm"
+    PROJECT_PATH: "$CI_PROJECT_PATH"
+    PROJECT_REF_NAME: "$CI_COMMIT_REF_NAME"
+    PROJECT_URL: "$CI_PROJECT_URL"
+    RUNNER_GENERATE_ARTIFACTS_METADATA: "true"
+  cache:
+    key:
+      files:
+        - mise.toml
+        - package-lock.json
+    paths:
+      - .mise/
+      - .npm/
+  before_script:
+    - apt-get update -qq
+    - apt-get install -y --no-install-recommends ca-certificates curl git
+    - curl https://mise.run | MISE_VERSION="$MISE_VERSION" sh
+    - export PATH="$HOME/.local/bin:$PATH"
+    - mise install
+    - eval "$(mise activate bash)"
+    - mise install "android-sdk@$ANDROID_SDK_CLI_VERSION"
+    - eval "$(mise env -s bash android-sdk@$ANDROID_SDK_CLI_VERSION)"
+    - android --version
+    - android sdk install "platform-tools" "platforms/android-$ANDROID_COMPILE_SDK" "build-tools/$ANDROID_BUILD_TOOLS" >/dev/null
+    - mise current
+    - export GITHUB_RELEASE_REPOSITORY_URL="https://github.com/$CI_PROJECT_PATH.git"
+    - export PROJECT_RELEASE_URL_TEMPLATE="$CI_PROJECT_URL/-/releases/v{version}"
+    - export PROJECT_RELEASE_DOWNLOAD_URL_TEMPLATE="$CI_PROJECT_URL/-/releases/v{version}/downloads/patches-{version}.mpp"
+    - npm ci
+    - ': "${GL_TOKEN:?Set GL_TOKEN to a GitLab project access token with api and write_repository scopes}"'
+    - ': "${GITHUB_ACTOR:?Set GITHUB_ACTOR to the GitHub account used for packages and releases}"'
+    - ': "${GITHUB_TOKEN:?Set GITHUB_TOKEN to a GitHub token with contents write and packages read access}"'
+  script:
+    - rm -f .semantic-release-created
+    - npx semantic-release
+    - |
+      if [ ! -f .semantic-release-created ]; then
+        ./gradlew :patches:test :patches:buildAndroid clean --no-daemon
+      fi
+  artifacts:
+    name: "mix-patches-$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - patches/build/libs/*.mpp*
+    expire_in: 30 days

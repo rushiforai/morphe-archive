@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-08-18T14:21:59",
-  "description": "## [1.40.0-dev.10](https://github.com/MorpheApp/morphe-patches/compare/v1.40.0-dev.9...v1.40.0-dev.10) (2026-08-18)\n\n### \ud83d\udc1b Bug Fixes\n\n* **YouTube - Add to queue:** Error toast is shown when using YouTube `20.21.37` ([a1c5aef](https://github.com/MorpheApp/morphe-patches/commit/a1c5aef3bf9f1320f797c74a6caf1e49872a10a4))\n* **YouTube - Override YouTube Music buttons:** Resolve intent routing failure ([#2487](https://github.com/MorpheApp/morphe-patches/issues/2487)) ([a8761c2](https://github.com/MorpheApp/morphe-patches/commit/a8761c2efeedb16ecb41dc925f144352c0b5b350))\n\n### \u2728 New Features\n\n* **YouTube:** Add \"Back button exits the feed\" setting ([#2488](https://github.com/MorpheApp/morphe-patches/issues/2488)) ([fe8e03c](https://github.com/MorpheApp/morphe-patches/commit/fe8e03cc67266e022a46c281e3962eaf7a253b14))\n",
-  "download_url": "https://github.com/MorpheApp/morphe-patches/releases/download/v1.40.0-dev.10/patches-1.40.0-dev.10.mpp",
+  "created_at": "2026-08-19T11:57:00",
+  "description": "## [1.40.0-dev.12](https://github.com/MorpheApp/morphe-patches/compare/v1.40.0-dev.11...v1.40.0-dev.12) (2026-08-19)\n\n### \ud83d\udc1b Bug Fixes\n\n* **Reddit - Hide Trending shelves:** Resolve fingerprint failure ([ea9c443](https://github.com/MorpheApp/morphe-patches/commit/ea9c443b0fd9f34d2a2f0c118564b8042901b9fe))\n\n### \u2728 New Features\n\n* **Spoof video streams:** Default client maintenance ([#2479](https://github.com/MorpheApp/morphe-patches/issues/2479)) ([62c6a35](https://github.com/MorpheApp/morphe-patches/commit/62c6a351b5313ba9068c62306129ec0dfef29e5e))\n",
+  "download_url": "https://github.com/MorpheApp/morphe-patches/releases/download/v1.40.0-dev.12/patches-1.40.0-dev.12.mpp",
   "signature_download_url": "N/A",
-  "version": "v1.40.0-dev.10"
+  "version": "v1.40.0-dev.12"
 }

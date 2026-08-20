@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Do the patch and the extension still agree about the preference contract?
 
-The preference keys and their defaults exist twice: once in the Kotlin patches, which read them out
-of Gboard's store at runtime, and once in `FlexboardSettingsActivity`, which writes them. They cannot
-be shared — the Activity is compiled into the extension DEX, a separate Gradle module with no
+Some values exist twice: once in the Kotlin patches and once in the extension's Java. Preference keys
+and their defaults, because the patches read Gboard's store at runtime and `FlexboardSettingsActivity`
+writes it; and the action ordinals the patches hand `TextAction`, which maps them to framework
+context-menu ids. They cannot be shared — the extension is a separate Gradle module with no
 dependency on the patches — so both sides carry a comment pointing at the other.
 
 A comment is not a check. Change one side alone and everything still compiles, the settings screen
@@ -20,11 +21,6 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 PATCHES = ROOT / "patches/src/main/kotlin"
-ACTIVITY = ROOT / (
-    "extensions/extension/src/main/java/dev/jz6/flexboard/extension/settings"
-    "/FlexboardSettingsActivity.java"
-)
-
 # (Kotlin name, Java name). The names differ where each side reads more naturally on its own terms;
 # what has to match is the value.
 PAIRS = [
@@ -46,10 +42,32 @@ PAIRS = [
     ("TOOLBAR_COUNT_UNFOLDED_KEY", "KEY_TOOLBAR_COUNT_UNFOLDED"),
     ("TOOLBAR_COUNT_MIN", "TOOLBAR_COUNT_MIN"),
     ("TOOLBAR_COUNT_MAX", "TOOLBAR_COUNT_MAX"),
+    # The ordinals the patch hands the extension's constructor. The extension maps them to
+    # android.R.id.* so the framework constants stay symbolic in the one language that can name
+    # them -- which means the number crossing the boundary is meaningless on its own, and a drift
+    # would silently wire Copy to Paste rather than failing.
+    ("TEXT_ACTION_SELECT_ALL", "SELECT_ALL"),
+    ("TEXT_ACTION_COPY", "COPY"),
+    ("TEXT_ACTION_PASTE", "PASTE"),
+    # How many hotkey slots exist, and the drawable each one wears. The count decides how many
+    # blocks the patch emits and how many rows the screen draws; the icons are what the patch puts
+    # on the button and what the screen previews beside the field that fills it. A drifted icon
+    # would show the user one shape and put another on the toolbar -- the single thing that makes
+    # six otherwise identical buttons tellable apart, quietly wrong.
+    ("HOTKEY_SLOT_COUNT", "HOTKEY_SLOT_COUNT"),
+    ("HOTKEY_ICON_1", "HOTKEY_ICON_1"),
+    ("HOTKEY_ICON_2", "HOTKEY_ICON_2"),
+    ("HOTKEY_ICON_3", "HOTKEY_ICON_3"),
+    ("HOTKEY_ICON_4", "HOTKEY_ICON_4"),
+    ("HOTKEY_ICON_5", "HOTKEY_ICON_5"),
+    ("HOTKEY_ICON_6", "HOTKEY_ICON_6"),
 ]
 
-KOTLIN_CONST = re.compile(r'internal const val (\w+) = (?:"([^"]*)"|(\d+))')
-JAVA_CONST = re.compile(r'private static final (?:String|int) (\w+) = (?:"([^"]*)"|(\d+));')
+# Hex is accepted because resource ids are written that way on both sides -- and on the Kotlin side
+# they are *strings*, since a patch emits them into smali as text rather than using them as numbers.
+NUMBER = r"0[xX][0-9a-fA-F]+|\d+"
+KOTLIN_CONST = re.compile(rf'internal const val (\w+) = (?:"([^"]*)"|({NUMBER}))')
+JAVA_CONST = re.compile(rf'private static final (?:String|int) (\w+) = (?:"([^"]*)"|({NUMBER}));')
 
 
 def _collect(pattern, text):
@@ -57,6 +75,19 @@ def _collect(pattern, text):
         m.group(1): m.group(2) if m.group(2) is not None else m.group(3)
         for m in pattern.finditer(text)
     }
+
+
+def _normalised(value):
+    """Two spellings of one number compare equal; everything else compares as written.
+
+    `0x7f080239` on one side and `2130903609` on the other are the same resource id, and a check
+    that called them different would be noise. Preference keys and other strings fall through
+    unchanged, because `int` refuses them.
+    """
+    try:
+        return str(int(value, 0))
+    except (TypeError, ValueError):
+        return value
 
 
 EXTENSION_ROOT = ROOT / "extensions/extension/src/main/java"
@@ -81,6 +112,24 @@ EXTENSION_TYPE = r"Ldev/jz6/flexboard/extension/[\w/$]+;"
 EMITTED_CALL = re.compile(
     r"invoke-(static|virtual|direct|interface)\s*\{[^}]*\}\s*,\s*"
     rf"({EXTENSION_TYPE})->(<init>|\w+)\(([^)]*)\)(\[*(?:L[\w/$;]+;|[VZBSCIJFD]))"
+)
+
+# Calls emitted by a shared helper rather than written out at the use site.
+#
+# `shared/AppStart.kt` emits `invoke-static { p0 }, $descriptor` for whatever descriptor it is
+# handed, so three patches now name an extension member without any `invoke-` beside it. The
+# pattern above cannot see those, and the "silently stopped checking anything" guard below is what
+# noticed -- the check would otherwise have gone quiet on three of its five call sites.
+#
+# Each entry maps a helper to the opcode it emits, which is the part that has to be known rather
+# than inferred: a helper hardcoding invoke-static against a member someone later made non-static
+# is exactly the failure this file exists to catch.
+HELPER_CALLS = {"callAtAppStart": "static"}
+
+HELPER_CALL = re.compile(rf"\b({'|'.join(HELPER_CALLS)})\(\s*([A-Z_][A-Z0-9_]*)\s*\)")
+
+MEMBER = re.compile(
+    rf"^({EXTENSION_TYPE})->(<init>|\w+)\(([^)]*)\)(\[*(?:L[\w/$;]+;|[VZBSCIJFD]))$"
 )
 
 
@@ -175,8 +224,30 @@ def _check_extension_references(problems):
                 source, LINE_COMMENT.sub("", BLOCK_COMMENT.sub("", source.read_text()))
             )
 
+        # A helper's call site names the member through a constant, so resolve it back to the same
+        # shape the pattern above produces. `text` is already expanded to a fixpoint, so the
+        # declarations in it carry their final values.
+        constants = dict(CONST_STRING.findall(text))
+        emitted = list(EMITTED_CALL.findall(text))
+        for helper, name in HELPER_CALL.findall(text):
+            descriptor = constants.get(name)
+            if descriptor is None:
+                problems.append(
+                    f"  {path.name} calls {helper}({name}), but {name} is not a string constant "
+                    f"in that file, so what it emits cannot be checked"
+                )
+                continue
+            match = MEMBER.match(descriptor)
+            if match is None:
+                problems.append(
+                    f"  {path.name} calls {helper}({name}), whose value {descriptor!r} is not a "
+                    f"complete extension member descriptor"
+                )
+                continue
+            emitted.append((HELPER_CALLS[helper], *match.groups()))
+
         checked = 0
-        for opcode, descriptor, member, parameters, returns in EMITTED_CALL.findall(text):
+        for opcode, descriptor, member, parameters, returns in emitted:
             if descriptor not in sources:
                 continue
             source, body = sources[descriptor]
@@ -217,19 +288,33 @@ def main():
     kotlin = {}
     for path in PATCHES.rglob("*.kt"):
         kotlin.update(_collect(KOTLIN_CONST, path.read_text()))
-    java = _collect(JAVA_CONST, ACTIVITY.read_text())
-
     problems = []
+
+    # Every Java file in the extension, not just the settings screen. The screen was the only side
+    # of the contract until the toolbar buttons arrived: their action ordinals are shared with
+    # TextAction, which is not a settings class at all. Collecting one file silently reported those
+    # as undeclared.
+    java, declared_in = {}, {}
+    for source in sorted(EXTENSION_ROOT.rglob("*.java")):
+        for name, value in _collect(JAVA_CONST, source.read_text()).items():
+            if name in java and java[name] != value:
+                problems.append(
+                    f"  {name} is declared twice in the extension with different values — "
+                    f"{declared_in[name]} says {java[name]!r}, {source.name} says {value!r}"
+                )
+                continue
+            java[name], declared_in[name] = value, source.name
+
     for kt_name, java_name in PAIRS:
         kt_value, java_value = kotlin.get(kt_name), java.get(java_name)
         if kt_value is None:
             problems.append(f"  {kt_name} is not declared in any patch")
         elif java_value is None:
-            problems.append(f"  {java_name} is not declared in FlexboardSettingsActivity")
-        elif kt_value != java_value:
+            problems.append(f"  {java_name} is not declared anywhere in the extension")
+        elif _normalised(kt_value) != _normalised(java_value):
             problems.append(
-                f"  {kt_name} = {kt_value!r} but {java_name} = {java_value!r} — "
-                f"the patch and the settings screen disagree"
+                f"  {kt_name} = {kt_value!r} but {java_name} = {java_value!r} in "
+                f"{declared_in[java_name]} — the patch and the extension disagree"
             )
 
     _check_extension_references(problems)

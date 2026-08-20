@@ -14,6 +14,7 @@ import app.morphe.extension.tiktok.settings.preference.DownloadPathPreference;
 import app.morphe.extension.tiktok.settings.preference.InputTextPreference;
 import app.morphe.extension.tiktok.settings.preference.NumberInputPreference;
 import app.morphe.extension.tiktok.settings.preference.TogglePreference;
+import app.morphe.extension.tiktok.download.DownloadDestination;
 
 @SuppressWarnings("deprecation")
 public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
@@ -31,8 +32,21 @@ public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
     public void addPreferences(Context context) {
         addPreference(new DownloadPathPreference(
                 context,
-                "Download path",
-                Settings.DOWNLOAD_PATH
+                "Video destination",
+                Settings.DOWNLOAD_VIDEO_PATH,
+                DownloadDestination.Kind.VIDEO
+        ));
+        addPreference(new DownloadPathPreference(
+                context,
+                "Photo destination",
+                Settings.DOWNLOAD_PHOTO_PATH,
+                DownloadDestination.Kind.PHOTO
+        ));
+        addPreference(new DownloadPathPreference(
+                context,
+                "Sticker destination",
+                Settings.DOWNLOAD_STICKER_PATH,
+                DownloadDestination.Kind.STICKER
         ));
         addPreference(new InputTextPreference(
                 context,

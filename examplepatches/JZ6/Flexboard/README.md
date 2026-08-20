@@ -35,7 +35,7 @@ Both keyboards stay installed, so you can switch back whenever you like.
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.1.1](https://github.com/JZ6/Flexboard/releases/tag/v1.1.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
+> **[v1.2.0](https://github.com/JZ6/Flexboard/releases/tag/v1.2.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
 <details open>
 <summary>📦 Gboard&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
 <br>
@@ -51,9 +51,9 @@ Both keyboards stay installed, so you can switch back whenever you like.
 | [Bypass Gboard Signature](#bypass-gboard-signature) | Bypass Gboard's signature whitelist checks and force them to pass. |  |
 | [Flick Keys for Symbols](#flick-keys-for-symbols) | Turn on Gboard's "Flick keys to enter symbols" — pull down on a key to enter the symbol hinted in its corner. Written once as a default, so it can still be turned off in Gboard's own settings. |  |
 | [Install as Gboard Clone](#install-as-gboard-clone) | Rename the package to dev.jz6.com.google.android.inputmethod.latin so the patched build installs alongside the official Gboard instead of replacing it. |  |
-| [Select All Button](#select-all-button) | Add a Select all button to the toolbar above the keyboard. One tap selects everything in the text field, without opening Gboard's text editing panel first. |  |
 | [Swipe Right to Undo](#swipe-right-to-undo) | Swipe right after deleting to put the words back. Uses Gboard's own undo, which already records what a delete swipe removed. |  |
 | [Swipe to Delete](#swipe-to-delete) | Swipe left anywhere on the keyboard to delete the previous word, and swipe right to restore it. Uses Gboard's own word-scrub engine, so it behaves exactly like swiping on the backspace key already does — only it can start anywhere. |  |
+| [Toolbar Buttons](#toolbar-buttons) | Add Select all, Copy and Paste buttons to the toolbar above the keyboard, so each is one tap instead of opening Gboard's text editing panel first. Adds six hotkey buttons too, each typing a string you set in Flexboard's settings — they only appear once you have filled one in. |  |
 
 </details>
 
@@ -94,19 +94,27 @@ the swipe-anywhere gesture; the backspace key keeps Gboard's own behaviour, see 
 
 | Setting | Default | What it does |
 |---|---|---|
-| **Swipe length** | 100% | How far to swipe per deleted word, as a percent of Gboard's own distance. Lower deletes more words for the same swipe. |
+| **Swipe length** | 60% | How far to swipe per deleted word, as a percent of Gboard's own distance. Lower deletes more words for the same swipe; 100% is Gboard's own distance. |
 | **Max words per swipe** | 1 | The most words one swipe can delete. At 1 a swipe deletes a single word however far it travels; 10 means no limit. Swiping back still restores. |
 | **Hold delay** | 0 ms | How long the swipe must be held before it starts deleting. Gboard's own delete swipe uses 200 ms, which is what makes it feel like a press-and-drag rather than a flick. |
 
 The screen also carries **Icons on the toolbar** and **Icons when unfolded**, which belong to the
-Bigger Toolbar patch and are described [further down](#bigger-toolbar).
+Bigger Toolbar patch and are described [further down](#bigger-toolbar), and six **Hotkeys** fields
+belonging to [Toolbar Buttons](#toolbar-buttons).
 
 Every value is read out of Gboard's own preference store, so there is no separate settings app and
-nothing to keep in sync. Swipe length already ships at Gboard's own distance; setting the other two
-to 10 and 200 ms puts those back as well, and why they do not start there is in
+nothing to keep in sync. All three now start somewhere other than Gboard's own behaviour; 100%, 10
+and 200 ms put them back, and why they do not start there is in
 [`docs/design.md`](docs/design.md).
 
-Changes are not instant: a new setting is picked up the next time the keyboard is opened.
+The starting values are written into the store the first time the patched app runs, rather than
+being numbers inside the patch. So they behave as defaults for a fresh install, and a later update
+can pick different ones without moving settings you have already got used to.
+
+Changes are not instant: a new setting is picked up the next time the keyboard is opened. Hotkeys
+are half an exception — *editing* a snippet takes effect immediately, because the text is read when
+the button is tapped, but its name on the toolbar and whether the button exists at all are decided
+when the bar is built.
 
 The screen shows every section whether or not you ticked the patch it belongs to — it is one merged
 class and cannot tell which patches you chose. A slider for a patch you did not apply moves and
@@ -163,21 +171,47 @@ It is always on when the patch is applied. Swiping right after a delete did noth
 Gboard, so nothing is being taken away by giving it a meaning — and Gboard fills the same undo slot
 when you swipe on the backspace key, so it works there too.
 
-## Select all
+## Toolbar buttons
 
-Adds a **Select all** button to the toolbar above the keyboard. One tap selects everything in the
-text field.
+Adds **Select all**, **Copy** and **Paste** buttons to the toolbar above the keyboard, and six
+**hotkeys** that type a string you choose. One tap each, on whatever you are typing into.
 
-Gboard can already do this, behind its **Text editing** toolbar button — open that panel, then tap
-select all. This is the same action without the panel.
+### Select all, copy and paste
 
-The button takes the first slot on the toolbar, which pushes whatever used to be last into the
-overflow menu behind the chevron. Long-press the toolbar to reorder it like any other button.
+Gboard can already do all three, behind its **Text editing** toolbar button — open that panel, then
+tap the one you want. These are the same actions without the panel.
 
-The icon is Material's own select-all mark — the dashed square with a filled centre. Gboard ships
-it and never draws it anywhere: its text editing panel spells "Select all" out in words rather than
-using an icon, which is why this button first borrowed the panel's icon instead. The label is
-Gboard's own "Select all". Flexboard still adds no images of its own.
+They take the first three slots on the toolbar, which pushes whatever used to be last into the
+overflow menu behind the chevron. Long-press the toolbar to reorder them like any other button, or
+raise the icon count with [Bigger Toolbar](#bigger-toolbar) so nothing has to move.
+
+The labels are Gboard's own, so they are already translated wherever Gboard is. The icons are
+Material's — the select-all marquee, and the familiar copy and paste marks. Gboard ships all three
+and draws none of them, because its text editing panel spells the actions out in words rather than
+using icons; that is why Select all first shipped borrowing an unrelated icon. Flexboard still adds
+no images of its own.
+
+### Hotkeys
+
+Six more buttons, each typing a string you set under **Hotkeys** in Flexboard's settings — an email
+address, a signature, "brb", whatever you type often enough to resent typing.
+
+**A slot you have not filled in makes no button.** Fresh out of the box there are no hotkeys at all;
+fill one in and its icon appears on the toolbar, clear the field and the button goes away again.
+That is the on/off switch, and it is per-button.
+
+Each button is named by your own text, so they are easy to tell apart when you long-press to
+reorder the toolbar. On the bar itself there is only room for the icon, and here the icons are
+arbitrary — a star, a sparkle, scissors, a ticked box, a ring, a share mark. They have to be:
+Gboard bundles 29 Material shapes and not one of them is a digit, and Flexboard ships no images of
+its own. So the settings screen draws each slot's real icon beside the field that fills it, which
+is the moment you actually need to know which is which.
+
+Long text is fine. The whole of it gets typed; only the first line, cut short, becomes the name.
+
+**Nine buttons is more than the bar holds.** With the three text actions plus a few hotkeys,
+whatever used to sit at the end of your toolbar moves into the overflow menu behind the chevron.
+Raise the icon count with [Bigger Toolbar](#bigger-toolbar) and they all fit.
 
 ## Flick keys for symbols
 
@@ -204,9 +238,13 @@ own count preference if you have one set, and to three if it has decided your sc
 room. Flexboard replaces the answer rather than the starting point, so the slider is the last word
 on it.
 
-Leaving the slider alone changes nothing at all: with no value stored, Flexboard's code falls
-straight through and Gboard's own runs untouched. A value outside 3–12 is treated the same way as no
-value rather than being forced into range.
+**It starts at 6, and at 12 on the inner screen of a fold.** Those are written into Gboard's
+preference store the first time the patched app runs, rather than being numbers baked into the
+patch — which means an update can ship different starting values for new installs without moving a
+toolbar you have already got used to. Move a slider and it is yours from then on.
+
+A value outside 3–12 is ignored rather than forced into range, and the bar falls back to whatever
+Gboard would have done.
 
 **Icons get narrower, not smaller in number.** The bar divides its width by the number of items, so
 at 10 they are about half the width they are at 5, and at 12 narrower still. Eight is as far as
@@ -218,8 +256,8 @@ the line between the bar and the overflow menu falls.
 
 **On a foldable, the two screens keep their own counts.** Gboard already works this way — the inner
 screen is wider and fits more — so Flexboard's settings carry a second slider, **Icons when
-unfolded**, that applies only while the phone is open. Leave it alone and the main slider covers
-both screens; move it and the inner screen gets its own number. On anything that does not fold the
+unfolded**, that applies only while the phone is open. It starts at 12 against the main slider's 6,
+and each owns its screen: changing one does not move the other. On anything that does not fold the
 second slider does nothing.
 
 This shipped once before, in `1.1.0-dev.1`, and did nothing — it moved the ceiling rather than the

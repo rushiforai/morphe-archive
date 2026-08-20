@@ -24,6 +24,7 @@ import android.widget.TextView;
 
 import app.morphe.extension.shared.settings.StringSetting;
 import app.morphe.extension.tiktok.Utils;
+import app.morphe.extension.tiktok.download.DownloadDestination;
 
 @SuppressWarnings("deprecation")
 public class DownloadPathPreference extends DialogPreference {
@@ -31,9 +32,16 @@ public class DownloadPathPreference extends DialogPreference {
 
     private boolean mValueSet;
     private String downloadPathValue;
+    private final DownloadDestination.Kind kind;
 
-    public DownloadPathPreference(Context context, String title, StringSetting setting) {
+    public DownloadPathPreference(
+            Context context,
+            String title,
+            StringSetting setting,
+            DownloadDestination.Kind kind
+    ) {
         super(context);
+        this.kind = kind;
         setTitle(title);
         setSummary(Environment.getExternalStorageDirectory().getPath() + "/" + setting.get());
         setKey(setting.key);
@@ -60,9 +68,12 @@ public class DownloadPathPreference extends DialogPreference {
     }
 
     public void applyPickedPath(String path) {
-        String newValue = normalizePath(path);
-        setValue(newValue);
-        app.morphe.extension.shared.Utils.showToastShort("Download path updated");
+        try {
+            setValue(DownloadDestination.validate(path, kind));
+            app.morphe.extension.shared.Utils.showToastShort("Download path updated");
+        } catch (IllegalArgumentException ex) {
+            app.morphe.extension.shared.Utils.showToastLong(ex.getMessage());
+        }
     }
 
     @Override
@@ -84,7 +95,7 @@ public class DownloadPathPreference extends DialogPreference {
 
         TextView helper = SettingsUi.text(
                 context,
-                "Enter a folder path relative to internal storage.",
+                "Choose a subfolder under " + DownloadDestination.allowedRoots(kind) + ".",
                 14,
                 SettingsUi.textSecondary(),
                 Typeface.NORMAL
@@ -142,8 +153,11 @@ public class DownloadPathPreference extends DialogPreference {
     @Override
     protected void onDialogClosed(boolean positiveResult) {
         if (positiveResult) {
-            String newValue = normalizePath(downloadPathValue);
-            setValue(newValue);
+            try {
+                setValue(DownloadDestination.validate(downloadPathValue, kind));
+            } catch (IllegalArgumentException ex) {
+                app.morphe.extension.shared.Utils.showToastLong(ex.getMessage());
+            }
         }
     }
 
@@ -161,22 +175,8 @@ public class DownloadPathPreference extends DialogPreference {
         }
     }
 
-    private static String normalizePath(String path) {
-        if (path == null) {
-            return "DCIM/TikTok";
-        }
-
-        String normalized = path.trim().replace('\\', '/');
-        while (normalized.startsWith("/")) {
-            normalized = normalized.substring(1);
-        }
-        while (normalized.contains("//")) {
-            normalized = normalized.replace("//", "/");
-        }
-        if (normalized.length() == 0) {
-            return "DCIM/TikTok";
-        }
-        return normalized;
+    private String normalizePath(String path) {
+        return DownloadDestination.resolve(path, kind);
     }
 }
 

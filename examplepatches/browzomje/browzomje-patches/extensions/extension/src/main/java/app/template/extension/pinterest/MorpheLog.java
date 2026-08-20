@@ -29,9 +29,18 @@ public final class MorpheLog {
     /** Tasti in alto a destra nel feed (Crea, Posta/Notifiche), distinti da {@link #NAVBAR}. */
     public static final String HEADER = "header";
     public static final String SEARCH_HISTORY = "search-history";
+    /** Moduli a bacheche della schermata di ricerca (issue #30), distinti da {@link #ADS}. */
+    public static final String SEARCH_MODULES = "search-modules";
+    /** Rilevamento screenshot e pannello di condivisione che ne segue (issue #32). */
+    public static final String SCREENSHOT = "screenshot";
     public static final String SETTINGS_ENTRY = "settings-entry";
     public static final String EMAIL_DIALOG = "email-dialog";
     public static final String COPY_LINK = "copy-link";
+    /**
+     * Ripulitura dei link in uscita — foglio di condivisione e appunti — distinta da
+     * {@link #COPY_LINK}, che è la voce "Copia link diretto" del menu del pin.
+     */
+    public static final String SHARE_LINK = "share-link";
     public static final String WALLPAPER = "wallpaper";
     public static final String VIDEO = "video";
     public static final String BOARD = "board";

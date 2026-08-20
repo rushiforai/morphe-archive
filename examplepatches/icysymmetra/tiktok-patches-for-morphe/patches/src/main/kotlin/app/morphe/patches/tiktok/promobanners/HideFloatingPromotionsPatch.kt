@@ -8,13 +8,17 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionOrThrow
+import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
@@ -63,6 +67,55 @@ val hideFloatingPromotionsPatch = bytecodePatch(
                     move-result-object v$resultRegister
                 """,
             )
+
+            val managerTypes = method.implementation!!.instructions
+                .mapNotNull { it.getReference<FieldReference>() }
+                .filter { it.type == "Ljava/util/HashMap;" }
+                .map { it.definingClass }
+                .toSet()
+            val managerType = method.implementation!!.instructions
+                .mapNotNull { it.getReference<MethodReference>() }
+                .firstOrNull { reference ->
+                    reference.parameterTypes.isEmpty() && reference.returnType in managerTypes
+                }
+                ?.returnType
+                ?: throw PatchException("TouchPoint promotional manager reference not found")
+            val manager = mutableClassDefBy(managerType)
+            val modelGetter = manager.methods.singleOrNull { candidate ->
+                candidate.parameterTypes == listOf("I") &&
+                    candidate.returnType.startsWith("L") &&
+                    !candidate.returnType.startsWith("Ljava/")
+            } ?: throw PatchException("TouchPoint promotional model getter not found")
+
+            val launchPlanGetter = manager.methods.singleOrNull { candidate ->
+                candidate.parameterTypes == listOf("I", "I") &&
+                    candidate.returnType == modelGetter.returnType
+            } ?: throw PatchException("TouchPoint promotional launch-plan getter not found")
+
+            modelGetter.filterPromotionalTouchPoint()
+            launchPlanGetter.filterPromotionalTouchPoint()
         }
+    }
+}
+
+private fun MutableMethod.filterPromotionalTouchPoint() {
+    val returnIndices = implementation?.instructions
+        ?.withIndex()
+        ?.filter { (_, instruction) -> instruction.opcode == Opcode.RETURN_OBJECT }
+        ?.map { (index, instruction) ->
+            index to (instruction as OneRegisterInstruction).registerA
+        }
+        ?.toList()
+        ?: throw PatchException("TouchPoint promotional getter has no implementation")
+
+    returnIndices.asReversed().forEach { (index, register) ->
+        addInstructions(
+            index,
+            """
+                invoke-static {v$register}, $FEATURE_CONTROLS_CLASS_DESCRIPTOR->filterPromotionalTouchPoint(Ljava/lang/Object;)Ljava/lang/Object;
+                move-result-object v$register
+                check-cast v$register, $returnType
+            """,
+        )
     }
 }
