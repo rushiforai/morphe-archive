@@ -50,6 +50,7 @@ RoundSalmon4/morphe-patches-template
 Seobject/Seobject-patches
 SouBryan/pinterest-morphed
 TheRealCrazyfuy/abeja-morphe-patches
+TheRealSkywarp/morphe-patches
 Tornillo2/movistar-block-ads-morphe
 Trimpsuz/morphe-busuu
 Utsavrajputt/Modx-patches
@@ -105,12 +106,14 @@ eyalm2000/tidal-debug-menu
 fangkampanat/gmaps-patches
 franticg33k/morphe-patches
 furkngld/tiktok-lite-patches-for-morphe
+gitlab.com/IMXEren/mix-patches
 gitlab.com/Paresh-Maheshwari/paresh-patches
 gitlab.com/early.egg3707/ee-morphe-patches
 gitlab.com/inotia00/proguard-patches
 gitlab.com/inotia00/x-shim
 hackingguy/morphe-patches
 heinrich26/morphe-patches
+heval99/Heval-Morphe-Patches
 heval99/morphe-patches
 hoo-dles/jadx-morphe
 hoo-dles/morphe-patches
