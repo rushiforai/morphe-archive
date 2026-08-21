@@ -1,19 +1,19 @@
 {
-  "generatedAt": "2026-08-20 01:13 UTC",
-  "configFile": "morphe_archive_config_v26.json",
-  "configVersion": 26,
-  "repoCount": 146,
-  "appCount": 698,
-  "patchCount": 2681,
-  "universalPatchCount": 181,
+  "generatedAt": "2026-08-21 01:18 UTC",
+  "configFile": "morphe_archive_config_v27.json",
+  "configVersion": 27,
+  "repoCount": 152,
+  "appCount": 705,
+  "patchCount": 2757,
+  "universalPatchCount": 202,
   "hostCounts": {
-    "github.com": 141,
+    "github.com": 147,
     "gitlab.com": 5
   },
   "visitorStats": {
     "today": 0,
-    "yesterday": 10,
-    "total": 296,
+    "yesterday": 1,
+    "total": 297,
     "online": 0
   },
   "repos": [
@@ -665,19 +665,19 @@
       "webUrl": "https://github.com/andrewliang25/morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=andrewliang25/morphe-patches",
       "avatarUrl": "https://github.com/andrewliang25.png?size=96",
-      "patchCount": 21,
+      "patchCount": 22,
       "appCount": 1,
       "createdAt": 1785034852052,
       "updatedAt": 1785034852052,
       "createdDate": "2026-07-26",
       "updatedDate": "2026-07-26",
       "latestChanges": {
-        "title": "1.6.0 (2026-08-12)",
-        "date": "2026-08-12",
+        "title": "1.7.0 (2026-08-20)",
+        "date": "2026-08-20",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "fix chat-history backup sign-in via GmsCore"
+            "text": "add \"Hide Shopping tab\" patch (04b256b), closes #59"
           }
         ]
       },
@@ -685,7 +685,7 @@
         {
           "name": "LINE",
           "packageName": "jp.naver.line.android",
-          "patchCount": 21,
+          "patchCount": 22,
           "iconUrl": "",
           "iconColor": "#06C755"
         }
@@ -754,6 +754,86 @@
         ]
       },
       "apps": []
+    },
+    {
+      "name": "anxy-patches",
+      "repo": "anxyis/anxy-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/anxyis/anxy-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/anxyis/anxy-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/anxyis/anxy-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/anxyis/anxy-patches",
+      "addUrl": "https://morphe.software/add-source?github=anxyis/anxy-patches",
+      "avatarUrl": "https://github.com/anxyis.png?size=96",
+      "patchCount": 10,
+      "appCount": 1,
+      "createdAt": 1787275036722,
+      "updatedAt": 1787275036722,
+      "createdDate": "2026-08-21",
+      "updatedDate": "2026-08-21",
+      "latestChanges": {
+        "title": "2.1.1 (2026-08-20)",
+        "date": "2026-08-20",
+        "items": [
+          {
+            "category": "Bug Fixes",
+            "text": "**destruction:** 2.0.0 - fix Dalvik instruction formats (Format11x for return/return-object) and expand target versions"
+          },
+          {
+            "category": "Bug Fixes",
+            "text": "**build:** cleanly compile and package v2.0.0 with immutable method replacement"
+          },
+          {
+            "category": "Features",
+            "text": "**release:** 2.0.0 - Complete Static Root Destruction of ModdedBySatriyaid & TGSatriyaidChannel"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "After Motion Z+",
+          "packageName": "com.alightcreative.motion",
+          "patchCount": 10,
+          "iconUrl": "",
+          "iconColor": ""
+        }
+      ]
+    },
+    {
+      "name": "apos-morphe-patches",
+      "repo": "Apostolique/apos-morphe-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/Apostolique/apos-morphe-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/Apostolique/apos-morphe-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/Apostolique/apos-morphe-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/Apostolique/apos-morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=Apostolique/apos-morphe-patches",
+      "avatarUrl": "https://github.com/Apostolique.png?size=96",
+      "patchCount": 1,
+      "appCount": 1,
+      "createdAt": 1787275034600,
+      "updatedAt": 1787275034600,
+      "createdDate": "2026-08-21",
+      "updatedDate": "2026-08-21",
+      "latestChanges": {
+        "title": "1.0.0 (2026-08-19)",
+        "date": "2026-08-19",
+        "items": [
+          {
+            "category": "\u2728 New Features",
+            "text": "Boost for Tildes, browsing tildes.net from Boost for Lemmy"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Boost for Lemmy",
+          "packageName": "com.rubenmayayo.lemmy",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": ""
+        }
+      ]
     },
     {
       "name": "hoomans-morphe-patches",
@@ -1890,19 +1970,19 @@
       "webUrl": "https://github.com/byehi98/okish-morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=byehi98/okish-morphe-patches",
       "avatarUrl": "https://github.com/byehi98.png?size=96",
-      "patchCount": 33,
-      "appCount": 15,
+      "patchCount": 35,
+      "appCount": 16,
       "createdAt": 1784836032190,
       "updatedAt": 1784836032190,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.13.0 (2026-08-19)",
-        "date": "2026-08-19",
+        "title": "1.14.0 (2026-08-20)",
+        "date": "2026-08-20",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "**vector:** add rewarded ad spoofing"
+            "text": "**injustice:** add ad removal and billing bypass"
           }
         ]
       },
@@ -1948,6 +2028,13 @@
           "patchCount": 3,
           "iconUrl": "",
           "iconColor": "#2E7D32"
+        },
+        {
+          "name": "Injustice: Gods Among Us",
+          "packageName": "com.wb.goog.injustice",
+          "patchCount": 2,
+          "iconUrl": "",
+          "iconColor": "#FFC107"
         },
         {
           "name": "Into the Dead",
@@ -2011,6 +2098,46 @@
           "patchCount": 1,
           "iconUrl": "",
           "iconColor": "#00E676"
+        }
+      ]
+    },
+    {
+      "name": "anime-witcher-patches",
+      "repo": "catsmoker/anime-witcher-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/catsmoker/anime-witcher-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/catsmoker/anime-witcher-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/catsmoker/anime-witcher-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/catsmoker/anime-witcher-patches",
+      "addUrl": "https://morphe.software/add-source?github=catsmoker/anime-witcher-patches",
+      "avatarUrl": "https://github.com/catsmoker.png?size=96",
+      "patchCount": 3,
+      "appCount": 1,
+      "createdAt": 1787275037078,
+      "updatedAt": 1787275037078,
+      "createdDate": "2026-08-21",
+      "updatedDate": "2026-08-21",
+      "latestChanges": {
+        "title": "1.0.0 (2026-08-20)",
+        "date": "2026-08-20",
+        "items": [
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Add PATCHES_START/END markers to README.md"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "Add Anime Witcher patches (disable ads, remove AppLovin, replace AWPlayer with VLC)"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Anime Witcher",
+          "packageName": "com.anime.witcher",
+          "patchCount": 3,
+          "iconUrl": "",
+          "iconColor": "#FF0000"
         }
       ]
     },
@@ -2126,6 +2253,42 @@
           "patchCount": 4,
           "iconUrl": "https://play-lh.googleusercontent.com/nxpwi4UD84GNJuJ42S9U0f3lGDsHu8VkIDPCccFmJL6kyNVb1O3pTY1rl1YZICLBk6EcWIaX6n9prCbdUoQEOw",
           "iconColor": "#181C20"
+        }
+      ]
+    },
+    {
+      "name": "morphe-patches-chicco",
+      "repo": "chicco-carone/morphe-patches-chicco",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/chicco-carone/morphe-patches-chicco/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/chicco-carone/morphe-patches-chicco/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/chicco-carone/morphe-patches-chicco/main/CHANGELOG.md",
+      "webUrl": "https://github.com/chicco-carone/morphe-patches-chicco",
+      "addUrl": "https://morphe.software/add-source?github=chicco-carone/morphe-patches-chicco",
+      "avatarUrl": "https://github.com/chicco-carone.png?size=96",
+      "patchCount": 2,
+      "appCount": 1,
+      "createdAt": 1787275037152,
+      "updatedAt": 1787275037152,
+      "createdDate": "2026-08-21",
+      "updatedDate": "2026-08-21",
+      "latestChanges": {
+        "title": "1.0.0 (2026-08-20)",
+        "date": "2026-08-20",
+        "items": [
+          {
+            "category": "\u2728 New Features",
+            "text": "Add ProxMobo premium unlock and license check bypass patches"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "ProxMobo",
+          "packageName": "com.halliharp.proxmobo",
+          "patchCount": 2,
+          "iconUrl": "",
+          "iconColor": "#3F2A44"
         }
       ]
     },
@@ -2773,19 +2936,19 @@
       "webUrl": "https://github.com/durgesh0505/chiggi_morphe_patches",
       "addUrl": "https://morphe.software/add-source?github=durgesh0505/chiggi_morphe_patches",
       "avatarUrl": "https://github.com/durgesh0505.png?size=96",
-      "patchCount": 59,
-      "appCount": 11,
+      "patchCount": 68,
+      "appCount": 12,
       "createdAt": 1784836033744,
       "updatedAt": 1784836033744,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.18.0 (2026-07-23)",
-        "date": "2026-07-23",
+        "title": "1.19.0 (2026-08-20)",
+        "date": "2026-08-20",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "**jiohotstar:** spoof device id (ANDROID_ID) to resolve device-logged-out"
+            "text": "add ZEE5 (Android TV), tag TV apps, make TV builds phone-patch-safe"
           }
         ]
       },
@@ -2826,14 +2989,14 @@
           "iconColor": "#2E7D6F"
         },
         {
-          "name": "JioHotstar",
+          "name": "JioHotstar (Android TV)",
           "packageName": "in.startv.hotstar",
           "patchCount": 14,
           "iconUrl": "https://play-lh.googleusercontent.com/02xiO0ptbXjD8NR3sbS2StP1P9aytDN56dDR15zqM_i66Vwq5W_hD-98CoFxvRVoUS4uV_xMSv-iQh3nQFeDeQ",
           "iconColor": "#1F80E0"
         },
         {
-          "name": "Jiotv+: LiveTV & OTT",
+          "name": "Jiotv+: LiveTV & OTT (Android TV)",
           "packageName": "com.jio.media.jiotvplus",
           "patchCount": 4,
           "iconUrl": "https://play-lh.googleusercontent.com/YzCDPantLFE3sw1tmkOcxSKORt_uACVBpfSprVjyx0FR4arX3O3EUbrSJ0t_7MukyOQMylBxu1W8kD2doyDh",
@@ -2847,7 +3010,7 @@
           "iconColor": "#36D4C3"
         },
         {
-          "name": "SonyLIV",
+          "name": "SonyLIV (Android TV)",
           "packageName": "com.sonyliv",
           "patchCount": 10,
           "iconUrl": "https://play-lh.googleusercontent.com/OSPwLdQHHx16DNvMT8GxkBvpzj5x9WG9_DmJoTMS1YKKbg1YsQlfzTLzc-XTkCLaF9FT7-I-kX9RvSUxSAwYRA",
@@ -2861,11 +3024,18 @@
           "iconColor": "#000000"
         },
         {
-          "name": "Vi Movies and TV",
+          "name": "Vi Movies and TV (Android TV)",
           "packageName": "com.vimtv",
           "patchCount": 7,
           "iconUrl": "https://play-lh.googleusercontent.com/mgGhCved1RThSXji0vvbgiyHkY6fgyD20RWFLtkVbZ5UxmN8gYoWBGY9HkYe91hOv50_Qn_Yk1yrwJPXu--ZGBA",
           "iconColor": "#EE1C25"
+        },
+        {
+          "name": "ZEE5 (Android TV)",
+          "packageName": "com.graymatrix.did",
+          "patchCount": 9,
+          "iconUrl": "https://play-lh.googleusercontent.com/NyMT3ByjkBG1FhdFX9GSj_0mXLNIAuz_IZO8Xr9Noow6D4IQs-Srai9Hklad5gDasSv6F5tHYwsquk1mXErQ5A",
+          "iconColor": "#6E1EE5"
         }
       ]
     },
@@ -4160,6 +4330,54 @@
       ]
     },
     {
+      "name": "hh-patches",
+      "repo": "hhawkinsau/hh-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/hhawkinsau/hh-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/hhawkinsau/hh-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/hhawkinsau/hh-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/hhawkinsau/hh-patches",
+      "addUrl": "https://morphe.software/add-source?github=hhawkinsau/hh-patches",
+      "avatarUrl": "https://github.com/hhawkinsau.png?size=96",
+      "patchCount": 4,
+      "appCount": 1,
+      "createdAt": 1787275037831,
+      "updatedAt": 1787275037831,
+      "createdDate": "2026-08-21",
+      "updatedDate": "2026-08-21",
+      "latestChanges": {
+        "title": "1.3.1 (2026-08-19)",
+        "date": "2026-08-19",
+        "items": [
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Match Punge unlocked entitlement gate"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Preserve Firebase startup components"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Remove all SafePix patches"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Remove analytics patches that block startup"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Punge",
+          "packageName": "com.markatlarge.scrub",
+          "patchCount": 4,
+          "iconUrl": "",
+          "iconColor": "#D469A5"
+        }
+      ]
+    },
+    {
       "name": "morphe-patches",
       "repo": "Hiosdra/morphe-patches",
       "host": "github.com",
@@ -4855,12 +5073,16 @@
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.9.1 (2026-08-19)",
-        "date": "2026-08-19",
+        "title": "1.9.2 (2026-08-20)",
+        "date": "2026-08-20",
         "items": [
           {
             "category": "Bug Fixes",
-            "text": "**Showly - AMOLED dark theme:** keep the search bar and bottom menu tone"
+            "text": "**Perplexity - AMOLED dark theme:** keep the tinted surfaces at stock tone"
+          },
+          {
+            "category": "Bug Fixes",
+            "text": "**Proton Mail - AMOLED dark theme:** keep the sidebar selected row and separators"
           }
         ]
       },
@@ -6304,6 +6526,49 @@
       ]
     },
     {
+      "name": "kveld-morphe-patches",
+      "repo": "kveld9/kveld-morphe-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/kveld9/kveld-morphe-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/kveld9/kveld-morphe-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/kveld9/kveld-morphe-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/kveld9/kveld-morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=kveld9/kveld-morphe-patches",
+      "avatarUrl": "https://github.com/kveld9.png?size=96",
+      "patchCount": 20,
+      "appCount": 2,
+      "createdAt": 1787275038494,
+      "updatedAt": 1787275038494,
+      "createdDate": "2026-08-21",
+      "updatedDate": "2026-08-21",
+      "latestChanges": {
+        "title": "1.2.0 (2026-08-20)",
+        "date": "2026-08-20",
+        "items": [
+          {
+            "category": "\u2728 New Features",
+            "text": "**gboard:** add modular patch suite for Gboard Lite v18.0.3"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Brave Private Web Browser, VPN",
+          "packageName": "com.brave.browser",
+          "patchCount": 4,
+          "iconUrl": "https://play-lh.googleusercontent.com/UBrZnuXGb-QACU0uUdF5r_n5nx5oBbdfPyEbtsr0xXv00RN7rpaTVu3GjLeE90aHFmNlbaCmm8vNcmY0eE98U9E",
+          "iconColor": "#FF4500"
+        },
+        {
+          "name": "Gboard Lite",
+          "packageName": "com.google.android.inputmethod.latin",
+          "patchCount": 16,
+          "iconUrl": "https://play-lh.googleusercontent.com/J4vZ82VsZjnsRsI6ckQFXlO36_52QJerqG5-HfLgHffS34I4EfoAFfNdbf6s4wBAsUEf8DOJVEDEHh5tzWbrnA",
+          "iconColor": "#4285F4"
+        }
+      ]
+    },
+    {
       "name": "morphe-patches",
       "repo": "LaBlazer/morphe-patches",
       "host": "github.com",
@@ -6944,19 +7209,47 @@
       "webUrl": "https://github.com/Nai64/Nai64Patches",
       "addUrl": "https://morphe.software/add-source?github=Nai64/Nai64Patches",
       "avatarUrl": "https://github.com/Nai64.png?size=96",
-      "patchCount": 2,
+      "patchCount": 23,
       "appCount": 0,
       "createdAt": 1784836023539,
       "updatedAt": 1784836023539,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.18.1 (2026-08-18)",
-        "date": "2026-08-18",
+        "title": "1.21.0 (2026-08-20)",
+        "date": "2026-08-20",
         "items": [
           {
             "category": "Bug Fixes",
-            "text": "make MAX Unity ad injections register-safe for any method layout"
+            "text": "**AllowScreenshots:** correct setFlags method descriptors"
+          },
+          {
+            "category": "Bug Fixes",
+            "text": "**DisableRootCheck:** warn when no root-check methods are found"
+          },
+          {
+            "category": "Bug Fixes",
+            "text": "**DisableTelemetry:** count GameAnalytics when only NoArg variant present"
+          },
+          {
+            "category": "Bug Fixes",
+            "text": "**PairipBypass:** invoke superclass Application in attachBaseContext/onCreate"
+          },
+          {
+            "category": "Bug Fixes",
+            "text": "**PairipBypass:** warn when no license methods are found"
+          },
+          {
+            "category": "Bug Fixes",
+            "text": "**PatchListGenerator:** avoid crash when no .mpp artifact found"
+          },
+          {
+            "category": "Bug Fixes",
+            "text": "**SkipConsentPopup:** pass FormError argument to onConsentFormDismissed"
+          },
+          {
+            "category": "Bug Fixes",
+            "text": "**UnlockAllIaps:** overwrite receipt and transaction id parameter registers"
           }
         ]
       },
@@ -6972,19 +7265,23 @@
       "webUrl": "https://github.com/NekoGryphou/gryphous-morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=NekoGryphou/gryphous-morphe-patches",
       "avatarUrl": "https://github.com/NekoGryphou.png?size=96",
-      "patchCount": 1,
-      "appCount": 1,
+      "patchCount": 4,
+      "appCount": 2,
       "createdAt": 1784836023736,
       "updatedAt": 1784836023736,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.0.1 (2026-07-06)",
-        "date": "2026-07-06",
+        "title": "1.1.0 (2026-08-20)",
+        "date": "2026-08-20",
         "items": [
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "publish renamed repository metadata"
+            "category": "\u2728 New Features",
+            "text": "disable DeLonghi permission prompts"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "hide DeLonghi shared devices incident popup"
           }
         ]
       },
@@ -6995,6 +7292,13 @@
           "patchCount": 1,
           "iconUrl": "https://play-lh.googleusercontent.com/FUEOotGzxEZqItvGGov0YBiOhZBCACxCM6kF37OtpWrCG9H6EyxSeY2G8PDXQGueLxlxtL3Xr0fbkvXaQ67NLg",
           "iconColor": "#FF5C00"
+        },
+        {
+          "name": "De'Longhi Comfort",
+          "packageName": "com.ddsx_ayla_android",
+          "patchCount": 3,
+          "iconUrl": "",
+          "iconColor": "#006B52"
         }
       ]
     },
@@ -10114,12 +10418,24 @@
       "createdDate": "2026-08-19",
       "updatedDate": "2026-08-19",
       "latestChanges": {
-        "title": "1.5.3 (2026-08-19)",
-        "date": "2026-08-19",
+        "title": "1.6.0 (2026-08-20)",
+        "date": "2026-08-20",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**rhythm:** use addInstructions to force isPro false without breaking constructor field initialization"
+            "text": "**rhythm:** escape inner class dollar sign in multiline smali string"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**rhythm:** unlock all Pro features, scales, Manjeera, variations and disable purchase prompts"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**rhythm:** use addInstructions to prevent IndexOutOfBoundsException during patch execution"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "**rhythm:** update unlock pro patch with complete bypasses and audio unlocks"
           }
         ]
       },
@@ -12109,6 +12425,157 @@
       "iconUrl": "https://play-lh.googleusercontent.com/E_HmG2bArUd4Ke1sVW7uUmFicY0UENJcVBAVqnHp_SLfF7qCuv_n_klf-Jl37KlWbE39J8Svc6lx4vUENt4ayBw"
     },
     {
+      "packageName": "com.alightcreative.motion",
+      "name": "After Motion Z+",
+      "repos": [
+        "anxyis/anxy-patches"
+      ],
+      "sources": [
+        {
+          "repo": "anxyis/anxy-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/anxyis/anxy-patches",
+          "addUrl": "https://morphe.software/add-source?github=anxyis/anxy-patches",
+          "source": "https://raw.githubusercontent.com/anxyis/anxy-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/anxyis/anxy-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/anxyis.png?size=96",
+          "latestChanges": {
+            "title": "2.1.1 (2026-08-20)",
+            "date": "2026-08-20",
+            "items": [
+              {
+                "category": "Bug Fixes",
+                "text": "**destruction:** 2.0.0 - fix Dalvik instruction formats (Format11x for return/return-object) and expand target versions"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**build:** cleanly compile and package v2.0.0 with immutable method replacement"
+              },
+              {
+                "category": "Features",
+                "text": "**release:** 2.0.0 - Complete Static Root Destruction of ModdedBySatriyaid & TGSatriyaidChannel"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-alightcreative-motion-anxyis-anxy-patches",
+            "releaseTag": "app-com-alightcreative-motion-anxyis-anxy-patches",
+            "assetName": "after-motion-zplus-anxyis-anxy-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "After Motion Z+ Popup Suppression (Complete Suite)",
+              "description": "Eliminates all startup, update, and modded-by popups in After Motion Z+ (v5.0.273)."
+            },
+            {
+              "name": "Alight Motion Pro Popup Suppression (Complete Suite)",
+              "description": "Eliminates all startup, update, and modded-by popups in Alight Motion Pro (BangAlbin mod)."
+            },
+            {
+              "name": "Modded By Satriyaid Dialog Destruction",
+              "description": "Completely eradicates and severs all ModdedBySatriyaid and TGSatriyaidChannel popup reflection classes at the root."
+            },
+            {
+              "name": "Modded By Satriyaid Dialog Suppression",
+              "description": "No-ops zzw.xyz startup dialog entry."
+            },
+            {
+              "name": "Native Server 1 Startup Gate Bypass",
+              "description": "NOPs native gate cbz branch in libsatriyaid.so at 0x585c0."
+            },
+            {
+              "name": "New Project Wizard Suppression",
+              "description": "No-ops zzzb.vbd, zzzb.vwp, and forces zzzb.uio to return false."
+            },
+            {
+              "name": "Popup Dismisser Daemon",
+              "description": "Injects background runtime dialog dismisser and preference seeder to eliminate all modder popups."
+            },
+            {
+              "name": "Popup Dismisser Manifest Hook",
+              "description": "Registers NoPopupSeedProvider in AndroidManifest.xml for cold-start OS initialization."
+            },
+            {
+              "name": "Seed Default Preferences",
+              "description": "Seeds initial suppression preferences in shared_prefs/."
+            },
+            {
+              "name": "Updates Required Popup Suppression",
+              "description": "No-ops fq.ab dialog builder in Firebase Analytics wrapper."
+            }
+          ],
+          "versions": [
+            "5.0.273",
+            "5.0.273.1028420",
+            "5.0.273.1028426"
+          ]
+        }
+      ],
+      "patches": [
+        "After Motion Z+ Popup Suppression (Complete Suite)",
+        "Alight Motion Pro Popup Suppression (Complete Suite)",
+        "Modded By Satriyaid Dialog Destruction",
+        "Modded By Satriyaid Dialog Suppression",
+        "Native Server 1 Startup Gate Bypass",
+        "New Project Wizard Suppression",
+        "Popup Dismisser Daemon",
+        "Popup Dismisser Manifest Hook",
+        "Seed Default Preferences",
+        "Updates Required Popup Suppression"
+      ],
+      "patchDetails": [
+        {
+          "name": "After Motion Z+ Popup Suppression (Complete Suite)",
+          "description": "Eliminates all startup, update, and modded-by popups in After Motion Z+ (v5.0.273)."
+        },
+        {
+          "name": "Alight Motion Pro Popup Suppression (Complete Suite)",
+          "description": "Eliminates all startup, update, and modded-by popups in Alight Motion Pro (BangAlbin mod)."
+        },
+        {
+          "name": "Modded By Satriyaid Dialog Destruction",
+          "description": "Completely eradicates and severs all ModdedBySatriyaid and TGSatriyaidChannel popup reflection classes at the root."
+        },
+        {
+          "name": "Modded By Satriyaid Dialog Suppression",
+          "description": "No-ops zzw.xyz startup dialog entry."
+        },
+        {
+          "name": "Native Server 1 Startup Gate Bypass",
+          "description": "NOPs native gate cbz branch in libsatriyaid.so at 0x585c0."
+        },
+        {
+          "name": "New Project Wizard Suppression",
+          "description": "No-ops zzzb.vbd, zzzb.vwp, and forces zzzb.uio to return false."
+        },
+        {
+          "name": "Popup Dismisser Daemon",
+          "description": "Injects background runtime dialog dismisser and preference seeder to eliminate all modder popups."
+        },
+        {
+          "name": "Popup Dismisser Manifest Hook",
+          "description": "Registers NoPopupSeedProvider in AndroidManifest.xml for cold-start OS initialization."
+        },
+        {
+          "name": "Seed Default Preferences",
+          "description": "Seeds initial suppression preferences in shared_prefs/."
+        },
+        {
+          "name": "Updates Required Popup Suppression",
+          "description": "No-ops fq.ab dialog builder in Firebase Analytics wrapper."
+        }
+      ],
+      "versions": [
+        "5.0.273",
+        "5.0.273.1028420",
+        "5.0.273.1028426"
+      ],
+      "iconColor": "",
+      "iconUrl": ""
+    },
+    {
       "packageName": "altergames.carlauncher",
       "name": "AGAMA Car Launcher",
       "repos": [
@@ -13990,6 +14457,86 @@
       "iconUrl": "https://play-lh.googleusercontent.com/jYmevEkyKdHZs_FSQEIRg8Ifxx4YU2-BQtso3Z0iQkMPM9w9ZkrOcbD7rys6Kq34t4Evufy1UVOgwwP0y4KKWc8"
     },
     {
+      "packageName": "com.anime.witcher",
+      "name": "Anime Witcher",
+      "repos": [
+        "catsmoker/anime-witcher-patches"
+      ],
+      "sources": [
+        {
+          "repo": "catsmoker/anime-witcher-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/catsmoker/anime-witcher-patches",
+          "addUrl": "https://morphe.software/add-source?github=catsmoker/anime-witcher-patches",
+          "source": "https://raw.githubusercontent.com/catsmoker/anime-witcher-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/catsmoker/anime-witcher-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/catsmoker.png?size=96",
+          "latestChanges": {
+            "title": "1.0.0 (2026-08-20)",
+            "date": "2026-08-20",
+            "items": [
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Add PATCHES_START/END markers to README.md"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "Add Anime Witcher patches (disable ads, remove AppLovin, replace AWPlayer with VLC)"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-anime-witcher-catsmoker-anime-witcher-patches",
+            "releaseTag": "app-com-anime-witcher-catsmoker-anime-witcher-patches",
+            "assetName": "anime-witcher-catsmoker-anime-witcher-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Disable ads",
+              "description": "Disables all ad display logic in the app."
+            },
+            {
+              "name": "Remove AppLovin initialization",
+              "description": "Removes AppLovin SDK initialization from the Application class."
+            },
+            {
+              "name": "Replace AWPlayer with VLC",
+              "description": "Replaces the AWPlayer video player with VLC via system intent chooser."
+            }
+          ],
+          "versions": [
+            "1.4.8"
+          ]
+        }
+      ],
+      "patches": [
+        "Disable ads",
+        "Remove AppLovin initialization",
+        "Replace AWPlayer with VLC"
+      ],
+      "patchDetails": [
+        {
+          "name": "Disable ads",
+          "description": "Disables all ad display logic in the app."
+        },
+        {
+          "name": "Remove AppLovin initialization",
+          "description": "Removes AppLovin SDK initialization from the Application class."
+        },
+        {
+          "name": "Replace AWPlayer with VLC",
+          "description": "Replaces the AWPlayer video player with VLC via system intent chooser."
+        }
+      ],
+      "versions": [
+        "1.4.8"
+      ],
+      "iconColor": "#FF0000",
+      "iconUrl": ""
+    },
+    {
       "packageName": "com.apkmirror.helper.prod",
       "name": "APKMirror Installer",
       "repos": [
@@ -14431,12 +14978,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/durgesh0505/chiggi_morphe_patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/durgesh0505.png?size=96",
           "latestChanges": {
-            "title": "1.18.0 (2026-07-23)",
-            "date": "2026-07-23",
+            "title": "1.19.0 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**jiohotstar:** spoof device id (ANDROID_ID) to resolve device-logged-out"
+                "text": "add ZEE5 (Android TV), tag TV apps, make TV builds phone-patch-safe"
               }
             ]
           },
@@ -15089,12 +15636,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.9.1 (2026-08-19)",
-            "date": "2026-08-19",
+            "title": "1.9.2 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**Showly - AMOLED dark theme:** keep the search bar and bottom menu tone"
+                "text": "**Perplexity - AMOLED dark theme:** keep the tinted surfaces at stock tone"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**Proton Mail - AMOLED dark theme:** keep the sidebar selected row and separators"
               }
             ]
           },
@@ -16659,12 +17210,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/durgesh0505/chiggi_morphe_patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/durgesh0505.png?size=96",
           "latestChanges": {
-            "title": "1.18.0 (2026-07-23)",
-            "date": "2026-07-23",
+            "title": "1.19.0 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**jiohotstar:** spoof device id (ANDROID_ID) to resolve device-logged-out"
+                "text": "add ZEE5 (Android TV), tag TV apps, make TV builds phone-patch-safe"
               }
             ]
           },
@@ -17762,12 +18313,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.13.0 (2026-08-19)",
-            "date": "2026-08-19",
+            "title": "1.14.0 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**vector:** add rewarded ad spoofing"
+                "text": "**injustice:** add ad removal and billing bypass"
               }
             ]
           },
@@ -18891,6 +19442,66 @@
       "iconUrl": "https://play-lh.googleusercontent.com/lcHBg44Dsg7F9lNWrSkF7tyk4qu71Z_J0o_4bdyW5YQjygBDaKh3ckT0kOzS63HljGKOZCUu5pOyTQzBtk0C4A"
     },
     {
+      "packageName": "com.rubenmayayo.lemmy",
+      "name": "Boost for Lemmy",
+      "repos": [
+        "Apostolique/apos-morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "Apostolique/apos-morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/Apostolique/apos-morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=Apostolique/apos-morphe-patches",
+          "source": "https://raw.githubusercontent.com/Apostolique/apos-morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/Apostolique/apos-morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/Apostolique.png?size=96",
+          "latestChanges": {
+            "title": "1.0.0 (2026-08-19)",
+            "date": "2026-08-19",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "Boost for Tildes, browsing tildes.net from Boost for Lemmy"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-rubenmayayo-lemmy-apostolique-apos-morphe-patches",
+            "releaseTag": "app-com-rubenmayayo-lemmy-apostolique-apos-morphe-patches",
+            "assetName": "boost-for-lemmy-apostolique-apos-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Boost for Tildes",
+              "description": "Adds tildes.net to Boost for Lemmy, as an account beside the Lemmy ones."
+            }
+          ],
+          "versions": [
+            "1.0.32",
+            "1.0.33"
+          ]
+        }
+      ],
+      "patches": [
+        "Boost for Tildes"
+      ],
+      "patchDetails": [
+        {
+          "name": "Boost for Tildes",
+          "description": "Adds tildes.net to Boost for Lemmy, as an account beside the Lemmy ones."
+        }
+      ],
+      "versions": [
+        "1.0.32",
+        "1.0.33"
+      ],
+      "iconColor": "",
+      "iconUrl": ""
+    },
+    {
       "packageName": "com.bpmhealth.boostcamp",
       "name": "Boostcamp",
       "repos": [
@@ -19265,7 +19876,8 @@
       "name": "Brave Browser",
       "repos": [
         "bufferk/morphe-patches",
-        "dh6k/morphe-patches"
+        "dh6k/morphe-patches",
+        "kveld9/kveld-morphe-patches"
       ],
       "sources": [
         {
@@ -19353,19 +19965,82 @@
           "versions": [
             "1.92.140"
           ]
+        },
+        {
+          "repo": "kveld9/kveld-morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/kveld9/kveld-morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=kveld9/kveld-morphe-patches",
+          "source": "https://raw.githubusercontent.com/kveld9/kveld-morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/kveld9/kveld-morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/kveld9.png?size=96",
+          "latestChanges": {
+            "title": "1.2.0 (2026-08-20)",
+            "date": "2026-08-20",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "**gboard:** add modular patch suite for Gboard Lite v18.0.3"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-brave-browser-kveld9-kveld-morphe-patches",
+            "releaseTag": "app-com-brave-browser-kveld9-kveld-morphe-patches",
+            "assetName": "brave-browser-kveld9-kveld-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Block Brave Telemetry",
+              "description": "Blocks P3A product analytics, Brave Stats usage pings, crash dump uploads, WDP, and Variations seed fetching."
+            },
+            {
+              "name": "Brave In-Product Notification Scheduler Optimization",
+              "description": "Eliminates periodic background wakeups and native library loading caused by Chromium in-product tips/promo scheduler (Job ID 105)."
+            },
+            {
+              "name": "Brave Origin",
+              "description": "Unlocks Brave Origin and enables local feature toggle controls."
+            },
+            {
+              "name": "Brave Startup Performance Optimization",
+              "description": "Optimizes startup time and eliminates background CPU/disk overhead by disabling unused OEM carrier partner customizations."
+            }
+          ],
+          "versions": [
+            "1.93.137"
+          ]
         }
       ],
       "patches": [
-        "Brave Origin"
+        "Block Brave Telemetry",
+        "Brave In-Product Notification Scheduler Optimization",
+        "Brave Origin",
+        "Brave Startup Performance Optimization"
       ],
       "patchDetails": [
         {
+          "name": "Block Brave Telemetry",
+          "description": "Blocks P3A product analytics, Brave Stats usage pings, crash dump uploads, WDP, and Variations seed fetching."
+        },
+        {
+          "name": "Brave In-Product Notification Scheduler Optimization",
+          "description": "Eliminates periodic background wakeups and native library loading caused by Chromium in-product tips/promo scheduler (Job ID 105)."
+        },
+        {
           "name": "Brave Origin",
-          "description": "Unlocks Brave Origin and enables feature toggle controls."
+          "description": "Unlocks Brave Origin and enables local feature toggle controls."
+        },
+        {
+          "name": "Brave Startup Performance Optimization",
+          "description": "Optimizes startup time and eliminates background CPU/disk overhead by disabling unused OEM carrier partner customizations."
         }
       ],
       "versions": [
-        "1.92.140"
+        "1.92.140",
+        "1.93.137"
       ],
       "iconColor": "#FF4500",
       "iconUrl": "https://play-lh.googleusercontent.com/UBrZnuXGb-QACU0uUdF5r_n5nx5oBbdfPyEbtsr0xXv00RN7rpaTVu3GjLeE90aHFmNlbaCmm8vNcmY0eE98U9E"
@@ -24680,12 +25355,8 @@
             }
           ],
           "versions": [
-            "26.26.04.935742811",
-            "26.27.05.941319029",
-            "26.28.03.942936911",
-            "26.29.02.946673643",
-            "26.30.09.950492155",
-            "26.32.06.958047303"
+            "26.32.06.958047303",
+            "26.33.02.961351034"
           ]
         }
       ],
@@ -24709,12 +25380,8 @@
         }
       ],
       "versions": [
-        "26.26.04.935742811",
-        "26.27.05.941319029",
-        "26.28.03.942936911",
-        "26.29.02.946673643",
-        "26.30.09.950492155",
-        "26.32.06.958047303"
+        "26.32.06.958047303",
+        "26.33.02.961351034"
       ],
       "iconColor": "#4285F4",
       "iconUrl": "https://play-lh.googleusercontent.com/B8pdO_2K5nBsF0g1h6dKwV_jQFLP-XombGDEQGtJT-mw1EUKCKJpa9lBGCF4rP_MwCsozSXyvI3z19g9R3J4"
@@ -24900,7 +25567,8 @@
         "Entree3k/Morning-Entree-Patches",
         "jasonwu1994/Gboard-patches",
         "jkennethcarino/adobo",
-        "JZ6/Flexboard"
+        "JZ6/Flexboard",
+        "kveld9/kveld-morphe-patches"
       ],
       "sources": [
         {
@@ -25249,16 +25917,114 @@
           "versions": [
             "18.0.3.954559732-release-arm64-v8a"
           ]
+        },
+        {
+          "repo": "kveld9/kveld-morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/kveld9/kveld-morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=kveld9/kveld-morphe-patches",
+          "source": "https://raw.githubusercontent.com/kveld9/kveld-morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/kveld9/kveld-morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/kveld9.png?size=96",
+          "latestChanges": {
+            "title": "1.2.0 (2026-08-20)",
+            "date": "2026-08-20",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "**gboard:** add modular patch suite for Gboard Lite v18.0.3"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-google-android-inputmethod-latin-kveld9-kveld-morphe-patches",
+            "releaseTag": "app-com-google-android-inputmethod-latin-kveld9-kveld-morphe-patches",
+            "assetName": "com-google-android-inputmethod-latin-kveld9-kveld-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Add AMOLED Theme",
+              "description": "Adds a selectable Pure Black AMOLED theme using Gboard's native color_black theme package, without replacing Dark, Light, System Auto, or Dynamic Color."
+            },
+            {
+              "name": "Allow Modified APK",
+              "description": "Bypasses internal signature check to allow custom APK execution."
+            },
+            {
+              "name": "Block Telemetry",
+              "description": "Disables background metrics dispatch, event logging, daily pings, and crash reporting."
+            },
+            {
+              "name": "Disable Diagnostics",
+              "description": "Disables Google's diagnostic and recovery telemetry."
+            },
+            {
+              "name": "Disable Google Primes",
+              "description": "Neutralizes Google Primes performance profiling, jank monitoring, native crash sidecars, and background telemetry threads."
+            },
+            {
+              "name": "Disable In-App Training",
+              "description": "Neutralizes periodic in-app training cache generation and federated-learning background work while preserving normal keyboard functionality and explicit user-requested operations."
+            },
+            {
+              "name": "Disable MDD Background Sync",
+              "description": "Neutralizes Mobile Data Download (MDD) periodic background synchronization, automated polling, and prefetch worker tasks while preserving on-demand and user-requested downloads."
+            },
+            {
+              "name": "Disable Remote Configuration",
+              "description": "Disables periodic remote experiment flag synchronization and background updates."
+            },
+            {
+              "name": "Disable Superpacks Eager Sync",
+              "description": "Neutralizes eager background Superpacks synchronization during application startup, eliminating unnecessary disk sweeps and network polling while preserving on-demand pack downloads."
+            },
+            {
+              "name": "Disable Tenor Share Tracking",
+              "description": "Disables Tenor GIF selection and share tracking telemetry."
+            },
+            {
+              "name": "Disable WorkManager",
+              "description": "Neutralizes background WorkManager initialization, database creation, and periodic maintenance workers."
+            },
+            {
+              "name": "Enable Access Points Menu Redesign",
+              "description": "Enables the redesigned access points menu bar and customization panel (Panel V2)."
+            },
+            {
+              "name": "Enable Free Cursor 2D Trackpad",
+              "description": "Unlocks Gboard's 2D Free Cursor navigation through the spacebar, including vertical cursor movement and the magnifier HUD."
+            },
+            {
+              "name": "Enable Key Shape Selection",
+              "description": "Enables the key border shape selection UI (Default, Semi-rounded, Round) in theme customization."
+            },
+            {
+              "name": "Force Incognito Mode",
+              "description": "Forces Gboard to always operate in incognito mode, disabling personalized learning and persistent input logging across all sessions."
+            },
+            {
+              "name": "Hardened Intent Security",
+              "description": "Enables Gboard internal external intent protection against unauthorized intent hijacking."
+            }
+          ],
+          "versions": [
+            "18.0.3.954559732-lite_beta-arm64-v8a"
+          ]
         }
       ],
       "patches": [
         "Access Points menu style",
+        "Add AMOLED Theme",
         "Add Gboard Signature Bypass",
         "Advanced Voice Typing",
         "AI Writing Tools",
+        "Allow Modified APK",
         "Always incognito mode",
         "Always-incognito mode",
         "Bigger Toolbar",
+        "Block Telemetry",
         "Block tracking and analytics",
         "Bypass Gboard Signature",
         "Change emoji size",
@@ -25267,13 +26033,24 @@
         "Clipboard Enhancements",
         "Custom Symbols",
         "Developer options",
+        "Disable Diagnostics",
+        "Disable Google Primes",
+        "Disable In-App Training",
+        "Disable MDD Background Sync",
+        "Disable Remote Configuration",
+        "Disable Superpacks Eager Sync",
+        "Disable Tenor Share Tracking",
+        "Disable WorkManager",
         "Emojis, stickers & GIFs Tab Order",
+        "Enable Access Points Menu Redesign",
         "Enable access points menu redesign",
         "Enable accessibility layout",
         "Enable clipboard in incognito",
         "Enable cursor trackpad mode",
+        "Enable Free Cursor 2D Trackpad",
         "Enable Inline Autofill Suggestions",
         "Enable key shape selection",
+        "Enable Key Shape Selection",
         "Enable OCR / Scan Text",
         "Enable OCR feature",
         "Enable split keyboard",
@@ -25281,8 +26058,10 @@
         "Enable voice typing in incognito",
         "English QWERTY Up-Flick Uppercase",
         "Flick Keys for Symbols",
+        "Force Incognito Mode",
         "G Logo on Spacebar",
         "Grammar Checker",
+        "Hardened Intent Security",
         "Incognito Mode Toggle",
         "Inline Suggestions",
         "Install as Gboard Clone",
@@ -25308,6 +26087,10 @@
           "description": "\u5207\u63db\u65b0\u7248\u6216\u820a\u7248 Access Points \u9078\u55ae\u6a23\u5f0f\nSwitch between the new and legacy Access Points menu styles."
         },
         {
+          "name": "Add AMOLED Theme",
+          "description": "Adds a selectable Pure Black AMOLED theme using Gboard's native color_black theme package, without replacing Dark, Light, System Auto, or Dynamic Color."
+        },
+        {
           "name": "Add Gboard Signature Bypass",
           "description": "\u6514\u622a Gboard \u7684\u7c3d\u7ae0\u767d\u540d\u55ae\u6aa2\u67e5\u4e26\u5f37\u5236\u901a\u904e\nBypass Gboard signature whitelist checks and force them to pass."
         },
@@ -25320,6 +26103,10 @@
           "description": "\u555f\u7528 AI \u64b0\u5beb\u5de5\u5177\uff0c\u652f\u63f4\u6240\u6709\u8a9e\u8a00\nEnable AI writing tools with support for all languages."
         },
         {
+          "name": "Allow Modified APK",
+          "description": "Bypasses internal signature check to allow custom APK execution."
+        },
+        {
           "name": "Always incognito mode",
           "description": "Always opens Gboard in incognito mode to disable typing-history collection and personalization, while keeping clipboard and voice typing working in incognito."
         },
@@ -25330,6 +26117,10 @@
         {
           "name": "Bigger Toolbar",
           "description": "Makes the number of icons on the toolbar above the keyboard adjustable, from Gboard's own settings. Anything past the limit stays in the overflow menu."
+        },
+        {
+          "name": "Block Telemetry",
+          "description": "Disables background metrics dispatch, event logging, daily pings, and crash reporting."
         },
         {
           "name": "Block tracking and analytics",
@@ -25364,8 +26155,44 @@
           "description": "\u555f\u7528 \u958b\u767c\u4eba\u54e1\u9078\u9805 \u8207 Flag \u7de8\u8f2f\u5668\uff0c\u4f60\u53ef\u4ee5\u81ea\u5df1\u4fee\u6539Flag\u7684\u503c\nEnable Developer options and the Flag Editor, allowing you to modify flag values."
         },
         {
+          "name": "Disable Diagnostics",
+          "description": "Disables Google's diagnostic and recovery telemetry."
+        },
+        {
+          "name": "Disable Google Primes",
+          "description": "Neutralizes Google Primes performance profiling, jank monitoring, native crash sidecars, and background telemetry threads."
+        },
+        {
+          "name": "Disable In-App Training",
+          "description": "Neutralizes periodic in-app training cache generation and federated-learning background work while preserving normal keyboard functionality and explicit user-requested operations."
+        },
+        {
+          "name": "Disable MDD Background Sync",
+          "description": "Neutralizes Mobile Data Download (MDD) periodic background synchronization, automated polling, and prefetch worker tasks while preserving on-demand and user-requested downloads."
+        },
+        {
+          "name": "Disable Remote Configuration",
+          "description": "Disables periodic remote experiment flag synchronization and background updates."
+        },
+        {
+          "name": "Disable Superpacks Eager Sync",
+          "description": "Neutralizes eager background Superpacks synchronization during application startup, eliminating unnecessary disk sweeps and network polling while preserving on-demand pack downloads."
+        },
+        {
+          "name": "Disable Tenor Share Tracking",
+          "description": "Disables Tenor GIF selection and share tracking telemetry."
+        },
+        {
+          "name": "Disable WorkManager",
+          "description": "Neutralizes background WorkManager initialization, database creation, and periodic maintenance workers."
+        },
+        {
           "name": "Emojis, stickers & GIFs Tab Order",
           "description": "\u81ea\u8a02 Gboard\u300cEmojis, stickers & GIFs\u300d\u5e95\u90e8 tabs \u7684\u6392\u5e8f\uff0c\u652f\u63f4\u62d6\u66f3\u8abf\u6574\nCustomize the bottom tab order in Gboard's Emojis, stickers & GIFs panel with drag-and-drop reordering."
+        },
+        {
+          "name": "Enable Access Points Menu Redesign",
+          "description": "Enables the redesigned access points menu bar and customization panel (Panel V2)."
         },
         {
           "name": "Enable access points menu redesign",
@@ -25384,12 +26211,20 @@
           "description": "\u9577\u6309\u7a7a\u767d\u9375\u958b\u555f\u6e38\u6a19\u89f8\u63a7\u677f\u8207\u9396\u5b9a\u6a21\u5f0f\nLong-press the space bar to use cursor trackpad and lock modes."
         },
         {
+          "name": "Enable Free Cursor 2D Trackpad",
+          "description": "Unlocks Gboard's 2D Free Cursor navigation through the spacebar, including vertical cursor movement and the magnifier HUD."
+        },
+        {
           "name": "Enable Inline Autofill Suggestions",
           "description": "\u555f\u7528\u5167\u5d4c\u81ea\u52d5\u586b\u5165\u5efa\u8b70\nEnable Inline Autofill Suggestions"
         },
         {
           "name": "Enable key shape selection",
           "description": "Enables an option to select a key shape from the theme."
+        },
+        {
+          "name": "Enable Key Shape Selection",
+          "description": "Enables the key border shape selection UI (Default, Semi-rounded, Round) in theme customization."
         },
         {
           "name": "Enable OCR / Scan Text",
@@ -25420,12 +26255,20 @@
           "description": "Turn on Gboard's \"Flick keys to enter symbols\" \u2014 pull down on a key to enter the symbol hinted in its corner. Written once as a default, so it can still be turned off in Gboard's own settings."
         },
         {
+          "name": "Force Incognito Mode",
+          "description": "Forces Gboard to always operate in incognito mode, disabling personalized learning and persistent input logging across all sessions."
+        },
+        {
           "name": "G Logo on Spacebar",
           "description": "\u5728\u7a7a\u767d\u9375\u986f\u793a G Logo\uff0c\u4e26\u96b1\u85cf\u8a9e\u8a00\u540d\u7a31\nShow the G Logo on the spacebar and hide the language label."
         },
         {
           "name": "Grammar Checker",
           "description": "\u555f\u7528 \u4fee\u6b63\u548c\u5efa\u8b70 > \u6587\u6cd5\u6aa2\u67e5\nEnable Text correction > Grammar check."
+        },
+        {
+          "name": "Hardened Intent Security",
+          "description": "Enables Gboard internal external intent protection against unauthorized intent hijacking."
         },
         {
           "name": "Incognito Mode Toggle",
@@ -25502,6 +26345,7 @@
       ],
       "versions": [
         "17.7.7.932364120-release-arm64-v8a",
+        "18.0.3.954559732-lite_beta-arm64-v8a",
         "18.0.3.954559732-release-arm64-v8a"
       ],
       "iconColor": "#1A73E8",
@@ -25566,12 +26410,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/durgesh0505/chiggi_morphe_patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/durgesh0505.png?size=96",
           "latestChanges": {
-            "title": "1.18.0 (2026-07-23)",
-            "date": "2026-07-23",
+            "title": "1.19.0 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**jiohotstar:** spoof device id (ANDROID_ID) to resolve device-logged-out"
+                "text": "add ZEE5 (Android TV), tag TV apps, make TV builds phone-patch-safe"
               }
             ]
           },
@@ -26299,12 +27143,24 @@
           "changelogUrl": "https://raw.githubusercontent.com/theabhishekbhujang/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/theabhishekbhujang.png?size=96",
           "latestChanges": {
-            "title": "1.5.3 (2026-08-19)",
-            "date": "2026-08-19",
+            "title": "1.6.0 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**rhythm:** use addInstructions to force isPro false without breaking constructor field initialization"
+                "text": "**rhythm:** escape inner class dollar sign in multiline smali string"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**rhythm:** unlock all Pro features, scales, Manjeera, variations and disable purchase prompts"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**rhythm:** use addInstructions to prevent IndexOutOfBoundsException during patch execution"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**rhythm:** update unlock pro patch with complete bypasses and audio unlocks"
               }
             ]
           },
@@ -26318,7 +27174,7 @@
           "patches": [
             {
               "name": "Unlock Pro",
-              "description": "Unlocks all Pro features, taals, variations, scales, and removes ads."
+              "description": "Unlocks all Pro and Premium features, taals, variations, scales, Manjeera audio engine, and disables store alerts & ads."
             }
           ],
           "versions": [
@@ -26332,7 +27188,7 @@
       "patchDetails": [
         {
           "name": "Unlock Pro",
-          "description": "Unlocks all Pro features, taals, variations, scales, and removes ads."
+          "description": "Unlocks all Pro and Premium features, taals, variations, scales, Manjeera audio engine, and disables store alerts & ads."
         }
       ],
       "versions": [
@@ -29673,12 +30529,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/durgesh0505/chiggi_morphe_patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/durgesh0505.png?size=96",
           "latestChanges": {
-            "title": "1.18.0 (2026-07-23)",
-            "date": "2026-07-23",
+            "title": "1.19.0 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**jiohotstar:** spoof device id (ANDROID_ID) to resolve device-logged-out"
+                "text": "add ZEE5 (Android TV), tag TV apps, make TV builds phone-patch-safe"
               }
             ]
           },
@@ -30202,12 +31058,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/NekoGryphou/gryphous-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/NekoGryphou.png?size=96",
           "latestChanges": {
-            "title": "1.0.1 (2026-07-06)",
-            "date": "2026-07-06",
+            "title": "1.1.0 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "publish renamed repository metadata"
+                "category": "\u2728 New Features",
+                "text": "disable DeLonghi permission prompts"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "hide DeLonghi shared devices incident popup"
               }
             ]
           },
@@ -30260,12 +31120,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/durgesh0505/chiggi_morphe_patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/durgesh0505.png?size=96",
           "latestChanges": {
-            "title": "1.18.0 (2026-07-23)",
-            "date": "2026-07-23",
+            "title": "1.19.0 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**jiohotstar:** spoof device id (ANDROID_ID) to resolve device-logged-out"
+                "text": "add ZEE5 (Android TV), tag TV apps, make TV builds phone-patch-safe"
               }
             ]
           },
@@ -31096,6 +31956,86 @@
       "iconUrl": "https://play-lh.googleusercontent.com/3wsShIT-BhtperkPcnd0wcEz4M0ajLQn2jokq7oPnrimnazOcDJt3wC9fxt68P-jeiabWPsPkWMnkPgWNqJpoA"
     },
     {
+      "packageName": "com.ddsx_ayla_android",
+      "name": "De'Longhi Comfort",
+      "repos": [
+        "NekoGryphou/gryphous-morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "NekoGryphou/gryphous-morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/NekoGryphou/gryphous-morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=NekoGryphou/gryphous-morphe-patches",
+          "source": "https://raw.githubusercontent.com/NekoGryphou/gryphous-morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/NekoGryphou/gryphous-morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/NekoGryphou.png?size=96",
+          "latestChanges": {
+            "title": "1.1.0 (2026-08-20)",
+            "date": "2026-08-20",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "disable DeLonghi permission prompts"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "hide DeLonghi shared devices incident popup"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-ddsx-ayla-android-nekogryphou-gryphous-morphe-patches",
+            "releaseTag": "app-com-ddsx-ayla-android-nekogryphou-gryphous-morphe-patches",
+            "assetName": "de-longhi-comfort-nekogryphou-gryphous-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Disable login location requirement",
+              "description": "Allows login and registration without granting location permission."
+            },
+            {
+              "name": "Disable notification permission prompt",
+              "description": "Prevents De'Longhi Comfort from asking to enable notifications."
+            },
+            {
+              "name": "Hide shared-devices incident popup",
+              "description": "Prevents the GetReceivedShares-003 incident popup from appearing."
+            }
+          ],
+          "versions": [
+            "5.1.5"
+          ]
+        }
+      ],
+      "patches": [
+        "Disable login location requirement",
+        "Disable notification permission prompt",
+        "Hide shared-devices incident popup"
+      ],
+      "patchDetails": [
+        {
+          "name": "Disable login location requirement",
+          "description": "Allows login and registration without granting location permission."
+        },
+        {
+          "name": "Disable notification permission prompt",
+          "description": "Prevents De'Longhi Comfort from asking to enable notifications."
+        },
+        {
+          "name": "Hide shared-devices incident popup",
+          "description": "Prevents the GetReceivedShares-003 incident popup from appearing."
+        }
+      ],
+      "versions": [
+        "5.1.5"
+      ],
+      "iconColor": "#006B52",
+      "iconUrl": ""
+    },
+    {
       "packageName": "com.jndapp.depth.live.wallpaper",
       "name": "Depth Wallpapers & Live Clock",
       "repos": [
@@ -31525,12 +32465,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/durgesh0505/chiggi_morphe_patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/durgesh0505.png?size=96",
           "latestChanges": {
-            "title": "1.18.0 (2026-07-23)",
-            "date": "2026-07-23",
+            "title": "1.19.0 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**jiohotstar:** spoof device id (ANDROID_ID) to resolve device-logged-out"
+                "text": "add ZEE5 (Android TV), tag TV apps, make TV builds phone-patch-safe"
               }
             ]
           },
@@ -31627,12 +32567,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.13.0 (2026-08-19)",
-            "date": "2026-08-19",
+            "title": "1.14.0 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**vector:** add rewarded ad spoofing"
+                "text": "**injustice:** add ad removal and billing bypass"
               }
             ]
           },
@@ -31871,12 +32811,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.13.0 (2026-08-19)",
-            "date": "2026-08-19",
+            "title": "1.14.0 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**vector:** add rewarded ad spoofing"
+                "text": "**injustice:** add ad removal and billing bypass"
               }
             ]
           },
@@ -32033,12 +32973,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.13.0 (2026-08-19)",
-            "date": "2026-08-19",
+            "title": "1.14.0 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**vector:** add rewarded ad spoofing"
+                "text": "**injustice:** add ad removal and billing bypass"
               }
             ]
           },
@@ -33180,12 +34120,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.9.1 (2026-08-19)",
-            "date": "2026-08-19",
+            "title": "1.9.2 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**Showly - AMOLED dark theme:** keep the search bar and bottom menu tone"
+                "text": "**Perplexity - AMOLED dark theme:** keep the tinted surfaces at stock tone"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**Proton Mail - AMOLED dark theme:** keep the sidebar selected row and separators"
               }
             ]
           },
@@ -35051,12 +35995,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.9.1 (2026-08-19)",
-            "date": "2026-08-19",
+            "title": "1.9.2 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**Showly - AMOLED dark theme:** keep the search bar and bottom menu tone"
+                "text": "**Perplexity - AMOLED dark theme:** keep the tinted surfaces at stock tone"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**Proton Mail - AMOLED dark theme:** keep the sidebar selected row and separators"
               }
             ]
           },
@@ -35372,12 +36320,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.13.0 (2026-08-19)",
-            "date": "2026-08-19",
+            "title": "1.14.0 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**vector:** add rewarded ad spoofing"
+                "text": "**injustice:** add ad removal and billing bypass"
               }
             ]
           },
@@ -36730,12 +37678,24 @@
           "changelogUrl": "https://raw.githubusercontent.com/theabhishekbhujang/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/theabhishekbhujang.png?size=96",
           "latestChanges": {
-            "title": "1.5.3 (2026-08-19)",
-            "date": "2026-08-19",
+            "title": "1.6.0 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**rhythm:** use addInstructions to force isPro false without breaking constructor field initialization"
+                "text": "**rhythm:** escape inner class dollar sign in multiline smali string"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**rhythm:** unlock all Pro features, scales, Manjeera, variations and disable purchase prompts"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "**rhythm:** use addInstructions to prevent IndexOutOfBoundsException during patch execution"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "**rhythm:** update unlock pro patch with complete bypasses and audio unlocks"
               }
             ]
           },
@@ -37462,12 +38422,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.13.0 (2026-08-19)",
-            "date": "2026-08-19",
+            "title": "1.14.0 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**vector:** add rewarded ad spoofing"
+                "text": "**injustice:** add ad removal and billing bypass"
               }
             ]
           },
@@ -39187,6 +40147,73 @@
       "iconUrl": "https://play-lh.googleusercontent.com/E2Nyw1kSrYFvi5DFOznWOR2iXY9mwxwfYHXV37aLHmuKtEW3gs7StIvVptoV2x8_ykiHQQmliwpfDsFm0Quuwbk"
     },
     {
+      "packageName": "com.wb.goog.injustice",
+      "name": "Injustice: Gods Among Us",
+      "repos": [
+        "byehi98/okish-morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "byehi98/okish-morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/byehi98/okish-morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=byehi98/okish-morphe-patches",
+          "source": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/byehi98.png?size=96",
+          "latestChanges": {
+            "title": "1.14.0 (2026-08-20)",
+            "date": "2026-08-20",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "**injustice:** add ad removal and billing bypass"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-wb-goog-injustice-byehi98-okish-morphe-patches",
+            "releaseTag": "app-com-wb-goog-injustice-byehi98-okish-morphe-patches",
+            "assetName": "injustice-gods-among-us-byehi98-okish-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Injustice Ads Removal",
+              "description": "Get stamina without watching ad Video."
+            },
+            {
+              "name": "Injustice Billing Bypass",
+              "description": "Bypass billing get the items in store for free."
+            }
+          ],
+          "versions": [
+            "3.5.1"
+          ]
+        }
+      ],
+      "patches": [
+        "Injustice Ads Removal",
+        "Injustice Billing Bypass"
+      ],
+      "patchDetails": [
+        {
+          "name": "Injustice Ads Removal",
+          "description": "Get stamina without watching ad Video."
+        },
+        {
+          "name": "Injustice Billing Bypass",
+          "description": "Bypass billing get the items in store for free."
+        }
+      ],
+      "versions": [
+        "3.5.1"
+      ],
+      "iconColor": "#FFC107",
+      "iconUrl": ""
+    },
+    {
       "packageName": "com.changayaf.inmigreat",
       "name": "Inmigreat",
       "repos": [
@@ -40277,12 +41304,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.13.0 (2026-08-19)",
-            "date": "2026-08-19",
+            "title": "1.14.0 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**vector:** add rewarded ad spoofing"
+                "text": "**injustice:** add ad removal and billing bypass"
               }
             ]
           },
@@ -41277,12 +42304,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.13.0 (2026-08-19)",
-            "date": "2026-08-19",
+            "title": "1.14.0 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**vector:** add rewarded ad spoofing"
+                "text": "**injustice:** add ad removal and billing bypass"
               }
             ]
           },
@@ -41337,12 +42364,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/durgesh0505/chiggi_morphe_patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/durgesh0505.png?size=96",
           "latestChanges": {
-            "title": "1.18.0 (2026-07-23)",
-            "date": "2026-07-23",
+            "title": "1.19.0 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**jiohotstar:** spoof device id (ANDROID_ID) to resolve device-logged-out"
+                "text": "add ZEE5 (Android TV), tag TV apps, make TV builds phone-patch-safe"
               }
             ]
           },
@@ -41645,7 +42672,7 @@
     },
     {
       "packageName": "com.jio.media.jiotvplus",
-      "name": "Jiotv+: LiveTV & OTT",
+      "name": "Jiotv+: LiveTV & OTT (Android TV)",
       "repos": [
         "durgesh0505/chiggi_morphe_patches"
       ],
@@ -41659,19 +42686,19 @@
           "changelogUrl": "https://raw.githubusercontent.com/durgesh0505/chiggi_morphe_patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/durgesh0505.png?size=96",
           "latestChanges": {
-            "title": "1.18.0 (2026-07-23)",
-            "date": "2026-07-23",
+            "title": "1.19.0 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**jiohotstar:** spoof device id (ANDROID_ID) to resolve device-logged-out"
+                "text": "add ZEE5 (Android TV), tag TV apps, make TV builds phone-patch-safe"
               }
             ]
           },
           "builder": {
             "buildId": "com-jio-media-jiotvplus-durgesh0505-chiggi-morphe-patches",
             "releaseTag": "app-com-jio-media-jiotvplus-durgesh0505-chiggi-morphe-patches",
-            "assetName": "jiotvplus-livetv-and-ott-durgesh0505-chiggi-morphe-patches.apk",
+            "assetName": "jiotvplus-livetv-and-ott-android-tv-durgesh0505-chiggi-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -42724,12 +43751,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.9.1 (2026-08-19)",
-            "date": "2026-08-19",
+            "title": "1.9.2 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**Showly - AMOLED dark theme:** keep the search bar and bottom menu tone"
+                "text": "**Perplexity - AMOLED dark theme:** keep the tinted surfaces at stock tone"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**Proton Mail - AMOLED dark theme:** keep the sidebar selected row and separators"
               }
             ]
           },
@@ -43831,12 +44862,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/andrewliang25/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/andrewliang25.png?size=96",
           "latestChanges": {
-            "title": "1.6.0 (2026-08-12)",
-            "date": "2026-08-12",
+            "title": "1.7.0 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "fix chat-history backup sign-in via GmsCore"
+                "text": "add \"Hide Shopping tab\" patch (04b256b), closes #59"
               }
             ]
           },
@@ -43850,7 +44881,7 @@
           "patches": [
             {
               "name": "Disable LINE Premium",
-              "description": "Hides all LINE Yahoo Premium (LYP) surfaces \u2014 upsells, badges, the Premium settings page, and subscribe/manage flows. Doesn't unlock anything (premium is server-enforced)."
+              "description": "Hides all LINE Yahoo Premium (LYP) surfaces \u2014 upsells, badges, the Premium settings page, and subscribe/manage flows. Premium chat backup falls back to the ordinary chat-history backup. Doesn't unlock anything (premium is server-enforced)."
             },
             {
               "name": "Disable VOOM",
@@ -43899,6 +44930,10 @@
             {
               "name": "Hide premium unsend upsells",
               "description": "Removes the LYP premium-unsend upsells that survive \"Disable LINE Premium\": the \"Unsend discreetly\" button, the post-unsend promo link, and the expired-window unsend upsell. Ordinary unsend still works."
+            },
+            {
+              "name": "Hide Shopping tab",
+              "description": "Removes the Shopping tab from the main bottom navigation, covering both the Japan (Shopping / \u30b7\u30e7\u30c3\u30d4\u30f3\u30b0) and Taiwan (Discover / \u901b\u901b) variants."
             },
             {
               "name": "Hide Transfer button",
@@ -43952,6 +44987,7 @@
         "Hide LINE GIFT button",
         "Hide LINE TODAY tab",
         "Hide premium unsend upsells",
+        "Hide Shopping tab",
         "Hide Transfer button",
         "Hide VOOM tab",
         "Hide Wallet tab",
@@ -43964,7 +45000,7 @@
       "patchDetails": [
         {
           "name": "Disable LINE Premium",
-          "description": "Hides all LINE Yahoo Premium (LYP) surfaces \u2014 upsells, badges, the Premium settings page, and subscribe/manage flows. Doesn't unlock anything (premium is server-enforced)."
+          "description": "Hides all LINE Yahoo Premium (LYP) surfaces \u2014 upsells, badges, the Premium settings page, and subscribe/manage flows. Premium chat backup falls back to the ordinary chat-history backup. Doesn't unlock anything (premium is server-enforced)."
         },
         {
           "name": "Disable VOOM",
@@ -44013,6 +45049,10 @@
         {
           "name": "Hide premium unsend upsells",
           "description": "Removes the LYP premium-unsend upsells that survive \"Disable LINE Premium\": the \"Unsend discreetly\" button, the post-unsend promo link, and the expired-window unsend upsell. Ordinary unsend still works."
+        },
+        {
+          "name": "Hide Shopping tab",
+          "description": "Removes the Shopping tab from the main bottom navigation, covering both the Japan (Shopping / \u30b7\u30e7\u30c3\u30d4\u30f3\u30b0) and Taiwan (Discover / \u901b\u901b) variants."
         },
         {
           "name": "Hide Transfer button",
@@ -47386,12 +48426,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.13.0 (2026-08-19)",
-            "date": "2026-08-19",
+            "title": "1.14.0 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**vector:** add rewarded ad spoofing"
+                "text": "**injustice:** add ad removal and billing bypass"
               }
             ]
           },
@@ -48324,12 +49364,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.13.0 (2026-08-19)",
-            "date": "2026-08-19",
+            "title": "1.14.0 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**vector:** add rewarded ad spoofing"
+                "text": "**injustice:** add ad removal and billing bypass"
               }
             ]
           },
@@ -51025,12 +52065,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/durgesh0505/chiggi_morphe_patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/durgesh0505.png?size=96",
           "latestChanges": {
-            "title": "1.18.0 (2026-07-23)",
-            "date": "2026-07-23",
+            "title": "1.19.0 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**jiohotstar:** spoof device id (ANDROID_ID) to resolve device-logged-out"
+                "text": "add ZEE5 (Android TV), tag TV apps, make TV builds phone-patch-safe"
               }
             ]
           },
@@ -53640,12 +54680,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.9.1 (2026-08-19)",
-            "date": "2026-08-19",
+            "title": "1.9.2 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**Showly - AMOLED dark theme:** keep the search bar and bottom menu tone"
+                "text": "**Perplexity - AMOLED dark theme:** keep the tinted surfaces at stock tone"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**Proton Mail - AMOLED dark theme:** keep the sidebar selected row and separators"
               }
             ]
           },
@@ -57974,12 +59018,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.9.1 (2026-08-19)",
-            "date": "2026-08-19",
+            "title": "1.9.2 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**Showly - AMOLED dark theme:** keep the search bar and bottom menu tone"
+                "text": "**Perplexity - AMOLED dark theme:** keep the tinted surfaces at stock tone"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**Proton Mail - AMOLED dark theme:** keep the sidebar selected row and separators"
               }
             ]
           },
@@ -58262,12 +59310,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.9.1 (2026-08-19)",
-            "date": "2026-08-19",
+            "title": "1.9.2 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**Showly - AMOLED dark theme:** keep the search bar and bottom menu tone"
+                "text": "**Perplexity - AMOLED dark theme:** keep the tinted surfaces at stock tone"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**Proton Mail - AMOLED dark theme:** keep the sidebar selected row and separators"
               }
             ]
           },
@@ -58875,6 +59927,73 @@
       "iconUrl": "https://play-lh.googleusercontent.com/Zhteg0XDRd__NcR7tjpCGjnMZyQ_YQFatsJVyXaH7R4Q1Svkl28vnlgLpfXpaAbKJRth9osJ6j6HMa5ewvSSTY8"
     },
     {
+      "packageName": "com.halliharp.proxmobo",
+      "name": "ProxMobo",
+      "repos": [
+        "chicco-carone/morphe-patches-chicco"
+      ],
+      "sources": [
+        {
+          "repo": "chicco-carone/morphe-patches-chicco",
+          "host": "github.com",
+          "webUrl": "https://github.com/chicco-carone/morphe-patches-chicco",
+          "addUrl": "https://morphe.software/add-source?github=chicco-carone/morphe-patches-chicco",
+          "source": "https://raw.githubusercontent.com/chicco-carone/morphe-patches-chicco/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/chicco-carone/morphe-patches-chicco/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/chicco-carone.png?size=96",
+          "latestChanges": {
+            "title": "1.0.0 (2026-08-20)",
+            "date": "2026-08-20",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "Add ProxMobo premium unlock and license check bypass patches"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-halliharp-proxmobo-chicco-carone-morphe-patches-chicco",
+            "releaseTag": "app-com-halliharp-proxmobo-chicco-carone-morphe-patches-chicco",
+            "assetName": "proxmobo-chicco-carone-morphe-patches-chicco.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "ProxMobo License Check Bypass",
+              "description": "Disables Google's Play app-licensing (PairIP) check so ProxMobo does not show license errors or close when it is not installed/licensed through Google Play."
+            },
+            {
+              "name": "ProxMobo Premium Unlock",
+              "description": "Reports the lifetime Premium product (proxmobo.premium.lifetime) as purchased so all Premium features are unlocked."
+            }
+          ],
+          "versions": [
+            "1.0.1"
+          ]
+        }
+      ],
+      "patches": [
+        "ProxMobo License Check Bypass",
+        "ProxMobo Premium Unlock"
+      ],
+      "patchDetails": [
+        {
+          "name": "ProxMobo License Check Bypass",
+          "description": "Disables Google's Play app-licensing (PairIP) check so ProxMobo does not show license errors or close when it is not installed/licensed through Google Play."
+        },
+        {
+          "name": "ProxMobo Premium Unlock",
+          "description": "Reports the lifetime Premium product (proxmobo.premium.lifetime) as purchased so all Premium features are unlocked."
+        }
+      ],
+      "versions": [
+        "1.0.1"
+      ],
+      "iconColor": "#3F2A44",
+      "iconUrl": ""
+    },
+    {
       "packageName": "com.proxyman.proxymanandroid",
       "name": "Proxyman",
       "repos": [
@@ -59171,6 +60290,103 @@
       "iconUrl": ""
     },
     {
+      "packageName": "com.markatlarge.scrub",
+      "name": "Punge",
+      "repos": [
+        "hhawkinsau/hh-patches"
+      ],
+      "sources": [
+        {
+          "repo": "hhawkinsau/hh-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/hhawkinsau/hh-patches",
+          "addUrl": "https://morphe.software/add-source?github=hhawkinsau/hh-patches",
+          "source": "https://raw.githubusercontent.com/hhawkinsau/hh-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/hhawkinsau/hh-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/hhawkinsau.png?size=96",
+          "latestChanges": {
+            "title": "1.3.1 (2026-08-19)",
+            "date": "2026-08-19",
+            "items": [
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Match Punge unlocked entitlement gate"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Preserve Firebase startup components"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Remove all SafePix patches"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Remove analytics patches that block startup"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-markatlarge-scrub-hhawkinsau-hh-patches",
+            "releaseTag": "app-com-markatlarge-scrub-hhawkinsau-hh-patches",
+            "assetName": "punge-hhawkinsau-hh-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Disable Play Store redirect for Punge",
+              "description": "Stops Punge from opening the Play Store on launch when the app was sideloaded or patched instead of installed from Play."
+            },
+            {
+              "name": "Disable remote config for Punge",
+              "description": "Stops Firebase Remote Config fetches and Play Measurement so feature flags cannot be changed after install."
+            },
+            {
+              "name": "Hide ads for Punge",
+              "description": "Stops AdMob banners and interstitials from loading or showing."
+            },
+            {
+              "name": "Unlock Punge premium",
+              "description": "Unlocks Punge's paid feature gates by making RevenueCat report an active entitlement."
+            }
+          ],
+          "versions": [
+            "3.1.4"
+          ]
+        }
+      ],
+      "patches": [
+        "Disable Play Store redirect for Punge",
+        "Disable remote config for Punge",
+        "Hide ads for Punge",
+        "Unlock Punge premium"
+      ],
+      "patchDetails": [
+        {
+          "name": "Disable Play Store redirect for Punge",
+          "description": "Stops Punge from opening the Play Store on launch when the app was sideloaded or patched instead of installed from Play."
+        },
+        {
+          "name": "Disable remote config for Punge",
+          "description": "Stops Firebase Remote Config fetches and Play Measurement so feature flags cannot be changed after install."
+        },
+        {
+          "name": "Hide ads for Punge",
+          "description": "Stops AdMob banners and interstitials from loading or showing."
+        },
+        {
+          "name": "Unlock Punge premium",
+          "description": "Unlocks Punge's paid feature gates by making RevenueCat report an active entitlement."
+        }
+      ],
+      "versions": [
+        "3.1.4"
+      ],
+      "iconColor": "#D469A5",
+      "iconUrl": ""
+    },
+    {
       "packageName": "ru.iiec.pydroid3",
       "name": "PyDroid3",
       "repos": [
@@ -59334,12 +60550,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.9.1 (2026-08-19)",
-            "date": "2026-08-19",
+            "title": "1.9.2 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**Showly - AMOLED dark theme:** keep the search bar and bottom menu tone"
+                "text": "**Perplexity - AMOLED dark theme:** keep the tinted surfaces at stock tone"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**Proton Mail - AMOLED dark theme:** keep the sidebar selected row and separators"
               }
             ]
           },
@@ -59943,12 +61163,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.9.1 (2026-08-19)",
-            "date": "2026-08-19",
+            "title": "1.9.2 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**Showly - AMOLED dark theme:** keep the search bar and bottom menu tone"
+                "text": "**Perplexity - AMOLED dark theme:** keep the tinted surfaces at stock tone"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**Proton Mail - AMOLED dark theme:** keep the sidebar selected row and separators"
               }
             ]
           },
@@ -60820,8 +62044,8 @@
         "Disable screenshot popup",
         "Disable Screenshot Popup",
         "Force system font",
-        "Hide Ads",
         "Hide ads",
+        "Hide Ads",
         "Hide Ask button",
         "Hide Ask button from search bar",
         "Hide awards",
@@ -60920,12 +62144,12 @@
           "description": "Adds an option that renders Reddit with the device system font instead of Reddit Sans / Roboto."
         },
         {
-          "name": "Hide Ads",
-          "description": "Removes promoted posts and comment ads without requiring Reddit Premium unlock."
-        },
-        {
           "name": "Hide ads",
           "description": "Adds options to hide ads."
+        },
+        {
+          "name": "Hide Ads",
+          "description": "Removes promoted posts and comment ads without requiring Reddit Premium unlock."
         },
         {
           "name": "Hide Ask button",
@@ -61502,12 +62726,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.13.0 (2026-08-19)",
-            "date": "2026-08-19",
+            "title": "1.14.0 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**vector:** add rewarded ad spoofing"
+                "text": "**injustice:** add ad removal and billing bypass"
               }
             ]
           },
@@ -63658,12 +64882,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.9.1 (2026-08-19)",
-            "date": "2026-08-19",
+            "title": "1.9.2 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**Showly - AMOLED dark theme:** keep the search bar and bottom menu tone"
+                "text": "**Perplexity - AMOLED dark theme:** keep the tinted surfaces at stock tone"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**Proton Mail - AMOLED dark theme:** keep the sidebar selected row and separators"
               }
             ]
           },
@@ -64368,12 +65596,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.13.0 (2026-08-19)",
-            "date": "2026-08-19",
+            "title": "1.14.0 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**vector:** add rewarded ad spoofing"
+                "text": "**injustice:** add ad removal and billing bypass"
               }
             ]
           },
@@ -65398,7 +66626,7 @@
     },
     {
       "packageName": "com.sonyliv",
-      "name": "SonyLIV",
+      "name": "SonyLIV (Android TV)",
       "repos": [
         "durgesh0505/chiggi_morphe_patches"
       ],
@@ -65412,19 +66640,19 @@
           "changelogUrl": "https://raw.githubusercontent.com/durgesh0505/chiggi_morphe_patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/durgesh0505.png?size=96",
           "latestChanges": {
-            "title": "1.18.0 (2026-07-23)",
-            "date": "2026-07-23",
+            "title": "1.19.0 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**jiohotstar:** spoof device id (ANDROID_ID) to resolve device-logged-out"
+                "text": "add ZEE5 (Android TV), tag TV apps, make TV builds phone-patch-safe"
               }
             ]
           },
           "builder": {
             "buildId": "com-sonyliv-durgesh0505-chiggi-morphe-patches",
             "releaseTag": "app-com-sonyliv-durgesh0505-chiggi-morphe-patches",
-            "assetName": "sonyliv-durgesh0505-chiggi-morphe-patches.apk",
+            "assetName": "sonyliv-android-tv-durgesh0505-chiggi-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -67974,12 +69202,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.13.0 (2026-08-19)",
-            "date": "2026-08-19",
+            "title": "1.14.0 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**vector:** add rewarded ad spoofing"
+                "text": "**injustice:** add ad removal and billing bypass"
               }
             ]
           },
@@ -68108,12 +69336,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.9.1 (2026-08-19)",
-            "date": "2026-08-19",
+            "title": "1.9.2 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**Showly - AMOLED dark theme:** keep the search bar and bottom menu tone"
+                "text": "**Perplexity - AMOLED dark theme:** keep the tinted surfaces at stock tone"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**Proton Mail - AMOLED dark theme:** keep the sidebar selected row and separators"
               }
             ]
           },
@@ -72423,12 +73655,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/hxreborn/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/hxreborn.png?size=96",
           "latestChanges": {
-            "title": "1.9.1 (2026-08-19)",
-            "date": "2026-08-19",
+            "title": "1.9.2 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**Showly - AMOLED dark theme:** keep the search bar and bottom menu tone"
+                "text": "**Perplexity - AMOLED dark theme:** keep the tinted surfaces at stock tone"
+              },
+              {
+                "category": "Bug Fixes",
+                "text": "**Proton Mail - AMOLED dark theme:** keep the sidebar selected row and separators"
               }
             ]
           },
@@ -73106,8 +74342,8 @@
       ],
       "patches": [
         "Disable analytics",
-        "Disable telemetry",
         "Disable Telemetry",
+        "Disable telemetry",
         "Disable update check",
         "Enable premium features",
         "GMS sign-in bypass",
@@ -73151,11 +74387,11 @@
           "description": "Suppresses Truecaller's CleverTap behavioural event tracking to prevent user-activity telemetry."
         },
         {
-          "name": "Disable telemetry",
+          "name": "Disable Telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
-          "name": "Disable Telemetry",
+          "name": "Disable telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
@@ -73326,12 +74562,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.13.0 (2026-08-19)",
-            "date": "2026-08-19",
+            "title": "1.14.0 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**vector:** add rewarded ad spoofing"
+                "text": "**injustice:** add ad removal and billing bypass"
               }
             ]
           },
@@ -74597,12 +75833,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.13.0 (2026-08-19)",
-            "date": "2026-08-19",
+            "title": "1.14.0 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**vector:** add rewarded ad spoofing"
+                "text": "**injustice:** add ad removal and billing bypass"
               }
             ]
           },
@@ -74703,7 +75939,7 @@
     },
     {
       "packageName": "com.vimtv",
-      "name": "Vi Movies and TV",
+      "name": "Vi Movies and TV (Android TV)",
       "repos": [
         "durgesh0505/chiggi_morphe_patches"
       ],
@@ -74717,19 +75953,19 @@
           "changelogUrl": "https://raw.githubusercontent.com/durgesh0505/chiggi_morphe_patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/durgesh0505.png?size=96",
           "latestChanges": {
-            "title": "1.18.0 (2026-07-23)",
-            "date": "2026-07-23",
+            "title": "1.19.0 (2026-08-20)",
+            "date": "2026-08-20",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**jiohotstar:** spoof device id (ANDROID_ID) to resolve device-logged-out"
+                "text": "add ZEE5 (Android TV), tag TV apps, make TV builds phone-patch-safe"
               }
             ]
           },
           "builder": {
             "buildId": "com-vimtv-durgesh0505-chiggi-morphe-patches",
             "releaseTag": "app-com-vimtv-durgesh0505-chiggi-morphe-patches",
-            "assetName": "vi-movies-and-tv-durgesh0505-chiggi-morphe-patches.apk",
+            "assetName": "vi-movies-and-tv-android-tv-durgesh0505-chiggi-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -79652,8 +80888,8 @@
         "Video playback",
         "Video quality",
         "Visual preferences icons for YouTube",
-        "Voice over translation",
         "Voice Over Translation",
+        "Voice over translation",
         "Voice Over Translation (Yandex)",
         "Watch history",
         "Watch later button",
@@ -80171,12 +81407,12 @@
           "description": "Adds icons to specific preferences in the settings."
         },
         {
-          "name": "Voice over translation",
-          "description": "Adds additional voice over languages using text-to-speech synchronized to the video playback."
-        },
-        {
           "name": "Voice Over Translation",
           "description": "Adds an option to enable Yandex voice-over translation of video audio tracks."
+        },
+        {
+          "name": "Voice over translation",
+          "description": "Adds additional voice over languages using text-to-speech synchronized to the video playback."
         },
         {
           "name": "Voice Over Translation (Yandex)",
@@ -81836,11 +83072,79 @@
     },
     {
       "packageName": "com.graymatrix.did",
-      "name": "ZEE5 Android TV",
+      "name": "ZEE5 (Android TV)",
       "repos": [
+        "durgesh0505/chiggi_morphe_patches",
         "WZSE/aapam-patches"
       ],
       "sources": [
+        {
+          "repo": "durgesh0505/chiggi_morphe_patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/durgesh0505/chiggi_morphe_patches",
+          "addUrl": "https://morphe.software/add-source?github=durgesh0505/chiggi_morphe_patches",
+          "source": "https://raw.githubusercontent.com/durgesh0505/chiggi_morphe_patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/durgesh0505/chiggi_morphe_patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/durgesh0505.png?size=96",
+          "latestChanges": {
+            "title": "1.19.0 (2026-08-20)",
+            "date": "2026-08-20",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "add ZEE5 (Android TV), tag TV apps, make TV builds phone-patch-safe"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-graymatrix-did-durgesh0505-chiggi-morphe-patches",
+            "releaseTag": "app-com-graymatrix-did-durgesh0505-chiggi-morphe-patches",
+            "assetName": "zee5-android-tv-durgesh0505-chiggi-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Auto-skip intro and recap",
+              "description": "Automatically skips the intro and recap of a show instead of waiting for you to press the Skip button. When the player reaches an intro (SKIP_INTRO_MARKER=1) or recap (SKIP_RECAP_MARKER=2) marker, it does exactly what tapping the Skip button does \u2014 sets seek-exact and seeks straight to that marker's end. Seek-exact is required: without it the seek snaps to a keyframe before the intro end, which lands back inside the marker window and loops. It only acts on intro/recap markers, never on next-episode or ad markers. Disable this if a title's markers are wrong and it skips too far."
+            },
+            {
+              "name": "Change app name",
+              "description": "Changes the app name shown under the launcher icon. Set the desired name in the patch options."
+            },
+            {
+              "name": "Disable forced upgrade",
+              "description": "Stops ZEE5 from forcing an app update. BlockerScreenInfo.isBlocked() gates the block/upgrade wall; forcing it false lets the current version keep running. This is the only hard client block screen in the app (there is no geo/VPN/tamper block)."
+            },
+            {
+              "name": "Disable nuisance popups",
+              "description": "Suppresses the ZEE5 app-rating prompt and the subscription 'Buy Plan' upsell popup on the home screen by forcing HomeActivityViewModel.canLaunchAppRating() and toShowBuyPlanPopup() to false. Both are plain boolean gates, so this only stops the dialogs from being shown; nothing else changes."
+            },
+            {
+              "name": "Faster video start",
+              "description": "Lowers the ExoPlayer start buffer (bufferForPlayback) to 1500ms by forcing DefaultPlayerConfig.defaultBuffersForPlaybackMs() to return 1500 instead of the server value (~2500ms). Playback starts after less initial buffering, so the first frame appears sooner. The player still fills the full min/max buffer in the background; only the start threshold drops. On a weak network or slow CPU this slightly raises the chance of an early re-buffer. Does not affect the DRM-license/manifest part of startup."
+            },
+            {
+              "name": "Make installable on TV",
+              "description": "Makes the ZEE5 APK install on Android TV / Chromecast with Google TV. The build marks android.software.live_tv as required, but streamer devices without a TV tuner do not have that feature, so the installer reports \"not compatible with your TV\". This marks live_tv and leanback optional so it installs everywhere; the leanback launcher entry is kept, so it still appears on the TV home screen."
+            },
+            {
+              "name": "Remove display ads",
+              "description": "Removes ZEE5 non-video display ads: the home-screen native masthead banner (HomeActivityViewModel.getNeedToShowNativeMastheadAd() forced false, so it never loads) and the on-pause display overlay (FetchPlaybackUrlUseCase.toPauseAds() forced null). No extra ad requests are made, so this makes the UI lighter rather than laggier."
+            },
+            {
+              "name": "Remove player logo",
+              "description": "Removes the ZEE5/channel logo overlaid on the video player. The logo is shown via WaterMarkViewModel's _logoVisibility LiveData; forcing updateLogoVisibility(...) to always post false keeps the logo hidden. Client render only \u2014 this does not affect any logo baked into a partner's video stream."
+            },
+            {
+              "name": "Remove video ads",
+              "description": "Blocks ZEE5 video ads (pre-roll, mid-roll and the video-start slate) client-side. The player inserts ads from an ad-tag URL supplied by MediaData (adsUrl + adTags), not from the stream, and ad-free users already receive a null adsUrl / empty adTags \u2014 a supported path. This forces MediaData.getAdsUrl() to null and getAdTags() to an empty list so no ad break is ever built, and forces FetchPlaybackUrlUseCase.toPreRollDaiSlateMedia() to null so no pre-roll slate is prepended. Content goes straight to play \u2014 fewer ad requests, so it is lighter, not laggy. Server-DAI mid-roll (if a title is DAI-only) is not affected."
+            }
+          ],
+          "versions": [
+            "5.83.2"
+          ]
+        },
         {
           "repo": "WZSE/aapam-patches",
           "host": "github.com",
@@ -81890,12 +83194,29 @@
         }
       ],
       "patches": [
+        "Auto-skip intro and recap",
+        "Change app name",
         "Disable ads",
         "Disable analytics",
         "Disable CleverTap",
-        "Disable Firebase analytics"
+        "Disable Firebase analytics",
+        "Disable forced upgrade",
+        "Disable nuisance popups",
+        "Faster video start",
+        "Make installable on TV",
+        "Remove display ads",
+        "Remove player logo",
+        "Remove video ads"
       ],
       "patchDetails": [
+        {
+          "name": "Auto-skip intro and recap",
+          "description": "Automatically skips the intro and recap of a show instead of waiting for you to press the Skip button. When the player reaches an intro (SKIP_INTRO_MARKER=1) or recap (SKIP_RECAP_MARKER=2) marker, it does exactly what tapping the Skip button does \u2014 sets seek-exact and seeks straight to that marker's end. Seek-exact is required: without it the seek snaps to a keyframe before the intro end, which lands back inside the marker window and loops. It only acts on intro/recap markers, never on next-episode or ad markers. Disable this if a title's markers are wrong and it skips too far."
+        },
+        {
+          "name": "Change app name",
+          "description": "Changes the app name shown under the launcher icon. Set the desired name in the patch options."
+        },
         {
           "name": "Disable ads",
           "description": "Removes Google IMA ad insertion (client-side and server-side DAI) from the ZEE5 player. The media source factory is returned DRM-configured but with ad-insertion components never attached, so content and DRM playback are unaffected."
@@ -81911,12 +83232,40 @@
         {
           "name": "Disable Firebase analytics",
           "description": "Prevents Firebase Analytics from initializing, stopping event and user-property reporting to Google."
+        },
+        {
+          "name": "Disable forced upgrade",
+          "description": "Stops ZEE5 from forcing an app update. BlockerScreenInfo.isBlocked() gates the block/upgrade wall; forcing it false lets the current version keep running. This is the only hard client block screen in the app (there is no geo/VPN/tamper block)."
+        },
+        {
+          "name": "Disable nuisance popups",
+          "description": "Suppresses the ZEE5 app-rating prompt and the subscription 'Buy Plan' upsell popup on the home screen by forcing HomeActivityViewModel.canLaunchAppRating() and toShowBuyPlanPopup() to false. Both are plain boolean gates, so this only stops the dialogs from being shown; nothing else changes."
+        },
+        {
+          "name": "Faster video start",
+          "description": "Lowers the ExoPlayer start buffer (bufferForPlayback) to 1500ms by forcing DefaultPlayerConfig.defaultBuffersForPlaybackMs() to return 1500 instead of the server value (~2500ms). Playback starts after less initial buffering, so the first frame appears sooner. The player still fills the full min/max buffer in the background; only the start threshold drops. On a weak network or slow CPU this slightly raises the chance of an early re-buffer. Does not affect the DRM-license/manifest part of startup."
+        },
+        {
+          "name": "Make installable on TV",
+          "description": "Makes the ZEE5 APK install on Android TV / Chromecast with Google TV. The build marks android.software.live_tv as required, but streamer devices without a TV tuner do not have that feature, so the installer reports \"not compatible with your TV\". This marks live_tv and leanback optional so it installs everywhere; the leanback launcher entry is kept, so it still appears on the TV home screen."
+        },
+        {
+          "name": "Remove display ads",
+          "description": "Removes ZEE5 non-video display ads: the home-screen native masthead banner (HomeActivityViewModel.getNeedToShowNativeMastheadAd() forced false, so it never loads) and the on-pause display overlay (FetchPlaybackUrlUseCase.toPauseAds() forced null). No extra ad requests are made, so this makes the UI lighter rather than laggier."
+        },
+        {
+          "name": "Remove player logo",
+          "description": "Removes the ZEE5/channel logo overlaid on the video player. The logo is shown via WaterMarkViewModel's _logoVisibility LiveData; forcing updateLogoVisibility(...) to always post false keeps the logo hidden. Client render only \u2014 this does not affect any logo baked into a partner's video stream."
+        },
+        {
+          "name": "Remove video ads",
+          "description": "Blocks ZEE5 video ads (pre-roll, mid-roll and the video-start slate) client-side. The player inserts ads from an ad-tag URL supplied by MediaData (adsUrl + adTags), not from the stream, and ad-free users already receive a null adsUrl / empty adTags \u2014 a supported path. This forces MediaData.getAdsUrl() to null and getAdTags() to an empty list so no ad break is ever built, and forces FetchPlaybackUrlUseCase.toPreRollDaiSlateMedia() to null so no pre-roll slate is prepended. Content goes straight to play \u2014 fewer ad requests, so it is lighter, not laggy. Server-DAI mid-roll (if a title is DAI-only) is not affected."
         }
       ],
       "versions": [
         "5.83.2"
       ],
-      "iconColor": "#1C1C28",
+      "iconColor": "#6E1EE5",
       "iconUrl": "https://play-lh.googleusercontent.com/NyMT3ByjkBG1FhdFX9GSj_0mXLNIAuz_IZO8Xr9Noow6D4IQs-Srai9Hklad5gDasSv6F5tHYwsquk1mXErQ5A"
     },
     {
@@ -83112,26 +84461,159 @@
       "source": "https://raw.githubusercontent.com/Nai64/Nai64Patches/main/patches-bundle.json",
       "changelogUrl": "https://raw.githubusercontent.com/Nai64/Nai64Patches/main/CHANGELOG.md",
       "avatarUrl": "https://github.com/Nai64.png?size=96",
-      "patchCount": 2,
+      "patchCount": 23,
       "latestChanges": {
-        "title": "1.18.1 (2026-08-18)",
-        "date": "2026-08-18",
+        "title": "1.21.0 (2026-08-20)",
+        "date": "2026-08-20",
         "items": [
           {
             "category": "Bug Fixes",
-            "text": "make MAX Unity ad injections register-safe for any method layout"
+            "text": "**AllowScreenshots:** correct setFlags method descriptors"
+          },
+          {
+            "category": "Bug Fixes",
+            "text": "**DisableRootCheck:** warn when no root-check methods are found"
+          },
+          {
+            "category": "Bug Fixes",
+            "text": "**DisableTelemetry:** count GameAnalytics when only NoArg variant present"
+          },
+          {
+            "category": "Bug Fixes",
+            "text": "**PairipBypass:** invoke superclass Application in attachBaseContext/onCreate"
+          },
+          {
+            "category": "Bug Fixes",
+            "text": "**PairipBypass:** warn when no license methods are found"
+          },
+          {
+            "category": "Bug Fixes",
+            "text": "**PatchListGenerator:** avoid crash when no .mpp artifact found"
+          },
+          {
+            "category": "Bug Fixes",
+            "text": "**SkipConsentPopup:** pass FormError argument to onConsentFormDismissed"
+          },
+          {
+            "category": "Bug Fixes",
+            "text": "**UnlockAllIaps:** overwrite receipt and transaction id parameter registers"
           }
         ]
       },
       "patches": [
         {
           "name": "Ads Free Rewards",
-          "description": "",
+          "description": "Skip rewarded ads and claim rewards instantly",
+          "default": false
+        },
+        {
+          "name": "Allow Screenshots",
+          "description": "Remove the screenshot-blocking window flag",
+          "default": false
+        },
+        {
+          "name": "Block Push Ads",
+          "description": "Block push notification ads (Firebase Cloud Messaging). Also blocks legitimate notifications.",
+          "default": false
+        },
+        {
+          "name": "Bypass Google Play Services Check",
+          "description": "Always report Google Play Services as available",
+          "default": false
+        },
+        {
+          "name": "Bypass License Verification",
+          "description": "Always pass Google Play license checks",
+          "default": false
+        },
+        {
+          "name": "Custom App Resolution (Experimental)",
+          "description": "Set a custom resolution for the game",
+          "default": false
+        },
+        {
+          "name": "Disable Root Checks",
+          "description": "Disable root detection",
+          "default": false
+        },
+        {
+          "name": "Disable Telemetry",
+          "description": "Block analytics and tracking",
+          "default": false
+        },
+        {
+          "name": "Disable Update Checks",
+          "description": "Disable in-app update prompts",
+          "default": false
+        },
+        {
+          "name": "Force Landscape / Portrait",
+          "description": "Force the app to a fixed screen orientation",
+          "default": false
+        },
+        {
+          "name": "Limit Ad Tracking",
+          "description": "Neutralize the Google advertising ID: empty ID and limit ad tracking enabled",
+          "default": false
+        },
+        {
+          "name": "No Ads",
+          "description": "Remove ads",
+          "default": false
+        },
+        {
+          "name": "Pairip Bypass (Experimental)",
+          "description": "Bypass Pairip license protection",
+          "default": false
+        },
+        {
+          "name": "Remove Hardware Requirements",
+          "description": "Remove uses-feature entries so the app installs on more devices",
+          "default": false
+        },
+        {
+          "name": "Remove Permissions",
+          "description": "Remove permissions from the app manifest",
+          "default": false
+        },
+        {
+          "name": "Skip Consent Popup",
+          "description": "Skip the Google consent (GDPR) popup",
+          "default": false
+        },
+        {
+          "name": "Skip Rate-Us Prompt",
+          "description": "Skip the in-app review (rate us) prompt",
+          "default": false
+        },
+        {
+          "name": "Skip Splash Screen (Experimental)",
+          "description": "Skip or shorten splash screen delays",
+          "default": false
+        },
+        {
+          "name": "Spoof Play Integrity",
+          "description": "Force Play Integrity checks to pass",
           "default": false
         },
         {
           "name": "Spoof Play Store Install Source",
-          "description": "",
+          "description": "Make the app believe it was installed from the Play Store",
+          "default": false
+        },
+        {
+          "name": "Unlock All IAPs (Unity IAP)",
+          "description": "Unlock all in-app purchases in Unity IAP games (Experimental)",
+          "default": false
+        },
+        {
+          "name": "Unlock RevenueCat Entitlements",
+          "description": "Unlock all RevenueCat entitlements",
+          "default": false
+        },
+        {
+          "name": "Unlock Rotation",
+          "description": "Remove screenOrientation locks so the app rotates freely",
           "default": false
         }
       ]
@@ -83972,6 +85454,253 @@
   ],
   "recentSources": [
     {
+      "name": "kveld-morphe-patches",
+      "repo": "kveld9/kveld-morphe-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/kveld9/kveld-morphe-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/kveld9/kveld-morphe-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/kveld9/kveld-morphe-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/kveld9/kveld-morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=kveld9/kveld-morphe-patches",
+      "avatarUrl": "https://github.com/kveld9.png?size=96",
+      "patchCount": 20,
+      "appCount": 2,
+      "createdAt": 1787275038494,
+      "updatedAt": 1787275038494,
+      "createdDate": "2026-08-21",
+      "updatedDate": "2026-08-21",
+      "latestChanges": {
+        "title": "1.2.0 (2026-08-20)",
+        "date": "2026-08-20",
+        "items": [
+          {
+            "category": "\u2728 New Features",
+            "text": "**gboard:** add modular patch suite for Gboard Lite v18.0.3"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Brave Private Web Browser, VPN",
+          "packageName": "com.brave.browser",
+          "patchCount": 4,
+          "iconUrl": "https://play-lh.googleusercontent.com/UBrZnuXGb-QACU0uUdF5r_n5nx5oBbdfPyEbtsr0xXv00RN7rpaTVu3GjLeE90aHFmNlbaCmm8vNcmY0eE98U9E",
+          "iconColor": "#FF4500"
+        },
+        {
+          "name": "Gboard Lite",
+          "packageName": "com.google.android.inputmethod.latin",
+          "patchCount": 16,
+          "iconUrl": "https://play-lh.googleusercontent.com/J4vZ82VsZjnsRsI6ckQFXlO36_52QJerqG5-HfLgHffS34I4EfoAFfNdbf6s4wBAsUEf8DOJVEDEHh5tzWbrnA",
+          "iconColor": "#4285F4"
+        }
+      ]
+    },
+    {
+      "name": "hh-patches",
+      "repo": "hhawkinsau/hh-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/hhawkinsau/hh-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/hhawkinsau/hh-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/hhawkinsau/hh-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/hhawkinsau/hh-patches",
+      "addUrl": "https://morphe.software/add-source?github=hhawkinsau/hh-patches",
+      "avatarUrl": "https://github.com/hhawkinsau.png?size=96",
+      "patchCount": 4,
+      "appCount": 1,
+      "createdAt": 1787275037831,
+      "updatedAt": 1787275037831,
+      "createdDate": "2026-08-21",
+      "updatedDate": "2026-08-21",
+      "latestChanges": {
+        "title": "1.3.1 (2026-08-19)",
+        "date": "2026-08-19",
+        "items": [
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Match Punge unlocked entitlement gate"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Preserve Firebase startup components"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Remove all SafePix patches"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Remove analytics patches that block startup"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Punge",
+          "packageName": "com.markatlarge.scrub",
+          "patchCount": 4,
+          "iconUrl": "",
+          "iconColor": "#D469A5"
+        }
+      ]
+    },
+    {
+      "name": "morphe-patches-chicco",
+      "repo": "chicco-carone/morphe-patches-chicco",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/chicco-carone/morphe-patches-chicco/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/chicco-carone/morphe-patches-chicco/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/chicco-carone/morphe-patches-chicco/main/CHANGELOG.md",
+      "webUrl": "https://github.com/chicco-carone/morphe-patches-chicco",
+      "addUrl": "https://morphe.software/add-source?github=chicco-carone/morphe-patches-chicco",
+      "avatarUrl": "https://github.com/chicco-carone.png?size=96",
+      "patchCount": 2,
+      "appCount": 1,
+      "createdAt": 1787275037152,
+      "updatedAt": 1787275037152,
+      "createdDate": "2026-08-21",
+      "updatedDate": "2026-08-21",
+      "latestChanges": {
+        "title": "1.0.0 (2026-08-20)",
+        "date": "2026-08-20",
+        "items": [
+          {
+            "category": "\u2728 New Features",
+            "text": "Add ProxMobo premium unlock and license check bypass patches"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "ProxMobo",
+          "packageName": "com.halliharp.proxmobo",
+          "patchCount": 2,
+          "iconUrl": "",
+          "iconColor": "#3F2A44"
+        }
+      ]
+    },
+    {
+      "name": "anime-witcher-patches",
+      "repo": "catsmoker/anime-witcher-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/catsmoker/anime-witcher-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/catsmoker/anime-witcher-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/catsmoker/anime-witcher-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/catsmoker/anime-witcher-patches",
+      "addUrl": "https://morphe.software/add-source?github=catsmoker/anime-witcher-patches",
+      "avatarUrl": "https://github.com/catsmoker.png?size=96",
+      "patchCount": 3,
+      "appCount": 1,
+      "createdAt": 1787275037078,
+      "updatedAt": 1787275037078,
+      "createdDate": "2026-08-21",
+      "updatedDate": "2026-08-21",
+      "latestChanges": {
+        "title": "1.0.0 (2026-08-20)",
+        "date": "2026-08-20",
+        "items": [
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Add PATCHES_START/END markers to README.md"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "Add Anime Witcher patches (disable ads, remove AppLovin, replace AWPlayer with VLC)"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Anime Witcher",
+          "packageName": "com.anime.witcher",
+          "patchCount": 3,
+          "iconUrl": "",
+          "iconColor": "#FF0000"
+        }
+      ]
+    },
+    {
+      "name": "anxy-patches",
+      "repo": "anxyis/anxy-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/anxyis/anxy-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/anxyis/anxy-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/anxyis/anxy-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/anxyis/anxy-patches",
+      "addUrl": "https://morphe.software/add-source?github=anxyis/anxy-patches",
+      "avatarUrl": "https://github.com/anxyis.png?size=96",
+      "patchCount": 10,
+      "appCount": 1,
+      "createdAt": 1787275036722,
+      "updatedAt": 1787275036722,
+      "createdDate": "2026-08-21",
+      "updatedDate": "2026-08-21",
+      "latestChanges": {
+        "title": "2.1.1 (2026-08-20)",
+        "date": "2026-08-20",
+        "items": [
+          {
+            "category": "Bug Fixes",
+            "text": "**destruction:** 2.0.0 - fix Dalvik instruction formats (Format11x for return/return-object) and expand target versions"
+          },
+          {
+            "category": "Bug Fixes",
+            "text": "**build:** cleanly compile and package v2.0.0 with immutable method replacement"
+          },
+          {
+            "category": "Features",
+            "text": "**release:** 2.0.0 - Complete Static Root Destruction of ModdedBySatriyaid & TGSatriyaidChannel"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "After Motion Z+",
+          "packageName": "com.alightcreative.motion",
+          "patchCount": 10,
+          "iconUrl": "",
+          "iconColor": ""
+        }
+      ]
+    },
+    {
+      "name": "apos-morphe-patches",
+      "repo": "Apostolique/apos-morphe-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/Apostolique/apos-morphe-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/Apostolique/apos-morphe-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/Apostolique/apos-morphe-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/Apostolique/apos-morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=Apostolique/apos-morphe-patches",
+      "avatarUrl": "https://github.com/Apostolique.png?size=96",
+      "patchCount": 1,
+      "appCount": 1,
+      "createdAt": 1787275034600,
+      "updatedAt": 1787275034600,
+      "createdDate": "2026-08-21",
+      "updatedDate": "2026-08-21",
+      "latestChanges": {
+        "title": "1.0.0 (2026-08-19)",
+        "date": "2026-08-19",
+        "items": [
+          {
+            "category": "\u2728 New Features",
+            "text": "Boost for Tildes, browsing tildes.net from Boost for Lemmy"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Boost for Lemmy",
+          "packageName": "com.rubenmayayo.lemmy",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": ""
+        }
+      ]
+    },
+    {
       "name": "Heval-Morphe-Patches",
       "repo": "heval99/Heval-Morphe-Patches",
       "host": "github.com",
@@ -84102,12 +85831,24 @@
       "createdDate": "2026-08-19",
       "updatedDate": "2026-08-19",
       "latestChanges": {
-        "title": "1.5.3 (2026-08-19)",
-        "date": "2026-08-19",
+        "title": "1.6.0 (2026-08-20)",
+        "date": "2026-08-20",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**rhythm:** use addInstructions to force isPro false without breaking constructor field initialization"
+            "text": "**rhythm:** escape inner class dollar sign in multiline smali string"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**rhythm:** unlock all Pro features, scales, Manjeera, variations and disable purchase prompts"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "**rhythm:** use addInstructions to prevent IndexOutOfBoundsException during patch execution"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "**rhythm:** update unlock pro patch with complete bypasses and audio unlocks"
           }
         ]
       },
@@ -84240,305 +85981,6 @@
           "patchCount": 6,
           "iconUrl": "",
           "iconColor": "#1D6BA8"
-        }
-      ]
-    },
-    {
-      "name": "hxreborn-tiktok-patches",
-      "repo": "hxreborn/hxreborn-tiktok-patches",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/hxreborn/hxreborn-tiktok-patches/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/hxreborn/hxreborn-tiktok-patches/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/hxreborn/hxreborn-tiktok-patches/main/CHANGELOG.md",
-      "webUrl": "https://github.com/hxreborn/hxreborn-tiktok-patches",
-      "addUrl": "https://morphe.software/add-source?github=hxreborn/hxreborn-tiktok-patches",
-      "avatarUrl": "https://github.com/hxreborn.png?size=96",
-      "patchCount": 33,
-      "appCount": 1,
-      "createdAt": 1786989244733,
-      "updatedAt": 1786989244733,
-      "createdDate": "2026-08-17",
-      "updatedDate": "2026-08-17",
-      "latestChanges": {
-        "title": "0.11.4 (2026-08-19)",
-        "date": "2026-08-19",
-        "items": [
-          {
-            "category": "Bug Fixes",
-            "text": "**build:** complete feed model stubs"
-          },
-          {
-            "category": "Bug Fixes",
-            "text": "**TikTok - Captcha:** stop suppressing risk-control puzzles by default"
-          },
-          {
-            "category": "Bug Fixes",
-            "text": "**TikTok - Feed filter:** filter cached feed insertions"
-          },
-          {
-            "category": "Bug Fixes",
-            "text": "**TikTok - Feed filter:** hide every inserted feed card instead of only bulletin-board ones"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "com.zhiliaoapp.musically",
-          "packageName": "com.zhiliaoapp.musically",
-          "patchCount": 33,
-          "iconUrl": "https://play-lh.googleusercontent.com/2o7iuqPe-0msP3DvNhzoOgNo4eZ6GkL_RtGVeKyBn5UBQAW5cw-GW5V3wDOHB1yTQuqWzrFLFOv2u4_5ea1uhg",
-          "iconColor": ""
-        }
-      ]
-    },
-    {
-      "name": "slight-patches",
-      "repo": "HSlightsteel/slight-patches",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/HSlightsteel/slight-patches/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/HSlightsteel/slight-patches/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/HSlightsteel/slight-patches/main/CHANGELOG.md",
-      "webUrl": "https://github.com/HSlightsteel/slight-patches",
-      "addUrl": "https://morphe.software/add-source?github=HSlightsteel/slight-patches",
-      "avatarUrl": "https://github.com/HSlightsteel.png?size=96",
-      "patchCount": 2,
-      "appCount": 2,
-      "createdAt": 1786989241950,
-      "updatedAt": 1786989241950,
-      "createdDate": "2026-08-17",
-      "updatedDate": "2026-08-17",
-      "latestChanges": {
-        "title": "1.1.0 (2026-08-16)",
-        "date": "2026-08-16",
-        "items": [
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**sparkle:** enable Add Source and Add XMLTV EPG by forcing sync_internal in SetupActivity fragments"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**sparkle:** neutralize startup_time anti-tamper modulo traps and hook LibUtils strings"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**sparkle:** resolve app crash at launch by removing invalid register injection and safely neutralizing qh.d billing queries"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**sparkle:** resolve launch crash and modulo-10 anti-tamper sabotage"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**sparkle:** resolve player engine stall and live playback freeze by distributing sync_internal as 0xFF"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**sparkle:** restore MainActivity.H trigger by removing qh.d neutering to fix black screen"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "add Sparkle TV v2.3.1 Plus unlock patch"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "AT4K Launcher",
-          "packageName": "com.overdevs.at4k",
-          "patchCount": 1,
-          "iconUrl": "https://play-lh.googleusercontent.com/vypg_RTGsrWBg8Lo6dzgLdJ3KPPMCb23JNY0zuIiDuQFlfx0y3j2NKDBEeGnrF0atBQSmF7tGGXyLfTj0EB-6Q",
-          "iconColor": "#000000"
-        },
-        {
-          "name": "Sparkle TV",
-          "packageName": "se.hedekonsult.sparkle",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#1A237E"
-        }
-      ]
-    },
-    {
-      "name": "aapam-patches",
-      "repo": "WZSE/aapam-patches",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/WZSE/aapam-patches/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/WZSE/aapam-patches/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/WZSE/aapam-patches/main/CHANGELOG.md",
-      "webUrl": "https://github.com/WZSE/aapam-patches",
-      "addUrl": "https://morphe.software/add-source?github=WZSE/aapam-patches",
-      "avatarUrl": "https://github.com/WZSE.png?size=96",
-      "patchCount": 4,
-      "appCount": 1,
-      "createdAt": 1786756261910,
-      "updatedAt": 1786756261910,
-      "createdDate": "2026-08-15",
-      "updatedDate": "2026-08-15",
-      "latestChanges": {
-        "title": "1.0.0 (2026-08-13)",
-        "date": "2026-08-13",
-        "items": [
-          {
-            "category": "\u2728 New Features",
-            "text": "add ZEE5 patches (disable ads, analytics, CleverTap, Firebase)"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "ZEE5 Android TV",
-          "packageName": "com.graymatrix.did",
-          "patchCount": 4,
-          "iconUrl": "https://play-lh.googleusercontent.com/NyMT3ByjkBG1FhdFX9GSj_0mXLNIAuz_IZO8Xr9Noow6D4IQs-Srai9Hklad5gDasSv6F5tHYwsquk1mXErQ5A",
-          "iconColor": "#1C1C28"
-        }
-      ]
-    },
-    {
-      "name": "rabehx-patches",
-      "repo": "RabehX/rabehx-patches",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/RabehX/rabehx-patches/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/RabehX/rabehx-patches/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/RabehX/rabehx-patches/main/CHANGELOG.md",
-      "webUrl": "https://github.com/RabehX/rabehx-patches",
-      "addUrl": "https://morphe.software/add-source?github=RabehX/rabehx-patches",
-      "avatarUrl": "https://github.com/RabehX.png?size=96",
-      "patchCount": 10,
-      "appCount": 3,
-      "createdAt": 1786756261453,
-      "updatedAt": 1786756261453,
-      "createdDate": "2026-08-15",
-      "updatedDate": "2026-08-15",
-      "latestChanges": {
-        "title": "0.0.1",
-        "date": "",
-        "items": [
-          {
-            "category": "Features",
-            "text": "Introduced RabehX Patches for Morphe."
-          },
-          {
-            "category": "Features",
-            "text": "Added patch support for My Ooredoo, Webetu, and BaridiMob."
-          },
-          {
-            "category": "Bug Fixes",
-            "text": "Stabilized patch compatibility and patch list generation."
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "BaridiMob",
-          "packageName": "ru.bpc.mobilebank.bpc",
-          "patchCount": 3,
-          "iconUrl": "",
-          "iconColor": "#007A33"
-        },
-        {
-          "name": "My Ooredoo",
-          "packageName": "com.algeria.selfcare.app.android",
-          "patchCount": 4,
-          "iconUrl": "",
-          "iconColor": "#113C8A"
-        },
-        {
-          "name": "Webetu",
-          "packageName": "app.progres.webetu",
-          "patchCount": 3,
-          "iconUrl": "",
-          "iconColor": "#023C69"
-        }
-      ]
-    },
-    {
-      "name": "Morphe-Patch",
-      "repo": "ozeroztas/Morphe-Patch",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/ozeroztas/Morphe-Patch/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/ozeroztas/Morphe-Patch/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/ozeroztas/Morphe-Patch/main/CHANGELOG.md",
-      "webUrl": "https://github.com/ozeroztas/Morphe-Patch",
-      "addUrl": "https://morphe.software/add-source?github=ozeroztas/Morphe-Patch",
-      "avatarUrl": "https://github.com/ozeroztas.png?size=96",
-      "patchCount": 136,
-      "appCount": 3,
-      "createdAt": 1786586177230,
-      "updatedAt": 1786586177230,
-      "createdDate": "2026-08-13",
-      "updatedDate": "2026-08-13",
-      "latestChanges": {
-        "title": "1.39.1 (2026-08-08)",
-        "date": "2026-08-08",
-        "items": [
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**YouTube - Add to queue:** Flyout menu not available in fullscreen"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "Reddit",
-          "packageName": "com.reddit.frontpage",
-          "patchCount": 18,
-          "iconUrl": "https://play-lh.googleusercontent.com/8FVS0kvM60JwqZWRNzBIlwrZZxJa8vpli8IWaaTo8QXRe1PHmCNJ8UpWoXkGPV3jKEaTY2OVAeYoisOnGJXY",
-          "iconColor": "#FF4500"
-        },
-        {
-          "name": "YouTube",
-          "packageName": "com.google.android.youtube",
-          "patchCount": 75,
-          "iconUrl": "https://play-lh.googleusercontent.com/QNmuZQc9I6Zbe3mWnSr0hycnENqGFCI5p3yE29Hkxtf22T0IWS6zTrpxULLyyjWpB7ONAXDsDQXnXcVWokl3eg",
-          "iconColor": "#FF0033"
-        },
-        {
-          "name": "YouTube Music",
-          "packageName": "com.google.android.apps.youtube.music",
-          "patchCount": 39,
-          "iconUrl": "https://play-lh.googleusercontent.com/MyptZXmcCyF59phIWPsNCfHq6zSO_ojEdw_4rMYYWPOGdikSjqeOXcoszBZ053VYpINe5K7ZR9KV1nkFWgxdOw",
-          "iconColor": "#FF0000"
-        }
-      ]
-    },
-    {
-      "name": "imgur-patches",
-      "repo": "sushruth/imgur-patches",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/sushruth/imgur-patches/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/sushruth/imgur-patches/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/sushruth/imgur-patches/main/CHANGELOG.md",
-      "webUrl": "https://github.com/sushruth/imgur-patches",
-      "addUrl": "https://morphe.software/add-source?github=sushruth/imgur-patches",
-      "avatarUrl": "https://github.com/sushruth.png?size=96",
-      "patchCount": 1,
-      "appCount": 1,
-      "createdAt": 1786499517468,
-      "updatedAt": 1786499517468,
-      "createdDate": "2026-08-12",
-      "updatedDate": "2026-08-12",
-      "latestChanges": {
-        "title": "1.0.0 (2026-08-10)",
-        "date": "2026-08-10",
-        "items": [
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "restore README patch-list markers for release pipeline"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "add Remove ads patch for Imgur"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "Imgur",
-          "packageName": "com.imgur.mobile",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#1BB76E"
         }
       ]
     }

@@ -1217,6 +1217,54 @@
                 "sortOrder": 154,
                 "createdAt": 1787188317465,
                 "updatedAt": 1787188317465
+            },
+            {
+                "name": "apos-morphe-patches",
+                "source": "https://raw.githubusercontent.com/Apostolique/apos-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 155,
+                "createdAt": 1787275034600,
+                "updatedAt": 1787275034600
+            },
+            {
+                "name": "anxy-patches",
+                "source": "https://raw.githubusercontent.com/anxyis/anxy-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 156,
+                "createdAt": 1787275036722,
+                "updatedAt": 1787275036722
+            },
+            {
+                "name": "anime-witcher-patches",
+                "source": "https://raw.githubusercontent.com/catsmoker/anime-witcher-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 157,
+                "createdAt": 1787275037078,
+                "updatedAt": 1787275037078
+            },
+            {
+                "name": "morphe-patches-chicco",
+                "source": "https://raw.githubusercontent.com/chicco-carone/morphe-patches-chicco/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 158,
+                "createdAt": 1787275037152,
+                "updatedAt": 1787275037152
+            },
+            {
+                "name": "hh-patches",
+                "source": "https://raw.githubusercontent.com/hhawkinsau/hh-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 159,
+                "createdAt": 1787275037831,
+                "updatedAt": 1787275037831
+            },
+            {
+                "name": "kveld-morphe-patches",
+                "source": "https://raw.githubusercontent.com/kveld9/kveld-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 160,
+                "createdAt": 1787275038494,
+                "updatedAt": 1787275038494
             }
         ]
     }

@@ -3,6 +3,7 @@ Alastor-Kaneki/Morphe-Patches
 AlexNaga/android-patches
 Almewty/my-morphe-patches
 AmpleReVanced/revanced-patches
+Apostolique/apos-morphe-patches
 BholeyKaBhakt/android-patches-xtra
 BlazeFTL/FTL-Patches
 BlazeFTL/Morphe-Portal-Patches-New
@@ -71,6 +72,7 @@ andrewliang25/morphe-patches
 andronedev/morphe-patches
 andronedev/morphe-portal-patch
 ang3lo-azevedo/morphe-patches
+anxyis/anxy-patches
 arandomhooman/hoomans-morphe-patches
 ariecos/gemini-patches
 arunpdl/morphe-patches
@@ -84,8 +86,10 @@ brosssh/morphe-patches
 browzomje/browzomje-patches
 bufferk/morphe-patches
 byehi98/okish-morphe-patches
+catsmoker/anime-witcher-patches
 cesbar/zpatches
 ch3thanhs/stylus
+chicco-carone/morphe-patches-chicco
 chirag127/morphe-patches
 chukfinley/tidal-patches
 ciraolone/morphe-watch-later
@@ -115,6 +119,7 @@ hackingguy/morphe-patches
 heinrich26/morphe-patches
 heval99/Heval-Morphe-Patches
 heval99/morphe-patches
+hhawkinsau/hh-patches
 hoo-dles/jadx-morphe
 hoo-dles/morphe-patches
 hu-liberator/patches
@@ -135,6 +140,7 @@ kondratjev/morphe-patches
 kontsevoye/emorphe-patches
 kuchingneko28/ipusnas-patches
 kun-codes/npci-bhim-morphe-patches
+kveld9/kveld-morphe-patches
 liongalahad/nuviotv-morphe-patches
 liongalahad/nuviotv-patches
 logm1lo/logm1lo-patches
