@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-08-19T08:47:48",
-  "description": "## [1.19.0-dev.6](https://github.com/rushiranpise/morphe-patches/compare/v1.19.0-dev.5...v1.19.0-dev.6) (2026-08-19)\n\n### \ud83d\udc1b Bug Fixes\n\n* **amazon:** use canonical CCC chart URL and numeric Keepa marketplace ids ([5ba6ec5](https://github.com/rushiranpise/morphe-patches/commit/5ba6ec53774b560ed42db3eeb14e4ada7a75ec79))\n\n### \u2728 New Features\n\n* **amazon:** add chart customization options for Keepa and CCC ([136fe0c](https://github.com/rushiranpise/morphe-patches/commit/136fe0cb6453220bc65e3c676d54b4be484c896b))\n* **amazon:** add period toggle to Keepa chart via numeric range ([dd0de74](https://github.com/rushiranpise/morphe-patches/commit/dd0de7496329f2d8ef86d4fcf0b66d55ffeafa3e))\n* **amazon:** gate Keepa by region and add configurable CCC chart period ([6d00545](https://github.com/rushiranpise/morphe-patches/commit/6d005451a9c68cecf1679b69aa7f9539e1110544))\n",
-  "download_url": "https://github.com/rushiranpise/morphe-patches/releases/download/v1.19.0-dev.6/patches-1.19.0-dev.6.mpp",
+  "created_at": "2026-08-20T22:59:02",
+  "description": "## [1.20.0-dev.5](https://github.com/rushiranpise/morphe-patches/compare/v1.20.0-dev.4...v1.20.0-dev.5) (2026-08-20)\n\n### \ud83d\udc1b Bug Fixes\n\n* build ([cc5ecc1](https://github.com/rushiranpise/morphe-patches/commit/cc5ecc1956175ce963f13dcbc999e6e4b9e4530e))\n* monet launcher ([5f75aa9](https://github.com/rushiranpise/morphe-patches/commit/5f75aa95976355b0de622fb5262a75178d8434cd)), closes [#719](https://github.com/rushiranpise/morphe-patches/issues/719)\n* myperm ([50c4c88](https://github.com/rushiranpise/morphe-patches/commit/50c4c882d2bcaeb40e18f74f219be5bbfdafbda8)), closes [#684](https://github.com/rushiranpise/morphe-patches/issues/684)\n\n### \u2728 New Features\n\n* add picsart ([119e497](https://github.com/rushiranpise/morphe-patches/commit/119e4972d45724c71e5af2453aad77faf521e764))\n* tiktok lite add new patches ([3ee74de](https://github.com/rushiranpise/morphe-patches/commit/3ee74de75b3cf53598a38cd59dc482855daeef8b))\n",
+  "download_url": "https://github.com/rushiranpise/morphe-patches/releases/download/v1.20.0-dev.5/patches-1.20.0-dev.5.mpp",
   "signature_download_url": "N/A",
-  "version": "v1.19.0-dev.6"
+  "version": "v1.20.0-dev.5"
 }

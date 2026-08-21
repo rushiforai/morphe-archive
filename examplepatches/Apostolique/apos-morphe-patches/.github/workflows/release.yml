@@ -1,0 +1,72 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+# Every action is pinned to a commit rather than a tag. This job holds a write
+# token, and a tag is a moving reference: whoever owns the action can point it
+# somewhere else, and `@v6` on one of these was a *branch* rather than a tag.
+# The version each pin was taken from is in the comment beside it. Read the diff
+# of an action before moving a pin, since the pin is the only thing between this
+# job and whatever that repository does next.
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      # Reading the Morphe patcher from GitHub Packages.
+      packages: read
+      id-token: write
+      attestations: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: lts/*
+          cache: npm
+
+      # `ci` rather than `install`, so the lockfile is obeyed rather than
+      # refreshed. One of these dependencies is a git branch, and `install`
+      # would happily follow it wherever it has moved since.
+      - name: Install release tooling
+        run: npm ci
+
+      # semantic-release reads the commits since the last tag, works out the
+      # version, writes CHANGELOG.md and patches-bundle.json, builds the bundle
+      # at that version and attaches it to a GitHub release. A push with no
+      # releasable commits does nothing at all.
+      - name: Release
+        id: release
+        uses: cycjimmy/semantic-release-action@b12c8f6015dc215fe37bc154d4ad456dd3833c90 # v6.0.0
+        env:
+          # GITHUB_ACTOR comes with the runner; both are read by
+          # settings.gradle.kts to reach the Morphe packages.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Attest
+        if: steps.release.outputs.new_release_published == 'true'
+        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
+        with:
+          subject-path: patches/build/libs/patches-*.mpp

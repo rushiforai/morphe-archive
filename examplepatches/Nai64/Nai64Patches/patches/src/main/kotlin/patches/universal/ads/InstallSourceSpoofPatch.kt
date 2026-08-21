@@ -10,6 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val installSourceSpoofPatch = bytecodePatch(
     name = "Spoof Play Store Install Source",
+    description = "Make the app believe it was installed from the Play Store",
     default = false,
 ) {
     execute {
@@ -17,7 +18,7 @@ val installSourceSpoofPatch = bytecodePatch(
 
         // ── Generic string-based strategies ──
         // These search for methods containing "com.android.vending" by return type.
-        // These run even when Pairip is found — catches non-Pairip methods.
+        // These run even when Pairip is found - catches non-Pairip methods.
 
         // Strategy 7: Private boolean method referencing "com.android.vending"
         val boolCheck = GenericBooleanInstallerCheckFingerprint.methodOrNull

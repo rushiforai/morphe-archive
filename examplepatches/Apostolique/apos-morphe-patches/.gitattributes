@@ -1,0 +1,13 @@
+# LF everywhere, on every checkout, so gradlew stays a valid shell script on the
+# Linux runners and a diff is about the code rather than the line endings.
+* text=auto eol=lf
+
+*.jar binary
+*.mpp binary
+*.mpe binary
+*.apk binary
+*.apkm binary
+*.png binary
+
+gradlew text eol=lf
+gradlew.bat text eol=crlf

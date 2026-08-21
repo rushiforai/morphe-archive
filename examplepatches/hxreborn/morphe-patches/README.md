@@ -4,9 +4,10 @@
 
 **Patches for the Android apps I use, built for [Morphe](https://morphe.software).**
 
-[![Release badge](https://img.shields.io/github/v/release/hxreborn/morphe-patches?style=for-the-badge&label=Release&color=gray)](https://github.com/hxreborn/morphe-patches/releases/latest)
-[![Documentation badge](https://img.shields.io/badge/Documentation-gray?style=for-the-badge&logo=github)](https://github.com/MorpheApp/morphe-documentation#readme)
-[![License badge](https://img.shields.io/badge/License-GPLv3-gray?style=for-the-badge)](LICENSE)
+[![Release badge](https://img.shields.io/github/v/release/hxreborn/morphe-patches?style=for-the-badge&label=Release&color=D29922)](https://github.com/hxreborn/morphe-patches/releases/latest)
+[![Downloads badge](https://img.shields.io/github/downloads/hxreborn/morphe-patches/total?style=for-the-badge&label=Downloads&color=2F81F7)](https://github.com/hxreborn/morphe-patches/releases/latest)
+[![Documentation badge](https://img.shields.io/badge/Documentation-8957E5?style=for-the-badge&logo=github)](https://github.com/MorpheApp/morphe-documentation#readme)
+[![License badge](https://img.shields.io/badge/License-GPLv3-3FB950?style=for-the-badge)](LICENSE)
 
 <a href="https://morphe.software/add-source?github=hxreborn/morphe-patches" title="Add this source to Morphe">
   <img alt="Add to Morphe" src="https://img.shields.io/badge/Morphe-Add%20this%20source-00A8FF?style=for-the-badge" height="38"/>
@@ -17,7 +18,7 @@
 &nbsp;
 ## ❓ About
 
-I maintain these because I use them.
+I maintain these because I use them, but [requests](https://github.com/hxreborn/morphe-patches/issues/new?template=feature_request.yml) for other apps are welcome.
 
 Based off the prior work of [ReVanced](https://github.com/ReVanced). All modifications made
 here, along with their dates, can be found in the Git history.
@@ -30,7 +31,7 @@ identify each app. They are not covered by this repository's licence. See
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.9.1](https://github.com/hxreborn/morphe-patches/releases/tag/v1.9.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;20 patches total
+> **[v1.9.2](https://github.com/hxreborn/morphe-patches/releases/tag/v1.9.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;20 patches total
 <details open>
 <summary><img src=".github/assets/icons/kick.png" width="18" align="top">&nbsp;&nbsp;Kick&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>

@@ -1,0 +1,22 @@
+# Gradle
+.gradle/
+build/
+**/build/
+.kotlin/
+
+# Machine-local: the Android SDK path, and any credentials for GitHub Packages.
+local.properties
+
+# Node, for semantic-release only.
+node_modules/
+
+# Third-party app binaries. Patches are ours to publish; the apps they apply to
+# are not.
+*.apk
+*.apkm
+*.xapk
+
+# IDEs
+.idea/
+*.iml
+.DS_Store

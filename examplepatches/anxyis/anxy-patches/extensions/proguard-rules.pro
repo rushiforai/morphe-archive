@@ -1,0 +1,2 @@
+-keep class com.alightcreative.app.motion.persist.** { *; }
+-dontwarn android.view.WindowManagerGlobal

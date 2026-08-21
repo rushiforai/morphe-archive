@@ -1,3 +1,28 @@
+## [1.6.0](https://github.com/theabhishekbhujang/morphe-patches/compare/v1.5.3...v1.6.0) (2026-08-20)
+
+### 🐛 Bug Fixes
+
+* **rhythm:** escape inner class dollar sign in multiline smali string ([9ed926a](https://github.com/theabhishekbhujang/morphe-patches/commit/9ed926a9f798770580607f3bad037bbd889cd046))
+* **rhythm:** unlock all Pro features, scales, Manjeera, variations and disable purchase prompts ([a9771f1](https://github.com/theabhishekbhujang/morphe-patches/commit/a9771f1b2b27a191efb0a3eb69255a992b71a80f))
+* **rhythm:** use addInstructions to prevent IndexOutOfBoundsException during patch execution ([7431531](https://github.com/theabhishekbhujang/morphe-patches/commit/74315313f21d99c890ea29103f92781a079f33b4))
+
+### ✨ New Features
+
+* **rhythm:** update unlock pro patch with complete bypasses and audio unlocks ([f3d886f](https://github.com/theabhishekbhujang/morphe-patches/commit/f3d886f1f0daafa6c6ccc564e8a15368876f4a1a))
+
+## [1.5.4-dev.2](https://github.com/theabhishekbhujang/morphe-patches/compare/v1.5.4-dev.1...v1.5.4-dev.2) (2026-08-19)
+
+### 🐛 Bug Fixes
+
+* **rhythm:** use addInstructions to prevent IndexOutOfBoundsException during patch execution ([7431531](https://github.com/theabhishekbhujang/morphe-patches/commit/74315313f21d99c890ea29103f92781a079f33b4))
+
+## [1.5.4-dev.1](https://github.com/theabhishekbhujang/morphe-patches/compare/v1.5.3...v1.5.4-dev.1) (2026-08-19)
+
+### 🐛 Bug Fixes
+
+* **rhythm:** escape inner class dollar sign in multiline smali string ([9ed926a](https://github.com/theabhishekbhujang/morphe-patches/commit/9ed926a9f798770580607f3bad037bbd889cd046))
+* **rhythm:** unlock all Pro features, scales, Manjeera, variations and disable purchase prompts ([a9771f1](https://github.com/theabhishekbhujang/morphe-patches/commit/a9771f1b2b27a191efb0a3eb69255a992b71a80f))
+
 ## [1.5.3](https://github.com/theabhishekbhujang/morphe-patches/compare/v1.5.2...v1.5.3) (2026-08-19)
 
 ### 🐛 Bug Fixes

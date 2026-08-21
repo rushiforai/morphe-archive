@@ -2544,16 +2544,94 @@ If you know of another working ReVanced or Morphe patch repository that is not l
 </details>
 
 ---
-### 📦 Skywarp-Patches-Bundle [Morphe]:
-[🧩 Skywarp Bundle Patch List](https://github.com/Jman-Github/ReVanced-Patch-Bundles/blob/bundles/patch-bundles/PATCH-LIST-CATALOG.md#-skywarp-bundle-patch-list)
+### 📦 Kveld-Patches-Bundle [Morphe]:
+[🧩 Kveld Bundle Patch List](https://github.com/Jman-Github/ReVanced-Patch-Bundles/blob/bundles/patch-bundles/PATCH-LIST-CATALOG.md#-kveld-bundle-patch-list)
 <details>
 <summary><i>Expand For Links</i></summary>
 
-**Latest:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/skywarp-patch-bundles/skywarp-latest-patches-bundle.json```
+**Latest:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/kveld-patch-bundles/kveld-latest-patches-bundle.json```
 
-**Stable:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/skywarp-patch-bundles/skywarp-stable-patches-bundle.json```
+**Stable:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/kveld-patch-bundles/kveld-stable-patches-bundle.json```
 
-**Dev:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/skywarp-patch-bundles/skywarp-dev-patches-bundle.json```
+**Dev:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/kveld-patch-bundles/kveld-dev-patches-bundle.json```
+</details>
+
+---
+### 📦 Anime-Witcher-Patches-Bundle [Morphe]:
+[🧩 Anime-Witcher Bundle Patch List](https://github.com/Jman-Github/ReVanced-Patch-Bundles/blob/bundles/patch-bundles/PATCH-LIST-CATALOG.md#-anime-witcher-bundle-patch-list)
+<details>
+<summary><i>Expand For Links</i></summary>
+
+**Latest:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/anime-witcher-patch-bundles/anime-witcher-latest-patches-bundle.json```
+
+**Stable:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/anime-witcher-patch-bundles/anime-witcher-stable-patches-bundle.json```
+
+**Dev:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/anime-witcher-patch-bundles/anime-witcher-dev-patches-bundle.json```
+</details>
+
+---
+### 📦 Expose-Like-Status-in-MediaSession-Patches-Bundle [API v4]:
+[🧩 Expose-Like-Status-in-MediaSession Bundle Patch List](https://github.com/Jman-Github/ReVanced-Patch-Bundles/blob/bundles/patch-bundles/PATCH-LIST-CATALOG.md#-expose-like-status-in-mediasession-bundle-patch-list)
+<details>
+<summary><i>Expand For Links</i></summary>
+
+**Latest:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/expose-like-status-in-mediasession-patch-bundles/expose-like-status-in-mediasession-latest-patches-bundle.json```
+
+**Stable:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/expose-like-status-in-mediasession-patch-bundles/expose-like-status-in-mediasession-stable-patches-bundle.json```
+
+**Dev:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/expose-like-status-in-mediasession-patch-bundles/expose-like-status-in-mediasession-dev-patches-bundle.json```
+</details>
+
+---
+### 📦 Apos-Patches-Bundle [Morphe]:
+[🧩 Apos Bundle Patch List](https://github.com/Jman-Github/ReVanced-Patch-Bundles/blob/bundles/patch-bundles/PATCH-LIST-CATALOG.md#-apos-bundle-patch-list)
+<details>
+<summary><i>Expand For Links</i></summary>
+
+**Latest:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/apos-patch-bundles/apos-latest-patches-bundle.json```
+
+**Stable:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/apos-patch-bundles/apos-stable-patches-bundle.json```
+
+**Dev:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/apos-patch-bundles/apos-dev-patches-bundle.json```
+</details>
+
+---
+### 📦 HH-Patches-Bundle [Morphe]:
+[🧩 HH Bundle Patch List](https://github.com/Jman-Github/ReVanced-Patch-Bundles/blob/bundles/patch-bundles/PATCH-LIST-CATALOG.md#-hh-bundle-patch-list)
+<details>
+<summary><i>Expand For Links</i></summary>
+
+**Latest:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/hh-patch-bundles/hh-latest-patches-bundle.json```
+
+**Stable:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/hh-patch-bundles/hh-stable-patches-bundle.json```
+
+**Dev:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/hh-patch-bundles/hh-dev-patches-bundle.json```
+</details>
+
+---
+### 📦 Anxy-Patches-Bundle [Morphe]:
+[🧩 Anxy Bundle Patch List](https://github.com/Jman-Github/ReVanced-Patch-Bundles/blob/bundles/patch-bundles/PATCH-LIST-CATALOG.md#-anxy-bundle-patch-list)
+<details>
+<summary><i>Expand For Links</i></summary>
+
+**Latest:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/anxy-patch-bundles/anxy-latest-patches-bundle.json```
+
+**Stable:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/anxy-patch-bundles/anxy-stable-patches-bundle.json```
+
+**Dev:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/anxy-patch-bundles/anxy-dev-patches-bundle.json```
+</details>
+
+---
+### 📦 Chicco-Patches-Bundle [Morphe]:
+[🧩 Chicco Bundle Patch List](https://github.com/Jman-Github/ReVanced-Patch-Bundles/blob/bundles/patch-bundles/PATCH-LIST-CATALOG.md#-chicco-bundle-patch-list)
+<details>
+<summary><i>Expand For Links</i></summary>
+
+**Latest:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/chicco-patch-bundles/chicco-latest-patches-bundle.json```
+
+**Stable:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/chicco-patch-bundles/chicco-stable-patches-bundle.json```
+
+**Dev:** ```https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/patch-bundles/chicco-patch-bundles/chicco-dev-patches-bundle.json```
 </details>
 
 ## 📱 Compatible Managers
@@ -2957,7 +3035,19 @@ If you know of another working ReVanced or Morphe patch repository that is not l
 
 #### 🩹 [MauroGamerVN-Patches-Bundle](https://github.com/MauroGamerVN/morphe-patches)
 
-#### 🩹 [Skywarp-Patches-Bundle](https://github.com/TheRealSkywarp/morphe-patches)
+#### 🩹 [Kveld-Patches-Bundle](https://github.com/kveld9/kveld-morphe-patches)
+
+#### 🩹 [Anime-Witcher-Patches-Bundle](https://github.com/catsmoker/anime-witcher-patches)
+
+#### 🩹 [Expose-Like-Status-in-MediaSession-Patches-Bundle](https://github.com/vasyl91/Expose-like-status-in-MediaSession)
+
+#### 🩹 [Apos-Patches-Bundle](https://github.com/Apostolique/apos-morphe-patches)
+
+#### 🩹 [HH-Patches-Bundle](https://github.com/hhawkinsau/hh-patches)
+
+#### 🩹 [Anxy-Patches-Bundle](https://github.com/anxyis/anxy-patches)
+
+#### 🩹 [Chicco-Patches-Bundle](https://github.com/chicco-carone/morphe-patches-chicco)
 
 ## 🖇 Integrations Repositories In Use
 

@@ -1,0 +1,12 @@
+{
+  "name": "apos-morphe-patches",
+  "private": true,
+  "description": "Release tooling only. The bundle itself is built by Gradle.",
+  "devDependencies": {
+    "@MorpheApp/changelog": "git+https://github.com/MorpheApp/changelog.git#caa1e931730f097bb6c4dee636b01c2c24ccd72d",
+    "@semantic-release/exec": "^7.1.0",
+    "@semantic-release/git": "^11.0.1",
+    "conventional-changelog-conventionalcommits": "^9.3.1",
+    "semantic-release": "^25.0.8"
+  }
+}

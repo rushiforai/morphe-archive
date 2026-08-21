@@ -969,8 +969,38 @@
         "integration": "https://api.github.com/repos/revanced/revanced-integrations",
         "prerelease": false
     },
-    "skywarp-stable": {
-        "patches": "https://api.github.com/repos/TheRealSkywarp/morphe-patches",
+    "kveld-stable": {
+        "patches": "https://api.github.com/repos/kveld9/kveld-morphe-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": false
+    },
+    "anxy-stable": {
+        "patches": "https://api.github.com/repos/anxyis/anxy-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": false
+    },
+    "chicco-stable": {
+        "patches": "https://api.github.com/repos/chicco-carone/morphe-patches-chicco",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": false
+    },
+    "anime-witcher-stable": {
+        "patches": "https://api.github.com/repos/catsmoker/anime-witcher-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": false
+    },
+    "expose-like-status-in-mediasession-stable": {
+        "patches": "https://api.github.com/repos/vasyl91/Expose-like-status-in-MediaSession",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": false
+    },
+    "apos-stable": {
+        "patches": "https://api.github.com/repos/Apostolique/apos-morphe-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": false
+    },
+    "hh-stable": {
+        "patches": "https://api.github.com/repos/hhawkinsau/hh-patches",
         "integration": "https://api.github.com/repos/revanced/revanced-integrations",
         "prerelease": false
     },
@@ -1934,8 +1964,38 @@
         "integration": "https://api.github.com/repos/revanced/revanced-integrations",
         "prerelease": true
     },
-    "skywarp-dev": {
-        "patches": "https://api.github.com/repos/TheRealSkywarp/morphe-patches",
+    "kveld-dev": {
+        "patches": "https://api.github.com/repos/kveld9/kveld-morphe-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": true
+    },
+    "anxy-dev": {
+        "patches": "https://api.github.com/repos/anxyis/anxy-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": true
+    },
+    "chicco-dev": {
+        "patches": "https://api.github.com/repos/chicco-carone/morphe-patches-chicco",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": true
+    },
+    "anime-witcher-dev": {
+        "patches": "https://api.github.com/repos/catsmoker/anime-witcher-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": true
+    },
+    "expose-like-status-in-mediasession-dev": {
+        "patches": "https://api.github.com/repos/vasyl91/Expose-like-status-in-MediaSession",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": true
+    },
+    "apos-dev": {
+        "patches": "https://api.github.com/repos/Apostolique/apos-morphe-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": true
+    },
+    "hh-dev": {
+        "patches": "https://api.github.com/repos/hhawkinsau/hh-patches",
         "integration": "https://api.github.com/repos/revanced/revanced-integrations",
         "prerelease": true
     },
@@ -2899,8 +2959,38 @@
         "integration": "https://api.github.com/repos/revanced/revanced-integrations",
         "latest": true
     },
-    "skywarp-latest": {
-        "patches": "https://api.github.com/repos/TheRealSkywarp/morphe-patches",
+    "kveld-latest": {
+        "patches": "https://api.github.com/repos/kveld9/kveld-morphe-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "latest": true
+    },
+    "anxy-latest": {
+        "patches": "https://api.github.com/repos/anxyis/anxy-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "latest": true
+    },
+    "chicco-latest": {
+        "patches": "https://api.github.com/repos/chicco-carone/morphe-patches-chicco",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "latest": true
+    },
+    "anime-witcher-latest": {
+        "patches": "https://api.github.com/repos/catsmoker/anime-witcher-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "latest": true
+    },
+    "expose-like-status-in-mediasession-latest": {
+        "patches": "https://api.github.com/repos/vasyl91/Expose-like-status-in-MediaSession",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "latest": true
+    },
+    "apos-latest": {
+        "patches": "https://api.github.com/repos/Apostolique/apos-morphe-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "latest": true
+    },
+    "hh-latest": {
+        "patches": "https://api.github.com/repos/hhawkinsau/hh-patches",
         "integration": "https://api.github.com/repos/revanced/revanced-integrations",
         "latest": true
     },

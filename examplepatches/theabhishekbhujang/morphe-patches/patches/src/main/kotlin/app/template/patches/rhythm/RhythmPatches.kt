@@ -1,20 +1,19 @@
 package app.template.patches.rhythm
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.template.patches.shared.Constants.COMPATIBILITY_RHYTHM
 
 val unlockProPatch = bytecodePatch(
     name = "Unlock Pro",
-    description = "Unlocks all Pro features, taals, variations, scales, and removes ads.",
+    description = "Unlocks all Pro and Premium features, taals, variations, scales, Manjeera audio engine, and disables store alerts & ads.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_RHYTHM)
 
     execute {
-        // 1. Force Taal.isPremium() to return false (so taals are not restricted as premium)
+        // 1. Unlock Taal.isPremium() -> return false (0)
         Fingerprint(
             definingClass = "Lcom/psslabs/rhythm/model/Taal;",
             name = "isPremium",
@@ -27,7 +26,7 @@ val unlockProPatch = bytecodePatch(
             """
         )
 
-        // 2. Force TaalVariation.isPremium() to return false
+        // 2. Unlock TaalVariation.isPremium() -> return false (0)
         Fingerprint(
             definingClass = "Lcom/psslabs/rhythm/model/TaalVariation;",
             name = "isPremium",
@@ -40,7 +39,7 @@ val unlockProPatch = bytecodePatch(
             """
         )
 
-        // 3. Unlock PickerView feature restrictions
+        // 3. Unlock PickerView.h() -> return false (0)
         Fingerprint(
             definingClass = "Lcom/psslabs/rhythm/helper/PickerView;",
             name = "h",
@@ -53,19 +52,7 @@ val unlockProPatch = bytecodePatch(
             """
         )
 
-        // 4. Force m4.f constructor parameter `isPro` to false so all taals are loaded into e list
-        Fingerprint(
-            definingClass = "Lm4/f;",
-            name = "<init>",
-            returnType = "V"
-        ).method.addInstructions(
-            14,
-            """
-                const/4 p2, 0x0
-            """
-        )
-
-        // 5. Bypass Store Check (m4.f.n())
+        // 4. Bypass Store Verification Check (m4.f.n()) -> return true (1)
         Fingerprint(
             definingClass = "Lm4/f;",
             name = "n",
@@ -78,7 +65,31 @@ val unlockProPatch = bytecodePatch(
             """
         )
 
-        // 6. Disable Banner Ads (k4.d.f())
+        // 5. Bypass Store Alert Dialog in ListingActivity (ListingActivity.A) -> return-void
+        Fingerprint(
+            definingClass = "Lcom/psslabs/rhythm/ListingActivity;",
+            name = "A",
+            returnType = "V"
+        ).method.replaceInstructions(
+            0,
+            """
+                return-void
+            """
+        )
+
+        // 6. Disable Purchase Premium Dialog in BaseActivity (i4.b.T1) -> return-void
+        Fingerprint(
+            definingClass = "Li4/b;",
+            name = "T1",
+            returnType = "V"
+        ).method.replaceInstructions(
+            0,
+            """
+                return-void
+            """
+        )
+
+        // 7. Disable Banner Ads (k4.d.f())
         Fingerprint(
             definingClass = "Lk4/d;",
             name = "f",
@@ -90,7 +101,7 @@ val unlockProPatch = bytecodePatch(
             """
         )
 
-        // 7. Disable Interstitial Ads (k4.d.g())
+        // 8. Disable Interstitial Ads (k4.d.g())
         Fingerprint(
             definingClass = "Lk4/d;",
             name = "g",

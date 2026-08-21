@@ -1,9 +1,9 @@
-group = "io.github.nekogryphou.crunchyroll.pip"
+group = "io.github.nekogryphou.morphe.patches"
 
 patches {
     about {
         name = "Gryphou's Morphe Patches"
-        description = "Android Picture-in-Picture support patches for Crunchyroll."
+        description = "Android app patches for Crunchyroll and De'Longhi Comfort."
         source = "https://github.com/NekoGryphou/gryphous-morphe-patches"
         author = "NekoGryphou"
         contact = "darkosdash@gmail.com"

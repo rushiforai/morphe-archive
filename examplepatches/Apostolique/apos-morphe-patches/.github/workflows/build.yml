@@ -1,0 +1,57 @@
+name: Build
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+
+# `pull_request`, never `pull_request_target`. This builds whatever a pull
+# request contains, so it has to run in the pull request's own context: no
+# secrets reach it, and GitHub caps the token to read-only for a fork whatever
+# the block below says. Switching the trigger would hand that untrusted build
+# this repository's credentials.
+#
+# Actions are pinned to commits for the same reason they are in release.yml.
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Reading the Morphe patcher from GitHub Packages.
+      packages: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Setup Java
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6
+        with:
+          # Checks every wrapper jar against its published checksum and fails if
+          # one does not match, which is what stops a pull request swapping the
+          # jar ./gradlew is about to run. On by default; named so it stays on.
+          validate-wrappers: true
+          # A pull request reads the cache and never writes it, so nothing it
+          # builds can reach the cache main restores. Also the default off the
+          # default branch, and also named so it stays.
+          cache-read-only: true
+
+      - name: Build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew buildAndroid --no-daemon
+
+      # Built from an unreviewed pull request, so this is a build artifact and
+      # not a release. Releases come from release.yml, against a tag.
+      - name: Upload the bundle
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: patches
+          path: patches/build/libs/*.mpp

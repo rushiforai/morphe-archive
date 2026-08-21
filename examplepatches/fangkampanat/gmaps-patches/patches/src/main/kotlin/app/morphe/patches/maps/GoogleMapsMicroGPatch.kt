@@ -15,8 +15,12 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.BuilderInstruction
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21c
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction31c
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction21c
 import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction31c
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference
 import org.w3c.dom.Document
@@ -33,6 +37,8 @@ private const val GMS_CORE_VENDOR_GROUP = "app.revanced"
 private const val C2DM_PACKAGE_NAME = "app.revanced.android.c2dm"
 private const val EXTENSION_CLASS = "Lapp/morphe/extension/shared/patches/GmsCoreSupportPatch;"
 private const val UTILS_CLASS = "Lapp/morphe/extension/shared/Utils;"
+private const val BYD_AUDIO_CLASS =
+    "Lapp/morphe/extension/maps/patches/BydNavigationAudioPatch;"
 
 private val compatibility = Compatibility(
     name = "Google Maps",
@@ -42,27 +48,11 @@ private val compatibility = Compatibility(
     signatures = setOf(ORIGINAL_CERT_SHA256, ORIGINAL_CERT_SHA256_ANDROID_13_PLUS),
     targets = listOf(
         AppTarget(
-            version = "26.26.04.935742811",
-            minSdk = 28,
-        ),
-        AppTarget(
-            version = "26.27.05.941319029",
-            minSdk = 28,
-        ),
-        AppTarget(
-            version = "26.28.03.942936911",
-            minSdk = 28,
-        ),
-        AppTarget(
-            version = "26.29.02.946673643",
-            minSdk = 28,
-        ),
-        AppTarget(
-            version = "26.30.09.950492155",
-            minSdk = 28,
-        ),
-        AppTarget(
             version = "26.32.06.958047303",
+            minSdk = 28,
+        ),
+        AppTarget(
+            version = "26.33.02.961351034",
             minSdk = 28,
         ),
     ),
@@ -91,6 +81,7 @@ val googleMapsMicroGPatch = bytecodePatch(
         patchExtensionRuntime()
         patchAvailabilityChecks()
         suppressMisleadingPlayServicesUpdateNotification()
+        patchBydNavigationAudio()
         injectExtensionContext()
         injectGmsCoreCheck()
     }
@@ -469,6 +460,7 @@ private val mapsActivityOnCreateFingerprints = listOf(
     mapsActivityOnCreateFingerprint("Lnaa;"),
     mapsActivityOnCreateFingerprint("Lnap;"),
     mapsActivityOnCreateFingerprint("Lncb;"),
+    mapsActivityOnCreateFingerprint("Lnco;"),
 )
 
 private fun mapsApplicationOnCreateFingerprint(definingClass: String) = Fingerprint(
@@ -485,6 +477,7 @@ private val mapsApplicationOnCreateFingerprints = listOf(
     mapsApplicationOnCreateFingerprint("Lnxw;"),
     mapsApplicationOnCreateFingerprint("Lnzo;"),
     mapsApplicationOnCreateFingerprint("Locb;"),
+    mapsApplicationOnCreateFingerprint("Locr;"),
 )
 
 private val extensionVendorFingerprint = Fingerprint(
@@ -524,6 +517,7 @@ private val googlePlayUtilityFingerprints = listOf(
     googlePlayUtilityFingerprint("Lbjkw;", "n"),
     googlePlayUtilityFingerprint("Lbjqa;", "o"),
     googlePlayUtilityFingerprint("Lbjuz;", "o"),
+    googlePlayUtilityFingerprint("Lbjxo;", "o"),
 )
 
 private val playServicesAvailabilityNotificationFingerprint = Fingerprint(
@@ -534,6 +528,160 @@ private val playServicesAvailabilityNotificationFingerprint = Fingerprint(
     ),
     strings = listOf("com.google.android.gms.availability"),
 )
+
+private val mediaAlertFileFingerprint = Fingerprint(
+    strings = listOf(
+        "MediaAlert file doesn't exist",
+        "Exception creating MediaAlert from file",
+    ),
+)
+
+private val mediaAlertResourceFingerprint = Fingerprint(
+    strings = listOf("Error loading sound file from resource"),
+)
+
+private val mediaAlertAudioAttributesFingerprint = Fingerprint(
+    name = "<init>",
+    returnType = "V",
+    parameters = listOf(
+        "Landroid/media/MediaPlayer;",
+        "L",
+        "Ljava/util/concurrent/Executor;",
+        "L",
+    ),
+    custom = { method, _ ->
+        val references = method.implementation?.instructions
+            ?.mapNotNull { it.methodReferenceOrNull() }
+            ?: emptyList()
+        references.any {
+            it.matches(
+                "Landroid/media/AudioAttributes\u0024Builder;",
+                "setUsage",
+                listOf("I"),
+                "Landroid/media/AudioAttributes\u0024Builder;",
+            )
+        } && references.any {
+            it.matches(
+                "Landroid/media/AudioAttributes\u0024Builder;",
+                "setContentType",
+                listOf("I"),
+                "Landroid/media/AudioAttributes\u0024Builder;",
+            )
+        } && references.any {
+            it.matches(
+                "Landroid/media/MediaPlayer;",
+                "setAudioAttributes",
+                listOf("Landroid/media/AudioAttributes;"),
+                "V",
+            )
+        }
+    },
+)
+
+private fun Any.methodReferenceOrNull() =
+    (this as? ReferenceInstruction)?.reference as? MethodReference
+
+private fun MethodReference.matches(
+    definingClass: String,
+    name: String,
+    parameterTypes: List<String>,
+    returnType: String,
+) = this.definingClass == definingClass &&
+    this.name == name &&
+    this.parameterTypes.map { it.toString() } == parameterTypes &&
+    this.returnType == returnType
+
+private fun audioStreamWrapperInvoke(instruction: Any): String = when (instruction) {
+    is FiveRegisterInstruction -> {
+        if (instruction.registerCount != 2) {
+            throw PatchException("Unexpected MediaPlayer.setAudioStreamType register count")
+        }
+        "invoke-static { v${instruction.registerC}, v${instruction.registerD} }, " +
+            "$BYD_AUDIO_CLASS->setAudioStreamType(Landroid/media/MediaPlayer;I)V"
+    }
+
+    is RegisterRangeInstruction -> {
+        if (instruction.registerCount != 2) {
+            throw PatchException("Unexpected MediaPlayer.setAudioStreamType range count")
+        }
+        val endRegister = instruction.startRegister + 1
+        "invoke-static/range { v${instruction.startRegister} .. v$endRegister }, " +
+            "$BYD_AUDIO_CLASS->setAudioStreamType(Landroid/media/MediaPlayer;I)V"
+    }
+
+    else -> throw PatchException("Unsupported MediaPlayer.setAudioStreamType instruction format")
+}
+
+private fun audioAttributesWrapperInvoke(instruction: Any): String = when (instruction) {
+    is FiveRegisterInstruction -> {
+        if (instruction.registerCount != 2) {
+            throw PatchException("Unexpected MediaPlayer.setAudioAttributes register count")
+        }
+        "invoke-static { v${instruction.registerC}, v${instruction.registerD} }, " +
+            "$BYD_AUDIO_CLASS->setAudioAttributes" +
+            "(Landroid/media/MediaPlayer;Landroid/media/AudioAttributes;)V"
+    }
+
+    is RegisterRangeInstruction -> {
+        if (instruction.registerCount != 2) {
+            throw PatchException("Unexpected MediaPlayer.setAudioAttributes range count")
+        }
+        val endRegister = instruction.startRegister + 1
+        "invoke-static/range { v${instruction.startRegister} .. v$endRegister }, " +
+            "$BYD_AUDIO_CLASS->setAudioAttributes" +
+            "(Landroid/media/MediaPlayer;Landroid/media/AudioAttributes;)V"
+    }
+
+    else -> throw PatchException("Unsupported MediaPlayer.setAudioAttributes instruction format")
+}
+
+private fun app.morphe.patcher.patch.BytecodePatchContext.patchBydNavigationAudio() {
+    listOf(
+        "file MediaAlert" to mediaAlertFileFingerprint,
+        "resource MediaAlert" to mediaAlertResourceFingerprint,
+    ).forEach { (label, fingerprint) ->
+        val method = fingerprint.methodOrNull
+            ?: throw PatchException("Failed to match $label audio stream hook")
+        val matches = method.implementation!!.instructions.withIndex().filter { (_, instruction) ->
+            instruction.methodReferenceOrNull()?.matches(
+                "Landroid/media/MediaPlayer;",
+                "setAudioStreamType",
+                listOf("I"),
+                "V",
+            ) == true
+        }
+
+        if (matches.size != 1) {
+            throw PatchException("Expected exactly one $label audio stream call, found ${matches.size}")
+        }
+
+        val (index, instruction) = matches.single()
+        method.replaceInstruction(index, audioStreamWrapperInvoke(instruction))
+    }
+
+    val attributesMethod = mediaAlertAudioAttributesFingerprint.methodOrNull
+        ?: throw PatchException("Failed to match MediaAlert AudioAttributes hook")
+    val attributeMatches = attributesMethod.implementation!!.instructions.withIndex()
+        .filter { (_, instruction) ->
+            instruction.methodReferenceOrNull()?.matches(
+                "Landroid/media/MediaPlayer;",
+                "setAudioAttributes",
+                listOf("Landroid/media/AudioAttributes;"),
+                "V",
+            ) == true
+        }
+    if (attributeMatches.size != 1) {
+        throw PatchException(
+            "Expected exactly one MediaAlert AudioAttributes call, found ${attributeMatches.size}",
+        )
+    }
+
+    val (attributeIndex, attributeInstruction) = attributeMatches.single()
+    attributesMethod.replaceInstruction(
+        attributeIndex,
+        audioAttributesWrapperInvoke(attributeInstruction),
+    )
+}
 
 private fun app.morphe.patcher.patch.BytecodePatchContext.patchExtensionRuntime() {
     val vendorMethod = extensionVendorFingerprint.methodOrNull

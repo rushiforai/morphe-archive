@@ -1,6 +1,6 @@
 # 🧩 Morphe Patches by theabhishekbhujang
 
-Custom patch bundle for Android applications built for **Morphe Manager** and **Morphe Desktop**.
+Custom patch bundle for Android applications built for **Morphe Manager**.
 
 ---
 
@@ -12,13 +12,13 @@ Add this patch source directly to Morphe Manager on your Android device:
 
 *Alternatively, open Morphe Manager -> **Settings** -> **Patch Sources** -> **Add Source** -> Enter `theabhishekbhujang/morphe-patches`.*
 
-### PS: All patches are developed mostly using AI tools in my free time so please expect bugs and kindly report them.
+**PS: All patches are developed mostly using AI tools in my free time so please expect bugs and kindly report them.**
 ---
 
 ## 🩹 Available Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.5.3](https://github.com/theabhishekbhujang/morphe-patches/releases/tag/v1.5.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
+> **[v1.6.0](https://github.com/theabhishekbhujang/morphe-patches/releases/tag/v1.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
 <details open>
 <summary>📦 harmonium.music.gameg.real.harmoniumfree&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -45,7 +45,7 @@ Add this patch source directly to Morphe Manager on your Android device:
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Unlock Pro](#unlock-pro) | Unlocks all Pro features, taals, variations, scales, and removes ads. |  |
+| [Unlock Pro](#unlock-pro) | Unlocks all Pro and Premium features, taals, variations, scales, Manjeera audio engine, and disables store alerts & ads. |  |
 
 </details>
 
@@ -55,3 +55,8 @@ Add this patch source directly to Morphe Manager on your Android device:
 ## 📜 License
 
 This project is licensed under the [GNU General Public License v3.0](LICENSE).
+<br><br>
+If you are the developer, copyright holder, or otherwise have a valid reason to request removal of any patch from this repository, please [contact me](http://scr.im/abhishekey) and I will review the request and remove the relevant patch if appropriate.
+<br><br>
+⚠️ **Disclaimer:** These patches are created solely for **educational and research purposes** and to help me learn about Android app development, patching, and reverse engineering. I do not intend to harm, interfere with, or negatively impact the original developers or their applications. Please respect the rights and licenses of the original app developers and use these patches responsibly.
+

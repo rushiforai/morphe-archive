@@ -1,5 +1,5 @@
 {
-    "version": "v1.19.0-dev.6",
+    "version": "v1.20.0-dev.5",
     "patches": [
         {
             "compatiblePackages": [
@@ -66,27 +66,6 @@
                 {
                     "apkFileType": "APK",
                     "appIconColor": "#2CA5E0",
-                    "name": "Telegram",
-                    "packageName": "org.telegram.messenger",
-                    "targets": [
-                        {
-                            "isExperimental": false,
-                            "version": "12.9.2",
-                            "versionCodes": {
-                                "ARM64_V8A": 69912,
-                                "ARMEABI_V7A": 69912,
-                                "X86": 69912,
-                                "X86_64": 69912
-                            }
-                        }
-                    ],
-                    "versions": [
-                        "12.9.2"
-                    ]
-                },
-                {
-                    "apkFileType": "APK",
-                    "appIconColor": "#2CA5E0",
                     "name": "Telegram Web",
                     "packageName": "org.telegram.messenger.web",
                     "targets": [
@@ -140,27 +119,6 @@
                 {
                     "apkFileType": "APK",
                     "appIconColor": "#2CA5E0",
-                    "name": "Telegram",
-                    "packageName": "org.telegram.messenger",
-                    "targets": [
-                        {
-                            "isExperimental": false,
-                            "version": "12.9.2",
-                            "versionCodes": {
-                                "ARM64_V8A": 69912,
-                                "ARMEABI_V7A": 69912,
-                                "X86": 69912,
-                                "X86_64": 69912
-                            }
-                        }
-                    ],
-                    "versions": [
-                        "12.9.2"
-                    ]
-                },
-                {
-                    "apkFileType": "APK",
-                    "appIconColor": "#2CA5E0",
                     "name": "Telegram Web",
                     "packageName": "org.telegram.messenger.web",
                     "targets": [
@@ -211,27 +169,6 @@
         },
         {
             "compatiblePackages": [
-                {
-                    "apkFileType": "APK",
-                    "appIconColor": "#2CA5E0",
-                    "name": "Telegram",
-                    "packageName": "org.telegram.messenger",
-                    "targets": [
-                        {
-                            "isExperimental": false,
-                            "version": "12.9.2",
-                            "versionCodes": {
-                                "ARM64_V8A": 69912,
-                                "ARMEABI_V7A": 69912,
-                                "X86": 69912,
-                                "X86_64": 69912
-                            }
-                        }
-                    ],
-                    "versions": [
-                        "12.9.2"
-                    ]
-                },
                 {
                     "apkFileType": "APK",
                     "appIconColor": "#2CA5E0",
@@ -318,27 +255,6 @@
                 {
                     "apkFileType": "APK",
                     "appIconColor": "#2CA5E0",
-                    "name": "Telegram",
-                    "packageName": "org.telegram.messenger",
-                    "targets": [
-                        {
-                            "isExperimental": false,
-                            "version": "12.9.2",
-                            "versionCodes": {
-                                "ARM64_V8A": 69912,
-                                "ARMEABI_V7A": 69912,
-                                "X86": 69912,
-                                "X86_64": 69912
-                            }
-                        }
-                    ],
-                    "versions": [
-                        "12.9.2"
-                    ]
-                },
-                {
-                    "apkFileType": "APK",
-                    "appIconColor": "#2CA5E0",
                     "name": "Telegram Web",
                     "packageName": "org.telegram.messenger.web",
                     "targets": [
@@ -389,27 +305,6 @@
         },
         {
             "compatiblePackages": [
-                {
-                    "apkFileType": "APK",
-                    "appIconColor": "#2CA5E0",
-                    "name": "Telegram",
-                    "packageName": "org.telegram.messenger",
-                    "targets": [
-                        {
-                            "isExperimental": false,
-                            "version": "12.9.2",
-                            "versionCodes": {
-                                "ARM64_V8A": 69912,
-                                "ARMEABI_V7A": 69912,
-                                "X86": 69912,
-                                "X86_64": 69912
-                            }
-                        }
-                    ],
-                    "versions": [
-                        "12.9.2"
-                    ]
-                },
                 {
                     "apkFileType": "APK",
                     "appIconColor": "#2CA5E0",
@@ -493,27 +388,6 @@
         },
         {
             "compatiblePackages": [
-                {
-                    "apkFileType": "APK",
-                    "appIconColor": "#2CA5E0",
-                    "name": "Telegram",
-                    "packageName": "org.telegram.messenger",
-                    "targets": [
-                        {
-                            "isExperimental": false,
-                            "version": "12.9.2",
-                            "versionCodes": {
-                                "ARM64_V8A": 69912,
-                                "ARMEABI_V7A": 69912,
-                                "X86": 69912,
-                                "X86_64": 69912
-                            }
-                        }
-                    ],
-                    "versions": [
-                        "12.9.2"
-                    ]
-                },
                 {
                     "apkFileType": "APK",
                     "appIconColor": "#2CA5E0",
@@ -852,27 +726,6 @@
                 {
                     "apkFileType": "APK",
                     "appIconColor": "#2CA5E0",
-                    "name": "Telegram",
-                    "packageName": "org.telegram.messenger",
-                    "targets": [
-                        {
-                            "isExperimental": false,
-                            "version": "12.9.2",
-                            "versionCodes": {
-                                "ARM64_V8A": 69912,
-                                "ARMEABI_V7A": 69912,
-                                "X86": 69912,
-                                "X86_64": 69912
-                            }
-                        }
-                    ],
-                    "versions": [
-                        "12.9.2"
-                    ]
-                },
-                {
-                    "apkFileType": "APK",
-                    "appIconColor": "#2CA5E0",
                     "name": "Telegram Web",
                     "packageName": "org.telegram.messenger.web",
                     "targets": [
@@ -953,27 +806,6 @@
         },
         {
             "compatiblePackages": [
-                {
-                    "apkFileType": "APK",
-                    "appIconColor": "#2CA5E0",
-                    "name": "Telegram",
-                    "packageName": "org.telegram.messenger",
-                    "targets": [
-                        {
-                            "isExperimental": false,
-                            "version": "12.9.2",
-                            "versionCodes": {
-                                "ARM64_V8A": 69912,
-                                "ARMEABI_V7A": 69912,
-                                "X86": 69912,
-                                "X86_64": 69912
-                            }
-                        }
-                    ],
-                    "versions": [
-                        "12.9.2"
-                    ]
-                },
                 {
                     "apkFileType": "APK",
                     "appIconColor": "#2CA5E0",
@@ -1059,7 +891,7 @@
             ],
             "default": true,
             "dependencies": [],
-            "description": "Removes mandatory login gate so the app can be browsed without an account.",
+            "description": "Removes TikTok Lite mandatory login gate so the app can be browsed without an account.",
             "name": "Disable Login Requirement",
             "options": []
         },
@@ -1222,6 +1054,36 @@
         {
             "compatiblePackages": [
                 {
+                    "apkFileType": "APKM",
+                    "appIconColor": "#FE2C55",
+                    "name": "TikTok Lite",
+                    "packageName": "com.tiktok.lite.go",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "44.9.52",
+                            "versionCodes": {
+                                "ARM64_V8A": 440952,
+                                "ARMEABI_V7A": 440952,
+                                "X86": 440952,
+                                "X86_64": 440952
+                            }
+                        }
+                    ],
+                    "versions": [
+                        "44.9.52"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Disables ByteDance analytics by blocking LiteApplogServiceImpl, AppLogNetworkClient, and startup tracker init tasks.",
+            "name": "Disable Telemetry",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
                     "apkFileType": "APKS",
                     "appIconColor": "#19BCAA",
                     "name": "CamScanner",
@@ -1247,36 +1109,6 @@
             "dependencies": [],
             "description": "Disables CamScanner's custom telemetry/log-agent system.",
             "name": "Disable telemetry",
-            "options": []
-        },
-        {
-            "compatiblePackages": [
-                {
-                    "apkFileType": "APK",
-                    "appIconColor": "#1976D2",
-                    "name": "ES File Explorer",
-                    "packageName": "com.estrongs.android.pop",
-                    "targets": [
-                        {
-                            "isExperimental": false,
-                            "version": "4.4.3.5",
-                            "versionCodes": {
-                                "ARM64_V8A": 10351,
-                                "ARMEABI_V7A": 10351,
-                                "X86": 10351,
-                                "X86_64": 10351
-                            }
-                        }
-                    ],
-                    "versions": [
-                        "4.4.3.5"
-                    ]
-                }
-            ],
-            "default": true,
-            "dependencies": [],
-            "description": "Disables UMeng analytics and crash reporting in ES File Explorer.",
-            "name": "Disable Tracking",
             "options": []
         },
         {
@@ -1414,27 +1246,6 @@
                 {
                     "apkFileType": "APK",
                     "appIconColor": "#2CA5E0",
-                    "name": "Telegram",
-                    "packageName": "org.telegram.messenger",
-                    "targets": [
-                        {
-                            "isExperimental": false,
-                            "version": "12.9.2",
-                            "versionCodes": {
-                                "ARM64_V8A": 69912,
-                                "ARMEABI_V7A": 69912,
-                                "X86": 69912,
-                                "X86_64": 69912
-                            }
-                        }
-                    ],
-                    "versions": [
-                        "12.9.2"
-                    ]
-                },
-                {
-                    "apkFileType": "APK",
-                    "appIconColor": "#2CA5E0",
                     "name": "Telegram Web",
                     "packageName": "org.telegram.messenger.web",
                     "targets": [
@@ -1481,6 +1292,36 @@
             ],
             "description": "Increases download chunk size to 512 KB and max concurrent requests to 8.",
             "name": "Download speed boost",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APKM",
+                    "appIconColor": "#FE2C55",
+                    "name": "TikTok Lite",
+                    "packageName": "com.tiktok.lite.go",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "44.9.52",
+                            "versionCodes": {
+                                "ARM64_V8A": 440952,
+                                "ARMEABI_V7A": 440952,
+                                "X86": 440952,
+                                "X86_64": 440952
+                            }
+                        }
+                    ],
+                    "versions": [
+                        "44.9.52"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Enables downloading all videos",
+            "name": "Downloads",
             "options": []
         },
         {
@@ -1681,7 +1522,7 @@
             ],
             "default": true,
             "dependencies": [],
-            "description": "Removes ads, sponsored content, and commerce posts from the home feed.",
+            "description": "Removes ads, sponsored content, and commerce posts from the TikTok Lite home feed.",
             "name": "Feed Filter",
             "options": []
         },
@@ -1919,6 +1760,36 @@
             "compatiblePackages": [
                 {
                     "apkFileType": "APKM",
+                    "appIconColor": "#FE2C55",
+                    "name": "TikTok Lite",
+                    "packageName": "com.tiktok.lite.go",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "44.9.52",
+                            "versionCodes": {
+                                "ARM64_V8A": 440952,
+                                "ARMEABI_V7A": 440952,
+                                "X86": 440952,
+                                "X86_64": 440952
+                            }
+                        }
+                    ],
+                    "versions": [
+                        "44.9.52"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Suppresses browsing CAPTCHA dialogs from SecApiImpl.",
+            "name": "Hide CAPTCHA Popups",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APKM",
                     "appIconColor": "#FF4500",
                     "name": "Reddit",
                     "packageName": "com.reddit.frontpage",
@@ -2093,7 +1964,7 @@
             ],
             "default": true,
             "dependencies": [],
-            "description": "Removes live stream cards from the home feed.",
+            "description": "Removes live stream cards from the TikTok Lite home feed.",
             "name": "Hide Live Cards",
             "options": []
         },
@@ -2324,27 +2195,6 @@
         },
         {
             "compatiblePackages": [
-                {
-                    "apkFileType": "APK",
-                    "appIconColor": "#2CA5E0",
-                    "name": "Telegram",
-                    "packageName": "org.telegram.messenger",
-                    "targets": [
-                        {
-                            "isExperimental": false,
-                            "version": "12.9.2",
-                            "versionCodes": {
-                                "ARM64_V8A": 69912,
-                                "ARMEABI_V7A": 69912,
-                                "X86": 69912,
-                                "X86_64": 69912
-                            }
-                        }
-                    ],
-                    "versions": [
-                        "12.9.2"
-                    ]
-                },
                 {
                     "apkFileType": "APK",
                     "appIconColor": "#2CA5E0",
@@ -2593,80 +2443,6 @@
         {
             "compatiblePackages": [
                 {
-                    "apkFileType": "APK",
-                    "appIconColor": "#2CA5E0",
-                    "name": "Telegram",
-                    "packageName": "org.telegram.messenger",
-                    "targets": [
-                        {
-                            "isExperimental": false,
-                            "version": "12.9.2",
-                            "versionCodes": {
-                                "ARM64_V8A": 69912,
-                                "ARMEABI_V7A": 69912,
-                                "X86": 69912,
-                                "X86_64": 69912
-                            }
-                        }
-                    ],
-                    "versions": [
-                        "12.9.2"
-                    ]
-                },
-                {
-                    "apkFileType": "APK",
-                    "appIconColor": "#2CA5E0",
-                    "name": "Telegram Web",
-                    "packageName": "org.telegram.messenger.web",
-                    "targets": [
-                        {
-                            "isExperimental": false,
-                            "version": "12.9.2",
-                            "versionCodes": {
-                                "ARM64_V8A": 69919,
-                                "ARMEABI_V7A": 69919,
-                                "X86": 69919,
-                                "X86_64": 69919
-                            }
-                        }
-                    ],
-                    "versions": [
-                        "12.9.2"
-                    ]
-                },
-                {
-                    "apkFileType": "APK",
-                    "appIconColor": "#2CA5E0",
-                    "name": "Telegram Plus",
-                    "packageName": "org.telegram.plus",
-                    "targets": [
-                        {
-                            "isExperimental": false,
-                            "version": "12.9.2.0",
-                            "versionCodes": {
-                                "ARM64_V8A": 22448,
-                                "ARMEABI_V7A": 22448,
-                                "X86": 22448,
-                                "X86_64": 22448
-                            }
-                        }
-                    ],
-                    "versions": [
-                        "12.9.2.0"
-                    ]
-                }
-            ],
-            "default": true,
-            "dependencies": [
-                "BytecodePatch"
-            ],
-            "description": "Hides story strip, allows saving stories, suppresses story/translate nags, enables swipe-back everywhere, and suppresses pinned message server fetches.",
-            "name": "Premium UI",
-            "options": []
-        },
-        {
-            "compatiblePackages": [
-                {
                     "apkFileType": "XAPK",
                     "appIconColor": "#FF9900",
                     "name": "Amazon Shopping",
@@ -2831,6 +2607,38 @@
                     "values": null
                 }
             ]
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APKM",
+                    "appIconColor": "#6264A7",
+                    "name": "Teams",
+                    "packageName": "com.microsoft.teams",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "1416/1.0.0.2026152302",
+                            "versionCodes": {
+                                "ARM64_V8A": 2026152325,
+                                "ARMEABI_V7A": 2026152325,
+                                "X86": 2026152325,
+                                "X86_64": 2026152325
+                            }
+                        }
+                    ],
+                    "versions": [
+                        "1416/1.0.0.2026152302"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [
+                "BytecodePatch"
+            ],
+            "description": "Suppresses outbound read receipts and prevents admin quiet-hours policies from overriding your presence status.",
+            "name": "Privacy Enhancements",
+            "options": []
         },
         {
             "compatiblePackages": null,
@@ -3097,6 +2905,38 @@
             "default": true,
             "dependencies": [],
             "description": "Unlocks the ad-free experience by spoofing the purchase state as acknowledged.",
+            "name": "Remove Ads",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APKS",
+                    "appIconColor": "#E91E63",
+                    "name": "PicsArt",
+                    "packageName": "com.picsart.studio",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "30.5.5",
+                            "versionCodes": {
+                                "ARM64_V8A": 993830505,
+                                "ARMEABI_V7A": 993830505,
+                                "X86": 993830505,
+                                "X86_64": 993830505
+                            }
+                        }
+                    ],
+                    "versions": [
+                        "30.5.5"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [
+                "BytecodePatch"
+            ],
+            "description": "Disables PicsArt banner and interstitial ads by forcing the central AdsManager gate to ads-off.",
             "name": "Remove Ads",
             "options": []
         },
@@ -3395,27 +3235,6 @@
                 {
                     "apkFileType": "APK",
                     "appIconColor": "#2CA5E0",
-                    "name": "Telegram",
-                    "packageName": "org.telegram.messenger",
-                    "targets": [
-                        {
-                            "isExperimental": false,
-                            "version": "12.9.2",
-                            "versionCodes": {
-                                "ARM64_V8A": 69912,
-                                "ARMEABI_V7A": 69912,
-                                "X86": 69912,
-                                "X86_64": 69912
-                            }
-                        }
-                    ],
-                    "versions": [
-                        "12.9.2"
-                    ]
-                },
-                {
-                    "apkFileType": "APK",
-                    "appIconColor": "#2CA5E0",
                     "name": "Telegram Web",
                     "packageName": "org.telegram.messenger.web",
                     "targets": [
@@ -3628,6 +3447,68 @@
             "dependencies": [],
             "description": "Removes watermarks from Canva exports and previews.",
             "name": "Remove Watermark",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APKS",
+                    "appIconColor": "#E91E63",
+                    "name": "PicsArt",
+                    "packageName": "com.picsart.studio",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "30.5.5",
+                            "versionCodes": {
+                                "ARM64_V8A": 993830505,
+                                "ARMEABI_V7A": 993830505,
+                                "X86": 993830505,
+                                "X86_64": 993830505
+                            }
+                        }
+                    ],
+                    "versions": [
+                        "30.5.5"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [
+                "BytecodePatch"
+            ],
+            "description": "Removes the PicsArt watermark from exported photos and videos.",
+            "name": "Remove Watermark",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APKM",
+                    "appIconColor": "#FE2C55",
+                    "name": "TikTok Lite",
+                    "packageName": "com.tiktok.lite.go",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "44.9.52",
+                            "versionCodes": {
+                                "ARM64_V8A": 440952,
+                                "ARMEABI_V7A": 440952,
+                                "X86": 440952,
+                                "X86_64": 440952
+                            }
+                        }
+                    ],
+                    "versions": [
+                        "44.9.52"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Removes tracking parameters (utm_campaign, share_link_id) from shared links.",
+            "name": "Sanitize Share URLs",
             "options": []
         },
         {
@@ -4281,6 +4162,36 @@
         {
             "compatiblePackages": [
                 {
+                    "apkFileType": "APKM",
+                    "appIconColor": "#FE2C55",
+                    "name": "TikTok Lite",
+                    "packageName": "com.tiktok.lite.go",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "44.9.52",
+                            "versionCodes": {
+                                "ARM64_V8A": 440952,
+                                "ARMEABI_V7A": 440952,
+                                "X86": 440952,
+                                "X86_64": 440952
+                            }
+                        }
+                    ],
+                    "versions": [
+                        "44.9.52"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Prevents videos from looping automatically after playback ends.",
+            "name": "Stop Video Looping",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
                     "apkFileType": "APK",
                     "appIconColor": "#1565C0",
                     "name": "FlightAware",
@@ -4703,17 +4614,17 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "16.0.20228.20090",
+                            "version": "16.0.20326.20034",
                             "versionCodes": {
-                                "ARM64_V8A": 16843309,
-                                "ARMEABI_V7A": 16843309,
-                                "X86": 16843309,
-                                "X86_64": 16843309
+                                "ARM64_V8A": 200292347,
+                                "ARMEABI_V7A": 200292347,
+                                "X86": 200292347,
+                                "X86_64": 200292347
                             }
                         }
                     ],
                     "versions": [
-                        "16.0.20228.20090"
+                        "16.0.20326.20034"
                     ]
                 }
             ],
@@ -6788,17 +6699,17 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "1.0.73",
+                            "version": "1.0.76",
                             "versionCodes": {
-                                "ARM64_V8A": 107,
-                                "ARMEABI_V7A": 107,
-                                "X86": 107,
-                                "X86_64": 107
+                                "ARM64_V8A": 110,
+                                "ARMEABI_V7A": 110,
+                                "X86": 110,
+                                "X86_64": 110
                             }
                         }
                     ],
                     "versions": [
-                        "1.0.73"
+                        "1.0.76"
                     ]
                 }
             ],
@@ -7119,6 +7030,38 @@
             "default": true,
             "dependencies": [],
             "description": "Bypasses PairIP DRM license check, removes all paywalls, and unlocks all premium features including cloud sync and remote access.",
+            "name": "Unlock Premium",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APKS",
+                    "appIconColor": "#E91E63",
+                    "name": "PicsArt",
+                    "packageName": "com.picsart.studio",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "30.5.5",
+                            "versionCodes": {
+                                "ARM64_V8A": 993830505,
+                                "ARMEABI_V7A": 993830505,
+                                "X86": 993830505,
+                                "X86_64": 993830505
+                            }
+                        }
+                    ],
+                    "versions": [
+                        "30.5.5"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [
+                "BytecodePatch"
+            ],
+            "description": "Unlocks PicsArt premium locally: forces the subscription state to subscribed at the data-class root so tools/effects unlock and upgrade prompts are skipped.",
             "name": "Unlock Premium",
             "options": []
         },
@@ -8052,27 +7995,6 @@
                 {
                     "apkFileType": "APK",
                     "appIconColor": "#2CA5E0",
-                    "name": "Telegram",
-                    "packageName": "org.telegram.messenger",
-                    "targets": [
-                        {
-                            "isExperimental": false,
-                            "version": "12.9.2",
-                            "versionCodes": {
-                                "ARM64_V8A": 69912,
-                                "ARMEABI_V7A": 69912,
-                                "X86": 69912,
-                                "X86_64": 69912
-                            }
-                        }
-                    ],
-                    "versions": [
-                        "12.9.2"
-                    ]
-                },
-                {
-                    "apkFileType": "APK",
-                    "appIconColor": "#2CA5E0",
                     "name": "Telegram Web",
                     "packageName": "org.telegram.messenger.web",
                     "targets": [
@@ -8612,27 +8534,6 @@
         },
         {
             "compatiblePackages": [
-                {
-                    "apkFileType": "APK",
-                    "appIconColor": "#FF5722",
-                    "name": "Plank Workout",
-                    "packageName": "fat.burnning.plank.fitness.loseweight",
-                    "targets": [
-                        {
-                            "isExperimental": false,
-                            "version": "1.4.3",
-                            "versionCodes": {
-                                "ARM64_V8A": 51,
-                                "ARMEABI_V7A": 51,
-                                "X86": 51,
-                                "X86_64": 51
-                            }
-                        }
-                    ],
-                    "versions": [
-                        "1.4.3"
-                    ]
-                },
                 {
                     "apkFileType": "APKS",
                     "appIconColor": "#FF5722",
@@ -9421,23 +9322,23 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "2.2.0-rc0",
+                            "version": "2.2.2-rc0",
                             "versionCodes": {
-                                "ARM64_V8A": 20200000,
-                                "ARMEABI_V7A": 20200000,
-                                "X86": 20200000,
-                                "X86_64": 20200000
+                                "ARM64_V8A": 20202000,
+                                "ARMEABI_V7A": 20202000,
+                                "X86": 20202000,
+                                "X86_64": 20202000
                             }
                         }
                     ],
                     "versions": [
-                        "2.2.0-rc0"
+                        "2.2.2-rc0"
                     ]
                 }
             ],
             "default": true,
             "dependencies": [],
-            "description": "Unlocks all Pro features in app.",
+            "description": "Unlocks Permission Pilot Pro by forcing isPro=true in the billing Info object.",
             "name": "Unlock Pro",
             "options": []
         },
@@ -9619,6 +9520,36 @@
             "default": true,
             "dependencies": [],
             "description": "Unlocks premium features in app.",
+            "name": "Unlock Pro",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APKM",
+                    "appIconColor": "#1565C0",
+                    "name": "PortDroid",
+                    "packageName": "com.stealthcopter.portdroid",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "1.0.7",
+                            "versionCodes": {
+                                "ARM64_V8A": 113,
+                                "ARMEABI_V7A": 113,
+                                "X86": 113,
+                                "X86_64": 113
+                            }
+                        }
+                    ],
+                    "versions": [
+                        "1.0.7"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Unlocks PortDroid Pro features by bypassing the Google Play Billing check, the SharedPreferences pro gate, and the signature tamper check.",
             "name": "Unlock Pro",
             "options": []
         },
@@ -10202,6 +10133,38 @@
         {
             "compatiblePackages": [
                 {
+                    "apkFileType": "APKM",
+                    "appIconColor": "#6264A7",
+                    "name": "Teams",
+                    "packageName": "com.microsoft.teams",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "1416/1.0.0.2026152302",
+                            "versionCodes": {
+                                "ARM64_V8A": 2026152325,
+                                "ARMEABI_V7A": 2026152325,
+                                "X86": 2026152325,
+                                "X86_64": 2026152325
+                            }
+                        }
+                    ],
+                    "versions": [
+                        "1416/1.0.0.2026152302"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [
+                "BytecodePatch"
+            ],
+            "description": "Unlocks Teams Premium features.",
+            "name": "Unlock Teams",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
                     "appIconColor": "#1E88E5",
                     "name": "Uptodown App Store",
                     "packageName": "com.uptodown",
@@ -10755,27 +10718,6 @@
         },
         {
             "compatiblePackages": [
-                {
-                    "apkFileType": "APK",
-                    "appIconColor": "#2CA5E0",
-                    "name": "Telegram",
-                    "packageName": "org.telegram.messenger",
-                    "targets": [
-                        {
-                            "isExperimental": false,
-                            "version": "12.9.2",
-                            "versionCodes": {
-                                "ARM64_V8A": 69912,
-                                "ARMEABI_V7A": 69912,
-                                "X86": 69912,
-                                "X86_64": 69912
-                            }
-                        }
-                    ],
-                    "versions": [
-                        "12.9.2"
-                    ]
-                },
                 {
                     "apkFileType": "APK",
                     "appIconColor": "#2CA5E0",

@@ -1,15 +1,35 @@
 # Gryphou's Morphe Patches
 
-Morphe patch bundle that adds Android Picture-in-Picture support to Crunchyroll.
+Morphe patch bundle for Crunchyroll and De'Longhi Comfort.
 
 ## About
 
-This repository contains a Morphe patch for `com.crunchyroll.crunchyroid` that enables the Android PiP manifest attributes on the watch activities and gates automatic PiP entry so it only runs when Crunchyroll reports active video playback.
+This repository contains Morphe patches that:
+
+- Enable Android Picture-in-Picture for Crunchyroll (`com.crunchyroll.crunchyroid`).
+- Hide the `GetReceivedShares-003` incident popup, remove the login location requirement, and suppress the notification permission prompt in De'Longhi Comfort (`com.ddsx_ayla_android`).
 
 ## Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.1](https://github.com/NekoGryphou/gryphous-morphe-patches/releases/tag/v1.0.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
+> **[v1.1.0](https://github.com/NekoGryphou/gryphous-morphe-patches/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
+<details open>
+<summary>📦 De'Longhi Comfort&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 5.1.5 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Disable login location requirement](#disable-login-location-requirement) | Allows login and registration without granting location permission. |  |
+| [Disable notification permission prompt](#disable-notification-permission-prompt) | Prevents De'Longhi Comfort from asking to enable notifications. |  |
+| [Hide shared-devices incident popup](#hide-shared-devices-incident-popup) | Prevents the GetReceivedShares-003 incident popup from appearing. |  |
+
+</details>
+
 <details open>
 <summary>📦 Crunchyroll&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>

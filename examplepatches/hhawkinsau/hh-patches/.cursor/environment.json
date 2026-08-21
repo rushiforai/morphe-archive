@@ -1,0 +1,4 @@
+{
+  "name": "HH Patches",
+  "install": "bash .cursor/install.sh"
+}

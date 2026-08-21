@@ -15,7 +15,8 @@ fun main() {
             !fileName.contains("javadoc") &&
                     !fileName.contains("sources") &&
                     fileName.endsWith(".mpp")
-        }!!.maxBy { it.lastModified() }
+        }?.maxByOrNull { it.lastModified() }
+            ?: error("No .mpp artifact found in build/libs/")
     )
     val loadedPatches = loadPatchesFromJar(patchFiles)
     val patchClassLoader = URLClassLoader(patchFiles.map { it.toURI().toURL() }.toTypedArray())
@@ -37,7 +38,27 @@ private fun generatePatchList(version: String, patches: Set<Patch<*>>) {
 
     val patchOrder = listOf(
         "Ads Free Rewards",
+        "No Ads",
+        "Skip Consent Popup",
+        "Skip Rate-Us Prompt",
         "Spoof Play Store Install Source",
+        "Limit Ad Tracking",
+        "Remove Permissions",
+        "Remove Hardware Requirements",
+        "Unlock Rotation",
+        "Force Landscape / Portrait",
+        "Spoof Play Integrity",
+        "Bypass License Verification",
+        "Bypass Google Play Services Check",
+        "Pairip Bypass (Experimental)",
+        "Unlock RevenueCat Entitlements",
+        "Unlock All IAPs (Unity IAP)",
+        "Custom App Resolution (Experimental)",
+        "Allow Screenshots",
+        "Skip Splash Screen (Experimental)",
+        "Disable Root Checks",
+        "Disable Update Checks",
+        "Disable Telemetry",
     )
     val orderMap = patchOrder.withIndex().associate { (i, name) -> name to i }
 

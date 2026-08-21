@@ -1,5 +1,5 @@
 {
-    "version": "v1.3.0-dev.1",
+    "version": "v1.2.1-dev.7",
     "patches": [
         {
             "compatiblePackages": [
@@ -25,7 +25,6 @@
             ],
             "default": true,
             "dependencies": [
-                "ResourcePatch",
                 "BytecodePatch"
             ],
             "description": "Makes the number of icons on the toolbar above the keyboard adjustable, from Gboard's own settings. Anything past the limit stays in the overflow menu.",
@@ -55,7 +54,9 @@
                 }
             ],
             "default": true,
-            "dependencies": [],
+            "dependencies": [
+                "BytecodePatch"
+            ],
             "description": "Bypass Gboard's signature whitelist checks and force them to pass.",
             "name": "Bypass Gboard Signature",
             "options": []
@@ -141,7 +142,9 @@
                 }
             ],
             "default": true,
-            "dependencies": [],
+            "dependencies": [
+                "BytecodePatch"
+            ],
             "description": "Swipe right after deleting to put the words back. Uses Gboard's own undo, which already records what a delete swipe removed.",
             "name": "Swipe Right to Undo",
             "options": []
@@ -170,6 +173,7 @@
             ],
             "default": true,
             "dependencies": [
+                "BytecodePatch",
                 "BytecodePatch",
                 "ResourcePatch",
                 "BytecodePatch"
@@ -202,7 +206,7 @@
             ],
             "default": true,
             "dependencies": [
-                "ResourcePatch"
+                "BytecodePatch"
             ],
             "description": "Add Select all, Copy and Paste buttons to the toolbar above the keyboard, so each is one tap instead of opening Gboard's text editing panel first. Adds six hotkey buttons too, each typing a string you set in Flexboard's settings — they only appear once you have filled one in.",
             "name": "Toolbar Buttons",
