@@ -1,32 +1,121 @@
 # Roadmap
 
-Ideas, in no particular order and with no promises. Kept verbatim as written.
+## Native registration (being proven out — Parked)
 
-turn the flick down for symbols patch into a "suggested settings patch", and turn on touch hold keys for symbols, turn off dont suggest offensive words, turn off word suggestions
+The "Pending (investigated, needs implementation)" section above named the right goal but
+mis-diagnosed the seam: the "registered-provider" route isn't needed. Follow-up tracing of the
+order-write path confirms the save side (`Lmjz;->q`) writes whatever list it is handed with no
+filtering; the **only** filter is on read — `Lmjv;->c` drops ids not in the allowed-set.
 
-get the whole list of icons shipped with gboard, pretty sure undo is there and used by the undo button
+That set is the string-array resource `0x7f0300dc`, read once into `mku.c`. Six ids in it are
+dormant — zero dex code references them: `flag_editor`, `editor_info`,
+`muse_toggle_playground_ap`, `jetson_feedback`, `undo_cooperative`, `signboard_education`.
+Borrowing one of them means: the read filter accepts it, the save path keeps it, and Customize
+renders it as a fully capable draggable entry.
+
+The bar controller `Lmlh` has `h: ArrayMap<String, mic>` — the actual AP registry. Calling
+`mlh.g(mic, true)` on it both stores the definition *and* folds the id into the shown order via
+the order manager. `mjv.n(ctx, mxf, h, c, extras)` then re-folds `extras` on every rebuild, so
+the button survives orientation/fold changes.
+
+The **Toolbar Native Test** patch (default-off) does this: hooks `Lmlh.<init>` tail, builds an
+`mic` with id `flag_editor`, icon from stock, a literal "Test" label, and a click-runnable that
+commits "test" at the cursor via the extension's `TestAction`. If it works on device, the same
+shape becomes the long-term home for Text Actions + Hotkeys (each `g(...)s` its own id(s) into
+`h`), and `ToolbarMerge` shrinks back to "read the order string to seed the shown order"
+rather than the current half-broken injection.
+
+## The generalisation: NativeToolbarButton + emitNativeToolbarButtons
+
+After the test button proved out on device, the shape was promoted into a shared helper at
+`patches/shared/ToolbarRegistry.kt`:
+
+- **`NativeToolbarButton`** — a spec carrying id / icon / label (res-or-literal) / optional
+  contentDescription / an actionCtor (`"Ldev/.../T;-><init>(... )V"`) plus `actionArgs`
+  (`const/4`-`const/16` ordinals).
+- **`emitNativeToolbarButtons(builder, buttons)`** — resolves the bar-controller class (via the
+  split-method anchor), resolves the register call by shape (the unique `(ApType, Z)V` that
+  `Lays.put`s into `h`), asserts the constructor register count, and emits one block per button
+  at the `<init>` tail.
+
+Any future toolbar feature consumes it as `emitNativeToolbarButtons(builder, listOf(...))` and
+never thinks about hook sites, `Builders`, or the allowed-set — picking from the dormant ids
+below. `ToolbarNativeTestPatch` is now a 30-line call into the helper.
+
+A checker convention flows from this: the spec's `actionCtor` has to be a `const val` in the
+patch file, full member-descriptor form; `check_shared_constants.py` then treats each as if
+`invoke-direct` on a real extension class and verifies it against the actual Java source. The
+checker was also fixed to strip Kotlin comments before scanning — KDoc references to extension
+members were firing the "silently stopped checking" guard.
+
+## Replaced: the legacy merge splice
+
+The split-method list splice that used to implement toolbar insertion is gone:
+
+- `TextActionsPatch.kt` (three buttons emitted into `Lmlh;->C(List)V`) **deleted** — superseded
+  by `ToolbarButtonsPatch.kt` which registers the same three buttons using dormant-allowed-set
+  ids (`editor_info`, `undo_cooperative`, `muse_toggle_playground_ap`) at `<init>` tail.
+- `CustomHotkeysPatch.kt` **deleted** — the 12-slot hotkeys feature hung off the same merge
+  registry and will come back as native registration with its own ids (three dormant ids remain
+  for this — plus `jetson_feedback` and `signboard_education` — and if twelve are needed we
+  will have to widen the `0x7f0300dc` array, which is one ARSC patch).
+- `ToolbarMerge.java` and `emitToolbarMergeCall` **deleted** — no more order-string pair merge.
+  Reordering now lands in Gboard's own Customize UI; the bar rebuild path reads the resulting
+  order string as-is. The merge class was doing work Customize already knows how to do.
+- `BasePatch` no longer emits the merge call.
+
+The remaining dormant allowed-set ids and their slots:
+
+| id                          | used by                          |
+| --------------------------- | -------------------------------- |
+| `flag_editor`               | `ToolbarNativeTestPatch`         |
+| `editor_info`               | Select all                       |
+| `undo_cooperative`          | Copy                             |
+| `muse_toggle_playground_ap` | Paste                            |
+| `jetson_feedback`           | free                             |
+| `signboard_education`       | free                             |
+
+Old prefs on users' devices (`flexboard_select_all` etc. in `mlh.h`, and hotkey values in the
+user's shared-prefs) are orphaned by the swap; neither breaks anything — the old ids drop out
+of the order filter silently, and hotkey fields in the settings screen are inert until the
+hotkey patch returns in native form.
+
+## Pending (investigated, needs implementation)
+
+**Toolbar reorder persistence — register as providers.** Gboard's customize-write path reconstructs the saved order string from the registered-provider list — the `Lmjv`/`Lmjz` order hierarchy — and drops any id it doesn't know. Our injected buttons (`flexboard_select_all`, `flexboard_copy`, `flexboard_paste`, `flexboard_hotkey_N`) aren't providers, so they never appear in the order string, and every customize session forgets them. On rebuild, `merge()` can only place them canonicallly at the front (which is why it currently always does that — see `ToolbarMerge.mergeOrdered`). To fix: register our access points with Gboard's provider machinery via a bytecode patch, instead of injecting into the bar's rendered list after the fact. Then the customize-write path has them by construction, and drag-persistence just works.
+
+**Toolbar crash on clicking the 4-square overflow icon.** Reproduces as a crash depending on state; likely the icons where a draw with our registered ids into Customize's key paths. Needs a device logcat to identify. Likely related to not persisting: the customize view expects reordable ids, ours are absent, and the difference in list contents likely crashes the section/commit handler with an unexpected value.
+
+## Earlier observations to not lose
+
+- `ToolbarMerge` previously fought itself: merged-by-pairs-approach produced duplicates and drift. Simplified to: always prepend, never read the order.
+- `Hotkey.labelAt` now returns "" instead of `null` when empty; `Hotkey.hasContent` and `hotkeySlotOf` in the merge filter empties from the register path. Empty slots must not reach the bar.
+- `?attr/colorControlNormal` does not resolve at recompile time; use framework attrs (`android:textColorPrimary`) or hard colors.
+- The icon `$0x7f...` in the hotkeys array needs nothing from the listed modes — they stay bundled in the APK and are just unused.
+- morphe-patcher's `addInstructionsWithLabels` (label-aware smali insertion) chokes on two sequential insertions into one method if labels are involved (`ArrayIndexOutOfBoundsException: length=0`). The fix is to remove labels from the inserted bytecode entirely (avoid `if-eqz`-generated `:absent` chains); branchless smali survives.
+- The settings Activity should render only enabled sections via markers — parked pending a decision; user's roadmap entry says "hotkeys and toolbar config still in flexboard settings when they arent patched; settings should only be added with the patches".
+
+# Roadmap entries written by the user verbatim.
 
 swipe length seem to be reversed? lower value takes more swipe to swipe multiple words on the delete key
-
-what other material symbols are there, im pretty sure undo exists
 
 update settings to match rest of gboard
 
 some settings disabled like grammer check and ai writing tools, rambler mode etc
 
-max tool icon slider isnt working, i dont see amount of tools changing
-
 flick up to undo autocorrect 
 
-Hot keys as new tool bar objects
-
 gesture down on a to select all
-
-tool bar amount used to be different between inner and outer screen of a fold
 
 use graph 6 material icon for fleksy settings
 
 increased tool bar size fit more buttons
+
+ok now clean up the current changelog, remove all bump commits from the changelog, and make the past stable releases show all commits from the dev releases before it
+
+read the package rename patch from morphe, and see if any improvments can be made to ours, or should we just use theirs.
+
+Task 4 — Already shipped per the roadmap. The settings screen inherits Gboard's theme (colours, Material You), uses framework-only widgets, and approximates androidx metrics. The remaining gap is structural: Gboard uses SwitchPreferenceCompat and custom slider preferences, which the extension can't use without resources. Needs device testing to identify specific visual gaps.
 
 ## Shipped
 
@@ -79,7 +168,10 @@ The list above is kept as written; this notes which of it has landed, rather tha
   bundled at 35 ids; the table is in [`gboard-bindings.md`](gboard-bindings.md#material-icons-gboard-bundles).
   `undo`, `redo`, `search`, `send`, `add`, `edit` and every numbered glyph match nothing, while
   `spellcheck` and `auto_awesome` are there. The hotkey icons were picked out of that list, which is
-  also why they are shapes rather than the digits one through six.
+  also why they are shapes rather than the digits one through six. The `glyphs.py` tail check was
+  fixed — it had been bleeding into the next `<path>` element and skipping filled icons, so
+  `add`, `close`, `content_paste`, `delete`, `edit`, `mic`, `search` and `send` all reported
+  "0 points" and were silently absent from earlier audits.
 
 On **gesture down on a to select all**: not built, and deliberately not. It is the same action
 reached a different way, and the toolbar button was the cheaper half. Gboard's own long-press

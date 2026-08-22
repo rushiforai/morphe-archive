@@ -20,7 +20,7 @@ object Constants {
         appIconColor = 0x3F2A44, // Icon background color used in Morphe Manager.
         targets = listOf(
             AppTarget(
-                version = "1.0.1"
+                version = "1.0.3"
             )
         )
     )

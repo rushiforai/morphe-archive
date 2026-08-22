@@ -52,6 +52,8 @@ jobs:
       # Decides, before anything is built, whether this push is a release and what version it is.
       - name: Decide
         id: decide
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           VERSION=$(sed -nE 's/^version *= *(.+)$/\1/p' gradle.properties | tr -d '[:space:]')
@@ -77,6 +79,13 @@ jobs:
           else
             echo "prerelease=false" >> "$GITHUB_OUTPUT"
           fi
+
+          # Verify pings raw.githubusercontent.com after the release to confirm Morphe can fetch
+          # what was published. Private repos 404 there for any caller without credentials — which
+          # both CI (tokenless curl) and Morphe itself are — so the check is skipped on private
+          # forks instead of failing forever.
+          PRIVATE=$(gh api "repos/$GITHUB_REPOSITORY" --jq '.private')
+          echo "private=$PRIVATE" >> "$GITHUB_OUTPUT"
 
       # Rejected before the build, so a bad version costs seconds. Same script the local helper
       # runs, so there is one definition of "valid" rather than two that drift.
@@ -193,14 +202,34 @@ jobs:
         env:
           VERSION: ${{ steps.decide.outputs.version }}
           TAG: ${{ steps.decide.outputs.tag }}
+          PRERELEASE: ${{ steps.decide.outputs.prerelease }}
         run: |
           set -euo pipefail
 
-          PREVIOUS=$(git describe --tags --abbrev=0 2>/dev/null || true)
+          # Find the previous tag to scope the release notes.
+          #
+          # Skip any tag on HEAD first (re-runs after a failed release may have tagged it).
+          # Then, for a stable release, skip past pre-release tags (v1.2.0-dev.N) so the
+          # changelog covers everything since the last stable — not just since the last dev.
+          # A pre-release release just finds the nearest tag, whatever it is.
+          previous_tag() {
+            local skip=""
+            local on_head
+            on_head=$(git tag --points-at HEAD | head -1)
+            if [ -n "$on_head" ]; then skip="$on_head^"; else skip="HEAD"; fi
+            if [ "$PRERELEASE" = "false" ]; then
+              git describe --tags --abbrev=0 --exclude='*-dev.*' --exclude='*-beta.*' --exclude='*-rc.*' --exclude='*-alpha.*' --exclude='*-preview.*' "$skip" 2>/dev/null || true
+            else
+              git describe --tags --abbrev=0 "$skip" 2>/dev/null || true
+            fi
+          }
+          PREVIOUS=$(previous_tag)
           if [ -n "$PREVIOUS" ]; then
-            NOTES=$(git log --no-merges --format='- %s' "$PREVIOUS..HEAD")
+            NOTES=$(git log --no-merges --format='- %s' "$PREVIOUS..HEAD" \
+                    --invert-grep -E --grep='^chore: (release|bump)|^bump to')
           else
-            NOTES=$(git log --no-merges --format='- %s' -20)
+            NOTES=$(git log --no-merges --format='- %s' -20 \
+                    --invert-grep -E --grep='^chore: (release|bump)|^bump to')
           fi
           [ -n "$NOTES" ] || NOTES="- No changes recorded."
           DESCRIPTION=$(printf '## %s\n\n%s\n' "$VERSION" "$NOTES")
@@ -230,6 +259,7 @@ jobs:
         env:
           VERSION: ${{ steps.decide.outputs.version }}
           TAG: ${{ steps.decide.outputs.tag }}
+          PRERELEASE: ${{ steps.decide.outputs.prerelease }}
         run: |
           set -euo pipefail
 
@@ -241,7 +271,19 @@ jobs:
           # back out of patches-list.json rather than written twice.
           SCOPE=$(jq -r '[.patches[].compatiblePackages[]?.name] | map(select(. != null)) | unique | first // "Patches"' patches-list.json)
 
-          PREVIOUS=$(git describe --tags --abbrev=0 2>/dev/null || true)
+          # Same logic as the release-notes step — see there for why.
+          previous_tag() {
+            local skip=""
+            local on_head
+            on_head=$(git tag --points-at HEAD | head -1)
+            if [ -n "$on_head" ]; then skip="$on_head^"; else skip="HEAD"; fi
+            if [ "$PRERELEASE" = "false" ]; then
+              git describe --tags --abbrev=0 --exclude='*-dev.*' --exclude='*-beta.*' --exclude='*-rc.*' --exclude='*-alpha.*' --exclude='*-preview.*' "$skip" 2>/dev/null || true
+            else
+              git describe --tags --abbrev=0 "$skip" 2>/dev/null || true
+            fi
+          }
+          PREVIOUS=$(previous_tag)
           if [ -n "$PREVIOUS" ]; then
             HEADING="# [$VERSION](https://github.com/$GITHUB_REPOSITORY/compare/$PREVIOUS...$TAG) ($(date -u +%Y-%m-%d))"
             RANGE="$PREVIOUS..HEAD"
@@ -252,16 +294,17 @@ jobs:
             RANGE=""
           fi
 
-          # The conventional-commit type is dropped from the body: conventional-changelog groups by
-          # type under its own headings rather than repeating it inline, and the parser strips
-          # everything up to the scope marker anyway.
+          # The conventional-commit scope and breaking-change marker are dropped, but the type is
+          # kept: "feat(toolbar)!: ..." becomes "feat: ...", so the in-app changelog stays readable.
           if [ -n "$RANGE" ]; then
-            SUBJECTS=$(git log --no-merges --format='%s' "$RANGE")
+            SUBJECTS=$(git log --no-merges --format='%s' "$RANGE" \
+                       --invert-grep -E --grep='^chore: (release|bump)|^bump to')
           else
-            SUBJECTS=$(git log --no-merges --format='%s' -20)
+            SUBJECTS=$(git log --no-merges --format='%s' -20 \
+                       --invert-grep -E --grep='^chore: (release|bump)|^bump to')
           fi
           BULLETS=$(printf '%s\n' "$SUBJECTS" \
-            | sed -E 's/^(feat|fix|chore|docs|perf|refactor|style|test|build|ci|bump)(\([^)]*\))?!?: //' \
+            | sed -E 's/^([a-z]+)(\([^)]*\))?!: /\1: /' \
             | sed -E "s|^|* **$SCOPE:** |")
           [ -n "$SUBJECTS" ] || BULLETS="* **$SCOPE:** No changes recorded."
 
@@ -310,8 +353,12 @@ jobs:
       # Every Morphe-side failure here is silent — a bad created_at never appears, a broken
       # download_url shows an update that fails on tap. Without a manual release step there is no
       # moment where anyone is watching, so the run proves its own work.
+      #
+      # Skipped on private repos: raw.githubusercontent answers private paths with a 404 to any
+      # caller without a credential — that's the whole mechanism of "private" — so the curl below
+      # would fail forever, for the same reason Morphe itself cannot load from this repo at all.
       - name: Verify the release
-        if: steps.decide.outputs.release == 'true'
+        if: steps.decide.outputs.release == 'true' && steps.decide.outputs.private != 'true'
         env:
           VERSION: ${{ steps.decide.outputs.version }}
           TAG: ${{ steps.decide.outputs.tag }}

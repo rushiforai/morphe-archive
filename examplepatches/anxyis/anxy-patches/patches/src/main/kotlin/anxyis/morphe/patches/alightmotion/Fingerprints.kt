@@ -11,20 +11,6 @@ object FqAbFingerprint : Fingerprint(
     }
 )
 
-object ZzzbVbdFingerprint : Fingerprint(
-    custom = { method, classDef ->
-        classDef.type == "Lcom/strxid/zzza/zzzb;" &&
-                method.name == "vbd"
-    }
-)
-
-object ZzwXyzFingerprint : Fingerprint(
-    custom = { method, classDef ->
-        classDef.type == "Lcom/strxid/zza/zzw;" &&
-                method.name == "xyz"
-    }
-)
-
 object AlightMotionAppFingerprint : Fingerprint(
     custom = { method, classDef ->
         classDef.type == "Lcom/alightcreative/app/motion/AlightMotionApplication;" &&
@@ -49,5 +35,20 @@ object KillProcessFingerprint : Fingerprint(
                 method.name == "bb" &&
                 method.parameterTypes.size == 1 &&
                 method.parameterTypes[0] == "I"
+    }
+)
+
+object SignatureMatchesFingerprint : Fingerprint(
+    custom = { method, classDef ->
+        classDef.type == "Lcom/pairip/SignatureCheck;" &&
+                method.name == "verifySignatureMatches"
+    }
+)
+
+object LibraryVersionCreateFingerprint : Fingerprint(
+    custom = { method, classDef ->
+        method.name == "Jz" &&
+                method.parameterTypes == listOf("Ljava/lang/String;", "Ljava/lang/String;") &&
+                method.returnType.endsWith("/m;")
     }
 )

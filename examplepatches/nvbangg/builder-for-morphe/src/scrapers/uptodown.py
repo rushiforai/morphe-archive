@@ -29,6 +29,7 @@ class UptodownScraper(BaseScraper):
         self._versions_cache: dict[str, str] = {}
 
     def fetch_metadata(self, url: str) -> AppMetadata:
+        raise UptodownError("Uptodown is temporarily disabled - a fix is in progress")
         versions_html = self.net.get(f"{url}/versions")
         self._versions_cache[url] = versions_html
         pkg_html = self.net.get(f"{url}/download")
@@ -44,6 +45,7 @@ class UptodownScraper(BaseScraper):
         return AppMetadata(pkg_name=pkg_name, versions=versions)
 
     def download(self, url: str, version: str, dest: Path, arch: str, dpi: str) -> DownloadResult:
+        raise UptodownError("Uptodown is temporarily disabled - a fix is in progress")
         versions_html = self._versions_cache.get(url) or self.net.get(f"{url}/versions")
         self._versions_cache[url] = versions_html
 

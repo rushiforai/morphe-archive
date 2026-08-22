@@ -70,7 +70,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Gryphous-Morphe](#-gryphous-morphe-bundle-patch-list) | 4 | 2 | Generated |
 | [Okish-Morphe](#-okish-morphe-bundle-patch-list) | 35 | 16 | Generated |
 | [Xhehab](#-xhehab-bundle-patch-list) | 14 | 13 | Generated |
-| [Nai64](#-nai64-bundle-patch-list) | 23 | 1 | Generated |
+| [Nai64](#-nai64-bundle-patch-list) | 100 | 1 | Generated |
 | [Morphe-Google](#-morphe-google-bundle-patch-list) | 2 | 1 | Generated |
 | [Prathxm](#-prathxm-bundle-patch-list) | 7 | 1 | Generated |
 | [Telegram-Morphe](#-telegram-morphe-bundle-patch-list) | 10 | 1 | Generated |
@@ -92,7 +92,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [ProGuard](#-proguard-bundle-patch-list) | 2 | 2 | Generated |
 | [Lain](#-lain-bundle-patch-list) | 45 | 33 | Generated |
 | [Edge-Morphe](#-edge-morphe-bundle-patch-list) | 5 | 1 | Generated |
-| [Anddea](#-anddea-bundle-patch-list) | 122 | 3 | Generated |
+| [Anddea](#-anddea-bundle-patch-list) | 119 | 3 | Generated |
 | [Piko](#-piko-bundle-patch-list) | 132 | 2 | Generated |
 | [HK-Morphe](#-hk-morphe-bundle-patch-list) | 12 | 4 | Generated |
 | [BholeyKaBhakt](#-bholeykabhakt-bundle-patch-list) | 24 | 15 | Generated |
@@ -115,10 +115,10 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Almewty](#-almewty-bundle-patch-list) | 3 | 2 | Generated |
 | [Anddea-Morphed](#-anddea-morphed-bundle-patch-list) | 133 | 6 | Generated |
 | [RookieEnough](#-rookieenough-bundle-patch-list) | 58 | 24 | Generated |
-| [Adobo](#-adobo-bundle-patch-list) | 42 | 5 | Generated |
+| [Adobo](#-adobo-bundle-patch-list) | 43 | 5 | Generated |
 | [Docbt](#-docbt-bundle-patch-list) | 6 | 3 | Generated |
 | [PixelPusher247](#-pixelpusher247-bundle-patch-list) | 1 | 1 | Generated |
-| [Rabilrbl](#-rabilrbl-bundle-patch-list) | 1 | 1 | Generated |
+| [Rabilrbl](#-rabilrbl-bundle-patch-list) | 3 | 2 | Generated |
 | [Jasonwu1994](#-jasonwu1994-bundle-patch-list) | 31 | 1 | Generated |
 | [RealCyberwash](#-realcyberwash-bundle-patch-list) | 1 | 1 | Generated |
 | [Paresh-Maheshwari](#-paresh-maheshwari-bundle-patch-list) | 60 | 23 | Generated |
@@ -143,12 +143,12 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Ajstrick81-AndroidTV](#-ajstrick81-androidtv-bundle-patch-list) | 32 | 12 | Generated |
 | [Icysymmetra-TikTok](#-icysymmetra-tiktok-bundle-patch-list) | 30 | 1 | Generated |
 | [AlexNaga](#-alexnaga-bundle-patch-list) | 2 | 1 | Generated |
-| [Rushiranpise](#-rushiranpise-bundle-patch-list) | 337 | 245 | Generated |
+| [Rushiranpise](#-rushiranpise-bundle-patch-list) | 341 | 248 | Generated |
 | [Sjshb57-PairIP](#-sjshb57-pairip-bundle-patch-list) | 4 | 1 | Generated |
 | [RIVanced-Universal](#-rivanced-universal-bundle-patch-list) | 27 | 1 | Generated |
 | [Variablenine](#-variablenine-bundle-patch-list) | 137 | 4 | Generated |
 | [Stylus](#-stylus-bundle-patch-list) | 5 | 2 | Generated |
-| [HXReborn](#-hxreborn-bundle-patch-list) | 20 | 12 | Generated |
+| [HXReborn](#-hxreborn-bundle-patch-list) | 22 | 13 | Generated |
 | [Ikura](#-ikura-bundle-patch-list) | 6 | 1 | Generated |
 | [DH6K](#-dh6k-bundle-patch-list) | 6 | 7 | Generated |
 | [AndrewLiang25](#-andrewliang25-bundle-patch-list) | 22 | 1 | Generated |
@@ -189,7 +189,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Riky](#-riky-bundle-patch-list) | 2 | 2 | Generated |
 | [iPusnas](#-ipusnas-bundle-patch-list) | 6 | 1 | Generated |
 | [HXReborn-TikTok](#-hxreborn-tiktok-bundle-patch-list) | 33 | 1 | Generated |
-| [Flexboard](#-flexboard-bundle-patch-list) | 7 | 1 | Generated |
+| [Flexboard](#-flexboard-bundle-patch-list) | 9 | 1 | Generated |
 | [Cricinfo-Tweaks](#-cricinfo-tweaks-bundle-patch-list) | 3 | 1 | Generated |
 | [RuStore-Privacy](#-rustore-privacy-bundle-patch-list) | 9 | 1 | Generated |
 | [Abhishek-Bhujang](#-abhishek-bhujang-bundle-patch-list) | 2 | 2 | Generated |
@@ -685,33 +685,110 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 ### 🧩 Nai64 Bundle Patch List:
 [📦 Nai64-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-nai64-patches-bundle-morphe)
 <details>
-<summary><b>Nai64</b> - 23 patches, 1 app</summary>
+<summary><b>Nai64</b> - 100 patches, 1 app</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
 | ```Ads Free Rewards``` | ```Skip rewarded ads and claim rewards instantly``` | ```Universal``` | ```All versions``` |
+| ```Allow Background Activity``` | ```Makes ActivityManager.isBackgroundRestricted always return false so apps ignore background activity restrictions imposed by the system or user``` | ```Universal``` | ```All versions``` |
+| ```Allow Clearing App Data``` | ```Sets android:allowClearUserData so the system's Clear Data button stays available even for apps that try to disable it``` | ```Universal``` | ```All versions``` |
+| ```Allow Cleartext Traffic``` | ```Sets android:usesCleartextTraffic and drops any network security config so plain HTTP requests are allowed (useful for debugging through local proxies)``` | ```Universal``` | ```All versions``` |
 | ```Allow Screenshots``` | ```Remove the screenshot-blocking window flag``` | ```Universal``` | ```All versions``` |
+| ```Always Allow Biometrics``` | ```Makes BiometricManager.canAuthenticate always return BIOMETRIC_SUCCESS so apps do not block biometric features on unsupported or unenrolled devices``` | ```Universal``` | ```All versions``` |
 | ```Block Push Ads``` | ```Block push notification ads (Firebase Cloud Messaging). Also blocks legitimate notifications.``` | ```Universal``` | ```All versions``` |
+| ```Block Screenshot Detection``` | ```Adds FLAG_SECURE to every activity window so the system blocks screenshots, screen recording and recents previews of the app``` | ```Universal``` | ```All versions``` |
 | ```Bypass Google Play Services Check``` | ```Always report Google Play Services as available``` | ```Universal``` | ```All versions``` |
 | ```Bypass License Verification``` | ```Always pass Google Play license checks``` | ```Universal``` | ```All versions``` |
+| ```Bypass OkHttp Pinning``` | ```No-ops the certificate verification entry points of bundled OkHttp clients so certificate pinning never rejects connections``` | ```Universal``` | ```All versions``` |
+| ```Bypass VPN Detection``` | ```Makes NetworkCapabilities report no VPN: hasTransport always returns false and hasCapability always returns true, so apps cannot block or alter behavior on VPN``` | ```Universal``` | ```All versions``` |
+| ```Change Version Code``` | ```Overrides the android:versionCode declared in the manifest``` | ```Universal``` | ```All versions``` |
+| ```Change Version Name``` | ```Overrides the android:versionName declared in the manifest``` | ```Universal``` | ```All versions``` |
+| ```Classic Back Gesture``` | ```Sets android:enableOnBackInvokedCallback to false so apps that break under the Android 13+ predictive back system keep the classic back behavior``` | ```Universal``` | ```All versions``` |
 | ```Custom App Resolution (Experimental)``` | ```Set a custom resolution for the game``` | ```Universal``` | ```All versions``` |
+| ```Custom Startup Dialog``` | ```Shows a customizable dialog once when the app is opened``` | ```Universal``` | ```All versions``` |
+| ```Custom Startup Toast``` | ```Shows a customizable toast message every time the app starts``` | ```Universal``` | ```All versions``` |
+| ```Disable App Links Verification``` | ```Removes android:autoVerify from intent filters so Android stops prompting to verify the app's web domains and never converts links into app opens``` | ```Universal``` | ```All versions``` |
+| ```Disable Battery Optimization Prompt``` | ```Removes the permission and intent filters apps use to ask for battery optimization exemptions, so the 'Ignore battery optimizations?' dialog never appears``` | ```Universal``` | ```All versions``` |
+| ```Disable Crash Reporters``` | ```No-ops the static init/start/register methods of bundled crash-reporting SDKs (Crashlytics, Fabric, Sentry, Bugsnag, ACRA, HockeyApp, AppCenter, Instabug, Countly)``` | ```Universal``` | ```All versions``` |
+| ```Disable Facebook SDK Auto-Init``` | ```Adds Facebook SDK manifest switches that stop auto-initialization, automatic app event logging and advertiser ID collection at startup``` | ```Universal``` | ```All versions``` |
+| ```Disable Firebase Auto-Init``` | ```Adds Firebase manifest switches that stop Analytics, Messaging, Crashlytics and Performance from initializing themselves at startup``` | ```Universal``` | ```All versions``` |
+| ```Disable Heap Pointer Tagging``` | ```Sets android:allowNativeHeapPointerTagging to false so older native games that break under Android 12+ tagged pointers keep running``` | ```Universal``` | ```All versions``` |
+| ```Disable Permission Auto-Revoke``` | ```Sets android:autoRevokePermissions to discouraged so Android stops resetting unused permissions of apps you rarely open``` | ```Universal``` | ```All versions``` |
 | ```Disable Root Checks``` | ```Disable root detection``` | ```Universal``` | ```All versions``` |
+| ```Disable StrictMode``` | ```No-ops StrictMode policy installs made by the app so debug builds that enable strict disk or network checks stop crashing on release-like usage``` | ```Universal``` | ```All versions``` |
 | ```Disable Telemetry``` | ```Block analytics and tracking``` | ```Universal``` | ```All versions``` |
 | ```Disable Update Checks``` | ```Disable in-app update prompts``` | ```Universal``` | ```All versions``` |
+| ```Disable Vibration``` | ```Replaces framework Vibrator.vibrate calls with no-ops so apps cannot make the device buzz``` | ```Universal``` | ```All versions``` |
+| ```Empty Clipboard Report``` | ```Makes ClipboardManager.hasPrimaryClip always return false so apps stop harvesting or acting on clipboard content copied from other apps``` | ```Universal``` | ```All versions``` |
+| ```Enable Large Heap``` | ```Sets android:largeHeap so the app gets a bigger Java heap on devices that allow it, reducing OutOfMemoryError crashes in memory-hungry games``` | ```Universal``` | ```All versions``` |
+| ```Enable WebView Debugging``` | ```Turns on WebView remote debugging: existing setWebContentsDebuggingEnabled calls are forced to true and it is actively enabled at startup, so WebViews can be inspected via chrome://inspect``` | ```Universal``` | ```All versions``` |
+| ```Ensure Internet Permission``` | ```Adds the INTERNET permission if it is missing. Useful after aggressive permission stripping or for offline builds that still need web endpoints``` | ```Universal``` | ```All versions``` |
+| ```Export All Activities``` | ```Marks every activity as android:exported so other apps and ADB can launch them``` | ```Universal``` | ```All versions``` |
+| ```Fake Battery Whitelist``` | ```Makes PowerManager.isIgnoringBatteryOptimizations always return true so apps stop nagging about battery optimization exemptions``` | ```Universal``` | ```All versions``` |
+| ```Fake Bluetooth Enabled``` | ```Makes BluetoothAdapter.isEnabled always return true so apps that require Bluetooth stop nagging about it being turned off``` | ```Universal``` | ```All versions``` |
+| ```Fake Fingerprint Hardware``` | ```Makes FingerprintManager report available hardware and enrolled fingerprints so apps unlock fingerprint-gated features on any device``` | ```Universal``` | ```All versions``` |
+| ```Fake NFC Enabled``` | ```Makes NfcAdapter.isEnabled always return true so apps that require NFC stop blocking features on devices without it``` | ```Universal``` | ```All versions``` |
+| ```Fake Online State``` | ```Makes connectivity checks report an active connection: WifiManager.isWifiEnabled, NetworkInfo.isConnected/isAvailable/isConnectedOrConnecting all return true``` | ```Universal``` | ```All versions``` |
+| ```Force Extract Native Libs``` | ```Sets android:extractNativeLibs so native libraries are extracted at install time. Some mod loaders, hooks and older tools only work with extracted libs``` | ```Universal``` | ```All versions``` |
+| ```Force Hardware Acceleration``` | ```Sets android:hardwareAccelerated so every activity renders with GPU acceleration, even when the app disables it globally``` | ```Universal``` | ```All versions``` |
 | ```Force Landscape / Portrait``` | ```Force the app to a fixed screen orientation``` | ```Universal``` | ```All versions``` |
+| ```Force Left-to-Right Layout``` | ```Sets android:supportsRtl to false so the app always renders left-to-right, fixing layouts that break under right-to-left system languages``` | ```Universal``` | ```All versions``` |
+| ```Force Notifications Enabled``` | ```Makes NotificationManager.areNotificationsEnabled always return true so apps that refuse to run when notifications are blocked keep working``` | ```Universal``` | ```All versions``` |
+| ```Force Resizable Activity``` | ```Sets android:resizeableActivity and drops the required touchscreen feature so the app can run in split-screen, free-form windows, DeX, and Chromebooks``` | ```Universal``` | ```All versions``` |
+| ```Grant All-Files Access``` | ```Makes Environment.isExternalStorageManager always return true so apps accept the storage permission state without the special Android 11+ prompt``` | ```Universal``` | ```All versions``` |
+| ```Hide Debugger Connection``` | ```Makes Debug.isDebuggerConnected and waitingForDebugger always return false so apps that refuse to run under a debugger keep working``` | ```Universal``` | ```All versions``` |
+| ```Hide Emulator Radio``` | ```Makes TelephonyManager.getPhoneType always report GSM so emulator detection based on a missing radio reports a normal device``` | ```Universal``` | ```All versions``` |
+| ```Hide Mock Location``` | ```Makes Location.isMock and Location.isFromMockProvider always return false so apps cannot detect spoofed GPS apps``` | ```Universal``` | ```All versions``` |
+| ```Hide Roaming Status``` | ```Makes TelephonyManager.isNetworkRoaming always return false so apps that block or warn while roaming behave as if the device is on its home network``` | ```Universal``` | ```All versions``` |
+| ```Ignore GPS Disabled``` | ```Makes LocationManager.isProviderEnabled always return true so apps that refuse to run without location services keep working``` | ```Universal``` | ```All versions``` |
+| ```Ignore Location Services Off``` | ```Makes LocationManager.isLocationEnabled always return true so apps that refuse to run when location services are disabled keep working``` | ```Universal``` | ```All versions``` |
+| ```Ignore Low RAM Device``` | ```Makes ActivityManager.isLowRamDevice always return false so apps stop degrading graphics or features on entry-level devices``` | ```Universal``` | ```All versions``` |
+| ```Ignore Power Save Mode``` | ```Makes PowerManager.isPowerSaveMode and isDeviceIdleMode always return false so apps do not throttle features or downloads while battery saver or Doze is active``` | ```Universal``` | ```All versions``` |
+| ```Ignore Screen Lock``` | ```Makes KeyguardManager lock-state checks report an unlocked device so apps that gate features behind a screen lock behave as if none is set``` | ```Universal``` | ```All versions``` |
+| ```Ignore Touch Exploration``` | ```Makes AccessibilityManager.isTouchExplorationEnabled always return false so games that disable or alter gameplay under TalkBack behave normally``` | ```Universal``` | ```All versions``` |
+| ```Immersive Fullscreen``` | ```Adds android:windowFullscreen to every theme so activities render edge-to-edge without the status bar``` | ```Universal``` | ```All versions``` |
+| ```Keep Data on Uninstall``` | ```Sets android:hasFragileUserData so Android offers to keep the app's data when uninstalling (the confirmation dialog appears on Android 10+)``` | ```Universal``` | ```All versions``` |
+| ```Keep Screen On``` | ```Adds android:keepScreenOn to every theme so the display stays on while any activity of the app is visible``` | ```Universal``` | ```All versions``` |
+| ```Legacy External Storage``` | ```Sets android:requestLegacyExternalStorage so the app keeps using the classic shared-storage model instead of scoped storage (Android 10; ignored on 11+)``` | ```Universal``` | ```All versions``` |
 | ```Limit Ad Tracking``` | ```Neutralize the Google advertising ID: empty ID and limit ad tracking enabled``` | ```Universal``` | ```All versions``` |
+| ```Make App Debuggable``` | ```Sets android:debuggable so debuggers and profiling tools can attach``` | ```Universal``` | ```All versions``` |
 | ```No Ads``` | ```Remove ads``` | ```Universal``` | ```All versions``` |
+| ```Optimize as Game``` | ```Sets android:appCategory to game so Android applies game mode, battery and screenshot optimizations tuned for games``` | ```Universal``` | ```All versions``` |
 | ```Pairip Bypass (Experimental)``` | ```Bypass Pairip license protection``` | ```Universal``` | ```All versions``` |
+| ```Relax Shared Libraries``` | ```Marks every <uses-library> entry as optional so missing shared libraries no longer block the app from installing on devices that lack them``` | ```Universal``` | ```All versions``` |
+| ```Remove Ad Services Entries``` | ```Strips Privacy Sandbox (AdServices) permissions, the ad ID permission and their config metadata from the manifest``` | ```Universal``` | ```All versions``` |
+| ```Remove App Icon``` | ```Replaces the launcher icon with a transparent drawable``` | ```Universal``` | ```All versions``` |
+| ```Remove Backup Restrictions``` | ```Sets android:allowBackup and removes data extraction / full backup rules that exclude app data from device transfers and cloud backups``` | ```Universal``` | ```All versions``` |
 | ```Remove Hardware Requirements``` | ```Remove uses-feature entries so the app installs on more devices``` | ```Universal``` | ```All versions``` |
+| ```Remove Network Security Config``` | ```Removes the app's network security config so certificate pinning and cleartext restrictions fall back to platform defaults (useful for HTTPS inspection)``` | ```Universal``` | ```All versions``` |
 | ```Remove Permissions``` | ```Remove permissions from the app manifest``` | ```Universal``` | ```All versions``` |
+| ```Rename App``` | ```Overrides the launcher label of the app``` | ```Universal``` | ```All versions``` |
+| ```Report Legacy Storage``` | ```Makes Environment.isExternalStorageLegacy always return true so apps behave as if they got classic shared-storage access``` | ```Universal``` | ```All versions``` |
+| ```Set Install Location``` | ```Overrides the android:installLocation declared in the manifest``` | ```Universal``` | ```All versions``` |
+| ```Set Profileable``` | ```Adds <profileable android:shell="true"/> so profilers (Android Studio, simpleperf, Perfetto) can attach to release builds for performance analysis``` | ```Universal``` | ```All versions``` |
 | ```Skip Consent Popup``` | ```Skip the Google consent (GDPR) popup``` | ```Universal``` | ```All versions``` |
 | ```Skip Rate-Us Prompt``` | ```Skip the in-app review (rate us) prompt``` | ```Universal``` | ```All versions``` |
 | ```Skip Splash Screen (Experimental)``` | ```Skip or shorten splash screen delays``` | ```Universal``` | ```All versions``` |
+| ```Spoof Build Fingerprint``` | ```Replaces every read of Build.FINGERPRINT with a custom value, useful for integrity and device checks. Leave empty to keep the original fingerprint``` | ```Universal``` | ```All versions``` |
+| ```Spoof CPU Architecture``` | ```Replaces reads of Build.CPU_ABI and Build.CPU_ABI2 with a custom value. Leave empty to keep the original``` | ```Universal``` | ```All versions``` |
+| ```Spoof Device Model``` | ```Replaces common android.os.Build fields (model, manufacturer, brand) with custom values. Leave an option empty to keep the original value``` | ```Universal``` | ```All versions``` |
 | ```Spoof Play Integrity``` | ```Force Play Integrity checks to pass``` | ```Universal``` | ```All versions``` |
-| ```Spoof Play Store Install Source``` | ```N/A``` | ```Universal``` | ```All versions``` |
+| ```Spoof Play Store Install Source``` | ```Make the app believe it was installed from the Play Store``` | ```Universal``` | ```All versions``` |
+| ```Spoof SDK Level``` | ```Replaces every read of Build.VERSION.SDK_INT with a custom value. WARNING: setting a level lower than the device's real API level makes apps call missing APIs and crash; only use when you know the app checks it``` | ```Universal``` | ```All versions``` |
+| ```Spoof Signature Match``` | ```Makes PackageManager.checkSignatures always return SIGNATURE_MATCH so apps that verify their own or another package's signature accept any build``` | ```Universal``` | ```All versions``` |
+| ```Status Bar Icons``` | ```Forces the status bar and navigation bar icon color in every theme. Pick white icons for dark backgrounds or dark icons for light backgrounds``` | ```Universal``` | ```All versions``` |
+| ```Strip Translations``` | ```Deletes all translated resources so only the default language remains, reducing APK size. Android falls back to the default strings automatically.``` | ```Universal``` | ```All versions``` |
+| ```Support All Screens``` | ```Removes compatible-screens restrictions and marks every screen size supported so the app installs on devices it would otherwise reject``` | ```Universal``` | ```All versions``` |
+| ```Transparent System Bars``` | ```Forces the status bar and navigation bar to render transparent in every theme so app content draws edge-to-edge behind them``` | ```Universal``` | ```All versions``` |
+| ```Treat Network as Unmetered``` | ```Makes ConnectivityManager.isActiveNetworkMetered always return false so apps lift download restrictions and quality caps on mobile data``` | ```Universal``` | ```All versions``` |
+| ```Treat Screen as On``` | ```Makes PowerManager.isInteractive always return true so apps keep playing audio or progressing instead of pausing while the screen is off``` | ```Universal``` | ```All versions``` |
+| ```Trust User Certificates``` | ```No-ops the check methods of app-bundled X509TrustManager implementations so custom certificate validation (including pinning reimplemented by hand) accepts anything``` | ```Universal``` | ```All versions``` |
 | ```Unlock All IAPs (Unity IAP)``` | ```Unlock all in-app purchases in Unity IAP games (Experimental)``` | ```Universal``` | ```All versions``` |
+| ```Unlock Max Aspect Ratio``` | ```Removes maxAspectRatio limits from the application, activities and metadata so the app fills tall edge-to-edge screens instead of letterboxing``` | ```Universal``` | ```All versions``` |
 | ```Unlock RevenueCat Entitlements``` | ```Unlock all RevenueCat entitlements``` | ```Universal``` | ```All versions``` |
 | ```Unlock Rotation``` | ```Remove screenOrientation locks so the app rotates freely``` | ```Universal``` | ```All versions``` |
+| ```Unmark Test Only``` | ```Removes android:testOnly from the manifest so builds marked as test-only can be installed and launched like normal apps``` | ```Universal``` | ```All versions``` |
+| ```VM Safe Mode``` | ```Sets android:vmSafeMode so the app runs with AOT/JIT optimizations disabled, which can stabilize apps that crash from compiler optimizations on some devices``` | ```Universal``` | ```All versions``` |
 
 </details>
 
@@ -1639,7 +1716,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 ### 🧩 Anddea Bundle Patch List:
 [📦 Anddea-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-anddea-patches-bundle-morphe)
 <details>
-<summary><b>Anddea</b> - 122 patches, 3 apps</summary>
+<summary><b>Anddea</b> - 119 patches, 3 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -1648,10 +1725,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | ```Certificate spoof``` | ```Enables YouTube Music to work with Android Auto by spoofing the YouTube Music certificate.``` | ```com.google.android.apps.youtube.music``` | ```8.12.54, 8.28.54, 8.30.54, 9.15.51``` |
 | ```Change share sheet``` | ```Adds an option to change the in-app share sheet to the system share sheet.``` | ```com.google.android.apps.youtube.music``` | ```8.12.54, 8.28.54, 8.30.54, 9.15.51``` |
 | ```Change start page``` | ```Adds an option to set which page the app opens in instead of the homepage.``` | ```com.google.android.apps.youtube.music``` | ```8.12.54, 8.28.54, 8.30.54, 9.15.51``` |
-| ```Custom branding icon for YouTube Music``` | ```Changes the YouTube Music app icon to the icon specified in patch options.``` | ```com.google.android.apps.youtube.music``` | ```8.12.54, 8.28.54, 8.30.54, 9.15.51``` |
-| ```Custom branding name for YouTube Music``` | ```Changes the YouTube Music app name to the name specified in patch options.``` | ```com.google.android.apps.youtube.music``` | ```8.12.54, 8.28.54, 8.30.54, 9.15.51``` |
-| ```Custom header for YouTube Music``` | ```Applies a custom header in the top left corner within the app.``` | ```com.google.android.apps.youtube.music``` | ```8.12.54, 8.28.54, 8.30.54, 9.15.51``` |
-| ```Dark theme``` | ```Changes the app's dark theme to the values specified in patch options.``` | ```com.google.android.apps.youtube.music``` | ```8.12.54, 8.28.54, 8.30.54, 9.15.51``` |
+| ```Custom branding for YouTube Music``` | ```Adds in-app app-name, launcher-icon, header, splash, and settings-icon selection.``` | ```com.google.android.apps.youtube.music``` | ```8.12.54, 8.28.54, 8.30.54, 9.15.51``` |
 | ```Disable Cairo splash animation``` | ```Adds an option to disable Cairo splash animation.``` | ```com.google.android.apps.youtube.music``` | ```8.12.54, 8.28.54, 8.30.54, 9.15.51``` |
 | ```Disable dislike redirection``` | ```Adds an option to disable redirection to the next track when clicking the Dislike button.``` | ```com.google.android.apps.youtube.music``` | ```8.12.54, 8.28.54, 8.30.54, 9.15.51``` |
 | ```Disable forced auto captions``` | ```Adds an option to disable captions from being automatically enabled.``` | ```com.google.android.apps.youtube.music``` | ```8.12.54, 8.28.54, 8.30.54, 9.15.51``` |
@@ -1679,8 +1753,10 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | ```Settings for YouTube Music``` | ```Applies mandatory patches to implement ReVanced Extended settings into the application.``` | ```com.google.android.apps.youtube.music``` | ```8.12.54, 8.28.54, 8.30.54, 9.15.51``` |
 | ```Settings menu filter``` | ```Adds an option to hide items on the standard YouTube Music settings screen by their visible name.``` | ```com.google.android.apps.youtube.music``` | ```8.12.54, 8.28.54, 8.30.54, 9.15.51``` |
 | ```SponsorBlock``` | ```Adds options to enable and configure SponsorBlock, which can skip undesired video segments, such as non-music sections.``` | ```com.google.android.apps.youtube.music``` | ```8.12.54, 8.28.54, 8.30.54, 9.15.51``` |
+| ```Spoof app version``` | ```Adds options to spoof the YouTube Music client version. This can be used to restore old UI elements and features.``` | ```com.google.android.apps.youtube.music``` | ```8.12.54, 8.28.54, 8.30.54, 9.15.51``` |
 | ```Spoof app version for lyrics``` | ```Adds options to spoof the YouTube Music client version. This can be used to restore old lyrics UI.``` | ```com.google.android.apps.youtube.music``` | ```8.12.54, 8.28.54, 8.30.54, 9.15.51``` |
 | ```Spoof video streams``` | ```Adds options to spoof the client video streams to fix playback.``` | ```com.google.android.apps.youtube.music``` | ```8.12.54, 8.28.54, 8.30.54, 9.15.51``` |
+| ```Theme``` | ```Changes the app's dark theme to the values specified in patch options.``` | ```com.google.android.apps.youtube.music``` | ```8.12.54, 8.28.54, 8.30.54, 9.15.51``` |
 | ```Third-party lyrics``` | ```Adds an option to show synced lyrics from LRCLIB or KuGou in the lyrics panel.``` | ```com.google.android.apps.youtube.music``` | ```9.15.51``` |
 | ```Track crossfade``` | ```Adds a true dual-player crossfade between consecutive tracks. Requires YouTube Music 9.00 or newer; on older versions the patch is a no-op.``` | ```com.google.android.apps.youtube.music``` | ```8.12.54, 8.28.54, 8.30.54, 9.15.51``` |
 | ```Translations for YouTube Music``` | ```Add translations or remove string resources.``` | ```com.google.android.apps.youtube.music``` | ```8.12.54, 8.28.54, 8.30.54, 9.15.51``` |
@@ -1695,11 +1771,9 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | ```Change player flyout menu toggles``` | ```Adds an option to use text toggles instead of switch toggles within the additional settings menu.``` | ```com.google.android.youtube``` | ```19.43.41, 20.05.46, 20.51.39``` |
 | ```Change share sheet``` | ```Adds an option to change the in-app share sheet to the system share sheet.``` | ```com.google.android.youtube``` | ```19.43.41, 20.05.46, 20.51.39``` |
 | ```Change start page``` | ```Adds an option to set which page the app opens in instead of the homepage.``` | ```com.google.android.youtube``` | ```19.43.41, 20.05.46, 20.51.39``` |
-| ```Custom branding icon for YouTube``` | ```Changes the YouTube app icon to the icon specified in patch options.``` | ```com.google.android.youtube``` | ```19.43.41, 20.05.46, 20.51.39``` |
-| ```Custom branding name for YouTube``` | ```Changes the YouTube app name to the name specified in patch options.``` | ```com.google.android.youtube``` | ```19.43.41, 20.05.46, 20.51.39``` |
+| ```Custom branding for YouTube``` | ```Adds in-app app-name, launcher-icon, header, splash, and settings-icon selection.``` | ```com.google.android.youtube``` | ```19.43.41, 20.05.46, 20.51.39``` |
 | ```Custom double tap length``` | ```Adds Double-tap to seek values that are specified in patch options.``` | ```com.google.android.youtube``` | ```19.43.41, 20.05.46, 20.51.39``` |
 | ```Custom DPI``` | ```Forces a higher display density for this app only, so the whole UI scales up without changing system density.``` | ```com.google.android.youtube``` | ```19.43.41, 20.05.46, 20.51.39``` |
-| ```Custom header for YouTube``` | ```Applies a custom header in the top left corner within the app.``` | ```com.google.android.youtube``` | ```19.43.41, 20.05.46, 20.51.39``` |
 | ```Custom Shorts action buttons``` | ```Changes, at compile time, the icon of the action buttons of the Shorts player.``` | ```com.google.android.youtube``` | ```19.43.41, 20.05.46, 20.51.39``` |
 | ```Description components``` | ```Adds options to hide and disable description components.``` | ```com.google.android.youtube``` | ```19.43.41, 20.05.46, 20.51.39``` |
 | ```Disable forced auto captions``` | ```Adds an option to disable captions from being automatically enabled.``` | ```com.google.android.youtube``` | ```19.43.41, 20.05.46, 20.51.39``` |
@@ -3469,24 +3543,24 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Custom branding name for Reddit``` | ```Changes the Reddit app name to the name specified in patch options.``` | ```Reddit``` | ```2026.32.0, 2026.31.1, 2026.24.0, 2026.14.0, 2026.04.0``` |
-| ```Custom font``` | ```Adds an option to replace Reddit Sans / Roboto with a custom TTF or OTF font file at runtime.``` | ```Reddit``` | ```2026.32.0, 2026.31.1, 2026.24.0, 2026.14.0, 2026.04.0``` |
-| ```Disable modern home``` | ```Adds an option to disable the modern home UI. This patch works with Reddit 2026.24.0 and earlier.``` | ```Reddit``` | ```2026.32.0, 2026.31.1, 2026.24.0, 2026.14.0, 2026.04.0``` |
-| ```Disable screenshot popup``` | ```Adds an option to disable the popup that appears when taking a screenshot.``` | ```Reddit``` | ```2026.32.0, 2026.31.1, 2026.24.0, 2026.14.0, 2026.04.0``` |
-| ```Force system font``` | ```Adds an option that renders Reddit with the device system font instead of Reddit Sans / Roboto.``` | ```Reddit``` | ```2026.32.0, 2026.31.1, 2026.24.0, 2026.14.0, 2026.04.0``` |
-| ```Hide ads``` | ```Adds options to hide ads.``` | ```Reddit``` | ```2026.32.0, 2026.31.1, 2026.24.0, 2026.14.0, 2026.04.0``` |
-| ```Hide Ask button``` | ```Adds an option to hide Ask button in the search bar.``` | ```Reddit``` | ```2026.32.0, 2026.31.1, 2026.24.0, 2026.14.0, 2026.04.0``` |
-| ```Hide communities shelf``` | ```Adds an option to hide the related or suggested communities shelf in subreddits.``` | ```Reddit``` | ```2026.32.0, 2026.31.1, 2026.24.0, 2026.14.0, 2026.04.0``` |
-| ```Hide navigation buttons``` | ```Adds options to hide buttons in the navigation bar.``` | ```Reddit``` | ```2026.32.0, 2026.31.1, 2026.24.0, 2026.14.0, 2026.04.0``` |
-| ```Hide Reddit search``` | ```Permanently hides the Reddit search in the contextual menu. This patch does not work with root mounting``` | ```Reddit``` | ```2026.32.0, 2026.31.1, 2026.24.0, 2026.14.0, 2026.04.0``` |
-| ```Hide sidebar components``` | ```Adds options to hide the sidebar components.``` | ```Reddit``` | ```2026.32.0, 2026.31.1, 2026.24.0, 2026.14.0, 2026.04.0``` |
-| ```Hide Trending shelves``` | ```Adds an option to hide the Trending shelves from feed and search suggestions.``` | ```Reddit``` | ```2026.32.0, 2026.31.1, 2026.24.0, 2026.14.0, 2026.04.0``` |
-| ```Open links directly``` | ```Adds an option to skip over redirection URLs in external links.``` | ```Reddit``` | ```2026.32.0, 2026.31.1, 2026.24.0, 2026.14.0, 2026.04.0``` |
-| ```Open links externally``` | ```Adds an option to always open links in your browser instead of with the in-app-browser.``` | ```Reddit``` | ```2026.32.0, 2026.31.1, 2026.24.0, 2026.14.0, 2026.04.0``` |
-| ```Remove subreddit dialog``` | ```Adds options to remove the NSFW community warning and notifications suggestion dialogs by dismissing them automatically.``` | ```Reddit``` | ```2026.32.0, 2026.31.1, 2026.24.0, 2026.14.0, 2026.04.0``` |
-| ```Sanitize sharing links``` | ```Adds an option to sanitize sharing links by removing tracking query parameters.``` | ```Reddit``` | ```2026.32.0, 2026.31.1, 2026.24.0, 2026.14.0, 2026.04.0``` |
-| ```Show view count``` | ```Adds an option to show the view count of Posts.``` | ```Reddit``` | ```2026.32.0, 2026.31.1, 2026.24.0, 2026.14.0, 2026.04.0``` |
-| ```Spoof signature``` | ```Spoofs the signature of the app to fix notification issues.``` | ```Reddit``` | ```2026.32.0, 2026.31.1, 2026.24.0, 2026.14.0, 2026.04.0, 2024.02.0``` |
+| ```Custom branding name for Reddit``` | ```Changes the Reddit app name to the name specified in patch options.``` | ```Reddit``` | ```2026.34.0, 2026.32.0, 2026.24.0, 2026.14.0, 2026.04.0``` |
+| ```Custom font``` | ```Adds an option to replace Reddit Sans / Roboto with a custom TTF or OTF font file at runtime.``` | ```Reddit``` | ```2026.34.0, 2026.32.0, 2026.24.0, 2026.14.0, 2026.04.0``` |
+| ```Disable modern home``` | ```Adds an option to disable the modern home UI. This patch works with Reddit 2026.24.0 and earlier.``` | ```Reddit``` | ```2026.34.0, 2026.32.0, 2026.24.0, 2026.14.0, 2026.04.0``` |
+| ```Disable screenshot popup``` | ```Adds an option to disable the popup that appears when taking a screenshot.``` | ```Reddit``` | ```2026.34.0, 2026.32.0, 2026.24.0, 2026.14.0, 2026.04.0``` |
+| ```Force system font``` | ```Adds an option that renders Reddit with the device system font instead of Reddit Sans / Roboto.``` | ```Reddit``` | ```2026.34.0, 2026.32.0, 2026.24.0, 2026.14.0, 2026.04.0``` |
+| ```Hide ads``` | ```Adds options to hide ads.``` | ```Reddit``` | ```2026.34.0, 2026.32.0, 2026.24.0, 2026.14.0, 2026.04.0``` |
+| ```Hide Ask button``` | ```Adds an option to hide Ask button in the search bar.``` | ```Reddit``` | ```2026.34.0, 2026.32.0, 2026.24.0, 2026.14.0, 2026.04.0``` |
+| ```Hide communities shelf``` | ```Adds an option to hide the related or suggested communities shelf in subreddits.``` | ```Reddit``` | ```2026.34.0, 2026.32.0, 2026.24.0, 2026.14.0, 2026.04.0``` |
+| ```Hide navigation buttons``` | ```Adds options to hide buttons in the navigation bar.``` | ```Reddit``` | ```2026.34.0, 2026.32.0, 2026.24.0, 2026.14.0, 2026.04.0``` |
+| ```Hide Reddit search``` | ```Permanently hides the Reddit search in the contextual menu. This patch does not work with root mounting``` | ```Reddit``` | ```2026.34.0, 2026.32.0, 2026.24.0, 2026.14.0, 2026.04.0``` |
+| ```Hide sidebar components``` | ```Adds options to hide the sidebar components.``` | ```Reddit``` | ```2026.34.0, 2026.32.0, 2026.24.0, 2026.14.0, 2026.04.0``` |
+| ```Hide Trending shelves``` | ```Adds an option to hide the Trending shelves from feed and search suggestions.``` | ```Reddit``` | ```2026.34.0, 2026.32.0, 2026.24.0, 2026.14.0, 2026.04.0``` |
+| ```Open links directly``` | ```Adds an option to skip over redirection URLs in external links.``` | ```Reddit``` | ```2026.34.0, 2026.32.0, 2026.24.0, 2026.14.0, 2026.04.0``` |
+| ```Open links externally``` | ```Adds an option to always open links in your browser instead of with the in-app-browser.``` | ```Reddit``` | ```2026.34.0, 2026.32.0, 2026.24.0, 2026.14.0, 2026.04.0``` |
+| ```Remove subreddit dialog``` | ```Adds options to remove the NSFW community warning and notifications suggestion dialogs by dismissing them automatically.``` | ```Reddit``` | ```2026.34.0, 2026.32.0, 2026.24.0, 2026.14.0, 2026.04.0``` |
+| ```Sanitize sharing links``` | ```Adds an option to sanitize sharing links by removing tracking query parameters.``` | ```Reddit``` | ```2026.34.0, 2026.32.0, 2026.24.0, 2026.14.0, 2026.04.0``` |
+| ```Show view count``` | ```Adds an option to show the view count of Posts.``` | ```Reddit``` | ```2026.34.0, 2026.32.0, 2026.24.0, 2026.14.0, 2026.04.0``` |
+| ```Spoof signature``` | ```Spoofs the signature of the app to fix notification issues.``` | ```Reddit``` | ```2026.34.0, 2026.32.0, 2026.24.0, 2026.14.0, 2026.04.0, 2024.02.0``` |
 | ```Change installer source``` | ```Spoofs the installer source so the app appears to be installed from an app store.``` | ```Universal``` | ```All versions``` |
 | ```Clone app``` | ```Changes the app package name to allow installing the same app multiple times. By default ".morphe" is appended to the package name. Each cloned install must use a unique package name. Cloning does not work with all apps and using this patch may cause app crashes or other unexpected behavior.``` | ```Universal``` | ```All versions``` |
 | ```Disable Play Store updates``` | ```Disables Play Store updates by setting the version code to the maximum allowed. This patch may cause unexpected issues with some apps and does not work if the app is installed by root mounting``` | ```Universal``` | ```All versions``` |
@@ -3562,7 +3636,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Spoof device dimensions``` | ```Adds an option to spoof the device dimensions which can unlock higher video qualities.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
 | ```Spoof video streams``` | ```Adds options to spoof the client video streams to fix playback.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
 | ```Swipe controls``` | ```Adds options to enable and configure volume and brightness swipe controls.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Theme``` | ```Adds options for theming and applies a custom background theme (dark background theme defaults to pure black).``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Theme``` | ```Adds options for theming, and adds a setting to change the app background color.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
 | ```Video quality``` | ```Adds options to set default video qualities and always use the advanced video quality menu.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
 | ```Voice over translation``` | ```Adds additional voice over languages using text-to-speech synchronized to the video playback.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
 | ```Wide search bar``` | ```Adds a wide search bar to the top of the home and subscription feed.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
@@ -3603,7 +3677,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```SponsorBlock``` | ```Adds options to enable and configure SponsorBlock, which can skip non-music segments.``` | ```YouTube Music``` | ```9.33.52, 9.32.51, 9.31.51, 9.15.51``` |
 | ```Spoof app version``` | ```Adds an option to trick the app into thinking you are running an older version.``` | ```YouTube Music``` | ```9.33.52, 9.32.51, 9.31.51, 9.15.51``` |
 | ```Spoof video streams``` | ```Adds options to spoof the client video streams to fix playback.``` | ```YouTube Music``` | ```9.33.52, 9.32.51, 9.31.51, 9.15.51``` |
-| ```Theme``` | ```Adds options for theming and applies a custom background theme (dark background theme defaults to pure black).``` | ```YouTube Music``` | ```9.33.52, 9.32.51, 9.31.51, 9.15.51``` |
+| ```Theme``` | ```Adds options for theming, and adds a setting to change the app background color.``` | ```YouTube Music``` | ```9.33.52, 9.32.51, 9.31.51, 9.15.51``` |
 | ```Third-party lyrics``` | ```Adds an option to show synced lyrics from LRCLIB or KuGou in the lyrics panel.``` | ```YouTube Music``` | ```9.33.52, 9.32.51, 9.31.51, 9.15.51``` |
 
 </details>
@@ -4043,7 +4117,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Adobo Bundle Patch List:
 [📦 Adobo-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-adobo-patches-bundle-morphe)
 <details>
-<summary><b>Adobo</b> - 42 patches, 5 apps</summary>
+<summary><b>Adobo</b> - 43 patches, 5 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -4057,26 +4131,26 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Enable voice typing in incognito``` | ```Enables voice typing in incognito mode.``` | ```Gboard``` | ```All versions``` |
 | ```Toggle feature flags``` | ```Toggles Gboard feature flags to enable or disable experimental or hidden features.``` | ```Gboard``` | ```All versions``` |
 | ```Remove IMDb's ads, trackers, and analytics``` | ```Removes ads, trackers, and analytics in the IMDb app.``` | ```IMDb``` | ```All versions``` |
-| ```Colorize comment indent lines``` | ```Replaces the default gray comment indent lines with color-coded lines.``` | ```Reddit``` | ```2026.32.0, 2026.31.1, 2026.30.0, 2026.24.0, 2026.14.0``` |
-| ```Disable bottom navigation bar auto-hide``` | ```Prevents the bottom navigation bar from hiding when scrolling down.``` | ```Reddit``` | ```2026.32.0, 2026.31.1, 2026.30.0, 2026.24.0, 2026.14.0``` |
-| ```Disable home feed auto-refresh``` | ```Disables the automatic refresh of the home feed after viewing a post or after being away from the app.``` | ```Reddit``` | ```2026.32.0, 2026.31.1, 2026.30.0, 2026.24.0, 2026.14.0``` |
-| ```Disable home feed swipe``` | ```Disables the horizontal page swipe gesture used to switch feeds.``` | ```Reddit``` | ```2026.32.0, 2026.31.1, 2026.30.0, 2026.24.0, 2026.14.0``` |
-| ```Disable home screen redirect``` | ```Disables the automatic redirect to the home screen after being away from the app or returning from the background.``` | ```Reddit``` | ```2026.32.0, 2026.31.1, 2026.30.0, 2026.24.0, 2026.14.0``` |
-| ```Disable post detail swipe``` | ```Disables the horizontal swipe gesture used to navigate between posts.``` | ```Reddit``` | ```2026.32.0, 2026.31.1, 2026.30.0, 2026.24.0, 2026.14.0``` |
-| ```Disable screenshot banner``` | ```Disables the banner that shows up after taking a screenshot.``` | ```Reddit``` | ```2026.32.0, 2026.31.1, 2026.30.0, 2026.24.0, 2026.14.0``` |
-| ```Hide Ask button from search bar``` | ```Hides the Ask button (Reddit Answers) from the search bar.``` | ```Reddit``` | ```2026.32.0, 2026.31.1, 2026.30.0, 2026.24.0, 2026.14.0``` |
-| ```Hide awards``` | ```Hides the awards on Reddit posts and comments.``` | ```Reddit``` | ```2026.32.0, 2026.31.1, 2026.30.0, 2026.24.0, 2026.14.0``` |
-| ```Hide community highlights``` | ```Hides the community highlights section.``` | ```Reddit``` | ```2026.32.0, 2026.31.1, 2026.30.0, 2026.24.0, 2026.14.0``` |
-| ```Hide community menu badge``` | ```Hides the red notification badge on the community menu (hamburger menu).``` | ```Reddit``` | ```2026.32.0, 2026.31.1, 2026.30.0, 2026.24.0, 2026.14.0``` |
-| ```Hide post view counts``` | ```Removes the "views" indicator from the post metadata.``` | ```Reddit``` | ```2026.32.0, 2026.31.1, 2026.30.0, 2026.24.0, 2026.14.0``` |
-| ```Hide prominent search bar``` | ```Hides the new prominent search bar on the main screen. Applicable only to version 2026.24.0 and earlier.``` | ```Reddit``` | ```2026.32.0, 2026.31.1, 2026.30.0, 2026.24.0, 2026.14.0``` |
-| ```Hide share count``` | ```Hides the share count on Reddit posts.``` | ```Reddit``` | ```2026.32.0, 2026.31.1, 2026.30.0, 2026.24.0, 2026.14.0``` |
-| ```Hide upvote scores``` | ```Hides the scores on Reddit posts and comments.``` | ```Reddit``` | ```2026.32.0, 2026.31.1, 2026.30.0, 2026.24.0, 2026.14.0``` |
-| ```Hide user community badges``` | ```Hides the user community badges on Reddit comments.``` | ```Reddit``` | ```2026.32.0, 2026.31.1, 2026.30.0, 2026.24.0, 2026.14.0``` |
-| ```Hide user flairs``` | ```Hides the user flairs on Reddit comments.``` | ```Reddit``` | ```2026.32.0, 2026.31.1, 2026.30.0, 2026.24.0, 2026.14.0``` |
-| ```Open external links directly``` | ```Opens external links directly without going through out.reddit.com.``` | ```Reddit``` | ```2026.32.0, 2026.31.1, 2026.30.0, 2026.24.0, 2026.14.0``` |
-| ```Remove ads and telemetry``` | ```Removes ads and telemetry everywhere.``` | ```Reddit``` | ```2026.32.0, 2026.31.1, 2026.30.0, 2026.24.0, 2026.14.0``` |
-| ```Sanitize share links``` | ```Unshortens and removes the tracking query parameters from shared links.``` | ```Reddit``` | ```2026.32.0, 2026.31.1, 2026.30.0, 2026.24.0, 2026.14.0``` |
+| ```Colorize comment indent lines``` | ```Replaces the default gray comment indent lines with color-coded lines.``` | ```Reddit``` | ```2026.34.0, 2026.33.1, 2026.32.0, 2026.24.0, 2026.14.0``` |
+| ```Disable bottom navigation bar auto-hide``` | ```Prevents the bottom navigation bar from hiding when scrolling down.``` | ```Reddit``` | ```2026.34.0, 2026.33.1, 2026.32.0, 2026.24.0, 2026.14.0``` |
+| ```Disable home feed auto-refresh``` | ```Disables the automatic refresh of the home feed after viewing a post or after being away from the app.``` | ```Reddit``` | ```2026.34.0, 2026.33.1, 2026.32.0, 2026.24.0, 2026.14.0``` |
+| ```Disable home feed swipe``` | ```Disables the horizontal page swipe gesture used to switch feeds.``` | ```Reddit``` | ```2026.34.0, 2026.33.1, 2026.32.0, 2026.24.0, 2026.14.0``` |
+| ```Disable home screen redirect``` | ```Disables the automatic redirect to the home screen after being away from the app or returning from the background.``` | ```Reddit``` | ```2026.34.0, 2026.33.1, 2026.32.0, 2026.24.0, 2026.14.0``` |
+| ```Disable post detail swipe``` | ```Disables the horizontal swipe gesture used to navigate between posts.``` | ```Reddit``` | ```2026.34.0, 2026.33.1, 2026.32.0, 2026.24.0, 2026.14.0``` |
+| ```Disable screenshot banner``` | ```Disables the banner that shows up after taking a screenshot.``` | ```Reddit``` | ```2026.34.0, 2026.33.1, 2026.32.0, 2026.24.0, 2026.14.0``` |
+| ```Hide Ask button from search bar``` | ```Hides the Ask button (Reddit Answers) from the search bar.``` | ```Reddit``` | ```2026.34.0, 2026.33.1, 2026.32.0, 2026.24.0, 2026.14.0``` |
+| ```Hide awards``` | ```Hides the awards on Reddit posts and comments.``` | ```Reddit``` | ```2026.34.0, 2026.33.1, 2026.32.0, 2026.24.0, 2026.14.0``` |
+| ```Hide community highlights``` | ```Hides the community highlights section.``` | ```Reddit``` | ```2026.34.0, 2026.33.1, 2026.32.0, 2026.24.0, 2026.14.0``` |
+| ```Hide community menu badge``` | ```Hides the red notification badge on the community menu (hamburger menu).``` | ```Reddit``` | ```2026.34.0, 2026.33.1, 2026.32.0, 2026.24.0, 2026.14.0``` |
+| ```Hide post view counts``` | ```Removes the "views" indicator from the post metadata.``` | ```Reddit``` | ```2026.34.0, 2026.33.1, 2026.32.0, 2026.24.0, 2026.14.0``` |
+| ```Hide prominent search bar``` | ```Hides the new prominent search bar on the main screen. Applicable only to version 2026.24.0 and earlier.``` | ```Reddit``` | ```2026.34.0, 2026.33.1, 2026.32.0, 2026.24.0, 2026.14.0``` |
+| ```Hide share count``` | ```Hides the share count on Reddit posts.``` | ```Reddit``` | ```2026.34.0, 2026.33.1, 2026.32.0, 2026.24.0, 2026.14.0``` |
+| ```Hide upvote scores``` | ```Hides the scores on Reddit posts and comments.``` | ```Reddit``` | ```2026.34.0, 2026.33.1, 2026.32.0, 2026.24.0, 2026.14.0``` |
+| ```Hide user community badges``` | ```Hides the user community badges on Reddit comments.``` | ```Reddit``` | ```2026.34.0, 2026.33.1, 2026.32.0, 2026.24.0, 2026.14.0``` |
+| ```Hide user flairs``` | ```Hides the user flairs on Reddit comments.``` | ```Reddit``` | ```2026.34.0, 2026.33.1, 2026.32.0, 2026.24.0, 2026.14.0``` |
+| ```Open external links directly``` | ```Opens external links directly without going through out.reddit.com.``` | ```Reddit``` | ```2026.34.0, 2026.33.1, 2026.32.0, 2026.24.0, 2026.14.0``` |
+| ```Remove ads and telemetry``` | ```Removes ads and telemetry everywhere.``` | ```Reddit``` | ```2026.34.0, 2026.33.1, 2026.32.0, 2026.24.0, 2026.14.0``` |
+| ```Sanitize share links``` | ```Unshortens and removes the tracking query parameters from shared links.``` | ```Reddit``` | ```2026.34.0, 2026.33.1, 2026.32.0, 2026.24.0, 2026.14.0``` |
 | ```Block ads, trackers, and analytics``` | ```Blocks ads, trackers, analytics, and unwanted content in apps and games using a hosts file.``` | ```Universal``` | ```All versions``` |
 | ```Change package name``` | ```Appends ".adobo" to the package name by default. Changing the package name of the app can lead to unexpected issues.``` | ```Universal``` | ```All versions``` |
 | ```Deactivate Firebase Analytics``` | ```Deactivates Firebase Analytics and removes its associated broadcast receivers and services.``` | ```Universal``` | ```All versions``` |
@@ -4085,6 +4159,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Disable metrics collection in WebView``` | ```Disables the collection of diagnostic data or usage statistics that are sent to Google.``` | ```Universal``` | ```All versions``` |
 | ```Disable mobile ads``` | ```Disables banner, interstitial, and other ad formats.``` | ```Universal``` | ```All versions``` |
 | ```Remove internet permission``` | ```Removes unnecessary internet permission from apps that can still work without internet access.``` | ```Universal``` | ```All versions``` |
+| ```Remove screenshot detection``` | ```Prevents the app from detecting when a screenshot is taken.``` | ```Universal``` | ```All versions``` |
 | ```Replace Google Maps API key``` | ```Replaces the Google Maps API key with a custom key.``` | ```Universal``` | ```All versions``` |
 | ```Spoof Advertising ID``` | ```Spoofs the device's advertising ID with a string of zeros.``` | ```Universal``` | ```All versions``` |
 | ```Spoof Firebase certificate hash``` | ```Spoofs the app's package certificate hash used by Firebase Installations so that push notifications, remote config, and other Firebase services continue to work as expected.``` | ```Universal``` | ```All versions``` |
@@ -4149,11 +4224,13 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Rabilrbl Bundle Patch List:
 [📦 Rabilrbl-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-rabilrbl-patches-bundle-morphe)
 <details>
-<summary><b>Rabilrbl</b> - 1 patch, 1 app</summary>
+<summary><b>Rabilrbl</b> - 3 patches, 2 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
 | ```Unlock Premium``` | ```Unlocks premium features and disables ads by forcing both premium gates true.``` | ```droom.sleepIfUCan``` | ```26.32.1``` |
+| ```Bypass Instant Approval``` | ```Bypasses the local coin redemption step for Instant Approval actions.``` | ```io.funswitch.blocker``` | ```5.0.81``` |
+| ```Enable Premium``` | ```Enables BlockerX premium gates and premium module access.``` | ```io.funswitch.blocker``` | ```5.0.81``` |
 
 </details>
 
@@ -4755,14 +4832,14 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Rushiranpise Bundle Patch List:
 [📦 Rushiranpise-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-rushiranpise-patches-bundle-morphe)
 <details>
-<summary><b>Rushiranpise</b> - 337 patches, 245 apps</summary>
+<summary><b>Rushiranpise</b> - 341 patches, 248 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
 | ```Disable Analytics / Telemetry``` | ```Disables all Cloudflare telemetry by no-oping the analytics bundle builder and the Firebase event dispatchers.``` | ```1.1.1.1``` | ```6.38.8``` |
 | ```Disable SSL Pinning``` | ```Bypasses OkHttp certificate pinning on Cloudflare API calls to allow TLS traffic inspection.``` | ```1.1.1.1``` | ```6.38.8``` |
 | ```Spoof WARP+ Unlimited UI``` | ```Forces WarpPlusState to UNLIMITED on every AccountData instance by intercepting the primary constructor before the account type field is written.``` | ```1.1.1.1``` | ```6.38.8``` |
-| ```Unlock Pro``` | ```Unlocks 1Tap Cleaner PRO features: history export, app-group filters, unlimited cache targets, and ad removal.``` | ```1Tap Cleaner``` | ```5.21``` |
+| ```Unlock Pro``` | ```Unlocks App Cache Cleaner Pro and removes ads by bypassing Pairip LVL, signature checks, self-destruct, and all upgrade dialogs.``` | ```1Tap Cleaner``` | ```5.22``` |
 | ```Security Bypass``` | ```Disables AAAD's anti-tamper, anti-debug, and integrity checks to allow running on patched installations.``` | ```AAAD``` | ```2.8.5``` |
 | ```Unlock Pro``` | ```Unlocks AAAD Pro subscription features by bypassing Stripe and Firebase subscription checks.``` | ```AAAD``` | ```2.8.5``` |
 | ```Unlock Premium``` | ```Unlocks premium installation features by bypassing the Firestore license check.``` | ```AAEnabler``` | ```1.0.2``` |
@@ -4838,6 +4915,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Remove Ads``` | ```Removes advertisements and disables crash/analytics telemetry.``` | ```Cube Solver``` | ```5.0.3``` |
 | ```Unlock Premium``` | ```Unlocks premium features after login.``` | ```Dailyhunt``` | ```34.0.4``` |
 | ```Unlock Premium``` | ```Unlocks all premium wallpapers.``` | ```Depth Live Wallpaper``` | ```2.1.06``` |
+| ```Unlock Membership``` | ```Unlocks DramaBox VIP membership status locally by patching the DataStore VIP getter and setter, bypassing the Google Play Billing verification and server-side VIP flag propagation.``` | ```DramaBox``` | ```5.8.1``` |
 | ```Unlock Pro``` | ```Unlocks Drivvo Pro by patching all four gateway methods in the y9 subscription class: isPremium() → true, getPlanType() → 'pro', checkVehicleLimit() → true (no vehicle cap), checkPremiumScreen() → true (no screen lock).``` | ```Drivvo``` | ```9.6.1``` |
 | ```Enable Debug Menu``` | ```Enables Duolingo's hidden debug menu in settings.``` | ```Duolingo``` | ```6.90.3``` |
 | ```Unlock Subscription``` | ```Unlocks user-selectable Duolingo subscription tiers.``` | ```Duolingo``` | ```6.90.3``` |
@@ -4913,6 +4991,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Unlock VIP``` | ```Unlocks VIP and shows Life Member status for Money Manager - Budget & Meow.``` | ```Money Manager``` | ```1.9.9``` |
 | ```Unlock Moovit+``` | ```Unlocks Moovit+ premium features, removes ads, and suppresses all upgrade paywalls and UI.``` | ```Moovit``` | ```5.197.1.1801``` |
 | ```Unlock VIP``` | ```Unlocks VIP features in MovieBox TV.``` | ```MovieBox TV``` | ```1.1.6.0723.03``` |
+| ```Unlock Supporter``` | ```Spoofs MAL supporter status to suppress all banner, list, and search ads.``` | ```MyAnimeList``` | ```2.3.16``` |
 | ```Unlock Premium``` | ```Unlocks MyRadar's yearly premium features``` | ```MyRadar``` | ```8.72.0``` |
 | ```Unlock premium``` | ```Unlocks NAVITIME Japan Travel Premium features in app``` | ```NAVITIME``` | ```12.0.10``` |
 | ```Unlock Pro``` | ```Unlocks all pro features in NetGuard.``` | ```NetGuard``` | ```2.337``` |
@@ -4960,15 +5039,21 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Unlock Premium``` | ```Unlocks all premium features in re-Link by forcing the license StateFlow to always emit a Licensed state and the sync purchase check to always return true.``` | ```re-Link``` | ```2.0.13``` |
 | ```Unlock Premium``` | ```Unlocks RecipeBro premium by patching both CustomerInfo and FeatureFlagResponse premium gates.``` | ```RecipeBro``` | ```1.7.21``` |
 | ```Disable Screenshot Popup``` | ```Suppresses the share prompt that appears after taking a screenshot.``` | ```Reddit``` | ```2026.32.0``` |
+| ```Fix RedGifs Audio``` | ```Routes RedGifs embeds through the WebView iframe path so videos play with audio instead of using the silent direct-stream URL.``` | ```Reddit``` | ```2026.32.0``` |
 | ```Hide Ads``` | ```Removes promoted posts and comment ads without requiring Reddit Premium unlock.``` | ```Reddit``` | ```2026.32.0``` |
+| ```Hide Answers Tab``` | ```Removes the AI Answers tab from the bottom navigation bar.``` | ```Reddit``` | ```2026.32.0``` |
+| ```Hide Chat Tab``` | ```Removes the Chat button from the bottom navigation bar.``` | ```Reddit``` | ```2026.32.0``` |
 | ```Hide Communities Shelf``` | ```Hides the related or suggested communities shelf in subreddits.``` | ```Reddit``` | ```2026.32.0``` |
+| ```Hide Games Tab``` | ```Removes the Games tab from the bottom navigation bar.``` | ```Reddit``` | ```2026.32.0``` |
 | ```Hide Navigation Buttons``` | ```Removes the Create Post button from the bottom navigation bar.``` | ```Reddit``` | ```2026.32.0``` |
 | ```Hide Promoted Posts``` | ```Blanks the promoted post render method and forces promoted/ad flags to false at the model layer.``` | ```Reddit``` | ```2026.32.0``` |
 | ```Hide Sidebar Components``` | ```Hides About, Resources, and Reddit Pro sections from the community sidebar.``` | ```Reddit``` | ```2026.32.0``` |
 | ```Hide Trending Shelves``` | ```Removes Trending Today from the feed and trending searches from the search screen.``` | ```Reddit``` | ```2026.32.0``` |
 | ```Remove Subreddit Dialogs``` | ```Suppresses the notification re-enable prompt that appears on subreddit visits.``` | ```Reddit``` | ```2026.32.0``` |
 | ```Sanitize Sharing Links``` | ```Returns the raw permalink before UTM tracking parameters are appended to shared Reddit URLs.``` | ```Reddit``` | ```2026.32.0``` |
+| ```Show Comment Karma``` | ```Ensures comment karma is surfaced alongside link karma on the profile header.``` | ```Reddit``` | ```2026.32.0``` |
 | ```Unlock Premium``` | ```Unlocks Reddit Premium features and removes all ads client-side.``` | ```Reddit``` | ```2026.32.0``` |
+| ```Username Hider``` | ```Replaces the displayed username with 'u/hidden' for screen-sharing privacy.``` | ```Reddit``` | ```2026.32.0``` |
 | ```Unlock Premium``` | ```Unlocks Relane VPN Premium by patching the RevenueCat SDK to always report an active "premium_vpn" entitlement, enabling premium servers, unlimited data, and premium sync.``` | ```Relane VPN``` | ```2026073010.0.0``` |
 | ```Unlock Premium``` | ```Unlocks all premium features in Rename & Organize.``` | ```Rename & Organize``` | ```8.30.0``` |
 | ```Unlock Premium``` | ```Unlocks Rocket Money Premium Features.``` | ```Rocket Money``` | ```13.15.0``` |
@@ -4998,24 +5083,20 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Unlock Premium``` | ```Unlocks Tag Tracker PRO: unlimited trackers, advanced detection, full history, and ad-free experience.``` | ```Tag Tracker``` | ```1.3.2``` |
 | ```Privacy Enhancements``` | ```Suppresses outbound read receipts and prevents admin quiet-hours policies from overriding your presence status.``` | ```Teams``` | ```1416/1.0.0.2026152302``` |
 | ```Unlock Teams``` | ```Unlocks Teams Premium features.``` | ```Teams``` | ```1416/1.0.0.2026152302``` |
-| ```Disable analytics``` | ```Blocks all Firebase analytics and event tracking in Telegram Plus.``` | ```Telegram Plus``` | ```12.9.2.0``` |
-| ```Disable auto-update``` | ```Disables automatic app update checks in Telegram Plus.``` | ```Telegram Plus``` | ```12.9.2.0``` |
-| ```Hide typing indicator``` | ```Prevents typing status from being sent in Telegram Plus.``` | ```Telegram Plus``` | ```12.9.2.0``` |
-| ```Plus Premium``` | ```Unlocks premium UI and suppresses premium nag dialogs. isPremiumUser returns true only for self to avoid showing premium badges on others.``` | ```Telegram Plus``` | ```12.9.2.0``` |
-| ```Remove ads``` | ```Removes Plus banner ads, native ads, Telegram sponsored messages, and video ads.``` | ```Telegram Plus``` | ```12.9.2.0``` |
-| ```Anti-delete messages``` | ```Prevents messages deleted by other users from being removed locally.``` | ```Telegram Web, Telegram Plus``` | ```12.9.2, 12.9.2.0``` |
-| ```Anti-disappearing media``` | ```Keeps view-once photos, videos and voice messages viewable indefinitely.``` | ```Telegram Web, Telegram Plus``` | ```12.9.2, 12.9.2.0``` |
-| ```Anti-screenshot notification``` | ```Blocks screenshot notifications from being sent to the other user.``` | ```Telegram Web, Telegram Plus``` | ```12.9.2, 12.9.2.0``` |
-| ```Bypass channel restrictions``` | ```Allows opening, viewing, saving and forwarding content from restricted, sensitive, and copyright-restricted channels.``` | ```Telegram Web, Telegram Plus``` | ```12.9.2, 12.9.2.0``` |
-| ```Bypass content restrictions``` | ```Allows saving and forwarding content from restricted channels, chats, and users.``` | ```Telegram Web, Telegram Plus``` | ```12.9.2, 12.9.2.0``` |
-| ```Bypass integrity check``` | ```Spoofs certificate fingerprint and SafetyNet results so login works on a patched APK.``` | ```Telegram Web, Telegram Plus``` | ```12.9.2, 12.9.2.0``` |
-| ```Disable auto-update``` | ```Disables automatic app update checks, the blocking update screen, and the proxy sponsor channel insertion.``` | ```Telegram Web, Telegram Plus``` | ```12.9.2, 12.9.2.0``` |
-| ```Disable channel switching``` | ```Disables the pull-down gesture that switches to the next unread channel.``` | ```Telegram Web, Telegram Plus``` | ```12.9.2, 12.9.2.0``` |
-| ```Download speed boost``` | ```Increases download chunk size to 512 KB and max concurrent requests to 8.``` | ```Telegram Web, Telegram Plus``` | ```12.9.2, 12.9.2.0``` |
-| ```Hide typing indicator``` | ```Hides your typing indicator from other users in all chats.``` | ```Telegram Web, Telegram Plus``` | ```12.9.2, 12.9.2.0``` |
-| ```Remove ads``` | ```Removes sponsored messages and video ads from all chats and channels.``` | ```Telegram Web, Telegram Plus``` | ```12.9.2, 12.9.2.0``` |
-| ```Unlock Premium``` | ```Unlocks Telegram Premium features for the current account.``` | ```Telegram Web, Telegram Plus``` | ```12.9.2, 12.9.2.0``` |
-| ```Voice to music``` | ```Plays voice notes in the full music player with seek bar and background playback.``` | ```Telegram Web, Telegram Plus``` | ```12.9.2, 12.9.2.0``` |
+| ```Disable analytics``` | ```Blocks Firebase analytics and event tracking in Telegram Plus. FirebaseApp.initializeApp() is preserved so push notifications keep working.``` | ```Telegram Plus``` | ```12.9.2.0``` |
+| ```Anti-delete messages``` | ```Prevents messages deleted by other users from being removed locally.``` | ```Telegram, Telegram Web, Telegram Plus``` | ```12.9.2, 12.9.2, 12.9.2.0``` |
+| ```Anti-disappearing media``` | ```Keeps view-once photos, videos and voice messages viewable indefinitely.``` | ```Telegram, Telegram Web, Telegram Plus``` | ```12.9.2, 12.9.2, 12.9.2.0``` |
+| ```Anti-screenshot notification``` | ```Blocks screenshot notifications from being sent to the other user.``` | ```Telegram, Telegram Web, Telegram Plus``` | ```12.9.2, 12.9.2, 12.9.2.0``` |
+| ```Bypass channel restrictions``` | ```Allows opening, viewing, saving and forwarding content from restricted, sensitive, and copyright-restricted channels.``` | ```Telegram, Telegram Web, Telegram Plus``` | ```12.9.2, 12.9.2, 12.9.2.0``` |
+| ```Bypass content restrictions``` | ```Allows saving and forwarding content from restricted channels, chats, and users.``` | ```Telegram, Telegram Web, Telegram Plus``` | ```12.9.2, 12.9.2, 12.9.2.0``` |
+| ```Bypass integrity check``` | ```Spoofs certificate fingerprint and SafetyNet results so login works on patched APK.``` | ```Telegram, Telegram Web, Telegram Plus``` | ```12.9.2, 12.9.2, 12.9.2.0``` |
+| ```Disable auto-update``` | ```Disables automatic app update checks, the blocking update screen, and the proxy sponsor channel insertion. On Telegram Plus also disables the Plus-specific updater and update settings flag.``` | ```Telegram, Telegram Web, Telegram Plus``` | ```12.9.2, 12.9.2, 12.9.2.0``` |
+| ```Disable channel switching``` | ```Disables the pull-down gesture that switches to the next unread channel.``` | ```Telegram, Telegram Web, Telegram Plus``` | ```12.9.2, 12.9.2, 12.9.2.0``` |
+| ```Download speed boost``` | ```Increases download chunk size to 1 MB and max concurrent requests to 12.``` | ```Telegram, Telegram Web, Telegram Plus``` | ```12.9.2, 12.9.2, 12.9.2.0``` |
+| ```Hide typing indicator``` | ```Hides your typing indicator from other users in all chats. On Telegram Plus also silences the controller-level sendTyping dispatcher.``` | ```Telegram, Telegram Web, Telegram Plus``` | ```12.9.2, 12.9.2, 12.9.2.0``` |
+| ```Remove ads``` | ```Removes sponsored messages and video ads from all chats and channels. On Telegram Plus also blocks native banner and inline ads.``` | ```Telegram, Telegram Web, Telegram Plus``` | ```12.9.2, 12.9.2, 12.9.2.0``` |
+| ```Unlock Premium``` | ```Unlocks Telegram Premium features for the current account.``` | ```Telegram, Telegram Web, Telegram Plus``` | ```12.9.2, 12.9.2, 12.9.2.0``` |
+| ```Voice to music``` | ```Plays voice notes in the full music player with seek bar and background playback.``` | ```Telegram, Telegram Web, Telegram Plus``` | ```12.9.2, 12.9.2, 12.9.2.0``` |
 | ```Unlock VIP``` | ```Unlocks TeraBox / Dubox Drive VIP/SVIP (Premium+).``` | ```TeraBox``` | ```4.22.6``` |
 | ```Unlock Premium``` | ```Bypasses The Athletic paywall and removes all ads.``` | ```The Athletic``` | ```13.146.0``` |
 | ```Unlock Premium``` | ```Unlocks The Weather Channel's Premium and Premium Pro subscription tiers. Enables the ad-free experience, extended 15-day hourly forecast, real-feel temperature, air quality index, minute-by-minute precipitation, severe weather notifications, and radar overlays gated behind the subscription paywall.``` | ```The Weather Channel``` | ```16.16.0``` |
@@ -5333,10 +5414,12 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 HXReborn Bundle Patch List:
 [📦 HXReborn-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-hxreborn-patches-bundle-morphe)
 <details>
-<summary><b>HXReborn</b> - 20 patches, 12 apps</summary>
+<summary><b>HXReborn</b> - 22 patches, 13 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
+| ```Bypass signature check``` | ```Removes the modified-version warning and restores address search and auto-routing.``` | ```AlpineQuest``` | ```All versions``` |
+| ```Unlock full version``` | ```Unlocks the Off-Road Explorer features gated behind activation.``` | ```AlpineQuest``` | ```All versions``` |
 | ```Hide membership upselling``` | ```Hides the membership promotion on the Home screen and the free trial bottom sheet.``` | ```Audible``` | ```All versions``` |
 | ```Open Library on launch``` | ```Opens the Library tab instead of Home on launch. Applies only while signed in.``` | ```Audible``` | ```All versions``` |
 | ```Hide ads``` | ```Removes promoted listings and the "with Ads" label from search results.``` | ```Etsy``` | ```7.90.0``` |
@@ -5385,9 +5468,9 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Brave Origin``` | ```Unlocks Brave Origin and enables feature toggle controls.``` | ```Brave Browser, Brave Beta, Brave Nightly``` | ```1.92.140``` |
+| ```Brave Origin``` | ```Unlocks Brave Origin and enables feature toggle controls.``` | ```Brave Browser, Brave Beta, Brave Nightly``` | ```All versions``` |
 | ```Keep Helium Child Processes Alive``` | ```Experimental: applies to all Helium child processes; forces STRONG binding at launch and IMPORTANT/STRONG on priority updates. May increase RAM, battery, and process pressure; only reduces LMK probability. Does not detect, reload, or back off crashed extensions.``` | ```Helium Browser``` | ```All versions``` |
-| ```Block Quetta bundled extension installation``` | ```Blocks bundled extension installation/reinstallation on arm64-v8a APKs (framework does not enforce ABI). Does not remove copies already present in existing profiles.``` | ```Quetta Browser, Quetta Browser Official``` | ```All versions``` |
+| ```Block Quetta bundled extension installation``` | ```Blocks bundled extension installation/reinstallation on arm64-v8a APKs (the framework does not enforce ABI restrictions). Does not remove copies already present in existing profiles. Takes effect immediately on clean installs.``` | ```Quetta Browser, Quetta Browser Official``` | ```All versions``` |
 | ```Change app icon``` | ```Changes the Android launcher icon using a custom PNG image. Use a square image with transparent adaptive-icon padding.``` | ```Universal``` | ```All versions``` |
 | ```Change app name``` | ```Changes the app name shown by Android launchers. Set the desired name in the patch options.``` | ```Universal``` | ```All versions``` |
 | ```Disable analytics``` | ```Disables Firebase Analytics, Crashlytics and Performance through manifest opt-outs and exact runtime setters when present. Other SDK components are disabled only when explicitly declared; custom or server-side telemetry is not covered.``` | ```Universal``` | ```All versions``` |
@@ -5553,10 +5636,10 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Bypass Google Sign-In``` | ```Bypasses SHA-1 check by using embedded WebView OAuth for Google Sign-In.``` | ```SofaTime``` | ```1.2.2, 1.2.3, 1.2.4, 1.2.5, 1.2.7``` |
-| ```Bypass license check``` | ```Bypasses PairIP license verification.``` | ```SofaTime``` | ```1.2.2, 1.2.3, 1.2.4, 1.2.5, 1.2.7``` |
-| ```Disable telemetry``` | ```Disables Firebase Crashlytics, Sessions, and Analytics.``` | ```SofaTime``` | ```1.2.2, 1.2.3, 1.2.4, 1.2.5, 1.2.7``` |
-| ```Unlock premium features``` | ```Unlocks all premium capabilities.``` | ```SofaTime``` | ```1.2.2, 1.2.3, 1.2.4, 1.2.5, 1.2.7``` |
+| ```Bypass Google Sign-In``` | ```Bypasses SHA-1 check by using embedded WebView OAuth for Google Sign-In.``` | ```SofaTime``` | ```1.2.2, 1.2.3, 1.2.4, 1.2.5, 1.2.7, 1.2.8, 1.2.9``` |
+| ```Bypass license check``` | ```Bypasses PairIP license verification.``` | ```SofaTime``` | ```1.2.2, 1.2.3, 1.2.4, 1.2.5, 1.2.7, 1.2.8, 1.2.9``` |
+| ```Disable telemetry``` | ```Disables Firebase Crashlytics, Sessions, and Analytics.``` | ```SofaTime``` | ```1.2.2, 1.2.3, 1.2.4, 1.2.5, 1.2.7, 1.2.8, 1.2.9``` |
+| ```Unlock premium features``` | ```Unlocks all premium capabilities.``` | ```SofaTime``` | ```1.2.2, 1.2.3, 1.2.4, 1.2.5, 1.2.7, 1.2.8, 1.2.9``` |
 
 </details>
 
@@ -6204,17 +6287,19 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Flexboard Bundle Patch List:
 [📦 Flexboard-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-flexboard-patches-bundle-morphe)
 <details>
-<summary><b>Flexboard</b> - 7 patches, 1 app</summary>
+<summary><b>Flexboard</b> - 9 patches, 1 app</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
 | ```Bigger Toolbar``` | ```Makes the number of icons on the toolbar above the keyboard adjustable, from Gboard's own settings. Anything past the limit stays in the overflow menu.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Bypass Gboard Signature``` | ```Bypass Gboard's signature whitelist checks and force them to pass.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```Grammar Check Row``` | ```Force the grammar check settings row to appear. The Phenotype flag that governs it never syncs on a patched build, so its compiled-in default (off) sticks.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Install as Gboard Clone``` | ```Rename the package to dev.jz6.com.google.android.inputmethod.latin so the patched build installs alongside the official Gboard instead of replacing it.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Suggested Settings``` | ```Turns on flick keys for symbols, touch & hold keys for numbers, suggestion strip, grammar check and smart replies, and turns off block offensive words and word suggestions. Written once as defaults, so each can still be changed in Gboard's own settings.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Swipe Right to Undo``` | ```Swipe right after deleting to put the words back. Uses Gboard's own undo, which already records what a delete swipe removed.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Swipe to Delete``` | ```Swipe left anywhere on the keyboard to delete the previous word, and swipe right to restore it. Uses Gboard's own word-scrub engine, so it behaves exactly like swiping on the backspace key already does — only it can start anywhere.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
-| ```Toolbar Buttons``` | ```Add Select all, Copy and Paste buttons to the toolbar above the keyboard, so each is one tap instead of opening Gboard's text editing panel first. Adds six hotkey buttons too, each typing a string you set in Flexboard's settings — they only appear once you have filled one in.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```Toolbar Buttons``` | ```Add Select all, Copy and Paste buttons to the toolbar above the keyboard, so each is one tap instead of opening Gboard's text editing panel first. Registered natively, so drag-to-reorder through the toolbar customize page persists.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```Toolbar Native Test``` | ```Add a 'Test' button to the toolbar through Gboard's own access-point registry so drag reorder and persistence work natively. Writes 'test' at the cursor on tap. Architectural proof-of-concept; off by default.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
 
 </details>
 

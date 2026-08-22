@@ -49,18 +49,6 @@ PAIRS = [
     ("TEXT_ACTION_SELECT_ALL", "SELECT_ALL"),
     ("TEXT_ACTION_COPY", "COPY"),
     ("TEXT_ACTION_PASTE", "PASTE"),
-    # How many hotkey slots exist, and the drawable each one wears. The count decides how many
-    # blocks the patch emits and how many rows the screen draws; the icons are what the patch puts
-    # on the button and what the screen previews beside the field that fills it. A drifted icon
-    # would show the user one shape and put another on the toolbar -- the single thing that makes
-    # six otherwise identical buttons tellable apart, quietly wrong.
-    ("HOTKEY_SLOT_COUNT", "HOTKEY_SLOT_COUNT"),
-    ("HOTKEY_ICON_1", "HOTKEY_ICON_1"),
-    ("HOTKEY_ICON_2", "HOTKEY_ICON_2"),
-    ("HOTKEY_ICON_3", "HOTKEY_ICON_3"),
-    ("HOTKEY_ICON_4", "HOTKEY_ICON_4"),
-    ("HOTKEY_ICON_5", "HOTKEY_ICON_5"),
-    ("HOTKEY_ICON_6", "HOTKEY_ICON_6"),
 ]
 
 # Hex is accepted because resource ids are written that way on both sides -- and on the Kotlin side
@@ -127,6 +115,18 @@ EMITTED_CALL = re.compile(
 HELPER_CALLS = {"callAtAppStart": "static"}
 
 HELPER_CALL = re.compile(rf"\b({'|'.join(HELPER_CALLS)})\(\s*([A-Z_][A-Z0-9_]*)\s*\)")
+
+# A second helper shape: `emitNativeToolbarButtons(builder, listOf(NativeToolbarButton(...)))`.
+# There is no single call-site descriptor to extract, because the button is a data-class spec —
+# the opcode is one `new-instance` + `invoke-direct` pair per NativeToolbarButton, and the action
+# comes from its `actionCtor = X` named argument. Constructors may take Int args (the helper
+# emits one `const/4`/`const/16` per arg) so the member may be either `<init>()V` or
+# `<init>(I…)V`. Accept both a const-val name and a direct string literal; either way the
+# resulting string must be a full `<init>(…)V` descriptor.
+NATIVE_TOOLBAR_HELPER = "emitNativeToolbarButtons"
+NATIVE_TOOLBAR_ARG = re.compile(
+    r'\bactionCtor\s*=\s*([A-Z_][A-Z0-9_]*|"(?:' + EXTENSION_TYPE + r')-><init>\([^)]*\)V")'
+)
 
 MEMBER = re.compile(
     rf"^({EXTENSION_TYPE})->(<init>|\w+)\(([^)]*)\)(\[*(?:L[\w/$;]+;|[VZBSCIJFD]))$"
@@ -206,7 +206,10 @@ def _declares(body, class_name, member, params, returns, needs_static):
 
 def _check_extension_references(problems):
     for path in PATCHES.rglob("*.kt"):
-        text = _expand(path.read_text())
+        # Comments first: KDoc talking about a member descriptor is not an emission of it, and
+        # the "silently stopped checking anything" guard has false-fired on patches that
+        # referenced an extension class only to explain it in prose.
+        text = _expand(LINE_COMMENT.sub("", BLOCK_COMMENT.sub("", path.read_text())))
 
         sources = {}
         for descriptor in sorted(set(re.findall(EXTENSION_TYPE, text))):
@@ -245,6 +248,30 @@ def _check_extension_references(problems):
                 )
                 continue
             emitted.append((HELPER_CALLS[helper], *match.groups()))
+
+        # The button helper has no one-call descriptor to parse; each NativeToolbarButton's
+        # `actionCtor = X` named arg declares what gets emitted as `invoke-direct X` (a
+        # constructor). Checked the same way whether `X` is a const name or a direct string —
+        # escaping the helper boundary is the whole point of declaring it as a const.
+        if NATIVE_TOOLBAR_HELPER in text:
+            for arg in NATIVE_TOOLBAR_ARG.findall(text):
+                descriptor = (
+                    arg[1:-1] if arg.startswith('"') else constants.get(arg)
+                )
+                if descriptor is None:
+                    problems.append(
+                        f"  {path.name} calls {NATIVE_TOOLBAR_HELPER}, whose actionCtor {arg} is "
+                        f"not a string constant in that file, so what it emits cannot be checked"
+                    )
+                    continue
+                match = MEMBER.match(descriptor)
+                if match is None:
+                    problems.append(
+                        f"  {path.name} calls {NATIVE_TOOLBAR_HELPER}, whose actionCtor value "
+                        f"{descriptor!r} is not a complete extension member descriptor"
+                    )
+                    continue
+                emitted.append(("direct", *match.groups()))
 
         checked = 0
         for opcode, descriptor, member, parameters, returns in emitted:

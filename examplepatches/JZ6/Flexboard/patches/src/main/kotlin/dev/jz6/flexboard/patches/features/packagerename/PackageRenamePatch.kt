@@ -8,6 +8,7 @@ import dev.jz6.flexboard.patches.shared.Constants.GBOARD_PATCHED_PACKAGE_NAME
 import dev.jz6.flexboard.patches.shared.Constants.GBOARD_SETTINGS_XML
 import dev.jz6.flexboard.patches.shared.Constants.SETTINGS_ACTIVITY_CLASS
 import dev.jz6.flexboard.patches.shared.androidAttribute
+import dev.jz6.flexboard.patches.shared.basePatch
 import dev.jz6.flexboard.patches.shared.setAndroidAttribute
 import org.w3c.dom.Attr
 import org.w3c.dom.Document
@@ -19,14 +20,19 @@ import org.w3c.dom.NodeList
  * Renames the application package so a patched build installs beside the official Gboard rather
  * than replacing it. Both keyboards stay available in the keyboard picker.
  *
- * Fifteen manifest values embed the package name — the root `package`, two permissions, two
- * phenotype registration keys, a deeplink host, a receiver permission and eight provider
- * authorities. Every one has to move together: a provider authority left on the original value
- * collides with the installed official Gboard and the install fails outright.
+ * Thirteen manifest values embed the package name — the root `package`, two permissions, a
+ * deeplink host, a receiver permission and eight provider authorities. Every one has to move
+ * together: a provider authority left on the original value collides with the installed official
+ * Gboard and the install fails outright.
+ *
+ * Notably absent from the rename are the two Phenotype registration meta-data keys. Gboard queries
+ * Phenotype via a content URI built from `AllFlags.STATICMENDELPACKAGENAME`, a `static final String`
+ * baked in as the original package name at compile time. The manifest registration must match that
+ * value or GMS cannot resolve the flags, so those two entries stay on the original package name.
  *
  * So this is deliberately strict. Each value is expected exactly once, and after rewriting the
  * known ones it sweeps the whole manifest for anything else still mentioning the package. A Gboard
- * update that adds a sixteenth authority therefore fails the patch rather than shipping a
+ * update that adds a fourteenth authority therefore fails the patch rather than shipping a
  * half-renamed app.
  *
  * Idempotent: an already-renamed manifest is validated and left alone rather than double-prefixed.
@@ -39,6 +45,8 @@ val installAsGboardClonePatch = resourcePatch(
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_GBOARD)
+
+    dependsOn(basePatch)
 
     finalize {
         document("AndroidManifest.xml").use { manifest ->
@@ -107,7 +115,9 @@ private fun Document.renameGboardPackage() {
     }
 
     val unexpected = attributes.firstOrNull { attribute ->
-        GBOARD_PACKAGE_NAME in attribute.value && selected.none { it === attribute }
+        GBOARD_PACKAGE_NAME in attribute.value &&
+            selected.none { it === attribute } &&
+            KEEP_ORIGINAL.none { attribute.matches(it) }
     }
     check(unexpected == null) {
         "Unexpected package-derived manifest value at " +
@@ -146,16 +156,6 @@ private val RENAME_MAPPINGS = listOf(
         "name",
         "$GBOARD_PACKAGE_NAME.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
     ),
-    androidMapping(
-        "meta-data",
-        "name",
-        "com.google.android.gms.phenotype.registration.binarypb:$GBOARD_PACKAGE_NAME",
-    ),
-    androidMapping(
-        "meta-data",
-        "name",
-        "com.google.android.gms.phenotype.registration.xml:$GBOARD_PACKAGE_NAME",
-    ),
     androidMapping("data", "host", "deeplink.$GBOARD_PACKAGE_NAME"),
     androidMapping("receiver", "permission", "$GBOARD_PACKAGE_NAME.pixelbundle.RECEIVER"),
     androidMapping("provider", "authorities", GBOARD_PACKAGE_NAME),
@@ -166,6 +166,19 @@ private val RENAME_MAPPINGS = listOf(
     androidMapping("provider", "authorities", "$GBOARD_PACKAGE_NAME.tracing"),
     androidMapping("provider", "authorities", "$GBOARD_PACKAGE_NAME.wdb"),
     androidMapping("provider", "authorities", "$GBOARD_PACKAGE_NAME.mlkitinitprovider"),
+)
+
+/**
+ * Manifest values that contain the original package name but must NOT be renamed.
+ *
+ * Phenotype registration keys: Gboard queries Phenotype via a content URI built from
+ * `AllFlags.STATICMENDELPACKAGENAME`, a `static final String` baked in as the original
+ * package name at compile time. The manifest registration must match that value, so
+ * these entries stay on the original name.
+ */
+private val KEEP_ORIGINAL = listOf(
+    androidMapping("meta-data", "name", "com.google.android.gms.phenotype.registration.binarypb:$GBOARD_PACKAGE_NAME"),
+    androidMapping("meta-data", "name", "com.google.android.gms.phenotype.registration.xml:$GBOARD_PACKAGE_NAME"),
 )
 
 /** Derived rather than written out, so it cannot drift from the rename itself. */

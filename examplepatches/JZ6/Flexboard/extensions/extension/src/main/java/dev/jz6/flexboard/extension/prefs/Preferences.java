@@ -28,9 +28,10 @@ import android.content.SharedPreferences;
  * preferences in direct-boot storage.
  *
  * <p>Mirrored line for line rather than paraphrased, including the {@code getApplicationContext}
- * call, so the two sides cannot drift. Deriving the file name from {@link Context#getPackageName()}
- * is what keeps it correct after the package-rename patch, since every caller resolves the same
- * running package.
+ * call, so the two sides cannot drift. The file name comes from {@link Context#getPackageName()}
+ * at runtime, so it follows whichever package the build actually is: renamed installs get the
+ * renamed file, and — because the rename patch is selectable — an un-renamed build must not be
+ * stranded writing a file nothing else reads.
  *
  * <p>There is no version guard because there is nothing to guard against: both context methods are
  * API 24 and Gboard's manifest declares {@code minSdkVersion} 26, so they are below the floor this
