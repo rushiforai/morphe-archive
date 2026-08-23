@@ -1,6 +1,7 @@
 package dev.freeman022026.rustore.patches
 
 import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.rawResourcePatch
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 
@@ -84,6 +85,87 @@ private val samsungRequiredCapabilities = setOf(
 )
 
 private const val ANDROID_NAMESPACE = "http://schemas.android.com/apk/res/android"
+
+private fun String.decodeHex(): ByteArray {
+    require(length % 2 == 0)
+    return chunked(2).map { it.toInt(16).toByte() }.toByteArray()
+}
+
+private val officialRuStoreCertificateDigest =
+    "661f20828ef780de0b79bc59f26a30864316355f30e4f91cfa14a20791839914".decodeHex()
+
+private data class NativeSignaturePatchSpec(
+    val abi: String,
+    val digestOffset: Int,
+    val codeOffset: Int,
+    val expectedCode: ByteArray,
+    val replacementCode: ByteArray
+)
+
+private val nativeSignaturePatchSpecs = listOf(
+    NativeSignaturePatchSpec(
+        "arm64-v8a",
+        0x87e0,
+        0x1594c,
+        "220340f9e10216cbe00316aad3fcff97760000b4e00316aaf9030094".decodeHex(),
+        "280340f98974f910200540ad000500ad760000b4e00316aaf9030094".decodeHex()
+    ),
+    NativeSignaturePatchSpec(
+        "armeabi-v7a",
+        0x3e96,
+        0x9c40,
+        "d9f80020a8eb07013846fff729fb002f1cbf384600f088fc".decodeHex(),
+        "d9f8000045f6b6517a46a2eb010121f90f0200f90f02ffe7".decodeHex()
+    ),
+    NativeSignaturePatchSpec(
+        "x86",
+        0x320e,
+        0x140f4,
+        "29f78b450089442408897c2404893424e807f3ffff85f67408893424e84b0e0000".decodeHex(),
+        "568b7d008db35ae7fcffb908000000f3a55e85f6740b893424e84e0e0000909090".decodeHex()
+    ),
+    NativeSignaturePatchSpec(
+        "x86_64",
+        0x8600,
+        0x15556,
+        "4c29ed488b134c89ef4889eee8d9f3ffff4d85ed74084c89efe84c0f0000".decodeHex(),
+        "488b3b488d35a030ffff6a0459f348a54d85ed74094c89efe84d0f000090".decodeHex()
+    )
+)
+
+@Suppress("unused")
+val restoreSecureSessionCompatibilityPatch = rawResourcePatch(
+    name = "Restore secure-session compatibility",
+    description = "Adapts secure-session requests to RuStore 1.108 API changes for re-signed APKs.",
+    default = true
+) {
+    compatibleWith(RUSTORE_COMPATIBILITY)
+
+    execute {
+        val expectedDigestStorage =
+            "(base != 0) && \"DW_EH_PE_datarel".encodeToByteArray()
+        nativeSignaturePatchSpecs.forEach { spec ->
+            val library = get("lib/${spec.abi}/libbridge_helper.so", false)
+            val bytes = library.readBytes()
+            require(bytes.copyOfRange(
+                spec.digestOffset,
+                spec.digestOffset + expectedDigestStorage.size
+            ).contentEquals(expectedDigestStorage)) {
+                "RuStore native signature digest storage anchor changed for ${spec.abi}"
+            }
+            require(bytes.copyOfRange(
+                spec.codeOffset,
+                spec.codeOffset + spec.expectedCode.size
+            ).contentEquals(spec.expectedCode)) {
+                "RuStore native signature code anchor changed for ${spec.abi}"
+            }
+
+            officialRuStoreCertificateDigest.copyInto(bytes, spec.digestOffset)
+            spec.replacementCode.copyInto(bytes, spec.codeOffset)
+            library.writeBytes(bytes)
+        }
+    }
+}
 
 private val manifestComponentTags = setOf(
     "activity",
@@ -312,6 +394,7 @@ internal val analyticsManifestPatch = resourcePatch {
             "ru.vk.store.feature.storeapp.install.referrer" to
                 "xu.vk.store.feature.storeapp.install.referrer",
             "ru.rustore.sdk.metrics" to "xu.rustore.sdk.metrics",
+            "ru.ok.tracer" to "xu.ok.tracer",
             "io.appmetrica" to "xo.appmetrica",
             "com.vk.superapp.logs" to "xom.vk.superapp.logs",
             "com.google.android.datatransport" to "xom.google.android.datatransport"
@@ -343,7 +426,8 @@ val disablePushServicesPatch = resourcePatch(
                 "com.google.android.c2dm.permission.XECEIVE"
         )
         val prefixes = linkedMapOf(
-            "ru.rustore.sdk.pushclient.provider" to "xu.rustore.sdk.pushclient.provider",
+            "ru.rustore.sdk.pushclient" to "xu.rustore.sdk.pushclient",
+            "ru.vk.store.feature.push.client" to "xu.vk.store.feature.push.client",
             "com.vk.push" to "xom.vk.push"
         )
         document("AndroidManifest.xml").use { document ->

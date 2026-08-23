@@ -1,17 +1,17 @@
 {
   "apk": {
     "package_name": "ru.vk.store",
-    "sha256": "b7b030551300b23fdbeb14a96fb9ff3f8a10bb85c802558d82f66bb1e3b273ee",
+    "sha256": "a45c63de41baed81d82cc0b3aebdbb27ee3a2d506ad5ea40b2be0960fbb5d041",
     "signer_sha256": "661f20828ef780de0b79bc59f26a30864316355f30e4f91cfa14a20791839914",
-    "size": 86894125,
-    "version_code": "1107003",
-    "version_name": "1.107.0.3"
+    "size": 87415515,
+    "version_code": "1108002",
+    "version_name": "1.108.0.2"
   },
-  "audited_at": "2026-08-17T21:57:02.717312+00:00",
+  "audited_at": "2026-08-22T08:10:22.171706+00:00",
   "http": {
-    "content_length": 86894125,
-    "etag": "\"b4e1f99092a2a733c0b4ed1b4b242488-6\"",
-    "last_modified": "Fri, 07 Aug 2026 09:00:04 GMT",
+    "content_length": 87415515,
+    "etag": "\"98a3cc0771343b88d27b23ffca8cf6e1-6\"",
+    "last_modified": "Fri, 21 Aug 2026 07:41:19 GMT",
     "url": "https://static.rustore.ru/release/RuStore.apk"
   }
 }

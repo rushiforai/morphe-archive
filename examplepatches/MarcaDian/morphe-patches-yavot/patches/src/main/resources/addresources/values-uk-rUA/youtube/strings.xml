@@ -29,6 +29,8 @@
     <string name="morphe_yandex_vot_stream_ready">Переклад готовий, відтворення</string>
     <string name="morphe_yandex_vot_time_sec">%d с</string>
     <string name="morphe_yandex_vot_time_min">%d хв</string>
+    <string name="morphe_yandex_vot_button_time_sec">%dс</string>
+    <string name="morphe_yandex_vot_button_time_min">%dхв</string>
     <string name="morphe_yandex_vot_lang_auto">Автовизначення</string>
     <string name="morphe_yandex_vot_oauth_token_title">Токен Yandex OAuth</string>
     <string name="morphe_yandex_vot_oauth_token_summary">Потрібен для живих голосів.</string>

@@ -21,6 +21,7 @@ import app.morphe.patcher.patch.ResourcePatchContext
 import app.morphe.util.forEachChildElement
 import app.morphe.util.getNode
 import app.morphe.util.inputStreamFromBundledResource
+import com.android.tools.smali.dexlib2.AccessFlags
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 
@@ -31,6 +32,85 @@ private const val ADD_ON_MANAGER_CLASS_DESCRIPTOR =
     "Lapp/morphe/extension/youtube/addon/AddOnManager;"
 
 private const val ADD_ON_MANAGER_REGISTER_METHOD_NAME = "registerAddOns"
+
+/**
+ * Every method of Morphe Patches this add-on calls at runtime, by class descriptor.
+ *
+ * The add-on is compiled against the base bundle but shipped separately, so a base bundle that
+ * moved or renamed one of these still patches cleanly and then throws `NoSuchMethodError` on the
+ * device. Checking the methods here turns that into a patch time error naming what is missing.
+ */
+private val REQUIRED_HOST_METHODS = mapOf(
+    "Lapp/morphe/extension/youtube/addon/AddOnApi;" to setOf(
+        "addPlayerOverlayButtonsListener(Ljava/util/function/Consumer;)V",
+        "addLegacyPlayerControlsListener(Ljava/util/function/Consumer;)V",
+        "addNewVideoStartedListener(Ljava/lang/Runnable;)V",
+        "addVideoIdListener(Ljava/util/function/Consumer;)V",
+        "addVideoTimeListener(Ljava/util/function/LongConsumer;)V",
+        "addVideoStateListener(Ljava/util/function/Consumer;)V",
+        "createLegacyButton(Ljava/lang/String;Landroid/view/View;Ljava/lang/String;" +
+                "Lapp/morphe/extension/shared/settings/BooleanSetting;" +
+                $$"Landroid/view/View$OnClickListener;Landroid/view/View$OnLongClickListener;)" +
+                "Lapp/morphe/extension/youtube/videoplayer/LegacyPlayerControlButton;",
+    ),
+    "Lapp/morphe/extension/youtube/patches/voiceovertranslation/VoiceOverTranslationPatch;" to setOf(
+        "addOnTranslationStateChangeCallback(Ljava/lang/Runnable;)V",
+        "isSessionEnabled()Z",
+        "deactivateTranslation()V",
+    ),
+    "Lapp/morphe/extension/youtube/videoplayer/PlayerOverlayButton;" to setOf(
+        "addButton(Landroid/view/View;Landroid/widget/ImageView;Ljava/lang/String;" +
+                $$"Landroid/view/View$OnClickListener;Landroid/view/View$OnLongClickListener;)" +
+                "Landroid/widget/ImageView;",
+    ),
+    "Lapp/morphe/extension/youtube/videoplayer/LegacyPlayerControlButton;" to setOf(
+        "getDialogBackgroundColor()I",
+    ),
+    "Lapp/morphe/extension/youtube/patches/playback/speed/CustomPlaybackSpeedPatch;" to setOf(
+        "getAdjustedBackgroundColor(Z)I",
+    ),
+    "Lapp/morphe/extension/shared/theme/ThemeUtils;" to setOf(
+        "getAppForegroundColor()I",
+    ),
+    "Lapp/morphe/extension/shared/ui/SheetBottomDialog;" to setOf(
+        "createMainLayout(Landroid/content/Context;Ljava/lang/Integer;)" +
+                $$"Lapp/morphe/extension/shared/ui/SheetBottomDialog$DraggableLinearLayout;",
+        "createSlideDialog(Landroid/content/Context;Landroid/view/View;I)" +
+                $$"Lapp/morphe/extension/shared/ui/SheetBottomDialog$SlideDialog;",
+    ),
+    "Lapp/morphe/extension/shared/ui/CustomDialog;" to setOf(
+        "create(Landroid/content/Context;Ljava/lang/CharSequence;Ljava/lang/CharSequence;" +
+                "Landroid/widget/EditText;Ljava/lang/CharSequence;Ljava/lang/Runnable;" +
+                "Ljava/lang/Runnable;Ljava/lang/CharSequence;Ljava/lang/Runnable;Z)" +
+                "Landroid/util/Pair;",
+    ),
+)
+
+/**
+ * Fails the patch unless the base bundle declares every method of [REQUIRED_HOST_METHODS] as
+ * public and static. A class that merely exists under the expected name is not enough: the
+ * add-on calls these methods directly, so their signatures have to match as well.
+ */
+private fun BytecodePatchContext.checkHostCompatibility() {
+    val missing = REQUIRED_HOST_METHODS.flatMap { (classDescriptor, requiredMethods) ->
+        val hostClass = classDefByOrNull(classDescriptor)
+            ?: return@flatMap listOf(classDescriptor.trim('L', ';').replace('/', '.'))
+
+        requiredMethods.filter { required ->
+            val method = hostClass.methods.firstOrNull {
+                it.name + "(" + it.parameters.joinToString("") + ")" + it.returnType == required
+            }
+            method == null ||
+                    !AccessFlags.PUBLIC.isSet(method.accessFlags) ||
+                    !AccessFlags.STATIC.isSet(method.accessFlags)
+        }
+    }
+
+    if (missing.isNotEmpty()) throw PatchException(
+        "The installed Morphe Patches version is not compatible with this add-on. " +
+                "Missing or changed: " + missing.sorted().joinToString()
+    )
+}
 
 /**
  * File the Morphe settings patch reads add-on preference declarations from.
@@ -71,8 +151,14 @@ internal fun registerAddOn(registrationMethodDescriptor: String) {
             """
         )
 
+    context.checkHostCompatibility()
+
     val registerMethod = addOnManagerClass.methods.firstOrNull {
-        it.name == ADD_ON_MANAGER_REGISTER_METHOD_NAME && it.parameters.isEmpty()
+        it.name == ADD_ON_MANAGER_REGISTER_METHOD_NAME &&
+                it.returnType == "V" &&
+                it.parameters.isEmpty() &&
+                AccessFlags.PUBLIC.isSet(it.accessFlags) &&
+                AccessFlags.STATIC.isSet(it.accessFlags)
     } ?: throw PatchException(
         "Could not find $ADD_ON_MANAGER_REGISTER_METHOD_NAME(). " +
                 "The installed Morphe Patches version is not compatible with this add-on."

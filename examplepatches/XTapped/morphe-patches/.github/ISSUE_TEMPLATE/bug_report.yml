@@ -1,0 +1,45 @@
+name: 🐞 Bug report
+description: Report a problem with a patch.
+title: "bug: "
+labels: ["Bug report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Search existing issues before filing a report to make sure the problem has not already been reported.
+  - type: textarea
+    attributes:
+      label: Bug description
+      description: Describe what happened and include steps to reproduce it.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: App and version
+      description: Include the app name, version, and package source.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Patch details
+      description: List the patches and options involved.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Error logs
+      description: Include relevant logs if available.
+      render: shell
+  - type: textarea
+    attributes:
+      label: Additional context
+      description: Add any other details that may help reproduce or diagnose the issue.
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements
+      options:
+        - label: I searched open and closed issues and did not find a duplicate.
+          required: true
+        - label: I provided the information needed to reproduce the problem.
+          required: true

@@ -29,6 +29,8 @@
     <string name="morphe_yandex_vot_stream_ready">Translation ready, playing</string>
     <string name="morphe_yandex_vot_time_sec">%d sec</string>
     <string name="morphe_yandex_vot_time_min">%d min</string>
+    <string name="morphe_yandex_vot_button_time_sec">%ds</string>
+    <string name="morphe_yandex_vot_button_time_min">%dm</string>
     <string name="morphe_yandex_vot_lang_auto">Auto-detect</string>
     <string name="morphe_yandex_vot_oauth_token_title">Yandex OAuth token</string>
     <string name="morphe_yandex_vot_oauth_token_summary">Required for live voices.</string>

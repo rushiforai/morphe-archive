@@ -1,3 +1,38 @@
+## [1.1.0](https://github.com/MarcaDian/morphe-patches-yavot/compare/v1.0.4...v1.1.0) (2026-08-22)
+
+### 🐛 Bug Fixes
+
+* Crash when opening the bottom sheet after the theme colors moved out of the library ([4067cd3](https://github.com/MarcaDian/morphe-patches-yavot/commit/4067cd396a4eb9ea6bee7374fd4f3b42008d7a17))
+* Drop the redundant clamp from the Yandex VoT poll delay ([0048d0d](https://github.com/MarcaDian/morphe-patches-yavot/commit/0048d0db0208dbe47a5eac45190a0af808026fb7))
+* Improve the Yandex VoT player button placement and countdown text ([af89a0d](https://github.com/MarcaDian/morphe-patches-yavot/commit/af89a0da676d54612b926ba1b32c79ac2a906373))
+* Register the add-on listeners only once ([505e0cc](https://github.com/MarcaDian/morphe-patches-yavot/commit/505e0ccd85c80b934f710168a9498d4ca6cb8bf0))
+* Resolve IDE warnings ([1e5256e](https://github.com/MarcaDian/morphe-patches-yavot/commit/1e5256e8392aaab876e548390e5b59c3012e3e82))
+* Rework Yandex VoT timing, stop handling and new-video invalidation ([cae71fa](https://github.com/MarcaDian/morphe-patches-yavot/commit/cae71fa6ce27a3d39c65e8853694feacf359772c))
+
+### ✨ New Features
+
+* Verify the Morphe Patches host API before patching ([c0d1546](https://github.com/MarcaDian/morphe-patches-yavot/commit/c0d1546f83ebcc0e435647783292bd7d44f491c4))
+
+## [1.1.0-dev.1](https://github.com/MarcaDian/morphe-patches-yavot/compare/v1.0.5-dev.1...v1.1.0-dev.1) (2026-08-22)
+
+### 🐛 Bug Fixes
+
+* Drop the redundant clamp from the Yandex VoT poll delay ([0048d0d](https://github.com/MarcaDian/morphe-patches-yavot/commit/0048d0db0208dbe47a5eac45190a0af808026fb7))
+* Improve the Yandex VoT player button placement and countdown text ([af89a0d](https://github.com/MarcaDian/morphe-patches-yavot/commit/af89a0da676d54612b926ba1b32c79ac2a906373))
+* Register the add-on listeners only once ([505e0cc](https://github.com/MarcaDian/morphe-patches-yavot/commit/505e0ccd85c80b934f710168a9498d4ca6cb8bf0))
+* Resolve IDE warnings ([1e5256e](https://github.com/MarcaDian/morphe-patches-yavot/commit/1e5256e8392aaab876e548390e5b59c3012e3e82))
+* Rework Yandex VoT timing, stop handling and new-video invalidation ([cae71fa](https://github.com/MarcaDian/morphe-patches-yavot/commit/cae71fa6ce27a3d39c65e8853694feacf359772c))
+
+### ✨ New Features
+
+* Verify the Morphe Patches host API before patching ([c0d1546](https://github.com/MarcaDian/morphe-patches-yavot/commit/c0d1546f83ebcc0e435647783292bd7d44f491c4))
+
+## [1.0.5-dev.1](https://github.com/MarcaDian/morphe-patches-yavot/compare/v1.0.4...v1.0.5-dev.1) (2026-08-22)
+
+### 🐛 Bug Fixes
+
+* Crash when opening the bottom sheet after the theme colors moved out of the library ([4067cd3](https://github.com/MarcaDian/morphe-patches-yavot/commit/4067cd396a4eb9ea6bee7374fd4f3b42008d7a17))
+
 ## [1.0.4](https://github.com/MarcaDian/morphe-patches-yavot/compare/v1.0.3...v1.0.4) (2026-08-09)
 
 ### 🐛 Bug Fixes

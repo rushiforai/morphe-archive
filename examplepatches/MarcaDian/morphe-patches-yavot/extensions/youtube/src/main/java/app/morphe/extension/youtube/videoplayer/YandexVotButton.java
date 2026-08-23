@@ -72,6 +72,7 @@ import app.morphe.extension.shared.Utils;
 import app.morphe.extension.youtube.patches.yandexvot.YandexVoiceOverTranslationPatch;
 import app.morphe.extension.youtube.patches.yandexvot.YandexVoiceOverTranslationBottomSheet;
 import app.morphe.extension.youtube.patches.yandexvot.YandexVotAddOn;
+import app.morphe.extension.youtube.patches.yandexvot.YandexVotTiming;
 import app.morphe.extension.youtube.settings.YandexVotSettings;
 
 @SuppressWarnings("unused")
@@ -96,6 +97,20 @@ public final class YandexVotButton {
         try {
             if (RESTORE_OLD_PLAYER_BUTTONS || !YandexVotSettings.YANDEX_VOT_ENABLED.get()) return;
             YandexVoiceOverTranslationPatch.addOnTranslationStateChangeCallback(STATE_REFRESH_CALLBACK);
+
+            // The add-on listener runs before the remaining overlay hooks of the base bundle,
+            // so posting the button keeps it behind the buttons Morphe itself adds and gives
+            // this one the outermost custom slot. PlayerOverlayButton still owns the spacing,
+            // geometry and visibility, which is why no layout params are set here: copying them
+            // would break as soon as YouTube recreates its controls.
+            controlsView.post(() -> addOverlayButton(controlsView));
+        } catch (Exception ex) {
+            Logger.printException(() -> "YandexVotButton initializeButton failure", ex);
+        }
+    }
+
+    private static void addOverlayButton(View controlsView) {
+        try {
             YandexCountdownButton button = PlayerOverlayButton.addButton(
                     controlsView,
                     new YandexCountdownButton(controlsView.getContext()),
@@ -114,7 +129,7 @@ public final class YandexVotButton {
             }
             refreshActivatedState();
         } catch (Exception ex) {
-            Logger.printException(() -> "YandexVotButton initializeButton failure", ex);
+            Logger.printException(() -> "YandexVotButton addOverlayButton failure", ex);
         }
     }
 
@@ -205,6 +220,9 @@ public final class YandexVotButton {
 
 
     public static final class YandexCountdownButton extends ImageView {
+        static final String TIMER_MINUTES_RESOURCE = "morphe_yandex_vot_button_time_min";
+        static final String TIMER_SECONDS_RESOURCE = "morphe_yandex_vot_button_time_sec";
+
         private final Paint ringPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Paint textBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -264,8 +282,7 @@ public final class YandexVotButton {
             this.ringThicknessPx = Math.max(1.0f, configuredThicknessDp * density);
             this.remainingSeconds = remainingSeconds;
             this.progress = progress;
-            int clampedAlpha = Math.max(0, Math.min(255, iconAlpha));
-            setImageAlpha(clampedAlpha);
+            setImageAlpha(Math.max(0, Math.min(255, iconAlpha)));
             invalidate();
         }
 
@@ -444,10 +461,10 @@ public final class YandexVotButton {
         private static String formatTimerText(int seconds) {
             if (seconds <= 0) return "…";
             if (seconds >= 60) {
-                int minutes = (seconds + 59) / 60;
-                return str("morphe_yandex_vot_time_min", minutes);
+                int minutes = YandexVotTiming.roundedDisplayMinutes(seconds);
+                return str(TIMER_MINUTES_RESOURCE, minutes);
             }
-            return str("morphe_yandex_vot_time_sec", seconds);
+            return str(TIMER_SECONDS_RESOURCE, seconds);
         }
 
         private static int parseColor(String value) {

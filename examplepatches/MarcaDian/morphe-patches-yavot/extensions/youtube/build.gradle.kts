@@ -25,6 +25,8 @@ val stageBaseClasses = tasks.register<Sync>("stageBaseClasses") {
 }
 
 dependencies {
+    testImplementation(libs.junit)
+
     compileOnly(libs.annotation)
     compileOnly(libs.morphe.extensions.library)
 

@@ -123,6 +123,7 @@ public class YandexVoiceOverTranslationPatch {
     }
 
     private static void showTranslationErrorToast(String message) {
+        stopTranslation();
         translationErrorUntilMs =
                 SystemClock.elapsedRealtime() + ERROR_INDICATOR_DURATION_MS;
         notifyTranslationStateChanged();
@@ -162,6 +163,9 @@ public class YandexVoiceOverTranslationPatch {
     private static volatile String lastFailedAudioFallbackUrl = "";
     private static volatile String lastEmptyAudioFallbackKey = "";
 
+    private static final int AUDIO_REQUESTED_FALLBACK_WAIT_SECONDS = 10;
+    private static final int PENDING_FALLBACK_WAIT_SECONDS = 63;
+
     private static void setWaitingTimeSeconds(int seconds) {
         waitingTimeSeconds = seconds;
         waitingDeadlineMs = seconds < 0
@@ -171,6 +175,43 @@ public class YandexVoiceOverTranslationPatch {
             audioUploadPart = -1;
             audioUploadTotalParts = -1;
         }
+    }
+
+    /** Stops local playback and invalidates every in-flight translation callback. */
+    private static void stopTranslation() {
+        translationGeneration.incrementAndGet();
+        translationStarting = false;
+        setWaitingTimeSeconds(-1);
+        resetAudioUploadRequestState();
+        isTranslating.set(false);
+        stopAudioPlayback();
+        YandexVotOriginalVolumePatch.clearAudioMultiplier();
+        notifyTranslationStateChanged();
+    }
+
+    private static void beginWaitingEstimate(long generation, int seconds) {
+        runOnUiIfCurrentGen(generation, () -> {
+            setWaitingTimeSeconds(seconds);
+            notifyTranslationStateChanged();
+        });
+    }
+
+    private static void updateWaitingEstimate(long generation, int seconds) {
+        runOnUiIfCurrentGen(generation, () -> {
+            final long nowMs = SystemClock.elapsedRealtime();
+            final long updatedDeadlineMs = YandexVotTiming.tightenDeadlineMs(
+                    nowMs, waitingDeadlineMs, seconds
+            );
+            if (waitingDeadlineMs < 0) {
+                waitingTimeSeconds = Math.max(1, seconds);
+                waitingDeadlineMs = updatedDeadlineMs;
+            } else if (updatedDeadlineMs < waitingDeadlineMs) {
+                // The denominator remains the original duration: the ring can advance, never refill.
+                waitingDeadlineMs = updatedDeadlineMs;
+            }
+            clearAudioUploadProgress();
+            notifyTranslationStateChanged();
+        });
     }
 
     public static int getWaitingTimeSeconds() {
@@ -211,12 +252,13 @@ public class YandexVoiceOverTranslationPatch {
     }
 
     private static void setAudioUploadProgress(long generation, int part, int totalParts) {
-        if (translationGeneration.get() != generation) return;
-        waitingTimeSeconds = -1;
-        waitingDeadlineMs = -1;
-        audioUploadPart = part;
-        audioUploadTotalParts = totalParts;
-        notifyTranslationStateChanged();
+        runOnUiIfCurrentGen(generation, () -> {
+            waitingTimeSeconds = -1;
+            waitingDeadlineMs = -1;
+            audioUploadPart = part;
+            audioUploadTotalParts = totalParts;
+            notifyTranslationStateChanged();
+        });
     }
 
     private static void clearAudioUploadProgress() {
@@ -234,6 +276,15 @@ public class YandexVoiceOverTranslationPatch {
 
     /** Incremented on every new video or stop, invalidates in-flight async translation chains. */
     private static final AtomicLong translationGeneration = new AtomicLong(0);
+
+    /** Invalidates in-flight work before the new id and duration are available. */
+    public static void onNewVideoStarted() {
+        stopTranslation();
+        pendingVideoId = "";
+        pendingVideoTitle = "";
+        pendingVideoLength = 0L;
+        pendingIsLive = false;
+    }
 
     /**
      * Called when the playback state of the video changes.
@@ -266,7 +317,6 @@ public class YandexVoiceOverTranslationPatch {
             String videoId, String videoTitle,
             long videoLength, boolean isLive
     ) {
-        if (!YandexVotSettings.YANDEX_VOT_ENABLED.get()) return;
         String newId = videoId != null ? videoId : "";
         if (!newId.equals(pendingVideoId)) {
             translationStarting = false;
@@ -280,22 +330,14 @@ public class YandexVoiceOverTranslationPatch {
         pendingVideoTitle = videoTitle != null ? videoTitle : "";
         pendingVideoLength = videoLength;
         pendingIsLive = isLive;
-        if (!newId.equals(currentTranslatedVideoId.get())) {
-            translationGeneration.incrementAndGet();
-        }
     }
 
     public static void toggleTranslation() {
         if (!YandexVotSettings.YANDEX_VOT_ENABLED.get()) return;
 
         if (isTranslationActive()) {
-            translationStarting = false;
-            setWaitingTimeSeconds(-1);
-            stopAudioPlayback();
-            isTranslating.set(false);
-            notifyTranslationStateChanged();
+            stopTranslation();
             showToastShort(str("morphe_yandex_vot_stopped"));
-            refreshOriginalAudioVolume();
             return;
         }
 
@@ -315,15 +357,17 @@ public class YandexVoiceOverTranslationPatch {
         }
         if (pendingVideoId == null || pendingVideoId.isEmpty()) return;
 
-        // Only one voice-over engine should speak at a time.
-        YandexVotCoordinator.deactivateOfficialBeforeStarting();
-
         final String videoId = pendingVideoId;
         final String videoTitle = pendingVideoTitle;
         final double durationSeconds = pendingVideoLength / 1000.0;
+
+        // Only one voice-over engine should speak at a time.
+        YandexVotCoordinator.deactivateOfficialBeforeStarting();
+
         resetAudioUploadRequestState();
         translationStarting = true;
         refreshOriginalAudioVolume();
+        notifyTranslationStateChanged();
         Utils.runOnBackgroundThread(() -> requestTranslation(
                 videoId, videoTitle,
                 sourceLang, targetLang,
@@ -333,17 +377,10 @@ public class YandexVoiceOverTranslationPatch {
 
     /**
      * Cancels playback and invalidates every in-flight network callback.
-     * The coordinator uses this before another voice-over engine starts.
+     * The coordinator uses this before the official voice-over translation starts.
      */
     public static void cancelTranslation() {
-        translationGeneration.incrementAndGet();
-        translationStarting = false;
-        setWaitingTimeSeconds(-1);
-        resetAudioUploadRequestState();
-        stopAudioPlayback();
-        isTranslating.set(false);
-        YandexVotOriginalVolumePatch.clearAudioMultiplier();
-        notifyTranslationStateChanged();
+        stopTranslation();
     }
 
     public static boolean isTranslationActive() {
@@ -472,7 +509,7 @@ public class YandexVoiceOverTranslationPatch {
         if (seconds < 60) {
             return str("morphe_yandex_vot_time_sec", Math.max(1, seconds));
         }
-        int minutes = (seconds + 30) / 60;
+        int minutes = YandexVotTiming.roundedDisplayMinutes(seconds);
         return str("morphe_yandex_vot_time_min", minutes);
     }
 
@@ -600,19 +637,21 @@ public class YandexVoiceOverTranslationPatch {
                         generation
                 );
                 if (translationGeneration.get() != generation) return;
-                int pollWaitTime = result.remainingTime() > 0
-                        ? Math.min(result.remainingTime(), 60)
-                        : 10;
-                setWaitingTimeSeconds(pollWaitTime);
-                notifyTranslationStateChanged();
+                int estimateSeconds = YandexVotTiming.estimateOrDefault(
+                        result.remainingTime(), AUDIO_REQUESTED_FALLBACK_WAIT_SECONDS);
+                beginWaitingEstimate(generation, estimateSeconds);
                 pollTranslation(videoId, videoTitle, youtubeUrl, durationSeconds, sourceLang, targetLang,
-                        pollWaitTime, useLiveVoices, generation, 0);
+                        YandexVotTiming.pollDelaySeconds(result.remainingTime()),
+                        useLiveVoices, generation, 0);
             } else {
-                int waitTime = result.remainingTime() > 0 ? result.remainingTime() : 63;
-                setWaitingTimeSeconds(waitTime);
-                notifyTranslationStateChanged();
-                runOnUiIfCurrentGen(generation, () -> Utils.showToastLong(str("morphe_yandex_vot_stream_waiting", formatRemainingTime(waitTime))));
-                pollTranslation(videoId, videoTitle, youtubeUrl, durationSeconds, sourceLang, targetLang, waitTime, useLiveVoices, generation, 0);
+                int estimateSeconds = YandexVotTiming.estimateOrDefault(
+                        result.remainingTime(), PENDING_FALLBACK_WAIT_SECONDS);
+                beginWaitingEstimate(generation, estimateSeconds);
+                runOnUiIfCurrentGen(generation, () -> Utils.showToastLong(str(
+                        "morphe_yandex_vot_stream_waiting", formatRemainingTime(estimateSeconds))));
+                pollTranslation(videoId, videoTitle, youtubeUrl, durationSeconds, sourceLang, targetLang,
+                        YandexVotTiming.pollDelaySeconds(result.remainingTime()),
+                        useLiveVoices, generation, 0);
             }
         } catch (Exception e) {
             Logger.printException(() -> "requestTranslation failed", e);
@@ -641,10 +680,10 @@ public class YandexVoiceOverTranslationPatch {
             String videoId, String videoTitle,
             String url, double duration,
             String sourceLang, String targetLang,
-            int waitSeconds, boolean useLiveVoices, long generation, int retryCount
+            int pollDelaySeconds, boolean useLiveVoices, long generation, int retryCount
     ) {
         try {
-            Thread.sleep(waitSeconds * 1000L);
+            Thread.sleep(pollDelaySeconds * 1000L);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             return;
@@ -657,7 +696,7 @@ public class YandexVoiceOverTranslationPatch {
                 if (retryCount < 1 && translationGeneration.get() == generation) {
                     // Network error — retry once with a short delay
                     pollTranslation(videoId, videoTitle, url, duration, sourceLang, targetLang,
-                            Math.min(waitSeconds, 30), useLiveVoices, generation, retryCount + 1);
+                            Math.min(pollDelaySeconds, 10), useLiveVoices, generation, retryCount + 1);
                 } else {
                     runOnUiIfCurrentGen(generation, () -> {
                         translationStarting = false;
@@ -724,27 +763,28 @@ public class YandexVoiceOverTranslationPatch {
                         generation
                 );
                 if (translationGeneration.get() != generation) return;
-                int pollWaitTime = result.remainingTime() > 0
-                        ? Math.min(result.remainingTime(), 60)
-                        : 10;
-                Logger.printDebug(() -> "VOT audio requested (poll), retrying in "
-                        + pollWaitTime + "s");
-                setWaitingTimeSeconds(pollWaitTime);
-                notifyTranslationStateChanged();
+                int estimateSeconds = YandexVotTiming.estimateOrDefault(
+                        result.remainingTime(), AUDIO_REQUESTED_FALLBACK_WAIT_SECONDS);
+                int nextPollDelaySeconds = YandexVotTiming.pollDelaySeconds(result.remainingTime());
+                Logger.printDebug(() -> "VOT audio requested (poll), next readiness check in "
+                        + nextPollDelaySeconds + "s");
+                updateWaitingEstimate(generation, estimateSeconds);
                 pollTranslation(videoId, videoTitle, url, duration, sourceLang, targetLang,
-                        pollWaitTime, useLiveVoices, generation, 0);
+                        nextPollDelaySeconds, useLiveVoices, generation, 0);
             } else {
-                int pollWaitTime = result.remainingTime() > 0 ? result.remainingTime() : 63;
-                setWaitingTimeSeconds(pollWaitTime);
-                notifyTranslationStateChanged();
-                pollTranslation(videoId, videoTitle, url, duration, sourceLang, targetLang, pollWaitTime, useLiveVoices, generation, 0);
+                int estimateSeconds = YandexVotTiming.estimateOrDefault(
+                        result.remainingTime(), PENDING_FALLBACK_WAIT_SECONDS);
+                int nextPollDelaySeconds = YandexVotTiming.pollDelaySeconds(result.remainingTime());
+                updateWaitingEstimate(generation, estimateSeconds);
+                pollTranslation(videoId, videoTitle, url, duration, sourceLang, targetLang,
+                        nextPollDelaySeconds, useLiveVoices, generation, 0);
             }
         } catch (Exception e) {
             Logger.printException(() -> "pollTranslation failure", e);
             if (retryCount < 1 && translationGeneration.get() == generation) {
                 // Retry once on exception
                 pollTranslation(videoId, videoTitle, url, duration, sourceLang, targetLang,
-                        Math.min(waitSeconds, 30), useLiveVoices, generation, retryCount + 1);
+                        Math.min(pollDelaySeconds, 10), useLiveVoices, generation, retryCount + 1);
             } else {
                 runOnUiIfCurrentGen(generation, () -> {
                     translationStarting = false;
@@ -792,9 +832,6 @@ public class YandexVoiceOverTranslationPatch {
                         }
                     }
             );
-            if (translationGeneration.get() == generation) {
-                clearAudioUploadProgress();
-            }
             if (uploaded) {
                 lastSuccessfulAudioUploadKey = requestKey;
                 Logger.printDebug(() -> "Yandex VOT audio uploaded for " + videoId);

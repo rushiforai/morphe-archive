@@ -1,0 +1,40 @@
+name: ⭐ Feature request
+description: Request a new patch or an improvement to an existing patch.
+title: "feat: "
+labels: ["Feature request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Search existing issues before filing a request to make sure it has not already been proposed.
+  - type: textarea
+    attributes:
+      label: App details
+      description: Include the app name, package name, and version if relevant.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Feature description
+      description: Describe the patch or improvement you want and what it should change.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Motivation
+      description: Explain the use case and why the change would be useful.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Additional context
+      description: Add links, screenshots, references, or other useful details.
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements
+      options:
+        - label: I searched open and closed issues and did not find a duplicate.
+          required: true
+        - label: I provided enough detail to understand the request.
+          required: true

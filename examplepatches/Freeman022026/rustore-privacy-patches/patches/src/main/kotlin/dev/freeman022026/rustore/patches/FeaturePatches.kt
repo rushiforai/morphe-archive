@@ -5,13 +5,14 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
 @Suppress("unused")
 val disableAdvertisementsPatch = bytecodePatch(
     name = "Disable advertisements",
-    description = "Removes ad providers and ad identifiers, returns an empty ad list, and keeps advertising consent disabled.",
+    description = "Removes ad providers, sanitizes ad identifiers, returns an empty ad list, and keeps advertising consent disabled.",
     default = true
 ) {
     compatibleWith(RUSTORE_COMPATIBILITY)
@@ -21,8 +22,18 @@ val disableAdvertisementsPatch = bytecodePatch(
         rawAdvertisementRepositoryGetFingerprint.method.addInstructions(
             0,
             """
-                sget-object v0, Liq0/b0;->f56293a:Liq0/b0;
+                sget-object v0, Lvt0/y;->a:Lvt0/y;
                 return-object v0
+            """
+        )
+        advertisementIdsConstructorFingerprint.method.addInstructions(
+            0,
+            """
+                const-string p1, "00000000-0000-0000-0000-000000000000"
+                const-string p2, "00000000-0000-0000-0000-000000000000"
+                const/4 p3, 0x0
+                const/4 p4, 0x0
+                const/4 p5, 0x0
             """
         )
         settingConstructorFingerprint.method.addInstruction(0, "const/4 p6, 0x0")
@@ -31,15 +42,50 @@ val disableAdvertisementsPatch = bytecodePatch(
 }
 
 @Suppress("unused")
+val excludeGooglePlayAppsFromUpdateChecksPatch = bytecodePatch(
+    name = "Exclude Google Play apps from update checks",
+    description = "Excludes only apps whose recorded Android installer is Google Play from update requests.",
+    default = true
+) {
+    compatibleWith(RUSTORE_COMPATIBILITY)
+
+    execute {
+        appVersionInfoListFingerprint.method.apply {
+            val instructions = implementation!!.instructions
+            val equalsIndex = instructions.withIndex().single { (_, instruction) ->
+                (instruction as? ReferenceInstruction)?.reference?.toString() ==
+                    "Ljava/lang/Object;->equals(Ljava/lang/Object;)Z"
+            }.index
+            val equalsResult = instructions[equalsIndex + 1]
+            require(equalsResult.opcode == Opcode.MOVE_RESULT)
+            val equalsRegister = (equalsResult as OneRegisterInstruction).registerA
+
+            addInstruction(
+                equalsIndex + 2,
+                "xor-int/lit8 v$equalsRegister, v$equalsRegister, 0x1"
+            )
+            addInstruction(0, "const-string p1, \"com.android.vending\"")
+        }
+    }
+}
+
+@Suppress("unused")
 val disableAnalyticsAndTrackersPatch = bytecodePatch(
     name = "Disable analytics and trackers",
-    description = "Disables AppMetrica, MyTracker, AltCraft, Radar, install referrer, metrics, and audited logging transports.",
+    description = "Disables audited analytics transports and replaces the stable request device identifier.",
     default = true
 ) {
     compatibleWith(RUSTORE_COMPATIBILITY)
     dependsOn(analyticsManifestPatch)
 
     execute {
+        requestDeviceIdFingerprint.method.addInstructions(
+            0,
+            """
+                const-string v0, "00000000-0000-0000-0000-000000000000"
+                return-object v0
+            """
+        )
         listOf(appMetricaActivateFingerprint, myTrackerInitializeFingerprint).forEach { fingerprint ->
             fingerprint.method.addInstruction(0, "return-void")
         }
@@ -61,7 +107,7 @@ val disableAnalyticsAndTrackersPatch = bytecodePatch(
             0,
             """
                 const-string v0, "AltCraftFlushEventsWorker"
-                invoke-virtual {p0, v0}, Lmb/k0;->a(Ljava/lang/String;)Lmb/b0;
+                invoke-virtual {p0, v0}, Ltb/j0;->a(Ljava/lang/String;)Ltb/a0;
                 return-void
             """
         )
@@ -78,7 +124,7 @@ val disableAnalyticsAndTrackersPatch = bytecodePatch(
             0,
             """
                 const-string v0, "RadarFlushSnapshotsWorker"
-                invoke-virtual {p0, v0}, Lmb/k0;->a(Ljava/lang/String;)Lmb/b0;
+                invoke-virtual {p0, v0}, Ltb/j0;->a(Ljava/lang/String;)Ltb/a0;
                 return-void
             """
         )
@@ -90,6 +136,175 @@ val disableAnalyticsAndTrackersPatch = bytecodePatch(
                 return-object v0
             """
         )
+    }
+}
+
+@Suppress("unused")
+val restrictBackgroundWorkToUpdatesPatch = bytecodePatch(
+    name = "Restrict background work to updates",
+    description = "Keeps only the background workers required for automatic update checks, downloads, patch application, and installation, including charging-triggered checks.",
+    default = true
+) {
+    compatibleWith(RUSTORE_COMPATIBILITY)
+    dependsOn(analyticsManifestPatch, disablePushServicesPatch)
+
+    execute {
+        val workerSuccess = """
+            new-instance v0, Landroidx/work/c${'$'}a${'$'}c;
+            invoke-direct {v0}, Landroidx/work/c${'$'}a${'$'}c;-><init>()V
+            return-object v0
+        """
+        blockedBackgroundCoroutineWorkerFingerprints.forEachIndexed { index, fingerprint ->
+            val workerClass = blockedCoroutineWorkerClasses[index]
+            requireNotNull(fingerprint.methodOrNull) {
+                "Background coroutine worker fingerprint changed: $workerClass"
+            }.addInstructions(0, workerSuccess)
+        }
+        blockedBackgroundWorkerFingerprints.forEachIndexed { index, fingerprint ->
+            val workerClass = blockedWorkerClasses[index]
+            requireNotNull(fingerprint.methodOrNull) {
+                "Background worker fingerprint changed: $workerClass"
+            }.addInstructions(0, workerSuccess)
+        }
+
+        omicronNetworkRequestFingerprint.method.addInstructions(
+            0,
+            """
+                sget-object v0, Lt31/e;->ERROR:Lt31/e;
+                return-object v0
+            """
+        )
+        omicronDefaultScheduleFingerprint.method.addInstructions(
+            0,
+            """
+                move-object/from16 v0, p0
+                invoke-virtual {v0}, Lru/mail/omicron/DefaultWorkManagerExecutor;->cancel()V
+                return-void
+            """
+        )
+        omicronMultiAccountScheduleFingerprint.method.addInstructions(
+            0,
+            """
+                move-object/from16 v0, p0
+                invoke-virtual {v0}, Lru/mail/omicron/MultiAccountWorkManagerExecutor;->cancel()V
+                return-void
+            """
+        )
+
+        installIdentifierInitializerFingerprint.method.addInstructions(
+            0,
+            """
+                move-object/from16 v0, p0
+                iget-object v0, v0, Lru/vk/store/feature/install/identifier/impl/presentation/a;->d:Ltb/j0;
+                const-string v1, "InstallIdentifierSyncWorker"
+                invoke-virtual {v0, v1}, Ltb/j0;->a(Ljava/lang/String;)Ltb/a0;
+                sget-object v0, Lut0/e0;->a:Lut0/e0;
+                return-object v0
+            """
+        )
+        usageStatsInitializerFingerprint.method.addInstructions(
+            0,
+            """
+                move-object/from16 v0, p0
+                iget-object v0, v0, Lru/vk/store/feature/usagestats/impl/presentation/a;->b:Ltb/j0;
+                const-string v1, "UsageStatsCollectorWorker"
+                invoke-virtual {v0, v1}, Ltb/j0;->a(Ljava/lang/String;)Ltb/a0;
+                sget-object v0, Lut0/e0;->a:Lut0/e0;
+                return-object v0
+            """
+        )
+        cancelSubscriptionInitializerFingerprint.method.addInstructions(
+            0,
+            """
+                move-object/from16 v0, p0
+                iget-object v0, v0, Lru/vk/store/feature/payments/subscription/update/impl/presentation/a;->b:Ltb/j0;
+                const-string v1, "CancelSubscriptionSyncWorker"
+                invoke-virtual {v0, v1}, Ltb/j0;->a(Ljava/lang/String;)Ltb/a0;
+                sget-object v0, Lut0/e0;->a:Lut0/e0;
+                return-object v0
+            """
+        )
+        remoteAnalyticsInitializerFingerprint.method.addInstructions(
+            0,
+            """
+                move-object/from16 v0, p0
+                iget-object v0, v0, Ly32/d;->a:Lru/vk/store/feature/storeapp/analytics/remote/impl/presentation/b;
+                iget-object v0, v0, Lru/vk/store/feature/storeapp/analytics/remote/impl/presentation/b;->a:Ltb/j0;
+                const-string v1, "SendAnalyticsEventPeriodicWorker"
+                invoke-virtual {v0, v1}, Ltb/j0;->a(Ljava/lang/String;)Ltb/a0;
+                const-string v1, "SendAnalyticsEventWorker"
+                invoke-virtual {v0, v1}, Ltb/j0;->a(Ljava/lang/String;)Ltb/a0;
+                sget-object v0, Lut0/e0;->a:Lut0/e0;
+                return-object v0
+            """
+        )
+        remoteAnalyticsSchedulerFingerprint.method.addInstructions(
+            0,
+            """
+                move-object/from16 v0, p0
+                iget-object v0, v0, Lru/vk/store/feature/storeapp/analytics/remote/impl/presentation/b;->a:Ltb/j0;
+                const-string v1, "SendAnalyticsEventWorker"
+                invoke-virtual {v0, v1}, Ltb/j0;->a(Ljava/lang/String;)Ltb/a0;
+                sget-object v0, Lut0/e0;->a:Lut0/e0;
+                return-object v0
+            """
+        )
+
+        launcherIconScheduleFingerprint.method.addInstructions(
+            0,
+            """
+                move-object/from16 v0, p0
+                iget-object v0, v0, Lul1/i;->a:Ltb/j0;
+                const-string v1, "LauncherIconUpdate"
+                invoke-virtual {v0, v1}, Ltb/j0;->a(Ljava/lang/String;)Ltb/a0;
+                return-void
+            """
+        )
+        startDestinationScheduleFingerprint.method.addInstructions(
+            0,
+            """
+                move-object/from16 v0, p0
+                iget-object v0, v0, Lk32/e;->a:Ltb/j0;
+                const-string v1, "PeriodicUpdateStartDestination"
+                invoke-virtual {v0, v1}, Ltb/j0;->a(Ljava/lang/String;)Ltb/a0;
+                return-void
+            """
+        )
+        tabsOrderScheduleFingerprint.method.addInstructions(
+            0,
+            """
+                move-object/from16 v0, p0
+                iget-object v0, v0, Lq32/g;->a:Ltb/j0;
+                const-string v1, "NavigationTabsOrderUpdate"
+                invoke-virtual {v0, v1}, Ltb/j0;->a(Ljava/lang/String;)Ltb/a0;
+                return-void
+            """
+        )
+        publisherTrackingScheduleFingerprint.method.addInstruction(0, "return-void")
+
+        listOf(analyticsDispatchFingerprint, analyticsUserIdFingerprint).forEach { fingerprint ->
+            fingerprint.method.addInstruction(0, "return-void")
+        }
+        listOf(
+            "VK push provider" to pushProviderOnInitializedFingerprint,
+            "VK push authentication" to pushAuthOnInitializedFingerprint
+        ).forEach { (feature, fingerprint) ->
+            requireNotNull(fingerprint.methodOrNull) {
+                "$feature initializer fingerprint changed"
+            }.addInstructions(
+                0,
+                """
+                    sget-object v0, Lut0/e0;->a:Lut0/e0;
+                    return-object v0
+                """
+            )
+        }
+        pushLifecycleFingerprints.forEachIndexed { index, fingerprint ->
+            val lifecycleMethod = pushLifecycleMethods.keys.elementAt(index)
+            requireNotNull(fingerprint.methodOrNull) {
+                "Push lifecycle fingerprint changed: $lifecycleMethod"
+            }.addInstruction(0, "return-void")
+        }
     }
 }
 
@@ -114,7 +329,7 @@ val disableKasperskyBackgroundScanPatch = bytecodePatch(
             0,
             """
                 const-string v0, "PeriodicKasperskyScanner"
-                invoke-virtual {p1, v0}, Lmb/k0;->a(Ljava/lang/String;)Lmb/b0;
+                invoke-virtual {p1, v0}, Ltb/j0;->a(Ljava/lang/String;)Ltb/a0;
                 invoke-static {}, Ljava/util/UUID;->randomUUID()Ljava/util/UUID;
                 move-result-object v0
                 return-object v0

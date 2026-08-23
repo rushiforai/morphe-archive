@@ -1,0 +1,12 @@
+[versions]
+morphe-patcher = "1.10.0"
+#noinspection GradleDependency
+smali = "d92701d947"
+gson = "2.14.0"
+kotlin-stdlib = "2.1.0"
+annotation = "1.9.1"
+
+[libraries]
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin-stdlib" }
+annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }

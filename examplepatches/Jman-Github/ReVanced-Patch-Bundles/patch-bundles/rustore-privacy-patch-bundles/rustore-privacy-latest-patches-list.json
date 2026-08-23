@@ -1,5 +1,5 @@
 {
-    "version": "v1.1.3",
+    "version": "v1.1.6",
     "patches": [
         {
             "compatiblePackages": [
@@ -14,11 +14,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "1.107.0.3"
+                            "version": "1.108.0.2"
                         }
                     ],
                     "versions": [
-                        "1.107.0.3"
+                        "1.108.0.2"
                     ]
                 }
             ],
@@ -26,7 +26,7 @@
             "dependencies": [
                 "ResourcePatch"
             ],
-            "description": "Removes ad providers and ad identifiers, returns an empty ad list, and keeps advertising consent disabled.",
+            "description": "Removes ad providers, sanitizes ad identifiers, returns an empty ad list, and keeps advertising consent disabled.",
             "name": "Disable advertisements",
             "options": []
         },
@@ -43,11 +43,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "1.107.0.3"
+                            "version": "1.108.0.2"
                         }
                     ],
                     "versions": [
-                        "1.107.0.3"
+                        "1.108.0.2"
                     ]
                 }
             ],
@@ -55,7 +55,7 @@
             "dependencies": [
                 "ResourcePatch"
             ],
-            "description": "Disables AppMetrica, MyTracker, AltCraft, Radar, install referrer, metrics, and audited logging transports.",
+            "description": "Disables audited analytics transports and replaces the stable request device identifier.",
             "name": "Disable analytics and trackers",
             "options": []
         },
@@ -72,11 +72,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "1.107.0.3"
+                            "version": "1.108.0.2"
                         }
                     ],
                     "versions": [
-                        "1.107.0.3"
+                        "1.108.0.2"
                     ]
                 }
             ],
@@ -101,11 +101,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "1.107.0.3"
+                            "version": "1.108.0.2"
                         }
                     ],
                     "versions": [
-                        "1.107.0.3"
+                        "1.108.0.2"
                     ]
                 }
             ],
@@ -130,11 +130,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "1.107.0.3"
+                            "version": "1.108.0.2"
                         }
                     ],
                     "versions": [
-                        "1.107.0.3"
+                        "1.108.0.2"
                     ]
                 }
             ],
@@ -159,11 +159,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "1.107.0.3"
+                            "version": "1.108.0.2"
                         }
                     ],
                     "versions": [
-                        "1.107.0.3"
+                        "1.108.0.2"
                     ]
                 }
             ],
@@ -188,11 +188,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "1.107.0.3"
+                            "version": "1.108.0.2"
                         }
                     ],
                     "versions": [
-                        "1.107.0.3"
+                        "1.108.0.2"
                     ]
                 }
             ],
@@ -217,11 +217,38 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "1.107.0.3"
+                            "version": "1.108.0.2"
                         }
                     ],
                     "versions": [
-                        "1.107.0.3"
+                        "1.108.0.2"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Excludes only apps whose recorded Android installer is Google Play from update requests.",
+            "name": "Exclude Google Play apps from update checks",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#0A85FF",
+                    "name": "RuStore",
+                    "packageName": "ru.vk.store",
+                    "signatures": [
+                        "661f20828ef780de0b79bc59f26a30864316355f30e4f91cfa14a20791839914"
+                    ],
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "1.108.0.2"
+                        }
+                    ],
+                    "versions": [
+                        "1.108.0.2"
                     ]
                 }
             ],
@@ -246,11 +273,68 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "1.107.0.3"
+                            "version": "1.108.0.2"
                         }
                     ],
                     "versions": [
-                        "1.107.0.3"
+                        "1.108.0.2"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Adapts secure-session requests to RuStore 1.108 API changes for re-signed APKs.",
+            "name": "Restore secure-session compatibility",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#0A85FF",
+                    "name": "RuStore",
+                    "packageName": "ru.vk.store",
+                    "signatures": [
+                        "661f20828ef780de0b79bc59f26a30864316355f30e4f91cfa14a20791839914"
+                    ],
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "1.108.0.2"
+                        }
+                    ],
+                    "versions": [
+                        "1.108.0.2"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [
+                "ResourcePatch",
+                "ResourcePatch"
+            ],
+            "description": "Keeps only the background workers required for automatic update checks, downloads, patch application, and installation, including charging-triggered checks.",
+            "name": "Restrict background work to updates",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#0A85FF",
+                    "name": "RuStore",
+                    "packageName": "ru.vk.store",
+                    "signatures": [
+                        "661f20828ef780de0b79bc59f26a30864316355f30e4f91cfa14a20791839914"
+                    ],
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "1.108.0.2"
+                        }
+                    ],
+                    "versions": [
+                        "1.108.0.2"
                     ]
                 }
             ],

@@ -4,6 +4,8 @@
 
 package app.morphe.extension.youtube.patches.yandexvot;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import app.morphe.extension.youtube.patches.voiceovertranslation.VoiceOverTranslationPatch;
 
 /**
@@ -17,8 +19,12 @@ import app.morphe.extension.youtube.patches.voiceovertranslation.VoiceOverTransl
 @SuppressWarnings("unused")
 public final class YandexVotCoordinator {
 
+    /** Guards against a second registration adding the callback twice. */
+    private static final AtomicBoolean callbackRegistered = new AtomicBoolean();
+
     /** Injection point, called once from {@link YandexVotAddOn#register()}. */
     public static void register() {
+        if (!callbackRegistered.compareAndSet(false, true)) return;
         VoiceOverTranslationPatch.addOnTranslationStateChangeCallback(
                 YandexVotCoordinator::onOfficialStateChanged);
     }

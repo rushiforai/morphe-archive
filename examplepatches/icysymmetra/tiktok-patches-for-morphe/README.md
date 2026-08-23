@@ -37,16 +37,17 @@ The goal is to keep the existing patch set usable while adding more TikTok-focus
 |---|---|
 | `Always show publish date` | Keeps the video's publish date visible in its author information. |
 | `Copy comments without username` | Copies only the comment text without including the creator's username. |
-| `Custom offline videos limit` | Adds a custom entry to TikTok's offline videos menu with a configurable limit of up to 500 videos. |
+| `Custom offline videos limit` | Adds a custom entry to TikTok's offline videos menu with a configurable limit from 1 to 1000 videos. Values outside the range use the nearest valid limit. |
 | `Disable login requirement` | Removes TikTok's mandatory login gate from supported flows. |
 | `Disable long-press quick share` | Keeps long-pressing Share from opening TikTok's quick-share interaction. |
+| `Disable long-press repost` | Keeps holding Like from opening TikTok's repost action without disabling TikTok's wider repost and upvote systems. |
 | `Disable screen capture detection` | Prevents TikTok from detecting screenshots and screen recordings. |
 | `Diagnostic tools` | Adds optional structured Morphe logs, TikTok crash capture, and clipboard or file report export. |
 | `Downloads` | Adds watermark-free downloads, filename templates, and comment sticker saving with animated-media preservation. |
 | `Enable Live search` | Shows TikTok's search entry in the Live drawer where supported. |
 | `Enable non-personalized search` | Uses TikTok's non-personalized search mode instead of its saved account choice. |
 | `Feature Gate Lab` | Adds a searchable menu for viewing and overriding supported TikTok feature flags and configuration values. Client-side overrides cannot bypass server enforcement. |
-| `Feed filter` | Hides feed ads, TikTok Shop items, livestreams, stories, photo posts, and videos outside configured view or like ranges. |
+| `Feed filter` | Hides feed ads, TikTok Shop items, livestreams, stories, photo posts, and videos outside configured view or like ranges, with optional filtering of cached and offline FYP fallback videos. |
 | `Feed tab navigation` | Controls which loaded top and bottom navigation tabs remain visible, blocks newly added tabs when requested, and can hide the Tako AI bubble. |
 | `Fix Google login` | Restores Google account sign-in after patching. |
 | `Hide CAPTCHA popups` | Hides non-account verification puzzle dialogs, including those shown while browsing LIVE. Account verification remains available, and server checks are not bypassed. |
@@ -81,9 +82,7 @@ You can also copy this repository URL and paste it into Morphe's add source fiel
 
 ## Planned Work
 
-### In Progress
-
-- [~] Finish runtime verification of the TikTok 46.2.3 compatibility port.
+Open to feature requests.
 
 <br>
 
@@ -123,6 +122,7 @@ Morphe reads `patches-bundle.json` from this repository, downloads the `.mpp` re
 ## Credits
 
 - Thanks to [@lyyako](https://github.com/lyyako) for the original contributions behind the simplified sanitize sharing links hook, show seekbar patch, anti-recording patch, `Open external links directly`, and `Always show publish date`.
+- Thanks to [@oscski](https://github.com/oscski) for the original contribution behind `Disable long-press repost`.
 
 ## Notes
 

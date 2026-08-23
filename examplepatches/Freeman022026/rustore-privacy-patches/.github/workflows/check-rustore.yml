@@ -134,7 +134,7 @@ jobs:
             exit 0
           fi
           if [ "${{ steps.promote.outputs.version_changed }}" = 'true' ]; then
-            git commit -m "bump: support RuStore ${{ steps.inspect.outputs.version_name }}"
+            git commit -m "bump(RuStore): support RuStore ${{ steps.inspect.outputs.version_name }}"
           else
             git commit -m 'chore: refresh RuStore upstream metadata'
           fi

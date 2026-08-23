@@ -70,7 +70,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Gryphous-Morphe](#-gryphous-morphe-bundle-patch-list) | 4 | 2 | Generated |
 | [Okish-Morphe](#-okish-morphe-bundle-patch-list) | 35 | 16 | Generated |
 | [Xhehab](#-xhehab-bundle-patch-list) | 14 | 13 | Generated |
-| [Nai64](#-nai64-bundle-patch-list) | 100 | 1 | Generated |
+| [Nai64](#-nai64-bundle-patch-list) | 120 | 1 | Generated |
 | [Morphe-Google](#-morphe-google-bundle-patch-list) | 2 | 1 | Generated |
 | [Prathxm](#-prathxm-bundle-patch-list) | 7 | 1 | Generated |
 | [Telegram-Morphe](#-telegram-morphe-bundle-patch-list) | 10 | 1 | Generated |
@@ -143,7 +143,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Ajstrick81-AndroidTV](#-ajstrick81-androidtv-bundle-patch-list) | 32 | 12 | Generated |
 | [Icysymmetra-TikTok](#-icysymmetra-tiktok-bundle-patch-list) | 30 | 1 | Generated |
 | [AlexNaga](#-alexnaga-bundle-patch-list) | 2 | 1 | Generated |
-| [Rushiranpise](#-rushiranpise-bundle-patch-list) | 341 | 248 | Generated |
+| [Rushiranpise](#-rushiranpise-bundle-patch-list) | 341 | 249 | Generated |
 | [Sjshb57-PairIP](#-sjshb57-pairip-bundle-patch-list) | 4 | 1 | Generated |
 | [RIVanced-Universal](#-rivanced-universal-bundle-patch-list) | 27 | 1 | Generated |
 | [Variablenine](#-variablenine-bundle-patch-list) | 137 | 4 | Generated |
@@ -151,7 +151,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [HXReborn](#-hxreborn-bundle-patch-list) | 22 | 13 | Generated |
 | [Ikura](#-ikura-bundle-patch-list) | 6 | 1 | Generated |
 | [DH6K](#-dh6k-bundle-patch-list) | 6 | 7 | Generated |
-| [AndrewLiang25](#-andrewliang25-bundle-patch-list) | 22 | 1 | Generated |
+| [AndrewLiang25](#-andrewliang25-bundle-patch-list) | 23 | 1 | Generated |
 | [Morning-Entree](#-morning-entree-bundle-patch-list) | 53 | 94 | Generated |
 | [VocaColle](#-vocacolle-bundle-patch-list) | 7 | 1 | Generated |
 | [DBTCoach](#-dbtcoach-bundle-patch-list) | 1 | 1 | Generated |
@@ -174,7 +174,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Logm1lo](#-logm1lo-bundle-patch-list) | 4 | 2 | Generated |
 | [SpookyEXE](#-spookyexe-bundle-patch-list) | 1 | 1 | Generated |
 | [PetalMaps-NonHuawei](#-petalmaps-nonhuawei-bundle-patch-list) | 6 | 1 | Generated |
-| [FTL](#-ftl-bundle-patch-list) | 27 | 7 | Generated |
+| [FTL](#-ftl-bundle-patch-list) | 29 | 7 | Generated |
 | [braiNtropy](#-braintropy-bundle-patch-list) | 1 | 1 | Generated |
 | [Ang3lo](#-ang3lo-bundle-patch-list) | 1 | 1 | Generated |
 | [Heval99](#-heval99-bundle-patch-list) | 20 | 11 | Generated |
@@ -189,17 +189,22 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Riky](#-riky-bundle-patch-list) | 2 | 2 | Generated |
 | [iPusnas](#-ipusnas-bundle-patch-list) | 6 | 1 | Generated |
 | [HXReborn-TikTok](#-hxreborn-tiktok-bundle-patch-list) | 33 | 1 | Generated |
-| [Flexboard](#-flexboard-bundle-patch-list) | 9 | 1 | Generated |
+| [Flexboard](#-flexboard-bundle-patch-list) | 8 | 1 | Generated |
 | [Cricinfo-Tweaks](#-cricinfo-tweaks-bundle-patch-list) | 3 | 1 | Generated |
-| [RuStore-Privacy](#-rustore-privacy-bundle-patch-list) | 9 | 1 | Generated |
+| [RuStore-Privacy](#-rustore-privacy-bundle-patch-list) | 12 | 1 | Generated |
 | [Abhishek-Bhujang](#-abhishek-bhujang-bundle-patch-list) | 2 | 2 | Generated |
 | [MauroGamerVN](#-maurogamervn-bundle-patch-list) | 2 | 2 | Generated |
-| [Kveld](#-kveld-bundle-patch-list) | 20 | 3 | Generated |
+| [Kveld](#-kveld-bundle-patch-list) | 24 | 3 | Generated |
 | [Anime-Witcher](#-anime-witcher-bundle-patch-list) | 3 | 1 | Generated |
 | [Apos](#-apos-bundle-patch-list) | 1 | 1 | Generated |
 | [HH](#-hh-bundle-patch-list) | 4 | 1 | Generated |
 | [Anxy](#-anxy-bundle-patch-list) | 10 | 2 | Generated |
 | [Chicco](#-chicco-bundle-patch-list) | 2 | 1 | Generated |
+| [XTapped](#-xtapped-bundle-patch-list) | 1 | 1 | Generated |
+| [ImNoammm-Spotify](#-imnoammm-spotify-bundle-patch-list) | 2 | 1 | Generated |
+| [Beetle](#-beetle-bundle-patch-list) | 3 | 1 | Generated |
+| [Jancerny2001](#-jancerny2001-bundle-patch-list) | 1 | 1 | Generated |
+| [Rhubarbshoelaces](#-rhubarbshoelaces-bundle-patch-list) | 2 | 2 | Generated |
 
 ### Legacy
 | Bundle | Patches | Apps | Status |
@@ -458,11 +463,11 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | ```Free in-app purchases``` | ```When you try to buy something, the purchase is immediately marked as successful without contacting Google Play. The EA Nimble MTX system receives a null error (success) and grants the item.``` | ```Plants vs. Zombies FREE``` | ```3.16.0``` |
 | ```Free reward ads``` | ```When the game tries to show a rewarded ad, it immediately fires the ad-clicked and ad-closed callbacks without actually showing the ad. You get the reward instantly.``` | ```Plants vs. Zombies FREE``` | ```3.16.0``` |
 | ```Remove ads``` | ```Prevents video ads from loading. When the game tries to load an ad, nothing happens. Ads will not be shown.``` | ```Plants vs. Zombies FREE``` | ```3.16.0``` |
-| ```Bypass PairIP license check``` | ```Bypasses the PairIP license check by (1) no-oping LicenseClient.checkLicense (static, from attachBaseContext), (2) no-oping LicenseClient.initializeLicenseCheck (instance, from any caller), and (3) modifying AndroidManifest to skip the PairIP Application class, remove LicenseActivity, and remove CHECK_LICENSE permission. This app uses a simple PairIP setup (no VM, no signature check) — only the license check.``` | ```Supreme Duelist Stickman``` | ```4.0.5``` |
-| ```Bypass PairIP manifest``` | ```Modifies AndroidManifest.xml to skip the PairIP Application class, remove LicenseActivity, and remove CHECK_LICENSE permission. Part of the PairIP bypass.``` | ```Supreme Duelist Stickman``` | ```4.0.5``` |
-| ```Free in-app purchases``` | ```Makes every IAP purchase succeed instantly without contacting Google Play Billing. When the user taps 'Buy' on any product (Remove Ads), the purchase is credited immediately.``` | ```Supreme Duelist Stickman``` | ```4.0.5``` |
-| ```Unlimited coins``` | ```Hex patches libil2cpp.so to skip SaveCoins only. This prevents the game from persisting coin deductions — when you spend coins, the reduced amount is never saved. Your balance stays unlimited across sessions. Does NOT affect SavePlayerData or SavePlayerProfile (those caused crashes).``` | ```Supreme Duelist Stickman``` | ```4.0.5``` |
-| ```Unlock all (no ads + skip rewarded ads)``` | ```Hex patches libil2cpp.so to: (1) make get_AdsRemoved return true (No Ads purchased), (2) skip all rewarded ads (ShowRewardedWeaponAd, WatchReward, WatchRewardedAd, SkinAd) while still granting the rewards. Combined with the 'Unlimited coins' patch, the player can buy everything without losing coins.``` | ```Supreme Duelist Stickman``` | ```4.0.5``` |
+| ```Bypass PairIP license check``` | ```No-ops LicenseClient.checkLicense(Context) and LicenseClient.initializeLicenseCheck() to prevent the PairIP license verification from running. Required for the app to start when installed via Morphe/SAI (not from Play Store).``` | ```Supreme Duelist Stickman``` | ```4.0.5, 4.0.4``` |
+| ```Free ads rewards (skip ad, grant unlock)``` | ```Patches ShowRewardedWeaponAd (and similar ad-reward methods) to skip the ad display and immediately grant the reward (weapon/skin/map unlock). Searches for the pattern 'ldr w9, [x8, #0xec]; cmp w9, #7; b.eq; cmp w9, #9; b.ne' and NOPs both conditional branches. This makes the code always fall through to the unlock branch regardless of ad state. Default OFF — enable only if you want all ad-rewarded content unlocked for free.``` | ```Supreme Duelist Stickman``` | ```4.0.5, 4.0.4``` |
+| ```Free in-app purchases (optional)``` | ```Skips Google Play Billing and credits IAP items (Remove Ads) directly. OPTIONAL: The other patches already give you unlimited coins and no ads.``` | ```Supreme Duelist Stickman``` | ```4.0.5, 4.0.4``` |
+| ```Unlimited coins (real - patches coin deduction + branch)``` | ```Real unlimited coins patch. Searches libil2cpp.so for the coin-deduction pattern (sub w8, w8, w21; ...; str w8, [xN, #0x18]; b.le/b.lt) and NOPs BOTH the str instruction AND the conditional branch that follows it. Previous version only NOPed the str, but the b.le still canceled purchases because the subs instruction set the 'less than' flag.``` | ```Supreme Duelist Stickman``` | ```4.0.5, 4.0.4``` |
+| ```Unlock all (weapons, skins, colors, modes, no ads + level bypass)``` | ```Hex patches libil2cpp.so to: (1) NOP level checks in AchatWeapon (pattern-based: searches for cmp w9, #51 + b.lt and cmp w9, #499 + b.lt). (2) NOP coin checks in AchatWeapon, AchatSkin, AchatColor (3x) (offset-based, verified on 67MB lib). (3) Patch RemoveAds.get_AdsRemoved to always return true. buyMiniGames is NOT patched (breaks mode init — use UnlimitedCoinsPatch to buy modes with infinite coins). Combined: unlimited coins + all weapons (no level req!) + all skins/colors + no ads.``` | ```Supreme Duelist Stickman``` | ```4.0.5, 4.0.4``` |
 | ```Free in-app purchases``` | ```Patches the Google Play Billing bridge to report success and validate purchases. Handles crystal packs and other IAP items at the billing layer. For unlocking tribes and skins, use the 'Unlock all tribes' patch instead.``` | ```The Battle of Polytopia``` | ```2.17.2.16299``` |
 | ```Unlock all tribes``` | ```Unlocks all 20 tribes (Xinxi, Imperius, Bardur, Oumaji, Kickoo, Hoodrick, Luxidoor, Vengir, Zebasi, Aimo, Aquarion, Elyrion, Polaris, Magma, Yadakk, Quetzali, Cymanti, Swamp, Ikarus, Urkaz) and all skins by patching the native IL2CPP library (libil2cpp.so). Makes IsProductUnlocked return true, skips the purchase flow, and suppresses the 'Purchase error' dialog. Pure ARM64 hex patching, no smali, no extension.``` | ```The Battle of Polytopia``` | ```2.17.2.16299``` |
 | ```Billing bypass``` | ```Attempts to credit purchases by scanning the app for billing code and applying the appropriate bypass. Runs 5 phases: (1) Cocos2d-x helper, (2) GameMaker verifyPurchase, (3) Google Play Billing, (4) Unity billing bridge, (5) Fallback. Also depends on Unity IL2CPP hex patch.``` | ```Universal``` | ```All versions``` |
@@ -685,7 +690,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 ### 🧩 Nai64 Bundle Patch List:
 [📦 Nai64-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-nai64-patches-bundle-morphe)
 <details>
-<summary><b>Nai64</b> - 100 patches, 1 app</summary>
+<summary><b>Nai64</b> - 120 patches, 1 app</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -697,6 +702,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | ```Always Allow Biometrics``` | ```Makes BiometricManager.canAuthenticate always return BIOMETRIC_SUCCESS so apps do not block biometric features on unsupported or unenrolled devices``` | ```Universal``` | ```All versions``` |
 | ```Block Push Ads``` | ```Block push notification ads (Firebase Cloud Messaging). Also blocks legitimate notifications.``` | ```Universal``` | ```All versions``` |
 | ```Block Screenshot Detection``` | ```Adds FLAG_SECURE to every activity window so the system blocks screenshots, screen recording and recents previews of the app``` | ```Universal``` | ```All versions``` |
+| ```Bypass Emulator Detection``` | ```Spoofs android.os.Build identity (model, device, manufacturer, hardware, fingerprint, serial) and the ro.kernel.qemu property so apps and games that refuse to run, crash or match you with emulator lobbies cannot tell they are on an emulator. Does not hide root or a debugger connection.``` | ```Universal``` | ```All versions``` |
 | ```Bypass Google Play Services Check``` | ```Always report Google Play Services as available``` | ```Universal``` | ```All versions``` |
 | ```Bypass License Verification``` | ```Always pass Google Play license checks``` | ```Universal``` | ```All versions``` |
 | ```Bypass OkHttp Pinning``` | ```No-ops the certificate verification entry points of bundled OkHttp clients so certificate pinning never rejects connections``` | ```Universal``` | ```All versions``` |
@@ -707,6 +713,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | ```Custom App Resolution (Experimental)``` | ```Set a custom resolution for the game``` | ```Universal``` | ```All versions``` |
 | ```Custom Startup Dialog``` | ```Shows a customizable dialog once when the app is opened``` | ```Universal``` | ```All versions``` |
 | ```Custom Startup Toast``` | ```Shows a customizable toast message every time the app starts``` | ```Universal``` | ```All versions``` |
+| ```Disable Animations``` | ```Forces Settings.Global window/transition/animator scale values to 0 so the app runs without UI animations (faster, less motion).``` | ```Universal``` | ```All versions``` |
 | ```Disable App Links Verification``` | ```Removes android:autoVerify from intent filters so Android stops prompting to verify the app's web domains and never converts links into app opens``` | ```Universal``` | ```All versions``` |
 | ```Disable Battery Optimization Prompt``` | ```Removes the permission and intent filters apps use to ask for battery optimization exemptions, so the 'Ignore battery optimizations?' dialog never appears``` | ```Universal``` | ```All versions``` |
 | ```Disable Crash Reporters``` | ```No-ops the static init/start/register methods of bundled crash-reporting SDKs (Crashlytics, Fabric, Sentry, Bugsnag, ACRA, HockeyApp, AppCenter, Instabug, Countly)``` | ```Universal``` | ```All versions``` |
@@ -769,13 +776,31 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | ```Skip Consent Popup``` | ```Skip the Google consent (GDPR) popup``` | ```Universal``` | ```All versions``` |
 | ```Skip Rate-Us Prompt``` | ```Skip the in-app review (rate us) prompt``` | ```Universal``` | ```All versions``` |
 | ```Skip Splash Screen (Experimental)``` | ```Skip or shorten splash screen delays``` | ```Universal``` | ```All versions``` |
+| ```Spoof Airplane Mode``` | ```Forces Settings.Global AIRPLANE_MODE_ON reads to 0 (off) so apps that change behavior in airplane mode see a normal connection state.``` | ```Universal``` | ```All versions``` |
+| ```Spoof Android ID``` | ```Replaces Settings.Secure.ANDROID_ID reads with a fixed value so the patched app cannot be tracked across reinstalls or matched to a specific device.``` | ```Universal``` | ```All versions``` |
+| ```Spoof Bluetooth Enabled``` | ```Forces Settings.Global BLUETOOTH_ON reads to 0 (off) so apps that behave differently when Bluetooth is enabled cannot tell it is on.``` | ```Universal``` | ```All versions``` |
+| ```Spoof Bluetooth Identity``` | ```Reports chosen values from BluetoothAdapter.getName() and getAddress() so apps cannot read the real Bluetooth device name or MAC address.``` | ```Universal``` | ```All versions``` |
+| ```Spoof Build Extras``` | ```Spoofs the remaining android.os.Build identity fields not covered by Bypass Emulator Detection (BOOTLOADER, RADIO, USER, HOST, getRadioVersion, and Build.VERSION RELEASE/INCREMENTAL/SECURITY_PATCH/CODENAME) with values from a real Pixel 6, so apps cannot fingerprint the device through these fields.``` | ```Universal``` | ```All versions``` |
 | ```Spoof Build Fingerprint``` | ```Replaces every read of Build.FINGERPRINT with a custom value, useful for integrity and device checks. Leave empty to keep the original fingerprint``` | ```Universal``` | ```All versions``` |
 | ```Spoof CPU Architecture``` | ```Replaces reads of Build.CPU_ABI and Build.CPU_ABI2 with a custom value. Leave empty to keep the original``` | ```Universal``` | ```All versions``` |
+| ```Spoof Data State``` | ```Reports an active data connection from TelephonyManager.getDataState() (DATA_CONNECTED) and getDataActivity() (DATA_ACTIVITY_INOUT) so apps that change behavior based on mobile data state see a live connection.``` | ```Universal``` | ```All versions``` |
+| ```Spoof Developer Options``` | ```Forces Settings.Global/Settings.Secure getters for developer options, USB debugging and wireless debugging to report disabled (0), so apps that refuse to run or crash when they detect debugging cannot tell it is on.``` | ```Universal``` | ```All versions``` |
 | ```Spoof Device Model``` | ```Replaces common android.os.Build fields (model, manufacturer, brand) with custom values. Leave an option empty to keep the original value``` | ```Universal``` | ```All versions``` |
+| ```Spoof Last Known Location``` | ```Forces LocationManager.getLastKnownLocation() to return null so apps cannot read the device's last cached GPS/network position.``` | ```Universal``` | ```All versions``` |
+| ```Spoof Locale``` | ```Forces Locale.getDefault() to return a chosen BCP-47 language tag (e.g. en-US) so region- or language-locked apps see the locale you pick.``` | ```Universal``` | ```All versions``` |
+| ```Spoof Location Provider``` | ```Forces LocationManager.getBestProvider() to report "gps" and isProviderEnabled() to report true, so location-dependent apps believe a GPS provider is always available and enabled.``` | ```Universal``` | ```All versions``` |
+| ```Spoof Phone Number``` | ```Reports an empty string from TelephonyManager.getLine1Number() and getLine2Number() so apps cannot read the device's phone number.``` | ```Universal``` | ```All versions``` |
 | ```Spoof Play Integrity``` | ```Force Play Integrity checks to pass``` | ```Universal``` | ```All versions``` |
 | ```Spoof Play Store Install Source``` | ```Make the app believe it was installed from the Play Store``` | ```Universal``` | ```All versions``` |
+| ```Spoof Ringer Mode``` | ```Forces AudioManager.getRingerMode() to report RINGER_MODE_NORMAL (2) so apps cannot detect silent or vibrate mode.``` | ```Universal``` | ```All versions``` |
 | ```Spoof SDK Level``` | ```Replaces every read of Build.VERSION.SDK_INT with a custom value. WARNING: setting a level lower than the device's real API level makes apps call missing APIs and crash; only use when you know the app checks it``` | ```Universal``` | ```All versions``` |
+| ```Spoof Sensor List``` | ```Forces SensorManager.getSensorList() to return an empty list so apps cannot enumerate the device's sensors for fingerprinting or capability checks.``` | ```Universal``` | ```All versions``` |
 | ```Spoof Signature Match``` | ```Makes PackageManager.checkSignatures always return SIGNATURE_MATCH so apps that verify their own or another package's signature accept any build``` | ```Universal``` | ```All versions``` |
+| ```Spoof SIM Country``` | ```Reports a chosen ISO country (e.g. us) from TelephonyManager.getSimCountryIso() and getNetworkCountryIso() to bypass region locks and geo-restrictions.``` | ```Universal``` | ```All versions``` |
+| ```Spoof SIM Operator``` | ```Reports a chosen MCC+MNC from TelephonyManager.getSimOperator() and getNetworkOperator() so apps cannot read the real mobile network operator.``` | ```Universal``` | ```All versions``` |
+| ```Spoof SIM Operator Name``` | ```Reports a chosen carrier name from TelephonyManager.getSimOperatorName() and getNetworkOperatorName() so apps cannot read the real carrier display name.``` | ```Universal``` | ```All versions``` |
+| ```Spoof Voice Mail``` | ```Reports empty strings from TelephonyManager.getVoiceMailNumber() and getVoiceMailAlphaTag() so apps cannot read the voicemail number or tag.``` | ```Universal``` | ```All versions``` |
+| ```Spoof WiFi Enabled``` | ```Forces WifiManager.isWifiEnabled() to report true and getWifiState() to report WIFI_STATE_ENABLED (3) so apps cannot tell Wi-Fi is off.``` | ```Universal``` | ```All versions``` |
 | ```Status Bar Icons``` | ```Forces the status bar and navigation bar icon color in every theme. Pick white icons for dark backgrounds or dark icons for light backgrounds``` | ```Universal``` | ```All versions``` |
 | ```Strip Translations``` | ```Deletes all translated resources so only the default language remains, reducing APK size. Android falls back to the default strings automatically.``` | ```Universal``` | ```All versions``` |
 | ```Support All Screens``` | ```Removes compatible-screens restrictions and marks every screen size supported so the app installs on devices it would otherwise reject``` | ```Universal``` | ```All versions``` |
@@ -3458,12 +3483,12 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Disable 99 unread limit``` | ```Skip the 99-cap so unread count shows full value``` | ```Kakao Talk``` | ```26.7.1``` |
 | ```Disable abuse detection report``` | ```Answers the startup and login integrity challenge with an empty token and a benign Play Integrity failure code instead of a Google-signed token that would expose the re-signed certificate. The report itself is still sent, so the client does not go conspicuously silent on the server's nonce the way suppressing it entirely would.``` | ```Kakao Talk``` | ```26.7.1``` |
 | ```Disable AdFit environment detection``` | ```Stops the AdFit ad SDK from reporting a root or emulator verdict to its telemetry and ad request endpoints.``` | ```Kakao Talk``` | ```26.7.1``` |
-| ```Disable chat room list ad``` | ```Disable the chat room list ad.``` | ```Kakao Talk``` | ```26.7.1``` |
+| ```Disable chat room list ad``` | ```Disables native and global-region ads in the chat room list.``` | ```Kakao Talk``` | ```26.7.1``` |
 | ```Disable ChatRoomAdController``` | ```Disables the open-link chat room BizBoard ad controller.``` | ```Kakao Talk``` | ```26.7.1``` |
 | ```Disable Collapse Button``` | ```Disable collapse button on OpenChatList``` | ```Kakao Talk``` | ```26.7.1``` |
 | ```Disable Community Tab``` | ```Disables Community Tab``` | ```Kakao Talk``` | ```26.7.1``` |
 | ```Disable Friend Feed tab``` | ```Disables the Friend Feed tab in KakaoTalk.``` | ```Kakao Talk``` | ```26.7.1``` |
-| ```Disable Friend Lists ad``` | ```Disables the friend tab BizBoard ads in KakaoTalk.``` | ```Kakao Talk``` | ```26.7.1``` |
+| ```Disable Friend Lists ad``` | ```Disables the friend tab BizBoard and global-region ads in KakaoTalk.``` | ```Kakao Talk``` | ```26.7.1``` |
 | ```Disable open chat room comments``` | ```Adds a setting to disable comments in open chat rooms.``` | ```Kakao Talk``` | ```26.7.1``` |
 | ```Disable OpenChat feed ad``` | ```Disables the OpenChat tab feed ad load and render paths.``` | ```Kakao Talk``` | ```26.7.1``` |
 | ```Disable Pay banner ad``` | ```Disables the KakaoPay banner ad load and render paths.``` | ```Kakao Talk``` | ```26.7.1``` |
@@ -3565,81 +3590,81 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Clone app``` | ```Changes the app package name to allow installing the same app multiple times. By default ".morphe" is appended to the package name. Each cloned install must use a unique package name. Cloning does not work with all apps and using this patch may cause app crashes or other unexpected behavior.``` | ```Universal``` | ```All versions``` |
 | ```Disable Play Store updates``` | ```Disables Play Store updates by setting the version code to the maximum allowed. This patch may cause unexpected issues with some apps and does not work if the app is installed by root mounting``` | ```Universal``` | ```All versions``` |
 | ```Override certificate pinning``` | ```Overrides certificate pinning, allowing to inspect traffic via a proxy.``` | ```Universal``` | ```All versions``` |
-| ```Add to queue``` | ```Overrides the feed flyout 'Play next in queue' with the Morphe video queue.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Alternative thumbnails``` | ```Adds options to replace video thumbnails using the DeArrow API or image captures from the video.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Ambient mode``` | ```Adds options to bypass power saving restrictions for Ambient mode and disable it entirely or in fullscreen.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Bypass image region restrictions``` | ```Adds an option to use a different host for user avatar and channel images and can fix missing images that are blocked in some countries.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Bypass link redirects``` | ```Adds an option to bypass redirects and open the original link directly.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Captions``` | ```Adds an option to disable captions from being automatically enabled or to set caption cookies.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Change form factor``` | ```Adds an option to change the UI appearance to a phone, tablet, or automotive device.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Change header``` | ```Adds an option to change the header logo in the top left corner of the app.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Change start page``` | ```Adds an option to set which page the app opens in instead of the homepage.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Check watch history domain name resolution``` | ```Checks if the device DNS server is preventing user watch history from being saved.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Copy video link``` | ```Adds options to display buttons in the video player to copy video links.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Custom branding``` | ```Adds options to change the app icon and app name. Branding cannot be changed for mounted (root) installations.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Custom player overlay opacity``` | ```Adds an option to change the opacity of the video player background when player controls are visible.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Disable double tap actions``` | ```Adds an option to disable player double tap gestures.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Disable DRC audio``` | ```Adds an option to disable DRC (Dynamic Range Compression) audio.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Disable fullscreen gestures``` | ```Adds options to selectively disable gestures for entering and exiting fullscreen mode.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Disable haptic feedback``` | ```Adds an option to disable haptic feedback in the player for various actions.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Disable layout updates``` | ```Adds an option to disable server side layout updates and use an older UI.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Disable player popup panels``` | ```Adds an option to disable panels (such as live chat) from opening automatically.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Disable QUIC protocol``` | ```Adds an option to disable QUIC (Quick UDP Internet Connections) network protocol.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Disable rolling number animations``` | ```Adds an option to disable rolling number animations of video view count, user likes, and upload time.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Disable Shorts resuming on startup``` | ```Adds an option to disable Shorts from resuming on app startup when Shorts were last being watched.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Disable sign in to TV popup``` | ```Adds options to disable the popups asking to sign into or connect to a TV on the same local network.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Disable video codecs``` | ```Adds options to disable HDR and VP9 codecs.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Double tap to seek``` | ```Adds additional double-tap to seek values to the YouTube settings menu.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Downloads``` | ```Adds support to download videos with an external downloader app using the in-app download button or a video player action button.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Enable debugging``` | ```Adds options for debugging and exporting Morphe logs to the clipboard.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Exit fullscreen mode``` | ```Adds options to automatically exit fullscreen mode when a video reaches the end.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Force original audio``` | ```Adds an option to always use the original audio track.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```GmsCore support``` | ```Allows the app to work without root by using a different package name when patched using a GmsCore instead of Google Play Services.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Hide ads``` | ```Adds options to hide general ads, Premium promotions and video ads.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Hide autoplay preview``` | ```Adds an option to hide the autoplay preview at the end of videos.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Hide end screen cards``` | ```Adds an option to hide suggested video cards at the end of videos.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Hide end screen suggested video``` | ```Adds an option to hide the suggested video at the end of videos.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Hide info cards``` | ```Adds an option to hide info cards that creators add in the video player.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Hide layout components``` | ```Adds options to hide general layout components.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Hide player flyout menu components``` | ```Adds options to hide menu components that appear when pressing the gear icon in the video player.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Hide player overlay buttons``` | ```Adds options to hide the player Cast, Autoplay, Captions, Previous & Next buttons, and the player control buttons background.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Hide related video overlay``` | ```Adds an option to hide the related video overlay shown when swiping up in fullscreen.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Hide related videos``` | ```Adds options to hide related videos.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Hide Shorts components``` | ```Adds options to hide components related to Shorts.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Hide timestamp``` | ```Adds an option to hide the timestamp in the bottom left of the video player.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Hide video action buttons``` | ```Adds options to hide video action buttons in fullscreen and portrait modes.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Loop video``` | ```Adds an option to loop videos and display loop video button in the video player.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Media notification controls``` | ```Adds options to disable the seekbar and previous/next buttons in the media notification and headphone controls.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Miniplayer``` | ```Adds options to change the in-app minimized player. Patching 21.28.206 and lower has more miniplayer types to choose from.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Navigation bar``` | ```Adds options to hide and change the bottom navigation bar (such as the Shorts button) and the upper navigation toolbar.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Network proxy``` | ```Adds settings to route supported network requests through an HTTP or HTTPS proxy.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Open channel of live avatar``` | ```Adds an option to prevent a channel's current live video from opening when tapping its avatar.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Open links externally``` | ```Adds an option to always open links in your browser instead of with the in-app browser.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Open Shorts in regular player``` | ```Adds options to open Shorts in the regular video player.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Open system share sheet``` | ```Adds an option to always open the system share sheet instead of the in-app share sheet.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Open videos fullscreen``` | ```Adds options to automatically open videos in fullscreen portrait or landscape mode.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Override YouTube Music buttons``` | ```Overrides YouTube Music buttons to open Morphe Music or any compatible third-party client.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Play all``` | ```Adds an option to play all the videos from a channel and to display play all button in the video player.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Playback in feeds``` | ```Adds the 'Playback in feeds' setting of YouTube to the Morphe settings, where it is always available even if YouTube hides it.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Playback speed``` | ```Adds options to customize available playback speeds, set a default playback speed, and show a speed dialog button in the video player.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Reload video``` | ```Adds an option to display reload video button in the video player.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Remove background playback restrictions``` | ```Removes restrictions on background playback, including playing kids videos in the background.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Remove viewer discretion dialog``` | ```Adds an option to remove the dialog that appears when opening a video that has been age-restricted by accepting it automatically. This does not bypass the age restriction.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Return YouTube Dislike``` | ```Adds an option to show the dislike count of videos with Return YouTube Dislike.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Sanitize sharing links``` | ```Removes the tracking query parameters from shared links.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Save to watch later``` | ```Adds an option to display save to watch later button in the video player.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Seekbar``` | ```Adds options to show old seekbar thumbnails, disable precise seeking when swiping up on the seekbar, slide to seek instead of playing at 2x speed when pressing and holding, tapping the player seekbar to seek, hiding the video player seekbar, enabling seeking in livestreams, and expanding the livestream DVR duration.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Settings menu filter``` | ```Adds an option to hide items on the standard YouTube settings screen by their visible name.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Shorts autoplay``` | ```Adds options to automatically play the next Short.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```SponsorBlock``` | ```Adds options to enable and configure SponsorBlock, which can skip undesired video segments such as sponsored content.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Spoof app version``` | ```Adds an option to trick the app into thinking you are running an older version.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Spoof device dimensions``` | ```Adds an option to spoof the device dimensions which can unlock higher video qualities.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Spoof video streams``` | ```Adds options to spoof the client video streams to fix playback.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Swipe controls``` | ```Adds options to enable and configure volume and brightness swipe controls.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Theme``` | ```Adds options for theming, and adds a setting to change the app background color.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Video quality``` | ```Adds options to set default video qualities and always use the advanced video quality menu.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Voice over translation``` | ```Adds additional voice over languages using text-to-speech synchronized to the video playback.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
-| ```Wide search bar``` | ```Adds a wide search bar to the top of the home and subscription feed.``` | ```YouTube``` | ```21.33.321, 21.32.2, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Add to queue``` | ```Overrides the feed flyout 'Play next in queue' with the Morphe video queue.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Alternative thumbnails``` | ```Adds options to replace video thumbnails using the DeArrow API or image captures from the video.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Ambient mode``` | ```Adds options to bypass power saving restrictions for Ambient mode and disable it entirely or in fullscreen.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Bypass image region restrictions``` | ```Adds an option to use a different host for user avatar and channel images and can fix missing images that are blocked in some countries.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Bypass link redirects``` | ```Adds an option to bypass redirects and open the original link directly.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Captions``` | ```Adds an option to disable captions from being automatically enabled or to set caption cookies.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Change form factor``` | ```Adds an option to change the UI appearance to a phone, tablet, or automotive device.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Change header``` | ```Adds an option to change the header logo in the top left corner of the app.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Change start page``` | ```Adds an option to set which page the app opens in instead of the homepage.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Check watch history domain name resolution``` | ```Checks if the device DNS server is preventing user watch history from being saved.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Copy video link``` | ```Adds options to display buttons in the video player to copy video links.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Custom branding``` | ```Adds options to change the app icon and app name. Branding cannot be changed for mounted (root) installations.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Custom player overlay opacity``` | ```Adds an option to change the opacity of the video player background when player controls are visible.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Disable double tap actions``` | ```Adds an option to disable player double tap gestures.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Disable DRC audio``` | ```Adds an option to disable DRC (Dynamic Range Compression) audio.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Disable fullscreen gestures``` | ```Adds options to selectively disable gestures for entering and exiting fullscreen mode.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Disable haptic feedback``` | ```Adds an option to disable haptic feedback in the player for various actions.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Disable layout updates``` | ```Adds an option to disable server side layout updates and use an older UI.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Disable player popup panels``` | ```Adds an option to disable panels (such as live chat) from opening automatically.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Disable QUIC protocol``` | ```Adds an option to disable QUIC (Quick UDP Internet Connections) network protocol.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Disable rolling number animations``` | ```Adds an option to disable rolling number animations of video view count, user likes, and upload time.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Disable Shorts resuming on startup``` | ```Adds an option to disable Shorts from resuming on app startup when Shorts were last being watched.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Disable sign in to TV popup``` | ```Adds options to disable the popups asking to sign into or connect to a TV on the same local network.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Disable video codecs``` | ```Adds options to disable HDR and VP9 codecs.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Double tap to seek``` | ```Adds additional double-tap to seek values to the YouTube settings menu.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Downloads``` | ```Adds support to download videos with an external downloader app using the in-app download button or a video player action button.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Enable debugging``` | ```Adds options for debugging and exporting Morphe logs to the clipboard.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Exit fullscreen mode``` | ```Adds options to automatically exit fullscreen mode when a video reaches the end.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Force original audio``` | ```Adds an option to always use the original audio track.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```GmsCore support``` | ```Allows the app to work without root by using a different package name when patched using a GmsCore instead of Google Play Services.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Hide ads``` | ```Adds options to hide general ads, Premium promotions and video ads.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Hide autoplay preview``` | ```Adds an option to hide the autoplay preview at the end of videos.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Hide end screen cards``` | ```Adds an option to hide suggested video cards at the end of videos.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Hide end screen suggested video``` | ```Adds an option to hide the suggested video at the end of videos.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Hide info cards``` | ```Adds an option to hide info cards that creators add in the video player.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Hide layout components``` | ```Adds options to hide general layout components.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Hide player flyout menu components``` | ```Adds options to hide menu components that appear when pressing the gear icon in the video player.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Hide player overlay buttons``` | ```Adds options to hide the player Cast, Autoplay, Captions, Previous & Next buttons, and the player control buttons background.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Hide related video overlay``` | ```Adds an option to hide the related video overlay shown when swiping up in fullscreen.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Hide related videos``` | ```Adds options to hide related videos.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Hide Shorts components``` | ```Adds options to hide components related to Shorts.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Hide timestamp``` | ```Adds an option to hide the timestamp in the bottom left of the video player.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Hide video action buttons``` | ```Adds options to hide video action buttons in fullscreen and portrait modes.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Loop video``` | ```Adds an option to loop videos and display loop video button in the video player.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Media notification controls``` | ```Adds options to disable the seekbar and previous/next buttons in the media notification and headphone controls.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Miniplayer``` | ```Adds options to change the in-app minimized player. Patching 21.28.206 and lower has more miniplayer types to choose from.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Navigation bar``` | ```Adds options to hide and change the bottom navigation bar (such as the Shorts button) and the upper navigation toolbar.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Network proxy``` | ```Adds settings to route supported network requests through an HTTP or HTTPS proxy.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Open channel of live avatar``` | ```Adds an option to prevent a channel's current live video from opening when tapping its avatar.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Open links externally``` | ```Adds an option to always open links in your browser instead of with the in-app browser.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Open Shorts in regular player``` | ```Adds options to open Shorts in the regular video player.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Open system share sheet``` | ```Adds an option to always open the system share sheet instead of the in-app share sheet.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Open videos fullscreen``` | ```Adds options to automatically open videos in fullscreen portrait or landscape mode.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Override YouTube Music buttons``` | ```Overrides YouTube Music buttons to open Morphe Music or any compatible third-party client.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Play all``` | ```Adds an option to play all the videos from a channel and to display play all button in the video player.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Playback in feeds``` | ```Adds the 'Playback in feeds' setting of YouTube to the Morphe settings, where it is always available even if YouTube hides it.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Playback speed``` | ```Adds options to customize available playback speeds, set a default playback speed, and show a speed dialog button in the video player.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Reload video``` | ```Adds an option to display reload video button in the video player.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Remove background playback restrictions``` | ```Removes restrictions on background playback, including playing kids videos in the background.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Remove viewer discretion dialog``` | ```Adds an option to remove the dialog that appears when opening a video that has been age-restricted by accepting it automatically. This does not bypass the age restriction.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Return YouTube Dislike``` | ```Adds an option to show the dislike count of videos with Return YouTube Dislike.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Sanitize sharing links``` | ```Removes the tracking query parameters from shared links.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Save to watch later``` | ```Adds an option to display save to watch later button in the video player.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Seekbar``` | ```Adds options to show old seekbar thumbnails, disable precise seeking when swiping up on the seekbar, slide to seek instead of playing at 2x speed when pressing and holding, tapping the player seekbar to seek, hiding the video player seekbar, enabling seeking in livestreams, and expanding the livestream DVR duration.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Settings menu filter``` | ```Adds an option to hide items on the standard YouTube settings screen by their visible name.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Shorts autoplay``` | ```Adds options to automatically play the next Short.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```SponsorBlock``` | ```Adds options to enable and configure SponsorBlock, which can skip undesired video segments such as sponsored content.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Spoof app version``` | ```Adds an option to trick the app into thinking you are running an older version.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Spoof device dimensions``` | ```Adds an option to spoof the device dimensions which can unlock higher video qualities.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Spoof video streams``` | ```Adds options to spoof the client video streams to fix playback.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Swipe controls``` | ```Adds options to enable and configure volume and brightness swipe controls.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Theme``` | ```Adds options for theming, and adds a setting to change the app background color.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Video quality``` | ```Adds options to set default video qualities and always use the advanced video quality menu.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Voice over translation``` | ```Adds additional voice over languages using text-to-speech synchronized to the video playback.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
+| ```Wide search bar``` | ```Adds a wide search bar to the top of the home and subscription feed.``` | ```YouTube``` | ```21.34.243, 21.33.321, 21.28.208, 21.04.223, 20.51.39, 20.31.42, 20.21.37``` |
 | ```Bypass certificate checks``` | ```Bypasses certificate checks which prevent YouTube Music from working on Android Auto.``` | ```YouTube Music``` | ```9.33.52, 9.32.51, 9.31.51, 9.15.51``` |
 | ```Change header``` | ```Adds an option to change the header logo in the top left corner of the app.``` | ```YouTube Music``` | ```9.33.52, 9.32.51, 9.31.51, 9.15.51``` |
 | ```Change miniplayer color``` | ```Adds an option to change the miniplayer background color to match the fullscreen player.``` | ```YouTube Music``` | ```9.33.52, 9.32.51, 9.31.51, 9.15.51``` |
@@ -4242,37 +4267,37 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Access Points menu style``` | ```切換新版或舊版 Access Points 選單樣式 Switch between the new and legacy Access Points menu styles.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
-| ```Add Gboard Signature Bypass``` | ```攔截 Gboard 的簽章白名單檢查並強制通過 Bypass Gboard signature whitelist checks and force them to pass.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
-| ```Advanced Voice Typing``` | ```啟用進階語音輸入（包含自動標點功能），並另外為不支援進階語音輸入的繁體中文語音啟用自動標點 Enable Advanced Voice Typing with automatic punctuation, and separately enable automatic punctuation for Traditional Chinese voice typing, which does not support Advanced Voice Typing.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
-| ```AI Writing Tools``` | ```啟用 AI 撰寫工具，支援所有語言 Enable AI writing tools with support for all languages.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
-| ```Change emoji size``` | ```變更表情符號大小 Change emoji size.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
-| ```Clipboard Custom Character Limit``` | ```自訂每個文字剪貼簿項目的最大字元數 Customize the maximum character count for each text clipboard item.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
-| ```Clipboard Enhancements``` | ```增強剪貼簿的保留時間、數量上限、預覽行數、倒數/建立時間、順序編號與欄數 Enhance clipboard retention time, item count limit, preview lines, countdown/creation time labels, order index, and column count.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
-| ```Custom Symbols``` | ```新增獨立的特殊符號分頁，長按逗號->愛心 Add a dedicated custom symbols tab and replace the long-press comma entry with a heart shortcut.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
-| ```Developer options``` | ```啟用 開發人員選項 與 Flag 編輯器，你可以自己修改Flag的值 Enable Developer options and the Flag Editor, allowing you to modify flag values.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
-| ```Emojis, stickers & GIFs Tab Order``` | ```自訂 Gboard「Emojis, stickers & GIFs」底部 tabs 的排序，支援拖曳調整 Customize the bottom tab order in Gboard's Emojis, stickers & GIFs panel with drag-and-drop reordering.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
-| ```Enable accessibility layout``` | ```啟用無障礙鍵盤配置 Enable accessibility layout.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
-| ```Enable cursor trackpad mode``` | ```長按空白鍵開啟游標觸控板與鎖定模式 Long-press the space bar to use cursor trackpad and lock modes.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
-| ```Enable Inline Autofill Suggestions``` | ```啟用內嵌自動填入建議 Enable Inline Autofill Suggestions``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
-| ```Enable OCR / Scan Text``` | ```啟用 OCR / 掃描文字功能，支援 拉丁、中文、日文、韓文 與 天城文 辨識後端 Enable the OCR / Scan Text feature with Latin, Chinese, Japanese, Korean, and Devanagari recognition backends.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
-| ```Enable split keyboard``` | ```啟用分離式鍵盤 Enable the split keyboard layout.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
-| ```English QWERTY Up-Flick Uppercase``` | ```英文 QWERTY 鍵盤上滑大小寫 Flick up on the English QWERTY keyboard to toggle uppercase and lowercase.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
-| ```G Logo on Spacebar``` | ```在空白鍵顯示 G Logo，並隱藏語言名稱 Show the G Logo on the spacebar and hide the language label.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
-| ```Grammar Checker``` | ```啟用 修正和建議 > 文法檢查 Enable Text correction > Grammar check.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
-| ```Incognito Mode Toggle``` | ```在 Access Point 工具列新增無痕模式切換按鈕，並可設定無痕模式下是否啟用剪貼簿與語音輸入 Add an Incognito toggle to the Access Point toolbar and configure clipboard and voice typing availability while Incognito mode is active.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
-| ```Inline Suggestions``` | ```啟用 修正和建議 > 智慧撰寫 Enable Text correction > Smart Compose.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
-| ```Key Shape Selection``` | ```啟用圓角按鍵，主題詳情 > 按鍵形狀 Enable Key shape in Theme details.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
-| ```Latin Globe Key Ignore Interval``` | ```新增英文鍵盤地球鍵忽略時間覆寫，可獨立控制輸入後切語言延遲 Add an independent English globe key ignore interval override for post-typing language-switch delay.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
-| ```Long-Press Editing Shortcuts``` | ```在英文 QWERTY 與注音鍵盤加入全選、復原、複製、剪下、貼上與重做長按快捷鍵 Add Select all, Undo, Copy, Cut, Paste, and Redo long-press shortcuts to English QWERTY and Zhuyin.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
-| ```Package Rename``` | ```將套件名稱改成 dev.jason.com.google.android.inputmethod.latin 以便共存安裝 Rename the package to dev.jason.com.google.android.inputmethod.latin so it can be installed alongside the official Gboard.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
-| ```Settings Homepage Override``` | ```允許切換新版或舊版 Gboard 設定頁面 Allow switching between the new and legacy Gboard settings pages.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
-| ```Swipeable Custom Top Row``` | ```滑動鍵盤第一排，在原生列與可自訂文字/JavaScript 列之間切換 Swipe the keyboard top row to switch between the stock row and a customizable text/JavaScript row.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
-| ```Use Bluetooth Microphone``` | ```啟用 語音輸入 -> 使用藍芽麥克風 Enable Voice typing -> Use Bluetooth microphone.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
-| ```Web Clipboard``` | ```新增手機自架的 Web Clipboard，支援瀏覽器同步、配對碼與快速設定開關 Add the phone-hosted Web Clipboard with browser sync, pairing, and a Quick Settings Tile.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
-| ```Zhuyin Bottom Row Key Sizes``` | ```調整注音鍵盤底排按鍵大小 Adjust Zhuyin keyboard bottom-row key sizes.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
-| ```Zhuyin Quick Traditional/Simplified Toggle``` | ```注音 ㄥ 上滑快速切換繁簡 Swipe up on Zhuyin ㄥ to quickly toggle Traditional and Simplified Chinese.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
-| ```Zhuyin Slide Input``` | ```注音鍵盤支持上下滑輸入 Enable slide-up and slide-down input on the Zhuyin keyboard.``` | ```com.google.android.inputmethod.latin``` | ```17.7.7.932364120-release-arm64-v8a``` |
+| ```Access Points menu style``` | ```切換新版或舊版 Access Points 選單樣式 Switch between the new and legacy Access Points menu styles.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```Add Gboard Signature Bypass``` | ```攔截 Gboard 的簽章白名單檢查並強制通過 Bypass Gboard signature whitelist checks and force them to pass.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```Advanced Voice Typing``` | ```啟用進階語音輸入（包含自動標點功能），並另外為不支援進階語音輸入的繁體中文語音啟用自動標點 Enable Advanced Voice Typing with automatic punctuation, and separately enable automatic punctuation for Traditional Chinese voice typing, which does not support Advanced Voice Typing.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```AI Writing Tools``` | ```啟用 AI 撰寫工具，支援所有語言 Enable AI writing tools with support for all languages.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```Change emoji size``` | ```變更表情符號大小 Change emoji size.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```Clipboard Custom Character Limit``` | ```自訂每個文字剪貼簿項目的最大字元數 Customize the maximum character count for each text clipboard item.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```Clipboard Enhancements``` | ```增強剪貼簿的保留時間、數量上限、預覽行數、倒數/建立時間、順序編號與欄數 Enhance clipboard retention time, item count limit, preview lines, countdown/creation time labels, order index, and column count.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```Custom Symbols``` | ```新增獨立的特殊符號分頁，長按逗號->愛心 Add a dedicated custom symbols tab and replace the long-press comma entry with a heart shortcut.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```Developer options``` | ```啟用 開發人員選項 與 Flag 編輯器，你可以自己修改Flag的值 Enable Developer options and the Flag Editor, allowing you to modify flag values.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```Emojis, stickers & GIFs Tab Order``` | ```自訂 Gboard「Emojis, stickers & GIFs」底部 tabs 的排序，支援拖曳調整 Customize the bottom tab order in Gboard's Emojis, stickers & GIFs panel with drag-and-drop reordering.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```Enable accessibility layout``` | ```啟用無障礙鍵盤配置 Enable accessibility layout.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```Enable cursor trackpad mode``` | ```長按空白鍵開啟游標觸控板與鎖定模式 Long-press the space bar to use cursor trackpad and lock modes.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```Enable Inline Autofill Suggestions``` | ```啟用內嵌自動填入建議 Enable Inline Autofill Suggestions``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```Enable OCR / Scan Text``` | ```啟用 OCR / 掃描文字功能，支援 拉丁、中文、日文、韓文 與 天城文 辨識後端 Enable the OCR / Scan Text feature with Latin, Chinese, Japanese, Korean, and Devanagari recognition backends.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```Enable split keyboard``` | ```啟用分離式鍵盤 Enable the split keyboard layout.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```English QWERTY Up-Flick Uppercase``` | ```英文 QWERTY 鍵盤上滑大小寫 Flick up on the English QWERTY keyboard to toggle uppercase and lowercase.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```G Logo on Spacebar``` | ```在空白鍵顯示 G Logo，並隱藏語言名稱 Show the G Logo on the spacebar and hide the language label.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```Grammar Checker``` | ```啟用 修正和建議 > 文法檢查 Enable Text correction > Grammar check.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```Incognito Mode Toggle``` | ```在 Access Point 工具列新增無痕模式切換按鈕，並可設定無痕模式下是否啟用剪貼簿與語音輸入 Add an Incognito toggle to the Access Point toolbar and configure clipboard and voice typing availability while Incognito mode is active.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```Inline Suggestions``` | ```啟用 修正和建議 > 智慧撰寫 Enable Text correction > Smart Compose.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```Key Shape Selection``` | ```啟用圓角按鍵，主題詳情 > 按鍵形狀 Enable Key shape in Theme details.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```Latin Globe Key Ignore Interval``` | ```新增英文鍵盤地球鍵忽略時間覆寫，可獨立控制輸入後切語言延遲 Add an independent English globe key ignore interval override for post-typing language-switch delay.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```Long-Press Editing Shortcuts``` | ```在英文 QWERTY 與注音鍵盤加入全選、復原、複製、剪下、貼上與重做長按快捷鍵 Add Select all, Undo, Copy, Cut, Paste, and Redo long-press shortcuts to English QWERTY and Zhuyin.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```Package Rename``` | ```將套件名稱改成 dev.jason.com.google.android.inputmethod.latin 以便共存安裝 Rename the package to dev.jason.com.google.android.inputmethod.latin so it can be installed alongside the official Gboard.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```Settings Homepage Override``` | ```允許切換新版或舊版 Gboard 設定頁面 Allow switching between the new and legacy Gboard settings pages.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```Swipeable Custom Top Row``` | ```滑動鍵盤第一排，在原生列與可自訂文字/JavaScript 列之間切換 Swipe the keyboard top row to switch between the stock row and a customizable text/JavaScript row.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```Use Bluetooth Microphone``` | ```啟用 語音輸入 -> 使用藍芽麥克風 Enable Voice typing -> Use Bluetooth microphone.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```Web Clipboard``` | ```新增手機自架的 Web Clipboard，支援瀏覽器同步、配對碼與快速設定開關 Add the phone-hosted Web Clipboard with browser sync, pairing, and a Quick Settings Tile.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```Zhuyin Bottom Row Key Sizes``` | ```調整注音鍵盤底排按鍵大小 Adjust Zhuyin keyboard bottom-row key sizes.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```Zhuyin Quick Traditional/Simplified Toggle``` | ```注音 ㄥ 上滑快速切換繁簡 Swipe up on Zhuyin ㄥ to quickly toggle Traditional and Simplified Chinese.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```Zhuyin Slide Input``` | ```注音鍵盤支持上下滑輸入 Enable slide-up and slide-down input on the Zhuyin keyboard.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
 
 </details>
 
@@ -4602,7 +4627,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Spoof install source``` | ```Spoofs package installer checks to report Google Play as the install source.``` | ```Universal``` | ```All versions``` |
 | ```Spoof USB debugging status``` | ```Spoofs USB debugging and related developer settings through common Android APIs.``` | ```Universal``` | ```All versions``` |
 | ```Spoof VPN status``` | ```Spoofs VPN state through common Android network APIs.``` | ```Universal``` | ```All versions``` |
-| ```Remove Wildberries ads``` | ```Removes Wildberries home banners, grid banners, profile banners, promo headers, product recommendations, and lottery popups.``` | ```Wildberries``` | ```7.7.5003-rustore, 7.7.5003, 7.7.4003-rustore, 7.7.4003, 7.7.3001-rustore, 7.7.3001, 7.7.2001-rustore, 7.7.2001``` |
+| ```Remove Wildberries ads``` | ```Removes Wildberries home banners, grid banners, profile banners, promo headers, product recommendations, and lottery popups.``` | ```Wildberries``` | ```7.7.6003-rustore, 7.7.6003, 7.7.5003-rustore, 7.7.5003, 7.7.4003-rustore, 7.7.4003, 7.7.3001-rustore, 7.7.3001, 7.7.2001-rustore, 7.7.2001``` |
 
 </details>
 
@@ -4832,7 +4857,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Rushiranpise Bundle Patch List:
 [📦 Rushiranpise-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-rushiranpise-patches-bundle-morphe)
 <details>
-<summary><b>Rushiranpise</b> - 341 patches, 248 apps</summary>
+<summary><b>Rushiranpise</b> - 341 patches, 249 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -4877,7 +4902,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Unlock Premium``` | ```Unlocks all premium features in Awake by bypassing the RC entitlement check chain and the Pairip Play Licensing verification.``` | ```Awake``` | ```1.10.3``` |
 | ```Unlock Premium``` | ```Unlocks premium and marks the yearly plan as purchased.``` | ```Battery Guru, Battery Guru``` | ```2.5.0.6, 2.5.0.6``` |
 | ```Unlock Premium``` | ```Unlocks BatteryPods Pro: removes all advertisements and enables premium features including all widget themes and device customization options.``` | ```BatteryPods``` | ```7.52``` |
-| ```Unlock Premium``` | ```Unlocks premium in Beta by Mirko.``` | ```Beta Maniac``` | ```0.9.4``` |
+| ```Unlock Premium``` | ```Unlocks premium in Beta by Mirko by disabling the ads gate and PairIP license checks.``` | ```Beta Maniac``` | ```0.10.0``` |
 | ```Unlock VIP``` | ```Unlock ViP features in app.``` | ```Block Blast!``` | ```10.4.5``` |
 | ```Remove ads``` | ```Disables Block Puzzle AdMob initialization, banner, and interstitial ads.``` | ```Block Puzzle``` | ```6.0``` |
 | ```Unlock Lifetime``` | ```Unlocks lifetime subscription features in BlockerHero.``` | ```BlockerHero``` | ```1.5.0``` |
@@ -5004,6 +5029,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Unlock All Access``` | ```Unlocks All access in Nzb360.``` | ```nzb360``` | ```24.3``` |
 | ```Unlock Premium``` | ```Unlocks all premium features including advanced diagnostics, live sensor data, freeze frame, and removes the daily usage quota.``` | ```OBD Android``` | ```4.9``` |
 | ```Unlock Pro``` | ```Unlocks the Pro upgrade in Octi.``` | ```Octi``` | ```1.1.0-rc0``` |
+| ```Unlock Pro``` | ```Unlocks Octopi Launcher Pro by returning true from the isPro LiveData getter, bypassing all pro feature gates without modifying billing or database logic.``` | ```Octopi Launcher``` | ```1.88``` |
 | ```Remove Ads``` | ```Blocks all ad display across Opera News's five ad networks and all mediation layers (AdsFacade, AppLovin MAX, TopOn, MCSDK, SmartDigiMkt).``` | ```Opera News``` | ```14.1.2254.83278``` |
 | ```Remove Ads``` | ```Unlocks the ad-free experience by spoofing the purchase state as acknowledged.``` | ```Oxygen Updater``` | ```7.1.0``` |
 | ```Unlock Pro``` | ```Unlocks Parallel Space Pro subscription features by bypassing all Pro status checks.``` | ```Parallel Space Pro``` | ```4.0.9159``` |
@@ -5039,7 +5065,6 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Unlock Premium``` | ```Unlocks all premium features in re-Link by forcing the license StateFlow to always emit a Licensed state and the sync purchase check to always return true.``` | ```re-Link``` | ```2.0.13``` |
 | ```Unlock Premium``` | ```Unlocks RecipeBro premium by patching both CustomerInfo and FeatureFlagResponse premium gates.``` | ```RecipeBro``` | ```1.7.21``` |
 | ```Disable Screenshot Popup``` | ```Suppresses the share prompt that appears after taking a screenshot.``` | ```Reddit``` | ```2026.32.0``` |
-| ```Fix RedGifs Audio``` | ```Routes RedGifs embeds through the WebView iframe path so videos play with audio instead of using the silent direct-stream URL.``` | ```Reddit``` | ```2026.32.0``` |
 | ```Hide Ads``` | ```Removes promoted posts and comment ads without requiring Reddit Premium unlock.``` | ```Reddit``` | ```2026.32.0``` |
 | ```Hide Answers Tab``` | ```Removes the AI Answers tab from the bottom navigation bar.``` | ```Reddit``` | ```2026.32.0``` |
 | ```Hide Chat Tab``` | ```Removes the Chat button from the bottom navigation bar.``` | ```Reddit``` | ```2026.32.0``` |
@@ -5134,7 +5159,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Enable ROM signature spoofing``` | ```Adds fake-signature permission and metadata.``` | ```Universal``` | ```All versions``` |
 | ```Export all activities``` | ```Makes all activities exportable.``` | ```Universal``` | ```All versions``` |
 | ```Export internal data documents provider``` | ```Registers an extension DocumentsProvider for the app internal data directory.``` | ```Universal``` | ```All versions``` |
-| ```Fix Firebase after re-signing``` | ```Fixes Firebase services (push notifications, Remote Config, Firebase Auth) that break after Morphe re-signs the app with a different certificate. Apply with Original app certificate patch no other config needed.``` | ```Universal``` | ```All versions``` |
+| ```Fix Firebase after re-signing``` | ```Fixes Firebase services (push notifications, Remote Config, Firebase Auth) that break after Morphe re-signs the app with a different certificate. Apply with Original app certificate patch — no other config needed.``` | ```Universal``` | ```All versions``` |
 | ```Force dark theme``` | ```Forces common AppCompat, UiModeManager, and Configuration dark-mode checks to night mode.``` | ```Universal``` | ```All versions``` |
 | ```GmsCore support (MicroG)``` | ```Routes Google Play Services calls through MicroG instead of real GPS. Works for: Google apps (YouTube, Maps, News, Photos) and third-party apps using classic Google Sign-In (Android 13 and below). Does not work for: Android 14+ Credential Manager sign-in (most modern third-party apps), Play Integrity / SafetyNet checks, or apps with custom auth. Requires MicroG RE installed. Apply with Original app certificate patch.``` | ```Universal``` | ```All versions``` |
 | ```Hide ADB status``` | ```Hides adb_enabled and development_settings_enabled.``` | ```Universal``` | ```All versions``` |
@@ -5481,32 +5506,33 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 AndrewLiang25 Bundle Patch List:
 [📦 AndrewLiang25-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-andrewliang25-patches-bundle-morphe)
 <details>
-<summary><b>AndrewLiang25</b> - 22 patches, 1 app</summary>
+<summary><b>AndrewLiang25</b> - 23 patches, 1 app</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Disable LINE Premium``` | ```Hides all LINE Yahoo Premium (LYP) surfaces — upsells, badges, the Premium settings page, and subscribe/manage flows. Premium chat backup falls back to the ordinary chat-history backup. Doesn't unlock anything (premium is server-enforced).``` | ```LINE``` | ```26.11.0``` |
-| ```Disable VOOM``` | ```Neutralizes VOOM entry points — deep links, shares, and notifications do nothing and the standalone VOOM feed closes on open. Messaging and other tabs are unaffected.``` | ```LINE``` | ```26.11.0``` |
-| ```Fix chat backup sign-in via GmsCore``` | ```Routes chat-history backup's Google account picker and Drive token through GmsCore, so backup and restore work on re-signed builds. Requires MicroG-RE. Doesn't affect Google account login. Root Mount install does not need this patch.``` | ```LINE``` | ```26.11.0``` |
-| ```Fix push notifications``` | ```Restores push notifications on re-signed builds when LINE is fully closed. Root Mount install does not need this patch.``` | ```LINE``` | ```26.11.0``` |
-| ```Hide ad views``` | ```Hides LINE display ad views — the LINE Ads SDK containers across the app, the chat-list Smart Channel banner, and Google AdManager ads.``` | ```LINE``` | ```26.11.0``` |
-| ```Hide attach menu extra tools``` | ```Removes all the server-provided extra tools from a chat room's + attach menu (Poll, Reservation, Schedule, Ladder shuffle, and any others). The built-in tiles (camera, gallery, files, contact, etc.) are unaffected.``` | ```LINE``` | ```26.11.0``` |
-| ```Hide calendar buttons``` | ```Removes every LINE Calendar button inside the messenger: the one in the Chats-tab header, and the four inside a chat room — the top toolbar, the + attach menu, the slide-out chat menu, and the message long-press menu.``` | ```LINE``` | ```26.11.0``` |
+| ```Disable LINE Premium``` | ```Hides all LINE Yahoo Premium (LYP) surfaces: the upsells, the badges, the Premium settings page, and the subscribe and manage flows. Premium chat backup changes to the ordinary chat-history backup. This patch unlocks nothing, because the server enforces premium.``` | ```LINE``` | ```26.11.0``` |
+| ```Disable VOOM``` | ```VOOM deep links, shares, and notifications do nothing. If you open the standalone VOOM feed, it closes. Messaging and the other tabs do not change.``` | ```LINE``` | ```26.11.0``` |
+| ```Fix chat backup sign-in via GmsCore``` | ```Sends the Google account picker and the Drive token of chat-history backup through GmsCore. Backup and restore then work on a re-signed build. This patch needs MicroG-RE. It does not change how you sign in to a Google account. A Root Mount install does not need this patch.``` | ```LINE``` | ```26.11.0``` |
+| ```Fix push notifications``` | ```When LINE is fully closed, push notifications work again on a re-signed build. A Root Mount install does not need this patch.``` | ```LINE``` | ```26.11.0``` |
+| ```Hide ad views``` | ```Hides the LINE display ad views. These are the LINE Ads SDK containers in the whole app, the chat-list Smart Channel banner, and the Google AdManager ads.``` | ```LINE``` | ```26.11.0``` |
+| ```Hide attach menu extra tools``` | ```Removes all the server-provided extra tools from the + attach menu in a chat room (Poll, Reservation, Schedule, Ladder shuffle, and more). The built-in tiles (camera, gallery, files, and contact) do not change.``` | ```LINE``` | ```26.11.0``` |
+| ```Hide calendar buttons``` | ```Removes every LINE Calendar button inside the messenger. One is in the Chats-tab header. The other four are in a chat room: the top toolbar, the + attach menu, the slide-out chat menu, and the message long-press menu.``` | ```LINE``` | ```26.11.0``` |
 | ```Hide community button``` | ```Removes the community (OpenChat) button from the top of the Chats tab header.``` | ```LINE``` | ```26.11.0``` |
-| ```Hide Events button``` | ```Removes the "Events" row from a chat room's slide-out menu. (Events is a separate feature from LINE Calendar — it opens a server-hosted page.)``` | ```LINE``` | ```26.11.0``` |
-| ```Hide Home modules``` | ```Hides Home-tab clutter modules: the recommended stickers/content section, the real-time hot-topics (即時夯話題) block, and Home feed ads.``` | ```LINE``` | ```26.11.0``` |
-| ```Hide LINE GIFT button``` | ```Removes the LINE GIFT tile from a chat room's + attach menu.``` | ```LINE``` | ```26.11.0``` |
+| ```Hide Events button``` | ```Removes the "Events" row from the slide-out menu in a chat room. Events is a different feature from LINE Calendar, and it opens a server-hosted page.``` | ```LINE``` | ```26.11.0``` |
+| ```Hide Home content feed``` | ```Removes the content feed below the friends list on the Home tab. The feed shows LINE NEWS posts, official account posts, live cards, content units, and ranking units. The friends list, the service icons, and the other Home modules do not change.``` | ```LINE``` | ```26.11.0``` |
+| ```Hide Home modules``` | ```Hides clutter modules on the Home tab: the recommended stickers and content section, the real-time hot-topics (即時夯話題) block, and the ad modules. A separate patch hides the content feed below the friends list.``` | ```LINE``` | ```26.11.0``` |
+| ```Hide LINE GIFT button``` | ```Removes the LINE GIFT tile from the + attach menu in a chat room.``` | ```LINE``` | ```26.11.0``` |
 | ```Hide LINE TODAY tab``` | ```Removes the LINE TODAY (News) tab from the main bottom navigation, in both the news-tab and news-row layouts.``` | ```LINE``` | ```26.11.0``` |
-| ```Hide premium unsend upsells``` | ```Removes the LYP premium-unsend upsells that survive "Disable LINE Premium": the "Unsend discreetly" button, the post-unsend promo link, and the expired-window unsend upsell. Ordinary unsend still works.``` | ```LINE``` | ```26.11.0``` |
-| ```Hide Shopping tab``` | ```Removes the Shopping tab from the main bottom navigation, covering both the Japan (Shopping / ショッピング) and Taiwan (Discover / 逛逛) variants.``` | ```LINE``` | ```26.11.0``` |
-| ```Hide Transfer button``` | ```Removes the Transfer (LINE Pay) tile from a chat room's + attach menu.``` | ```LINE``` | ```26.11.0``` |
+| ```Hide premium unsend upsells``` | ```Removes the LYP premium-unsend upsells that stay after "Disable LINE Premium". These are the "Unsend discreetly" button, the post-unsend promo link, and the expired-window unsend upsell. Ordinary unsend still works.``` | ```LINE``` | ```26.11.0``` |
+| ```Hide Shopping tab``` | ```Removes the Shopping tab from the main bottom navigation. This includes the Japan variant (Shopping, ショッピング) and the Taiwan variant (Discover, 逛逛).``` | ```LINE``` | ```26.11.0``` |
+| ```Hide Transfer button``` | ```Removes the Transfer (LINE Pay) tile from the + attach menu in a chat room.``` | ```LINE``` | ```26.11.0``` |
 | ```Hide VOOM tab``` | ```Removes the VOOM (formerly Timeline) tab from the main bottom navigation.``` | ```LINE``` | ```26.11.0``` |
 | ```Hide Wallet tab``` | ```Removes the Wallet (LINE Pay) tab from the main bottom navigation, in both the normal and mini-tab layouts.``` | ```LINE``` | ```26.11.0``` |
-| ```Keep chats unread``` | ```Opening a 1:1 or group chat no longer marks it read — it stays unread and no read receipt is sent. Manually using "Mark as read" / "Mark all as read" still marks the chat read and sends the receipt as normal.``` | ```LINE``` | ```26.11.0``` |
-| ```Keep unsent messages``` | ```Keeps messages that were unsent in 1:1 and group chats on your device instead of destroying them, and shows the usual "unsent a message" notice directly below the message it kept. Doesn't apply to OpenChat.``` | ```LINE``` | ```26.11.0``` |
-| ```Open links in external browser``` | ```Opens tapped web links (http/https) in your default browser instead of LINE's in-app browser. LIFF mini-apps and LINE deep links are unaffected.``` | ```LINE``` | ```26.11.0``` |
-| ```Redirect LINE Pay``` | ```Forwards LINE Pay flows to the standalone LINE Pay app instead of running them in-app, so the device-integrity check that fails on a re-signed build never runs. Messaging is unaffected.``` | ```LINE``` | ```26.11.0``` |
-| ```Remove banner ads``` | ```Stops LINE from loading Smart Channel banner ads (neutralizes the getBanners and getPrefetchableBanners responses).``` | ```LINE``` | ```26.11.0``` |
+| ```Keep chats unread``` | ```When you open a 1:1 or group chat, LINE does not mark it read and sends no read receipt. If you use "Mark as read" or "Mark all as read", LINE marks the chat read and sends the receipt.``` | ```LINE``` | ```26.11.0``` |
+| ```Keep unsent messages``` | ```Keeps unsent messages from 1:1 and group chats on your device instead of erasing them. This patch shows the usual "unsent a message" notice directly below the message that it kept. This patch does not apply to OpenChat.``` | ```LINE``` | ```26.11.0``` |
+| ```Open links in external browser``` | ```When you tap a web link (http or https), it opens in your default browser instead of LINE's in-app browser. LIFF mini-apps and LINE deep links do not change.``` | ```LINE``` | ```26.11.0``` |
+| ```Redirect LINE Pay``` | ```Opens LINE Pay flows in the standalone LINE Pay app instead of inside LINE. The device-integrity check that fails on a re-signed build never runs. Messaging does not change.``` | ```LINE``` | ```26.11.0``` |
+| ```Remove banner ads``` | ```LINE no longer loads the Smart Channel banner ads. This patch makes the getBanners and getPrefetchableBanners responses null.``` | ```LINE``` | ```26.11.0``` |
 
 </details>
 
@@ -5935,7 +5961,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 FTL Bundle Patch List:
 [📦 FTL-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-ftl-patches-bundle-morphe)
 <details>
-<summary><b>FTL</b> - 27 patches, 7 apps</summary>
+<summary><b>FTL</b> - 29 patches, 7 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -5956,9 +5982,11 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Remove Watch Ad To Download``` | ```Removes the requirement to watch a rewarded ad before a download starts.``` | ```SnapTube``` | ```7.64.0.76450210``` |
 | ```Add Toast``` | ```Shows a custom toast message when the app starts. Works on any app.``` | ```Universal``` | ```All versions``` |
 | ```APK Junk Cleanup``` | ```Removes build artifacts and metadata that bloat the APK: Play Services / Firebase version files, protobuf descriptors, debug probes, kotlin builtins, META-INF subfolder clutter, and misc junk. Safe — only removes files with no runtime purpose.``` | ```Universal``` | ```All versions``` |
-| ```Custom DPI (Universal)``` | ```Change this app's display size without touching your phone's system settings. Make it bigger if things look too small, or smaller to fit more on screen. Works on any app.``` | ```Universal``` | ```All versions``` |
+| ```Custom DPI``` | ```Change any app's display size without touching your phone's system settings. Make it bigger if things look too small, or smaller to fit more on screen. You Need To Configure 100(No Change), 90(10% Smaller App Ui), 110(10% Bigger App Ui).``` | ```Universal``` | ```All versions``` |
 | ```Png Optimizer``` | ```Compresses PNG images without losing quality and strips hidden metadata (DPI, timestamps, text) to make the app smaller. Only rewrites files when the result is actually smaller.``` | ```Universal``` | ```All versions``` |
-| ```Remove Ads``` | ```Stubs known ad SDK entry points and poisons ad-network URL strings across the whole app. Async load calls are redirected into the callback's own failure method instead of being deleted, so completion-gated app logic doesn't hang waiting on an orphaned listener.``` | ```Universal``` | ```All versions``` |
+| ```Remove Ads``` | ```Stubs known ad SDK entry points and poisons ad-network URL strings across the whole app. Async load calls are redirected into the callback's own failure method instead of being deleted, Currently In Some Apps Makes Them Stuck In SplashActivity Due To Their Custom Check Of Ads Load But It Is Superior.``` | ```Universal``` | ```All versions``` |
+| ```Remove Ads Lite(Adobo)``` | ```Based On (Adobo's Block Ads+Mobile Ads) Disables known ad SDK entry points and neutralizes ad/tracker/analytics Safer than Remove Ads for apps where you will be stuck in SplashActivity It Is Weaker But Effective, Merged Adobo's Both Patches And Removed The Need Of Selecting A Host File Or Configuring Anything In Future It May Replace Remove Ads Patch If I Find No Problem.``` | ```Universal``` | ```All versions``` |
+| ```Remove Ads Ultra Lite``` | ```Call finish on ad activities (AdMob, AppLovin MAX, BIGO, InMobi, Liftoff/Vungle) Its In Very Early Stage So Test And Provide FeedBack If You Still See Ads In Some App.``` | ```Universal``` | ```All versions``` |
 | ```Remove Analytics``` | ```Disables tracking and crash-reporting tools, corrupts analytics web links inside the code, and removes background tracking services.``` | ```Universal``` | ```All versions``` |
 | ```Remove Debug Info``` | ```Removes debug information (line numbers, variable names, source file references) from every class in the .dex files to reduce overall APK size.``` | ```Universal``` | ```All versions``` |
 | ```Remove Duplicate Graphics``` | ```Keeps images for only one screen density (like xhdpi) and removes copies for all other densities. Android will automatically scale the kept images, making the app significantly smaller.``` | ```Universal``` | ```All versions``` |
@@ -6287,11 +6315,10 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Flexboard Bundle Patch List:
 [📦 Flexboard-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-flexboard-patches-bundle-morphe)
 <details>
-<summary><b>Flexboard</b> - 9 patches, 1 app</summary>
+<summary><b>Flexboard</b> - 8 patches, 1 app</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Bigger Toolbar``` | ```Makes the number of icons on the toolbar above the keyboard adjustable, from Gboard's own settings. Anything past the limit stays in the overflow menu.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Bypass Gboard Signature``` | ```Bypass Gboard's signature whitelist checks and force them to pass.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Grammar Check Row``` | ```Force the grammar check settings row to appear. The Phenotype flag that governs it never syncs on a patched build, so its compiled-in default (off) sticks.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Install as Gboard Clone``` | ```Rename the package to dev.jz6.com.google.android.inputmethod.latin so the patched build installs alongside the official Gboard instead of replacing it.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
@@ -6322,19 +6349,22 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 RuStore-Privacy Bundle Patch List:
 [📦 RuStore-Privacy-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-rustore-privacy-patches-bundle-morphe)
 <details>
-<summary><b>RuStore-Privacy</b> - 9 patches, 1 app</summary>
+<summary><b>RuStore-Privacy</b> - 12 patches, 1 app</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Disable advertisements``` | ```Removes ad providers and ad identifiers, returns an empty ad list, and keeps advertising consent disabled.``` | ```RuStore``` | ```1.107.0.3``` |
-| ```Disable analytics and trackers``` | ```Disables AppMetrica, MyTracker, AltCraft, Radar, install referrer, metrics, and audited logging transports.``` | ```RuStore``` | ```1.107.0.3``` |
-| ```Disable background hooks``` | ```Disables audited boot, network-state, VPN, and Connect session hooks.``` | ```RuStore``` | ```1.107.0.3``` |
-| ```Disable invasive permissions``` | ```Removes privileged install, location, storage, billing, USB, and vendor data access while preserving user-driven installs.``` | ```RuStore``` | ```1.107.0.3``` |
-| ```Disable Kaspersky background scan``` | ```Disables periodic Kaspersky scheduling and reports disabled workers as successfully completed.``` | ```RuStore``` | ```1.107.0.3``` |
-| ```Disable push services``` | ```Disables RuStore and VK push initialization, services, and audited push receivers.``` | ```RuStore``` | ```1.107.0.3``` |
-| ```Disable verification hooks``` | ```Disables audited SMS, call, phone-state, SID, and Mail.ru verification hooks.``` | ```RuStore``` | ```1.107.0.3``` |
-| ```Hide gaming profile``` | ```Removes the gaming profile permission, hides both gaming buttons, and blocks navigation to the gaming profile.``` | ```RuStore``` | ```1.107.0.3``` |
-| ```Skip update authentication``` | ```Skips the update authentication suggestion and returns a valid completed result.``` | ```RuStore``` | ```1.107.0.3``` |
+| ```Disable advertisements``` | ```Removes ad providers, sanitizes ad identifiers, returns an empty ad list, and keeps advertising consent disabled.``` | ```RuStore``` | ```1.108.0.2``` |
+| ```Disable analytics and trackers``` | ```Disables audited analytics transports and replaces the stable request device identifier.``` | ```RuStore``` | ```1.108.0.2``` |
+| ```Disable background hooks``` | ```Disables audited boot, network-state, VPN, and Connect session hooks.``` | ```RuStore``` | ```1.108.0.2``` |
+| ```Disable invasive permissions``` | ```Removes privileged install, location, storage, billing, USB, and vendor data access while preserving user-driven installs.``` | ```RuStore``` | ```1.108.0.2``` |
+| ```Disable Kaspersky background scan``` | ```Disables periodic Kaspersky scheduling and reports disabled workers as successfully completed.``` | ```RuStore``` | ```1.108.0.2``` |
+| ```Disable push services``` | ```Disables RuStore and VK push initialization, services, and audited push receivers.``` | ```RuStore``` | ```1.108.0.2``` |
+| ```Disable verification hooks``` | ```Disables audited SMS, call, phone-state, SID, and Mail.ru verification hooks.``` | ```RuStore``` | ```1.108.0.2``` |
+| ```Exclude Google Play apps from update checks``` | ```Excludes only apps whose recorded Android installer is Google Play from update requests.``` | ```RuStore``` | ```1.108.0.2``` |
+| ```Hide gaming profile``` | ```Removes the gaming profile permission, hides both gaming buttons, and blocks navigation to the gaming profile.``` | ```RuStore``` | ```1.108.0.2``` |
+| ```Restore secure-session compatibility``` | ```Adapts secure-session requests to RuStore 1.108 API changes for re-signed APKs.``` | ```RuStore``` | ```1.108.0.2``` |
+| ```Restrict background work to updates``` | ```Keeps only the background workers required for automatic update checks, downloads, patch application, and installation, including charging-triggered checks.``` | ```RuStore``` | ```1.108.0.2``` |
+| ```Skip update authentication``` | ```Skips the update authentication suggestion and returns a valid completed result.``` | ```RuStore``` | ```1.108.0.2``` |
 
 </details>
 
@@ -6368,17 +6398,20 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Kveld Bundle Patch List:
 [📦 Kveld-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-kveld-patches-bundle-morphe)
 <details>
-<summary><b>Kveld</b> - 20 patches, 3 apps</summary>
+<summary><b>Kveld</b> - 24 patches, 3 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Block Brave Telemetry``` | ```Blocks P3A product analytics, Brave Stats usage pings, crash dump uploads, WDP, and Variations seed fetching.``` | ```Brave Private Web Browser, VPN``` | ```1.93.137``` |
-| ```Brave In-Product Notification Scheduler Optimization``` | ```Eliminates periodic background wakeups and native library loading caused by Chromium in-product tips/promo scheduler (Job ID 105).``` | ```Brave Private Web Browser, VPN``` | ```1.93.137``` |
-| ```Brave Origin``` | ```Unlocks Brave Origin and enables local feature toggle controls.``` | ```Brave Private Web Browser, VPN``` | ```1.93.137``` |
-| ```Brave Startup Performance Optimization``` | ```Optimizes startup time and eliminates background CPU/disk overhead by disabling unused OEM carrier partner customizations.``` | ```Brave Private Web Browser, VPN``` | ```1.93.137``` |
+| ```Block Brave Telemetry``` | ```Blocks P3A product analytics, Brave Stats usage pings, crash dump uploads, WDP, and Variations seed fetching.``` | ```Brave Private Web Browser, VPN``` | ```1.93.138``` |
+| ```Brave In-Product Notification Scheduler Optimization``` | ```Eliminates periodic background wakeups and native library loading caused by Chromium in-product tips/promo scheduler (Job ID 105).``` | ```Brave Private Web Browser, VPN``` | ```1.93.138``` |
+| ```Brave Origin``` | ```Unlocks Brave Origin and enables local feature toggle controls.``` | ```Brave Private Web Browser, VPN``` | ```1.93.138``` |
+| ```Brave Startup Performance Optimization``` | ```Optimizes startup time and eliminates background CPU/disk overhead by disabling unused OEM carrier partner customizations.``` | ```Brave Private Web Browser, VPN``` | ```1.93.138``` |
+| ```Locale PAK Slimmer``` | ```Strips unselected language resource PAKs from assets/locales/.``` | ```Brave Private Web Browser, VPN``` | ```1.93.138``` |
+| ```Skip First Run``` | ```Skips the welcome screen, search engine selection, and onboarding First Run Experience (FRE) on clean installs.``` | ```Brave Private Web Browser, VPN``` | ```1.93.138``` |
 | ```Add AMOLED Theme``` | ```Adds a selectable Pure Black AMOLED theme using Gboard's native color_black theme package, without replacing Dark, Light, System Auto, or Dynamic Color.``` | ```Gboard Lite``` | ```18.0.3.954559732-lite_beta-arm64-v8a``` |
 | ```Allow Modified APK``` | ```Bypasses internal signature check to allow custom APK execution.``` | ```Gboard Lite``` | ```18.0.3.954559732-lite_beta-arm64-v8a``` |
 | ```Block Telemetry``` | ```Disables background metrics dispatch, event logging, daily pings, and crash reporting.``` | ```Gboard Lite``` | ```18.0.3.954559732-lite_beta-arm64-v8a``` |
+| ```Clone Gboard``` | ```Changes the package name by appending a dot and custom suffix (defaults to 'kveld') to allow installing Gboard alongside the original application.``` | ```Gboard Lite``` | ```18.0.3.954559732-lite_beta-arm64-v8a``` |
 | ```Disable Diagnostics``` | ```Disables Google's diagnostic and recovery telemetry.``` | ```Gboard Lite``` | ```18.0.3.954559732-lite_beta-arm64-v8a``` |
 | ```Disable Google Primes``` | ```Neutralizes Google Primes performance profiling, jank monitoring, native crash sidecars, and background telemetry threads.``` | ```Gboard Lite``` | ```18.0.3.954559732-lite_beta-arm64-v8a``` |
 | ```Disable In-App Training``` | ```Neutralizes periodic in-app training cache generation and federated-learning background work while preserving normal keyboard functionality and explicit user-requested operations.``` | ```Gboard Lite``` | ```18.0.3.954559732-lite_beta-arm64-v8a``` |
@@ -6392,6 +6425,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Enable Key Shape Selection``` | ```Enables the key border shape selection UI (Default, Semi-rounded, Round) in theme customization.``` | ```Gboard Lite``` | ```18.0.3.954559732-lite_beta-arm64-v8a``` |
 | ```Force Incognito Mode``` | ```Forces Gboard to always operate in incognito mode, disabling personalized learning and persistent input logging across all sessions.``` | ```Gboard Lite``` | ```18.0.3.954559732-lite_beta-arm64-v8a``` |
 | ```Hardened Intent Security``` | ```Enables Gboard internal external intent protection against unauthorized intent hijacking.``` | ```Gboard Lite``` | ```18.0.3.954559732-lite_beta-arm64-v8a``` |
+| ```Resource Slimmer``` | ```Strips embedded third-party license text, onboarding tutorial Lottie animations, and promotional GIFs using dynamic content heuristics.``` | ```Gboard Lite``` | ```18.0.3.954559732-lite_beta-arm64-v8a``` |
 
 </details>
 
@@ -6478,5 +6512,69 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 |----------|---------------|---------------------|-------------------------|
 | ```ProxMobo License Check Bypass``` | ```Disables Google's Play app-licensing (PairIP) check so ProxMobo does not show license errors or close when it is not installed/licensed through Google Play.``` | ```ProxMobo``` | ```1.0.1``` |
 | ```ProxMobo Premium Unlock``` | ```Unlocks Premium by reporting the lifetime product (proxmobo.premium.lifetime) as purchased. On first launch, open Settings and press “Restore Purchases” to activate Premium.``` | ```ProxMobo``` | ```1.0.1``` |
+
+</details>
+
+---
+### 🧩 XTapped Bundle Patch List:
+[📦 XTapped-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-xtapped-patches-bundle-morphe)
+<details>
+<summary><b>XTapped</b> - 1 patch, 1 app</summary>
+
+| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
+|----------|---------------|---------------------|-------------------------|
+| ```Unlock Pro``` | ```Unlocks Pro tethering and disables purchase actions in the shop.``` | ```Tetrd``` | ```1.3.2``` |
+
+</details>
+
+---
+### 🧩 ImNoammm-Spotify Bundle Patch List:
+[📦 ImNoammm-Spotify-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-imnoammm-spotify-patches-bundle-morphe)
+<details>
+<summary><b>ImNoammm-Spotify</b> - 2 patches, 1 app</summary>
+
+| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
+|----------|---------------|---------------------|-------------------------|
+| ```Local files from a server``` | ```Adds a Nextcloud or WebDAV folder as a source of local files. Its tracks appear under Local Files and are streamed from the server instead of being stored on the device.``` | ```Spotify``` | ```All versions``` |
+| ```Morphe settings``` | ```Adds a Morphe entry to Spotify's settings, which is where the settings of the other Morphe patches live.``` | ```Spotify``` | ```All versions``` |
+
+</details>
+
+---
+### 🧩 Beetle Bundle Patch List:
+[📦 Beetle-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-beetle-patches-bundle-morphe)
+<details>
+<summary><b>Beetle</b> - 3 patches, 1 app</summary>
+
+| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
+|----------|---------------|---------------------|-------------------------|
+| ```Slowly avatar builder items``` | ```Enables Avatar Builder items marked as subscription-only without changing coin-priced item checks.``` | ```Slowly``` | ```9.5.6, 9.5.8``` |
+| ```Slowly extended Explore filters``` | ```Enables verified client-side Explore filters, including Last online within 48 hours and New Members Only, and raises excluded-country and excluded-topic selection limits.``` | ```Slowly``` | ```9.5.6, 9.5.8``` |
+| ```Slowly Pairip license check bypass``` | ```Disables Pairip's client-side installer and license enforcement.``` | ```Slowly``` | ```9.5.6, 9.5.8``` |
+
+</details>
+
+---
+### 🧩 Jancerny2001 Bundle Patch List:
+[📦 Jancerny2001-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-jancerny2001-patches-bundle-morphe)
+<details>
+<summary><b>Jancerny2001</b> - 1 patch, 1 app</summary>
+
+| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
+|----------|---------------|---------------------|-------------------------|
+| ```Enable card screenshot``` | ```Allows screenshots of cards by clearing the FLAG_SECURE flag.``` | ```Alive App``` | ```3.5.0``` |
+
+</details>
+
+---
+### 🧩 Rhubarbshoelaces Bundle Patch List:
+[📦 Rhubarbshoelaces-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-rhubarbshoelaces-patches-bundle-morphe)
+<details>
+<summary><b>Rhubarbshoelaces</b> - 2 patches, 2 apps</summary>
+
+| **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
+|----------|---------------|---------------------|-------------------------|
+| ```Fix Random Subreddit Button``` | ```Reroutes all Random buttons to pick from a custom pre-loaded list of thousands of subreddits.``` | ```Boost for Reddit``` | ```All versions``` |
+| ```Remove Ads``` | ```Bypasses startup delays and collapses all ad containers.``` | ```theScore``` | ```All versions``` |
 
 </details>
