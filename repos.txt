@@ -7,6 +7,7 @@ Apostolique/apos-morphe-patches
 BholeyKaBhakt/android-patches-xtra
 BlazeFTL/FTL-Patches
 BlazeFTL/Morphe-Portal-Patches-New
+Burhanverse/test
 Entree3k/Morning-Entree-Patches
 Freeman022026/rustore-privacy-patches
 GoldRift/morphe-patches
@@ -17,6 +18,7 @@ Hiosdra/morphe-patches
 HvQ/eksi-morphe
 IMXEren/mix-patches
 Ikuradachi/ikura-patches
+ImNoammm/morphe-spotify-patches
 ImmortalZeus/ImmortalZeus-Morphe-Patches
 JZ6/Flexboard
 Jl4cTuk/morphe-patches
@@ -57,6 +59,7 @@ Trimpsuz/morphe-busuu
 Utsavrajputt/Modx-patches
 WZSE/aapam-patches
 WZSE/morphe-patches
+XTapped/morphe-patches
 Xhehab/Xhehab-Patches
 Xisrr1/Revancify-Xisr
 abhis1n/Morphe-Patches
@@ -120,6 +123,7 @@ heinrich26/morphe-patches
 heval99/Heval-Morphe-Patches
 heval99/morphe-patches
 hhawkinsau/hh-patches
+homelander11/beetle-patches
 hoo-dles/jadx-morphe
 hoo-dles/morphe-patches
 hu-liberator/patches
@@ -131,6 +135,7 @@ ilikeadofai/vocacolle-morphe-patches
 isuruhg/cricinfo-tweaks
 isuruhg/fin-tweaks
 itsthejoker/itsthejoker-patches
+jancerny2001/morphe-patches
 jasonwu1994/Gboard-patches
 jkennethcarino/adobo
 kareemlukitomo/morphe-patches
@@ -157,6 +162,7 @@ ozeroztas/Morphe-Patch
 polka-bear/morphe-patches
 pseudofractal/morphe-patches
 quantavil/edge-morphe-patches
+rhubarbshoelaces/morphe-patches
 riky-dev/morphe-patches
 rushiranpise/RI-Vanced-Universal-Morphe-Patches
 rushiranpise/Ri-Vanced-Universal-Morphe-Patches

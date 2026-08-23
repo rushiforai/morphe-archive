@@ -1,20 +1,20 @@
 {
-  "generatedAt": "2026-08-22 01:12 UTC",
-  "configFile": "morphe_archive_config_v27.json",
-  "configVersion": 27,
-  "repoCount": 152,
-  "appCount": 706,
-  "patchCount": 2842,
-  "universalPatchCount": 280,
+  "generatedAt": "2026-08-23 01:16 UTC",
+  "configFile": "morphe_archive_config_v28.json",
+  "configVersion": 28,
+  "repoCount": 158,
+  "appCount": 710,
+  "patchCount": 2907,
+  "universalPatchCount": 302,
   "hostCounts": {
-    "github.com": 147,
+    "github.com": 153,
     "gitlab.com": 5
   },
   "visitorStats": {
-    "today": 0,
-    "yesterday": 3,
-    "total": 300,
-    "online": 0
+    "today": 1,
+    "yesterday": 4,
+    "total": 305,
+    "online": 1
   },
   "repos": [
     {
@@ -1595,23 +1595,19 @@
       "webUrl": "https://github.com/BlazeFTL/FTL-Patches",
       "addUrl": "https://morphe.software/add-source?github=BlazeFTL/FTL-Patches",
       "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
-      "patchCount": 27,
+      "patchCount": 29,
       "appCount": 6,
       "createdAt": 1786263569063,
       "updatedAt": 1786263569063,
       "createdDate": "2026-08-09",
       "updatedDate": "2026-08-09",
       "latestChanges": {
-        "title": "1.38.0 (2026-08-19)",
-        "date": "2026-08-19",
+        "title": "1.39.1 (2026-08-22)",
+        "date": "2026-08-22",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "Add All Video Downloader Remove DownloadMenu"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "Add Rs File Explorer Disable Download"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Add more domains for adobo"
           }
         ]
       },
@@ -1957,6 +1953,46 @@
           "patchCount": 7,
           "iconUrl": "https://play-lh.googleusercontent.com/kVMxXC3fV4cyG56MZunYS2-HYaHh3eM3YTWoDbYaN5-G9xIU2k235hHVQmRrm79tzBSzt0cZ6GsBbzGzGbbMwg",
           "iconColor": "#005AF0"
+        }
+      ]
+    },
+    {
+      "name": "test",
+      "repo": "Burhanverse/test",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/Burhanverse/test/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/Burhanverse/test/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/Burhanverse/test/main/CHANGELOG.md",
+      "webUrl": "https://github.com/Burhanverse/test",
+      "addUrl": "https://morphe.software/add-source?github=Burhanverse/test",
+      "avatarUrl": "https://github.com/Burhanverse.png?size=96",
+      "patchCount": 31,
+      "appCount": 1,
+      "createdAt": 1787447738326,
+      "updatedAt": 1787447738326,
+      "createdDate": "2026-08-23",
+      "updatedDate": "2026-08-23",
+      "latestChanges": {
+        "title": "2.11.0 (2026-08-15)",
+        "date": "2026-08-15",
+        "items": [
+          {
+            "category": "\u2728 New Features",
+            "text": "**Gboard:** nothing was added."
+          },
+          {
+            "category": "\u2728 \u65b0\u529f\u80fd",
+            "text": "**Gboard:** \u4ec0\u9ebc\u90fd\u6c92\u6709\u6dfb\u52a0\u3002"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "com.google.android.inputmethod.latin",
+          "packageName": "com.google.android.inputmethod.latin",
+          "patchCount": 31,
+          "iconUrl": "https://play-lh.googleusercontent.com/J4vZ82VsZjnsRsI6ckQFXlO36_52QJerqG5-HfLgHffS34I4EfoAFfNdbf6s4wBAsUEf8DOJVEDEHh5tzWbrnA",
+          "iconColor": ""
         }
       ]
     },
@@ -4048,19 +4084,19 @@
       "webUrl": "https://github.com/Freeman022026/rustore-privacy-patches",
       "addUrl": "https://morphe.software/add-source?github=Freeman022026/rustore-privacy-patches",
       "avatarUrl": "https://github.com/Freeman022026.png?size=96",
-      "patchCount": 9,
+      "patchCount": 12,
       "appCount": 1,
       "createdAt": 1787101955887,
       "updatedAt": 1787101955887,
       "createdDate": "2026-08-19",
       "updatedDate": "2026-08-19",
       "latestChanges": {
-        "title": "1.1.3 (2026-08-18)",
-        "date": "2026-08-18",
+        "title": "1.1.6 (2026-08-22)",
+        "date": "2026-08-22",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "Resolve Update All crash"
+            "text": "**privacy:** keep background work update-only"
           }
         ]
       },
@@ -4068,7 +4104,7 @@
         {
           "name": "RuStore",
           "packageName": "ru.vk.store",
-          "patchCount": 9,
+          "patchCount": 12,
           "iconUrl": "",
           "iconColor": "#0A85FF"
         }
@@ -4406,6 +4442,42 @@
           "patchCount": 3,
           "iconUrl": "",
           "iconColor": "#E10600"
+        }
+      ]
+    },
+    {
+      "name": "beetle-patches",
+      "repo": "homelander11/beetle-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/homelander11/beetle-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/homelander11/beetle-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/homelander11/beetle-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/homelander11/beetle-patches",
+      "addUrl": "https://morphe.software/add-source?github=homelander11/beetle-patches",
+      "avatarUrl": "https://github.com/homelander11.png?size=96",
+      "patchCount": 3,
+      "appCount": 1,
+      "createdAt": 1787447739631,
+      "updatedAt": 1787447739631,
+      "createdDate": "2026-08-23",
+      "updatedDate": "2026-08-23",
+      "latestChanges": {
+        "title": "1.0.3 (2026-08-22)",
+        "date": "2026-08-22",
+        "items": [
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "support Slowly 9.5.8 Explore filters"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Slowly",
+          "packageName": "com.slowlyapp",
+          "patchCount": 3,
+          "iconUrl": "",
+          "iconColor": "#FF5A5F"
         }
       ]
     },
@@ -5186,19 +5258,19 @@
       "webUrl": "https://github.com/icysymmetra/tiktok-patches-for-morphe",
       "addUrl": "https://morphe.software/add-source?github=icysymmetra/tiktok-patches-for-morphe",
       "avatarUrl": "https://github.com/icysymmetra.png?size=96",
-      "patchCount": 29,
+      "patchCount": 30,
       "appCount": 1,
       "createdAt": 1784836037034,
       "updatedAt": 1784836037034,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "0.7.0-dev.5",
+        "title": "0.7.0",
         "date": "",
         "items": [
           {
             "category": "Bug Fixes",
-            "text": "**clear-display:** preserve state across feed transitions"
+            "text": "**tiktok:** preserve swipe-lock playback speed"
           }
         ]
       },
@@ -5206,7 +5278,7 @@
         {
           "name": "com.zhiliaoapp.musically",
           "packageName": "com.zhiliaoapp.musically",
-          "patchCount": 29,
+          "patchCount": 30,
           "iconUrl": "https://play-lh.googleusercontent.com/2o7iuqPe-0msP3DvNhzoOgNo4eZ6GkL_RtGVeKyBn5UBQAW5cw-GW5V3wDOHB1yTQuqWzrFLFOv2u4_5ea1uhg",
           "iconColor": ""
         }
@@ -5330,6 +5402,29 @@
           "iconColor": "#FF0045"
         }
       ]
+    },
+    {
+      "name": "morphe-spotify-patches",
+      "repo": "ImNoammm/morphe-spotify-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/ImNoammm/morphe-spotify-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/ImNoammm/morphe-spotify-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/ImNoammm/morphe-spotify-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/ImNoammm/morphe-spotify-patches",
+      "addUrl": "https://morphe.software/add-source?github=ImNoammm/morphe-spotify-patches",
+      "avatarUrl": "https://github.com/ImNoammm.png?size=96",
+      "patchCount": 0,
+      "appCount": 0,
+      "createdAt": 1787447738409,
+      "updatedAt": 1787447738409,
+      "createdDate": "2026-08-23",
+      "updatedDate": "2026-08-23",
+      "latestChanges": {
+        "title": "",
+        "date": "",
+        "items": []
+      },
+      "apps": []
     },
     {
       "name": "mix-patches",
@@ -5552,6 +5647,62 @@
           "patchCount": 3,
           "iconUrl": "",
           "iconColor": "#C8102E"
+        }
+      ]
+    },
+    {
+      "name": "morphe-patches",
+      "repo": "jancerny2001/morphe-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/jancerny2001/morphe-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/jancerny2001/morphe-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/jancerny2001/morphe-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/jancerny2001/morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=jancerny2001/morphe-patches",
+      "avatarUrl": "https://github.com/jancerny2001.png?size=96",
+      "patchCount": 1,
+      "appCount": 1,
+      "createdAt": 1787447739822,
+      "updatedAt": 1787447739822,
+      "createdDate": "2026-08-23",
+      "updatedDate": "2026-08-23",
+      "latestChanges": {
+        "title": "1.2.0 (2026-08-22)",
+        "date": "2026-08-22",
+        "items": [
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "App crashes"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "App crashes"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "Update README"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "Update README"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "Update README"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "Update README and patch desc"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Alive App",
+          "packageName": "com.bootiq2.gtsisic",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#40B8B8"
         }
       ]
     },
@@ -6538,19 +6689,19 @@
       "webUrl": "https://github.com/kveld9/kveld-morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=kveld9/kveld-morphe-patches",
       "avatarUrl": "https://github.com/kveld9.png?size=96",
-      "patchCount": 23,
+      "patchCount": 24,
       "appCount": 2,
       "createdAt": 1787275038494,
       "updatedAt": 1787275038494,
       "createdDate": "2026-08-21",
       "updatedDate": "2026-08-21",
       "latestChanges": {
-        "title": "1.3.0 (2026-08-22)",
+        "title": "1.4.0 (2026-08-22)",
         "date": "2026-08-22",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "**patches:** add new slimming patches and update Brave support to v1.93.138"
+            "text": "**gboard:** add Clone Gboard patch, tune recommended defaults, and fix Lottie crash"
           }
         ]
       },
@@ -6565,7 +6716,7 @@
         {
           "name": "Gboard Lite",
           "packageName": "com.google.android.inputmethod.latin",
-          "patchCount": 17,
+          "patchCount": 18,
           "iconUrl": "https://play-lh.googleusercontent.com/J4vZ82VsZjnsRsI6ckQFXlO36_52QJerqG5-HfLgHffS34I4EfoAFfNdbf6s4wBAsUEf8DOJVEDEHh5tzWbrnA",
           "iconColor": "#4285F4"
         }
@@ -6907,24 +7058,36 @@
       "createdDate": "2026-07-26",
       "updatedDate": "2026-07-26",
       "latestChanges": {
-        "title": "1.0.4 (2026-08-09)",
-        "date": "2026-08-09",
+        "title": "1.1.0 (2026-08-22)",
+        "date": "2026-08-22",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "Add missing Russian translation for the live-stream error message"
+            "text": "Crash when opening the bottom sheet after the theme colors moved out of the library"
           },
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "Correct string keys for the button countdown timer text"
+            "text": "Drop the redundant clamp from the Yandex VoT poll delay"
           },
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "Remove unused strings and show summaries for VoT/live voices switches"
+            "text": "Improve the Yandex VoT player button placement and countdown text"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Register the add-on listeners only once"
           },
           {
             "category": "\ud83d\udc1b Bug Fixes",
             "text": "Resolve IDE warnings"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Rework Yandex VoT timing, stop handling and new-video invalidation"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "Verify the Morphe Patches host API before patching"
           }
         ]
       },
@@ -7212,47 +7375,47 @@
       "webUrl": "https://github.com/Nai64/Nai64Patches",
       "addUrl": "https://morphe.software/add-source?github=Nai64/Nai64Patches",
       "avatarUrl": "https://github.com/Nai64.png?size=96",
-      "patchCount": 100,
+      "patchCount": 120,
       "appCount": 0,
       "createdAt": 1784836023539,
       "updatedAt": 1784836023539,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.22.0 (2026-08-21)",
-        "date": "2026-08-21",
+        "title": "1.24.0 (2026-08-22)",
+        "date": "2026-08-22",
         "items": [
           {
             "category": "New Features",
-            "text": "add Allow Background Activity patch"
+            "text": "add Disable Animations patch"
           },
           {
             "category": "New Features",
-            "text": "add Allow Clearing App Data patch"
+            "text": "add Spoof Airplane Mode patch"
           },
           {
             "category": "New Features",
-            "text": "add Allow Cleartext Traffic patch"
+            "text": "add Spoof Android ID patch"
           },
           {
             "category": "New Features",
-            "text": "add Always Allow Biometrics patch"
+            "text": "add Spoof Bluetooth Enabled patch"
           },
           {
             "category": "New Features",
-            "text": "add Block Screenshot Detection patch"
+            "text": "add Spoof Bluetooth Identity patch"
           },
           {
             "category": "New Features",
-            "text": "add Bypass OkHttp Pinning patch"
+            "text": "add Spoof Build Extras patch"
           },
           {
             "category": "New Features",
-            "text": "add Bypass VPN Detection patch"
+            "text": "add Spoof Data State patch"
           },
           {
             "category": "New Features",
-            "text": "add Change Version Code patch"
+            "text": "add Spoof Last Known Location patch"
           }
         ]
       },
@@ -8025,6 +8188,49 @@
           "packageName": "ru.oneme.app",
           "patchCount": 1,
           "iconUrl": "https://play-lh.googleusercontent.com/_wSjKixe1Eaa6flCdcsRdAuONdw2zvGv-cdzX-rnjq1ggfjqbCgNAnmvXyHOoDgY4tjLQIFVRXBPaz8hSFd-cg",
+          "iconColor": ""
+        }
+      ]
+    },
+    {
+      "name": "morphe-patches",
+      "repo": "rhubarbshoelaces/morphe-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/rhubarbshoelaces/morphe-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/rhubarbshoelaces/morphe-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/rhubarbshoelaces/morphe-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/rhubarbshoelaces/morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=rhubarbshoelaces/morphe-patches",
+      "avatarUrl": "https://github.com/rhubarbshoelaces.png?size=96",
+      "patchCount": 2,
+      "appCount": 2,
+      "createdAt": 1787447740015,
+      "updatedAt": 1787447740015,
+      "createdDate": "2026-08-23",
+      "updatedDate": "2026-08-23",
+      "latestChanges": {
+        "title": "1.0.7 (2026-08-21)",
+        "date": "2026-08-21",
+        "items": [
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Dynamically align Gradle build version with semantic release"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Boost for Reddit",
+          "packageName": "com.rubenmayayo.reddit",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": ""
+        },
+        {
+          "name": "theScore",
+          "packageName": "com.fivemobile.thescore",
+          "patchCount": 1,
+          "iconUrl": "",
           "iconColor": ""
         }
       ]
@@ -11175,12 +11381,12 @@
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.12.2 (2026-08-18)",
-        "date": "2026-08-18",
+        "title": "1.12.3 (2026-08-22)",
+        "date": "2026-08-22",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**ozon:** support common cell migration in 19.31"
+            "text": "**wildberries:** support version 7.7.6003-rustore"
           }
         ]
       },
@@ -11212,6 +11418,54 @@
           "patchCount": 1,
           "iconUrl": "https://play-lh.googleusercontent.com/_3OFXp7p3aaOt6lJdqOPNS8frRjGW7SrlgUELTcxMZNbvQtBN0ez_lrXtMk-X9Yk_kfdesM7fOcRpMl3Ebhgpg",
           "iconColor": "#A73AFD"
+        }
+      ]
+    },
+    {
+      "name": "morphe-patches",
+      "repo": "XTapped/morphe-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/XTapped/morphe-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/XTapped/morphe-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/XTapped/morphe-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/XTapped/morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=XTapped/morphe-patches",
+      "avatarUrl": "https://github.com/XTapped.png?size=96",
+      "patchCount": 1,
+      "appCount": 1,
+      "createdAt": 1787447739164,
+      "updatedAt": 1787447739164,
+      "createdDate": "2026-08-23",
+      "updatedDate": "2026-08-23",
+      "latestChanges": {
+        "title": "1.0.0 (2026-08-22)",
+        "date": "2026-08-22",
+        "items": [
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "add patch bundle contact metadata"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "enable Unlock Pro by default"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "support high shop button registers"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "add Unlock Pro patch for Tetrd"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Tetrd",
+          "packageName": "com.robskie.tether",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": ""
         }
       ]
     },
@@ -13180,6 +13434,84 @@
       "iconUrl": "https://play-lh.googleusercontent.com/-26EaFSeFE-GPfgjA98H_ukuK2AEN0ZlMNB9lECGJDxUSG7G20emcnXaHrM5fL2d7mCi3O825iShQvn2J0ZY"
     },
     {
+      "packageName": "com.bootiq2.gtsisic",
+      "name": "Alive App",
+      "repos": [
+        "jancerny2001/morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "jancerny2001/morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/jancerny2001/morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=jancerny2001/morphe-patches",
+          "source": "https://raw.githubusercontent.com/jancerny2001/morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/jancerny2001/morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/jancerny2001.png?size=96",
+          "latestChanges": {
+            "title": "1.2.0 (2026-08-22)",
+            "date": "2026-08-22",
+            "items": [
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "App crashes"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "App crashes"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "Update README"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "Update README"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "Update README"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "Update README and patch desc"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-bootiq2-gtsisic-jancerny2001-morphe-patches",
+            "releaseTag": "app-com-bootiq2-gtsisic-jancerny2001-morphe-patches",
+            "assetName": "alive-app-jancerny2001-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Enable card screenshot",
+              "description": "Allows screenshots of cards by clearing the FLAG_SECURE flag."
+            }
+          ],
+          "versions": [
+            "3.5.0"
+          ]
+        }
+      ],
+      "patches": [
+        "Enable card screenshot"
+      ],
+      "patchDetails": [
+        {
+          "name": "Enable card screenshot",
+          "description": "Allows screenshots of cards by clearing the FLAG_SECURE flag."
+        }
+      ],
+      "versions": [
+        "3.5.0"
+      ],
+      "iconColor": "#40B8B8",
+      "iconUrl": ""
+    },
+    {
       "packageName": "alldocumentreader.office.viewer.filereader.pdfviewer",
       "name": "All Reader",
       "repos": [
@@ -13281,16 +13613,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
           "latestChanges": {
-            "title": "1.38.0 (2026-08-19)",
-            "date": "2026-08-19",
+            "title": "1.39.1 (2026-08-22)",
+            "date": "2026-08-22",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "Add All Video Downloader Remove DownloadMenu"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "Add Rs File Explorer Disable Download"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Add more domains for adobo"
               }
             ]
           },
@@ -16447,12 +16775,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.12.2 (2026-08-18)",
-            "date": "2026-08-18",
+            "title": "1.12.3 (2026-08-22)",
+            "date": "2026-08-22",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**ozon:** support common cell migration in 19.31"
+                "text": "**wildberries:** support version 7.7.6003-rustore"
               }
             ]
           },
@@ -20035,12 +20363,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/kveld9/kveld-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/kveld9.png?size=96",
           "latestChanges": {
-            "title": "1.3.0 (2026-08-22)",
+            "title": "1.4.0 (2026-08-22)",
             "date": "2026-08-22",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**patches:** add new slimming patches and update Brave support to v1.93.138"
+                "text": "**gboard:** add Clone Gboard patch, tune recommended defaults, and fix Lottie crash"
               }
             ]
           },
@@ -25638,6 +25966,7 @@
       "packageName": "com.google.android.inputmethod.latin",
       "name": "com.google.android.inputmethod.latin",
       "repos": [
+        "Burhanverse/test",
         "Entree3k/Morning-Entree-Patches",
         "jasonwu1994/Gboard-patches",
         "jkennethcarino/adobo",
@@ -25645,6 +25974,165 @@
         "kveld9/kveld-morphe-patches"
       ],
       "sources": [
+        {
+          "repo": "Burhanverse/test",
+          "host": "github.com",
+          "webUrl": "https://github.com/Burhanverse/test",
+          "addUrl": "https://morphe.software/add-source?github=Burhanverse/test",
+          "source": "https://raw.githubusercontent.com/Burhanverse/test/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/Burhanverse/test/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/Burhanverse.png?size=96",
+          "latestChanges": {
+            "title": "2.11.0 (2026-08-15)",
+            "date": "2026-08-15",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "**Gboard:** nothing was added."
+              },
+              {
+                "category": "\u2728 \u65b0\u529f\u80fd",
+                "text": "**Gboard:** \u4ec0\u9ebc\u90fd\u6c92\u6709\u6dfb\u52a0\u3002"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-google-android-inputmethod-latin-burhanverse-test",
+            "releaseTag": "app-com-google-android-inputmethod-latin-burhanverse-test",
+            "assetName": "com-google-android-inputmethod-latin-burhanverse-test.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Access Points menu style",
+              "description": "\u5207\u63db\u65b0\u7248\u6216\u820a\u7248 Access Points \u9078\u55ae\u6a23\u5f0f\nSwitch between the new and legacy Access Points menu styles."
+            },
+            {
+              "name": "Add Gboard Signature Bypass",
+              "description": "\u6514\u622a Gboard \u7684\u7c3d\u7ae0\u767d\u540d\u55ae\u6aa2\u67e5\u4e26\u5f37\u5236\u901a\u904e\nBypass Gboard signature whitelist checks and force them to pass."
+            },
+            {
+              "name": "Advanced Voice Typing",
+              "description": "\u555f\u7528\u9032\u968e\u8a9e\u97f3\u8f38\u5165\uff08\u5305\u542b\u81ea\u52d5\u6a19\u9ede\u529f\u80fd\uff09\uff0c\u4e26\u53e6\u5916\u70ba\u4e0d\u652f\u63f4\u9032\u968e\u8a9e\u97f3\u8f38\u5165\u7684\u7e41\u9ad4\u4e2d\u6587\u8a9e\u97f3\u555f\u7528\u81ea\u52d5\u6a19\u9ede\nEnable Advanced Voice Typing with automatic punctuation, and separately enable automatic punctuation for Traditional Chinese voice typing, which does not support Advanced Voice Typing."
+            },
+            {
+              "name": "AI Writing Tools",
+              "description": "\u555f\u7528 AI \u64b0\u5beb\u5de5\u5177\uff0c\u652f\u63f4\u6240\u6709\u8a9e\u8a00\nEnable AI writing tools with support for all languages."
+            },
+            {
+              "name": "Change emoji size",
+              "description": "\u8b8a\u66f4\u8868\u60c5\u7b26\u865f\u5927\u5c0f\nChange emoji size."
+            },
+            {
+              "name": "Clipboard Custom Character Limit",
+              "description": "\u81ea\u8a02\u6bcf\u500b\u6587\u5b57\u526a\u8cbc\u7c3f\u9805\u76ee\u7684\u6700\u5927\u5b57\u5143\u6578\nCustomize the maximum character count for each text clipboard item."
+            },
+            {
+              "name": "Clipboard Enhancements",
+              "description": "\u589e\u5f37\u526a\u8cbc\u7c3f\u7684\u4fdd\u7559\u6642\u9593\u3001\u6578\u91cf\u4e0a\u9650\u3001\u9810\u89bd\u884c\u6578\u3001\u5012\u6578/\u5efa\u7acb\u6642\u9593\u3001\u9806\u5e8f\u7de8\u865f\u8207\u6b04\u6578\nEnhance clipboard retention time, item count limit, preview lines, countdown/creation time labels, order index, and column count."
+            },
+            {
+              "name": "Custom Symbols",
+              "description": "\u65b0\u589e\u7368\u7acb\u7684\u7279\u6b8a\u7b26\u865f\u5206\u9801\uff0c\u9577\u6309\u9017\u865f->\u611b\u5fc3\nAdd a dedicated custom symbols tab and replace the long-press comma entry with a heart shortcut."
+            },
+            {
+              "name": "Developer options",
+              "description": "\u555f\u7528 \u958b\u767c\u4eba\u54e1\u9078\u9805 \u8207 Flag \u7de8\u8f2f\u5668\uff0c\u4f60\u53ef\u4ee5\u81ea\u5df1\u4fee\u6539Flag\u7684\u503c\nEnable Developer options and the Flag Editor, allowing you to modify flag values."
+            },
+            {
+              "name": "Emojis, stickers & GIFs Tab Order",
+              "description": "\u81ea\u8a02 Gboard\u300cEmojis, stickers & GIFs\u300d\u5e95\u90e8 tabs \u7684\u6392\u5e8f\uff0c\u652f\u63f4\u62d6\u66f3\u8abf\u6574\nCustomize the bottom tab order in Gboard's Emojis, stickers & GIFs panel with drag-and-drop reordering."
+            },
+            {
+              "name": "Enable accessibility layout",
+              "description": "\u555f\u7528\u7121\u969c\u7919\u9375\u76e4\u914d\u7f6e\nEnable accessibility layout."
+            },
+            {
+              "name": "Enable cursor trackpad mode",
+              "description": "\u9577\u6309\u7a7a\u767d\u9375\u958b\u555f\u6e38\u6a19\u89f8\u63a7\u677f\u8207\u9396\u5b9a\u6a21\u5f0f\nLong-press the space bar to use cursor trackpad and lock modes."
+            },
+            {
+              "name": "Enable Inline Autofill Suggestions",
+              "description": "\u555f\u7528\u5167\u5d4c\u81ea\u52d5\u586b\u5165\u5efa\u8b70\nEnable Inline Autofill Suggestions"
+            },
+            {
+              "name": "Enable OCR / Scan Text",
+              "description": "\u555f\u7528 OCR / \u6383\u63cf\u6587\u5b57\u529f\u80fd\uff0c\u652f\u63f4 \u62c9\u4e01\u3001\u4e2d\u6587\u3001\u65e5\u6587\u3001\u97d3\u6587 \u8207 \u5929\u57ce\u6587 \u8fa8\u8b58\u5f8c\u7aef\nEnable the OCR / Scan Text feature with Latin, Chinese, Japanese, Korean, and Devanagari recognition backends."
+            },
+            {
+              "name": "Enable split keyboard",
+              "description": "\u555f\u7528\u5206\u96e2\u5f0f\u9375\u76e4\nEnable the split keyboard layout."
+            },
+            {
+              "name": "English QWERTY Up-Flick Uppercase",
+              "description": "\u82f1\u6587 QWERTY \u9375\u76e4\u4e0a\u6ed1\u5927\u5c0f\u5beb\nFlick up on the English QWERTY keyboard to toggle uppercase and lowercase."
+            },
+            {
+              "name": "G Logo on Spacebar",
+              "description": "\u5728\u7a7a\u767d\u9375\u986f\u793a G Logo\uff0c\u4e26\u96b1\u85cf\u8a9e\u8a00\u540d\u7a31\nShow the G Logo on the spacebar and hide the language label."
+            },
+            {
+              "name": "Grammar Checker",
+              "description": "\u555f\u7528 \u4fee\u6b63\u548c\u5efa\u8b70 > \u6587\u6cd5\u6aa2\u67e5\nEnable Text correction > Grammar check."
+            },
+            {
+              "name": "Incognito Mode Toggle",
+              "description": "\u5728 Access Point \u5de5\u5177\u5217\u65b0\u589e\u7121\u75d5\u6a21\u5f0f\u5207\u63db\u6309\u9215\uff0c\u4e26\u53ef\u8a2d\u5b9a\u7121\u75d5\u6a21\u5f0f\u4e0b\u662f\u5426\u555f\u7528\u526a\u8cbc\u7c3f\u8207\u8a9e\u97f3\u8f38\u5165\nAdd an Incognito toggle to the Access Point toolbar and configure clipboard and voice typing availability while Incognito mode is active."
+            },
+            {
+              "name": "Inline Suggestions",
+              "description": "\u555f\u7528 \u4fee\u6b63\u548c\u5efa\u8b70 > \u667a\u6167\u64b0\u5beb\nEnable Text correction > Smart Compose."
+            },
+            {
+              "name": "Key Shape Selection",
+              "description": "\u555f\u7528\u5713\u89d2\u6309\u9375\uff0c\u4e3b\u984c\u8a73\u60c5 > \u6309\u9375\u5f62\u72c0\nEnable Key shape in Theme details."
+            },
+            {
+              "name": "Latin Globe Key Ignore Interval",
+              "description": "\u65b0\u589e\u82f1\u6587\u9375\u76e4\u5730\u7403\u9375\u5ffd\u7565\u6642\u9593\u8986\u5beb\uff0c\u53ef\u7368\u7acb\u63a7\u5236\u8f38\u5165\u5f8c\u5207\u8a9e\u8a00\u5ef6\u9072\nAdd an independent English globe key ignore interval override for post-typing language-switch delay."
+            },
+            {
+              "name": "Long-Press Editing Shortcuts",
+              "description": "\u5728\u82f1\u6587 QWERTY \u8207\u6ce8\u97f3\u9375\u76e4\u52a0\u5165\u5168\u9078\u3001\u5fa9\u539f\u3001\u8907\u88fd\u3001\u526a\u4e0b\u3001\u8cbc\u4e0a\u8207\u91cd\u505a\u9577\u6309\u5feb\u6377\u9375\nAdd Select all, Undo, Copy, Cut, Paste, and Redo long-press shortcuts to English QWERTY and Zhuyin."
+            },
+            {
+              "name": "Package Rename",
+              "description": "\u5c07\u5957\u4ef6\u540d\u7a31\u6539\u6210 dev.jason.com.google.android.inputmethod.latin \u4ee5\u4fbf\u5171\u5b58\u5b89\u88dd\nRename the package to dev.jason.com.google.android.inputmethod.latin so it can be installed alongside the official Gboard."
+            },
+            {
+              "name": "Settings Homepage Override",
+              "description": "\u5141\u8a31\u5207\u63db\u65b0\u7248\u6216\u820a\u7248 Gboard \u8a2d\u5b9a\u9801\u9762\nAllow switching between the new and legacy Gboard settings pages."
+            },
+            {
+              "name": "Swipeable Custom Top Row",
+              "description": "\u6ed1\u52d5\u9375\u76e4\u7b2c\u4e00\u6392\uff0c\u5728\u539f\u751f\u5217\u8207\u53ef\u81ea\u8a02\u6587\u5b57/JavaScript \u5217\u4e4b\u9593\u5207\u63db\nSwipe the keyboard top row to switch between the stock row and a customizable text/JavaScript row."
+            },
+            {
+              "name": "Use Bluetooth Microphone",
+              "description": "\u555f\u7528 \u8a9e\u97f3\u8f38\u5165 -> \u4f7f\u7528\u85cd\u82bd\u9ea5\u514b\u98a8\nEnable Voice typing -> Use Bluetooth microphone."
+            },
+            {
+              "name": "Web Clipboard",
+              "description": "\u65b0\u589e\u624b\u6a5f\u81ea\u67b6\u7684 Web Clipboard\uff0c\u652f\u63f4\u700f\u89bd\u5668\u540c\u6b65\u3001\u914d\u5c0d\u78bc\u8207\u5feb\u901f\u8a2d\u5b9a\u958b\u95dc\nAdd the phone-hosted Web Clipboard with browser sync, pairing, and a Quick Settings Tile."
+            },
+            {
+              "name": "Zhuyin Bottom Row Key Sizes",
+              "description": "\u8abf\u6574\u6ce8\u97f3\u9375\u76e4\u5e95\u6392\u6309\u9375\u5927\u5c0f\nAdjust Zhuyin keyboard bottom-row key sizes."
+            },
+            {
+              "name": "Zhuyin Quick Traditional/Simplified Toggle",
+              "description": "\u6ce8\u97f3 \u3125 \u4e0a\u6ed1\u5feb\u901f\u5207\u63db\u7e41\u7c21\nSwipe up on Zhuyin \u3125 to quickly toggle Traditional and Simplified Chinese."
+            },
+            {
+              "name": "Zhuyin Slide Input",
+              "description": "\u6ce8\u97f3\u9375\u76e4\u652f\u6301\u4e0a\u4e0b\u6ed1\u8f38\u5165\nEnable slide-up and slide-down input on the Zhuyin keyboard."
+            }
+          ],
+          "versions": [
+            "17.7.7.932364120-release-arm64-v8a"
+          ]
+        },
         {
           "repo": "Entree3k/Morning-Entree-Patches",
           "host": "github.com",
@@ -26009,12 +26497,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/kveld9/kveld-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/kveld9.png?size=96",
           "latestChanges": {
-            "title": "1.3.0 (2026-08-22)",
+            "title": "1.4.0 (2026-08-22)",
             "date": "2026-08-22",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**patches:** add new slimming patches and update Brave support to v1.93.138"
+                "text": "**gboard:** add Clone Gboard patch, tune recommended defaults, and fix Lottie crash"
               }
             ]
           },
@@ -26037,6 +26525,10 @@
             {
               "name": "Block Telemetry",
               "description": "Disables background metrics dispatch, event logging, daily pings, and crash reporting."
+            },
+            {
+              "name": "Clone Gboard",
+              "description": "Changes the package name by appending a dot and custom suffix (defaults to 'kveld') to allow installing Gboard alongside the original application."
             },
             {
               "name": "Disable Diagnostics",
@@ -26117,6 +26609,7 @@
         "Change package name",
         "Clipboard Custom Character Limit",
         "Clipboard Enhancements",
+        "Clone Gboard",
         "Custom Symbols",
         "Developer options",
         "Disable Diagnostics",
@@ -26128,8 +26621,8 @@
         "Disable Tenor Share Tracking",
         "Disable WorkManager",
         "Emojis, stickers & GIFs Tab Order",
-        "Enable access points menu redesign",
         "Enable Access Points Menu Redesign",
+        "Enable access points menu redesign",
         "Enable accessibility layout",
         "Enable clipboard in incognito",
         "Enable cursor trackpad mode",
@@ -26236,6 +26729,10 @@
           "description": "\u589e\u5f37\u526a\u8cbc\u7c3f\u7684\u4fdd\u7559\u6642\u9593\u3001\u6578\u91cf\u4e0a\u9650\u3001\u9810\u89bd\u884c\u6578\u3001\u5012\u6578/\u5efa\u7acb\u6642\u9593\u3001\u9806\u5e8f\u7de8\u865f\u8207\u6b04\u6578\nEnhance clipboard retention time, item count limit, preview lines, countdown/creation time labels, order index, and column count."
         },
         {
+          "name": "Clone Gboard",
+          "description": "Changes the package name by appending a dot and custom suffix (defaults to 'kveld') to allow installing Gboard alongside the original application."
+        },
+        {
           "name": "Custom Symbols",
           "description": "\u65b0\u589e\u7368\u7acb\u7684\u7279\u6b8a\u7b26\u865f\u5206\u9801\uff0c\u9577\u6309\u9017\u865f->\u611b\u5fc3\nAdd a dedicated custom symbols tab and replace the long-press comma entry with a heart shortcut."
         },
@@ -26280,12 +26777,12 @@
           "description": "\u81ea\u8a02 Gboard\u300cEmojis, stickers & GIFs\u300d\u5e95\u90e8 tabs \u7684\u6392\u5e8f\uff0c\u652f\u63f4\u62d6\u66f3\u8abf\u6574\nCustomize the bottom tab order in Gboard's Emojis, stickers & GIFs panel with drag-and-drop reordering."
         },
         {
-          "name": "Enable access points menu redesign",
-          "description": "Enables the redesign of the additional actions menu."
-        },
-        {
           "name": "Enable Access Points Menu Redesign",
           "description": "Enables the redesigned access points menu bar and customization panel (Panel V2)."
+        },
+        {
+          "name": "Enable access points menu redesign",
+          "description": "Enables the redesign of the additional actions menu."
         },
         {
           "name": "Enable accessibility layout",
@@ -27360,9 +27857,43 @@
       "packageName": "com.rubenmayayo.reddit",
       "name": "com.rubenmayayo.reddit",
       "repos": [
+        "rhubarbshoelaces/morphe-patches",
         "wchill/patcheddit"
       ],
       "sources": [
+        {
+          "repo": "rhubarbshoelaces/morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/rhubarbshoelaces/morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=rhubarbshoelaces/morphe-patches",
+          "source": "https://raw.githubusercontent.com/rhubarbshoelaces/morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/rhubarbshoelaces/morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/rhubarbshoelaces.png?size=96",
+          "latestChanges": {
+            "title": "1.0.7 (2026-08-21)",
+            "date": "2026-08-21",
+            "items": [
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Dynamically align Gradle build version with semantic release"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-rubenmayayo-reddit-rhubarbshoelaces-morphe-patches",
+            "releaseTag": "app-com-rubenmayayo-reddit-rhubarbshoelaces-morphe-patches",
+            "assetName": "com-rubenmayayo-reddit-rhubarbshoelaces-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Fix Random Subreddit Button",
+              "description": "Reroutes all Random buttons to pick from a custom pre-loaded list of thousands of subreddits."
+            }
+          ],
+          "versions": []
+        },
         {
           "repo": "wchill/patcheddit",
           "host": "github.com",
@@ -27459,6 +27990,7 @@
         "Fix /r/all",
         "Fix /s/ links",
         "Fix missing audio in video downloads",
+        "Fix Random Subreddit Button",
         "Fix Redgifs API",
         "Hook exception handler",
         "Modify login WebView",
@@ -27492,6 +28024,10 @@
         {
           "name": "Fix missing audio in video downloads",
           "description": "Fixes audio missing in videos downloaded from v.redd.it."
+        },
+        {
+          "name": "Fix Random Subreddit Button",
+          "description": "Reroutes all Random buttons to pick from a custom pre-loaded list of thousands of subreddits."
         },
         {
           "name": "Fix Redgifs API",
@@ -29462,12 +29998,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/icysymmetra/tiktok-patches-for-morphe/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/icysymmetra.png?size=96",
           "latestChanges": {
-            "title": "0.7.0-dev.5",
+            "title": "0.7.0",
             "date": "",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**clear-display:** preserve state across feed transitions"
+                "text": "**tiktok:** preserve swipe-lock playback speed"
               }
             ]
           },
@@ -29489,7 +30025,7 @@
             },
             {
               "name": "Custom offline videos limit",
-              "description": "Adds a custom entry to TikTok's offline videos menu with a configurable limit of up to 500 videos."
+              "description": "Adds a custom entry to TikTok's offline videos menu with a configurable limit from 1 to 1000 videos."
             },
             {
               "name": "Diagnostic tools",
@@ -29502,6 +30038,10 @@
             {
               "name": "Disable long-press quick share",
               "description": "Keeps long-pressing Share from opening TikTok's quick-share interaction."
+            },
+            {
+              "name": "Disable long-press repost",
+              "description": "Keeps holding Like from opening TikTok's repost action."
             },
             {
               "name": "Disable screen capture detection",
@@ -29639,6 +30179,7 @@
         "Diagnostic tools",
         "Disable login requirement",
         "Disable long-press quick share",
+        "Disable long-press repost",
         "Disable screen capture detection",
         "Disable telemetry",
         "Downloads",
@@ -29697,6 +30238,10 @@
         {
           "name": "Disable long-press quick share",
           "description": "Keeps long-pressing Share from opening TikTok's quick-share interaction."
+        },
+        {
+          "name": "Disable long-press repost",
+          "description": "Keeps holding Like from opening TikTok's repost action."
         },
         {
           "name": "Disable screen capture detection",
@@ -33884,16 +34429,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
           "latestChanges": {
-            "title": "1.38.0 (2026-08-19)",
-            "date": "2026-08-19",
+            "title": "1.39.1 (2026-08-22)",
+            "date": "2026-08-22",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "Add All Video Downloader Remove DownloadMenu"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "Add Rs File Explorer Disable Download"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Add more domains for adobo"
               }
             ]
           },
@@ -49950,16 +50491,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
           "latestChanges": {
-            "title": "1.38.0 (2026-08-19)",
-            "date": "2026-08-19",
+            "title": "1.39.1 (2026-08-22)",
+            "date": "2026-08-22",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "Add All Video Downloader Remove DownloadMenu"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "Add Rs File Explorer Disable Download"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Add more domains for adobo"
               }
             ]
           },
@@ -53804,12 +54341,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.12.2 (2026-08-18)",
-            "date": "2026-08-18",
+            "title": "1.12.3 (2026-08-22)",
+            "date": "2026-08-22",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**ozon:** support common cell migration in 19.31"
+                "text": "**wildberries:** support version 7.7.6003-rustore"
               }
             ]
           },
@@ -62130,11 +62667,11 @@
         "Disable modern home",
         "Disable post detail swipe",
         "Disable screenshot banner",
-        "Disable Screenshot Popup",
         "Disable screenshot popup",
+        "Disable Screenshot Popup",
         "Force system font",
-        "Hide ads",
         "Hide Ads",
+        "Hide ads",
         "Hide Ask button",
         "Hide Ask button from search bar",
         "Hide awards",
@@ -62165,8 +62702,8 @@
         "Remove Subreddit Dialogs",
         "Sanitize Reddit share links",
         "Sanitize share links",
-        "Sanitize Sharing Links",
         "Sanitize sharing links",
+        "Sanitize Sharing Links",
         "Show view count",
         "Spoof signature",
         "Unlock Premium"
@@ -62221,24 +62758,24 @@
           "description": "Disables the banner that shows up after taking a screenshot."
         },
         {
-          "name": "Disable Screenshot Popup",
-          "description": "Suppresses the share prompt that appears after taking a screenshot."
-        },
-        {
           "name": "Disable screenshot popup",
           "description": "Adds an option to disable the popup that appears when taking a screenshot."
+        },
+        {
+          "name": "Disable Screenshot Popup",
+          "description": "Suppresses the share prompt that appears after taking a screenshot."
         },
         {
           "name": "Force system font",
           "description": "Adds an option that renders Reddit with the device system font instead of Reddit Sans / Roboto."
         },
         {
-          "name": "Hide ads",
-          "description": "Adds options to hide ads."
-        },
-        {
           "name": "Hide Ads",
           "description": "Removes promoted posts and comment ads without requiring Reddit Premium unlock."
+        },
+        {
+          "name": "Hide ads",
+          "description": "Adds options to hide ads."
         },
         {
           "name": "Hide Ask button",
@@ -62361,12 +62898,12 @@
           "description": "Unshortens and removes the tracking query parameters from shared links."
         },
         {
-          "name": "Sanitize Sharing Links",
-          "description": "Returns the raw permalink before UTM tracking parameters are appended to shared Reddit URLs."
-        },
-        {
           "name": "Sanitize sharing links",
           "description": "Adds an option to sanitize sharing links by removing tracking query parameters."
+        },
+        {
+          "name": "Sanitize Sharing Links",
+          "description": "Returns the raw permalink before UTM tracking parameters are appended to shared Reddit URLs."
         },
         {
           "name": "Show view count",
@@ -62996,16 +63533,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
           "latestChanges": {
-            "title": "1.38.0 (2026-08-19)",
-            "date": "2026-08-19",
+            "title": "1.39.1 (2026-08-22)",
+            "date": "2026-08-22",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "Add All Video Downloader Remove DownloadMenu"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "Add Rs File Explorer Disable Download"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Add more domains for adobo"
               }
             ]
           },
@@ -63411,12 +63944,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/Freeman022026/rustore-privacy-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Freeman022026.png?size=96",
           "latestChanges": {
-            "title": "1.1.3 (2026-08-18)",
-            "date": "2026-08-18",
+            "title": "1.1.6 (2026-08-22)",
+            "date": "2026-08-22",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "Resolve Update All crash"
+                "text": "**privacy:** keep background work update-only"
               }
             ]
           },
@@ -63430,11 +63963,11 @@
           "patches": [
             {
               "name": "Disable advertisements",
-              "description": "Removes ad providers and ad identifiers, returns an empty ad list, and keeps advertising consent disabled."
+              "description": "Removes ad providers, sanitizes ad identifiers, returns an empty ad list, and keeps advertising consent disabled."
             },
             {
               "name": "Disable analytics and trackers",
-              "description": "Disables AppMetrica, MyTracker, AltCraft, Radar, install referrer, metrics, and audited logging transports."
+              "description": "Disables audited analytics transports and replaces the stable request device identifier."
             },
             {
               "name": "Disable background hooks",
@@ -63457,8 +63990,20 @@
               "description": "Disables audited SMS, call, phone-state, SID, and Mail.ru verification hooks."
             },
             {
+              "name": "Exclude Google Play apps from update checks",
+              "description": "Excludes only apps whose recorded Android installer is Google Play from update requests."
+            },
+            {
               "name": "Hide gaming profile",
               "description": "Removes the gaming profile permission, hides both gaming buttons, and blocks navigation to the gaming profile."
+            },
+            {
+              "name": "Restore secure-session compatibility",
+              "description": "Adapts secure-session requests to RuStore 1.108 API changes for re-signed APKs."
+            },
+            {
+              "name": "Restrict background work to updates",
+              "description": "Keeps only the background workers required for automatic update checks, downloads, patch application, and installation, including charging-triggered checks."
             },
             {
               "name": "Skip update authentication",
@@ -63466,7 +64011,7 @@
             }
           ],
           "versions": [
-            "1.107.0.3"
+            "1.108.0.2"
           ]
         },
         {
@@ -63629,9 +64174,12 @@
         "Disable Mine redesign",
         "Disable push services",
         "Disable verification hooks",
+        "Exclude Google Play apps from update checks",
         "Hide Featured and Games tabs",
         "Hide gaming profile",
         "Hide notification buttons",
+        "Restore secure-session compatibility",
+        "Restrict background work to updates",
         "Skip update auth",
         "Skip update authentication"
       ],
@@ -63642,7 +64190,7 @@
         },
         {
           "name": "Disable advertisements",
-          "description": "Removes ad providers and ad identifiers, returns an empty ad list, and keeps advertising consent disabled."
+          "description": "Removes ad providers, sanitizes ad identifiers, returns an empty ad list, and keeps advertising consent disabled."
         },
         {
           "name": "Disable analytics",
@@ -63650,7 +64198,7 @@
         },
         {
           "name": "Disable analytics and trackers",
-          "description": "Disables AppMetrica, MyTracker, AltCraft, Radar, install referrer, metrics, and audited logging transports."
+          "description": "Disables audited analytics transports and replaces the stable request device identifier."
         },
         {
           "name": "Disable background hooks",
@@ -63685,6 +64233,10 @@
           "description": "Disables audited SMS, call, phone-state, SID, and Mail.ru verification hooks."
         },
         {
+          "name": "Exclude Google Play apps from update checks",
+          "description": "Excludes only apps whose recorded Android installer is Google Play from update requests."
+        },
+        {
           "name": "Hide Featured and Games tabs",
           "description": "Removes the Featured and Games tabs and opens Apps by default."
         },
@@ -63697,6 +64249,14 @@
           "description": "Removes notification buttons from the search bar and Mine screen."
         },
         {
+          "name": "Restore secure-session compatibility",
+          "description": "Adapts secure-session requests to RuStore 1.108 API changes for re-signed APKs."
+        },
+        {
+          "name": "Restrict background work to updates",
+          "description": "Keeps only the background workers required for automatic update checks, downloads, patch application, and installation, including charging-triggered checks."
+        },
+        {
           "name": "Skip update auth",
           "description": "Removes the login requirement when updating apps."
         },
@@ -63707,7 +64267,7 @@
       ],
       "versions": [
         "1.106.0.3",
-        "1.107.0.3"
+        "1.108.0.2"
       ],
       "iconColor": "#0077FF",
       "iconUrl": ""
@@ -65503,6 +66063,84 @@
       "iconUrl": "https://play-lh.googleusercontent.com/DeEfQ2t1MT_FKQQERWNi5nxQrqKTHJDGIhmC6WK6qK_k2jvxtnTK_T-LeqnfXYfeb-Ym8xyYBWtUj45hmJFn"
     },
     {
+      "packageName": "com.slowlyapp",
+      "name": "Slowly",
+      "repos": [
+        "homelander11/beetle-patches"
+      ],
+      "sources": [
+        {
+          "repo": "homelander11/beetle-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/homelander11/beetle-patches",
+          "addUrl": "https://morphe.software/add-source?github=homelander11/beetle-patches",
+          "source": "https://raw.githubusercontent.com/homelander11/beetle-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/homelander11/beetle-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/homelander11.png?size=96",
+          "latestChanges": {
+            "title": "1.0.3 (2026-08-22)",
+            "date": "2026-08-22",
+            "items": [
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "support Slowly 9.5.8 Explore filters"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-slowlyapp-homelander11-beetle-patches",
+            "releaseTag": "app-com-slowlyapp-homelander11-beetle-patches",
+            "assetName": "slowly-homelander11-beetle-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Slowly avatar builder items",
+              "description": "Enables Avatar Builder items marked as subscription-only without changing coin-priced item checks."
+            },
+            {
+              "name": "Slowly extended Explore filters",
+              "description": "Enables verified client-side Explore filters, including Last online within 48 hours and New Members Only, and raises excluded-country and excluded-topic selection limits."
+            },
+            {
+              "name": "Slowly Pairip license check bypass",
+              "description": "Disables Pairip's client-side installer and license enforcement."
+            }
+          ],
+          "versions": [
+            "9.5.6",
+            "9.5.8"
+          ]
+        }
+      ],
+      "patches": [
+        "Slowly avatar builder items",
+        "Slowly extended Explore filters",
+        "Slowly Pairip license check bypass"
+      ],
+      "patchDetails": [
+        {
+          "name": "Slowly avatar builder items",
+          "description": "Enables Avatar Builder items marked as subscription-only without changing coin-priced item checks."
+        },
+        {
+          "name": "Slowly extended Explore filters",
+          "description": "Enables verified client-side Explore filters, including Last online within 48 hours and New Members Only, and raises excluded-country and excluded-topic selection limits."
+        },
+        {
+          "name": "Slowly Pairip license check bypass",
+          "description": "Disables Pairip's client-side installer and license enforcement."
+        }
+      ],
+      "versions": [
+        "9.5.6",
+        "9.5.8"
+      ],
+      "iconColor": "#FF5A5F",
+      "iconUrl": ""
+    },
+    {
       "packageName": "ak.alizandro.smartaudiobookplayer",
       "name": "Smart AudioBook Player",
       "repos": [
@@ -65787,16 +66425,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
           "latestChanges": {
-            "title": "1.38.0 (2026-08-19)",
-            "date": "2026-08-19",
+            "title": "1.39.1 (2026-08-22)",
+            "date": "2026-08-22",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "Add All Video Downloader Remove DownloadMenu"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "Add Rs File Explorer Disable Download"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Add more domains for adobo"
               }
             ]
           },
@@ -69462,18 +70096,18 @@
         }
       ],
       "patches": [
-        "Unlock premium",
         "Unlock Premium",
+        "Unlock premium",
         "Unlock Symfonium"
       ],
       "patchDetails": [
         {
-          "name": "Unlock premium",
-          "description": "Unlocks all premium features."
-        },
-        {
           "name": "Unlock Premium",
           "description": "Turns on Symfonium's paid features. The build ships as a public beta with a built-in trial, so this also prevents the expired-beta screen. The license is checked locally and the unlock does not require an account. Connecting Plex, Jellyfin and other media servers is untouched."
+        },
+        {
+          "name": "Unlock premium",
+          "description": "Unlocks all premium features."
         },
         {
           "name": "Unlock Symfonium",
@@ -70838,12 +71472,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.12.2 (2026-08-18)",
-            "date": "2026-08-18",
+            "title": "1.12.3 (2026-08-22)",
+            "date": "2026-08-22",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**ozon:** support common cell migration in 19.31"
+                "text": "**wildberries:** support version 7.7.6003-rustore"
               }
             ]
           },
@@ -71827,6 +72461,76 @@
       "iconUrl": ""
     },
     {
+      "packageName": "com.robskie.tether",
+      "name": "Tetrd",
+      "repos": [
+        "XTapped/morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "XTapped/morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/XTapped/morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=XTapped/morphe-patches",
+          "source": "https://raw.githubusercontent.com/XTapped/morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/XTapped/morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/XTapped.png?size=96",
+          "latestChanges": {
+            "title": "1.0.0 (2026-08-22)",
+            "date": "2026-08-22",
+            "items": [
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "add patch bundle contact metadata"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "enable Unlock Pro by default"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "support high shop button registers"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add Unlock Pro patch for Tetrd"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-robskie-tether-xtapped-morphe-patches",
+            "releaseTag": "app-com-robskie-tether-xtapped-morphe-patches",
+            "assetName": "tetrd-xtapped-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Unlock Pro",
+              "description": "Unlocks Pro tethering and disables purchase actions in the shop."
+            }
+          ],
+          "versions": [
+            "1.3.2"
+          ]
+        }
+      ],
+      "patches": [
+        "Unlock Pro"
+      ],
+      "patchDetails": [
+        {
+          "name": "Unlock Pro",
+          "description": "Unlocks Pro tethering and disables purchase actions in the shop."
+        }
+      ],
+      "versions": [
+        "1.3.2"
+      ],
+      "iconColor": "",
+      "iconUrl": ""
+    },
+    {
       "packageName": "com.theathletic",
       "name": "The Athletic",
       "repos": [
@@ -72193,6 +72897,60 @@
       ],
       "iconColor": "#E53935",
       "iconUrl": "https://play-lh.googleusercontent.com/txCpTN4FC1U5uGZkmbyoZ1NOQQCO9fi9gfp-dXFr-uqTUZArV9fov0rU042PEOWfmuwVM9Vd9r1HwcxXa2QG7Q"
+    },
+    {
+      "packageName": "com.fivemobile.thescore",
+      "name": "theScore",
+      "repos": [
+        "rhubarbshoelaces/morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "rhubarbshoelaces/morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/rhubarbshoelaces/morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=rhubarbshoelaces/morphe-patches",
+          "source": "https://raw.githubusercontent.com/rhubarbshoelaces/morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/rhubarbshoelaces/morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/rhubarbshoelaces.png?size=96",
+          "latestChanges": {
+            "title": "1.0.7 (2026-08-21)",
+            "date": "2026-08-21",
+            "items": [
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Dynamically align Gradle build version with semantic release"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-fivemobile-thescore-rhubarbshoelaces-morphe-patches",
+            "releaseTag": "app-com-fivemobile-thescore-rhubarbshoelaces-morphe-patches",
+            "assetName": "thescore-rhubarbshoelaces-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Remove Ads",
+              "description": "Bypasses startup delays and collapses all ad containers."
+            }
+          ],
+          "versions": []
+        }
+      ],
+      "patches": [
+        "Remove Ads"
+      ],
+      "patchDetails": [
+        {
+          "name": "Remove Ads",
+          "description": "Bypasses startup delays and collapses all ad containers."
+        }
+      ],
+      "versions": [],
+      "iconColor": "",
+      "iconUrl": ""
     },
     {
       "packageName": "com.ticktick.task",
@@ -74435,8 +75193,8 @@
       ],
       "patches": [
         "Disable analytics",
-        "Disable telemetry",
         "Disable Telemetry",
+        "Disable telemetry",
         "Disable update check",
         "Enable premium features",
         "GMS sign-in bypass",
@@ -74480,11 +75238,11 @@
           "description": "Suppresses Truecaller's CleverTap behavioural event tracking to prevent user-activity telemetry."
         },
         {
-          "name": "Disable telemetry",
+          "name": "Disable Telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
-          "name": "Disable Telemetry",
+          "name": "Disable telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
@@ -77690,12 +78448,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/xob0t/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/xob0t.png?size=96",
           "latestChanges": {
-            "title": "1.12.2 (2026-08-18)",
-            "date": "2026-08-18",
+            "title": "1.12.3 (2026-08-22)",
+            "date": "2026-08-22",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "**ozon:** support common cell migration in 19.31"
+                "text": "**wildberries:** support version 7.7.6003-rustore"
               }
             ]
           },
@@ -77720,7 +78478,9 @@
             "7.7.4003",
             "7.7.4003-rustore",
             "7.7.5003",
-            "7.7.5003-rustore"
+            "7.7.5003-rustore",
+            "7.7.6003",
+            "7.7.6003-rustore"
           ]
         }
       ],
@@ -77741,7 +78501,9 @@
         "7.7.4003",
         "7.7.4003-rustore",
         "7.7.5003",
-        "7.7.5003-rustore"
+        "7.7.5003-rustore",
+        "7.7.6003",
+        "7.7.6003-rustore"
       ],
       "iconColor": "#A73AFD",
       "iconUrl": "https://play-lh.googleusercontent.com/_3OFXp7p3aaOt6lJdqOPNS8frRjGW7SrlgUELTcxMZNbvQtBN0ez_lrXtMk-X9Yk_kfdesM7fOcRpMl3Ebhgpg"
@@ -78428,16 +79190,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
           "latestChanges": {
-            "title": "1.38.0 (2026-08-19)",
-            "date": "2026-08-19",
+            "title": "1.39.1 (2026-08-22)",
+            "date": "2026-08-22",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "Add All Video Downloader Remove DownloadMenu"
-              },
-              {
-                "category": "\u2728 New Features",
-                "text": "Add Rs File Explorer Disable Download"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Add more domains for adobo"
               }
             ]
           },
@@ -79452,24 +80210,36 @@
           "changelogUrl": "https://raw.githubusercontent.com/MarcaDian/morphe-patches-yavot/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/MarcaDian.png?size=96",
           "latestChanges": {
-            "title": "1.0.4 (2026-08-09)",
-            "date": "2026-08-09",
+            "title": "1.1.0 (2026-08-22)",
+            "date": "2026-08-22",
             "items": [
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "Add missing Russian translation for the live-stream error message"
+                "text": "Crash when opening the bottom sheet after the theme colors moved out of the library"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "Correct string keys for the button countdown timer text"
+                "text": "Drop the redundant clamp from the Yandex VoT poll delay"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
-                "text": "Remove unused strings and show summaries for VoT/live voices switches"
+                "text": "Improve the Yandex VoT player button placement and countdown text"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Register the add-on listeners only once"
               },
               {
                 "category": "\ud83d\udc1b Bug Fixes",
                 "text": "Resolve IDE warnings"
+              },
+              {
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "Rework Yandex VoT timing, stop handling and new-video invalidation"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "Verify the Morphe Patches host API before patching"
               }
             ]
           },
@@ -80962,8 +81732,8 @@
         "Save to watch later",
         "Seekbar",
         "Seekbar components",
-        "Set transcript cookies",
         "Set Transcript Cookies",
+        "Set transcript cookies",
         "Settings for YouTube",
         "Settings menu filter",
         "Shorts autoplay",
@@ -80981,8 +81751,8 @@
         "Video playback",
         "Video quality",
         "Visual preferences icons for YouTube",
-        "Voice Over Translation",
         "Voice over translation",
+        "Voice Over Translation",
         "Voice Over Translation (Yandex)",
         "Watch history",
         "Watch later button",
@@ -81424,11 +82194,11 @@
           "description": "Adds options to hide or change components related to the seekbar."
         },
         {
-          "name": "Set transcript cookies",
+          "name": "Set Transcript Cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {
-          "name": "Set Transcript Cookies",
+          "name": "Set transcript cookies",
           "description": "Adds an option to set Cookies in YouTube Transcript API requests."
         },
         {
@@ -81500,12 +82270,12 @@
           "description": "Adds icons to specific preferences in the settings."
         },
         {
-          "name": "Voice Over Translation",
-          "description": "Adds an option to enable Yandex voice-over translation of video audio tracks."
-        },
-        {
           "name": "Voice over translation",
           "description": "Adds additional voice over languages using text-to-speech synchronized to the video playback."
+        },
+        {
+          "name": "Voice Over Translation",
+          "description": "Adds an option to enable Yandex voice-over translation of video audio tracks."
         },
         {
           "name": "Voice Over Translation (Yandex)",
@@ -83701,18 +84471,14 @@
       "source": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/patches-bundle.json",
       "changelogUrl": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/CHANGELOG.md",
       "avatarUrl": "https://github.com/BlazeFTL.png?size=96",
-      "patchCount": 9,
+      "patchCount": 11,
       "latestChanges": {
-        "title": "1.38.0 (2026-08-19)",
-        "date": "2026-08-19",
+        "title": "1.39.1 (2026-08-22)",
+        "date": "2026-08-22",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "Add All Video Downloader Remove DownloadMenu"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "Add Rs File Explorer Disable Download"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Add more domains for adobo"
           }
         ]
       },
@@ -83728,8 +84494,8 @@
           "default": false
         },
         {
-          "name": "Custom DPI (Universal)",
-          "description": "Change this app's display size without touching your phone's system settings. Make it bigger if things look too small, or smaller to fit more on screen. Works on any app.",
+          "name": "Custom DPI",
+          "description": "Change any app's display size without touching your phone's system settings. Make it bigger if things look too small, or smaller to fit more on screen. You Need To Configure 100(No Change), 90(10% Smaller App Ui), 110(10% Bigger App Ui).",
           "default": false
         },
         {
@@ -83739,7 +84505,17 @@
         },
         {
           "name": "Remove Ads",
-          "description": "Stubs known ad SDK entry points and poisons ad-network URL strings across the whole app.",
+          "description": "Stubs known ad SDK entry points and poisons ad-network URL strings across the whole app. Async load calls are redirected into the callback's own failure method instead of being deleted, Currently In Some Apps Makes Them Stuck In SplashActivity Due To Their Custom Check Of Ads Load But It Is Superior.",
+          "default": false
+        },
+        {
+          "name": "Remove Ads Lite(Adobo)",
+          "description": "Based On (Adobo's Block Ads+Mobile Ads) Disables known ad SDK entry points and neutralizes ad/tracker/analytics Safer than Remove Ads for apps where you will be stuck in SplashActivity It Is Weaker But Effective, Merged Adobo's Both Patches And Removed The Need Of Selecting A Host File Or Configuring Anything In Future It May Replace Remove Ads Patch If I Find No Problem.",
+          "default": false
+        },
+        {
+          "name": "Remove Ads Ultra Lite",
+          "description": "Call finish on ad activities (AdMob, AppLovin MAX, BIGO, InMobi, Liftoff/Vungle) Its In Very Early Stage So Test And Provide FeedBack If You Still See Ads In Some App.",
           "default": false
         },
         {
@@ -84555,42 +85331,42 @@
       "source": "https://raw.githubusercontent.com/Nai64/Nai64Patches/main/patches-bundle.json",
       "changelogUrl": "https://raw.githubusercontent.com/Nai64/Nai64Patches/main/CHANGELOG.md",
       "avatarUrl": "https://github.com/Nai64.png?size=96",
-      "patchCount": 100,
+      "patchCount": 120,
       "latestChanges": {
-        "title": "1.22.0 (2026-08-21)",
-        "date": "2026-08-21",
+        "title": "1.24.0 (2026-08-22)",
+        "date": "2026-08-22",
         "items": [
           {
             "category": "New Features",
-            "text": "add Allow Background Activity patch"
+            "text": "add Disable Animations patch"
           },
           {
             "category": "New Features",
-            "text": "add Allow Clearing App Data patch"
+            "text": "add Spoof Airplane Mode patch"
           },
           {
             "category": "New Features",
-            "text": "add Allow Cleartext Traffic patch"
+            "text": "add Spoof Android ID patch"
           },
           {
             "category": "New Features",
-            "text": "add Always Allow Biometrics patch"
+            "text": "add Spoof Bluetooth Enabled patch"
           },
           {
             "category": "New Features",
-            "text": "add Block Screenshot Detection patch"
+            "text": "add Spoof Bluetooth Identity patch"
           },
           {
             "category": "New Features",
-            "text": "add Bypass OkHttp Pinning patch"
+            "text": "add Spoof Build Extras patch"
           },
           {
             "category": "New Features",
-            "text": "add Bypass VPN Detection patch"
+            "text": "add Spoof Data State patch"
           },
           {
             "category": "New Features",
-            "text": "add Change Version Code patch"
+            "text": "add Spoof Last Known Location patch"
           }
         ]
       },
@@ -84633,6 +85409,11 @@
         {
           "name": "Block Screenshot Detection",
           "description": "Adds FLAG_SECURE to every activity window so the system blocks screenshots, screen recording and recents previews of the app",
+          "default": false
+        },
+        {
+          "name": "Bypass Emulator Detection",
+          "description": "Spoofs android.os.Build identity (model, device, manufacturer, hardware, fingerprint, serial) and the ro.kernel.qemu property so apps and games that refuse to run, crash or match you with emulator lobbies cannot tell they are on an emulator. Does not hide root or a debugger connection.",
           "default": false
         },
         {
@@ -84683,6 +85464,11 @@
         {
           "name": "Custom Startup Toast",
           "description": "Shows a customizable toast message every time the app starts",
+          "default": false
+        },
+        {
+          "name": "Disable Animations",
+          "description": "Forces Settings.Global window/transition/animator scale values to 0 so the app runs without UI animations (faster, less motion).",
           "default": false
         },
         {
@@ -84996,6 +85782,31 @@
           "default": false
         },
         {
+          "name": "Spoof Airplane Mode",
+          "description": "Forces Settings.Global AIRPLANE_MODE_ON reads to 0 (off) so apps that change behavior in airplane mode see a normal connection state.",
+          "default": false
+        },
+        {
+          "name": "Spoof Android ID",
+          "description": "Replaces Settings.Secure.ANDROID_ID reads with a fixed value so the patched app cannot be tracked across reinstalls or matched to a specific device.",
+          "default": false
+        },
+        {
+          "name": "Spoof Bluetooth Enabled",
+          "description": "Forces Settings.Global BLUETOOTH_ON reads to 0 (off) so apps that behave differently when Bluetooth is enabled cannot tell it is on.",
+          "default": false
+        },
+        {
+          "name": "Spoof Bluetooth Identity",
+          "description": "Reports chosen values from BluetoothAdapter.getName() and getAddress() so apps cannot read the real Bluetooth device name or MAC address.",
+          "default": false
+        },
+        {
+          "name": "Spoof Build Extras",
+          "description": "Spoofs the remaining android.os.Build identity fields not covered by Bypass Emulator Detection (BOOTLOADER, RADIO, USER, HOST, getRadioVersion, and Build.VERSION RELEASE/INCREMENTAL/SECURITY_PATCH/CODENAME) with values from a real Pixel 6, so apps cannot fingerprint the device through these fields.",
+          "default": false
+        },
+        {
           "name": "Spoof Build Fingerprint",
           "description": "Replaces every read of Build.FINGERPRINT with a custom value, useful for integrity and device checks. Leave empty to keep the original fingerprint",
           "default": false
@@ -85006,8 +85817,38 @@
           "default": false
         },
         {
+          "name": "Spoof Data State",
+          "description": "Reports an active data connection from TelephonyManager.getDataState() (DATA_CONNECTED) and getDataActivity() (DATA_ACTIVITY_INOUT) so apps that change behavior based on mobile data state see a live connection.",
+          "default": false
+        },
+        {
+          "name": "Spoof Developer Options",
+          "description": "Forces Settings.Global/Settings.Secure getters for developer options, USB debugging and wireless debugging to report disabled (0), so apps that refuse to run or crash when they detect debugging cannot tell it is on.",
+          "default": false
+        },
+        {
           "name": "Spoof Device Model",
           "description": "Replaces common android.os.Build fields (model, manufacturer, brand) with custom values. Leave an option empty to keep the original value",
+          "default": false
+        },
+        {
+          "name": "Spoof Last Known Location",
+          "description": "Forces LocationManager.getLastKnownLocation() to return null so apps cannot read the device's last cached GPS/network position.",
+          "default": false
+        },
+        {
+          "name": "Spoof Locale",
+          "description": "Forces Locale.getDefault() to return a chosen BCP-47 language tag (e.g. en-US) so region- or language-locked apps see the locale you pick.",
+          "default": false
+        },
+        {
+          "name": "Spoof Location Provider",
+          "description": "Forces LocationManager.getBestProvider() to report \"gps\" and isProviderEnabled() to report true, so location-dependent apps believe a GPS provider is always available and enabled.",
+          "default": false
+        },
+        {
+          "name": "Spoof Phone Number",
+          "description": "Reports an empty string from TelephonyManager.getLine1Number() and getLine2Number() so apps cannot read the device's phone number.",
           "default": false
         },
         {
@@ -85021,13 +85862,48 @@
           "default": false
         },
         {
+          "name": "Spoof Ringer Mode",
+          "description": "Forces AudioManager.getRingerMode() to report RINGER_MODE_NORMAL (2) so apps cannot detect silent or vibrate mode.",
+          "default": false
+        },
+        {
           "name": "Spoof SDK Level",
           "description": "Replaces every read of Build.VERSION.SDK_INT with a custom value. WARNING: setting a level lower than the device's real API level makes apps call missing APIs and crash; only use when you know the app checks it",
           "default": false
         },
         {
+          "name": "Spoof Sensor List",
+          "description": "Forces SensorManager.getSensorList() to return an empty list so apps cannot enumerate the device's sensors for fingerprinting or capability checks.",
+          "default": false
+        },
+        {
           "name": "Spoof Signature Match",
           "description": "Makes PackageManager.checkSignatures always return SIGNATURE_MATCH so apps that verify their own or another package's signature accept any build",
+          "default": false
+        },
+        {
+          "name": "Spoof SIM Country",
+          "description": "Reports a chosen ISO country (e.g. us) from TelephonyManager.getSimCountryIso() and getNetworkCountryIso() to bypass region locks and geo-restrictions.",
+          "default": false
+        },
+        {
+          "name": "Spoof SIM Operator",
+          "description": "Reports a chosen MCC+MNC from TelephonyManager.getSimOperator() and getNetworkOperator() so apps cannot read the real mobile network operator.",
+          "default": false
+        },
+        {
+          "name": "Spoof SIM Operator Name",
+          "description": "Reports a chosen carrier name from TelephonyManager.getSimOperatorName() and getNetworkOperatorName() so apps cannot read the real carrier display name.",
+          "default": false
+        },
+        {
+          "name": "Spoof Voice Mail",
+          "description": "Reports empty strings from TelephonyManager.getVoiceMailNumber() and getVoiceMailAlphaTag() so apps cannot read the voicemail number or tag.",
+          "default": false
+        },
+        {
+          "name": "Spoof WiFi Enabled",
+          "description": "Forces WifiManager.isWifiEnabled() to report true and getWifiState() to report WIFI_STATE_ENABLED (3) so apps cannot tell Wi-Fi is off.",
           "default": false
         },
         {
@@ -85853,12 +86729,12 @@
       "avatarUrl": "https://github.com/xob0t.png?size=96",
       "patchCount": 13,
       "latestChanges": {
-        "title": "1.12.2 (2026-08-18)",
-        "date": "2026-08-18",
+        "title": "1.12.3 (2026-08-22)",
+        "date": "2026-08-22",
         "items": [
           {
             "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**ozon:** support common cell migration in 19.31"
+            "text": "**wildberries:** support version 7.7.6003-rustore"
           }
         ]
       },
@@ -85933,6 +86809,229 @@
   ],
   "recentSources": [
     {
+      "name": "morphe-patches",
+      "repo": "rhubarbshoelaces/morphe-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/rhubarbshoelaces/morphe-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/rhubarbshoelaces/morphe-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/rhubarbshoelaces/morphe-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/rhubarbshoelaces/morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=rhubarbshoelaces/morphe-patches",
+      "avatarUrl": "https://github.com/rhubarbshoelaces.png?size=96",
+      "patchCount": 2,
+      "appCount": 2,
+      "createdAt": 1787447740015,
+      "updatedAt": 1787447740015,
+      "createdDate": "2026-08-23",
+      "updatedDate": "2026-08-23",
+      "latestChanges": {
+        "title": "1.0.7 (2026-08-21)",
+        "date": "2026-08-21",
+        "items": [
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "Dynamically align Gradle build version with semantic release"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Boost for Reddit",
+          "packageName": "com.rubenmayayo.reddit",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": ""
+        },
+        {
+          "name": "theScore",
+          "packageName": "com.fivemobile.thescore",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": ""
+        }
+      ]
+    },
+    {
+      "name": "morphe-patches",
+      "repo": "jancerny2001/morphe-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/jancerny2001/morphe-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/jancerny2001/morphe-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/jancerny2001/morphe-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/jancerny2001/morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=jancerny2001/morphe-patches",
+      "avatarUrl": "https://github.com/jancerny2001.png?size=96",
+      "patchCount": 1,
+      "appCount": 1,
+      "createdAt": 1787447739822,
+      "updatedAt": 1787447739822,
+      "createdDate": "2026-08-23",
+      "updatedDate": "2026-08-23",
+      "latestChanges": {
+        "title": "1.2.0 (2026-08-22)",
+        "date": "2026-08-22",
+        "items": [
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "App crashes"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "App crashes"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "Update README"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "Update README"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "Update README"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "Update README and patch desc"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Alive App",
+          "packageName": "com.bootiq2.gtsisic",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#40B8B8"
+        }
+      ]
+    },
+    {
+      "name": "beetle-patches",
+      "repo": "homelander11/beetle-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/homelander11/beetle-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/homelander11/beetle-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/homelander11/beetle-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/homelander11/beetle-patches",
+      "addUrl": "https://morphe.software/add-source?github=homelander11/beetle-patches",
+      "avatarUrl": "https://github.com/homelander11.png?size=96",
+      "patchCount": 3,
+      "appCount": 1,
+      "createdAt": 1787447739631,
+      "updatedAt": 1787447739631,
+      "createdDate": "2026-08-23",
+      "updatedDate": "2026-08-23",
+      "latestChanges": {
+        "title": "1.0.3 (2026-08-22)",
+        "date": "2026-08-22",
+        "items": [
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "support Slowly 9.5.8 Explore filters"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Slowly",
+          "packageName": "com.slowlyapp",
+          "patchCount": 3,
+          "iconUrl": "",
+          "iconColor": "#FF5A5F"
+        }
+      ]
+    },
+    {
+      "name": "morphe-patches",
+      "repo": "XTapped/morphe-patches",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/XTapped/morphe-patches/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/XTapped/morphe-patches/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/XTapped/morphe-patches/main/CHANGELOG.md",
+      "webUrl": "https://github.com/XTapped/morphe-patches",
+      "addUrl": "https://morphe.software/add-source?github=XTapped/morphe-patches",
+      "avatarUrl": "https://github.com/XTapped.png?size=96",
+      "patchCount": 1,
+      "appCount": 1,
+      "createdAt": 1787447739164,
+      "updatedAt": 1787447739164,
+      "createdDate": "2026-08-23",
+      "updatedDate": "2026-08-23",
+      "latestChanges": {
+        "title": "1.0.0 (2026-08-22)",
+        "date": "2026-08-22",
+        "items": [
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "add patch bundle contact metadata"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "enable Unlock Pro by default"
+          },
+          {
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "support high shop button registers"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "add Unlock Pro patch for Tetrd"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "Tetrd",
+          "packageName": "com.robskie.tether",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": ""
+        }
+      ]
+    },
+    {
+      "name": "test",
+      "repo": "Burhanverse/test",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/Burhanverse/test/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/Burhanverse/test/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/Burhanverse/test/main/CHANGELOG.md",
+      "webUrl": "https://github.com/Burhanverse/test",
+      "addUrl": "https://morphe.software/add-source?github=Burhanverse/test",
+      "avatarUrl": "https://github.com/Burhanverse.png?size=96",
+      "patchCount": 31,
+      "appCount": 1,
+      "createdAt": 1787447738326,
+      "updatedAt": 1787447738326,
+      "createdDate": "2026-08-23",
+      "updatedDate": "2026-08-23",
+      "latestChanges": {
+        "title": "2.11.0 (2026-08-15)",
+        "date": "2026-08-15",
+        "items": [
+          {
+            "category": "\u2728 New Features",
+            "text": "**Gboard:** nothing was added."
+          },
+          {
+            "category": "\u2728 \u65b0\u529f\u80fd",
+            "text": "**Gboard:** \u4ec0\u9ebc\u90fd\u6c92\u6709\u6dfb\u52a0\u3002"
+          }
+        ]
+      },
+      "apps": [
+        {
+          "name": "com.google.android.inputmethod.latin",
+          "packageName": "com.google.android.inputmethod.latin",
+          "patchCount": 31,
+          "iconUrl": "https://play-lh.googleusercontent.com/J4vZ82VsZjnsRsI6ckQFXlO36_52QJerqG5-HfLgHffS34I4EfoAFfNdbf6s4wBAsUEf8DOJVEDEHh5tzWbrnA",
+          "iconColor": ""
+        }
+      ]
+    },
+    {
       "name": "kveld-morphe-patches",
       "repo": "kveld9/kveld-morphe-patches",
       "host": "github.com",
@@ -85942,19 +87041,19 @@
       "webUrl": "https://github.com/kveld9/kveld-morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=kveld9/kveld-morphe-patches",
       "avatarUrl": "https://github.com/kveld9.png?size=96",
-      "patchCount": 23,
+      "patchCount": 24,
       "appCount": 2,
       "createdAt": 1787275038494,
       "updatedAt": 1787275038494,
       "createdDate": "2026-08-21",
       "updatedDate": "2026-08-21",
       "latestChanges": {
-        "title": "1.3.0 (2026-08-22)",
+        "title": "1.4.0 (2026-08-22)",
         "date": "2026-08-22",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "**patches:** add new slimming patches and update Brave support to v1.93.138"
+            "text": "**gboard:** add Clone Gboard patch, tune recommended defaults, and fix Lottie crash"
           }
         ]
       },
@@ -85969,7 +87068,7 @@
         {
           "name": "Gboard Lite",
           "packageName": "com.google.android.inputmethod.latin",
-          "patchCount": 17,
+          "patchCount": 18,
           "iconUrl": "https://play-lh.googleusercontent.com/J4vZ82VsZjnsRsI6ckQFXlO36_52QJerqG5-HfLgHffS34I4EfoAFfNdbf6s4wBAsUEf8DOJVEDEHh5tzWbrnA",
           "iconColor": "#4285F4"
         }
@@ -86212,254 +87311,6 @@
           "patchCount": 1,
           "iconUrl": "https://play-lh.googleusercontent.com/V5evYzdmAVEFl9Gy9fh4-XTIb_mPnMPzNdV8rhDyZ31yftOncktYxWnI5xbX4QlAnoCd1fcBvGTzGJU_MxtY",
           "iconColor": "#384CF4"
-        }
-      ]
-    },
-    {
-      "name": "mix-patches",
-      "repo": "IMXEren/mix-patches",
-      "host": "gitlab.com",
-      "source": "https://gitlab.com/IMXEren/mix-patches/-/raw/main/patches-bundle.json",
-      "listUrl": "https://gitlab.com/IMXEren/mix-patches/-/raw/main/patches-list.json",
-      "changelogUrl": "https://gitlab.com/IMXEren/mix-patches/-/raw/main/CHANGELOG.md",
-      "webUrl": "https://gitlab.com/IMXEren/mix-patches",
-      "addUrl": "https://morphe.software/add-source?gitlab=IMXEren/mix-patches",
-      "avatarUrl": "https://gitlab.com/uploads/-/system/user/avatar/IMXEren/avatar.png",
-      "patchCount": 6,
-      "appCount": 3,
-      "createdAt": 1787188317416,
-      "updatedAt": 1787188317416,
-      "createdDate": "2026-08-20",
-      "updatedDate": "2026-08-20",
-      "latestChanges": {
-        "title": "1.5.0 (2026-08-19)",
-        "date": "2026-08-19",
-        "items": [
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**ci:** provision Android SDK for extension builds"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**ci:** restrict release job to release branches"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "create release marker cross-platform"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "**firebase:** add certificate hash spoofing"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "**native:** add native library patching"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "**railone:** bypass developer option checks"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "**railone:** bypass signature verification"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "**signature:** add package manager signature spoofing"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "RailOne",
-          "packageName": "org.cris.aikyam",
-          "patchCount": 2,
-          "iconUrl": "",
-          "iconColor": ""
-        },
-        {
-          "name": "Sync for Reddit",
-          "packageName": "com.laurencedawson.reddit_sync",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": ""
-        },
-        {
-          "name": "Trakt",
-          "packageName": "tv.trakt.trakt",
-          "patchCount": 1,
-          "iconUrl": "https://play-lh.googleusercontent.com/eUBvwF8qxYbAB-teSb1o3PSvKDUbjQzJO5xuqAiXzncQo55_Gp9aByEaJ79a1lDS6zecy-SvzOLSK-UIRmcTYQ",
-          "iconColor": ""
-        }
-      ]
-    },
-    {
-      "name": "morphe-patches",
-      "repo": "theabhishekbhujang/morphe-patches",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/theabhishekbhujang/morphe-patches/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/theabhishekbhujang/morphe-patches/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/theabhishekbhujang/morphe-patches/main/CHANGELOG.md",
-      "webUrl": "https://github.com/theabhishekbhujang/morphe-patches",
-      "addUrl": "https://morphe.software/add-source?github=theabhishekbhujang/morphe-patches",
-      "avatarUrl": "https://github.com/theabhishekbhujang.png?size=96",
-      "patchCount": 2,
-      "appCount": 2,
-      "createdAt": 1787101964368,
-      "updatedAt": 1787101964368,
-      "createdDate": "2026-08-19",
-      "updatedDate": "2026-08-19",
-      "latestChanges": {
-        "title": "1.6.0 (2026-08-20)",
-        "date": "2026-08-20",
-        "items": [
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**rhythm:** escape inner class dollar sign in multiline smali string"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**rhythm:** unlock all Pro features, scales, Manjeera, variations and disable purchase prompts"
-          },
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**rhythm:** use addInstructions to prevent IndexOutOfBoundsException during patch execution"
-          },
-          {
-            "category": "\u2728 New Features",
-            "text": "**rhythm:** update unlock pro patch with complete bypasses and audio unlocks"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "com.psslabs.rhythm",
-          "packageName": "com.psslabs.rhythm",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": ""
-        },
-        {
-          "name": "harmonium.music.gameg.real.harmoniumfree",
-          "packageName": "harmonium.music.gameg.real.harmoniumfree",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": ""
-        }
-      ]
-    },
-    {
-      "name": "rustore-privacy-patches",
-      "repo": "Freeman022026/rustore-privacy-patches",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/Freeman022026/rustore-privacy-patches/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/Freeman022026/rustore-privacy-patches/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/Freeman022026/rustore-privacy-patches/main/CHANGELOG.md",
-      "webUrl": "https://github.com/Freeman022026/rustore-privacy-patches",
-      "addUrl": "https://morphe.software/add-source?github=Freeman022026/rustore-privacy-patches",
-      "avatarUrl": "https://github.com/Freeman022026.png?size=96",
-      "patchCount": 9,
-      "appCount": 1,
-      "createdAt": 1787101955887,
-      "updatedAt": 1787101955887,
-      "createdDate": "2026-08-19",
-      "updatedDate": "2026-08-19",
-      "latestChanges": {
-        "title": "1.1.3 (2026-08-18)",
-        "date": "2026-08-18",
-        "items": [
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "Resolve Update All crash"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "RuStore",
-          "packageName": "ru.vk.store",
-          "patchCount": 9,
-          "iconUrl": "",
-          "iconColor": "#0A85FF"
-        }
-      ]
-    },
-    {
-      "name": "morphe-patches",
-      "repo": "riky-dev/morphe-patches",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/riky-dev/morphe-patches/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/riky-dev/morphe-patches/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/riky-dev/morphe-patches/main/CHANGELOG.md",
-      "webUrl": "https://github.com/riky-dev/morphe-patches",
-      "addUrl": "https://morphe.software/add-source?github=riky-dev/morphe-patches",
-      "avatarUrl": "https://github.com/riky-dev.png?size=96",
-      "patchCount": 2,
-      "appCount": 2,
-      "createdAt": 1786989245628,
-      "updatedAt": 1786989245628,
-      "createdDate": "2026-08-17",
-      "updatedDate": "2026-08-17",
-      "latestChanges": {
-        "title": "1.3.3 (2026-08-18)",
-        "date": "2026-08-18",
-        "items": [
-          {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "**devcheck:** remove unsupported DevCheck patches (PairIP native protection)"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "3BMeteo",
-          "packageName": "com.Meteosolutions.Meteo3b",
-          "patchCount": 1,
-          "iconUrl": "",
-          "iconColor": "#30639B"
-        },
-        {
-          "name": "Electron: battery health info",
-          "packageName": "com.mahersafadi.electron",
-          "patchCount": 1,
-          "iconUrl": "https://play-lh.googleusercontent.com/0t-xeeDB6UuldF-nGTXFlE1Yvzm1NVBx-bYdnVYCdMfIyyT0niQNLa9dYLketH9ESOpeF4YzuihgI_Mz6SnlgQ",
-          "iconColor": "#2E7D32"
-        }
-      ]
-    },
-    {
-      "name": "ipusnas-patches",
-      "repo": "kuchingneko28/ipusnas-patches",
-      "host": "github.com",
-      "source": "https://raw.githubusercontent.com/kuchingneko28/ipusnas-patches/main/patches-bundle.json",
-      "listUrl": "https://raw.githubusercontent.com/kuchingneko28/ipusnas-patches/main/patches-list.json",
-      "changelogUrl": "https://raw.githubusercontent.com/kuchingneko28/ipusnas-patches/main/CHANGELOG.md",
-      "webUrl": "https://github.com/kuchingneko28/ipusnas-patches",
-      "addUrl": "https://morphe.software/add-source?github=kuchingneko28/ipusnas-patches",
-      "avatarUrl": "https://github.com/kuchingneko28.png?size=96",
-      "patchCount": 6,
-      "appCount": 1,
-      "createdAt": 1786989245102,
-      "updatedAt": 1786989245102,
-      "createdDate": "2026-08-17",
-      "updatedDate": "2026-08-17",
-      "latestChanges": {
-        "title": "1.0.0 (2026-08-17)",
-        "date": "2026-08-17",
-        "items": [
-          {
-            "category": "\u2728 New Features",
-            "text": "Port iPusnas patches"
-          }
-        ]
-      },
-      "apps": [
-        {
-          "name": "iPusnas",
-          "packageName": "mam.reader.ipusnas",
-          "patchCount": 6,
-          "iconUrl": "",
-          "iconColor": "#1D6BA8"
         }
       ]
     }

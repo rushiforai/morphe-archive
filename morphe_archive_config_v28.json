@@ -1265,6 +1265,54 @@
                 "sortOrder": 160,
                 "createdAt": 1787275038494,
                 "updatedAt": 1787275038494
+            },
+            {
+                "name": "test",
+                "source": "https://raw.githubusercontent.com/Burhanverse/test/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 161,
+                "createdAt": 1787447738326,
+                "updatedAt": 1787447738326
+            },
+            {
+                "name": "morphe-spotify-patches",
+                "source": "https://raw.githubusercontent.com/ImNoammm/morphe-spotify-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 162,
+                "createdAt": 1787447738409,
+                "updatedAt": 1787447738409
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/XTapped/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 163,
+                "createdAt": 1787447739164,
+                "updatedAt": 1787447739164
+            },
+            {
+                "name": "beetle-patches",
+                "source": "https://raw.githubusercontent.com/homelander11/beetle-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 164,
+                "createdAt": 1787447739631,
+                "updatedAt": 1787447739631
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/jancerny2001/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 165,
+                "createdAt": 1787447739822,
+                "updatedAt": 1787447739822
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/rhubarbshoelaces/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 166,
+                "createdAt": 1787447740015,
+                "updatedAt": 1787447740015
             }
         ]
     }
