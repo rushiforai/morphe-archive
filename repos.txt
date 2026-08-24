@@ -8,6 +8,7 @@ BholeyKaBhakt/android-patches-xtra
 BlazeFTL/FTL-Patches
 BlazeFTL/Morphe-Portal-Patches-New
 Burhanverse/test
+Dr4w/morphe-patches
 Entree3k/Morning-Entree-Patches
 Freeman022026/rustore-privacy-patches
 GoldRift/morphe-patches
@@ -63,6 +64,7 @@ XTapped/morphe-patches
 Xhehab/Xhehab-Patches
 Xisrr1/Revancify-Xisr
 abhis1n/Morphe-Patches
+adderalladmiral/psychonaut-wiki-journal-patches
 ajstrick81/morphe-androidtv-patches
 alan7383/sofatime-patches
 alejandrobellver/pichiwa-patches

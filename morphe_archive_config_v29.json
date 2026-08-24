@@ -1313,6 +1313,14 @@
                 "sortOrder": 166,
                 "createdAt": 1787447740015,
                 "updatedAt": 1787447740015
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/Dr4w/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 167,
+                "createdAt": 1787534015341,
+                "updatedAt": 1787534015341
             }
         ]
     }
