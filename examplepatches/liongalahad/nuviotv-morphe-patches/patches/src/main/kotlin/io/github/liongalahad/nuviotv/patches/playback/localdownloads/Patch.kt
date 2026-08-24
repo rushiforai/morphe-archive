@@ -154,6 +154,38 @@ private fun wrapDialogContent(
     )
 }
 
+/** Adds the patch-owned episode actions to Nuvio 0.8.7's native action-list overlay. */
+private fun augmentEpisodeOptions(method: MutableMethod) {
+    method.addInstructions(
+        0,
+        """
+            move-object/from16 v0, p0
+            move-object/from16 v1, p12
+            move/from16 v2, p13
+            invoke-static { v0, v1, v2 }, $RUNTIME->prepareOptions(Ljava/lang/Object;Lkotlin/jvm/functions/Function0;Z)V
+        """
+    )
+
+    val listBuildIndex = method.implementation!!.instructions.indexOfFirst { instruction ->
+        val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+            ?: return@indexOfFirst false
+        reference.definingClass == "Lkotlin/collections/CollectionsKt;" &&
+            reference.name == "build" &&
+            reference.parameterTypes.map(CharSequence::toString) == listOf("Ljava/util/List;") &&
+            reference.returnType == "Ljava/util/List;"
+    }
+    check(listBuildIndex >= 0) { "Episode options action-list builder was not found" }
+    val listRegister = when (val call = method.implementation!!.instructions[listBuildIndex]) {
+        is FiveRegisterInstruction -> call.registerC
+        is RegisterRangeInstruction -> call.startRegister
+        else -> error("Episode options action-list builder uses an unsupported invoke format")
+    }
+    method.addInstructions(
+        listBuildIndex,
+        "invoke-static/range { v$listRegister .. v$listRegister }, $RUNTIME->appendEpisodeOptions(Ljava/util/List;)V"
+    )
+}
+
 @Suppress("unused")
 val localdownloadsPatch = bytecodePatch(
     name = "Local Downloads",
@@ -216,7 +248,7 @@ val localdownloadsPatch = bytecodePatch(
         }
 
         wrapDialogContent(HeroOptionsDialogFingerprint.method, null, 4, 3)
-        wrapDialogContent(EpisodeOptionsDialogFingerprint.method, 0, 11, 12)
+        augmentEpisodeOptions(EpisodeOptionsDialogFingerprint.method)
         wrapDialogContent(ContinueOptionsDialogFingerprint.method, 0, 6, 5)
 
         EpisodeCardContentFingerprint.method.apply {

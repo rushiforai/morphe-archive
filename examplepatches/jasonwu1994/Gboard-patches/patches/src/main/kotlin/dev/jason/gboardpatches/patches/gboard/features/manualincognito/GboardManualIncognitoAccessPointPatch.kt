@@ -14,16 +14,16 @@ import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 import dev.jason.gboardpatches.patches.shared.Constants.COMPATIBILITY_GBOARD
 
 internal val gboardManualIncognitoAccessPointPatch = bytecodePatch(
-    description = "加入 17.7.7 manual_incognito Access Point catalog 與 descriptor delegate。",
+    description = "加入 18.0.3 manual_incognito Access Point catalog 與 descriptor delegate。",
 ) {
     compatibleWith(COMPATIBILITY_GBOARD)
     dependsOn(gboardPatchesExtensionCarrierPatch)
 
     execute {
-        findMutableMethodOrThrow(GboardManualIncognito1777Targets.orderFactory)
+        findMutableMethodOrThrow(GboardManualIncognitoTargets.orderFactory)
             .applyManualIncognitoOrderCatalogDelegate()
         findMutableMethodOrThrow(
-            GboardManualIncognito1777Targets.accessPointControllerConstructor,
+            GboardManualIncognitoTargets.accessPointControllerConstructor,
         ).applyManualIncognitoControllerDelegate()
     }
 }
@@ -51,7 +51,7 @@ internal fun MutableMethod.applyManualIncognitoOrderCatalogDelegate() {
 
             move-result-object p3
 
-            check-cast p3, Lvbq;
+            check-cast p3, Lvxe;
         """.trimIndent(),
     )
 }
@@ -63,7 +63,7 @@ internal fun MutableMethod.applyManualIncognitoControllerDelegate() {
     val instructions = implementation?.instructions
         ?: error("No instructions in $definingClass->$name")
     val returns = returnInstructionIndices().filter { instructions[it].isOpcode("RETURN_VOID") }
-    check(returns.size == 1) { "Expected one lrq constructor return, found ${returns.size}" }
+    check(returns.size == 1) { "Expected one mlh constructor return, found ${returns.size}" }
     val existing = instructions.count { it.isMethodReference(abi.reference) }
     if (existing > 0) {
         check(existing == 1) { "Duplicate manual incognito controller delegate" }

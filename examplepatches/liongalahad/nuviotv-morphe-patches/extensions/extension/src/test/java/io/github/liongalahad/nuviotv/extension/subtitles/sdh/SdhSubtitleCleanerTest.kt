@@ -35,6 +35,31 @@ class SdhSubtitleCleanerTest {
         assertSame(source, cues.single().text)
     }
 
+    @Test fun `native Media3 filtering runs only while Morphe processing is off`() {
+        setMode(SdhCleanupMode.OFF)
+        assertTrue(SdhCueTransformer.shouldApplyNativeFilter())
+
+        listOf(
+            SdhCleanupMode.NORMALIZE_MUSIC_SYMBOLS,
+            SdhCleanupMode.KEEP_LYRICS,
+            SdhCleanupMode.REMOVE_LYRICS
+        ).forEach { mode ->
+            setMode(mode)
+            assertTrue("Native filtering remained active in $mode", !SdhCueTransformer.shouldApplyNativeFilter())
+        }
+    }
+
+    @Test fun `native filter bypass preserves cues and satisfies concrete return type`() {
+        val cue = Cue.Builder().setText("[door closes] Hello.").build()
+        val arrayList = arrayListOf(cue)
+        assertSame(arrayList, SdhCueTransformer.bypassNativeFilter(arrayList))
+
+        val immutable = listOf(cue)
+        val bypassed = SdhCueTransformer.bypassNativeFilter(immutable)
+        assertEquals(immutable, bypassed)
+        assertEquals(ArrayList::class.java, bypassed.javaClass)
+    }
+
     @Test fun `standalone sounds and no-dialogue annotations are suppressed`() {
         listOf("[door closes]", "[NO DIALOGUE]", "[no discernible speech]", "[panting]")
             .forEach { assertNull(it, SdhSubtitleCleaner.clean(it)) }

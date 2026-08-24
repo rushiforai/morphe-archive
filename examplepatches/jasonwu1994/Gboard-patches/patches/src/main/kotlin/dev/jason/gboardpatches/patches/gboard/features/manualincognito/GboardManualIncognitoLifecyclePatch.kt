@@ -17,25 +17,25 @@ import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 import dev.jason.gboardpatches.patches.shared.Constants.COMPATIBILITY_GBOARD
 
 internal val gboardManualIncognitoLifecyclePatch = bytecodePatch(
-    description = "在 17.7.7 input session lifecycle 與 incognito predicate 加入薄 delegate。",
+    description = "在 18.0.3 input session lifecycle 與 incognito predicate 加入薄 delegate。",
 ) {
     compatibleWith(COMPATIBILITY_GBOARD)
     dependsOn(gboardPatchesExtensionCarrierPatch)
 
     execute {
-        findMutableMethodOrThrow(GboardManualIncognito1777Targets.onStartInput)
+        findMutableMethodOrThrow(GboardManualIncognitoTargets.onStartInput)
             .applyManualIncognitoEntryDelegate(
                 RuntimeCallId.MANUAL_INCOGNITO_RUNTIME_ON_INPUT_STARTING,
             )
-        findMutableMethodOrThrow(GboardManualIncognito1777Targets.onStartInputView)
+        findMutableMethodOrThrow(GboardManualIncognitoTargets.onStartInputView)
             .applyManualIncognitoEntryDelegate(
                 RuntimeCallId.MANUAL_INCOGNITO_RUNTIME_ON_INPUT_VIEW_STARTING,
             )
-        findMutableMethodOrThrow(GboardManualIncognito1777Targets.onWindowHidden)
+        findMutableMethodOrThrow(GboardManualIncognitoTargets.onWindowHidden)
             .applyManualIncognitoVoidExitDelegate(
                 RuntimeCallId.MANUAL_INCOGNITO_RUNTIME_ON_INPUT_WINDOW_HIDDEN,
             )
-        findMutableMethodOrThrow(GboardManualIncognito1777Targets.incognitoPredicate)
+        findMutableMethodOrThrow(GboardManualIncognitoTargets.incognitoPredicate)
             .applyManualIncognitoBooleanReturnDelegate(
                 RuntimeCallId.MANUAL_INCOGNITO_RUNTIME_APPLY_INCOGNITO_PREDICATE,
             )

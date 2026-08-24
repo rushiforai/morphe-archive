@@ -84,7 +84,11 @@ public class GboardBooleanFlagSettingsFeature
                     settingsStore.readEnabled(preferences),
                     enabled -> settingsStore.writeEnabled(preferences, enabled));
         } catch (Throwable throwable) {
-            Log.w(TAG, "Failed to render flag settings: " + featureMarker, throwable);
+            try {
+                Log.w(TAG, "Failed to render flag settings: " + featureMarker, throwable);
+            } catch (Throwable ignored) {
+                // Rendering the warning screen is the only remaining action.
+            }
             return buildErrorScreen();
         }
     }

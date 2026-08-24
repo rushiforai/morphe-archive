@@ -82,6 +82,36 @@ public final class GboardFeatureFlagsRuntimeBehaviorTest {
     }
 
     @Test
+    public void selectedOnlyWrappersCannotApplySiblingPolicies() throws Exception {
+        Bundle markers = new Bundle();
+        for (String[] activeFlag : ACTIVE_FLAGS) {
+            markers.putBoolean(activeFlag[1], true);
+        }
+        installMetaData(markers);
+        resetRuntimeState();
+
+        assertSame(Boolean.TRUE, GboardFeatureFlagsRuntime.applyDeviceIntelligenceFlagValue(
+                "enable_device_intelligence", Boolean.FALSE));
+        assertSame(Boolean.FALSE, GboardFeatureFlagsRuntime.applyDeviceIntelligenceFlagValue(
+                "enable_grammar_checker", Boolean.FALSE));
+
+        assertSame(Boolean.TRUE, GboardFeatureFlagsRuntime.applyGrammarCheckerFlagValue(
+                "enable_grammar_checker", Boolean.FALSE));
+        assertSame(Boolean.FALSE, GboardFeatureFlagsRuntime.applyGrammarCheckerFlagValue(
+                "enable_inline_suggestions_on_client_side", Boolean.FALSE));
+
+        assertSame(Boolean.TRUE, GboardFeatureFlagsRuntime.applyInlineSuggestionsFlagValue(
+                "enable_inline_suggestions_on_client_side", Boolean.FALSE));
+        assertSame(Boolean.FALSE, GboardFeatureFlagsRuntime.applyInlineSuggestionsFlagValue(
+                "more_pill_keys", Boolean.FALSE));
+
+        assertSame(Boolean.TRUE, GboardFeatureFlagsRuntime.applyKeyShapeSelectionFlagValue(
+                "more_pill_keys", Boolean.FALSE));
+        assertSame(Boolean.FALSE, GboardFeatureFlagsRuntime.applyKeyShapeSelectionFlagValue(
+                "enable_device_intelligence", Boolean.FALSE));
+    }
+
+    @Test
     @SuppressWarnings({"deprecation", "removal"})
     public void deviceMarkerOnlyForcesCanonicalFalseForDeviceIntelligence() throws Exception {
         Bundle markers = new Bundle();

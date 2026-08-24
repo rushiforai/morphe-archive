@@ -13,7 +13,7 @@ class GboardEnglishQwertyPatchRegistrySourceTest {
     fun registryRenamesEnglishPatchToUppercaseToggle() {
         val source = readSource()
 
-        assertTrue(source.contains("val gboardEnglishQwertySlideUppercaseTogglePatch = resourcePatch("))
+        assertTrue(source.contains("val gboardEnglishQwertySlideUppercaseTogglePatch = gboardPublicResourcePatch("))
         assertTrue(source.contains("name = \"English QWERTY Up-Flick Uppercase\""))
         assertTrue(
             source.contains(
@@ -29,6 +29,13 @@ class GboardEnglishQwertyPatchRegistrySourceTest {
     @Test
     fun englishPatchUsesBindTimeSoftKeyAndPointerImplementationWithoutResourceMutation() {
         val source = readSource()
+        val wiring = Files.readString(
+            Path.of(
+                "src/main/kotlin/dev/jason/gboardpatches/patches/gboard/registry/" +
+                    "GboardContributionWiring.kt",
+            ),
+            StandardCharsets.UTF_8,
+        )
 
         val patchStart = source.indexOf("val gboardEnglishQwertySlideUppercaseTogglePatch")
         val nextPatchStart = source.indexOf("val gboardZhuyinQuickTraditionalSimplifiedTogglePatch")
@@ -39,8 +46,8 @@ class GboardEnglishQwertyPatchRegistrySourceTest {
         assertTrue(patchBlock.contains("gboardAboutPageResourcePatch"))
         assertTrue(patchBlock.contains("gboardPatchesSettingsPatch"))
         assertTrue(patchBlock.contains("gboardEnglishUppercaseToggleFeatureMarkerPatch"))
-        assertTrue(patchBlock.contains("gboardEnglishQwertySoftKeyPatch"))
-        assertTrue(patchBlock.contains("gboardEnglishQwertyPointerPatch"))
+        assertTrue(wiring.contains("gboardEnglishQwertySoftKeyPatch"))
+        assertTrue(wiring.contains("gboardEnglishQwertyPointerPatch"))
         assertFalse(patchBlock.contains("gboardZhuyin"))
 
         val dependencyBlock = patchBlock.substringAfter("dependsOn(").substringBefore(")")
@@ -52,9 +59,7 @@ class GboardEnglishQwertyPatchRegistrySourceTest {
             setOf(
                 "gboardAboutPageResourcePatch",
                 "gboardPatchesSettingsPatch",
-                "gboardEnglishUppercaseToggleFeatureMarkerPatch",
-                "gboardEnglishQwertySoftKeyPatch",
-                "gboardEnglishQwertyPointerPatch"
+                "gboardEnglishUppercaseToggleFeatureMarkerPatch"
             ),
             dependencies
         )

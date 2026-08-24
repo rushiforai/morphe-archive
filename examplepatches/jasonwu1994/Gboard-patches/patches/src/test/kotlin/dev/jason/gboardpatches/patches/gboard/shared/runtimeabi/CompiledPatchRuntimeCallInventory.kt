@@ -4,6 +4,7 @@ import java.io.File
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.Opcodes.ACC_STATIC
 import org.objectweb.asm.Opcodes.ALOAD
+import org.objectweb.asm.Opcodes.ASTORE
 import org.objectweb.asm.Opcodes.CHECKCAST
 import org.objectweb.asm.Opcodes.DUP
 import org.objectweb.asm.Opcodes.DUP2
@@ -44,6 +45,16 @@ internal object CompiledPatchRuntimeCallInventory {
     private const val RUNTIME_CALL_ID_OWNER = "$RUNTIME_ABI_PACKAGE/RuntimeCallId"
     private const val RUNTIME_CALL_ID_DESCRIPTOR = "L$RUNTIME_CALL_ID_OWNER;"
     private const val RUNTIME_CALL_EMITTER_OWNER = "$RUNTIME_ABI_PACKAGE/RuntimeCallEmitter"
+    private const val SOFT_KEY_FEATURE_OWNER =
+        "dev/jason/gboardpatches/patches/gboard/shared/GboardSoftKeyFamilyFeature"
+    private const val SOFT_KEY_COMPOSER_OWNER =
+        "dev/jason/gboardpatches/patches/gboard/shared/GboardSoftKeyFamilyComposerKt"
+    private const val SOFT_KEY_EMITTER_NAME = "emitSoftKeyRuntimeCall"
+    private const val GESTURE_COMPOSER_OWNER =
+        "dev/jason/gboardpatches/patches/gboard/shared/GboardGestureFamilyComposerKt"
+    private const val GESTURE_STAGE_OWNER =
+        "dev/jason/gboardpatches/patches/gboard/shared/GboardGestureFamilyStage"
+    private const val GESTURE_EMITTER_NAME = "emitGestureRuntimeCall"
     private const val STRING_BUILDER_OWNER = "java/lang/StringBuilder"
 
     private val runtimeReference = Regex(
@@ -66,19 +77,53 @@ internal object CompiledPatchRuntimeCallInventory {
                 .map { method -> analyzeMethod(node.name, method, aliases) }
         }
         val summaries = findRuntimeCallFlows(methods)
+        val softKeyInventory = findSoftKeyRuntimeCallInventory(classes)
+        val emitsSoftKeyInventory = summaries.any { (method, flow) ->
+            method.owner == SOFT_KEY_COMPOSER_OWNER &&
+                method.name == SOFT_KEY_EMITTER_NAME &&
+                flow.parameterIndices.contains(0)
+        }
+        val gestureInventory = findRuntimeCallInventory(classes, GESTURE_STAGE_OWNER)
+        val emitsGestureInventory = summaries.any { (method, flow) ->
+            method.owner == GESTURE_COMPOSER_OWNER &&
+                method.name == GESTURE_EMITTER_NAME &&
+                flow.parameterIndices.contains(0)
+        }
 
         return CompiledPatchRuntimeCalls(
             unregisteredRuntimeReferences = methods
                 .flatMap(AnalyzedMethod::runtimeReferences)
                 .toSet(),
             usedCallIds = summaries.values
-                .flatMapTo(linkedSetOf(), RuntimeCallFlow::callIds),
+                .flatMapTo(linkedSetOf(), RuntimeCallFlow::callIds)
+                .apply {
+                    if (emitsSoftKeyInventory) addAll(softKeyInventory)
+                    if (emitsGestureInventory) addAll(gestureInventory)
+                },
         )
     }
 
     private fun readClass(file: File): ClassNode = ClassNode().also { node ->
         ClassReader(file.readBytes()).accept(node, ClassReader.SKIP_DEBUG)
     }
+
+    private fun findSoftKeyRuntimeCallInventory(classes: List<ClassNode>): Set<RuntimeCallId> =
+        findRuntimeCallInventory(classes, SOFT_KEY_FEATURE_OWNER)
+
+    private fun findRuntimeCallInventory(
+        classes: List<ClassNode>,
+        owner: String,
+    ): Set<RuntimeCallId> =
+        classes.singleOrNull { node -> node.name == owner }
+            ?.methods
+            ?.singleOrNull { method -> method.name == "<clinit>" }
+            ?.instructions
+            ?.asSequence()
+            ?.filterIsInstance<FieldInsnNode>()
+            ?.filter { instruction -> instruction.opcode == GETSTATIC }
+            ?.mapNotNull { instruction -> instruction.runtimeCallId() }
+            ?.toCollection(linkedSetOf())
+            .orEmpty()
 
     private fun findRuntimeCallAliases(classes: List<ClassNode>): Map<FieldKey, RuntimeCallId> =
         buildMap {
@@ -235,6 +280,9 @@ internal object CompiledPatchRuntimeCallInventory {
                 } else {
                     origins(local)
                 }
+            }
+            source is VarInsnNode && source.opcode == ASTORE -> {
+                frames[index]?.topStackValue()?.let { value -> origins(value) }
             }
             source is TypeInsnNode && source.opcode == CHECKCAST -> {
                 frames[index]?.topStackValue()?.let { value -> origins(value) }

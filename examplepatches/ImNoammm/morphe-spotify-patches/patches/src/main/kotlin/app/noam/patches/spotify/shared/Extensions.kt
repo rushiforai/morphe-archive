@@ -6,7 +6,6 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 
-/** Minimal instruction helpers, so the patches only depend on Morphe Patcher itself. */
 internal fun Method.instructionList(): List<Instruction> =
     implementation?.instructions?.toList()
         ?: throw PatchException("$name has no implementation")
@@ -35,7 +34,6 @@ internal fun Method.indexOfLast(endIndex: Int, predicate: (Instruction) -> Boole
     return -1
 }
 
-/** Rewrites a `return "..."` extension method to return [value] instead. */
 internal fun MutableMethod.returnString(value: String) {
     replaceInstruction(0, "const-string v0, \"$value\"")
 }

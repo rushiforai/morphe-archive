@@ -63,7 +63,7 @@ internal val settingsUiPatch = bytecodePatch {
 
         remapResourceLiterals(
             ExperienceSettingsHeaderFingerprint.method,
-            mapOf(0x7f1108df to 0x7f110904, 0x7f110586 to 0x7f110905)
+            mapOf(0x7f1108f3 to 0x7f110918, 0x7f11058b to 0x7f110919)
         )
 
         fun MethodReference.descriptor() = buildString {

@@ -41,15 +41,17 @@ public final class GboardAiWritingToolsSettingsFeatureTest {
         Assert.assertNotNull(backendRow);
         Assert.assertEquals(3, screen.getRows().size());
         Assert.assertEquals(
-                "Force-show the two switches under Corrections & suggestions -> Writing tools.",
+                "Force-show Corrections & suggestions > Writing tools > Show writing tools icon "
+                        + "in suggestion strip while typing. Force-stop and restart Gboard for "
+                        + "changes to take effect.",
                 enabledRow.getSummary());
         Assert.assertEquals(
                 "When enabled, force writing tools to work on every keyboard. Force-stop "
                         + "and restart Gboard for the change to take effect.",
                 allKeyboardsRow.getSummary());
         Assert.assertEquals(
-                "Force-stop and restart Gboard after changing the backend. If you select "
-                        + "AICORE, you must be eligible to download the model.",
+                "If you select AI CORE or ASTREA, your account or device must be eligible to "
+                        + "enable it.",
                 backendRow.getSummary());
         Assert.assertTrue(enabledRow.isChecked());
         Assert.assertFalse(allKeyboardsRow.isChecked());

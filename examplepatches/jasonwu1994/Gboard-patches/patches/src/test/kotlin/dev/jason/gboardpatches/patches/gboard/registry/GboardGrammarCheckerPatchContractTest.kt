@@ -1,8 +1,8 @@
 package dev.jason.gboardpatches.patches.gboard.registry
 
 import com.google.gson.JsonParser
-import dev.jason.gboardpatches.patches.gboard.features.featureflags.gboardFeatureFlagsBytecodePatch
 import dev.jason.gboardpatches.patches.gboard.features.featureflags.gboardGrammarCheckerFeatureMarkerPatch
+import dev.jason.gboardpatches.patches.gboard.features.featureflags.gboardGrammarCheckerFlagValuePatch
 import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesExtensionCarrierPatch
 import dev.jason.gboardpatches.patches.shared.Constants.COMPATIBILITY_GBOARD
 import java.nio.charset.StandardCharsets
@@ -34,7 +34,7 @@ class GboardGrammarCheckerPatchContractTest {
 
         val expectedDependencies = listOf(
             gboardPatchesExtensionCarrierPatch,
-            gboardFeatureFlagsBytecodePatch,
+            gboardGrammarCheckerFlagValuePatch,
             gboardGrammarCheckerFeatureMarkerPatch,
         )
         assertEquals(expectedDependencies.size, patch.dependencies.size)
@@ -306,14 +306,13 @@ class GboardGrammarCheckerPatchContractTest {
 
     @Test
     fun generatedInventoryKeepsTheGrammarCheckerTargetOnlyAndEnabledByDefault() {
-        val inventory = JsonParser.parseString(readSource(PATCHES_LIST_PATH)).asJsonObject
-        val patches = inventory.getAsJsonArray("patches").map { element -> element.asJsonObject }
+        val patches = generatedPublishedPatches()
         val grammarPatch = patches.single { patch ->
             patch.get("name").asString == "Grammar Checker"
         }
         val compatiblePackages = grammarPatch.getAsJsonObject("compatiblePackages")
 
-        assertEquals(31, patches.size)
+        assertEquals(34, patches.size)
         assertTrue(grammarPatch.get("use").asBoolean)
         assertEquals(setOf(GBOARD_PACKAGE), compatiblePackages.keySet())
         assertEquals(
@@ -331,8 +330,7 @@ class GboardGrammarCheckerPatchContractTest {
         val workingDirectory = Path.of("").toAbsolutePath().normalize()
         return generateSequence(workingDirectory) { directory -> directory.parent }
             .firstOrNull { candidate ->
-                Files.isRegularFile(candidate.resolve("settings.gradle.kts")) &&
-                    Files.isRegularFile(candidate.resolve(PATCHES_LIST_PATH))
+                Files.isRegularFile(candidate.resolve("settings.gradle.kts"))
             }
             ?: error("Could not locate repository root from $workingDirectory")
     }
@@ -341,7 +339,7 @@ class GboardGrammarCheckerPatchContractTest {
         const val GBOARD_PACKAGE = "com.google.android.inputmethod.latin"
         const val GRAMMAR_FLAG = "enable_grammar_checker"
         const val GRAMMAR_MARKER = "dev.jason.gboardpatches.feature.grammar_checker"
-        const val TARGET_VERSION = "17.7.7.932364120-release-arm64-v8a"
+        const val TARGET_VERSION = "18.0.3.954559732-release-arm64-v8a"
         const val GRAMMAR_MARKER_PATH =
             "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/" +
                 "featureflags/GboardGrammarCheckerFeatureMarkerPatch.kt"
@@ -351,7 +349,6 @@ class GboardGrammarCheckerPatchContractTest {
         const val FEATURE_FLAGS_RUNTIME_PATH =
             "extensions/extension/src/main/java/dev/jason/gboardpatches/extension/featureflags/" +
                 "GboardFeatureFlagsRuntime.java"
-        const val PATCHES_LIST_PATH = "patches-list.json"
         val GRAMMAR_CONTRACT = FeatureFlagMarkerRuntimeContract(
             markerPatchPropertyName = "gboardGrammarCheckerFeatureMarkerPatch",
             markerConstantName = "GRAMMAR_CHECKER_FEATURE_MARKER_NAME",

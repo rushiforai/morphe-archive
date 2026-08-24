@@ -7,14 +7,14 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
-/** Exact 0.8.6-beta settings Composable and its visibility-filter ordinal call. */
+/** Exact 0.8.7-beta settings Composable and its visibility-filter ordinal call. */
 internal object SettingsScreenFingerprint : Fingerprint(
     returnType = "V",
     filters = listOf(
-        literal(0x7f110904),
-        literal(0x7f110905),
-        literal(0x7f110902),
-        literal(0x7f110903),
+        literal(0x7f110918),
+        literal(0x7f110919),
+        literal(0x7f110916),
+        literal(0x7f110917),
         methodCall(
             definingClass = "Lkotlin/collections/CollectionsKt;",
             name = "listOf",
@@ -28,8 +28,8 @@ internal object SettingsScreenFingerprint : Fingerprint(
 internal object ExperienceSettingsHeaderFingerprint : Fingerprint(
     returnType = "V",
     filters = listOf(
-        literal(0x7f1108df),
-        literal(0x7f110586)
+        literal(0x7f1108f3),
+        literal(0x7f11058b)
     )
 )
 
@@ -39,8 +39,8 @@ internal object ExperienceSettingsCardFingerprint : Fingerprint(
     parameters = listOf("Ljava/lang/Object;", "Ljava/lang/Object;", "Ljava/lang/Object;"),
     custom = { method, classDef ->
         val requiredLiterals = setOf(
-            0x7f11057aL, 0x7f110582L, 0x7f110585L,
-            0x7f110587L, 0x7f110588L, 0x7f110589L
+            0x7f11057fL, 0x7f110587L, 0x7f11058aL,
+            0x7f11058cL, 0x7f11058dL, 0x7f11058eL
         )
         val methodLiterals = method.implementation?.instructions
             ?.mapNotNull { (it as? WideLiteralInstruction)?.wideLiteral }
@@ -56,8 +56,8 @@ internal object NativeSettingsSwitchUsageFingerprint : Fingerprint(
     returnType = "Ljava/lang/Object;",
     parameters = listOf("Ljava/lang/Object;", "Ljava/lang/Object;", "Ljava/lang/Object;"),
     filters = listOf(
-        literal(0x7f1109eb),
-        literal(0x7f1109ec)
+        literal(0x7f1109ff),
+        literal(0x7f110a00)
     ),
     custom = { method, classDef ->
         "Lkotlin/jvm/functions/Function3;" in classDef.interfaces &&

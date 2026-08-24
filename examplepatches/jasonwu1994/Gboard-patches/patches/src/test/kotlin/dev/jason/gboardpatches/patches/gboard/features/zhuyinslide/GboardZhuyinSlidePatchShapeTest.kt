@@ -24,21 +24,17 @@ class GboardZhuyinSlidePatchShapeTest {
             "xml_0x7f17117a", "xml_0x7f171179", "slideup_data", "slidedown_data",
             "ensureTemplateAction", "setAttribute("
         ).forEach { stale -> assertFalse("Found active resource mutation $stale", sources.contains(stale)) }
-        assertTrue(sources.contains("GboardVersionBindings.softKeyBind"))
+        assertTrue(sources.contains("GboardSoftKeyFamilyFeature.ZHUYIN_SLIDE"))
     }
 
     @Test
-    fun `softkey delegate recognizes every existing metadata rewrite and runs last`() {
+    fun `softkey contribution leaves parity ordering to the family composer`() {
         val source = readSource("GboardZhuyinSlideSoftKeyPatch.kt")
 
-        assertTrue(source.contains("TOP_ROW_SWIPE_RUNTIME_CLASS"))
-        assertTrue(source.contains("ZHUYIN_TOGGLE_RUNTIME_CLASS"))
-        assertTrue(source.contains("ENGLISH_UPPERCASE_TOGGLE_RUNTIME_IS_ENABLED"))
-        assertTrue(source.contains("patchIncomingSoftKeyMetadata"))
-        assertTrue(source.contains("jasondevPatchIncomingMetadata"))
-        assertTrue(source.contains("maxOf("))
-        assertTrue(source.contains("mutableMethod.addInstructions(insertIndex"))
-        assertTrue(source.contains("ZHUYIN_SLIDE_RUNTIME_PATCH_INCOMING_SOFT_KEY_METADATA"))
+        assertTrue(source.contains("GboardSoftKeyFamilyFeature.ZHUYIN_SLIDE"))
+        assertTrue(source.contains("gboardSoftKeyFamilyFeaturePatch"))
+        assertFalse(source.contains("maxOf("))
+        assertFalse(source.contains("addInstructions"))
     }
 
     @Test
@@ -46,14 +42,18 @@ class GboardZhuyinSlidePatchShapeTest {
         val registry = Files.readString(Path.of(
             "src/main/kotlin/dev/jason/gboardpatches/patches/gboard/registry/GboardPatchRegistry.kt"
         )).replace("\r\n", "\n")
+        val wiring = Files.readString(Path.of(
+            "src/main/kotlin/dev/jason/gboardpatches/patches/gboard/registry/" +
+                "GboardContributionWiring.kt"
+        )).replace("\r\n", "\n")
         val start = registry.indexOf("val gboardZhuyinSlideInputPatch")
         val end = registry.indexOf("val gboardEnglishQwertySlideUppercaseTogglePatch", start)
         assertTrue(start >= 0 && end > start)
         val block = registry.substring(start, end)
 
         assertTrue(block.contains("gboardPatchesExtensionCarrierPatch"))
-        assertTrue(block.contains("gboardZhuyinSlideSoftKeyPatch"))
-        assertTrue(block.contains("gboardZhuyinSlidePointerAnchorPatch"))
+        assertTrue(wiring.contains("gboardZhuyinSlideSoftKeyPatch"))
+        assertTrue(wiring.contains("gboardZhuyinSlidePointerAnchorPatch"))
         assertFalse(block.contains("gboardZhuyinSlideResourcePatch"))
     }
 

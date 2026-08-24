@@ -1,0 +1,46 @@
+package app.ftl.patches.removeads
+
+import app.morphe.patcher.patch.resourcePatch
+
+private val TAG_SPAN = Regex("<[^>]+>")
+private val ID_ATTR = Regex("android:id=\"@\\+?id/([A-Za-z0-9_]+)\"")
+private val ADVIEW_TAG = Regex("^<com\\.google\\.android\\.gms\\.ads\\.AdView\\b")
+private val WIDTH_ATTR = Regex("android:layout_width=\"[^\"]*\"")
+private val HEIGHT_ATTR = Regex("android:layout_height=\"[^\"]*\"")
+private val VISIBILITY_ATTR = Regex("android:visibility=\"[^\"]*\"")
+
+private fun hideAdElements(xml: String): String =
+    TAG_SPAN.replace(xml) { match ->
+        val tag = match.value
+        val idMatch = ID_ATTR.find(tag)
+        val isAdTag = (idMatch != null && idLooksAdRelated(idMatch.groupValues[1])) ||
+            ADVIEW_TAG.containsMatchIn(tag)
+        if (!isAdTag || !WIDTH_ATTR.containsMatchIn(tag) || !HEIGHT_ATTR.containsMatchIn(tag)) {
+            return@replace tag
+        }
+
+        var patched = tag
+        patched = WIDTH_ATTR.replace(patched, "android:layout_width=\"0.0dip\"")
+        patched = HEIGHT_ATTR.replace(patched, "android:layout_height=\"0.0dip\"")
+        patched = if (VISIBILITY_ATTR.containsMatchIn(patched)) {
+            VISIBILITY_ATTR.replace(patched, "android:visibility=\"gone\"")
+        } else {
+            patched.replaceFirst(Regex("\\s*/?>$"), " android:visibility=\"gone\"${if (patched.trimEnd().endsWith("/>")) " />" else ">"}")
+        }
+        patched
+    }
+
+// name = null keeps this out of PatchLoader's top-level list (removeAdsPatch
+// pulls it in via dependsOn), so it doesn't show as its own toggle in the UI.
+val hideAdLayoutsPatch = resourcePatch(
+    name = null,
+    description = "Zeroes size and hides visibility of ad-related view containers in layout XML.",
+) {
+    execute {
+        val layoutDir = get("res/layout", false)
+        layoutDir.walkTopDown()
+            .filter { it.isFile && it.extension.equals("xml", ignoreCase = true) }
+            .forEach { file -> file.writeText(hideAdElements(file.readText())) }
+    }
+}
+

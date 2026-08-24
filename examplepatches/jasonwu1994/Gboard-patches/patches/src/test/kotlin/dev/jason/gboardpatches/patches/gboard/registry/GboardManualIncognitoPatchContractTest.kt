@@ -11,7 +11,7 @@ import org.junit.Test
 
 class GboardManualIncognitoPatchContractTest {
     @Test
-    fun publicPatchOwnsComplete1777PortAndKeepsSettingsMasterOffByDefault() {
+    fun publicPatchOwnsComplete1803PortAndKeepsSettingsMasterOffByDefault() {
         val patch = gboardManualIncognitoModePatch
         assertEquals("Incognito Mode Toggle", patch.name)
         assertEquals(
@@ -31,7 +31,7 @@ class GboardManualIncognitoPatchContractTest {
             patch.dependencies.toList(),
         )
         assertEquals(
-            "17.7.7.932364120-release-arm64-v8a",
+            "18.0.3.954559732-release-arm64-v8a",
             patch.compatibility!!.single().targets.single().version,
         )
     }

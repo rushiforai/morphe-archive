@@ -21,7 +21,7 @@ import dev.jason.gboardpatches.extension.settings.GboardPatchesSettingsContract;
 
 public final class GboardSymbolFooterOrderSettingsFeatureTest {
     @Test
-    public void screenUsesStableTraditionalChineseLsposedCopy() {
+    public void screenUsesStableTraditionalChineseMorpheCopy() {
         Locale originalLocale = Locale.getDefault();
         Locale.setDefault(Locale.forLanguageTag("zh-Hant-TW"));
         try {

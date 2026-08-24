@@ -14,10 +14,8 @@ import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstructio
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
-/** The settings row the patch anchors on; its section is where the Morphe row is added. */
 internal const val ANCHOR_ROW_ID = "appIcon"
 
-/** Index of the row accessor in Spotify's settings row constructor. */
 private const val ACCESSOR_PARAMETER_INDEX = 9
 
 @Suppress("unused")
@@ -36,13 +34,11 @@ val settingsPatch = bytecodePatch(
     execute {
         val method = SettingsSectionFingerprint.method
 
-        // The anchor row tells us where in this method a settings row is built.
         val anchorIndex = method.indexOfFirstOrThrow(description = "the \"$ANCHOR_ROW_ID\" row") {
             it.opcode == Opcode.CONST_STRING &&
                 ((it as ReferenceInstruction).reference as StringReference).string == ANCHOR_ROW_ID
         }
 
-        // A settings row is the only constructor taking an id followed by two string resource ids.
         val rowConstructorIndex = method.indexOfFirstOrThrow(anchorIndex, "the settings row constructor") {
             if (it.opcode != Opcode.INVOKE_DIRECT_RANGE && it.opcode != Opcode.INVOKE_DIRECT) return@indexOfFirstOrThrow false
             val reference = (it as ReferenceInstruction).reference as? MethodReference
@@ -57,10 +53,6 @@ val settingsPatch = bytecodePatch(
         val rowConstructor = method
             .getInstruction<ReferenceInstruction>(rowConstructorIndex).reference as MethodReference
 
-        // The accessor decides what happens when a row is tapped. Rather than tracing registers
-        // through a method this large, both classes are identified by their shape: the accessor that
-        // pairs navigation metadata with an action, and the action implementation that takes a Kotlin
-        // function, which is the one that can run our code.
         val accessorInterface = rowConstructor.parameterTypes[ACCESSOR_PARAMETER_INDEX].toString()
 
         var holderType: String? = null
@@ -77,8 +69,6 @@ val settingsPatch = bytecodePatch(
 
             val actionInterface = constructor.parameterTypes[1].toString()
 
-            // Two actions carry a destination; the one that takes nothing but a string is
-            // unambiguous, while the other also accepts an internal screen enum.
             val action = classDefByOrNull { classDef ->
                 classDef.interfaces.contains(actionInterface) &&
                     classDef.directMethods.count { it.name == "<init>" } == 1 &&
@@ -97,16 +87,11 @@ val settingsPatch = bytecodePatch(
             throw PatchException("Could not find a tappable settings row action")
         }
 
-        // Hand the discovered class names to the extension, which builds the row reflectively so it
-        // never has to name an obfuscated class at compile time.
         mutableClassDefBy(Constants.SETTINGS_TILE_CLASS).methods.apply {
             first { it.name == "navigationHolderClassName" }.returnString(holderType!!.toBinaryName())
             first { it.name == "destinationActionClassName" }.returnString(actionType!!.toBinaryName())
         }
 
-        // The Morphe row is modelled on a real row from this section, but belongs in the main menu,
-        // so this call only takes the copy. Patching the array rather than the built list keeps the
-        // list's own type intact.
         val listBuilderIndex = method.indexOfFirstOrThrow(rowConstructorIndex, "the section row list") {
             if (it.opcode != Opcode.INVOKE_STATIC && it.opcode != Opcode.INVOKE_STATIC_RANGE) {
                 return@indexOfFirstOrThrow false
@@ -131,7 +116,6 @@ val settingsPatch = bytecodePatch(
             """,
         )
 
-        // Add the row to the main settings menu, just before its entries are converted for display.
         MainSettingsMenuFingerprint.method.apply {
             val anchorIndex = indexOfFirstOrThrow(description = "the settings page anchor") {
                 it.opcode == Opcode.CONST_STRING &&
@@ -163,7 +147,6 @@ val settingsPatch = bytecodePatch(
             )
         }
 
-        // Guard against a silent no-op: the row constructor is needed by the extension at runtime.
         if (rowConstructor.parameterTypes.size < 10) {
             throw PatchException("Unexpected settings row constructor: $rowConstructor")
         }
@@ -172,7 +155,6 @@ val settingsPatch = bytecodePatch(
 
 private fun String.toBinaryName() = substring(1, length - 1).replace('/', '.')
 
-/** Every class in the app that directly implements [interfaceType]. */
 context(context: app.morphe.patcher.patch.BytecodePatchContext)
 private fun classDefsByInterface(interfaceType: String) = buildList {
     context.classDefForEach { if (it.interfaces.contains(interfaceType)) add(it) }

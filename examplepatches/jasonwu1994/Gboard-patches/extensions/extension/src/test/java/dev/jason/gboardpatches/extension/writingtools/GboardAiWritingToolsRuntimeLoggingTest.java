@@ -130,7 +130,7 @@ public final class GboardAiWritingToolsRuntimeLoggingTest {
     }
 
     private static long warningCount(String message) {
-        String expected = "[gboard-writing-tools-17.7.7] " + message;
+        String expected = "[gboard-writing-tools-18.0.3] " + message;
         return ShadowLog.getLogsForTag(TAG).stream()
                 .filter(item -> item.type == android.util.Log.WARN)
                 .filter(item -> expected.equals(item.msg))

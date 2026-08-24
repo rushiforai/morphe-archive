@@ -9,12 +9,11 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
-import dev.jason.gboardpatches.patches.gboard.shared.GboardPointerOwner1777RegisterContract
+import dev.jason.gboardpatches.patches.gboard.shared.GboardPointerOwnerRegisterContract
 import dev.jason.gboardpatches.patches.gboard.shared.GboardPointerOwnerFeature
 import dev.jason.gboardpatches.patches.gboard.shared.GboardPointerOwnerFeatureSpec
 import dev.jason.gboardpatches.patches.gboard.shared.GboardPointerOwnerTransformationContext
 import dev.jason.gboardpatches.patches.gboard.shared.GboardPointerOwnerTransformationAdapter
-import dev.jason.gboardpatches.patches.gboard.shared.gboardStructuralFingerprint
 import dev.jason.gboardpatches.patches.gboard.shared.isInvoke
 import dev.jason.gboardpatches.patches.gboard.shared.returnInstructionIndices
 import dev.jason.gboardpatches.patches.gboard.shared.gboardPointerOwnerFeaturePatch
@@ -43,33 +42,15 @@ private val gboardLongPressQuickActionsPointerOwnerSpec = GboardPointerOwnerFeat
 )
 
 internal val gboardLongPressQuickActionsPointerOwnerPatch = gboardPointerOwnerFeaturePatch(
-    description = "在 17.7.7 pointer owner 完成後補用 Gboard stock long-press scheduler。",
+    description = "在 18.0.3 pointer owner 完成後補用 Gboard stock long-press scheduler。",
     spec = gboardLongPressQuickActionsPointerOwnerSpec,
 )
 
 internal fun MutableMethod.applyLongPressQuickActionsPointerOwnerDelegate(): MutableMethod {
     val implementation = implementation ?: error("Long-press pointer owner has no implementation")
     if (implementation.registerCount == POINTER_OWNER_PATCHED_REGISTER_COUNT) {
-        val actual = gboardStructuralFingerprint()
-        check(actual in setOf(
-            GboardLongPressQuickActions1777Fingerprints.pointerOwnerPatched,
-            GboardLongPressQuickActions1777Fingerprints.pointerOwnerEnglishQwertyPatched,
-        )) {
-            "Malformed Long-press pointer delegate state: $actual"
-        }
         validateLongPressPointerOwnerDelegate()
         return this
-    }
-    val stockFingerprint = gboardStructuralFingerprint()
-    val expectedPatchedFingerprint = when (stockFingerprint) {
-        GboardLongPressQuickActions1777Fingerprints.pointerOwnerStock ->
-            GboardLongPressQuickActions1777Fingerprints.pointerOwnerPatched
-        GboardLongPressQuickActions1777Fingerprints.pointerOwnerEnglishQwerty ->
-            GboardLongPressQuickActions1777Fingerprints.pointerOwnerEnglishQwertyPatched
-        else -> error(
-            "Stock body drift in ${GboardVersionBindings.pointerOwner.reference}: " +
-                stockFingerprint,
-        )
     }
     check(implementation.registerCount == POINTER_OWNER_STOCK_REGISTER_COUNT) {
         "Unexpected register count in " +
@@ -84,10 +65,6 @@ internal fun MutableMethod.applyLongPressQuickActionsPointerOwnerDelegate(): Mut
             returnIndex,
             LONG_PRESS_QUICK_ACTIONS_POINTER_OWNER_DELEGATE,
         )
-    }
-    val patchedFingerprint = expanded.gboardStructuralFingerprint()
-    check(patchedFingerprint == expectedPatchedFingerprint) {
-        "Unexpected patched Long-press pointer body: $patchedFingerprint"
     }
     expanded.validateLongPressPointerOwnerDelegate()
     return expanded
@@ -165,30 +142,30 @@ private val POINTER_OWNER_ENTRY_PARAMETER_COPIES = """
 """.trimIndent()
 
 private const val POINTER_OWNER_STOCK_REGISTER_COUNT =
-    GboardPointerOwner1777RegisterContract.stockRegisterCount
+    GboardPointerOwnerRegisterContract.stockRegisterCount
 private const val POINTER_OWNER_PATCHED_REGISTER_COUNT =
-    GboardPointerOwner1777RegisterContract.expandedRegisterCount
+    GboardPointerOwnerRegisterContract.expandedRegisterCount
 private const val POINTER_OWNER_LEGACY_P0_REGISTER =
-    GboardPointerOwner1777RegisterContract.legacyP0Register
+    GboardPointerOwnerRegisterContract.legacyP0Register
 private const val POINTER_OWNER_LEGACY_P1_REGISTER =
-    GboardPointerOwner1777RegisterContract.legacyP1Register
+    GboardPointerOwnerRegisterContract.legacyP1Register
 private const val POINTER_OWNER_LEGACY_P2_REGISTER =
-    GboardPointerOwner1777RegisterContract.legacyP2Register
+    GboardPointerOwnerRegisterContract.legacyP2Register
 private const val POINTER_OWNER_LEGACY_P3_REGISTER =
-    GboardPointerOwner1777RegisterContract.legacyP3Register
+    GboardPointerOwnerRegisterContract.legacyP3Register
 private const val POINTER_OWNER_LEGACY_P4_REGISTER =
-    GboardPointerOwner1777RegisterContract.legacyP4Register
+    GboardPointerOwnerRegisterContract.legacyP4Register
 private const val POINTER_OWNER_LEGACY_P6_REGISTER =
-    GboardPointerOwner1777RegisterContract.legacyP6Register
+    GboardPointerOwnerRegisterContract.legacyP6Register
 private const val POINTER_OWNER_PATCHED_P0_REGISTER =
-    GboardPointerOwner1777RegisterContract.expandedP0Register
+    GboardPointerOwnerRegisterContract.expandedP0Register
 private const val POINTER_OWNER_PATCHED_P1_REGISTER =
-    GboardPointerOwner1777RegisterContract.expandedP1Register
+    GboardPointerOwnerRegisterContract.expandedP1Register
 private const val POINTER_OWNER_PATCHED_P2_REGISTER =
-    GboardPointerOwner1777RegisterContract.expandedP2Register
+    GboardPointerOwnerRegisterContract.expandedP2Register
 private const val POINTER_OWNER_PATCHED_P3_REGISTER =
-    GboardPointerOwner1777RegisterContract.expandedP3Register
+    GboardPointerOwnerRegisterContract.expandedP3Register
 private const val POINTER_OWNER_PATCHED_P4_REGISTER =
-    GboardPointerOwner1777RegisterContract.expandedP4Register
+    GboardPointerOwnerRegisterContract.expandedP4Register
 private const val POINTER_OWNER_PATCHED_P6_REGISTER =
-    GboardPointerOwner1777RegisterContract.expandedP6Register
+    GboardPointerOwnerRegisterContract.expandedP6Register

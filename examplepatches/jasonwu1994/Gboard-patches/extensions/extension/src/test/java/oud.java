@@ -11,6 +11,10 @@ public final class oud {
         e = payload;
     }
 
+    public oud(int keyCode, ouc intention, Object payload, int unusedPriority) {
+        this(keyCode, intention, payload);
+    }
+
     @Override
     public boolean equals(Object other) {
         if (this == other) {

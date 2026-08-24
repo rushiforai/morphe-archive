@@ -7,7 +7,7 @@ import org.junit.Test
 
 class GboardClipboardTargetSourceContractTest {
     @Test
-    fun `production is target-only exact 1777 with pure runtime reads`() {
+    fun `production is target-only exact 1803 with pure runtime reads`() {
         validate(loadSources())
     }
 
@@ -15,18 +15,20 @@ class GboardClipboardTargetSourceContractTest {
     fun `old token wrong member signature and missing target mutations fail`() {
         val stock = loadSources()
         listOf(
-            stock.mutate("Leun;", "Leln;"),
-            stock.mutate("Levu;", "Lemr;"),
-            stock.mutate("Levn;", "Lemk;"),
-            stock.mutate("Lkl;", "Lkm;"),
+            stock.mutate("Lfik;", "Leun;"),
+            stock.mutate("Lfjv;", "Levu;"),
+            stock.mutate("Lfjk;", "Levn;"),
+            stock.mutate("Lkr;", "Lkl;"),
             stock.mutate("name = \"l\"", "name = \"k\""),
-            stock.mutate("0x7f14094c", "0x7f140928"),
-            stock.mutate("\"euk\"", "\"elk\""),
-            stock.mutate("\"eum\"", "\"elm\""),
+            stock.mutate("0x7f1409d3", "0x7f14094c"),
+            stock.mutate("\"fih\"", "\"euk\""),
+            stock.mutate("\"fij\"", "\"eum\""),
             stock.mutate("receiver.getClass(), \"w\"", "receiver.getClass(), \"y\""),
             stock.mutate("expectedRecent != currentRecent", "expectedRecent > currentRecent"),
             stock.mutate("name = \"call\"", "name = \"run\""),
-            stock.mutate("CLIPBOARD_LOADER_CALLABLE_CLASS = \"Leun;\"", ""),
+            stock.mutate("name = \"g\"", "name = \"call\""),
+            stock.mutate("Object dataHandler = receiver;", "Object dataHandler = null;"),
+            stock.mutate("CLIPBOARD_LOADER_CALLABLE_CLASS = \"Lfik;\"", ""),
         ).forEachIndexed { index, mutation ->
             assertThrows("mutation $index", IllegalStateException::class.java) {
                 validate(mutation)
@@ -35,46 +37,48 @@ class GboardClipboardTargetSourceContractTest {
     }
 
     private fun validate(sources: Sources) {
-        requireAll(sources.patchOptions, "Leun;", "Levu;", "Levn;", "Lkl;")
+        requireAll(sources.patchOptions, "Lfik;", "Lfjv;", "Lfjk;", "Lkr;")
         requireAll(sources.loaderPatch,
             "CLIPBOARD_LOADER_CALLABLE_CLASS", "name = \"call\"", "emptyList()")
         requireAll(sources.prunePatch,
-            "CLIPBOARD_PRUNE_CALLABLE_CLASS", "name = \"call\"", "emptyList()")
+            "CLIPBOARD_PRUNE_CALLABLE_CLASS", "name = \"g\"", "returnType = \"V\"",
+            "emptyList()")
         requireAll(sources.adapterPatch,
             "CLIPBOARD_ADAPTER_CLASS", "\"F\"", "\"p\"",
             "listOf(RECYCLER_VIEW_HOLDER_CLASS, \"I\")",
             "ITEM_BIND_ENTRY", "ITEM_BIND_BEFORE_METHOD_DESCRIPTOR",
             "ITEM_BIND_EXPANDED_REGISTER_COUNT",
-            "ITEM_BIND_STOCK_FINGERPRINT", "ITEM_BIND_PATCHED_FINGERPRINT",
             "expandClipboardItemBindRegisters()", "validateExpandedClipboardItemBind()")
         requireAll(sources.columnPatch, "name = \"l\"", "parameterTypes = emptyList()")
         requireAll(sources.runtimeSupport,
-            "CLIPBOARD_LOADER_CALLABLE_CLASS = \"eun\"",
-            "CLIPBOARD_PRUNE_CALLABLE_CLASS = \"evu\"",
-            "CLIPBOARD_ADAPTER_CLASS = \"evn\"",
-            "CLIPBOARD_VIEW_HOLDER_CLASS = \"evl\"",
-            "LAST_VISIBLE_TIMESTAMP_PREF_RES_ID = 0x7f14094c",
+            "CLIPBOARD_LOADER_CALLABLE_CLASS = \"fik\"",
+            "CLIPBOARD_ADAPTER_CLASS = \"fjk\"",
+            "CLIPBOARD_VIEW_HOLDER_CLASS = \"fji\"",
+            "LAST_VISIBLE_TIMESTAMP_PREF_RES_ID = 0x7f1409d3",
             "receiver.getClass(), \"w\"",
-            "resolveClass(classLoader, \"euo\")",
-            "resolveClass(classLoader, \"ewb\")",
-            "resolveClass(classLoader, \"euk\")",
-            "resolveClass(classLoader, \"eum\")",
-            "resolveClass(classLoader, \"evr\")",
-            "resolveClass(classLoader, \"pnp\")",
-            "resolveClass(classLoader, \"cbv\")",
+            "resolveClass(classLoader, \"fil\")",
+            "resolveClass(classLoader, \"fjv\")",
+            "resolveClass(classLoader, \"fih\")",
+            "resolveClass(classLoader, \"fij\")",
+            "resolveClass(classLoader, \"fjo\")",
+            "resolveClass(classLoader, \"qhy\")",
+            "resolveClass(classLoader, \"cdl\")",
             "declaredField(dataHandlerClass, \"f\")",
             "declaredField(dataHandlerClass, \"g\")",
             "declaredField(adapterClass, \"e\")",
             "declaredField(adapterClass, \"n\")",
             "declaredField(adapterClass, \"o\")",
             "declaredField(adapterClass, \"y\")",
-            "declaredField(clipModelClass, \"a\")",
-            "clipIsSensitiveMethod = declaredMethod(clipClass, \"l\")",
+            "declaredField(clipModelClass, \"c\")",
+            "clipIsSensitiveMethod = declaredMethod(clipClass, \"m\")",
             "readClipboardShowSensitiveContent(preferences)",
-            "declaredMethod(dataHandlerClass, \"l\"",
-            "declaredMethod(preferencesClass, \"N\"",
+            "declaredMethod(dataHandlerClass, \"t\"",
+            "declaredMethod(preferencesClass, \"I\"",
             "declaredMethod(preferenceBaseClass, \"s\"",
             "timestampToEpochMillis(handles.clipTimestampField.get(clip))")
+        requireAll(sources.pruneAdapter,
+            "Object dataHandler = receiver;",
+            "Context context = support.pruneContext(handles, receiver);")
         requireAll(sources.uiAdapter,
             "cardPreviewFeature.beforeItemBind(receiver, position)",
             "cardPreviewFeature.afterItemBind()",
@@ -85,16 +89,17 @@ class GboardClipboardTargetSourceContractTest {
             "clearCountdownBinding(textView, Long.valueOf(clipId))")
 
         val forbidden = listOf(
-            "Leln;", "Lemr;", "Lemk;", "Lkm;", "0x7f140928",
+            "Leun;", "Levu;", "Levn;", "Lkl;", "0x7f14094c",
             "\"eln\"", "\"emr\"", "\"emk\"", "\"elo\"", "\"emy\"",
             "\"elk\"", "\"elm\"", "\"emo\"", "\"oql\"", "\"bze\"",
             "name = \"k\"", "receiver.getClass(), \"y\"",
+            "pruneCallableOwnerField",
             "expectedRecent > currentRecent", "expectedPinned > currentPinned",
             "expectedSize > currentSize",
         )
         val targetSources = listOf(sources.patchOptions, sources.loaderPatch,
             sources.prunePatch, sources.adapterPatch, sources.columnPatch,
-            sources.runtimeSupport, sources.uiAdapter)
+            sources.runtimeSupport, sources.pruneAdapter, sources.uiAdapter)
         forbidden.forEach { token -> check(targetSources.none { token in it }) { token } }
 
         listOf(
@@ -129,6 +134,7 @@ class GboardClipboardTargetSourceContractTest {
         read("patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/clipboard/GboardClipboardAdapterPatch.kt"),
         read("patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/clipboard/GboardClipboardColumnCountPatch.kt"),
         read("extensions/extension/src/main/java/dev/jason/gboardpatches/extension/clipboard/runtime/GboardClipboardRuntimeSupport.java"),
+        read("extensions/extension/src/main/java/dev/jason/gboardpatches/extension/clipboard/runtime/hooks/GboardClipboardPruneHookAdapter.java"),
         read("extensions/extension/src/main/java/dev/jason/gboardpatches/extension/clipboard/runtime/hooks/GboardClipboardUiHookAdapter.java"),
         read("extensions/extension/src/main/java/dev/jason/gboardpatches/extension/clipboard/settings/GboardClipboardSettings.java"),
     )
@@ -145,18 +151,19 @@ class GboardClipboardTargetSourceContractTest {
         val adapterPatch: String,
         val columnPatch: String,
         val runtimeSupport: String,
+        val pruneAdapter: String,
         val uiAdapter: String,
         val settings: String,
     ) {
         fun mutate(old: String, replacement: String): Sources {
             val values = listOf(patchOptions, loaderPatch, prunePatch, adapterPatch,
-                columnPatch, runtimeSupport, uiAdapter, settings)
+                columnPatch, runtimeSupport, pruneAdapter, uiAdapter, settings)
             val index = values.indexOfFirst { old in it }
             check(index >= 0) { old }
             val changed = values.toMutableList()
             changed[index] = changed[index].replaceFirst(old, replacement)
             return Sources(changed[0], changed[1], changed[2], changed[3], changed[4],
-                changed[5], changed[6], changed[7])
+                changed[5], changed[6], changed[7], changed[8])
         }
     }
 }

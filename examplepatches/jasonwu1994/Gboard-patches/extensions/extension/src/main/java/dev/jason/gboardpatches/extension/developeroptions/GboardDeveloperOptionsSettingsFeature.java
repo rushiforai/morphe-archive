@@ -11,7 +11,7 @@ import dev.jason.gboardpatches.extension.settings.GboardSettingsText;
 
 public final class GboardDeveloperOptionsSettingsFeature
         implements GboardPatchesSettingsContract.Feature {
-    private static final int TARGET_1777_HEADER_KEY_RESOURCE_ID = 0x7f140abe;
+    private static final int TARGET_1803_HEADER_KEY_RESOURCE_ID = 0x7f140b4b;
 
     private final String entryTitle;
     private final String entrySummary;
@@ -50,7 +50,7 @@ public final class GboardDeveloperOptionsSettingsFeature
 
     @Override
     public void openRootEntry(GboardPatchesSettingsContract.FeatureHost host) {
-        GboardPatchesSettingsContract.openTargetSettingsHeader(host, TARGET_1777_HEADER_KEY_RESOURCE_ID);
+        GboardPatchesSettingsContract.openTargetSettingsHeader(host, TARGET_1803_HEADER_KEY_RESOURCE_ID);
     }
 
     @Override

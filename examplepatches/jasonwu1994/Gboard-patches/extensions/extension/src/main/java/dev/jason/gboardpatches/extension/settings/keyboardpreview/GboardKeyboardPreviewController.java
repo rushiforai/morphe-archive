@@ -5,7 +5,11 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.res.ColorStateList;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.ColorFilter;
+import android.graphics.Paint;
+import android.graphics.PixelFormat;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.RippleDrawable;
@@ -45,7 +49,7 @@ public final class GboardKeyboardPreviewController {
     private static final int BUTTON_SIZE_DP = 56;
     private static final int BUTTON_MARGIN_DP = 16;
     private static final int CONTENT_CLEARANCE_DP = 88;
-    private static final int TARGET_KEYBOARD_DRAWABLE_ID = 0x7f080474;
+    private static final int TARGET_KEYBOARD_DRAWABLE_ID = 0x7f0804a6;
 
     private final Activity activity;
     private final Supplier<List<String>> targetPackageNames;
@@ -148,12 +152,12 @@ public final class GboardKeyboardPreviewController {
                 // Try the next supported package, then the local vector.
             }
         }
-        if (drawable == null) drawable = activity.getDrawable(R.drawable.ic_gboard_patches_keyboard);
         if (drawable != null) {
             drawable = drawable.mutate();
             drawable.setTint(iconColor);
+            return drawable;
         }
-        return drawable;
+        return new KeyboardIconDrawable(iconColor);
     }
 
     private List<String> suppliedTargetPackageNames() {
@@ -247,6 +251,66 @@ public final class GboardKeyboardPreviewController {
 
     private int dp(int value) {
         return Math.round(value * activity.getResources().getDisplayMetrics().density);
+    }
+
+    private final class KeyboardIconDrawable extends Drawable {
+        private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+
+        KeyboardIconDrawable(int color) {
+            paint.setColor(color);
+            paint.setStrokeJoin(Paint.Join.ROUND);
+        }
+
+        @Override
+        public void draw(Canvas canvas) {
+            if (canvas == null || getBounds().isEmpty()) return;
+            int saveCount = canvas.save();
+            canvas.translate(getBounds().left, getBounds().top);
+            canvas.scale(getBounds().width() / 960f, getBounds().height() / 960f);
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(80f);
+            canvas.drawRoundRect(120f, 240f, 840f, 720f, 40f, 40f, paint);
+            paint.setStyle(Paint.Style.FILL);
+            for (int column = 0; column < 5; column++) {
+                float left = 200f + (column * 120f);
+                drawKeyboardKey(canvas, left, 320f, left + 80f, 400f);
+                drawKeyboardKey(canvas, left, 440f, left + 80f, 520f);
+            }
+            drawKeyboardKey(canvas, 320f, 560f, 640f, 640f);
+            canvas.restoreToCount(saveCount);
+        }
+
+        private void drawKeyboardKey(Canvas canvas, float left, float top,
+                float right, float bottom) {
+            canvas.drawRect(left, top, right, bottom, paint);
+        }
+
+        @Override
+        public void setAlpha(int alpha) {
+            paint.setAlpha(alpha);
+            invalidateSelf();
+        }
+
+        @Override
+        public void setColorFilter(ColorFilter colorFilter) {
+            paint.setColorFilter(colorFilter);
+            invalidateSelf();
+        }
+
+        @Override
+        public int getOpacity() {
+            return PixelFormat.TRANSLUCENT;
+        }
+
+        @Override
+        public int getIntrinsicWidth() {
+            return dp(24);
+        }
+
+        @Override
+        public int getIntrinsicHeight() {
+            return dp(24);
+        }
     }
 
     private static final class RichContentSinkEditText extends EditText {

@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public final class GboardManualIncognitoRuntime {
     private static final String TAG = "GboardPatches";
-    private static final String LOG_PREFIX = "[gboard-manual-incognito-17.7.7] ";
+    private static final String LOG_PREFIX = "[gboard-manual-incognito-18.0.3] ";
     private static final AtomicLong GENERATION = new AtomicLong(0L);
     private static final AtomicBoolean STOCK_SESSION_RESTART_PENDING =
             new AtomicBoolean(false);
@@ -56,7 +56,7 @@ public final class GboardManualIncognitoRuntime {
 
     public static Object includeAccessPointInOrderCatalog(Object original) {
         try {
-            return GboardManualIncognitoAccessPoint1777Support.includeToken(original);
+            return GboardManualIncognitoAccessPointSupport.includeToken(original);
         } catch (Throwable failure) {
             logFailure("failed to extend Access Point order catalog", failure);
             return original;
@@ -101,7 +101,7 @@ public final class GboardManualIncognitoRuntime {
             GboardManualIncognitoSettings.RequestedPolicy requested =
                     GboardManualIncognitoSettings.read(context);
             requestedPolicy = requested;
-            GboardManualIncognitoAccessPoint1777Support.register(
+            GboardManualIncognitoAccessPointSupport.register(
                     controller, context, requested);
         } catch (Throwable failure) {
             logFailure("Access Point registration failed", failure);
@@ -120,7 +120,7 @@ public final class GboardManualIncognitoRuntime {
             }
             requestedPolicy = requestedPolicy.withManualRequested(result.requested);
             STOCK_SESSION_RESTART_PENDING.set(true);
-            GboardManualIncognitoAccessPoint1777Support.register(
+            GboardManualIncognitoAccessPointSupport.register(
                     controller, context, requestedPolicy);
             restartActiveKeyboard();
         } catch (Throwable failure) {
@@ -150,7 +150,7 @@ public final class GboardManualIncognitoRuntime {
                             GENERATION.incrementAndGet());
             requestedPolicy = requested;
             activeSession = session;
-            GboardManualIncognitoAccessPoint1777Support.refreshRegisteredControllers(requested);
+            GboardManualIncognitoAccessPointSupport.refreshRegisteredControllers(requested);
             Log.d(TAG, LOG_PREFIX + "latched generation=" + session.generation
                     + ", manual=" + session.manualApplied
                     + ", stock=" + session.stockRequestedAtStart

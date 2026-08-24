@@ -20,7 +20,16 @@ public final class ovv {
         actions.put(actionDef.c, actionDef);
     }
 
+    public void t(otk actionDef) {
+        actions.put(actionDef.c, actionDef);
+    }
+
     public void t(int[] ids, CharSequence[] texts) {
+        labelIds = ids.clone();
+        labels = texts.clone();
+    }
+
+    public void v(int[] ids, CharSequence[] texts) {
         labelIds = ids.clone();
         labels = texts.clone();
     }

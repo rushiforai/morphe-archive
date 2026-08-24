@@ -1,13 +1,13 @@
 # NuvioTV Morphe Patches
 
-Public Morphe patch source for the official NuvioTV Android application. The ten current source patches target only `com.nuvio.tv` `0.8.6-beta`.
+Public Morphe patch source for the official NuvioTV Android application. The nine current source patches target only `com.nuvio.tv` `0.8.7-beta`.
 
 This repository distributes patch code and `.mpp` bundles. It never distributes original, patched, or modified NuvioTV APKs.
 
 > [!WARNING]
 > **All patches in this repository are prerelease work in progress.** They are not fully tested and may disrupt NuvioTV features or cause unexpected behavior. Use them only if you understand and accept this risk. Testers can share feedback and report bugs, regressions, or other malfunctions by [opening a GitHub issue](https://github.com/liongalahad/nuviotv-morphe-patches/issues/new/choose). Do not attach original, patched, or modified NuvioTV APKs to an issue.
 
-The suite adds a default-selected side-by-side install identity, local-media playback, direct local downloads, storage subtitle imports, SDH detection and cleanup, rating controls, random-episode playback, source-picker selection restoration, and a setting-free Library focus correction. Each optional patch owns its settings, state, runtime logic, tests, manifest registration, and documentation. Shared code is limited to generic infrastructure required by multiple patches.
+The suite adds a default-selected side-by-side install identity, local-media playback, direct local downloads, storage subtitle imports, SDH detection and cleanup, random-episode playback, source-picker selection restoration, and a setting-free Library focus correction. Each optional patch owns its settings, state, runtime logic, tests, manifest registration, and documentation. Shared code is limited to generic infrastructure required by multiple patches.
 
 `Restore Source Selection` adds **Settings > Morphe > Playback > Restore source selection**. It defaults On for a fresh preference. When enabled, returning from Nuvio's internal player restores the source that launched playback and its list position instead of resetting to the first source. It stores only the Boolean preference; source URLs, headers, provider data, and content identifiers are not persisted. Nuvio's external-player restoration remains unchanged.
 
@@ -20,7 +20,7 @@ The SDH cleanup patch provides `Off`, `Normalize music symbols only`, `Remove SD
 1. Download and install [Morphe Manager](https://morphe.software/) on your phone or TV.
 2. Add `github.com/liongalahad/nuviotv-morphe-patches` as a GitHub patch source. No GitHub PAT is required because the repository is public.
 3. Enable prerelease patches while the bundle remains on `dev`.
-4. Import the official [NuvioTV 0.8.6-beta APK](https://github.com/NuvioMedia/NuvioTV/releases/tag/0.8.6-beta) for the target ABI, or the official universal APK.
+4. Import the official [NuvioTV 0.8.7-beta APK](https://github.com/NuvioMedia/NuvioTV/releases/tag/0.8.7-beta) for the target ABI, or the official universal APK.
 5. Select the patches to apply. `Side-by-side installation` is selected by default and produces package `com.nuvio.morphe` with label `Nuvio Morphe`; deselect it only when replacement-install behavior is intended.
 6. Save the patched APK locally, then sideload and install it on your TV. The default side-by-side output installs beside the official app. A replacement output cannot upgrade the official app in place because the patched APK has a different signature.
 
@@ -40,23 +40,23 @@ Every run is isolated under `local/patches/<patch-id>/<timestamp>/`. See [Window
 
 `testing/patches/<patch-id>/` is the source of truth for each patch's target assets, fingerprints, inspection requirements, acceptance criteria, porting notes, and focused test plan. `patches-list.json` and the table below are regenerated from the built bundle.
 
-## NuvioTV 0.8.6 compatibility
+## NuvioTV 0.8.7 compatibility
 
-All ten patch compartments target the official `0.8.6-beta` universal and ABI-specific APKs. This port revalidates every structural fingerprint and updates the version-pinned native settings bridges that moved in NuvioTV 0.8.6.
+All nine patch compartments target the official `0.8.7-beta` universal and ABI-specific APKs. The port updates the version-pinned settings resources and native Compose bridges, adapts Local Downloads to Nuvio's new episode action list, and keeps the remaining patch fingerprints structural.
 
-Validation includes 198 extension tests plus three patcher-level manifest tests, isolated application across all four declared official APK variants, combined Android TV settings and Library traversal, H.264 local playback through Media3, end-of-file return to Storage, and combined x86_64/universal APK signature, alignment, manifest, DEX, and ABI inspection. External-service, removable-storage, and real-TV acceptance checks remain manual. Generated APKs and runtime evidence remain under ignored `local/` paths and are never committed.
+Automated validation covers extension and patcher tests, isolated application across all four declared official APK variants, and a combined x86_64 alignment/signature check. The combined side-by-side build also installs on the Android TV emulator and exercises Morphe Settings, Library D-pad focus, Storage discovery, local H.264 playback, local sidecar selection, and native/Morphe SDH arbitration. Live download services, removable physical storage, source restoration with a real addon stream, and physical Android TV acceptance remain separate manual gates. Generated APKs and evidence remain under ignored `local/` paths and are never committed.
 
 ## Available patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.0-dev.25](https://github.com/liongalahad/nuviotv-morphe-patches/releases/tag/v1.0.0-dev.25)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
+> **[v1.0.0-dev.26](https://github.com/liongalahad/nuviotv-morphe-patches/releases/tag/v1.0.0-dev.26)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;9 patches total
 <details open>
-<summary>📦 NuvioTV&nbsp;&nbsp;•&nbsp;&nbsp;10 patches</summary>
+<summary>📦 NuvioTV&nbsp;&nbsp;•&nbsp;&nbsp;9 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 0.8.6-beta |
+| 0.8.7-beta |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -65,7 +65,6 @@ Validation includes 198 extension tests plus three patcher-level manifest tests,
 | [Random Episode](testing/patches/random-episode/README.md) | Adds Morphe > Detail Page > Show Random Episode Button and random series playback.<br>Original idea and code by [**DeclanSC**](https://github.com/DeclanSC). |  |
 | [Local Media](testing/patches/local-media/README.md) | Adds Library > Storage playback, folder selection, and same-basename sidecar subtitles for local video files. |  |
 | [Local Downloads](testing/patches/local-downloads/README.md) | Downloads selected direct movie and episode sources to local storage for exact local playback. |  |
-| [Rating Visibility](testing/patches/ratings-visibility/README.md) | Adds Settings > Morphe > Ratings with independent overall and episode rating controls. |  |
 | [Remove SDH Annotations](testing/patches/sdh-annotations/README.md) | Adds Settings → Morphe → Subtitles to normalize music symbols and remove SDH annotations from Media3 subtitles. |  |
 | [Mark SDH Subtitles](testing/patches/sdh-marking/README.md) | Marks explicitly labelled SDH tracks and detected English SDH subtitle files. |  |
 | [Allow Importing Subs from Local Storage](testing/patches/local-storage-subtitles/README.md) | Imports device subtitle files into Nuvio's ExoPlayer subtitle menu without rebuilding active playback. |  |

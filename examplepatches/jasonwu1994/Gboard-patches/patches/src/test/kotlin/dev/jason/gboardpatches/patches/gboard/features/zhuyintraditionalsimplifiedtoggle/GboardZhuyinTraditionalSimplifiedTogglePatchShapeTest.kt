@@ -10,14 +10,29 @@ import org.junit.Test
 
 class GboardZhuyinTraditionalSimplifiedTogglePatchShapeTest {
     @Test
-    fun `softkey and dispatch use exact generated 1777 descriptors`() {
+    fun `softkey gesture and popup use exact generated 1803 descriptors`() {
         assertEquals(
-            "Lcom/google/android/libraries/inputmethod/widgets/SoftKeyView;->q(Lowd;J)Z",
+            "Lcom/google/android/libraries/inputmethod/widgets/SoftKeyView;->" +
+                "r(Lcom/google/android/libraries/inputmethod/metadata/SoftKeyDef;J)Z",
             GboardVersionBindings.softKeyBind.reference,
         )
         assertEquals(
-            "Lpbj;->f(Lpbl;Loth;Loud;Lowd;JZZIZJI)V",
+            "Lpvf;->f(Lpvi;Lpmy;Lpnu;" +
+                "Lcom/google/android/libraries/inputmethod/metadata/SoftKeyDef;JZZIZJI)V",
             GboardVersionBindings.gestureDispatch.reference,
+        )
+        assertEquals("Lpvf;->n:Lpvd;", GboardVersionBindings.gestureStockDelegateField.reference)
+        assertEquals(
+            "Lpvd;->h(Lpvi;Lpmy;Lpnu;" +
+                "Lcom/google/android/libraries/inputmethod/metadata/SoftKeyDef;JZZIZJI)V",
+            GboardVersionBindings.gestureStockDispatch.reference,
+        )
+        assertEquals(
+            "Lcom/google/android/libraries/inputmethod/popup/BasicPopupView;->" +
+                "b(Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;" +
+                "Landroid/view/View;FFLcom/google/android/libraries/inputmethod/metadata/" +
+                "ActionDef;[IZ)Lpnu;",
+            GboardVersionBindings.zhuyinTogglePopupAction.reference,
         )
     }
 
@@ -29,45 +44,36 @@ class GboardZhuyinTraditionalSimplifiedTogglePatchShapeTest {
                 "GboardZhuyinTraditionalSimplifiedToggleSoftKeyPatch.kt"
         )
 
-        assertTrue(source.contains("ZHUYIN_TRADITIONAL_SIMPLIFIED_TOGGLE_RUNTIME_PATCH_INCOMING_SOFT_KEY_METADATA"))
-        assertTrue(source.contains("ZHUYIN_TRADITIONAL_SIMPLIFIED_TOGGLE_RUNTIME_AFTER_SOFT_KEY_BOUND"))
-        assertTrue(source.contains("mutableMethod.addInstructions(0,"))
-        assertTrue(source.contains("val returnIndices = mutableMethod.returnInstructionIndices()"))
-        assertTrue(source.contains("check(returnIndices.isNotEmpty())"))
-        assertTrue(Regex("""returnIndices\s*\.asReversed\(\)""").containsMatchIn(source))
+        assertTrue(source.contains("GboardSoftKeyFamilyFeature.ZHUYIN_TOGGLE"))
+        assertTrue(source.contains("gboardSoftKeyFamilyFeaturePatch"))
+        assertFalse(source.contains("addInstructions"))
         assertTrue(ZHUYIN_TOGGLE_PATCH_INCOMING_METADATA_DELEGATE.contains("move-result-object p1"))
-        assertTrue(ZHUYIN_TOGGLE_PATCH_INCOMING_METADATA_DELEGATE.contains("check-cast p1, Lowd;"))
-        assertTrue(source.contains("dependsOn(gboardPatchesExtensionCarrierPatch)"))
+        assertTrue(ZHUYIN_TOGGLE_PATCH_INCOMING_METADATA_DELEGATE.contains(
+            "check-cast p1, Lcom/google/android/libraries/inputmethod/metadata/SoftKeyDef;"
+        ))
     }
 
     @Test
-    fun `shared pbj helper tries toggle before exact stock delegate`() {
+    fun `dedicated popup patch owns no gesture helper behavior`() {
         val source = readRuntimePatchSource()
-        val helperStart = source.indexOf("internal val TARGET_GESTURE_DISPATCH_OR_TOGGLE_BODY")
-        val helperEnd = source.indexOf("context(context: BytecodePatchContext)", helperStart)
-        assertTrue(helperStart >= 0 && helperEnd > helperStart)
-        val helper = source.substring(helperStart, helperEnd)
 
-        val toggle = helper.indexOf("ZHUYIN_TRADITIONAL_SIMPLIFIED_TOGGLE_RUNTIME_MAYBE_TOGGLE")
-        val stock = helper.indexOf("Lpbh;->o(Lpbl;Loth;Loud;Lowd;JZZIZJI)V")
-        assertTrue(toggle >= 0)
-        assertTrue(stock > toggle)
-        assertTrue(helper.contains("if-nez v0, :cond_return"))
-        assertTrue(helper.contains("iget-object p0, p0, Lpbj;->o:Lpbh;"))
-        assertFalse(helper.contains("Lofi;"))
-        assertFalse(helper.contains("Lofk;Lnxi;Lnyf;Loaa;"))
+        assertTrue(source.contains("gboardZhuyinTraditionalSimplifiedTogglePopupPatch"))
+        assertTrue(source.contains("applyZhuyinTogglePopupActionPatch"))
+        assertTrue(source.contains("MutableClass(ownerClass)"))
+        assertFalse(source.contains("ZHUYIN_TRADITIONAL_SIMPLIFIED_TOGGLE_RUNTIME_MAYBE_TOGGLE"))
+        assertFalse(source.contains("jasondevDispatchOrToggle"))
+        assertFalse(source.contains("Lpvd;->h("))
     }
 
     @Test
-    fun `popup patches exact 1777 action before stock and has no old z path`() {
+    fun `popup patches exact 1803 action before stock and has no old z path`() {
         val source = readRuntimePatchSource()
 
-        assertTrue(source.contains("name = \"b\""))
-        assertTrue(source.contains("returnType = \"Loud;\""))
-        assertTrue(source.contains("\"Lotk;\""))
+        assertTrue(source.contains("GboardVersionBindings.zhuyinTogglePopupAction"))
         assertTrue(source.contains("ZHUYIN_TRADITIONAL_SIMPLIFIED_TOGGLE_RUNTIME_PATCH_POPUP_ACTION"))
-        assertTrue(source.contains("move-result-object p5"))
-        assertTrue(source.contains("check-cast p5, Lotk;"))
+        assertTrue(source.contains("PopupRegisterLayout.fromBinding()"))
+        assertFalse(source.contains("move-result-object p5"))
+        assertFalse(source.contains("check-cast p5, Lotk;"))
         assertTrue(source.contains("dependsOn(gboardPatchesExtensionCarrierPatch)"))
         assertFalse(source.contains("SoftKeyboardView;->z"))
         assertFalse(source.contains("name = \"z\""))
@@ -102,10 +108,14 @@ class GboardZhuyinTraditionalSimplifiedTogglePatchShapeTest {
     }
 
     @Test
-    fun `public patch keeps slide top row carrier and toggle composition`() {
+    fun `public patch keeps slide dependency with independent toggle contributions`() {
         val registry = readSource(
             "src/main/kotlin/dev/jason/gboardpatches/patches/gboard/registry/" +
                 "GboardPatchRegistry.kt"
+        )
+        val wiring = readSource(
+            "src/main/kotlin/dev/jason/gboardpatches/patches/gboard/registry/" +
+                "GboardContributionWiring.kt",
         )
         val patchStart = registry.indexOf("val gboardZhuyinQuickTraditionalSimplifiedTogglePatch")
         val patchEnd = registry.indexOf("val gboardCustomSymbolsPatch", patchStart)
@@ -113,25 +123,10 @@ class GboardZhuyinTraditionalSimplifiedTogglePatchShapeTest {
         val block = registry.substring(patchStart, patchEnd)
 
         assertTrue(block.contains("gboardZhuyinSlideInputPatch"))
-        assertTrue(block.contains("gboardTopRowSwipeGesturePatch"))
-        assertTrue(block.contains("gboardZhuyinTraditionalSimplifiedToggleSoftKeyPatch"))
-        assertTrue(block.contains("gboardZhuyinTraditionalSimplifiedToggleRuntimePatch"))
-
-        val topRow = readSource(
-            "src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/toprowswipe/" +
-                "GboardTopRowSwipeGesturePatch.kt"
-        )
-        assertTrue(topRow.contains("TOP_ROW_SWIPE_RUNTIME_MAYBE_CONSUME_TOP_ROW_SWIPE"))
-        assertTrue(topRow.contains("TOP_ROW_SWIPE_RUNTIME_MAYBE_CONSUME_QUICK_JS_TOP_ROW_PRESS"))
-        assertTrue(topRow.contains("jasondevDispatchOrToggle"))
-        assertTrue(
-            topRow.indexOf("TOP_ROW_SWIPE_RUNTIME_MAYBE_CONSUME_TOP_ROW_SWIPE") <
-                topRow.indexOf("TOP_ROW_SWIPE_RUNTIME_MAYBE_CONSUME_QUICK_JS_TOP_ROW_PRESS")
-        )
-        assertTrue(
-            topRow.indexOf("TOP_ROW_SWIPE_RUNTIME_MAYBE_CONSUME_QUICK_JS_TOP_ROW_PRESS") <
-                topRow.indexOf("jasondevDispatchOrToggle")
-        )
+        assertTrue(wiring.contains("gboardZhuyinTraditionalSimplifiedToggleGesturePatch"))
+        assertTrue(wiring.contains("gboardZhuyinTraditionalSimplifiedToggleSoftKeyPatch"))
+        assertTrue(wiring.contains("gboardZhuyinTraditionalSimplifiedTogglePopupPatch"))
+        assertFalse(block.contains("gboardTopRowSwipeGesturePatch"))
     }
 
     private fun readRuntimePatchSource(): String = readSource(

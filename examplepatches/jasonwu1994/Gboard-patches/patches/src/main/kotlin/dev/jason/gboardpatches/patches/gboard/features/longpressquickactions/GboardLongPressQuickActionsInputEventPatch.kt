@@ -53,7 +53,7 @@ private val LONG_PRESS_QUICK_ACTIONS_INPUT_EVENT_BRANCH = """
 """.trimIndent()
 
 internal val gboardLongPressQuickActionsInputEventPatch = bytecodePatch(
-    description = "在 17.7.7 Gboard input event dispatcher 前處理 exact editing shortcuts。",
+    description = "在 18.0.3 Gboard input event dispatcher 前處理 exact editing shortcuts。",
 ) {
     compatibleWith(COMPATIBILITY_GBOARD)
     dependsOn(gboardPatchesExtensionCarrierPatch)
@@ -92,13 +92,11 @@ internal fun MutableMethod.applyLongPressQuickActionsInputEventDelegate() {
 private fun MutableMethod.classifyLongPressInputEvent(): VerifiedTransformationState {
     val implementation = implementation
         ?: error("Long-press input event target has no implementation")
-    check(implementation.registerCount == 25) {
-        "17.7.7 Long-press input event register drift: ${implementation.registerCount}"
-    }
+    val layout = inputEventRegisterLayout(implementation.registerCount)
     val instructions = implementation.instructions
     return when (instructions.count { it.isMethodReference(INPUT_EVENT_RUNTIME_DESCRIPTOR) }) {
         0 -> {
-            check(instructions.hasLongPressInputStockEntry(0)) {
+            check(instructions.hasLongPressInputStockEntry(0, layout.eventRegister)) {
                 "Stock entry drift in " +
                     "${GboardVersionBindings.longPressQuickActionsInputEvent.reference}: " +
                     instructions.take(4).joinToString { instruction ->
@@ -114,15 +112,15 @@ private fun MutableMethod.classifyLongPressInputEvent(): VerifiedTransformationS
             instructions[0].isInvoke(
                 "INVOKE_STATIC_RANGE",
                 INPUT_EVENT_RUNTIME_DESCRIPTOR,
-                23,
-                24,
+                layout.receiverRegister,
+                layout.eventRegister,
             ) &&
             instructions[1].isRegisterOperation("MOVE_RESULT", 0) &&
             instructions[2].isRegisterOperation("IF_EQZ", 0) &&
             instructions[3].isRegisterOperation("RETURN", 0) &&
             instructions[4].isOpcode("NOP") &&
             instructions.hasExactBranchTarget(2, 4) &&
-            instructions.hasLongPressInputStockEntry(5)
+            instructions.hasLongPressInputStockEntry(5, layout.eventRegister)
         ) {
             VerifiedTransformationState.PATCHED
         } else {
@@ -132,17 +130,41 @@ private fun MutableMethod.classifyLongPressInputEvent(): VerifiedTransformationS
     }
 }
 
-private fun List<Instruction>.hasLongPressInputStockEntry(startIndex: Int): Boolean {
+private fun List<Instruction>.hasLongPressInputStockEntry(
+    startIndex: Int,
+    eventRegister: Int,
+): Boolean {
     if (size < startIndex + 4) return false
     val firstMove = this[startIndex] as? TwoRegisterInstruction
     val zero = this[startIndex + 1] as? NarrowLiteralInstruction
     return this[startIndex].isOpcode("MOVE_OBJECT_FROM16") &&
-        firstMove?.registerA == 1 && firstMove.registerB == 24 &&
+        firstMove?.registerA == 1 && firstMove.registerB == eventRegister &&
         this[startIndex + 1].isOpcode("CONST_4") &&
         (this[startIndex + 1] as? OneRegisterInstruction)?.registerA == 2 &&
         zero?.narrowLiteral == 0 &&
         this[startIndex + 2].isRegisterOperation("IF_NEZ", 1) &&
         this[startIndex + 3].isRegisterOperation("RETURN", 2)
+}
+
+private data class InputEventRegisterLayout(
+    val receiverRegister: Int,
+    val eventRegister: Int,
+)
+
+private fun inputEventRegisterLayout(registerCount: Int): InputEventRegisterLayout {
+    val binding = GboardVersionBindings.longPressQuickActionsInputEvent
+    check(binding.parameterTypes.size == 1 && binding.returnType == "Z") {
+        "Long-press input event prototype drift: ${binding.reference}"
+    }
+    val parameterWordCount = 1 + binding.parameterTypes.sumOf { type ->
+        if (type == "J" || type == "D") 2 else 1
+    }
+    val receiverRegister = registerCount - parameterWordCount
+    val eventRegister = receiverRegister + 1
+    check(receiverRegister >= 0 && eventRegister < registerCount) {
+        "Long-press input event register layout is smaller than its prototype"
+    }
+    return InputEventRegisterLayout(receiverRegister, eventRegister)
 }
 
 private fun List<Instruction>.hasExactBranchTarget(

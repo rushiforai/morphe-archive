@@ -314,7 +314,7 @@ public final class GboardSettingsHomepageRuntimeTest {
         }
 
         static TargetEnvironment exact() throws Exception {
-            return fixture("dgj");
+            return fixture("dog");
         }
 
         static TargetEnvironment missing() throws Exception {
@@ -325,7 +325,7 @@ public final class GboardSettingsHomepageRuntimeTest {
             ClassLoader loader = new ClassLoader(
                     GboardSettingsHomepageRuntimeTest.class.getClassLoader()) {
             };
-            Class<?> policyClass = Class.forName("dgj", true, loader);
+            Class<?> policyClass = Class.forName("dog", true, loader);
             Field stateField = policyClass.getDeclaredField("a");
             stateField.setAccessible(true);
             return new TargetEnvironment(loader, policyClass, stateField);
@@ -333,7 +333,7 @@ public final class GboardSettingsHomepageRuntimeTest {
 
         static TargetEnvironment fixture(String fixtureClassName) throws Exception {
             FixtureClassLoader loader = new FixtureClassLoader(fixtureClassName);
-            Class<?> policyClass = Class.forName("dgj", true, loader);
+            Class<?> policyClass = Class.forName("dog", true, loader);
             Field stateField = findStateField(policyClass);
             if (stateField != null) {
                 stateField.setAccessible(true);
@@ -395,7 +395,7 @@ public final class GboardSettingsHomepageRuntimeTest {
         @Override
         protected synchronized Class<?> loadClass(String name, boolean resolve)
                 throws ClassNotFoundException {
-            if (!"dgj".equals(name)) {
+            if (!"dog".equals(name)) {
                 return super.loadClass(name, resolve);
             }
             Class<?> loaded = findLoadedClass(name);
@@ -411,8 +411,8 @@ public final class GboardSettingsHomepageRuntimeTest {
             } catch (IOException exception) {
                 throw new ClassNotFoundException(name, exception);
             }
-            // Fixture names are three bytes so rewriting to dgj preserves class-file layout.
-            rewriteAscii(bytes, fixtureClassName, "dgj");
+            // Fixture names are three bytes so rewriting to dog preserves class-file layout.
+            rewriteAscii(bytes, fixtureClassName, "dog");
             Class<?> defined = defineClass(name, bytes, 0, bytes.length);
             if (resolve) {
                 resolveClass(defined);

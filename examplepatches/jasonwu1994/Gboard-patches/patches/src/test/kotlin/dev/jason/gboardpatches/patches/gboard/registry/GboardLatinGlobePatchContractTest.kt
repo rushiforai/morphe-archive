@@ -18,7 +18,7 @@ class GboardLatinGlobePatchContractTest {
     private val repositoryRoot = findRepositoryRoot()
 
     @Test
-    fun publicPatchHasExactMetadataDependenciesAnd1777Compatibility() {
+    fun publicPatchHasExactMetadataDependenciesAnd1803Compatibility() {
         val patch = gboardLatinGlobeKeyIgnoreIntervalPatch
         assertEquals("Latin Globe Key Ignore Interval", patch.name)
         assertEquals(LATIN_GLOBE_DESCRIPTION, patch.description)
@@ -51,10 +51,9 @@ class GboardLatinGlobePatchContractTest {
     }
 
     @Test
-    fun generatedInventoryContainsTwentyFourRowsAndExactlyOneLatinGlobe() {
-        val inventory = JsonParser.parseString(readSource(PATCHES_LIST_PATH)).asJsonObject
-        val patches = inventory.getAsJsonArray("patches").map { it.asJsonObject }
-        assertEquals(31, patches.size)
+    fun generatedInventoryContainsThirtyFourRowsAndExactlyOneLatinGlobe() {
+        val patches = generatedPublishedPatches()
+        assertEquals(34, patches.size)
         val rows = patches.filter { row ->
             row.get("name").asString == "Latin Globe Key Ignore Interval"
         }
@@ -88,7 +87,7 @@ class GboardLatinGlobePatchContractTest {
     @Test
     fun latinGlobeAddsNoGeneratedBindingOrFlagFactory() {
         val profile = JsonParser.parseString(readSource(BINDINGS_PROFILE_PATH)).asJsonObject
-        assertEquals("17.7.7", profile.get("target_version").asString)
+        assertEquals("18.0.3", profile.get("target_version").asString)
         val bindings = profile.getAsJsonObject("bindings")
         assertFalse(bindings.has("flag_factory"))
         assertTrue(bindings.keySet().none { key -> key.contains("latin_globe") })
@@ -111,12 +110,11 @@ class GboardLatinGlobePatchContractTest {
 
     private companion object {
         const val GBOARD_PACKAGE = "com.google.android.inputmethod.latin"
-        const val TARGET_VERSION = "17.7.7.932364120-release-arm64-v8a"
+        const val TARGET_VERSION = "18.0.3.954559732-release-arm64-v8a"
         const val LATIN_GLOBE_DESCRIPTION =
             "新增英文鍵盤地球鍵忽略時間覆寫，可獨立控制輸入後切語言延遲\n" +
                 "Add an independent English globe key ignore interval override for " +
                 "post-typing language-switch delay."
-        const val PATCHES_LIST_PATH = "patches-list.json"
         const val BINDINGS_PROFILE_PATH =
             "patches/src/main/resources/gboard/gboard-version-bindings.json"
     }

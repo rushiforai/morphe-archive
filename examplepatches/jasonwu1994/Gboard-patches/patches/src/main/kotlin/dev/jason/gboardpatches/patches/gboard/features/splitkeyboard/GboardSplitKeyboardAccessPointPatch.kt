@@ -22,10 +22,10 @@ internal val gboardSplitKeyboardAccessPointPatch = bytecodePatch(
     dependsOn(gboardPatchesExtensionCarrierPatch)
 
     execute {
-        mutableFieldOrThrow(GboardSplitKeyboard1777Targets.accessPointName)
-        findMutableMethodOrThrow(GboardSplitKeyboard1777Targets.accessPointState)
+        mutableFieldOrThrow(GboardSplitKeyboard1803Targets.accessPointName)
+        findMutableMethodOrThrow(GboardSplitKeyboard1803Targets.accessPointState)
             .applySplitKeyboardAccessPointStateDelegate()
-        findMutableMethodOrThrow(GboardSplitKeyboard1777Targets.accessPointOrder)
+        findMutableMethodOrThrow(GboardSplitKeyboard1803Targets.accessPointOrder)
             .applySplitKeyboardAccessPointOrderDelegate()
     }
 }
@@ -44,7 +44,7 @@ internal fun MutableMethod.applySplitKeyboardAccessPointStateDelegate() {
     addInstructions(
         0,
         """
-            iget-object v0, p0, ${GboardSplitKeyboard1777Targets.accessPointName.reference}
+            iget-object v0, p0, ${GboardSplitKeyboard1803Targets.accessPointName.reference}
 
             ${RuntimeCallEmitter.invoke(
                 RuntimeCallId.SPLIT_KEYBOARD_RUNTIME_APPLY_ACCESS_POINT_STATE,
@@ -80,7 +80,7 @@ internal fun MutableMethod.applySplitKeyboardAccessPointOrderDelegate() {
 
             move-result-object v$resultRegister
 
-            check-cast v$resultRegister, ${GboardSplitKeyboard1777Targets.ORDER_RETURN_TYPE}
+            check-cast v$resultRegister, ${GboardSplitKeyboard1803Targets.ORDER_RETURN_TYPE}
         """.trimIndent(),
     )
 }

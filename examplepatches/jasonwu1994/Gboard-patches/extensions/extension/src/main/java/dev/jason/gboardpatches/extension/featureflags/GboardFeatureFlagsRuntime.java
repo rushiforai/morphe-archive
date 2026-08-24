@@ -38,6 +38,49 @@ public final class GboardFeatureFlagsRuntime {
         return isActiveRecognizedFlag(flagName) ? Boolean.TRUE : original;
     }
 
+    public static Object applyDeviceIntelligenceFlagValue(String flagName, Object original) {
+        return applySelectedFlagValue(
+                flagName,
+                original,
+                FLAG_DEVICE_INTELLIGENCE,
+                GboardPatchesFeatureAvailability.FEATURE_DEVICE_INTELLIGENCE);
+    }
+
+    public static Object applyGrammarCheckerFlagValue(String flagName, Object original) {
+        return applySelectedFlagValue(
+                flagName,
+                original,
+                FLAG_GRAMMAR_CHECKER,
+                GboardPatchesFeatureAvailability.FEATURE_GRAMMAR_CHECKER);
+    }
+
+    public static Object applyInlineSuggestionsFlagValue(String flagName, Object original) {
+        return applySelectedFlagValue(
+                flagName,
+                original,
+                FLAG_INLINE_SUGGESTIONS,
+                GboardPatchesFeatureAvailability.FEATURE_INLINE_SUGGESTIONS);
+    }
+
+    public static Object applyKeyShapeSelectionFlagValue(String flagName, Object original) {
+        return applySelectedFlagValue(
+                flagName,
+                original,
+                FLAG_KEY_SHAPE_SELECTION,
+                GboardPatchesFeatureAvailability.FEATURE_KEY_SHAPE_SELECTION);
+    }
+
+    private static Object applySelectedFlagValue(
+            String flagName,
+            Object original,
+            String selectedFlag,
+            String selectedFeatureKey) {
+        if (original != Boolean.FALSE || !selectedFlag.equals(flagName)) {
+            return original;
+        }
+        return isActiveFeature(selectedFeatureKey) ? Boolean.TRUE : original;
+    }
+
     private static boolean isActiveRecognizedFlag(String flagName) {
         if (flagName == null || flagName.isEmpty()) {
             return false;
@@ -48,6 +91,10 @@ public final class GboardFeatureFlagsRuntime {
             return false;
         }
 
+        return isActiveFeature(featureKey);
+    }
+
+    private static boolean isActiveFeature(String featureKey) {
         Boolean cached = FEATURE_ENABLED_CACHE.get(featureKey);
         if (cached != null) {
             return cached.booleanValue();

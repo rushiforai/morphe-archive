@@ -21,7 +21,7 @@ class GboardWebClipboardPatchRegistrySourceTest {
     private val repositoryRoot = repositoryRoot()
 
     @Test
-    fun actualPublicPatchHasExactMetadataDependenciesAnd1777Compatibility() {
+    fun actualPublicPatchHasExactMetadataDependenciesAnd1803Compatibility() {
         val patch = gboardWebClipboardPatch
         assertEquals("Web Clipboard", patch.name)
         assertEquals(WEB_CLIPBOARD_DESCRIPTION, patch.description)
@@ -53,10 +53,9 @@ class GboardWebClipboardPatchRegistrySourceTest {
     }
 
     @Test
-    fun generatedInventoryHasTwentyFourRowsAndExactlyOneWebClipboard() {
-        val inventory = JsonParser.parseString(readSource(PATCHES_LIST_PATH)).asJsonObject
-        val patches = inventory.getAsJsonArray("patches").map { it.asJsonObject }
-        assertEquals(31, patches.size)
+    fun generatedInventoryHasThirtyFourRowsAndExactlyOneWebClipboard() {
+        val patches = generatedPublishedPatches()
+        assertEquals(34, patches.size)
 
         val rows = patches.filter { it.get("name").asString == "Web Clipboard" }
         assertEquals(1, rows.size)
@@ -95,19 +94,18 @@ class GboardWebClipboardPatchRegistrySourceTest {
         return generateSequence(workingDirectory) { it.parent }
             .firstOrNull { candidate ->
                 Files.isRegularFile(candidate.resolve("settings.gradle.kts")) &&
-                    Files.isRegularFile(candidate.resolve("patches-list.json"))
+                    Files.isRegularFile(candidate.resolve("settings.gradle.kts"))
             }
             ?: error("Could not locate repository root from $workingDirectory")
     }
 
     private companion object {
         const val GBOARD_PACKAGE = "com.google.android.inputmethod.latin"
-        const val TARGET_VERSION = "17.7.7.932364120-release-arm64-v8a"
+        const val TARGET_VERSION = "18.0.3.954559732-release-arm64-v8a"
         const val WEB_CLIPBOARD_DESCRIPTION =
             "新增手機自架的 Web Clipboard，支援瀏覽器同步、配對碼與快速設定開關\n" +
                 "Add the phone-hosted Web Clipboard with browser sync, pairing, and a " +
                 "Quick Settings Tile."
-        const val PATCHES_LIST_PATH = "patches-list.json"
         const val BINDINGS_JSON_PATH =
             "patches/src/main/resources/gboard/gboard-version-bindings.json"
         const val BINDINGS_KOTLIN_PATH =

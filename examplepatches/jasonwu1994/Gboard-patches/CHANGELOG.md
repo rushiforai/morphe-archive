@@ -1,3 +1,67 @@
+## [3.1.0](https://github.com/jasonwu1994/Gboard-patches/compare/v3.0.0...v3.1.0) (2026-08-23)
+
+### ✨ New Features
+
+* **Gboard:** add the `Quick Insert` patch, which enables the Quick Insert panel and toolbar access point.
+* **Gboard:** add the `Hyperspeed Typing Animation` patch, which shows an animation during sustained fast typing on all keyboards.
+* **Gboard:** add the `Close Proactive Suggestions` patch, which adds a dismiss button to the proactive suggestions bar.
+
+### 🐛 Bug Fixes
+
+* **Gboard:** harden QuickJS native library loading for Android 17.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Quick Insert` Patch，啟用 Quick Insert 面板與工具列入口。
+* **Gboard:** 新增 `Hyperspeed Typing Animation` Patch，在所有鍵盤持續快速輸入時顯示動畫。
+* **Gboard:** 新增 `Close Proactive Suggestions` Patch，在主動建議列顯示關閉按鈕。
+
+### 🐛 修復
+
+* **Gboard:** 強化 Android 17 的 QuickJS 原生程式庫載入相容性。
+
+## [3.1.0-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v3.0.0...v3.1.0-dev.1) (2026-08-23)
+
+### ✨ New Features
+
+* **Gboard:** add the `Quick Insert` patch, which enables the Quick Insert panel and toolbar access point.
+* **Gboard:** add the `Hyperspeed Typing Animation` patch, which shows an animation during sustained fast typing on all keyboards.
+* **Gboard:** add the `Close Proactive Suggestions` patch, which adds a dismiss button to the proactive suggestions bar.
+
+### 🐛 Bug Fixes
+
+* **Gboard:** harden QuickJS native library loading for Android 17.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Quick Insert` Patch，啟用 Quick Insert 面板與工具列入口。
+* **Gboard:** 新增 `Hyperspeed Typing Animation` Patch，在所有鍵盤持續快速輸入時顯示動畫。
+* **Gboard:** 新增 `Close Proactive Suggestions` Patch，在主動建議列顯示關閉按鈕。
+
+### 🐛 修復
+
+* **Gboard:** 強化 Android 17 的 QuickJS 原生程式庫載入相容性。
+
+## [3.0.0](https://github.com/jasonwu1994/Gboard-patches/compare/v2.11.0...v3.0.0) (2026-08-22)
+
+### ✨ New Features
+
+* **Gboard:** update the supported Gboard version to `18.0.3.954559732-release-arm64-v8a`.
+
+### ✨ 新功能
+
+* **Gboard:** 更新支援的 Gboard 版本至 `18.0.3.954559732-release-arm64-v8a`。
+
+## [3.0.0-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v2.11.0...v3.0.0-dev.1) (2026-08-22)
+
+### ✨ New Features
+
+* **Gboard:** update the supported Gboard version to `18.0.3.954559732-release-arm64-v8a`.
+
+### ✨ 新功能
+
+* **Gboard:** 更新支援的 Gboard 版本至 `18.0.3.954559732-release-arm64-v8a`。
+
 ## [2.11.0](https://github.com/jasonwu1994/Gboard-patches/compare/v2.10.0...v2.11.0) (2026-08-15)
 
 ### ✨ New Features

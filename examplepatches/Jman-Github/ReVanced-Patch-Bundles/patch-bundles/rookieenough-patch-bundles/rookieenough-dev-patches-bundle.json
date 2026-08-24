@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-08-12T17:18:51",
-  "description": "## [1.2.1-dev.1](https://github.com/RookieEnough/De-Vanced/compare/v1.2.0...v1.2.1-dev.1) (2026-08-12)\n\n### \ud83d\udc1b Bug Fixes\n\n* **Messenger:** Change recommended app version to `573.0.0.44.88` ([b58dc31](https://github.com/RookieEnough/De-Vanced/commit/b58dc314f17c1f826fc198486fe3fbeb249e8daf))\n",
-  "download_url": "https://github.com/RookieEnough/De-Vanced/releases/download/v1.2.1-dev.1/patches-1.2.1-dev.1.mpp",
+  "created_at": "2026-08-23T12:47:00",
+  "description": "## [1.3.0-dev.1](https://github.com/RookieEnough/De-Vanced/compare/v1.2.3-dev.1...v1.3.0-dev.1) (2026-08-23)\n\n### \u2728 New Features\n\n* **Pixiv:** Add `Remove popular search time limit` patch ([#108](https://github.com/RookieEnough/De-Vanced/issues/108)) ([ddd7d78](https://github.com/RookieEnough/De-Vanced/commit/ddd7d78210cfe240fd1fc09735041b0930d8df12))\n",
+  "download_url": "https://github.com/RookieEnough/De-Vanced/releases/download/v1.3.0-dev.1/patches-1.3.0-dev.1.mpp",
   "signature_download_url": "N/A",
-  "version": "v1.2.1-dev.1"
+  "version": "v1.3.0-dev.1"
 }

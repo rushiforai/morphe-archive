@@ -4,8 +4,6 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.iface.debug.DebugItem
-import com.android.tools.smali.dexlib2.iface.debug.LineNumber
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
@@ -23,32 +21,29 @@ import dev.jason.gboardpatches.patches.gboard.shared.VerifiedTransformationPlan
 import dev.jason.gboardpatches.patches.gboard.shared.VerifiedTransformationState
 import dev.jason.gboardpatches.patches.gboard.shared.applyVerified
 import dev.jason.gboardpatches.patches.gboard.shared.isInvoke
+import dev.jason.gboardpatches.patches.gboard.shared.isFieldReference
 import dev.jason.gboardpatches.patches.gboard.shared.isMethodReference
 import dev.jason.gboardpatches.patches.gboard.shared.isOpcode
 import dev.jason.gboardpatches.patches.gboard.shared.isReference
 import dev.jason.gboardpatches.patches.gboard.shared.isRegisterOperation
 import dev.jason.gboardpatches.patches.gboard.shared.mutableClass
-import dev.jason.gboardpatches.patches.gboard.shared.semanticShape
 import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeAbiCatalog
 import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
 import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 import dev.jason.gboardpatches.patches.shared.Constants.COMPATIBILITY_GBOARD
-import java.nio.charset.StandardCharsets
-import java.security.MessageDigest
 
 private const val LATIN_IME_CLASS =
     "Lcom/google/android/apps/inputmethod/libs/latin5/LatinIme;"
-private const val LATIN_RUNTIME_PARAMS_TYPE = "Lxdj;"
+private const val LATIN_RUNTIME_PARAMS_TYPE = "Lyaf;"
 private val LATIN_GLOBE_RUNTIME_CALL =
     RuntimeCallId.LATIN_GLOBE_KEY_IGNORE_INTERVAL_RUNTIME_APPLY_OVERRIDE
 private val LATIN_GLOBE_RUNTIME_DESCRIPTOR = RuntimeAbiCatalog.abi(LATIN_GLOBE_RUNTIME_CALL).reference
-private const val TARGET_METHOD_NAME = "U"
+private const val TARGET_METHOD_NAME = "O"
 private const val TARGET_DESCRIPTOR =
-    "$LATIN_IME_CLASS->U()$LATIN_RUNTIME_PARAMS_TYPE"
-private const val STOCK_REGISTER_COUNT = 12
+    "$LATIN_IME_CLASS->O()$LATIN_RUNTIME_PARAMS_TYPE"
+private const val STOCK_REGISTER_COUNT = 11
 private const val STOCK_RETURN_REGISTER = 0
-private const val STOCK_FINGERPRINT =
-    "44E34E8D24D4542580CD5A91DF2BCBC9EEB684890BC05C3DEFF3D4EDB2F39181"
+private const val TARGET_INTERVAL_FIELD = "Lyaf;->h:F"
 private val TARGET_ACCESS_FLAGS =
     AccessFlags.PROTECTED.value or AccessFlags.STATIC.value or AccessFlags.FINAL.value
 
@@ -145,7 +140,7 @@ private fun MutableMethod.validateStockBody(instructions: List<Instruction>) {
     check(instructions.none { it.isMethodReference(LATIN_GLOBE_RUNTIME_DESCRIPTOR) }) {
         "$TARGET_DESCRIPTOR contains an orphan Latin Globe delegate"
     }
-    requireStockFingerprint(instructions, implementation.debugItems)
+    validateTargetFieldWrite(instructions)
 }
 
 private fun MutableMethod.validateCompletedPatch() {
@@ -179,7 +174,7 @@ private fun MutableMethod.validateCompletedPatch() {
     val stockInstructions = instructions.filterIndexed { index, _ ->
         index !in (returnIndex - 3)..(returnIndex - 1)
     }
-    requireStockFingerprint(stockInstructions, implementation.debugItems)
+    validateTargetFieldWrite(stockInstructions)
 }
 
 private fun MutableMethod.singleReturnIndex(instructions: List<Instruction>): Int {
@@ -192,35 +187,10 @@ private fun MutableMethod.singleReturnIndex(instructions: List<Instruction>): In
     return returns.single()
 }
 
-private fun requireStockFingerprint(
-    instructions: List<Instruction>,
-    debugItems: Iterable<DebugItem>,
-) {
-    val fingerprint = stockFingerprint(instructions, debugItems)
-    check(fingerprint == STOCK_FINGERPRINT) {
-        "Stock body drift in $TARGET_DESCRIPTOR: $fingerprint"
+private fun validateTargetFieldWrite(instructions: List<Instruction>) {
+    check(instructions.count { it.isFieldReference(TARGET_INTERVAL_FIELD) } == 1) {
+        "$TARGET_DESCRIPTOR must retain exactly one globe interval field write"
     }
-}
-
-private fun stockFingerprint(
-    instructions: List<Instruction>,
-    debugItems: Iterable<DebugItem>,
-): String {
-    val canonical = buildString {
-        instructions.forEach { instruction ->
-            append(instruction.semanticShape()).append('\n')
-        }
-        append("--debug--\n")
-        debugItems.forEach { item ->
-            check(item is LineNumber) {
-                "Unexpected debug item type " + item.javaClass.name + " in " + TARGET_DESCRIPTOR
-            }
-            append(item.codeAddress).append(':').append(item.lineNumber).append('\n')
-        }
-    }
-    return MessageDigest.getInstance("SHA-256")
-        .digest(canonical.toByteArray(StandardCharsets.UTF_8))
-        .joinToString("") { value -> "%02X".format(value) }
 }
 
 private fun Instruction.isExactDelegateInvoke(): Boolean =

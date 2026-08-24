@@ -11,29 +11,35 @@ import org.junit.Test;
 
 public final class GboardZhuyinTraditionalSimplifiedToggleRuntimeSourceTest {
     @Test
-    public void reflectionSupportUsesOnlyTheExact1777TargetContract() throws Exception {
+    public void reflectionSupportUsesOnlyTheExact1803TargetContract() throws Exception {
         String source = readSupportSource();
 
-        assertTrue(source.contains("private static final String ACTION_SET_CLASS = \"owd\";"));
-        assertTrue(source.contains("private static final String ACTION_TYPE_CLASS = \"oth\";"));
-        assertTrue(source.contains("private static final String ACTION_DEF_CLASS = \"otk\";"));
-        assertTrue(source.contains("private static final String ACTION_ENTRY_CLASS = \"oud\";"));
-        assertTrue(source.contains("private static final String ACTION_BUILDER_CLASS = \"oti\";"));
-        assertTrue(source.contains("private static final String METADATA_BUILDER_CLASS = \"ovv\";"));
-        assertTrue(source.contains("private static final String INTENTION_CLASS = \"ouc\";"));
-        assertTrue(source.contains("private static final String GESTURE_DISPATCHER_CLASS = \"pbj\";"));
-        assertTrue(source.contains("private static final String PREFERENCE_CLASS = \"pnp\";"));
-        assertTrue(source.contains("public static final int PREFERENCE_KEY_RES_ID = 0x7f140991;"));
-        assertTrue(source.contains("getDeclaredMethod(\"q\", actionSetClass, long.class)"));
+        assertTrue(source.contains(
+                "\"com.google.android.libraries.inputmethod.metadata.SoftKeyDef\""));
+        assertTrue(source.contains("private static final String ACTION_TYPE_CLASS = \"pmy\";"));
+        assertTrue(source.contains(
+                "\"com.google.android.libraries.inputmethod.metadata.ActionDef\""));
+        assertTrue(source.contains("private static final String ACTION_ENTRY_CLASS = \"pnu\";"));
+        assertTrue(source.contains("private static final String ACTION_BUILDER_CLASS = \"pmz\";"));
+        assertTrue(source.contains("private static final String METADATA_BUILDER_CLASS = \"ppo\";"));
+        assertTrue(source.contains("private static final String INTENTION_CLASS = \"pnt\";"));
+        assertTrue(source.contains("private static final String GESTURE_DISPATCHER_CLASS = \"pvf\";"));
+        assertTrue(source.contains("private static final String PREFERENCE_CLASS = \"qhy\";"));
+        assertTrue(source.contains("private static final String PREFERENCE_BASE_CLASS = \"cdl\";"));
+        assertTrue(source.contains("public static final int PREFERENCE_KEY_RES_ID = 0x7f140a1b;"));
+        assertTrue(source.contains("getDeclaredMethod(\"r\", actionSetClass, long.class)"));
         assertTrue(source.contains("getDeclaredField(\"e\")"));
         assertTrue(source.contains("getDeclaredField(\"f\")"));
         assertTrue(source.contains("actionSetClass.getDeclaredField(\"d\")"));
+        assertTrue(source.contains("gestureDispatcherClass.getDeclaredField(\"b\")"));
         assertTrue(source.contains("gestureDispatcherClass.getDeclaredField(\"c\")"));
-        assertTrue(source.contains("gestureDispatcherClass.getDeclaredField(\"d\")"));
-        assertTrue(source.contains("preferenceClass.getDeclaredMethod(\"N\", Context.class)"));
-        assertTrue(source.contains("preferenceClass.getDeclaredMethod(\"at\", int.class)"));
+        assertTrue(source.contains("preferenceClass.getDeclaredMethod(\"I\", Context.class)"));
         assertTrue(source.contains(
-                "preferenceClass.getDeclaredMethod(\"aa\", int.class, Object.class)"));
+                "preferenceBaseClass.getDeclaredMethod("));
+        assertTrue(source.contains("\"x\", int.class, boolean.class"));
+        assertTrue(source.contains("\"f\", String.class, boolean.class"));
+        assertFalse(source.contains("ACTION_SET_CLASS = \"owd\""));
+        assertFalse(source.contains("GESTURE_DISPATCHER_CLASS = \"pbj\""));
         assertFalse(source.contains("\"oaa\""));
         assertFalse(source.contains("\"ofi\""));
         assertFalse(source.contains("\"nxi\""));
@@ -96,10 +102,11 @@ public final class GboardZhuyinTraditionalSimplifiedToggleRuntimeSourceTest {
     }
 
     @Test
-    public void currentInputViewUsesAqAndOldSoftKeyboardRefreshPathIsAbsent() throws Exception {
+    public void currentInputViewUsesArAndOldSoftKeyboardRefreshPathIsAbsent() throws Exception {
         String runtime = readRuntimeSource();
 
-        assertTrue(runtime.contains("getMethod(\"aq\", boolean.class)"));
+        assertTrue(runtime.contains("getMethod(\"ar\", boolean.class)"));
+        assertFalse(runtime.contains("getMethod(\"aq\", boolean.class)"));
         assertFalse(runtime.contains("getMethod(\"ao\", boolean.class)"));
         assertFalse(runtime.contains("SoftKeyboardView"));
         assertFalse(runtime.contains("jasondevPatchTogglePopupMetadata"));

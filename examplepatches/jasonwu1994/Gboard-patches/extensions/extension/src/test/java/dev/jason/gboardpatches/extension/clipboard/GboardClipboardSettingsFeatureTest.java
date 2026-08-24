@@ -21,7 +21,7 @@ import dev.jason.gboardpatches.extension.webclipboard.WebClipboardPreferences;
 
 public final class GboardClipboardSettingsFeatureTest {
     @Test
-    public void clipboardRootScreenUsesLsposedSectionLayout() {
+    public void clipboardRootScreenUsesMorpheSectionLayout() {
         InMemorySharedPreferences preferences = new InMemorySharedPreferences();
         GboardClipboardSettings.ensureDefaults(preferences);
         WebClipboardPreferences.ensureDefaults(preferences);
@@ -81,7 +81,7 @@ public final class GboardClipboardSettingsFeatureTest {
     }
 
     @Test
-    public void webClipboardSubpageUsesLsposedSectionsAndConnectedClientsNavigation() {
+    public void webClipboardSubpageUsesMorpheSectionsAndConnectedClientsNavigation() {
         InMemorySharedPreferences preferences = new InMemorySharedPreferences();
         WebClipboardPreferences.ensureDefaults(preferences);
         CapturingHost host = new CapturingHost(preferences);

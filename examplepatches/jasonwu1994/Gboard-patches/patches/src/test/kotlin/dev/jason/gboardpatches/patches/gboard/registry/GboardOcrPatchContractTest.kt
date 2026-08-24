@@ -11,20 +11,21 @@ class GboardOcrPatchContractTest {
     fun `ocr is one independent public patch with settings marker and runtime slices`() {
         val root = repositoryRoot()
         val registry = read(root, REGISTRY)
+        val contributionWiring = read(root, CONTRIBUTION_WIRING)
         val keyboardGroup = read(root, KEYBOARD_GROUP)
         val availability = read(root, AVAILABILITY)
         val settingsText = read(root, SETTINGS_TEXT)
         val readme = read(root, README)
 
-        assertTrue(registry.contains("val gboardOcrScanTextPatch = resourcePatch("))
+        assertTrue(registry.contains("val gboardOcrScanTextPatch = gboardPublicResourcePatch("))
         assertTrue(registry.contains("name = \"Enable OCR / Scan Text\""))
         assertTrue(registry.contains(
             "Enable the OCR / Scan Text feature with Latin, Chinese, Japanese, Korean, and " +
                 "Devanagari recognition backends.",
         ))
         assertTrue(registry.contains("gboardOcrFeatureMarkerPatch"))
-        assertTrue(registry.contains("gboardOcrFlagValuePatch"))
-        assertTrue(registry.contains("gboardOcrRuntimePatch"))
+        assertTrue(contributionWiring.contains("gboardOcrFlagValuePatch"))
+        assertTrue(contributionWiring.contains("gboardOcrRuntimePatch"))
         assertTrue(keyboardGroup.contains("new GboardOcrSettingsFeature(context)"))
         assertTrue(
             keyboardGroup.indexOf("new GboardLongPressQuickActionsSettingsFeature(context)") <
@@ -66,13 +67,16 @@ class GboardOcrPatchContractTest {
     private fun repositoryRoot(): Path {
         val workingDirectory = Path.of("").toAbsolutePath().normalize()
         return generateSequence(workingDirectory) { it.parent }
-            .first { Files.isRegularFile(it.resolve("patches-list.json")) }
+            .first { Files.isRegularFile(it.resolve("settings.gradle.kts")) }
     }
 
     private companion object {
         const val REGISTRY =
             "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/registry/" +
                 "GboardPatchRegistry.kt"
+        const val CONTRIBUTION_WIRING =
+            "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/registry/" +
+                "GboardContributionWiring.kt"
         const val KEYBOARD_GROUP =
             "extensions/extension/src/main/java/dev/jason/gboardpatches/extension/keyboard/" +
                 "GboardKeyboardToolsSettingsGroupFeature.java"

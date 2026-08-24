@@ -25,14 +25,14 @@ import org.robolectric.RuntimeEnvironment;
 
 @RunWith(RobolectricTestRunner.class)
 public final class GboardZhuyinTraditionalSimplifiedToggleRuntimeBehaviorTest {
-    private static final int TOGGLE_KEY_ID = 0x7f0b28ca;
+    private static final int TOGGLE_KEY_ID = 0x7f0b296a;
 
     private Context context;
 
     @Before
     public void resetFixtureState() throws Exception {
         context = RuntimeEnvironment.getApplication();
-        invokeStatic("pnp", "reset");
+        invokeStatic("qhy", "reset");
         GboardZhuyinTraditionalSimplifiedToggleRuntime.VISIBLE_TOGGLE_KEYS.clear();
     }
 
@@ -151,7 +151,7 @@ public final class GboardZhuyinTraditionalSimplifiedToggleRuntimeBehaviorTest {
                 .getMethod("setThrowOnWrite", boolean.class)
                 .invoke(preferences, Boolean.TRUE);
         Object dispatcher = newDispatcher(preferences);
-        Object action = enumValue("oth", "SLIDE_UP");
+        Object action = enumValue("pmy", "SLIDE_UP");
         Object metadata = newMetadata(TOGGLE_KEY_ID);
 
         assertFalse(GboardZhuyinTraditionalSimplifiedToggleRuntime.maybeToggle(
@@ -183,7 +183,7 @@ public final class GboardZhuyinTraditionalSimplifiedToggleRuntimeBehaviorTest {
 
         Object dispatcher = newDispatcher(preferences());
         assertTrue(GboardZhuyinTraditionalSimplifiedToggleRuntime.maybeToggle(
-                dispatcher, enumValue("oth", "SLIDE_UP"), newMetadata(TOGGLE_KEY_ID)));
+                dispatcher, enumValue("pmy", "SLIDE_UP"), newMetadata(TOGGLE_KEY_ID)));
 
         assertEquals(2, GboardZhuyinToggleTargetFixture.bindCount(successfulView));
         assertEquals(101L, GboardZhuyinToggleTargetFixture.bindToken(successfulView));
@@ -201,23 +201,23 @@ public final class GboardZhuyinTraditionalSimplifiedToggleRuntimeBehaviorTest {
     }
 
     private Object newMetadata(int keyId) throws Exception {
-        return targetClass("owd").getConstructor(int.class).newInstance(Integer.valueOf(keyId));
+        return targetClass("com.google.android.libraries.inputmethod.metadata.SoftKeyDef").getConstructor(int.class).newInstance(Integer.valueOf(keyId));
     }
 
     private Object toggleMetadata(String label) throws Exception {
-        return targetClass("owd")
+        return targetClass("com.google.android.libraries.inputmethod.metadata.SoftKeyDef")
                 .getMethod("toggle", int.class, String.class)
                 .invoke(null, Integer.valueOf(TOGGLE_KEY_ID), label);
     }
 
     private Object newDispatcher(Object preferences) throws Exception {
-        return targetClass("pbj")
-                .getConstructor(Context.class, targetClass("pnp"))
+        return targetClass("pvf")
+                .getConstructor(Context.class, targetClass("qhy"))
                 .newInstance(context, preferences);
     }
 
     private Object preferences() throws Exception {
-        return targetClass("pnp").getMethod("instance").invoke(null);
+        return targetClass("qhy").getMethod("instance").invoke(null);
     }
 
     private void assertToggleAction(Object metadata, String label) throws Exception {
@@ -233,10 +233,10 @@ public final class GboardZhuyinTraditionalSimplifiedToggleRuntimeBehaviorTest {
     }
 
     private Object action(Object metadata, String actionName) throws Exception {
-        Class<?> actionTypeClass = targetClass("oth");
+        Class<?> actionTypeClass = targetClass("pmy");
         return metadata.getClass()
-                .getMethod("a", actionTypeClass)
-                .invoke(metadata, enumValue("oth", actionName));
+                .getMethod("h", actionTypeClass)
+                .invoke(metadata, enumValue("pmy", actionName));
     }
 
     private String firstLabel(Object action) throws Exception {

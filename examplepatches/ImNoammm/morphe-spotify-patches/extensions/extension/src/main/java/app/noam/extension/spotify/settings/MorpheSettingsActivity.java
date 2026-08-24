@@ -26,14 +26,7 @@ import app.noam.extension.spotify.localserver.ServerFileProvider;
 import app.noam.extension.spotify.home.HomePins;
 import app.noam.extension.spotify.localserver.ServerIndex;
 
-/**
- * The Morphe settings screen.
- *
- * The UI is built in code on purpose: the patched APK gets no new layouts or ids, so nothing here
- * depends on Spotify's resources or on ids that shift between releases.
- */
 public final class MorpheSettingsActivity extends Activity {
-
     private static final int BACKGROUND = Color.parseColor("#121212");
     private static final int SURFACE = Color.parseColor("#1E1E1E");
     private static final int ACCENT = Color.parseColor("#1DB954");
@@ -46,7 +39,6 @@ public final class MorpheSettingsActivity extends Activity {
     private EditText folderField;
     private Switch enabledSwitch;
     private Switch streamSwitch;
-    private Switch lyricsSwitch;
     private EditText pinsField;
     private TextView status;
 
@@ -113,16 +105,6 @@ public final class MorpheSettingsActivity extends Activity {
             status.setText("Pinned playlists saved. Pull down on Home to refresh.");
         }));
 
-        root.addView(sectionTitle("Lyrics"));
-        root.addView(caption(
-                "Draws the full screen lyrics larger, with more space between lines and a gradient "
-                        + "behind them, closer to how the desktop player looks."));
-        lyricsSwitch = addSwitch(root, "Beautiful lyrics",
-                ServerConfig.getBoolean(ServerConfig.KEY_BEAUTIFUL_LYRICS, false));
-        lyricsSwitch.setOnCheckedChangeListener((view, checked) ->
-                ServerConfig.putBoolean(ServerConfig.KEY_BEAUTIFUL_LYRICS, checked));
-
-
         setContentView(scrollView);
         setTitle("Morphe");
     }
@@ -177,8 +159,6 @@ public final class MorpheSettingsActivity extends Activity {
                 ? "No tracks indexed yet."
                 : count + " tracks indexed.";
     }
-
-    // region UI helpers
 
     private int dp(int value) {
         return (int) TypedValue.applyDimension(
@@ -260,5 +240,4 @@ public final class MorpheSettingsActivity extends Activity {
         return view;
     }
 
-    // endregion
 }

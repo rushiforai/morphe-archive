@@ -5,11 +5,13 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.testing.Test
+import org.gradle.jvm.tasks.Jar
 import org.gradle.process.ExecOperations
 
 @CacheableTask
@@ -20,11 +22,23 @@ abstract class GenerateTargetBindingsTask @Inject constructor(
     @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val profileFile: RegularFileProperty
 
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val productCatalogFile: RegularFileProperty
+
+    @get:Optional
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val portBundleFile: RegularFileProperty
+
     @get:Classpath
     abstract val compilerClasspath: ConfigurableFileCollection
 
     @get:OutputFile
-    abstract val outputFile: RegularFileProperty
+    abstract val bindingsOutputFile: RegularFileProperty
+
+    @get:OutputFile
+    abstract val admissionOutputFile: RegularFileProperty
 
     @TaskAction
     fun generate() {
@@ -33,7 +47,10 @@ abstract class GenerateTargetBindingsTask @Inject constructor(
             mainClass.set("dev.jason.gboardpatches.tools.bindings.TargetBindingGenerator")
             args(
                 profileFile.get().asFile.absolutePath,
-                outputFile.get().asFile.absolutePath,
+                productCatalogFile.get().asFile.absolutePath,
+                portBundleFile.orNull?.asFile?.absolutePath ?: "-",
+                bindingsOutputFile.get().asFile.absolutePath,
+                admissionOutputFile.get().asFile.absolutePath,
             )
         }
     }
@@ -54,8 +71,21 @@ patchMetadataSourceSet.compileClasspath += sourceSets.main.get().output
 patchMetadataSourceSet.runtimeClasspath += sourceSets.main.get().output
 val utf8Bom = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte())
 val previewAssetsSourceDir = layout.projectDirectory.dir("src/main/resources/settings-previews")
-val versionBindingsProfile = layout.projectDirectory.file(
-    "src/main/resources/gboard/gboard-version-bindings.json"
+val portBundleOverride = providers.gradleProperty("gboardPortBundleFile")
+val versionBindingsOverride = providers.gradleProperty("gboardReviewedBindingsFile")
+if (portBundleOverride.isPresent != versionBindingsOverride.isPresent) {
+    throw GradleException(
+        "gboardPortBundleFile and gboardReviewedBindingsFile must be provided together"
+    )
+}
+val versionBindingsProfile = objects.fileProperty().apply {
+    set(layout.projectDirectory.file("src/main/resources/gboard/gboard-version-bindings.json"))
+    if (versionBindingsOverride.isPresent) {
+        set(layout.file(versionBindingsOverride.map { path -> file(path) }))
+    }
+}
+val gboardProductCatalog = layout.projectDirectory.file(
+    "src/main/resources/gboard/gboard-port-product-catalog.json"
 )
 val syncExtensionTask = project(":extensions:extension").tasks.named("syncExtension")
 val runtimeAbiOutputDirectory = syncExtensionTask.map { task -> task.outputs.files.singleFile }
@@ -138,11 +168,21 @@ val generateGboardVersionBindings = tasks.register<GenerateTargetBindingsTask>(
             "dev/jason/gboardpatches/patches/gboard/shared/generated/GboardVersionBindings.kt"
         )
     }
+    val admissionOutputFile = generatedVersionBindingsDir.map { directory ->
+        directory.file(
+            "dev/jason/gboardpatches/patches/gboard/shared/generated/GboardTargetAdmission.kt"
+        )
+    }
 
     dependsOn(bindingCompilerSourceSet.classesTaskName)
     profileFile.set(versionBindingsProfile)
+    productCatalogFile.set(gboardProductCatalog)
+    if (portBundleOverride.isPresent) {
+        portBundleFile.set(layout.file(portBundleOverride.map { path -> file(path) }))
+    }
     compilerClasspath.from(bindingCompilerSourceSet.runtimeClasspath)
-    this.outputFile.set(outputFile)
+    bindingsOutputFile.set(outputFile)
+    this.admissionOutputFile.set(admissionOutputFile)
 }
 
 patches {
@@ -180,14 +220,31 @@ dependencies {
 }
 
 tasks {
+    val verifyGboardCapabilityWiring = register<JavaExec>("verifyGboardCapabilityWiring") {
+        description = "Fails packaging when admitted Gboard contributions are not wired."
+        dependsOn("compileKotlin")
+        classpath = sourceSets.main.get().runtimeClasspath
+        mainClass.set(
+            "dev.jason.gboardpatches.patches.gboard.registry.GboardCapabilityWiringVerifier"
+        )
+        args(gboardProductCatalog.asFile.absolutePath)
+    }
+
+    val mppJar = named<Jar>("jar") {
+        dependsOn(verifyGboardCapabilityWiring)
+    }
+
     named<Test>("test") {
+        val builtMpp = mppJar.flatMap { task -> task.archiveFile }
+        dependsOn(mppJar)
         dependsOn(syncExtensionTask)
-        inputs.file(rootProject.file("patches-list.json"))
+        inputs.file(builtMpp)
         inputs.dir(runtimeAbiOutputDirectory)
             .withPathSensitivity(PathSensitivity.RELATIVE)
         inputs.dir(compiledPatchClasses)
             .withPathSensitivity(PathSensitivity.RELATIVE)
         doFirst {
+            systemProperty("gboard.test.mpp", builtMpp.get().asFile.absolutePath)
             systemProperty(
                 "gboard.runtimeAbiOutputDirectory",
                 runtimeAbiOutputDirectory.get()

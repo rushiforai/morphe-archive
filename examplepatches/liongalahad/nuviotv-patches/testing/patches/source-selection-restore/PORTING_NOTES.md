@@ -1,6 +1,6 @@
 # Restore Source Selection porting notes
 
-## Nuvio 0.8.6-beta behavior
+## Nuvio 0.8.7-beta behavior
 
 `StreamScreen` saves `focusedStreamIndex` and passes it to `StreamsList`. `StreamsList` already owns a restore focus requester, index clamping, saved lazy-list state and a one-shot completion callback. However, `restoreFocusedStream` is raised only by the activity `ON_RESUME` observer used for an external player. Navigating to Nuvio's internal player does not resume the activity, so returning through Navigation Compose leaves the native restore flag false. The newly created picker composition then requests the first stream.
 

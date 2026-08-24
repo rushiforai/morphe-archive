@@ -1,13 +1,16 @@
 import android.content.Context;
 
-public final class pnp {
+public final class pnp extends cdm {
     private static final pnp INSTANCE = new pnp();
 
-    private boolean simplifiedEnabled;
     private boolean throwOnWrite;
     private int writeAttempts;
 
     public static pnp N(Context context) {
+        return context == null ? null : INSTANCE;
+    }
+
+    public static pnp I(Context context) {
         return context == null ? null : INSTANCE;
     }
 
@@ -21,6 +24,14 @@ public final class pnp {
             throw new IllegalStateException("fixture write failure");
         }
         simplifiedEnabled = ((Boolean) value).booleanValue();
+    }
+
+    public void f(String preferenceKey, boolean value) {
+        writeAttempts++;
+        if (throwOnWrite) {
+            throw new IllegalStateException("fixture write failure");
+        }
+        simplifiedEnabled = value;
     }
 
     public static void reset() {

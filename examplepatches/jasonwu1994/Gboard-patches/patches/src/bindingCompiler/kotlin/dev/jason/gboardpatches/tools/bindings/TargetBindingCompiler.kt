@@ -8,20 +8,137 @@ import java.security.MessageDigest
 data class VerifiedProjection(
     val targetVersion: String,
     val profileVersion: String,
+    val projectionSha256: String?,
+    val profileSha256: String?,
+    val portBundleSha256: String?,
     val sourceSha256: String,
     val kotlinSource: String,
 )
 
+class TargetBindingRequirements private constructor(
+    val keys: Set<String>,
+    val bindingKinds: Map<String, String>,
+) {
+    companion object {
+        fun fromProductCatalog(catalogText: String): TargetBindingRequirements {
+            val catalog = try {
+                JsonParser.parseString(catalogText).asJsonObject
+            } catch (error: RuntimeException) {
+                throw IllegalArgumentException("Product catalog must be a JSON object", error)
+            }
+            require(catalog.get("format")?.asString == "gboard-port-product-catalog.v1") {
+                "catalog.format must be gboard-port-product-catalog.v1"
+            }
+            val bindingContracts = catalog.get("binding_contracts")
+            require(bindingContracts != null && bindingContracts.isJsonObject) {
+                "catalog.binding_contracts must be an object"
+            }
+            val bindingKinds = bindingContracts.asJsonObject.entrySet().associate { (key, value) ->
+                require(BINDING_NAME.matches(key)) {
+                    "Catalog binding contract $key must use snake_case"
+                }
+                require(value.isJsonPrimitive && value.asJsonPrimitive.isString) {
+                    "Catalog binding contract $key must declare a string kind"
+                }
+                val kind = value.asString
+                require(kind in BINDING_KINDS) {
+                    "Catalog binding contract $key must be method, field, or type"
+                }
+                key to kind
+            }.toSortedMap()
+            val features = catalog.get("features")
+            require(features != null && features.isJsonArray && features.asJsonArray.size() > 0) {
+                "catalog.features must be a non-empty array"
+            }
+            val requiredKeys = linkedSetOf<String>()
+            features.asJsonArray.forEachIndexed { featureIndex, featureValue ->
+                require(featureValue.isJsonObject) {
+                    "catalog.features[$featureIndex] must be an object"
+                }
+                val contributions = featureValue.asJsonObject.get("contributions")
+                require(contributions != null && contributions.isJsonArray) {
+                    "catalog.features[$featureIndex].contributions must be an array"
+                }
+                contributions.asJsonArray.forEachIndexed { contributionIndex, contributionValue ->
+                    require(contributionValue.isJsonObject) {
+                        "catalog.features[$featureIndex].contributions[$contributionIndex] " +
+                            "must be an object"
+                    }
+                    val requiredBindings = contributionValue.asJsonObject.get("required_bindings")
+                    require(requiredBindings != null && requiredBindings.isJsonArray) {
+                        "catalog.features[$featureIndex].contributions[$contributionIndex]." +
+                            "required_bindings must be an array"
+                    }
+                    requiredBindings.asJsonArray.forEachIndexed { bindingIndex, bindingValue ->
+                        require(bindingValue.isJsonPrimitive && bindingValue.asJsonPrimitive.isString) {
+                            "catalog.features[$featureIndex].contributions[$contributionIndex]." +
+                                "required_bindings[$bindingIndex] must be a string"
+                        }
+                        val binding = bindingValue.asString
+                        require(BINDING_NAME.matches(binding)) {
+                            "Catalog required binding $binding must use snake_case"
+                        }
+                        requiredKeys += binding
+                    }
+                }
+            }
+            require(requiredKeys.isNotEmpty()) { "Catalog required binding union must not be empty" }
+            require(bindingKinds.keys == requiredKeys) {
+                "Catalog binding contracts must exactly match the complete required binding union"
+            }
+            return TargetBindingRequirements(requiredKeys.toSortedSet(), bindingKinds)
+        }
+
+        fun fromAdmission(
+            requiredKeys: Set<String>,
+            bindingKinds: Map<String, String>,
+        ): TargetBindingRequirements = TargetBindingRequirements(
+            requiredKeys.toSortedSet(),
+            bindingKinds.toSortedMap(),
+        )
+    }
+}
+
 object TargetBindingCompiler {
-    fun compile(profileText: String): VerifiedProjection {
+    fun compile(
+        profileText: String,
+        requirements: TargetBindingRequirements,
+        requireProjectionSha256: Boolean = false,
+        requireExternalLinkage: Boolean = false,
+    ): VerifiedProjection {
         val profile = try {
             JsonParser.parseString(profileText).asJsonObject
         } catch (error: RuntimeException) {
             throw IllegalArgumentException("Target binding profile must be a JSON object", error)
         }
+        val projectionSha256 = profile.get("projection_sha256")?.let { value ->
+            require(value.isJsonPrimitive && value.asJsonPrimitive.isString) {
+                "profile.projection_sha256 must be a string"
+            }
+            value.asString.also { digest ->
+                require(SHA256.matches(digest)) {
+                    "profile.projection_sha256 must be a lowercase SHA-256"
+                }
+            }
+        }
+        require(!requireProjectionSha256 || projectionSha256 != null) {
+            "External binding export must declare profile.projection_sha256"
+        }
+        val profileSha256 = profile.optionalSha256("profile_sha256")
+        val portBundleSha256 = profile.optionalSha256("port_bundle_sha256")
+        require((profileSha256 == null) == (portBundleSha256 == null)) {
+            "profile.profile_sha256 and profile.port_bundle_sha256 must be declared together"
+        }
+        require(!requireExternalLinkage || profileSha256 != null) {
+            "External binding export must declare profile.profile_sha256 and " +
+                "profile.port_bundle_sha256"
+        }
         profile.requireKeys(
             path = "profile",
-            expected = setOf("format", "target_version", "profile_version", "bindings"),
+            expected = PROFILE_KEYS + buildSet {
+                if (projectionSha256 != null) add("projection_sha256")
+                if (profileSha256 != null) addAll(EXTERNAL_LINKAGE_KEYS)
+            },
         )
         require(profile.string("format") == "gboard-version-bindings.v1") {
             "profile.format must be gboard-version-bindings.v1"
@@ -31,7 +148,12 @@ object TargetBindingCompiler {
         require(VERSION.matches(targetVersion)) { "profile.target_version must be a dotted version" }
         require(VERSION.matches(profileVersion)) { "profile.profile_version must be semantic version" }
         val bindingObject = profile.objectValue("bindings")
-        require(bindingObject.size() > 0) { "profile.bindings must not be empty" }
+        val missingBindings = requirements.keys - bindingObject.keySet()
+        val unexpectedBindings = bindingObject.keySet() - requirements.keys
+        require(missingBindings.isEmpty() && unexpectedBindings.isEmpty()) {
+            "profile.bindings must exactly match the product catalog; " +
+                "missing=${missingBindings.sorted()}, unexpected=${unexpectedBindings.sorted()}"
+        }
         val bindings = bindingObject.entrySet()
             .sortedBy { (name, _) -> name }
         val propertyNames = mutableSetOf<String>()
@@ -47,12 +169,19 @@ object TargetBindingCompiler {
                 throw IllegalArgumentException("bindings.$name must be a JSON object", error)
             }
             validateBinding(name, binding)
+            require(requirements.bindingKinds[name] == binding.string("kind")) {
+                "bindings.$name kind must match catalog binding contract " +
+                    requirements.bindingKinds[name]
+            }
         }
         val resolvedTypes = resolveTypeBindings(bindings)
         val canonicalSource = buildString {
             append(profile.string("format"))
             append('\n').append(targetVersion)
             append('\n').append(profileVersion)
+            projectionSha256?.let { append('\n').append(it) }
+            profileSha256?.let { append('\n').append(it) }
+            portBundleSha256?.let { append('\n').append(it) }
             bindings.forEach { (name, value) ->
                 val binding = value.asJsonObject
                 append('\n').append(name)
@@ -79,7 +208,9 @@ object TargetBindingCompiler {
                         if (source.has("index")) append('|').append(source.get("index").asInt)
                     }
                 }
-                append('|').append(binding.get("confidence").asBigDecimal.toPlainString())
+                append('|').append(
+                    binding.get("confidence").asBigDecimal.stripTrailingZeros().toPlainString()
+                )
             }
             append('\n')
         }
@@ -89,18 +220,30 @@ object TargetBindingCompiler {
         val kotlinSource = renderProjection(
             targetVersion = targetVersion,
             profileVersion = profileVersion,
+            projectionSha256 = projectionSha256,
             sourceSha256 = sourceSha256,
             bindings = bindings.map { (name, value) -> name to value.asJsonObject },
+            bindingKinds = requirements.bindingKinds,
             resolvedTypes = resolvedTypes,
         )
-        return VerifiedProjection(targetVersion, profileVersion, sourceSha256, kotlinSource)
+        return VerifiedProjection(
+            targetVersion,
+            profileVersion,
+            projectionSha256,
+            profileSha256,
+            portBundleSha256,
+            sourceSha256,
+            kotlinSource,
+        )
     }
 
     private fun renderProjection(
         targetVersion: String,
         profileVersion: String,
+        projectionSha256: String?,
         sourceSha256: String,
         bindings: List<Pair<String, JsonObject>>,
+        bindingKinds: Map<String, String>,
         resolvedTypes: Map<String, String>,
     ): String = buildString {
         append("package dev.jason.gboardpatches.patches.gboard.shared.generated\n\n")
@@ -110,8 +253,28 @@ object TargetBindingCompiler {
         append("internal object GboardVersionBindings {\n")
         append("    const val targetVersion = ").append(targetVersion.kotlinLiteral()).append("\n")
         append("    const val profileVersion = ").append(profileVersion.kotlinLiteral()).append("\n")
+        projectionSha256?.let { digest ->
+            append("    const val projectionSha256 = ").append(digest.kotlinLiteral()).append("\n")
+        }
         append("    const val sourceSha256 = ").append(sourceSha256.kotlinLiteral()).append("\n")
-        bindings.forEach { (name, binding) ->
+        val bindingsByName = bindings.toMap()
+        bindingKinds.forEach { (name, expectedKind) ->
+            val binding = bindingsByName[name]
+            if (binding == null) {
+                append("\n    val `").append(name.toCamelCase()).append("`: ")
+                append(
+                    when (expectedKind) {
+                        "method" -> "GboardMethodTarget"
+                        "field" -> "GboardFieldTarget"
+                        "type" -> "GboardTypeTarget"
+                        else -> error("Validated binding contract kind")
+                    },
+                )
+                append("\n        get() = error(")
+                append("Binding $name is unavailable for this admitted target".kotlinLiteral())
+                append(")\n")
+                return@forEach
+            }
             append("\n    val `").append(name.toCamelCase()).append("` = ")
             when (binding.string("kind")) {
                 "method" -> {
@@ -147,6 +310,15 @@ object TargetBindingCompiler {
     }
 
     private fun JsonObject.string(name: String): String = get(name).asString
+
+    private fun JsonObject.optionalSha256(name: String): String? = get(name)?.let { value ->
+        require(value.isJsonPrimitive && value.asJsonPrimitive.isString) {
+            "profile.$name must be a string"
+        }
+        value.asString.also { digest ->
+            require(SHA256.matches(digest)) { "profile.$name must be a lowercase SHA-256" }
+        }
+    }
 
     private fun validateBinding(name: String, binding: JsonObject) {
         val path = "bindings.$name"
@@ -323,7 +495,7 @@ object TargetBindingCompiler {
     }
 
     private val VERSION = Regex("[0-9]+(?:\\.[0-9]+){2}")
-    private val BINDING_NAME = Regex("[a-z][a-z0-9]*(?:_[a-z0-9]+)*")
+    private val SHA256 = Regex("[0-9a-f]{64}")
     private val MEMBER_NAME = Regex("(?:<init>|<clinit>|[A-Za-z_$][A-Za-z0-9_$]*)")
     private val CLASS_DESCRIPTOR = Regex("L[^.;\\[]+(?:/[^.;\\[]+)*;")
     private val TYPE_DESCRIPTOR = Regex("(?:[VZBSCIJFD]|L[^.;\\[]+(?:/[^.;\\[]+)*;|\\[+(?:[ZBSCIJFD]|L[^.;\\[]+(?:/[^.;\\[]+)*;))")
@@ -335,4 +507,9 @@ object TargetBindingCompiler {
     )
     private val TYPE_KEYS = setOf("kind", "source", "confidence")
     private val TYPE_SOURCE_COMPONENTS = setOf("owner", "parameter", "return", "field_type")
+    private val PROFILE_KEYS = setOf("format", "target_version", "profile_version", "bindings")
+    private val EXTERNAL_LINKAGE_KEYS = setOf("profile_sha256", "port_bundle_sha256")
 }
+
+private val BINDING_NAME = Regex("[a-z][a-z0-9]*(?:_[a-z0-9]+)*")
+private val BINDING_KINDS = setOf("method", "field", "type")

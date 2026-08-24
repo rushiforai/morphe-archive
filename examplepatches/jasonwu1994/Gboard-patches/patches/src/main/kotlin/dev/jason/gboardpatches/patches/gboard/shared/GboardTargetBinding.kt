@@ -14,9 +14,9 @@ internal class GboardMethodTarget(
     returnType: String,
 ) {
     private val owner = classType
-    private val parameters = parameterTypes
-    private val returns = returnType
-    val descriptor: String = "(${parameters.joinToString("")})$returns"
+    val parameterTypes: List<String> = parameterTypes.toList()
+    val returnType: String = returnType
+    val descriptor: String = "(${this.parameterTypes.joinToString("")})${this.returnType}"
     val reference: String = "$owner->$name$descriptor"
     val ownerDescriptor: String get() = owner
 
@@ -31,8 +31,8 @@ internal class GboardMethodTarget(
     fun matches(method: MethodReference): Boolean =
         method.definingClass == owner &&
             method.name == name &&
-            method.parameterTypes == parameters &&
-            method.returnType == returns
+            method.parameterTypes == parameterTypes &&
+            method.returnType == returnType
 
     fun referenceNamed(replacementName: String): String = "$owner->$replacementName$descriptor"
 
@@ -46,8 +46,8 @@ internal class GboardMethodTarget(
         context.addHelperMethodIfMissing(
             classType = owner,
             name = name,
-            parameterTypes = parameters,
-            returnType = returns,
+            parameterTypes = parameterTypes,
+            returnType = returnType,
             accessFlags = accessFlags,
             registerCount = registerCount,
             body = body,
@@ -63,6 +63,7 @@ internal class GboardFieldTarget(
 ) {
     private val owner = classType
     val reference: String = "$owner->$name:$type"
+    val ownerDescriptor: String get() = owner
 
     fun resolve(context: BytecodePatchContext): MutableField =
         context.mutableClass(owner).fields.firstOrNull(::matches)

@@ -15,6 +15,8 @@ import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint.method
 import app.morphe.util.addInstructionsAtControlFlowLabel
+import app.morphe.util.getReference
+import app.morphe.util.indexOfFirstInstructionOrThrow
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
@@ -24,11 +26,13 @@ private const val TAKO_AI_FILTER_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tikto
 private const val PLAYLIST_BAR_FILTER_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/feedfilter/PlaylistBarFilter;"
 private const val EVENT_BADGE_FILTER_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/feedfilter/EventBadgeFilter;"
 private const val FRIEND_RECOMMENDATION_FILTER_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/feedfilter/FriendRecommendationFilter;"
+private const val DRAMA_BLOCKING_AD_FILTER_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/feedfilter/DramaBlockingAdFilter;"
+private const val CARD_INSERT_FILTER_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/feedfilter/CardInsertFilter;"
 
 @Suppress("unused")
 val feedFilterPatch = bytecodePatch(
     name = "Feed filter",
-    description = "Hides feed ads, TikTok Shop items, livestreams, stories, photo posts, the playlist bar, the floating event badge, AI-generated posts, paid partnership and promotional content, the account, bulletin-board and other inserted cards, posts from verified accounts, and videos outside configured view or like ranges.",
+    description = "Hides feed ads, TikTok Shop items, livestreams, stories, photo posts, the playlist bar, the floating event badge, AI-generated posts, paid partnership and promotional content, the account, bulletin-board and other inserted cards, posts from verified accounts, videos outside configured view or like ranges, and the countdown lock on short-drama ads.",
     default = true,
 ) {
     dependsOn(
@@ -107,7 +111,7 @@ val feedFilterPatch = bytecodePatch(
         InsertedFeedItemsFingerprint.method.addInstructions(
             0,
             """
-                invoke-static/range {p2 .. p3}, $EXTENSION_CLASS_DESCRIPTOR->filterInsertedFeedItems(Ljava/lang/String;Ljava/util/List;)Ljava/util/List;
+                invoke-static/range {p0 .. p3}, $EXTENSION_CLASS_DESCRIPTOR->filterInsertedFeedItems(Lcom/ss/android/ugc/aweme/feed/panel/BaseListFragmentPanel;ILjava/lang/String;Ljava/util/List;)Ljava/util/List;
                 move-result-object p3
             """,
         )
@@ -192,6 +196,47 @@ val feedFilterPatch = bytecodePatch(
                 nop
             """,
         )
+
+        // Bulletin music outlives the feed player and its mute
+        BulletinMusicPlayFingerprint.methodOrNull?.let { method ->
+            val musicIndex = method.implementation!!.instructions.indexOfFirst {
+                it.opcode == Opcode.IGET_OBJECT &&
+                    it.getReference<FieldReference>()?.type == "Lcom/ss/android/ugc/aweme/music/model/Music;"
+            }
+            check(musicIndex >= 0) { "Could not find the bulletin music field read" }
+
+            val musicRegister = (method.getInstruction(musicIndex) as OneRegisterInstruction).registerA
+            val freeRegister = if (musicRegister == 0) 1 else 0
+
+            method.addInstructionsWithLabels(
+                musicIndex + 1,
+                """
+                    invoke-static {}, $CARD_INSERT_FILTER_CLASS_DESCRIPTOR->shouldBlockMusic()Z
+                    move-result v$freeRegister
+                    if-eqz v$freeRegister, :morphe_play_bulletin_music
+                    const/4 v$musicRegister, 0x0
+                """,
+                ExternalLabel(
+                    "morphe_play_bulletin_music",
+                    method.getInstruction(musicIndex + 1),
+                ),
+            )
+        }
+
+        DramaBlockingAdFingerprint.methodOrNull?.apply {
+            val returnIndex = indexOfFirstInstructionOrThrow {
+                opcode == Opcode.RETURN
+            }
+            val register = (getInstruction(returnIndex) as OneRegisterInstruction).registerA
+
+            addInstructions(
+                returnIndex,
+                """
+                    invoke-static {v$register}, $DRAMA_BLOCKING_AD_FILTER_CLASS_DESCRIPTOR->shouldBlock(Z)Z
+                    move-result v$register
+                """,
+            )
+        }
 
         // Skip attaching the promotional event badge to the feed
         SpecActTouchpointAttachFingerprint.methodOrNull?.addInstructions(

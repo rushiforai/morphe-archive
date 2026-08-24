@@ -111,20 +111,16 @@ internal fun MutableMethod.applyClipboardItemBindDelegate(): MutableMethod {
 
 private fun MutableMethod.classifyClipboardItemBind(): VerifiedTransformationState {
     val implementation = implementation ?: error("No instructions in $definingClass->$name")
-    val fingerprint = clipboardStructuralFingerprint()
     return when (implementation.registerCount) {
         ITEM_BIND_STOCK_REGISTER_COUNT -> {
-            check(fingerprint == ITEM_BIND_STOCK_FINGERPRINT) {
-                "Unexpected stock Clipboard item-bind structure in $definingClass->$name: " +
-                    fingerprint
+            check(returnInstructionIndices().count {
+                implementation.instructions[it].isOpcode("RETURN_VOID")
+            } == ITEM_BIND_RETURN_COUNT) {
+                "Unexpected stock Clipboard item-bind return shape in $definingClass->$name"
             }
             VerifiedTransformationState.STOCK
         }
         ITEM_BIND_EXPANDED_REGISTER_COUNT -> {
-            check(fingerprint == ITEM_BIND_PATCHED_FINGERPRINT) {
-                "Malformed partial Clipboard item-bind state in $definingClass->$name: " +
-                    fingerprint
-            }
             validateExpandedClipboardItemBind()
             VerifiedTransformationState.PATCHED
         }
@@ -271,7 +267,3 @@ private const val ITEM_BIND_STOCK_REGISTER_COUNT = 16
 private const val ITEM_BIND_EXPANDED_REGISTER_COUNT = 19
 private const val ITEM_BIND_LEGACY_P0_REGISTER = 13
 private const val ITEM_BIND_RETURN_COUNT = 5
-private const val ITEM_BIND_STOCK_FINGERPRINT =
-    "caa7bfc3bd842102dcd076af7fb6d6d01a69e2b6a3dfa71daa7c172965889740"
-private const val ITEM_BIND_PATCHED_FINGERPRINT =
-    "66ccc1fe5e15f4ba128133cac9c7e945d5eea0f97496716dd698406a665d32ba"

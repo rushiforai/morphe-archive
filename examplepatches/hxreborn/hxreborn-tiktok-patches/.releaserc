@@ -37,10 +37,28 @@
             "type": "release",
             "release": "patch"
           }
-        ]
+        ],
+        "parserOpts": {
+          "mergePattern": "^(?:fix|feat|perf|revert)(?:\\(.*\\))?!?: [Mm]erge (.*)$",
+          "mergeCorrespondence": [
+            "upstreamMerge"
+          ],
+          "breakingHeaderPattern": "^(\\w*)(?:\\((.*)\\))?!: (.*)$"
+        }
       }
     ],
-    "@semantic-release/release-notes-generator",
+    [
+      "@semantic-release/release-notes-generator",
+      {
+        "parserOpts": {
+          "mergePattern": "^(?:fix|feat|perf|revert)(?:\\(.*\\))?!?: [Mm]erge (.*)$",
+          "mergeCorrespondence": [
+            "upstreamMerge"
+          ],
+          "breakingHeaderPattern": "^(\\w*)(?:\\((.*)\\))?!: (.*)$"
+        }
+      }
+    ],
     [
       "@MorpheApp/changelog",
       {

@@ -83,26 +83,45 @@ final class QuickJsNgLibraryLoader {
         }
         File targetFile = new File(payloadDirectory, QuickJsNgNativePayload.libraryName());
         if (targetFile.isFile() && QuickJsNgNativePayload.sha256().equals(sha256(targetFile))) {
-            return targetFile;
+            return requireReadOnly(targetFile);
         }
 
         byte[] payloadBytes = decodeBase64(QuickJsNgNativePayload.base64());
         File tempFile = new File(payloadDirectory,
                 QuickJsNgNativePayload.libraryName() + ".tmp");
+        deleteForReplacement(tempFile, "stale QuickJS temporary payload");
         try (FileOutputStream outputStream = new FileOutputStream(tempFile, false)) {
+            requireReadOnly(tempFile);
             outputStream.write(payloadBytes);
             outputStream.flush();
         } catch (Throwable throwable) {
             throw new UnsatisfiedLinkError("Failed to write QuickJS payload: "
                     + throwable.getMessage());
         }
-        if (targetFile.exists() && !targetFile.delete()) {
-            throw new UnsatisfiedLinkError("Failed to replace QuickJS payload");
-        }
+        deleteForReplacement(targetFile, "existing QuickJS payload");
         if (!tempFile.renameTo(targetFile)) {
             throw new UnsatisfiedLinkError("Failed to finalize QuickJS payload");
         }
-        return targetFile;
+        return requireReadOnly(targetFile);
+    }
+
+    private static File requireReadOnly(File file) {
+        if (file.canWrite() && !file.setReadOnly()) {
+            throw new UnsatisfiedLinkError("Failed to mark QuickJS payload read-only");
+        }
+        if (file.canWrite()) {
+            throw new UnsatisfiedLinkError("QuickJS payload remains writable");
+        }
+        return file;
+    }
+
+    private static void deleteForReplacement(File file, String description) {
+        if (!file.exists()) {
+            return;
+        }
+        if (!file.setWritable(true) || !file.delete()) {
+            throw new UnsatisfiedLinkError("Failed to replace " + description);
+        }
     }
 
     private static byte[] decodeBase64(String value) {

@@ -42,11 +42,10 @@ class GboardPackageRenamePatchContractTest {
     }
 
     @Test
-    fun `active inventory stays twenty two with package rename exactly once`() {
-        val inventory = JsonParser.parseString(readSource(PATCHES_LIST_PATH)).asJsonObject
-        val patches = inventory.getAsJsonArray("patches").map { it.asJsonObject }
+    fun `active inventory stays thirty four with package rename exactly once`() {
+        val patches = generatedPublishedPatches()
 
-        assertEquals(31, patches.size)
+        assertEquals(34, patches.size)
         val rows = patches.filter { row -> row.get("name").asString == "Package Rename" }
         assertEquals(1, rows.size)
         val row = rows.single()
@@ -65,11 +64,11 @@ class GboardPackageRenamePatchContractTest {
     fun `package rename adds no runtime binding family or flag factory`() {
         val profile = JsonParser.parseString(readSource(BINDINGS_PROFILE_PATH)).asJsonObject
 
-        assertEquals("17.7.7", profile.get("target_version").asString)
+        assertEquals("18.0.3", profile.get("target_version").asString)
         val bindings = profile.getAsJsonObject("bindings")
         assertFalse(bindings.has("flag_factory"))
         assertTrue(bindings.keySet().none { key -> key.contains("package_rename") })
-        assertFalse(readSource(PATCHES_LIST_PATH).contains("family_ids"))
+        assertFalse(GboardPublishedPatchCatalog.publishedInventory("test-version").contains("family_ids"))
     }
 
     private fun readSource(relativePath: String): String = Files.readString(
@@ -86,12 +85,11 @@ class GboardPackageRenamePatchContractTest {
     }
 
     private companion object {
-        const val TARGET_VERSION = "17.7.7.932364120-release-arm64-v8a"
+        const val TARGET_VERSION = "18.0.3.954559732-release-arm64-v8a"
         const val PACKAGE_RENAME_DESCRIPTION =
             "將套件名稱改成 dev.jason.com.google.android.inputmethod.latin 以便共存安裝\n" +
                 "Rename the package to dev.jason.com.google.android.inputmethod.latin " +
                 "so it can be installed alongside the official Gboard."
-        const val PATCHES_LIST_PATH = "patches-list.json"
         const val BINDINGS_PROFILE_PATH =
             "patches/src/main/resources/gboard/gboard-version-bindings.json"
     }

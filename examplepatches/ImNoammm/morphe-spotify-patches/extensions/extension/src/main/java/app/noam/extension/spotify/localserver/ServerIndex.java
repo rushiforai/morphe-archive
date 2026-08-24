@@ -18,15 +18,7 @@ import java.util.List;
 
 import app.noam.extension.spotify.Utils;
 
-/**
- * The cached listing of the remote folder.
- *
- * Spotify asks for the local file list on a background thread and expects an answer promptly, so the
- * network is never touched during a scan: the index is refreshed explicitly from the settings screen
- * and read from disk afterwards.
- */
 public final class ServerIndex {
-
     private static final String FILE_NAME = "morphe_local_server_index.json";
 
     private static volatile List<RemoteTrack> cached;
@@ -79,19 +71,11 @@ public final class ServerIndex {
         return null;
     }
 
-    /**
-     * Lists the remote folder and reads each track's tags. Blocking; call it off the main thread.
-     *
-     * @param progress notified as tracks are read, may be null.
-     * @return the tracks that were found.
-     */
     public static List<RemoteTrack> refresh(Progress progress) throws IOException {
         WebDav webDav = WebDav.fromConfig();
         List<RemoteTrack> tracks = webDav.listFolder(
                 ServerConfig.getString(ServerConfig.KEY_FOLDER, ""));
 
-        // Tags are read through the content provider, so only the few kilobytes of header each file
-        // needs are actually transferred rather than the whole library.
         List<RemoteTrack> previous = get();
         int index = 0;
         for (RemoteTrack track : tracks) {
@@ -125,7 +109,6 @@ public final class ServerIndex {
             Context context = Utils.getContext();
             if (context == null) return;
 
-            // Publish the track first so the provider can resolve the URI while tags are read.
             List<RemoteTrack> staging = new ArrayList<>(get());
             staging.add(track);
             cached = Collections.unmodifiableList(staging);
@@ -145,7 +128,6 @@ public final class ServerIndex {
                 try {
                     track.durationSeconds = (int) (Long.parseLong(duration) / 1000L);
                 } catch (NumberFormatException ignored) {
-                    // Leave the duration unknown rather than failing the whole scan.
                 }
             }
         } catch (Exception ex) {
@@ -154,7 +136,6 @@ public final class ServerIndex {
             try {
                 retriever.release();
             } catch (Exception ignored) {
-                // Nothing useful to do if the retriever cannot be released.
             }
         }
     }

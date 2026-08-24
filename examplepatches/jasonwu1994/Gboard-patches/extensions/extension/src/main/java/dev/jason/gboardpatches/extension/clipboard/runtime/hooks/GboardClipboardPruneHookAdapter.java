@@ -38,7 +38,7 @@ final class GboardClipboardPruneHookAdapter {
     private void runCustomPrune(Object receiver) throws Throwable {
         GboardClipboardRuntimeSupport.ReflectionHandles handles =
                 support.reflectionHandles(receiver.getClass().getClassLoader());
-        Object dataHandler = handles.pruneCallableOwnerField.get(receiver);
+        Object dataHandler = receiver;
         Context context = support.pruneContext(handles, receiver);
         if (context == null || dataHandler == null) {
             throw new IllegalStateException("Clipboard prune context is unavailable");

@@ -26,13 +26,7 @@ import javax.net.ssl.SSLSocketFactory;
 
 import app.noam.extension.spotify.Utils;
 
-/**
- * A small WebDAV client, enough to walk a Nextcloud (or any WebDAV) music folder and read bytes out
- * of it. Nextcloud's files live under {@code /remote.php/dav/files/<user>/}, which is filled in
- * automatically when the user gives just the server address.
- */
 public final class WebDav {
-
     private static final int CONNECT_TIMEOUT_MS = 15000;
     private static final int READ_TIMEOUT_MS = 30000;
     private static final int MAX_DEPTH = 6;
@@ -50,13 +44,6 @@ public final class WebDav {
         this.password = password;
     }
 
-    /**
-     * The collection URLs to try, in order, for the folder the user picked.
-     *
-     * A Nextcloud user normally gives just the server address, whose files actually live under
-     * {@code /remote.php/dav/files/<user>/}. Any other WebDAV server serves them straight off the
-     * address given. Both are tried rather than guessing from the URL alone.
-     */
     public List<String> candidateRoots(String folder) {
         String base = baseUrl == null ? "" : baseUrl.trim();
         while (base.endsWith("/")) base = base.substring(0, base.length() - 1);
@@ -86,11 +73,6 @@ public final class WebDav {
         return encoded.toString();
     }
 
-    /**
-     * Lists every audio file in the user's folder, trying each candidate root until one answers.
-     *
-     * @throws IOException with the first failure if none of them do.
-     */
     public List<RemoteTrack> listFolder(String folder) throws IOException {
         IOException lastFailure = null;
 
@@ -98,7 +80,6 @@ public final class WebDav {
             try {
                 return listAudioFiles(root);
             } catch (IOException ex) {
-                // Keep the latest: the first candidate is a guess, so its error is rarely the useful one.
                 lastFailure = ex;
                 Utils.log("Listing " + root + " failed: " + ex.getMessage());
             }
@@ -106,7 +87,6 @@ public final class WebDav {
         throw lastFailure != null ? lastFailure : new IOException("The folder could not be listed");
     }
 
-    /** Recursively lists every audio file below {@code url}. */
     public List<RemoteTrack> listAudioFiles(String url) throws IOException {
         List<RemoteTrack> tracks = new ArrayList<>();
         collect(url, 0, tracks);
@@ -144,15 +124,6 @@ public final class WebDav {
         boolean isCollection;
     }
 
-    /**
-     * Lists one collection.
-     *
-     * PROPFIND is sent over a socket rather than through HttpURLConnection. Android's implementation
-     * is backed by OkHttp, which refuses the verb outright, and neither workaround survives contact
-     * with a real server: forcing the inherited method field is silently ignored, so the request
-     * leaves as a GET, and Nextcloud answers POST + X-HTTP-Method-Override with 501. Speaking
-     * HTTP/1.1 directly is the only way to be sure the server sees a PROPFIND.
-     */
     private List<Entry> propfind(String url) throws IOException {
         String body = "<?xml version=\"1.0\"?>"
                 + "<d:propfind xmlns:d=\"DAV:\"><d:prop>"
@@ -161,8 +132,6 @@ public final class WebDav {
 
         Response response = request(url, body);
 
-        // Only 207 Multi-Status is a listing. A 200 here means something answered that is not
-        // WebDAV — treating it as success is how an unnoticed GET looked like an empty folder.
         if (response.status != 207) {
             throw new IOException("PROPFIND returned HTTP " + response.status);
         }
@@ -181,7 +150,6 @@ public final class WebDav {
         byte[] body;
     }
 
-    /** Sends a PROPFIND over a socket and reads the whole response. */
     private Response request(String url, String body) throws IOException {
         Uri uri = Uri.parse(url);
         boolean secure = !"http".equalsIgnoreCase(uri.getScheme());
@@ -218,8 +186,6 @@ public final class WebDav {
             socket.setSoTimeout(READ_TIMEOUT_MS);
 
             if (secure) {
-                // Layering TLS over the connected socket keeps the connect timeout and still sends
-                // the host as SNI, which shared hosts need to serve the right certificate.
                 SSLSocket sslSocket = (SSLSocket) ((SSLSocketFactory) SSLSocketFactory.getDefault())
                         .createSocket(socket, host, port, true);
                 sslSocket.startHandshake();
@@ -242,7 +208,6 @@ public final class WebDav {
                 try {
                     socket.close();
                 } catch (IOException ignored) {
-                    // The socket is being discarded either way.
                 }
             }
         }
@@ -356,7 +321,6 @@ public final class WebDav {
                             try {
                                 current.size = Long.parseLong(parser.nextText().trim());
                             } catch (Exception ignored) {
-                                // A missing or unparsable length only affects the reported size.
                             }
                         }
                         break;
@@ -368,7 +332,6 @@ public final class WebDav {
                     inResourceType = false;
                 } else if (name.equals("response") && current != null && href != null) {
                     String path = Uri.parse(href).getPath();
-                    // The collection itself is always returned first; skip it.
                     if (path != null && !equalPaths(path, requestPath)) {
                         current.url = absolute(href);
                         current.name = Uri.decode(lastSegment(path));
@@ -396,7 +359,6 @@ public final class WebDav {
         return slash < 0 ? trimmed : trimmed.substring(slash + 1);
     }
 
-    /** Server responses give a path, not a full URL; put the scheme and host back. */
     private String absolute(String href) {
         if (href.startsWith("http://") || href.startsWith("https://")) return href;
         Uri base = Uri.parse(baseUrl);
@@ -404,7 +366,6 @@ public final class WebDav {
         return authority + (href.startsWith("/") ? href : "/" + href);
     }
 
-    /** Opens a byte range of a remote file. Pass {@code -1} as the end for "until EOF". */
     public HttpURLConnection openRange(String url, long from, long to) throws IOException {
         HttpURLConnection connection = open(url);
         connection.setRequestMethod("GET");

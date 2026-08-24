@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 final class GboardTopRowSwipeRuntimeSupport {
-    static final int PRIMARY_LABEL_VIEW_ID = 0x7f0b062a;
+    static final int PRIMARY_LABEL_VIEW_ID = 0x7f0b0651;
     static final int PLAIN_TEXT_KEYCODE = -0x2719;
     static final String[] TOP_ROW_SLOT_VIEW_NAMES = {
             "E01", "E02", "E03", "E04", "E05",
@@ -31,15 +31,17 @@ final class GboardTopRowSwipeRuntimeSupport {
 
     private static final String SOFT_KEY_VIEW_CLASS =
             "com.google.android.libraries.inputmethod.widgets.SoftKeyView";
-    private static final String ACTION_TYPE_CLASS = "oth";
-    private static final String ACTION_SET_CLASS = "owd";
-    private static final String ACTION_DEF_CLASS = "otk";
-    private static final String ACTION_DATA_CLASS = "oud";
-    private static final String ACTION_DEF_BUILDER_CLASS = "oti";
-    private static final String ACTION_SET_BUILDER_CLASS = "ovv";
-    private static final String INTENTION_CLASS = "ouc";
-    private static final String POINTER_TRACKER_CLASS = "pbl";
-    private static final String GESTURE_DISPATCHER_CLASS = "pbj";
+    private static final String ACTION_TYPE_CLASS = "pmy";
+    private static final String ACTION_SET_CLASS =
+            "com.google.android.libraries.inputmethod.metadata.SoftKeyDef";
+    private static final String ACTION_DEF_CLASS =
+            "com.google.android.libraries.inputmethod.metadata.ActionDef";
+    private static final String ACTION_DATA_CLASS = "pnu";
+    private static final String ACTION_DEF_BUILDER_CLASS = "pmz";
+    private static final String ACTION_SET_BUILDER_CLASS = "ppo";
+    private static final String INTENTION_CLASS = "pnt";
+    private static final String POINTER_TRACKER_CLASS = "pvi";
+    private static final String GESTURE_DISPATCHER_CLASS = "pvf";
 
     private static final String ACTION_NAME_PRESS = "PRESS";
     private static final String ACTION_NAME_LONG_PRESS = "LONG_PRESS";
@@ -389,7 +391,7 @@ final class GboardTopRowSwipeRuntimeSupport {
             softKeyBindTokenField = softKeyViewClass.getDeclaredField("f");
             softKeyBindTokenField.setAccessible(true);
 
-            bindSoftKeyMethod = softKeyViewClass.getDeclaredMethod("q", actionSetClass,
+            bindSoftKeyMethod = softKeyViewClass.getDeclaredMethod("r", actionSetClass,
                     long.class);
             bindSoftKeyMethod.setAccessible(true);
 
@@ -440,14 +442,14 @@ final class GboardTopRowSwipeRuntimeSupport {
             buildKeyMetadataMethod = actionSetBuilderClass.getDeclaredMethod("d");
             buildKeyMetadataMethod.setAccessible(true);
 
-            putActionMethod = actionSetBuilderClass.getDeclaredMethod("q", actionDefClass);
+            putActionMethod = actionSetBuilderClass.getDeclaredMethod("t", actionDefClass);
             putActionMethod.setAccessible(true);
 
-            setKeyLabelTextsMethod = actionSetBuilderClass.getDeclaredMethod("t", int[].class,
+            setKeyLabelTextsMethod = actionSetBuilderClass.getDeclaredMethod("v", int[].class,
                     CharSequence[].class);
             setKeyLabelTextsMethod.setAccessible(true);
 
-            gestureDispatcherContextField = gestureDispatcherClass.getDeclaredField("c");
+            gestureDispatcherContextField = gestureDispatcherClass.getDeclaredField("b");
             gestureDispatcherContextField.setAccessible(true);
 
             commitIntention = Enum.valueOf(intentionClass.asSubclass(Enum.class),

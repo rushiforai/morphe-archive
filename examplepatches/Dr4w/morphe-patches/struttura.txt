@@ -1,0 +1,1336 @@
+Elenco del percorso delle cartelle per il volume Disco locale
+Numero di serie del volume: 00000013-8A9E:69CF
+Q:.
+¦   .editorconfig
+¦   .gitattributes
+¦   .gitignore
+¦   .releaserc
+¦   build_log.txt
+¦   CHANGELOG.md
+¦   gradle.properties
+¦   gradlew
+¦   gradlew.bat
+¦   LICENSE
+¦   NOTICE
+¦   package-lock.json
+¦   package.json
+¦   patches-bundle.json
+¦   patches-list.json
+¦   README.md
+¦   settings.gradle.kts
+¦   struttura.txt
+¦   
++---.github
+¦   ¦   dependabot.yml
+¦   ¦   
+¦   +---ISSUE_TEMPLATE
+¦   ¦       bug_report.yml
+¦   ¦       config.yml
+¦   ¦       feature_request.yml
+¦   ¦       
+¦   +---scripts
+¦   ¦       generate_patches_readme.py
+¦   ¦       
+¦   +---workflows
+¦           open_pull_request.yml
+¦           release.yml
+¦           
++---.gradle
+¦   +---9.7.0
+¦   ¦   ¦   gc.properties
+¦   ¦   ¦   
+¦   ¦   +---checksums
+¦   ¦   ¦       checksums.lock
+¦   ¦   ¦       md5-checksums.bin
+¦   ¦   ¦       sha1-checksums.bin
+¦   ¦   ¦       
+¦   ¦   +---executionHistory
+¦   ¦   ¦       executionHistory.bin
+¦   ¦   ¦       executionHistory.lock
+¦   ¦   ¦       
+¦   ¦   +---expanded
+¦   ¦   +---fileChanges
+¦   ¦   ¦       last-build.bin
+¦   ¦   ¦       
+¦   ¦   +---fileHashes
+¦   ¦   ¦       fileHashes.bin
+¦   ¦   ¦       fileHashes.lock
+¦   ¦   ¦       resourceHashesCache.bin
+¦   ¦   ¦       
+¦   ¦   +---kotlin-dsl-plugin-entries
+¦   ¦   ¦       jar-entries.bin
+¦   ¦   ¦       kotlin-dsl-plugin-entries.lock
+¦   ¦   ¦       
+¦   ¦   +---vcsMetadata
+¦   +---buildOutputCleanup
+¦   ¦       buildOutputCleanup.lock
+¦   ¦       cache.properties
+¦   ¦       outputFiles.bin
+¦   ¦       
+¦   +---vcs-1
+¦           gc.properties
+¦           
++---.kotlin
+¦   +---sessions
++---build
+¦   +---reports
+¦       +---problems
+¦               problems-report.html
+¦               
++---extensions
+¦   +---extension
+¦       ¦   build.gradle.kts
+¦       ¦   
+¦       +---build
+¦       ¦   +---generated
+¦       ¦   ¦   +---ap_generated_sources
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---out
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---out
+¦       ¦   ¦   +---res
+¦       ¦   ¦   ¦   +---pngs
+¦       ¦   ¦   ¦       +---debug
+¦       ¦   ¦   ¦       +---release
+¦       ¦   ¦   +---updated_navigation_xml
+¦       ¦   ¦       +---debug
+¦       ¦   ¦       +---release
+¦       ¦   +---intermediates
+¦       ¦   ¦   +---aar_metadata_check
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---checkDebugAarMetadata
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---checkReleaseAarMetadata
+¦       ¦   ¦   +---android_res_source_set_path_map
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---mapDebugSourceSetPaths
+¦       ¦   ¦   ¦   ¦           file-map.txt
+¦       ¦   ¦   ¦   ¦           
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---mapReleaseSourceSetPaths
+¦       ¦   ¦   ¦               file-map.txt
+¦       ¦   ¦   ¦               
+¦       ¦   ¦   +---android_test_lint_model
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦       +---generateDebugAndroidTestLintModel
+¦       ¦   ¦   ¦               debug-artifact-dependencies.xml
+¦       ¦   ¦   ¦               debug-artifact-libraries.xml
+¦       ¦   ¦   ¦               debug.xml
+¦       ¦   ¦   ¦               module.xml
+¦       ¦   ¦   ¦               
+¦       ¦   ¦   +---android_test_lint_partial_results
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦       +---lintAnalyzeDebugAndroidTest
+¦       ¦   ¦   ¦           +---out
+¦       ¦   ¦   ¦                   lint-partial.xml
+¦       ¦   ¦   ¦                   
+¦       ¦   ¦   +---annotation_processor_list
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---javaPreCompileDebug
+¦       ¦   ¦   ¦   ¦           annotationProcessors.json
+¦       ¦   ¦   ¦   ¦           
+¦       ¦   ¦   ¦   +---debugUnitTest
+¦       ¦   ¦   ¦   ¦   +---javaPreCompileDebugUnitTest
+¦       ¦   ¦   ¦   ¦           annotationProcessors.json
+¦       ¦   ¦   ¦   ¦           
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---javaPreCompileRelease
+¦       ¦   ¦   ¦               annotationProcessors.json
+¦       ¦   ¦   ¦               
+¦       ¦   ¦   +---apk_ide_redirect_file
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---createDebugApkListingFileRedirect
+¦       ¦   ¦   ¦   ¦           redirect.txt
+¦       ¦   ¦   ¦   ¦           
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---createReleaseApkListingFileRedirect
+¦       ¦   ¦   ¦               redirect.txt
+¦       ¦   ¦   ¦               
+¦       ¦   ¦   +---app_metadata
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---writeDebugAppMetadata
+¦       ¦   ¦   ¦   ¦           app-metadata.properties
+¦       ¦   ¦   ¦   ¦           
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---writeReleaseAppMetadata
+¦       ¦   ¦   ¦               app-metadata.properties
+¦       ¦   ¦   ¦               
+¦       ¦   ¦   +---assets
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---mergeDebugAssets
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---mergeReleaseAssets
+¦       ¦   ¦   +---binary_art_profile
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---compileReleaseArtProfile
+¦       ¦   ¦   +---binary_art_profile_metadata
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---compileReleaseArtProfile
+¦       ¦   ¦   +---combined_art_profile
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---compileReleaseArtProfile
+¦       ¦   ¦   +---compatible_screen_manifest
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---createDebugCompatibleScreenManifests
+¦       ¦   ¦   ¦   ¦           output-metadata.json
+¦       ¦   ¦   ¦   ¦           
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---createReleaseCompatibleScreenManifests
+¦       ¦   ¦   ¦               output-metadata.json
+¦       ¦   ¦   ¦               
+¦       ¦   ¦   +---compiled_navigation_res
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---compileDebugNavigationResources
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---compileReleaseNavigationResources
+¦       ¦   ¦   +---compile_and_runtime_r_class_jar
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---processDebugResources
+¦       ¦   ¦   ¦   ¦           R.jar
+¦       ¦   ¦   ¦   ¦           
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---processReleaseResources
+¦       ¦   ¦   ¦               R.jar
+¦       ¦   ¦   ¦               
+¦       ¦   ¦   +---compile_app_classes_jar
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦       +---bundleDebugClassesToCompileJar
+¦       ¦   ¦   ¦               classes.jar
+¦       ¦   ¦   ¦               
+¦       ¦   ¦   +---compile_r_class_jar
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---generateDebugRFile
+¦       ¦   ¦   ¦   ¦           R.jar
+¦       ¦   ¦   ¦   ¦           
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---generateReleaseRFile
+¦       ¦   ¦   ¦               R.jar
+¦       ¦   ¦   ¦               
+¦       ¦   ¦   +---compile_symbol_list
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---generateDebugRFile
+¦       ¦   ¦   ¦   ¦           R.txt
+¦       ¦   ¦   ¦   ¦           
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---generateReleaseRFile
+¦       ¦   ¦   ¦               R.txt
+¦       ¦   ¦   ¦               
+¦       ¦   ¦   +---compressed_assets
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---compressDebugAssets
+¦       ¦   ¦   ¦   ¦       +---out
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---compressReleaseAssets
+¦       ¦   ¦   ¦           +---out
+¦       ¦   ¦   +---d8_metadata
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---mergeDexRelease
+¦       ¦   ¦   ¦               d8-metadata.dat
+¦       ¦   ¦   ¦               
+¦       ¦   ¦   +---data_binding_layout_info_type_merge
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---mergeDebugResources
+¦       ¦   ¦   ¦   ¦       +---out
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---mergeReleaseResources
+¦       ¦   ¦   ¦           +---out
+¦       ¦   ¦   +---data_binding_layout_info_type_package
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---packageDebugResources
+¦       ¦   ¦   ¦   ¦       +---out
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---packageReleaseResources
+¦       ¦   ¦   ¦           +---out
+¦       ¦   ¦   +---default_proguard_files
+¦       ¦   ¦   ¦   +---global
+¦       ¦   ¦   ¦           proguard-android-optimize.txt-9.1.0
+¦       ¦   ¦   ¦           proguard-android.txt-9.1.0
+¦       ¦   ¦   ¦           
+¦       ¦   ¦   +---desugar_graph
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---dexBuilderDebug
+¦       ¦   ¦   ¦   ¦       +---out
+¦       ¦   ¦   ¦   ¦           +---currentProject
+¦       ¦   ¦   ¦   ¦           ¦   +---dirs_bucket_0
+¦       ¦   ¦   ¦   ¦           ¦   ¦       graph.bin
+¦       ¦   ¦   ¦   ¦           ¦   ¦       
+¦       ¦   ¦   ¦   ¦           ¦   +---dirs_bucket_1
+¦       ¦   ¦   ¦   ¦           ¦   ¦       graph.bin
+¦       ¦   ¦   ¦   ¦           ¦   ¦       
+¦       ¦   ¦   ¦   ¦           ¦   +---dirs_bucket_2
+¦       ¦   ¦   ¦   ¦           ¦   ¦       graph.bin
+¦       ¦   ¦   ¦   ¦           ¦   ¦       
+¦       ¦   ¦   ¦   ¦           ¦   +---dirs_bucket_3
+¦       ¦   ¦   ¦   ¦           ¦   ¦       graph.bin
+¦       ¦   ¦   ¦   ¦           ¦   ¦       
+¦       ¦   ¦   ¦   ¦           ¦   +---dirs_bucket_4
+¦       ¦   ¦   ¦   ¦           ¦   ¦       graph.bin
+¦       ¦   ¦   ¦   ¦           ¦   ¦       
+¦       ¦   ¦   ¦   ¦           ¦   +---dirs_bucket_5
+¦       ¦   ¦   ¦   ¦           ¦   ¦       graph.bin
+¦       ¦   ¦   ¦   ¦           ¦   ¦       
+¦       ¦   ¦   ¦   ¦           ¦   +---dirs_bucket_6
+¦       ¦   ¦   ¦   ¦           ¦   ¦       graph.bin
+¦       ¦   ¦   ¦   ¦           ¦   ¦       
+¦       ¦   ¦   ¦   ¦           ¦   +---dirs_bucket_7
+¦       ¦   ¦   ¦   ¦           ¦   ¦       graph.bin
+¦       ¦   ¦   ¦   ¦           ¦   ¦       
+¦       ¦   ¦   ¦   ¦           ¦   +---dirs_bucket_8
+¦       ¦   ¦   ¦   ¦           ¦   ¦       graph.bin
+¦       ¦   ¦   ¦   ¦           ¦   ¦       
+¦       ¦   ¦   ¦   ¦           ¦   +---dirs_bucket_9
+¦       ¦   ¦   ¦   ¦           ¦   ¦       graph.bin
+¦       ¦   ¦   ¦   ¦           ¦   ¦       
+¦       ¦   ¦   ¦   ¦           ¦   +---jar_1ffa5d683aa0359cfc0d3067d82b436417cdc77edf029642f55ad62b15fb74f1_bucket_0
+¦       ¦   ¦   ¦   ¦           ¦   ¦       graph.bin
+¦       ¦   ¦   ¦   ¦           ¦   ¦       
+¦       ¦   ¦   ¦   ¦           ¦   +---jar_1ffa5d683aa0359cfc0d3067d82b436417cdc77edf029642f55ad62b15fb74f1_bucket_1
+¦       ¦   ¦   ¦   ¦           ¦   ¦       graph.bin
+¦       ¦   ¦   ¦   ¦           ¦   ¦       
+¦       ¦   ¦   ¦   ¦           ¦   +---jar_1ffa5d683aa0359cfc0d3067d82b436417cdc77edf029642f55ad62b15fb74f1_bucket_2
+¦       ¦   ¦   ¦   ¦           ¦   ¦       graph.bin
+¦       ¦   ¦   ¦   ¦           ¦   ¦       
+¦       ¦   ¦   ¦   ¦           ¦   +---jar_1ffa5d683aa0359cfc0d3067d82b436417cdc77edf029642f55ad62b15fb74f1_bucket_3
+¦       ¦   ¦   ¦   ¦           ¦   ¦       graph.bin
+¦       ¦   ¦   ¦   ¦           ¦   ¦       
+¦       ¦   ¦   ¦   ¦           ¦   +---jar_1ffa5d683aa0359cfc0d3067d82b436417cdc77edf029642f55ad62b15fb74f1_bucket_4
+¦       ¦   ¦   ¦   ¦           ¦   ¦       graph.bin
+¦       ¦   ¦   ¦   ¦           ¦   ¦       
+¦       ¦   ¦   ¦   ¦           ¦   +---jar_1ffa5d683aa0359cfc0d3067d82b436417cdc77edf029642f55ad62b15fb74f1_bucket_5
+¦       ¦   ¦   ¦   ¦           ¦   ¦       graph.bin
+¦       ¦   ¦   ¦   ¦           ¦   ¦       
+¦       ¦   ¦   ¦   ¦           ¦   +---jar_1ffa5d683aa0359cfc0d3067d82b436417cdc77edf029642f55ad62b15fb74f1_bucket_6
+¦       ¦   ¦   ¦   ¦           ¦   ¦       graph.bin
+¦       ¦   ¦   ¦   ¦           ¦   ¦       
+¦       ¦   ¦   ¦   ¦           ¦   +---jar_1ffa5d683aa0359cfc0d3067d82b436417cdc77edf029642f55ad62b15fb74f1_bucket_7
+¦       ¦   ¦   ¦   ¦           ¦   ¦       graph.bin
+¦       ¦   ¦   ¦   ¦           ¦   ¦       
+¦       ¦   ¦   ¦   ¦           ¦   +---jar_1ffa5d683aa0359cfc0d3067d82b436417cdc77edf029642f55ad62b15fb74f1_bucket_8
+¦       ¦   ¦   ¦   ¦           ¦   ¦       graph.bin
+¦       ¦   ¦   ¦   ¦           ¦   ¦       
+¦       ¦   ¦   ¦   ¦           ¦   +---jar_1ffa5d683aa0359cfc0d3067d82b436417cdc77edf029642f55ad62b15fb74f1_bucket_9
+¦       ¦   ¦   ¦   ¦           ¦           graph.bin
+¦       ¦   ¦   ¦   ¦           ¦           
+¦       ¦   ¦   ¦   ¦           +---externalLibs
+¦       ¦   ¦   ¦   ¦           ¦   +---dirs_bucket_0
+¦       ¦   ¦   ¦   ¦           ¦   ¦       graph.bin
+¦       ¦   ¦   ¦   ¦           ¦   ¦       
+¦       ¦   ¦   ¦   ¦           ¦   +---dirs_bucket_1
+¦       ¦   ¦   ¦   ¦           ¦   ¦       graph.bin
+¦       ¦   ¦   ¦   ¦           ¦   ¦       
+¦       ¦   ¦   ¦   ¦           ¦   +---dirs_bucket_2
+¦       ¦   ¦   ¦   ¦           ¦   ¦       graph.bin
+¦       ¦   ¦   ¦   ¦           ¦   ¦       
+¦       ¦   ¦   ¦   ¦           ¦   +---dirs_bucket_3
+¦       ¦   ¦   ¦   ¦           ¦   ¦       graph.bin
+¦       ¦   ¦   ¦   ¦           ¦   ¦       
+¦       ¦   ¦   ¦   ¦           ¦   +---dirs_bucket_4
+¦       ¦   ¦   ¦   ¦           ¦   ¦       graph.bin
+¦       ¦   ¦   ¦   ¦           ¦   ¦       
+¦       ¦   ¦   ¦   ¦           ¦   +---dirs_bucket_5
+¦       ¦   ¦   ¦   ¦           ¦   ¦       graph.bin
+¦       ¦   ¦   ¦   ¦           ¦   ¦       
+¦       ¦   ¦   ¦   ¦           ¦   +---dirs_bucket_6
+¦       ¦   ¦   ¦   ¦           ¦   ¦       graph.bin
+¦       ¦   ¦   ¦   ¦           ¦   ¦       
+¦       ¦   ¦   ¦   ¦           ¦   +---dirs_bucket_7
+¦       ¦   ¦   ¦   ¦           ¦   ¦       graph.bin
+¦       ¦   ¦   ¦   ¦           ¦   ¦       
+¦       ¦   ¦   ¦   ¦           ¦   +---dirs_bucket_8
+¦       ¦   ¦   ¦   ¦           ¦   ¦       graph.bin
+¦       ¦   ¦   ¦   ¦           ¦   ¦       
+¦       ¦   ¦   ¦   ¦           ¦   +---dirs_bucket_9
+¦       ¦   ¦   ¦   ¦           ¦           graph.bin
+¦       ¦   ¦   ¦   ¦           ¦           
+¦       ¦   ¦   ¦   ¦           +---mixedScopes
+¦       ¦   ¦   ¦   ¦           ¦   +---dirs_bucket_0
+¦       ¦   ¦   ¦   ¦           ¦   ¦       graph.bin
+¦       ¦   ¦   ¦   ¦           ¦   ¦       
+¦       ¦   ¦   ¦   ¦           ¦   +---dirs_bucket_1
+¦       ¦   ¦   ¦   ¦           ¦   ¦       graph.bin
+¦       ¦   ¦   ¦   ¦           ¦   ¦       
+¦       ¦   ¦   ¦   ¦           ¦   +---dirs_bucket_2
+¦       ¦   ¦   ¦   ¦           ¦   ¦       graph.bin
+¦       ¦   ¦   ¦   ¦           ¦   ¦       
+¦       ¦   ¦   ¦   ¦           ¦   +---dirs_bucket_3
+¦       ¦   ¦   ¦   ¦           ¦   ¦       graph.bin
+¦       ¦   ¦   ¦   ¦           ¦   ¦       
+¦       ¦   ¦   ¦   ¦           ¦   +---dirs_bucket_4
+¦       ¦   ¦   ¦   ¦           ¦   ¦       graph.bin
+¦       ¦   ¦   ¦   ¦           ¦   ¦       
+¦       ¦   ¦   ¦   ¦           ¦   +---dirs_bucket_5
+¦       ¦   ¦   ¦   ¦           ¦   ¦       graph.bin
+¦       ¦   ¦   ¦   ¦           ¦   ¦       
+¦       ¦   ¦   ¦   ¦           ¦   +---dirs_bucket_6
+¦       ¦   ¦   ¦   ¦           ¦   ¦       graph.bin
+¦       ¦   ¦   ¦   ¦           ¦   ¦       
+¦       ¦   ¦   ¦   ¦           ¦   +---dirs_bucket_7
+¦       ¦   ¦   ¦   ¦           ¦   ¦       graph.bin
+¦       ¦   ¦   ¦   ¦           ¦   ¦       
+¦       ¦   ¦   ¦   ¦           ¦   +---dirs_bucket_8
+¦       ¦   ¦   ¦   ¦           ¦   ¦       graph.bin
+¦       ¦   ¦   ¦   ¦           ¦   ¦       
+¦       ¦   ¦   ¦   ¦           ¦   +---dirs_bucket_9
+¦       ¦   ¦   ¦   ¦           ¦           graph.bin
+¦       ¦   ¦   ¦   ¦           ¦           
+¦       ¦   ¦   ¦   ¦           +---otherProjects
+¦       ¦   ¦   ¦   ¦               +---dirs_bucket_0
+¦       ¦   ¦   ¦   ¦               ¦       graph.bin
+¦       ¦   ¦   ¦   ¦               ¦       
+¦       ¦   ¦   ¦   ¦               +---dirs_bucket_1
+¦       ¦   ¦   ¦   ¦               ¦       graph.bin
+¦       ¦   ¦   ¦   ¦               ¦       
+¦       ¦   ¦   ¦   ¦               +---dirs_bucket_2
+¦       ¦   ¦   ¦   ¦               ¦       graph.bin
+¦       ¦   ¦   ¦   ¦               ¦       
+¦       ¦   ¦   ¦   ¦               +---dirs_bucket_3
+¦       ¦   ¦   ¦   ¦               ¦       graph.bin
+¦       ¦   ¦   ¦   ¦               ¦       
+¦       ¦   ¦   ¦   ¦               +---dirs_bucket_4
+¦       ¦   ¦   ¦   ¦               ¦       graph.bin
+¦       ¦   ¦   ¦   ¦               ¦       
+¦       ¦   ¦   ¦   ¦               +---dirs_bucket_5
+¦       ¦   ¦   ¦   ¦               ¦       graph.bin
+¦       ¦   ¦   ¦   ¦               ¦       
+¦       ¦   ¦   ¦   ¦               +---dirs_bucket_6
+¦       ¦   ¦   ¦   ¦               ¦       graph.bin
+¦       ¦   ¦   ¦   ¦               ¦       
+¦       ¦   ¦   ¦   ¦               +---dirs_bucket_7
+¦       ¦   ¦   ¦   ¦               ¦       graph.bin
+¦       ¦   ¦   ¦   ¦               ¦       
+¦       ¦   ¦   ¦   ¦               +---dirs_bucket_8
+¦       ¦   ¦   ¦   ¦               ¦       graph.bin
+¦       ¦   ¦   ¦   ¦               ¦       
+¦       ¦   ¦   ¦   ¦               +---dirs_bucket_9
+¦       ¦   ¦   ¦   ¦                       graph.bin
+¦       ¦   ¦   ¦   ¦                       
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---dexBuilderRelease
+¦       ¦   ¦   ¦           +---out
+¦       ¦   ¦   ¦               +---currentProject
+¦       ¦   ¦   ¦               ¦   +---dirs_bucket_0
+¦       ¦   ¦   ¦               ¦   ¦       graph.bin
+¦       ¦   ¦   ¦               ¦   ¦       
+¦       ¦   ¦   ¦               ¦   +---dirs_bucket_1
+¦       ¦   ¦   ¦               ¦   ¦       graph.bin
+¦       ¦   ¦   ¦               ¦   ¦       
+¦       ¦   ¦   ¦               ¦   +---dirs_bucket_2
+¦       ¦   ¦   ¦               ¦   ¦       graph.bin
+¦       ¦   ¦   ¦               ¦   ¦       
+¦       ¦   ¦   ¦               ¦   +---dirs_bucket_3
+¦       ¦   ¦   ¦               ¦   ¦       graph.bin
+¦       ¦   ¦   ¦               ¦   ¦       
+¦       ¦   ¦   ¦               ¦   +---dirs_bucket_4
+¦       ¦   ¦   ¦               ¦   ¦       graph.bin
+¦       ¦   ¦   ¦               ¦   ¦       
+¦       ¦   ¦   ¦               ¦   +---dirs_bucket_5
+¦       ¦   ¦   ¦               ¦   ¦       graph.bin
+¦       ¦   ¦   ¦               ¦   ¦       
+¦       ¦   ¦   ¦               ¦   +---dirs_bucket_6
+¦       ¦   ¦   ¦               ¦   ¦       graph.bin
+¦       ¦   ¦   ¦               ¦   ¦       
+¦       ¦   ¦   ¦               ¦   +---dirs_bucket_7
+¦       ¦   ¦   ¦               ¦   ¦       graph.bin
+¦       ¦   ¦   ¦               ¦   ¦       
+¦       ¦   ¦   ¦               ¦   +---dirs_bucket_8
+¦       ¦   ¦   ¦               ¦   ¦       graph.bin
+¦       ¦   ¦   ¦               ¦   ¦       
+¦       ¦   ¦   ¦               ¦   +---dirs_bucket_9
+¦       ¦   ¦   ¦               ¦   ¦       graph.bin
+¦       ¦   ¦   ¦               ¦   ¦       
+¦       ¦   ¦   ¦               ¦   +---jar_66eb6e4fd81572b5635f437cdc001c10e7a26984df72cd826ee0944913c5d99b_bucket_0
+¦       ¦   ¦   ¦               ¦   ¦       graph.bin
+¦       ¦   ¦   ¦               ¦   ¦       
+¦       ¦   ¦   ¦               ¦   +---jar_66eb6e4fd81572b5635f437cdc001c10e7a26984df72cd826ee0944913c5d99b_bucket_1
+¦       ¦   ¦   ¦               ¦   ¦       graph.bin
+¦       ¦   ¦   ¦               ¦   ¦       
+¦       ¦   ¦   ¦               ¦   +---jar_66eb6e4fd81572b5635f437cdc001c10e7a26984df72cd826ee0944913c5d99b_bucket_2
+¦       ¦   ¦   ¦               ¦   ¦       graph.bin
+¦       ¦   ¦   ¦               ¦   ¦       
+¦       ¦   ¦   ¦               ¦   +---jar_66eb6e4fd81572b5635f437cdc001c10e7a26984df72cd826ee0944913c5d99b_bucket_3
+¦       ¦   ¦   ¦               ¦   ¦       graph.bin
+¦       ¦   ¦   ¦               ¦   ¦       
+¦       ¦   ¦   ¦               ¦   +---jar_66eb6e4fd81572b5635f437cdc001c10e7a26984df72cd826ee0944913c5d99b_bucket_4
+¦       ¦   ¦   ¦               ¦   ¦       graph.bin
+¦       ¦   ¦   ¦               ¦   ¦       
+¦       ¦   ¦   ¦               ¦   +---jar_66eb6e4fd81572b5635f437cdc001c10e7a26984df72cd826ee0944913c5d99b_bucket_5
+¦       ¦   ¦   ¦               ¦   ¦       graph.bin
+¦       ¦   ¦   ¦               ¦   ¦       
+¦       ¦   ¦   ¦               ¦   +---jar_66eb6e4fd81572b5635f437cdc001c10e7a26984df72cd826ee0944913c5d99b_bucket_6
+¦       ¦   ¦   ¦               ¦   ¦       graph.bin
+¦       ¦   ¦   ¦               ¦   ¦       
+¦       ¦   ¦   ¦               ¦   +---jar_66eb6e4fd81572b5635f437cdc001c10e7a26984df72cd826ee0944913c5d99b_bucket_7
+¦       ¦   ¦   ¦               ¦   ¦       graph.bin
+¦       ¦   ¦   ¦               ¦   ¦       
+¦       ¦   ¦   ¦               ¦   +---jar_66eb6e4fd81572b5635f437cdc001c10e7a26984df72cd826ee0944913c5d99b_bucket_8
+¦       ¦   ¦   ¦               ¦   ¦       graph.bin
+¦       ¦   ¦   ¦               ¦   ¦       
+¦       ¦   ¦   ¦               ¦   +---jar_66eb6e4fd81572b5635f437cdc001c10e7a26984df72cd826ee0944913c5d99b_bucket_9
+¦       ¦   ¦   ¦               ¦           graph.bin
+¦       ¦   ¦   ¦               ¦           
+¦       ¦   ¦   ¦               +---externalLibs
+¦       ¦   ¦   ¦               ¦   +---dirs_bucket_0
+¦       ¦   ¦   ¦               ¦   ¦       graph.bin
+¦       ¦   ¦   ¦               ¦   ¦       
+¦       ¦   ¦   ¦               ¦   +---dirs_bucket_1
+¦       ¦   ¦   ¦               ¦   ¦       graph.bin
+¦       ¦   ¦   ¦               ¦   ¦       
+¦       ¦   ¦   ¦               ¦   +---dirs_bucket_2
+¦       ¦   ¦   ¦               ¦   ¦       graph.bin
+¦       ¦   ¦   ¦               ¦   ¦       
+¦       ¦   ¦   ¦               ¦   +---dirs_bucket_3
+¦       ¦   ¦   ¦               ¦   ¦       graph.bin
+¦       ¦   ¦   ¦               ¦   ¦       
+¦       ¦   ¦   ¦               ¦   +---dirs_bucket_4
+¦       ¦   ¦   ¦               ¦   ¦       graph.bin
+¦       ¦   ¦   ¦               ¦   ¦       
+¦       ¦   ¦   ¦               ¦   +---dirs_bucket_5
+¦       ¦   ¦   ¦               ¦   ¦       graph.bin
+¦       ¦   ¦   ¦               ¦   ¦       
+¦       ¦   ¦   ¦               ¦   +---dirs_bucket_6
+¦       ¦   ¦   ¦               ¦   ¦       graph.bin
+¦       ¦   ¦   ¦               ¦   ¦       
+¦       ¦   ¦   ¦               ¦   +---dirs_bucket_7
+¦       ¦   ¦   ¦               ¦   ¦       graph.bin
+¦       ¦   ¦   ¦               ¦   ¦       
+¦       ¦   ¦   ¦               ¦   +---dirs_bucket_8
+¦       ¦   ¦   ¦               ¦   ¦       graph.bin
+¦       ¦   ¦   ¦               ¦   ¦       
+¦       ¦   ¦   ¦               ¦   +---dirs_bucket_9
+¦       ¦   ¦   ¦               ¦           graph.bin
+¦       ¦   ¦   ¦               ¦           
+¦       ¦   ¦   ¦               +---mixedScopes
+¦       ¦   ¦   ¦               ¦   +---dirs_bucket_0
+¦       ¦   ¦   ¦               ¦   ¦       graph.bin
+¦       ¦   ¦   ¦               ¦   ¦       
+¦       ¦   ¦   ¦               ¦   +---dirs_bucket_1
+¦       ¦   ¦   ¦               ¦   ¦       graph.bin
+¦       ¦   ¦   ¦               ¦   ¦       
+¦       ¦   ¦   ¦               ¦   +---dirs_bucket_2
+¦       ¦   ¦   ¦               ¦   ¦       graph.bin
+¦       ¦   ¦   ¦               ¦   ¦       
+¦       ¦   ¦   ¦               ¦   +---dirs_bucket_3
+¦       ¦   ¦   ¦               ¦   ¦       graph.bin
+¦       ¦   ¦   ¦               ¦   ¦       
+¦       ¦   ¦   ¦               ¦   +---dirs_bucket_4
+¦       ¦   ¦   ¦               ¦   ¦       graph.bin
+¦       ¦   ¦   ¦               ¦   ¦       
+¦       ¦   ¦   ¦               ¦   +---dirs_bucket_5
+¦       ¦   ¦   ¦               ¦   ¦       graph.bin
+¦       ¦   ¦   ¦               ¦   ¦       
+¦       ¦   ¦   ¦               ¦   +---dirs_bucket_6
+¦       ¦   ¦   ¦               ¦   ¦       graph.bin
+¦       ¦   ¦   ¦               ¦   ¦       
+¦       ¦   ¦   ¦               ¦   +---dirs_bucket_7
+¦       ¦   ¦   ¦               ¦   ¦       graph.bin
+¦       ¦   ¦   ¦               ¦   ¦       
+¦       ¦   ¦   ¦               ¦   +---dirs_bucket_8
+¦       ¦   ¦   ¦               ¦   ¦       graph.bin
+¦       ¦   ¦   ¦               ¦   ¦       
+¦       ¦   ¦   ¦               ¦   +---dirs_bucket_9
+¦       ¦   ¦   ¦               ¦           graph.bin
+¦       ¦   ¦   ¦               ¦           
+¦       ¦   ¦   ¦               +---otherProjects
+¦       ¦   ¦   ¦                   +---dirs_bucket_0
+¦       ¦   ¦   ¦                   ¦       graph.bin
+¦       ¦   ¦   ¦                   ¦       
+¦       ¦   ¦   ¦                   +---dirs_bucket_1
+¦       ¦   ¦   ¦                   ¦       graph.bin
+¦       ¦   ¦   ¦                   ¦       
+¦       ¦   ¦   ¦                   +---dirs_bucket_2
+¦       ¦   ¦   ¦                   ¦       graph.bin
+¦       ¦   ¦   ¦                   ¦       
+¦       ¦   ¦   ¦                   +---dirs_bucket_3
+¦       ¦   ¦   ¦                   ¦       graph.bin
+¦       ¦   ¦   ¦                   ¦       
+¦       ¦   ¦   ¦                   +---dirs_bucket_4
+¦       ¦   ¦   ¦                   ¦       graph.bin
+¦       ¦   ¦   ¦                   ¦       
+¦       ¦   ¦   ¦                   +---dirs_bucket_5
+¦       ¦   ¦   ¦                   ¦       graph.bin
+¦       ¦   ¦   ¦                   ¦       
+¦       ¦   ¦   ¦                   +---dirs_bucket_6
+¦       ¦   ¦   ¦                   ¦       graph.bin
+¦       ¦   ¦   ¦                   ¦       
+¦       ¦   ¦   ¦                   +---dirs_bucket_7
+¦       ¦   ¦   ¦                   ¦       graph.bin
+¦       ¦   ¦   ¦                   ¦       
+¦       ¦   ¦   ¦                   +---dirs_bucket_8
+¦       ¦   ¦   ¦                   ¦       graph.bin
+¦       ¦   ¦   ¦                   ¦       
+¦       ¦   ¦   ¦                   +---dirs_bucket_9
+¦       ¦   ¦   ¦                           graph.bin
+¦       ¦   ¦   ¦                           
+¦       ¦   ¦   +---dex
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---mergeExtDexDebug
+¦       ¦   ¦   ¦   ¦   ¦       classes.dex
+¦       ¦   ¦   ¦   ¦   ¦       
+¦       ¦   ¦   ¦   ¦   +---mergeLibDexDebug
+¦       ¦   ¦   ¦   ¦   ¦   +---0
+¦       ¦   ¦   ¦   ¦   ¦   +---1
+¦       ¦   ¦   ¦   ¦   ¦   +---10
+¦       ¦   ¦   ¦   ¦   ¦   +---11
+¦       ¦   ¦   ¦   ¦   ¦   +---12
+¦       ¦   ¦   ¦   ¦   ¦   +---13
+¦       ¦   ¦   ¦   ¦   ¦   +---14
+¦       ¦   ¦   ¦   ¦   ¦   +---15
+¦       ¦   ¦   ¦   ¦   ¦   +---2
+¦       ¦   ¦   ¦   ¦   ¦   +---3
+¦       ¦   ¦   ¦   ¦   ¦   +---4
+¦       ¦   ¦   ¦   ¦   ¦   +---5
+¦       ¦   ¦   ¦   ¦   ¦   +---6
+¦       ¦   ¦   ¦   ¦   ¦   +---7
+¦       ¦   ¦   ¦   ¦   ¦   +---8
+¦       ¦   ¦   ¦   ¦   ¦   +---9
+¦       ¦   ¦   ¦   ¦   +---mergeProjectDexDebug
+¦       ¦   ¦   ¦   ¦       +---0
+¦       ¦   ¦   ¦   ¦       ¦       classes.dex
+¦       ¦   ¦   ¦   ¦       ¦       
+¦       ¦   ¦   ¦   ¦       +---1
+¦       ¦   ¦   ¦   ¦       +---10
+¦       ¦   ¦   ¦   ¦       +---11
+¦       ¦   ¦   ¦   ¦       +---12
+¦       ¦   ¦   ¦   ¦       +---13
+¦       ¦   ¦   ¦   ¦       +---14
+¦       ¦   ¦   ¦   ¦       +---15
+¦       ¦   ¦   ¦   ¦       +---2
+¦       ¦   ¦   ¦   ¦       +---3
+¦       ¦   ¦   ¦   ¦       +---4
+¦       ¦   ¦   ¦   ¦       +---5
+¦       ¦   ¦   ¦   ¦       +---6
+¦       ¦   ¦   ¦   ¦       +---7
+¦       ¦   ¦   ¦   ¦       +---8
+¦       ¦   ¦   ¦   ¦       +---9
+¦       ¦   ¦   ¦   ¦               classes.dex
+¦       ¦   ¦   ¦   ¦               
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---mergeDexRelease
+¦       ¦   ¦   ¦               classes.dex
+¦       ¦   ¦   ¦               
+¦       ¦   ¦   +---dex_archive_input_jar_hashes
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---dexBuilderDebug
+¦       ¦   ¦   ¦   ¦           out
+¦       ¦   ¦   ¦   ¦           
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---dexBuilderRelease
+¦       ¦   ¦   ¦               out
+¦       ¦   ¦   ¦               
+¦       ¦   ¦   +---dex_metadata_directory
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---compileReleaseArtProfile
+¦       ¦   ¦   +---dex_number_of_buckets_file
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---dexBuilderDebug
+¦       ¦   ¦   ¦   ¦           out
+¦       ¦   ¦   ¦   ¦           
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---dexBuilderRelease
+¦       ¦   ¦   ¦               out
+¦       ¦   ¦   ¦               
+¦       ¦   ¦   +---duplicate_classes_check
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---checkDebugDuplicateClasses
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---checkReleaseDuplicateClasses
+¦       ¦   ¦   +---external_file_lib_dex_archives
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---desugarDebugFileDependencies
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---desugarReleaseFileDependencies
+¦       ¦   ¦   +---external_libs_dex
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---mergeExtDexRelease
+¦       ¦   ¦   ¦               classes.dex
+¦       ¦   ¦   ¦               
+¦       ¦   ¦   +---external_libs_dex_archive
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---dexBuilderDebug
+¦       ¦   ¦   ¦   ¦       +---out
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---dexBuilderRelease
+¦       ¦   ¦   ¦           +---out
+¦       ¦   ¦   +---external_libs_dex_archive_with_artifact_transforms
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---dexBuilderDebug
+¦       ¦   ¦   ¦   ¦       +---out
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---dexBuilderRelease
+¦       ¦   ¦   ¦           +---out
+¦       ¦   ¦   +---global_synthetics_dex
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---mergeDebugGlobalSynthetics
+¦       ¦   ¦   ¦   ¦           classes.dex
+¦       ¦   ¦   ¦   ¦           
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---mergeReleaseGlobalSynthetics
+¦       ¦   ¦   +---global_synthetics_external_lib
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---dexBuilderDebug
+¦       ¦   ¦   ¦   ¦       +---out
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---dexBuilderRelease
+¦       ¦   ¦   ¦           +---out
+¦       ¦   ¦   +---global_synthetics_external_libs_artifact_transform
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---dexBuilderDebug
+¦       ¦   ¦   ¦   ¦       +---out
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---dexBuilderRelease
+¦       ¦   ¦   ¦           +---out
+¦       ¦   ¦   +---global_synthetics_file_lib
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---desugarDebugFileDependencies
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---desugarReleaseFileDependencies
+¦       ¦   ¦   +---global_synthetics_mixed_scope
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---dexBuilderDebug
+¦       ¦   ¦   ¦   ¦       +---out
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---dexBuilderRelease
+¦       ¦   ¦   ¦           +---out
+¦       ¦   ¦   +---global_synthetics_project
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---dexBuilderDebug
+¦       ¦   ¦   ¦   ¦       +---out
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---dexBuilderRelease
+¦       ¦   ¦   ¦           +---out
+¦       ¦   ¦   +---global_synthetics_subproject
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---dexBuilderDebug
+¦       ¦   ¦   ¦   ¦       +---out
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---dexBuilderRelease
+¦       ¦   ¦   ¦           +---out
+¦       ¦   ¦   +---incremental
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---mergeDebugResources
+¦       ¦   ¦   ¦   ¦   ¦   ¦   compile-file-map.properties
+¦       ¦   ¦   ¦   ¦   ¦   ¦   merger.xml
+¦       ¦   ¦   ¦   ¦   ¦   ¦   
+¦       ¦   ¦   ¦   ¦   ¦   +---merged.dir
+¦       ¦   ¦   ¦   ¦   ¦   +---stripped.dir
+¦       ¦   ¦   ¦   ¦   +---packageDebugResources
+¦       ¦   ¦   ¦   ¦       ¦   compile-file-map.properties
+¦       ¦   ¦   ¦   ¦       ¦   merger.xml
+¦       ¦   ¦   ¦   ¦       ¦   
+¦       ¦   ¦   ¦   ¦       +---merged.dir
+¦       ¦   ¦   ¦   ¦       +---stripped.dir
+¦       ¦   ¦   ¦   +---debug-mergeJavaRes
+¦       ¦   ¦   ¦   ¦   ¦   merge-state
+¦       ¦   ¦   ¦   ¦   ¦   
+¦       ¦   ¦   ¦   ¦   +---zip-cache
+¦       ¦   ¦   ¦   ¦           8KDpsgm1SBHhFZF3gs_20w==
+¦       ¦   ¦   ¦   ¦           OFHL3aaLzSKbPdUsVcFZMw==
+¦       ¦   ¦   ¦   ¦           
+¦       ¦   ¦   ¦   +---lintAnalyzeDebug
+¦       ¦   ¦   ¦   ¦       debug-artifact-dependencies.xml
+¦       ¦   ¦   ¦   ¦       debug-artifact-libraries.xml
+¦       ¦   ¦   ¦   ¦       debug.xml
+¦       ¦   ¦   ¦   ¦       module.xml
+¦       ¦   ¦   ¦   ¦       
+¦       ¦   ¦   ¦   +---lintAnalyzeDebugAndroidTest
+¦       ¦   ¦   ¦   ¦       debug-artifact-dependencies.xml
+¦       ¦   ¦   ¦   ¦       debug-artifact-libraries.xml
+¦       ¦   ¦   ¦   ¦       debug.xml
+¦       ¦   ¦   ¦   ¦       module.xml
+¦       ¦   ¦   ¦   ¦       
+¦       ¦   ¦   ¦   +---lintAnalyzeDebugUnitTest
+¦       ¦   ¦   ¦   ¦       debug-artifact-dependencies.xml
+¦       ¦   ¦   ¦   ¦       debug-artifact-libraries.xml
+¦       ¦   ¦   ¦   ¦       debug.xml
+¦       ¦   ¦   ¦   ¦       module.xml
+¦       ¦   ¦   ¦   ¦       
+¦       ¦   ¦   ¦   +---lintVitalAnalyzeRelease
+¦       ¦   ¦   ¦   ¦       module.xml
+¦       ¦   ¦   ¦   ¦       release-artifact-dependencies.xml
+¦       ¦   ¦   ¦   ¦       release-artifact-libraries.xml
+¦       ¦   ¦   ¦   ¦       release.xml
+¦       ¦   ¦   ¦   ¦       
+¦       ¦   ¦   ¦   +---mergeDebugAssets
+¦       ¦   ¦   ¦   ¦       merger.xml
+¦       ¦   ¦   ¦   ¦       
+¦       ¦   ¦   ¦   +---mergeDebugJniLibFolders
+¦       ¦   ¦   ¦   ¦       merger.xml
+¦       ¦   ¦   ¦   ¦       
+¦       ¦   ¦   ¦   +---mergeReleaseAssets
+¦       ¦   ¦   ¦   ¦       merger.xml
+¦       ¦   ¦   ¦   ¦       
+¦       ¦   ¦   ¦   +---mergeReleaseJniLibFolders
+¦       ¦   ¦   ¦   ¦       merger.xml
+¦       ¦   ¦   ¦   ¦       
+¦       ¦   ¦   ¦   +---packageDebug
+¦       ¦   ¦   ¦   ¦   +---tmp
+¦       ¦   ¦   ¦   ¦       +---debug
+¦       ¦   ¦   ¦   ¦           ¦   dex-renamer-state.txt
+¦       ¦   ¦   ¦   ¦           ¦   
+¦       ¦   ¦   ¦   ¦           +---zip-cache
+¦       ¦   ¦   ¦   ¦                   androidResources
+¦       ¦   ¦   ¦   ¦                   javaResources0
+¦       ¦   ¦   ¦   ¦                   
+¦       ¦   ¦   ¦   +---packageRelease
+¦       ¦   ¦   ¦   ¦   +---tmp
+¦       ¦   ¦   ¦   ¦       +---release
+¦       ¦   ¦   ¦   ¦           ¦   dex-renamer-state.txt
+¦       ¦   ¦   ¦   ¦           ¦   
+¦       ¦   ¦   ¦   ¦           +---zip-cache
+¦       ¦   ¦   ¦   ¦                   androidResources
+¦       ¦   ¦   ¦   ¦                   javaResources0
+¦       ¦   ¦   ¦   ¦                   
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦   ¦   +---mergeReleaseResources
+¦       ¦   ¦   ¦   ¦   ¦   ¦   compile-file-map.properties
+¦       ¦   ¦   ¦   ¦   ¦   ¦   merger.xml
+¦       ¦   ¦   ¦   ¦   ¦   ¦   
+¦       ¦   ¦   ¦   ¦   ¦   +---merged.dir
+¦       ¦   ¦   ¦   ¦   ¦   +---stripped.dir
+¦       ¦   ¦   ¦   ¦   +---packageReleaseResources
+¦       ¦   ¦   ¦   ¦       ¦   compile-file-map.properties
+¦       ¦   ¦   ¦   ¦       ¦   merger.xml
+¦       ¦   ¦   ¦   ¦       ¦   
+¦       ¦   ¦   ¦   ¦       +---merged.dir
+¦       ¦   ¦   ¦   ¦       +---stripped.dir
+¦       ¦   ¦   ¦   +---release-mergeJavaRes
+¦       ¦   ¦   ¦       ¦   merge-state
+¦       ¦   ¦   ¦       ¦   
+¦       ¦   ¦   ¦       +---zip-cache
+¦       ¦   ¦   ¦               8KDpsgm1SBHhFZF3gs_20w==
+¦       ¦   ¦   ¦               OFHL3aaLzSKbPdUsVcFZMw==
+¦       ¦   ¦   ¦               
+¦       ¦   ¦   +---javac
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---compileDebugJavaWithJavac
+¦       ¦   ¦   ¦   ¦       +---classes
+¦       ¦   ¦   ¦   ¦           +---app
+¦       ¦   ¦   ¦   ¦               +---template
+¦       ¦   ¦   ¦   ¦                   +---extension
+¦       ¦   ¦   ¦   ¦                       +---extension
+¦       ¦   ¦   ¦   ¦                               ExamplePatch.class
+¦       ¦   ¦   ¦   ¦                               
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---compileReleaseJavaWithJavac
+¦       ¦   ¦   ¦           +---classes
+¦       ¦   ¦   ¦               +---app
+¦       ¦   ¦   ¦                   +---template
+¦       ¦   ¦   ¦                       +---extension
+¦       ¦   ¦   ¦                           +---extension
+¦       ¦   ¦   ¦                                   ExamplePatch.class
+¦       ¦   ¦   ¦                                   
+¦       ¦   ¦   +---linked_resources_binary_format
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---processDebugResources
+¦       ¦   ¦   ¦   ¦           linked-resources-binary-format-debug.ap_
+¦       ¦   ¦   ¦   ¦           output-metadata.json
+¦       ¦   ¦   ¦   ¦           
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---processReleaseResources
+¦       ¦   ¦   ¦               linked-resources-binary-format-release.ap_
+¦       ¦   ¦   ¦               output-metadata.json
+¦       ¦   ¦   ¦               
+¦       ¦   ¦   +---lint-cache
+¦       ¦   ¦   ¦   +---lintAnalyzeDebug
+¦       ¦   ¦   ¦   ¦       api-versions-50-36.0.bin
+¦       ¦   ¦   ¦   ¦       lint-cache-version.txt
+¦       ¦   ¦   ¦   ¦       
+¦       ¦   ¦   ¦   +---lintAnalyzeDebugAndroidTest
+¦       ¦   ¦   ¦   ¦       lint-cache-version.txt
+¦       ¦   ¦   ¦   ¦       
+¦       ¦   ¦   ¦   +---lintAnalyzeDebugUnitTest
+¦       ¦   ¦   ¦   ¦       lint-cache-version.txt
+¦       ¦   ¦   ¦   ¦       
+¦       ¦   ¦   ¦   +---lintReportDebug
+¦       ¦   ¦   ¦   ¦       lint-cache-version.txt
+¦       ¦   ¦   ¦   ¦       
+¦       ¦   ¦   ¦   +---lintVitalAnalyzeRelease
+¦       ¦   ¦   ¦           lint-cache-version.txt
+¦       ¦   ¦   ¦           
+¦       ¦   ¦   +---lint_intermediate_text_report
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦       +---lintReportDebug
+¦       ¦   ¦   ¦               lint-results-debug.txt
+¦       ¦   ¦   ¦               
+¦       ¦   ¦   +---lint_partial_results
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦       +---lintAnalyzeDebug
+¦       ¦   ¦   ¦           +---out
+¦       ¦   ¦   ¦                   lint-partial.xml
+¦       ¦   ¦   ¦                   lint-resources.xml
+¦       ¦   ¦   ¦                   
+¦       ¦   ¦   +---lint_report_lint_model
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦       +---generateDebugLintReportModel
+¦       ¦   ¦   ¦               debug-artifact-dependencies.xml
+¦       ¦   ¦   ¦               debug-artifact-libraries.xml
+¦       ¦   ¦   ¦               debug.xml
+¦       ¦   ¦   ¦               module.xml
+¦       ¦   ¦   ¦               
+¦       ¦   ¦   +---lint_return_value
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦       +---lintReportDebug
+¦       ¦   ¦   ¦               return-value-debug.txt
+¦       ¦   ¦   ¦               
+¦       ¦   ¦   +---lint_vital_partial_results
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---lintVitalAnalyzeRelease
+¦       ¦   ¦   ¦           +---out
+¦       ¦   ¦   ¦                   lint-resources.xml
+¦       ¦   ¦   ¦                   
+¦       ¦   ¦   +---lint_vital_report_lint_model
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---generateReleaseLintVitalReportModel
+¦       ¦   ¦   ¦               module.xml
+¦       ¦   ¦   ¦               release-artifact-dependencies.xml
+¦       ¦   ¦   ¦               release-artifact-libraries.xml
+¦       ¦   ¦   ¦               release.xml
+¦       ¦   ¦   ¦               
+¦       ¦   ¦   +---local_only_symbol_list
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---parseDebugLocalResources
+¦       ¦   ¦   ¦   ¦           R-def.txt
+¦       ¦   ¦   ¦   ¦           
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---parseReleaseLocalResources
+¦       ¦   ¦   ¦               R-def.txt
+¦       ¦   ¦   ¦               
+¦       ¦   ¦   +---manifest_merge_blame_file
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---processDebugMainManifest
+¦       ¦   ¦   ¦   ¦           manifest-merger-blame-debug-report.txt
+¦       ¦   ¦   ¦   ¦           
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---processReleaseMainManifest
+¦       ¦   ¦   ¦               manifest-merger-blame-release-report.txt
+¦       ¦   ¦   ¦               
+¦       ¦   ¦   +---merged_art_profile
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---mergeReleaseArtProfile
+¦       ¦   ¦   +---merged_java_res
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---mergeDebugJavaResource
+¦       ¦   ¦   ¦   ¦           base.jar
+¦       ¦   ¦   ¦   ¦           
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---mergeReleaseJavaResource
+¦       ¦   ¦   ¦               base.jar
+¦       ¦   ¦   ¦               
+¦       ¦   ¦   +---merged_jni_libs
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---mergeDebugJniLibFolders
+¦       ¦   ¦   ¦   ¦       +---out
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---mergeReleaseJniLibFolders
+¦       ¦   ¦   ¦           +---out
+¦       ¦   ¦   +---merged_manifest
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---processDebugMainManifest
+¦       ¦   ¦   ¦   ¦           AndroidManifest.xml
+¦       ¦   ¦   ¦   ¦           
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---processReleaseMainManifest
+¦       ¦   ¦   ¦               AndroidManifest.xml
+¦       ¦   ¦   ¦               
+¦       ¦   ¦   +---merged_manifests
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---processDebugManifest
+¦       ¦   ¦   ¦   ¦           AndroidManifest.xml
+¦       ¦   ¦   ¦   ¦           output-metadata.json
+¦       ¦   ¦   ¦   ¦           
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---processReleaseManifest
+¦       ¦   ¦   ¦               AndroidManifest.xml
+¦       ¦   ¦   ¦               output-metadata.json
+¦       ¦   ¦   ¦               
+¦       ¦   ¦   +---merged_res
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---mergeDebugResources
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---mergeReleaseResources
+¦       ¦   ¦   +---merged_res_blame_folder
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---mergeDebugResources
+¦       ¦   ¦   ¦   ¦       +---out
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---mergeReleaseResources
+¦       ¦   ¦   ¦           +---out
+¦       ¦   ¦   +---merged_startup_profile
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---mergeReleaseStartupProfile
+¦       ¦   ¦   +---metadata_library_dependencies_report
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---collectReleaseDependencies
+¦       ¦   ¦   ¦               dependencies.pb
+¦       ¦   ¦   ¦               
+¦       ¦   ¦   +---mixed_scope_dex_archive
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---dexBuilderDebug
+¦       ¦   ¦   ¦   ¦       +---out
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---dexBuilderRelease
+¦       ¦   ¦   ¦           +---out
+¦       ¦   ¦   +---navigation_json
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---extractDeepLinksDebug
+¦       ¦   ¦   ¦   ¦           navigation.json
+¦       ¦   ¦   ¦   ¦           
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---extractDeepLinksRelease
+¦       ¦   ¦   ¦               navigation.json
+¦       ¦   ¦   ¦               
+¦       ¦   ¦   +---nested_resources_validation_report
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---generateDebugResources
+¦       ¦   ¦   ¦   ¦           nestedResourcesValidationReport.txt
+¦       ¦   ¦   ¦   ¦           
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---generateReleaseResources
+¦       ¦   ¦   ¦               nestedResourcesValidationReport.txt
+¦       ¦   ¦   ¦               
+¦       ¦   ¦   +---optimized_processed_res
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---optimizeReleaseResources
+¦       ¦   ¦   ¦               output-metadata.json
+¦       ¦   ¦   ¦               resources-release-optimize.ap_
+¦       ¦   ¦   ¦               
+¦       ¦   ¦   +---packaged_manifests
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---processDebugManifestForPackage
+¦       ¦   ¦   ¦   ¦           AndroidManifest.xml
+¦       ¦   ¦   ¦   ¦           output-metadata.json
+¦       ¦   ¦   ¦   ¦           
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---processReleaseManifestForPackage
+¦       ¦   ¦   ¦               AndroidManifest.xml
+¦       ¦   ¦   ¦               output-metadata.json
+¦       ¦   ¦   ¦               
+¦       ¦   ¦   +---packaged_res
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---packageDebugResources
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---packageReleaseResources
+¦       ¦   ¦   +---project_dex_archive
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---dexBuilderDebug
+¦       ¦   ¦   ¦   ¦       +---out
+¦       ¦   ¦   ¦   ¦           ¦   2eb61b626f1f2876550f75d9fa714b90d77d5b862629b0dd0ac3316757f30a35_0.jar
+¦       ¦   ¦   ¦   ¦           ¦   
+¦       ¦   ¦   ¦   ¦           +---app
+¦       ¦   ¦   ¦   ¦               +---template
+¦       ¦   ¦   ¦   ¦                   +---extension
+¦       ¦   ¦   ¦   ¦                       +---extension
+¦       ¦   ¦   ¦   ¦                               ExamplePatch.dex
+¦       ¦   ¦   ¦   ¦                               
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---dexBuilderRelease
+¦       ¦   ¦   ¦           +---out
+¦       ¦   ¦   ¦               ¦   2eb61b626f1f2876550f75d9fa714b90d77d5b862629b0dd0ac3316757f30a35_0.jar
+¦       ¦   ¦   ¦               ¦   
+¦       ¦   ¦   ¦               +---app
+¦       ¦   ¦   ¦                   +---template
+¦       ¦   ¦   ¦                       +---extension
+¦       ¦   ¦   ¦                           +---extension
+¦       ¦   ¦   ¦                                   ExamplePatch.dex
+¦       ¦   ¦   ¦                                   
+¦       ¦   ¦   +---runtime_app_classes_jar
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦       +---bundleDebugClassesToRuntimeJar
+¦       ¦   ¦   ¦               classes.jar
+¦       ¦   ¦   ¦               
+¦       ¦   ¦   +---runtime_symbol_list
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---processDebugResources
+¦       ¦   ¦   ¦   ¦           R.txt
+¦       ¦   ¦   ¦   ¦           
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---processReleaseResources
+¦       ¦   ¦   ¦               R.txt
+¦       ¦   ¦   ¦               
+¦       ¦   ¦   +---sdk_dependency_data
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---sdkReleaseDependencyData
+¦       ¦   ¦   ¦               sdkDependencyData.pb
+¦       ¦   ¦   ¦               
+¦       ¦   ¦   +---signing_config_versions
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---writeDebugSigningConfigVersions
+¦       ¦   ¦   ¦   ¦           signing-config-versions.json
+¦       ¦   ¦   ¦   ¦           
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---writeReleaseSigningConfigVersions
+¦       ¦   ¦   ¦               signing-config-versions.json
+¦       ¦   ¦   ¦               
+¦       ¦   ¦   +---stable_resource_ids_file
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---processDebugResources
+¦       ¦   ¦   ¦   ¦           stableIds.txt
+¦       ¦   ¦   ¦   ¦           
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---processReleaseResources
+¦       ¦   ¦   ¦               stableIds.txt
+¦       ¦   ¦   ¦               
+¦       ¦   ¦   +---sub_project_dex_archive
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---dexBuilderDebug
+¦       ¦   ¦   ¦   ¦       +---out
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---dexBuilderRelease
+¦       ¦   ¦   ¦           +---out
+¦       ¦   ¦   +---symbol_list_with_package_name
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦   +---generateDebugRFile
+¦       ¦   ¦   ¦   ¦           package-aware-r.txt
+¦       ¦   ¦   ¦   ¦           
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦       +---generateReleaseRFile
+¦       ¦   ¦   ¦               package-aware-r.txt
+¦       ¦   ¦   ¦               
+¦       ¦   ¦   +---unit_test_lint_model
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦       +---generateDebugUnitTestLintModel
+¦       ¦   ¦   ¦               debug-artifact-dependencies.xml
+¦       ¦   ¦   ¦               debug-artifact-libraries.xml
+¦       ¦   ¦   ¦               debug.xml
+¦       ¦   ¦   ¦               module.xml
+¦       ¦   ¦   ¦               
+¦       ¦   ¦   +---unit_test_lint_partial_results
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦       +---lintAnalyzeDebugUnitTest
+¦       ¦   ¦   ¦           +---out
+¦       ¦   ¦   ¦                   lint-partial.xml
+¦       ¦   ¦   ¦                   
+¦       ¦   ¦   +---validate_signing_config
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦       +---validateSigningDebug
+¦       ¦   ¦   +---version_control_info_file
+¦       ¦   ¦       +---release
+¦       ¦   ¦           +---extractReleaseVersionControlInfo
+¦       ¦   ¦                   version-control-info.textproto
+¦       ¦   ¦                   
+¦       ¦   +---morphe
+¦       ¦   ¦   +---extensions
+¦       ¦   ¦           extension.mpe
+¦       ¦   ¦           
+¦       ¦   +---outputs
+¦       ¦   ¦   +---apk
+¦       ¦   ¦   ¦   +---debug
+¦       ¦   ¦   ¦   ¦       extension-debug.apk
+¦       ¦   ¦   ¦   ¦       output-metadata.json
+¦       ¦   ¦   ¦   ¦       
+¦       ¦   ¦   ¦   +---release
+¦       ¦   ¦   ¦           extension-release-unsigned.apk
+¦       ¦   ¦   ¦           output-metadata.json
+¦       ¦   ¦   ¦           
+¦       ¦   ¦   +---logs
+¦       ¦   ¦   ¦       manifest-merger-debug-report.txt
+¦       ¦   ¦   ¦       manifest-merger-release-report.txt
+¦       ¦   ¦   ¦       
+¦       ¦   ¦   +---sdk-dependencies
+¦       ¦   ¦       +---release
+¦       ¦   ¦               sdkDependencies.txt
+¦       ¦   ¦               
+¦       ¦   +---reports
+¦       ¦   ¦   ¦   lint-results-debug.html
+¦       ¦   ¦   ¦   lint-results-debug.txt
+¦       ¦   ¦   ¦   lint-results-debug.xml
+¦       ¦   ¦   ¦   
+¦       ¦   ¦   +---resources_config_map_file
+¦       ¦   ¦       +---release
+¦       ¦   ¦               resources.cfg
+¦       ¦   ¦               
+¦       ¦   +---tmp
+¦       ¦       +---compileDebugJavaWithJavac
+¦       ¦       ¦       previous-compilation-data.bin
+¦       ¦       ¦       
+¦       ¦       +---compileReleaseJavaWithJavac
+¦       ¦               previous-compilation-data.bin
+¦       ¦               
+¦       +---src
+¦           +---main
+¦               ¦   AndroidManifest.xml
+¦               ¦   
+¦               +---java
+¦                   +---app
+¦                       +---template
+¦                           +---extension
+¦                               +---extension
+¦                                       ExamplePatch.java
+¦                                       
++---gradle
+¦   ¦   libs.versions.toml
+¦   ¦   
+¦   +---wrapper
+¦           gradle-wrapper.jar
+¦           gradle-wrapper.properties
+¦           
++---patches
+    ¦   build.gradle.kts
+    ¦   
+    +---build
+    ¦   +---classes
+    ¦   ¦   +---kotlin
+    ¦   ¦       +---main
+    ¦   ¦           +---app
+    ¦   ¦           ¦   +---template
+    ¦   ¦           ¦       +---patches
+    ¦   ¦           ¦           +---example
+    ¦   ¦           ¦           ¦       AdLoaderFingerprint.class
+    ¦   ¦           ¦           ¦       ExamplePatchKt$examplePatch$lambda$0$$inlined$extendWith$1.class
+    ¦   ¦           ¦           ¦       ExamplePatchKt$examplePatch$lambda$0$$inlined$extendWith$2.class
+    ¦   ¦           ¦           ¦       ExamplePatchKt.class
+    ¦   ¦           ¦           ¦       InternalPatchKt.class
+    ¦   ¦           ¦           ¦       
+    ¦   ¦           ¦           +---shared
+    ¦   ¦           ¦                   Constants.class
+    ¦   ¦           ¦                   
+    ¦   ¦           +---META-INF
+    ¦   ¦           ¦       patches.kotlin_module
+    ¦   ¦           ¦       
+    ¦   ¦           +---util
+    ¦   ¦                   JsonCompatibility$Target.class
+    ¦   ¦                   JsonCompatibility.class
+    ¦   ¦                   JsonPatch$Option.class
+    ¦   ¦                   JsonPatch.class
+    ¦   ¦                   PatchListGeneratorKt$generatePatchList$$inlined$sortedBy$1.class
+    ¦   ¦                   PatchListGeneratorKt.class
+    ¦   ¦                   
+    ¦   +---kotlin
+    ¦   ¦   +---compileKotlin
+    ¦   ¦       +---cacheable
+    ¦   ¦       ¦   ¦   last-build.bin
+    ¦   ¦       ¦   ¦   
+    ¦   ¦       ¦   +---caches-jvm
+    ¦   ¦       ¦       +---inputs
+    ¦   ¦       ¦       ¦       source-to-output.tab
+    ¦   ¦       ¦       ¦       source-to-output.tab.keystream
+    ¦   ¦       ¦       ¦       source-to-output.tab.keystream.len
+    ¦   ¦       ¦       ¦       source-to-output.tab.len
+    ¦   ¦       ¦       ¦       source-to-output.tab.values.at
+    ¦   ¦       ¦       ¦       source-to-output.tab_i
+    ¦   ¦       ¦       ¦       source-to-output.tab_i.len
+    ¦   ¦       ¦       ¦       
+    ¦   ¦       ¦       +---jvm
+    ¦   ¦       ¦       ¦   +---kotlin
+    ¦   ¦       ¦       ¦           class-attributes.tab
+    ¦   ¦       ¦       ¦           class-attributes.tab.keystream
+    ¦   ¦       ¦       ¦           class-attributes.tab.keystream.len
+    ¦   ¦       ¦       ¦           class-attributes.tab.len
+    ¦   ¦       ¦       ¦           class-attributes.tab.values.at
+    ¦   ¦       ¦       ¦           class-attributes.tab_i
+    ¦   ¦       ¦       ¦           class-attributes.tab_i.len
+    ¦   ¦       ¦       ¦           class-fq-name-to-source.tab
+    ¦   ¦       ¦       ¦           class-fq-name-to-source.tab.keystream
+    ¦   ¦       ¦       ¦           class-fq-name-to-source.tab.keystream.len
+    ¦   ¦       ¦       ¦           class-fq-name-to-source.tab.len
+    ¦   ¦       ¦       ¦           class-fq-name-to-source.tab.values.at
+    ¦   ¦       ¦       ¦           class-fq-name-to-source.tab_i
+    ¦   ¦       ¦       ¦           class-fq-name-to-source.tab_i.len
+    ¦   ¦       ¦       ¦           internal-name-to-source.tab
+    ¦   ¦       ¦       ¦           internal-name-to-source.tab.keystream
+    ¦   ¦       ¦       ¦           internal-name-to-source.tab.keystream.len
+    ¦   ¦       ¦       ¦           internal-name-to-source.tab.len
+    ¦   ¦       ¦       ¦           internal-name-to-source.tab.values.at
+    ¦   ¦       ¦       ¦           internal-name-to-source.tab_i
+    ¦   ¦       ¦       ¦           internal-name-to-source.tab_i.len
+    ¦   ¦       ¦       ¦           package-parts.tab
+    ¦   ¦       ¦       ¦           package-parts.tab.keystream
+    ¦   ¦       ¦       ¦           package-parts.tab.keystream.len
+    ¦   ¦       ¦       ¦           package-parts.tab.len
+    ¦   ¦       ¦       ¦           package-parts.tab.values.at
+    ¦   ¦       ¦       ¦           package-parts.tab_i
+    ¦   ¦       ¦       ¦           package-parts.tab_i.len
+    ¦   ¦       ¦       ¦           proto.tab
+    ¦   ¦       ¦       ¦           proto.tab.keystream
+    ¦   ¦       ¦       ¦           proto.tab.keystream.len
+    ¦   ¦       ¦       ¦           proto.tab.len
+    ¦   ¦       ¦       ¦           proto.tab.values.at
+    ¦   ¦       ¦       ¦           proto.tab_i
+    ¦   ¦       ¦       ¦           proto.tab_i.len
+    ¦   ¦       ¦       ¦           source-to-classes.tab
+    ¦   ¦       ¦       ¦           source-to-classes.tab.keystream
+    ¦   ¦       ¦       ¦           source-to-classes.tab.keystream.len
+    ¦   ¦       ¦       ¦           source-to-classes.tab.len
+    ¦   ¦       ¦       ¦           source-to-classes.tab.values.at
+    ¦   ¦       ¦       ¦           source-to-classes.tab_i
+    ¦   ¦       ¦       ¦           source-to-classes.tab_i.len
+    ¦   ¦       ¦       ¦           subtypes.tab
+    ¦   ¦       ¦       ¦           subtypes.tab.keystream
+    ¦   ¦       ¦       ¦           subtypes.tab.keystream.len
+    ¦   ¦       ¦       ¦           subtypes.tab.len
+    ¦   ¦       ¦       ¦           subtypes.tab.values.at
+    ¦   ¦       ¦       ¦           subtypes.tab_i
+    ¦   ¦       ¦       ¦           subtypes.tab_i.len
+    ¦   ¦       ¦       ¦           supertypes.tab
+    ¦   ¦       ¦       ¦           supertypes.tab.keystream
+    ¦   ¦       ¦       ¦           supertypes.tab.keystream.len
+    ¦   ¦       ¦       ¦           supertypes.tab.len
+    ¦   ¦       ¦       ¦           supertypes.tab.values.at
+    ¦   ¦       ¦       ¦           supertypes.tab_i
+    ¦   ¦       ¦       ¦           supertypes.tab_i.len
+    ¦   ¦       ¦       ¦           
+    ¦   ¦       ¦       +---lookups
+    ¦   ¦       ¦               counters.tab
+    ¦   ¦       ¦               file-to-id.tab
+    ¦   ¦       ¦               file-to-id.tab.keystream
+    ¦   ¦       ¦               file-to-id.tab.keystream.len
+    ¦   ¦       ¦               file-to-id.tab.len
+    ¦   ¦       ¦               file-to-id.tab.values.at
+    ¦   ¦       ¦               file-to-id.tab_i
+    ¦   ¦       ¦               file-to-id.tab_i.len
+    ¦   ¦       ¦               id-to-file.tab
+    ¦   ¦       ¦               id-to-file.tab.keystream
+    ¦   ¦       ¦               id-to-file.tab.keystream.len
+    ¦   ¦       ¦               id-to-file.tab.len
+    ¦   ¦       ¦               id-to-file.tab.values.at
+    ¦   ¦       ¦               id-to-file.tab_i
+    ¦   ¦       ¦               id-to-file.tab_i.len
+    ¦   ¦       ¦               lookups.tab
+    ¦   ¦       ¦               lookups.tab.keystream
+    ¦   ¦       ¦               lookups.tab.keystream.len
+    ¦   ¦       ¦               lookups.tab.len
+    ¦   ¦       ¦               lookups.tab.values.at
+    ¦   ¦       ¦               lookups.tab_i
+    ¦   ¦       ¦               lookups.tab_i.len
+    ¦   ¦       ¦               
+    ¦   ¦       +---classpath-snapshot
+    ¦   ¦       ¦       shrunk-classpath-snapshot.bin
+    ¦   ¦       ¦       
+    ¦   ¦       +---local-state
+    ¦   +---libs
+    ¦   ¦       patches-1.0.0-javadoc.mpp
+    ¦   ¦       patches-1.0.0-sources.mpp
+    ¦   ¦       patches-1.0.0.mpp
+    ¦   ¦       
+    ¦   +---resources
+    ¦   ¦   +---main
+    ¦   ¦       +---extensions
+    ¦   ¦               extension.mpe
+    ¦   ¦               
+    ¦   +---tmp
+    ¦       +---jar
+    ¦       ¦       MANIFEST.MF
+    ¦       ¦       
+    ¦       +---javadocJar
+    ¦       ¦       MANIFEST.MF
+    ¦       ¦       
+    ¦       +---sourcesJar
+    ¦               MANIFEST.MF
+    ¦               
+    +---src
+        +---main
+            +---kotlin
+                +---app
+                ¦   +---template
+                ¦       +---patches
+                ¦           +---example
+                ¦           ¦       ExamplePatch.kt
+                ¦           ¦       Fingerprints.kt
+                ¦           ¦       InternalPatch.kt
+                ¦           ¦       
+                ¦           +---shared
+                ¦                   Constants.kt
+                ¦                   
+                +---util
+                        PatchListGenerator.kt
+                        

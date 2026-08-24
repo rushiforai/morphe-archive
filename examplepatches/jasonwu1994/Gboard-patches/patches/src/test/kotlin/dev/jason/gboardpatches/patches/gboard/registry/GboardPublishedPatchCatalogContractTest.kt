@@ -1,9 +1,7 @@
 package dev.jason.gboardpatches.patches.gboard.registry
 
 import com.google.gson.JsonParser
-import java.nio.charset.StandardCharsets
-import java.nio.file.Files
-import java.nio.file.Path
+import dev.jason.gboardpatches.patches.gboard.shared.generated.GboardTargetAdmission
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
@@ -14,8 +12,8 @@ class GboardPublishedPatchCatalogContractTest {
     fun catalogExposesEachPublishedMorpheRegistrationExactlyOnce() {
         val registrations = GboardPublishedPatchCatalog.morpheRegistrations
 
-        assertEquals(31, registrations.size)
-        assertEquals(31, registrations.map { patch -> patch.name }.distinct().size)
+        assertEquals(34, registrations.size)
+        assertEquals(34, registrations.map { patch -> patch.name }.distinct().size)
         assertSame(
             gboardInlineSuggestionsFlagPatch,
             registrations.single { patch -> patch.name == "Inline Suggestions" },
@@ -54,7 +52,7 @@ class GboardPublishedPatchCatalogContractTest {
             },
         )
         assertEquals(
-            listOf("17.7.7.932364120-release-arm64-v8a"),
+            listOf("18.0.3.954559732-release-arm64-v8a"),
             inlineSuggestions.getAsJsonObject("compatiblePackages")
                 .getAsJsonArray("com.google.android.inputmethod.latin")
                 .map { version -> version.asString },
@@ -63,24 +61,23 @@ class GboardPublishedPatchCatalogContractTest {
     }
 
     @Test
-    fun catalogMatchesTheCheckedInPublishedInventory() {
-        val expected = JsonParser.parseString(
-            Files.readString(repositoryRoot().resolve("patches-list.json"), StandardCharsets.UTF_8),
-        )
-        val version = expected.asJsonObject.get("version").asString
-        val actual = JsonParser.parseString(
-            GboardPublishedPatchCatalog.publishedInventory(version),
-        )
+    fun catalogUsesOnlyTheGeneratedTargetAdmission() {
+        val patches = generatedPublishedPatches()
 
-        assertEquals(expected, actual)
-    }
-
-    private fun repositoryRoot(): Path {
-        val workingDirectory = Path.of("").toAbsolutePath().normalize()
-        return generateSequence(workingDirectory) { directory -> directory.parent }
-            .firstOrNull { candidate ->
-                Files.isRegularFile(candidate.resolve("patches-list.json"))
-            }
-            ?: error("Could not locate repository root from $workingDirectory")
+        assertEquals(34, patches.size)
+        assertEquals(
+            setOf(GboardTargetAdmission.packageName),
+            patches.flatMap { patch ->
+                patch.getAsJsonObject("compatiblePackages").keySet()
+            }.toSet(),
+        )
+        assertEquals(
+            GboardTargetAdmission.versionNames.toSet(),
+            patches.flatMap { patch ->
+                patch.getAsJsonObject("compatiblePackages")
+                    .getAsJsonArray(GboardTargetAdmission.packageName)
+                    .map { version -> version.asString }
+            }.toSet(),
+        )
     }
 }

@@ -13,10 +13,10 @@ import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 
 private const val EMOTICON_KEYBOARD_CLASS =
     "Lcom/google/android/apps/inputmethod/libs/search/emoticon/EmoticonKeyboardM2;"
-private const val EMOTICON_HEADER_CALLBACK_CLASS = "Lfpu;"
+private const val EMOTICON_HEADER_CALLBACK_CLASS = "Lggm;"
 private const val HEADER_VIEW_CLASS =
     "Lcom/google/android/apps/inputmethod/libs/expression/header/ConstraintHeaderViewImpl;"
-private const val VIEW_UTIL_CLASS = "Lsav;"
+private const val VIEW_UTIL_CLASS = "Lsvk;"
 
 internal val gboardZhuyinCustomSymbolsEmoticonStatePatch = bytecodePatch(
     description = "移植 add-symbols 的 emoticon host / state isolation / header 主線。"
@@ -44,10 +44,10 @@ private fun patchConstructor() = with(context) {
         returnType = "V",
         parameterTypes = listOf(
             "Landroid/content/Context;",
-            "Lody;",
-            "Lout;",
+            "Loxv;",
+            "Lcom/google/android/libraries/inputmethod/metadata/KeyboardDef;",
             "Lcom/google/android/libraries/inputmethod/metadata/ImeDef;",
-            "Lovf;"
+            "Lppa;"
         )
     )
     val returnIndices = mutableMethod.instructionIndices("RETURN_VOID")
@@ -63,31 +63,31 @@ context(context: BytecodePatchContext)
 private fun patchBodyReady() = with(context) {
     val mutableMethod = findMutableMethodOrThrow(
         classType = EMOTICON_KEYBOARD_CLASS,
-        name = "ey",
+        name = "eL",
         returnType = "V",
         parameterTypes = listOf(
             "Lcom/google/android/libraries/inputmethod/widgets/SoftKeyboardView;",
-            "Lovk;"
+            "Lcom/google/android/libraries/inputmethod/metadata/KeyboardViewDef;"
         )
     )
     val bodyReadyFieldWriteIndex = mutableMethod.indexOfFirstFieldAccess(
         definingClass = EMOTICON_KEYBOARD_CLASS,
-        name = "r",
+        name = "q",
         type = "Landroid/view/ViewGroup;",
         opcodeName = "IPUT_OBJECT",
     )
     check(bodyReadyFieldWriteIndex >= 0) {
-        "Could not resolve EmoticonKeyboardM2.r assignment in ey()"
+        "Could not resolve EmoticonKeyboardM2.q assignment in eL()"
     }
     val implementation = checkNotNull(mutableMethod.implementation) {
-        "EmoticonKeyboardM2.ey() has no implementation"
+        "EmoticonKeyboardM2.eL() has no implementation"
     }
     val fieldWrite = implementation.instructions[bodyReadyFieldWriteIndex]
         as? TwoRegisterInstruction
-        ?: error("EmoticonKeyboardM2.r assignment does not expose object register")
+        ?: error("EmoticonKeyboardM2.q assignment does not expose object register")
     val receiverRegister = implementation.registerCount - 3
     check(fieldWrite.registerB == receiverRegister) {
-        "EmoticonKeyboardM2.r assignment receiver is not p0"
+        "EmoticonKeyboardM2.q assignment receiver is not p0"
     }
     mutableMethod.addInstructions(bodyReadyFieldWriteIndex + 1, BODY_READY_DELEGATE)
 }
@@ -109,7 +109,7 @@ private fun patchSelectedIndex() = with(context) {
         classType = EMOTICON_KEYBOARD_CLASS,
         name = "k",
         returnType = "I",
-        parameterTypes = listOf("Lvai;")
+        parameterTypes = listOf("Lvvw;")
     )
     mutableMethod.addInstructions(0, SELECTED_INDEX_DELEGATE)
 }
@@ -118,7 +118,7 @@ context(context: BytecodePatchContext)
 private fun patchCategoryChange() = with(context) {
     val mutableMethod = findMutableMethodOrThrow(
         classType = EMOTICON_KEYBOARD_CLASS,
-        name = "D",
+        name = "F",
         returnType = "V",
         parameterTypes = listOf("I", "I")
     )
@@ -129,7 +129,7 @@ context(context: BytecodePatchContext)
 private fun patchCategoryBind() = with(context) {
     val mutableMethod = findMutableMethodOrThrow(
         classType = EMOTICON_KEYBOARD_CLASS,
-        name = "y",
+        name = "E",
         returnType = "V",
         parameterTypes = listOf(
             "Lcom/google/android/apps/inputmethod/libs/search/emoticon/EmoticonRecyclerView;",
@@ -149,7 +149,7 @@ private fun patchHeaderCallback() = with(context) {
     )
     val headerCallbackIndex = mutableMethod.indexOfMethodCallOrThrow(
         definingClass = EMOTICON_KEYBOARD_CLASS,
-        name = "D",
+        name = "F",
         returnType = "V",
         parameterTypes = listOf("I", "I"),
     )
@@ -158,7 +158,7 @@ private fun patchHeaderCallback() = with(context) {
     }
     val headerCallback = implementation.instructions[headerCallbackIndex]
         as? FiveRegisterInstruction
-        ?: error("EmoticonKeyboardM2.D() call does not expose receiver register")
+        ?: error("EmoticonKeyboardM2.F() call does not expose receiver register")
     val headerReceiverRegister = smaliRegisterName(
         headerCallback.registerC,
         implementation.registerCount,
@@ -176,7 +176,7 @@ private fun patchHeaderStartEdgeGuard() = with(context) {
         classType = HEADER_VIEW_CLASS,
         name = "n",
         returnType = "V",
-        parameterTypes = listOf("Lfrg;")
+        parameterTypes = listOf("Lghy;")
     )
     mutableMethod.addInstructions(0, HEADER_START_EDGE_GUARD_DELEGATE)
 }
@@ -185,7 +185,7 @@ context(context: BytecodePatchContext)
 private fun patchViewUtilTransformGuard() = with(context) {
     val mutableMethod = findMutableMethodOrThrow(
         classType = VIEW_UTIL_CLASS,
-        name = "h",
+        name = "i",
         returnType = "Landroid/view/View;",
         parameterTypes = listOf(
             "Landroid/graphics/Matrix;",

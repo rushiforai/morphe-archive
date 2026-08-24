@@ -55,12 +55,12 @@ class GboardTargetNativeRetirementSourceTest {
             assertFalse("Availability must not retain $feature", availability.contains(feature))
         }
 
-        val sharedFeatureFlagPatch = readSource(
-            "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/" +
-                "featureflags/GboardFeatureFlagsBytecodePatch.kt",
+        val flagFamilyComposer = readSource(
+            "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/shared/" +
+                "GboardFlagFamilyComposer.kt",
         )
-        assertTrue(sharedFeatureFlagPatch.contains("GboardVersionBindings.flagBoolGetter"))
-        assertTrue(sharedFeatureFlagPatch.contains("GboardVersionBindings.flagNameField"))
+        assertTrue(flagFamilyComposer.contains("GboardVersionBindings.flagBoolGetter"))
+        assertTrue(flagFamilyComposer.contains("GboardVersionBindings.flagNameField"))
 
         SURVIVING_FEATURE_FLAGS.forEach { (runtimeFlag, availabilityFeature) ->
             assertTrue("Runtime must retain $runtimeFlag", runtime.contains(runtimeFlag))

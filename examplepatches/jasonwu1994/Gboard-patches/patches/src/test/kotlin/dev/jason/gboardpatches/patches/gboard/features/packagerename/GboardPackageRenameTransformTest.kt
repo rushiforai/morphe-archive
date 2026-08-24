@@ -54,13 +54,44 @@ class GboardPackageRenameTransformTest {
     }
 
     @Test
+    fun `standalone package rename removes required split markers but retains split inventory`() {
+        val manifest = loadManifest()
+        val root = manifest.documentElement
+        val requiredSplitMetadata = elements(manifest, "meta-data").single { element ->
+            androidAttribute(element, "name") == "com.android.vending.splits.required"
+        }
+        val splitInventoryMetadata = elements(manifest, "meta-data").single { element ->
+            androidAttribute(element, "name") == "com.android.vending.splits"
+        }
+
+        assertTrue(root.hasAttributeNS(ANDROID_NS, "requiredSplitTypes"))
+        assertTrue(root.hasAttributeNS(ANDROID_NS, "splitTypes"))
+        assertEquals("true", androidAttribute(requiredSplitMetadata, "value"))
+        assertEquals("@xml/splits0", androidAttribute(splitInventoryMetadata, "resource"))
+
+        applyGboardPackageRename(manifest, loadSettingsDocuments())
+
+        assertFalse(root.hasAttributeNS(ANDROID_NS, "requiredSplitTypes"))
+        assertFalse(root.hasAttributeNS(ANDROID_NS, "splitTypes"))
+        assertTrue(elements(manifest, "meta-data").none { element ->
+            androidAttribute(element, "name") == "com.android.vending.splits.required"
+        })
+        assertEquals(
+            "@xml/splits0",
+            elements(manifest, "meta-data").single { element ->
+                androidAttribute(element, "name") == "com.android.vending.splits"
+            }.let { element -> androidAttribute(element, "resource") },
+        )
+    }
+
+    @Test
     fun `stock target component inventory is pinned and preserved`() {
         val manifest = loadManifest()
         val before = componentNames(manifest)
 
-        assertEquals(28, before.getValue("activity").size)
-        assertEquals(24, before.getValue("service").size)
-        assertEquals(11, before.getValue("receiver").size)
+        assertEquals(30, before.getValue("activity").size)
+        assertEquals(22, before.getValue("service").size)
+        assertEquals(12, before.getValue("receiver").size)
         assertEquals(8, before.getValue("provider").size)
         assertEquals(0, manifest.getElementsByTagName("activity-alias").length)
         assertTrue(before.values.flatten().none { name -> name.startsWith(".") })
@@ -399,9 +430,9 @@ class GboardPackageRenameTransformTest {
         }
 
         val components = componentNames(manifest)
-        assertEquals(29, components.getValue("activity").size)
-        assertEquals(24, components.getValue("service").size)
-        assertEquals(11, components.getValue("receiver").size)
+        assertEquals(31, components.getValue("activity").size)
+        assertEquals(22, components.getValue("service").size)
+        assertEquals(12, components.getValue("receiver").size)
         assertEquals(9, components.getValue("provider").size)
         assertTrue(components.values.flatten().contains(SETTINGS_ACTIVITY_CLASS))
         assertTrue(components.values.flatten().contains(SETTINGS_PROVIDER_CLASS))
@@ -526,12 +557,12 @@ class GboardPackageRenameTransformTest {
         const val SETTINGS_PROVIDER_CLASS =
             "dev.jason.gboardpatches.extension.settings.GboardPatchesSettingsProvider"
         const val MANIFEST_FIXTURE =
-            "/gboard/17.7.7/package-rename/AndroidManifest.normalized.xml"
-        const val SETTINGS_FIXTURE = "/gboard/17.7.7/package-rename/settings.xml"
+            "/gboard/18.0.3/package-rename/AndroidManifest.normalized.xml"
+        const val SETTINGS_FIXTURE = "/gboard/18.0.3/package-rename/settings.xml"
         const val SETTINGS_LEGACY_FIXTURE =
-            "/gboard/17.7.7/package-rename/settings_legacy.xml"
+            "/gboard/18.0.3/package-rename/settings_legacy.xml"
         const val RETAINED_LITERALS_FIXTURE =
-            "/gboard/17.7.7/package-rename/retained-resource-literals.xml"
+            "/gboard/18.0.3/package-rename/retained-resource-literals.xml"
         val COMPONENT_TAGS = listOf("activity", "service", "receiver", "provider")
         val EXPECTED_MAPPINGS = listOf(
             listOf("manifest", "package", SOURCE_PACKAGE, FINAL_PACKAGE),

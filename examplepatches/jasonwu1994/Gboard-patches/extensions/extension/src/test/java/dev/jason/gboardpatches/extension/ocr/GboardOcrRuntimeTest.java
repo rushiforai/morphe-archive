@@ -64,6 +64,14 @@ public final class GboardOcrRuntimeTest {
     }
 
     @Test
+    public void formalThickPathEmptyRequestStaysAuthoritative() {
+        GboardOcrRuntime.setEngineOverrideForTests(GboardOcrEngine.CHINESE);
+        FakeRequest[] stock = new FakeRequest[0];
+
+        Assert.assertSame(stock, GboardOcrRuntime.applyOptionalModuleRequest(stock));
+    }
+
+    @Test
     public void latinModuleRequestAndPayloadPolicyRemainStockCompatible() {
         GboardOcrRuntime.setEngineOverrideForTests(GboardOcrEngine.LATIN);
         FakeRequest[] stock = new FakeRequest[]{new FakeRequest("vision.ocr")};
@@ -97,6 +105,12 @@ public final class GboardOcrRuntimeTest {
         private final String a;
 
         private FakeRequest(String name) {
+            a = name;
+        }
+
+        @SuppressWarnings("unused")
+        private FakeRequest(String name, int legacyVersion, long version,
+                boolean fullyRolledOut) {
             a = name;
         }
     }

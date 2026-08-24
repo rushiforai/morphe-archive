@@ -21,8 +21,6 @@ val localFilesFromServerPatch = bytecodePatch(
     dependsOn(settingsPatch)
 
     execute {
-        // Append the server's tracks to the result of every local file scan. The scan result is a
-        // protobuf with a repeated field, so entries can simply be appended to it.
         RunQueryFingerprint.method.apply {
             val returnIndices = instructionList()
                 .withIndex()
@@ -43,8 +41,6 @@ val localFilesFromServerPatch = bytecodePatch(
             }
         }
 
-        // Remember the scanner so the settings screen can ask for a rescan after the index changes,
-        // instead of making the user restart Spotify.
         StartListeningFingerprint.method.addInstructions(
             0,
             "invoke-static/range { p0 .. p2 }, ${Constants.LOCAL_SERVER_HOOK_CLASS}->onStartListening(Ljava/lang/Object;J)V",

@@ -25,3 +25,16 @@
 - [x] The final combined x86_64 and universal builds applied all ten patches with zero failures and passed APK alignment plus v2/v3 signature verification.
 - [x] The final x86_64 side-by-side build installed on `Television_4K`; Morphe settings, Library Saved/Cloud/Storage, H.264 Media3 playback, and end-of-file return to Storage completed without an app fatal, `VerifyError`, or package ANR.
 - [ ] Patch-specific external-service, removable-storage, network, source-selection, subtitle-content, and real-TV behavior remains manual unless separately recorded above.
+
+## 2026-08-22 NuvioTV 0.8.7-beta port evidence
+
+- [x] The final 195-test extension suite and three patcher manifest tests passed with zero failures, errors, or skips.
+- [x] This patch applied alone on the official x86_64, arm64-v8a, armeabi-v7a, and universal APKs with no fingerprint, rebuild, signing, manifest, injected-class, or forbidden-type inspection failure.
+- [x] The final combined x86_64 build applied all nine retained patches with zero failures and passed APK alignment plus signature verification.
+- [x] The final x86_64 side-by-side build installed on `Television_4K`; Morphe Settings opened, native category and switch rows rendered, and the Local Downloads slider rendered with no app fatal, `VerifyError`, or reflection failure.
+- [ ] Patch-specific playback, network, storage, subtitle-content, source-selection, D-pad, and real-TV behavior remains manual unless separately recorded above.
+
+## 2026-08-23 0.8.7 runtime evidence
+
+- Morphe > Subtitles rendered `Mark SDH subtitles` beside the cleanup selector. The switch toggled twice and returned to its initial state without a fatal or reflection error.
+- The patch-owned refresh state now resolves Nuvio's mutable-state factory by signature, matching the verified 0.8.7 Compose runtime shape.

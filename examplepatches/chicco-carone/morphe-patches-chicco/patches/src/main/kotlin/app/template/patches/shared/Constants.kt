@@ -8,7 +8,7 @@ object Constants {
     /**
      * ProxMobo (com.halliharp.proxmobo) - Flutter (Dart AOT) streaming app.
      *
-     * The shipping APK is version 1.0.1 (versionCode 9). It is a Flutter app, so
+     * The shipping APK is version 1.0.3. It is a Flutter app, so
      * the "premium" gating logic lives in libapp.so and can only be influenced
      * through the Android plugin layer (in-app billing / PairIP licensing). The
      * premium product id is `proxmobo.premium.lifetime`.

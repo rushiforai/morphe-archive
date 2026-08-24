@@ -181,6 +181,24 @@ Customize the bottom tab order in Gboard's Emojis, stickers & GIFs panel with dr
 </details>
 
 <details>
+  <summary><code>Quick Insert</code></summary>
+
+Enables the Quick Insert panel and toolbar access point.
+</details>
+
+<details>
+  <summary><code>Hyperspeed Typing Animation</code></summary>
+
+Shows the animation during sustained fast typing with support for all keyboards.
+</details>
+
+<details>
+  <summary><code>Close Proactive Suggestions</code></summary>
+
+Shows a dismiss button in the proactive suggestions bar.
+</details>
+
+<details>
   <summary><code>Developer options</code></summary>
 
   Enable Developer options and the Flag Editor, allowing you to modify flag values.

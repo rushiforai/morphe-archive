@@ -29,7 +29,7 @@ class GboardTopRowSwipePatchShapeTest {
     }
 
     @Test
-    fun `softkey rewrite stays at entry while visible tracking runs before every return`() {
+    fun `softkey contribution delegates both phases to the family composer`() {
         assertTrue(TOP_ROW_SWIPE_ENTRY_DELEGATE.contains("patchIncomingSoftKeyMetadata"))
         assertFalse(TOP_ROW_SWIPE_ENTRY_DELEGATE.contains("afterSoftKeyBound"))
         assertTrue(TOP_ROW_SWIPE_ENTRY_DELEGATE.contains(TOP_ROW_SWIPE_RUNTIME_CLASS))
@@ -38,21 +38,17 @@ class GboardTopRowSwipePatchShapeTest {
             "src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/toprowswipe/" +
                 "GboardTopRowSwipeSoftKeyPatch.kt"
         )
-        assertTrue(source.contains("mutableMethod.addInstructions(0, TOP_ROW_SWIPE_ENTRY_DELEGATE)"))
-        assertTrue(source.contains("mutableMethod.returnInstructionIndices()"))
-        assertTrue(
-            source.contains(
-                "mutableMethod.addInstructions(returnIndex, TOP_ROW_SWIPE_AFTER_BIND_DELEGATE)"
-            )
-        )
+        assertTrue(source.contains("GboardSoftKeyFamilyFeature.TOP_ROW_SWIPE"))
+        assertTrue(source.contains("gboardSoftKeyFamilyFeaturePatch"))
+        assertFalse(source.contains("addInstructions"))
     }
 
     @Test
-    fun `target q fixture keeps result register intact at return tracking site`() {
+    fun `target r fixture keeps result register intact at return tracking site`() {
         val targetLikeFixture = """
-            .method public final q(Lowd;J)Z
+            .method public final r(Lcom/google/android/libraries/inputmethod/metadata/SoftKeyDef;J)Z
                 .locals 3
-                iput-object p1, p0, Lcom/google/android/libraries/inputmethod/widgets/SoftKeyView;->e:Lowd;
+                iput-object p1, p0, Lcom/google/android/libraries/inputmethod/widgets/SoftKeyView;->e:Lcom/google/android/libraries/inputmethod/metadata/SoftKeyDef;
                 move p3, p2
                 invoke-static {}, Landroid/os/Trace;->endSection()V
                 return p3
@@ -70,54 +66,48 @@ class GboardTopRowSwipePatchShapeTest {
     }
 
     @Test
-    fun `pointer and gesture delegates stay on the agreed runtime contract`() {
+    fun `pointer delegates and gesture feature token stay on the agreed runtime contract`() {
         assertTrue(TOP_ROW_SWIPE_POINTER_DELEGATE.contains("maybeArmAndResolveTopRowOwner"))
         assertTrue(TOP_ROW_SWIPE_FINISH_SESSION_DELEGATE.contains("finishSwipeSession"))
         assertTrue(TOP_ROW_SWIPE_CLEAR_SESSION_DELEGATE.contains("clearSwipeSession"))
-        assertTrue(TOP_ROW_SWIPE_GESTURE_OWNER_DELEGATE.contains("jasondevDispatchWithTopRow"))
         assertTrue(TOP_ROW_SWIPE_POINTER_DELEGATE.contains(TOP_ROW_SWIPE_RUNTIME_CLASS))
-        assertTrue(TOP_ROW_SWIPE_DISPATCH_WITH_TOP_ROW_BODY.contains("maybeConsumeTopRowSwipe"))
-        assertTrue(
-            TOP_ROW_SWIPE_DISPATCH_WITH_TOP_ROW_BODY.contains(
-                "invoke-static {p0, p1, p2, p3, p4}, $TOP_ROW_SWIPE_RUNTIME_CLASS->maybeConsumeQuickJsTopRowPress"
-            )
+        val source = readSource(
+            "src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/toprowswipe/" +
+                "GboardTopRowSwipeGesturePatch.kt"
         )
-        assertTrue(
-            TOP_ROW_SWIPE_DISPATCH_WITH_TOP_ROW_BODY.contains(
-                "(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Z"
-            )
-        )
-        assertTrue(TOP_ROW_SWIPE_DISPATCH_WITH_TOP_ROW_BODY.contains("jasondevDispatchOrToggle"))
-        assertTrue(TOP_ROW_SWIPE_DISPATCH_WITH_TOP_ROW_BODY.contains(TOP_ROW_SWIPE_RUNTIME_CLASS))
+        assertTrue(source.contains("GboardGestureFamilyFeature.TOP_ROW_SWIPE"))
+        assertTrue(source.contains("gboardGestureFamilyFeaturePatch"))
+        assertFalse(source.contains("RuntimeCallId"))
+        assertFalse(source.contains("addInstructions"))
     }
 
     @Test
     fun `generated bindings drive all five exported top row anchors`() {
-        assertEquals("Lcom/google/android/libraries/inputmethod/widgets/SoftKeyView;->q(Lowd;J)Z", GboardVersionBindings.softKeyBind.reference)
-        assertEquals("Lpbl;->B(Lcom/google/android/libraries/inputmethod/widgets/SoftKeyView;FFJI)V", GboardVersionBindings.pointerOwner.reference)
-        assertEquals("Lpbl;->s(J)V", GboardVersionBindings.pointerCancel.reference)
-        assertEquals("Lpbl;->C()V", GboardVersionBindings.pointerReset.reference)
-        assertEquals("Lpbj;->f(Lpbl;Loth;Loud;Lowd;JZZIZJI)V", GboardVersionBindings.gestureDispatch.reference)
+        assertEquals("Lcom/google/android/libraries/inputmethod/widgets/SoftKeyView;->r(Lcom/google/android/libraries/inputmethod/metadata/SoftKeyDef;J)Z", GboardVersionBindings.softKeyBind.reference)
+        assertEquals("Lpvi;->B(Lcom/google/android/libraries/inputmethod/widgets/SoftKeyView;FFJI)V", GboardVersionBindings.pointerOwner.reference)
+        assertEquals("Lpvi;->s(J)V", GboardVersionBindings.pointerCancel.reference)
+        assertEquals("Lpvi;->C()V", GboardVersionBindings.pointerReset.reference)
+        assertEquals("Lpvf;->f(Lpvi;Lpmy;Lpnu;Lcom/google/android/libraries/inputmethod/metadata/SoftKeyDef;JZZIZJI)V", GboardVersionBindings.gestureDispatch.reference)
     }
 
     @Test
-    fun `target pbl owner fixture proves injected register shape after ac`() {
+    fun `target pvi owner fixture proves injected register shape after ac`() {
         val targetLikeFixture = """
             .locals 14
             move/from16 v0, p2
             move/from16 v1, p3
             move-wide/from16 v11, p4
-            iget v2, p0, Lpbl;->a:I
-            iget-object v3, p0, Lpbl;->m:Lcom/google/android/libraries/inputmethod/widgets/SoftKeyView;
+            iget v2, p0, Lpvi;->a:I
+            iget-object v3, p0, Lpvi;->m:Lcom/google/android/libraries/inputmethod/widgets/SoftKeyView;
             move/from16 v13, p6
-            invoke-virtual {p0, v11, v12, v13}, Lpbl;->r(JI)V
-            invoke-direct {p0}, Lpbl;->ac()V
+            invoke-virtual {p0, v11, v12, v13}, Lpvi;->r(JI)V
+            invoke-direct {p0}, Lpvi;->ac()V
         """.trimIndent()
 
         assertTrue(targetLikeFixture.contains("move/from16 v0, p2"))
         assertTrue(targetLikeFixture.contains("move/from16 v1, p3"))
-        assertTrue(targetLikeFixture.contains("iget-object v3, p0, Lpbl;->m:"))
-        assertTrue(targetLikeFixture.indexOf("Lpbl;->r(JI)V") < targetLikeFixture.indexOf("Lpbl;->ac()V"))
+        assertTrue(targetLikeFixture.contains("iget-object v3, p0, Lpvi;->m:"))
+        assertTrue(targetLikeFixture.indexOf("Lpvi;->r(JI)V") < targetLikeFixture.indexOf("Lpvi;->ac()V"))
         assertTrue(
             TOP_ROW_SWIPE_POINTER_DELEGATE.contains(
                 "invoke-static {p0, p1, v3, v0, v1}, $TOP_ROW_SWIPE_RUNTIME_CLASS->maybeArmAndResolveTopRowOwner"
@@ -126,29 +116,18 @@ class GboardTopRowSwipePatchShapeTest {
     }
 
     @Test
-    fun `shared gesture dispatch helper is installed through semantic target`() {
+    fun `gesture family composer owns helper topology and generated stock bindings`() {
         val source = readSource(
-            "src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/" +
-                "zhuyintraditionalsimplifiedtoggle/GboardZhuyinTraditionalSimplifiedToggleRuntimePatch.kt"
+            "src/main/kotlin/dev/jason/gboardpatches/patches/gboard/shared/" +
+                "GboardGestureFamilyComposer.kt"
         )
-        val helperStart = source.indexOf(
-            "internal fun BytecodePatchContext.installZhuyinToggleGestureDispatchHelpers"
-        )
-        val helperEnd = source.indexOf(
-            "context(context: BytecodePatchContext)\nprivate fun installGestureDispatchHelpers",
-            helperStart
-        )
-        assertTrue(helperStart >= 0 && helperEnd > helperStart)
-        val helper = source.substring(helperStart, helperEnd)
-
-        assertTrue(helper.contains("GboardVersionBindings.gestureDispatch.installHelper("))
-        assertFalse(helper.contains("GboardVersionBindings.gestureDispatch.classType"))
-        assertFalse(helper.contains("GboardVersionBindings.gestureDispatch.parameterTypes"))
-        assertFalse(helper.contains("GboardVersionBindings.gestureDispatch.returnType"))
-        assertTrue(helper.contains("Lpbj;->o:Lpbh;"))
-        assertTrue(helper.contains("Lpbh;->o(Lpbl;Loth;Loud;Lowd;JZZIZJI)V"))
-        assertFalse(helper.contains("Lofi;"))
-        assertFalse(helper.contains("Lofk;Lnxi;Lnyf;Loaa;"))
+        assertTrue(source.contains("GboardVersionBindings.gestureStockDelegateField"))
+        assertTrue(source.contains("GboardVersionBindings.gestureStockDispatch"))
+        assertTrue(source.contains("jasondevDispatchWithTopRow"))
+        assertTrue(source.contains("jasondevDispatchOrToggle"))
+        assertFalse(source.contains("Lpbj;"))
+        assertFalse(source.contains("Lpbh;"))
+        assertFalse(source.contains("p13"))
     }
 
     private fun readSource(path: String): String =

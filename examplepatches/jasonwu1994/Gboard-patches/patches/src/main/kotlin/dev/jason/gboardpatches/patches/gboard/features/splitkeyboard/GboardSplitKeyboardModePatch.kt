@@ -22,11 +22,11 @@ internal val gboardSplitKeyboardModePatch = bytecodePatch(
     dependsOn(gboardPatchesExtensionCarrierPatch)
 
     execute {
-        findMutableMethodOrThrow(GboardSplitKeyboard1777Targets.modeAttach)
+        findMutableMethodOrThrow(GboardSplitKeyboard1803Targets.modeAttach)
             .applySplitKeyboardModeLifecycleDelegate()
-        findMutableMethodOrThrow(GboardSplitKeyboard1777Targets.modeEnvironmentReload)
+        findMutableMethodOrThrow(GboardSplitKeyboard1803Targets.modeEnvironmentReload)
             .applySplitKeyboardModeLifecycleDelegate()
-        findMutableMethodOrThrow(GboardSplitKeyboard1777Targets.splitAction)
+        findMutableMethodOrThrow(GboardSplitKeyboard1803Targets.splitAction)
             .applySplitKeyboardActionInterceptor()
     }
 }

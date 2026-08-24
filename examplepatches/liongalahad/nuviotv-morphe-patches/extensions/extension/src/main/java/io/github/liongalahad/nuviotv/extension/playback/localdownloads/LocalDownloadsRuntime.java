@@ -64,7 +64,7 @@ public final class LocalDownloadsRuntime {
     static final String DOWNLOAD_IN_PROGRESS_LABEL = "Download in progress...";
     private static final String ENTRIES_KEY = "playback.local_downloads.entries.v1";
     private static final long ACTION_TIMEOUT_MS = 10L * 60L * 1000L;
-    private static final String[] SUBTITLE_WORKER_CLASS_NAMES = {"x9.q3", "v9.j3"};
+    private static final String[] SUBTITLE_WORKER_CLASS_NAMES = {"y9.q3"};
     private static final ThreadLocal<OptionContext> OPTION_CONTEXT = new ThreadLocal<>();
     private static final Object LOCK = new Object();
 
@@ -152,6 +152,41 @@ public final class LocalDownloadsRuntime {
     ) {
         OptionContext context = OPTION_CONTEXT.get();
         return context == null || original == null ? original : new WrappedOptions(original, context);
+    }
+
+    /** Extends Nuvio 0.8.7's episode overlay without naming its optimized action class. */
+    public static void appendEpisodeOptions(List<Object> actions) {
+        OptionContext context = OPTION_CONTEXT.get();
+        if (actions == null || actions.isEmpty() || context == null ||
+                !context.showManual || context.manualPlay == null ||
+                !LocalDownloadsSettings.isEnabled()) return;
+        try {
+            LocalDownloadsRefreshState.observeForCompose();
+            Class<?> actionClass = actions.get(0).getClass();
+            java.lang.reflect.Constructor<?> constructor = actionClass.getDeclaredConstructor(
+                    String.class, boolean.class, Function0.class);
+            constructor.setAccessible(true);
+            DownloadedEntry localEntry = entryForTarget(context.target);
+            if (localEntry != null && localEntry.isReadable(application())) {
+                actions.add(constructor.newInstance("Play local file", true, (Function0<Unit>) () -> {
+                    playLocal(context.target); return Unit.INSTANCE;
+                }));
+                actions.add(constructor.newInstance("Delete local file", true, (Function0<Unit>) () -> {
+                    requestDeleteLocal(context.target); return Unit.INSTANCE;
+                }));
+            } else if (isTargetDownloadRunning(context.target)) {
+                actions.add(constructor.newInstance(
+                        downloadActionLabel(context.target), true, (Function0<Unit>) () -> {
+                            reopenActiveProgress(); return Unit.INSTANCE;
+                        }));
+            } else {
+                actions.add(constructor.newInstance("Download to storage", true, (Function0<Unit>) () -> {
+                    begin(PendingAction.DOWNLOAD, context.manualPlay); return Unit.INSTANCE;
+                }));
+            }
+        } catch (Throwable error) {
+            Log.e(TAG, "Unable to extend native episode options", error);
+        }
     }
 
     public static Function1<Object, Unit> wrapResolvedCallback(Function1<Object, Unit> original) {
@@ -1097,7 +1132,7 @@ public final class LocalDownloadsRuntime {
                     episodeCardContent, "com.nuvio.tv.domain.model.Video");
             if (!isTargetDownloaded(video)) return;
 
-            Object cardLayout = findTypedField(episodeCardContent, "la.w0");
+            Object cardLayout = findTypedField(episodeCardContent, "na.x0");
             float badgeSize = floatField(cardLayout, "t", 21f);
             float iconSize = floatField(cardLayout, "u", Math.max(1f, badgeSize - 1f));
             float margin = floatField(cardLayout, "v", 4f);
@@ -1126,9 +1161,9 @@ public final class LocalDownloadsRuntime {
                     Float.TYPE, shapeClass, Long.TYPE, Integer.TYPE)
                     .invoke(null, modifier, 10f, circle, shadowColor, 12);
 
-            Object themeKey = staticField("va.w0", "a");
+            Object themeKey = staticField("xa.b1", "a");
             Method readCompositionLocal = composer.getClass().getMethod(
-                    "j", Class.forName("e1.d2"));
+                    "j", Class.forName("e1.e2"));
             Object theme = readCompositionLocal.invoke(composer, themeKey);
             long badgeColor = longField(theme, "h");
             modifier = declaredMethod(Class.forName("w.m"), "g", modifierClass,
@@ -1140,7 +1175,7 @@ public final class LocalDownloadsRuntime {
                         Float.TYPE).invoke(null, modifier, innerPadding);
             }
 
-            Object palette = staticField("va.u0", "g");
+            Object palette = staticField("xa.z0", "g");
             long selectedBackground = longField(palette, "a");
             long iconColor = badgeColor == selectedBackground
                     ? longStaticField("b2.y", "b") : longStaticField("b2.y", "d");
@@ -1566,14 +1601,32 @@ public final class LocalDownloadsRuntime {
             }
 
             Class<?> updater = Class.forName("e1.j");
-            Method update = declaredMethod(updater, "C", composerClass,
-                    Object.class, Function2.class);
+            Method update = null;
+            Method applyModifier = null;
+            for (Method candidate : updater.getDeclaredMethods()) {
+                Class<?>[] parameters = candidate.getParameterTypes();
+                if (!Modifier.isStatic(candidate.getModifiers()) ||
+                        candidate.getReturnType() != Void.TYPE) {
+                    continue;
+                }
+                if (parameters.length == 3 && parameters[0] == composerClass &&
+                        parameters[1] == Object.class && parameters[2] == Function2.class) {
+                    update = candidate;
+                } else if (parameters.length == 2 && parameters[0] == composerClass &&
+                        parameters[1] == Function1.class) {
+                    applyModifier = candidate;
+                }
+            }
+            if (update == null || applyModifier == null) {
+                throw new NoSuchMethodException("Native Compose updater methods");
+            }
+            update.setAccessible(true);
+            applyModifier.setAccessible(true);
             update.invoke(null, composer, measurePolicy, staticField("u2.i", "f"));
             update.invoke(null, composer, compositionLocals, staticField("u2.i", "e"));
             update.invoke(null, composer, Integer.valueOf(Long.hashCode(longField(composer, "T"))),
                     staticField("u2.i", "g"));
-            declaredMethod(updater, "x", composerClass, Function1.class)
-                    .invoke(null, composer, staticField("u2.i", "h"));
+            applyModifier.invoke(null, composer, staticField("u2.i", "h"));
             update.invoke(null, composer, materializedModifier, staticField("u2.i", "d"));
 
             Constructor<?> weightConstructor = Class.forName("c0.z0")

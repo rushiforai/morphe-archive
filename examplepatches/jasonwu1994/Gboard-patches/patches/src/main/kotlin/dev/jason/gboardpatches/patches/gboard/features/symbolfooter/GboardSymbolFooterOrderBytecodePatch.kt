@@ -27,7 +27,7 @@ import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeAbiCatalo
 import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
 import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 
-private const val EXPRESSION_CORPUS_MANAGER_CLASS = "Lgan;"
+private const val EXPRESSION_CORPUS_MANAGER_CLASS = "Lgri;"
 
 internal val gboardSymbolFooterOrderBytecodePatch = bytecodePatch(
     description = "依使用者設定重排 expression footer corpus list。"
@@ -234,10 +234,10 @@ private val ENTRY_PARAMETER_COPIES = """
 """.trimIndent()
 
 private const val TARGET_METHOD_NAME = "a"
-private const val TARGET_RETURN_TYPE = "Lvai;"
+private const val TARGET_RETURN_TYPE = "Lvvw;"
 private val TARGET_PARAMETERS = listOf("Landroid/view/inputmethod/EditorInfo;", "Z")
 private const val TARGET_DESCRIPTOR =
-    "Lgan;->a(Landroid/view/inputmethod/EditorInfo;Z)Lvai;"
+    "Lgri;->a(Landroid/view/inputmethod/EditorInfo;Z)Lvvw;"
 private val FOOTER_RUNTIME_CALL =
     RuntimeCallId.SYMBOL_FOOTER_ORDER_RUNTIME_REORDER_EXPRESSION_CORPUS_LIST
 private val FOOTER_RUNTIME_DESCRIPTOR = RuntimeAbiCatalog.abi(FOOTER_RUNTIME_CALL).reference
@@ -245,7 +245,7 @@ private const val FINAL_COLLECT_DESCRIPTOR =
     "Lj$/util/stream/Stream;->collect" +
         "(Lj$/util/stream/Collector;)Ljava/lang/Object;"
 private const val RECEIVER_LAST_USE_DESCRIPTOR =
-    "Lgak;-><init>(Lgan;Landroid/view/inputmethod/EditorInfo;Z)V"
+    "Lgrg;-><init>(Lgri;Landroid/view/inputmethod/EditorInfo;Z)V"
 private const val STOCK_REGISTER_COUNT = 15
 private const val PATCHED_REGISTER_COUNT = 18
 private const val LEGACY_P0_REGISTER = 12

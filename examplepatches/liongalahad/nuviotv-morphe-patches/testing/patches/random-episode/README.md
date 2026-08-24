@@ -8,4 +8,4 @@ The selected episode uses Nuvio's existing autoplay, source-selection and long-p
 
 ## Credit
 
-The original Random Episode settings and feature implementation were created by [**DeclanSC**](https://github.com/DeclanSC). This Morphe patch ports that work to NuvioTV 0.8.6-beta's current binary structure.
+The original Random Episode settings and feature implementation were created by [**DeclanSC**](https://github.com/DeclanSC). This Morphe patch ports that work to NuvioTV 0.8.7-beta's current binary structure.

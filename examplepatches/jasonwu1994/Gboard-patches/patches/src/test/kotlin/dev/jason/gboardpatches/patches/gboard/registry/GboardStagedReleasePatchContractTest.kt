@@ -1,6 +1,5 @@
 package dev.jason.gboardpatches.patches.gboard.registry
 
-import com.google.gson.JsonParser
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
@@ -14,16 +13,12 @@ class GboardStagedReleasePatchContractTest {
         val root = repositoryRoot()
         val registry = Files.readString(root.resolve(REGISTRY_PATH), StandardCharsets.UTF_8)
         val activeRegistry = registry.replace(Regex("(?s)/\\*.*?\\*/"), "")
-        val inventory = JsonParser.parseString(
-            Files.readString(root.resolve("patches-list.json"), StandardCharsets.UTF_8),
-        ).asJsonObject
-        val names = inventory.getAsJsonArray("patches")
-            .map { it.asJsonObject.get("name").asString }
+        val names = generatedPublishedPatches().map { patch -> patch.get("name").asString }
 
-        assertEquals(31, names.size)
+        assertEquals(34, names.size)
         PUBLISHED_PATCHES.forEach { published ->
-            assertTrue(registry.contains("val ${published.declaration} = resourcePatch("))
-            assertTrue(activeRegistry.contains("val ${published.declaration} = resourcePatch("))
+            assertTrue(registry.contains("val ${published.declaration} = gboardPublicResourcePatch("))
+            assertTrue(activeRegistry.contains("val ${published.declaration} = gboardPublicResourcePatch("))
             assertEquals(1, names.count { it == published.name })
         }
     }
@@ -32,7 +27,7 @@ class GboardStagedReleasePatchContractTest {
         val workingDirectory = Path.of("").toAbsolutePath().normalize()
         return generateSequence(workingDirectory) { it.parent }
             .firstOrNull { candidate ->
-                Files.isRegularFile(candidate.resolve("patches-list.json")) &&
+                Files.isRegularFile(candidate.resolve("settings.gradle.kts")) &&
                     Files.isRegularFile(candidate.resolve(REGISTRY_PATH))
             }
             ?: error("Could not locate repository root from $workingDirectory")

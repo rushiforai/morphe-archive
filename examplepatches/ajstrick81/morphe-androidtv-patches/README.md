@@ -25,7 +25,7 @@ I'm just like you — I enjoy watching TV and movies without being bored and ann
 | 🟢 ViX | `com.univision.prendetv` | Working | `v4.47.2_tv` | 7/11/26 |
 | 🟢 Pluto TV | `tv.pluto.android` | Working — VOD ad breaks removed (video, markers, beacons); LIVE TV ads are broadcast time and remain | `5.66.0-leanback` | 7/3/26 |
 | 🟢 Paramount+ | `com.cbs.ott` | Working — VOD ads removed (movies + TV shows, pre-roll + mid-roll); pause ads removed; live TV preserved | `v16.17.0` | 8/4/26 |
-| 🟢 Twitch | `tv.twitch.android.app` | Working — **Android TV "Starshot" build only**. Removes the on-screen ad-pod overlay/countdown ("Ad · 1 of 3") and blanks stitched (SSAI) ad video on live streams. A brief black gap can remain during a break; a VPN set to Albania is fully ad-free — see notes | `13.0.0.2` | 8/14/26 |
+| 🟢 Twitch | `tv.twitch.android.app` | Working — **Android TV "Starshot" build only; install exactly `13.0.0.2`** (the phone app is not supported — do not use the phone APK). Removes the on-screen ad-pod overlay/countdown ("Ad · 1 of 3") and blanks stitched (SSAI) ad video on live streams. A brief black gap can remain during a break; a VPN set to Albania is fully ad-free — see notes | `13.0.0.2` | 8/22/26 |
 | 🔴 Fox One | **Under Development** | — |
 | 🔴 MLB TV | **Under Development** | — |
 
@@ -61,8 +61,8 @@ All patches follow the same general workflow using **Morphe Manager**:
 
 ### 🎭 HBO Max
 
-1. Open the **[HBO Max (Android TV) listing on APKMirror](https://www.apkmirror.com/apk/warnermedia-direct-llc/max-stream-hbo-tv-movies-android-tv/)** and select version **`7.9.0.61`** (or the fallback `7.7.0.78`)
-   > ⚠️ **Get the right package.** These patches target **`com.wbd.hbomax`** (the "Max: Stream HBO, TV & Movies — Android TV" listing linked above). A Google search may surface a different **`com.wbd.stream`** build — that is a *separate* app variant and the patches will **not** apply to it. Confirm the download shows package `com.wbd.hbomax` before patching.
+1. Open the **[HBO Max 7.9.0.61 (Android TV) release on APKMirror](https://www.apkmirror.com/apk/warnermedia-direct-llc/hbo-max-stream-movies-tv-android-tv/hbo-max-stream-movies-tv-android-tv-7-9-0-61-release/hbo-max-stream-movies-tv-android-tv-7-9-0-61-android-apk-download/)** directly (or search APKMirror for the fallback `7.7.0.78` if unavailable)
+   > ⚠️ **Get the right package.** These patches target **`com.wbd.hbomax`**. WarnerMedia also publishes a separate **`com.wbd.stream`** build under a near-identical name, and APKMirror's listing URLs for this app have shifted between the two before — don't trust the listing title alone. Confirm the download page shows package **`com.wbd.hbomax`** before downloading.
 2. Download the `.apkm` file
 3. Select it in Morphe Manager
 4. Apply the patch
@@ -139,7 +139,7 @@ All patches follow the same general workflow using **Morphe Manager**:
 > 🟡 **Stable fallback: `v16.8.0`.** The previous recommended build. Use it only
 > if you can't get `v16.17.0`.
 
-1. Open the **[Paramount+ (Android TV) listing on APKMirror](https://www.apkmirror.com/apk/cbs-interactive-inc/paramount-2/)** and select version **`16.17.0`** (fallback: `16.8.0`)
+1. Open the **[Paramount+ 16.17.0 (Android TV) release on APKMirror](https://www.apkmirror.com/apk/cbs-interactive-inc/paramount-2/paramount-android-tv-16-17-0-release/paramount-android-tv-16-17-0-2-android-apk-download/)** directly (or search APKMirror for the fallback `16.8.0` if unavailable)
 2. ⚠️ This listing is published by **CBS Interactive, Inc.** — the correct publisher. Do **not** use the separate Viacom-published build.
 3. Download the `.apkm` file
 4. Select it in Morphe Manager

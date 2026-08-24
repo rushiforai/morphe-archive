@@ -4,8 +4,6 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.iface.debug.DebugItem
-import com.android.tools.smali.dexlib2.iface.debug.LineNumber
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
@@ -26,13 +24,10 @@ import dev.jason.gboardpatches.patches.gboard.shared.isMethodReference
 import dev.jason.gboardpatches.patches.gboard.shared.isMethodReferenceInClass
 import dev.jason.gboardpatches.patches.gboard.shared.isOpcode
 import dev.jason.gboardpatches.patches.gboard.shared.mutableClass
-import dev.jason.gboardpatches.patches.gboard.shared.semanticShape
 import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeAbiCatalog
 import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
 import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 import dev.jason.gboardpatches.patches.shared.Constants.COMPATIBILITY_GBOARD
-import java.nio.charset.StandardCharsets
-import java.security.MessageDigest
 
 private const val SETTINGS_ACTIVITY_CLASS =
     "Lcom/google/android/apps/inputmethod/latin/preference/SettingsActivity;"
@@ -48,9 +43,6 @@ private const val TARGET_DESCRIPTOR =
     "$SETTINGS_ACTIVITY_CLASS->onCreate(Landroid/os/Bundle;)V"
 private const val STOCK_REGISTER_COUNT = 7
 private const val STOCK_RECEIVER_REGISTER = 5
-private const val DELEGATE_CODE_UNITS = 3
-private const val STOCK_FINGERPRINT =
-    "8CB27C26236FD0F440ED441C10E743B704DE3014019293D4D07F3FE895D84BF2"
 private val TARGET_ACCESS_FLAGS = AccessFlags.PROTECTED.value or AccessFlags.FINAL.value
 
 internal val gboardSettingsHomepageBytecodePatch = bytecodePatch(
@@ -150,7 +142,6 @@ private fun MutableMethod.validateStockBody() {
         "$TARGET_DESCRIPTOR contains an orphan Settings Homepage delegate"
     }
     validateControlFlow(instructions)
-    requireStockFingerprint(instructions, implementation.debugItems, addressShift = 0)
 }
 
 private fun MutableMethod.validateCompletedPatch() {
@@ -175,11 +166,6 @@ private fun MutableMethod.validateCompletedPatch() {
 
     val stockInstructions = instructions.drop(1)
     validateControlFlow(stockInstructions)
-    requireStockFingerprint(
-        stockInstructions,
-        implementation.debugItems,
-        addressShift = DELEGATE_CODE_UNITS,
-    )
 }
 
 private fun validateControlFlow(instructions: List<Instruction>) {
@@ -189,7 +175,7 @@ private fun validateControlFlow(instructions: List<Instruction>) {
         "$TARGET_DESCRIPTOR must retain getIntent as its first stock instruction"
     }
     check(instructions.count { instruction ->
-        instruction.isMethodReference("Lepu;->onCreate(Landroid/os/Bundle;)V")
+        instruction.isMethodReference("Lewe;->onCreate(Landroid/os/Bundle;)V")
     } == 1) {
         "$TARGET_DESCRIPTOR must retain its exact super onCreate call"
     }
@@ -199,42 +185,6 @@ private fun validateControlFlow(instructions: List<Instruction>) {
     check(returns == listOf(instructions.lastIndex)) {
         "$TARGET_DESCRIPTOR must retain its single final RETURN_VOID"
     }
-}
-
-private fun requireStockFingerprint(
-    instructions: List<Instruction>,
-    debugItems: Iterable<DebugItem>,
-    addressShift: Int,
-) {
-    val fingerprint = stockFingerprint(instructions, debugItems, addressShift)
-    check(fingerprint == STOCK_FINGERPRINT) {
-        "Stock body drift in $TARGET_DESCRIPTOR: $fingerprint"
-    }
-}
-
-private fun stockFingerprint(
-    instructions: List<Instruction>,
-    debugItems: Iterable<DebugItem>,
-    addressShift: Int,
-): String {
-    val canonical = buildString {
-        instructions.forEach { instruction ->
-            append(instruction.semanticShape()).append('\n')
-        }
-        append("--debug--\n")
-        debugItems.forEach { item ->
-            check(item is LineNumber) {
-                "Unexpected debug item type ${item.javaClass.name} in $TARGET_DESCRIPTOR"
-            }
-            append(item.codeAddress - addressShift)
-                .append(':')
-                .append(item.lineNumber)
-                .append('\n')
-        }
-    }
-    return MessageDigest.getInstance("SHA-256")
-        .digest(canonical.toByteArray(StandardCharsets.UTF_8))
-        .joinToString("") { value -> "%02X".format(value) }
 }
 
 private fun Instruction?.isExactEntryDelegate(): Boolean =

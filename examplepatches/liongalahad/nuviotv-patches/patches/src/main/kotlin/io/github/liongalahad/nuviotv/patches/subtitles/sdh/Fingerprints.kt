@@ -9,6 +9,41 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val CUE_GROUP = "Landroidx/media3/common/text/CueGroup;"
 private const val TEXT_OUTPUT = "Landroidx/media3/exoplayer/text/TextOutput;"
+private const val CUE = "Landroidx/media3/common/text/Cue;"
+private const val CUE_BUILDER = "Landroidx/media3/common/text/Cue\$Builder;"
+
+/** Nuvio's central Media3 SDH cue-list filter. */
+internal object NativeSdhFilterFingerprint : Fingerprint(
+    parameters = listOf("Ljava/util/List;"),
+    filters = listOf(
+        methodCall(
+            definingClass = CUE,
+            name = "buildUpon",
+            returnType = CUE_BUILDER
+        ),
+        methodCall(
+            definingClass = CUE_BUILDER,
+            name = "setText",
+            parameters = listOf("Ljava/lang/CharSequence;"),
+            returnType = CUE_BUILDER
+        ),
+        methodCall(
+            definingClass = CUE_BUILDER,
+            name = "build",
+            returnType = CUE
+        )
+    ),
+    custom = { method, classDef ->
+        method.returnType in listOf("Ljava/util/List;", "Ljava/util/ArrayList;") &&
+            classDef.fields.count { field -> field.type == "Lkotlin/text/Regex;" } == 3 &&
+            (method.implementation?.instructions ?: emptyList()).count { instruction ->
+                val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+                    ?: return@count false
+                reference.definingClass == "Lkotlin/text/Regex;" &&
+                    reference.name == "replace"
+            } >= 3
+    }
+)
 
 /** Nuvio's CueNormalizingTextOutput Media3 callback. */
 internal object CueGroupOutputFingerprint : Fingerprint(

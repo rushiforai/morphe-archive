@@ -1,6 +1,30 @@
 {
-    "version": "v1.3.3",
+    "version": "v1.7.1",
     "patches": [
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#00C1CD",
+                    "name": "CapCut",
+                    "packageName": "com.lemon.lvoverseas",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "19.2.0"
+                        }
+                    ],
+                    "versions": [
+                        "19.2.0"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Disables the retouch SDK APK signature check that shows a toast when the app was repatched (e.g. after applying Morphe patches). The native check in libretouch_sdk.so still runs but its error UI is suppressed.",
+            "name": "Bypass APK security check",
+            "options": []
+        },
         {
             "compatiblePackages": [
                 {
@@ -47,6 +71,78 @@
             "dependencies": [],
             "description": "Removes banner, native, cover and interstitial ads and unlocks premium features.",
             "name": "Hide ads",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#ECEBB4",
+                    "name": "Komoot",
+                    "packageName": "de.komoot.android",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "2026.34.2"
+                        }
+                    ],
+                    "versions": [
+                        "2026.34.2"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Spoof Komoot Maps ownership client-side (world pack / owned regions in shop and offline UI). Server-side limits may still apply: offline tile download auth, sync overwriting local state, and Play receipt validation. Does not replace a real Play Store purchase.",
+            "name": "Unlock map regions",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#ECEBB4",
+                    "name": "Komoot",
+                    "packageName": "de.komoot.android",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "2026.34.2"
+                        }
+                    ],
+                    "versions": [
+                        "2026.34.2"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Unlock Premium features. Some features are not possible to patch (server sided), such as saving a multi-days hike.",
+            "name": "Unlock Premium features",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#00C1CD",
+                    "name": "CapCut",
+                    "packageName": "com.lemon.lvoverseas",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "19.2.0"
+                        }
+                    ],
+                    "versions": [
+                        "19.2.0"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Spoofs client-side Pro/VIP status to unlock premium-gated effects, export options (watermark removal where VIP-gated), and retouch subscribe checks. Also disables watermark_trailer_config so the CapCut ending clip is not applied. ISubscribe.isVip is native and not patchable here. Server-verified features may still require a real subscription.",
+            "name": "Unlock Pro",
             "options": []
         }
     ]

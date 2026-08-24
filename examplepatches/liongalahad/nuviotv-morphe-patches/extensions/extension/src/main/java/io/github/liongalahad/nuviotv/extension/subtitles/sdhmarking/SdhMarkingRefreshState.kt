@@ -1,6 +1,7 @@
 package io.github.liongalahad.nuviotv.extension.subtitles.sdhmarking
 
 import java.lang.reflect.Method
+import java.lang.reflect.Modifier
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -55,10 +56,10 @@ object SdhMarkingRefreshState {
      * second Compose runtime.
      */
     private fun createRuntimeState(): Any? = try {
-        Class.forName("e1.j")
-            .getDeclaredMethod("q", Object::class.java)
-            .apply { isAccessible = true }
-            .invoke(null, 0)
+        Class.forName("e1.j").declaredMethods.firstOrNull {
+            Modifier.isStatic(it.modifiers) && it.returnType != Void.TYPE &&
+                it.parameterTypes.contentEquals(arrayOf(Object::class.java))
+        }?.apply { isAccessible = true }?.invoke(null, 0)
     } catch (_: Throwable) {
         null
     }

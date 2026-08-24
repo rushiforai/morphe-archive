@@ -9,7 +9,7 @@ class RuntimeAbiVerifierTest {
         val inventory = RuntimeArtifactInventory { _, _ -> emptyList() }
 
         val mismatches = RuntimeAbiVerifier.verify(
-            calls = listOf(RuntimeCallId.AI_WRITING_TOOLS_RUNTIME_ENTER_SETTINGS_CONTROLLER_SCOPE),
+            calls = listOf(RuntimeCallId.RAMBLER_RUNTIME_ENTER_VOICE_SETTINGS_SCOPE),
             inventory = inventory,
         )
 
@@ -17,8 +17,8 @@ class RuntimeAbiVerifierTest {
             listOf(
                 RuntimeAbiMismatch.MissingMethod(
                     RuntimeAbi(
-                        owner = "Ldev/jason/gboardpatches/extension/writingtools/GboardAiWritingToolsRuntime;",
-                        name = "enterSettingsControllerScope",
+                        owner = "Ldev/jason/gboardpatches/extension/rambler/GboardRambler1803OfficialSelectionRuntime;",
+                        name = "enterVoiceSettingsScope",
                         parameters = emptyList(),
                         returnType = "V",
                         isStatic = true,
@@ -43,7 +43,7 @@ class RuntimeAbiVerifierTest {
         }
 
         val mismatches = RuntimeAbiVerifier.verify(
-            calls = listOf(RuntimeCallId.AI_WRITING_TOOLS_RUNTIME_ENTER_SETTINGS_CONTROLLER_SCOPE),
+            calls = listOf(RuntimeCallId.RAMBLER_RUNTIME_ENTER_VOICE_SETTINGS_SCOPE),
             inventory = inventory,
         )
 
@@ -51,7 +51,7 @@ class RuntimeAbiVerifierTest {
             listOf(
                 RuntimeAbiMismatch.WrongDescriptor(
                     expected = RuntimeAbiCatalog.abi(
-                        RuntimeCallId.AI_WRITING_TOOLS_RUNTIME_ENTER_SETTINGS_CONTROLLER_SCOPE
+                        RuntimeCallId.RAMBLER_RUNTIME_ENTER_VOICE_SETTINGS_SCOPE
                     ),
                     actualDescriptors = listOf("()Z"),
                 )
@@ -63,7 +63,7 @@ class RuntimeAbiVerifierTest {
     @Test
     fun `reports a runtime method with the wrong static access`() {
         val expected = RuntimeAbiCatalog.abi(
-            RuntimeCallId.AI_WRITING_TOOLS_RUNTIME_ENTER_SETTINGS_CONTROLLER_SCOPE
+            RuntimeCallId.RAMBLER_RUNTIME_ENTER_VOICE_SETTINGS_SCOPE
         )
         val inventory = RuntimeArtifactInventory { owner, name ->
             listOf(
@@ -77,7 +77,7 @@ class RuntimeAbiVerifierTest {
         }
 
         val mismatches = RuntimeAbiVerifier.verify(
-            calls = listOf(RuntimeCallId.AI_WRITING_TOOLS_RUNTIME_ENTER_SETTINGS_CONTROLLER_SCOPE),
+            calls = listOf(RuntimeCallId.RAMBLER_RUNTIME_ENTER_VOICE_SETTINGS_SCOPE),
             inventory = inventory,
         )
 

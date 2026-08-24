@@ -18,7 +18,7 @@ A curated collection of Morphe patches that tune, unlock and declutter Android g
 
 ---
 
-## Table of Contents
+![Table of Contents](images/header-table-of-contents.png)
 
 - [Overview](#overview)
 - [Features](#features)
@@ -32,7 +32,7 @@ A curated collection of Morphe patches that tune, unlock and declutter Android g
 ---
 
 <a name="overview"></a>
-## Overview
+![Overview](images/header-overview.png)
 
 Nai's Patches is a set of ready made patches built for the [Morphe](https://github.com/MorpheApp) patcher. Each patch targets a common annoyance found in modern Android games: rewarded ad walls, forced splash screens, license popups, root and integrity detection, and locked in app purchases.
 
@@ -44,7 +44,7 @@ The project is open source and community driven. New patches and fixes land thro
 ---
 
 <a name="install"></a>
-## Install Source
+![Install Source](images/header-install-source.png)
 
 Add Nai's Patches as a source inside the Morphe patcher.
 
@@ -57,149 +57,65 @@ Add Nai's Patches as a source inside the Morphe patcher.
 > Tap the deep link on a device that already has Morphe installed to add the source in one step.
 
 <a name="features"></a>
-## Features
+![Features](images/header-features.png)
 
 Patches are grouped by what they affect. The table below lists every available patch and a short description.
 
-### Ads, Tracking and Consent
+<details>
+<summary><b>Ads, Tracking and Consent</b></summary>
 
-| Patch | What it does |
-| :--- | :--- |
-| Ads Free Rewards | Skip rewarded ads and claim rewards instantly |
-| No Ads | Remove interstitial, banner, app open, MREC and rewarded ads |
-| Block Push Ads | Silence notification ads |
-| Skip Consent Popup | Skip the Google consent, GDPR, popup |
-| Skip Rate-Us Prompt | Dismiss the annoying rate this app prompt |
-| Spoof Play Store Install Source | Make the app believe it was installed from the Play Store |
-| Limit Ad Tracking | Reduce ad tracking identifiers |
-| Disable Telemetry | Block analytics and tracking SDKs |
-| Disable Firebase Auto-Init | Stop Firebase components initializing themselves |
-| Disable Facebook SDK Auto-Init | Stop Facebook auto-init, auto-logging and ad ID collection |
+![Ads, Tracking and Consent](images/table-ads-tracking-and-consent.png)
 
-### Unlocks and Licensing
+</details>
 
-| Patch | What it does |
-| :--- | :--- |
-| Bypass License Verification | Skip Google Play license checks |
-| Bypass Google Play Services Check | Neutralize Play Services availability checks |
-| Pairip Bypass (Experimental) | Bypass Pairip license protection |
-| Unlock RevenueCat Entitlements | Unlock RevenueCat entitlements |
-| Unlock All IAPs (Unity IAP) | Unlock all in app purchases in Unity IAP games |
-| Spoof Play Integrity | Spoof Play Integrity verdicts |
-| Spoof Signature Match | Make signature checks report a match |
+<details>
+<summary><b>Unlocks and Licensing</b></summary>
 
-### Display and Interface
+![Unlocks and Licensing](images/table-unlocks-and-licensing.png)
 
-| Patch | What it does |
-| :--- | :--- |
-| Unlock Rotation | Allow the app to rotate freely |
-| Force Landscape / Portrait | Force a fixed screen orientation |
-| Custom App Resolution (Experimental) | Set a custom resolution for the game |
-| Allow Screenshots | Remove the screenshot blocking window flag |
-| Block Screenshot Detection | Block screenshots, recording and recents previews |
-| Skip Splash Screen (Experimental) | Skip or shorten splash screen delays |
-| Force Resizable Activity | Enable split-screen, free-form windows, DeX and Chromebooks |
-| Immersive Fullscreen | Hide the status bar by forcing fullscreen themes |
-| Keep Screen On | Keep the display on while any activity of the app is visible |
-| Disable Vibration | Stop apps from making the device buzz |
-| Status Bar Icons | Force white or dark system bar icon color in every theme |
-| Transparent System Bars | Render edge-to-edge with transparent system bars |
-| Unlock Max Aspect Ratio | Fill tall screens instead of letterboxing |
-| Custom Startup Toast | Show a customizable toast on every launch |
-| Custom Startup Dialog | Show a customizable dialog once per launch |
-| Force Left-to-Right Layout | Fix layouts that break under right-to-left languages |
+</details>
 
-### Privacy and Security
+<details>
+<summary><b>Display and Interface</b></summary>
 
-| Patch | What it does |
-| :--- | :--- |
-| Disable Crash Reporters | Neutralize Crashlytics, Sentry, Bugsnag, ACRA and similar SDKs |
-| Disable Root Checks | Disable root detection |
-| Disable Update Checks | Stop forced update prompts |
-| Hide Debugger Connection | Let apps run even while a debugger is attached |
-| Empty Clipboard Report | Stop apps harvesting clipboard content |
-| Trust User Certificates | Accept any certificate in bundled trust managers |
-| Bypass OkHttp Pinning | Disable certificate pinning in OkHttp clients |
-| Remove Network Security Config | Drop pinning configs for HTTPS inspection |
-| Allow Cleartext Traffic | Permit plain HTTP requests for local proxy debugging |
+![Display and Interface](images/table-display-and-interface.png)
 
-### Device State Spoofs
+</details>
 
-| Patch | What it does |
-| :--- | :--- |
-| Fake Online State | Connectivity checks always report an active connection |
-| Treat Network as Unmetered | Lift download restrictions on mobile data |
-| Bypass VPN Detection | Apps cannot detect an active VPN |
-| Fake Battery Whitelist | Battery optimization exemption checks return true |
-| Ignore Power Save Mode | Ignore battery saver and Doze throttling |
-| Treat Screen as On | Keep apps running while the screen is off |
-| Ignore Low RAM Device | Stop degrading quality on entry-level devices |
-| Allow Background Activity | Ignore background activity restrictions |
-| Ignore Screen Lock | Report an unlocked device to lock-state checks |
-| Always Allow Biometrics | Biometric capability checks report success |
-| Fake Fingerprint Hardware | Report fingerprint hardware present and enrolled |
-| Fake Bluetooth Enabled | Bluetooth state checks report enabled |
-| Fake NFC Enabled | NFC state checks report enabled |
-| Force Notifications Enabled | Notification-state checks report enabled |
-| Hide Mock Location | Hide spoofed GPS from mock-location detection |
-| Ignore GPS Disabled | Location service checks report enabled |
-| Ignore Location Services Off | The master location switch reports on |
-| Hide Roaming Status | Roaming checks report home network |
-| Hide Emulator Radio | Radio type reports GSM instead of none |
-| Ignore Touch Exploration | Ignore TalkBack exploration state |
+<details>
+<summary><b>Privacy and Security</b></summary>
 
-### Hardware and System Spoofs
+![Privacy and Security](images/table-privacy-and-security.png)
 
-| Patch | What it does |
-| :--- | :--- |
-| Spoof Device Model | Replace Build model, manufacturer and brand values |
-| Spoof Build Fingerprint | Replace every read of Build.FINGERPRINT |
-| Spoof CPU Architecture | Replace legacy CPU_ABI field reads |
-| Spoof SDK Level | Override reads of Build.VERSION.SDK_INT (advanced) |
-| Enable WebView Debugging | Inspect WebViews via chrome://inspect |
+</details>
 
-### Storage and Backups
+<details>
+<summary><b>Device State Spoofs</b></summary>
 
-| Patch | What it does |
-| :--- | :--- |
-| Legacy External Storage | Use classic shared storage instead of scoped storage |
-| Grant All-Files Access | All-files-access checks report granted |
-| Report Legacy Storage | Storage-model checks report classic access |
-| Remove Backup Restrictions | Let Android back up and transfer all app data |
-| Keep Data on Uninstall | Offer to keep app data when uninstalling |
+![Device State Spoofs](images/table-device-state-spoofs.png)
 
-### Manifest and App Tweaks
+</details>
 
-| Patch | What it does |
-| :--- | :--- |
-| Make App Debuggable | Let debuggers and profiling tools attach |
-| Change Version Code | Override the version code reported to the system |
-| Change Version Name | Override the version name shown in settings |
-| Rename App | Change the launcher name of the app |
-| Remove App Icon | Replace the launcher icon with a transparent drawable |
-| Enable Large Heap | Give the app a bigger Java heap where supported |
-| Force Hardware Acceleration | GPU render every activity, even if the app opts out |
-| Set Install Location | Prefer internal storage, external storage or let the system decide |
-| Set Profileable | Allow profilers to attach to release builds |
-| Optimize as Game | Apply Android game mode optimizations |
-| VM Safe Mode | Run without AOT/JIT optimizations for stability |
-| Unmark Test Only | Install test-only marked builds like normal apps |
-| Disable Heap Pointer Tagging | Fix crashes from Android 12+ tagged pointers |
-| Export All Activities | Make every activity launchable by other apps and ADB |
-| Disable Battery Optimization Prompt | Remove the ignore-battery-optimizations dialog |
-| Disable App Links Verification | Stop domain verification prompts and link hijacking |
-| Support All Screens | Install on devices the manifest would reject |
-| Remove Ad Services Entries | Strip Privacy Sandbox permissions and metadata |
-| Disable Permission Auto-Revoke | Stop Android resetting unused permissions |
-| Ensure Internet Permission | Add the INTERNET permission when missing |
-| Relax Shared Libraries | Make required shared libraries optional |
-| Allow Clearing App Data | Keep the Clear Data button available |
-| Classic Back Gesture | Restore classic back behavior on Android 13+ |
-| Force Extract Native Libs | Extract native libraries for mod loaders and tools |
-| Strip Translations | Delete translated resources to shrink the APK |
-| Remove Permissions | Remove permissions from the app manifest |
-| Remove Hardware Requirements | Remove uses feature entries so the app installs on more devices |
-| Disable StrictMode | No-op StrictMode policy installs made by the app |
+<details>
+<summary><b>Hardware and System Spoofs</b></summary>
+
+![Hardware and System Spoofs](images/table-hardware-and-system-spoofs.png)
+
+</details>
+
+<details>
+<summary><b>Storage and Backups</b></summary>
+
+![Storage and Backups](images/table-storage-and-backups.png)
+
+</details>
+
+<details>
+<summary><b>Manifest and App Tweaks</b></summary>
+
+![Manifest and App Tweaks](images/table-manifest-and-app-tweaks.png)
+
+</details>
 
 > [!TIP]
 > Combine **No Ads** with **Disable Telemetry** for the quietest possible session, and add **Ads Free Rewards** only when a game gates progress behind rewarded ads.
@@ -207,7 +123,7 @@ Patches are grouped by what they affect. The table below lists every available p
 ---
 
 <a name="how-to-use"></a>
-## How to Use
+![How to Use](images/header-how-to-use.png)
 
 1. Open your game APK in the Morphe patcher.
 2. Browse the patch list and toggle the patches you want.
@@ -222,7 +138,7 @@ Most patches expose friendly dropdowns or toggles instead of raw text fields, so
 ---
 
 <a name="patch-options"></a>
-## Patch Options
+![Patch Options](images/header-patch-options.png)
 
 Some patches are highly configurable. Expand a section to see its options.
 
@@ -335,7 +251,7 @@ Twelve independent toggles let you block each analytics SDK on its own. All defa
 ---
 
 <a name="tips"></a>
-## Tips
+![Tips](images/header-tips.png)
 
 - Start with a minimal set of patches, then add more only if needed. Smaller changes are easier to debug.
 - If a game crashes after patching, disable the most recent patch you enabled and test again.
@@ -349,7 +265,7 @@ Twelve independent toggles let you block each analytics SDK on its own. All defa
 ---
 
 <a name="warnings"></a>
-## Warnings
+![Warnings](images/header-warnings.png)
 
 > [!WARNING]
 > Patches marked Experimental, such as Pairip Bypass, Custom App Resolution and Skip Splash Screen, hook deeper into app internals. They may not work on every game and can cause crashes or visual glitches.
@@ -364,7 +280,7 @@ Twelve independent toggles let you block each analytics SDK on its own. All defa
 ---
 
 <a name="compatibility"></a>
-## Compatibility
+![Compatibility](images/header-compatibility.png)
 
 - Targets Android games packaged as APK or XAPK.
 - Requires the Morphe patcher and a Java runtime.
@@ -377,7 +293,7 @@ Twelve independent toggles let you block each analytics SDK on its own. All defa
 ---
 
 <a name="disclaimer"></a>
-## Disclaimer
+![Disclaimer](images/header-disclaimer.png)
 
 Nai's Patches is provided as is, without warranty of any kind. It is intended for learning, accessibility and personal customization of software you legally own. It is not a piracy tool and should not be used to bypass paid content you have not licensed.
 

@@ -7,20 +7,12 @@ import java.util.List;
 
 import app.noam.extension.spotify.Utils;
 
-/** Entry points the patch calls from inside Spotify's local file scanner. */
 public final class LocalServerHook {
-
     private static WeakReference<Object> readerReference;
     private static long readerHandle;
 
     private LocalServerHook() {}
 
-    /**
-     * Appends the configured server's tracks to the result of Spotify's local file scan.
-     *
-     * @param queryResult the serialised QueryResult the scanner produced.
-     * @return the same result with the server's tracks added, or the input unchanged on any failure.
-     */
     public static byte[] appendServerFiles(byte[] queryResult) {
         try {
             if (!ServerConfig.isEnabled()) return queryResult;
@@ -49,13 +41,11 @@ public final class LocalServerHook {
         }
     }
 
-    /** Records the scanner instance so a rescan can be requested after the index changes. */
     public static void onStartListening(Object reader, long handle) {
         readerReference = new WeakReference<>(reader);
         readerHandle = handle;
     }
 
-    /** Asks Spotify to rescan local files, so a refreshed index shows up without a restart. */
     public static void requestRescan() {
         try {
             Object reader = readerReference == null ? null : readerReference.get();

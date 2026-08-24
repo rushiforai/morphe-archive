@@ -10,7 +10,7 @@ Stop. Confirm the APK version and SHA-256, inspect the target again, and refine 
 
 ## Morphe full verification fails on the official APK
 
-NuvioTV `0.8.5-beta` contains optional references whose classes are not packaged. Morphe `FULL` SDK verification therefore reports pre-existing missing-class errors. `STRIP_SAFE` also triggers a Morphe 1.12.0 concurrent-modification defect on Nuvio's primary DEX. The automated application path pins `STRIP_FAST`, then verifies the manifest and injected DEX descriptors and requires a successful Android install/launch with no `VerifyError` or fatal log entry.
+NuvioTV `0.8.7-beta` contains optional references whose classes are not packaged. Morphe `FULL` SDK verification therefore reports pre-existing missing-class errors. `STRIP_SAFE` also triggers a Morphe 1.12.0 concurrent-modification defect on Nuvio's primary DEX. The automated application path pins `STRIP_FAST`, then verifies the manifest and injected DEX descriptors and requires a successful Android install/launch with no `VerifyError` or fatal log entry.
 
 ## Signature/install failure
 

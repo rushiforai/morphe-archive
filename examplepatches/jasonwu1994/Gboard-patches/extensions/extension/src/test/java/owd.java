@@ -13,11 +13,12 @@ public final class owd {
         this(keyId, new EnumMap<oth, otk>(oth.class), new CharSequence[0], new int[0]);
     }
 
-    owd(int keyId, Map<oth, otk> sourceActions) {
+    public owd(int keyId, Map<oth, otk> sourceActions) {
         this(keyId, sourceActions, new CharSequence[0], new int[0]);
     }
 
-    owd(int keyId, Map<oth, otk> sourceActions, CharSequence[] labels, int[] labelIds) {
+    public owd(int keyId, Map<oth, otk> sourceActions,
+            CharSequence[] labels, int[] labelIds) {
         d = keyId;
         actions = new EnumMap<oth, otk>(oth.class);
         actions.putAll(sourceActions);
@@ -39,7 +40,7 @@ public final class owd {
         return exact != null ? exact : h(oth.PRESS);
     }
 
-    EnumMap<oth, otk> copyActions() {
+    public EnumMap<oth, otk> copyActions() {
         return new EnumMap<oth, otk>(actions);
     }
 

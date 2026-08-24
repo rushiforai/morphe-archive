@@ -41,26 +41,25 @@ class GboardZhuyinCustomSymbolsRoutingPatchTest {
     }
 
     @Test
-    fun `routing patch uses only Gboard 1777 helper descriptors`() {
+    fun `routing patch uses only Gboard 1803 helper descriptors`() {
         val source = readPatch("GboardZhuyinCustomSymbolsRoutingPatch.kt")
         val required = listOf(
-            "private const val PROVIDER_RECEIVER_WRAPPER_CLASS = \"Loef;\"",
-            "private const val METRICS_UTILS_CLASS = \"Lhhs;\"",
-            "private const val FOOTER_TAB_CLICK_CONSUMER_CLASS = \"Lgar;\"",
-            "private const val KEYBOARD_WRAPPER_CLASS = \"Lnvd;\"",
-            "parameterTypes = listOf(\"Lovf;\", \"Lodx;\", \"Lout;\")",
-            "returnType = \"Lodx;\"",
-            "parameterTypes = listOf(\"Lovf;\", \"Lout;\")",
-            "parameterTypes = listOf(\"Lovf;\")",
-            "returnType = \"Lvtk;\"",
+            "private const val PROVIDER_RECEIVER_WRAPPER_CLASS = \"Loyc;\"",
+            "private const val METRICS_UTILS_CLASS = \"Lhyx;\"",
+            "private const val FOOTER_TAB_CLICK_CONSUMER_CLASS = \"Lgrm;\"",
+            "private const val KEYBOARD_WRAPPER_CLASS = \"Loow;\"",
+            "\"Lppa;\"",
+            "\"Loxu;\"",
+            "\"Lcom/google/android/libraries/inputmethod/metadata/KeyboardDef;\"",
+            "returnType = \"Loxu;\"",
+            "returnType = \"Lwpd;\"",
             "\"Landroid/view/inputmethod/EditorInfo;\"",
-            "parameterTypes = listOf(\"Lodx;\", \"Lout;\", \"Lovf;\")",
-            "check-cast p1, Lovf;",
-            "check-cast p0, Lovf;",
-            "check-cast p2, Lovf;",
+            "check-cast p1, Lppa;",
+            "check-cast p0, Lppa;",
+            "check-cast p2, Lppa;",
         )
         required.forEach { descriptor ->
-            assertTrue("Missing Gboard 17.7.7 routing descriptor: $descriptor", source.contains(descriptor))
+            assertTrue("Missing Gboard 18.0.3 routing descriptor: $descriptor", source.contains(descriptor))
         }
 
         listOf("Lniu;", "Lgsr;", "Lfsk;", "Lmzu;", "Lnzd;", "Lnim;", "Lnyt;", "Lunq;")
@@ -70,59 +69,60 @@ class GboardZhuyinCustomSymbolsRoutingPatchTest {
     }
 
     @Test
-    fun `custom symbols patch set uses Gboard 1777 corpus body history and recycler descriptors`() {
+    fun `custom symbols patch set uses Gboard 1803 corpus body history and recycler descriptors`() {
         val entry = readPatch("GboardZhuyinCustomSymbolsEntryPatch.kt")
-        assertTrue(entry.contains("GboardVersionBindings.softKeyBind"))
-        assertTrue(entry.contains("check-cast p1, \$softKeyMetadataType"))
+        assertTrue(entry.contains("GboardSoftKeyFamilyFeature.CUSTOM_SYMBOLS"))
+        assertTrue(entry.contains("gboardSoftKeyFamilyFeaturePatch"))
+        assertFalse(entry.contains("addInstructions"))
         assertFalse(entry.contains("Loaa;"))
 
         val corpus = readPatch("GboardZhuyinCustomSymbolsCorpusPatch.kt")
-        assertTrue(corpus.contains("private const val EXPRESSION_CORPUS_MANAGER_CLASS = \"Lgan;\""))
-        assertTrue(corpus.contains("returnType = \"Lvai;\""))
+        assertTrue(corpus.contains("private const val EXPRESSION_CORPUS_MANAGER_CLASS = \"Lgri;\""))
+        assertTrue(corpus.contains("returnType = \"Lvvw;\""))
         assertFalse(corpus.contains("Lfsg;"))
         assertFalse(corpus.contains("Ltvg;"))
 
         val state = readPatch("GboardZhuyinCustomSymbolsEmoticonStatePatch.kt")
         listOf(
-            "private const val EMOTICON_HEADER_CALLBACK_CLASS = \"Lfpu;\"",
-            "private const val VIEW_UTIL_CLASS = \"Lsav;\"",
-            "\"Lody;\"",
-            "\"Lout;\"",
+            "private const val EMOTICON_HEADER_CALLBACK_CLASS = \"Lggm;\"",
+            "private const val VIEW_UTIL_CLASS = \"Lsvk;\"",
+            "\"Loxv;\"",
+            "\"Lcom/google/android/libraries/inputmethod/metadata/KeyboardDef;\"",
             "\"Lcom/google/android/libraries/inputmethod/metadata/ImeDef;\"",
-            "\"Lovf;\"",
-            "name = \"ey\"",
-            "\"Lovk;\"",
+            "\"Lppa;\"",
+            "name = \"eL\"",
+            "\"Lcom/google/android/libraries/inputmethod/metadata/KeyboardViewDef;\"",
             "name = \"l\"",
             "name = \"k\"",
-            "parameterTypes = listOf(\"Lvai;\")",
-            "name = \"D\"",
-            "name = \"y\"",
-            "parameterTypes = listOf(\"Lfrg;\")",
+            "parameterTypes = listOf(\"Lvvw;\")",
+            "name = \"F\"",
+            "name = \"E\"",
+            "parameterTypes = listOf(\"Lghy;\")",
         ).forEach { descriptor ->
-            assertTrue("Missing Gboard 17.7.7 state descriptor: $descriptor", state.contains(descriptor))
+            assertTrue("Missing Gboard 18.0.3 state descriptor: $descriptor", state.contains(descriptor))
         }
         assertTrue(state.contains("private fun patchConstructor()"))
         assertTrue(state.contains("mutableMethod.instructionIndices(\"RETURN_VOID\")"))
         assertFalse(state.contains("val superConstructorIndex"))
 
         val history = readPatch("GboardZhuyinCustomSymbolsHistoryPatch.kt")
-        assertTrue(history.contains("private const val EMOTICON_ITEM_CLICK_CONSUMER_CLASS = \"Liju;\""))
-        assertTrue(history.contains("private const val EMOTICON_HISTORY_MANAGER_CLASS = \"Lfsr;\""))
-        assertTrue(history.contains("private const val EMOTICON_HISTORY_FIELD = \"c\""))
+        assertTrue(history.contains("private const val EMOTICON_ITEM_CLICK_CONSUMER_CLASS = \"Liyd;\""))
+        assertTrue(history.contains("private const val EMOTICON_HISTORY_MANAGER_CLASS = \"Lgjl;\""))
+        assertTrue(history.contains("private const val EMOTICON_HISTORY_FIELD = \"b\""))
         assertTrue(history.contains("ADD_SYMBOLS_RUNTIME_INTERCEPT_HISTORY_WRITE"))
         assertFalse(history.contains("clickMethod.instructionIndices(\"RETURN_VOID\")"))
 
         val recycler = readPatch("GboardZhuyinCustomSymbolsRecyclerPatch.kt")
         listOf(
-            "private const val BASE_RECYCLER_ADAPTER_CLASS = \"Ljn;\"",
-            "private const val EMOTICON_RECYCLER_ADAPTER_CLASS = \"Lils;\"",
-            "\"Lily;\"",
-            "parameterTypes = listOf(\"Lkl;\", \"I\")",
-            "name = \"gp\"",
-            "returnType = \"Lkl;\"",
-            "check-cast v0, Lkl;",
+            "private const val BASE_RECYCLER_ADAPTER_CLASS = \"Ljt;\"",
+            "private const val EMOTICON_RECYCLER_ADAPTER_CLASS = \"Lizu;\"",
+            "\"Ljan;\"",
+            "parameterTypes = listOf(\"Lkr;\", \"I\")",
+            "name = \"gT\"",
+            "returnType = \"Lkr;\"",
+            "check-cast v0, Lkr;",
         ).forEach { descriptor ->
-            assertTrue("Missing Gboard 17.7.7 recycler descriptor: $descriptor", recycler.contains(descriptor))
+            assertTrue("Missing Gboard 18.0.3 recycler descriptor: $descriptor", recycler.contains(descriptor))
         }
         assertTrue(recycler.contains("mutableMethod.instructionIndices(\"RETURN_VOID\")"))
         assertFalse(recycler.contains("val superConstructorIndex"))
@@ -149,14 +149,14 @@ class GboardZhuyinCustomSymbolsRoutingPatchTest {
     @Test
     fun `body ready delegate stays on keyboard receiver before normal branch clobbers p0`() {
         val targetFixture = listOf(
-            "iput-object p2, p0, EmoticonKeyboardM2.r:ViewGroup",
+            "iput-object p2, p0, EmoticonKeyboardM2.q:ViewGroup",
             "const p0, 0x7f0b02d8",
             "invoke-virtual p1, p0, SoftKeyboardView.findViewById",
             "move-result-object p0",
             "return-void",
         )
         val bodyFieldWriteIndex = targetFixture.indexOfFirst {
-            it.contains("EmoticonKeyboardM2.r:ViewGroup")
+            it.contains("EmoticonKeyboardM2.q:ViewGroup")
         }
         val receiverClobberIndex = targetFixture.indexOfFirst { it.startsWith("const p0") }
 
@@ -164,7 +164,7 @@ class GboardZhuyinCustomSymbolsRoutingPatchTest {
         assertTrue(receiverClobberIndex > bodyFieldWriteIndex)
 
         val source = readPatch("GboardZhuyinCustomSymbolsEmoticonStatePatch.kt")
-        assertTrue(source.contains("name = \"r\""))
+        assertTrue(source.contains("name = \"q\""))
         assertTrue(source.contains("type = \"Landroid/view/ViewGroup;\""))
         assertTrue(source.contains("opcodeName = \"IPUT_OBJECT\""))
         assertTrue(source.contains("bodyReadyFieldWriteIndex + 1"))
@@ -180,12 +180,12 @@ class GboardZhuyinCustomSymbolsRoutingPatchTest {
         val targetFixture = listOf(
             "move-object v1, v0",
             "check-cast v1, EmoticonKeyboardM2",
-            "iget-object p0, p0, Lfpu.a:Object",
-            "invoke-virtual {v1, p1, v5}, EmoticonKeyboardM2.D(II)V",
+            "iget-object p0, p0, Lggm.a:Object",
+            "invoke-virtual {v1, p1, v5}, EmoticonKeyboardM2.F(II)V",
             "return-void",
         )
         val receiverCallIndex = targetFixture.indexOfFirst {
-            it.contains("EmoticonKeyboardM2.D(II)V")
+            it.contains("EmoticonKeyboardM2.F(II)V")
         }
         assertTrue(receiverCallIndex > 0)
         assertTrue(targetFixture.take(receiverCallIndex).any { it.startsWith("iget-object p0") })
@@ -196,7 +196,7 @@ class GboardZhuyinCustomSymbolsRoutingPatchTest {
 
         assertFalse(state.contains("HEADER_CALLBACK_BEFORE_DELEGATE"))
         assertTrue(state.contains("indexOfMethodCallOrThrow("))
-        assertTrue(state.contains("name = \"D\""))
+        assertTrue(state.contains("name = \"F\""))
         assertTrue(state.contains("HEADER_CALLBACK_DELEGATE.format(headerReceiverRegister)"))
         val headerDelegate = state.substringAfter("private val HEADER_CALLBACK_DELEGATE")
             .substringBefore("private val HEADER_START_EDGE_GUARD_DELEGATE")
@@ -214,13 +214,13 @@ class GboardZhuyinCustomSymbolsRoutingPatchTest {
     fun `thrown item click cannot leak custom history state into stock history`() {
         val targetFixture = listOf(
             "move-object/from16 v1, p1",
-            "iget-object v3, v0, EmoticonKeyboardM2.c:Lfsr;",
-            "invoke-virtual {v3, v4}, Lfsr;->c(Ljava/lang/String;)V",
+            "iget-object v3, v0, EmoticonKeyboardM2.b:Lgjl;",
+            "invoke-virtual {v3, v4}, Lgjl;->b(Ljava/lang/String;)V",
             "new-instance v3, Loud",
             "sget-object v5, Lowd.a:Lviq;",
             "return-void",
         )
-        val historyCallIndex = targetFixture.indexOfFirst { it.contains("Lfsr;->c") }
+        val historyCallIndex = targetFixture.indexOfFirst { it.contains("Lgjl;->b") }
         assertTrue(historyCallIndex > 0)
         assertTrue(targetFixture.take(historyCallIndex).any { it.contains("v1, p1") })
         assertFalse(targetFixture.drop(historyCallIndex + 1).any { it.contains("p1") })

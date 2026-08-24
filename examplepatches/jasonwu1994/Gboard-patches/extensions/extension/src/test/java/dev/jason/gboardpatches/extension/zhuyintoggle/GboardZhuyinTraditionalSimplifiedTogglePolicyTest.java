@@ -9,16 +9,16 @@ import org.junit.Test;
 public final class GboardZhuyinTraditionalSimplifiedTogglePolicyTest {
     @Test
     public void exactZhuyinEngSlideUpIsTheOnlyConsumedGesture() {
-        assertEquals(0x7f0b28ca,
+        assertEquals(0x7f0b296a,
                 GboardZhuyinTraditionalSimplifiedTogglePolicy.TOGGLE_KEY_ID);
         assertTrue(GboardZhuyinTraditionalSimplifiedTogglePolicy.shouldHandleKey(
-                0x7f0b28ca));
+                0x7f0b296a));
         assertTrue(GboardZhuyinTraditionalSimplifiedTogglePolicy.shouldConsume(
-                0x7f0b28ca, "SLIDE_UP"));
+                0x7f0b296a, "SLIDE_UP"));
         assertFalse(GboardZhuyinTraditionalSimplifiedTogglePolicy.shouldConsume(
-                0x7f0b28ca, "SLIDE_DOWN"));
+                0x7f0b296a, "SLIDE_DOWN"));
         assertFalse(GboardZhuyinTraditionalSimplifiedTogglePolicy.shouldConsume(
-                0x7f0b28c9, "SLIDE_UP"));
+                0x7f0b2969, "SLIDE_UP"));
     }
 
     @Test

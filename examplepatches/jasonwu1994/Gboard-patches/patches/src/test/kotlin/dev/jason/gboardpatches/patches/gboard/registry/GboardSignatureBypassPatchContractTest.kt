@@ -16,7 +16,7 @@ class GboardSignatureBypassPatchContractTest {
     private val repositoryRoot = findRepositoryRoot()
 
     @Test
-    fun `public patch stays one exact 1777 registry entry`() {
+    fun `public patch stays one exact 1803 registry entry`() {
         val patch = gboardSignatureBypassPatch
         assertEquals("Add Gboard Signature Bypass", patch.name)
         assertEquals(SIGNATURE_BYPASS_DESCRIPTION, patch.description)
@@ -34,9 +34,8 @@ class GboardSignatureBypassPatchContractTest {
             compatibilities.single().targets.map { target -> target.version },
         )
 
-        val inventory = JsonParser.parseString(readSource(PATCHES_LIST_PATH)).asJsonObject
-        val patches = inventory.getAsJsonArray("patches").map { it.asJsonObject }
-        assertEquals(31, patches.size)
+        val patches = generatedPublishedPatches()
+        assertEquals(34, patches.size)
         val signatureRows = patches.filter { row ->
             row.get("name").asString == "Add Gboard Signature Bypass"
         }
@@ -53,11 +52,13 @@ class GboardSignatureBypassPatchContractTest {
     }
 
     @Test
-    fun `production source uses only exact qvi normal return patch`() {
+    fun `production source uses only exact rpv normal return patch`() {
         val source = readSource(SIGNATURE_PATCH_PATH)
-        assertTrue(source.contains("Lqvi;"))
+        assertTrue(source.contains("Lrpv;"))
+        assertTrue(source.contains("Lrox;->b:Z"))
         assertTrue(source.contains("findGboardSignatureBypassTargetOrThrow"))
         assertTrue(source.contains("applyGboardSignatureBypass"))
+        assertFalse(source.contains("Lqvi;"))
         assertFalse(source.contains("Lpuo;"))
         assertFalse(source.contains("17.0.10"))
         assertFalse(source.contains("addInstructions(0, SIGNATURE_BYPASS_DELEGATE)"))
@@ -69,7 +70,7 @@ class GboardSignatureBypassPatchContractTest {
     @Test
     fun `signature bypass does not add bindings or flag factory`() {
         val profile = JsonParser.parseString(readSource(BINDINGS_PROFILE_PATH)).asJsonObject
-        assertEquals("17.7.7", profile.get("target_version").asString)
+        assertEquals("18.0.3", profile.get("target_version").asString)
         val bindings = profile.getAsJsonObject("bindings")
         assertFalse(bindings.has("flag_factory"))
     }
@@ -89,14 +90,13 @@ class GboardSignatureBypassPatchContractTest {
 
     private companion object {
         const val GBOARD_PACKAGE = "com.google.android.inputmethod.latin"
-        const val TARGET_VERSION = "17.7.7.932364120-release-arm64-v8a"
+        const val TARGET_VERSION = "18.0.3.954559732-release-arm64-v8a"
         const val SIGNATURE_BYPASS_DESCRIPTION =
             "攔截 Gboard 的簽章白名單檢查並強制通過\n" +
                 "Bypass Gboard signature whitelist checks and force them to pass."
         const val SIGNATURE_PATCH_PATH =
             "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/" +
                 "signaturebypass/GboardSignatureBypassBytecodePatch.kt"
-        const val PATCHES_LIST_PATH = "patches-list.json"
         const val BINDINGS_PROFILE_PATH =
             "patches/src/main/resources/gboard/gboard-version-bindings.json"
     }

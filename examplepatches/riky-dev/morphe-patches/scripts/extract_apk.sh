@@ -35,7 +35,11 @@ rm -rf "$APP_EXTRACT_DIR"
 mkdir -p "$APP_EXTRACT_DIR"
 
 log "Extracting $(basename "$BUNDLE") -> $APP_EXTRACT_DIR"
-unzip -q -o "$BUNDLE" -d "$APP_EXTRACT_DIR"
+if [[ "$BUNDLE" == *.apk ]]; then
+  cp "$BUNDLE" "$APP_EXTRACT_DIR/${APP_PACKAGE}.apk"
+else
+  unzip -q -o "$BUNDLE" -d "$APP_EXTRACT_DIR"
+fi
 
 BASE_APK="$(find_base_apk "$APP_EXTRACT_DIR" "$APP_PACKAGE")"
 [[ -n "$BASE_APK" && -f "$BASE_APK" ]] || die "could not find base APK in $APP_EXTRACT_DIR"

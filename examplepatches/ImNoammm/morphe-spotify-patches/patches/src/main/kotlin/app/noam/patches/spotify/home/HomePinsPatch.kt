@@ -21,13 +21,10 @@ val homePinsPatch = bytecodePatch(
     dependsOn(settingsPatch)
 
     execute {
-        // The grid class is obfuscated, but its layout manager is not, and holds a reference back
-        // to it. That reference is what names the grid.
         val gridType = classDefBy(GRID_INNER_CLASS).fields
             .map { it.type }
             .first { it.startsWith("Lp/") }
 
-        // Reorder the shortcuts on the way into the grid, before it renders them.
         mutableClassDefBy(gridType).methods
             .first {
                 it.name == "a" && it.parameterTypes.size == 2 &&
@@ -35,8 +32,8 @@ val homePinsPatch = bytecodePatch(
             }
             .addInstruction(
                 0,
-                "invoke-static/range { p1 .. p1 }, ${Constants.HOME_PINS_CLASS}->" +
-                    "reorder(Ljava/lang/Object;)V",
+                "invoke-static/range { p0 .. p1 }, ${Constants.HOME_PINS_CLASS}->" +
+                    "bind(Ljava/lang/Object;Ljava/lang/Object;)V",
             )
     }
 }

@@ -1,5 +1,5 @@
 {
-    "version": "v1.2.1-dev.1",
+    "version": "v1.3.0-dev.1",
     "patches": [
         {
             "compatiblePackages": [
@@ -9,8 +9,12 @@
                     "packageName": "com.strava",
                     "targets": [
                         {
-                            "isExperimental": false
+                            "isExperimental": false,
+                            "version": "473.11"
                         }
+                    ],
+                    "versions": [
+                        "473.11"
                     ]
                 }
             ],
@@ -31,8 +35,12 @@
                     "packageName": "com.strava",
                     "targets": [
                         {
-                            "isExperimental": false
+                            "isExperimental": false,
+                            "version": "473.11"
                         }
+                    ],
+                    "versions": [
+                        "473.11"
                     ]
                 }
             ],
@@ -156,8 +164,12 @@
                     "packageName": "com.strava",
                     "targets": [
                         {
-                            "isExperimental": false
+                            "isExperimental": false,
+                            "version": "473.11"
                         }
+                    ],
+                    "versions": [
+                        "473.11"
                     ]
                 }
             ],
@@ -307,8 +319,12 @@
                     "packageName": "com.strava",
                     "targets": [
                         {
-                            "isExperimental": false
+                            "isExperimental": false,
+                            "version": "473.11"
                         }
+                    ],
+                    "versions": [
+                        "473.11"
                     ]
                 }
             ],
@@ -372,8 +388,12 @@
                     "packageName": "com.strava",
                     "targets": [
                         {
-                            "isExperimental": false
+                            "isExperimental": false,
+                            "version": "473.11"
                         }
+                    ],
+                    "versions": [
+                        "473.11"
                     ]
                 }
             ],
@@ -632,8 +652,12 @@
                     "packageName": "com.strava",
                     "targets": [
                         {
-                            "isExperimental": false
+                            "isExperimental": false,
+                            "version": "473.11"
                         }
+                    ],
+                    "versions": [
+                        "473.11"
                     ]
                 }
             ],
@@ -987,14 +1011,6 @@
             "options": []
         },
         {
-            "compatiblePackages": null,
-            "default": false,
-            "dependencies": [],
-            "description": "Overrides certificate pinning, allowing to inspect traffic via a proxy. This patch does not work with Reddit.",
-            "name": "Override certificate pinning",
-            "options": []
-        },
-        {
             "compatiblePackages": [
                 {
                     "appIconColor": "#FC6925",
@@ -1002,8 +1018,12 @@
                     "packageName": "com.strava",
                     "targets": [
                         {
-                            "isExperimental": false
+                            "isExperimental": false,
+                            "version": "473.11"
                         }
+                    ],
+                    "versions": [
+                        "473.11"
                     ]
                 }
             ],
@@ -1144,6 +1164,29 @@
             "dependencies": [],
             "description": "Disables purchase nagging and playback limits of not purchased tracks.",
             "name": "Remove play limits",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "appIconColor": "#0096FA",
+                    "name": "Pixiv",
+                    "packageName": "jp.pxv.android",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "6.141.1"
+                        }
+                    ],
+                    "versions": [
+                        "6.141.1"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Removes the 7-day trial countdown on popular search results so the free popular-search preview (30 works) never expires.",
+            "name": "Remove popular search time limit",
             "options": []
         },
         {
@@ -1470,8 +1513,12 @@
                     "packageName": "com.strava",
                     "targets": [
                         {
-                            "isExperimental": false
+                            "isExperimental": false,
+                            "version": "473.11"
                         }
+                    ],
+                    "versions": [
+                        "473.11"
                     ]
                 }
             ],

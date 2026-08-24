@@ -10,18 +10,22 @@ import java.lang.reflect.Method;
 final class GboardZhuyinTraditionalSimplifiedToggleRuntimeSupport {
     private static final String SOFT_KEY_VIEW_CLASS =
             "com.google.android.libraries.inputmethod.widgets.SoftKeyView";
-    private static final String ACTION_SET_CLASS = "owd";
-    private static final String ACTION_TYPE_CLASS = "oth";
-    private static final String ACTION_DEF_CLASS = "otk";
-    private static final String ACTION_ENTRY_CLASS = "oud";
-    private static final String ACTION_BUILDER_CLASS = "oti";
-    private static final String METADATA_BUILDER_CLASS = "ovv";
-    private static final String INTENTION_CLASS = "ouc";
-    private static final String GESTURE_DISPATCHER_CLASS = "pbj";
-    private static final String PREFERENCE_CLASS = "pnp";
+    private static final String ACTION_SET_CLASS =
+            "com.google.android.libraries.inputmethod.metadata.SoftKeyDef";
+    private static final String ACTION_TYPE_CLASS = "pmy";
+    private static final String ACTION_DEF_CLASS =
+            "com.google.android.libraries.inputmethod.metadata.ActionDef";
+    private static final String ACTION_ENTRY_CLASS = "pnu";
+    private static final String ACTION_BUILDER_CLASS = "pmz";
+    private static final String METADATA_BUILDER_CLASS = "ppo";
+    private static final String INTENTION_CLASS = "pnt";
+    private static final String GESTURE_DISPATCHER_CLASS = "pvf";
+    private static final String PREFERENCE_CLASS = "qhy";
+    private static final String PREFERENCE_BASE_CLASS = "cdl";
 
     private static final int PLAIN_TEXT_KEYCODE = -0x2719;
-    public static final int PREFERENCE_KEY_RES_ID = 0x7f140991;
+    public static final int PREFERENCE_KEY_RES_ID = 0x7f140a1b;
+    private static final String PREFERENCE_KEY = "enable_sc_tc_conversion_zh_tw";
 
     private final Method softKeyBindMethod;
     private final Field softKeyMetadataField;
@@ -60,8 +64,9 @@ final class GboardZhuyinTraditionalSimplifiedToggleRuntimeSupport {
         Class<?> intentionClass = resolve(classLoader, INTENTION_CLASS);
         Class<?> gestureDispatcherClass = resolve(classLoader, GESTURE_DISPATCHER_CLASS);
         Class<?> preferenceClass = resolve(classLoader, PREFERENCE_CLASS);
+        Class<?> preferenceBaseClass = resolve(classLoader, PREFERENCE_BASE_CLASS);
 
-        softKeyBindMethod = softKeyViewClass.getDeclaredMethod("q", actionSetClass, long.class);
+        softKeyBindMethod = softKeyViewClass.getDeclaredMethod("r", actionSetClass, long.class);
         softKeyMetadataField = softKeyViewClass.getDeclaredField("e");
         softKeyBindTokenField = softKeyViewClass.getDeclaredField("f");
         metadataKeyIdField = actionSetClass.getDeclaredField("d");
@@ -79,14 +84,16 @@ final class GboardZhuyinTraditionalSimplifiedToggleRuntimeSupport {
 
         metadataBuilderConstructor = metadataBuilderClass.getDeclaredConstructor();
         copyMetadataMethod = metadataBuilderClass.getDeclaredMethod("j", actionSetClass);
-        putActionMethod = metadataBuilderClass.getDeclaredMethod("q", actionDefClass);
+        putActionMethod = metadataBuilderClass.getDeclaredMethod("t", actionDefClass);
         buildMetadataMethod = metadataBuilderClass.getDeclaredMethod("d");
 
-        dispatcherContextField = gestureDispatcherClass.getDeclaredField("c");
-        dispatcherPreferenceField = gestureDispatcherClass.getDeclaredField("d");
-        preferenceFactoryMethod = preferenceClass.getDeclaredMethod("N", Context.class);
-        preferenceReadMethod = preferenceClass.getDeclaredMethod("at", int.class);
-        preferenceWriteMethod = preferenceClass.getDeclaredMethod("aa", int.class, Object.class);
+        dispatcherContextField = gestureDispatcherClass.getDeclaredField("b");
+        dispatcherPreferenceField = gestureDispatcherClass.getDeclaredField("c");
+        preferenceFactoryMethod = preferenceClass.getDeclaredMethod("I", Context.class);
+        preferenceReadMethod = preferenceBaseClass.getDeclaredMethod(
+                "x", int.class, boolean.class);
+        preferenceWriteMethod = preferenceClass.getDeclaredMethod(
+                "f", String.class, boolean.class);
 
         setAccessible(
                 softKeyBindMethod,
@@ -192,7 +199,7 @@ final class GboardZhuyinTraditionalSimplifiedToggleRuntimeSupport {
             return null;
         }
         Object value = preferenceReadMethod.invoke(
-                preferences, Integer.valueOf(PREFERENCE_KEY_RES_ID));
+                preferences, Integer.valueOf(PREFERENCE_KEY_RES_ID), Boolean.FALSE);
         return value instanceof Boolean ? (Boolean) value : null;
     }
 
@@ -203,7 +210,7 @@ final class GboardZhuyinTraditionalSimplifiedToggleRuntimeSupport {
         }
         preferenceWriteMethod.invoke(
                 preferences,
-                Integer.valueOf(PREFERENCE_KEY_RES_ID),
+                PREFERENCE_KEY,
                 Boolean.valueOf(enabled));
         return true;
     }

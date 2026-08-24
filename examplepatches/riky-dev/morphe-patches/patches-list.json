@@ -1,7 +1,33 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.3.3",
+  "version": "1.7.1",
   "patches": [
+    {
+      "name": "Bypass APK security check",
+      "description": "Disables the retouch SDK APK signature check that shows a toast when the app was repatched (e.g. after applying Morphe patches). The native check in libretouch_sdk.so still runs but its error UI is suppressed.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.lemon.lvoverseas",
+          "name": "CapCut",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#00C1CD",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "19.2.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
     {
       "name": "Hide ads",
       "description": "Spoofs premium/unlocked state to disable ad-gated behavior.",
@@ -44,6 +70,84 @@
           "targets": [
             {
               "version": "4.9.15",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Premium features",
+      "description": "Unlock Premium features. Some features are not possible to patch (server sided), such as saving a multi-days hike.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "de.komoot.android",
+          "name": "Komoot",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#ECEBB4",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "2026.34.2",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Pro",
+      "description": "Spoofs client-side Pro/VIP status to unlock premium-gated effects, export options (watermark removal where VIP-gated), and retouch subscribe checks. Also disables watermark_trailer_config so the CapCut ending clip is not applied. ISubscribe.isVip is native and not patchable here. Server-verified features may still require a real subscription.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.lemon.lvoverseas",
+          "name": "CapCut",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#00C1CD",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "19.2.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock map regions",
+      "description": "Spoof Komoot Maps ownership client-side (world pack / owned regions in shop and offline UI). Server-side limits may still apply: offline tile download auth, sync overwriting local state, and Play receipt validation. Does not replace a real Play Store purchase.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "de.komoot.android",
+          "name": "Komoot",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#ECEBB4",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "2026.34.2",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,

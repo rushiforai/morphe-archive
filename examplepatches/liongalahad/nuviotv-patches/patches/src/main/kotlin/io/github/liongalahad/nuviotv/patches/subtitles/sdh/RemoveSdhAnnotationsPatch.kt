@@ -5,6 +5,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -57,6 +58,7 @@ val removeSdhAnnotationsPatch = bytecodePatch(
 
     execute {
         listOf(
+            NativeSdhFilterFingerprint,
             CueGroupOutputFingerprint,
             LegacyCueOutputFingerprint,
             SidecarCueRenderFingerprint
@@ -82,6 +84,28 @@ val removeSdhAnnotationsPatch = bytecodePatch(
             bindRecognitionSession()
         }
 
+        NativeSdhFilterFingerprint.method.apply {
+            check(implementation!!.registerCount >= 3) {
+                "Native SDH filter no longer has a safe local arbitration register"
+            }
+            val cueListRegister = if (AccessFlags.STATIC.isSet(accessFlags)) "p0" else "p1"
+            check(returnType == "Ljava/util/ArrayList;") {
+                "Native SDH filter no longer has the verified 0.8.7 ArrayList return type: $returnType"
+            }
+            addInstructions(
+                0,
+                """
+                    invoke-static {}, $CUE_TRANSFORMER->shouldApplyNativeFilter()Z
+                    move-result v0
+                    if-nez v0, :morphe_run_native_sdh_filter
+                    invoke-static { $cueListRegister }, $CUE_TRANSFORMER->bypassNativeFilter(Ljava/util/List;)Ljava/util/ArrayList;
+                    move-result-object v0
+                    return-object v0
+                    :morphe_run_native_sdh_filter
+                """
+            )
+        }
+
         CueGroupOutputFingerprint.method.apply {
             val instructions = implementation!!.instructions
             val cueListRead = instructions.withIndex().single { (_, instruction) ->
@@ -93,7 +117,7 @@ val removeSdhAnnotationsPatch = bytecodePatch(
             val listRegister = (cueListRead.value as? TwoRegisterInstruction)?.registerA
                 ?: error("CueGroup cue-list read has no destination register")
             check(listRegister == 2 && implementation!!.registerCount == 7) {
-                "CueGroup callback no longer has the verified 0.8.6 register layout: " +
+                "CueGroup callback no longer has the verified 0.8.7 register layout: " +
                     "list=v$listRegister, registerCount=${implementation!!.registerCount}"
             }
             val presentationTimeField = instructions.mapNotNull { instruction ->
@@ -135,7 +159,7 @@ val removeSdhAnnotationsPatch = bytecodePatch(
                 """
             )
 
-            // When Nuvio's own normalizer is disabled, it forwards the incoming CueGroup
+            // When Nuvio's native SDH filter is disabled, it forwards the incoming CueGroup
             // directly. Rebuild that group in the direct-forward branch, where v0 and
             // v2..v4 are dead, so the injected code cannot corrupt the typed locals used
             // by Nuvio's conditional reconstruction branch.

@@ -11,19 +11,19 @@ import org.junit.Test;
 
 public final class GboardZhuyinSlideRuntimeSourceTest {
     @Test
-    public void reflectionSupportUsesOnlyTheExact1777ActionAndPointerContract()
+    public void reflectionSupportUsesOnlyTheExact1803ActionAndPointerContract()
             throws Exception {
         String source = readSource("GboardZhuyinSlideRuntimeSupport.java");
 
-        assertTrue(source.contains("ACTION_SET_CLASS = \"owd\""));
-        assertTrue(source.contains("ACTION_TYPE_CLASS = \"oth\""));
-        assertTrue(source.contains("ACTION_DEF_CLASS = \"otk\""));
-        assertTrue(source.contains("ACTION_ENTRY_CLASS = \"oud\""));
-        assertTrue(source.contains("ACTION_BUILDER_CLASS = \"oti\""));
-        assertTrue(source.contains("METADATA_BUILDER_CLASS = \"ovv\""));
-        assertTrue(source.contains("INTENTION_CLASS = \"ouc\""));
-        assertTrue(source.contains("POINTER_TRACKER_CLASS = \"pbl\""));
-        assertTrue(source.contains("getDeclaredMethod(\"q\", actionSetClass, long.class)"));
+        assertTrue(source.contains("com.google.android.libraries.inputmethod.metadata.SoftKeyDef"));
+        assertTrue(source.contains("ACTION_TYPE_CLASS = \"pmy\""));
+        assertTrue(source.contains("com.google.android.libraries.inputmethod.metadata.ActionDef"));
+        assertTrue(source.contains("ACTION_ENTRY_CLASS = \"pnu\""));
+        assertTrue(source.contains("ACTION_BUILDER_CLASS = \"pmz\""));
+        assertTrue(source.contains("METADATA_BUILDER_CLASS = \"ppo\""));
+        assertTrue(source.contains("INTENTION_CLASS = \"pnt\""));
+        assertTrue(source.contains("POINTER_TRACKER_CLASS = \"pvi\""));
+        assertTrue(source.contains("getDeclaredMethod(\"r\", actionSetClass, long.class)"));
         assertTrue(source.contains("actionSetClass.getDeclaredField(\"f\")"));
         assertTrue(source.contains("actionSetClass.getDeclaredField(\"g\")"));
         assertTrue(source.contains("actionSetClass.getDeclaredField(\"h\")"));
@@ -33,6 +33,8 @@ public final class GboardZhuyinSlideRuntimeSourceTest {
         assertTrue(source.contains("pointerTrackerClass.getDeclaredMethod(\"i\")"));
         assertTrue(source.contains("pointerTrackerClass.getDeclaredMethod(")
                 && source.contains("\"h\", float.class, float.class, actionTypeClass"));
+        assertFalse(source.contains("ACTION_SET_CLASS = \"owd\""));
+        assertFalse(source.contains("POINTER_TRACKER_CLASS = \"pbl\""));
 
         for (String stale : new String[] {
                 "oaa", "nxi", "nxl", "nyf", "nxj", "nzv", "nye", "ofk", "ofi"

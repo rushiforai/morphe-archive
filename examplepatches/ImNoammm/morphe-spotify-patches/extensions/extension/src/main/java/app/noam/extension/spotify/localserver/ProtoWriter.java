@@ -4,21 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-/**
- * Minimal protobuf writer for the messages Spotify's local file scanner returns.
- *
- * <pre>
- * QueryResult { repeated LocalFile files = 1; }
- * LocalFile   { string path = 1; Metadata metadata = 2; }
- * Metadata    { string title = 1; string album = 2; string artist = 3; int32 duration = 4; }
- * </pre>
- *
- * Because {@code files} is a repeated field, encoded entries can simply be appended to an already
- * serialised QueryResult: concatenating repeated fields is valid protobuf, so nothing needs to parse
- * or re-serialise Spotify's own message.
- */
 final class ProtoWriter {
-
     private ProtoWriter() {}
 
     private static final int FILES_FIELD = 1;
@@ -29,7 +15,6 @@ final class ProtoWriter {
     private static final int ARTIST_FIELD = 3;
     private static final int DURATION_FIELD = 4;
 
-    /** @return the encoded {@code files} entry for one track, ready to append to a QueryResult. */
     static byte[] encodeFileEntry(String path, String title, String album, String artist, int durationSeconds)
             throws IOException {
         ByteArrayOutputStream metadata = new ByteArrayOutputStream();

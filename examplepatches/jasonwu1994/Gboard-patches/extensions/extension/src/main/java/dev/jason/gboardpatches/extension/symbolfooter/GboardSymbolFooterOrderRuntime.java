@@ -23,15 +23,15 @@ import dev.jason.gboardpatches.extension.settings.GboardPatchesSettingsProvider;
 public final class GboardSymbolFooterOrderRuntime {
     private static final String TAG = "GboardPatches";
     private static final String LOG_LABEL = "expression footer tab order";
-    private static final String CORPUS_MANAGER_CLASS = "gan";
+    private static final String CORPUS_MANAGER_CLASS = "gri";
     private static final String CORPUS_MANAGER_METHOD = "a";
     private static final String CORPUS_MANAGER_CONTEXT_FIELD = "c";
-    private static final String CORPUS_ITEM_CLASS = "nbs";
-    private static final String CORPUS_ITEM_KEYBOARD_FIELD = "c";
-    private static final String KEYBOARD_TYPE_CLASS = "ovf";
+    private static final String CORPUS_ITEM_CLASS = "nva";
+    private static final String CORPUS_ITEM_KEYBOARD_FIELD = "e";
+    private static final String KEYBOARD_TYPE_CLASS = "ppa";
     private static final String KEYBOARD_TYPE_NAME_FIELD = "m";
-    private static final String IMMUTABLE_LIST_CLASS = "vai";
-    private static final String IMMUTABLE_LIST_COPY_METHOD = "k";
+    private static final String IMMUTABLE_LIST_CLASS = "vvw";
+    private static final String IMMUTABLE_LIST_COPY_METHOD = "o";
     private static final long SETTINGS_CACHE_WINDOW_MS = 1_000L;
     private static final Map<ClassLoader, Handles> HANDLES_BY_LOADER =
             Collections.synchronizedMap(new WeakHashMap<ClassLoader, Handles>());
@@ -270,7 +270,7 @@ public final class GboardSymbolFooterOrderRuntime {
                     EditorInfo.class,
                     boolean.class);
             if (expressionCorpusManagerMethod.getReturnType() != immutableListClass) {
-                throw new NoSuchMethodException("gan#a return type is "
+                throw new NoSuchMethodException("gri#a return type is "
                         + expressionCorpusManagerMethod.getReturnType().getName());
             }
             expressionCorpusManagerContextField = field(

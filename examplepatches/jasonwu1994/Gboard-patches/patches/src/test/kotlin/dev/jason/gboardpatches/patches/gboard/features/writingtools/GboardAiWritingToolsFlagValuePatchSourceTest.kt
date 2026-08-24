@@ -9,22 +9,25 @@ import org.junit.Test
 
 class GboardAiWritingToolsFlagValuePatchSourceTest {
     @Test
-    fun aiWritingToolsFlagOwnerComesOnlyFromTheGeneratedBinding() {
+    fun aiWritingToolsRegistersItsFlagFamilyAndCurrent1803Routes() {
         val patchSource = readSource("GboardAiWritingToolsFlagValuePatch.kt")
         val constantsSource = readSource("GboardAiWritingToolsPatchConstants.kt")
 
-        assertTrue(
-            patchSource.contains(
-                "findMutableMethodOrThrow(GboardVersionBindings.flagBoolGetter)",
-            ),
-        )
+        assertTrue(patchSource.contains("gboardFlagFamilyFeaturePatch("))
+        assertTrue(patchSource.contains("GboardFlagFamilyFeature.AI_WRITING_TOOLS"))
+        assertTrue(patchSource.contains("RuntimeCallId."))
+        assertTrue(patchSource.contains("gboardAiWritingTools1803AutoFixRoutePatch"))
+        assertTrue(patchSource.contains("gboardAiWritingTools1803GenAiRefreshPatch"))
+        assertFalse(patchSource.contains("GboardFlagFamilyArgumentShape"))
+        assertFalse(patchSource.contains("GboardVersionBindings"))
+        assertTrue(patchSource.contains("findMutableMethodOrThrow"))
         assertFalse(patchSource.contains("FLAG_VALUE_CLASS"))
         assertFalse(constantsSource.contains("FLAG_VALUE_CLASS"))
         assertFalse(constantsSource.contains("\"Lmky;\""))
     }
 
     @Test
-    fun aiWritingToolsFlagPatchUsesReturnPointInjectionInsteadOfMethodEntryBranching() {
+    fun directFlagGetterMutationRemainsComposerOwned() {
         val source = String(
             Files.readAllBytes(
                 Path.of(
@@ -35,15 +38,11 @@ class GboardAiWritingToolsFlagValuePatchSourceTest {
             StandardCharsets.UTF_8
         )
 
-        assertTrue(source.contains("mutableMethod.applyWritingToolsFlagValueOverride()"))
-        assertTrue(source.contains("internal fun MutableMethod.applyWritingToolsFlagValueOverride()"))
-        assertTrue(source.contains("injectFeatureFlagReturnOverrides("))
-        assertTrue(source.contains("delegateTemplate = FLAG_VALUE_DELEGATE_TEMPLATE"))
+        assertTrue(source.contains("gboardFlagFamilyFeaturePatch("))
+        assertFalse(source.contains("injectFeatureFlagReturnOverrides("))
         assertFalse(source.contains("::buildFlagValueDelegate"))
-        assertTrue(source.contains("AI_WRITING_TOOLS_RUNTIME_APPLY_OVERRIDDEN_FLAG_VALUE"))
-        assertTrue(source.contains("\"v1, v\$RESULT_REGISTER_TOKEN\""))
-        assertFalse(source.contains("addInstructions(0, PRESERVE_RECEIVER_DELEGATE)"))
-        assertFalse(source.contains("addInstructions(0, FLAG_VALUE_OVERRIDE_DELEGATE)"))
+        assertTrue(source.contains("GboardFlagFamilyFeature.AI_WRITING_TOOLS"))
+        assertTrue(source.contains("description = \"將 18.0.3 INTENT_AUTO_FIX"))
     }
 
     private fun readSource(fileName: String): String = String(

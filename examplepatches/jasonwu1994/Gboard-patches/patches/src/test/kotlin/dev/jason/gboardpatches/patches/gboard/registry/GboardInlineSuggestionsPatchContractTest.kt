@@ -1,8 +1,8 @@
 package dev.jason.gboardpatches.patches.gboard.registry
 
 import com.google.gson.JsonParser
-import dev.jason.gboardpatches.patches.gboard.features.featureflags.gboardFeatureFlagsBytecodePatch
 import dev.jason.gboardpatches.patches.gboard.features.featureflags.gboardInlineSuggestionsFeatureMarkerPatch
+import dev.jason.gboardpatches.patches.gboard.features.featureflags.gboardInlineSuggestionsFlagValuePatch
 import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesExtensionCarrierPatch
 import dev.jason.gboardpatches.patches.shared.Constants.COMPATIBILITY_GBOARD
 import java.nio.charset.StandardCharsets
@@ -34,7 +34,7 @@ class GboardInlineSuggestionsPatchContractTest {
 
         val expectedDependencies = listOf(
             gboardPatchesExtensionCarrierPatch,
-            gboardFeatureFlagsBytecodePatch,
+            gboardInlineSuggestionsFlagValuePatch,
             gboardInlineSuggestionsFeatureMarkerPatch,
         )
         assertEquals(expectedDependencies.size, patch.dependencies.size)
@@ -180,7 +180,7 @@ class GboardInlineSuggestionsPatchContractTest {
         }
         val compatiblePackages = inlinePatch.getAsJsonObject("compatiblePackages")
 
-        assertEquals(31, patches.size)
+        assertEquals(34, patches.size)
         assertTrue(inlinePatch.get("use").asBoolean)
         assertEquals(setOf(GBOARD_PACKAGE), compatiblePackages.keySet())
         assertEquals(
@@ -212,14 +212,14 @@ class GboardInlineSuggestionsPatchContractTest {
         return generateSequence(workingDirectory) { directory -> directory.parent }
             .firstOrNull { candidate ->
                 Files.isRegularFile(candidate.resolve("settings.gradle.kts")) &&
-                    Files.isRegularFile(candidate.resolve("patches-list.json"))
+                    Files.isRegularFile(candidate.resolve("settings.gradle.kts"))
             }
             ?: error("Could not locate repository root from $workingDirectory")
     }
 
     private companion object {
         const val GBOARD_PACKAGE = "com.google.android.inputmethod.latin"
-        const val TARGET_VERSION = "17.7.7.932364120-release-arm64-v8a"
+        const val TARGET_VERSION = "18.0.3.954559732-release-arm64-v8a"
         const val INLINE_MARKER = "dev.jason.gboardpatches.feature.inline_suggestions"
         const val INLINE_MARKER_PATH =
             "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/" +

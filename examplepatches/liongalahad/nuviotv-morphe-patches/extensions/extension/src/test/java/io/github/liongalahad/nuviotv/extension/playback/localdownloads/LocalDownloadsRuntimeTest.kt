@@ -74,7 +74,7 @@ class LocalDownloadsRuntimeTest {
     }
 
     @Test
-    fun `storage slider bridge accepts the 0_8_6 native shape`() {
+    fun `storage slider bridge accepts the 0_8_7 native shape`() {
         assertTrue(
             LocalDownloadsSettingsContent.matchesNativeSliderParametersForTesting(
                 arrayOf(
@@ -791,6 +791,24 @@ class LocalDownloadsRuntimeTest {
     }
 
     @Test
+    fun `native episode overlay receives the download action`() {
+        LocalDownloadsSettings.setEnabled(true)
+        val action: () -> kotlin.Unit = {}
+        val actions = mutableListOf<Any>(FakeEpisodeAction("Play", true, action))
+        LocalDownloadsRuntime.prepareOptions(
+            FakeEpisodeTarget("tt1:1:2", "tt1", 1, 2, "Second"),
+            action,
+            true
+        )
+
+        LocalDownloadsRuntime.appendEpisodeOptions(actions)
+
+        assertEquals(listOf("Play", "Download to storage"), actions.map {
+            (it as FakeEpisodeAction).label
+        })
+    }
+
+    @Test
     fun `movie detail action shows play and delete for a downloaded movie`() {
         val media = temporaryFolder.newFile("movie-action.mp4").apply { writeText("video") }
         val identity = LocalDownloadsRuntime.RouteIdentity.fromRoute(
@@ -898,6 +916,12 @@ class LocalDownloadsRuntimeTest {
         fun getEpisode() = episode
         fun getTitle() = title
     }
+
+    private data class FakeEpisodeAction(
+        val label: String,
+        val enabled: Boolean,
+        val onClick: () -> kotlin.Unit
+    )
 
     private class TrackingConnection : HttpURLConnection(URL("https://example.test/video.mp4")) {
         var disconnected = false

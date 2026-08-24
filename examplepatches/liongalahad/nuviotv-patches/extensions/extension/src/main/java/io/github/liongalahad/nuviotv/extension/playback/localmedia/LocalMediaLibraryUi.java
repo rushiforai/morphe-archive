@@ -576,7 +576,19 @@ public final class LocalMediaLibraryUi {
         synchronized (LocalMediaLibraryUi.class) {
             if (snapshotState != null && queryState != null && selectedEntryState != null) return;
             Class<?> stateFactory = Class.forName("e1.j", false, loader);
-            Method mutableState = stateFactory.getDeclaredMethod("q", Object.class);
+            Method mutableState = null;
+            for (Method candidate : stateFactory.getDeclaredMethods()) {
+                Class<?>[] parameters = candidate.getParameterTypes();
+                if (Modifier.isStatic(candidate.getModifiers()) &&
+                        candidate.getReturnType() != Void.TYPE && parameters.length == 1 &&
+                        parameters[0] == Object.class) {
+                    mutableState = candidate;
+                    break;
+                }
+            }
+            if (mutableState == null) {
+                throw new NoSuchMethodException("Compose mutable-state factory");
+            }
             mutableState.setAccessible(true);
             snapshotState = mutableState.invoke(null, new Object[]{null});
             queryState = mutableState.invoke(null, "");
@@ -708,14 +720,27 @@ public final class LocalMediaLibraryUi {
             if (maxSpanField == null) throw new NoSuchFieldException("Native grid maximum span");
             int maxSpan = maxSpanField.getInt(null);
             Method pack = null;
-            for (Method candidate : Class.forName("t6.a", false, loader).getDeclaredMethods()) {
-                if (Modifier.isStatic(candidate.getModifiers()) && candidate.getReturnType() == Long.TYPE &&
-                        candidate.getParameterCount() == 1 &&
-                        candidate.getParameterTypes()[0] == Integer.TYPE) {
-                    candidate.setAccessible(true);
-                    pack = candidate;
-                    break;
+            // Compose 1.9 moved the grid-span packer from t6.a to k6.g. Match its
+            // stable static (int) -> long shape so this bridge also remains usable
+            // across Nuvio builds that retain the older optimized owner.
+            for (String ownerName : new String[]{"k6.g", "t6.a"}) {
+                Class<?> owner;
+                try {
+                    owner = Class.forName(ownerName, false, loader);
+                } catch (ClassNotFoundException ignored) {
+                    continue;
                 }
+                for (Method candidate : owner.getDeclaredMethods()) {
+                    if (Modifier.isStatic(candidate.getModifiers()) &&
+                            candidate.getReturnType() == Long.TYPE &&
+                            candidate.getParameterCount() == 1 &&
+                            candidate.getParameterTypes()[0] == Integer.TYPE) {
+                        candidate.setAccessible(true);
+                        pack = candidate;
+                        break;
+                    }
+                }
+                if (pack != null) break;
             }
             if (pack == null) throw new NoSuchMethodException("Native grid span packer");
             long packed = ((Number) pack.invoke(null, maxSpan)).longValue();
@@ -1003,7 +1028,7 @@ public final class LocalMediaLibraryUi {
 
     private static Object nativeButtonColors(Object composer) throws ReflectiveOperationException {
         ClassLoader loader = composer.getClass().getClassLoader();
-        Class<?> keyOwner = Class.forName("va.w0", false, loader);
+        Class<?> keyOwner = Class.forName("xa.b1", false, loader);
         Method readLocal = null;
         for (Method candidate : composer.getClass().getMethods()) {
             if (candidate.getName().equals("j") && candidate.getParameterCount() == 1) {
@@ -1018,7 +1043,7 @@ public final class LocalMediaLibraryUi {
             if (!Modifier.isStatic(candidate.getModifiers())) continue;
             candidate.setAccessible(true);
             Object value = readLocal.invoke(composer, candidate.get(null));
-            if (value != null && "va.e".equals(value.getClass().getName())) {
+            if (value != null && "xa.e".equals(value.getClass().getName())) {
                 colors = value;
                 break;
             }

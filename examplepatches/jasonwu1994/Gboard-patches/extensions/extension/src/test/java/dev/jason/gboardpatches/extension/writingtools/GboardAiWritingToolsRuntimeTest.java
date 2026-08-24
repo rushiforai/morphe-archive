@@ -17,10 +17,10 @@ public final class GboardAiWritingToolsRuntimeTest {
     }
 
     @Test
-    public void targetBooleanFlagsFollowOnlyTheTwoObservedOfficialPreferences() {
+    public void targetBooleanFlagsUseTheFormalStockCapabilityTuple() {
         GboardAiWritingToolsSettings.Snapshot settings = serverSettings(false);
         GboardAiWritingToolsOfficialPreferences.Snapshot proofreadOff = official(false, true);
-        Assert.assertSame(Boolean.FALSE, GboardAiWritingToolsRuntime.computeOverrideValue(
+        Assert.assertSame(Boolean.TRUE, GboardAiWritingToolsRuntime.computeOverrideValue(
                 GboardAiWritingToolsRuntime.FLAG_CONFIG_PROOFREAD,
                 Boolean.TRUE,
                 settings,
@@ -40,7 +40,7 @@ public final class GboardAiWritingToolsRuntimeTest {
                         .FLAG_WRITING_HELPER_ENABLE_TEXT_STYLIZATION_INTERNAL
         };
         for (String flag : editingFlags) {
-            Assert.assertSame(flag, Boolean.FALSE,
+            Assert.assertSame(flag, Boolean.TRUE,
                     GboardAiWritingToolsRuntime.computeOverrideValue(
                             flag,
                             Boolean.TRUE,
@@ -114,22 +114,37 @@ public final class GboardAiWritingToolsRuntimeTest {
     }
 
     @Test
-    public void serverModelConfigsCompensateForMissingRepackagedPhenotype() {
+    public void renamedServerPackageUsesTheMorpheModelConfigs() {
         GboardAiWritingToolsSettings.Snapshot settings = serverSettings(false);
 
-        Assert.assertEquals(GboardAiWritingToolsRuntime.PROOFREAD_MODEL_VERSION_OVERRIDE,
+        String proofread = "202406101250_prod_sd_config";
+        Assert.assertEquals("202408051448_prod_sd_config",
                 GboardAiWritingToolsRuntime.computeOverrideValue(
                         GboardAiWritingToolsRuntime.FLAG_WRITING_HELPER_MODEL_VERSION,
-                        "202406101250_prod_sd_config",
+                        proofread,
                         settings,
-                        official(true, true)));
-        Assert.assertEquals(GboardAiWritingToolsRuntime.STYLIZATION_MODEL_VERSION_OVERRIDE,
+                        official(true, true),
+                        "dev.jason.com.google.android.inputmethod.latin"));
+        String stylization = "composer_stylization_base";
+        Assert.assertEquals("202504090000_writing_tools_config",
                 GboardAiWritingToolsRuntime.computeOverrideValue(
                         GboardAiWritingToolsRuntime
                                 .FLAG_WRITING_HELPER_TEXT_STYLIZATION_MODEL_VERSION,
-                        "composer_stylization_base",
+                        stylization,
                         settings,
-                        official(true, true)));
+                        official(true, true),
+                        "dev.jason.com.google.android.inputmethod.latin"));
+    }
+
+    @Test
+    public void officialServerPackagePreservesItsRemoteModelConfigs() {
+        String stockModel = "official-remote-model";
+        Assert.assertSame(stockModel, GboardAiWritingToolsRuntime.computeOverrideValue(
+                GboardAiWritingToolsRuntime.FLAG_WRITING_HELPER_MODEL_VERSION,
+                stockModel,
+                serverSettings(false),
+                official(true, true),
+                "com.google.android.inputmethod.latin"));
     }
 
     @Test
@@ -140,7 +155,8 @@ public final class GboardAiWritingToolsRuntimeTest {
                 GboardAiWritingToolsRuntime.FLAG_WRITING_HELPER_MODEL_VERSION,
                 wrongType,
                 serverSettings(false),
-                official(true, true)));
+                official(true, true),
+                "dev.jason.com.google.android.inputmethod.latin"));
     }
 
     @Test
@@ -188,11 +204,26 @@ public final class GboardAiWritingToolsRuntimeTest {
     @Test
     public void distinctTrueOfficialBooleanIsOverridden() throws Exception {
         Boolean distinctTrue = distinctBoolean(true);
-        Assert.assertSame(Boolean.FALSE, GboardAiWritingToolsRuntime.computeOverrideValue(
+        Assert.assertSame(Boolean.TRUE, GboardAiWritingToolsRuntime.computeOverrideValue(
                 GboardAiWritingToolsRuntime.FLAG_WRITING_TOOLS,
                 distinctTrue,
                 serverSettings(false),
                 official(true, false)));
+    }
+
+    @Test
+    public void modelessRegexPromotesOnlyAnEmptyString() {
+        Assert.assertEquals("v3", GboardAiWritingToolsRuntime.computeOverrideValue(
+                GboardAiWritingToolsRuntime.FLAG_MODELESS_SMART_EDIT_REGEX_VERSION,
+                "",
+                serverSettings(false),
+                official(false, false)));
+        String stock = "v4";
+        Assert.assertSame(stock, GboardAiWritingToolsRuntime.computeOverrideValue(
+                GboardAiWritingToolsRuntime.FLAG_MODELESS_SMART_EDIT_REGEX_VERSION,
+                stock,
+                serverSettings(false),
+                official(false, false)));
     }
 
     @Test

@@ -48,7 +48,9 @@ public final class GboardAdvancedVoiceSettings {
             changed = true;
         }
         if (changed) {
-            editor.commit();
+            if (editor.commit()) {
+                GboardAdvancedVoice1803RuntimeSettings.invalidateCachedSnapshot();
+            }
         }
     }
 
@@ -89,7 +91,11 @@ public final class GboardAdvancedVoiceSettings {
         }
         String sanitized = BACKEND_RAMBLER.equals(backend)
                 ? BACKEND_RAMBLER : BACKEND_ADVANCED;
-        return preferences.edit().putString(PREF_KEY_BACKEND, sanitized).commit();
+        boolean committed = preferences.edit().putString(PREF_KEY_BACKEND, sanitized).commit();
+        if (committed) {
+            GboardAdvancedVoice1803RuntimeSettings.invalidateCachedSnapshot();
+        }
+        return committed;
     }
 
     public static boolean writeZhTwPunctuationEnabled(Context context, boolean enabled) {
@@ -133,7 +139,13 @@ public final class GboardAdvancedVoiceSettings {
             SharedPreferences preferences,
             String key,
             boolean value) {
-        return preferences != null
-                && preferences.edit().putBoolean(key, value).commit();
+        if (preferences == null) {
+            return false;
+        }
+        boolean committed = preferences.edit().putBoolean(key, value).commit();
+        if (committed) {
+            GboardAdvancedVoice1803RuntimeSettings.invalidateCachedSnapshot();
+        }
+        return committed;
     }
 }

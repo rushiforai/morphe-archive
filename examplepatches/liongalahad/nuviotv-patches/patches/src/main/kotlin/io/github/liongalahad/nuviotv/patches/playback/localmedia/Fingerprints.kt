@@ -227,7 +227,7 @@ internal object ComposeDialogTouchEventFingerprint : Fingerprint(
     returnType = "Z",
     parameters = listOf("Landroid/view/MotionEvent;"),
     custom = { method, classDef ->
-        method.name == "onTouchEvent" && classDef.superclass == "Lc/o;" &&
+        method.name == "onTouchEvent" &&
             classDef.fields.any { it.type == FUNCTION0 } &&
             classDef.methods.any {
                 it.name == "onKeyUp" && it.returnType == "Z" &&

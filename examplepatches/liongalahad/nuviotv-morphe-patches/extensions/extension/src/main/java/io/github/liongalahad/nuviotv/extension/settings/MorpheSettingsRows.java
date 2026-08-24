@@ -13,8 +13,8 @@ import kotlin.jvm.functions.Function3;
 final class MorpheSettingsRows {
     private static final int NATIVE_CATEGORY_LIST_DEFAULT_MASK = 510 & ~16;
     private static final int NATIVE_SELECTOR_EXPLICIT_ENABLED_MASK = 0x3fb0;
-    private static final String[] NATIVE_SWITCH_CLASS_NAMES = {"sa.v", "sa.u", "sa.ic", "sa.oc"};
-    private static final String[] NATIVE_SELECTOR_CLASS_NAMES = {"sa.mc"};
+    private static final String[] NATIVE_SWITCH_CLASS_NAMES = {"ua.v"};
+    private static final String[] NATIVE_SELECTOR_CLASS_NAMES = {"ua.qc"};
 
     private static volatile Method nativeCardMethod;
     private static volatile Method nativeSwitchMethod;
@@ -187,10 +187,11 @@ final class MorpheSettingsRows {
         try {
             Method method = nativeLazyColumnMethod;
             if (method == null) {
-                Class<?> verticalArrangementClass = Class.forName(
-                        "c0.h", false, composer.getClass().getClassLoader()
-                );
-                for (String className : new String[]{"t6.a", "a.a"}) {
+                // Compose 1.9 moved Nuvio's public LazyColumn bridge from t6.a to
+                // k6.g and changed the obfuscated vertical-arrangement interface.
+                // Match the stable public call shape and derive that interface from
+                // parameter 3 instead of pinning another obfuscated type name.
+                for (String className : new String[]{"k6.g", "t6.a", "a.a"}) {
                     Class<?> lazyColumnClass;
                     try {
                         lazyColumnClass = Class.forName(
@@ -203,7 +204,6 @@ final class MorpheSettingsRows {
                         Class<?>[] parameters = candidate.getParameterTypes();
                         if (Modifier.isStatic(candidate.getModifiers()) &&
                                 candidate.getReturnType() == Void.TYPE && parameters.length == 12 &&
-                                parameters[3] == verticalArrangementClass &&
                                 Function1.class.isAssignableFrom(parameters[8]) &&
                                 parameters[10] == Integer.TYPE && parameters[11] == Integer.TYPE) {
                             candidate.setAccessible(true);
@@ -261,7 +261,7 @@ final class MorpheSettingsRows {
         try {
             Method method = nativeCollapsibleSectionMethod;
             if (method == null) {
-                for (String className : new String[]{"sa.v", "sa.u"}) {
+                for (String className : new String[]{"ua.v"}) {
                     Class<?> settingsClass;
                     try {
                         settingsClass = Class.forName(className, false, composer.getClass().getClassLoader());
@@ -365,8 +365,8 @@ final class MorpheSettingsRows {
         if (cached != null) return cached;
 
         ClassLoader loader = composer.getClass().getClassLoader();
-        Class<?> spacingHolder = Class.forName("va.m0", false, loader);
-        Class<?> spacingTokens = Class.forName("va.n0", false, loader);
+        Class<?> spacingHolder = Class.forName("xa.n0", false, loader);
+        Class<?> spacingTokens = Class.forName("xa.o0", false, loader);
         Field tokenField = null;
         for (Field candidate : spacingHolder.getDeclaredFields()) {
             if (Modifier.isStatic(candidate.getModifiers()) && candidate.getType() == spacingTokens) {

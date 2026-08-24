@@ -1,3 +1,28 @@
+## [1.41.0-dev.1](https://github.com/BlazeFTL/FTL-Patches/compare/v1.40.1-dev.1...v1.41.0-dev.1) (2026-08-23)
+
+### ✨ New Features
+
+* Add Rs File Disable Rate Dialog Patch ([d183190](https://github.com/BlazeFTL/FTL-Patches/commit/d1831909be29bd155f94c28e1411d9cd1fb16ae6))
+
+## [1.40.1-dev.1](https://github.com/BlazeFTL/FTL-Patches/compare/v1.40.0...v1.40.1-dev.1) (2026-08-23)
+
+### 🐛 Bug Fixes
+
+* descriptions ([3c2f706](https://github.com/BlazeFTL/FTL-Patches/commit/3c2f706469195a7d3b490bed821f980746bf4b2c))
+
+## [1.40.0](https://github.com/BlazeFTL/FTL-Patches/compare/v1.39.1...v1.40.0) (2026-08-23)
+
+### ✨ New Features
+
+* Ads Finish ([bcbbf84](https://github.com/BlazeFTL/FTL-Patches/commit/bcbbf8482dd660eeddf8e14d65dbccd5f03d24bb))
+* Allow Adding Host File To Adobo ([7346fd7](https://github.com/BlazeFTL/FTL-Patches/commit/7346fd7c8d99044a8a1c38a10f90ab978c55ba2e))
+
+## [1.40.0-dev.2](https://github.com/BlazeFTL/FTL-Patches/compare/v1.40.0-dev.1...v1.40.0-dev.2) (2026-08-23)
+
+### ✨ New Features
+
+* Ads Finish ([bcbbf84](https://github.com/BlazeFTL/FTL-Patches/commit/bcbbf8482dd660eeddf8e14d65dbccd5f03d24bb))
+
 ## [1.40.0-dev.1](https://github.com/BlazeFTL/FTL-Patches/compare/v1.39.1...v1.40.0-dev.1) (2026-08-22)
 
 ### ✨ New Features

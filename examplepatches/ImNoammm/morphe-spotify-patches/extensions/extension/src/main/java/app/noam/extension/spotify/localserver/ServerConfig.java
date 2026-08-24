@@ -5,9 +5,7 @@ import android.content.SharedPreferences;
 
 import app.noam.extension.spotify.Utils;
 
-/** Persisted configuration of the remote music folder. */
 public final class ServerConfig {
-
     private static final String PREFERENCES = "morphe_local_server";
 
     public static final String KEY_ENABLED = "enabled";
@@ -16,7 +14,6 @@ public final class ServerConfig {
     public static final String KEY_PASSWORD = "password";
     public static final String KEY_FOLDER = "folder";
     public static final String KEY_STREAM = "stream";
-    public static final String KEY_BEAUTIFUL_LYRICS = "beautiful_lyrics";
 
     private ServerConfig() {}
 
@@ -50,7 +47,6 @@ public final class ServerConfig {
         return getBoolean(KEY_ENABLED, false);
     }
 
-    /** True when tracks are streamed on demand; false downloads each track fully before playing. */
     public static boolean isStreaming() {
         return getBoolean(KEY_STREAM, true);
     }

@@ -13,16 +13,18 @@ import java.util.concurrent.atomic.AtomicInteger;
 @SuppressWarnings("unused")
 public final class GboardAddSymbolsSoftKeyRuntime {
     private static final String TAG = "GboardAddSymbols";
-    private static final String ACTION_SET_CLASS = "owd";
-    private static final String ACTION_TYPE_CLASS = "oth";
-    private static final String ACTION_DEF_CLASS = "otk";
-    private static final String ACTION_ENTRY_CLASS = "oud";
-    private static final String ACTION_BUILDER_CLASS = "oti";
-    private static final String METADATA_BUILDER_CLASS = "ovv";
-    private static final String INTENTION_CLASS = "ouc";
-    private static final String KEYBOARD_TYPE_CLASS = "ovf";
+    private static final String ACTION_SET_CLASS =
+            "com.google.android.libraries.inputmethod.metadata.SoftKeyDef";
+    private static final String ACTION_TYPE_CLASS = "pmy";
+    private static final String ACTION_DEF_CLASS =
+            "com.google.android.libraries.inputmethod.metadata.ActionDef";
+    private static final String ACTION_ENTRY_CLASS = "pnu";
+    private static final String ACTION_BUILDER_CLASS = "pmz";
+    private static final String METADATA_BUILDER_CLASS = "ppo";
+    private static final String INTENTION_CLASS = "pnt";
+    private static final String KEYBOARD_TYPE_CLASS = "ppa";
 
-    private static final int POPUP_LAYOUT_ATTRIBUTE_RES_ID = 0x7f0402aa;
+    private static final int POPUP_LAYOUT_ATTRIBUTE_RES_ID = 0x7f040296;
     private static final int SWITCH_KEYBOARD_KEYCODE = -0x2714;
     private static final int SWITCH_TO_ONE_HANDED_MODE_KEYCODE = -0x2749;
     private static final int OPEN_EXTENSION_KEYCODE = -0x274a;
@@ -248,7 +250,7 @@ public final class GboardAddSymbolsSoftKeyRuntime {
             entryKeycodeField = field(actionEntryClass, "c");
             entryPayloadField = field(actionEntryClass, "e");
             entryConstructor = constructor(
-                    actionEntryClass, int.class, intentionClass, Object.class);
+                    actionEntryClass, int.class, intentionClass, Object.class, int.class);
             keyboardTypeFactory = method(keyboardTypeClass, "a", Object.class);
             keyboardTypeNameField = field(keyboardTypeClass, "m");
             actionBuilderConstructor = constructor(actionBuilderClass);
@@ -342,7 +344,7 @@ public final class GboardAddSymbolsSoftKeyRuntime {
             System.arraycopy(entries, 0, updatedEntries, 0, entries.length);
             Array.set(updatedEntries, index, entryConstructor.newInstance(
                     SWITCH_KEYBOARD_FROM_ACCESS_POINT_AND_CLOSE_EXTENSION_KEYCODE,
-                    null, customType));
+                    null, customType, Integer.MAX_VALUE));
             actionBuilderEntriesField.set(builder, updatedEntries);
             String[] labels = normalizeLabels(popupLabels(template), entries.length);
             labels[index] = CUSTOM_POPUP_LABEL;
@@ -360,7 +362,7 @@ public final class GboardAddSymbolsSoftKeyRuntime {
             System.arraycopy(entries, 0, updatedEntries, 0, entries.length);
             Array.set(updatedEntries, entries.length, entryConstructor.newInstance(
                     SWITCH_KEYBOARD_FROM_ACCESS_POINT_AND_CLOSE_EXTENSION_KEYCODE,
-                    null, customType));
+                    null, customType, Integer.MAX_VALUE));
             actionBuilderEntriesField.set(builder, updatedEntries);
             String[] labels = normalizeLabels(popupLabels(template), entries.length + 1);
             labels[entries.length] = CUSTOM_POPUP_LABEL;

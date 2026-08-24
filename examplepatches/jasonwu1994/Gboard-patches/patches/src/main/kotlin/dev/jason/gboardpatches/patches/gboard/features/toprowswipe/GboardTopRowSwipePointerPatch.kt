@@ -2,7 +2,7 @@ package dev.jason.gboardpatches.patches.gboard.features.toprowswipe
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
-import dev.jason.gboardpatches.patches.gboard.shared.GboardPointerOwner1777RegisterContract
+import dev.jason.gboardpatches.patches.gboard.shared.GboardPointerOwnerRegisterContract
 import dev.jason.gboardpatches.patches.gboard.shared.GboardPointerOwnerFeature
 import dev.jason.gboardpatches.patches.gboard.shared.GboardPointerOwnerFeatureSpec
 import dev.jason.gboardpatches.patches.gboard.shared.GboardPointerOwnerTransformationContext
@@ -14,11 +14,12 @@ import dev.jason.gboardpatches.patches.gboard.shared.gboardPointerOwnerFeaturePa
 import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
 import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 
-private val pointerTrackerClass = GboardVersionBindings.pointerOwnerType.descriptor
+private val pointerTrackerClass: String
+    get() = GboardVersionBindings.pointerOwnerType.descriptor
 
-internal val TOP_ROW_SWIPE_POINTER_DELEGATE = topRowSwipePointerDelegate(
-    GboardPointerOwner1777RegisterContract.stockRegisterCount,
-)
+internal val TOP_ROW_SWIPE_POINTER_DELEGATE by lazy {
+    topRowSwipePointerDelegate(GboardPointerOwnerRegisterContract.stockRegisterCount)
+}
 
 internal val TOP_ROW_SWIPE_CLEAR_SESSION_DELEGATE = """
     ${RuntimeCallEmitter.invoke(RuntimeCallId.TOP_ROW_SWIPE_RUNTIME_CLEAR_SWIPE_SESSION, "p0")}
@@ -33,7 +34,9 @@ internal val gboardTopRowSwipePointerTransformation =
         context.pointerOwnerMethod.applyTopRowSwipePointerDelegate()
 
         val finishReturns = context.pointerFinishMethod.returnInstructionIndices()
-        check(finishReturns.isNotEmpty()) { "Unable to find return in Lpbl;->r(JI)V" }
+        check(finishReturns.isNotEmpty()) {
+            "Unable to find return in ${GboardVersionBindings.pointerFinish.reference}"
+        }
         finishReturns.asReversed().forEach { returnIndex ->
             context.pointerFinishMethod.addInstructions(
                 returnIndex,
@@ -64,20 +67,21 @@ internal val gboardTopRowSwipePointerPatch = gboardPointerOwnerFeaturePatch(
 )
 
 internal fun MutableMethod.applyTopRowSwipePointerDelegate() {
+    val preReset = GboardVersionBindings.pointerPreReset
     val insertIndex = indexOfFirstMethodCall(
-        definingClass = pointerTrackerClass,
-        name = "ac",
-        returnType = "V",
-        parameterTypes = emptyList(),
+        definingClass = preReset.ownerDescriptor,
+        name = preReset.name,
+        returnType = preReset.returnType,
+        parameterTypes = preReset.parameterTypes,
     )
-    check(insertIndex >= 0) { "Unable to find Lpbl;->ac()V inside target pointer owner" }
+    check(insertIndex >= 0) { "Unable to find ${preReset.reference} inside target pointer owner" }
     val registerCount = implementation?.registerCount
         ?: error("Target pointer owner has no implementation")
     addInstructions(insertIndex + 1, topRowSwipePointerDelegate(registerCount))
 }
 
 private fun topRowSwipePointerDelegate(registerCount: Int): String {
-    val registers = GboardPointerOwner1777RegisterContract.delegateRegisters(registerCount)
+    val registers = GboardPointerOwnerRegisterContract.delegateRegisters(registerCount)
     return """
         ${RuntimeCallEmitter.invoke(
             RuntimeCallId.TOP_ROW_SWIPE_RUNTIME_MAYBE_ARM_AND_RESOLVE_TOP_ROW_OWNER,
@@ -86,6 +90,6 @@ private fun topRowSwipePointerDelegate(registerCount: Int): String {
 
         move-result-object ${registers.softKey}
 
-        check-cast ${registers.softKey}, Lcom/google/android/libraries/inputmethod/widgets/SoftKeyView;
+        check-cast ${registers.softKey}, ${GboardVersionBindings.softKeyViewType.descriptor}
     """.trimIndent()
 }

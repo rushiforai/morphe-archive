@@ -9,6 +9,7 @@ import dev.jason.gboardpatches.extension.cursortrackpad.GboardCursorTrackpadSett
 import dev.jason.gboardpatches.extension.longpressquickactions.GboardLongPressQuickActionsSettingsFeature;
 import dev.jason.gboardpatches.extension.manualincognito.GboardManualIncognitoSettingsFeature;
 import dev.jason.gboardpatches.extension.ocr.GboardOcrSettingsFeature;
+import dev.jason.gboardpatches.extension.quickinsert.GboardQuickInsertSettingsFeature;
 import dev.jason.gboardpatches.extension.settings.GboardFeatureGroup;
 import dev.jason.gboardpatches.extension.settings.GboardPatchesSettingsContract;
 import dev.jason.gboardpatches.extension.settings.GboardSettingsText;
@@ -36,7 +37,8 @@ public final class GboardKeyboardToolsSettingsGroupFeature
                         new GboardManualIncognitoSettingsFeature(context),
                         new GboardLongPressQuickActionsSettingsFeature(context),
                         new GboardCursorTrackpadSettingsFeature(context),
-                        new GboardOcrSettingsFeature(context)));
+                        new GboardOcrSettingsFeature(context),
+                        new GboardQuickInsertSettingsFeature(context)));
     }
 
     @Override

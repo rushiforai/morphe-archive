@@ -1,3 +1,33 @@
+## [1.7.1](https://github.com/riky-dev/morphe-patches/compare/v1.7.0...v1.7.1) (2026-08-23)
+
+### 🐛 Bug Fixes
+
+* **capcut:** patch JniToast runnable to suppress APK security toast ([bc5bd5c](https://github.com/riky-dev/morphe-patches/commit/bc5bd5ccdbc8cd8d0199c999b58351110df57404))
+
+## [1.7.0](https://github.com/riky-dev/morphe-patches/compare/v1.6.0...v1.7.0) (2026-08-23)
+
+### ✨ New Features
+
+* **capcut:** bypass APK security toast after repatching ([4be1c5f](https://github.com/riky-dev/morphe-patches/commit/4be1c5f011c9dd238364039fdb1773387d4fe6b2))
+
+## [1.6.0](https://github.com/riky-dev/morphe-patches/compare/v1.5.0...v1.6.0) (2026-08-23)
+
+### ✨ New Features
+
+* **capcut:** add Unlock Pro patch with export trailer removal ([4610cec](https://github.com/riky-dev/morphe-patches/commit/4610cecd5ce679cdea3bfff79585fd51a7af8b26))
+
+## [1.5.0](https://github.com/riky-dev/morphe-patches/compare/v1.4.0...v1.5.0) (2026-08-23)
+
+### ✨ New Features
+
+* **komoot:** add unlock map regions patch ([1d8153b](https://github.com/riky-dev/morphe-patches/commit/1d8153b79a327fafec37063740e154ed30557805))
+
+## [1.4.0](https://github.com/riky-dev/morphe-patches/compare/v1.3.3...v1.4.0) (2026-08-23)
+
+### ✨ New Features
+
+* **komoot:** add unlock premium patch for v2026.34.2 ([a04dec7](https://github.com/riky-dev/morphe-patches/commit/a04dec76ba4435dd9c0093b0b5d0d92cdd8e7fc4))
+
 ## [1.3.3](https://github.com/riky-dev/morphe-patches/compare/v1.3.2...v1.3.3) (2026-08-18)
 
 ### 🐛 Bug Fixes

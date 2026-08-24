@@ -37,6 +37,17 @@ object SdhCueTransformer {
         currentSession.set(WeakReference(owner))
     }
 
+    /** Lets Nuvio own Media3 filtering only while Morphe subtitle processing is disabled. */
+    @JvmStatic
+    fun shouldApplyNativeFilter(): Boolean =
+        SdhCleanupMode.fromOrdinal(MorpheSettingsRuntime.sdhCleanupModeOrdinal()) ==
+            SdhCleanupMode.OFF
+
+    /** Preserves native filter input while satisfying 0.8.7's concrete ArrayList return type. */
+    @JvmStatic
+    fun bypassNativeFilter(cues: List<Cue>): ArrayList<Cue> =
+        if (cues is ArrayList<Cue>) cues else ArrayList(cues)
+
     @JvmStatic
     fun clean(cues: List<Cue>): List<Cue> {
         val mode = SdhCleanupMode.fromOrdinal(MorpheSettingsRuntime.sdhCleanupModeOrdinal())

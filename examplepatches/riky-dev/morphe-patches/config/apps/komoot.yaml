@@ -1,0 +1,30 @@
+id: komoot
+package: de.komoot.android
+display_name: Komoot
+apk_file_type: APK
+apkpure_slug: komoot-hike-bike-run
+analysis_dir: analysis/komoot
+
+verify:
+  apk: analysis/komoot/extract/de.komoot.android.apk
+  smali_assertions:
+    - file: de/komoot/android/services/api/model/AppConfigV3.smali
+      pattern: 'sget-object p1, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;'
+      label: AppConfigV3 premium injection
+    - file: de/komoot/android/services/api/model/PublicUserProfileV7.smali
+      pattern: 'const/4 p5, 0x1'
+      label: PublicUserProfileV7 premium injection
+    - file: de/komoot/android/services/api/model/RoutingPermission.smali
+      pattern: 'GRANTED:Lde/komoot/android/services/api/model/RoutingPermission\$StatusPermission;'
+      label: RoutingPermission GRANTED injection
+    - file: wmt.smali
+      pattern: 'const/4 p1, 0x1'
+      label: RegionsData ownsWorldPack injection
+    - file: de/komoot/android/services/api/model/Package.smali
+      method: d
+      pattern: 'const/4 p0, 0x1'
+      label: Package getMAllRegions spoof
+    - file: de/komoot/android/services/api/model/Package.smali
+      method: c
+      pattern: 'const/4 p0, 0x1'
+      label: Package getMActive spoof

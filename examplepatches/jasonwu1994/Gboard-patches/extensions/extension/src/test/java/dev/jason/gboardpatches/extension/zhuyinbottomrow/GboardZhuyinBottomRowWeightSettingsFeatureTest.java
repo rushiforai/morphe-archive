@@ -49,7 +49,7 @@ public final class GboardZhuyinBottomRowWeightSettingsFeatureTest {
     }
 
     @Test
-    public void traditionalChineseCopyMatchesValidatedLsposedWording() {
+    public void traditionalChineseCopyMatchesValidatedMorpheWording() {
         Locale originalLocale = Locale.getDefault();
         Locale.setDefault(Locale.forLanguageTag("zh-Hant-TW"));
         try {

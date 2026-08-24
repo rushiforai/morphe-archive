@@ -15,9 +15,9 @@ class GboardSettingsHomepagePatchContractTest {
     fun actualPublicPatchKeepsExactDependenciesMarkerAndSingleRegistryRow() {
         val registry = readSource(REGISTRY_PATH)
         val patchBlock = registry.substring(
-            registry.indexOf("val gboardSettingsHomepagePatch = resourcePatch("),
+            registry.indexOf("val gboardSettingsHomepagePatch = gboardPublicResourcePatch("),
             registry.indexOf("@Suppress(\"unused\")", registry.indexOf(
-                "val gboardSettingsHomepagePatch = resourcePatch(",
+                "val gboardSettingsHomepagePatch = gboardPublicResourcePatch(",
             ) + 1),
         )
 
@@ -37,16 +37,13 @@ class GboardSettingsHomepagePatchContractTest {
     }
 
     @Test
-    fun generatedInventoryStaysTwentyFourWithSettingsOnceAndTargetOnlyCompatibility() {
-        val repository = repositoryRoot()
-        val patchesList = JsonParser.parseString(
-            Files.readString(repository.resolve("patches-list.json"), StandardCharsets.UTF_8),
-        ).asJsonObject.getAsJsonArray("patches").map { it.asJsonObject }
+    fun generatedInventoryStaysThirtyFourWithSettingsOnceAndTargetOnlyCompatibility() {
+        val patchesList = generatedPublishedPatches()
         val settings = patchesList.filter {
             it.get("name").asString == "Settings Homepage Override"
         }
 
-        assertEquals(31, patchesList.size)
+        assertEquals(34, patchesList.size)
         assertEquals(1, settings.size)
         assertEquals(true, settings.single().get("use").asBoolean)
         assertEquals(
@@ -57,7 +54,7 @@ class GboardSettingsHomepagePatchContractTest {
         )
 
         val compatibility = readSource(CONSTANTS_PATH)
-        assertEquals(1, compatibility.countExact("version = \"$TARGET_VERSION\""))
+        assertEquals(1, compatibility.countExact("GboardTargetAdmission.versionNames"))
         assertFalse(compatibility.contains("17.0.10"))
     }
 
@@ -72,12 +69,10 @@ class GboardSettingsHomepagePatchContractTest {
     }
 
     @Test
-    fun generatedPatchInventoryMatchesSpacebarLogoPortDigest() {
-        val repository = repositoryRoot()
-
+    fun generatedPatchInventoryMatchesCurrentPortDigest() {
         assertEquals(
             PATCH_INVENTORY_SHA256,
-            patchInventorySha256(repository.resolve("patches-list.json")),
+            patchInventorySha256(GboardPublishedPatchCatalog.publishedInventory("test-version")),
         )
     }
 
@@ -128,8 +123,8 @@ class GboardSettingsHomepagePatchContractTest {
         .digest(Files.readAllBytes(path))
         .joinToString("") { value -> "%02X".format(value) }
 
-    private fun patchInventorySha256(path: Path): String {
-        val patches = JsonParser.parseString(Files.readString(path, StandardCharsets.UTF_8))
+    private fun patchInventorySha256(inventory: String): String {
+        val patches = JsonParser.parseString(inventory)
             .asJsonObject
             .getAsJsonArray("patches")
             .toString()
@@ -142,7 +137,7 @@ class GboardSettingsHomepagePatchContractTest {
     private fun String.countExact(value: String): Int = split(value).size - 1
 
     private companion object {
-        const val TARGET_VERSION = "17.7.7.932364120-release-arm64-v8a"
+        const val TARGET_VERSION = "18.0.3.954559732-release-arm64-v8a"
         const val REGISTRY_PATH =
             "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/registry/" +
                 "GboardPatchRegistry.kt"
@@ -161,7 +156,7 @@ class GboardSettingsHomepagePatchContractTest {
         const val BINDINGS_PATH =
             "patches/src/main/resources/gboard/gboard-version-bindings.json"
         const val PATCH_INVENTORY_SHA256 =
-            "59CFBFCC16B841E6C46B72E903BD70338314E9704C6D180CA418B02EDD5CBFED"
+            "825B4CF7218C940AF5BE31C1D4B71ECD74FD25487A590F22C20363C45B406493"
         const val BINDINGS_SHA256 =
             "EA4D35FDC483DCA17E1461BA5C494EAA788CEE8028942E6722C7C02C48140BDC"
     }

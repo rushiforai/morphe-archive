@@ -6,7 +6,7 @@ import app.morphe.patcher.patch.Compatibility
 
 internal object Constants {
     const val PACKAGE_NAME = "com.nuvio.tv"
-    const val TARGET_VERSION = "0.8.6-beta"
+    const val TARGET_VERSION = "0.8.7-beta"
 
     val NUVIO_COMPATIBILITY = Compatibility(
         name = "NuvioTV",

@@ -4,7 +4,9 @@ This page specifies what the production patch does. It provides `Off`, `Normaliz
 
 ## Scope and runtime flow
 
-The patch supports only the official NuvioTV `0.8.5-beta` Media3/ExoPlayer subtitle paths. MPV/libass subtitles are not processed.
+The patch supports only the official NuvioTV `0.8.7-beta` Media3/ExoPlayer subtitle paths. MPV/libass subtitles are not processed by Morphe.
+
+NuvioTV 0.8.7 has a separate native `Strip SDH annotations` Boolean setting covering Media3, direct sidecars, and MPV. Morphe arbitrates that setting for Media3 as described below; MPV remains controlled only by Nuvio.
 
 When selected in Morphe, the patch:
 
@@ -18,6 +20,8 @@ When selected in Morphe, the patch:
 8. in either cleanup mode, cleans text cues, suppresses cues that become empty, normalizes retained lyric markers, and leaves non-text cues unchanged.
 
 The preference is checked for every outgoing cue list, so changes apply to the next subtitle update without restarting playback. The setting persists across process and device restarts and is not synchronized to a Nuvio account or sent to Nuvio's backend. Existing stored mode selections remain unchanged. A legacy dev.7 Boolean value of `true` migrates to `Remove SDH, keep lyrics`; an installation with no old or current SDH preference starts in `Normalize music symbols only`.
+
+NuvioTV 0.8.7 also has a native `Strip SDH annotations` switch. For Media3 embedded and direct sidecar subtitles, the patch permits Nuvio's filter only while Morphe is `Off`; every active Morphe mode bypasses the native pass and processes each cue once. Switching Morphe back to `Off` immediately restores the native Media3 behavior if its switch remains enabled. MPV/libass playback is not processed by Morphe and continues to follow Nuvio's native switch.
 
 ## Symbol normalization
 

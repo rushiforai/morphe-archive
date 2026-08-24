@@ -38,12 +38,12 @@ internal val gboardOcrRuntimePatch = bytecodePatch(
         findMutableMethodOrThrow(GboardOcrPatchTargets.optionalModuleBuilder)
             .applyOcrObjectReturnDelegate(
                 RuntimeCallId.OCR_RUNTIME_APPLY_OPTIONAL_MODULE_REQUEST,
-                castType = "[Lkdd;",
+                castType = "[Lkve;",
             )
         findMutableMethodOrThrow(GboardOcrPatchTargets.moduleManagerRequest)
             .applyOcrObjectReturnDelegate(
                 RuntimeCallId.OCR_RUNTIME_APPLY_OPTIONAL_MODULE_REQUEST,
-                castType = "[Lkdd;",
+                castType = "[Lkve;",
             )
         findMutableMethodOrThrow(GboardOcrPatchTargets.thinRecognizerInit)
             .applyOcrVoidReturnDelegate(RuntimeCallId.OCR_RUNTIME_AFTER_THIN_INIT)

@@ -48,7 +48,7 @@ public final class GboardManualIncognitoRuntimeTest {
     public void accessPointTokenHelpersAreIdempotentAndPreserveOrder() {
         Assert.assertEquals(
                 Arrays.asList("translate", "manual_incognito", "clipboard"),
-                GboardManualIncognitoAccessPoint1777Support.appendToken(
+                GboardManualIncognitoAccessPointSupport.appendToken(
                         Arrays.asList(
                                 "translate",
                                 "manual_incognito",
@@ -56,7 +56,7 @@ public final class GboardManualIncognitoRuntimeTest {
                                 "translate")));
         Assert.assertEquals(
                 Arrays.asList("translate", "clipboard"),
-                GboardManualIncognitoAccessPoint1777Support.removeToken(
+                GboardManualIncognitoAccessPointSupport.removeToken(
                         Arrays.asList("translate", "manual_incognito", "clipboard")));
     }
 

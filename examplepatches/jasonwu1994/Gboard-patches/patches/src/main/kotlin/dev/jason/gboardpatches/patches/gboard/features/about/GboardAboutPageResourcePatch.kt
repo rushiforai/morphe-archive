@@ -13,7 +13,8 @@ import org.w3c.dom.Document
 import org.w3c.dom.Element
 
 private const val ABOUT_XML = "res/xml/setting_about.xml"
-private const val ABOUT_VERSION_KEY_REF = "@string/string_0x7f140b7d"
+private const val ABOUT_VERSION_KEY_REF = "@string/APKTOOL_RENAMED_0x7f140c23"
+private const val ABOUT_VERSION_SANITIZED_KEY_REF = "@string/string_0x7f140c23"
 private const val ABOUT_PREFERENCE_CLASS =
     "com.google.android.libraries.inputmethod.settings.widget.ExtendedPreference"
 
@@ -28,44 +29,54 @@ context(context: ResourcePatchContext)
 private fun applyAboutPagePatch() {
     val aboutDocument = context.document(ABOUT_XML)
     try {
-        val screen = aboutDocument.documentElement
-        val childElements = screen.childElements()
-        var versionPreference: Element? = null
-        for (child in childElements) {
-            if (child.getAttributeNS(ANDROID_NS, "key") == ABOUT_VERSION_KEY_REF ||
-                child.getAttribute("android:key") == ABOUT_VERSION_KEY_REF
-            ) {
-                versionPreference = child
-                break
-            }
-        }
-        if (versionPreference == null) {
-            versionPreference = childElements.lastOrNull()
-        }
-        if (versionPreference == null) {
-            error("Could not find any preference node in $ABOUT_XML")
-        }
-
-        val authorPreference = ensureAboutPreference(
-            document = aboutDocument,
-            key = "gboard_about_author",
-            title = "Author",
-            summary = GBOARD_PATCH_AUTHOR,
-            intentUrl = GBOARD_PATCH_AUTHOR_URL
-        )
-        screen.insertAfter(authorPreference, versionPreference)
-
-        val patchVersionPreference = ensureAboutPreference(
-            document = aboutDocument,
-            key = "gboard_about_patch_version",
-            title = "Patch Version",
-            summary = GBOARD_PATCH_VERSION,
-            intentUrl = GBOARD_PATCH_REPOSITORY_URL
-        )
-        screen.insertAfter(patchVersionPreference, authorPreference)
+        applyGboardAboutPagePatch(aboutDocument)
     } finally {
         aboutDocument.close()
     }
+}
+
+internal fun applyGboardAboutPagePatch(aboutDocument: Document) {
+    val screen = aboutDocument.documentElement
+    val childElements = screen.childElements()
+    var versionPreference: Element? = null
+    for (child in childElements) {
+        if (child.androidAttribute("key") in setOf(
+                ABOUT_VERSION_KEY_REF,
+                ABOUT_VERSION_SANITIZED_KEY_REF,
+            )
+        ) {
+            versionPreference = child
+            break
+        }
+    }
+    if (versionPreference == null) {
+        val observed = childElements.joinToString { child ->
+            "${child.tagName}[key=${child.androidAttribute("key")}," +
+                "title=${child.androidAttribute("title")}]"
+        }
+        error(
+            "Could not find the 18.0.3 version preference in $ABOUT_XML; " +
+                "observed=$observed",
+        )
+    }
+
+    val authorPreference = ensureAboutPreference(
+        document = aboutDocument,
+        key = "gboard_about_author",
+        title = "Author",
+        summary = GBOARD_PATCH_AUTHOR,
+        intentUrl = GBOARD_PATCH_AUTHOR_URL
+    )
+    screen.insertAfter(authorPreference, versionPreference)
+
+    val patchVersionPreference = ensureAboutPreference(
+        document = aboutDocument,
+        key = "gboard_about_patch_version",
+        title = "Patch Version",
+        summary = GBOARD_PATCH_VERSION,
+        intentUrl = GBOARD_PATCH_REPOSITORY_URL
+    )
+    screen.insertAfter(patchVersionPreference, authorPreference)
 }
 
 private fun ensureAboutPreference(
@@ -79,10 +90,7 @@ private fun ensureAboutPreference(
     var preference: Element? = null
     for (child in screen.childElements()) {
         if (child.tagName == ABOUT_PREFERENCE_CLASS &&
-            (
-                child.getAttributeNS(ANDROID_NS, "key") == key ||
-                    child.getAttribute("android:key") == key
-            )
+            child.androidAttribute("key") == key
         ) {
             preference = child
             break
@@ -109,6 +117,20 @@ private fun ensureAboutPreference(
 
 private fun Element.setAndroidAttribute(localName: String, value: String) {
     setAttributeNS(ANDROID_NS, "android:$localName", value)
+}
+
+private fun Element.androidAttribute(localName: String): String {
+    getAttributeNS(ANDROID_NS, localName).takeIf(String::isNotEmpty)?.let { return it }
+    getAttribute("android:$localName").takeIf(String::isNotEmpty)?.let { return it }
+    for (index in 0 until attributes.length) {
+        val attribute = attributes.item(index)
+        if (attribute.localName == localName ||
+            attribute.nodeName.substringAfterLast(':') == localName
+        ) {
+            return attribute.nodeValue.orEmpty()
+        }
+    }
+    return ""
 }
 
 private fun Element.ensureIntent(): Element {

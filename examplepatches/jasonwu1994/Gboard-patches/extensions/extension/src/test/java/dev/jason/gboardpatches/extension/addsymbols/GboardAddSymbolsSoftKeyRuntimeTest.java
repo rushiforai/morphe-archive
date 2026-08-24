@@ -12,27 +12,26 @@ import java.util.List;
 
 public final class GboardAddSymbolsSoftKeyRuntimeTest {
     @Test
-    public void usesOnlyGboard1777SoftKeyReflectionModel() throws Exception {
+    public void usesOnlyGboard1803SoftKeyReflectionModel() throws Exception {
         String source = runtimeSource();
         List<String> targetMappings = List.of(
-                "private static final String ACTION_SET_CLASS = \"owd\";",
-                "private static final String ACTION_TYPE_CLASS = \"oth\";",
-                "private static final String ACTION_DEF_CLASS = \"otk\";",
-                "private static final String ACTION_ENTRY_CLASS = \"oud\";",
-                "private static final String ACTION_BUILDER_CLASS = \"oti\";",
-                "private static final String METADATA_BUILDER_CLASS = \"ovv\";",
-                "private static final String INTENTION_CLASS = \"ouc\";",
-                "private static final String KEYBOARD_TYPE_CLASS = \"ovf\";");
+                "\"com.google.android.libraries.inputmethod.metadata.SoftKeyDef\";",
+                "private static final String ACTION_TYPE_CLASS = \"pmy\";",
+                "\"com.google.android.libraries.inputmethod.metadata.ActionDef\";",
+                "private static final String ACTION_ENTRY_CLASS = \"pnu\";",
+                "private static final String ACTION_BUILDER_CLASS = \"pmz\";",
+                "private static final String METADATA_BUILDER_CLASS = \"ppo\";",
+                "private static final String INTENTION_CLASS = \"pnt\";",
+                "private static final String KEYBOARD_TYPE_CLASS = \"ppa\";");
         for (String mapping : targetMappings) {
-            Assert.assertTrue("Missing Gboard 17.7.7 soft-key mapping: " + mapping,
+            Assert.assertTrue("Missing Gboard 18.0.3 soft-key mapping: " + mapping,
                     source.contains(mapping));
         }
 
         List<String> baselineClasses = List.of(
-                "nxi", "oaa", "nxl", "nyf", "nxj", "nzv", "nye", "nzd",
-                "ofk", "ofi", "oql");
+                "owd", "oth", "otk", "oud", "oti", "ovv", "ouc", "ovf");
         for (String className : baselineClasses) {
-            Assert.assertFalse("Stale Gboard 17.0.10 soft-key class remains: " + className,
+            Assert.assertFalse("Stale Gboard 18.0.3 soft-key class remains: " + className,
                     source.contains("\"" + className + "\""));
         }
 
@@ -51,7 +50,7 @@ public final class GboardAddSymbolsSoftKeyRuntimeTest {
 
         Assert.assertFalse(source.contains("0x7f0e05fd"));
         Assert.assertFalse(source.contains("0x7f080576"));
-        Assert.assertTrue(source.contains("POPUP_LAYOUT_ATTRIBUTE_RES_ID = 0x7f0402aa"));
+        Assert.assertTrue(source.contains("POPUP_LAYOUT_ATTRIBUTE_RES_ID = 0x7f040296"));
         Assert.assertTrue(source.contains("handles.popupLayout(action) == 0"));
     }
 

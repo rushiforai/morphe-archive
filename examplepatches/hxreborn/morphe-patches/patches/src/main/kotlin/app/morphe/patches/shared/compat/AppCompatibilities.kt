@@ -27,6 +27,14 @@ internal object AppCompatibilities {
         appIconColor = 0xF8991C,
     )
 
+    val CX_FILE_EXPLORER = Compatibility(
+        name = "Cx File Explorer",
+        packageName = "com.cxinventor.file.explorer",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x5167F6,
+        targets = listOf(AppTarget(version = "2.7.8", versionCode = 278, minSdk = 21)),
+    )
+
     val ETSY = Compatibility(
         name = "Etsy",
         packageName = "com.etsy.android",
@@ -57,6 +65,13 @@ internal object AppCompatibilities {
         appIconColor = 0x53FC18,
     )
 
+    val NOTESNOOK = Compatibility(
+        name = "Notesnook",
+        packageName = "com.streetwriters.notesnook",
+        apkFileType = ApkFileType.APKS,
+        appIconColor = 0x008837,
+    )
+
     val PERPLEXITY = Compatibility(
         name = "Perplexity",
         packageName = "ai.perplexity.app.android",
@@ -76,6 +91,17 @@ internal object AppCompatibilities {
         packageName = "ch.protonmail.android",
         apkFileType = ApkFileType.APK,
         appIconColor = 0x6D4AFF,
+        targets = listOf(
+            AppTarget(version = "7.11.4", versionCode = 18315, minSdk = 29),
+            AppTarget(version = "7.10.4", versionCode = 17667, minSdk = 29),
+        ),
+    )
+
+    val PROTON_MAIL_7_10_4 = Compatibility(
+        name = "Proton Mail",
+        packageName = "ch.protonmail.android",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x6D4AFF,
         targets = listOf(AppTarget(version = "7.10.4", versionCode = 17667, minSdk = 29)),
     )
 
@@ -85,6 +111,13 @@ internal object AppCompatibilities {
         apkFileType = ApkFileType.APKS,
         appIconColor = 0x0061BD,
         targets = listOf(AppTarget(version = "26.05.20+2300", versionCode = 2300, minSdk = 16)),
+    )
+
+    val RUBBER_BANDS = Compatibility(
+        name = "Rubber Bands",
+        packageName = "app.rubberbands.fit",
+        apkFileType = ApkFileType.APKS,
+        appIconColor = 0xFD8700,
     )
 
     val SHOWLY = Compatibility(

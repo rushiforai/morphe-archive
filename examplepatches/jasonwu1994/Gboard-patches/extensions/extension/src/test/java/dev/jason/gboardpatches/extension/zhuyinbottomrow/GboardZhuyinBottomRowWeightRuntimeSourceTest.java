@@ -9,18 +9,18 @@ import java.nio.file.Path;
 
 public final class GboardZhuyinBottomRowWeightRuntimeSourceTest {
     @Test
-    public void runtimeSupportUsesExact1777MetadataContractWithoutBaselineFallback()
+    public void runtimeSupportUsesExact1803MetadataContractWithoutBaselineFallback()
             throws Exception {
         String source = readRuntimeSupportSource();
 
         Assert.assertTrue(source.contains(
-                "private static final String ACTION_TYPE_CLASS = \"oth\";"));
+                "private static final String ACTION_TYPE_CLASS = \"pmy\";"));
         Assert.assertTrue(source.contains(
-                "private static final String ACTION_SET_CLASS = \"owd\";"));
+                "\"com.google.android.libraries.inputmethod.metadata.SoftKeyDef\""));
         Assert.assertTrue(source.contains(
-                "private static final String ACTION_DEF_CLASS = \"otk\";"));
+                "\"com.google.android.libraries.inputmethod.metadata.ActionDef\""));
         Assert.assertTrue(source.contains(
-                "private static final String ACTION_DATA_CLASS = \"oud\";"));
+                "private static final String ACTION_DATA_CLASS = \"pnu\";"));
         Assert.assertTrue(source.contains("softKeyViewClass.getDeclaredField(\"e\")"));
         Assert.assertTrue(source.contains("actionSetClass.getDeclaredField(\"g\")"));
         Assert.assertTrue(source.contains(
@@ -33,6 +33,8 @@ public final class GboardZhuyinBottomRowWeightRuntimeSourceTest {
         Assert.assertFalse(source.contains("\"nyf\""));
         Assert.assertFalse(source.contains("getDeclaredField(\"n\")"));
         Assert.assertFalse(source.contains("getDeclaredMethod(\"a\", actionTypeClass)"));
+        Assert.assertFalse(source.contains("= \"owd\""));
+        Assert.assertFalse(source.contains("= \"oth\""));
     }
 
     @Test

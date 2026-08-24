@@ -28,14 +28,13 @@ public final class GboardAdvancedVoiceSettingsSourceTest {
                 "new GboardAdvancedVoiceSettingsFeature(context)"));
         Assert.assertEquals(2, count(feature,
                 "new GboardPatchesSettingsContract.ToggleRow("));
-        Assert.assertEquals(1, count(feature,
+        Assert.assertEquals(0, count(feature,
                 "new GboardPatchesSettingsContract.SelectorRow("));
-        Assert.assertTrue(feature.contains("GboardAdvancedVoiceSettings.readBackend("));
-        Assert.assertTrue(feature.contains("showBackendDialog("));
-        Assert.assertTrue(feature.contains("saveBackend("));
+        Assert.assertFalse(feature.contains("GboardAdvancedVoiceSettings.readBackend("));
+        Assert.assertFalse(feature.contains("showBackendDialog("));
+        Assert.assertFalse(feature.contains("saveBackend("));
         Assert.assertTrue(feature.contains("refreshSafely("));
-        Assert.assertTrue(feature.contains(
-                "enabled && GboardAdvancedVoiceSettings.BACKEND_ADVANCED.equals(backend)"));
+        Assert.assertFalse(feature.contains("BACKEND_RAMBLER"));
         Assert.assertTrue(feature.contains(
                 "new GboardPatchesSettingsContract.DetailRow("));
         Assert.assertTrue(feature.contains(
@@ -64,7 +63,7 @@ public final class GboardAdvancedVoiceSettingsSourceTest {
         Assert.assertTrue(feature.matches(
                 "(?s).*new GboardPatchesSettingsContract\\.Section\\("
                         + "\\s*null,\\s*githubStarRows\\).*"));
-        Assert.assertTrue(feature.contains("17-7-7-932364120-release-arm64-v8a"));
+        Assert.assertTrue(feature.contains("18-0-3-954559732-release-arm64-v8a-2"));
         Assert.assertTrue(availability.contains("FEATURE_ADVANCED_VOICE_TYPING"));
         Assert.assertTrue(availability.contains(
                 "dev.jason.gboardpatches.feature.advanced_voice_typing"));

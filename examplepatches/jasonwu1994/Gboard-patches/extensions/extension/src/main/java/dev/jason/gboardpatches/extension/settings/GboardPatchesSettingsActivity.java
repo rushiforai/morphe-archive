@@ -84,7 +84,7 @@ public final class GboardPatchesSettingsActivity extends Activity
     private static final String GBOARD_SETTINGS_ACTIVITY_CLASS =
             "com.google.android.apps.inputmethod.latin.preference.SettingsActivity";
     private static final String SUPPORTED_DEVELOPER_OPTIONS_TARGET_VERSION =
-            "17.7.7.932364120-release-arm64-v8a";
+            "18.0.3.954559732-release-arm64-v8a";
     private static final String GBOARD_PACKAGE_STABLE =
             "com.google.android.inputmethod.latin";
     private static final String GBOARD_PACKAGE_JASON_DEV =
@@ -294,18 +294,27 @@ public final class GboardPatchesSettingsActivity extends Activity
         if (headerKeyResourceId == 0) {
             return;
         }
-        for (String packageName : targetSettingsPackages()) {
-            if (tryLaunchTargetSettingsHeader(packageName, headerKeyResourceId)) {
-                return;
-            }
+        String currentPackage = getPackageName();
+        if (!isSupportedTargetPackage(currentPackage)) {
+            showUnsupportedDeveloperOptionsPackageDialog(currentPackage, headerKeyResourceId);
+            return;
+        }
+        if (tryLaunchTargetSettingsHeader(currentPackage, headerKeyResourceId, false)) {
+            return;
         }
         throw new ActivityNotFoundException(
                 "No supported Gboard Developer options entry is available");
     }
 
     private boolean tryLaunchTargetSettingsHeader(String packageName, int headerKeyResourceId) {
+        return tryLaunchTargetSettingsHeader(packageName, headerKeyResourceId, false);
+    }
+
+    private boolean tryLaunchTargetSettingsHeader(String packageName, int headerKeyResourceId,
+            boolean allowUnknownVersion) {
         String targetVersionName = targetPackageVersionName(packageName);
-        if (!isSupportedDeveloperOptionsTargetVersion(targetVersionName)) {
+        if (!allowUnknownVersion
+                && !isSupportedDeveloperOptionsTargetVersion(targetVersionName)) {
             return false;
         }
 
@@ -320,6 +329,55 @@ public final class GboardPatchesSettingsActivity extends Activity
         }
     }
 
+    private void showUnsupportedDeveloperOptionsPackageDialog(String packageName,
+            int headerKeyResourceId) {
+        String safePackageName = packageName == null ? "" : packageName;
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle(R.string.gboard_patches_developer_options_package_warning_title)
+                .setMessage(GboardSettingsText.format(
+                        this,
+                        R.string.gboard_patches_developer_options_package_warning_message,
+                        safePackageName))
+                .setNegativeButton(R.string.gboard_patches_dialog_close, null)
+                .setPositiveButton(R.string.gboard_patches_developer_options_try_anyway,
+                        (ignored, which) -> tryLaunchUnverifiedDeveloperOptions(
+                                safePackageName,
+                                headerKeyResourceId))
+                .create();
+        dialog.setOnDismissListener(ignored -> onManagedDialogDismissed());
+        try {
+            dialog.show();
+            onManagedDialogShown();
+            tintDialogButtons(dialog);
+        } catch (Throwable throwable) {
+            Log.w(TAG, "Unable to show unsupported Gboard package warning", throwable);
+            showDeveloperOptionsLaunchFailure(safePackageName);
+        }
+    }
+
+    private void tryLaunchUnverifiedDeveloperOptions(String packageName,
+            int headerKeyResourceId) {
+        try {
+            if (!tryLaunchTargetSettingsHeader(packageName, headerKeyResourceId, true)) {
+                showDeveloperOptionsLaunchFailure(packageName);
+            }
+        } catch (Throwable throwable) {
+            Log.w(TAG, "Unable to open Developer options for " + packageName, throwable);
+            showDeveloperOptionsLaunchFailure(packageName);
+        }
+    }
+
+    private void showDeveloperOptionsLaunchFailure(String packageName) {
+        Toast.makeText(
+                this,
+                GboardSettingsText.format(
+                        this,
+                        R.string.gboard_patches_developer_options_launch_failed,
+                        packageName),
+                Toast.LENGTH_LONG)
+                .show();
+    }
+
     private String targetPackageVersionName(String packageName) {
         try {
             PackageInfo packageInfo = getPackageManager().getPackageInfo(packageName, 0);
@@ -332,7 +390,7 @@ public final class GboardPatchesSettingsActivity extends Activity
     private List<String> targetSettingsPackages() {
         Set<String> packageNames = new LinkedHashSet<String>();
         String currentPackage = getPackageName();
-        if (isSupportedTargetPackage(currentPackage)) {
+        if (currentPackage != null && !currentPackage.isEmpty()) {
             packageNames.add(currentPackage);
         }
         packageNames.add(GBOARD_PACKAGE_STABLE);

@@ -21,7 +21,7 @@ import dev.jason.gboardpatches.patches.gboard.shared.isMethodReference
 import dev.jason.gboardpatches.patches.gboard.shared.isOpcode
 import dev.jason.gboardpatches.patches.shared.Constants.COMPATIBILITY_GBOARD
 
-private const val SIGNATURE_UTILS_CLASS = "Lqvi;"
+private const val SIGNATURE_UTILS_CLASS = "Lrpv;"
 
 internal val gboardSignatureBypassBytecodePatch = bytecodePatch(
     description = "強制通過 Gboard 自身的簽章白名單檢查。"
@@ -170,17 +170,17 @@ private data class LiteralShape(
 
 private const val SIGNATURE_CHECK_METHOD_NAME = "a"
 private const val SIGNATURE_CHECK_DESCRIPTOR =
-    "Lqvi;->a(Landroid/content/Context;Ljava/lang/String;)Z"
+    "Lrpv;->a(Landroid/content/Context;Ljava/lang/String;)Z"
 private val SIGNATURE_CHECK_PARAMETERS =
     listOf("Landroid/content/Context;", "Ljava/lang/String;")
 private const val DIGEST_METHOD_DESCRIPTOR =
-    "Lqvi;->c(Landroid/content/Context;Ljava/lang/String;)[B"
+    "Lrpv;->c(Landroid/content/Context;Ljava/lang/String;)[B"
 private const val ARRAYS_EQUALS_DESCRIPTOR = "Ljava/util/Arrays;->equals([B[B)Z"
 private val TARGET_FIELD_DESCRIPTORS = listOf(
-    "Lqvi;->e:[B",
-    "Lqvi;->d:[B",
-    "Lqvi;->c:[B",
-    "Lquk;->b:Z",
+    "Lrpv;->e:[B",
+    "Lrpv;->d:[B",
+    "Lrpv;->c:[B",
+    "Lrox;->b:Z",
 )
 private val TARGET_BASELINE_LITERALS = listOf(
     LiteralShape(0, 3),

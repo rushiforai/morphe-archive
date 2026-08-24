@@ -49,6 +49,12 @@ internal object PlaylistBottomBarAvailableFingerprint : Fingerprint(
     parameters = listOf("Lcom/ss/android/ugc/aweme/feed/model/VideoItemParams;"),
 )
 
+internal object DramaBlockingAdFingerprint : Fingerprint(
+    definingClass = "Lcom/ss/android/ugc/aweme/impl/DramaBlockingAdServiceImpl;",
+    returnType = "Z",
+    parameters = listOf("Lcom/ss/android/ugc/aweme/feed/model/Aweme;"),
+)
+
 internal object SpecActTouchpointAttachFingerprint : Fingerprint(
     definingClass = "/specact/SpecActServiceImpl;",
     returnType = "V",
@@ -131,4 +137,14 @@ internal object RecUserCardInsertFingerprint : Fingerprint(
     returnType = "Lkotlin/Pair;",
     parameters = listOf("I", "Ljava/util/List;", "Ljava/lang/String;", "Lkotlin/jvm/functions/Function0;"),
     strings = listOf("friend_recommend_card"),
+)
+
+internal object BulletinMusicPlayFingerprint : Fingerprint(
+    returnType = "Lkotlin/Pair;",
+    custom = { method, _ ->
+        method.implementation?.instructions?.any {
+            it.getReference<MethodReference>()?.definingClass ==
+                "Lcom/ss/android/ugc/aweme/inbox/bulletin/music/LifecycleMusicPlayer;"
+        } == true
+    },
 )

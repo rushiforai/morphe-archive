@@ -3,10 +3,7 @@ package app.noam.extension.spotify;
 import android.content.Context;
 import android.util.Log;
 
-/** Shared helpers. The context is supplied by {@code ServerFileProvider}, which Android creates
- *  before the application object, so it is available to every hook. */
 public final class Utils {
-
     public static final String TAG = "MorpheSpotify";
 
     private static Context context;
@@ -29,7 +26,6 @@ public final class Utils {
         Log.e(TAG, message, throwable);
     }
 
-    /** Resolves a resource id by name, so patches never have to bake numeric ids. */
     public static int stringId(String name) {
         Context c = context;
         if (c == null) return 0;

@@ -20,7 +20,7 @@ class GboardZhuyinBottomRowPatchRegistrySourceTest {
             StandardCharsets.UTF_8
         )
 
-        assertTrue(source.contains("val gboardZhuyinBottomRowWeightPatch = resourcePatch("))
+        assertTrue(source.contains("val gboardZhuyinBottomRowWeightPatch = gboardPublicResourcePatch("))
         assertTrue(source.contains("name = \"Zhuyin Bottom Row Key Sizes\""))
         assertTrue(source.contains("gboardPatchesSettingsPatch"))
         assertTrue(source.contains("gboardZhuyinBottomRowWeightFeatureMarkerPatch"))

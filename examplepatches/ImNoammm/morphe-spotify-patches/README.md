@@ -4,8 +4,9 @@ Morphe patches for the Spotify Android app.
 
 | Patch | What it does |
 | --- | --- |
-| **Morphe settings** | Adds a **Morphe** row to Spotify's settings. It is where the settings of every other patch in this bundle live. |
-| **Local files from a server** | Lets Spotify take its local files from a Nextcloud (or plain WebDAV) folder. The tracks appear under **Local Files** and are streamed from the server as they play. |
+| **Morphe settings** | Adds a **Morphe** row to Spotify's settings, in the main list. It is where the settings of every other patch in this bundle live. |
+| **Local files from a server** | Lets Spotify take its local files from a Nextcloud (or plain WebDAV) folder. The tracks appear under **Local Files** and are streamed from the server as they play. Rescanned each time the app starts. |
+| **Pin shortcuts on Home** | Long press a cover on Home to pin it. Pinned playlists stay at the front of the grid, marked with a pin, and the order is kept on the device rather than depending on what the server sends. |
 
 ## Add it to Morphe
 
@@ -19,6 +20,16 @@ source by hand:
   (the bundle metadata directly, if the repository URL is not accepted)
 
 Morphe then picks up each release automatically.
+
+## Pin shortcuts on Home
+
+Long pressing a cover offers **Pin to Home** / **Unpin from Home**, and **Spotify options** for
+whatever Spotify itself binds to that cover, so the pin costs nothing. Pinned covers move to the
+front and carry a pin in their title.
+
+The grid is filled by the server, so nothing here fetches or adds anything: the list Spotify is
+about to render is reordered on the way past, using names kept on the device. If the model is not
+shaped the way this expects, the grid is left exactly as it came.
 
 ## Local files from a server
 
@@ -68,25 +79,6 @@ java -jar morphe-desktop.jar patch -p patches-<version>.mpp Spotify.apk
 ```
 
 or add this repository as a source in Morphe Manager / Morphe Desktop.
-
-## Notes on how the patches survive Spotify updates
-
-Spotify obfuscates its settings classes and the names change with every release, so nothing is
-matched by name. The settings patch anchors on the row ids (`appIcon`, `appLanguage`), which are
-plain strings that have been stable for a long time, and then works out the row class and the
-accessor classes from the shape of the code around them. The Morphe row itself is built at runtime
-by copying a row that is already on screen, so it renders exactly like its neighbours. If any of
-that fails, the row is skipped and Spotify's own settings are left untouched.
-
-The local files patch hooks `com.spotify.localfiles.mediastore.MediaStoreReader`, which is annotated
-`@Keep` because Spotify's native library calls it, so its name is not obfuscated at all.
-
-## Anti-tamper
-
-These patches change no premium, advertising or DRM code. Spotify does ship Google's Play Integrity
-API, which reports any resigned APK — patched or not, and regardless of what was patched. There is
-no local signature check to defeat, and nothing here trips a "modified client" heuristic beyond the
-resigning that patching inherently requires.
 
 ## Licence
 

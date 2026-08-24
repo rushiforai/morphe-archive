@@ -5,7 +5,6 @@ import app.morphe.patcher.patch.resourcePatch
 import app.noam.patches.spotify.shared.Constants
 import org.w3c.dom.Element
 
-/** The strings and manifest entries the Morphe settings screen needs. */
 internal val settingsResourcePatch = resourcePatch(
     description = "Adds the Morphe settings screen and its file provider to the app.",
     default = false,
@@ -48,8 +47,6 @@ internal val settingsResourcePatch = resourcePatch(
             val packageName = manifest.getAttribute("package")
             if (packageName.isEmpty()) throw PatchException("The manifest has no package name")
 
-            // Tapping the Morphe row makes Spotify open its destination as an external link, so the
-            // screen is reached by answering that link rather than by hooking the navigator.
             application.appendChild(
                 document.createElement("activity").apply {
                     setAttributeNS(androidNamespace, "android:name", Constants.SETTINGS_ACTIVITY)
@@ -84,8 +81,6 @@ internal val settingsResourcePatch = resourcePatch(
                 },
             )
 
-            // The provider serves the server's tracks to Spotify as content:// URIs. It is private to
-            // the app, so no permission or shared storage is involved.
             application.appendChild(
                 document.createElement("provider").apply {
                     setAttributeNS(androidNamespace, "android:name", Constants.FILE_PROVIDER)

@@ -29,10 +29,9 @@ final class GboardClipboardRuntimeSupport {
     static final String TAG = "GboardClipboard";
     static final String LOG_PREFIX = "[gboard-clipboard]";
 
-    static final String CLIPBOARD_LOADER_CALLABLE_CLASS = "eun";
-    static final String CLIPBOARD_PRUNE_CALLABLE_CLASS = "evu";
-    static final String CLIPBOARD_ADAPTER_CLASS = "evn";
-    static final String CLIPBOARD_VIEW_HOLDER_CLASS = "evl";
+    static final String CLIPBOARD_LOADER_CALLABLE_CLASS = "fik";
+    static final String CLIPBOARD_ADAPTER_CLASS = "fjk";
+    static final String CLIPBOARD_VIEW_HOLDER_CLASS = "fji";
 
     static final long MINUTE_MS = 60_000L;
     static final long INFINITE_TTL_MS = -1L;
@@ -47,7 +46,7 @@ final class GboardClipboardRuntimeSupport {
     static final int STOCK_CLIPBOARD_PRUNE_TRIGGER = 120;
     static final int STOCK_CLIPBOARD_GROUP_LIMIT = 5;
     static final int STOCK_CLIPBOARD_CONTENT_MAX_LINES = 5;
-    static final int LAST_VISIBLE_TIMESTAMP_PREF_RES_ID = 0x7f14094c;
+    static final int LAST_VISIBLE_TIMESTAMP_PREF_RES_ID = 0x7f1409d3;
     static final String[] CURSOR_COUNT_PROJECTION =
             new String[] { "_id", "timestamp", "item_type", "uri" };
     static final String STOCK_SELECTION_RECENT_PINNED_SPECIAL =
@@ -252,17 +251,10 @@ final class GboardClipboardRuntimeSupport {
 
     Context pruneContext(ReflectionHandles handles, Object receiver) throws Throwable {
         if (receiver == null
-                || !handles.pruneCallableOwnerField.getDeclaringClass().isInstance(receiver)) {
+                || !handles.dataHandlerContextField.getDeclaringClass().isInstance(receiver)) {
             return null;
         }
-        Object dataHandler = handles.pruneCallableOwnerField.get(receiver);
-        if (dataHandler == null) {
-            return null;
-        }
-        if (!handles.dataHandlerContextField.getDeclaringClass().isInstance(dataHandler)) {
-            return null;
-        }
-        return (Context) handles.dataHandlerContextField.get(dataHandler);
+        return (Context) handles.dataHandlerContextField.get(receiver);
     }
 
     Context adapterContext(ReflectionHandles handles, Object receiver) throws Throwable {
@@ -616,7 +608,6 @@ final class GboardClipboardRuntimeSupport {
     static final class ReflectionHandles {
         final Field loaderCallableOwnerField;
         final Field loaderContextField;
-        final Field pruneCallableOwnerField;
         final Field dataHandlerContextField;
         final Field dataHandlerDisabledField;
         final Field dataHandlerCountField;
@@ -652,22 +643,19 @@ final class GboardClipboardRuntimeSupport {
         ReflectionHandles(ClassLoader classLoader) throws Throwable {
             Class<?> loaderCallableClass = resolveClass(classLoader,
                     CLIPBOARD_LOADER_CALLABLE_CLASS);
-            Class<?> loaderClass = resolveClass(classLoader, "euo");
-            Class<?> pruneCallableClass = resolveClass(classLoader,
-                    CLIPBOARD_PRUNE_CALLABLE_CLASS);
-            Class<?> dataHandlerClass = resolveClass(classLoader, "ewb");
+            Class<?> loaderClass = resolveClass(classLoader, "fil");
+            Class<?> dataHandlerClass = resolveClass(classLoader, "fjv");
             Class<?> adapterClass = resolveClass(classLoader, CLIPBOARD_ADAPTER_CLASS);
             Class<?> clipItemViewHolderClass = resolveClass(classLoader,
                     CLIPBOARD_VIEW_HOLDER_CLASS);
-            Class<?> clipClass = resolveClass(classLoader, "euk");
-            Class<?> clipModelClass = resolveClass(classLoader, "eum");
-            Class<?> queryUtilsClass = resolveClass(classLoader, "evr");
-            Class<?> preferencesClass = resolveClass(classLoader, "pnp");
-            Class<?> preferenceBaseClass = resolveClass(classLoader, "cbv");
+            Class<?> clipClass = resolveClass(classLoader, "fih");
+            Class<?> clipModelClass = resolveClass(classLoader, "fij");
+            Class<?> queryUtilsClass = resolveClass(classLoader, "fjo");
+            Class<?> preferencesClass = resolveClass(classLoader, "qhy");
+            Class<?> preferenceBaseClass = resolveClass(classLoader, "cdl");
 
             loaderCallableOwnerField = declaredField(loaderCallableClass, "a");
             loaderContextField = declaredField(loaderClass, "b");
-            pruneCallableOwnerField = declaredField(pruneCallableClass, "a");
             dataHandlerContextField = declaredField(dataHandlerClass, "c");
             dataHandlerDisabledField = declaredField(dataHandlerClass, "f");
             dataHandlerCountField = declaredField(dataHandlerClass, "g");
@@ -679,24 +667,24 @@ final class GboardClipboardRuntimeSupport {
             clipIdField = declaredField(clipClass, "d");
             clipTimestampField = declaredField(clipClass, "e");
             clipModelField = declaredField(clipClass, "g");
-            clipModelTextField = declaredField(clipModelClass, "a");
-            clipModelItemTypeField = declaredField(clipModelClass, "c");
-            clipIsSensitiveMethod = declaredMethod(clipClass, "l");
-            clipIsPinnedMethod = declaredMethod(clipClass, "m");
-            clipIsSpecialMethod = declaredMethod(clipClass, "n");
-            queryClipsMethod = declaredMethod(queryUtilsClass, "i",
+            clipModelTextField = declaredField(clipModelClass, "c");
+            clipModelItemTypeField = declaredField(clipModelClass, "e");
+            clipIsSensitiveMethod = declaredMethod(clipClass, "m");
+            clipIsPinnedMethod = declaredMethod(clipClass, "n");
+            clipIsSpecialMethod = declaredMethod(clipClass, "o");
+            queryClipsMethod = declaredMethod(queryUtilsClass, "j",
                     Context.class, String.class, String[].class, String.class);
-            createClipboardUriMethod = declaredMethod(queryUtilsClass, "c",
+            createClipboardUriMethod = declaredMethod(queryUtilsClass, "d",
                     Context.class, int.class, long.class);
-            deleteClipsMethod = declaredMethod(queryUtilsClass, "g",
+            deleteClipsMethod = declaredMethod(queryUtilsClass, "h",
                     Context.class, List.class);
             primaryTimestampReadMethod = declaredMethod(dataHandlerClass, "a",
                     Context.class);
-            dataHandlerQueryByItemTypeMethod = declaredMethod(dataHandlerClass, "b",
+            dataHandlerQueryByItemTypeMethod = declaredMethod(dataHandlerClass, "s",
                     Uri.class, int.class);
-            dataHandlerCleanupCursorMethod = declaredMethod(dataHandlerClass, "l",
+            dataHandlerCleanupCursorMethod = declaredMethod(dataHandlerClass, "t",
                     Cursor.class);
-            preferencesAccessorMethod = declaredMethod(preferencesClass, "N", Context.class);
+            preferencesAccessorMethod = declaredMethod(preferencesClass, "I", Context.class);
             preferenceReadLongMethod = declaredMethod(preferenceBaseClass, "m",
                     int.class, long.class);
             preferenceWriteLongMethod = declaredMethod(preferenceBaseClass, "s",

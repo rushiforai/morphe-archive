@@ -188,7 +188,7 @@ public final class GboardZhuyinTraditionalSimplifiedToggleRuntime {
             return;
         }
         try {
-            Method resetMethod = inputMethodService.getClass().getMethod("aq", boolean.class);
+            Method resetMethod = inputMethodService.getClass().getMethod("ar", boolean.class);
             resetMethod.setAccessible(true);
             resetMethod.invoke(inputMethodService, Boolean.TRUE);
             inputMethodService.onStartInput(editorInfo, true);

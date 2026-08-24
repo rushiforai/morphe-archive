@@ -1,0 +1,30 @@
+Initialized native services in: C:\Users\Armando\.gradle\native
+Initialized jansi services in: C:\Users\Armando\.gradle\native
+The client will now receive all logging from the daemon (pid: 25132). The daemon log file: C:\Users\Armando\.gradle\daemon\9.7.0\daemon-25132.out.log
+Starting 5th build in daemon [uptime: 4 mins 38.672 secs, performance: 99%, GC rate: 0.00/s, heap usage: 2% of 512 MiB, non-heap usage: 12% of 384 MiB]
+Using 20 worker leases.
+Operational build model parameters: {cachingModelBuilding=false, configurationCache=false, configurationCacheDisabledReason=null, configurationCacheParallelLoad=false, configurationCacheParallelStore=false, configureOnDemand=false, invalidateCoupledProjects=false, isolatedProjects=false, isolatedProjectsDiagnostics=false, isolatedProjectsDangerouslyIgnoreProblems=false, modelAsProjectDependency=false, modelBuilding=false, parallelModelBuilding=false, parallelProjectConfiguration=false, parallelProjectExecution=true, vintage=true}
+Now considering [Q:\Armando\Documents\VSCodeProjects\morphe-patches] as hierarchies to watch
+Watching the file system is configured to be enabled if available
+File system watching is active
+Starting Build
+Resolved plugin [id: 'app.morphe.patches', version: '1.3.3']
+
+FAILURE: Build failed with an exception.
+
+* Where:
+Settings file 'Q:\Armando\Documents\VSCodeProjects\morphe-patches\settings.gradle.kts' line: 19
+
+* What went wrong:
+An exception occurred applying plugin request [id: 'app.morphe.patches', version: '1.3.3']
+> Failed to apply plugin 'app.morphe.patches'.
+   > java.lang.IllegalArgumentException (no error message)
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 662ms
+Watched directory hierarchies: []

@@ -15,7 +15,8 @@ import org.w3c.dom.Document
 import org.w3c.dom.Element
 
 internal val gboardPackageRenameResourcePatch = resourcePatch(
-    description = "將套件名稱改成可共存安裝的自訂值。"
+    description =
+        "將套件名稱改成可共存安裝的自訂值；僅支援單一 APK 產物，不可搭配原套件名稱的 split APK。"
 ) {
     finalize {
         applyManifestPackageOverride()
@@ -223,6 +224,7 @@ internal fun applyGboardPackageRename(
         return GboardPackageRenameResult.ALREADY_RENAMED
     }
 
+    sanitizeStandaloneSplitManifest(manifestDocument)
     selectedAttributes.zip(GBOARD_PACKAGE_RENAME_MAPPINGS).forEach { (attribute, mapping) ->
         attribute.value = mapping.renamedValue
     }
@@ -232,6 +234,21 @@ internal fun applyGboardPackageRename(
         attribute.value = GBOARD_PATCHED_PACKAGE_NAME
     }
     return GboardPackageRenameResult.RENAMED
+}
+
+private fun sanitizeStandaloneSplitManifest(manifestDocument: Document) {
+    val manifest = manifestDocument.documentElement
+    listOf("requiredSplitTypes", "splitTypes").forEach { attributeName ->
+        manifest.androidAttribute(attributeName)?.let(manifest::removeAttributeNode)
+    }
+    manifestDocument.getElementsByTagName("*")
+        .elements()
+        .filter { element ->
+            element.localElementName() == "meta-data" &&
+                element.androidAttribute("name")?.value == REQUIRED_SPLITS_METADATA
+        }
+        .toList()
+        .forEach { element -> element.parentNode.removeChild(element) }
 }
 
 private fun validateSettingsIdentity(
@@ -375,3 +392,5 @@ private data class SettingsIdentity(
 
 private const val DOUBLE_PREFIX =
     "dev.jason.dev.jason.com.google.android.inputmethod.latin"
+
+private const val REQUIRED_SPLITS_METADATA = "com.android.vending.splits.required"

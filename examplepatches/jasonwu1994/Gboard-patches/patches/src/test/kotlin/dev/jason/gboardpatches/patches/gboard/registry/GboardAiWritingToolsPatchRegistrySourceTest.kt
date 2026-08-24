@@ -1,6 +1,15 @@
 package dev.jason.gboardpatches.patches.gboard.registry
 
 import com.google.gson.JsonParser
+import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWritingTools1803AutoFixAcceptancePatch
+import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWritingTools1803AutoFixRoutePatch
+import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWritingTools1803GenAiInitPatch
+import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWritingTools1803GenAiRefreshPatch
+import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWritingTools1803SmartEditInitPatch
+import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWritingToolsFeatureMarkerPatch
+import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWritingToolsFlagValuePatch
+import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesSettingsPatch
+import dev.jason.gboardpatches.patches.gboard.shared.generated.GboardTargetAdmission
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
@@ -21,65 +30,65 @@ class GboardAiWritingToolsPatchRegistrySourceTest {
             ),
             StandardCharsets.UTF_8
         )
+        val contributionWiring = Files.readString(
+            Path.of(
+                "src/main/kotlin/dev/jason/gboardpatches/patches/gboard/registry/" +
+                    "GboardContributionWiring.kt",
+            ),
+        )
 
-        assertTrue(source.contains("val gboardAiWritingToolsPatch = resourcePatch("))
+        assertTrue(source.contains("val gboardAiWritingToolsPatch = gboardPublicResourcePatch("))
         assertTrue(source.contains("name = \"AI Writing Tools\""))
         assertTrue(source.contains("description = \"啟用 AI 撰寫工具，支援所有語言\\nEnable AI writing tools with support for all languages.\""))
         assertTrue(source.contains("default = true"))
         assertTrue(source.contains("gboardAiWritingToolsFeatureMarkerPatch"))
-        assertTrue(source.contains("gboardAiWritingToolsSettingsVisibilityPatch"))
         assertTrue(source.contains("gboardAiWritingToolsFlagValuePatch"))
-        assertTrue(source.contains("gboardAiWritingToolsSignalPatch"))
-        assertTrue(source.contains("gboardAiWritingToolsOfficialPreferencesPatch"))
-        assertTrue(source.contains("gboardAiWritingToolsBackendFactoryPatch"))
+        assertTrue(source.contains("gboardAiWritingTools1803AutoFixRoutePatch"))
+        assertTrue(source.contains("gboardAiWritingTools1803GenAiRefreshPatch"))
+        assertFalse(contributionWiring.contains("gboardAiWritingToolsFlagValuePatch"))
+        assertFalse(contributionWiring.contains("gboardAiWritingToolsSettingsVisibilityPatch"))
+        assertFalse(contributionWiring.contains("gboardAiWritingToolsSignalPatch"))
+        assertFalse(contributionWiring.contains("gboardAiWritingToolsVoiceCommandPatch"))
+        assertFalse(contributionWiring.contains("gboardAiWritingToolsOfficialPreferencesPatch"))
+        assertFalse(contributionWiring.contains("gboardAiWritingToolsBackendFactoryPatch"))
         assertFalse(source.contains("gboardAiWritingToolsDependencyPatch"))
         assertFalse(source.contains("gboardAiWritingToolsTracePatch"))
     }
 
     @Test
-    fun aiWritingToolsPatchUsesDedicatedFamilyInsteadOfGenericFeatureflagsOnly() {
-        val source = String(
-            Files.readAllBytes(
-                Path.of(
-                    "src/main/kotlin/dev/jason/gboardpatches/patches/gboard/registry/" +
-                        "GboardPatchRegistry.kt"
-                )
+    fun formal1803AdmissionKeepsOnlyTheTypedFlagContribution() {
+        assertEquals(
+            setOf("ai_writing_tools.flag"),
+            GboardTargetAdmission.admittedContributionIdsByFeature
+                .getValue("ai_writing_tools"),
+        )
+        assertEquals(
+            listOf(
+                gboardPatchesSettingsPatch,
+                gboardAiWritingToolsFeatureMarkerPatch,
+                gboardAiWritingToolsFlagValuePatch,
+                gboardAiWritingTools1803AutoFixRoutePatch,
+                gboardAiWritingTools1803AutoFixAcceptancePatch,
+                gboardAiWritingTools1803GenAiInitPatch,
+                gboardAiWritingTools1803GenAiRefreshPatch,
+                gboardAiWritingTools1803SmartEditInitPatch,
             ),
-            StandardCharsets.UTF_8
-        )
-
-        val patchStart = source.indexOf("val gboardAiWritingToolsPatch")
-        val nextPatchStart = source.indexOf("val gboardSettingsHomepagePatch")
-        assertTrue("AI Writing Tools patch missing", patchStart >= 0)
-        assertTrue("Expected following patch boundary", nextPatchStart > patchStart)
-
-        val aiWritingToolsBlock = source.substring(patchStart, nextPatchStart)
-        assertFalse(
-            "AI Writing Tools patch should not fall back to the generic featureflags patch only",
-            aiWritingToolsBlock.contains("gboardFeatureFlagsBytecodePatch")
-        )
-        assertFalse(
-            "AI Writing Tools patch should not depend on the debug trace patch in public builds",
-            aiWritingToolsBlock.contains("gboardAiWritingToolsTracePatch")
+            gboardAiWritingToolsPatch.dependencies.toList(),
         )
     }
 
     @Test
     fun aiWritingToolsInventoryAndActiveSourcesHaveNoRetiredFallbackContracts() {
         val repositoryRoot = Path.of("..").toAbsolutePath().normalize()
-        val inventory = JsonParser.parseString(
-            Files.readString(repositoryRoot.resolve("patches-list.json")),
-        ).asJsonObject
-        val patches = inventory.getAsJsonArray("patches")
-            .map { element -> element.asJsonObject }
-        assertEquals(31, patches.size)
+        val patches = generatedPublishedPatches()
+        assertEquals(34, patches.size)
         val writingTools = patches.single { patch ->
             patch.get("name").asString == "AI Writing Tools"
         }
         assertTrue(writingTools.get("use").asBoolean)
         assertTrue(writingTools.getAsJsonArray("dependencies").isEmpty)
         assertEquals(
-            listOf("17.7.7.932364120-release-arm64-v8a"),
+            listOf("18.0.3.954559732-release-arm64-v8a"),
             writingTools.getAsJsonObject("compatiblePackages")
                 .getAsJsonArray("com.google.android.inputmethod.latin")
                 .map { version -> version.asString },
@@ -93,46 +102,16 @@ class GboardAiWritingToolsPatchRegistrySourceTest {
             ),
         ).asJsonObject.getAsJsonObject("bindings")
         assertFalse(generatedBindings.has("flag_factory"))
-        assertTrue(generatedBindings.has("ai_writing_tools_gen_ai_init"))
-
-        val activeSources = sequenceOf(
-            repositoryRoot.resolve(
-                "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/" +
-                    "features/writingtools",
-            ),
-            repositoryRoot.resolve(
-                "extensions/extension/src/main/java/dev/jason/gboardpatches/extension/" +
-                    "writingtools",
-            ),
-        ).flatMap { directory ->
-            Files.walk(directory).use { files ->
-                files.filter { path -> Files.isRegularFile(path) }
-                    .map { path -> Files.readString(path) }
-                    .toList()
-                    .asSequence()
-            }
-        }.joinToString("\n")
-        assertFalse(activeSources.contains("GboardAiWritingToolsDependency"))
-        assertFalse(activeSources.contains("pref_ai_writing_tools_use_google_servers"))
-        assertFalse(activeSources.contains("flag_factory"))
-        RETIRED_TARGET_TOKENS.forEach { token ->
-            assertFalse(
-                "Retired Writing Tools target token remains active: $token",
-                Regex("""\b${Regex.escape(token)}\b""").containsMatchIn(activeSources),
-            )
-        }
-    }
-
-    private companion object {
-        val RETIRED_TARGET_TOKENS = listOf(
-            "oil",
-            "oii",
-            "oql",
-            "ovc",
-            "hcv",
-            "bze",
-            "mpn",
-            "oeb",
+        assertTrue(
+            generatedBindings.keySet().none { key -> key.startsWith("ai_writing_tools_") },
         )
+
+        val contributionWiring = Files.readString(
+            repositoryRoot.resolve(
+                "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/registry/" +
+                    "GboardContributionWiring.kt",
+            ),
+        )
+        assertFalse(contributionWiring.contains("ai_writing_tools.bytecode"))
     }
 }

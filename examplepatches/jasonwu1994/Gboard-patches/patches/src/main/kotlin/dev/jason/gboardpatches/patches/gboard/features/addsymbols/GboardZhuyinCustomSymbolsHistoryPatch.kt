@@ -13,11 +13,11 @@ import dev.jason.gboardpatches.patches.gboard.shared.findMutableMethodOrThrow
 import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
 import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 
-private const val EMOTICON_ITEM_CLICK_CONSUMER_CLASS = "Liju;"
-private const val EMOTICON_HISTORY_MANAGER_CLASS = "Lfsr;"
+private const val EMOTICON_ITEM_CLICK_CONSUMER_CLASS = "Liyd;"
+private const val EMOTICON_HISTORY_MANAGER_CLASS = "Lgjl;"
 private const val EMOTICON_KEYBOARD_CLASS =
     "Lcom/google/android/apps/inputmethod/libs/search/emoticon/EmoticonKeyboardM2;"
-private const val EMOTICON_HISTORY_FIELD = "c"
+private const val EMOTICON_HISTORY_FIELD = "b"
 
 internal val gboardZhuyinCustomSymbolsHistoryPatch = bytecodePatch(
     description = "移植 add-symbols 的 recent/history namespace 隔離。",
@@ -37,7 +37,7 @@ internal val gboardZhuyinCustomSymbolsHistoryPatch = bytecodePatch(
 
 internal fun MutableMethod.applyZhuyinCustomSymbolsHistoryDelegate(): MutableMethod {
     val implementation = checkNotNull(implementation) {
-        "iju.accept() has no implementation"
+        "iyd.accept() has no implementation"
     }
     val instructions = implementation.instructions
     val historyWriteIndices = instructions.indices.filter { index ->
@@ -49,7 +49,7 @@ internal fun MutableMethod.applyZhuyinCustomSymbolsHistoryDelegate(): MutableMet
             null
         }
         methodReference?.definingClass == EMOTICON_HISTORY_MANAGER_CLASS &&
-            methodReference.name == "c" &&
+            methodReference.name == "b" &&
             methodReference.parameterTypes.map(CharSequence::toString) ==
             listOf("Ljava/lang/String;") &&
             methodReference.returnType == "V" &&

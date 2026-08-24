@@ -45,7 +45,7 @@ final class GboardOcrModuleInstaller {
             ClassLoader classLoader = requireClassLoader();
             List<Object> optionalApis = createOptionalApis(engine, classLoader);
             Object client = createClient(context, classLoader);
-            Class<?> statusListenerClass = Class.forName("kjl", false, classLoader);
+            Class<?> statusListenerClass = Class.forName("lbw", false, classLoader);
             AtomicBoolean completed = new AtomicBoolean();
             Object statusListener = Proxy.newProxyInstance(
                     classLoader,
@@ -143,7 +143,7 @@ final class GboardOcrModuleInstaller {
             throw new IllegalStateException("Could not build OCR module request array");
         }
 
-        Class<?> optionalApiClass = Class.forName("xwz", false, classLoader);
+        Class<?> optionalApiClass = Class.forName("yua", false, classLoader);
         Constructor<?> optionalApiConstructor = optionalApiClass.getDeclaredConstructor(
                 requestArray.getClass());
         optionalApiConstructor.setAccessible(true);
@@ -154,7 +154,7 @@ final class GboardOcrModuleInstaller {
     }
 
     private static Object createClient(Context context, ClassLoader classLoader) throws Throwable {
-        Class<?> moduleInstallClientClass = Class.forName("kka", false, classLoader);
+        Class<?> moduleInstallClientClass = Class.forName("lcm", false, classLoader);
         Constructor<?> clientConstructor = moduleInstallClientClass.getDeclaredConstructor(
                 Context.class);
         clientConstructor.setAccessible(true);
@@ -165,16 +165,16 @@ final class GboardOcrModuleInstaller {
 
     private static Object createInstallTask(Object client, List<Object> optionalApis,
             Object statusListener, ClassLoader classLoader) throws Throwable {
-        Class<?> requestClass = Class.forName("qll", false, classLoader);
-        Class<?> statusListenerClass = Class.forName("kjl", false, classLoader);
+        Class<?> requestClass = Class.forName("snd", false, classLoader);
+        Class<?> statusListenerClass = Class.forName("lbw", false, classLoader);
         Constructor<?> requestConstructor = requestClass.getDeclaredConstructor(
                 List.class,
                 statusListenerClass);
         requestConstructor.setAccessible(true);
         Object installRequest = requestConstructor.newInstance(optionalApis, statusListener);
 
-        Class<?> moduleInstallClientClass = Class.forName("kka", false, classLoader);
-        Method installMethod = moduleInstallClientClass.getDeclaredMethod("b", requestClass);
+        Class<?> moduleInstallClientClass = Class.forName("lcm", false, classLoader);
+        Method installMethod = moduleInstallClientClass.getDeclaredMethod("c", requestClass);
         installMethod.setAccessible(true);
         Object task = installMethod.invoke(client, installRequest);
         if (task == null) {
@@ -185,49 +185,15 @@ final class GboardOcrModuleInstaller {
 
     private static Object createAvailabilityTask(Object client, List<Object> optionalApis,
             ClassLoader classLoader) throws Throwable {
-        Class<?> availabilityRequestClass = Class.forName("kjq", false, classLoader);
-        Method createRequestMethod = availabilityRequestClass.getDeclaredMethod(
-                "a", List.class, boolean.class);
-        createRequestMethod.setAccessible(true);
-        Object availabilityRequest = createRequestMethod.invoke(null, optionalApis, false);
-        Field requestedFeaturesField = availabilityRequestClass.getDeclaredField("a");
-        requestedFeaturesField.setAccessible(true);
-        Object requestedFeatures = requestedFeaturesField.get(availabilityRequest);
-        if (requestedFeatures instanceof List && ((List<?>) requestedFeatures).isEmpty()) {
-            return null;
+        Class<?> optionalApiInterface = Class.forName("kww", false, classLoader);
+        Object optionalApiArray = Array.newInstance(optionalApiInterface, optionalApis.size());
+        for (int index = 0; index < optionalApis.size(); index++) {
+            Array.set(optionalApiArray, index, optionalApis.get(index));
         }
-
-        Class<?> requestBuilderClass = Class.forName("kgz", false, classLoader);
-        Object requestBuilder = requestBuilderClass.getDeclaredConstructor().newInstance();
-        Class<?> featureClass = Class.forName("kdd", false, classLoader);
-        Class<?> moduleInstallFeatureClass = Class.forName("kwk", false, classLoader);
-        Field moduleInstallFeatureField = moduleInstallFeatureClass.getDeclaredField("a");
-        moduleInstallFeatureField.setAccessible(true);
-        Object requiredFeatures = Array.newInstance(featureClass, 1);
-        Array.set(requiredFeatures, 0, moduleInstallFeatureField.get(null));
-        setField(requestBuilder, "b", requiredFeatures);
-        setIntField(requestBuilder, "c", 27301);
-        Method setAutoResolveMissingFeatures = requestBuilderClass.getDeclaredMethod(
-                "b", boolean.class);
-        setAutoResolveMissingFeatures.setAccessible(true);
-        setAutoResolveMissingFeatures.invoke(requestBuilder, false);
-
-        Class<?> apiClientClass = Class.forName("kep", false, classLoader);
-        Class<?> safeParcelableClass = Class.forName("kiz", false, classLoader);
-        Class<?> operationClass = Class.forName("kca", false, classLoader);
-        Constructor<?> operationConstructor = operationClass.getDeclaredConstructor(
-                apiClientClass, safeParcelableClass, int.class);
-        operationConstructor.setAccessible(true);
-        setField(requestBuilder, "a",
-                operationConstructor.newInstance(client, availabilityRequest, 2));
-
-        Method buildRequest = requestBuilderClass.getDeclaredMethod("a");
-        buildRequest.setAccessible(true);
-        Object request = buildRequest.invoke(requestBuilder);
-        Class<?> requestClass = Class.forName("kha", false, classLoader);
-        Method executeMethod = client.getClass().getMethod("f", requestClass);
-        executeMethod.setAccessible(true);
-        Object task = executeMethod.invoke(client, request);
+        Method availabilityMethod = client.getClass().getDeclaredMethod(
+                "a", optionalApiArray.getClass());
+        availabilityMethod.setAccessible(true);
+        Object task = availabilityMethod.invoke(client, optionalApiArray);
         if (task == null) {
             throw new IllegalStateException("ModuleInstall availability returned no task");
         }
@@ -244,7 +210,7 @@ final class GboardOcrModuleInstaller {
             throw new IllegalStateException("Task class loader unavailable");
         }
 
-        Class<?> listenerClass = Class.forName("las", false, classLoader);
+        Class<?> listenerClass = Class.forName("lss", false, classLoader);
         InvocationHandler handler = (proxy, method, arguments) -> {
             if (method.getDeclaringClass() == Object.class) {
                 return handleObjectMethod(proxy, method, arguments);
@@ -312,7 +278,7 @@ final class GboardOcrModuleInstaller {
     private static void unregisterStatusListener(Object client, Object statusListener) {
         try {
             Method unregisterMethod = client.getClass().getDeclaredMethod(
-                    "a", statusListener.getClass().getInterfaces()[0]);
+                    "b", statusListener.getClass().getInterfaces()[0]);
             unregisterMethod.setAccessible(true);
             unregisterMethod.invoke(client, statusListener);
         } catch (Throwable ignored) {

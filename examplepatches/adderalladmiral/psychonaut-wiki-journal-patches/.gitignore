@@ -1,0 +1,31 @@
+### Gradle ###
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+out/
+
+### Kotlin ###
+.kotlin/
+
+### IDE ###
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+*.swp
+
+### OS ###
+.DS_Store
+Thumbs.db
+
+### Local config / secrets ###
+local.properties
+gpr.properties
+*.env
+
+### Project-specific ###
+logs.txt
+*.log

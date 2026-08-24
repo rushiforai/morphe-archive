@@ -11,26 +11,26 @@ internal object GboardOcrPatchTargets {
     val moduleAvailability = method("g", "Z")
 
     val optionalModuleBuilder = GboardMethodTarget(
-        classType = "Lxwg;",
-        name = "a",
-        parameterTypes = listOf("Lysk;"),
-        returnType = "[Lkdd;",
+        classType = "Lytg;",
+        name = "p",
+        parameterTypes = listOf("Lzpo;"),
+        returnType = "[Lkve;",
     )
     val moduleManagerRequest = GboardMethodTarget(
-        classType = "Lytc;",
+        classType = "Lzqi;",
         name = "a",
         parameterTypes = emptyList(),
-        returnType = "[Lkdd;",
+        returnType = "[Lkve;",
     )
     val thinRecognizerInit = GboardMethodTarget(
-        classType = "Lysw;",
+        classType = "Lzqb;",
         name = "a",
         parameterTypes = emptyList(),
         returnType = "V",
     )
 
     private fun method(name: String, returnType: String) = GboardMethodTarget(
-        classType = "Lyth;",
+        classType = "Lzqn;",
         name = name,
         parameterTypes = emptyList(),
         returnType = returnType,

@@ -21,6 +21,28 @@ object Constants {
         )
     )
 
+    // Komoot: https://apkpure.net/komoot-hike-bike-run/de.komoot.android
+    val COMPATIBILITY_KOMOOT = Compatibility(
+        name = "Komoot",
+        packageName = "de.komoot.android",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0xECEBB4,
+        targets = listOf(
+            AppTarget(version = "2026.34.2"),
+        ),
+    )
+
+    // CapCut: https://apkpure.net/capcut-for-android-2025/com.lemon.lvoverseas
+    val COMPATIBILITY_CAPCUT = Compatibility(
+        name = "CapCut",
+        packageName = "com.lemon.lvoverseas",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x00C1CD,
+        targets = listOf(
+            AppTarget(version = "19.2.0"),
+        ),
+    )
+
     // Electron: battery health info: https://apkpure.net/app/com.mahersafadi.electron
     val COMPATIBILITY_ELECTRON = Compatibility(
         name = "Electron: battery health info",

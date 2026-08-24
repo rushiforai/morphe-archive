@@ -16,8 +16,8 @@ class GboardDeveloperOptionsPatchContractSourceTest {
         val registry = readSource(REGISTRY_PATH)
         val activeRegistry = registry.replace(Regex("(?s)/\\*.*?\\*/"), "")
 
-        assertTrue(registry.contains("val gboardDeveloperOptionsPatch = resourcePatch("))
-        assertTrue(activeRegistry.contains("val gboardDeveloperOptionsPatch = resourcePatch("))
+        assertTrue(registry.contains("val gboardDeveloperOptionsPatch = gboardPublicResourcePatch("))
+        assertTrue(activeRegistry.contains("val gboardDeveloperOptionsPatch = gboardPublicResourcePatch("))
         assertEquals(1, registry.countOccurrences("name = \"Developer options\""))
         assertTrue(registry.contains("gboardPatchesSettingsPatch"))
         assertTrue(registry.contains("gboardDeveloperOptionsFeatureMarkerPatch"))
@@ -66,10 +66,10 @@ class GboardDeveloperOptionsPatchContractSourceTest {
         assertTrue(
             feature.contains(
                 "GboardPatchesSettingsContract.openTargetSettingsHeader(" +
-                    "host, TARGET_1777_HEADER_KEY_RESOURCE_ID)",
+                    "host, TARGET_1803_HEADER_KEY_RESOURCE_ID)",
             ),
         )
-        assertTrue(feature.contains("0x7f140abe"))
+        assertTrue(feature.contains("0x7f140b4b"))
         assertFalse(feature.contains("openFeature("))
         assertFalse(feature.contains("DeveloperSettingsFragment"))
         assertFalse(feature.contains(":android:show_fragment"))
@@ -98,14 +98,20 @@ class GboardDeveloperOptionsPatchContractSourceTest {
     }
 
     @Test
-    fun activityUsesOnlyExact1777HeaderNavigationAndFailsClosed() {
+    fun activityUsesCurrentPackageExact1803HeaderNavigationAndGuardsUnverifiedPackages() {
         val activity = readSource(ACTIVITY_PATH)
 
         assertTrue(activity.contains("ENTER_PREF_HEADER"))
-        assertTrue(activity.contains("17.7.7.932364120-release-arm64-v8a"))
+        assertTrue(activity.contains("18.0.3.954559732-release-arm64-v8a"))
         assertTrue(activity.contains("targetPackageVersionName(packageName)"))
         assertTrue(activity.contains("SUPPORTED_DEVELOPER_OPTIONS_TARGET_VERSION.equals("))
         assertTrue(activity.contains("intent.putExtra(ENTER_PREF_HEADER_EXTRA, headerKeyResourceId)"))
+        assertTrue(activity.contains("new ComponentName(packageName, GBOARD_SETTINGS_ACTIVITY_CLASS)"))
+        assertTrue(activity.contains("String currentPackage = getPackageName();"))
+        assertTrue(activity.contains("isSupportedTargetPackage(currentPackage)"))
+        assertTrue(activity.contains("showUnsupportedDeveloperOptionsPackageDialog("))
+        assertTrue(activity.contains("tryLaunchUnverifiedDeveloperOptions("))
+        assertTrue(activity.contains("catch (Throwable throwable)"))
         assertTrue(activity.contains("getPackageInfo(packageName, 0)"))
         SUPPORTED_PACKAGES.forEach { packageName ->
             assertTrue("Activity must support $packageName", activity.contains("\"$packageName\""))
@@ -113,7 +119,6 @@ class GboardDeveloperOptionsPatchContractSourceTest {
 
         assertFalse(activity.contains(":android:show_fragment"))
         assertFalse(activity.contains("DeveloperSettingsFragment"))
-        assertFalse(activity.contains("TARGET_VERSION_1777_PREFIX"))
         assertFalse(activity.contains("versionName.startsWith("))
         assertFalse(activity.contains("17.0.10"))
         assertFalse(activity.contains("fallbackFragment"))

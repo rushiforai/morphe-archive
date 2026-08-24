@@ -25,7 +25,7 @@ import dev.jason.gboardpatches.extension.settings.GboardPatchesSettingsContract;
 @Config(sdk = 35)
 public final class GboardSettingsHomepageSettingsFeatureTest {
     @Test
-    public void forceNewModeUsesLsposedSectionsAndStatusBlocks() {
+    public void forceNewModeUsesMorpheSectionsAndStatusBlocks() {
         InMemorySharedPreferences preferences = new InMemorySharedPreferences();
         preferences.edit()
                 .putString(

@@ -9,10 +9,10 @@ class RuntimeCallEmitterTest {
     fun `emits an exact static invocation from a semantic call id`() {
         assertEquals(
             "invoke-static {}, " +
-                "Ldev/jason/gboardpatches/extension/writingtools/" +
-                "GboardAiWritingToolsRuntime;->enterSettingsControllerScope()V",
+                "Ldev/jason/gboardpatches/extension/rambler/" +
+                "GboardRambler1803OfficialSelectionRuntime;->enterVoiceSettingsScope()V",
             RuntimeCallEmitter.invoke(
-                RuntimeCallId.AI_WRITING_TOOLS_RUNTIME_ENTER_SETTINGS_CONTROLLER_SCOPE,
+                RuntimeCallId.RAMBLER_RUNTIME_ENTER_VOICE_SETTINGS_SCOPE,
                 registers = "",
             ),
         )

@@ -139,27 +139,27 @@ public final class GboardAddSymbolsRuntimeTest {
     }
 
     @Test
-    public void runtimeUsesOnlyGboard1777ReflectionHandles() throws Exception {
+    public void runtimeUsesOnlyGboard1803ReflectionHandles() throws Exception {
         String source = runtimeSource();
         List<String> targetClasses = List.of(
+                "ppa", "oxw", "kr", "vvz", "vvw", "wbb", "izu", "jan", "iyd",
+                "gib", "gip", "gic", "qxa", "ghy", "zhv", "ghw", "yus", "ghu",
+                "nhp", "gie", "gid", "ghs", "ghr", "ghv", "nvk", "nva", "nuy",
+                "jgd");
+        for (String className : targetClasses) {
+            Assert.assertTrue(
+                    "Missing Gboard 18.0.3 runtime handle: " + className,
+                    source.contains("Class.forName(\"" + className + "\", false, classLoader)"));
+        }
+
+        List<String> retired1803Classes = List.of(
                 "ovf", "odz", "val", "ncc", "nbs", "nbq", "iru", "vai", "vfn",
                 "ils", "ily", "iju", "kl", "frk", "fry", "frl", "qbv", "frg",
                 "yks", "fre", "xxr", "frc", "mof", "fqz", "frn", "frm", "fra",
                 "frd");
-        for (String className : targetClasses) {
-            Assert.assertTrue(
-                    "Missing Gboard 17.7.7 runtime handle: " + className,
-                    source.contains("Class.forName(\"" + className + "\", false, classLoader)"));
-        }
-
-        List<String> baselineClasses = List.of(
-                "nzd", "nio", "km", "tvj", "twm", "two", "ual", "hvx", "hwe",
-                "huo", "fiy", "fjm", "fiz", "iid", "fiu", "wqt", "fis", "wdw",
-                "fiq", "lvk", "fjb", "fja", "fio", "fin", "fir", "fhj", "miu",
-                "mik", "mii");
-        for (String className : baselineClasses) {
+        for (String className : retired1803Classes) {
             Assert.assertFalse(
-                    "Stale Gboard 17.0.10 runtime handle remains active: " + className,
+                    "Stale Gboard 18.0.3 runtime handle remains active: " + className,
                     source.contains("Class.forName(\"" + className + "\", false, classLoader)"));
         }
 
@@ -170,11 +170,11 @@ public final class GboardAddSymbolsRuntimeTest {
         Assert.assertTrue(source.contains(
                 "immutableMapBuilderClass.getDeclaredMethod(\"a\", Object.class, Object.class)"));
         Assert.assertTrue(source.contains(
-                "immutableMapBuilderClass.getDeclaredMethod(\"n\")"));
+                "immutableMapBuilderClass.getDeclaredMethod(\"m\")"));
         Assert.assertTrue(source.contains(
-                "\"y\", emoticonRecyclerViewClass, String.class"));
+                "\"E\", emoticonRecyclerViewClass, String.class"));
         Assert.assertFalse(source.contains(
-                "\"A\", emoticonRecyclerViewClass, String.class"));
+                "\"y\", emoticonRecyclerViewClass, String.class"));
         Assert.assertFalse(source.contains("getMethod(\"ad\", int.class)"));
     }
 

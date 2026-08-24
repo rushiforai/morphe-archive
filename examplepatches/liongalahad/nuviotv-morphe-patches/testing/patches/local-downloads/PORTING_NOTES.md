@@ -1,8 +1,8 @@
 # Porting notes
 
-Target: NuvioTV `0.8.6-beta`. The older phase-two prompt described a single `0.8.2` patch dependent on Local Media; the current requirement supersedes that architecture.
+Target: NuvioTV `0.8.7-beta`. The older phase-two prompt described a single `0.8.2` patch dependent on Local Media; the current requirement supersedes that architecture.
 
-The three options-dialog fingerprints cover the only 0.8.6-beta render sites for `Play manually`: detail hero, episode options and Continue Watching options. They wrap the native composable content before NuvioDialog receives it, retaining the native TV Button/Text implementation.
+The detail-hero and Continue Watching fingerprints wrap the native composable content before NuvioDialog receives it. NuvioTV 0.8.7 moved episode options to a native action list, so that fingerprint appends patch actions immediately before the list is finalized while retaining Nuvio's native action renderer.
 
 The stream-route hook captures exact content/video/season/episode identity and may replace a normal route with a completed local player route. The StreamScreen hook wraps both resolved callbacks so the normal source picker and debrid resolution remain Nuvio-owned while a pending download consumes the final direct source.
 
@@ -13,3 +13,5 @@ The Media3 source-factory hook adds only subtitle URIs recorded in this patch's 
 The shared path contribution is generic settings infrastructure registered by either Local Downloads or Local Media. It has one neutral preference key, one manifest contribution and no dependency on either optional runtime. Local Media alone owns migration from its older patch-specific path key.
 
 Porting to another Nuvio version requires re-verifying all twelve structural fingerprints, including the subtitle worker constructor shape, the `StreamPlaybackInfo` property fallback order, Nuvio's TV Button/Text reflection boundaries, the Player route query, source-picker destination detection, and Android foreground-service declarations.
+
+NuvioTV 0.8.7 renamed the Compose mutable-state factory and updater helpers. Local Downloads now resolves the factory and updater by their static parameter/return signatures and resolves the native slider icon as a zero-argument static icon factory. These lookups remain inside the Local Downloads compartment and do not introduce patch-specific names into shared settings infrastructure.

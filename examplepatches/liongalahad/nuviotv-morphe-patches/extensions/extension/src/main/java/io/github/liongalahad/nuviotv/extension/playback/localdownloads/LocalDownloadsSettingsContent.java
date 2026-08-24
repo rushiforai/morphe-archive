@@ -10,8 +10,8 @@ import kotlin.jvm.functions.Function3;
 
 /** Native Morphe settings content owned by Local Downloads. */
 public final class LocalDownloadsSettingsContent implements Function3<Object, Object, Object, Unit> {
-    private static final String[] NATIVE_SLIDER_CLASS_NAMES = {"sa.g6"};
-    private static final String[] NATIVE_SLIDER_ICON_CLASS_NAMES = {"x0.d"};
+    private static final String[] NATIVE_SLIDER_CLASS_NAMES = {"ua.g6"};
+    private static final String[] NATIVE_SLIDER_ICON_CLASS_NAMES = {"x0.a"};
     private final Object modifier;
 
     private LocalDownloadsSettingsContent(Object modifier) { this.modifier = modifier; }
@@ -143,15 +143,13 @@ public final class LocalDownloadsSettingsContent implements Function3<Object, Ob
             } catch (ClassNotFoundException ignored) {
                 continue;
             }
-            try {
-                Method candidate = owner.getDeclaredMethod("v");
+            for (Method candidate : owner.getDeclaredMethods()) {
                 if (Modifier.isStatic(candidate.getModifiers()) &&
+                        candidate.getParameterCount() == 0 &&
                         candidate.getReturnType() == iconClass) {
                     candidate.setAccessible(true);
                     return candidate;
                 }
-            } catch (NoSuchMethodException ignored) {
-                // A failed exact match must stop rendering for this supported Nuvio version.
             }
         }
         throw new NoSuchMethodException("Native Nuvio storage slider icon");

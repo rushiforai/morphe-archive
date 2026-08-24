@@ -9,14 +9,16 @@ import java.util.List;
 final class GboardZhuyinSlideRuntimeSupport {
     private static final String SOFT_KEY_VIEW_CLASS =
             "com.google.android.libraries.inputmethod.widgets.SoftKeyView";
-    private static final String ACTION_SET_CLASS = "owd";
-    private static final String ACTION_TYPE_CLASS = "oth";
-    private static final String ACTION_DEF_CLASS = "otk";
-    private static final String ACTION_ENTRY_CLASS = "oud";
-    private static final String ACTION_BUILDER_CLASS = "oti";
-    private static final String METADATA_BUILDER_CLASS = "ovv";
-    private static final String INTENTION_CLASS = "ouc";
-    private static final String POINTER_TRACKER_CLASS = "pbl";
+    private static final String ACTION_SET_CLASS =
+            "com.google.android.libraries.inputmethod.metadata.SoftKeyDef";
+    private static final String ACTION_TYPE_CLASS = "pmy";
+    private static final String ACTION_DEF_CLASS =
+            "com.google.android.libraries.inputmethod.metadata.ActionDef";
+    private static final String ACTION_ENTRY_CLASS = "pnu";
+    private static final String ACTION_BUILDER_CLASS = "pmz";
+    private static final String METADATA_BUILDER_CLASS = "ppo";
+    private static final String INTENTION_CLASS = "pnt";
+    private static final String POINTER_TRACKER_CLASS = "pvi";
 
     private static final int PLAIN_TEXT_KEYCODE = -0x2719;
 
@@ -60,7 +62,7 @@ final class GboardZhuyinSlideRuntimeSupport {
         Class<?> intentionClass = resolve(classLoader, INTENTION_CLASS);
         Class<?> pointerTrackerClass = resolve(classLoader, POINTER_TRACKER_CLASS);
 
-        softKeyBindMethod = softKeyViewClass.getDeclaredMethod("q", actionSetClass, long.class);
+        softKeyBindMethod = softKeyViewClass.getDeclaredMethod("r", actionSetClass, long.class);
         softKeyMetadataField = softKeyViewClass.getDeclaredField("e");
         pointerCurrentOwnerField = pointerTrackerClass.getDeclaredField("m");
         actionDefsField = actionSetClass.getDeclaredField("f");
@@ -82,7 +84,7 @@ final class GboardZhuyinSlideRuntimeSupport {
 
         metadataBuilderConstructor = metadataBuilderClass.getDeclaredConstructor();
         copyMetadataMethod = metadataBuilderClass.getDeclaredMethod("j", actionSetClass);
-        putActionMethod = metadataBuilderClass.getDeclaredMethod("q", actionDefClass);
+        putActionMethod = metadataBuilderClass.getDeclaredMethod("t", actionDefClass);
         buildMetadataMethod = metadataBuilderClass.getDeclaredMethod("d");
 
         currentActionMethod = pointerTrackerClass.getDeclaredMethod("i");

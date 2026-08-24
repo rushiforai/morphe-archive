@@ -13,16 +13,16 @@ import dev.jason.gboardpatches.patches.gboard.shared.generated.GboardVersionBind
 import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
 import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 
-private const val PROVIDER_RECEIVER_WRAPPER_CLASS = "Loef;"
-private const val METRICS_UTILS_CLASS = "Lhhs;"
-private const val FOOTER_TAB_CLICK_CONSUMER_CLASS = "Lgar;"
-private const val KEYBOARD_WRAPPER_CLASS = "Lnvd;"
+private const val PROVIDER_RECEIVER_WRAPPER_CLASS = "Loyc;"
+private const val METRICS_UTILS_CLASS = "Lhyx;"
+private const val FOOTER_TAB_CLICK_CONSUMER_CLASS = "Lgrm;"
+private const val KEYBOARD_WRAPPER_CLASS = "Loow;"
 private const val SCROLLABLE_NAVIGATION_VIEW_CLASS =
     "Lcom/google/android/apps/inputmethod/libs/expression/navbar/ScrollableNavigationView;"
-private val providerRequestKeyboardType =
-    GboardVersionBindings.keyboardDefinitionType.descriptor
-private val providerRequestReceiverType =
-    GboardVersionBindings.keyboardCompletionCallbackType.descriptor
+private val providerRequestKeyboardType: String
+    get() = GboardVersionBindings.keyboardDefinitionType.descriptor
+private val providerRequestReceiverType: String
+    get() = GboardVersionBindings.keyboardCompletionCallbackType.descriptor
 
 internal val gboardZhuyinCustomSymbolsRoutingPatch = bytecodePatch(
     description = "移植 add-symbols 的 provider / routing / tab identity 主線。"
@@ -59,15 +59,22 @@ private fun patchProviderWrapper() = with(context) {
         classType = PROVIDER_RECEIVER_WRAPPER_CLASS,
         name = "a",
         returnType = "V",
-        parameterTypes = listOf("Lovf;", "Lodx;", "Lout;")
+        parameterTypes = listOf(
+            "Lppa;",
+            "Loxu;",
+            "Lcom/google/android/libraries/inputmethod/metadata/KeyboardDef;",
+        )
     )
     onKeyboardCreated.addInstructions(0, PROVIDER_WRAPPER_TYPE_DELEGATE)
 
     val onBeforeKeyboardCreated = findMutableMethodOrThrow(
         classType = PROVIDER_RECEIVER_WRAPPER_CLASS,
         name = "b",
-        returnType = "Lodx;",
-        parameterTypes = listOf("Lovf;", "Lout;")
+        returnType = "Loxu;",
+        parameterTypes = listOf(
+            "Lppa;",
+            "Lcom/google/android/libraries/inputmethod/metadata/KeyboardDef;",
+        )
     )
     onBeforeKeyboardCreated.addInstructions(0, PROVIDER_WRAPPER_TYPE_DELEGATE)
 
@@ -75,7 +82,7 @@ private fun patchProviderWrapper() = with(context) {
         classType = PROVIDER_RECEIVER_WRAPPER_CLASS,
         name = "c",
         returnType = "Z",
-        parameterTypes = listOf("Lovf;")
+        parameterTypes = listOf("Lppa;")
     )
     canHandle.addInstructions(0, PROVIDER_WRAPPER_TYPE_DELEGATE)
 }
@@ -85,8 +92,8 @@ private fun patchMetricsAlias() = with(context) {
     val mutableMethod = findMutableMethodOrThrow(
         classType = METRICS_UTILS_CLASS,
         name = "b",
-        returnType = "Lvtk;",
-        parameterTypes = listOf("Lovf;")
+        returnType = "Lwpd;",
+        parameterTypes = listOf("Lppa;")
     )
     mutableMethod.addInstructions(0, METRICS_ALIAS_DELEGATE)
 }
@@ -99,7 +106,7 @@ private fun patchNavigationIdentity() = with(context) {
         returnType = "V",
         parameterTypes = listOf(
             "Landroid/view/inputmethod/EditorInfo;",
-            "Lovf;",
+            "Lppa;",
             "Z",
             "Ljava/util/function/Consumer;",
             "Landroid/os/Parcelable;",
@@ -129,7 +136,11 @@ private fun patchKeyboardReady() = with(context) {
         classType = KEYBOARD_WRAPPER_CLASS,
         name = "a",
         returnType = "V",
-        parameterTypes = listOf("Lodx;", "Lout;", "Lovf;")
+        parameterTypes = listOf(
+            "Loxu;",
+            "Lcom/google/android/libraries/inputmethod/metadata/KeyboardDef;",
+            "Lppa;",
+        )
     )
     mutableMethod.addInstructions(0, KEYBOARD_READY_DELEGATE)
 }
@@ -138,7 +149,7 @@ private val EXTENSION_MANAGER_DELEGATE = """
     ${RuntimeCallEmitter.invoke(RuntimeCallId.ADD_SYMBOLS_RUNTIME_ENSURE_EXTENSION_PROVIDER_MAPPING, "p0, p1")}
 """.trimIndent()
 
-private val PROVIDER_REQUEST_DELEGATE = """
+private val PROVIDER_REQUEST_DELEGATE by lazy { """
     move-object v2, p4
 
     ${RuntimeCallEmitter.invoke(RuntimeCallId.ADD_SYMBOLS_RUNTIME_REWRITE_PROVIDER_REQUEST_TYPE, "p4")}
@@ -152,14 +163,14 @@ private val PROVIDER_REQUEST_DELEGATE = """
     move-result-object p7
 
     check-cast p7, $providerRequestReceiverType
-""".trimIndent()
+""".trimIndent() }
 
 private val PROVIDER_WRAPPER_TYPE_DELEGATE = """
     ${RuntimeCallEmitter.invoke(RuntimeCallId.ADD_SYMBOLS_RUNTIME_REWRITE_PROVIDER_WRAPPER_KEYBOARD_TYPE, "p1")}
 
     move-result-object p1
 
-    check-cast p1, Lovf;
+    check-cast p1, Lppa;
 """.trimIndent()
 
 private val METRICS_ALIAS_DELEGATE = """
@@ -167,7 +178,7 @@ private val METRICS_ALIAS_DELEGATE = """
 
     move-result-object p0
 
-    check-cast p0, Lovf;
+    check-cast p0, Lppa;
 """.trimIndent()
 
 private val NAVIGATION_IDENTITY_DELEGATE = """
@@ -175,7 +186,7 @@ private val NAVIGATION_IDENTITY_DELEGATE = """
 
     move-result-object p2
 
-    check-cast p2, Lovf;
+    check-cast p2, Lppa;
 """.trimIndent()
 
 private val FOOTER_TAB_CLICK_DELEGATE = """

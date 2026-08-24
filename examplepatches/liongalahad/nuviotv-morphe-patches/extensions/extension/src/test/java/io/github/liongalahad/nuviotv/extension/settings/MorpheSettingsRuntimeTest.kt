@@ -32,11 +32,8 @@ class MorpheSettingsRuntimeTest {
 
     @Test
     fun `category and control descriptions remain available`() {
-        assertEquals("Ratings", MorpheSettingsRuntime.ratingsCategoryTitle())
         assertEquals("Subtitles", MorpheSettingsRuntime.subtitlesCategoryTitle())
-        assertEquals("Configure rating visibility", MorpheSettingsRuntime.ratingsCategoryDescription())
         assertEquals("Configure subtitle patch settings", MorpheSettingsRuntime.subtitlesCategoryDescription())
-        assertEquals("Standard and TMDB ratings are shown.", MorpheSettingsRuntime.overallRatingsDescription())
         assertEquals(
             "Add SDH to English subtitle titles using metadata and repeated annotation patterns.",
             MorpheSettingsRuntime.sdhMarkingDescription()
@@ -88,7 +85,7 @@ class MorpheSettingsRuntimeTest {
     }
 
     @Test
-    fun `native selector bridge accepts the 0_8_6 card shape`() {
+    fun `native selector bridge accepts the 0_8_7 card shape`() {
         assertTrue(
             MorpheSettingsRows.matchesNativeSelectorParametersForTesting(
                 arrayOf(

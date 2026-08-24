@@ -6,25 +6,25 @@
   "target": {
     "application": "NuvioTV",
     "package": "com.nuvio.tv",
-    "versions": ["0.8.6-beta"],
+    "versions": ["0.8.7-beta"],
     "launchComponent": "com.nuvio.tv/.MainActivity"
   },
   "assets": {
     "universal": {
-      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.6-beta/app-full-universal-release.apk",
-      "sha256": "9bc77c9be627885f5ab44e0b218d5dd3084b97cef0efdc70bcb497200cc48e2e"
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.7-beta/app-full-universal-release.apk",
+      "sha256": "dddcaa303ae47254df611f97bded0b9661f91bdb831f6e3eb23d57b25018370a"
     },
     "x86_64": {
-      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.6-beta/app-full-x86_64-release.apk",
-      "sha256": "4f7b03074ee704e06581d42b32093e17454a6a1e3aaaa0135c9ab513367fbbe8"
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.7-beta/app-full-x86_64-release.apk",
+      "sha256": "b77ea174ba30dc2a0c194df3cd8ae11ee7adff7529db710a9fd3bf1be8135514"
     },
     "arm64-v8a": {
-      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.6-beta/app-full-arm64-v8a-release.apk",
-      "sha256": "7a3b0bdb8cc605b0711000a35acee9bc2a37dc1d765fda71f31706910ae4fd33"
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.7-beta/app-full-arm64-v8a-release.apk",
+      "sha256": "16e6b679009f518ef8d45cae7d3eeb570de1f0cdc688b381489797f8db0c13f3"
     },
     "armeabi-v7a": {
-      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.6-beta/app-full-armeabi-v7a-release.apk",
-      "sha256": "c9e54a72d1f53705d33ed3c6dd704bf5fc8d08b1e4f9aa4055651975f56087b2"
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.7-beta/app-full-armeabi-v7a-release.apk",
+      "sha256": "7e1c84b104e1976d9861287ba96e9efb1dc9d387ef43d1934f6005eed033a6b3"
     }
   },
   "dependencies": ["settings-hub"],
@@ -73,7 +73,7 @@
     "RandomEpisodeSettingsTest",
     "MorpheSettingsRuntimeTest",
     "isolated application on all declared APK assets",
-    "combined application with Rating Visibility, Remove SDH Annotations and Mark SDH Subtitles"
+    "combined application with Remove SDH Annotations and Mark SDH Subtitles"
   ],
   "acceptance": [
     "Selecting only Random Episode shows Morphe > Detail Page and no unrelated category",

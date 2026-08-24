@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public final class GboardAiWritingToolsVoiceCommandRuntime {
     private static final String TAG = "GboardPatches";
-    private static final String LOG_PREFIX = "[gboard-writing-tools-voice-commands-17.7.7] ";
+    private static final String LOG_PREFIX = "[gboard-writing-tools-voice-commands-18.0.3] ";
     private static final int PROTO_CACHE_LIMIT = 8;
     private static final AtomicInteger INFO_LOG_COUNT = new AtomicInteger();
     private static final AtomicInteger ERROR_LOG_COUNT = new AtomicInteger();

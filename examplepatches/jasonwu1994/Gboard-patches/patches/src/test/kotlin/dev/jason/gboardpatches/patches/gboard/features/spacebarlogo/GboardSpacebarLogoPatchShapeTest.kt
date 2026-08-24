@@ -7,22 +7,25 @@ import org.junit.Test
 
 class GboardSpacebarLogoPatchShapeTest {
     private val root = Path.of(".").toAbsolutePath().normalize()
+    private val wiring = Files.readString(
+        root.resolve(
+            "src/main/kotlin/dev/jason/gboardpatches/patches/gboard/registry/" +
+                "GboardContributionWiring.kt",
+        ),
+    )
 
     @Test
-    fun `soft key patch consumes reviewed binding and emits thin entry and return delegates`() {
+    fun `soft key patch contributes both phases to the family composer`() {
         val source = Files.readString(
             root.resolve(
                 "src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/" +
                     "spacebarlogo/GboardSpacebarLogoSoftKeyPatch.kt"
             )
         )
-
-        assertTrue(source.contains("findMutableMethodOrThrow(GboardVersionBindings.softKeyBind)"))
-        assertTrue(source.contains("SPACEBAR_LOGO_RUNTIME_BEFORE_SOFT_KEY_BOUND"))
-        assertTrue(source.contains("SPACEBAR_LOGO_RUNTIME_AFTER_SOFT_KEY_BOUND"))
-        assertTrue(source.contains("returnInstructionIndices()"))
-        assertTrue(source.contains("RuntimeCallEmitter.invoke"))
-        assertTrue(source.contains("\"p0, p1\""))
+        assertTrue(source.contains("GboardSoftKeyFamilyFeature.SPACEBAR_LOGO"))
+        assertTrue(source.contains("beforeDelegate()"))
+        assertTrue(source.contains("afterDelegate()"))
+        assertTrue(!source.contains("addInstructions"))
         assertTrue(!source.contains("Lowd;"))
         assertTrue(!source.contains("Loth;"))
     }
@@ -36,9 +39,9 @@ class GboardSpacebarLogoPatchShapeTest {
             )
         )
 
-        assertTrue(source.contains("val gboardSpacebarLogoPatch = resourcePatch("))
+        assertTrue(source.contains("val gboardSpacebarLogoPatch = gboardPublicResourcePatch("))
         assertTrue(source.contains("name = \"G Logo on Spacebar\""))
         assertTrue(source.contains("gboardSpacebarLogoFeatureMarkerPatch"))
-        assertTrue(source.contains("gboardSpacebarLogoSoftKeyPatch"))
+        assertTrue(wiring.contains("gboardSpacebarLogoSoftKeyPatch"))
     }
 }

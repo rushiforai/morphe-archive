@@ -4,7 +4,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
-import dev.jason.gboardpatches.patches.gboard.shared.GboardPointerOwner1777RegisterContract
+import dev.jason.gboardpatches.patches.gboard.shared.GboardPointerOwnerRegisterContract
 import dev.jason.gboardpatches.patches.gboard.shared.GboardPointerOwnerFeature
 import dev.jason.gboardpatches.patches.gboard.shared.GboardPointerOwnerFeatureSpec
 import dev.jason.gboardpatches.patches.gboard.shared.GboardPointerOwnerTransformationContext
@@ -15,11 +15,12 @@ import dev.jason.gboardpatches.patches.gboard.shared.gboardPointerOwnerFeaturePa
 import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
 import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 
-private val pointerTrackerClass = GboardVersionBindings.pointerOwnerType.descriptor
+private val pointerTrackerClass: String
+    get() = GboardVersionBindings.pointerOwnerType.descriptor
 
-internal val ZHUYIN_SLIDE_POINTER_PRE_RESET_DELEGATE = zhuyinSlidePointerPreResetDelegate(
-    GboardPointerOwner1777RegisterContract.stockRegisterCount,
-)
+internal val ZHUYIN_SLIDE_POINTER_PRE_RESET_DELEGATE by lazy {
+    zhuyinSlidePointerPreResetDelegate(GboardPointerOwnerRegisterContract.stockRegisterCount)
+}
 
 internal val ZHUYIN_SLIDE_CLEAR_POINTER_DELEGATE = """
     ${RuntimeCallEmitter.invoke(RuntimeCallId.ZHUYIN_SLIDE_RUNTIME_CLEAR_POINTER_STATE, "p0")}
@@ -37,25 +38,27 @@ private val gboardZhuyinSlidePointerAnchorSpec = GboardPointerOwnerFeatureSpec(
 )
 
 internal val gboardZhuyinSlidePointerAnchorPatch = gboardPointerOwnerFeaturePatch(
-    description = "在 17.7.7 pbl reset 前固定普通注音滑動的起始 key。",
+    description = "在 18.0.3 pvi reset 前固定普通注音滑動的起始 key。",
     spec = gboardZhuyinSlidePointerAnchorSpec,
 )
 
 internal fun MutableMethod.applyZhuyinSlidePointerDelegate() {
+    val finish = GboardVersionBindings.pointerFinish
     val rCallIndex = indexOfFirstMethodCall(
-        definingClass = pointerTrackerClass,
-        name = "r",
-        returnType = "V",
-        parameterTypes = listOf("J", "I")
+        definingClass = finish.ownerDescriptor,
+        name = finish.name,
+        returnType = finish.returnType,
+        parameterTypes = finish.parameterTypes,
     )
+    val preReset = GboardVersionBindings.pointerPreReset
     val acCallIndex = indexOfFirstMethodCall(
-        definingClass = pointerTrackerClass,
-        name = "ac",
-        returnType = "V",
-        parameterTypes = emptyList()
+        definingClass = preReset.ownerDescriptor,
+        name = preReset.name,
+        returnType = preReset.returnType,
+        parameterTypes = preReset.parameterTypes,
     )
-    check(rCallIndex >= 0) { "Unable to find target pbl->r(JI)V inside pointer owner" }
-    check(acCallIndex >= 0) { "Unable to find target pbl->ac()V inside pointer owner" }
+    check(rCallIndex >= 0) { "Unable to find ${finish.reference} inside pointer owner" }
+    check(acCallIndex >= 0) { "Unable to find ${preReset.reference} inside pointer owner" }
     check(rCallIndex < acCallIndex) {
         "Target pointer owner must finish the prior session before resetting tracker state"
     }
@@ -73,7 +76,7 @@ internal fun MutableMethod.applyZhuyinSlidePointerDelegate() {
 }
 
 private fun zhuyinSlidePointerPreResetDelegate(registerCount: Int): String {
-    val registers = GboardPointerOwner1777RegisterContract.delegateRegisters(registerCount)
+    val registers = GboardPointerOwnerRegisterContract.delegateRegisters(registerCount)
     return """
         ${RuntimeCallEmitter.invoke(
             RuntimeCallId.ZHUYIN_SLIDE_RUNTIME_MAYBE_CAPTURE_AND_SHOULD_SUPPRESS_RETARGET,

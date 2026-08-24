@@ -8,8 +8,8 @@ import dev.jason.gboardpatches.patches.gboard.shared.instructionIndices
 import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
 import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 
-private const val BASE_RECYCLER_ADAPTER_CLASS = "Ljn;"
-private const val EMOTICON_RECYCLER_ADAPTER_CLASS = "Lils;"
+private const val BASE_RECYCLER_ADAPTER_CLASS = "Ljt;"
+private const val EMOTICON_RECYCLER_ADAPTER_CLASS = "Lizu;"
 
 internal val gboardZhuyinCustomSymbolsRecyclerPatch = bytecodePatch(
     description = "移植 add-symbols 的 custom recycler bind rendering。"
@@ -32,7 +32,7 @@ private fun patchConstructor() = with(context) {
         returnType = "V",
         parameterTypes = listOf(
             "Landroid/content/Context;",
-            "Lily;",
+            "Ljan;",
             "Ljava/util/function/Consumer;",
             "I",
             "I"
@@ -40,7 +40,7 @@ private fun patchConstructor() = with(context) {
     )
     val returnIndices = mutableMethod.instructionIndices("RETURN_VOID")
     check(returnIndices.isNotEmpty()) {
-        "Could not resolve return-void instructions in ils.<init>()"
+        "Could not resolve return-void instructions in izu.<init>()"
     }
     returnIndices.sortedDescending().forEach { returnIndex ->
         mutableMethod.addInstructions(returnIndex, CONSTRUCTOR_DELEGATE)
@@ -53,7 +53,7 @@ private fun patchBindViewHolder() = with(context) {
         classType = EMOTICON_RECYCLER_ADAPTER_CLASS,
         name = "p",
         returnType = "V",
-        parameterTypes = listOf("Lkl;", "I")
+        parameterTypes = listOf("Lkr;", "I")
     )
     mutableMethod.addInstructions(0, BIND_VIEW_HOLDER_DELEGATE)
 }
@@ -62,7 +62,7 @@ context(context: BytecodePatchContext)
 private fun patchViewType() = with(context) {
     val mutableMethod = findMutableMethodOrThrow(
         classType = BASE_RECYCLER_ADAPTER_CLASS,
-        name = "gp",
+        name = "gT",
         returnType = "I",
         parameterTypes = listOf("I")
     )
@@ -74,7 +74,7 @@ private fun patchCreateViewHolder() = with(context) {
     val mutableMethod = findMutableMethodOrThrow(
         classType = EMOTICON_RECYCLER_ADAPTER_CLASS,
         name = "d",
-        returnType = "Lkl;",
+        returnType = "Lkr;",
         parameterTypes = listOf("Landroid/view/ViewGroup;", "I")
     )
     mutableMethod.addInstructions(0, CREATE_VIEW_HOLDER_DELEGATE)
@@ -120,7 +120,7 @@ private val CREATE_VIEW_HOLDER_DELEGATE = """
 
     if-eqz v0, :jasondev_continue
 
-    check-cast v0, Lkl;
+    check-cast v0, Lkr;
 
     return-object v0
 

@@ -6,23 +6,25 @@ import java.nio.file.Files
 import java.nio.file.Path
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class TargetBindingCompilerTest {
     @Test
-    fun `valid profile compiles to a deterministic LF projection`() {
+    fun `valid LS contract compiles to a deterministic LF projection`() {
         val profile =
             """{"format":"gboard-version-bindings.v1","target_version":"18.0.0","profile_version":"2.0.0","bindings":{"sample_parameter_type":{"kind":"type","source":{"binding":"sample_method","component":"parameter","index":0},"confidence":1},"sample_method":{"kind":"method","class_type":"Lsample/Owner;","method_name":"run","parameter_types":["I"],"return_type":"V","confidence":1}}}"""
 
-        val projection = TargetBindingCompiler.compile(profile)
+        val projection = compileMatching(profile)
 
         assertEquals("18.0.0", projection.targetVersion)
         assertEquals("2.0.0", projection.profileVersion)
+        assertNull(projection.projectionSha256)
         assertEquals(64, projection.sourceSha256.length)
         assertFalse(projection.kotlinSource.contains('\r'))
-        assertEquals(projection, TargetBindingCompiler.compile(profile))
+        assertEquals(projection, compileMatching(profile))
         assertEquals(
             """package dev.jason.gboardpatches.patches.gboard.shared.generated
 
@@ -50,106 +52,244 @@ internal object GboardVersionBindings {
     }
 
     @Test
-    fun `type roles cannot drift from their source method coordinate`() {
-        val profile =
-            """{"format":"gboard-version-bindings.v1","target_version":"18.0.0","profile_version":"2.0.0","bindings":{"sample_method":{"kind":"method","class_type":"Lsample/Owner;","method_name":"run","parameter_types":["I"],"return_type":"V","confidence":1},"sample_parameter_type":{"kind":"type","source":{"binding":"sample_method","component":"parameter","index":1},"confidence":1}}}"""
+    fun `JSON property and binding order do not change the generated projection`() {
+        val first =
+            """{"format":"gboard-version-bindings.v1","target_version":"18.0.0","profile_version":"2.0.0","bindings":{"sample_field":{"kind":"field","class_type":"Lsample/Owner;","field_name":"value","field_type":"I","confidence":1},"sample_method":{"kind":"method","class_type":"Lsample/Owner;","method_name":"run","parameter_types":[],"return_type":"V","confidence":1}}}"""
+        val reordered =
+            """{
+                "bindings": {
+                  "sample_method": {"confidence": 1.0, "return_type": "V", "parameter_types": [], "method_name": "run", "class_type": "Lsample/Owner;", "kind": "method"},
+                  "sample_field": {"confidence": 1.0, "field_type": "I", "field_name": "value", "class_type": "Lsample/Owner;", "kind": "field"}
+                },
+                "profile_version": "2.0.0",
+                "target_version": "18.0.0",
+                "format": "gboard-version-bindings.v1"
+            }""".trimIndent()
 
-        assertThrows(IllegalArgumentException::class.java) {
-            TargetBindingCompiler.compile(profile)
+        assertEquals(compileMatching(first), compileMatching(reordered))
+    }
+
+    @Test
+    fun `derived type roles are resolved from exact source coordinates`() {
+        val profile =
+            """{"format":"gboard-version-bindings.v1","target_version":"18.0.0","profile_version":"2.0.0","bindings":{"field":{"kind":"field","class_type":"Lsample/Fields;","field_name":"value","field_type":"Ljava/lang/String;","confidence":1},"field_type":{"kind":"type","source":{"binding":"field","component":"field_type"},"confidence":1},"method":{"kind":"method","class_type":"Lsample/Owner;","method_name":"run","parameter_types":["I"],"return_type":"Ljava/lang/Object;","confidence":1},"owner_type":{"kind":"type","source":{"binding":"method","component":"owner"},"confidence":1},"parameter_type":{"kind":"type","source":{"binding":"method","component":"parameter","index":0},"confidence":1},"return_type":{"kind":"type","source":{"binding":"method","component":"return"},"confidence":1}}}"""
+
+        val source = compileMatching(profile).kotlinSource
+
+        assertTrue(source.contains("val `fieldType` = GboardTypeTarget(\"Ljava/lang/String;\")"))
+        assertTrue(source.contains("val `ownerType` = GboardTypeTarget(\"Lsample/Owner;\")"))
+        assertTrue(source.contains("val `parameterType` = GboardTypeTarget(\"I\")"))
+        assertTrue(source.contains("val `returnType` = GboardTypeTarget(\"Ljava/lang/Object;\")"))
+    }
+
+    @Test
+    fun `derived type roles fail closed on missing source wrong kind and bad index`() {
+        val profiles = listOf(
+            """{"format":"gboard-version-bindings.v1","target_version":"18.0.0","profile_version":"2.0.0","bindings":{"derived":{"kind":"type","source":{"binding":"missing","component":"owner"},"confidence":1}}}""",
+            """{"format":"gboard-version-bindings.v1","target_version":"18.0.0","profile_version":"2.0.0","bindings":{"derived":{"kind":"type","source":{"binding":"field","component":"parameter","index":0},"confidence":1},"field":{"kind":"field","class_type":"Lsample/Owner;","field_name":"value","field_type":"I","confidence":1}}}""",
+            """{"format":"gboard-version-bindings.v1","target_version":"18.0.0","profile_version":"2.0.0","bindings":{"derived":{"kind":"type","source":{"binding":"method","component":"parameter","index":1},"confidence":1},"method":{"kind":"method","class_type":"Lsample/Owner;","method_name":"run","parameter_types":["I"],"return_type":"V","confidence":1}}}""",
+        )
+
+        profiles.forEach { profile ->
+            assertThrows(IllegalArgumentException::class.java) { compileMatching(profile) }
         }
     }
 
     @Test
-    fun `Kotlin keywords are backticked and control characters are rejected before rendering`() {
+    fun `schema kind descriptors and rendered literals fail closed`() {
         val keywordProfile =
             """{"format":"gboard-version-bindings.v1","target_version":"18.0.0","profile_version":"2.0.0","bindings":{"import":{"kind":"method","class_type":"Lsample/Owner;","method_name":"run","parameter_types":[],"return_type":"V","confidence":1}}}"""
-        val controlCharacterProfile =
-            """{"format":"gboard-version-bindings.v1","target_version":"18.0.0","profile_version":"2.0.0","bindings":{"sample_method":{"kind":"method","class_type":"Lsample/Owner;","method_name":"run\naway","parameter_types":[],"return_type":"V","confidence":1}}}"""
+        assertTrue(compileMatching(keywordProfile).kotlinSource.contains("val `import` ="))
 
-        assertTrue(TargetBindingCompiler.compile(keywordProfile).kotlinSource.contains("val `import` ="))
-        assertThrows(IllegalArgumentException::class.java) {
-            TargetBindingCompiler.compile(controlCharacterProfile)
-        }
-    }
-
-    @Test
-    fun `invalid descriptors are rejected at the compiler seam`() {
-        val profile =
-            """{"format":"gboard-version-bindings.v1","target_version":"18.0.0","profile_version":"2.0.0","bindings":{"sample_method":{"kind":"method","class_type":"sample.Owner","method_name":"run","parameter_types":[],"return_type":"V","confidence":1}}}"""
-
-        val error = assertThrows(IllegalArgumentException::class.java) {
-            TargetBindingCompiler.compile(profile)
-        }
-
-        assertTrue(error.message.orEmpty().contains("sample_method.class_type"))
-    }
-
-    @Test
-    fun `authoritative profile matches the generated build projection`() {
-        val profile = Files.readString(
-            Path.of("src/main/resources/gboard/gboard-version-bindings.json"),
-            StandardCharsets.UTF_8,
+        val invalidProfiles = listOf(
+            """{"format":"gboard-version-bindings.v1","target_version":"18.0.0","profile_version":"2.0.0","bindings":{"sample":{"kind":"method","class_type":"sample.Owner","method_name":"run","parameter_types":[],"return_type":"V","confidence":1}}}""",
+            """{"format":"gboard-version-bindings.v1","target_version":"18.0.0","profile_version":"2.0.0","bindings":{"sample":{"kind":"unknown","confidence":1}}}""",
+            """{"format":"gboard-version-bindings.v1","target_version":"18.0.0","profile_version":"2.0.0","bindings":{"sample":{"kind":"method","class_type":"Lsample/Owner;","method_name":"run\naway","parameter_types":[],"return_type":"V","confidence":1}}}""",
+            """{"format":"gboard-version-bindings.v1","target_version":"18.0.0","profile_version":"2.0.0","extra":true,"bindings":{"sample":{"kind":"method","class_type":"Lsample/Owner;","method_name":"run","parameter_types":[],"return_type":"V","confidence":1}}}""",
         )
-        val generated = Files.readString(
+        invalidProfiles.forEach { profile ->
+            assertThrows(IllegalArgumentException::class.java) { compileMatching(profile) }
+        }
+    }
+
+    @Test
+    fun `external override requires the current LS projection digest`() {
+        val legacy =
+            """{"format":"gboard-version-bindings.v1","target_version":"18.0.0","profile_version":"2.0.0","bindings":{"sample":{"kind":"method","class_type":"Lsample/Owner;","method_name":"run","parameter_types":[],"return_type":"V","confidence":1}}}"""
+        val currentLsExport = legacy.replace(
+            "\"bindings\"",
+            "\"projection_sha256\":\"${"a".repeat(64)}\",\"bindings\"",
+        )
+
+        assertThrows(IllegalArgumentException::class.java) {
+            compileMatching(legacy, requireProjectionSha256 = true)
+        }
+        val projection = compileMatching(currentLsExport, requireProjectionSha256 = true)
+        assertEquals("a".repeat(64), projection.projectionSha256)
+        assertTrue(
+            projection.kotlinSource.contains(
+                "const val projectionSha256 = \"${"a".repeat(64)}\"",
+            ),
+        )
+        assertThrows(IllegalArgumentException::class.java) {
+            compileMatching(
+                currentLsExport.replace("a".repeat(64), "NOT_A_DIGEST"),
+                requireProjectionSha256 = true,
+            )
+        }
+    }
+
+    @Test
+    fun `external linkage is an optional pair and required for capability-aware exports`() {
+        val legacy =
+            """{"format":"gboard-version-bindings.v1","target_version":"18.0.0","profile_version":"2.0.0","projection_sha256":"${"a".repeat(64)}","bindings":{"sample":{"kind":"method","class_type":"Lsample/Owner;","method_name":"run","parameter_types":[],"return_type":"V","confidence":1}}}"""
+        val linked = JsonParser.parseString(legacy).asJsonObject.apply {
+            addProperty("profile_sha256", "b".repeat(64))
+            addProperty("port_bundle_sha256", "c".repeat(64))
+        }.toString()
+
+        assertThrows(IllegalArgumentException::class.java) {
+            compileMatching(legacy, requireExternalLinkage = true)
+        }
+        val projection = compileMatching(linked, requireExternalLinkage = true)
+        assertEquals("b".repeat(64), projection.profileSha256)
+        assertEquals("c".repeat(64), projection.portBundleSha256)
+
+        val halfLinked = JsonParser.parseString(linked).asJsonObject.apply {
+            remove("port_bundle_sha256")
+        }.toString()
+        assertThrows(IllegalArgumentException::class.java) { compileMatching(halfLinked) }
+    }
+
+    @Test
+    fun `authoritative 1803 admitted contract exactly matches sparse requirements and build output`() {
+        val profile = Files.readString(BINDINGS_PATH, StandardCharsets.UTF_8)
+        val profileBindings = JsonParser.parseString(profile).asJsonObject
+            .getAsJsonObject("bindings")
+        val fullRequirements = authoritativeRequirements()
+        val requirements = TargetBindingRequirements.fromAdmission(
+            requiredKeys = profileBindings.keySet(),
+            bindingKinds = fullRequirements.bindingKinds,
+        )
+        val generated = Files.readString(GENERATED_BINDINGS_PATH, StandardCharsets.UTF_8)
+
+        val projection = TargetBindingCompiler.compile(profile, requirements)
+        assertEquals(AUTHORITATIVE_SOURCE_SHA256, projection.sourceSha256)
+        assertEquals(
+            requirements.keys,
+            profileBindings.keySet(),
+        )
+        assertEquals(projection.kotlinSource, generated)
+
+        val missing = JsonParser.parseString(profile).asJsonObject
+        missing.getAsJsonObject("bindings").remove("soft_key_bind")
+        assertThrows(IllegalArgumentException::class.java) {
+            TargetBindingCompiler.compile(missing.toString(), requirements)
+        }
+        val unexpected = JsonParser.parseString(profile).asJsonObject
+        unexpected.getAsJsonObject("bindings").add(
+            "unexpected_binding",
+            unexpected.getAsJsonObject("bindings").get("soft_key_bind"),
+        )
+        assertThrows(IllegalArgumentException::class.java) {
+            TargetBindingCompiler.compile(unexpected.toString(), requirements)
+        }
+    }
+
+    @Test
+    fun `sidecar schema and source layout enforce one renderer`() {
+        val schema = JsonParser.parseString(
+            Files.readString(BINDINGS_SCHEMA_PATH, StandardCharsets.UTF_8),
+        ).asJsonObject
+        assertEquals(
+            setOf("format", "target_version", "profile_version", "bindings"),
+            schema.getAsJsonArray("required").map { it.asString }.toSet(),
+        )
+        assertTrue(schema.getAsJsonObject("properties").has("projection_sha256"))
+
+        val productionSources = listOf(
+            Path.of("src/main/kotlin"),
+            Path.of("src/bindingCompiler/kotlin"),
+        ).flatMap { root ->
+            Files.walk(root).use { paths ->
+                paths.filter { path -> Files.isRegularFile(path) && path.toString().endsWith(".kt") }
+                    .toList()
+            }
+        }
+        assertTrue(productionSources.none { path -> path.fileName.toString() == "GboardVersionBindings.kt" })
+        val renderers = productionSources.filter { path ->
+            Files.readString(path, StandardCharsets.UTF_8)
+                .contains("internal object GboardVersionBindings {\\n")
+        }
+        assertEquals(
+            listOf(
+                Path.of(
+                    "src/bindingCompiler/kotlin/dev/jason/gboardpatches/tools/bindings/" +
+                        "TargetBindingCompiler.kt",
+                ),
+            ),
+            renderers,
+        )
+        val generator = Files.readString(
             Path.of(
-                "build/generated/sources/versionBindings/kotlin/main/dev/jason/" +
-                    "gboardpatches/patches/gboard/shared/generated/GboardVersionBindings.kt"
+                "src/bindingCompiler/kotlin/dev/jason/gboardpatches/tools/bindings/" +
+                    "TargetBindingGenerator.kt",
             ),
             StandardCharsets.UTF_8,
         )
+        assertTrue(generator.contains("GboardTargetBuildCompiler.compile("))
+        assertFalse(generator.contains("GboardMethodTarget("))
 
-        val projection = TargetBindingCompiler.compile(profile)
-        assertEquals(AUTHORITATIVE_SOURCE_SHA256, projection.sourceSha256)
-        assertEquals(REQUIRED_BINDINGS, JsonParser.parseString(profile).asJsonObject
-            .getAsJsonObject("bindings").keySet())
-        assertEquals(projection.kotlinSource, generated)
+        val buildScript = Files.readString(Path.of("build.gradle.kts"), StandardCharsets.UTF_8)
+        assertTrue(buildScript.contains("gboardPortBundleFile"))
+        assertTrue(buildScript.contains("gboardReviewedBindingsFile"))
+        assertTrue(buildScript.contains("productCatalogFile.set(gboardProductCatalog)"))
+        assertTrue(buildScript.contains("admissionOutputFile"))
+    }
 
-        val missingRequiredBinding = JsonParser.parseString(profile).asJsonObject
-        missingRequiredBinding.getAsJsonObject("bindings").remove("soft_key_bind")
-        assertThrows(IllegalArgumentException::class.java) {
-            TargetBindingCompiler.compile(missingRequiredBinding.toString())
+    private fun compileMatching(
+        profile: String,
+        requireProjectionSha256: Boolean = false,
+        requireExternalLinkage: Boolean = false,
+    ): VerifiedProjection {
+        val bindings = JsonParser.parseString(profile).asJsonObject.getAsJsonObject("bindings")
+        val kinds = bindings.entrySet().associate { (key, value) ->
+            key to value.asJsonObject.get("kind").asString
         }
+        return TargetBindingCompiler.compile(
+            profileText = profile,
+            requirements = requirementsFor(kinds),
+            requireProjectionSha256 = requireProjectionSha256,
+            requireExternalLinkage = requireExternalLinkage,
+        )
+    }
+
+    private fun authoritativeRequirements(): TargetBindingRequirements =
+        TargetBindingRequirements.fromProductCatalog(
+            Files.readString(PRODUCT_CATALOG_PATH, StandardCharsets.UTF_8),
+        )
+
+    private fun requirementsFor(kinds: Map<String, String>): TargetBindingRequirements {
+        val requiredBindings = kinds.keys.sorted().joinToString(",") { key -> "\"$key\"" }
+        val bindingContracts = kinds.toSortedMap().entries.joinToString(",") { (key, kind) ->
+            "\"$key\":\"$kind\""
+        }
+        return TargetBindingRequirements.fromProductCatalog(
+            """{"format":"gboard-port-product-catalog.v1","binding_contracts":{$bindingContracts},"features":[{"contributions":[{"required_bindings":[$requiredBindings]}]}]}""",
+        )
     }
 
     private companion object {
         const val AUTHORITATIVE_SOURCE_SHA256 =
-            "719f5ab815fb71de2116821ca773588ffed31f6aceab4b64368939b5207565ae"
-        val REQUIRED_BINDINGS = setOf(
-            "advanced_voice_asr_session_reset",
-            "advanced_voice_formatter_constructor",
-            "advanced_voice_initial_settings",
-            "advanced_voice_mdd_provider_constructor",
-            "advanced_voice_native_readiness",
-            "advanced_voice_s3_network_availability",
-            "rambler_nga_eligibility",
-            "rambler_session_builder",
-            "rambler_stock_voice_handler",
-            "rambler_switcher_fallback",
-            "rambler_switcher_launch",
-            "ai_writing_tools_ambiguity_constructor",
-            "ai_writing_tools_classification_run",
-            "ai_writing_tools_classifier_init",
-            "ai_writing_tools_gen_ai_init",
-            "ai_writing_tools_module_predicate",
-            "ai_writing_tools_nga_input_refresh",
-            "ai_writing_tools_proto_value",
-            "ai_writing_tools_smart_edit_init",
-            "ai_writing_tools_smart_edit_request",
-            "flag_bool_getter",
-            "flag_name_field",
-            "gesture_dispatch",
-            "gesture_dispatcher_type",
-            "keyboard_completion_callback_type",
-            "keyboard_definition_type",
-            "keyboard_extension_manager",
-            "keyboard_provider_request",
-            "long_press_quick_actions_input_event",
-            "pointer_cancel",
-            "pointer_owner",
-            "pointer_owner_type",
-            "pointer_reset",
-            "soft_key_bind",
-            "soft_key_metadata_type",
+            "56df21e9ea11b2ce2896e7e3d0cd4e116422c230ca8b1bd28054ddac4e13bea3"
+        val BINDINGS_PATH = Path.of("src/main/resources/gboard/gboard-version-bindings.json")
+        val BINDINGS_SCHEMA_PATH =
+            Path.of("src/main/resources/gboard/gboard-version-bindings.schema.json")
+        val PRODUCT_CATALOG_PATH =
+            Path.of("src/main/resources/gboard/gboard-port-product-catalog.json")
+        val GENERATED_BINDINGS_PATH = Path.of(
+            "build/generated/sources/versionBindings/kotlin/main/dev/jason/" +
+                "gboardpatches/patches/gboard/shared/generated/GboardVersionBindings.kt",
         )
     }
 }

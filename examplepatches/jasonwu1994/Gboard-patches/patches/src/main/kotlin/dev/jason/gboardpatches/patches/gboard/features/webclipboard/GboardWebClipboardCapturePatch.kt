@@ -5,7 +5,6 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.iface.debug.LineNumber
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
@@ -22,15 +21,12 @@ import dev.jason.gboardpatches.patches.gboard.shared.isInvoke
 import dev.jason.gboardpatches.patches.gboard.shared.isMethodReference
 import dev.jason.gboardpatches.patches.gboard.shared.isMethodReferenceInClass
 import dev.jason.gboardpatches.patches.gboard.shared.isOpcode
-import dev.jason.gboardpatches.patches.gboard.shared.gboardStructuralFingerprint
 import dev.jason.gboardpatches.patches.gboard.shared.mutableClass
 import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeAbiCatalog
 import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
 import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
-import java.nio.charset.StandardCharsets
-import java.security.MessageDigest
 
-private const val LATIN_IME_SERVICE_CLASS = "Loau;"
+private const val LATIN_IME_SERVICE_CLASS = "Loup;"
 private const val INPUT_METHOD_SERVICE_CLASS =
     "Landroid/inputmethodservice/InputMethodService;"
 private const val TARGET_METHOD_NAME = "onCreate"
@@ -41,15 +37,10 @@ private const val SUPER_ON_CREATE_DESCRIPTOR =
     "$INPUT_METHOD_SERVICE_CLASS->onCreate()V"
 private const val STOCK_REGISTER_COUNT = 12
 private const val STOCK_RECEIVER_REGISTER = 11
-private const val SAVED_RECEIVER_REGISTER = 4
-private const val STOCK_FINGERPRINT =
-    "5B70FD78E6734788230A744AC7FB24EB6515642960E91F85917BE0C4D0FE1E37"
-private const val RAW_STOCK_FINGERPRINT =
-    "42A12CEF65195B5D2B627E34D6F8CC0758462B141F33F897797CFA92C30275D1"
-private const val PATCHED_FINGERPRINT =
-    "7F9C8335D30C8C8498FD6A5A2EE02CA006A68C274DAB69EA2CAB702ADE000210"
-private const val RAW_PATCHED_FINGERPRINT =
-    "0A985A0A22B927121CB0615F79C1DAAFC1036009FA527FB150625E9BC092D62B"
+private const val SAVED_RECEIVER_REGISTER = 10
+private const val STOCK_THROW_COUNT = 3
+private const val STOCK_TRY_BLOCK_COUNT = 6
+private const val STOCK_CATCHALL_HANDLER_COUNT = 3
 private val TARGET_CLASS_ACCESS_FLAGS = AccessFlags.PUBLIC.value
 private val TARGET_METHOD_ACCESS_FLAGS =
     AccessFlags.PUBLIC.value or AccessFlags.FINAL.value
@@ -61,7 +52,7 @@ private val CAPTURE_BOOTSTRAP_RUNTIME_CLASS = CAPTURE_BOOTSTRAP_RUNTIME_ABI.owne
 private val CAPTURE_BOOTSTRAP_RUNTIME_DESCRIPTOR = CAPTURE_BOOTSTRAP_RUNTIME_ABI.reference
 
 internal val gboardWebClipboardCapturePatch = bytecodePatch(
-    description = "在 oau.onCreate() 正常返回前掛上 Web Clipboard capture bootstrap。"
+    description = "在 oup.onCreate() 正常返回前掛上 Web Clipboard capture bootstrap。"
 ) {
     dependsOn(gboardPatchesExtensionCarrierPatch)
 
@@ -168,7 +159,6 @@ private fun MutableMethod.validateStockBody() {
     }
     receiverSaveInsertionIndex(implementation.instructions)
     validateStockControlFlow()
-    requireStockCaptureFingerprint()
 }
 
 private fun MutableMethod.validateCompletedPatch() {
@@ -218,18 +208,19 @@ private fun MutableMethod.validateCompletedPatch() {
     validateStockControlFlow()
     val saveAddress = instructions.codeAddressOf(saveIndex)
     val delegateAddress = instructions.codeAddressOf(returnIndex - 1)
-    val tryBlock = implementation.tryBlocks.single()
-    check(saveAddress in tryBlock.startCodeAddress until
-        (tryBlock.startCodeAddress + tryBlock.codeUnitCount)
-    ) {
-        "$TARGET_DESCRIPTOR receiver save must remain inside the stock try region"
+    val tryBlocks = implementation.tryBlocks
+    check(tryBlocks.count { tryBlock ->
+        saveAddress in tryBlock.startCodeAddress until
+            (tryBlock.startCodeAddress + tryBlock.codeUnitCount)
+    } == 1) {
+        "$TARGET_DESCRIPTOR receiver save must remain inside its single stock try region"
     }
-    check(delegateAddress !in tryBlock.startCodeAddress until
-        (tryBlock.startCodeAddress + tryBlock.codeUnitCount)
-    ) {
+    check(tryBlocks.none { tryBlock ->
+        delegateAddress in tryBlock.startCodeAddress until
+            (tryBlock.startCodeAddress + tryBlock.codeUnitCount)
+    }) {
         "$TARGET_DESCRIPTOR delegate must not run on the exceptional exit"
     }
-    requireCompletedCaptureFingerprint()
 }
 
 private fun MutableMethod.validateStockControlFlow() {
@@ -239,25 +230,20 @@ private fun MutableMethod.validateStockControlFlow() {
     val throwIndices = instructions.indices.filter { index ->
         instructions[index].isOpcode("THROW")
     }
-    check(throwIndices.size == 1) {
-        "$TARGET_DESCRIPTOR must retain exactly one catchall THROW"
-    }
-    val throwIndex = throwIndices.single()
-    check(throwIndex == instructions.lastIndex && returnIndex < throwIndex) {
-        "$TARGET_DESCRIPTOR must retain its normal return before the final catchall throw"
+    check(throwIndices.size == STOCK_THROW_COUNT) {
+        "$TARGET_DESCRIPTOR must retain exactly $STOCK_THROW_COUNT catchall THROW instructions"
     }
     check(
+        throwIndices.count { it < returnIndex } == 1 &&
+            throwIndices.count { it > returnIndex } == 2,
+    ) {
+        "$TARGET_DESCRIPTOR catchall THROW ordering drifted around its normal return"
+    }
+    check(throwIndices.all { throwIndex ->
         (instructions[throwIndex] as? OneRegisterInstruction)?.registerA ==
-            STOCK_RECEIVER_REGISTER,
-    ) {
-        "$TARGET_DESCRIPTOR catchall must throw the original p0 register"
-    }
-    check(
-        instructions.getOrNull(throwIndex - 2)?.isOpcode("MOVE_EXCEPTION") == true &&
-            (instructions[throwIndex - 2] as? OneRegisterInstruction)?.registerA ==
-                STOCK_RECEIVER_REGISTER,
-    ) {
-        "$TARGET_DESCRIPTOR catchall handler must retain move-exception p0"
+            STOCK_RECEIVER_REGISTER
+    }) {
+        "$TARGET_DESCRIPTOR catchall handlers must throw the original p0 register"
     }
 
     val superCalls = instructions.indices.filter { index ->
@@ -268,17 +254,41 @@ private fun MutableMethod.validateStockControlFlow() {
     }
 
     val tryBlocks = implementation.tryBlocks
-    check(tryBlocks.size == 1) {
-        "$TARGET_DESCRIPTOR must retain exactly one catchall try block"
+    check(tryBlocks.size == STOCK_TRY_BLOCK_COUNT) {
+        "$TARGET_DESCRIPTOR must retain exactly $STOCK_TRY_BLOCK_COUNT catchall try blocks"
     }
-    val handlers = tryBlocks.single().exceptionHandlers
+    check(tryBlocks.all { tryBlock ->
+        tryBlock.exceptionHandlers.size == 1 &&
+            tryBlock.exceptionHandlers.single().exceptionType == null
+    }) {
+        "$TARGET_DESCRIPTOR must retain only single catchall handlers"
+    }
+    val handlerAddresses = tryBlocks.map { tryBlock ->
+        tryBlock.exceptionHandlers.single().handlerCodeAddress
+    }.toSet()
+    check(handlerAddresses.size == STOCK_CATCHALL_HANDLER_COUNT) {
+        "$TARGET_DESCRIPTOR catchall handler target count drifted"
+    }
+    val moveExceptionIndices = instructions.indices.filter { index ->
+        instructions[index].isOpcode("MOVE_EXCEPTION") &&
+            (instructions[index] as? OneRegisterInstruction)?.registerA ==
+                STOCK_RECEIVER_REGISTER
+    }
+    check(moveExceptionIndices.size == STOCK_CATCHALL_HANDLER_COUNT) {
+        "$TARGET_DESCRIPTOR must retain exactly $STOCK_CATCHALL_HANDLER_COUNT move-exception p0 handlers"
+    }
     check(
-        handlers.size == 1 &&
-            handlers.single().exceptionType == null &&
-            handlers.single().handlerCodeAddress ==
-                instructions.codeAddressOf(throwIndex - 2),
+        moveExceptionIndices.map(instructions::codeAddressOf).toSet() == handlerAddresses,
     ) {
-        "$TARGET_DESCRIPTOR must retain its exact catchall handler"
+        "$TARGET_DESCRIPTOR catchall handler addresses drifted"
+    }
+    check(moveExceptionIndices.indices.all { handlerOrdinal ->
+        val handlerIndex = moveExceptionIndices[handlerOrdinal]
+        val nextHandlerIndex = moveExceptionIndices.getOrNull(handlerOrdinal + 1)
+            ?: instructions.size
+        throwIndices.count { it in (handlerIndex + 1) until nextHandlerIndex } == 1
+    }) {
+        "$TARGET_DESCRIPTOR catchall handlers must each terminate in one THROW"
     }
 }
 
@@ -313,37 +323,6 @@ private fun receiverSaveInsertionIndex(instructions: List<Instruction>): Int {
     return insertionIndex
 }
 
-private fun MutableMethod.requireCompletedCaptureFingerprint() {
-    val actual = captureFingerprint()
-    check(actual == PATCHED_FINGERPRINT || actual == RAW_PATCHED_FINGERPRINT) {
-        "Stock body drift in $TARGET_DESCRIPTOR: $actual"
-    }
-}
-
-private fun MutableMethod.requireStockCaptureFingerprint() {
-    val actual = captureFingerprint()
-    check(actual == STOCK_FINGERPRINT || actual == RAW_STOCK_FINGERPRINT) {
-        "Stock body drift in $TARGET_DESCRIPTOR: $actual"
-    }
-}
-
-private fun MutableMethod.captureFingerprint(): String {
-    val implementation = implementation ?: error("No instructions in $TARGET_DESCRIPTOR")
-    val canonical = buildString {
-        append(gboardStructuralFingerprint())
-        append("\n--debug--\n")
-        implementation.debugItems.forEach { item ->
-            check(item is LineNumber) {
-                "Unexpected debug item type ${item.javaClass.name} in $TARGET_DESCRIPTOR"
-            }
-            append(item.codeAddress).append(':').append(item.lineNumber).append('\n')
-        }
-    }
-    return MessageDigest.getInstance("SHA-256")
-        .digest(canonical.toByteArray(StandardCharsets.UTF_8))
-        .joinToString("") { value -> "%02X".format(value) }
-}
-
 private fun List<Instruction>.codeAddressOf(index: Int): Int {
     check(index in indices)
     var address = 0
@@ -369,9 +348,9 @@ private fun Instruction?.isExactReceiverSave(): Boolean =
 private fun Instruction?.isExactLastSavedLocalUse(): Boolean =
     this?.isOpcode("APUT_OBJECT") == true &&
         this is ThreeRegisterInstruction &&
-        registerA == SAVED_RECEIVER_REGISTER &&
+        registerA == 1 &&
         registerB == 2 &&
-        registerC == 6
+        registerC == SAVED_RECEIVER_REGISTER
 
 private fun Instruction.mentionedRegisters(): Set<Int> = when (this) {
     is RegisterRangeInstruction ->
@@ -407,9 +386,9 @@ private fun Instruction.definesRegister(register: Int): Boolean {
 private fun Instruction.normalizedOpcode(): String =
     opcode.name.uppercase().replace('-', '_').replace('/', '_')
 
-private const val RECEIVER_SAVE = "move-object v4, p0"
+private const val RECEIVER_SAVE = "move-object v10, p0"
 private val CAPTURE_BOOTSTRAP_DELEGATE =
-    RuntimeCallEmitter.invoke(CAPTURE_BOOTSTRAP_RUNTIME_CALL, "v4 .. v4")
+    RuntimeCallEmitter.invoke(CAPTURE_BOOTSTRAP_RUNTIME_CALL, "v10 .. v10")
 
 private val DESTINATION_REGISTER_PREFIXES = listOf(
     "CONST",

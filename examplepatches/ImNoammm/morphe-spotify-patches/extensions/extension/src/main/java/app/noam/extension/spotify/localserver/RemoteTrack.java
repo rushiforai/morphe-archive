@@ -3,9 +3,7 @@ package app.noam.extension.spotify.localserver;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-/** One audio file on the remote server. */
 public final class RemoteTrack {
-
     public String url;
     public String name;
     public long size;
@@ -38,7 +36,6 @@ public final class RemoteTrack {
         return json;
     }
 
-    /** Stable identifier used in the content:// URI handed to Spotify. */
     public String id() {
         return Integer.toHexString(url.hashCode()) + "-" + Math.abs((long) name.hashCode() % 100000);
     }

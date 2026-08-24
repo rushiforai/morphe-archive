@@ -16,7 +16,7 @@ import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeAbiCatalo
 import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitter
 import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 
-private const val EXPRESSION_CORPUS_MANAGER_CLASS = "Lgan;"
+private const val EXPRESSION_CORPUS_MANAGER_CLASS = "Lgri;"
 
 internal val gboardZhuyinCustomSymbolsCorpusPatch = bytecodePatch(
     description = "在 expression corpus list 追加自訂 symbol tab。"
@@ -27,7 +27,7 @@ internal val gboardZhuyinCustomSymbolsCorpusPatch = bytecodePatch(
         val mutableMethod = findMutableMethodOrThrow(
             classType = EXPRESSION_CORPUS_MANAGER_CLASS,
             name = "a",
-            returnType = "Lvai;",
+            returnType = "Lvvw;",
             parameterTypes = listOf("Landroid/view/inputmethod/EditorInfo;", "Z")
         )
         mutableMethod.applyZhuyinCustomSymbolsCorpusDelegate()
@@ -38,7 +38,7 @@ internal fun MutableMethod.applyZhuyinCustomSymbolsCorpusDelegate(): MutableMeth
     check(
         definingClass == EXPRESSION_CORPUS_MANAGER_CLASS &&
             name == "a" &&
-            returnType == "Lvai;" &&
+            returnType == "Lvvw;" &&
             parameterTypes == listOf("Landroid/view/inputmethod/EditorInfo;", "Z"),
     ) {
         "Refusing non-target Custom Symbols corpus method " +
@@ -46,7 +46,7 @@ internal fun MutableMethod.applyZhuyinCustomSymbolsCorpusDelegate(): MutableMeth
     }
     val state = requireGboardExpressionCorpusPatchState()
     val instructions = implementation?.instructions
-        ?: error("No instructions available in gan.a")
+        ?: error("No instructions available in gri.a")
     val collectCallIndices = methodCallIndices(
         definingClass = "Lj$/util/stream/Stream;",
         name = "collect",
@@ -54,7 +54,7 @@ internal fun MutableMethod.applyZhuyinCustomSymbolsCorpusDelegate(): MutableMeth
         parameterTypes = listOf("Lj$/util/stream/Collector;")
     )
     check(collectCallIndices.size == 2) {
-        "Expected exactly two Stream.collect calls in gan.a"
+        "Expected exactly two Stream.collect calls in gri.a"
     }
     val customReferences = instructions.count {
         it.isMethodReference(CUSTOM_SYMBOLS_RUNTIME_DESCRIPTOR)
@@ -74,10 +74,10 @@ internal fun MutableMethod.applyZhuyinCustomSymbolsCorpusDelegate(): MutableMeth
 
     val collectCallIndex = collectCallIndices.last()
     val moveResultIndex = indexOfFirstMoveResultAfter(collectCallIndex)
-    check(moveResultIndex >= 0) { "Could not resolve final collect() move-result in gan.a" }
+    check(moveResultIndex >= 0) { "Could not resolve final collect() move-result in gri.a" }
     val resultRegister = returnRegisterAt(moveResultIndex)
     check(instructions.getOrNull(moveResultIndex + 1)?.isOpcode("CHECK_CAST") == true) {
-        "Final collect() result in gan.a is not cast to vai"
+        "Final collect() result in gri.a is not cast to vvw"
     }
     addInstructions(moveResultIndex + 2, buildCorpusAppendDelegate(resultRegister))
     validateCustomSymbolsCorpusDelegate()
@@ -85,7 +85,7 @@ internal fun MutableMethod.applyZhuyinCustomSymbolsCorpusDelegate(): MutableMeth
 }
 
 private fun MutableMethod.validateCustomSymbolsCorpusDelegate() {
-    val instructions = implementation?.instructions ?: error("No instructions available in gan.a")
+    val instructions = implementation?.instructions ?: error("No instructions available in gri.a")
     val collectCallIndices = methodCallIndices(
         definingClass = "Lj$/util/stream/Stream;",
         name = "collect",
@@ -93,10 +93,10 @@ private fun MutableMethod.validateCustomSymbolsCorpusDelegate() {
         parameterTypes = listOf("Lj$/util/stream/Collector;")
     )
     check(collectCallIndices.size == 2) {
-        "Expected exactly two Stream.collect calls in gan.a"
+        "Expected exactly two Stream.collect calls in gri.a"
     }
     val moveResultIndex = indexOfFirstMoveResultAfter(collectCallIndices.last())
-    check(moveResultIndex >= 0) { "Could not resolve final collect() move-result in gan.a" }
+    check(moveResultIndex >= 0) { "Could not resolve final collect() move-result in gri.a" }
     val expectedResultRegister = returnRegisterAt(moveResultIndex)
     val customIndex = instructions.indexOfFirst {
         it.isMethodReference(CUSTOM_SYMBOLS_RUNTIME_DESCRIPTOR)
@@ -135,7 +135,7 @@ private fun buildCorpusAppendDelegate(register: Int): String = """
 
     move-result-object v$register
 
-    check-cast v$register, Lvai;
+    check-cast v$register, Lvvw;
 """.trimIndent()
 
 private val CUSTOM_SYMBOLS_RUNTIME_DESCRIPTOR = RuntimeAbiCatalog.abi(

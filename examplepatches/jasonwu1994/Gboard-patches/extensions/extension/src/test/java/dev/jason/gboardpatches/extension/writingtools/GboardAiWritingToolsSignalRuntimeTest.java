@@ -54,7 +54,7 @@ public final class GboardAiWritingToolsSignalRuntimeTest {
     }
 
     @Test
-    public void signalSpecificationsUseExact1777Fields() {
+    public void signalSpecificationsUseExact1803Fields() {
         Assert.assertArrayEquals(
                 new String[]{"gvu#a", "lvi#b", "gqd#a"},
                 GboardAiWritingToolsRuntime.forcedSignalTargetSpecsForTesting());

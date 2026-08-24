@@ -71,12 +71,13 @@ internal object EpisodeOptionsDialogFingerprint : Fingerprint(
     returnType = "V",
     custom = { method, _ ->
         val p = method.parameterNames()
-        p.size == 20 && p[0] == VIDEO && p.slice(1..5) == List(5) { "Z" } &&
-            p.slice(6..9) == List(4) { FUNCTION0 } && p[10] == "Z" &&
-            p[11] == FUNCTION0 && p[12] == "Z" && p.slice(13..16) == List(4) { FUNCTION0 } &&
-            p[17] == "Le1/m0;" && p[18] == "I" && p[19] == "I" &&
+        p.size == 21 && p[0] == VIDEO && p[1] == "Ljava/lang/Double;" &&
+            p.slice(2..6) == List(5) { "Z" } &&
+            p.slice(7..10) == List(4) { FUNCTION0 } && p[11] == "Z" &&
+            p[12] == FUNCTION0 && p[13] == "Z" && p.slice(14..17) == List(4) { FUNCTION0 } &&
+            p[18] == "Le1/m0;" && p[19] == "I" && p[20] == "I" &&
             method.implementation?.instructions?.any {
-                (it as? WideLiteralInstruction)?.wideLiteral == 0x7f1104e9L
+                (it as? WideLiteralInstruction)?.wideLiteral == 0x7f11075cL
             } == true && method.buildsComposableLambda()
     }
 )

@@ -14,7 +14,7 @@ class GboardClipboardContentLimitPatchContractTest {
                 "GboardPatchRegistry.kt",
         )
         val declaration = registry.substringAfter(
-            "val gboardClipboardContentLimitPatch = resourcePatch(",
+            "val gboardClipboardContentLimitPatch = gboardPublicResourcePatch(",
         ).substringBefore("\n}\n")
 
         assertTrue(declaration.contains("name = \"Clipboard Custom Character Limit\""))
@@ -57,5 +57,5 @@ class GboardClipboardContentLimitPatchContractTest {
 
     private fun repositoryRoot(): Path =
         generateSequence(Path.of("").toAbsolutePath()) { it.parent }
-            .first { Files.isRegularFile(it.resolve("patches-list.json")) }
+            .first { Files.isRegularFile(it.resolve("settings.gradle.kts")) }
 }

@@ -427,24 +427,24 @@ public final class GboardTopRowSwipeRuntimeTest {
     }
 
     @Test
-    public void targetRuntimeSourceUsesOnly1777ReflectionMappings() throws Exception {
+    public void targetRuntimeSourceUsesOnly1803ReflectionMappings() throws Exception {
         String source = readSource(
                 "src/main/java/dev/jason/gboardpatches/extension/toprowswipe/"
                         + "GboardTopRowSwipeRuntimeSupport.java");
 
-        assertTrue(source.contains("PRIMARY_LABEL_VIEW_ID = 0x7f0b062a"));
+        assertTrue(source.contains("PRIMARY_LABEL_VIEW_ID = 0x7f0b0651"));
         for (String targetType : List.of(
-                "oth", "oud", "otk", "owd", "oti", "ovv", "ouc", "pbl", "pbj")) {
+                "pmy", "pnu", "pmz", "ppo", "pnt", "pvi", "pvf")) {
             assertTrue("missing target type " + targetType,
                     source.contains("\"" + targetType + "\""));
         }
         for (String baselineType : List.of(
-                "nxi", "nyf", "nxl", "oaa", "nxj", "nzv", "nye", "ofk", "ofi")) {
+                "oth", "oud", "otk", "owd", "oti", "ovv", "ouc", "pbl", "pbj")) {
             assertFalse("stale baseline type remains active: " + baselineType,
                     source.contains("\"" + baselineType + "\""));
         }
-        assertFalse(source.contains("0x7f0b0607"));
-        assertTrue(source.contains("getDeclaredMethod(\"q\", actionSetClass"));
+        assertFalse(source.contains("0x7f0b062a"));
+        assertTrue(source.contains("getDeclaredMethod(\"r\", actionSetClass"));
         assertTrue(source.contains("getDeclaredField(\"f\")"));
         assertTrue(source.contains("getDeclaredField(\"g\")"));
         assertTrue(source.contains("getDeclaredField(\"h\")"));
