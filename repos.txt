@@ -52,6 +52,7 @@ Ripthulhu/morphe-google-patches
 RookieEnough/De-Vanced
 RoundSalmon4/morphe-patches-template
 Seobject/Seobject-patches
+ShuhaibNC/morphe-patches
 SouBryan/pinterest-morphed
 TheRealCrazyfuy/abeja-morphe-patches
 TheRealSkywarp/morphe-patches
@@ -121,6 +122,7 @@ gitlab.com/early.egg3707/ee-morphe-patches
 gitlab.com/inotia00/proguard-patches
 gitlab.com/inotia00/x-shim
 hackingguy/morphe-patches
+hashtagbasit/aimal-patches
 heinrich26/morphe-patches
 heval99/Heval-Morphe-Patches
 heval99/morphe-patches
@@ -148,8 +150,10 @@ kontsevoye/emorphe-patches
 kuchingneko28/ipusnas-patches
 kun-codes/npci-bhim-morphe-patches
 kveld9/kveld-morphe-patches
+legendsciber/morphe-patches
 liongalahad/nuviotv-morphe-patches
 liongalahad/nuviotv-patches
+liongalahad/stremio-androidTV-morphe-patches
 logm1lo/logm1lo-patches
 loskutov/youtube-domain-fronting-patch
 lyyako/realme-link-patches

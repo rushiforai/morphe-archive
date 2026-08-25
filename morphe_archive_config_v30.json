@@ -1321,6 +1321,38 @@
                 "sortOrder": 167,
                 "createdAt": 1787534015341,
                 "updatedAt": 1787534015341
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/ShuhaibNC/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 168,
+                "createdAt": 1787620435204,
+                "updatedAt": 1787620435204
+            },
+            {
+                "name": "aimal-patches",
+                "source": "https://raw.githubusercontent.com/hashtagbasit/aimal-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 169,
+                "createdAt": 1787620439198,
+                "updatedAt": 1787620439198
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/legendsciber/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 170,
+                "createdAt": 1787620440197,
+                "updatedAt": 1787620440197
+            },
+            {
+                "name": "stremio-androidTV-morphe-patches",
+                "source": "https://raw.githubusercontent.com/liongalahad/stremio-androidTV-morphe-patches/master/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 171,
+                "createdAt": 1787620440858,
+                "updatedAt": 1787620440858
             }
         ]
     }
