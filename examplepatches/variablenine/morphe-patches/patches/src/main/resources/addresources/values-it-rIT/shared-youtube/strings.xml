@@ -21,6 +21,25 @@ Second \"item\" text"</string>
   <string name="morphe_restart_first_run">Riavvia per completare la configurazione</string>
   <!-- layout.branding.baseCustomBrandingPatch -->
   <string name="morphe_custom_branding_name_title">Nome dell\'app</string>
+  <!-- layout.theme.baseThemePatch -->
+  <string name="morphe_theme_color_dark_title">Sfondo del tema scuro</string>
+  <string name="morphe_theme_color_dark_entry_2">Nero assoluto</string>
+  <string name="morphe_theme_color_dark_entry_3">Material You (Nero puro)</string>
+  <string name="morphe_theme_color_dark_entry_9">YouTube classico</string>
+  <string name="morphe_theme_color_dark_entry_10">Rosa scuro</string>
+  <string name="morphe_theme_color_dark_entry_11">Blu scuro</string>
+  <string name="morphe_theme_color_dark_entry_12">Verde scuro</string>
+  <string name="morphe_theme_color_dark_entry_13">Giallo scuro</string>
+  <string name="morphe_theme_color_dark_entry_14">Arancione scuro</string>
+  <string name="morphe_theme_color_dark_entry_15">Rosso scuro</string>
+  <string name="morphe_theme_color_dark_custom_title">Sfondo scuro personalizzato</string>
+  <string name="morphe_theme_color_dark_custom_summary">Imposta il colore di sfondo del tema scuro</string>
+  <string name="morphe_theme_color_entry_1">Predefinito dell\'app</string>
+  <string name="morphe_theme_color_entry_4">Material You (Neutro)</string>
+  <string name="morphe_theme_color_entry_5">Material You (Primario)</string>
+  <string name="morphe_theme_color_entry_6">Material You (Secondario)</string>
+  <string name="morphe_theme_color_entry_7">Material You (Terziario)</string>
+  <string name="morphe_theme_color_custom_entry">Personalizzato</string>
   <!-- interaction.downloads.downloadsPatch -->
   <string name="morphe_external_downloader_screen_title">Download esterni</string>
   <string name="morphe_external_downloader_name_title">Nome del pacchetto del downloader</string>
@@ -133,8 +152,8 @@ Per accedere, premi su Continua di seguito"</string>
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">Nascondi le pubblicità a schermo intero</string>
   <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
-          'Android Studio' must be kept untranslated. -->
-  <string name="morphe_force_original_audio_not_available">Per usare questa funzionalità, cambia \"Falsifica i flussi video\" a qualsiasi client eccetto Android Studio\'</string>
+          'Android Studio' and 'Android VR Downgraded' must be kept untranslated. -->
+  <string name="morphe_force_original_audio_not_available">Per usare questa funzionalità, cambia \'Falsifica i flussi video\' a qualsiasi client eccetto \'Android Studio\' e \'Android VR Downgraded\'</string>
   <!-- misc.privacy.sanitizeSharingLinksPatch -->
   <string name="morphe_sanitize_sharing_links_title">Sanifica collegamenti di condivisione</string>
   <string name="morphe_sanitize_sharing_links_summary">Rimuove i parametri di query di tracciamento dai link condivisi</string>

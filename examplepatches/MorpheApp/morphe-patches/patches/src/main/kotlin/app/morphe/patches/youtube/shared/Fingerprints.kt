@@ -14,11 +14,11 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
 import app.morphe.patcher.InstructionLocation.MatchAfterWithin
 import app.morphe.patcher.InstructionLocation.MatchFirst
-import app.morphe.patcher.OpcodesFilter
 import app.morphe.patcher.checkCast
 import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.literal
 import app.morphe.patcher.methodCall
+import app.morphe.patcher.newInstance
 import app.morphe.patcher.opcode
 import app.morphe.patcher.string
 import app.morphe.patches.all.misc.resources.ResourceType
@@ -122,20 +122,12 @@ internal object RollingNumberTextViewAnimationUpdateFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "V",
     parameters = listOf("Landroid/graphics/Bitmap;"),
-    filters = OpcodesFilter.opcodesToFilters(
-        Opcode.NEW_INSTANCE, // bitmap ImageSpan
-        Opcode.INVOKE_VIRTUAL,
-        Opcode.MOVE_RESULT_OBJECT,
-        Opcode.CONST_4,
-        Opcode.INVOKE_DIRECT,
-        Opcode.INVOKE_VIRTUAL,
-        Opcode.MOVE_RESULT,
-        Opcode.CONST_16,
-        Opcode.INVOKE_VIRTUAL,
-        Opcode.INVOKE_VIRTUAL,
-        Opcode.MOVE_RESULT,
-        Opcode.INT_TO_FLOAT,
-        Opcode.INVOKE_VIRTUAL, // set textview padding using bitmap width
+    filters = listOf(
+        newInstance("Landroid/text/style/ImageSpan;"),
+        methodCall(smali = "Landroid/text/style/ImageSpan;-><init>(Landroid/content/Context;Landroid/graphics/Bitmap;I)V"),
+        methodCall(smali = "Landroid/text/SpannableString;->length()I"),
+        methodCall(smali = "Landroid/text/SpannableString;->setSpan(Ljava/lang/Object;III)V"),
+        methodCall(name = "setText", parameters = listOf("Ljava/lang/CharSequence;"))
     ),
     custom = { _, classDef ->
         classDef.superclass == "Landroid/support/v7/widget/AppCompatTextView;" ||

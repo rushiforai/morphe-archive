@@ -58,7 +58,7 @@ Para traducir nuevos idiomas o mejorar las traducciones existentes, visita morph
   <string name="morphe_pref_import_export_title">Importar / Exportar</string>
   <string name="morphe_pref_import_export_summary">Importar / Exportar ajustes de Morphe</string>
   <string name="morphe_settings_import_file">Importar desde archivo</string>
-  <string name="morphe_settings_import_file_success">Ajustes importados correctamente, pulsa \"Guardar\" para aplicar</string>
+  <string name="morphe_settings_import_file_success">Ajustes importados correctamente, pulsa Guardar para aplicar</string>
   <string name="morphe_settings_import_file_failed">Error al importar los ajustes</string>
   <string name="morphe_settings_export_file">Exportar a archivo</string>
   <string name="morphe_settings_export_file_success">Ajustes exportados correctamente</string>
@@ -131,7 +131,7 @@ Esto es requerido para el funcionamiento de la aplicación."</string>
 
 Deshabilitar las optimizaciones de batería para MicroG no tendrá un efecto negativo en el uso de la batería.
 
-Toca el botón \"Continuar\" y permite los cambios de optimización."</string>
+Pulsa el botón Continuar y permite los cambios de optimización."</string>
   <string name="gms_core_dialog_continue_text">Continuar</string>
   <string name="morphe_gms_core_battery_optimization_dialog_title">Mostrar diálogo de optimización de batería de MicroG</string>
   <string name="morphe_gms_core_battery_optimization_dialog_user_dialog_message">"Si desactivas esta opción, se ocultará el mensaje de optimización de la batería de MicroG.

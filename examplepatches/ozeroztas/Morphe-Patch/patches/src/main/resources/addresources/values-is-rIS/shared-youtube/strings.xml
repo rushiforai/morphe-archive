@@ -21,6 +21,21 @@ Second \"item\" text"</string>
   <string name="morphe_restart_first_run">Endurræstu til að lokar á uppsetninguna</string>
   <!-- layout.branding.baseCustomBrandingPatch -->
   <string name="morphe_custom_branding_name_title">App nafn</string>
+  <!-- layout.theme.baseThemePatch -->
+  <string name="morphe_theme_color_dark_title">Bakgrunnur fyrir dökkt þema</string>
+  <string name="morphe_theme_color_dark_entry_2">Hreint svart</string>
+  <string name="morphe_theme_color_dark_entry_3">Material You (Hrein svartur)</string>
+  <string name="morphe_theme_color_dark_entry_9">Klassískt YouTube</string>
+  <string name="morphe_theme_color_dark_entry_11">Dökkblátt</string>
+  <string name="morphe_theme_color_dark_entry_12">Dökkgrænn</string>
+  <string name="morphe_theme_color_dark_entry_13">Dökkgulur</string>
+  <string name="morphe_theme_color_dark_entry_14">Dökkppelsínugult</string>
+  <string name="morphe_theme_color_dark_entry_15">Dökkrautt</string>
+  <string name="morphe_theme_color_dark_custom_title">Sérsniðinn dökkur bakgrunnur</string>
+  <string name="morphe_theme_color_dark_custom_summary">Stilltu bakgrunnslit á dimmu þema</string>
+  <string name="morphe_theme_color_entry_1">Sjálfgefið</string>
+  <string name="morphe_theme_color_entry_4">Material You (Hlutlaus)</string>
+  <string name="morphe_theme_color_custom_entry">Sérsniðið</string>
   <!-- interaction.downloads.downloadsPatch -->
   <string name="morphe_external_downloader_screen_title">Niðurhaldið</string>
   <string name="morphe_external_downloader_name_title">Nafn pakkans fyrir niðurhal</string>
@@ -133,8 +148,8 @@ Til að skrá þig inn ýttu á halda áfram hér að neðan"</string>
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">Falir auglýsingar á fullri skjánum</string>
   <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
-          'Android Studio' must be kept untranslated. -->
-  <string name="morphe_force_original_audio_not_available">Til að nota þennan eiginleika skaltu breyta \'Spoof video streams\' í hvaða þjónustu sem er nema \'Android Studio\'</string>
+          'Android Studio' and 'Android VR Downgraded' must be kept untranslated. -->
+  <string name="morphe_force_original_audio_not_available">Til að nota þennan eiginleika, breyttu \'Spoofa myndstrauma\' í hvaða biðlara sem er nema \'Android Studio\' og \'Android VR Downgraded\'</string>
   <!-- misc.privacy.sanitizeSharingLinksPatch -->
   <string name="morphe_sanitize_sharing_links_title">Hreinsa deilingshlökki</string>
   <string name="morphe_sanitize_sharing_links_summary">Fjarlægir rekja breytur úr deilingshlökkum</string>

@@ -83,6 +83,9 @@ Ví dụ:
   <string name="morphe_hide_latest_videos_button_summary">Ẩn banner “Video mới nhất” màu xanh xuất hiện ở đầu Trang chủ</string>
   <string name="morphe_hide_mix_playlists_title">Ẩn danh sách phát kết hợp</string>
   <string name="morphe_hide_movies_section_title">Ẩn phần phim</string>
+  <!-- 'Notifications' should be translated using the same localized wording YouTube displays for the menu item. -->
+  <string name="morphe_hide_notifications_menu_header_title">Ẩn tiêu đề menu Thông báo</string>
+  <string name="morphe_hide_notifications_menu_header_summary">Ẩn tiêu đề menu Thông báo khi nhấp vào nút chuông</string>
   <!-- 'Notify me' should be translated using the same localized wording YouTube displays for the button.
           This button usually appears in the Subscriptions feed for future livestreams or unreleased videos. -->
   <string name="morphe_hide_notify_me_button_title">Ẩn nút \"Thông báo cho tôi\"</string>
@@ -250,6 +253,8 @@ Ví dụ:
   <string name="morphe_hide_comments_gift_button_title">Ẩn nút Quà tặng</string>
   <string name="morphe_hide_comments_info_button_title">Ẩn nút Thông tin</string>
   <string name="morphe_hide_comments_live_chat_donators_bar_title">Ẩn thanh người quyên góp trong cuộc trò chuyện trực tiếp</string>
+  <string name="morphe_hide_comments_live_chat_tooltips_title">Ẩn các chú giải trò chuyện trực tiếp</string>
+  <string name="morphe_hide_comments_live_chat_tooltips_summary">Ẩn các cửa sổ bật lên chú giải hiển thị gần thanh nhập trò chuyện, chẳng hạn như thông báo trò chuyện chỉ dành cho người đăng ký</string>
   <string name="morphe_hide_comments_preview_comment_title">Ẩn xem trước bình luận</string>
   <string name="morphe_hide_comments_preview_comment_summary">Ẩn phần xem trước nhận xét dưới video trước khi mở toàn bộ phần bình luận</string>
   <string name="morphe_hide_comments_thanks_button_title">Ẩn nút Cảm ơn</string>
@@ -492,16 +497,17 @@ Lưu ý: Có thể không hoạt động với video phát trực tiếp"</strin
   <!-- interaction.seekbar.seekbarThumbnailPreviewPatch -->
   <string name="morphe_seekbar_thumbnail_preview_title">Bật hình thu nhỏ trên thanh tìm kiếm</string>
   <string name="morphe_seekbar_thumbnail_preview_summary">Shows a video thumbnail while dragging the seekbar</string>
+  <string name="morphe_seekbar_thumbnail_heatmap_peak_point">Được phát lại nhiều nhất</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_livestream_dvr_not_available">"'Bật DVR phát trực tiếp' có thể không khả dụng
+  <string name="morphe_livestream_dvr_not_available">"Việc bật 'DVR phát trực tiếp' có thể không khả dụng
 
-Để khắc phục, hãy bật 'Giả mạo luồng phát video' và thay đổi 'Client mặc định' thành 'TV' hoặc 'visionOS'"</string>
+Để khắc phục, hãy bật 'Giả mạo luồng video' và thay đổi 'Máy khách mặc định' thành 'TV Simply' hoặc 'visionOS'"</string>
   <string name="morphe_expand_livestream_dvr_duration_title">Tăng thời lượng DVR phát trực tiếp</string>
   <string name="morphe_expand_livestream_dvr_duration_summary">Cho phép tua lại các buổi phát trực tiếp tối đa 7 ngày trước</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
   <string name="morphe_expand_livestream_dvr_duration_not_available">"'Mở rộng thời lượng DVR phát trực tiếp' có thể không khả dụng
 
-Để khắc phục, hãy bật 'Giả mạo luồng phát video' và thay đổi 'Client mặc định' thành 'TV' hoặc 'visionOS'"</string>
+Để khắc phục, hãy bật 'Giả mạo luồng video' và thay đổi 'Máy khách mặc định' thành 'TV Simply' hoặc 'visionOS'"</string>
   <!-- interaction.seekbar.enableSlideToSeekPatch -->
   <string name="morphe_slide_to_seek_title">Bật vuốt để tua</string>
   <string name="morphe_slide_to_seek_summary">Bật vuốt để tua thay vì phát video 2x khi bấm giữ trong trình phát</string>
@@ -509,15 +515,18 @@ Lưu ý: Có thể không hoạt động với video phát trực tiếp"</strin
   <string name="morphe_tap_to_seek_title">Bật chạm để tua</string>
   <string name="morphe_tap_to_seek_summary">Chỉ cần chạm vào thanh tiến trình để tua tới vị trí đó chứ không cần kéo</string>
   <!-- interaction.swipecontrols.swipeControlsPatch -->
-  <string name="morphe_swipe_brightness_title">Bật cử chỉ độ sáng</string>
-  <string name="morphe_swipe_brightness_summary">Vuốt lên/xuống bên trái trong chế độ toàn màn hình để điều chỉnh độ sáng</string>
-  <string name="morphe_swipe_volume_title">Bật cử chỉ âm lượng</string>
-  <string name="morphe_swipe_volume_summary">Vuốt lên/xuống bên phải trong chế độ toàn màn hình để điều chỉnh âm lượng</string>
-  <string name="morphe_swipe_zone_width_title">Độ rộng vùng vuốt chỉnh độ sáng/âm lượng</string>
-  <string name="morphe_swipe_zone_width_summary">Phần trăm diện tích (5-50) mép màn hình dùng cho cử chỉ chỉnh độ sáng và âm lượng</string>
+  <string name="morphe_swipe_left_zone_title">Cử chỉ vuốt sang trái</string>
+  <string name="morphe_swipe_right_zone_title">Cử chỉ vuốt sang phải</string>
+  <string name="morphe_swipe_top_zone_title">Cử chỉ vuốt từ phía trên</string>
+  <string name="morphe_swipe_zone_width_title">Chiều rộng vùng trái/phải</string>
+  <string name="morphe_swipe_zone_width_summary">Phần trăm của mỗi cạnh màn hình được dành cho cử chỉ vuốt trái và phải (5-50)</string>
   <string name="morphe_swipe_zone_label_brightness">Độ sáng</string>
   <string name="morphe_swipe_zone_label_volume">Âm lượng</string>
   <string name="morphe_swipe_zone_label_native">Gốc</string>
+  <string name="morphe_swipe_zone_label_off">Tắt</string>
+  <string name="morphe_swipe_ignore_when_locked_title">Bỏ qua các cử chỉ vuốt khi khóa</string>
+  <!-- 'Lock screen' should be translated using the same localized wording YouTube displays for the player menu item. -->
+  <string name="morphe_swipe_ignore_when_locked_summary">Cử chỉ vuốt bị bỏ qua khi trình phát bị khóa bằng \'Khóa màn hình\'</string>
   <string name="morphe_swipe_press_to_engage_title">Bật cử chỉ bấm giữ để vuốt</string>
   <string name="morphe_swipe_press_to_engage_summary">Yêu cầu nhấn và giữ trước khi cử chỉ vuốt được nhận biết</string>
   <string name="morphe_swipe_haptic_feedback_title">Bật phản hồi xúc giác</string>
@@ -546,12 +555,9 @@ Lưu ý: Có thể không hoạt động với video phát trực tiếp"</strin
   <string name="morphe_swipe_volume_sensitivity_summary">Giá trị càng cao, mức âm lượng tăng/giảm càng nhanh mỗi khi vuốt</string>
   <string name="morphe_swipe_brightness_sensitivity_title">Độ nhạy vuốt chỉnh độ sáng</string>
   <string name="morphe_swipe_brightness_sensitivity_summary">Giá trị càng cao, vuốt càng dài hơn để chỉnh độ sáng</string>
-  <string name="morphe_swipe_speed_title">Bật cử chỉ chỉnh tốc độ phát</string>
-  <string name="morphe_swipe_speed_summary">Vuốt ngang phần trên trong chế độ toàn màn hình để chỉnh tốc độ phát</string>
   <string name="morphe_swipe_speed_sensitivity_title">Độ nhạy vuốt chỉnh tốc độ phát</string>
   <string name="morphe_swipe_speed_sensitivity_summary">Giá trị càng cao, vuốt càng dài hơn để chỉnh tốc độ phát</string>
   <string name="morphe_swipe_speed_step_title">Mức tốc độ</string>
-  <string name="morphe_swipe_speed_step_summary">Mức thay đổi tốc độ phát trên mỗi lần điều chỉnh</string>
   <string name="morphe_swipe_speed_zone_height_title">Chiều cao vùng vuốt chỉnh tốc độ phát</string>
   <string name="morphe_swipe_speed_zone_height_summary">Độ cao vùng vuốt chỉnh tốc độ phát, tính theo phần trăm chiều cao của trình phát (5-75)</string>
   <string name="morphe_swipe_zone_label_speed">Tốc độ phát</string>
@@ -679,15 +685,8 @@ Cần cung cấp \"Cookie phụ đề\""</string>
   <string name="morphe_navigation_bar_animations_summary">Tạo hoạt ảnh khi chuyển tab</string>
   <string name="morphe_disable_auto_hide_navigation_bar_title">Tắt tự động ẩn thanh điều hướng</string>
   <string name="morphe_disable_auto_hide_navigation_bar_summary">Giữ thanh điều hướng hiển thị khi cuộn</string>
-  <string name="morphe_disable_translucent_status_bar_title">Vô hiệu hóa thanh trạng thái trong suốt</string>
-  <string name="morphe_disable_translucent_status_bar_summary">Làm cho thanh trạng thái hoàn toàn mờ</string>
-  <string name="morphe_disable_translucent_status_bar_user_dialog_message">"Hạn chế:
-• Có thể xuất hiện một thanh màu đen trên cùng trình phát video.
-• Thanh điều hướng của hệ thống có thể trở nên trong suốt và không thể bình luận trên video."</string>
-  <string name="morphe_disable_translucent_navigation_bar_light_title">Vô hiệu hóa thanh điều hướng trong suốt ở giao diện sáng</string>
-  <string name="morphe_disable_translucent_navigation_bar_light_summary">Làm cho thanh điều hướng hoàn toàn mờ ở chế độ sáng</string>
-  <string name="morphe_disable_translucent_navigation_bar_dark_title">Vô hiệu hoá thanh điều hướng trong suốt ở giao diện tối</string>
-  <string name="morphe_disable_translucent_navigation_bar_dark_summary">Làm cho thanh điều hướng hoàn toàn mờ ở chế độ tối</string>
+  <string name="morphe_disable_translucent_navigation_title">Vô hiệu hóa thanh điều hướng trong suốt</string>
+  <string name="morphe_disable_translucent_navigation_summary">Làm cho thanh điều hướng và thanh trạng thái hoàn toàn không trong suốt</string>
   <string name="morphe_toolbar_screen_title">Thanh công cụ</string>
   <string name="morphe_toolbar_screen_summary">Chọn những thành phần sẽ xuất hiện trên thanh công cụ</string>
   <string name="morphe_hide_toolbar_cast_button_title">Ẩn nút truyền</string>
@@ -706,10 +705,10 @@ Cần cung cấp \"Cookie phụ đề\""</string>
   <!-- 'Audio Track' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_player_flyout_audio_track_title">Ẩn menu \"Bản âm thanh\"</string>
   <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
-          'Android Studio' must be kept untranslated. -->
+          'Android Studio' and 'Android VR Downgraded' must be kept untranslated. -->
   <string name="morphe_hide_player_flyout_audio_track_not_available">"Menu 'Bản âm thanh' đã bị ẩn
 
-Để hiển thị menu 'Bản âm thanh', hãy chuyển 'Giả mạo luồng phát video' thành bất kỳ máy khách nào ngoại trừ 'Android Studio'"</string>
+Để hiển thị menu 'Bản âm thanh', hãy thay đổi 'Giả mạo luồng phát video' sang bất kỳ máy khách nào trừ 'Android Studio' và 'Android VR Downgraded'"</string>
   <string name="morphe_hide_player_flyout_audio_track_footer_title">Ẩn chân menu \"Bản âm thanh\"</string>
   <!-- 'Captions' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_player_flyout_captions_title">Ẩn menu Phụ đề</string>
@@ -900,8 +899,8 @@ Hạn chế: Nếu tùy chọn \"Khôi phục thanh thao tác video cũ\" bị t
   <!-- layout.music.overrideYouTubeMusicButtonsPatch -->
   <string name="morphe_override_youtube_music_buttons_title">Ghi đè chức năng nút YouTube Music</string>
   <string name="morphe_override_youtube_music_buttons_summary">Mở ứng dụng phát nhạc mà bạn thích thay cho ứng dụng YouTube Music mặc định</string>
-  <string name="morphe_music_package_name_title">Tên gói ứng dụng âm nhạc</string>
-  <string name="morphe_music_package_name_summary">Tên gói của ứng dụng nhạc đã cài đặt của bạn</string>
+  <string name="morphe_custom_music_package_name_title">Tên gói ứng dụng âm nhạc</string>
+  <string name="morphe_custom_music_package_name_summary">Tên gói của ứng dụng nhạc đã cài đặt của bạn</string>
   <!-- layout.startpage.changeStartPagePatch -->
   <string name="morphe_change_start_page_title">Trang bắt đầu</string>
   <string name="morphe_change_start_page_entry_default">Mặc định</string>
@@ -951,7 +950,7 @@ Hạn chế: Nếu tùy chọn \"Khôi phục thanh thao tác video cũ\" bị t
   <string name="morphe_miniplayer_disable_resuming_summary">Ngăn không cho trình phát thu nhỏ \"tiếp tục xem\" khi mở ứng dụng (một tính năng Premium)</string>
   <string name="morphe_miniplayer_screen_title">Trình phát thu nhỏ</string>
   <string name="morphe_miniplayer_screen_summary">Tùy chỉnh giao diện và hành vi của trình phát thu nhỏ</string>
-  <string name="morphe_miniplayer_not_available_summary">YouTube đã loại bỏ tất cả miniplayer bổ sung. Để thay đổi loại miniplayer, hãy vá YouTube phiên bản 21.28.207 trở xuống</string>
+  <string name="morphe_miniplayer_not_available_summary">YouTube đã xóa bỏ tất cả các miniplayer bổ sung. Để thay đổi loại miniplayer, hãy patch YouTube 21.28.208 hoặc bản cũ hơn.</string>
   <string name="morphe_miniplayer_type_title">Loại trình phát thu nhỏ</string>
   <string name="morphe_miniplayer_type_entry_0">Tắt</string>
   <string name="morphe_miniplayer_type_entry_1">Mặc định</string>
@@ -977,7 +976,23 @@ Hạn chế: Nếu tùy chọn \"Khôi phục thanh thao tác video cũ\" bị t
   <string name="morphe_miniplayer_opacity_title">Độ mờ lớp phủ</string>
   <string name="morphe_miniplayer_opacity_summary">Điều chỉnh độ trong suốt (0 là trong suốt, 100 là mờ)</string>
   <string name="morphe_miniplayer_opacity_invalid_toast">Độ mờ lớp phủ phải nằm trong khoảng từ 0-100</string>
+  <!-- misc.fix.fixBackToExitGesturePatch -->
+  <string name="morphe_back_button_always_exits_feed_title">Nút quay lại thoát khỏi bảng tin</string>
+  <string name="morphe_back_button_always_exits_feed_summary">Nhấn nút quay lại luôn thoát khỏi ứng dụng thay vì cuộn lên đầu bảng tin</string>
   <!-- layout.theme.themePatch -->
+  <string name="morphe_theme_color_light_title">Nền chủ đề sáng</string>
+  <string name="morphe_theme_color_light_entry_2">Trắng</string>
+  <string name="morphe_theme_color_light_entry_3">Material You (Trắng)</string>
+  <string name="morphe_theme_color_light_entry_9">Hồng nhạt</string>
+  <string name="morphe_theme_color_light_entry_10">Xanh dương nhạt</string>
+  <string name="morphe_theme_color_light_entry_11">Xanh lá nhạt</string>
+  <string name="morphe_theme_color_light_entry_12">Vàng nhạt</string>
+  <string name="morphe_theme_color_light_entry_13">Cam nhạt</string>
+  <string name="morphe_theme_color_light_entry_14">Đỏ nhạt</string>
+  <string name="morphe_theme_color_light_custom_title">Nền sáng tùy chỉnh</string>
+  <string name="morphe_theme_color_light_custom_summary">Đặt màu nền của chủ đề sáng</string>
+  <string name="morphe_theme_color_change_foreground_title">Thay đổi màu tiền cảnh</string>
+  <string name="morphe_theme_color_change_foreground_summary">Sử dụng màu chủ đề cho văn bản và biểu tượng</string>
   <string name="morphe_gradient_loading_screen_title">Bật màn hình tải màu gradient</string>
   <string name="morphe_gradient_loading_screen_summary">Hiển thị nền gradient trên màn hình tải thay vì một màu sắc đồng nhất</string>
   <string name="morphe_splash_screen_animation_style_title">Kiểu màn hình chờ</string>
@@ -995,7 +1010,7 @@ Hạn chế: Nếu tùy chọn \"Khôi phục thanh thao tác video cũ\" bị t
   <string name="morphe_header_logo_title">Logo đầu trang</string>
   <string name="morphe_header_logo_entry_1">Mặc định</string>
   <string name="morphe_header_logo_entry_2">Thông thường</string>
-  <!-- Translations should match the language used in 'morphe_custom_branding_icon_entry_3'. -->
+  <!-- Translations should match the language used in 'morphe_custom_branding_icon_entry_7'. -->
   <string name="morphe_header_logo_entry_5">Tùy chỉnh</string>
   <!-- layout.thumbnails.bypassImageRegionRestrictionsPatch -->
   <string name="morphe_bypass_image_region_restrictions_title">Xem hình ảnh không bị giới hạn khu vực</string>
@@ -1067,12 +1082,6 @@ Nhấn vào đây để truy cập DeArrow.ajay.app"</string>
   <!-- video.quality.rememberVideoQualityPatch -->
   <!-- Translations should match the language used in 'morphe_custom_playback_speeds_auto'. -->
   <string name="morphe_video_quality_default_entry_1">Tự động</string>
-  <string name="morphe_override_initial_video_quality_title">Ghi đè chất lượng video ban đầu</string>
-  <!-- 'Force AVC (H.264) codec' should be the same translation used for 'morphe_force_avc_codec_title'. -->
-  <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_override_initial_video_quality_summary">"Khắc phục sự cố trong đó chất lượng video mặc định không được áp dụng ngay sau khi video bắt đầu
-
-Hạn chế: Phát lại có thể không hoạt động trên một số thiết bị nếu 'Giả lập luồng video' được đặt thành 'Android VR' và 'Buộc codec AVC (H.264)' được bật"</string>
   <string name="morphe_remember_video_quality_last_selected_title">Nhớ chất lượng video</string>
   <string name="morphe_remember_video_quality_last_selected_summary">Áp dụng chất lượng video mà bạn đã chọn cho tất cả các video trong tương lai</string>
   <string name="morphe_remember_video_quality_last_selected_toast_title">Thông báo thay đổi chất lượng</string>
@@ -1112,6 +1121,11 @@ Hạn chế: Phát lại có thể không hoạt động trên một số thiế
   <string name="morphe_remember_playback_speed_toast">Đã đổi tốc độ phát mặc định thành: %s</string>
   <string name="morphe_disable_playback_speed_music_title">Sử dụng tốc độ phát bình thường đối với nhạc</string>
   <string name="morphe_disable_playback_speed_music_summary">Luôn phát video nhạc với tốc độ 1.0x</string>
+  <string name="morphe_enable_playback_audio_pitch_controls_title">Bật điều khiển cao độ âm thanh</string>
+  <string name="morphe_playback_audio_pitch_default_title">Cao độ phát âm thanh mặc định</string>
+  <string name="morphe_remember_playback_audio_pitch_toast">Đã thay đổi cao độ phát mặc định thành: %s</string>
+  <string name="morphe_playback_audio_time_stretching_title">Kéo dãn thời gian âm thanh</string>
+  <string name="morphe_playback_audio_time_stretching_summary">Cho phép thiết lập tốc độ và cao độ một cách độc lập, có thể gây ra nhiễu âm thanh</string>
   <!-- video.codecs.disableVideoCodecsPatch -->
   <string name="morphe_disable_hdr_video_title">Vô hiệu hóa video HDR</string>
   <string name="morphe_force_avc_codec_title">Buộc codec AVC (H.264)</string>
@@ -1149,6 +1163,7 @@ Phát video bằng AV1 có thể bị giật hoặc tụt khung hình."</string>
   <string name="morphe_spoof_video_streams_about_js">• Nếu giải mã thất bại, video có thể không phát được</string>
   <!-- "Force original audio" should match the language used in 'morphe_force_original_audio_title'. -->
   <string name="morphe_spoof_video_streams_about_no_force_original_audio">• Buộc âm thanh gốc không khả dụng</string>
+  <string name="morphe_spoof_video_streams_about_sign_in_to_vr_required">• Yêu cầu đăng nhập vào Android VR</string>
   <!-- Quality refers to video quality -->
   <string name="morphe_spoof_video_streams_about_720p_max">• Chất lượng có thể bị giới hạn ở 720p</string>
   <string name="morphe_spoof_video_streams_player_js_variant_title">Biến thể JavaScript của trình phát</string>

@@ -6,7 +6,25 @@ patches are added to this project and built together into one `.mpp` bundle.
 ## Included patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.13.4](https://github.com/Alastor-Kaneki/Morphe-Patches/releases/tag/v1.13.4)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;6 patches total
+> **[v1.14.1](https://github.com/Alastor-Kaneki/Morphe-Patches/releases/tag/v1.14.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
+<details open>
+<summary>📦 Mods AddOns for Minecraft PE&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 🧪&nbsp;2.5.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Custom download folder](#custom-download-folder) | Adds a native Android folder picker, a Download folder app shortcut and automatic saving of downloaded add-ons to the selected folder. |  |
+| [Preserve premium entitlement](#preserve-premium-entitlement) | Keeps an already-observed premium entitlement stable across local preference migrations without granting premium to a fresh install. |  |
+| [Remove ads](#remove-ads) | Disables app-open, banner, native, interstitial and rewarded ad loading while keeping the app UI flow intact. |  |
+| [Rename package](#rename-package) | Changes the Android package ID and updates the app-specific provider/permission references used for Minecraft imports. | • Package name |
+
+</details>
+
 <details open>
 <summary>📦 Suno&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>

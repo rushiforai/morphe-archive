@@ -167,6 +167,18 @@ val restrictBackgroundWorkToUpdatesPatch = bytecodePatch(
             }.addInstructions(0, workerSuccess)
         }
 
+        tracerDiskUsageInitializerFingerprint.method.addInstructions(
+            0,
+            """
+                invoke-static {p1}, Lub/t0;->l(Landroid/content/Context;)Lub/t0;
+                move-result-object v0
+                const-string v1, "tracer.disk.usage.worker"
+                invoke-virtual {v0, v1}, Ltb/j0;->a(Ljava/lang/String;)Ltb/a0;
+                return-void
+            """
+        )
+        tracerSampleUploadFingerprint.method.addInstruction(0, "return-void")
+
         omicronNetworkRequestFingerprint.method.addInstructions(
             0,
             """
@@ -197,6 +209,8 @@ val restrictBackgroundWorkToUpdatesPatch = bytecodePatch(
                 move-object/from16 v0, p0
                 iget-object v0, v0, Lru/vk/store/feature/install/identifier/impl/presentation/a;->d:Ltb/j0;
                 const-string v1, "InstallIdentifierSyncWorker"
+                invoke-virtual {v0, v1}, Ltb/j0;->a(Ljava/lang/String;)Ltb/a0;
+                const-string v1, "tracer.disk.usage.worker"
                 invoke-virtual {v0, v1}, Ltb/j0;->a(Ljava/lang/String;)Ltb/a0;
                 sget-object v0, Lut0/e0;->a:Lut0/e0;
                 return-object v0

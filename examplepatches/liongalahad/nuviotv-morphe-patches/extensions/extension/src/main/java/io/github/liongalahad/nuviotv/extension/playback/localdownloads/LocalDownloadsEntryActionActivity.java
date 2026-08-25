@@ -67,6 +67,7 @@ public final class LocalDownloadsEntryActionActivity extends Activity {
         play.requestFocus();
     }
 
+    @android.annotation.SuppressLint("GestureBackNavigation")
     @Override public void onBackPressed() {
         LocalDownloadsRuntime.cancelPendingDelete();
         finish();

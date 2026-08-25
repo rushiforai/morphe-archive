@@ -1,3 +1,5 @@
+import java.util.zip.ZipFile
+
 group = "io.github.liongalahad.nuviotv"
 
 patches {
@@ -29,6 +31,30 @@ dependencies {
 }
 
 tasks {
+    val verifyAndroidBundle = register("verifyAndroidBundle") {
+        description = "Verify the release patch bundle contains Android DEX bytecode"
+
+        dependsOn("buildAndroid")
+
+        doLast {
+            val patchFile = layout.buildDirectory.file("libs/patches-${project.version}.mpp").get().asFile
+            require(patchFile.isFile) { "Android patch bundle does not exist: $patchFile" }
+
+            ZipFile(patchFile).use { archive ->
+                val dexEntries = archive.entries().asSequence()
+                    .filter { !it.isDirectory && it.name.substringAfterLast('/').matches(Regex("classes\\d*\\.dex")) }
+                    .toList()
+
+                require(dexEntries.isNotEmpty()) {
+                    "Android patch bundle is missing DEX entries: $patchFile"
+                }
+                require(dexEntries.all { it.size > 0L }) {
+                    "Android patch bundle contains an empty DEX entry: $patchFile"
+                }
+            }
+        }
+    }
+
     processResources {
         inputs.property("morphePatchVersion", project.version.toString())
         filesMatching("morphe-build.properties") {
@@ -39,7 +65,9 @@ tasks {
     register<JavaExec>("generatePatchesList") {
         description = "Build patch with patch list"
 
-        dependsOn(build)
+        // The published bundle is consumed on Android by Morphe Manager. Building only the
+        // JVM archive leaves out classes.dex and makes Manager report zero patches.
+        dependsOn(verifyAndroidBundle)
 
         classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath
         mainClass.set("util.PatchListGeneratorKt")

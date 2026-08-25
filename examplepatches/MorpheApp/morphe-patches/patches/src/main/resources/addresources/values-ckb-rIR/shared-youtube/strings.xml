@@ -21,6 +21,8 @@ Second \"item\" text"</string>
   <string name="morphe_restart_first_run">دەستپێکردنەوە بۆ تەواوکردنی ئامادەکردن</string>
   <!-- layout.branding.baseCustomBrandingPatch -->
   <string name="morphe_custom_branding_name_title">ناوی ئەپ</string>
+  <!-- layout.theme.baseThemePatch -->
+  <string name="morphe_theme_color_custom_entry">باو</string>
   <!-- interaction.downloads.downloadsPatch -->
   <string name="morphe_external_downloader_screen_title">دانه‌کانی دەرەکی</string>
   <string name="morphe_external_downloader_name_title">Downloader package name</string>
@@ -97,7 +99,7 @@ Da te'îl bikin, li ser berdewam bikin xwarê"</string>
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">شاردنەوەی ڕیکلامەکانی پڕ شاشە</string>
   <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
-          'Android Studio' must be kept untranslated. -->
+          'Android Studio' and 'Android VR Downgraded' must be kept untranslated. -->
   <!-- misc.privacy.sanitizeSharingLinksPatch -->
   <string name="morphe_sanitize_sharing_links_title">خەڵەتەکانی هەڵواسانی دەړووستن</string>
   <string name="morphe_sanitize_sharing_links_summary">پارامیتەرەکانی بەدواکەوتنی پرس لە لینکە هاوبەشەکان لادەبات</string>

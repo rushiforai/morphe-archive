@@ -21,6 +21,25 @@ Second \"item\" text"</string>
   <string name="morphe_restart_first_run">Za dokončanje nastavitve znova zaženite aplikacijo</string>
   <!-- layout.branding.baseCustomBrandingPatch -->
   <string name="morphe_custom_branding_name_title">Ime aplikacije</string>
+  <!-- layout.theme.baseThemePatch -->
+  <string name="morphe_theme_color_dark_title">Ozadje temne teme</string>
+  <string name="morphe_theme_color_dark_entry_2">Čisto črna</string>
+  <string name="morphe_theme_color_dark_entry_3">Material You (čisto črna)</string>
+  <string name="morphe_theme_color_dark_entry_9">Klasični YouTube</string>
+  <string name="morphe_theme_color_dark_entry_10">Temno rožnata</string>
+  <string name="morphe_theme_color_dark_entry_11">Temno modra</string>
+  <string name="morphe_theme_color_dark_entry_12">Temno zelena</string>
+  <string name="morphe_theme_color_dark_entry_13">Temno rumena</string>
+  <string name="morphe_theme_color_dark_entry_14">Temno oranžna</string>
+  <string name="morphe_theme_color_dark_entry_15">Temno rdeča</string>
+  <string name="morphe_theme_color_dark_custom_title">Prilagojeno temno ozadje</string>
+  <string name="morphe_theme_color_dark_custom_summary">Nastavi barvo ozadja temne teme</string>
+  <string name="morphe_theme_color_entry_1">Privzeto v aplikaciji</string>
+  <string name="morphe_theme_color_entry_4">Material You (nevtralna)</string>
+  <string name="morphe_theme_color_entry_5">Material You (primarna)</string>
+  <string name="morphe_theme_color_entry_6">Material You (sekundarna)</string>
+  <string name="morphe_theme_color_entry_7">Material You (terciarna)</string>
+  <string name="morphe_theme_color_custom_entry">Prilagoditve</string>
   <!-- interaction.downloads.downloadsPatch -->
   <string name="morphe_external_downloader_screen_title">Zunanji prenosi</string>
   <string name="morphe_external_downloader_name_title">Ime paketa programa za prenos</string>
@@ -133,8 +152,8 @@ Pritisnite \"nadaljujte\", da se prijavite"</string>
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">Onemogoči oglas s polnim zaslonom</string>
   <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
-          'Android Studio' must be kept untranslated. -->
-  <string name="morphe_force_original_audio_not_available">Za uporabo te funkcije spremenite \"Spoof video streams\" v kakega drugega odjemalca razen \"Android Studio\".</string>
+          'Android Studio' and 'Android VR Downgraded' must be kept untranslated. -->
+  <string name="morphe_force_original_audio_not_available">Če želite uporabiti to funkcijo, spremenite \'Spoof video streams\' v katerega koli odjemalca razen \'Android Studio\' in \'Android VR Downgraded\'</string>
   <!-- misc.privacy.sanitizeSharingLinksPatch -->
   <string name="morphe_sanitize_sharing_links_title">Čisti povezave za deljenje</string>
   <string name="morphe_sanitize_sharing_links_summary">Odstrani spremljajoče parametre poizvedbe iz deljenih povezav</string>

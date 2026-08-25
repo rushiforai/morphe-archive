@@ -21,6 +21,25 @@ Second \"item\" text"</string>
   <string name="morphe_restart_first_run">সেটআপ সম্পন্ন করতে রিস্টার্ট করুন</string>
   <!-- layout.branding.baseCustomBrandingPatch -->
   <string name="morphe_custom_branding_name_title">অ্যাপের নাম</string>
+  <!-- layout.theme.baseThemePatch -->
+  <string name="morphe_theme_color_dark_title">ডার্ক থিমের পটভূমি</string>
+  <string name="morphe_theme_color_dark_entry_2">খাঁটি কালো</string>
+  <string name="morphe_theme_color_dark_entry_3">Material You (খাঁটি কালো)</string>
+  <string name="morphe_theme_color_dark_entry_9">ক্লাসিক YouTube</string>
+  <string name="morphe_theme_color_dark_entry_10">গাঢ় গোলাপি</string>
+  <string name="morphe_theme_color_dark_entry_11">গাঢ় নীল</string>
+  <string name="morphe_theme_color_dark_entry_12">গাঢ় সবুজ</string>
+  <string name="morphe_theme_color_dark_entry_13">গাঢ় হলুদ</string>
+  <string name="morphe_theme_color_dark_entry_14">গাঢ় কমলা</string>
+  <string name="morphe_theme_color_dark_entry_15">গাঢ় লাল</string>
+  <string name="morphe_theme_color_dark_custom_title">কাস্টম গাঢ় পটভূমি</string>
+  <string name="morphe_theme_color_dark_custom_summary">ডার্ক থিমের ব্যাকগ্রাউন্ড রঙ সেট করুন</string>
+  <string name="morphe_theme_color_entry_1">অ্যাপ ডিফল্ট</string>
+  <string name="morphe_theme_color_entry_4">Material You (নিউট্রাল)</string>
+  <string name="morphe_theme_color_entry_5">Material You (প্রাইমারি)</string>
+  <string name="morphe_theme_color_entry_6">Material You (সেকেন্ডারি)</string>
+  <string name="morphe_theme_color_entry_7">Material You (টারশিয়ারি)</string>
+  <string name="morphe_theme_color_custom_entry">কাস্টম</string>
   <!-- interaction.downloads.downloadsPatch -->
   <string name="morphe_external_downloader_screen_title">বাহিরে ডাউনলোড</string>
   <string name="morphe_external_downloader_name_title">ডাউনলোডারের প্যাকেজ নাম</string>
@@ -133,8 +152,8 @@ Second \"item\" text"</string>
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">পূর্ণ স্ক্রীন প্যানেল লুকান</string>
   <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
-          'Android Studio' must be kept untranslated. -->
-  <string name="morphe_force_original_audio_not_available">এই বৈশিষ্ট্যটি ব্যবহার করতে, \'ভিডিও স্ট্রিম স্পুফ করুন\' অ্যান্ড্রয়েড স্টুডিও ছাড়া অন্য কোনো ক্লায়েন্টে পরিবর্তন করুন।</string>
+          'Android Studio' and 'Android VR Downgraded' must be kept untranslated. -->
+  <string name="morphe_force_original_audio_not_available">এই বৈশিষ্ট্যটি ব্যবহার করতে, \'ভিডিও স্ট্রিম স্পুফ করুন\' \'Android Studio\' এবং \'Android VR Downgraded\' ছাড়া অন্য কোনো ক্লায়েন্টে পরিবর্তন করুন</string>
   <!-- misc.privacy.sanitizeSharingLinksPatch -->
   <string name="morphe_sanitize_sharing_links_title">শেয়ারিং লিঙ্ক স্যানিটাইজ করুন</string>
   <string name="morphe_sanitize_sharing_links_summary">শেয়ার করা লিঙ্ক থেকে ট্র্যাকিং ক্যোয়ারি প্যারামিটার সরানো হয়েছে</string>

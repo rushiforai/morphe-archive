@@ -490,13 +490,10 @@ val disableBackgroundHooksPatch = resourcePatch(
 
     execute {
         val direct = linkedMapOf(
-            "android.permission.RECEIVE_BOOT_COMPLETED" to
-                "android.permission.XECEIVE_BOOT_COMPLETED",
             "android.permission.CHANGE_WIFI_STATE" to "android.permission.XHANGE_WIFI_STATE",
             "android.permission.CHANGE_NETWORK_STATE" to
                 "android.permission.XHANGE_NETWORK_STATE",
             "android.permission.BIND_VPN_SERVICE" to "android.permission.XIND_VPN_SERVICE",
-            "android.intent.action.BOOT_COMPLETED" to "android.intent.action.XOOT_COMPLETED",
             "android.net.VpnService" to "android.net.XpnService"
         )
         val prefixes = linkedMapOf(
@@ -511,6 +508,41 @@ val disableBackgroundHooksPatch = resourcePatch(
                 direct.keys,
                 prefixes.keys
             )
+
+            val bootCompleted = "android.intent.action.BOOT_COMPLETED"
+            val disabledBootCompleted = "android.intent.action.XOOT_COMPLETED"
+            val workManagerReceiver =
+                "androidx.work.impl.background.systemalarm.RescheduleReceiver"
+            var preservedWorkManagerActions = 0
+            var disabledBootActions = 0
+            val actions = document.getElementsByTagName("action")
+            for (index in 0 until actions.length) {
+                val action = actions.item(index) as Element
+                if (action.getAttribute("android:name") != bootCompleted) continue
+
+                var parent = action.parentNode
+                while (parent is Element && parent.tagName != "receiver") {
+                    parent = parent.parentNode
+                }
+                require(parent is Element) {
+                    "Background hooks BOOT_COMPLETED action has no receiver"
+                }
+                if (parent.getAttribute("android:name") == workManagerReceiver) {
+                    preservedWorkManagerActions++
+                } else {
+                    action.setAttribute("android:name", disabledBootCompleted)
+                    disabledBootActions++
+                }
+            }
+            require(preservedWorkManagerActions == 1) {
+                "WorkManager reboot rescheduler manifest anchor changed"
+            }
+            require(disabledBootActions > 0) {
+                "Background hooks BOOT_COMPLETED manifest anchor is missing"
+            }
+            require("android.permission.RECEIVE_BOOT_COMPLETED" in document.attributeValues()) {
+                "WorkManager reboot permission is missing"
+            }
         }
     }
 }

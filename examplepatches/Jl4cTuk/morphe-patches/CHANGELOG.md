@@ -1,3 +1,62 @@
+## [1.3.0](https://github.com/Jl4cTuk/morphe-patches/compare/v1.2.0...v1.3.0) (2026-08-24)
+
+### 🐛 Bug Fixes
+
+* disable remaining RuStore analytics paths ([d2a44cf](https://github.com/Jl4cTuk/morphe-patches/commit/d2a44cffbfb6a8779d5e75d8b42224c92fc5b2d5))
+* disable remaining RuStore loyalty and cashback paths ([cf8a9f9](https://github.com/Jl4cTuk/morphe-patches/commit/cf8a9f9ffcf1d35e7d9e3954535953069de0a26e))
+* disable unsolicited RuStore VK ID prompt ([9f42421](https://github.com/Jl4cTuk/morphe-patches/commit/9f42421f48f90c2ab280aa26c462e703da4c172e))
+* enable classic RuStore Mine layout by default ([3c00334](https://github.com/Jl4cTuk/morphe-patches/commit/3c00334527653a6ae12c960b9e018aadb77fb4f3))
+* hide RuStore Featured and Games tabs before rendering ([595bcb7](https://github.com/Jl4cTuk/morphe-patches/commit/595bcb734b68225ec69dc46ffedff919c4204873))
+* prevent RuStore gaming profile initialization ([2caf4a8](https://github.com/Jl4cTuk/morphe-patches/commit/2caf4a839faecf77cd072911bf3af03374d8cc16))
+* prevent RuStore notification button initialization ([5602122](https://github.com/Jl4cTuk/morphe-patches/commit/560212221d70b0174f23d0c8d49b0b79444ed4ab))
+* remove remaining RuStore promo and recommendation ads ([82782fc](https://github.com/Jl4cTuk/morphe-patches/commit/82782fc5c6a18c6f039be5bebff0b28aae3e7165))
+* restore Ozon Bank patch compatibility on 19.31.0 ([d73b980](https://github.com/Jl4cTuk/morphe-patches/commit/d73b980c18b3660726f49295d49804f31329b308))
+* restore Ozon patches on 19.31.0 ([0440e25](https://github.com/Jl4cTuk/morphe-patches/commit/0440e2589cf9cbf47d93b28736c983099770fd5a))
+* restore RuStore patches on 1.108.0.2 ([c952208](https://github.com/Jl4cTuk/morphe-patches/commit/c95220850b5957255cdda7a0b4083561310494f5))
+
+### ✨ New Features
+
+* add Ozon Bank cleanup patches ([e98d203](https://github.com/Jl4cTuk/morphe-patches/commit/e98d203b4657cae66b65bf809b72b2982603b504))
+* add RuStore loyalty, gaming, navigation, and notification cleanup options ([b1e1d9b](https://github.com/Jl4cTuk/morphe-patches/commit/b1e1d9b758567eadbbd75b1d4684cc2c4ece46d7))
+* exclude Google Play apps from RuStore updates ([34def52](https://github.com/Jl4cTuk/morphe-patches/commit/34def520dd463a027a7717706a21661fda2c35aa))
+
+## [1.3.0-dev.4](https://github.com/Jl4cTuk/morphe-patches/compare/v1.3.0-dev.3...v1.3.0-dev.4) (2026-08-24)
+
+### 🐛 Bug Fixes
+
+* restore Ozon Bank patch compatibility on 19.31.0 ([d73b980](https://github.com/Jl4cTuk/morphe-patches/commit/d73b980c18b3660726f49295d49804f31329b308))
+* restore Ozon patches on 19.31.0 ([0440e25](https://github.com/Jl4cTuk/morphe-patches/commit/0440e2589cf9cbf47d93b28736c983099770fd5a))
+
+## [1.3.0-dev.3](https://github.com/Jl4cTuk/morphe-patches/compare/v1.3.0-dev.2...v1.3.0-dev.3) (2026-08-23)
+
+### 🐛 Bug Fixes
+
+* disable remaining RuStore analytics paths ([d2a44cf](https://github.com/Jl4cTuk/morphe-patches/commit/d2a44cffbfb6a8779d5e75d8b42224c92fc5b2d5))
+* disable remaining RuStore loyalty and cashback paths ([cf8a9f9](https://github.com/Jl4cTuk/morphe-patches/commit/cf8a9f9ffcf1d35e7d9e3954535953069de0a26e))
+* hide RuStore Featured and Games tabs before rendering ([595bcb7](https://github.com/Jl4cTuk/morphe-patches/commit/595bcb734b68225ec69dc46ffedff919c4204873))
+* prevent RuStore gaming profile initialization ([2caf4a8](https://github.com/Jl4cTuk/morphe-patches/commit/2caf4a839faecf77cd072911bf3af03374d8cc16))
+* prevent RuStore notification button initialization ([5602122](https://github.com/Jl4cTuk/morphe-patches/commit/560212221d70b0174f23d0c8d49b0b79444ed4ab))
+* remove remaining RuStore promo and recommendation ads ([82782fc](https://github.com/Jl4cTuk/morphe-patches/commit/82782fc5c6a18c6f039be5bebff0b28aae3e7165))
+* restore RuStore patches on 1.108.0.2 ([c952208](https://github.com/Jl4cTuk/morphe-patches/commit/c95220850b5957255cdda7a0b4083561310494f5))
+
+## [1.3.0-dev.2](https://github.com/Jl4cTuk/morphe-patches/compare/v1.3.0-dev.1...v1.3.0-dev.2) (2026-08-01)
+
+### 🐛 Bug Fixes
+
+* disable unsolicited RuStore VK ID prompt ([9f42421](https://github.com/Jl4cTuk/morphe-patches/commit/9f42421f48f90c2ab280aa26c462e703da4c172e))
+* enable classic RuStore Mine layout by default ([3c00334](https://github.com/Jl4cTuk/morphe-patches/commit/3c00334527653a6ae12c960b9e018aadb77fb4f3))
+
+### ✨ New Features
+
+* add RuStore loyalty, gaming, navigation, and notification cleanup options ([b1e1d9b](https://github.com/Jl4cTuk/morphe-patches/commit/b1e1d9b758567eadbbd75b1d4684cc2c4ece46d7))
+* exclude Google Play apps from RuStore updates ([34def52](https://github.com/Jl4cTuk/morphe-patches/commit/34def520dd463a027a7717706a21661fda2c35aa))
+
+## [1.3.0-dev.1](https://github.com/Jl4cTuk/morphe-patches/compare/v1.2.0...v1.3.0-dev.1) (2026-07-31)
+
+### ✨ New Features
+
+* add Ozon Bank cleanup patches ([e98d203](https://github.com/Jl4cTuk/morphe-patches/commit/e98d203b4657cae66b65bf809b72b2982603b504))
+
 ## [1.2.0](https://github.com/Jl4cTuk/morphe-patches/compare/v1.1.0...v1.2.0) (2026-07-27)
 
 ### 🐛 Bug Fixes

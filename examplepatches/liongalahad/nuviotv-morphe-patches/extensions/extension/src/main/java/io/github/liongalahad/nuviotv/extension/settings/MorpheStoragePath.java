@@ -2,6 +2,7 @@ package io.github.liongalahad.nuviotv.extension.settings;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
@@ -51,6 +52,69 @@ public final class MorpheStoragePath {
     public static Uri uri() {
         String stored = value();
         return stored == null || stored.isEmpty() ? Uri.fromFile(defaultFolder()) : Uri.parse(stored);
+    }
+
+    /** Whether the selected location currently permits creating and removing download files. */
+    public static boolean isWritableSelection(Context context) {
+        return context != null && isWritableSelection(context, uri());
+    }
+
+    public static boolean isWritableSelection(Context context, Uri location) {
+        return isWritableSelection(context, location, false);
+    }
+
+    /** The default download directory may be created on first use; saved selections may not. */
+    public static boolean isWritableSelection(
+            Context context,
+            Uri location,
+            boolean allowCreateDirectory
+    ) {
+        if (context == null || location == null) return false;
+        if ("file".equalsIgnoreCase(location.getScheme())) {
+            return hasRawWriteAccess(context) && location.getPath() != null &&
+                    prepareWritableDirectory(new File(location.getPath()), allowCreateDirectory);
+        }
+        if (!"content".equalsIgnoreCase(location.getScheme())) return false;
+        try {
+            for (android.content.UriPermission permission :
+                    context.getContentResolver().getPersistedUriPermissions()) {
+                if (location.equals(permission.getUri()) && permission.isWritePermission()) return true;
+            }
+        } catch (RuntimeException ignored) { }
+        return false;
+    }
+
+    static boolean hasRawWriteAccess(Context context) {
+        boolean allFilesAccess = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
+                Environment.isExternalStorageManager();
+        boolean legacyWriteAccess = context.checkSelfPermission(
+                android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        return hasRawWriteAccess(Build.VERSION.SDK_INT, allFilesAccess, legacyWriteAccess);
+    }
+
+    static boolean hasRawWriteAccess(int sdk, boolean allFilesAccess, boolean legacyWriteAccess) {
+        return sdk >= Build.VERSION_CODES.R ? allFilesAccess : legacyWriteAccess;
+    }
+
+    /** Uses a real create/delete probe because readable and mounted do not imply writable. */
+    static boolean isWritableDirectory(File folder) {
+        if (folder == null || !folder.isDirectory() || !folder.canWrite()) return false;
+        File probe = null;
+        try {
+            probe = File.createTempFile(".morphe-write-", ".tmp", folder);
+            return probe.delete();
+        } catch (IOException | SecurityException ignored) {
+            return false;
+        } finally {
+            if (probe != null && probe.exists()) probe.delete();
+        }
+    }
+
+    static boolean prepareWritableDirectory(File folder, boolean allowCreateDirectory) {
+        if (folder == null) return false;
+        if (!folder.isDirectory() && (!allowCreateDirectory ||
+                (!folder.mkdirs() && !folder.isDirectory()))) return false;
+        return isWritableDirectory(folder);
     }
 
     public static File defaultFolder() {

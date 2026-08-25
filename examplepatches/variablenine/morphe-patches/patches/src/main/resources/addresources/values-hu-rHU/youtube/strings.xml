@@ -84,6 +84,9 @@ A változások a következőket tartalmazzák:
   <string name="morphe_hide_latest_videos_button_summary">A Kezdőlap tetején megjelenő kék „Legújabb videók” sáv elrejtése</string>
   <string name="morphe_hide_mix_playlists_title">Egyveleg lejátszási listák elrejtése</string>
   <string name="morphe_hide_movies_section_title">Filmek szekció elrejtése</string>
+  <!-- 'Notifications' should be translated using the same localized wording YouTube displays for the menu item. -->
+  <string name="morphe_hide_notifications_menu_header_title">Értesítések menüfejcsze elrejtése</string>
+  <string name="morphe_hide_notifications_menu_header_summary">Elrejti az Értesítések menüfejcszét a harang gomb megnyomásakor</string>
   <!-- 'Notify me' should be translated using the same localized wording YouTube displays for the button.
           This button usually appears in the Subscriptions feed for future livestreams or unreleased videos. -->
   <string name="morphe_hide_notify_me_button_title">\"Értesíts\" gomb elrejtése</string>
@@ -251,6 +254,8 @@ A változások a következőket tartalmazzák:
   <string name="morphe_hide_comments_gift_button_title">Ajándék gomb elrejtése</string>
   <string name="morphe_hide_comments_info_button_title">Információ gomb elrejtése</string>
   <string name="morphe_hide_comments_live_chat_donators_bar_title">Élő csevegés támogatói sávjának elrejtése</string>
+  <string name="morphe_hide_comments_live_chat_tooltips_title">Élő csevegés tooltippjeinek elrejtése</string>
+  <string name="morphe_hide_comments_live_chat_tooltips_summary">Elrejti a csevegési beviteli sáv közelében megjelenő tooltipp popupokat, például a csak feliratkozottakra vonatkozó csevegési értesítést</string>
   <string name="morphe_hide_comments_preview_comment_title">Megjegyzés előnézet elrejtése</string>
   <string name="morphe_hide_comments_preview_comment_summary">Megjegyzések előnézetének elrejtése a teljes megjegyzések szekció megnyitása előtt</string>
   <string name="morphe_hide_comments_thanks_button_title">Köszönet gomb elrejtése</string>
@@ -493,16 +498,17 @@ Figyelem: Lehet, hogy az élő közvetítéseknél nem működik"</string>
   <!-- interaction.seekbar.seekbarThumbnailPreviewPatch -->
   <string name="morphe_seekbar_thumbnail_preview_title">Engedélyezze a keresősáv bélyegképeit</string>
   <string name="morphe_seekbar_thumbnail_preview_summary">Videó bélyegképet jelenít meg a keresősáv húzásakor</string>
+  <string name="morphe_seekbar_thumbnail_heatmap_peak_point">Legtöbbször újrajátszott</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_livestream_dvr_not_available">"'Élő közvetítés DVR engedélyezése' lehet, hogy nem áll rendelkezésre
+  <string name="morphe_livestream_dvr_not_available">"Előfordulhat, hogy az 'Élő közvetítés DVR engedélyezése' nem érhető el.
 
-Ennek javításához kapcsold be a 'Videostreamek meghamisítását' és módosítsd az 'Alapértelmezett kliens' értékét 'TV'-re vagy 'visionOS'-re"</string>
+A javításhoz kapcsold be a 'Videóstreamek meghamisítása' opciót, és módosítsd az 'Alapértelmezett kliens' értékét a következőre: 'TV Simply' vagy 'visionOS'."</string>
   <string name="morphe_expand_livestream_dvr_duration_title">Bővítsd a közvetítés DVR idejét</string>
   <string name="morphe_expand_livestream_dvr_duration_summary">Lehetővé teszi élő adások visszatekerését a múltba maximum 7 nappal</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_expand_livestream_dvr_duration_not_available">"'Élő közvetítés DVR időtartamának kiterjesztése' nem biztos, hogy elérhető
+  <string name="morphe_expand_livestream_dvr_duration_not_available">"Előfordulhat, hogy az 'Élő közvetítés DVR-időtartamának bővítése' nem érhető el.
 
-A javításhoz kapcsolja be a 'Videóstreamek meghamisítása' opciót, és módosítsa az 'Alapértelmezett kliens' beállítást 'TV'-re vagy 'visionOS'-re"</string>
+A javításhoz kapcsold be a 'Videóstreamek meghamisítása' opciót, és módosítsd az 'Alapértelmezett kliens' értékét a következőre: 'TV Simply' vagy 'visionOS'."</string>
   <!-- interaction.seekbar.enableSlideToSeekPatch -->
   <string name="morphe_slide_to_seek_title">Csúsztatás engedélyezése a kereséshez</string>
   <string name="morphe_slide_to_seek_summary">Engedélyezi a videólejátszó megnyomása és tartása közbeni csúsztatást a kétszeres sebességű lejátszás helyett</string>
@@ -510,15 +516,18 @@ A javításhoz kapcsolja be a 'Videóstreamek meghamisítása' opciót, és mód
   <string name="morphe_tap_to_seek_title">Érintésre keresés engedélyezése</string>
   <string name="morphe_tap_to_seek_summary">Csak koppintson meg a lejátszósávra, hogy átugorjon arra a pozícióra anélkül, hogy azt húzná</string>
   <!-- interaction.swipecontrols.swipeControlsPatch -->
-  <string name="morphe_swipe_brightness_title">Fényerő kézmozdulat engedélyezése</string>
-  <string name="morphe_swipe_brightness_summary">A bal oldalon függőlegesen történő gesztus állítja a fényerőt a teljes képernyős módban</string>
-  <string name="morphe_swipe_volume_title">Hangerő kézmozdulat engedélyezése</string>
-  <string name="morphe_swipe_volume_summary">A jobb oldalon függőlegesen történő gesztus állítja a hangerőt a teljes képernyős módban</string>
-  <string name="morphe_swipe_zone_width_title">Fényerő/hangerő zóna szélessége</string>
-  <string name="morphe_swipe_zone_width_summary">A képernyő széleinek az a százaléka, amely lefoglalva van a fényerő és hangerő vezérléséhez (5-50)</string>
+  <string name="morphe_swipe_left_zone_title">Balra törölés gesztus</string>
+  <string name="morphe_swipe_right_zone_title">Jobbra törölés gesztus</string>
+  <string name="morphe_swipe_top_zone_title">Felfelé törölés gesztus</string>
+  <string name="morphe_swipe_zone_width_title">Bal/Jobb zóna szélessége</string>
+  <string name="morphe_swipe_zone_width_summary">A képernyő szélének százaléka, amely a balra és jobbra történő törlési gesztusok számára reserved (5-50)</string>
   <string name="morphe_swipe_zone_label_brightness">Fényerő</string>
   <string name="morphe_swipe_zone_label_volume">Hangerő</string>
   <string name="morphe_swipe_zone_label_native">Natív</string>
+  <string name="morphe_swipe_zone_label_off">Ki</string>
+  <string name="morphe_swipe_ignore_when_locked_title">Kezelés figyelmen kívül hagyása zároláskor</string>
+  <!-- 'Lock screen' should be translated using the same localized wording YouTube displays for the player menu item. -->
+  <string name="morphe_swipe_ignore_when_locked_summary">A csúsztatási gesztusok nem működnek, ha a lejátszó zárolva van a „Képernyő lezárása” funkcióval</string>
   <string name="morphe_swipe_press_to_engage_title">Csúsztatáshoz nyomva tartás engedélyezése</string>
   <string name="morphe_swipe_press_to_engage_summary">A csúsztatási gesztus felismerése előtt meg kell nyomni és nyomva tartani.</string>
   <string name="morphe_swipe_haptic_feedback_title">Haptikus visszajelzés engedélyezése</string>
@@ -547,12 +556,9 @@ A javításhoz kapcsolja be a 'Videóstreamek meghamisítása' opciót, és mód
   <string name="morphe_swipe_volume_sensitivity_summary">A nagyobb értékek növelik a hangerőváltozást egy húzás során</string>
   <string name="morphe_swipe_brightness_sensitivity_title">Fényerő-húzásérzékenység</string>
   <string name="morphe_swipe_brightness_sensitivity_summary">A nagyobb értékek több húzást igényelnek a fényerő lépésenkénti változásához</string>
-  <string name="morphe_swipe_speed_title">A sebességkézmozdulat engedélyezése</string>
-  <string name="morphe_swipe_speed_summary">A teljes képernyős módban húzza vízszintesen az felső zónában a lejátszási sebesség módosításához</string>
   <string name="morphe_swipe_speed_sensitivity_title">Sebesség-húzásérzékenység</string>
   <string name="morphe_swipe_speed_sensitivity_summary">A nagyobb értékek több húzást igényelnek a sebesség lépésenkénti változásához</string>
   <string name="morphe_swipe_speed_step_title">Sebességlépés</string>
-  <string name="morphe_swipe_speed_step_summary">A lejátszási sebesség egy lépésenkénti változása</string>
   <string name="morphe_swipe_speed_zone_height_title">A sebesség zónájának magassága</string>
   <string name="morphe_swipe_speed_zone_height_summary">A sebességkézmozdulat zónájának magassága a lejátszó magasságának százalékában (5-75)</string>
   <string name="morphe_swipe_zone_label_speed">Sebesség</string>
@@ -680,15 +686,8 @@ A Beállítások eléréséhez engedje a Beállítások gombot a Általános →
   <string name="morphe_navigation_bar_animations_summary">Animálja az átmeneteket a lapok között váltáskor</string>
   <string name="morphe_disable_auto_hide_navigation_bar_title">Kapcsold ki az automatikus elrejtést a navigációs sávra</string>
   <string name="morphe_disable_auto_hide_navigation_bar_summary">A navigációs sáv látható marad a görgetés közben</string>
-  <string name="morphe_disable_translucent_status_bar_title">Átlátszó állapotsor letiltása</string>
-  <string name="morphe_disable_translucent_status_bar_summary">Teljesen átlátszatlanná teszi az állapot sort</string>
-  <string name="morphe_disable_translucent_status_bar_user_dialog_message">"Limitációk:
-• Fekete sáv jelenhet meg a videólejátszó tetején.
-• A rendszer navigációs sávja átlátszóvá válhat, és nem lehetséges a videók megjegyzése."</string>
-  <string name="morphe_disable_translucent_navigation_bar_light_title">Világos, átlátszó sáv letiltása</string>
-  <string name="morphe_disable_translucent_navigation_bar_light_summary">Teljesen átlátszatlanná teszi a navigációs sort világos módban</string>
-  <string name="morphe_disable_translucent_navigation_bar_dark_title">Sötét áttetsző sáv letiltása</string>
-  <string name="morphe_disable_translucent_navigation_bar_dark_summary">Teljesen átlátszatlanná teszi a navigációs sort sötét módban</string>
+  <string name="morphe_disable_translucent_navigation_title">Átlátszó navigációs sáv letiltása</string>
+  <string name="morphe_disable_translucent_navigation_summary">Teljesen átlátszatlaná teszi a navigációs és az állapotsort</string>
   <string name="morphe_toolbar_screen_title">Eszközevek sorozata</string>
   <string name="morphe_toolbar_screen_summary">Válassza ki, mely komponensek jelenjenek meg az eszköztáron</string>
   <string name="morphe_hide_toolbar_cast_button_title">Átküldés gomb elrejtése</string>
@@ -707,10 +706,10 @@ A Beállítások eléréséhez engedje a Beállítások gombot a Általános →
   <!-- 'Audio Track' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_player_flyout_audio_track_title">Hangszám menü elrejtése</string>
   <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
-          'Android Studio' must be kept untranslated. -->
-  <string name="morphe_hide_player_flyout_audio_track_not_available">"Az \"Audiósáv\" menü el van rejtve.
+          'Android Studio' and 'Android VR Downgraded' must be kept untranslated. -->
+  <string name="morphe_hide_player_flyout_audio_track_not_available">"'Audio Track' menü el van rejtve
 
-Az \"Audiósáv\" menü megjelenítéséhez módosítsa a \"Videóstreamek hamisítása\" beállítást bármely kliensre, kivéve az \"Android Studio\"-t."</string>
+Az 'Audio Track' menü megjelenítéséhez állítsa a 'Videóstream-ek megtévesztése' beállítást bármely olyan kliensre, amely nem az 'Android Studio' és nem az 'Android VR Downgraded'."</string>
   <string name="morphe_hide_player_flyout_audio_track_footer_title">Hangszám menü lábléc elrejtése</string>
   <!-- 'Captions' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_player_flyout_captions_title">Feliratok menü elrejtése</string>
@@ -901,8 +900,8 @@ Korlátozás: Ha a „Régi videós eszköztár visszaállítása” ki van kapc
   <!-- layout.music.overrideYouTubeMusicButtonsPatch -->
   <string name="morphe_override_youtube_music_buttons_title">A YouTube Music gombok felülbírálása</string>
   <string name="morphe_override_youtube_music_buttons_summary">A kívánt zenealkalmazást nyitja meg az alapértelmezett YouTube Music alkalmazás helyett</string>
-  <string name="morphe_music_package_name_title">A zenelejátszó csomag neve</string>
-  <string name="morphe_music_package_name_summary">A telepített zenelejátszó csomag neve</string>
+  <string name="morphe_custom_music_package_name_title">Zenealkalmazás csomagneve</string>
+  <string name="morphe_custom_music_package_name_summary">A telepített zenealkalmazás csomagneve</string>
   <!-- layout.startpage.changeStartPagePatch -->
   <string name="morphe_change_start_page_title">Kezdőlap</string>
   <string name="morphe_change_start_page_entry_default">Alapértelmezett</string>
@@ -952,7 +951,7 @@ Korlátozás: Ha a „Régi videós eszköztár visszaállítása” ki van kapc
   <string name="morphe_miniplayer_disable_resuming_summary">Letiltja a „Folytatás” minilejátszót, a YouTube Premium funkciót, amely az alkalmazás indításakor jelenik meg.</string>
   <string name="morphe_miniplayer_screen_title">Minilejátszó</string>
   <string name="morphe_miniplayer_screen_summary">A minimalizált videólejátszó megjelenésének és viselkedésének testreszabása</string>
-  <string name="morphe_miniplayer_not_available_summary">A YouTube eltávolították az összes kiegyszítő miniablakot. A miniablak típusa változtatásához a YouTube 21.28.207-es vagy annál ösibb verziójavítását kell alkalmazni.</string>
+  <string name="morphe_miniplayer_not_available_summary">A YouTube eltávolította az összes további miniplayert. A miniplayer típusának megváltoztatásához patcheld a YouTube 21.28.208 vagy régebbi verzióját.</string>
   <string name="morphe_miniplayer_type_title">Minilejátszó típus</string>
   <string name="morphe_miniplayer_type_entry_0">Kikapcsolva</string>
   <string name="morphe_miniplayer_type_entry_1">Alapértelmezett</string>
@@ -978,7 +977,22 @@ Korlátozás: Ha a „Régi videós eszköztár visszaállítása” ki van kapc
   <string name="morphe_miniplayer_opacity_title">Átfedés átlátszósága</string>
   <string name="morphe_miniplayer_opacity_summary">Állítsa be az átlátszó szintet (0 átlátszó, 100 opák)</string>
   <string name="morphe_miniplayer_opacity_invalid_toast">A minilejátszó fedvény átlátszatlanságának 0 és 100 között kell lennie</string>
+  <!-- misc.fix.fixBackToExitGesturePatch -->
+  <string name="morphe_back_button_always_exits_feed_title">Kilépés a kezdőoldalról a vissza gombbal</string>
+  <string name="morphe_back_button_always_exits_feed_summary">A vissza gomb megnyomása esetén kilép az alkalmazásból a kezdőoldal tetejére görgetés helyett</string>
   <!-- layout.theme.themePatch -->
+  <string name="morphe_theme_color_light_title">Világos téma háttér</string>
+  <string name="morphe_theme_color_light_entry_2">Fehér</string>
+  <string name="morphe_theme_color_light_entry_3">Material You (Fehér)</string>
+  <string name="morphe_theme_color_light_entry_9">Világos rózsaszín</string>
+  <string name="morphe_theme_color_light_entry_10">Világoskék</string>
+  <string name="morphe_theme_color_light_entry_11">Világoszöld</string>
+  <string name="morphe_theme_color_light_entry_12">Világossárga</string>
+  <string name="morphe_theme_color_light_entry_13">Világosnarancssárga</string>
+  <string name="morphe_theme_color_light_entry_14">Világospiros</string>
+  <string name="morphe_theme_color_light_custom_title">Egyedi világos háttér</string>
+  <string name="morphe_theme_color_light_custom_summary">Állítsd be a világos téma háttérszínét</string>
+  <string name="morphe_theme_color_change_foreground_title">Előtérszín megváltoztatása</string>
   <string name="morphe_gradient_loading_screen_title">Színátmenetes betöltési képernyő engedélyezése</string>
   <string name="morphe_gradient_loading_screen_summary">Árnyékoló háttér megjelenítése a betöltési képernyőn a tömör szín helyett</string>
   <string name="morphe_splash_screen_animation_style_title">Üdvözlőképernyő stílusa</string>
@@ -996,7 +1010,7 @@ Korlátozás: Ha a „Régi videós eszköztár visszaállítása” ki van kapc
   <string name="morphe_header_logo_title">Fejléclogó</string>
   <string name="morphe_header_logo_entry_1">Alapértelmezett</string>
   <string name="morphe_header_logo_entry_2">Normál</string>
-  <!-- Translations should match the language used in 'morphe_custom_branding_icon_entry_3'. -->
+  <!-- Translations should match the language used in 'morphe_custom_branding_icon_entry_7'. -->
   <string name="morphe_header_logo_entry_5">Vonalazás</string>
   <!-- layout.thumbnails.bypassImageRegionRestrictionsPatch -->
   <string name="morphe_bypass_image_region_restrictions_title">Területi kép-korlátozások megkerülése</string>
@@ -1068,12 +1082,6 @@ Ha engedélyezve van, akkor a videók URL-jeit elküldjük az API kiszolgálóna
   <!-- video.quality.rememberVideoQualityPatch -->
   <!-- Translations should match the language used in 'morphe_custom_playback_speeds_auto'. -->
   <string name="morphe_video_quality_default_entry_1">Automatikus</string>
-  <string name="morphe_override_initial_video_quality_title">A kezdeti videóminőség felülbírálása</string>
-  <!-- 'Force AVC (H.264) codec' should be the same translation used for 'morphe_force_avc_codec_title'. -->
-  <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_override_initial_video_quality_summary">"Javít egy hibát, amely miatt az alapértelmezett videóminőség nem alkalmazódik azonnal a videó elindítása után
-
-Korlátozás: A lejátszás egyes eszközökön nem működhet, ha a \"Videostreamek hamisítása\" beállítás \"Android VR\" értékre van állítva, és az \"AVC (H.264) kodek erőltetése\" engedélyezve van."</string>
   <string name="morphe_remember_video_quality_last_selected_title">A videóminőség megjegyzése</string>
   <string name="morphe_remember_video_quality_last_selected_summary">Az egyéni minőségválasztás alkalmazása minden jövőbeli videóra</string>
   <string name="morphe_remember_video_quality_last_selected_toast_title">Frissítési értesítések</string>
@@ -1113,6 +1121,11 @@ Korlátozás: A lejátszás egyes eszközökön nem működhet, ha a \"Videostre
   <string name="morphe_remember_playback_speed_toast">A lejátszási sebesség alapértelmezett értékre módosítva: %s</string>
   <string name="morphe_disable_playback_speed_music_title">Használj normál sebességet a zenéhez</string>
   <string name="morphe_disable_playback_speed_music_summary">A zenei videók mindig 1,0-s sebességgel legyenek lejátszva</string>
+  <string name="morphe_enable_playback_audio_pitch_controls_title">Hangmagasság-vezérlés engedélyezése</string>
+  <string name="morphe_playback_audio_pitch_default_title">Alapértelmezett lejátszási hangmagasság</string>
+  <string name="morphe_remember_playback_audio_pitch_toast">Alapértelmezett hangmagasság módosítva: %s</string>
+  <string name="morphe_playback_audio_time_stretching_title">Audió időnyújtás</string>
+  <string name="morphe_playback_audio_time_stretching_summary">Lehetővé teszi a sebesség és a hangmagasság független beállítását, ami audio artefaktumokat okozhat</string>
   <!-- video.codecs.disableVideoCodecsPatch -->
   <string name="morphe_disable_hdr_video_title">Az HDR videó letiltása</string>
   <string name="morphe_force_avc_codec_title">A funkció használatához állítsa be a \'Videóstreamek hamisítását\' Android VR-re vagy Android Studióra</string>
@@ -1150,6 +1163,7 @@ Az AV1-es videólejátszás akadozhat vagy képkockákat ejthet."</string>
   <string name="morphe_spoof_video_streams_about_js">• Ha a deobfuszkálás sikertelen, a lejátszás is megbomolhat</string>
   <!-- "Force original audio" should match the language used in 'morphe_force_original_audio_title'. -->
   <string name="morphe_spoof_video_streams_about_no_force_original_audio">• Eredeti hang kényszerítése nem érhető el</string>
+  <string name="morphe_spoof_video_streams_about_sign_in_to_vr_required">• Az Android VR-be való bejelentkezés szükséges.</string>
   <!-- Quality refers to video quality -->
   <string name="morphe_spoof_video_streams_about_720p_max">• A minőség legfeljebb 720p lehet</string>
   <string name="morphe_spoof_video_streams_player_js_variant_title">Lejátszó JavaScript változata</string>

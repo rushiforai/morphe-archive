@@ -321,6 +321,7 @@ public final class LocalDownloadsService extends Service {
         return builder.build();
     }
 
+    @android.annotation.SuppressLint("NotificationPermission")
     private void updateNotification(String title, long bytes, long total) {
         ((NotificationManager) getSystemService(NOTIFICATION_SERVICE))
                 .notify(NOTIFICATION_ID, notification(title, bytes, total));
@@ -394,9 +395,26 @@ public final class LocalDownloadsService extends Service {
                 throws IOException {
             Uri root = MorpheStoragePath.uri();
             if ("file".equalsIgnoreCase(root.getScheme())) {
-                File directory = new File(root.getPath(), folderName);
+                String selectedPath = root.getPath();
+                if (selectedPath == null) {
+                    throw new IOException(
+                            "Selected local storage path is not writable. Choose another path in Morphe settings."
+                    );
+                }
+                File selected = new File(selectedPath);
+                boolean allowCreateDefault = MorpheStoragePath.value() == null &&
+                        selected.equals(MorpheStoragePath.defaultFolder());
+                if (!MorpheStoragePath.isWritableSelection(service, root, allowCreateDefault)) {
+                    throw new IOException(
+                            "Selected local storage path is not writable. Choose another path in Morphe settings."
+                    );
+                }
+                File directory = new File(selected, folderName);
                 if (!directory.isDirectory() && !directory.mkdirs()) {
-                    throw new IOException("Unable to create " + directory.getAbsolutePath());
+                    throw new IOException(
+                            "Unable to create a download folder in the selected local storage path. " +
+                                    "Check that the drive is writable or choose another path in Morphe settings."
+                    );
                 }
                 return new FileOutputTarget(directory, filename);
             }

@@ -1,6 +1,7 @@
 package io.github.liongalahad.nuviotv.extension.subtitles.sdh
 
 import androidx.media3.common.text.Cue
+import android.annotation.SuppressLint
 import io.github.liongalahad.nuviotv.extension.settings.MorpheSettingsRuntime
 import java.lang.ref.WeakReference
 import java.util.WeakHashMap
@@ -60,6 +61,7 @@ object SdhCueTransformer {
         }
     }
 
+    @SuppressLint("UnsafeOptInUsageError")
     internal fun cleanCues(
         cues: List<Cue>,
         mode: SdhCleanupMode,

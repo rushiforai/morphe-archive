@@ -274,6 +274,33 @@ internal val blockedBackgroundWorkerFingerprints = blockedWorkerClasses.map { de
     )
 }
 
+internal val tracerDiskUsageInitializerFingerprint = methodFingerprint(
+    "Lru/ok/tracer/disk/usage/DiskUsage;",
+    "initialize\$tracer_disk_usage_release",
+    "V",
+    listOf("Landroid/content/Context;")
+)
+
+internal val tracerSampleUploadFingerprint = methodFingerprint(
+    "Lru/ok/tracer/upload/SampleUploader;",
+    "upload",
+    "V",
+    listOf(
+        "Landroid/content/Context;",
+        "Lru/ok/tracer/TracerFeature;",
+        "Ljava/io/File;",
+        "J",
+        "Ljava/lang/String;",
+        "Z",
+        "Ljava/lang/String;",
+        "Ljava/lang/String;",
+        "Ljava/lang/Long;",
+        "Ljava/lang/Long;",
+        "Ljava/util/Map;",
+        "Lru/ok/tracer/opentelemetry/util/TraceParent;"
+    )
+)
+
 internal val omicronNetworkRequestFingerprint = methodFingerprint(
     "Lt31/b;",
     "a",

@@ -49,7 +49,7 @@ Automated validation covers extension and patcher tests, isolated application ac
 ## Available patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.0-dev.26](https://github.com/liongalahad/nuviotv-morphe-patches/releases/tag/v1.0.0-dev.26)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;9 patches total
+> **[v1.0.0-dev.28](https://github.com/liongalahad/nuviotv-morphe-patches/releases/tag/v1.0.0-dev.28)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;9 patches total
 <details open>
 <summary>📦 NuvioTV&nbsp;&nbsp;•&nbsp;&nbsp;9 patches</summary>
 <br>

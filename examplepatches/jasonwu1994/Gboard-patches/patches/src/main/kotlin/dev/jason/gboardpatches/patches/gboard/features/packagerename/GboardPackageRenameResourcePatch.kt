@@ -7,6 +7,7 @@ import dev.jason.gboardpatches.patches.gboard.shared.GBOARD_PATCHES_SETTINGS_ACT
 import dev.jason.gboardpatches.patches.gboard.shared.GBOARD_PATCHES_SETTINGS_PROVIDER_AUTHORITY_SUFFIX
 import dev.jason.gboardpatches.patches.gboard.shared.GBOARD_PATCHES_SETTINGS_PROVIDER_CLASS
 import dev.jason.gboardpatches.patches.gboard.shared.GBOARD_SETTINGS_XML_PATHS
+import dev.jason.gboardpatches.patches.gboard.shared.childElements
 import dev.jason.gboardpatches.patches.gboard.shared.elements
 import dev.jason.gboardpatches.patches.shared.Constants.GBOARD_PACKAGE_NAME
 import dev.jason.gboardpatches.patches.shared.Constants.GBOARD_PATCHED_PACKAGE_NAME
@@ -51,6 +52,33 @@ internal data class GboardPackageRenameMapping(
 internal enum class GboardPackageRenameResult {
     RENAMED,
     ALREADY_RENAMED,
+}
+
+internal const val MAX_GBOARD_APP_DISPLAY_NAME_CODE_POINTS = 40
+
+internal fun isValidGboardAppDisplayName(value: String?): Boolean {
+    if (value.isNullOrEmpty() || value != value.trim()) return false
+    if (value.codePointCount(0, value.length) > MAX_GBOARD_APP_DISPLAY_NAME_CODE_POINTS) return false
+    if (value.first() == '@' || value.first() == '?') return false
+    return value.none { character ->
+        character.isISOControl() || character == '\u2028' || character == '\u2029'
+    }
+}
+
+internal fun applyGboardApplicationDisplayName(
+    manifestDocument: Document,
+    displayName: String,
+) {
+    require(isValidGboardAppDisplayName(displayName)) {
+        "Invalid Gboard app display name"
+    }
+    val applications = manifestDocument.documentElement.childElements("application").toList()
+    check(applications.size == 1) {
+        "Expected exactly one application element, found ${applications.size}"
+    }
+    val label = applications.single().androidAttribute("label")
+        ?: error("Gboard application is missing android:label")
+    label.value = displayName
 }
 
 internal val GBOARD_PACKAGE_RENAME_MAPPINGS = listOf(

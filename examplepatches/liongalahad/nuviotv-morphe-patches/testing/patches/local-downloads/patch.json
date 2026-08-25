@@ -83,10 +83,36 @@
       "Autoplay local storage when available",
       "Local storage path"
     ],
-    "forbiddenNeedles": []
+    "forbiddenNeedles": [],
+    "smali": [
+      {
+        "class": "na.k1",
+        "required": [
+          "invoke-static/range {p0 .. p2}, Lio/github/liongalahad/nuviotv/extension/playback/localdownloads/LocalDownloadsRuntime;->renderDownloadedEpisodeBadge(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V"
+        ],
+        "forbidden": [
+          "renderDownloadedEpisodeBadge(Ljava/lang/Object;ZLjava/lang/Object;)V"
+        ]
+      },
+      {
+        "class": "c0.u",
+        "required": [
+          ".field public static final a:Lc0/u;",
+          ".method public final a(Lu1/q;Lu1/i;)Lu1/q;"
+        ],
+        "forbidden": []
+      },
+      {
+        "class": "w.n",
+        "required": [
+          ".method public static final g(Lu1/q;JLb2/u0;)Lu1/q;"
+        ],
+        "forbidden": []
+      }
+    ]
   },
   "focusedTests": [
-    "LocalDownloadsRuntimeTest and LocalMediaRuntimeTest",
+    "LocalDownloadsRuntimeTest, LocalMediaRuntimeTest and generic storage write-capability tests",
     "isolated application on all declared APK assets",
     "combined application with Local Media and every current optional patch",
     "TV AVD real transfer of a small direct progressive source for a series episode"
@@ -107,6 +133,8 @@
     "Cancel disconnects a source check that is still blocked and returns from Cancelling without waiting for the network timeout",
     "Settings and progress both show one-decimal used/total GB for the volume containing Local storage path, followed by parenthesized percent full",
     "The TV-native D-pad folder picker lists mounted internal, SD-card and USB volumes through Android StorageManager and persists the selected volume across relaunches",
+    "While Local Downloads is enabled, raw paths pass a real create/delete probe and SAF paths include a persisted write grant before selection is saved; Local Media alone remains read-only capable",
+    "Every Download action revalidates a saved path and reopens write-capable folder selection after permission revocation, a read-only remount or folder removal before resolving a source",
     "If selected removable storage is disconnected, usage is reported unavailable and downloads fail with reconnection guidance instead of silently using internal storage",
     "A hidden successful download reopens the completion popup unless full-screen playback is active",
     "Movies use a sanitized title folder; series episodes use a sanitized Title - Season n folder; addon subtitle sidecars share the video basename",

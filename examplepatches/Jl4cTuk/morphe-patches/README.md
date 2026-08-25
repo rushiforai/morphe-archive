@@ -9,26 +9,40 @@ Patches for apps I like.
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.2.0](https://github.com/Jl4cTuk/morphe-patches/releases/tag/v1.2.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;16 patches total
+> **[v1.3.0](https://github.com/Jl4cTuk/morphe-patches/releases/tag/v1.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;16 patches total
 <details open>
-<summary>📦 RuStore&nbsp;&nbsp;•&nbsp;&nbsp;8 patches</summary>
+<summary>📦 RuStore&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 1.106.0.3 |
+| 1.108.0.2 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Disable Mine redesign](#disable-mine-redesign) | Reverts the Mine screen to the classic layout, disabling the redesigned V2/V3 interface. |  |
-| [Disable ads](#disable-ads) | Removes advertisements and recommendations from search. |  |
+| [Disable ads](#disable-ads) | Removes advertisements, search recommendations, and the unsolicited VK ID prompt, with options for additional interface cleanup. | • Disable gaming profile<br>• Disable loyalty program<br>• Hide Featured and Games tabs<br>• Hide notification buttons |
 | [Disable analytics](#disable-analytics) | Disables analytics and tracking in RuStore. |  |
 | [Disable background scan](#disable-background-scan) | Disables the periodic Kaspersky background device scan. |  |
-| [Disable gaming profile](#disable-gaming-profile) | Removes the Game Profile section from the Mine screen, including the button and the usage statistics screen. |  |
-| [Hide Featured and Games tabs](#hide-featured-and-games-tabs) | Removes the Featured and Games tabs and opens Apps by default. |  |
-| [Hide notification buttons](#hide-notification-buttons) | Removes notification buttons from the search bar and Mine screen. |  |
-| [Skip update auth](#skip-update-auth) | Removes the login requirement when updating apps. |  |
+| [Exclude Google Play apps from updates](#exclude-google-play-apps-from-updates) | Excludes Google Play installs from RuStore update checks while keeping RuStore and sideloaded apps. |  |
+
+</details>
+
+<details open>
+<summary>📦 Ozon Bank&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 19.31.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Disable Ozon Bank VPN warning](#disable-ozon-bank-vpn-warning) | Removes the warning shown when Ozon Bank detects an active VPN connection. |  |
+| [Hide Ozon Bank benefit sections](#hide-ozon-bank-benefit-sections) | Adds options to hide selected non-advertising sections from the Benefit page. | • Hide Buy for 1 ruble<br>• Hide Partner benefits<br>• Hide For shopping on Ozon<br>• Hide Ozon Premium |
+| [Hide Ozon Bank promotions](#hide-ozon-bank-promotions) | Uses the classic home design and removes promotional cards, sections, shortcuts, and the startup installment offer from Ozon Bank pages. |  |
 
 </details>
 
@@ -38,7 +52,7 @@ Patches for apps I like.
 
 **🎯 Supported versions:**
 
-| 19.28.0 |
+| 19.31.0 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |

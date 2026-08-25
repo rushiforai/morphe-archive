@@ -1,0 +1,30 @@
+# Original and generated Android binaries must never be committed.
+*.apk
+*.apks
+*.aab
+*.jks
+*.keystore
+
+/Original APK's/
+/artifacts/
+/build/
+/tools/*.jar
+/.gradle/
+/.kotlin/
+**/build/
+*.apkm
+
+# The Gradle wrapper is source-controlled even though other JARs are not.
+!gradle/wrapper/gradle-wrapper.jar
+
+# Local Morphe builds, patched APKs, and test evidence stay outside Git.
+/local/
+
+# Local tooling and IDE state.
+/.idea/
+/.vscode/
+/node_modules/
+**/__pycache__/
+*.pyc
+*.iml
+*.log

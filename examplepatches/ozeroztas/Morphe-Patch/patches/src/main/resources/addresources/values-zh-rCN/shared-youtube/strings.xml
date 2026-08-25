@@ -21,6 +21,25 @@ Second \"item\" text"</string>
   <string name="morphe_restart_first_run">重启以完成设置</string>
   <!-- layout.branding.baseCustomBrandingPatch -->
   <string name="morphe_custom_branding_name_title">应用名称</string>
+  <!-- layout.theme.baseThemePatch -->
+  <string name="morphe_theme_color_dark_title">深色主题背景</string>
+  <string name="morphe_theme_color_dark_entry_2">纯黑</string>
+  <string name="morphe_theme_color_dark_entry_3">Material You (纯黑)</string>
+  <string name="morphe_theme_color_dark_entry_9">经典 YouTube</string>
+  <string name="morphe_theme_color_dark_entry_10">深粉色</string>
+  <string name="morphe_theme_color_dark_entry_11">深蓝色</string>
+  <string name="morphe_theme_color_dark_entry_12">深绿色</string>
+  <string name="morphe_theme_color_dark_entry_13">暗黄色</string>
+  <string name="morphe_theme_color_dark_entry_14">深橙色</string>
+  <string name="morphe_theme_color_dark_entry_15">深红色</string>
+  <string name="morphe_theme_color_dark_custom_title">自定义深色背景</string>
+  <string name="morphe_theme_color_dark_custom_summary">设置深色主题的背景颜色</string>
+  <string name="morphe_theme_color_entry_1">应用默认</string>
+  <string name="morphe_theme_color_entry_4">Material You (中性)|||</string>
+  <string name="morphe_theme_color_entry_5">Material You (主色)</string>
+  <string name="morphe_theme_color_entry_6">Material You (次要)</string>
+  <string name="morphe_theme_color_entry_7">Material You (第三)</string>
+  <string name="morphe_theme_color_custom_entry">自定义</string>
   <!-- interaction.downloads.downloadsPatch -->
   <string name="morphe_external_downloader_screen_title">外部下载</string>
   <string name="morphe_external_downloader_name_title">下载器的应用包名</string>
@@ -133,8 +152,8 @@ Second \"item\" text"</string>
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">隐藏全屏广告</string>
   <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
-          'Android Studio' must be kept untranslated. -->
-  <string name="morphe_force_original_audio_not_available">要使用此功能，请将“伪造视频流”更改为除 Android Studio 之外的任何客户端</string>
+          'Android Studio' and 'Android VR Downgraded' must be kept untranslated. -->
+  <string name="morphe_force_original_audio_not_available">要使用此功能，请将“伪造视频流”更改为除“Android Studio”和“Android VR 降级”之外的任何客户端</string>
   <!-- misc.privacy.sanitizeSharingLinksPatch -->
   <string name="morphe_sanitize_sharing_links_title">净化分享链接</string>
   <string name="morphe_sanitize_sharing_links_summary">从共享链接中删除跟踪查询参数</string>

@@ -21,6 +21,25 @@ Second \"item\" text"</string>
   <string name="morphe_restart_first_run">Genstart for at færdiggøre opsætningen</string>
   <!-- layout.branding.baseCustomBrandingPatch -->
   <string name="morphe_custom_branding_name_title">Appnavn</string>
+  <!-- layout.theme.baseThemePatch -->
+  <string name="morphe_theme_color_dark_title">Mørk tema baggrund</string>
+  <string name="morphe_theme_color_dark_entry_2">Ægte sort</string>
+  <string name="morphe_theme_color_dark_entry_3">Material You (Kulsort)</string>
+  <string name="morphe_theme_color_dark_entry_9">Klassisk YouTube</string>
+  <string name="morphe_theme_color_dark_entry_10">Mørkerød</string>
+  <string name="morphe_theme_color_dark_entry_11">Mørkeblå</string>
+  <string name="morphe_theme_color_dark_entry_12">Mørkegrøn</string>
+  <string name="morphe_theme_color_dark_entry_13">Mørkegul</string>
+  <string name="morphe_theme_color_dark_entry_14">Mørkeorange</string>
+  <string name="morphe_theme_color_dark_entry_15">Mørkerød</string>
+  <string name="morphe_theme_color_dark_custom_title">Tilpasset mørk baggrund</string>
+  <string name="morphe_theme_color_dark_custom_summary">Indstil baggrundsfarven for det mørke tema</string>
+  <string name="morphe_theme_color_entry_1">App-standard</string>
+  <string name="morphe_theme_color_entry_4">Material You (Neutral)</string>
+  <string name="morphe_theme_color_entry_5">Material You (Primær)</string>
+  <string name="morphe_theme_color_entry_6">Material You (Sekundær)</string>
+  <string name="morphe_theme_color_entry_7">Material You (Tertiær)</string>
+  <string name="morphe_theme_color_custom_entry">Brugerdefineret</string>
   <!-- interaction.downloads.downloadsPatch -->
   <string name="morphe_external_downloader_screen_title">Eksterne downloads</string>
   <string name="morphe_external_downloader_name_title">Downloader pakkenavn</string>
@@ -133,8 +152,8 @@ For at logge ind, tryk på fortsæt nedenfor"</string>
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">Skjul fuldskærmsannoncer</string>
   <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
-          'Android Studio' must be kept untranslated. -->
-  <string name="morphe_force_original_audio_not_available">For at bruge denne funktion skal du ændre \"Forfalsk videostreams\" til en hvilken som helst klient undtagen Android Studio\'</string>
+          'Android Studio' and 'Android VR Downgraded' must be kept untranslated. -->
+  <string name="morphe_force_original_audio_not_available">For at bruge denne funktion skal du ændre \'Spoof video streams\' til en hvilken som helst klient undtagen \'Android Studio\' og \'Android VR Downgraded\'</string>
   <!-- misc.privacy.sanitizeSharingLinksPatch -->
   <string name="morphe_sanitize_sharing_links_title">Rens delingslinks</string>
   <string name="morphe_sanitize_sharing_links_summary">Fjerner sporing af forespørgselsparametre fra delte links</string>

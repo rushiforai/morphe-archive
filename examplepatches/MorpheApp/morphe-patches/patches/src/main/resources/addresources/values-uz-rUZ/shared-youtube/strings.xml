@@ -21,6 +21,25 @@ Second \"item\" text"</string>
   <string name="morphe_restart_first_run">Sozlashni tugatish uchun qayta ishga tushirish</string>
   <!-- layout.branding.baseCustomBrandingPatch -->
   <string name="morphe_custom_branding_name_title">Ilova nomi</string>
+  <!-- layout.theme.baseThemePatch -->
+  <string name="morphe_theme_color_dark_title">Qorong\'i mavzu foni</string>
+  <string name="morphe_theme_color_dark_entry_2">Sof qora</string>
+  <string name="morphe_theme_color_dark_entry_3">Material You (To\'laq qora)</string>
+  <string name="morphe_theme_color_dark_entry_9">Klassik YouTube</string>
+  <string name="morphe_theme_color_dark_entry_10">To\'q pushti</string>
+  <string name="morphe_theme_color_dark_entry_11">To\'q ko\'k</string>
+  <string name="morphe_theme_color_dark_entry_12">To\'q yashil</string>
+  <string name="morphe_theme_color_dark_entry_13">To\'q sariq</string>
+  <string name="morphe_theme_color_dark_entry_14">To\'q to\'q sariq</string>
+  <string name="morphe_theme_color_dark_entry_15">To\'q qizil</string>
+  <string name="morphe_theme_color_dark_custom_title">Maxsus qorong\'u fon</string>
+  <string name="morphe_theme_color_dark_custom_summary">Qorong\'u mavzu fon rangini sozlang</string>
+  <string name="morphe_theme_color_entry_1">App standarti</string>
+  <string name="morphe_theme_color_entry_4">Material You (Neytral)</string>
+  <string name="morphe_theme_color_entry_5">Material You (Asosiy)</string>
+  <string name="morphe_theme_color_entry_6">Material You (Yordamchi)</string>
+  <string name="morphe_theme_color_entry_7">Material You (Uchinchi darajali)</string>
+  <string name="morphe_theme_color_custom_entry">Maxsus</string>
   <!-- interaction.downloads.downloadsPatch -->
   <string name="morphe_external_downloader_screen_title">Tashqi yuklamalar</string>
   <string name="morphe_external_downloader_name_title">Yuklab olish paketi nomi</string>
@@ -133,8 +152,8 @@ Kirish uchun quyida 'Davom etish' tugmasini bosing"</string>
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">To‘liq ekranli reklamalarni yashirish</string>
   <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
-          'Android Studio' must be kept untranslated. -->
-  <string name="morphe_force_original_audio_not_available">Ushbu funksiyadan foydalanish uchun, \"Видео оқимларини бураш\"ни \'Android Studio\'dan\' tashqari har qanday mijozga o\'zgartiring.</string>
+          'Android Studio' and 'Android VR Downgraded' must be kept untranslated. -->
+  <string name="morphe_force_original_audio_not_available">Bu xususiyatdan foydalanish uchun, \'Video oqimlarini soxtalashtirish\'ni \'Android Studio\' va \'Android VR Downgraded\' dan boshqa istalgan mijozga o\'zgartiring.</string>
   <!-- misc.privacy.sanitizeSharingLinksPatch -->
   <string name="morphe_sanitize_sharing_links_title">Ulash linklarini sanitizatsiya qilish</string>
   <string name="morphe_sanitize_sharing_links_summary">Ulash manzillaridan kuzatuv parametrlarini olib tashlaydi</string>

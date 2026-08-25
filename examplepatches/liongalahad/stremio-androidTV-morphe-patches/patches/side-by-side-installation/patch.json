@@ -1,0 +1,5 @@
+{
+  "id": "side-by-side-installation",
+  "order": 200,
+  "apply": "apply.ps1"
+}

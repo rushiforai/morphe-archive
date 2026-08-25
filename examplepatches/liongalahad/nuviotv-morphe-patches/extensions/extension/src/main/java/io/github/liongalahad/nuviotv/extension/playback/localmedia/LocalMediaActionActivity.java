@@ -64,6 +64,7 @@ public final class LocalMediaActionActivity extends Activity {
         return super.dispatchKeyEvent(event);
     }
 
+    @android.annotation.SuppressLint("GestureBackNavigation")
     @Override public void onBackPressed() {
         LocalMediaRuntime.cancelPendingDelete();
         finish();

@@ -1,5 +1,16 @@
+/*
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches/pull/2524
+ *
+ * Original hard forked code:
+ * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
+ *
+ * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ */
+
 package app.morphe.extension.youtube.patches.theme;
 
+import androidx.annotation.ColorInt;
 import androidx.annotation.Nullable;
 
 import app.morphe.extension.shared.Logger;
@@ -54,6 +65,7 @@ public class ThemePatch extends BaseThemePatch {
             0xFF181818, // Music related results panel background.
             0xFF0F0F0F, // Comments chip background (new layout).
             0xFA212121, // Video chapters list background.
+            0xFF222225, // Flyout sub-menu background.
     };
 
     /**
@@ -65,7 +77,8 @@ public class ThemePatch extends BaseThemePatch {
      * @param originalValue The original color value.
      * @return The new or original color value.
      */
-    public static int getValue(int originalValue) {
+    @ColorInt
+    public static int getValue(@ColorInt int originalValue) {
         return processColorValue(originalValue, DARK_VALUES, WHITE_VALUES);
     }
 

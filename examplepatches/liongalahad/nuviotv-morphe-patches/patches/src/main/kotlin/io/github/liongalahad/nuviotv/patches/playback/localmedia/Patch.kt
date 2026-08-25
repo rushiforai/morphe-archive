@@ -533,6 +533,15 @@ val localmediaPatch = bytecodePatch(
             it.name == "dispatchKeyEvent" &&
                 it.parameterTypes.map(CharSequence::toString) == listOf("Landroid/view/KeyEvent;")
         }) { "Compose dialog already overrides dispatchKeyEvent" }
+        val dialogDispatchOwner = ComposeDialogTouchEventFingerprint.method.implementation!!
+            .instructions.mapNotNull { instruction ->
+                if (instruction.opcode != Opcode.INVOKE_SUPER) return@mapNotNull null
+                (instruction as? ReferenceInstruction)?.reference as? MethodReference
+            }.single { reference -> reference.name == "onTouchEvent" }
+            .definingClass
+        check(dialogDispatchOwner == "Landroid/app/Dialog;") {
+            "Compose dialog touch events do not dispatch through Android Dialog: $dialogDispatchOwner"
+        }
         val dialogKeyMethod = ImmutableMethod(
             composeDialogClass.type,
             "dispatchKeyEvent",
@@ -547,7 +556,7 @@ val localmediaPatch = bytecodePatch(
                 0,
                 """
                     invoke-static { p0, p1 }, $RUNTIME->observeKeyEvent(Ljava/lang/Object;Landroid/view/KeyEvent;)V
-                    invoke-super { p0, p1 }, Lc/o;->dispatchKeyEvent(Landroid/view/KeyEvent;)Z
+                    invoke-super { p0, p1 }, $dialogDispatchOwner->dispatchKeyEvent(Landroid/view/KeyEvent;)Z
                     move-result v0
                     return v0
                 """

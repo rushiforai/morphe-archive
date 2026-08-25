@@ -27,6 +27,7 @@ public final class LocalDownloadsDeleteActivity extends Activity {
         createUi(entry);
     }
 
+    @android.annotation.SuppressLint("GestureBackNavigation")
     @Override public void onBackPressed() {
         LocalDownloadsRuntime.cancelPendingDelete();
         finish();

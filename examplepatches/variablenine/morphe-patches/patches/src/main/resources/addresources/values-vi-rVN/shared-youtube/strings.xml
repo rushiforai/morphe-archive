@@ -21,6 +21,25 @@ Second \"item\" text"</string>
   <string name="morphe_restart_first_run">Khởi động lại để hoàn tất thiết lập</string>
   <!-- layout.branding.baseCustomBrandingPatch -->
   <string name="morphe_custom_branding_name_title">Tên ứng dụng</string>
+  <!-- layout.theme.baseThemePatch -->
+  <string name="morphe_theme_color_dark_title">Nền chủ đề tối</string>
+  <string name="morphe_theme_color_dark_entry_2">Đen tuyền</string>
+  <string name="morphe_theme_color_dark_entry_3">Material You (Đen thuần)</string>
+  <string name="morphe_theme_color_dark_entry_9">YouTube cổ điển</string>
+  <string name="morphe_theme_color_dark_entry_10">Hồng đậm</string>
+  <string name="morphe_theme_color_dark_entry_11">Xanh dương đậm</string>
+  <string name="morphe_theme_color_dark_entry_12">Xanh lá đậm</string>
+  <string name="morphe_theme_color_dark_entry_13">Vàng đậm</string>
+  <string name="morphe_theme_color_dark_entry_14">Cam đậm</string>
+  <string name="morphe_theme_color_dark_entry_15">Đỏ đậm</string>
+  <string name="morphe_theme_color_dark_custom_title">Nền tối tùy chỉnh</string>
+  <string name="morphe_theme_color_dark_custom_summary">Đặt màu nền của chủ đề tối</string>
+  <string name="morphe_theme_color_entry_1">Mặc định ứng dụng</string>
+  <string name="morphe_theme_color_entry_4">Material You (Trung tính)</string>
+  <string name="morphe_theme_color_entry_5">Material You (Chính)</string>
+  <string name="morphe_theme_color_entry_6">Material You (Phụ)</string>
+  <string name="morphe_theme_color_entry_7">Material You (Cấp ba)</string>
+  <string name="morphe_theme_color_custom_entry">Tùy chỉnh</string>
   <!-- interaction.downloads.downloadsPatch -->
   <string name="morphe_external_downloader_screen_title">Tải xuống bên ngoài</string>
   <string name="morphe_external_downloader_name_title">Tên gói trình tải xuống</string>
@@ -133,8 +152,8 @@ Bấm tiếp tục bên dưới để đăng nhập"</string>
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">Ẩn quảng cáo toàn màn hình</string>
   <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
-          'Android Studio' must be kept untranslated. -->
-  <string name="morphe_force_original_audio_not_available">Để dùng tính năng này, hãy đổi \'Giả mạo luồng phát video\' thành bất kỳ client nào ngoại trừ Android Studio\'</string>
+          'Android Studio' and 'Android VR Downgraded' must be kept untranslated. -->
+  <string name="morphe_force_original_audio_not_available">Để dùng tính năng này, hãy đổi \'Giả mạo luồng phát video\' thành bất kỳ client nào ngoại trừ \'Android Studio\' và \'Android VR Downgraded\'</string>
   <!-- misc.privacy.sanitizeSharingLinksPatch -->
   <string name="morphe_sanitize_sharing_links_title">Rút gọn liên kết chia sẻ</string>
   <string name="morphe_sanitize_sharing_links_summary">Xóa các tham số theo dõi khỏi liên kết được chia sẻ</string>

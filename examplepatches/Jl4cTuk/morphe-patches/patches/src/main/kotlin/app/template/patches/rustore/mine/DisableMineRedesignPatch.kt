@@ -9,7 +9,7 @@ val disableMineRedesignPatch = bytecodePatch(
     name = "Disable Mine redesign",
     description = "Reverts the Mine screen to the classic layout, " +
         "disabling the redesigned V2/V3 interface.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(COMPATIBILITY_RUSTORE)
 

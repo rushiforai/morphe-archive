@@ -50,13 +50,6 @@ internal val settingsHubPatch = resourcePatch {
                     "settings_experience" -> element.textContent = "Morphe"
                     "settings_experience_subtitle" ->
                         element.textContent = "Patch settings  •  $displayVersion"
-                    "experience_mode_group_title" -> element.textContent = "Morphe"
-                    "experience_mode_switch_to_advanced",
-                    "experience_mode_switch_to_essential" ->
-                        element.textContent = "Patch settings"
-                    "experience_mode_switch_to_advanced_subtitle",
-                    "experience_mode_switch_to_essential_subtitle" ->
-                        element.textContent = "Configure installed Morphe patches"
                 }
             }
         }

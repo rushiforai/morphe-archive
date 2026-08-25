@@ -178,7 +178,6 @@ val disableOzonTelemetryPatch = bytecodePatch(
         OzonTrackerWorkerFingerprint.method.addInstructions(0, returnWorkerSuccess)
 
         AppsFlyerInitializerFingerprint.method.disable()
-        FirebaseAnalyticsFetchFingerprint.method.disable()
         CrashReporterInitializerFingerprint.method.disable()
         SentryPostInitializerFingerprint.method.disable()
         OzonLoggerInitializerFingerprint.method.disable()

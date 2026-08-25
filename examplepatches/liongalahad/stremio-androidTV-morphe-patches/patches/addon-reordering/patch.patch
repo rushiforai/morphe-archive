@@ -1,0 +1,48 @@
+diff --git a/smali_classes6/com/stremio/tv/views/addons/AddonsFragment.smali b/smali_classes6/com/stremio/tv/views/addons/AddonsFragment.smali
+index cc17954..7b043a9 100644
+--- a/smali_classes6/com/stremio/tv/views/addons/AddonsFragment.smali
++++ b/smali_classes6/com/stremio/tv/views/addons/AddonsFragment.smali
+@@ -468,6 +468,8 @@
+ .method private static final onViewCreated$lambda$1(Lcom/stremio/tv/views/addons/AddonsFragment;Landroidx/leanback/widget/Presenter$ViewHolder;Ljava/lang/Object;Landroidx/leanback/widget/RowPresenter$ViewHolder;Landroidx/leanback/widget/Row;)V
+     .locals 0
+
++    invoke-static {p0, p1, p2}, Lcom/stremio/morphe/AddonReorderBridge;->onItemSelected(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V
++
+     .line 72
+     instance-of p1, p2, Lcom/stremio/tv/views/addons/model/DescriptorModel;
+
+@@ -552,6 +554,14 @@
+ .method private static final onViewCreated$lambda$2(Lcom/stremio/tv/views/addons/AddonsFragment;Landroidx/leanback/widget/Presenter$ViewHolder;Ljava/lang/Object;Landroidx/leanback/widget/RowPresenter$ViewHolder;Landroidx/leanback/widget/Row;)V
+     .locals 0
+
++    invoke-static {p0}, Lcom/stremio/morphe/AddonReorderBridge;->consumeClick(Ljava/lang/Object;)Z
++
++    move-result p1
++
++    if-eqz p1, :morphe_normal_click
++    return-void
++
++    :morphe_normal_click
+     .line 76
+     instance-of p1, p2, Lcom/stremio/tv/views/addons/model/DescriptorModel;
+
+diff --git a/smali_classes6/com/stremio/tv/views/addons/AddonsFragment$backPressedCallback$1.smali b/smali_classes6/com/stremio/tv/views/addons/AddonsFragment$backPressedCallback$1.smali
+index 33ce03b..1d8566d 100644
+--- a/smali_classes6/com/stremio/tv/views/addons/AddonsFragment$backPressedCallback$1.smali
++++ b/smali_classes6/com/stremio/tv/views/addons/AddonsFragment$backPressedCallback$1.smali
+@@ -57,5 +57,15 @@
+ .method public handleOnBackPressed()V
+     .locals 3
+
++    iget-object v0, p0, Lcom/stremio/tv/views/addons/AddonsFragment$backPressedCallback$1;->this$0:Lcom/stremio/tv/views/addons/AddonsFragment;
++
++    invoke-static {v0}, Lcom/stremio/morphe/AddonReorderBridge;->cancelIfActive(Ljava/lang/Object;)Z
++
++    move-result v0
++
++    if-eqz v0, :morphe_normal_back
++    return-void
++
++    :morphe_normal_back
+     .line 48
+     iget-object v0, p0, Lcom/stremio/tv/views/addons/AddonsFragment$backPressedCallback$1;->this$0:Lcom/stremio/tv/views/addons/AddonsFragment;

@@ -21,7 +21,7 @@ from pathlib import Path
 TEMP_DIR: Path = Path("temp")
 BUILD_DIR: Path = Path("build")
 CONFIG_PATH: Path = Path("config.toml")
-SOURCES: tuple[str, ...] = ("github", "apkmirror", "uptodown")
+SOURCES: tuple[str, ...] = ("apkmirror", "github")
 VALID_ARCHES: frozenset[str] = frozenset({"both", "all", "arm64-v8a", "armeabi-v7a", "x86_64", "x86"})
 
 

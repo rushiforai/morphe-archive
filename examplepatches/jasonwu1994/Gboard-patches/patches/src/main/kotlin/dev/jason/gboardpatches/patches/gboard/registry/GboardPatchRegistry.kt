@@ -3,6 +3,7 @@ package dev.jason.gboardpatches.patches.gboard.registry
 import app.morphe.patcher.patch.Patch
 import app.morphe.patcher.patch.ResourcePatchBuilder
 import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.stringOption
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
 import dev.jason.gboardpatches.patches.gboard.features.accessibilitylayout.gboardAccessibilityLayoutFeatureMarkerPatch
@@ -51,9 +52,11 @@ import dev.jason.gboardpatches.patches.gboard.features.manualincognito.gboardMan
 import dev.jason.gboardpatches.patches.gboard.features.manualincognito.gboardManualIncognitoLifecyclePatch
 import dev.jason.gboardpatches.patches.gboard.features.manualincognito.gboardManualIncognitoPolicyPatch
 import dev.jason.gboardpatches.patches.gboard.features.ocr.gboardOcrFeatureMarkerPatch
+import dev.jason.gboardpatches.patches.gboard.features.packagerename.applyGboardApplicationDisplayName
+import dev.jason.gboardpatches.patches.gboard.features.packagerename.gboardPackageRenameResourcePatch
+import dev.jason.gboardpatches.patches.gboard.features.packagerename.isValidGboardAppDisplayName
 import dev.jason.gboardpatches.patches.gboard.features.quickinsert.gboardQuickInsertFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.quickinsert.gboardQuickInsertFlagValuePatch
-import dev.jason.gboardpatches.patches.gboard.features.packagerename.gboardPackageRenameResourcePatch
 import dev.jason.gboardpatches.patches.gboard.features.settingshomepage.gboardSettingsHomepageBytecodePatch
 import dev.jason.gboardpatches.patches.gboard.features.settingshomepage.gboardSettingsHomepageFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.signaturebypass.gboardSignatureBypassBytecodePatch
@@ -629,14 +632,42 @@ val gboardZhuyinBottomRowWeightPatch = gboardPublicResourcePatch(
 val gboardPackageRenamePatch = gboardPublicResourcePatch(
     featureId = "package_rename",
     name = "Package Rename",
-    description = "將套件名稱改成 dev.jason.com.google.android.inputmethod.latin 以便共存安裝\nRename the package to dev.jason.com.google.android.inputmethod.latin so it can be installed alongside the official Gboard.",
+    description = "將套件名稱改成 dev.jason.com.google.android.inputmethod.latin，並可自訂 App 名稱，以便共存安裝\n" +
+        "Rename the package to dev.jason.com.google.android.inputmethod.latin and allow " +
+        "a custom app name so it can be installed alongside the official Gboard.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_GBOARD)
 
+    val appDisplayName = stringOption(
+        key = "app_display_name",
+        default = "GboardWu",
+        values = linkedMapOf(
+            "Gboard" to "Gboard",
+            "Gboard Dev" to "Gboard Dev",
+            "Gboard Patches" to "Gboard Patches",
+            "Gboard Mod" to "Gboard Mod",
+            "GboardWu" to "GboardWu",
+        ),
+        title = "App 名稱 / App name",
+        description = "",
+        required = true,
+    ) { value ->
+        isValidGboardAppDisplayName(value)
+    }
+
     dependsOn(
         gboardPackageRenameResourcePatch
     )
+
+    finalize {
+        document("AndroidManifest.xml").use { manifestDocument ->
+            applyGboardApplicationDisplayName(
+                manifestDocument = manifestDocument,
+                displayName = checkNotNull(appDisplayName.value),
+            )
+        }
+    }
 }
 
 @Suppress("unused")

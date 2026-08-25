@@ -73,12 +73,13 @@ object LegacyCellListMapperFingerprint : Fingerprint(
     ),
 )
 
-object CellListMapperFingerprint : Fingerprint(
-    definingClass = "Lru/ozon/app/android/common/cellList/v2/core/CellListV2Mapper;",
+object ComposerCellListMapperFingerprint : Fingerprint(
+    definingClass =
+        "Lru/ozon/android/composerCommonViewKit/cellListV2/core/CellListV2Mapper;",
     name = "invoke",
     returnType = "Ljava/util/List;",
     parameters = listOf(
-        "Lru/ozon/app/android/common/cellList/v2/data/CellListV2DTO;",
+        "Lru/ozon/android/composerCommonViewKit/cellListV2/data/CellListV2DTO;",
         "L",
     ),
 )

@@ -1,3 +1,9 @@
+## [1.1.7](https://github.com/Freeman022026/rustore-privacy-patches/compare/v1.1.6...v1.1.7) (2026-08-24)
+
+### 🐛 Bug Fixes
+
+* **background:** restore automatic-update scheduling ([8396c77](https://github.com/Freeman022026/rustore-privacy-patches/commit/8396c776dd8375e4e1d1ae1c71a61e950d83ec91))
+
 ## [1.1.6](https://github.com/Freeman022026/rustore-privacy-patches/compare/v1.1.5...v1.1.6) (2026-08-22)
 
 ### 🐛 Bug Fixes

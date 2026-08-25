@@ -21,6 +21,25 @@ Second \"item\" text"</string>
   <string name="morphe_restart_first_run">Reporniți pentru a finaliza configurarea</string>
   <!-- layout.branding.baseCustomBrandingPatch -->
   <string name="morphe_custom_branding_name_title">Numele aplicației</string>
+  <!-- layout.theme.baseThemePatch -->
+  <string name="morphe_theme_color_dark_title">Fundalul temei întunecate</string>
+  <string name="morphe_theme_color_dark_entry_2">Negru pur</string>
+  <string name="morphe_theme_color_dark_entry_3">Material You (Negru pur)</string>
+  <string name="morphe_theme_color_dark_entry_9">YouTube clasic</string>
+  <string name="morphe_theme_color_dark_entry_10">Roz închis</string>
+  <string name="morphe_theme_color_dark_entry_11">Albastru închis</string>
+  <string name="morphe_theme_color_dark_entry_12">Verde închis</string>
+  <string name="morphe_theme_color_dark_entry_13">Galben închis</string>
+  <string name="morphe_theme_color_dark_entry_14">Portocaliu închis</string>
+  <string name="morphe_theme_color_dark_entry_15">Roșu închis</string>
+  <string name="morphe_theme_color_dark_custom_title">Fond întunecat personalizat</string>
+  <string name="morphe_theme_color_dark_custom_summary">Setați culoarea de fundal a temei întunecate</string>
+  <string name="morphe_theme_color_entry_1">Implicitul aplicației</string>
+  <string name="morphe_theme_color_entry_4">Material You (Neutru)</string>
+  <string name="morphe_theme_color_entry_5">Material You (Primar)</string>
+  <string name="morphe_theme_color_entry_6">Material You (Secundar)</string>
+  <string name="morphe_theme_color_entry_7">Material You (Tertiar)</string>
+  <string name="morphe_theme_color_custom_entry">Personalizat</string>
   <!-- interaction.downloads.downloadsPatch -->
   <string name="morphe_external_downloader_screen_title">Descărcări externe</string>
   <string name="morphe_external_downloader_name_title">Numele pachetului aplicației de descărcare</string>
@@ -133,8 +152,8 @@ Pentru a te apăsa, apăsă butonul Continu de mai jos"</string>
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">Ascunde reclame pe tot ecranul</string>
   <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
-          'Android Studio' must be kept untranslated. -->
-  <string name="morphe_force_original_audio_not_available">Pentru a utiliza această funcție, modificați \"Falsificare fluxuri video\" la orice client, cu excepția Android Studio\'</string>
+          'Android Studio' and 'Android VR Downgraded' must be kept untranslated. -->
+  <string name="morphe_force_original_audio_not_available">Pentru a utiliza această funcție, modificați \'Falsificare fluxuri video\' la orice client, cu excepția \'Android Studio\' și \'Android VR Downgraded\'</string>
   <!-- misc.privacy.sanitizeSharingLinksPatch -->
   <string name="morphe_sanitize_sharing_links_title">Igienizează linkurile de partajare</string>
   <string name="morphe_sanitize_sharing_links_summary">Elimină parametrii de interogare de urmărire din linkurile partajate</string>

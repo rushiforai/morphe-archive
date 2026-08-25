@@ -1,0 +1,26 @@
+{
+  "application": "Stremio Android TV",
+  "version": "1.10.4",
+  "assets": {
+    "E18A5405BB53E12A903FF477457318B8F8D3C8E1995E0A4C3FF5D8893D1CCF0B": {
+      "abi": "armeabi-v7a",
+      "versionCode": 31048580,
+      "file": "com.stremio.one-1.10.4-31048580-armeabi-v7a.apk"
+    },
+    "E4ED5D855CEB1C4B8874E0CAB84537A9D1CC8BD588E37FADFD4CD9F537D59F15": {
+      "abi": "x86",
+      "versionCode": 32097156,
+      "file": "com.stremio.one-1.10.4-32097156-x86.apk"
+    },
+    "CAAF4FABA423A47C3174EDA08B94057956CE32AF616C6377B3485F4F5DEC993C": {
+      "abi": "arm64-v8a",
+      "versionCode": 33145732,
+      "file": "com.stremio.one-1.10.4-33145732-arm64-v8a.apk"
+    },
+    "3A9F86646BA18F4F11073DFBB01E10B1D4019E78D89BA58EC3DE79F36F6CFC8C": {
+      "abi": "x86_64",
+      "versionCode": 34194308,
+      "file": "com.stremio.one-1.10.4-34194308-x86_64.apk"
+    }
+  }
+}

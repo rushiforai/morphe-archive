@@ -21,6 +21,88 @@ import org.w3c.dom.Element
 
 class GboardPackageRenameTransformTest {
     @Test
+    fun `application display name changes one attribute and preserves component labels`() {
+        val manifest = loadManifest()
+        val application = elements(manifest, "application").single()
+        val componentLabelsBefore = componentLabels(manifest)
+        val latinIme = elements(manifest, "service").single { element ->
+            androidAttribute(element, "name") == "com.android.inputmethod.latin.LatinIME"
+        }
+        val launcher = elements(manifest, "activity").single { element ->
+            androidAttribute(element, "name") ==
+                "com.google.android.libraries.inputmethod.launcher.LauncherActivity"
+        }
+
+        assertEquals("@string/ime_name", androidAttribute(application, "label"))
+        assertEquals(null, androidAttribute(latinIme, "label"))
+        assertEquals(null, androidAttribute(launcher, "label"))
+
+        applyGboardApplicationDisplayName(manifest, "Gboard Dev")
+
+        assertEquals("Gboard Dev", androidAttribute(application, "label"))
+        assertEquals(componentLabelsBefore, componentLabels(manifest))
+    }
+
+    @Test
+    fun `application display name replaces label in namespace unaware cli documents`() {
+        val manifest = parse(readFixtureBytes(MANIFEST_FIXTURE), namespaceAware = false)
+        val application = elements(manifest, "application").single()
+
+        applyGboardApplicationDisplayName(manifest, "Gboard Dev")
+
+        assertEquals("Gboard Dev", androidAttribute(application, "label"))
+        assertEquals(
+            1,
+            application.attributes.asList().count { attribute ->
+                attribute.nodeName == "android:label" ||
+                    (attribute.namespaceURI == ANDROID_NS && attribute.localName == "label")
+            },
+        )
+        assertFalse(serialize(manifest).contains("android:label=\"@string/ime_name\""))
+    }
+
+    @Test
+    fun `application display name accepts safe unicode and rejects unsafe values`() {
+        listOf(
+            "Gboard Dev",
+            "Jason 鍵盤",
+            "Keyboard 🚀",
+            "x".repeat(MAX_GBOARD_APP_DISPLAY_NAME_CODE_POINTS),
+        ).forEach { value ->
+            assertTrue(value, isValidGboardAppDisplayName(value))
+        }
+
+        listOf(
+            null,
+            "",
+            " ",
+            " Gboard Dev",
+            "Gboard Dev ",
+            "@string/ime_name",
+            "?attr/appName",
+            "Gboard\nDev",
+            "Gboard\u0000Dev",
+            "Gboard\u2028Dev",
+            "x".repeat(MAX_GBOARD_APP_DISPLAY_NAME_CODE_POINTS + 1),
+        ).forEach { value ->
+            assertFalse(value, isValidGboardAppDisplayName(value))
+        }
+    }
+
+    @Test
+    fun `application display name requires exactly one application element`() {
+        val manifest = loadManifest()
+        manifest.documentElement.appendChild(manifest.createElement("application"))
+        val before = serialize(manifest)
+
+        assertFails<IllegalStateException> {
+            applyGboardApplicationDisplayName(manifest, "Gboard Dev")
+        }
+
+        assertEquals(before, serialize(manifest))
+    }
+
+    @Test
     fun `mapping inventory is the exact fifteen target attributes`() {
         val actual = GBOARD_PACKAGE_RENAME_MAPPINGS.map { mapping ->
             listOf(
@@ -481,6 +563,14 @@ class GboardPackageRenameTransformTest {
                 }
             }
         }
+
+    private fun componentLabels(document: Document): Map<Pair<String, String>, String?> =
+        COMPONENT_TAGS.flatMap { tag ->
+            elements(document, tag).map { element ->
+                (tag to checkNotNull(androidAttribute(element, "name"))) to
+                    androidAttribute(element, "label")
+            }
+        }.toMap()
 
     private fun originalPackageName(document: Document): String =
         checkNotNull(

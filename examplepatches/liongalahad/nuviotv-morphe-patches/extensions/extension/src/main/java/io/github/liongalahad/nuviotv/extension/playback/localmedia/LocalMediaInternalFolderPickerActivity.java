@@ -260,6 +260,7 @@ public final class LocalMediaInternalFolderPickerActivity extends Activity {
         listView.requestFocus();
     }
 
+    @android.annotation.SuppressLint("GestureBackNavigation")
     @Override public void onBackPressed() {
         handleBackNavigation();
     }
@@ -336,6 +337,7 @@ public final class LocalMediaInternalFolderPickerActivity extends Activity {
         return Math.round(value * getResources().getDisplayMetrics().density);
     }
 
+    @android.annotation.TargetApi(33)
     private static final class Api33Back {
         private Api33Back() {}
 

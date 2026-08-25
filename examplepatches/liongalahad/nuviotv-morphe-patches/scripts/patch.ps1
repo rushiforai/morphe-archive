@@ -110,4 +110,41 @@ foreach ($needle in $forbiddenNeedles) {
     if ($found[$needle]) { throw "Post-patch DEX inspection found release-incompatible type $needle" }
 }
 
+$smaliProperty = $manifest.inspection.PSObject.Properties['smali']
+$smaliInspections = @()
+if ($smaliProperty) { $smaliInspections = @($smaliProperty.Value) }
+if ($smaliInspections.Count -gt 0) {
+    $apkAnalyzer = Get-ChildItem (Join-Path $env:ANDROID_HOME 'cmdline-tools') -Recurse `
+        -Filter apkanalyzer.bat -ErrorAction SilentlyContinue |
+        Sort-Object FullName -Descending | Select-Object -First 1
+    if (-not $apkAnalyzer) {
+        throw 'Post-patch Smali inspection requires apkanalyzer.bat from Android SDK command-line tools.'
+    }
+    $smaliDirectory = Join-Path $RunDirectory 'smali-inspection'
+    New-Item -ItemType Directory -Force $smaliDirectory | Out-Null
+    foreach ($smaliInspection in $smaliInspections) {
+        $className = [string]$smaliInspection.class
+        if ([string]::IsNullOrWhiteSpace($className)) {
+            throw 'Post-patch Smali inspection is missing a class name.'
+        }
+        $classFile = Join-Path $smaliDirectory (($className -replace '[^A-Za-z0-9_.-]', '_') + '.smali')
+        & $apkAnalyzer.FullName dex code --class $className $output 2>&1 |
+            Set-Content -Encoding UTF8 $classFile
+        if ($LASTEXITCODE -ne 0) {
+            throw "Post-patch Smali inspection could not decompile $className"
+        }
+        $classSmali = Get-Content $classFile -Raw
+        foreach ($required in @($smaliInspection.required)) {
+            if (-not $classSmali.Contains([string]$required)) {
+                throw "Post-patch Smali inspection of $className did not find $required"
+            }
+        }
+        foreach ($forbidden in @($smaliInspection.forbidden)) {
+            if ($classSmali.Contains([string]$forbidden)) {
+                throw "Post-patch Smali inspection of $className found forbidden instruction $forbidden"
+            }
+        }
+    }
+}
+
 [pscustomobject]@{ RunDirectory = $RunDirectory; PatchedApk = $output; Result = $result }

@@ -45,8 +45,8 @@ jobs:
       - name: Unit tests and clean bundle
         shell: pwsh
         run: |
-          ./gradlew.bat :extensions:extension:test :patches:buildAndroid --no-daemon
-          ./gradlew.bat generatePatchesList --no-daemon
+          ./gradlew.bat :patches:clean --no-daemon
+          ./gradlew.bat :extensions:extension:test :patches:generatePatchesList --no-daemon
           $list = Get-Content patches-list.json -Raw | ConvertFrom-Json
           $manifests = Get-ChildItem testing/patches -Recurse -Filter patch.json |
             ForEach-Object { Get-Content $_.FullName -Raw | ConvertFrom-Json }

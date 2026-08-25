@@ -27,6 +27,7 @@ REQUIRED_PERMISSIONS = {
     "android.permission.REQUEST_DELETE_PACKAGES",
     "android.permission.POST_NOTIFICATIONS",
     "android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS",
+    "android.permission.RECEIVE_BOOT_COMPLETED",
 }
 FORBIDDEN_PERMISSIONS = {
     "android.permission.INSTALL_PACKAGES",
@@ -35,7 +36,6 @@ FORBIDDEN_PERMISSIONS = {
     "android.permission.READ_CALL_LOG",
     "android.permission.READ_PHONE_NUMBERS",
     "android.provider.Telephony.SMS_RECEIVED",
-    "android.permission.RECEIVE_BOOT_COMPLETED",
     "android.permission.CHANGE_WIFI_STATE",
     "android.permission.CHANGE_NETWORK_STATE",
     "com.google.android.c2dm.permission.RECEIVE",
@@ -53,7 +53,6 @@ FORBIDDEN_PERMISSIONS = {
     "android.permission.BIND_VPN_SERVICE",
 }
 FORBIDDEN_MANIFEST_ANCHORS = {
-    "android.intent.action.BOOT_COMPLETED",
     "android.net.VpnService",
     "ru.vk.store.feature.connect.session",
     "ru.mail.network",
@@ -96,6 +95,10 @@ DISABLED_COMPONENT_PREFIXES = {
 }
 
 INVALID_COMPONENT_PREFIXES = ("xav.", "xid.", "xo.", "xom.", "xu.")
+WORK_MANAGER_RESCHEDULE_RECEIVER = (
+    "androidx.work.impl.background.systemalarm.RescheduleReceiver"
+)
+BOOT_COMPLETED_ACTION = "android.intent.action.BOOT_COMPLETED"
 
 
 def run(*command: str) -> str:
@@ -209,6 +212,7 @@ def manifest_components(manifest: str) -> tuple[list[dict[str, object]], set[int
         element_indent = len(line) - len(stripped)
         name: str | None = None
         enabled: bool | None = None
+        component_end = len(lines)
         for attribute_index in range(index + 1, len(lines)):
             attribute_line = lines[attribute_index]
             attribute_stripped = attribute_line.lstrip()
@@ -216,6 +220,7 @@ def manifest_components(manifest: str) -> tuple[list[dict[str, object]], set[int
                 continue
             attribute_indent = len(attribute_line) - len(attribute_stripped)
             if attribute_indent <= element_indent:
+                component_end = attribute_index
                 break
             if attribute_indent != element_indent + 2 or not attribute_stripped.startswith("A:"):
                 continue
@@ -234,7 +239,12 @@ def manifest_components(manifest: str) -> tuple[list[dict[str, object]], set[int
 
         if name is not None:
             components.append(
-                {"tag": element_match.group(1), "name": name, "enabled": enabled}
+                {
+                    "tag": element_match.group(1),
+                    "name": name,
+                    "enabled": enabled,
+                    "body": "\n".join(lines[index:component_end]),
+                }
             )
 
     return components, class_name_lines
@@ -280,19 +290,36 @@ def audit_patched(args: argparse.Namespace) -> None:
         for anchor in FORBIDDEN_MANIFEST_ANCHORS
         if anchor in non_component_manifest
     )
+    boot_action_lines = [
+        line
+        for line in manifest_lines
+        if ":name(" in line and f'="{BOOT_COMPLETED_ACTION}"' in line
+    ]
+    work_manager_boot_receivers = [
+        component
+        for component in components
+        if component["name"] == WORK_MANAGER_RESCHEDULE_RECEIVER
+        and BOOT_COMPLETED_ACTION in str(component["body"])
+    ]
+    invalid_boot_reschedule = (
+        len(boot_action_lines) != 1 or len(work_manager_boot_receivers) != 1
+    )
     if (
         missing
         or forbidden
         or forbidden_anchors
         or invalid_component_names
         or enabled_disabled_components
+        or invalid_boot_reschedule
     ):
         raise RuntimeError(
             "Patched manifest audit failed; "
             f"missing={missing}, forbidden={forbidden}, "
             f"forbidden_anchors={forbidden_anchors}, "
             f"invalid_component_names={invalid_component_names}, "
-            f"enabled_or_missing_disabled_components={enabled_disabled_components}"
+            f"enabled_or_missing_disabled_components={enabled_disabled_components}, "
+            f"boot_action_count={len(boot_action_lines)}, "
+            f"work_manager_boot_receiver_count={len(work_manager_boot_receivers)}"
         )
     print(
         json.dumps(
@@ -306,6 +333,7 @@ def audit_patched(args: argparse.Namespace) -> None:
                 "invalid_component_prefixes_absent": list(
                     INVALID_COMPONENT_PREFIXES
                 ),
+                "work_manager_boot_rescheduler_preserved": True,
             },
             indent=2,
         )

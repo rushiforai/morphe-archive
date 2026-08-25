@@ -95,6 +95,7 @@ public final class LocalMediaFolderPickerActivity extends Activity {
                 );
     }
 
+    @android.annotation.SuppressLint("WrongConstant")
     @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_TREE && resultCode == RESULT_OK && data != null) {
@@ -108,8 +109,12 @@ public final class LocalMediaFolderPickerActivity extends Activity {
                     int flags = data.getFlags() &
                             (Intent.FLAG_GRANT_READ_URI_PERMISSION |
                                     Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-                    getContentResolver().takePersistableUriPermission(treeUri, flags);
-                    saved = LocalMediaRuntime.setTreeUri(this, treeUri);
+                    if ((flags & Intent.FLAG_GRANT_READ_URI_PERMISSION) == 0) {
+                        saved = false;
+                    } else {
+                        getContentResolver().takePersistableUriPermission(treeUri, flags);
+                        saved = LocalMediaRuntime.setTreeUri(this, treeUri);
+                    }
                 } else {
                     saved = false;
                 }

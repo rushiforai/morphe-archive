@@ -21,6 +21,25 @@ Second \"item\" text"</string>
   <string name="morphe_restart_first_run">Dest pê bike ku sazkirinê temam bike</string>
   <!-- layout.branding.baseCustomBrandingPatch -->
   <string name="morphe_custom_branding_name_title">Navê sepanê</string>
+  <!-- layout.theme.baseThemePatch -->
+  <string name="morphe_theme_color_dark_title">Paşbingehê mijara tarî</string>
+  <string name="morphe_theme_color_dark_entry_2">Reşê xwerû</string>
+  <string name="morphe_theme_color_dark_entry_3">Material You (Reşê saf)</string>
+  <string name="morphe_theme_color_dark_entry_9">YouTube klasîk</string>
+  <string name="morphe_theme_color_dark_entry_10">Pembe tarî</string>
+  <string name="morphe_theme_color_dark_entry_11">Şîn tarî</string>
+  <string name="morphe_theme_color_dark_entry_12">Kesk tarî</string>
+  <string name="morphe_theme_color_dark_entry_13">Zer tarî</string>
+  <string name="morphe_theme_color_dark_entry_14">Porteqalî tarî</string>
+  <string name="morphe_theme_color_dark_entry_15">Sor tarî</string>
+  <string name="morphe_theme_color_dark_custom_title">Paşxana tarî ya taybet</string>
+  <string name="morphe_theme_color_dark_custom_summary">Rengê paşxana temaya tarî danîn</string>
+  <string name="morphe_theme_color_entry_1">Xwerûya sepanê</string>
+  <string name="morphe_theme_color_entry_4">Material You (Bêalî)</string>
+  <string name="morphe_theme_color_entry_5">Material You (Seretayî)</string>
+  <string name="morphe_theme_color_entry_6">Material You (Duyem)</string>
+  <string name="morphe_theme_color_entry_7">Material You (Sêyem)</string>
+  <string name="morphe_theme_color_custom_entry">Taybet</string>
   <!-- interaction.downloads.downloadsPatch -->
   <string name="morphe_external_downloader_screen_title">Daxazkirinê derve</string>
   <string name="morphe_external_downloader_name_title">Navê pakêta dakêşkerê</string>
@@ -131,8 +150,7 @@ Da ku teqezîya nêzîkê bikin, li jêr bidixin 'bidin pêşbaz'."</string>
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">Rekel kiradên ekranê tam</string>
   <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
-          'Android Studio' must be kept untranslated. -->
-  <string name="morphe_force_original_audio_not_available">Bi ku vê taybetmendiyê bikar bîne, guhêrîna \'Hêrîşkirina hûrbînên vîdyoyê\' bi her kûliyê ji bilî \'Android Studio\' bike.</string>
+          'Android Studio' and 'Android VR Downgraded' must be kept untranslated. -->
   <!-- misc.privacy.sanitizeSharingLinksPatch -->
   <string name="morphe_sanitize_sharing_links_title">Lînkên parvekirinê paqij bike</string>
   <string name="morphe_sanitize_sharing_links_summary">Parametreyên pirsîna şopandinê ji girêdên parvekirî têne çêkirin</string>

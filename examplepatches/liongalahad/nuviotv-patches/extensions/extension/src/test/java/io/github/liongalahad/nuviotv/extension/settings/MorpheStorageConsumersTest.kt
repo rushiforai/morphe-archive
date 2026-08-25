@@ -23,4 +23,21 @@ class MorpheStorageConsumersTest {
         first = true
         assertTrue(MorpheStorageConsumers.isAnyEnabled())
     }
+
+    @Test fun `write access is required only by an enabled writer`() {
+        var reader = true
+        var writer = false
+        MorpheStorageConsumers.register("reader", { reader }, false)
+        MorpheStorageConsumers.register("writer", { writer }, true)
+
+        assertTrue(MorpheStorageConsumers.isAnyEnabled())
+        assertFalse(MorpheStorageConsumers.isWriteAccessRequired())
+
+        writer = true
+        assertTrue(MorpheStorageConsumers.isWriteAccessRequired())
+
+        writer = false
+        reader = false
+        assertFalse(MorpheStorageConsumers.isWriteAccessRequired())
+    }
 }

@@ -132,5 +132,17 @@ internal val settingsUiPatch = bytecodePatch {
                 move-result-object v${start + 3}
             """
         )
+
+        // Nuvio also reuses this Experience-mode lambda as a card inside its native
+        // Advanced page. The Experience page call above now receives Morphe's own
+        // content, so the original lambda must be neutralized; otherwise the renamed
+        // Experience card appears as a duplicate Morphe entry under Advanced.
+        experienceContentMethod.addInstructions(
+            0,
+            """
+                sget-object v0, Lkotlin/Unit;->INSTANCE:Lkotlin/Unit;
+                return-object v0
+            """
+        )
     }
 }

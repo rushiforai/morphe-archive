@@ -1,24 +1,23 @@
 package app.template.patches.rustore.navigation
 
 import app.morphe.patcher.Fingerprint
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
-/** Matches `BottomNavigationContainer`, which receives the visible navigation tabs. */
-object BottomNavigationContainerFingerprint : Fingerprint(
-    returnType = "V",
-    parameters = listOf(
-        "Ljava/util/List;",
-        "Ljava/util/Map;",
-        "Ljava/lang/String;",
-        "L",
-        "Lkotlin/jvm/functions/Function1;",
-        "Lkotlin/jvm/functions/Function1;",
-        "L",
-        "L",
-        "Landroidx/compose/runtime/a;",
-        "I",
-    ),
+private const val NAVIGATION_TAB_KIND =
+    "Lru/vk/store/feature/showcase/tabsOrder/api/domain/NavigationTabKind;"
+
+/** Matches the `MainViewModel` factory that creates the immutable navigation-tab state. */
+object MainNavigationTabsFactoryFingerprint : Fingerprint(
+    returnType = "L",
+    parameters = listOf("Z", "L"),
     custom = { method, classDef ->
-        classDef.sourceFile == "BottomNavigationContainer.kt" && method.implementation != null
+        classDef.sourceFile == "MainViewModel.kt" &&
+            method.implementation?.instructions?.count { instruction ->
+                val type =
+                    (instruction as? ReferenceInstruction)?.reference as? TypeReference
+                type?.type == NAVIGATION_TAB_KIND
+            } == 1
     },
 )
 
@@ -34,27 +33,5 @@ object RootNavHostFingerprint : Fingerprint(
     ),
     custom = { method, classDef ->
         classDef.sourceFile == "RootNavHost.kt" && method.implementation != null
-    },
-)
-
-/** Matches the singleton `ShowcaseTab.Featuring` variant. */
-object FeaturedTabToStringFingerprint : Fingerprint(
-    name = "toString",
-    returnType = "Ljava/lang/String;",
-    parameters = emptyList(),
-    strings = listOf("Featuring"),
-    custom = { method, classDef ->
-        classDef.sourceFile == "ShowcaseTab.kt" && method.implementation != null
-    },
-)
-
-/** Matches the stateful `ShowcaseTab.Games` variant. */
-object GamesTabToStringFingerprint : Fingerprint(
-    name = "toString",
-    returnType = "Ljava/lang/String;",
-    parameters = emptyList(),
-    strings = listOf("Games(customIcon="),
-    custom = { method, classDef ->
-        classDef.sourceFile == "ShowcaseTab.kt" && method.implementation != null
     },
 )

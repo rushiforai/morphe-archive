@@ -80,7 +80,18 @@
       "Delete Folder",
       "Delete File"
     ],
-    "forbiddenNeedles": []
+    "forbiddenNeedles": [],
+    "smali": [
+      {
+        "class": "v3.b0",
+        "required": [
+          "invoke-super {p0, p1}, Landroid/app/Dialog;->dispatchKeyEvent(Landroid/view/KeyEvent;)Z"
+        ],
+        "forbidden": [
+          "invoke-super {p0, p1}, Lc/o;->dispatchKeyEvent(Landroid/view/KeyEvent;)Z"
+        ]
+      }
+    ]
   },
   "focusedTests": [
     "LocalMediaRuntimeTest and LocalMediaFolderPickerActivityTest",

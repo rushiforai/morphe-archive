@@ -21,6 +21,25 @@ Second \"item\" text"</string>
   <string name="morphe_restart_first_run">Перезагрузите для завершения настройки</string>
   <!-- layout.branding.baseCustomBrandingPatch -->
   <string name="morphe_custom_branding_name_title">Название приложения</string>
+  <!-- layout.theme.baseThemePatch -->
+  <string name="morphe_theme_color_dark_title">Фон темной темы</string>
+  <string name="morphe_theme_color_dark_entry_2">Чисто черный</string>
+  <string name="morphe_theme_color_dark_entry_3">Material You (глубокий черный)</string>
+  <string name="morphe_theme_color_dark_entry_9">Классический YouTube</string>
+  <string name="morphe_theme_color_dark_entry_10">Темно-розовый</string>
+  <string name="morphe_theme_color_dark_entry_11">Темно-синий</string>
+  <string name="morphe_theme_color_dark_entry_12">Темно-зеленый</string>
+  <string name="morphe_theme_color_dark_entry_13">Темно-желтый</string>
+  <string name="morphe_theme_color_dark_entry_14">Темно-оранжевый</string>
+  <string name="morphe_theme_color_dark_entry_15">Темно-красный</string>
+  <string name="morphe_theme_color_dark_custom_title">Пользовательский тёмный фон</string>
+  <string name="morphe_theme_color_dark_custom_summary">Установите цвет фона тёмной темы</string>
+  <string name="morphe_theme_color_entry_1">По умолчанию</string>
+  <string name="morphe_theme_color_entry_4">Material You (нейтральный)</string>
+  <string name="morphe_theme_color_entry_5">Material You (основной)</string>
+  <string name="morphe_theme_color_entry_6">Material You (второстепенный)</string>
+  <string name="morphe_theme_color_entry_7">Material You (дополнительный)</string>
+  <string name="morphe_theme_color_custom_entry">Пользовательское</string>
   <!-- interaction.downloads.downloadsPatch -->
   <string name="morphe_external_downloader_screen_title">Внешние загрузки</string>
   <string name="morphe_external_downloader_name_title">Имя пакета загрузчика</string>
@@ -133,8 +152,8 @@ Second \"item\" text"</string>
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">Скрыть полноэкранную рекламу</string>
   <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
-          'Android Studio' must be kept untranslated. -->
-  <string name="morphe_force_original_audio_not_available">Для использования этой функции измените клиент в \"Подмене видеопотоков\" на любой, кроме Android Studio\'</string>
+          'Android Studio' and 'Android VR Downgraded' must be kept untranslated. -->
+  <string name="morphe_force_original_audio_not_available">Чтобы использовать эту функцию, измените \'Подмена видеопотоков\' на любой клиент, кроме \'Android Studio\' и \'Android VR Downgraded\'.</string>
   <!-- misc.privacy.sanitizeSharingLinksPatch -->
   <string name="morphe_sanitize_sharing_links_title">Очищать ссылки для обмена</string>
   <string name="morphe_sanitize_sharing_links_summary">Удаляет параметры отслеживания запросов из общих ссылок</string>

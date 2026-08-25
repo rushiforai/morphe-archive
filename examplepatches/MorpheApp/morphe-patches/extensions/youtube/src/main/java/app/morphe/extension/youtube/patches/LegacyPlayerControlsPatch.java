@@ -1,3 +1,10 @@
+/*
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
+ *
+ * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ */
+
 package app.morphe.extension.youtube.patches;
 
 import android.view.View;
@@ -49,5 +56,15 @@ public class LegacyPlayerControlsPatch {
      */
     public static boolean usePlayerBottomControlsExploderLayout(boolean original) {
         return !RESTORE_OLD_PLAYER_BUTTONS;
+    }
+
+    /**
+     * Injection point.
+     */
+    public static boolean allowModernPlayerLayoutFlags(boolean original) {
+        if (RESTORE_OLD_PLAYER_BUTTONS) {
+            return false; // Flag causes app crash on startup if old player buttons is used.
+        }
+        return original;
     }
 }

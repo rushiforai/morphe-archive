@@ -1024,6 +1024,16 @@
         "integration": "https://api.github.com/repos/revanced/revanced-integrations",
         "prerelease": false
     },
+    "aimal-stable": {
+        "patches": "https://api.github.com/repos/hashtagbasit/aimal-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": false
+    },
+    "gltieo-stable": {
+        "patches": "https://gitlab.com/api/v4/projects/gltieo%2Frevanced-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": false
+    },
     "anime-witcher-stable": {
         "patches": "https://api.github.com/repos/catsmoker/anime-witcher-patches",
         "integration": "https://api.github.com/repos/revanced/revanced-integrations",
@@ -1041,6 +1051,31 @@
     },
     "hh-stable": {
         "patches": "https://api.github.com/repos/hhawkinsau/hh-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": false
+    },
+    "shuhaibnc-stable": {
+        "patches": "https://api.github.com/repos/ShuhaibNC/morphe-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": false
+    },
+    "stremio-androidtv-stable": {
+        "patches": "https://api.github.com/repos/liongalahad/stremio-androidTV-morphe-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": false
+    },
+    "bluecxt-instagram-stable": {
+        "patches": "https://api.github.com/repos/bluecxt/instagram-revanced-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": false
+    },
+    "imgur-revanced-stable": {
+        "patches": "https://api.github.com/repos/roflsunriz/imgur-revanced",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": false
+    },
+    "legendsciber-stable": {
+        "patches": "https://api.github.com/repos/legendsciber/morphe-patches",
         "integration": "https://api.github.com/repos/revanced/revanced-integrations",
         "prerelease": false
     },
@@ -2059,6 +2094,16 @@
         "integration": "https://api.github.com/repos/revanced/revanced-integrations",
         "prerelease": true
     },
+    "aimal-dev": {
+        "patches": "https://api.github.com/repos/hashtagbasit/aimal-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": true
+    },
+    "gltieo-dev": {
+        "patches": "https://gitlab.com/api/v4/projects/gltieo%2Frevanced-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": true
+    },
     "anime-witcher-dev": {
         "patches": "https://api.github.com/repos/catsmoker/anime-witcher-patches",
         "integration": "https://api.github.com/repos/revanced/revanced-integrations",
@@ -2078,6 +2123,41 @@
         "patches": "https://api.github.com/repos/hhawkinsau/hh-patches",
         "integration": "https://api.github.com/repos/revanced/revanced-integrations",
         "prerelease": true
+    },
+    "shuhaibnc-dev": {
+        "patches": "https://api.github.com/repos/ShuhaibNC/morphe-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": true
+    },
+    "stremio-androidtv-dev": {
+        "patches": "https://api.github.com/repos/liongalahad/stremio-androidTV-morphe-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": true
+    },
+    "bluecxt-instagram-dev": {
+        "patches": "https://api.github.com/repos/bluecxt/instagram-revanced-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": true
+    },
+    "imgur-revanced-dev": {
+        "patches": "https://api.github.com/repos/roflsunriz/imgur-revanced",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": true
+    },
+    "legendsciber-dev": {
+        "patches": "https://api.github.com/repos/legendsciber/morphe-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "prerelease": true
+    },
+    "imgur-revanced-latest": {
+        "patches": "https://api.github.com/repos/roflsunriz/imgur-revanced",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "latest": true
+    },
+    "legendsciber-latest": {
+        "patches": "https://api.github.com/repos/legendsciber/morphe-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "latest": true
     },
     "piko-latest": {
         "patches": "https://api.github.com/repos/crimera/piko",
@@ -3094,6 +3174,16 @@
         "integration": "https://api.github.com/repos/revanced/revanced-integrations",
         "latest": true
     },
+    "aimal-latest": {
+        "patches": "https://api.github.com/repos/hashtagbasit/aimal-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "latest": true
+    },
+    "gltieo-latest": {
+        "patches": "https://gitlab.com/api/v4/projects/gltieo%2Frevanced-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "latest": true
+    },
     "anime-witcher-latest": {
         "patches": "https://api.github.com/repos/catsmoker/anime-witcher-patches",
         "integration": "https://api.github.com/repos/revanced/revanced-integrations",
@@ -3116,6 +3206,21 @@
     },
     "rustore-privacy-latest": {
         "patches": "https://api.github.com/repos/Freeman022026/rustore-privacy-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "latest": true
+    },
+    "shuhaibnc-latest": {
+        "patches": "https://api.github.com/repos/ShuhaibNC/morphe-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "latest": true
+    },
+    "stremio-androidtv-latest": {
+        "patches": "https://api.github.com/repos/liongalahad/stremio-androidTV-morphe-patches",
+        "integration": "https://api.github.com/repos/revanced/revanced-integrations",
+        "latest": true
+    },
+    "bluecxt-instagram-latest": {
+        "patches": "https://api.github.com/repos/bluecxt/instagram-revanced-patches",
         "integration": "https://api.github.com/repos/revanced/revanced-integrations",
         "latest": true
     }

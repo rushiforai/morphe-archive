@@ -8,7 +8,7 @@ Downloads and automatic local playback default On when their preferences are abs
 
 Playback shows `Local Downloads` before `Local Media`, followed by one unsectioned `Local storage path` row at the bottom. The path row is installed whenever either storage-consuming patch is installed and is greyed and unfocusable only while both feature toggles are off.
 
-When the app has direct storage access, `Local storage path` opens the same patch-owned, TV-native D-pad folder browser on every device. Its Storage devices page enumerates Android's mounted storage volumes and labels removable media with Android's device description. Without direct access, Android's persisted folder-tree picker remains the fallback.
+When the app has direct storage access, `Local storage path` opens the same patch-owned, TV-native D-pad folder browser on every device. Its Storage devices page enumerates Android's mounted storage volumes and labels removable media with Android's device description. Without direct access, Android's persisted folder-tree picker remains the fallback. While Local Downloads is enabled, folder selection requires write access and a raw filesystem selection must pass an actual temporary create/delete probe before it is saved. A read-only Local Media installation retains read-only folder selection. Every Download action revalidates a saved path, so revoked access, a read-only remount, or a missing folder returns to write-capable folder selection before any source transfer starts.
 
 Completed files are indexed by exact catalogue content/video identity. Signed source URLs and headers are held only for the active foreground transfer and are never persisted. Partial files use a `.partial` suffix and are removed on cancellation or failure.
 

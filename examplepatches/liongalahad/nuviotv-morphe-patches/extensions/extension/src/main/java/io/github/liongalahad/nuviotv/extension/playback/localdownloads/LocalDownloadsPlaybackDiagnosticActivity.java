@@ -230,6 +230,7 @@ public final class LocalDownloadsPlaybackDiagnosticActivity extends Activity {
         save.requestFocus();
     }
 
+    @android.annotation.SuppressLint("GestureBackNavigation")
     @Override public void onBackPressed() { finish(); }
 
     private void saveLogToLocalStorage() {

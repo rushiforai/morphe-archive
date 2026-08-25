@@ -132,3 +132,9 @@
 
 - Opening Library > Storage initially exposed two R8 moves: the mutable-state factory changed from `e1.j.q(Object)` to `e1.j.s(Object)`, and the grid-span packer moved from `t6.a.c(int)` to `k6.g.b(int)`. Both lookups now use verified signatures rather than method names.
 - The corrected combined nine-patch x86_64 build rendered Saved, Cloud and Storage, discovered four local fixtures, launched the focused H.264 file through Nuvio's player route, attached its same-basename SRT, and returned to the Storage grid without a fatal or reflection error.
+
+## 2026-08-25 dialog-dispatch regression evidence
+
+- The combined nine-patch episode-options crash was a verifier failure in Nuvio's Compose dialog wrapper: the injected `dispatchKeyEvent` called an obfuscated non-super owner. The patch now derives the dispatch owner from the target's original `onTouchEvent` super call and requires it to be `android.app.Dialog`.
+- Post-patch Smali inspection requires `invoke-super {p0, p1}, Landroid/app/Dialog;->dispatchKeyEvent(Landroid/view/KeyEvent;)Z` and rejects the former `Lc/o;` call.
+- The final isolated Local Media applications passed on x86_64, arm64-v8a, armeabi-v7a, and universal. The final all-nine candidates passed on all four inputs, and episode options opened on Android TV API 28, 30, and 36 without a package fatal exception or `VerifyError`.

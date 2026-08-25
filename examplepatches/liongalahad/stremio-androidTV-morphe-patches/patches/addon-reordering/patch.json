@@ -1,0 +1,6 @@
+{
+  "id": "addon-reordering",
+  "order": 150,
+  "apply": "apply.ps1",
+  "augment": "augment.ps1"
+}

@@ -47,6 +47,7 @@ public final class LocalDownloadsProgressActivity extends Activity {
         super.onDestroy();
     }
 
+    @android.annotation.SuppressLint("GestureBackNavigation")
     @Override public void onBackPressed() { hideDownload(); }
 
     private void createUi() {

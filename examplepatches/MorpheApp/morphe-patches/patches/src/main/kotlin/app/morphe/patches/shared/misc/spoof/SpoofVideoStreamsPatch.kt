@@ -64,6 +64,7 @@ private val spoofVideoStreamsResourcePatch = resourcePatch {
                 "polyfill.js",
                 "yt.solver.core.js", // yt-dlp-ejs 0.8.0: https://github.com/yt-dlp/ejs/releases/tag/0.8.0
                 "yt.solver.wrapper.js",
+                "po_token.html",
             )
         )
 
@@ -288,6 +289,12 @@ internal fun spoofVideoStreamsPatch(
                             invoke-virtual { v5 }, $buildMethod
                             move-result-object v5
                             check-cast v5, $playerConfigClass
+
+                            # Check if player config contains android media lib config.
+                            invoke-static { v2 }, $EXTENSION_CLASS->hasAndroidMedia(Ljava/lang/String;)Z
+                            move-result v3
+                            if-nez v3, :override_all_player_config
+
                             iget-object v6, v5, $mediaCommonConfigField
                             if-eqz v6, :disabled
                             iget-object v7, v6, $mediaUstreamerRequestConfig
@@ -298,6 +305,9 @@ internal fun spoofVideoStreamsPatch(
                             iget-object v6, v5, $mediaCommonConfigField
                             iput-object v7, v6, $mediaUstreamerRequestConfig
                             iput-object v6, v5, $mediaCommonConfigField
+
+                            :override_all_player_config
+                            # Set player config.
                             iput-object v5, p2, $setPlayerConfigField
 
                             :disabled

@@ -269,25 +269,35 @@ val localdownloadsPatch = bytecodePatch(
                 instruction.opcode == Opcode.IGET_BOOLEAN && field?.definingClass == cardOwner &&
                     instructions.getOrNull(index + 1)?.opcode == Opcode.IF_EQZ
             } ?: error("Episode watched-state field read was not found")
-            val watchedRegister = (watchedRead.value as? TwoRegisterInstruction)?.registerA
-                ?: error("Episode watched-state field has no destination register")
-            val composerRegister = instructions.withIndex().take(watchedRead.index).lastOrNull {
+            val composerCast = instructions.withIndex().take(watchedRead.index).lastOrNull {
                     (_, instruction) ->
                 instruction.opcode == Opcode.CHECK_CAST &&
                     ((instruction as? ReferenceInstruction)?.reference as? TypeReference)?.type ==
                     "Le1/m0;"
-            }?.value.let { instruction ->
+            } ?: error("Episode-card composer cast was not found")
+            val composerRegister = composerCast.value.let { instruction ->
                 (instruction as? OneRegisterInstruction)?.registerA
             } ?: error("Episode-card composer register was not found")
-            check(watchedRegister != 6 && watchedRegister <= 15 && composerRegister <= 15) {
-                "Episode watched-state register cannot be injected safely: v$watchedRegister"
+            val expectedComposerParameter = implementation!!.registerCount - 2
+            val composerSource = instructions.withIndex().take(composerCast.index).lastOrNull {
+                    (_, instruction) ->
+                instruction.opcode in setOf(
+                    Opcode.MOVE_OBJECT,
+                    Opcode.MOVE_OBJECT_FROM16,
+                    Opcode.MOVE_OBJECT_16
+                ) && (instruction as? TwoRegisterInstruction)?.registerA == composerRegister
+            }?.value.let { instruction ->
+                (instruction as? TwoRegisterInstruction)?.registerB
+            }
+            check(composerSource == expectedComposerParameter) {
+                "Episode-card composer is not copied from the expected p2 parameter: " +
+                    "v$composerSource != v$expectedComposerParameter"
             }
             addInstructions(
                 watchedRead.index + 1,
-                """
-                    move-object/from16 v6, p0
-                    invoke-static { v6, v$watchedRegister, v$composerRegister }, $RUNTIME->renderDownloadedEpisodeBadge(Ljava/lang/Object;ZLjava/lang/Object;)V
-                """
+                "invoke-static/range { p0 .. p2 }, " +
+                    "$RUNTIME->renderDownloadedEpisodeBadge" +
+                    "(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V"
             )
         }
 

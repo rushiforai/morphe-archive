@@ -5,6 +5,7 @@ VERSION="${1:?usage: prepare-semantic-release.sh <version>}"
 
 python3 - "$VERSION" <<'PY'
 from pathlib import Path
+import re
 import sys
 
 version = sys.argv[1]
@@ -12,12 +13,13 @@ path = Path("gradle.properties")
 lines = path.read_text(encoding="utf-8").splitlines()
 updated = False
 for index, line in enumerate(lines):
-    if line.startswith("version="):
-        lines[index] = f"version={version}"
+    match = re.match(r"^(\s*version\s*=\s*).*$", line)
+    if match:
+        lines[index] = f"{match.group(1)}{version}"
         updated = True
         break
 if not updated:
-    raise SystemExit("gradle.properties does not contain a version= entry")
+    raise SystemExit("gradle.properties does not contain a version property")
 path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 PY
 

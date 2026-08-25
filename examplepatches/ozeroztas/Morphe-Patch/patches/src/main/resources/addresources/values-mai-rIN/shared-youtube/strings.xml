@@ -21,6 +21,7 @@ Second \"item\" text"</string>
   <string name="morphe_restart_first_run">सेटअप पूरा करबाक लेल पुनः आरंभ करू</string>
   <!-- layout.branding.baseCustomBrandingPatch -->
   <string name="morphe_custom_branding_name_title">एप्पक नाम</string>
+  <!-- layout.theme.baseThemePatch -->
   <!-- interaction.downloads.downloadsPatch -->
   <!-- Translations of this should be identical to morphe_custom_branding_icon_entry_7 -->
   <string name="morphe_custom_branding_name_entry_5">कस्टम</string>
@@ -98,7 +99,7 @@ Second \"item\" text"</string>
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">फुलस्क्रीन विज्ञापन छुपाउ</string>
   <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
-          'Android Studio' must be kept untranslated. -->
+          'Android Studio' and 'Android VR Downgraded' must be kept untranslated. -->
   <!-- misc.privacy.sanitizeSharingLinksPatch -->
   <string name="morphe_sanitize_sharing_links_title">शेयरिंग लिंकसके सेनिटाइज करू</string>
   <string name="morphe_replace_music_with_youtube_title">शेयर लिंकके youtube.com में बदलू</string>

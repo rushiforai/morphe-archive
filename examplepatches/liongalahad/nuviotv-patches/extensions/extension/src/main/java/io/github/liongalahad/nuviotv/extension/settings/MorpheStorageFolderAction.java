@@ -1,7 +1,6 @@
 package io.github.liongalahad.nuviotv.extension.settings;
 
 import android.app.Activity;
-import android.content.Intent;
 
 import kotlin.Unit;
 import kotlin.jvm.functions.Function0;
@@ -15,7 +14,10 @@ public enum MorpheStorageFolderAction implements Function0<Unit> {
         if (this == INSTANCE && MorpheStorageConsumers.isAnyEnabled()) {
             Activity activity = MorpheSettingsUi.resumedActivity();
             if (activity != null) activity.startActivity(
-                    new Intent(activity, MorpheStorageFolderPickerActivity.class));
+                    MorpheStorageFolderPickerActivity.intent(
+                            activity,
+                            MorpheStorageConsumers.isWriteAccessRequired()
+                    ));
         }
         return Unit.INSTANCE;
     }

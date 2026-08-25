@@ -21,6 +21,25 @@ Second \"item\" text"</string>
   <string name="morphe_restart_first_run">Επανεκκινήστε για να ολοκληρωθεί η διαδικασία</string>
   <!-- layout.branding.baseCustomBrandingPatch -->
   <string name="morphe_custom_branding_name_title">Όνομα εφαρμογής</string>
+  <!-- layout.theme.baseThemePatch -->
+  <string name="morphe_theme_color_dark_title">Χρώμα φόντου στο σκούρο θέμα</string>
+  <string name="morphe_theme_color_dark_entry_2">Αληθινό μαύρο</string>
+  <string name="morphe_theme_color_dark_entry_3">Material You (Καθαρό μαύρο)</string>
+  <string name="morphe_theme_color_dark_entry_9">Κλασικό YouTube</string>
+  <string name="morphe_theme_color_dark_entry_10">Σκούρο ροζ</string>
+  <string name="morphe_theme_color_dark_entry_11">Σκούρο μπλε</string>
+  <string name="morphe_theme_color_dark_entry_12">Σκούρο πράσινο</string>
+  <string name="morphe_theme_color_dark_entry_13">Σκούρο κίτρινο</string>
+  <string name="morphe_theme_color_dark_entry_14">Σκούρο πορτοκαλί</string>
+  <string name="morphe_theme_color_dark_entry_15">Σκούρο κόκκινο</string>
+  <string name="morphe_theme_color_dark_custom_title">Προσαρμοσμένο σκοτεινό φόντο</string>
+  <string name="morphe_theme_color_dark_custom_summary">Ορίστε το χρώμα φόντου του σκούρου θέματος</string>
+  <string name="morphe_theme_color_entry_1">Προεπιλογή εφαρμογής</string>
+  <string name="morphe_theme_color_entry_4">Material You (Ουδέτερο)</string>
+  <string name="morphe_theme_color_entry_5">Material You (Πρωτεύον)</string>
+  <string name="morphe_theme_color_entry_6">Material You (Δευτερεύον)</string>
+  <string name="morphe_theme_color_entry_7">Material You (Τριτεύον)</string>
+  <string name="morphe_theme_color_custom_entry">Προσαρμοσμένο</string>
   <!-- interaction.downloads.downloadsPatch -->
   <string name="morphe_external_downloader_screen_title">Εξωτερικές λήψεις</string>
   <string name="morphe_external_downloader_name_title">Όνομα πακέτου εφαρμογής λήψης</string>
@@ -133,8 +152,8 @@ Second \"item\" text"</string>
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">Διαφημίσεις πλήρους οθόνης</string>
   <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
-          'Android Studio' must be kept untranslated. -->
-  <string name="morphe_force_original_audio_not_available">Για να χρησιμοποιήσετε αυτήν τη λειτουργία, αλλάξτε την επιλογή «Παραποίηση ροών βίντεο» σε οποιονδήποτε πελάτη εκτός από το Android Studio\'</string>
+          'Android Studio' and 'Android VR Downgraded' must be kept untranslated. -->
+  <string name="morphe_force_original_audio_not_available">Για να χρησιμοποιήσετε αυτήν τη λειτουργία, αλλάξτε την επιλογή «Παραποίηση ροών βίντεο» σε οποιονδήποτε πελάτη εκτός από το «Android Studio» και το «Android VR Downgraded»</string>
   <!-- misc.privacy.sanitizeSharingLinksPatch -->
   <string name="morphe_sanitize_sharing_links_title">Καθαρισμός συνδέσμων κατά την κοινοποίηση</string>
   <string name="morphe_sanitize_sharing_links_summary">Οι παράμετροι παρακολούθησης αφαιρούνται από τους συνδέσμους κατά την κοινοποίηση</string>

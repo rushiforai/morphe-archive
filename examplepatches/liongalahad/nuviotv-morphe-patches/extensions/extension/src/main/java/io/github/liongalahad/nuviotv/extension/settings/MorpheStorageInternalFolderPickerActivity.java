@@ -40,40 +40,60 @@ public final class MorpheStorageInternalFolderPickerActivity extends Activity {
     private ListView list;
     private File current;
     private boolean accessStarted;
+    private boolean requireWrite;
 
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
         accessStarted = state != null && state.getBoolean("accessStarted", false);
+        requireWrite = state != null
+                ? state.getBoolean("requireWrite", false)
+                : getIntent().getBooleanExtra(
+                        MorpheStorageFolderPickerActivity.EXTRA_REQUIRE_WRITE, false);
         String restored = state == null ? null : state.getString("current");
         if (restored != null) current = canonical(new File(restored));
-        if (hasDirectAccess(this)) createBrowser();
+        if (hasDirectAccess(this, requireWrite)) createBrowser();
         else if (!accessStarted) requestAccess();
     }
 
     @Override protected void onSaveInstanceState(Bundle state) {
         state.putBoolean("accessStarted", accessStarted);
+        state.putBoolean("requireWrite", requireWrite);
         if (current != null) state.putString("current", current.getAbsolutePath());
         super.onSaveInstanceState(state);
     }
 
     @Override protected void onResume() {
         super.onResume();
-        if (list == null && hasDirectAccess(this)) createBrowser();
+        if (list == null && hasDirectAccess(this, requireWrite)) createBrowser();
     }
 
     static boolean hasDirectAccess(Context context) {
+        return hasDirectAccess(context, false);
+    }
+
+    static boolean hasDirectAccess(Context context, boolean requireWrite) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             return Environment.isExternalStorageManager();
         }
-        return context.checkSelfPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE) ==
-                PackageManager.PERMISSION_GRANTED;
+        boolean readable = context.checkSelfPermission(
+                android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        boolean writable = context.checkSelfPermission(
+                android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        return hasLegacyDirectAccess(readable, writable, requireWrite);
+    }
+
+    static boolean hasLegacyDirectAccess(boolean readable, boolean writable, boolean requireWrite) {
+        return readable && (!requireWrite || writable);
     }
 
     private void requestAccess() {
         accessStarted = true;
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
-            requestPermissions(new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE,
-                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_ACCESS);
+            requestPermissions(requireWrite
+                            ? new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE,
+                                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE}
+                            : new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE},
+                    REQUEST_ACCESS);
             return;
         }
         try {
@@ -94,7 +114,7 @@ public final class MorpheStorageInternalFolderPickerActivity extends Activity {
     @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode != REQUEST_ACCESS) return;
-        if (hasDirectAccess(this)) createBrowser();
+        if (hasDirectAccess(this, requireWrite)) createBrowser();
         else {
             Toast.makeText(this, "Storage access is required to choose a folder",
                     Toast.LENGTH_LONG).show();
@@ -105,7 +125,7 @@ public final class MorpheStorageInternalFolderPickerActivity extends Activity {
     @Override public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] results) {
         super.onRequestPermissionsResult(requestCode, permissions, results);
         if (requestCode == REQUEST_ACCESS) {
-            if (hasDirectAccess(this)) createBrowser();
+            if (hasDirectAccess(this, requireWrite)) createBrowser();
             else finish();
         }
     }
@@ -150,7 +170,13 @@ public final class MorpheStorageInternalFolderPickerActivity extends Activity {
     }
 
     private void choose() {
-        if (!isAllowedFolder(current) || !MorpheStoragePath.setFolderPath(this, current.getAbsolutePath())) {
+        if (!isAllowedFolder(current)) {
+            Toast.makeText(this, requireWrite
+                    ? "This folder does not allow file creation"
+                    : "This folder cannot be used", Toast.LENGTH_LONG).show();
+            return;
+        }
+        if (!MorpheStoragePath.setFolderPath(this, current.getAbsolutePath())) {
             Toast.makeText(this, "This folder cannot be used", Toast.LENGTH_LONG).show();
             return;
         }
@@ -199,6 +225,7 @@ public final class MorpheStorageInternalFolderPickerActivity extends Activity {
         list.requestFocus();
     }
 
+    @android.annotation.SuppressLint("GestureBackNavigation")
     @Override public void onBackPressed() {
         if (list == null || current == null) {
             finish();
@@ -211,7 +238,9 @@ public final class MorpheStorageInternalFolderPickerActivity extends Activity {
 
     private boolean isAllowedFolder(File folder) {
         if (folder == null || !folder.isDirectory()) return false;
-        for (File root : storageRoots()) if (contains(root, folder)) return true;
+        for (File root : storageRoots()) if (contains(root, folder)) {
+            return !requireWrite || MorpheStoragePath.isWritableDirectory(folder);
+        }
         return false;
     }
 

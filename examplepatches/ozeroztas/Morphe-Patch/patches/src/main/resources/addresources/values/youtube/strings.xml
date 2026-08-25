@@ -88,6 +88,9 @@ Changes include:
     <string name="morphe_hide_latest_videos_button_summary">Hides the blue \'Latest videos\' banner that appears at the top of the Home feed</string>
     <string name="morphe_hide_mix_playlists_title">Hide mix playlists</string>
     <string name="morphe_hide_movies_section_title">Hide movies section</string>
+    <!-- 'Notifications' should be translated using the same localized wording YouTube displays for the menu item. -->
+    <string name="morphe_hide_notifications_menu_header_title">Hide Notifications menu header</string>
+    <string name="morphe_hide_notifications_menu_header_summary">Hides the Notifications menu header when clicking the bell button</string>
     <!-- 'Notify me' should be translated using the same localized wording YouTube displays for the button.
           This button usually appears in the Subscriptions feed for future livestreams or unreleased videos. -->
     <string name="morphe_hide_notify_me_button_title">Hide \'Notify me\' button</string>
@@ -261,6 +264,8 @@ Changes include:
     <string name="morphe_hide_comments_gift_button_title">Hide Gift button</string>
     <string name="morphe_hide_comments_info_button_title">Hide Info button</string>
     <string name="morphe_hide_comments_live_chat_donators_bar_title">Hide live chat donators bar</string>
+    <string name="morphe_hide_comments_live_chat_tooltips_title">Hide live chat tooltips</string>
+    <string name="morphe_hide_comments_live_chat_tooltips_summary">Hides tooltip popups shown near the chat input bar, such as the subscriber-only chat notice</string>
     <string name="morphe_hide_comments_preview_comment_title">Hide preview comment</string>
     <string name="morphe_hide_comments_preview_comment_summary">Hides the comment preview under video before opening the full comments section</string>
     <string name="morphe_hide_comments_thanks_button_title">Hide Thanks button</string>
@@ -539,16 +544,17 @@ Info: May not work on live streams"</string>
     <!-- interaction.seekbar.seekbarThumbnailPreviewPatch -->
     <string name="morphe_seekbar_thumbnail_preview_title">Enable seekbar thumbnails</string>
     <string name="morphe_seekbar_thumbnail_preview_summary">Shows a video thumbnail while dragging the seekbar</string>
+    <string name="morphe_seekbar_thumbnail_heatmap_peak_point">Most replayed</string>
     <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
     <string name="morphe_livestream_dvr_not_available">"\'Enable livestream DVR\' may not be available
 
-To fix this, turn on \'Spoof video streams\' and change the \'Default client\' to \'TV\' or \'visionOS\'"</string>
+To fix this, turn on \'Spoof video streams\' and change the \'Default client\' to \'TV Simply\' or \'visionOS\'"</string>
     <string name="morphe_expand_livestream_dvr_duration_title">Expand livestream DVR duration</string>
     <string name="morphe_expand_livestream_dvr_duration_summary">Allows you to rewind live broadcasts up to 7 days into the past</string>
     <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
     <string name="morphe_expand_livestream_dvr_duration_not_available">"\'Expand livestream DVR duration\' may not be available
 
-To fix this, turn on \'Spoof video streams\' and change the \'Default client\' to \'TV\' or \'visionOS\'"</string>
+To fix this, turn on \'Spoof video streams\' and change the \'Default client\' to \'TV Simply\' or \'visionOS\'"</string>
 
     <!-- interaction.seekbar.enableSlideToSeekPatch -->
     <string name="morphe_slide_to_seek_title">Enable slide to seek</string>
@@ -559,16 +565,19 @@ To fix this, turn on \'Spoof video streams\' and change the \'Default client\' t
     <string name="morphe_tap_to_seek_summary">Just tap the seekbar to jump to that position without dragging it</string>
 
     <!-- interaction.swipecontrols.swipeControlsPatch -->
-    <string name="morphe_swipe_brightness_title">Enable brightness gesture</string>
-    <string name="morphe_swipe_brightness_summary">Swipe vertically on the left side of the fullscreen mode to adjust brightness</string>
-    <string name="morphe_swipe_volume_title">Enable volume gesture</string>
-    <string name="morphe_swipe_volume_summary">Swipe vertically on the right side of the fullscreen mode to adjust volume</string>
+    <string name="morphe_swipe_left_zone_title">Left swipe gesture</string>
+    <string name="morphe_swipe_right_zone_title">Right swipe gesture</string>
+    <string name="morphe_swipe_top_zone_title">Top swipe gesture</string>
     <string name="morphe_swipe_zone_preview_title" translatable="false"> </string>
-    <string name="morphe_swipe_zone_width_title">Brightness/volume zone width</string>
-    <string name="morphe_swipe_zone_width_summary">Percentage of each screen edge reserved for brightness and volume gestures (5-50)</string>
+    <string name="morphe_swipe_zone_width_title">Left/Right zone width</string>
+    <string name="morphe_swipe_zone_width_summary">Percentage of each screen edge reserved for left and right swipe gestures (5-50)</string>
     <string name="morphe_swipe_zone_label_brightness">Brightness</string>
     <string name="morphe_swipe_zone_label_volume">Volume</string>
     <string name="morphe_swipe_zone_label_native">Native</string>
+    <string name="morphe_swipe_zone_label_off">Off</string>
+    <string name="morphe_swipe_ignore_when_locked_title">Ignore swipes when locked</string>
+    <!-- 'Lock screen' should be translated using the same localized wording YouTube displays for the player menu item. -->
+    <string name="morphe_swipe_ignore_when_locked_summary">Swipe gestures are ignored while the player is locked with \'Lock screen\'</string>
     <string name="morphe_swipe_press_to_engage_title">Enable press to swipe gesture</string>
     <string name="morphe_swipe_press_to_engage_summary">Requires pressing and holding before a swipe gesture is recognized</string>
     <string name="morphe_swipe_haptic_feedback_title">Enable haptic feedback</string>
@@ -597,12 +606,9 @@ To fix this, turn on \'Spoof video streams\' and change the \'Default client\' t
     <string name="morphe_swipe_volume_sensitivity_summary">Higher values increase the volume change per swipe</string>
     <string name="morphe_swipe_brightness_sensitivity_title">Brightness swipe sensitivity</string>
     <string name="morphe_swipe_brightness_sensitivity_summary">Higher values require more swiping per brightness step</string>
-    <string name="morphe_swipe_speed_title">Enable speed gesture</string>
-    <string name="morphe_swipe_speed_summary">Swipe horizontally in the upper zone of the fullscreen mode to change playback speed</string>
     <string name="morphe_swipe_speed_sensitivity_title">Speed swipe sensitivity</string>
     <string name="morphe_swipe_speed_sensitivity_summary">Higher values require more swiping per speed step</string>
     <string name="morphe_swipe_speed_step_title">Speed step</string>
-    <string name="morphe_swipe_speed_step_summary">Amount by which the playback speed changes per tick</string>
     <string name="morphe_swipe_speed_zone_height_title">Speed zone height</string>
     <string name="morphe_swipe_speed_zone_height_summary">Height of the speed gesture zone as a percentage of the player height (5-75)</string>
     <string name="morphe_swipe_zone_label_speed">Speed</string>
@@ -737,15 +743,8 @@ To access Settings, enable the Settings button via General → Toolbar → Show 
     <string name="morphe_navigation_bar_animations_summary">Animates transitions when switching between tabs</string>
     <string name="morphe_disable_auto_hide_navigation_bar_title">Disable auto-hiding navigation bar</string>
     <string name="morphe_disable_auto_hide_navigation_bar_summary">Keeps the navigation bar visible while scrolling</string>
-    <string name="morphe_disable_translucent_status_bar_title">Disable translucent status bar</string>
-    <string name="morphe_disable_translucent_status_bar_summary">Makes the status bar fully opaque</string>
-    <string name="morphe_disable_translucent_status_bar_user_dialog_message">"Limitations:
-• A black bar may appear at the top of the video player.
-• The system navigation bar can change to transparent, and it\'s not possible to comment on videos."</string>
-    <string name="morphe_disable_translucent_navigation_bar_light_title">Disable light translucent bar</string>
-    <string name="morphe_disable_translucent_navigation_bar_light_summary">Makes the navigation bar fully opaque in light mode</string>
-    <string name="morphe_disable_translucent_navigation_bar_dark_title">Disable dark translucent bar</string>
-    <string name="morphe_disable_translucent_navigation_bar_dark_summary">Makes the navigation bar fully opaque in dark mode</string>
+    <string name="morphe_disable_translucent_navigation_title">Disable translucent navigation bar</string>
+    <string name="morphe_disable_translucent_navigation_summary">Makes the navigation and status bar fully opaque</string>
 
     <string name="morphe_toolbar_screen_title">Toolbar</string>
     <string name="morphe_toolbar_screen_summary">Choose which components appear in the toolbar</string>
@@ -766,10 +765,10 @@ To access Settings, enable the Settings button via General → Toolbar → Show 
     <!-- 'Audio Track' should be translated using the same localized wording YouTube displays for the menu item. -->
     <string name="morphe_hide_player_flyout_audio_track_title">Hide \'Audio Track\' menu</string>
     <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
-          'Android Studio' must be kept untranslated. -->
+          'Android Studio' and 'Android VR Downgraded' must be kept untranslated. -->
     <string name="morphe_hide_player_flyout_audio_track_not_available">"\'Audio Track\' menu is hidden
 
-To show the \'Audio Track\' menu, change \'Spoof video streams\' to any client except \'Android Studio\'"</string>
+To show the \'Audio Track\' menu, change \'Spoof video streams\' to any client except \'Android Studio\' and \'Android VR Downgraded\'"</string>
     <string name="morphe_hide_player_flyout_audio_track_footer_title">Hide \'Audio Track\' menu footer</string>
     <!-- 'Captions' should be translated using the same localized wording YouTube displays for the menu item. -->
     <string name="morphe_hide_player_flyout_captions_title">Hide Captions menu</string>
@@ -983,8 +982,8 @@ Limitation: If \'Restore old video action bar\' is turned off, \'More videos\' o
     <!-- layout.music.overrideYouTubeMusicButtonsPatch -->
     <string name="morphe_override_youtube_music_buttons_title">Override YouTube Music buttons</string>
     <string name="morphe_override_youtube_music_buttons_summary">Opens your preferred music app instead of the stock YouTube Music app</string>
-    <string name="morphe_music_package_name_title">Music app package name</string>
-    <string name="morphe_music_package_name_summary">Package name of your installed music app</string>
+    <string name="morphe_custom_music_package_name_title">Music app package name</string>
+    <string name="morphe_custom_music_package_name_summary">Package name of your installed music app</string>
 
     <!-- layout.startpage.changeStartPagePatch -->
     <string name="morphe_change_start_page_title">Start page</string>
@@ -1040,7 +1039,7 @@ Limitation: If \'Restore old video action bar\' is turned off, \'More videos\' o
     <string name="morphe_miniplayer_disable_resuming_summary">Disables the \'Continue watching\' miniplayer, a YouTube Premium feature that appears on app startup</string>
     <string name="morphe_miniplayer_screen_title">Miniplayer</string>
     <string name="morphe_miniplayer_screen_summary">Customize the appearance and behavior of the minimized video player</string>
-    <string name="morphe_miniplayer_not_available_summary">YouTube removed all additional miniplayers. To change the miniplayer type then patch YouTube 21.28.207 or older</string>
+    <string name="morphe_miniplayer_not_available_summary">YouTube removed all additional miniplayers. To change the miniplayer type then patch YouTube 21.28.208 or older</string>
     <string name="morphe_miniplayer_type_title">Miniplayer type</string>
     <string name="morphe_miniplayer_type_entry_0">Disabled</string>
     <string name="morphe_miniplayer_type_entry_1">Default</string>
@@ -1067,7 +1066,25 @@ Limitation: If \'Restore old video action bar\' is turned off, \'More videos\' o
     <string name="morphe_miniplayer_opacity_summary">Adjust the transparency level (0 is transparent, 100 is opaque)</string>
     <string name="morphe_miniplayer_opacity_invalid_toast">Miniplayer overlay opacity must be between 0-100</string>
 
+    <!-- misc.fix.fixBackToExitGesturePatch -->
+    <string name="morphe_back_button_always_exits_feed_title">Back button exits the feed</string>
+    <string name="morphe_back_button_always_exits_feed_summary">Pressing back always exits the app instead of scrolling to the top of the feed</string>
+
     <!-- layout.theme.themePatch -->
+    <string name="morphe_theme_color_light_title">Light theme background</string>
+    <string name="morphe_theme_color_light_entry_2">White</string>
+    <string name="morphe_theme_color_light_entry_3">Material You (White)</string>
+    <string name="morphe_theme_color_light_entry_8" translatable="false">Catppuccin (Latte)</string>
+    <string name="morphe_theme_color_light_entry_9">Light pink</string>
+    <string name="morphe_theme_color_light_entry_10">Light blue</string>
+    <string name="morphe_theme_color_light_entry_11">Light green</string>
+    <string name="morphe_theme_color_light_entry_12">Light yellow</string>
+    <string name="morphe_theme_color_light_entry_13">Light orange</string>
+    <string name="morphe_theme_color_light_entry_14">Light red</string>
+    <string name="morphe_theme_color_light_custom_title">Custom light background</string>
+    <string name="morphe_theme_color_light_custom_summary">Set the background color of the light theme</string>
+    <string name="morphe_theme_color_change_foreground_title">Change foreground color</string>
+    <string name="morphe_theme_color_change_foreground_summary">Use the theme color for text and icons</string>
     <string name="morphe_gradient_loading_screen_title">Enable gradient loading screen</string>
     <string name="morphe_gradient_loading_screen_summary">Shows a gradient background on the loading screen instead of a solid color</string>
     <string name="morphe_splash_screen_animation_style_title">Splash screen style</string>
@@ -1092,7 +1109,7 @@ Limitation: If \'Restore old video action bar\' is turned off, \'More videos\' o
     <string name="morphe_header_logo_entry_2">Regular</string>
     <string name="morphe_header_logo_entry_3" translatable="false">Premium</string>
     <string name="morphe_header_logo_entry_4" translatable="false">Morphe</string>
-    <!-- Translations should match the language used in 'morphe_custom_branding_icon_entry_3'. -->
+    <!-- Translations should match the language used in 'morphe_custom_branding_icon_entry_7'. -->
     <string name="morphe_header_logo_entry_5">Custom</string>
 
     <!-- layout.thumbnails.bypassImageRegionRestrictionsPatch -->
@@ -1180,12 +1197,6 @@ Tap here to open DeArrow.ajay.app"</string>
     <!-- video.quality.rememberVideoQualityPatch -->
     <!-- Translations should match the language used in 'morphe_custom_playback_speeds_auto'. -->
     <string name="morphe_video_quality_default_entry_1">Auto</string>
-    <string name="morphe_override_initial_video_quality_title">Override initial video quality</string>
-    <!-- 'Force AVC (H.264) codec' should be the same translation used for 'morphe_force_avc_codec_title'. -->
-    <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-    <string name="morphe_override_initial_video_quality_summary">"Fixes an issue where the default video quality is not applied immediately after the video starts
-
-Limitation: Playback may not work on some devices if \'Spoof video streams\' is set to \'Android VR\' and \'Force AVC (H.264) codec\' is enabled"</string>
     <string name="morphe_remember_video_quality_last_selected_title">Remember video quality</string>
     <string name="morphe_remember_video_quality_last_selected_summary">Applies your manual quality selection to all future videos</string>
     <string name="morphe_remember_video_quality_last_selected_toast_title">Quality change notifications</string>
@@ -1229,6 +1240,11 @@ Limitation: Playback may not work on some devices if \'Spoof video streams\' is 
     <string name="morphe_remember_playback_speed_toast">Changed default playback speed to: %s</string>
     <string name="morphe_disable_playback_speed_music_title">Use normal speed for music</string>
     <string name="morphe_disable_playback_speed_music_summary">Always play music videos at 1.0x speed</string>
+    <string name="morphe_enable_playback_audio_pitch_controls_title">Enable audio pitch controls</string> 
+    <string name="morphe_playback_audio_pitch_default_title">Default playback audio pitch</string>
+    <string name="morphe_remember_playback_audio_pitch_toast">Changed default audio pitch to: %s</string>
+    <string name="morphe_playback_audio_time_stretching_title">Audio time stretching</string>
+    <string name="morphe_playback_audio_time_stretching_summary">Allows setting speed and pitch independently, may cause audio artifacts</string>
 
     <!-- video.codecs.disableVideoCodecsPatch -->
     <string name="morphe_disable_hdr_video_title">Disable HDR video</string>
@@ -1271,6 +1287,7 @@ Video playback with AV1 may stutter or drop frames."</string>
     <string name="morphe_spoof_video_streams_about_js">• If deobfuscation fails, playback may fail</string>
     <!-- "Force original audio" should match the language used in 'morphe_force_original_audio_title'. -->
     <string name="morphe_spoof_video_streams_about_no_force_original_audio">• Force original audio is not available</string>
+    <string name="morphe_spoof_video_streams_about_sign_in_to_vr_required">• Sign in to Android VR is required</string>
     <!-- Quality refers to video quality -->
     <string name="morphe_spoof_video_streams_about_720p_max">• Quality may be limited to 720p</string>
     <string name="morphe_spoof_video_streams_player_js_variant_title">Player JavaScript variant</string>

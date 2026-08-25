@@ -1,7 +1,10 @@
 # Test plan
 
 - [x] Run all extension unit tests, including fresh-default On, stored Off, autoplay, percentage arithmetic, route identity, source eligibility, player-route persistence and Local Media tagged sidecars.
-- [ ] Confirm launch and toggling Local Downloads never opens a permission screen; the first Download action requests access when needed, denial reports a retryable access requirement, and a selected path suppresses the request.
+- [x] Verify generic storage consumers require write access only while an enabled writer is registered; Local Media-only read access remains valid.
+- [x] Verify raw write selection uses a real create/delete probe with no lasting file, rejects missing/non-directory paths, and SAF selection requires both read and write grants for an enabled writer.
+- [ ] On Android TV, revoke All files access or remount the selected drive read-only; verify Download reports that the path is not writable and opens write-capable folder selection before source resolution.
+- [x] Confirm launch and toggling Local Downloads never opens a permission screen; the first Download action requests access when needed, denial reports a retryable access requirement, and a selected path suppresses the request.
 - [x] Match every fingerprint exactly once on every declared Nuvio 0.8.4-beta APK asset.
 - [x] Apply and inspect Local Downloads alone.
 - [x] Apply and inspect Local Media alone after the shared-path compatibility change.
@@ -33,6 +36,26 @@
 - [x] Open an undownloaded movie detail page and verify the arrow-down action is immediately right of Watched, matches native size/spacing/colours, enlarges with D-pad focus, opens its popup, dismisses on one Back, and hands `Download to storage` to the existing source picker.
 - [x] Verify stable content-id movie lookup when the detail video id differs from the downloaded source id, including the legacy title fallback; confirm the downloaded detail action and Play long-press expose Play/Delete instead of Download.
 - [x] Inspect logcat for crash, ANR, VerifyError, foreground-service and storage-provider failures.
+
+## 2026-08-24 issue 12 storage-write evidence
+
+- The final extension suite passed 202 tests and the patcher suite passed three tests, with zero failures, errors or skips. New coverage verifies enabled writer capability, legacy read/write permission separation, SAF grant requirements, create/delete probing without residue, rejection of missing saved folders, and first-use creation of only the default download directory.
+- Final isolated applications passed for Local Downloads and Local Media on x86_64, universal, arm64-v8a and armeabi-v7a. The Local Downloads runs are `20260824-144802-x86_64`, `20260824-144830-universal`, `20260824-144922-arm64-v8a` and `20260824-144951-armeabi-v7a`; the Local Media runs are `20260824-145024-x86_64`, `20260824-145058-universal`, `20260824-145152-arm64-v8a` and `20260824-145225-armeabi-v7a`.
+- Final combined x86_64 `20260824-145316-all-nine-x86_64` and universal `20260824-145409-all-nine-universal` applications each applied all nine patches with zero failed patch, valid ZIP alignment and a valid APK signature. Final bundle SHA-256: `97B0B1EA65DB5DB5BA2016AB3597CA101AD4EA6DD7A72ACBCF49750E9D8B3E8F`.
+- On the Android 36 `Television_4K` AVD, the write-capable TV picker accepted writable internal storage, persisted its label, and left no `.morphe-write-*` probe file. After revoking All files access, reopening Local storage path did not accept the raw selection and instead opened Android's All files access screen. Access was restored after the check.
+- The final isolated universal APK installed and cold-launched on the same AVD with a live process and no startup fatal exception, ANR or `VerifyError`; no write-probe residue was present. A real Download action after revocation/read-only remount remains the unchecked manual acceptance item above and is not claimed by this evidence.
+- The later crash-regression pass resolved the existing lint errors with scoped API guards and exact suppressions. Final lint evidence is recorded in the 2026-08-25 section below.
+
+## 2026-08-25 crash regression and final-candidate evidence
+
+- The exact final source passed 202 extension tests and three patcher tests with zero failures, errors, or skips. `lintRelease` completed successfully with zero errors, and a fresh Android patch bundle build completed in the same Gradle invocation.
+- The episode-card hook now preserves Nuvio's live Compose registers and calls `renderDownloadedEpisodeBadge(Object, Object, Object)` with the original composer/data-flow values. The patch requires the expected `p2` composer flow and refuses to apply if that invariant changes.
+- Local download source resolution now uses the verified Nuvio 0.8.7 contracts `c0.u.a` and `w.n.g`. Post-patch Smali gates require both target contracts and the corrected episode-card call before an APK is accepted.
+- The final isolated matrix at `local/verification/final-isolated-20260824-232038` passed all 36 combinations: nine optional patches applied independently to x86_64, arm64-v8a, armeabi-v7a, and universal official APKs. Every result contains one successful patch, no failed patch, and all configured manifest, DEX, and Smali inspections passed.
+- The final combined candidates at `local/verification/final-all-nine-20260824-233810` applied all nine patches with zero failures for all four inputs. Each APK has a valid signature, side-by-side package `com.nuvio.morphe`, and the exact expected native ABI set. Universal SHA-256: `27A890D6A5234C44F8CB8C63069FA966B29A6051213BFE1AA77A301BCCCAD431`.
+- On fresh Android TV API 28 and API 36 AVDs, Reacher detail loaded, episodes rendered, S1E1 long-press opened the native options list, and `Download to storage` entered the permission/source flow. Jack Reacher movie detail also opened the patch popup and entered Nuvio's movie source flow. The app process remained alive with no package fatal exception or `VerifyError`.
+- On the preserved Android TV API 30 AVD, the exact non-debuggable final universal APK downloaded the controlled Reacher S1E1 direct progressive source. The pulled 20,804-byte file exactly matched the source SHA-256 `67B5004CE3B676CBDF2857D831633BE16C156D33556C3F866982DE7303DB0BD6`.
+- The same final APK immediately rendered the episode download badge, exposed `Play local file` and `Delete local file`, and played the downloaded file through ExoPlayer as H.264 640x360 to end of stream without a fatal exception or playback failure.
 
 ## 2026-08-15 evidence
 

@@ -10,7 +10,8 @@ public final class LocalDownloadsSettingsCategory implements MorpheSettingsCateg
     public LocalDownloadsSettingsCategory() {
         MorpheStorageConsumers.register(
                 "playback.local_downloads",
-                LocalDownloadsSettings::isEnabled
+                LocalDownloadsSettings::isEnabled,
+                true
         );
     }
     @Override public String id() { return "playback"; }

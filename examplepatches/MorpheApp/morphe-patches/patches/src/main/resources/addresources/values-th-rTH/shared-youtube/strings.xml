@@ -21,6 +21,25 @@ Second \"item\" text"</string>
   <string name="morphe_restart_first_run">รีสตาร์ทเพื่อดำเนินการตั้งค่าให้เสร็จสิ้น</string>
   <!-- layout.branding.baseCustomBrandingPatch -->
   <string name="morphe_custom_branding_name_title">ชื่อแอป</string>
+  <!-- layout.theme.baseThemePatch -->
+  <string name="morphe_theme_color_dark_title">พื้นหลังธีมมืด</string>
+  <string name="morphe_theme_color_dark_entry_2">ดำสนิท</string>
+  <string name="morphe_theme_color_dark_entry_3">Material You (ดำสนิท)</string>
+  <string name="morphe_theme_color_dark_entry_9">YouTube แบบคลาสสิก</string>
+  <string name="morphe_theme_color_dark_entry_10">ชมพูเข้ม</string>
+  <string name="morphe_theme_color_dark_entry_11">น้ำเงินเข้ม</string>
+  <string name="morphe_theme_color_dark_entry_12">เขียวเข้ม</string>
+  <string name="morphe_theme_color_dark_entry_13">เหลืองเข้ม</string>
+  <string name="morphe_theme_color_dark_entry_14">ส้มเข้ม</string>
+  <string name="morphe_theme_color_dark_entry_15">แดงเข้ม</string>
+  <string name="morphe_theme_color_dark_custom_title">พื้นหลังสีมืดแบบกำหนดเอง</string>
+  <string name="morphe_theme_color_dark_custom_summary">ตั้งค่าสีพื้นหลังของธีมมืด</string>
+  <string name="morphe_theme_color_entry_1">ค่าเริ่มต้นของแอป</string>
+  <string name="morphe_theme_color_entry_4">Material You (โทนกลาง)</string>
+  <string name="morphe_theme_color_entry_5">Material You (สีหลัก)</string>
+  <string name="morphe_theme_color_entry_6">Material You (สีรอง)</string>
+  <string name="morphe_theme_color_entry_7">Material You (สีที่สาม)</string>
+  <string name="morphe_theme_color_custom_entry">กำหนดเอง</string>
   <!-- interaction.downloads.downloadsPatch -->
   <string name="morphe_external_downloader_screen_title">การดาวน์โหลดภายนอก</string>
   <string name="morphe_external_downloader_name_title">ชื่อแพ็คเกจโปรแกรมดาวน์โหลด</string>
@@ -133,8 +152,8 @@ Second \"item\" text"</string>
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">ซ่อนโฆษณาแบบเต็มหน้าจอ</string>
   <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
-          'Android Studio' must be kept untranslated. -->
-  <string name="morphe_force_original_audio_not_available">หากต้องการใช้คุณสมบัตินี้ ให้เปลี่ยน \'ปลอมแปลงสตรีมวิดีโอ\' เป็นไคลเอ็นต์อื่น ๆ ยกเว้น Android Studio\'</string>
+          'Android Studio' and 'Android VR Downgraded' must be kept untranslated. -->
+  <string name="morphe_force_original_audio_not_available">หากต้องการใช้คุณสมบัตินี้ ให้เปลี่ยน \'ปลอมแปลงสตรีมวิดีโอ\' เป็นไคลเอ็นต์อื่น ๆ ยกเว้น \'Android Studio\' และ \'Android VR Downgraded\'</string>
   <!-- misc.privacy.sanitizeSharingLinksPatch -->
   <string name="morphe_sanitize_sharing_links_title">ล้างข้อมูลลิงก์ที่แชร์</string>
   <string name="morphe_sanitize_sharing_links_summary">พารามิเตอร์การติดตามจะถูกลบออกจากลิงก์ที่แชร์</string>

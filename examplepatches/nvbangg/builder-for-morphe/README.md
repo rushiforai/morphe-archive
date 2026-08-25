@@ -21,11 +21,43 @@ You can use [this repository](https://github.com/nvbangg/builder-for-morphe) to 
 ## 🤖 Build Your Own APKs
 
 1. 🍴 `Fork` [this repo](https://github.com/nvbangg/builder-for-morphe) (don't forget to ⭐ `Star` and 👀 `Watch` it)
-    - ⚙️ **[Optional]** Customize the apps you want in [`config.toml`](config.toml)
+   - ⚙️ **[Optional]** Customize the apps you want in [`config.toml`](config.toml)
 2. 🚀 Run the [CI workflow](../../actions/workflows/ci.yml) (make sure workflows are enabled first)
 3. ⬇️ Download your APKs from [Releases](../../releases)
 
+<details>
+<summary><b>⬇️ Step-by-step Visual Guide</b></summary>
+<br>
+
+<div align="center">
+
+<img src="images/guide-1.png" width="450" />
+<img src="images/guide-2.png" width="450" />
+<img src="images/guide-3.png" width="450" />
+<img src="images/guide-4.png" width="450" />
+<img src="images/guide-5.png" width="450" />
+<img src="images/guide-6.png" width="450" />
+<img src="images/guide-7.png" width="450" />
+<img src="images/guide-8.png" width="450" />
+<img src="images/guide-9.png" width="450" />
+
+</div>
+</details>
+
 ## 📚 Documentation & Contributing
+
+<details>
+<summary><b>🔄 Obtainium Setup Visual Guide</b></summary>
+<br>
+
+In step 3, enter the APK prefix (e.g. `youtube`, `yt-music`, `x-twitter`, etc.) to filter the app you want.
+
+<div align="center">
+
+<img src="images/obtainium-guide.png" width="450" />
+
+</div>
+</details>
 
 For full configuration reference, setup and contributing guide, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
@@ -33,11 +65,12 @@ For all Morphe resources, patches and community projects, visit [nvbangg/awesome
 
 ---
 
+## ℹ️ About
+
 <div align="center">
 
-**[github.com/nvbangg/builder-for-morphe](https://github.com/nvbangg/builder-for-morphe)**  
-⭐ Star this repo if you find it useful!  
-Maintained with ❤️ by **[@nvbangg](https://github.com/nvbangg)** (syncing upstream from [krvstek/uni-apks](https://github.com/krvstek/uni-apks) with the changes mentioned in the [Features](#features) section)
+Maintained with ❤️ by **[@nvbangg](https://github.com/nvbangg)** (syncing upstream from [krvstek/uni-apks](https://github.com/krvstek/uni-apks) with the changes mentioned in the [Features](#features) section)  
+⭐ Star [this repo](https://github.com/nvbangg/builder-for-morphe) if you find it useful!
 
 </div>
 

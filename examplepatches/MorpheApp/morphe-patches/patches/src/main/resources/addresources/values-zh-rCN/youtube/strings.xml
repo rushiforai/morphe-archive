@@ -84,6 +84,9 @@ Second \"item\" text"</string>
   <string name="morphe_hide_latest_videos_button_summary">隐藏主页信息流顶部的蓝色“最新视频”横幅</string>
   <string name="morphe_hide_mix_playlists_title">隐藏合辑播放列表</string>
   <string name="morphe_hide_movies_section_title">隐藏电影部分</string>
+  <!-- 'Notifications' should be translated using the same localized wording YouTube displays for the menu item. -->
+  <string name="morphe_hide_notifications_menu_header_title">Hide Notifications menu header</string>
+  <string name="morphe_hide_notifications_menu_header_summary">Hides the Notifications menu header when clicking the bell button</string>
   <!-- 'Notify me' should be translated using the same localized wording YouTube displays for the button.
           This button usually appears in the Subscriptions feed for future livestreams or unreleased videos. -->
   <string name="morphe_hide_notify_me_button_title">隐藏“通知我”按钮</string>
@@ -251,6 +254,8 @@ Second \"item\" text"</string>
   <string name="morphe_hide_comments_gift_button_title">隐藏礼物按钮</string>
   <string name="morphe_hide_comments_info_button_title">隐藏信息按钮</string>
   <string name="morphe_hide_comments_live_chat_donators_bar_title">隐藏直播捐赠者栏</string>
+  <string name="morphe_hide_comments_live_chat_tooltips_title">Hide live chat tooltips</string>
+  <string name="morphe_hide_comments_live_chat_tooltips_summary">Hides tooltip popups shown near the chat input bar, such as the subscriber-only chat notice</string>
   <string name="morphe_hide_comments_preview_comment_title">隐藏评论预览</string>
   <string name="morphe_hide_comments_preview_comment_summary">隐藏在打开完整评论部分之前，视频下方的评论预览</string>
   <string name="morphe_hide_comments_thanks_button_title">隐藏感谢按钮</string>
@@ -493,16 +498,17 @@ Second \"item\" text"</string>
   <!-- interaction.seekbar.seekbarThumbnailPreviewPatch -->
   <string name="morphe_seekbar_thumbnail_preview_title">启用进度条缩略图</string>
   <string name="morphe_seekbar_thumbnail_preview_summary">拖动进度条时显示视频缩略图</string>
+  <string name="morphe_seekbar_thumbnail_heatmap_peak_point">播放最多的片段</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
   <string name="morphe_livestream_dvr_not_available">"“启用直播 DVR”可能不可用
 
-要解决此问题，请开启“伪造视频流”并将“默认客户端”更改为“TV”或“visionOS”"</string>
+要解决此问题，请开启“伪装视频流”，并将“默认客户端”更改为“TV Simply”或“visionOS”"</string>
   <string name="morphe_expand_livestream_dvr_duration_title">扩展直播 DVR 时长</string>
   <string name="morphe_expand_livestream_dvr_duration_summary">允许您将直播回放最多回放 7 天</string>
   <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
   <string name="morphe_expand_livestream_dvr_duration_not_available">"“扩展直播 DVR 时长”可能不可用
 
-要解决此问题，请开启“伪造视频流”并将“默认客户端”更改为“TV”或“visionOS”"</string>
+要解决此问题，请开启“伪装视频流”，并将“默认客户端”更改为“TV Simply”或“visionOS”"</string>
   <!-- interaction.seekbar.enableSlideToSeekPatch -->
   <string name="morphe_slide_to_seek_title">启用滑动拖动进度条</string>
   <string name="morphe_slide_to_seek_summary">启用滑动以定位，而不是按住视频播放器时以 2 倍速度播放</string>
@@ -510,15 +516,18 @@ Second \"item\" text"</string>
   <string name="morphe_tap_to_seek_title">启用点按进度条</string>
   <string name="morphe_tap_to_seek_summary">只需点击进度条即可跳转到该位置，而无需拖动</string>
   <!-- interaction.swipecontrols.swipeControlsPatch -->
-  <string name="morphe_swipe_brightness_title">启用亮度控制手势</string>
-  <string name="morphe_swipe_brightness_summary">在全屏模式的左侧垂直滑动以调整亮度</string>
-  <string name="morphe_swipe_volume_title">启用音量手势</string>
-  <string name="morphe_swipe_volume_summary">在全屏模式的右侧垂直滑动以调整音量</string>
-  <string name="morphe_swipe_zone_width_title">亮度/音量区域宽度</string>
-  <string name="morphe_swipe_zone_width_summary">为亮度与音量手势保留的每个屏幕边缘的百分比（5-50）</string>
+  <string name="morphe_swipe_left_zone_title">Left swipe gesture</string>
+  <string name="morphe_swipe_right_zone_title">Right swipe gesture</string>
+  <string name="morphe_swipe_top_zone_title">Top swipe gesture</string>
+  <string name="morphe_swipe_zone_width_title">Left/Right zone width</string>
+  <string name="morphe_swipe_zone_width_summary">Percentage of each screen edge reserved for left and right swipe gestures (5-50)</string>
   <string name="morphe_swipe_zone_label_brightness">亮度</string>
   <string name="morphe_swipe_zone_label_volume">音量</string>
   <string name="morphe_swipe_zone_label_native">原生</string>
+  <string name="morphe_swipe_zone_label_off">Off</string>
+  <string name="morphe_swipe_ignore_when_locked_title">Ignore swipes when locked</string>
+  <!-- 'Lock screen' should be translated using the same localized wording YouTube displays for the player menu item. -->
+  <string name="morphe_swipe_ignore_when_locked_summary">Swipe gestures are ignored while the player is locked with \'Lock screen\'</string>
   <string name="morphe_swipe_press_to_engage_title">启用按压以滑动的手势</string>
   <string name="morphe_swipe_press_to_engage_summary">识别滑动手势前需要先按住</string>
   <string name="morphe_swipe_haptic_feedback_title">使用触感反馈</string>
@@ -547,12 +556,9 @@ Second \"item\" text"</string>
   <string name="morphe_swipe_volume_sensitivity_summary">较高的值会增加每次滑动的音量变化</string>
   <string name="morphe_swipe_brightness_sensitivity_title">亮度滑动灵敏度</string>
   <string name="morphe_swipe_brightness_sensitivity_summary">较高的值需要每个亮度级别更多地滑动</string>
-  <string name="morphe_swipe_speed_title">启用速度手势</string>
-  <string name="morphe_swipe_speed_summary">在全屏模式的上方区域水平滑动以更改播放速度</string>
   <string name="morphe_swipe_speed_sensitivity_title">速度滑动灵敏度</string>
   <string name="morphe_swipe_speed_sensitivity_summary">较高的值需要每次速度步骤更多的滑动</string>
   <string name="morphe_swipe_speed_step_title">速度阶跃</string>
-  <string name="morphe_swipe_speed_step_summary">每次调整速度变化的幅度</string>
   <string name="morphe_swipe_speed_zone_height_title">速度区域高度</string>
   <string name="morphe_swipe_speed_zone_height_summary">速度手势区域高度占播放器高度的百分比 (5-75)</string>
   <string name="morphe_swipe_zone_label_speed">速度</string>
@@ -680,15 +686,8 @@ Second \"item\" text"</string>
   <string name="morphe_navigation_bar_animations_summary">软光上子检查些“通过”软光浩通的新闻</string>
   <string name="morphe_disable_auto_hide_navigation_bar_title">禁用自动隐藏导航栏</string>
   <string name="morphe_disable_auto_hide_navigation_bar_summary">隐藏“音轨”菜单页脚</string>
-  <string name="morphe_disable_translucent_status_bar_title">禁用半透明状态栏</string>
-  <string name="morphe_disable_translucent_status_bar_summary">隐藏“字幕”菜单</string>
-  <string name="morphe_disable_translucent_status_bar_user_dialog_message">"限制：
-• 视频播放器顶部可能会出现黑条。
-• 系统导航栏可能会变为透明，无法评论视频。"</string>
-  <string name="morphe_disable_translucent_navigation_bar_light_title">禁用浅色半透明导航栏</string>
-  <string name="morphe_disable_translucent_navigation_bar_light_summary">隐藏“字幕”菜单页脚</string>
-  <string name="morphe_disable_translucent_navigation_bar_dark_title">禁用深色半透明导航栏</string>
-  <string name="morphe_disable_translucent_navigation_bar_dark_summary">在深色模式下使导航栏完全不透明</string>
+  <string name="morphe_disable_translucent_navigation_title">Disable translucent navigation bar</string>
+  <string name="morphe_disable_translucent_navigation_summary">Makes the navigation and status bar fully opaque</string>
   <string name="morphe_toolbar_screen_title">工具栏</string>
   <string name="morphe_toolbar_screen_summary">选择工具栏中显示哪些组件</string>
   <string name="morphe_hide_toolbar_cast_button_title">隐藏“投屏”按钮</string>
@@ -707,10 +706,10 @@ Second \"item\" text"</string>
   <!-- 'Audio Track' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_player_flyout_audio_track_title">隐藏“音轨”菜单</string>
   <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
-          'Android Studio' must be kept untranslated. -->
-  <string name="morphe_hide_player_flyout_audio_track_not_available">"'音频轨道'菜单已隐藏
+          'Android Studio' and 'Android VR Downgraded' must be kept untranslated. -->
+  <string name="morphe_hide_player_flyout_audio_track_not_available">"“音频轨道”菜单已隐藏
 
-要显示“音频轨道”菜单，请将“模拟视频流”更改为任何客户端，但不包括“Android Studio”"</string>
+要显示“音频轨道”菜单，请将“伪装视频流”更改为除“Android Studio”和“Android VR 降级”以外的任何客户端"</string>
   <string name="morphe_hide_player_flyout_audio_track_footer_title">隐藏“音轨”菜单页脚</string>
   <!-- 'Captions' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_player_flyout_captions_title">隐藏字幕菜单</string>
@@ -901,8 +900,8 @@ Second \"item\" text"</string>
   <!-- layout.music.overrideYouTubeMusicButtonsPatch -->
   <string name="morphe_override_youtube_music_buttons_title">覆盖 YouTube Music 按钮</string>
   <string name="morphe_override_youtube_music_buttons_summary">打开您首选的音乐应用，而不是默认的YouTube Music应用</string>
-  <string name="morphe_music_package_name_title">音乐应用包名</string>
-  <string name="morphe_music_package_name_summary">您已安装的音乐应用的包名</string>
+  <string name="morphe_custom_music_package_name_title">音乐应用包名</string>
+  <string name="morphe_custom_music_package_name_summary">你安装的音乐应用的包名</string>
   <!-- layout.startpage.changeStartPagePatch -->
   <string name="morphe_change_start_page_title">开始页面</string>
   <string name="morphe_change_start_page_entry_default">默认</string>
@@ -952,7 +951,7 @@ Second \"item\" text"</string>
   <string name="morphe_miniplayer_disable_resuming_summary">禁用“继续观看”迷你播放器，这是 YouTube Premium 的一项功能，该功能会在应用启动时显示</string>
   <string name="morphe_miniplayer_screen_title">小型播放器</string>
   <string name="morphe_miniplayer_screen_summary">自定义最小化视频播放器的外观和行为</string>
-  <string name="morphe_miniplayer_not_available_summary">YouTube 移除了所有额外的迷你播放器。要更改迷你播放器类型，请补丁 YouTube 21.28.207 或更早版本</string>
+  <string name="morphe_miniplayer_not_available_summary">YouTube 已移除所有额外的迷你播放器。要更改迷你播放器类型，请为 YouTube 21.28.208 或更低版本打补丁。</string>
   <string name="morphe_miniplayer_type_title">小型播放器类型</string>
   <string name="morphe_miniplayer_type_entry_0">已禁用</string>
   <string name="morphe_miniplayer_type_entry_1">默认</string>
@@ -978,7 +977,23 @@ Second \"item\" text"</string>
   <string name="morphe_miniplayer_opacity_title">覆盖层不透明度</string>
   <string name="morphe_miniplayer_opacity_summary">调整透明度 (0 为透明，100 为不透明)</string>
   <string name="morphe_miniplayer_opacity_invalid_toast">小型播放器叠加层的透明度必须介于 0-100 之间</string>
+  <!-- misc.fix.fixBackToExitGesturePatch -->
+  <string name="morphe_back_button_always_exits_feed_title">返回按钮退出信息流</string>
+  <string name="morphe_back_button_always_exits_feed_summary">按返回键总是退出应用，而不是滚动到信息流顶部</string>
   <!-- layout.theme.themePatch -->
+  <string name="morphe_theme_color_light_title">浅色主题背景</string>
+  <string name="morphe_theme_color_light_entry_2">白色</string>
+  <string name="morphe_theme_color_light_entry_3">Material You（白色）</string>
+  <string name="morphe_theme_color_light_entry_9">浅粉色</string>
+  <string name="morphe_theme_color_light_entry_10">浅蓝</string>
+  <string name="morphe_theme_color_light_entry_11">浅绿</string>
+  <string name="morphe_theme_color_light_entry_12">浅黄</string>
+  <string name="morphe_theme_color_light_entry_13">浅橙</string>
+  <string name="morphe_theme_color_light_entry_14">浅红</string>
+  <string name="morphe_theme_color_light_custom_title">自定义浅色背景</string>
+  <string name="morphe_theme_color_light_custom_summary">设置浅色主题的背景颜色</string>
+  <string name="morphe_theme_color_change_foreground_title">更改前景颜色</string>
+  <string name="morphe_theme_color_change_foreground_summary">使用主题颜色用于文本和图标</string>
   <string name="morphe_gradient_loading_screen_title">启用渐变的加载屏幕</string>
   <string name="morphe_gradient_loading_screen_summary">在加载屏幕上显示渐变背景，而不是纯色</string>
   <string name="morphe_splash_screen_animation_style_title">启动画面的样式</string>
@@ -996,7 +1011,7 @@ Second \"item\" text"</string>
   <string name="morphe_header_logo_title">标题logo</string>
   <string name="morphe_header_logo_entry_1">默认</string>
   <string name="morphe_header_logo_entry_2">常规</string>
-  <!-- Translations should match the language used in 'morphe_custom_branding_icon_entry_3'. -->
+  <!-- Translations should match the language used in 'morphe_custom_branding_icon_entry_7'. -->
   <string name="morphe_header_logo_entry_5">自定义</string>
   <!-- layout.thumbnails.bypassImageRegionRestrictionsPatch -->
   <string name="morphe_bypass_image_region_restrictions_title">绕过图像区域限制</string>
@@ -1068,12 +1083,6 @@ Second \"item\" text"</string>
   <!-- video.quality.rememberVideoQualityPatch -->
   <!-- Translations should match the language used in 'morphe_custom_playback_speeds_auto'. -->
   <string name="morphe_video_quality_default_entry_1">自动</string>
-  <string name="morphe_override_initial_video_quality_title">覆盖初始视频画质</string>
-  <!-- 'Force AVC (H.264) codec' should be the same translation used for 'morphe_force_avc_codec_title'. -->
-  <!-- 'Spoof video streams' should be the same translation used for 'morphe_spoof_video_streams_screen_title'. -->
-  <string name="morphe_override_initial_video_quality_summary">"修复了视频开始后默认视频画质未立即应用的问题
-
-限制：如果\"伪装视频流\"设置为\"Android VR\"且\"强制AVC (H.264)编解码器\"已启用，则某些设备上可能无法播放"</string>
   <string name="morphe_remember_video_quality_last_selected_title">记住视频画质</string>
   <string name="morphe_remember_video_quality_last_selected_summary">将您的手动画质选择应用于所有未来的视频</string>
   <string name="morphe_remember_video_quality_last_selected_toast_title">画质更改通知</string>
@@ -1113,6 +1122,11 @@ Second \"item\" text"</string>
   <string name="morphe_remember_playback_speed_toast">已将默认播放速度更改为：%s</string>
   <string name="morphe_disable_playback_speed_music_title">使用正常速度播放音乐</string>
   <string name="morphe_disable_playback_speed_music_summary">始终以1.0倍速播放音乐视频</string>
+  <string name="morphe_enable_playback_audio_pitch_controls_title">启用音频音高控制</string>
+  <string name="morphe_playback_audio_pitch_default_title">Default playback audio pitch</string>
+  <string name="morphe_remember_playback_audio_pitch_toast">Changed default audio pitch to: %s</string>
+  <string name="morphe_playback_audio_time_stretching_title">Audio time stretching</string>
+  <string name="morphe_playback_audio_time_stretching_summary">Allows setting speed and pitch independently, may cause audio artifacts</string>
   <!-- video.codecs.disableVideoCodecsPatch -->
   <string name="morphe_disable_hdr_video_title">禁用 HDR 视频</string>
   <string name="morphe_force_avc_codec_title">强制 AVC (H.264) 编解码器</string>
@@ -1150,6 +1164,7 @@ Second \"item\" text"</string>
   <string name="morphe_spoof_video_streams_about_js">• 如果去混淆失败，播放可能会失败</string>
   <!-- "Force original audio" should match the language used in 'morphe_force_original_audio_title'. -->
   <string name="morphe_spoof_video_streams_about_no_force_original_audio">• 强制原始音频不可用</string>
+  <string name="morphe_spoof_video_streams_about_sign_in_to_vr_required">• 需要登录 Android VR</string>
   <!-- Quality refers to video quality -->
   <string name="morphe_spoof_video_streams_about_720p_max">• 视频质量可能限制为 720p</string>
   <string name="morphe_spoof_video_streams_player_js_variant_title">播放器JavaScript变种</string>

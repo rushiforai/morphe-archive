@@ -64,7 +64,7 @@ val hideAccountPromotionsPatch = bytecodePatch(
         listOf(
             DesignSystemAtomsMapperFingerprint,
             LegacyCellListMapperFingerprint,
-            CellListMapperFingerprint,
+            ComposerCellListMapperFingerprint,
         ).forEach { fingerprint ->
             fingerprint.method.addInstructions(0, hideReviewFeed)
         }

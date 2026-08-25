@@ -1,3 +1,23 @@
+## [3.2.0](https://github.com/jasonwu1994/Gboard-patches/compare/v3.1.0...v3.2.0) (2026-08-24)
+
+### ✨ New Features
+
+* **Gboard:** add the `Package Rename` patch, which lets you customize the app name. It defaults to `GboardWu` 😂 so you can distinguish it from the official `Gboard` when switching keyboards, and you can change it to any name you prefer.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Package Rename` Patch，可自訂 App 名稱；預設為 `GboardWu` 😂，方便在切換鍵盤時與官方 `Gboard` 名稱區分，也可自行改成任何想要的名稱。
+
+## [3.2.0-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v3.1.0...v3.2.0-dev.1) (2026-08-23)
+
+### ✨ New Features
+
+* **Gboard:** add the `Package Rename` patch, which lets you customize the app name. It defaults to `GboardWu` 😂 so you can distinguish it from the official `Gboard` when switching keyboards, and you can change it to any name you prefer.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Package Rename` Patch，可自訂 App 名稱；預設為 `GboardWu` 😂，方便在切換鍵盤時與官方 `Gboard` 名稱區分，也可自行改成任何想要的名稱。
+
 ## [3.1.0](https://github.com/jasonwu1994/Gboard-patches/compare/v3.0.0...v3.1.0) (2026-08-23)
 
 ### ✨ New Features

@@ -9,8 +9,8 @@ it too.
 
 ## State markers (update on every sync)
 
-- **Upstream baseline:** stable tag `v1.39.1` (commit `1e6f080319db`)
-- **Last synced upstream release:** v1.39.1 (2026-08-09)
+- **Upstream baseline:** stable tag `v1.40.0` (commit `38c13fa35e05`)
+- **Last synced upstream release:** v1.40.0 (2026-08-24)
 
 ## What is fork-local
 
@@ -48,7 +48,7 @@ patch no longer applies cleanly):
 
 | File | Change |
 |---|---|
-| `patches/build.gradle.kts` | `group = "app.variablenine"`; personalized `about {}` block (name "variablenine Patches", fork notice, source URL). |
+| `patches/build.gradle.kts` | Personalized `about {}` block (name "variablenine Patches", fork notice, source URL). `group` stays upstream's `app.morphe` — do not change it. |
 | `.github/workflows/release.yml` | Add `issues: write` and `pull-requests: write` to job permissions. **Remove** the Morphe-only tail steps (`Generate website deploy token` → `Trigger website deploy` → `Wait/Setup Python/Send FCM push`): they dispatch to `MorpheApp/morphe-website` and push FCM to Morphe's app users via secrets this fork lacks, so they only ever fail on a published release and email the owner. Keep them removed on every sync. Also renames the Attest `subject-name` to "variablenine Patches". |
 | `.github/workflows/open_pull_request.yml` | Add workflow-level `permissions: contents: read, pull-requests: write`. |
 
@@ -99,29 +99,63 @@ patch no longer applies cleanly):
    and `injectVisibilityCheckCall` disappeared from `LegacyPlayerControlsPatch` — `CatLockButton` and
    `CatLockPatch` had to be adapted.) When CI is red, read the job logs and diff the fork's usage against
    upstream's own equivalent code in the new tree (e.g. `ExternalDownloadButton`, `DownloadsPatch`).
-8. When CI is green: mark the auto-opened `dev → main` PR ready and **merge it (merge commit, never
-   squash)**. The Release workflow on `main` then publishes the new bundle automatically.
+   **Poll for the CI result — do not wait to be notified.** PR-activity webhooks deliver CI *failures*
+   reliably; a *passing* build often sends nothing. An agent session that opens the PR and ends its turn
+   expecting to be woken will therefore sleep through its own success and strand the sync. Stay in the
+   turn and poll the PR's check runs (a `sleep 30` loop is fine; the build takes ~3 min) until the check
+   reaches a terminal conclusion, then keep going in the same turn.
+8. When CI is green: merge the sync PR into `dev` if the fallback branch was used, wait for the
+   `Open a PR to main` workflow to auto-open the `dev → main` PR (it triggers on push to `dev`; poll for
+   it, it appears within a minute or two), mark it ready and **merge it (merge commit, never squash)**.
+   The Release workflow on `main` then publishes the new bundle automatically. **Confirm the release
+   actually published** — poll the repository's releases until the new `vX.Y.Z` tag appears — and name
+   that version in the final report. Note the release version is this fork's own semver (e.g. `v1.1.7`),
+   not the upstream version being synced.
 9. If the delta cannot be re-applied confidently or CI cannot be made green, STOP: leave the `dev → main`
    PR as draft with a comment explaining exactly what upstream changed and where the sync is stuck.
+
+**A run has exactly three valid endings**: the release published (name the version), upstream already
+synced (nothing to do), or an explicit blocked report per step 9. Ending a turn with an open, unmerged
+sync PR and no blocked report is a failure of the run even when every individual step succeeded — that
+is precisely what happened on 2026-08-09, when a routine session performed the whole v1.39.1 sync
+correctly, opened the PR, went idle 25 seconds later, and left a green build unmerged and unreleased
+until a human finished it by hand.
 
 ## Automation (routine) setup
 
 The sync runs unattended as a claude.ai **Routine** ("Daily Morphe upstream sync", daily 09:00 UTC),
-which fires a fresh cloud session each time. Two things must be configured on the *routine itself*
+which fires a fresh cloud session each time. The settings that matter live on the *routine itself*
 at [claude.ai/code/routines](https://claude.ai/code/routines) → edit routine — **not** on the cloud
 environment (the environment dialog only controls network access, env vars, and the setup script,
 and has no repository settings at all):
 
-1. **Repositories** — `variablenine/morphe-patches` must be attached, otherwise the session has no
-   push credentials. Note the fork is *public*, so `git clone`/`fetch` succeed even with no repo
-   attached; only the push reveals the problem. A routine created through the CLI/MCP
-   (`create_trigger`) has no repositories field, so it starts with none attached.
-2. **Permissions → Allow unrestricted branch pushes** — without this a routine may only push to
-   `claude/`-prefixed branches, and this procedure pushes to `dev`.
+1. **Repositories** — `variablenine/morphe-patches` must be attached. This is the setting that
+   can strand a sync. It provides two separate things: git push credentials, *and* the GitHub MCP
+   tools (`mcp__github__*`) that steps 7–8 need to read CI job logs, mark the `dev → main` PR ready
+   and merge it — plain `git` cannot do those. A routine created through the CLI/MCP
+   (`create_trigger`) has no repositories field, so it starts with none attached; set it in the UI
+   afterwards. Note the fork is *public*, so `git clone`/`fetch` succeed even with no repo attached;
+   only the push and the missing GitHub tools reveal the problem — and by then the sync is done and
+   stuck just short of release.
+2. **Model** — this sync deserves the strongest available model: a stale delta patch has to be
+   re-applied by hand against refactored upstream APIs, which is the least mechanical part of the job.
+   `create_trigger` has **no model parameter** and does *not* inherit the creating session's model, so
+   an MCP-created routine silently runs on the platform default (Sonnet at the time of writing). The
+   model also cannot be changed through `update_trigger` — that call fails with `model_update_disabled`.
+   Set it in the routines UI; it is UI-only in both directions.
 
-If (2) is unavailable or off, the sync still completes via the documented fallback: commit locally,
-push to `claude/sync-vX.Y.Z`, and open a PR into `dev` (then the normal `dev → main` flow follows).
-Prefer fixing the setting over relying on the fallback, since the fallback adds a second PR per sync.
+**Ignore the "stores no MCP connectors" warning** that `create_trigger` prints. Connectors are the
+claude.ai integration mechanism (Gmail, Linear, …); GitHub access here is *not* one of them and there
+is no GitHub connector to attach. Verified 2026-08-09: an account with zero connectors installed still
+gets full `mcp__github__*` tooling in a repo-attached session. Attaching the repository is sufficient.
+
+**Branch pushes.** A routine may be restricted to pushing `claude/`-prefixed branches, while this
+procedure pushes to `dev`. A UI toggle ("Allow unrestricted branch pushes") governs this, but a routine
+created via `create_trigger` is locked to permission mode `auto` and the mode cannot be changed in the
+UI afterwards — so the restriction may be permanent for such a routine. This is not a blocker: the
+documented fallback covers it. Commit locally, push to `claude/sync-vX.Y.Z`, and open a PR into `dev`
+(then the normal `dev → main` flow follows), at the cost of one extra PR per sync. To get direct `dev`
+pushes, recreate the routine from the routines UI rather than through `create_trigger`.
 
 An interactive session started from the repo already has push access, so a stuck automated sync can
 always be finished by hand from a normal session — that is how the v1.36.0 sync landed.

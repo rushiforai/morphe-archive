@@ -27,14 +27,6 @@ object AppsFlyerInitializerFingerprint : Fingerprint(
     parameters = emptyList(),
 )
 
-object FirebaseAnalyticsFetchFingerprint : Fingerprint(
-    definingClass =
-        "Lru/ozon/app/android/app/launch/handlers/fetch/FirebaseAnalyticsFetchAction;",
-    name = "fetch",
-    returnType = "V",
-    parameters = emptyList(),
-)
-
 object CrashReporterInitializerFingerprint : Fingerprint(
     definingClass =
         "Lru/ozon/app/android/initializers/sentry/CrashReporterInitializer;",
@@ -56,13 +48,13 @@ object OzonLoggerInitializerFingerprint : Fingerprint(
         "Lru/ozon/app/android/initializers/logger/OzonLoggerInitializer;",
     name = "init",
     returnType = "V",
-    parameters = listOf("Lul/c;"),
+    parameters = listOf("L"),
 )
 
 object OzonLoggerUploaderConstructorFingerprint : Fingerprint(
     name = "<init>",
     returnType = "V",
-    parameters = listOf("Lru/ozon/android/ozonLogger/core/e;"),
+    parameters = listOf("L"),
     strings = listOf("https://xapi.ozon.ru/api/logs-shredder/log"),
 )
 

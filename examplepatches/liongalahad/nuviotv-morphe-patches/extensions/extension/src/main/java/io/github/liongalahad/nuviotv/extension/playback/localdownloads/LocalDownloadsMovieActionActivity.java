@@ -79,6 +79,7 @@ public final class LocalDownloadsMovieActionActivity extends Activity {
         initialFocus.requestFocus();
     }
 
+    @android.annotation.SuppressLint("GestureBackNavigation")
     @Override public void onBackPressed() {
         LocalDownloadsRuntime.cancelPendingMovieAction();
         finish();

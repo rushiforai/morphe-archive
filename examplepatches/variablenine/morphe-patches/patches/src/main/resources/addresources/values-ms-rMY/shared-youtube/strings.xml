@@ -19,6 +19,9 @@ Second \"item\" text"</string>
 <resources>
   <!-- misc.initialization.initializationPatch -->
   <!-- layout.branding.baseCustomBrandingPatch -->
+  <!-- layout.theme.baseThemePatch -->
+  <string name="morphe_theme_color_entry_5">Material You (Primary)</string>
+  <string name="morphe_theme_color_custom_entry">Tersuai</string>
   <!-- interaction.downloads.downloadsPatch -->
   <!-- Translations of this should be identical to morphe_custom_branding_icon_entry_7 -->
   <string name="morphe_custom_branding_name_entry_5">Tersuai</string>
@@ -42,7 +45,7 @@ Second \"item\" text"</string>
   <!-- misc.proxy.networkProxyPatch -->
   <!-- ad.hideFullscreenAdsPatch -->
   <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
-          'Android Studio' must be kept untranslated. -->
+          'Android Studio' and 'Android VR Downgraded' must be kept untranslated. -->
   <!-- misc.privacy.sanitizeSharingLinksPatch -->
   <!-- misc.debugging.enableDebuggingPatch -->
   <string name="morphe_debug_protobuffer_summary">Menambahkan maklumat log tambahan bagi pembangun untuk mengenal pasti komponen aplikasi</string>

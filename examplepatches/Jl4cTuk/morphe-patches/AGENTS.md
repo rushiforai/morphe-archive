@@ -15,8 +15,22 @@ This repository contains personal Morphe patches for Android applications.
 
 ## Local patch testing
 
+- Runtime testing is performed locally on the user's physical phone. The user
+  exclusively performs APK installation, root mounting, remounting, and app
+  launch/force-stop actions on that phone.
+- Never install or mount an APK on a connected phone. A connected device or a
+  message such as `подключил` does not authorize device-side changes. Build and
+  apply patches only offline against the original APK, then give the user the
+  exact commands needed for manual device testing.
+- Treat screenshots, logs, and behavioral observations returned by the user as
+  the runtime validation result. Keep offline build/apply validation separate
+  from this user-executed device validation.
 - Distinguish standard APK installation from root mount installation when planning runtime tests.
-- On a device where Morphe has confirmed root access, prefer Morphe Manager's `Root mount installer` or Morphe CLI with `--mount`. The root workflow mounts the patched APK over the installed original, preserving the original installation and app data and avoiding the normal APK signature-update conflict.
+- When giving the user installation instructions for a device where Morphe has
+  confirmed root access, prefer Morphe Manager's `Root mount installer` or
+  Morphe CLI with `--mount`. The root workflow mounts the patched APK over the
+  installed original, preserving the original installation and app data and
+  avoiding the normal APK signature-update conflict.
 - On KernelSU or KernelSU Next devices, keep the global `Umount modules by default` protection enabled, but disable `Umount modules` in the individual App Profile of each app tested through Morphe root mount. Do not grant root access to the target app; only change its mount visibility.
 - After changing a target app's `Umount modules` profile, force-stop the target app, then apply the patch or use `Remount` before launching it again. Mount namespace visibility is established when the app process starts.
 - If Morphe reports a successful mount, or ADB sees the patched APK at the installed `base.apk` path, but the app still behaves like the original, treat KernelSU mount namespace isolation as the first suspect. Verify the target app's `Umount modules` profile before changing fingerprints, repatching repeatedly, or considering direct APK replacement.
@@ -41,6 +55,22 @@ This repository contains personal Morphe patches for Android applications.
 - Use `fix:` for user-facing fixes.
 - Use `chore:` for changes that should not appear in the user-facing changelog.
 - `feat:` and `fix:` commits trigger new prereleases; `chore:` commits do not create a release.
+- Treat each `feat:` or `fix:` header as final release-note text: semantic-release
+  copies it into the generated changelog. Describe the concrete user-visible
+  result, not the implementation session or a generic patch bundle.
+- Split staging and proposed commits by logical patch or independently
+  describable user-facing outcome. Do not combine unrelated changes merely
+  because they target the same application or were developed in one session.
+- Avoid generic headers such as `feat: add Ozon Bank cleanup patches`, `misc
+  improvements`, or `update patches`. Prefer specific outcomes such as `fix:
+  disable Ozon Bank VPN warning` or `feat: hide Ozon Bank promotional
+  sections`. Options that belong to one logical user-facing patch may remain in
+  one commit when the header names their shared purpose clearly.
+- Keep refactors, validation records, TODO updates, and other non-user-facing
+  work in separate `chore:` commits so they do not add noise to release notes.
+- When several logical commits are needed, stage and propose them one at a
+  time. Wait for the user to commit the current staged set before preparing the
+  next one.
 - Before committing or pushing, stage only the files explicitly requested for the change and verify the complete staged diff and status internally to prevent unrelated changes from being included.
 - Preparing a commit means updating the staged set and proposing a commit message only. Do not list or reproduce the staged files or diff unless the user explicitly asks, because the user reviews the staged changes locally.
 - Treat staging and publishing as a mandatory two-step approval gate. After implementing a change, update the staged set, propose a commit message, and stop the turn so the user can review the staged changes locally.

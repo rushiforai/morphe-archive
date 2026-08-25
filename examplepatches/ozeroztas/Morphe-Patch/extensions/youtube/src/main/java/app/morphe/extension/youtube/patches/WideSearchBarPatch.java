@@ -9,7 +9,6 @@ package app.morphe.extension.youtube.patches;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.text.TextUtils;
@@ -29,6 +28,7 @@ import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.ResourceType;
 import app.morphe.extension.shared.ResourceUtils;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.theme.ThemeUtils;
 import app.morphe.extension.shared.ui.Dim;
 import app.morphe.extension.youtube.settings.Settings;
 import app.morphe.extension.youtube.shared.NavigationBar;
@@ -101,13 +101,10 @@ public class WideSearchBarPatch {
             }
 
             final boolean rightToLeftLocale = Utils.isRightToLeftLocale();
-            final boolean isDarkModeEnabled = Utils.isDarkModeEnabled();
-            final int textColor = Color.parseColor(isDarkModeEnabled
-                    ? "#AAAAAA"
-                    : "#606060");
-            final int backgroundColor = Color.parseColor(isDarkModeEnabled
-                    ? "#1A1A1A"
-                    : "#F2F2F2");
+
+            final int backgroundColor = ThemeUtils.getEditTextBackground();
+            final int textColor = Utils.adjustColorBrightness(
+                    ThemeUtils.getAppForegroundColor(), 1.60f, 0.67f);
 
             TextView wideSearchBox = new TextView(toolbarViewGroup.getContext());
             wideSearchBox.setPadding(Dim.dp12, 0, Dim.dp12, 0);

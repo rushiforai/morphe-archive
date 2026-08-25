@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Handler;
+import android.os.Build;
 import android.os.Looper;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -498,7 +499,9 @@ public final class LocalMediaLibraryUi {
             AccessibilityNodeInfo focused = provider.findFocus(AccessibilityNodeInfo.FOCUS_INPUT);
             if (focused != null) {
                 try {
-                    focused.setQueryFromAppProcessEnabled(view, true);
+                    if (Build.VERSION.SDK_INT >= 34) {
+                        Api34Accessibility.enableAppProcessQueries(focused, view);
+                    }
                     return new FocusedAccessibility(focused);
                 } catch (Throwable ignored) {
                     // Some Compose versions already return a sealed, queryable virtual node.
@@ -516,6 +519,15 @@ public final class LocalMediaLibraryUi {
             }
         }
         return null;
+    }
+
+    @android.annotation.TargetApi(34)
+    private static final class Api34Accessibility {
+        private Api34Accessibility() {}
+
+        static void enableAppProcessQueries(AccessibilityNodeInfo node, View view) {
+            node.setQueryFromAppProcessEnabled(view, true);
+        }
     }
 
     private static String nodeText(AccessibilityNodeInfo node, int depth) {

@@ -48,6 +48,7 @@ import java.util.regex.Pattern;
 
 import io.github.liongalahad.nuviotv.extension.settings.MorpheSettingsRuntime;
 import io.github.liongalahad.nuviotv.extension.settings.MorpheSettingsUi;
+import io.github.liongalahad.nuviotv.extension.settings.MorpheStorageFolderPickerActivity;
 import io.github.liongalahad.nuviotv.extension.settings.MorpheStoragePath;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function0;
@@ -332,15 +333,23 @@ public final class LocalDownloadsRuntime {
     }
 
     static boolean hasStorageAccess(Context context) {
-        return MorpheStoragePath.value() != null || hasDefaultFolderAccess(context);
+        return MorpheStoragePath.value() == null
+                ? hasDefaultFolderAccess(context)
+                : MorpheStoragePath.isWritableSelection(context);
     }
 
     private static boolean requestStorageAccessForDownload() {
         Context context = application();
         if (hasStorageAccess(context)) return true;
-        toast("Storage access required");
         Activity activity = MorpheSettingsUi.resumedActivity();
-        if (activity != null) prepareDefaultFolder(activity);
+        if (MorpheStoragePath.value() != null) {
+            toast("Selected local storage path is not writable");
+            if (activity != null) activity.startActivity(
+                    MorpheStorageFolderPickerActivity.intent(activity, true));
+        } else {
+            toast("Storage access required");
+            if (activity != null) prepareDefaultFolder(activity);
+        }
         return false;
     }
 
@@ -1118,7 +1127,7 @@ public final class LocalDownloadsRuntime {
 
     /** Draws a downloaded marker beside Nuvio's watched marker inside an episode card. */
     public static void renderDownloadedEpisodeBadge(
-            Object episodeCardContent, boolean watched, Object composer
+            Object episodeCardContent, Object ignoredCardScope, Object composer
     ) {
         if (episodeCardContent == null || composer == null) return;
         boolean groupStarted = false;
@@ -1145,7 +1154,9 @@ public final class LocalDownloadsRuntime {
             Class<?> shapeClass = Class.forName("b2.u0");
             Class<?> composerClass = Class.forName("e1.m0");
             Object modifier = staticField("u1.n", "b");
-            Object boxScope = staticField("c0.t", "a");
+            // c0.t is the BoxScope interface and therefore has no singleton field.
+            // Nuvio's episode-card bytecode uses the c0.u implementation singleton.
+            Object boxScope = staticField("c0.u", "a");
             Object topEnd = staticField("u1.b", "c");
             modifier = declaredMethod(boxScope.getClass(), "a", modifierClass, alignmentClass)
                     .invoke(boxScope, modifier, topEnd);
@@ -1166,7 +1177,7 @@ public final class LocalDownloadsRuntime {
                     "j", Class.forName("e1.e2"));
             Object theme = readCompositionLocal.invoke(composer, themeKey);
             long badgeColor = longField(theme, "h");
-            modifier = declaredMethod(Class.forName("w.m"), "g", modifierClass,
+            modifier = declaredMethod(Class.forName("w.n"), "g", modifierClass,
                     Long.TYPE, shapeClass).invoke(null, modifier, badgeColor, circle);
 
             float innerPadding = Math.max(0f, (badgeSize - iconSize) / 2f);
@@ -1834,6 +1845,7 @@ public final class LocalDownloadsRuntime {
         int dot = value.lastIndexOf('.');
         return dot < 0 ? "" : value.substring(dot + 1).toLowerCase(Locale.ROOT);
     }
+    @androidx.media3.common.util.UnstableApi
     private static String subtitleMimeType(String extension) {
         if ("srt".equals(extension)) return MimeTypes.APPLICATION_SUBRIP;
         if ("vtt".equals(extension)) return MimeTypes.TEXT_VTT;

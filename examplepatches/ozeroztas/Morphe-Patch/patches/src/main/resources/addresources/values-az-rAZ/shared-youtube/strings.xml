@@ -21,6 +21,25 @@ Second \"item\" text"</string>
   <string name="morphe_restart_first_run">Tənzimləməni bitirmək üçün yenidən başlat</string>
   <!-- layout.branding.baseCustomBrandingPatch -->
   <string name="morphe_custom_branding_name_title">Tətbiq adı</string>
+  <!-- layout.theme.baseThemePatch -->
+  <string name="morphe_theme_color_dark_title">Qara kolorit fonu</string>
+  <string name="morphe_theme_color_dark_entry_2">Təmiz qara</string>
+  <string name="morphe_theme_color_dark_entry_3">Material You (Təmiz qara)</string>
+  <string name="morphe_theme_color_dark_entry_9">Klassik YouTube</string>
+  <string name="morphe_theme_color_dark_entry_10">Tünd çəhrayı</string>
+  <string name="morphe_theme_color_dark_entry_11">Tünd mavi</string>
+  <string name="morphe_theme_color_dark_entry_12">Tünd yaşıl</string>
+  <string name="morphe_theme_color_dark_entry_13">Tünd sarı</string>
+  <string name="morphe_theme_color_dark_entry_14">Tünd narıncı</string>
+  <string name="morphe_theme_color_dark_entry_15">Tünd qırmızı</string>
+  <string name="morphe_theme_color_dark_custom_title">Fərdi qaranlıq fon</string>
+  <string name="morphe_theme_color_dark_custom_summary">Qaranlıq koloritin fon rəngini təyin et</string>
+  <string name="morphe_theme_color_entry_1">Tətbiq standartı</string>
+  <string name="morphe_theme_color_entry_4">Material You (Neytral)</string>
+  <string name="morphe_theme_color_entry_5">Material You (Əsas)</string>
+  <string name="morphe_theme_color_entry_6">Material You (İkinci dərəcəli)</string>
+  <string name="morphe_theme_color_entry_7">Material You (Üçüncü dərəcəli)</string>
+  <string name="morphe_theme_color_custom_entry">Fərdi</string>
   <!-- interaction.downloads.downloadsPatch -->
   <string name="morphe_external_downloader_screen_title">Xarici yükləmələr</string>
   <string name="morphe_external_downloader_name_title">Yükləyici paketi adı</string>
@@ -133,8 +152,8 @@ Daxil olmaq üçün aşağıda davam et-i vurun"</string>
   <!-- ad.hideFullscreenAdsPatch -->
   <string name="morphe_hide_fullscreen_ads_title">Tam ekran reklamlarını gizlət</string>
   <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title'.
-          'Android Studio' must be kept untranslated. -->
-  <string name="morphe_force_original_audio_not_available">Bu xüsusiyyəti istifadə etmək üçün \'Video yayımların saxtalaşdırı\' \'Android Studio\' istisna istənilən qəbulediciyə dəyiş</string>
+          'Android Studio' and 'Android VR Downgraded' must be kept untranslated. -->
+  <string name="morphe_force_original_audio_not_available">Bu xüsusiyyəti istifadə etmək üçün \'Video yayımların saxtalaşdırı\' \'Android Studio\' və \'Android VR Downgraded\' istisna istənilən qəbulediciyə dəyiş</string>
   <!-- misc.privacy.sanitizeSharingLinksPatch -->
   <string name="morphe_sanitize_sharing_links_title">Paylaşım keçidlərin təmizlə</string>
   <string name="morphe_sanitize_sharing_links_summary">Paylaşılan keçidlərdən izlənmə sorğusu faktorların silir</string>
