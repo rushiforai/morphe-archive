@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        # Riky Morphe Patches feature request
+        # riky's patches feature request
 
         Before creating a new feature request, please keep the following in mind:
 

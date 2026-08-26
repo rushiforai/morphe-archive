@@ -121,7 +121,8 @@ public final class GboardSettingsGroupingTest {
                 "new GboardEmojiSizeSettingsFeature(context)",
                 "new GboardAccessPointsMenuSettingsFeature(context)",
                 "new GboardSplitKeyboardSettingsFeature(context)",
-                "new GboardAccessibilityLayoutSettingsFeature(context)");
+                "new GboardAccessibilityLayoutSettingsFeature(context)",
+                "new GboardRoundedKeyboardSettingsFeature(context)");
         Assert.assertFalse(registrySource.contains("GboardKeyboardSettingsGroupFeature"));
     }
 

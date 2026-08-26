@@ -1,3 +1,15 @@
+## [1.2.0](https://github.com/ShuhaibNC/morphe-patches/compare/v1.1.0...v1.2.0) (2026-08-25)
+
+### ✨ New Features
+
+* MelonVPN ([60d2bb0](https://github.com/ShuhaibNC/morphe-patches/commit/60d2bb0267175132de5f164556e018062738825f))
+
+## [1.2.0-dev.1](https://github.com/ShuhaibNC/morphe-patches/compare/v1.1.0...v1.2.0-dev.1) (2026-08-25)
+
+### ✨ New Features
+
+* MelonVPN ([60d2bb0](https://github.com/ShuhaibNC/morphe-patches/commit/60d2bb0267175132de5f164556e018062738825f))
+
 ## [1.1.0](https://github.com/ShuhaibNC/morphe-patches/compare/v1.0.0...v1.1.0) (2026-08-24)
 
 ### ✨ New Features

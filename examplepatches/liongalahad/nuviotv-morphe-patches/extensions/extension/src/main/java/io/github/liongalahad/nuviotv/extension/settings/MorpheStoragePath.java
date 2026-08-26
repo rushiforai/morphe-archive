@@ -1,5 +1,6 @@
 package io.github.liongalahad.nuviotv.extension.settings;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -9,9 +10,15 @@ import android.os.Environment;
 import android.os.storage.StorageManager;
 import android.os.storage.StorageVolume;
 import android.provider.DocumentsContract;
+import android.util.Log;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -20,6 +27,10 @@ import java.util.Set;
 
 /** Shared storage-location preference used by patches that read or write local media. */
 public final class MorpheStoragePath {
+    private static final String LOG_TAG = "MorpheStorage";
+    private static final byte[] PROBE_BYTES = new byte[]{
+            0x4d, 0x6f, 0x72, 0x70, 0x68, 0x65, 0x2d, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65
+    };
     public static final String DEFAULT_FOLDER_LABEL = "Movies/Nuvio";
     public static final String DEFAULT_DOCUMENT_ID = "primary:Movies/Nuvio";
     public static final String STORAGE_PATH_KEY = "playback.local_storage.path";
@@ -71,7 +82,9 @@ public final class MorpheStoragePath {
     ) {
         if (context == null || location == null) return false;
         if ("file".equalsIgnoreCase(location.getScheme())) {
-            return hasRawWriteAccess(context) && location.getPath() != null &&
+            if (location.getPath() == null) return false;
+            File folder = new File(location.getPath());
+            return (hasRawWriteAccess(context) || isOwnedAppSpecificFolder(context, folder)) &&
                     prepareWritableDirectory(new File(location.getPath()), allowCreateDirectory);
         }
         if (!"content".equalsIgnoreCase(location.getScheme())) return false;
@@ -96,18 +109,278 @@ public final class MorpheStoragePath {
         return sdk >= Build.VERSION_CODES.R ? allFilesAccess : legacyWriteAccess;
     }
 
-    /** Uses a real create/delete probe because readable and mounted do not imply writable. */
+    /** Uses a real write/read/delete probe because readable and mounted do not imply writable. */
     static boolean isWritableDirectory(File folder) {
-        if (folder == null || !folder.isDirectory() || !folder.canWrite()) return false;
+        return probeReadWriteDirectory(folder).success;
+    }
+
+    /** Result intended for a precise on-screen storage diagnostic. */
+    static final class DirectoryProbeResult {
+        final boolean success;
+        final String code;
+        final String message;
+
+        private DirectoryProbeResult(boolean success, String code, String message) {
+            this.success = success;
+            this.code = code;
+            this.message = message;
+        }
+
+        static DirectoryProbeResult passed() {
+            return new DirectoryProbeResult(true, "PASS",
+                    "Created, wrote, read and removed a temporary file.");
+        }
+
+        static DirectoryProbeResult failed(String code, String message) {
+            return new DirectoryProbeResult(false, code, message);
+        }
+
+        String visibleMessage() {
+            return "Storage test " + code + ": " + message;
+        }
+    }
+
+    static DirectoryProbeResult probeReadWriteDirectory(File folder) {
+        if (folder == null) return probeFailure("NO_FOLDER", "The folder is unavailable.", null);
+        Log.i(LOG_TAG, "Read/write probe start: path=" + folder.getAbsolutePath() +
+                " exists=" + folder.exists() + " directory=" + folder.isDirectory() +
+                " readable=" + folder.canRead() + " writable=" + folder.canWrite());
+        if (!folder.exists()) return probeFailure("NOT_FOUND", "The folder does not exist.", null);
+        if (!folder.isDirectory()) {
+            return probeFailure("NOT_DIRECTORY", "The selected path is not a folder.", null);
+        }
+
         File probe = null;
         try {
             probe = File.createTempFile(".morphe-write-", ".tmp", folder);
-            return probe.delete();
-        } catch (IOException | SecurityException ignored) {
-            return false;
-        } finally {
-            if (probe != null && probe.exists()) probe.delete();
+        } catch (IOException | SecurityException error) {
+            return probeFailure("CREATE_FAILED",
+                    "Android did not allow a temporary file to be created here.", error);
         }
+
+        try {
+            try (FileOutputStream output = new FileOutputStream(probe)) {
+                output.write(PROBE_BYTES);
+                output.flush();
+            }
+        } catch (IOException | SecurityException error) {
+            deleteProbe(probe);
+            return probeFailure("WRITE_FAILED",
+                    "A temporary file was created, but data could not be written.", error);
+        }
+
+        byte[] read = new byte[PROBE_BYTES.length];
+        int count = 0;
+        try (FileInputStream input = new FileInputStream(probe)) {
+            while (count < read.length) {
+                int next = input.read(read, count, read.length - count);
+                if (next < 0) break;
+                count += next;
+            }
+            if (input.read() != -1 || count != read.length || !Arrays.equals(PROBE_BYTES, read)) {
+                deleteProbe(probe);
+                return probeFailure("VERIFY_FAILED",
+                        "The temporary file could not be read back correctly.", null);
+            }
+        } catch (IOException | SecurityException error) {
+            deleteProbe(probe);
+            return probeFailure("READ_FAILED",
+                    "Data was written, but Android did not allow it to be read back.", error);
+        }
+
+        if (!deleteProbe(probe)) {
+            return probeFailure("DELETE_FAILED",
+                    "The test file worked but could not be removed.", null);
+        }
+        DirectoryProbeResult result = DirectoryProbeResult.passed();
+        Log.i(LOG_TAG, result.visibleMessage() + " path=" + folder.getAbsolutePath());
+        return result;
+    }
+
+    /** Verifies the exact persisted-tree API used by downloads, including cleanup. */
+    static DirectoryProbeResult probeTreeReadWrite(Context context, Uri tree) {
+        if (context == null || tree == null) {
+            return probeFailure("NO_FOLDER", "The selected folder is unavailable.", null);
+        }
+        ContentResolver resolver = context.getContentResolver();
+        Uri probe = null;
+        try {
+            Uri root = DocumentsContract.buildDocumentUriUsingTree(
+                    tree, DocumentsContract.getTreeDocumentId(tree));
+            probe = DocumentsContract.createDocument(
+                    resolver,
+                    root,
+                    "application/octet-stream",
+                    "Morphe-storage-test-" + System.currentTimeMillis() + ".tmp"
+            );
+            if (probe == null) {
+                return probeFailure("CREATE_FAILED",
+                        "The folder permission did not allow a test file to be created.", null);
+            }
+        } catch (IOException | RuntimeException error) {
+            return probeFailure("CREATE_FAILED",
+                    "The folder permission did not allow a test file to be created.", error);
+        }
+
+        try (OutputStream output = resolver.openOutputStream(probe, "w")) {
+            if (output == null) {
+                deleteTreeProbe(resolver, probe);
+                return probeFailure("WRITE_FAILED", "The test file could not be opened.", null);
+            }
+            output.write(PROBE_BYTES);
+            output.flush();
+        } catch (IOException | RuntimeException error) {
+            deleteTreeProbe(resolver, probe);
+            return probeFailure("WRITE_FAILED", "The test file could not be written.", error);
+        }
+
+        byte[] read = new byte[PROBE_BYTES.length];
+        int count = 0;
+        try (InputStream input = resolver.openInputStream(probe)) {
+            if (input == null) {
+                deleteTreeProbe(resolver, probe);
+                return probeFailure("READ_FAILED", "The test file could not be opened for reading.", null);
+            }
+            while (count < read.length) {
+                int next = input.read(read, count, read.length - count);
+                if (next < 0) break;
+                count += next;
+            }
+            if (input.read() != -1 || count != read.length || !Arrays.equals(PROBE_BYTES, read)) {
+                deleteTreeProbe(resolver, probe);
+                return probeFailure("VERIFY_FAILED", "The test file could not be read back correctly.", null);
+            }
+        } catch (IOException | RuntimeException error) {
+            deleteTreeProbe(resolver, probe);
+            return probeFailure("READ_FAILED", "The test file could not be read back.", error);
+        }
+
+        if (!deleteTreeProbe(resolver, probe)) {
+            return probeFailure("DELETE_FAILED", "The test file worked but could not be removed.", null);
+        }
+        return DirectoryProbeResult.passed();
+    }
+
+    private static boolean deleteProbe(File probe) {
+        if (probe == null || !probe.exists()) return true;
+        try {
+            return probe.delete() || !probe.exists();
+        } catch (SecurityException error) {
+            Log.e(LOG_TAG, "Temporary probe cleanup threw " +
+                    error.getClass().getSimpleName(), error);
+            return false;
+        }
+    }
+
+    private static boolean deleteTreeProbe(ContentResolver resolver, Uri probe) {
+        try {
+            return probe == null || DocumentsContract.deleteDocument(resolver, probe);
+        } catch (IOException | RuntimeException error) {
+            Log.e(LOG_TAG, "Document-tree probe cleanup failed", error);
+            return false;
+        }
+    }
+
+    private static DirectoryProbeResult probeFailure(String code, String message, Throwable error) {
+        String detail = error == null ? "" : " (" + error.getClass().getSimpleName() +
+                (error.getMessage() == null ? "" : ": " + error.getMessage()) + ")";
+        DirectoryProbeResult result = DirectoryProbeResult.failed(code, message + detail);
+        if (error == null) Log.w(LOG_TAG, result.visibleMessage());
+        else Log.e(LOG_TAG, result.visibleMessage(), error);
+        return result;
+    }
+
+    /** Writable app-owned directory on a specific storage root, or null when unavailable. */
+    static File appSpecificDownloadsFolder(Context context, File storageRoot) {
+        if (context == null || storageRoot == null) return null;
+        File canonicalRoot = canonical(storageRoot);
+        try {
+            File[] appFolders = context.getExternalFilesDirs(null);
+            if (appFolders != null) for (File appFolder : appFolders) {
+                if (!same(canonicalRoot, storageRootForAppFolder(appFolder))) continue;
+                File downloads = canonical(new File(appFolder, "Downloads"));
+                if (downloads != null && (downloads.isDirectory() || downloads.mkdirs())) {
+                    return downloads;
+                }
+            }
+        } catch (RuntimeException ignored) { }
+
+        File candidate = appSpecificDownloadsCandidate(
+                canonicalRoot, context.getPackageName());
+        try {
+            return candidate != null && (candidate.isDirectory() || candidate.mkdirs())
+                    ? canonical(candidate) : null;
+        } catch (SecurityException ignored) {
+            return null;
+        }
+    }
+
+    static File appSpecificDownloadsCandidate(File storageRoot, String packageName) {
+        if (storageRoot == null || packageName == null || packageName.trim().isEmpty()) return null;
+        File appData = new File(new File(new File(storageRoot, "Android"), "data"), packageName);
+        return new File(new File(appData, "files"), "Downloads");
+    }
+
+    static boolean isOwnedAppSpecificFolder(Context context, File folder) {
+        if (context == null || folder == null) return false;
+        return isOwnedAppSpecificFolder(
+                folder, mountedStorageRoots(context), context.getPackageName());
+    }
+
+    static boolean isOwnedAppSpecificFolder(
+            File folder,
+            Iterable<File> storageRoots,
+            String packageName
+    ) {
+        if (folder == null || storageRoots == null) return false;
+        for (File root : storageRoots) {
+            File candidate = appSpecificDownloadsCandidate(root, packageName);
+            File appFiles = candidate == null ? null : candidate.getParentFile();
+            if (contains(appFiles, folder)) return true;
+        }
+        return false;
+    }
+
+    private static String ownedAppFolderLabel(Context context, File folder) {
+        if (context == null || folder == null) return null;
+        for (File root : mountedStorageRoots(context)) {
+            File downloads = appSpecificDownloadsCandidate(root, context.getPackageName());
+            File appFiles = downloads == null ? null : downloads.getParentFile();
+            if (!contains(appFiles, folder)) continue;
+            String appLabel = "App";
+            try {
+                CharSequence label = context.getApplicationInfo().loadLabel(context.getPackageManager());
+                if (label != null && !label.toString().trim().isEmpty()) {
+                    appLabel = label.toString().trim();
+                }
+            } catch (RuntimeException ignored) { }
+            String relative = relativePath(appFiles, folder);
+            String suffix = relative.isEmpty() ? "" : "/" + relative;
+            return storageDescription(context, root) + "/" + appLabel + suffix;
+        }
+        return null;
+    }
+
+    static Uri initialDocumentUriForPath(Context context, File folder) {
+        File root = containingRoot(context, canonical(folder));
+        if (root == null) return null;
+        File primary = canonical(Environment.getExternalStorageDirectory());
+        String documentId = documentIdForPath(root, primary, folder);
+        if (documentId == null) return null;
+        try {
+            return DocumentsContract.buildDocumentUri(
+                    "com.android.externalstorage.documents", documentId);
+        } catch (RuntimeException ignored) {
+            return null;
+        }
+    }
+
+    static String documentIdForPath(File root, File primary, File folder) {
+        File canonicalRoot = canonical(root);
+        File canonicalFolder = canonical(folder);
+        if (!contains(canonicalRoot, canonicalFolder)) return null;
+        String volumeId = same(canonicalRoot, primary) ? "primary" : canonicalRoot.getName();
+        return volumeId + ":" + relativePath(canonicalRoot, canonicalFolder);
     }
 
     static boolean prepareWritableDirectory(File folder, boolean allowCreateDirectory) {
@@ -148,6 +421,8 @@ public final class MorpheStoragePath {
 
         Context context = MorpheSettingsRuntime.applicationContext();
         File primary = canonical(Environment.getExternalStorageDirectory());
+        String ownedLabel = ownedAppFolderLabel(context, folder);
+        if (ownedLabel != null) return ownedLabel;
         if (same(folder, primary)) return "Internal storage";
         if (contains(primary, folder)) return relativePath(primary, folder);
 

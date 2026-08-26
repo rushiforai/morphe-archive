@@ -39,7 +39,7 @@ def _run_java(*args: str | Path, capture: bool = True, timeout: int = 600) -> st
     return combined
 
 def _parse_patch_block(output: str, patch_name: str, pkg_name: str) -> list[str]:
-    pattern = rf"Name:\s*{re.escape(patch_name)}\n.*?Package name:\s*{re.escape(pkg_name)}\s*\n\s*Compatible versions:\s*\n(.*?)(?:\n\s*Package name:|\n\n|\Z)"
+    pattern = rf"Name:\s*{re.escape(patch_name)}\n.*?Package name:\s*{re.escape(pkg_name)}\s*\n\s*Compatible versions:\s*\n(.*?)(?:\n\s*Package name:|\n\s*Version codes:|\n\n|\Z)"
     if m := re.search(pattern, output, re.DOTALL | re.IGNORECASE):
         return [v.strip() for v in m.group(1).splitlines() if v.strip()]
     return []
@@ -52,10 +52,20 @@ def _parse_versions_output(output: str) -> list[str]:
     block = output.split(marker)[1].split("\n\n")[0]
     versions = []
     for line in block.splitlines():
-        clean_ver = line.split("(")[0].strip()
-        if clean_ver:
-            versions.append(clean_ver)
+        parts = line.split()
+        if parts:
+            versions.append(parts[0])
     return versions
+
+def _extract_version_code(output: str, version: str, arch: str) -> str | None:
+    arch_map = {
+        "arm64-v8a": "ARM64_V8A", "armeabi-v7a": "ARMEABI_V7A", 
+        "x86": "X86", "x86_64": "X86_64"
+    }
+    target_arch = arch_map.get(arch.lower(), "ARM64_V8A")
+    if m := re.search(rf"{re.escape(version)}.*?{target_arch}=(\d+)", output, re.IGNORECASE):
+        return m.group(1)
+    return None
 
 def _redact_args(args: list[str | Path]) -> list[str]:
     return [_SECRET_PATTERNS.sub(r"\1***", str(a)) for a in args]
@@ -88,13 +98,14 @@ class PatcherCLI:
                 parts.append(_run_java("-jar", self.cli_jar, "list-versions", "--patches", mpp, "-f", pkg_name, *extra, timeout=60))
         return "\n".join(parts)
 
-    def get_last_supported_version(self, list_patches_output: str, pkg_name: str, patches: dict[str, dict], experimental: bool = False) -> str | None:
+    def get_last_supported_version(self, list_patches_output: str, pkg_name: str, patches: dict[str, dict], arch: str = "arm64-v8a", experimental: bool = False) -> tuple[str, str | None] | None:
         all_included = [p for spec in patches.values() for p in spec["include"]]
         all_vers: list[str] = []
         for p in all_included:
             all_vers.extend(_parse_patch_block(list_patches_output, p, pkg_name))
         if all_vers:
-            return get_highest_ver(all_vers)
+            highest = get_highest_ver(all_vers)
+            return (highest, _extract_version_code(list_patches_output, highest, arch)) if highest else None
 
         versions_output = self.list_versions(pkg_name, experimental)
         if "Any" in versions_output:
@@ -102,7 +113,8 @@ class PatcherCLI:
 
         if not (versions := _parse_versions_output(versions_output)):
             raise PatcherError(f"No patches found for '{pkg_name}'")
-        return get_highest_ver(versions)
+        highest = get_highest_ver(versions)
+        return (highest, _extract_version_code(versions_output, highest, arch)) if highest else None
 
     def resolve_auto_patches(self, list_patches_output: str) -> tuple[str, str]:
         microg_patch = psu_patch = ""

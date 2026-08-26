@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>danwillm test</title>
+    <link rel="stylesheet" href="index.css"/>
+</head>
+
+<body id="body">
+<div id="pointer-circle">
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="50" fill="#FFFFFF" id="pointer-pip"/>
+    </svg>
+</div>
+<div id="main">
+    <div id="page-header">
+        <h1>VRLink Dev Panel</h1>
+    </div>
+    <div id="ui-main">
+        <div id="ui-menu">
+            <button class="menu-button" onclick="NavigateToPage('ui-content-hosts')">Hosts</button>
+            <button class="menu-button" onclick="NavigateToPage('ui-content-advanced')">Advanced</button>
+            <button class="menu-button" onclick="NavigateToPage('ui-content-settings')">Dev Settings</button>
+            <button class="menu-button" onclick="NavigateToPage('ui-content-info')">Info</button>
+        </div>
+        <div id="topright" style="position:absolute;top:0;right:0;">
+            <button class="close-button" onclick="RequestAppQuit()">❌</button>
+        </div>
+
+        <div id="ui-content">
+            <div id="ui-content-hosts">
+                <h2>Available Hosts</h2>
+                <hr/>
+                <div id="available-hosts">
+                    <p>Cannot establish connection with app.</p>
+                </div>
+            </div>
+
+            <div id="ui-content-advanced" hidden>
+                <h2>Advanced</h2>
+                <hr/>
+                <button class="host-connection-button" onclick="OpenTCPConnection()">Open TCP on 10400</button>
+                <button class="host-connection-button" onclick="Open8814Connection()">Open UDP for 8814</button>
+                <button class="host-connection-button" onclick="OpenDeadEndConnection()">Open UDP dead end</button>
+            </div>
+
+            <div id="ui-content-settings" hidden>
+                <h2>Dev Settings</h2>
+
+                <hr/>
+
+                <button id="enable-frame-bins" onclick="EnableFrameBins()">Enable Frame Bin Graph on next stream
+                </button>
+
+                <button onclick="ClearSavedPaths()">Clear saved paths</button>
+
+                <button onclick="DisableShutdownOnExit()">Add path to disable debug shutdown on exit</button>
+
+                <h3>Permissions</h3>
+                <div class="permission-section" data-permission="android.permission.RECORD_AUDIO">
+                    <p>Microphone: <span class="permission-text"
+                                         data-permission="android.permission.RECORD_AUDIO">??</span></p>
+                </div>
+            </div>
+
+            <div id="ui-content-info" hidden>
+                <p><b>CL:</b> <span data-appPath="/info/p4/have_cl">?</span></p>
+                <p><b>Device Name:</b> <span data-appPath="/info/device/product_name">?</span></p>
+                <p><b>Device Manufacturer:</b> <span data-appPath="/info/device/manufacturer">?</span></p>
+                <p><b>WiFi SSID:</b> <span data-appPath="/info/wifi/ssid">?</span> </p>
+                <p><b>WiFi Frequency:</b> <span data-appPath="/info/wifi/frequency">?</span> </p>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+
+<template id="available-host-template">
+    <div class="available-host">
+        <p class="host-name"></p>
+        <button class="host-connect">CONNECT</button>
+    </div>
+</template>
+
+<template id="no-available-hosts-template">
+    <h5 class="no-hosts-message">No available hosts found :(</h5>
+</template>
+
+<template id="prompt-permission-button-template">
+    <button class="permission-button">Prompt</button>
+</template>
+
+<script src="../ipc.js"></script>
+<script src="index.js"></script>
+</html>

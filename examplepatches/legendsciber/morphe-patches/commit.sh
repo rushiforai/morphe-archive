@@ -5,11 +5,16 @@
 set -e
 
 DIR="$HOME/hillclimb-patches"
-MSG="feat(mctoolbox): bypass 32/64-bit supported-version gates"
+MSG="feat(mctoolbox): watch-ad grants +15min instantly without playing any ad"
 
 cd "$DIR"
 
 command -v git >/dev/null || { echo "git yok: pkg install git -y"; exit 1; }
+
+# Analiz/kirma scriptleri repoya girmez -> arsive tasinir
+mkdir -p "$HOME/analiz-arsiv"
+mv -f "$DIR"/analyze*.sh "$HOME/analiz-arsiv/" 2>/dev/null || true
+mv -f "$DIR"/crack_bb*.sh "$HOME/analiz-arsiv/" 2>/dev/null || true
 
 # Commit kimligi yoksa ayarla
 git config user.name  >/dev/null 2>&1 || git config user.name  "legendsciber"
@@ -23,7 +28,7 @@ else
     git commit -m "$MSG"
 fi
 
-# Release bot'u uzaktan commit atmis olabilir, once guncelle
+# Release bot'u uzaktan commit atmissa once onu al, sonra push et
 git pull --rebase
 
 git push

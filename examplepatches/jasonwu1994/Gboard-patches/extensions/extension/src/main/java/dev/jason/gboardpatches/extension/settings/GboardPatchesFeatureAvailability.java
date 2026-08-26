@@ -59,6 +59,8 @@ public final class GboardPatchesFeatureAvailability {
             "dev.jason.gboardpatches.feature.split_keyboard";
     public static final String FEATURE_ACCESSIBILITY_LAYOUT =
             "dev.jason.gboardpatches.feature.accessibility_layout";
+    public static final String FEATURE_ROUNDED_KEYBOARD_PANEL =
+            "dev.jason.gboardpatches.feature.rounded_keyboard_panel";
     public static final String FEATURE_SPACEBAR_LOGO =
             "dev.jason.gboardpatches.feature.spacebar_logo";
     public static final String FEATURE_CLOSE_PROACTIVE_SUGGESTIONS =

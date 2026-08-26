@@ -65,6 +65,17 @@ val alwaysIncognitoPatch = bytecodePatch(
             logger.warning("[Skipped] Could not enable clipboard in incognito: ${it.message}")
         }
 
+        val dictationGatePatched = runCatching {
+            DictationIncognitoGateFingerprint.method.apply {
+                val ifNezIndex = DictationIncognitoGateFingerprint.instructionMatches[1].index
+                replaceInstruction(ifNezIndex, "nop")
+            }
+        }.onSuccess {
+            logger.info("[Found] Enabled dictation in incognito (18.x gate).")
+        }.onFailure {
+            logger.info("[Skipped] Dictation-in-incognito gate not found (older Gboard?): ${it.message}")
+        }.isSuccess
+
         runCatching {
             EnableVoiceTypingFingerprint.method.apply {
                 val index = EnableVoiceTypingFingerprint.instructionMatches.last().index
@@ -72,9 +83,11 @@ val alwaysIncognitoPatch = bytecodePatch(
                 addInstruction(index, "const/4 v$register, 0x0")
             }
         }.onSuccess {
-            logger.info("[Found] Enabled voice typing in incognito.")
+            logger.info("[Found] Enabled voice typing in incognito (legacy gate).")
         }.onFailure {
-            logger.warning("[Skipped] Could not enable voice typing in incognito: ${it.message}")
+            if (!dictationGatePatched) {
+                logger.warning("[Skipped] Could not enable voice typing in incognito: ${it.message}")
+            }
         }
     }
 }

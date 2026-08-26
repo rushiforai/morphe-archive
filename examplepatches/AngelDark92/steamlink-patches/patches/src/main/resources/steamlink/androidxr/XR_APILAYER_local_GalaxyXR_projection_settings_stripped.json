@@ -1,0 +1,11 @@
+{
+  "file_format_version": "1.0.0",
+  "api_layer": {
+    "name": "XR_APILAYER_local_GalaxyXR_projection_settings_stripped",
+    "library_path": "libgxr_projection_settings_stripped.so",
+    "api_version": "1.0",
+    "implementation_version": "2",
+    "description": "Galaxy XR projection settings-chain stripping diagnostic",
+    "disable_environment": "GXR_DISABLE_PROJECTION_SETTINGS_STRIPPED"
+  }
+}

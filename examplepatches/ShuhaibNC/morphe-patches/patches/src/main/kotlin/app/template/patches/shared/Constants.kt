@@ -123,4 +123,23 @@ object Constants {
             )
         )
     )
+
+    val MELON_VPN_COMPATIBILITY = Compatibility(
+        name = "Melon VPN",
+        packageName = "com.vpnbottle.melon.free.unblock.fast.vpn",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x4CAF50,
+        targets = listOf(
+            AppTarget(
+                version = null,
+            ),
+            AppTarget(
+                version = "8.0.527",
+                versionCodes = mapOf(
+                    SupportedAbi.ARM64_V8A to 80527,
+                    SupportedAbi.ARMEABI_V7A to 80527
+                )
+            )
+        )
+    )
 }

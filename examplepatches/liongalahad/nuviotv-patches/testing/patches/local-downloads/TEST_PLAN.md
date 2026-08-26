@@ -3,6 +3,9 @@
 - [x] Run all extension unit tests, including fresh-default On, stored Off, autoplay, percentage arithmetic, route identity, source eligibility, player-route persistence and Local Media tagged sidecars.
 - [x] Verify generic storage consumers require write access only while an enabled writer is registered; Local Media-only read access remains valid.
 - [x] Verify raw write selection uses a real create/delete probe with no lasting file, rejects missing/non-directory paths, and SAF selection requires both read and write grants for an enabled writer.
+- [x] On a Fire TV AFTKA running Fire OS 9 with removable SanDisk USB storage, enter the drive without a root write precheck, choose a child folder, and verify the visible create/write/read/delete diagnostic reports the exact `CREATE_FAILED` permission-denied stage.
+- [x] On the reporter's Fire TV, verify an actual download succeeds in Nuvio Morphe's app-owned folder on the removable drive.
+- [x] On the Android TV API 36 AVD with emulated removable `SDCARD`, deny broad raw storage access, verify the framework document stub is rejected, select the explicit private-app-folder fallback entirely by D-pad, accept the uninstall warning, and verify its write/read/delete probe passes, leaves no test-file residue, and saves `SDCARD/Nuvio Morphe/Downloads`.
 - [ ] On Android TV, revoke All files access or remount the selected drive read-only; verify Download reports that the path is not writable and opens write-capable folder selection before source resolution.
 - [x] Confirm launch and toggling Local Downloads never opens a permission screen; the first Download action requests access when needed, denial reports a retryable access requirement, and a selected path suppresses the request.
 - [x] Match every fingerprint exactly once on every declared Nuvio 0.8.4-beta APK asset.

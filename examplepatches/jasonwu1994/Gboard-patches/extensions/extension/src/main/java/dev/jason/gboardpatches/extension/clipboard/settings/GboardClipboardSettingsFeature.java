@@ -70,6 +70,11 @@ public final class GboardClipboardSettingsFeature
     }
 
     @Override
+    public List<GboardPatchesSettingsContract.Feature> getNavigationChildren() {
+        return Collections.singletonList(webClipboardFeature);
+    }
+
+    @Override
     public boolean isAvailable(Context context) {
         initializeText(context);
         return GboardPatchesFeatureAvailability.hasAnyFeature(

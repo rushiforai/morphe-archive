@@ -3,6 +3,7 @@ package dev.jason.gboardpatches.extension.keyboard;
 import android.content.Context;
 
 import java.util.Arrays;
+import java.util.List;
 
 import dev.jason.gboardpatches.extension.R;
 import dev.jason.gboardpatches.extension.accessibilitylayout.GboardAccessibilityLayoutSettingsFeature;
@@ -10,6 +11,7 @@ import dev.jason.gboardpatches.extension.accesspointsmenu.GboardAccessPointsMenu
 import dev.jason.gboardpatches.extension.closeproactivesuggestions.GboardCloseProactiveSuggestionsSettingsFeature;
 import dev.jason.gboardpatches.extension.emojisize.GboardEmojiSizeSettingsFeature;
 import dev.jason.gboardpatches.extension.flowmode.GboardFlowModeSettingsFeature;
+import dev.jason.gboardpatches.extension.roundedkeyboard.GboardRoundedKeyboardSettingsFeature;
 import dev.jason.gboardpatches.extension.settings.GboardFeatureGroup;
 import dev.jason.gboardpatches.extension.settings.GboardPatchesSettingsContract;
 import dev.jason.gboardpatches.extension.settings.GboardSettingsText;
@@ -46,7 +48,8 @@ public final class GboardKeyboardLayoutSettingsGroupFeature
                         new GboardEmojiSizeSettingsFeature(context),
                         new GboardAccessPointsMenuSettingsFeature(context),
                         new GboardSplitKeyboardSettingsFeature(context),
-                        new GboardAccessibilityLayoutSettingsFeature(context)));
+                        new GboardAccessibilityLayoutSettingsFeature(context),
+                        new GboardRoundedKeyboardSettingsFeature(context)));
     }
 
     @Override
@@ -62,6 +65,11 @@ public final class GboardKeyboardLayoutSettingsGroupFeature
     @Override
     public boolean isAvailable(Context context) {
         return delegate.isAvailable(context);
+    }
+
+    @Override
+    public List<GboardPatchesSettingsContract.Feature> getNavigationChildren() {
+        return delegate.getNavigationChildren();
     }
 
     @Override

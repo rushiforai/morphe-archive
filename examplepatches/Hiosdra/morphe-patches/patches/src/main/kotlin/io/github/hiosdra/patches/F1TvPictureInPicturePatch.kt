@@ -32,6 +32,18 @@ private val f1TvPictureInPictureResourcePatch = resourcePatch(
 
             activity.setAttribute("android:supportsPictureInPicture", "true")
             activity.setAttribute("android:resizeableActivity", "true")
+
+            // Entering/leaving PiP changes the window's screen layout and
+            // smallest-screen-size qualifiers. Without handling those
+            // changes Android recreates BasePlayerActivity, and its new
+            // PlayerSwitcher is bound with the original (usually zero)
+            // PlayHead instead of the current Bitmovin position.
+            val configChanges = activity.getAttribute("android:configChanges")
+                .split('|')
+                .filter(String::isNotBlank)
+                .toMutableSet()
+            configChanges += listOf("screenLayout", "smallestScreenSize")
+            activity.setAttribute("android:configChanges", configChanges.joinToString("|"))
         }
     }
 }

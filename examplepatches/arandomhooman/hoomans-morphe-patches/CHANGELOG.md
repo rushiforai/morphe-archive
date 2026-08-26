@@ -1,3 +1,15 @@
+## [1.51.1](https://github.com/arandomhooman/hoomans-morphe-patches/compare/v1.51.0...v1.51.1) (2026-08-25)
+
+### 🐛 Bug Fixes
+
+* remove Projectivy Launcher Unlock Premium patch (DMCA takedown request) ([e151176](https://github.com/arandomhooman/hoomans-morphe-patches/commit/e151176b337568dcbb30919b68331f01d9d11f80))
+
+## [1.51.0](https://github.com/arandomhooman/hoomans-morphe-patches/compare/v1.50.3...v1.51.0) (2026-08-25)
+
+### ✨ New Features
+
+* add Todoist No date first patch ([e78242a](https://github.com/arandomhooman/hoomans-morphe-patches/commit/e78242ac03618423d1c261848defc6a4382fcdb3))
+
 ## [1.50.3](https://github.com/arandomhooman/hoomans-morphe-patches/compare/v1.50.2...v1.50.3) (2026-08-19)
 
 ### 🐛 Bug Fixes

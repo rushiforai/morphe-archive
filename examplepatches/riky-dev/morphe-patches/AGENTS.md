@@ -110,19 +110,23 @@ Extensions (`.mpe` Java modules) live in `extensions/extension/` — only needed
 
 ## Release rules
 
-This is a personal repo: **one branch (`main`) only**. There is no `dev` branch, prerelease flow, or backmerge — push to `main` and semantic-release handles versioning.
+Dual-branch flow matching the Morphe patches template: preview on `dev`, stable on `main`.
 
-- Develop on `main`; semantic-release publishes from pushes to `main`
-- Use [conventional commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `bump:`)
+- Develop and preview on `dev`; `feat:` / `fix:` / `bump:` pushes publish GitHub **prereleases** (e.g. `v1.1.0-dev.1`)
+- Ship stable by merging `dev` into `main` with a **merge commit** (do not squash)
+- After a stable release, semantic-release **backmerges** `main` → `dev` automatically
+- Use [conventional commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `bump:`; `chore:` does not release)
+- Version bumps: **minor** for a new app/patch (`feat:`), **patch** for fixes/app-version support (`fix:` / `bump:`), **major** only for breaking consumer changes (`feat!:` / `BREAKING CHANGE`) — not one major per app
 - **Never hand-edit** `patches-list.json`, `patches-bundle.json`, or `CHANGELOG.md` — semantic-release generates them
 - CI runs `./gradlew :patches:buildAndroid` on non-release pushes
+- Users pick up prereleases by enabling **pre-release** for this source in Morphe Manager
 
 ## License and attribution
 
 Fork of [Morphe patches template](https://github.com/MorpheApp/morphe-patches-template). GPL-3.0 — see `LICENSE` and `NOTICE`.
 
 - Credit Morphe contributors for template-derived tooling; credit modifications in `NOTICE` / README
-- Product name: **Riky's Morphe Patches** (distinct from Morphe itself; see `NOTICE` branding rules)
+- Product name: **riky's patches** (distinct from Morphe itself; see `NOTICE` branding rules)
 - Erasing git history is fine for GPL if distributed source keeps notices and states modifications
 
 ## Prerequisites

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="220" height="140" viewBox="0 0 220 140">
+  <rect width="220" height="140" rx="12" fill="#101318"/>
+  <path d="M25 42c4-14 15-22 30-23h110c15 1 26 9 30 23l9 39c3 15-8 29-24 29h-36c-10 0-18-5-23-13l-4-7h-14l-4 7c-5 8-13 13-23 13H40c-16 0-27-14-24-29z" fill="#d9dde3" stroke="#737c89" stroke-width="3"/>
+  <rect x="39" y="40" width="142" height="45" rx="20" fill="#212832" stroke="#76b9ff" stroke-width="3"/>
+  <circle cx="78" cy="62" r="10" fill="#101318"/><circle cx="142" cy="62" r="10" fill="#101318"/>
+  <text x="110" y="130" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="14" fill="#76b9ff">SAMSUNG GALAXY XR</text>
+</svg>

@@ -1,3 +1,9 @@
+## [1.0.0-dev.29](https://github.com/liongalahad/nuviotv-morphe-patches/compare/v1.0.0-dev.28...v1.0.0-dev.29) (2026-08-25)
+
+### 🐛 Bug Fixes
+
+* support writable removable storage on Fire OS ([8502549](https://github.com/liongalahad/nuviotv-morphe-patches/commit/8502549fa8f3a707a711af18e3bc3bd62301ed61))
+
 ## [1.0.0-dev.28](https://github.com/liongalahad/nuviotv-morphe-patches/compare/v1.0.0-dev.27...v1.0.0-dev.28) (2026-08-24)
 
 ### 🐛 Bug Fixes

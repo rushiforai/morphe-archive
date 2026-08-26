@@ -1,0 +1,751 @@
+{
+  "action_manifest_version": 0,
+  "alias_info": {
+    "/actions/legacy/in/head_proximity": {
+      "alias_name": "",
+      "hidden": true
+    },
+    "/actions/legacy/in/left_axis2_press": {
+      "alias_name": "",
+      "hidden": true
+    },
+    "/actions/legacy/in/left_axis2_touch": {
+      "alias_name": "",
+      "hidden": true
+    },
+    "/actions/legacy/in/left_axis3_press": {
+      "alias_name": "",
+      "hidden": true
+    },
+    "/actions/legacy/in/left_axis3_touch": {
+      "alias_name": "",
+      "hidden": true
+    },
+    "/actions/legacy/in/left_axis3_value_e0": {
+      "alias_name": "",
+      "hidden": true
+    },
+    "/actions/legacy/in/left_axis3_value_e1": {
+      "alias_name": "",
+      "hidden": true
+    },
+    "/actions/legacy/in/left_axis4_press": {
+      "alias_name": "",
+      "hidden": true
+    },
+    "/actions/legacy/in/left_axis4_touch": {
+      "alias_name": "",
+      "hidden": true
+    },
+    "/actions/legacy/in/left_axis4_value_e0": {
+      "alias_name": "",
+      "hidden": true
+    },
+    "/actions/legacy/in/left_axis4_value_e1": {
+      "alias_name": "",
+      "hidden": true
+    },
+    "/actions/legacy/in/left_system_press": {
+      "alias_name": "",
+      "hidden": true
+    },
+    "/actions/legacy/in/left_system_touch": {
+      "alias_name": "",
+      "hidden": true
+    },
+    "/actions/legacy/in/right_axis3_press": {
+      "alias_name": "",
+      "hidden": true
+    },
+    "/actions/legacy/in/right_axis3_touch": {
+      "alias_name": "",
+      "hidden": true
+    },
+    "/actions/legacy/in/right_axis3_value_e0": {
+      "alias_name": "",
+      "hidden": true
+    },
+    "/actions/legacy/in/right_axis3_value_e1": {
+      "alias_name": "",
+      "hidden": true
+    },
+    "/actions/legacy/in/right_axis4_press": {
+      "alias_name": "",
+      "hidden": true
+    },
+    "/actions/legacy/in/right_axis4_touch": {
+      "alias_name": "",
+      "hidden": true
+    },
+    "/actions/legacy/in/right_axis4_value_e0": {
+      "alias_name": "",
+      "hidden": true
+    },
+    "/actions/legacy/in/right_axis4_value_e1": {
+      "alias_name": "",
+      "hidden": true
+    },
+    "/actions/legacy/in/right_system_press": {
+      "alias_name": "",
+      "hidden": true
+    },
+    "/actions/legacy/in/right_system_touch": {
+      "alias_name": "",
+      "hidden": true
+    },
+    "/actions/legacy_mirrored/in/axis2_press": {
+      "alias_name": "",
+      "hidden": true
+    },
+    "/actions/legacy_mirrored/in/axis2_touch": {
+      "alias_name": "",
+      "hidden": true
+    },
+    "/actions/legacy_mirrored/in/axis3_press": {
+      "alias_name": "",
+      "hidden": true
+    },
+    "/actions/legacy_mirrored/in/axis3_touch": {
+      "alias_name": "",
+      "hidden": true
+    },
+    "/actions/legacy_mirrored/in/axis3_value_e0": {
+      "alias_name": "",
+      "hidden": true
+    },
+    "/actions/legacy_mirrored/in/axis3_value_e1": {
+      "alias_name": "",
+      "hidden": true
+    },
+    "/actions/legacy_mirrored/in/axis4_press": {
+      "alias_name": "",
+      "hidden": true
+    },
+    "/actions/legacy_mirrored/in/axis4_touch": {
+      "alias_name": "",
+      "hidden": true
+    },
+    "/actions/legacy_mirrored/in/axis4_value_e0": {
+      "alias_name": "",
+      "hidden": true
+    },
+    "/actions/legacy_mirrored/in/axis4_value_e1": {
+      "alias_name": "",
+      "hidden": true
+    },
+    "/actions/legacy_mirrored/in/system_press": {
+      "alias_name": "",
+      "hidden": true
+    }
+  },
+  "app_key": "steam.app.722230",
+  "bindings": {
+    "/actions/main": {
+      "poses": [],
+      "skeleton": [],
+      "sources": [
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/main/in/pause"
+            },
+            "touch": {
+              "output": "/actions/main/in/thumb_left"
+            }
+          },
+          "mode": "button",
+          "parameters": {},
+          "path": "/user/hand/left/input/system"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/main/in/pause"
+            }
+          },
+          "mode": "button",
+          "parameters": {},
+          "path": "/user/hand/right/input/system"
+        },
+        {
+          "inputs": {
+            "pull": {
+              "output": "/actions/main/in/interact_left"
+            },
+            "touch": {
+              "output": "/actions/main/in/point_left"
+            }
+          },
+          "mode": "trigger",
+          "parameters": {},
+          "path": "/user/hand/left/input/trigger"
+        },
+        {
+          "inputs": {
+            "pull": {
+              "output": "/actions/main/in/interact_right"
+            },
+            "touch": {
+              "output": "/actions/main/in/point_right"
+            }
+          },
+          "mode": "trigger",
+          "parameters": {},
+          "path": "/user/hand/right/input/trigger"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/main/in/calibrate"
+            },
+            "position": {
+              "output": "/actions/main/in/step_xy"
+            },
+            "touch": {
+              "output": "/actions/main/in/step_xy0"
+            }
+          },
+          "mode": "joystick",
+          "parameters": {},
+          "path": "/user/hand/left/input/thumbstick"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/main/in/navigate"
+            }
+          },
+          "mode": "button",
+          "parameters": {},
+          "path": "/user/hand/left/input/a"
+        },
+        {
+          "inputs": {
+            "pull": {
+              "output": "/actions/main/in/grip_left"
+            },
+            "touch": {
+              "output": "/actions/main/in/index_left"
+            }
+          },
+          "mode": "trigger",
+          "parameters": {},
+          "path": "/user/hand/left/input/grip"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/main/in/calibrate"
+            },
+            "position": {
+              "output": "/actions/main/in/turn_xy"
+            },
+            "touch": {
+              "output": "/actions/main/in/turn_xy0"
+            }
+          },
+          "mode": "joystick",
+          "parameters": {},
+          "path": "/user/hand/right/input/thumbstick"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/main/in/navigate"
+            },
+            "touch": {
+              "output": "/actions/main/in/thumb_right"
+            }
+          },
+          "mode": "button",
+          "parameters": {},
+          "path": "/user/hand/right/input/a"
+        },
+        {
+          "inputs": {
+            "pull": {
+              "output": "/actions/main/in/grip_right"
+            },
+            "touch": {
+              "output": "/actions/main/in/index_right"
+            }
+          },
+          "mode": "trigger",
+          "parameters": {},
+          "path": "/user/hand/right/input/grip"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/main/in/calibrate"
+            },
+            "touch": {
+              "output": "/actions/main/in/thumb_right"
+            }
+          },
+          "mode": "joystick",
+          "parameters": {},
+          "path": "/user/hand/right/input/joystick"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/main/in/crouch"
+            },
+            "touch": {
+              "output": "/actions/main/in/thumb_left"
+            }
+          },
+          "mode": "button",
+          "parameters": {},
+          "path": "/user/hand/left/input/joystick"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/main/in/move_button"
+            },
+            "touch": {
+              "output": "/actions/main/in/thumb_left"
+            }
+          },
+          "mode": "button",
+          "parameters": {},
+          "path": "/user/hand/left/input/x"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/main/in/reload_left"
+            },
+            "touch": {
+              "output": "/actions/main/in/thumb_left"
+            }
+          },
+          "mode": "button",
+          "parameters": {},
+          "path": "/user/hand/left/input/y"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/main/in/reload_right"
+            },
+            "touch": {
+              "output": "/actions/main/in/thumb_right"
+            }
+          },
+          "mode": "button",
+          "parameters": {},
+          "path": "/user/hand/right/input/b"
+        },
+        {
+          "inputs": {
+            "position": {
+              "output": "/actions/main/in/move_xy"
+            },
+            "touch": {
+              "output": "/actions/main/in/move_xy0"
+            }
+          },
+          "mode": "joystick",
+          "parameters": {
+            "deadzone_pct": "25"
+          },
+          "path": "/user/hand/left/input/joystick"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/main/in/confirm"
+            }
+          },
+          "mode": "button",
+          "parameters": {},
+          "path": "/user/hand/left/input/x"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/main/in/select"
+            }
+          },
+          "mode": "button",
+          "parameters": {},
+          "path": "/user/hand/left/input/x"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/main/in/select"
+            }
+          },
+          "mode": "button",
+          "parameters": {},
+          "path": "/user/hand/right/input/a"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/main/in/backout"
+            }
+          },
+          "mode": "button",
+          "parameters": {},
+          "path": "/user/hand/left/input/y"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/main/in/backout"
+            }
+          },
+          "mode": "button",
+          "parameters": {},
+          "path": "/user/hand/right/input/b"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/main/in/cancel"
+            }
+          },
+          "mode": "button",
+          "parameters": {},
+          "path": "/user/hand/left/input/y"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/main/in/cancel"
+            }
+          },
+          "mode": "button",
+          "parameters": {},
+          "path": "/user/hand/right/input/b"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/main/in/confirm"
+            }
+          },
+          "mode": "button",
+          "parameters": {},
+          "path": "/user/hand/right/input/a"
+        },
+        {
+          "inputs": {
+            "position": {
+              "output": "/actions/main/in/turn_xy_analog"
+            },
+            "touch": {
+              "output": "/actions/main/in/turn_xy0"
+            }
+          },
+          "mode": "joystick",
+          "parameters": {},
+          "path": "/user/hand/right/input/joystick"
+        }
+      ]
+    },
+    "/actions/map": {
+      "poses": [],
+      "skeleton": [],
+      "sources": [
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/map/in/legend"
+            },
+            "position": {
+              "output": "/actions/map/in/pan_xy"
+            },
+            "touch": {
+              "output": "/actions/map/in/pan_xy0"
+            }
+          },
+          "mode": "joystick",
+          "parameters": {},
+          "path": "/user/hand/left/input/joystick"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/map/in/cycle"
+            }
+          },
+          "mode": "button",
+          "parameters": {},
+          "path": "/user/hand/right/input/trigger"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/map/in/return"
+            }
+          },
+          "mode": "button",
+          "parameters": {},
+          "path": "/user/hand/right/input/b"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/map/in/return"
+            }
+          },
+          "mode": "button",
+          "parameters": {},
+          "path": "/user/hand/left/input/system"
+        },
+        {
+          "inputs": {
+            "position": {
+              "output": "/actions/map/in/zoom"
+            }
+          },
+          "mode": "joystick",
+          "parameters": {},
+          "path": "/user/hand/right/input/joystick"
+        }
+      ]
+    },
+    "/actions/menu": {
+      "poses": [],
+      "skeleton": [],
+      "sources": [
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/menu/in/confirm"
+            }
+          },
+          "mode": "button",
+          "parameters": {},
+          "path": "/user/hand/right/input/a"
+        },
+        {
+          "inputs": {
+            "east": {
+              "output": "/actions/menu/in/move_right"
+            },
+            "north": {
+              "output": "/actions/menu/in/move_up"
+            },
+            "south": {
+              "output": "/actions/menu/in/move_down"
+            },
+            "west": {
+              "output": "/actions/menu/in/move_left"
+            }
+          },
+          "mode": "dpad",
+          "parameters": {
+            "sub_mode": "touch"
+          },
+          "path": "/user/hand/left/input/thumbstick"
+        },
+        {
+          "inputs": {
+            "east": {
+              "output": "/actions/menu/in/move_right"
+            },
+            "north": {
+              "output": "/actions/menu/in/move_up"
+            },
+            "south": {
+              "output": "/actions/menu/in/move_down"
+            },
+            "west": {
+              "output": "/actions/menu/in/move_left"
+            }
+          },
+          "mode": "dpad",
+          "parameters": {
+            "overlap_pct": "0",
+            "sub_mode": "touch"
+          },
+          "path": "/user/hand/left/input/joystick"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/menu/in/cancel"
+            }
+          },
+          "mode": "button",
+          "parameters": {},
+          "path": "/user/hand/left/input/system"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/menu/in/confirm"
+            }
+          },
+          "mode": "button",
+          "parameters": {},
+          "path": "/user/hand/left/input/x"
+        },
+        {
+          "inputs": {
+            "position": {
+              "output": "/actions/menu/in/move_xy"
+            },
+            "touch": {
+              "output": "/actions/menu/in/move_xy0"
+            }
+          },
+          "mode": "joystick",
+          "parameters": {
+            "deadzone_pct": "25"
+          },
+          "path": "/user/hand/left/input/joystick"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/menu/in/cycle"
+            }
+          },
+          "mode": "button",
+          "parameters": {},
+          "path": "/user/hand/left/input/trigger"
+        },
+        {
+          "inputs": {
+            "east": {
+              "output": "/actions/menu/in/move_right"
+            },
+            "north": {
+              "output": "/actions/menu/in/move_up"
+            },
+            "south": {
+              "output": "/actions/menu/in/move_down"
+            },
+            "west": {
+              "output": "/actions/menu/in/move_left"
+            }
+          },
+          "mode": "dpad",
+          "parameters": {
+            "sub_mode": "touch"
+          },
+          "path": "/user/hand/right/input/joystick"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/menu/in/legend"
+            },
+            "position": {
+              "output": "/actions/menu/in/zoom"
+            }
+          },
+          "mode": "joystick",
+          "parameters": {},
+          "path": "/user/hand/right/input/joystick"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/menu/in/cancel"
+            }
+          },
+          "mode": "button",
+          "parameters": {},
+          "path": "/user/hand/left/input/y"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/menu/in/cancel_social"
+            }
+          },
+          "mode": "button",
+          "parameters": {},
+          "path": "/user/hand/left/input/y"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/menu/in/cancel"
+            }
+          },
+          "mode": "button",
+          "parameters": {},
+          "path": "/user/hand/right/input/b"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/menu/in/cancel_social"
+            }
+          },
+          "mode": "button",
+          "parameters": {},
+          "path": "/user/hand/right/input/b"
+        }
+      ]
+    },
+    "/actions/notebook": {
+      "poses": [],
+      "skeleton": [],
+      "sources": [
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/notebook/in/backout"
+            }
+          },
+          "mode": "button",
+          "parameters": {},
+          "path": "/user/hand/right/input/b"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/notebook/in/backout"
+            }
+          },
+          "mode": "button",
+          "parameters": {},
+          "path": "/user/hand/left/input/y"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/notebook/in/select"
+            }
+          },
+          "mode": "button",
+          "parameters": {},
+          "path": "/user/hand/left/input/x"
+        },
+        {
+          "inputs": {
+            "click": {
+              "output": "/actions/notebook/in/select"
+            }
+          },
+          "mode": "button",
+          "parameters": {},
+          "path": "/user/hand/right/input/a"
+        }
+      ]
+    }
+  },
+  "category": "steamvr_input",
+  "controller_type": "oculus_touch",
+  "description": "Oculus Touch default mapping. (auto-remapped from oculus_touch)",
+  "interaction_profile": "",
+  "name": "My L.A. Noire: The VR Case Files configuration for samsung_touch",
+  "options": {
+    "mirror_actions": false,
+    "simulate_hmd": false,
+    "simulate_rendermodel": true,
+    "simulated_controller_type": "oculus_touch"
+  },
+  "simulated_actions": []
+}

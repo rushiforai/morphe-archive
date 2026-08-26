@@ -1,5 +1,5 @@
 {
-    "version": "1.26.0",
+    "version": "1.29.0",
     "patches": [
         {
             "compatiblePackages": null,
@@ -35,6 +35,8 @@
                     "values": {
                         "AppLovin MAX": "max",
                         "Auto (all networks)": "auto",
+                        "Huawei Ads Kit / Petal Ads": "huawei",
+                        "RuStore / VK MyTarget": "rustore",
                         "Unity Ads": "unityAds",
                         "ironSource / LevelPlay": "ironSource"
                     }
@@ -92,6 +94,24 @@
             "options": []
         },
         {
+            "compatiblePackages": [
+                {
+                    "name": "com.bandcamp.android",
+                    "packageName": "com.bandcamp.android",
+                    "targets": [
+                        {
+                            "isExperimental": false
+                        }
+                    ]
+                }
+            ],
+            "default": false,
+            "dependencies": [],
+            "description": "Bandcamp: allows audio cache downloads over mobile data without the confirmation dialog.",
+            "name": "Allow Mobile Downloads",
+            "options": []
+        },
+        {
             "compatiblePackages": null,
             "default": false,
             "dependencies": [],
@@ -135,6 +155,56 @@
             "compatiblePackages": null,
             "default": false,
             "dependencies": [],
+            "description": "Forces pure-black (#FF000000) backgrounds and surfaces on every dark theme so apps that support dark mode render true AMOLED-black instead of dark grey. Light themes are left untouched, so text stays readable. Optional toggles can also blacken the system bars",
+            "name": "AMOLED Theme",
+            "options": [
+                {
+                    "default": false,
+                    "description": "Also force the status bar background to pure black on dark themes.",
+                    "key": "amoledBlackenStatusBar",
+                    "required": false,
+                    "title": "Blacken Status Bar",
+                    "type": "kotlin.Boolean",
+                    "values": null
+                },
+                {
+                    "default": false,
+                    "description": "Also force the navigation bar background to pure black on dark themes.",
+                    "key": "amoledBlackenNavigationBar",
+                    "required": false,
+                    "title": "Blacken Navigation Bar",
+                    "type": "kotlin.Boolean",
+                    "values": null
+                }
+            ]
+        },
+        {
+            "compatiblePackages": null,
+            "default": false,
+            "dependencies": [],
+            "description": "Reduces APK size by stripping unused native libraries. Keeps only the selected CPU architecture under lib/ (e.g. arm64-v8a) and deletes the others. Use only if you know the target device ABI - the APK will not run on devices needing a stripped ABI. For translations use Strip Translations instead.",
+            "name": "Apk Junk Cleanup",
+            "options": [
+                {
+                    "default": "arm64-v8a",
+                    "description": "Native libraries for other ABIs under lib/ will be deleted.",
+                    "key": "keepArch",
+                    "required": false,
+                    "title": "Keep architecture",
+                    "type": "kotlin.String",
+                    "values": {
+                        "arm64-v8a (most modern devices)": "arm64-v8a",
+                        "armeabi-v7a (32-bit ARM)": "armeabi-v7a",
+                        "x86 (32-bit Intel)": "x86",
+                        "x86_64 (64-bit Intel)": "x86_64"
+                    }
+                }
+            ]
+        },
+        {
+            "compatiblePackages": null,
+            "default": false,
+            "dependencies": [],
             "description": "Block push notification ads (Firebase Cloud Messaging). Also blocks legitimate notifications.",
             "name": "Block Push Ads",
             "options": []
@@ -167,7 +237,7 @@
             "compatiblePackages": null,
             "default": false,
             "dependencies": [],
-            "description": "Spoofs android.os.Build identity (model, device, manufacturer, hardware, fingerprint, serial, user, host, radio, bootloader) and Build.getRadioVersion(), TelephonyManager.getPhoneType(), and telltale system properties (ro.kernel.qemu, ro.hardware, ro.product.model/device, ro.bootloader, ro.radio) so apps and games that refuse to run, crash or match you with emulator lobbies cannot tell they are on an emulator. Does not hide root or a debugger connection.",
+            "description": "Spoofs android.os.Build identity (model, device, manufacturer, hardware, fingerprint, serial, user, host, radio, bootloader) and Build.getRadioVersion(), TelephonyManager.getPhoneType(), and telltale system properties (ro.kernel.qemu, ro.hardware, ro.product.model/device, ro.bootloader, ro.radio) so apps and games that refuse to run, crash or match you with emulator lobbies cannot tell they are on an emulator. Optional Hide Emulator Radio and Spoof Build Extras settings also cover TelephonyManager radio type and additional Build/Build.VERSION identity fields. Does not hide root or a debugger connection.",
             "name": "Bypass Emulator Detection",
             "options": [
                 {
@@ -182,6 +252,24 @@
                         "Samsung Galaxy S23": "samsungS23",
                         "Xiaomi 13": "xiaomi13"
                     }
+                },
+                {
+                    "default": false,
+                    "description": "Make TelephonyManager report a normal GSM radio type.",
+                    "key": "hideEmulatorRadio",
+                    "required": false,
+                    "title": "Hide Emulator Radio",
+                    "type": "kotlin.Boolean",
+                    "values": null
+                },
+                {
+                    "default": false,
+                    "description": "Spoof additional Build and Build.VERSION fields used by emulator checks.",
+                    "key": "spoofBuildExtras",
+                    "required": false,
+                    "title": "Spoof Build Extras",
+                    "type": "kotlin.Boolean",
+                    "values": null
                 }
             ]
         },
@@ -401,6 +489,14 @@
             "compatiblePackages": null,
             "default": false,
             "dependencies": [],
+            "description": "Removes split-install manifest attributes and Play Store split metadata from the app manifest.",
+            "name": "Clearing Split Metadata",
+            "options": []
+        },
+        {
+            "compatiblePackages": null,
+            "default": false,
+            "dependencies": [],
             "description": "Replaces the launcher icon with a custom image you supply (image URL, file path, or base64).",
             "name": "Custom App Icon",
             "options": [
@@ -569,6 +665,24 @@
             "dependencies": [],
             "description": "No-ops ContentResolver.setSyncAutomatically/requestSync(...) so the app stops auto-uploading data (contacts, photos, files) to cloud accounts in the background.",
             "name": "Disable Background Sync",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "name": "com.bandcamp.android",
+                    "packageName": "com.bandcamp.android",
+                    "targets": [
+                        {
+                            "isExperimental": false
+                        }
+                    ]
+                }
+            ],
+            "default": false,
+            "dependencies": [],
+            "description": "Bandcamp: disables the first-party accessibility tracker that pings /api/tracker.",
+            "name": "Disable Bandcamp Tracker",
             "options": []
         },
         {
@@ -748,6 +862,24 @@
             "options": []
         },
         {
+            "compatiblePackages": [
+                {
+                    "name": "com.bandcamp.android",
+                    "packageName": "com.bandcamp.android",
+                    "targets": [
+                        {
+                            "isExperimental": false
+                        }
+                    ]
+                }
+            ],
+            "default": false,
+            "dependencies": [],
+            "description": "Bandcamp: skips the one-time onboarding overlays for the play queue, long-press downloads and public playlist tooltips.",
+            "name": "Disable Onboarding Overlays",
+            "options": []
+        },
+        {
             "compatiblePackages": null,
             "default": false,
             "dependencies": [],
@@ -841,6 +973,24 @@
             "dependencies": [],
             "description": "No-ops StrictMode policy installs made by the app so debug builds that enable strict disk or network checks stop crashing on release-like usage",
             "name": "Disable StrictMode",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "name": "com.bandcamp.android",
+                    "packageName": "com.bandcamp.android",
+                    "targets": [
+                        {
+                            "isExperimental": false
+                        }
+                    ]
+                }
+            ],
+            "default": false,
+            "dependencies": [],
+            "description": "Bandcamp: hides server-pushed banner dialogs such as update prompts, rate-me requests and announcements.",
+            "name": "Disable Support Banners",
             "options": []
         },
         {
@@ -1009,6 +1159,24 @@
             "options": []
         },
         {
+            "compatiblePackages": [
+                {
+                    "name": "com.bandcamp.android",
+                    "packageName": "com.bandcamp.android",
+                    "targets": [
+                        {
+                            "isExperimental": false
+                        }
+                    ]
+                }
+            ],
+            "default": false,
+            "dependencies": [],
+            "description": "Bandcamp: turns on hidden feature flags - audio-cache indicators, podcast player controls and public-playlist track visibility.",
+            "name": "Enable Hidden Settings",
+            "options": []
+        },
+        {
             "compatiblePackages": null,
             "default": false,
             "dependencies": [],
@@ -1148,8 +1316,40 @@
             "compatiblePackages": null,
             "default": false,
             "dependencies": [],
+            "description": "Makes AlarmManager.canScheduleExactAlarms return true so older alarm, reminder, and scheduler apps do not disable their exact-alarm features on modern Android. Warning: this only changes the app's availability check; it does not grant Android's special exact-alarm access, and scheduling may still fail or throw SecurityException.",
+            "name": "Ensure Exact Alarm Availability",
+            "options": []
+        },
+        {
+            "compatiblePackages": null,
+            "default": false,
+            "dependencies": [],
             "description": "Adds the INTERNET permission if it is missing. Useful after aggressive permission stripping or for offline builds that still need web endpoints",
             "name": "Ensure Internet Permission",
+            "options": []
+        },
+        {
+            "compatiblePackages": null,
+            "default": false,
+            "dependencies": [],
+            "description": "Adds Android 13+ media permissions so older apps that can see some media but cannot properly access photos, videos, or music can request the modern permissions. Android still requires runtime approval, and this does not grant unrestricted access to arbitrary files.",
+            "name": "Ensure Modern Media Permissions",
+            "options": []
+        },
+        {
+            "compatiblePackages": null,
+            "default": false,
+            "dependencies": [],
+            "description": "Adds POST_NOTIFICATIONS to the manifest so older apps can request notification access on Android 13+. This only declares the permission; Android may still require a runtime approval. Unlike Spoof Notifications as Enabled, it does not change the app's NotificationManager.areNotificationsEnabled check.",
+            "name": "Ensure Notification Permission",
+            "options": []
+        },
+        {
+            "compatiblePackages": null,
+            "default": false,
+            "dependencies": [],
+            "description": "Adds READ_EXTERNAL_STORAGE and WRITE_EXTERNAL_STORAGE for older apps that can see photos, videos, or music but cannot access ordinary files on modern Android ROMs. The permissions still require Android to grant them at runtime and have limited effect for apps targeting Android 13+.",
+            "name": "Ensure Storage Permissions",
             "options": []
         },
         {
@@ -1164,7 +1364,7 @@
             "compatiblePackages": null,
             "default": false,
             "dependencies": [],
-            "description": "Marks every activity as android:exported so other apps and ADB can launch them",
+            "description": "Marks every activity and activity-alias as android:exported=true so other apps and ADB can launch them. Unlike Repair Missing Component Export Flags, this intentionally exports every activity even when it has no intent filter; use the repair patch when you only need explicit exported values for filtered legacy components.",
             "name": "Export All Activities",
             "options": []
         },
@@ -1365,14 +1565,6 @@
             "compatiblePackages": null,
             "default": false,
             "dependencies": [],
-            "description": "Makes NotificationManager.areNotificationsEnabled always return true so apps that refuse to run when notifications are blocked keep working",
-            "name": "Force Notifications Enabled",
-            "options": []
-        },
-        {
-            "compatiblePackages": null,
-            "default": false,
-            "dependencies": [],
             "description": "Enables picture-in-picture for every activity by setting supportsPictureInPicture=true, so videos can be popped into a floating window.",
             "name": "Force Picture-in-Picture",
             "options": []
@@ -1543,14 +1735,6 @@
             "dependencies": [],
             "description": "Forces windowLayoutInDisplayCutoutMode=never on every activity so notched or punch-hole screens use the full display without a black bar.",
             "name": "Hide Display Cutout",
-            "options": []
-        },
-        {
-            "compatiblePackages": null,
-            "default": false,
-            "dependencies": [],
-            "description": "Makes TelephonyManager.getPhoneType always report GSM so emulator detection based on a missing radio reports a normal device",
-            "name": "Hide Emulator Radio",
             "options": []
         },
         {
@@ -1743,6 +1927,140 @@
             ],
             "description": "Pairip is anti-tamper / license protection used by some games. This bypasses its checks so patched or modified builds run instead of being blocked.",
             "name": "Pairip Bypass (Experimental)",
+            "options": [
+                {
+                    "default": true,
+                    "description": "Apply every compatible PairIP strategy whose target is found. Turn this off to select only the strategy groups needed for testing.",
+                    "key": "automaticStrategySelection",
+                    "required": false,
+                    "title": "Automatic strategy selection",
+                    "type": "kotlin.Boolean",
+                    "values": null
+                },
+                {
+                    "default": false,
+                    "description": "Redirect the PairIP Application wrapper when possible, then remove PairIP license activities, provider, and CHECK_LICENSE permission from AndroidManifest.xml.",
+                    "key": "manifestCleanupStrategy",
+                    "required": false,
+                    "title": "XML manifest cleanup",
+                    "type": "kotlin.Boolean",
+                    "values": null
+                },
+                {
+                    "default": false,
+                    "description": "Bypass Application.<clinit> and VMRunner.invoke startup paths that can execute the PairIP VM.",
+                    "key": "pairipVmRunnerChecks",
+                    "required": false,
+                    "title": "PairIP VMRunner checks",
+                    "type": "kotlin.Boolean",
+                    "values": null
+                },
+                {
+                    "default": false,
+                    "description": "Bypass both PairIP StartupLauncher.launch and StartupLauncher.pairip entry points.",
+                    "key": "startupLauncherChecks",
+                    "required": false,
+                    "title": "StartupLauncher checks",
+                    "type": "kotlin.Boolean",
+                    "values": null
+                },
+                {
+                    "default": false,
+                    "description": "Disable the PairIP V3 LicenseClient.onActivityCreate path.",
+                    "key": "licenseClientV3Activity",
+                    "required": false,
+                    "title": "LicenseClient V3 activity",
+                    "type": "kotlin.Boolean",
+                    "values": null
+                },
+                {
+                    "default": false,
+                    "description": "Spoof checks that verify which installer installed the app.",
+                    "key": "localInstallerChecks",
+                    "required": false,
+                    "title": "Local installer checks",
+                    "type": "kotlin.Boolean",
+                    "values": null
+                },
+                {
+                    "default": false,
+                    "description": "Bypass APK integrity and signature-match checks.",
+                    "key": "signatureChecks",
+                    "required": false,
+                    "title": "Signature checks",
+                    "type": "kotlin.Boolean",
+                    "values": null
+                },
+                {
+                    "default": false,
+                    "description": "Suppress PairIP error dialogs, paywalls, and close-app screens.",
+                    "key": "licenseUiSuppression",
+                    "required": false,
+                    "title": "License error and paywall UI",
+                    "type": "kotlin.Boolean",
+                    "values": null
+                },
+                {
+                    "default": false,
+                    "description": "Bypass PairIP Application attachBaseContext and onCreate hooks. These run early and may be less compatible with some apps.",
+                    "key": "applicationStartupHooks",
+                    "required": false,
+                    "title": "Application startup hooks",
+                    "type": "kotlin.Boolean",
+                    "values": null
+                },
+                {
+                    "default": false,
+                    "description": "Disable the legacy LicenseClient license-check and root-termination path.",
+                    "key": "licenseClientChecks",
+                    "required": false,
+                    "title": "License client checks",
+                    "type": "kotlin.Boolean",
+                    "values": null
+                },
+                {
+                    "default": false,
+                    "description": "Bypass PairIP content-provider initialization and query checks.",
+                    "key": "contentProviderChecks",
+                    "required": false,
+                    "title": "Content provider checks",
+                    "type": "kotlin.Boolean",
+                    "values": null
+                },
+                {
+                    "default": false,
+                    "description": "Bypass license-response validation, metadata, and signature checks across legacy validator variants.",
+                    "key": "responseValidationChecks",
+                    "required": false,
+                    "title": "Response validation checks",
+                    "type": "kotlin.Boolean",
+                    "values": null
+                },
+                {
+                    "default": false,
+                    "description": "Bypass PairIP V2 license flow, response signature verification, and repeated background checks.",
+                    "key": "pairipV2Checks",
+                    "required": false,
+                    "title": "PairIP V2 checks",
+                    "type": "kotlin.Boolean",
+                    "values": null
+                }
+            ]
+        },
+        {
+            "compatiblePackages": null,
+            "default": false,
+            "dependencies": [],
+            "description": "Requests ANGLE as the OpenGL ES driver so compatible modern Android devices may run OpenGL ES through ANGLE for improved graphics compatibility. This is only a driver preference, is not guaranteed, does not convert Vulkan apps to OpenGL, and may cause rendering issues on unsupported devices.",
+            "name": "Prefer ANGLE Graphics Driver",
+            "options": []
+        },
+        {
+            "compatiblePackages": null,
+            "default": false,
+            "dependencies": [],
+            "description": "Helps keep saves and app data when a patched build replaces an installed app. Sets android:hasFragileUserData (Android offers to keep data on uninstall and restores it when the same package is reinstalled), enables android:allowBackup, sets android:restoreAnyVersion so a backup can be restored across versions, and removes backup-exclusion rules that hide app data from device/cloud backups. Note: the patched APK is re-signed, so it must replace the original via uninstall-then-install; keep the package name unchanged (these patches never rename it) and the data returns",
+            "name": "Preserve App Data",
             "options": []
         },
         {
@@ -1823,6 +2141,14 @@
             "compatiblePackages": null,
             "default": false,
             "dependencies": [],
+            "description": "Removes the INTERNET permission from the manifest for offline use. Apps that require internet for core features will crash or fail to load after this - use only on apps that work offline. Unlike the generic Remove Permissions patch this is a one-tap dedicated toggle with no jargon. No extra patches are required for the removal itself; if the app crashes it means it does not handle missing internet gracefully.",
+            "name": "Remove Internet Permission",
+            "options": []
+        },
+        {
+            "compatiblePackages": null,
+            "default": false,
+            "dependencies": [],
             "description": "Removes the app's network security config so certificate pinning and cleartext restrictions fall back to platform defaults (useful for HTTPS inspection)",
             "name": "Remove Network Security Config",
             "options": []
@@ -1846,6 +2172,24 @@
             ]
         },
         {
+            "compatiblePackages": [
+                {
+                    "name": "com.bandcamp.android",
+                    "packageName": "com.bandcamp.android",
+                    "targets": [
+                        {
+                            "isExperimental": false
+                        }
+                    ]
+                }
+            ],
+            "default": false,
+            "dependencies": [],
+            "description": "Bandcamp: removes the free streaming play limit on unowned tralbums, so full tracks keep playing and the purchase nag never appears.",
+            "name": "Remove Play Count Limit",
+            "options": []
+        },
+        {
             "compatiblePackages": null,
             "default": false,
             "dependencies": [],
@@ -1867,8 +2211,24 @@
             "compatiblePackages": null,
             "default": false,
             "dependencies": [],
+            "description": "Adds missing android:exported values only to activities, aliases, services, and receivers that declare intent filters. Launcher components become exported=true and other filtered components become exported=false. Unlike Export All Activities, this does not export every activity or alter components without filters; verify apps that expect external service or receiver access after patching.",
+            "name": "Repair Missing Component Export Flags",
+            "options": []
+        },
+        {
+            "compatiblePackages": null,
+            "default": false,
+            "dependencies": [],
             "description": "Makes Environment.isExternalStorageLegacy always return true so apps behave as if they got classic shared-storage access",
             "name": "Report Legacy Storage",
+            "options": []
+        },
+        {
+            "compatiblePackages": null,
+            "default": false,
+            "dependencies": [],
+            "description": "Adds QUERY_ALL_PACKAGES so older apps can detect installed stores, file managers, and other companion apps hidden by Android 11+ package-visibility filtering. This is a broad visibility override, may be restricted by Google Play policy, and does not install or grant access to the packages being detected.",
+            "name": "Restore Package Visibility",
             "options": []
         },
         {
@@ -1902,6 +2262,24 @@
             "options": []
         },
         {
+            "compatiblePackages": [
+                {
+                    "name": "com.bandcamp.android",
+                    "packageName": "com.bandcamp.android",
+                    "targets": [
+                        {
+                            "isExperimental": false
+                        }
+                    ]
+                }
+            ],
+            "default": false,
+            "dependencies": [],
+            "description": "Bandcamp: always shows relevance scores in search results (admin debug flag show_search_result_score).",
+            "name": "Show Search Result Scores",
+            "options": []
+        },
+        {
             "compatiblePackages": null,
             "default": false,
             "dependencies": [],
@@ -1931,6 +2309,14 @@
             "dependencies": [],
             "description": "Forces Settings.Global AIRPLANE_MODE_ON reads to 0 (off) so apps that change behavior in airplane mode see a normal connection state.",
             "name": "Spoof Airplane Mode",
+            "options": []
+        },
+        {
+            "compatiblePackages": null,
+            "default": false,
+            "dependencies": [],
+            "description": "Makes app-specific Amazon Appstore availability checks succeed without changing the system package manager.",
+            "name": "Spoof Amazon Appstore Availability",
             "options": []
         },
         {
@@ -2016,14 +2402,6 @@
             "dependencies": [],
             "description": "Reports a constant value from WifiInfo.getBSSID() so apps cannot read the real access point MAC address.",
             "name": "Spoof BSSID",
-            "options": []
-        },
-        {
-            "compatiblePackages": null,
-            "default": false,
-            "dependencies": [],
-            "description": "Spoofs the remaining android.os.Build identity fields not covered by Bypass Emulator Detection (BOOTLOADER, RADIO, USER, HOST, getRadioVersion, and Build.VERSION RELEASE/INCREMENTAL/SECURITY_PATCH/CODENAME) with values from a real Pixel 6, so apps cannot fingerprint the device through these fields.",
-            "name": "Spoof Build Extras",
             "options": []
         },
         {
@@ -2216,6 +2594,14 @@
             "dependencies": [],
             "description": "Reports NETWORK_TYPE_LTE (13) from TelephonyManager.getNetworkType() so apps that require an LTE connection run on any network.",
             "name": "Spoof Network Type LTE",
+            "options": []
+        },
+        {
+            "compatiblePackages": null,
+            "default": false,
+            "dependencies": [],
+            "description": "Makes NotificationManager.areNotificationsEnabled always return true so apps that refuse to run when notifications are blocked keep working. This only changes the app's internal check; it does not grant POST_NOTIFICATIONS or enable notifications in Android system settings. Use Ensure Notification Permission for the manifest entry.",
+            "name": "Spoof Notifications as Enabled",
             "options": []
         },
         {
@@ -2519,6 +2905,24 @@
             "dependencies": [],
             "description": "Removes maxAspectRatio limits from the application, activities and metadata so the app fills tall edge-to-edge screens instead of letterboxing",
             "name": "Unlock Max Aspect Ratio",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "name": "com.bandcamp.android",
+                    "packageName": "com.bandcamp.android",
+                    "targets": [
+                        {
+                            "isExperimental": false
+                        }
+                    ]
+                }
+            ],
+            "default": false,
+            "dependencies": [],
+            "description": "Bandcamp: applies the playback-rate control to every track instead of podcasts only, so 1x, 1.5x and 2x speeds work for music too.",
+            "name": "Unlock Playback Speed",
             "options": []
         },
         {

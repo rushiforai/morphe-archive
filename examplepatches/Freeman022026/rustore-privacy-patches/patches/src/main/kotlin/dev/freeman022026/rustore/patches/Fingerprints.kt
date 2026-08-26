@@ -218,6 +218,15 @@ internal val updateAuthSuggestFingerprint = methodFingerprint(
     listOf("Lau0/d;")
 )
 
+internal val autoUpdateForegroundRestrictionFingerprint = Fingerprint(
+    custom = { method, classDef ->
+        classDef.type == "Ltj1/m;" &&
+            method.name == "h" &&
+            method.returnType == "Z" &&
+            method.parameterTypes.map(CharSequence::toString) == listOf("Z")
+    }
+)
+
 internal const val REPORT_APP_OPEN_REFERENCE =
     "Lio/appmetrica/analytics/AppMetrica;->reportAppOpen(Ljava/lang/String;)V"
 

@@ -142,13 +142,21 @@ val disableAnalyticsAndTrackersPatch = bytecodePatch(
 @Suppress("unused")
 val restrictBackgroundWorkToUpdatesPatch = bytecodePatch(
     name = "Restrict background work to updates",
-    description = "Keeps only the background workers required for automatic update checks, downloads, patch application, and installation, including charging-triggered checks.",
+    description = "Keeps only the workers required for automatic updates and allows update checks to run while RuStore is foreground or background.",
     default = true
 ) {
     compatibleWith(RUSTORE_COMPATIBILITY)
     dependsOn(analyticsManifestPatch, disablePushServicesPatch)
 
     execute {
+        autoUpdateForegroundRestrictionFingerprint.method.addInstructions(
+            0,
+            """
+                const/4 v0, 0x0
+                return v0
+            """
+        )
+
         val workerSuccess = """
             new-instance v0, Landroidx/work/c${'$'}a${'$'}c;
             invoke-direct {v0}, Landroidx/work/c${'$'}a${'$'}c;-><init>()V

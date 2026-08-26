@@ -1,0 +1,17 @@
+{
+  "file_format_version": "1.0.0",
+  "api_layer": {
+    "name": "XR_APILAYER_local_GalaxyXR_face_bridge",
+    "library_path": "libgxr_face_bridge.so",
+    "api_version": "1.0",
+    "implementation_version": "1",
+    "description": "Dedicated Galaxy XR face bridge with direct UE tongue slots; requires its matching VRCFT module",
+    "disable_environment": "GXR_DISABLE_FACE_BRIDGE",
+    "instance_extensions": [
+      {
+        "name": "XR_FB_face_tracking2",
+        "extension_version": "1"
+      }
+    ]
+  }
+}

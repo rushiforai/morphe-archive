@@ -25,6 +25,10 @@ public final class GboardPatchesSettingsContract {
             return false;
         }
 
+        default List<Feature> getNavigationChildren() {
+            return Collections.emptyList();
+        }
+
         Screen buildScreen(FeatureHost host);
     }
 

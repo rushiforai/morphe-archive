@@ -42,6 +42,7 @@ private fun generatePatchList(version: String, patches: Set<Patch<*>>) {
         "Skip Consent Popup",
         "Skip Rate-Us Prompt",
         "Spoof Play Store Install Source",
+        "Spoof Amazon Appstore Availability",
         "Limit Ad Tracking",
         "Remove Permissions",
         "Remove Hardware Requirements",
@@ -56,11 +57,16 @@ private fun generatePatchList(version: String, patches: Set<Patch<*>>) {
         "Keep Screen On",
         "Remove Backup Restrictions",
         "Export All Activities",
+        "Repair Missing Component Export Flags",
         "Disable Battery Optimization Prompt",
         "Remove Network Security Config",
         "Enable Large Heap",
         "Force Hardware Acceleration",
+        "Prefer ANGLE Graphics Driver",
         "Legacy External Storage",
+        "Ensure Storage Permissions",
+        "Ensure Modern Media Permissions",
+        "Restore Package Visibility",
         "Keep Data on Uninstall",
         "Set Install Location",
         "Force Resizable Activity",
@@ -73,6 +79,7 @@ private fun generatePatchList(version: String, patches: Set<Patch<*>>) {
         "Remove Ad Services Entries",
         "Disable Permission Auto-Revoke",
         "Ensure Internet Permission",
+        "Ensure Notification Permission",
         "Status Bar Icons",
         "Fake Online State",
         "Set Profileable",
@@ -93,9 +100,10 @@ private fun generatePatchList(version: String, patches: Set<Patch<*>>) {
         "Spoof Signature Match",
         "Treat Network as Unmetered",
         "Grant All-Files Access",
+        "Ensure Exact Alarm Availability",
         "Hide Roaming Status",
         "Ignore Power Save Mode",
-        "Force Notifications Enabled",
+        "Spoof Notifications as Enabled",
         "Ignore Screen Lock",
         "Ignore GPS Disabled",
         "Hide Mock Location",
@@ -114,7 +122,13 @@ private fun generatePatchList(version: String, patches: Set<Patch<*>>) {
     )
     val orderMap = patchOrder.withIndex().associate { (i, name) -> name to i }
 
-    val patchesMap = patches.sortedWith(compareBy({ orderMap[it.name] ?: Int.MAX_VALUE }, { it.name ?: "" })).map { patch ->
+    // Null-named patches are implementation helpers used by a visible patch.
+    // Keep them available to Kotlin dependencies without exposing them as
+    // standalone entries in Morphe Manager.
+    val patchesMap = patches
+        .filter { it.name != null }
+        .sortedWith(compareBy({ orderMap[it.name] ?: Int.MAX_VALUE }, { it.name ?: "" }))
+        .map { patch ->
         JsonPatch(
             name = patch.name!!,
             description = patch.description,

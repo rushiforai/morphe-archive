@@ -51,5 +51,5 @@ class BaseScraper(ABC):
         pass
 
     @abstractmethod
-    def download(self, url: str, version: str, dest: Path, arch: str, dpi: str) -> DownloadResult:
+    def download(self, url: str, version: str, dest: Path, arch: str, dpi: str, version_code: str | None = None) -> DownloadResult:
         pass

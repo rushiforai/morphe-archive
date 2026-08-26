@@ -7,7 +7,7 @@ Custom patches using Morphe. 'Mix' originates from Morphe + IMXEren (also, mixed
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.5.0](https://gitlab.com/IMXEren/mix-patches/-/releases/v1.5.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;6 patches total
+> **[v1.6.0](https://gitlab.com/IMXEren/mix-patches/-/releases/v1.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;8 patches total
 <details open>
 <summary>📦 RailOne&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -25,7 +25,7 @@ Custom patches using Morphe. 'Mix' originates from Morphe + IMXEren (also, mixed
 </details>
 
 <details open>
-<summary>📦 Sync for Reddit&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 Sync for Reddit&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -36,6 +36,8 @@ Custom patches using Morphe. 'Mix' originates from Morphe + IMXEren (also, mixed
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Fix Other discussions](#fix-other-discussions) | Fixes the 'Other discussions' tab showing '403 error loading page' by updating the API endpoint. |  |
+| [Fix Redgifs API](#fix-redgifs-api) |  |  |
+| [Open Redgifs links in WebView on failure](#open-redgifs-links-in-webview-on-failure) | Falls back to Sync's in-app WebView when native Redgifs playback fails. |  |
 
 </details>
 

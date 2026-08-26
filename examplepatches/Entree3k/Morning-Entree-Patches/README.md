@@ -9,16 +9,20 @@ Patches for learning
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.16.0](https://github.com/Entree3k/Morning-Entree-Patches/releases/tag/v1.16.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;102 patches total
+> **[v1.18.0](https://github.com/Entree3k/Morning-Entree-Patches/releases/tag/v1.18.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;120 patches total
 <details open>
-<summary>📦 Gboard&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<summary>📦 Gboard&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
 <br>
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Always incognito mode](#always-incognito-mode) | Always opens Gboard in incognito mode to disable typing-history collection and personalization, while keeping clipboard and voice typing working in incognito. |  |
-| [Block tracking and analytics](#block-tracking-and-analytics) | Redirects Gboard's known tracking, analytics, and ad host literals to 0.0.0.0 using a built-in blocklist. Note: telemetry sent through Google Play Services is not affected; use the always-incognito patch for that. | • Wildcard blocking |
+| [Block tracking and analytics](#block-tracking-and-analytics) | Redirects Gboard's known tracking, analytics, and ad host to 0.0.0.0. Note: telemetry sent through Google Play Services is not affected; use the always-incognito patch for that. | • Wildcard blocking |
 | [Change package name](#change-package-name) | Installs Gboard as a clone by appending ".clone" to the package name (configurable), so it installs next to the stock Gboard. Changing an app's package name can lead to unexpected issues. | • Package name<br>• Update permissions<br>• Update other permissions<br>• Update content providers |
+| [Disable telemetry & federated learning](#disable-telemetry-federated-learning) | Forces Gboard's "Improve Gboard" / usage-statistics and federated-learning flags off at startup, regardless of the in-app settings, so your typing is not used for training or metrics. Best combined with the "Network privacy" patch. |  |
+| [Network privacy](#network-privacy) | Controls what Gboard is allowed to talk to. Choose a network level: block only telemetry (keep all features), lock it down to GIFs and voice typing only, or block all internet access. | • Network level<br>• Wildcard blocking |
+| [Remove promotional banners](#remove-promotional-banners) | Hides Gboard's in-keyboard promotional / "try this feature" banners by forcing their promo flags off. Does not disable the underlying features, only their nag banners. |  |
+| [Toggle feature flags](#toggle-feature-flags) | Toggles Gboard feature flags to enable or disable experimental or hidden features. | • Feature flags<br>• Enable feature flags |
 
 </details>
 
@@ -360,7 +364,7 @@ Patches for learning
 
 **🎯 Supported versions:**
 
-| 1.25.1.2 |
+| 1.25.1.1 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -580,6 +584,21 @@ Patches for learning
 </details>
 
 <details open>
+<summary>📦 Send Files To TV&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.4.22 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Remove Ads](#remove-ads) | Removes ads |  |
+
+</details>
+
+<details open>
 <summary>📦 nzb360&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -610,6 +629,21 @@ Patches for learning
 </details>
 
 <details open>
+<summary>📦 Athena&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.5.6 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock Premium](#unlock-premium) | Unlocks Ppremium |  |
+
+</details>
+
+<details open>
 <summary>📦 Automate&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -621,6 +655,36 @@ Patches for learning
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Unlock Premium](#unlock-premium) | Unlocks Automate Premium |  |
+
+</details>
+
+<details open>
+<summary>📦 ColorNote&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 4.8.6 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock Premium](#unlock-premium) | Unlocks Premium |  |
+
+</details>
+
+<details open>
+<summary>📦 OBD Android&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 4.9 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock Premium](#unlock-premium) | Unlock Premium |  |
 
 </details>
 
@@ -651,6 +715,21 @@ Patches for learning
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Unlock Pro](#unlock-pro) | Unlocks the Pro |  |
+
+</details>
+
+<details open>
+<summary>📦 ML Manager&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 5.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock Pro](#unlock-pro) | Unlocks Pro Features |  |
 
 </details>
 
@@ -1405,16 +1484,25 @@ Patches for learning
 </details>
 
 <details open>
-<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
+<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;14 patches</summary>
 <br>
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
+| [Block tracking hosts](#block-tracking-hosts) | Redirects known tracking, analytics, and ad host literals to 0.0.0.0 using a built-in blocklist, optionally extended with your own hosts file. Only affects hosts that appear as literal strings in the app; telemetry sent through Google Play Services is not affected. | • Wildcard blocking<br>• Additional hosts file |
+| [Bypass battery optimization nag](#bypass-battery-optimization-nag) | Makes apps believe they are already exempt from battery optimization so they stop prompting you to disable it. Only affects what the app sees, not the real system setting. |  |
 | [Change package name](#change-package-name) | Renames the app (default: append ".entree") so it installs as a clone next to the original. The name is configurable. Changing a package name can lead to unexpected issues. | • Package name<br>• Update permissions<br>• Update other permissions<br>• Update content providers |
+| [Disable analytics & ad tracking](#disable-analytics-ad-tracking) | Turns off Firebase / Google Analytics collection and removes the advertising-ID and ad-services permissions. Blocks ad personalization and analytics opt-in without cutting off the app's legitimate network features. Pair with a host blocker to also stop the traffic. |  |
+| [Disable clipboard access](#disable-clipboard-access) | Blocks apps from clipboard access |  |
 | [Provide original app certificate](#provide-original-app-certificate) | Extracts and Base64-encodes the original app's signing certificate. Applied automatically by 'Spoof signature verification'; you normally do not need to touch it. Use 'Certificate source' to control where the certificate comes from. | • Certificate source<br>• Original APK file |
 | [Remove internet permission](#remove-internet-permission) | Removes the INTERNET permission so the app cannot access the network at all. Blocks all trackers, analytics and ads from phoning home, but also disables any legitimate online features. Only enable for apps you want fully offline. |  |
+| [Spoof SIM provider](#spoof-sim-provider) | Spoofs TelephonyManager SIM/network provider values. | • Country ISO<br>• Operator code<br>• Operator name |
+| [Spoof Wi-Fi connection](#spoof-wi-fi-connection) | Spoof Wi-Fi connection |  |
+| [Spoof Wi-Fi identifiers](#spoof-wi-fi-identifiers) | Spoofs Wi-Fi SSID, BSSID, and MAC address reads. | • SSID<br>• BSSID<br>• MAC address |
 | [Spoof install source](#spoof-install-source) | Makes the app think it was installed from a specific store (default: Google Play). Useful when an app blocks features or errors because it detects it was not installed from the Play Store. Only affects what the app sees, not the real system record. | • Store to impersonate |
 | [Spoof signature verification](#spoof-signature-verification) | Spoofs the signature verification | • Package name<br>• Base64-encoded signature |
+| [Spoof telephony IDs](#spoof-telephony-ids) | Spoofs IMEI, MEID, subscriber ID, SIM serial, and line number reads. | • IMEI<br>• MEID<br>• Subscriber ID<br>• SIM serial<br>• Line number |
+| [Unlock RevenueCat](#unlock-revenuecat) | Premium patch for apps that use RevenueCat |  |
 
 </details>
 

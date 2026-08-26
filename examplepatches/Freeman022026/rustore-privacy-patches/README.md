@@ -36,7 +36,7 @@ The invasive-permissions patch neutralizes the privileged `INSTALL_PACKAGES` dec
 
 ## Background operation and automatic updates
 
-The recommended configuration no longer places an Android-level background restriction on RuStore. The `Restrict background work to updates` patch disables every reviewed background worker except those required for automatic updates. The only workers left active check for updates, download them, apply update patches, and install the resulting packages. Samsung installation support and the charging trigger also remain active. The retained worker chain is:
+The recommended configuration no longer places an Android-level background restriction on RuStore. The `Restrict background work to updates` patch disables every reviewed background worker except those required for automatic updates. The only workers left active check for updates, download them, apply update patches, and install the resulting packages. Update checks can complete while RuStore is foreground or background, avoiding the foreground retry loop that prevented the daily chain from advancing on some devices. Samsung installation support and the optional charging trigger also remain active, but neither charging nor a manual wake-up is required for the daily auto-update schedule. The retained worker chain is:
 
 - `AutoUpdateAnyAppWorker`
 - `AutoUpdateWorker`
@@ -59,7 +59,7 @@ The same patch disables:
 
 WorkManager remains enabled only because the automatic-update chain uses it. Existing named jobs from the disabled features are cancelled, and any remaining disabled worker entry point returns without running its original task.
 
-With all default patches selected, automatic updates can be enabled in RuStore under `Mine > Settings > Update and download settings`. Allow Android's background-operation prompt and notification permission. The live 1.108.0.2 test enabled Wi-Fi auto-update, retained the `AutoUpdateAnyAppWorker` schedule, loaded the update list, and completed cold starts without runtime errors.
+With all default patches selected, automatic updates can be enabled in RuStore under `Mine > Settings > Update and download settings`. Allow Android's background-operation prompt and notification permission. The live 1.108.0.2 test completed `AutoUpdateAnyAppWorker` while RuStore was foreground, scheduled the next check for 24 hours later, downloaded an available update, completed `SessionInstallWorker`, and reached Android's normal install confirmation without runtime errors.
 
 Users who prefer the previous dormant configuration can re-enable the Android background block with these commands. This also disables automatic updates until the block is removed:
 
@@ -90,7 +90,7 @@ Earlier Samsung testing found that removing `POST_NOTIFICATIONS` and `REQUEST_IG
 
 Keep the declarations. Allow notifications and background operation when using automatic updates; deny them only when intentionally running RuStore in dormant mode. If Samsung Auto Blocker rejects the patched APK, temporarily disable Auto Blocker for the installation and turn it back on afterward.
 
-RuStore 1.108.0.2 and bundle 1.1.6 were installed in place and functionally checked on a Vivo V2454. Existing app data remained intact, the update badge and update list loaded, Wi-Fi auto-update could be enabled, and the expected update worker remained scheduled. The Samsung compatibility behavior is preserved from the earlier controlled Samsung test, but this release has not had a second physical Samsung test.
+RuStore 1.108.0.2 and bundle 1.1.7 were installed in place and functionally checked on a physical Android 16 device. Existing app data remained intact, the update badge and update list loaded, and the automatic-update chain completed update discovery, download, and installer handoff. The Samsung compatibility behavior is preserved from the earlier controlled Samsung test, but this release has not had a second physical Samsung test.
 
 ## Automatic re-patching
 
@@ -99,7 +99,7 @@ Morphe can automatically reapply a new patch-bundle release to the original APK 
 ## Supported version and bundle
 
 <!-- PATCHES_START EXPANDED -->
-Current bundle: [v1.1.7](https://github.com/Freeman022026/rustore-privacy-patches/releases/tag/v1.1.7) on `main`.
+Current bundle: [v1.1.8](https://github.com/Freeman022026/rustore-privacy-patches/releases/tag/v1.1.8) on `main`.
 
 ### RuStore
 
@@ -117,7 +117,7 @@ Supported versions: `1.108.0.2`
 | Exclude Google Play apps from update checks | Excludes only apps whose recorded Android installer is Google Play from update requests. |
 | Hide gaming profile | Removes the gaming profile permission, hides both gaming buttons, and blocks navigation to the gaming profile. |
 | Restore secure-session compatibility | Adapts secure-session requests to RuStore 1.108 API changes for re-signed APKs. |
-| Restrict background work to updates | Keeps only the background workers required for automatic update checks, downloads, patch application, and installation, including charging-triggered checks. |
+| Restrict background work to updates | Keeps only the workers required for automatic updates and allows update checks to run while RuStore is foreground or background. |
 | Skip update authentication | Skips the update authentication suggestion and returns a valid completed result. |
 
 <!-- PATCHES_END -->

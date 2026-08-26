@@ -22,6 +22,8 @@ public final class MorpheStorageFolderPickerActivity extends Activity {
             "io.github.liongalahad.nuviotv.extra.MORPHE_STORAGE_FOLDER_PATH";
     private boolean started;
     private boolean requireWrite;
+    private boolean systemPickerStarted;
+    private boolean fallbackAttempted;
 
     public static Intent intent(Context context, boolean requireWrite) {
         return new Intent(context, MorpheStorageFolderPickerActivity.class)
@@ -31,6 +33,8 @@ public final class MorpheStorageFolderPickerActivity extends Activity {
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
         started = state != null && state.getBoolean("started", false);
+        systemPickerStarted = state != null && state.getBoolean("systemPickerStarted", false);
+        fallbackAttempted = state != null && state.getBoolean("fallbackAttempted", false);
         requireWrite = state != null
                 ? state.getBoolean("requireWrite", false)
                 : getIntent().getBooleanExtra(EXTRA_REQUIRE_WRITE, false);
@@ -40,44 +44,77 @@ public final class MorpheStorageFolderPickerActivity extends Activity {
     @Override protected void onSaveInstanceState(Bundle state) {
         state.putBoolean("started", started);
         state.putBoolean("requireWrite", requireWrite);
+        state.putBoolean("systemPickerStarted", systemPickerStarted);
+        state.putBoolean("fallbackAttempted", fallbackAttempted);
         super.onSaveInstanceState(state);
     }
 
     private void launch() {
         started = true;
         if (MorpheStorageInternalFolderPickerActivity.hasDirectAccess(this, requireWrite)) {
+            fallbackAttempted = true;
             startActivityForResult(
                     new Intent(this, MorpheStorageInternalFolderPickerActivity.class)
                             .putExtra(EXTRA_REQUIRE_WRITE, requireWrite), REQUEST_TREE);
             return;
         }
+        if (launchTreePicker(this, null, REQUEST_TREE)) {
+            systemPickerStarted = true;
+            return;
+        }
+        launchAppFolderFallback();
+    }
+
+    private void launchAppFolderFallback() {
+        fallbackAttempted = true;
+        startActivityForResult(
+                appFolderFallbackIntent(this, requireWrite),
+                REQUEST_TREE
+        );
+    }
+
+    static Intent appFolderFallbackIntent(Context context, boolean requireWrite) {
+        return new Intent(context, MorpheStorageInternalFolderPickerActivity.class)
+                .putExtra(EXTRA_REQUIRE_WRITE, requireWrite)
+                .putExtra(
+                        MorpheStorageInternalFolderPickerActivity.EXTRA_SHOW_APP_FOLDER_FALLBACK,
+                        true
+                );
+    }
+
+    static boolean launchTreePicker(Activity activity, Uri initialUri, int requestCode) {
         Intent source = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).addFlags(
                 Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION |
                         Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION |
                         Intent.FLAG_GRANT_PREFIX_URI_PERMISSION
         );
-        source.putExtra(DocumentsContract.EXTRA_INITIAL_URI, DocumentsContract.buildDocumentUri(
-                "com.android.externalstorage.documents", MorpheStoragePath.DEFAULT_DOCUMENT_ID));
-        if (launchDocumentsUi(source, "com.google.android.documentsui") ||
-                launchDocumentsUi(source, "com.android.documentsui")) return;
-        List<ResolveInfo> candidates = getPackageManager().queryIntentActivities(source, 0);
+        source.putExtra(DocumentsContract.EXTRA_INITIAL_URI, initialUri == null
+                ? DocumentsContract.buildDocumentUri(
+                        "com.android.externalstorage.documents", MorpheStoragePath.DEFAULT_DOCUMENT_ID)
+                : initialUri);
+        if (launchDocumentsUi(activity, source, "com.google.android.documentsui", requestCode) ||
+                launchDocumentsUi(activity, source, "com.android.documentsui", requestCode)) return true;
+        List<ResolveInfo> candidates = activity.getPackageManager().queryIntentActivities(source, 0);
         for (ResolveInfo candidate : candidates) {
             if (!isUsableTreePicker(candidate)) continue;
             try {
-                startActivityForResult(new Intent(source).setComponent(new ComponentName(
-                        candidate.activityInfo.packageName, candidate.activityInfo.name)), REQUEST_TREE);
-                return;
+                activity.startActivityForResult(new Intent(source).setComponent(new ComponentName(
+                        candidate.activityInfo.packageName, candidate.activityInfo.name)), requestCode);
+                return true;
             } catch (ActivityNotFoundException | SecurityException ignored) { }
         }
-        startActivityForResult(
-                new Intent(this, MorpheStorageInternalFolderPickerActivity.class)
-                        .putExtra(EXTRA_REQUIRE_WRITE, requireWrite), REQUEST_TREE);
+        return false;
     }
 
-    private boolean launchDocumentsUi(Intent source, String pkg) {
+    private static boolean launchDocumentsUi(
+            Activity activity,
+            Intent source,
+            String pkg,
+            int requestCode
+    ) {
         try {
-            startActivityForResult(new Intent(source).setComponent(new ComponentName(
-                    pkg, "com.android.documentsui.picker.PickActivity")), REQUEST_TREE);
+            activity.startActivityForResult(new Intent(source).setComponent(new ComponentName(
+                    pkg, "com.android.documentsui.picker.PickActivity")), requestCode);
             return true;
         } catch (ActivityNotFoundException | SecurityException ignored) {
             return false;
@@ -96,6 +133,7 @@ public final class MorpheStorageFolderPickerActivity extends Activity {
             Uri tree = data.getData();
             try {
                 boolean saved;
+                String failureMessage = null;
                 if (folderPath != null) {
                     Uri fileLocation = Uri.fromFile(new java.io.File(folderPath));
                     saved = (!requireWrite || MorpheStoragePath.isWritableSelection(this, fileLocation)) &&
@@ -118,14 +156,20 @@ public final class MorpheStorageFolderPickerActivity extends Activity {
                                     Intent.FLAG_GRANT_READ_URI_PERMISSION
                             );
                         }
-                        saved = MorpheStoragePath.setTreeUri(this, tree);
+                        MorpheStoragePath.DirectoryProbeResult probe = requireWrite
+                                ? MorpheStoragePath.probeTreeReadWrite(this, tree)
+                                : MorpheStoragePath.DirectoryProbeResult.passed();
+                        saved = probe.success && MorpheStoragePath.setTreeUri(this, tree);
+                        if (!probe.success) failureMessage = probe.visibleMessage();
                     }
                 } else {
                     saved = false;
                 }
                 Toast.makeText(this, saved
                                 ? "Local storage path: " + MorpheStoragePath.displayLabel()
-                                : requireWrite
+                                : failureMessage != null
+                                        ? failureMessage
+                                        : requireWrite
                                         ? "Select a folder that allows file creation"
                                         : "Folder selection could not be saved",
                         saved ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show();
@@ -133,6 +177,11 @@ public final class MorpheStorageFolderPickerActivity extends Activity {
             } catch (SecurityException error) {
                 Toast.makeText(this, "Folder access could not be saved", Toast.LENGTH_LONG).show();
             }
+        }
+        if (requestCode == REQUEST_TREE && resultCode != RESULT_OK && requireWrite &&
+                systemPickerStarted && !fallbackAttempted) {
+            launchAppFolderFallback();
+            return;
         }
         finish();
     }

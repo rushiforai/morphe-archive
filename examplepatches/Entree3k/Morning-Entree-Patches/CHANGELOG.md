@@ -1,3 +1,17 @@
+## [1.18.0](https://github.com/Entree3k/Morning-Entree-Patches/compare/v1.17.0...v1.18.0) (2026-08-25)
+
+### ✨ New Features
+
+* Gboard Update ([7d75d8b](https://github.com/Entree3k/Morning-Entree-Patches/commit/7d75d8b87afd2455cffbec8f1488609df0e0ce2e))
+
+## [1.17.0](https://github.com/Entree3k/Morning-Entree-Patches/compare/v1.16.0...v1.17.0) (2026-08-25)
+
+### ✨ New Features
+
+* update ([4aebebf](https://github.com/Entree3k/Morning-Entree-Patches/commit/4aebebfdebf0c3cfcb01e90e2c6b5ee974576785))
+* update ([393d050](https://github.com/Entree3k/Morning-Entree-Patches/commit/393d05049c4ad96d438fb66e871668c20601568d))
+* Update ([9435518](https://github.com/Entree3k/Morning-Entree-Patches/commit/94355189f9d75f364594dba3487d4e2b76ffa892))
+
 ## [1.16.0](https://github.com/Entree3k/Morning-Entree-Patches/compare/v1.15.0...v1.16.0) (2026-08-14)
 
 ### ✨ New Features

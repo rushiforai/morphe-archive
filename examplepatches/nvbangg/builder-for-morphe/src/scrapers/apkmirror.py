@@ -43,20 +43,23 @@ class APKMirrorScraper(BaseScraper):
         versions: list[str] = []
         for a in soup.select("#primary a.fontBlack[href*='-release/']"):
             text = a.get_text(strip=True)
-            if "beta" in text.lower() or "alpha" in text.lower():
+            if "beta" in text.lower() or "alpha" in text.lower() or "secondary" in text.lower():
                 continue
             v = text.split()[-1]
             self._release_urls[v] = urljoin("https://www.apkmirror.com", a["href"])
             versions.append(v)
         return AppMetadata(pkg_name=m.group(1), versions=versions)
 
-    def download(self, url: str, version: str, dest: Path, arch: str, dpi: str) -> DownloadResult:
+    def download(self, url: str, version: str, dest: Path, arch: str, dpi: str, version_code: str | None = None) -> DownloadResult:
         release_url = self._release_urls.get(version)
         if release_url is None:
             search_html = self.net.get(f"{url.rstrip('/')}/?s={version}")
             soup = _parse_html(search_html)
             for a in soup.select("a.fontBlack[href*='-release/']"):
-                if version in a.get_text() and f"/{self._category}/" in a.get("href", ""):
+                text = a.get_text()
+                if version in text and f"/{self._category}/" in a.get("href", ""):
+                    if "secondary" in text.lower() and "secondary" not in version.lower():
+                        continue
                     release_url = urljoin("https://www.apkmirror.com", a["href"])
                     break
 
@@ -71,7 +74,7 @@ class APKMirrorScraper(BaseScraper):
         is_bundle = False
         soup_release = _parse_html(release_html)
         if soup_release.select_one("div.table-row.headerFont:last-child"):
-            dl_url = self._pick_variant(soup_release, dpi, arch)
+            dl_url = self._pick_variant(soup_release, dpi, arch, version_code=version_code)
             if dl_url is None:
                 raise APKMirrorError("No matching variant found")
             release_html = self.net.get(dl_url[0])
@@ -87,7 +90,7 @@ class APKMirrorScraper(BaseScraper):
         self.net.download(final_url, out_path)
         return DownloadResult(path=out_path, is_bundle=is_bundle)
 
-    def _pick_variant(self, soup: BeautifulSoup, dpi: str, arch: str) -> tuple[str, str] | None:
+    def _pick_variant(self, soup: BeautifulSoup, dpi: str, arch: str, version_code: str | None = None) -> tuple[str, str] | None:
         apparch: set[str] = set(_DEFAULT_ARCH)
         if arch != "all":
             apparch.add(arch)
@@ -105,6 +108,20 @@ class APKMirrorScraper(BaseScraper):
 
                 badge = cells[0].select_one(".apkm-badge")
                 b_type = badge.get_text(strip=True).upper() if badge else "APK"
+
+                extracted_vcode = None
+                for span in cells[0].select("span.colorLightBlack"):
+                    if "wrapText" not in span.get("class", []) and not span.select_one(".dateyear_utc"):
+                        txt = span.get_text(strip=True)
+                        if txt.isdigit():
+                            extracted_vcode = txt
+                            break
+
+                if version_code is not None:
+                    if extracted_vcode == version_code and b_type == bundle_type:
+                        return urljoin("https://www.apkmirror.com", str(link["href"])), bundle_type
+                    continue
+
                 arch_text = cells[1].get_text(strip=True)
                 dpi_text = cells[3].get_text(strip=True)
                 dpi_ok = not dpi_text or re.match(r"\d+-640dpi", dpi_text) or dpi_text in {"nodpi", "anydpi"} or (dpi and dpi_text == dpi)

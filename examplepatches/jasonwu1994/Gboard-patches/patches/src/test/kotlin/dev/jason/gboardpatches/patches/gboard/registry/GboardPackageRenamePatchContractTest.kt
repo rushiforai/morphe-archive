@@ -52,7 +52,7 @@ class GboardPackageRenamePatchContractTest {
     fun `active inventory stays thirty four with package rename exactly once`() {
         val patches = generatedPublishedPatches()
 
-        assertEquals(34, patches.size)
+        assertEquals(35, patches.size)
         val rows = patches.filter { row -> row.get("name").asString == "Package Rename" }
         assertEquals(1, rows.size)
         val row = rows.single()

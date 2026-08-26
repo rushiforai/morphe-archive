@@ -1,0 +1,6 @@
+/caveman OSC Face tracking and eye tracking sharing are now working. But there are 2 glaring issues still present.
+1. The appear on top permission is not generating a higher resolution anymore, so the fix must be different. The app must request the appear on top permission to android, not just have it. A window should come up requesting it.
+2. The app still requires bluetooth controller input.
+3. The third issue is minor and it's that the splash screen that appears in the beginning and before requesting the handshake is still stretched.
+4. The handshake is still slower than the original SteamLink-GalaxyXR-v1.4.0-OLEDCal-3 with all the patches already applied. 
+This means you must have missed something.

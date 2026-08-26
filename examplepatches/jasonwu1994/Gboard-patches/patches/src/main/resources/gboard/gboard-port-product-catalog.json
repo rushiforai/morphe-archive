@@ -1,7 +1,7 @@
 {
   "$schema": "gboard-port-product-catalog.schema.json",
   "format": "gboard-port-product-catalog.v1",
-  "catalog_version": "1.8.0",
+  "catalog_version": "1.9.0",
   "composition": {
     "selected_only_call_chain": true,
     "runtime_feature_mask": false
@@ -24,6 +24,17 @@
     "pointer_owner_type": "type",
     "pointer_pre_reset": "method",
     "pointer_reset": "method",
+    "rounded_keyboard_admission": "method",
+    "rounded_keyboard_radii_constructor": "method",
+    "rounded_keyboard_radii_type": "type",
+    "rounded_keyboard_radii_values_field": "field",
+    "rounded_keyboard_radii_wrapper_first_parameter_field": "field",
+    "rounded_keyboard_radii_wrapper_parameterized_constructor": "method",
+    "rounded_keyboard_radii_wrapper_radii_field": "field",
+    "rounded_keyboard_radii_wrapper_second_parameter_field": "field",
+    "rounded_keyboard_radii_wrapper_simple_constructor": "method",
+    "rounded_keyboard_radii_wrapper_type": "type",
+    "rounded_keyboard_style_resolver": "method",
     "soft_key_bind": "method",
     "soft_key_metadata_type": "type",
     "soft_key_view_type": "type",
@@ -499,6 +510,22 @@
       ],
       "contributions": [
         { "contribution_id": "quick_insert.flag", "anchor_family_id": "flag_bool_getter", "phase": "after_stock_result", "order": 1200, "required_bindings": ["flag_bool_getter", "flag_name_field"], "runtime_calls": ["QUICK_INSERT_RUNTIME_APPLY_FLAG_VALUE"] }
+      ]
+    },
+    {
+      "feature_id": "rounded_keyboard_panel",
+      "public_patch_name": "Rounded Keyboard Panel",
+      "feature_marker": "dev.jason.gboardpatches.feature.rounded_keyboard_panel",
+      "target_family_ids": ["roundedkeyboard"],
+      "migration_scope": "version-sensitive",
+      "consumer_files": [
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/roundedkeyboard/GboardRoundedKeyboardBytecodePatch.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/roundedkeyboard/GboardRoundedKeyboardFeatureMarkerPatch.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/registry/GboardPatchRegistry.kt"
+      ],
+      "contributions": [
+        { "contribution_id": "rounded_keyboard_panel.admission", "anchor_family_id": "dedicated_bytecode", "phase": "dedicated", "order": 1800, "required_bindings": ["rounded_keyboard_admission"], "runtime_calls": ["ROUNDED_KEYBOARD_RUNTIME_APPLY_THEME_ADMISSION"] },
+        { "contribution_id": "rounded_keyboard_panel.style", "anchor_family_id": "dedicated_bytecode", "phase": "dedicated", "order": 1810, "required_bindings": ["rounded_keyboard_style_resolver", "rounded_keyboard_radii_type", "rounded_keyboard_radii_constructor", "rounded_keyboard_radii_values_field", "rounded_keyboard_radii_wrapper_type", "rounded_keyboard_radii_wrapper_radii_field", "rounded_keyboard_radii_wrapper_first_parameter_field", "rounded_keyboard_radii_wrapper_second_parameter_field", "rounded_keyboard_radii_wrapper_simple_constructor", "rounded_keyboard_radii_wrapper_parameterized_constructor"], "runtime_calls": ["ROUNDED_KEYBOARD_RUNTIME_RESOLVE_EFFECTIVE_RADII_DP"] }
       ]
     },
     {

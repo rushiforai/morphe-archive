@@ -175,6 +175,12 @@ Customize the bottom tab order in Gboard's Emojis, stickers & GIFs panel with dr
 </details>
 
 <details>
+  <summary><code>Rounded Keyboard Panel</code></summary>
+
+  Customize which corners of the keyboard panel are rounded, and set the top and bottom radii separately.
+</details>
+
+<details>
   <summary><code>Settings Homepage Override</code></summary>
 
   Lets you switch between the new and legacy Gboard settings homepage styles.

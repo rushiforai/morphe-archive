@@ -1,0 +1,26 @@
+{
+  "jsonid": "input_profile",
+  "controller_type": "galaxy_xr_hmd",
+  "input_bindingui_mode": "hmd",
+  "input_bindingui_right": {
+    "image": "{vrlink}/icons/galaxy_xr_hmd.svg"
+  },
+  "input_source": {
+    "/proximity": {
+      "type": "button",
+      "binding_image_point": [60, 60]
+    },
+    "/pose/raw": {
+      "type": "pose",
+      "binding_image_point": [60, 60]
+    }
+  },
+  "simulation_settings": {
+    "modelnumber": "Galaxy XR",
+    "serialnumber": "VRLINKHMDGALAXYXR",
+    "rendermodel": "generic_hmd",
+    "registered_device_type": "androidxr/VRLINKHMDGALAXYXR",
+    "tracking_system_name": "androidxr",
+    "manufacturer_name": "Samsung"
+  }
+}

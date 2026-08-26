@@ -81,7 +81,7 @@ class GboardAiWritingToolsPatchRegistrySourceTest {
     fun aiWritingToolsInventoryAndActiveSourcesHaveNoRetiredFallbackContracts() {
         val repositoryRoot = Path.of("..").toAbsolutePath().normalize()
         val patches = generatedPublishedPatches()
-        assertEquals(34, patches.size)
+        assertEquals(35, patches.size)
         val writingTools = patches.single { patch ->
             patch.get("name").asString == "AI Writing Tools"
         }

@@ -1,0 +1,43 @@
+{
+  "requestedExtensions": [
+    "XR_EXT_hand_interaction"
+  ],
+  "input": {
+    "select": {
+      "bindings": {
+        "/interaction_profiles/oculus/touch_controller": [
+          "/user/hand/left/input/trigger/value",
+          "/user/hand/right/input/trigger/value"
+        ],
+        "/interaction_profiles/ext/hand_interaction_ext": [
+          "/user/hand/left/input/aim_activate_ext/value",
+          "/user/hand/right/input/aim_activate_ext/value"
+        ]
+      }
+    },
+    "pointer": {
+      "/interaction_profiles/oculus/touch_controller": {
+        "bindings": [
+          "/user/hand/left/input/aim/pose",
+          "/user/hand/right/input/aim/pose"
+        ]
+      },
+      "/interaction_profiles/ext/hand_interaction_ext": {
+        "bindings": [
+          "/user/hand/left/input/aim/pose",
+          "/user/hand/right/input/aim/pose"
+        ]
+      }
+    }
+  },
+  "output": {
+    "hapticAction": {
+      "bindings": {
+        "/interaction_profiles/oculus/touch_controller": [
+          "/user/hand/left/output/haptic",
+          "/user/hand/right/output/haptic"
+        ]
+      }
+    }
+  }
+}

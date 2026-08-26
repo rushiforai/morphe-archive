@@ -57,6 +57,7 @@ import dev.jason.gboardpatches.patches.gboard.features.packagerename.gboardPacka
 import dev.jason.gboardpatches.patches.gboard.features.packagerename.isValidGboardAppDisplayName
 import dev.jason.gboardpatches.patches.gboard.features.quickinsert.gboardQuickInsertFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.quickinsert.gboardQuickInsertFlagValuePatch
+import dev.jason.gboardpatches.patches.gboard.features.roundedkeyboard.gboardRoundedKeyboardFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.settingshomepage.gboardSettingsHomepageBytecodePatch
 import dev.jason.gboardpatches.patches.gboard.features.settingshomepage.gboardSettingsHomepageFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.signaturebypass.gboardSignatureBypassBytecodePatch
@@ -296,6 +297,22 @@ val gboardAccessibilityLayoutPatch = gboardPublicResourcePatch(
         gboardPatchesSettingsPatch,
         gboardAccessibilityLayoutFeatureMarkerPatch,
         gboardAccessibilityLayoutFlagValuePatch,
+    )
+}
+
+@Suppress("unused")
+val gboardRoundedKeyboardPanelPatch = gboardPublicResourcePatch(
+    featureId = "rounded_keyboard_panel",
+    name = "Rounded Keyboard Panel",
+    description = "自訂鍵盤面板哪些角落呈現圓角，並分別設定上方與下方半徑。\n" +
+        "Customize which corners of the keyboard panel are rounded, and set the top and bottom radii separately.",
+    default = true,
+) {
+    compatibleWith(COMPATIBILITY_GBOARD)
+
+    dependsOn(
+        gboardPatchesSettingsPatch,
+        gboardRoundedKeyboardFeatureMarkerPatch,
     )
 }
 
@@ -698,6 +715,7 @@ object GboardPublishedPatchCatalog {
         gboardAccessPointsMenuStylePatch,
         gboardSplitKeyboardPatch,
         gboardAccessibilityLayoutPatch,
+        gboardRoundedKeyboardPanelPatch,
         gboardCloseProactiveSuggestionsPatch,
         gboardFlowModeAnimationPatch,
         gboardQuickInsertPatch,

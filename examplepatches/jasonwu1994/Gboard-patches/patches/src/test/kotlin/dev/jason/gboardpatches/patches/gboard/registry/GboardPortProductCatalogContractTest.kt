@@ -50,7 +50,7 @@ class GboardPortProductCatalogContractTest {
     @Test
     fun catalogIsDeterministicAndDeclaresSelectedOnlyZeroSelectionComposition() {
         assertEquals("gboard-port-product-catalog.v1", catalog["format"].asString)
-        assertEquals("1.8.0", catalog["catalog_version"].asString)
+        assertEquals("1.9.0", catalog["catalog_version"].asString)
         val composition = catalog.getAsJsonObject("composition")
         assertEquals(
             setOf("selected_only_call_chain", "runtime_feature_mask"),
@@ -64,9 +64,9 @@ class GboardPortProductCatalogContractTest {
             features.map { feature -> feature["feature_id"].asString }.sorted(),
             features.map { feature -> feature["feature_id"].asString },
         )
-        assertEquals(34, features.size)
-        assertEquals(34, features.map { it["feature_id"].asString }.distinct().size)
-        assertEquals(34, features.map { it["public_patch_name"].asString }.distinct().size)
+        assertEquals(35, features.size)
+        assertEquals(35, features.map { it["feature_id"].asString }.distinct().size)
+        assertEquals(35, features.map { it["public_patch_name"].asString }.distinct().size)
 
         val expectedDigest = Files.readString(
             repositoryRoot().resolve(DIGEST_PATH),
@@ -175,7 +175,7 @@ class GboardPortProductCatalogContractTest {
                 }
         }.toSet()
 
-        assertEquals(21, authoritativeKeys.size)
+        assertEquals(32, authoritativeKeys.size)
         assertEquals(authoritativeKeys, requiredKeys)
         assertEquals(
             authoritativeKinds,
@@ -676,6 +676,7 @@ class GboardPortProductCatalogContractTest {
             "long_press_editing_shortcuts" to "version-sensitive",
             "package_rename" to "generic",
             "quick_insert" to "version-sensitive",
+            "rounded_keyboard_panel" to "version-sensitive",
             "settings_homepage_override" to "version-sensitive",
             "swipeable_custom_top_row" to "version-sensitive",
             "use_bluetooth_microphone" to "version-sensitive",

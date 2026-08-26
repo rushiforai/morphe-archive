@@ -1,0 +1,52 @@
+{
+  "requestedExtensions": [
+    "XR_EXT_eye_gaze_interaction"
+  ],
+  "staticProps": {
+    "xrvst2": {
+      "sTrackingSystem": "SamsungVST",
+      "sSerialNumber": "VRLINKHMDGALAXYXR",
+      "sManufacturerName": "Samsung",
+      "sModelNumber": "Galaxy XR",
+      "sRenderModelName": "generic_hmd",
+      "sResourceRoot": "vrlink",
+      "sInputProfilePath": "{vrlink}/input/galaxy_xr_hmd_profile.json",
+      "flLaserMouseHmdAngleDegrees": 0,
+      "sControllerType": "galaxy_xr_hmd",
+      "sDeviceType": "SamsungVST/VRLINKHMDGALAXYXR"
+    },
+    "xrvst2ue": {
+      "sTrackingSystem": "SamsungVST",
+      "sSerialNumber": "VRLINKHMDGALAXYXR",
+      "sManufacturerName": "Samsung",
+      "sModelNumber": "Galaxy XR",
+      "sRenderModelName": "generic_hmd",
+      "sResourceRoot": "vrlink",
+      "sInputProfilePath": "{vrlink}/input/galaxy_xr_hmd_profile.json",
+      "flLaserMouseHmdAngleDegrees": 0,
+      "sControllerType": "galaxy_xr_hmd",
+      "sDeviceType": "SamsungVST/VRLINKHMDGALAXYXR"
+    },
+    "unknown": {
+      "sTrackingSystem": "SamsungVST",
+      "sSerialNumber": "VRLINKHMDGALAXYXR",
+      "sManufacturerName": "Samsung",
+      "sModelNumber": "Galaxy XR",
+      "sRenderModelName": "generic_hmd",
+      "sResourceRoot": "vrlink",
+      "sInputProfilePath": "{vrlink}/input/galaxy_xr_hmd_profile.json",
+      "flLaserMouseHmdAngleDegrees": 0,
+      "sControllerType": "galaxy_xr_hmd",
+      "sDeviceType": "SamsungVST/VRLINKHMDGALAXYXR"
+    }
+  },
+  "input": {
+    "eyeTracking": {
+      "bindings": {
+        "/interaction_profiles/ext/eye_gaze_interaction": [
+          "/user/eyes_ext/input/gaze_ext/pose"
+        ]
+      }
+    }
+  }
+}

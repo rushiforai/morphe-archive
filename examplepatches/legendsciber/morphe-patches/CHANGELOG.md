@@ -1,3 +1,59 @@
+## [1.6.0](https://github.com/legendsciber/morphe-patches/compare/v1.5.0...v1.6.0) (2026-08-25)
+
+### ✨ New Features
+
+* **mctoolbox:** watch-ad grants +15min instantly without playing any ad ([eb5f456](https://github.com/legendsciber/morphe-patches/commit/eb5f456d3bd44f8c55a218aa035ef73254dac920))
+
+## [1.5.0](https://github.com/legendsciber/morphe-patches/compare/v1.4.4...v1.5.0) (2026-08-25)
+
+### ✨ New Features
+
+* **mctoolbox:** instant watch-ad premium (no ads, always unlocked); remove version unlock patch ([93237c3](https://github.com/legendsciber/morphe-patches/commit/93237c3893bc26d10c1565af8b5a278b24974ab8))
+
+## [1.4.4](https://github.com/legendsciber/morphe-patches/compare/v1.4.3...v1.4.4) (2026-08-25)
+
+### 🐛 Bug Fixes
+
+* **mctoolbox:** NoSuchMethodError — edit() must be called on SharedPreferences, not on Editor ([013d3b1](https://github.com/legendsciber/morphe-patches/commit/013d3b117e073fe86393bbec327a46cc9c2a5557))
+
+## [1.4.3](https://github.com/legendsciber/morphe-patches/compare/v1.4.2...v1.4.3) (2026-08-25)
+
+### 🐛 Bug Fixes
+
+* **mctoolbox:** escape dollar sign in raw string (Kotlin interpolation broke smali) ([d9762a3](https://github.com/legendsciber/morphe-patches/commit/d9762a39f43042cbe718287c339d2ede4bc85910))
+* **mctoolbox:** play-spoof writes test=0 pref at onCreate entry (covers all installer names) ([e3ac36c](https://github.com/legendsciber/morphe-patches/commit/e3ac36ce88be9cfa7102da5bdcd0082e69292322))
+
+## [1.4.2](https://github.com/legendsciber/morphe-patches/compare/v1.4.1...v1.4.2) (2026-08-25)
+
+### 🐛 Bug Fixes
+
+* **mctoolbox:** VerifyError — play-spoof inject after startsWith move-result, not between invoke/result ([b9d1e78](https://github.com/legendsciber/morphe-patches/commit/b9d1e7829ac9a189a82ce6af13c5adaf682561e5))
+
+## [1.4.1](https://github.com/legendsciber/morphe-patches/compare/v1.4.0...v1.4.1) (2026-08-25)
+
+### 🐛 Bug Fixes
+
+* **mctoolbox:** VerifyError — inject only at c() result sites, skip inverted :655 ([380bc96](https://github.com/legendsciber/morphe-patches/commit/380bc96d30c7a5ccc20c2324f5ab419012861777))
+
+## [1.4.0](https://github.com/legendsciber/morphe-patches/compare/v1.3.1...v1.4.0) (2026-08-25)
+
+### ✨ New Features
+
+* **mctoolbox:** drop package redirect; final duo = version unlock + play spoof ([fd63c6d](https://github.com/legendsciber/morphe-patches/commit/fd63c6d5177f5fbf146638c9e1865c452a2718be))
+
+## [1.3.1](https://github.com/legendsciber/morphe-patches/compare/v1.3.0...v1.3.1) (2026-08-25)
+
+### 🐛 Bug Fixes
+
+* **mctoolbox:** drop exact accessFlags from fingerprint; proper 64-bit gate bypass ([b5a8f7c](https://github.com/legendsciber/morphe-patches/commit/b5a8f7cd14d9187b8d8cb8260567595ea38c981d))
+* **mctoolbox:** repair Fingerprints.kt (duplicate object, stray paren, missing lookup fp) ([90194e9](https://github.com/legendsciber/morphe-patches/commit/90194e9d49e4d6b70d6102301c82e014402c92e6))
+
+## [1.3.0](https://github.com/legendsciber/morphe-patches/compare/v1.2.0...v1.3.0) (2026-08-25)
+
+### ✨ New Features
+
+* **mctoolbox:** split into granular patches (install/version/abi/play) ([9c2e379](https://github.com/legendsciber/morphe-patches/commit/9c2e379d12aacbe5bd7a0845268e43e7e52d8ae2))
+
 ## [1.2.0](https://github.com/legendsciber/morphe-patches/compare/v1.1.0...v1.2.0) (2026-08-24)
 
 ### ✨ New Features

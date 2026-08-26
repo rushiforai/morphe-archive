@@ -281,7 +281,7 @@ internal object GboardVersionBindings {
 
     private companion object {
         const val AUTHORITATIVE_SOURCE_SHA256 =
-            "56df21e9ea11b2ce2896e7e3d0cd4e116422c230ca8b1bd28054ddac4e13bea3"
+            "f9486505624cda60920935ec543fb2abed27e6c222841574228f254980660357"
         val BINDINGS_PATH = Path.of("src/main/resources/gboard/gboard-version-bindings.json")
         val BINDINGS_SCHEMA_PATH =
             Path.of("src/main/resources/gboard/gboard-version-bindings.schema.json")

@@ -6,6 +6,7 @@ import app.morphe.patcher.OpcodesFilter
 import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.literal
 import app.morphe.patcher.opcode
+import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
@@ -87,5 +88,13 @@ internal object EnableVoiceTypingFingerprint : Fingerprint(
         Opcode.MOVE_RESULT,
         Opcode.IF_NEZ,
         Opcode.IF_EQZ,
+    ),
+)
+
+internal object DictationIncognitoGateFingerprint : Fingerprint(
+    filters = listOf(
+        opcode(Opcode.IGET_BOOLEAN),
+        opcode(Opcode.IF_NEZ, MatchAfterImmediately()),
+        string("Dictation is not enabled in incognito mode input session. workprofile=%s [SD]"),
     ),
 )

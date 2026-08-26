@@ -2,8 +2,8 @@ group = "app.riky"
 
 patches {
     about {
-        name = "Riky Morphe Patches"
-        description = "Ad-removal patches for Android apps"
+        name = "riky's patches"
+        description = "Personal Morphe patch bundle (ad removal, unlocks, and experiments)"
         source = "git@github.com:riky-dev/morphe-patches.git"
         author = "riky-dev"
         contact = "na"

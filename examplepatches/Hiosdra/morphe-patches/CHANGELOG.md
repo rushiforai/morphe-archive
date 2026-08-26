@@ -1,3 +1,15 @@
+## [1.4.0](https://github.com/Hiosdra/morphe-patches/compare/v1.3.1...v1.4.0) (2026-08-25)
+
+### 🐛 Bug Fixes
+
+* **f1:** enable all patches by default ([bbe871c](https://github.com/Hiosdra/morphe-patches/commit/bbe871c3d6293b450b83627bace82f3e8b4616fd))
+* **f1:** enable package name patch by default ([4c56cb0](https://github.com/Hiosdra/morphe-patches/commit/4c56cb017f4e0d9b6801efd77c0b55488bed52fd))
+* **f1:** preserve playback position when entering pip ([2b6e86a](https://github.com/Hiosdra/morphe-patches/commit/2b6e86aa481d5a0681c216ccc0f6ebdbe9cb30fb))
+
+### ✨ New Features
+
+* **f1:** add standalone package and update patches ([60ea94a](https://github.com/Hiosdra/morphe-patches/commit/60ea94a18243ba8f8cf7e1ae76d3c50ce375f69a))
+
 ## [1.3.1](https://github.com/Hiosdra/morphe-patches/compare/v1.3.0...v1.3.1) (2026-08-17)
 
 ### 🐛 Bug Fixes

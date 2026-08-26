@@ -53,6 +53,11 @@ public final class GboardFeatureGroup implements GboardPatchesSettingsContract.F
     }
 
     @Override
+    public List<GboardPatchesSettingsContract.Feature> getNavigationChildren() {
+        return children;
+    }
+
+    @Override
     public GboardPatchesSettingsContract.Screen buildScreen(
             GboardPatchesSettingsContract.FeatureHost host) {
         List<GboardPatchesSettingsContract.Feature> visibleChildren =

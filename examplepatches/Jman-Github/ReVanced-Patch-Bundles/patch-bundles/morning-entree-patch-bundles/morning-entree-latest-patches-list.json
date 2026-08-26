@@ -1,5 +1,5 @@
 {
-    "version": "v1.16.0",
+    "version": "v1.18.0",
     "patches": [
         {
             "compatiblePackages": [
@@ -47,7 +47,7 @@
             "dependencies": [
                 "BytecodePatch"
             ],
-            "description": "Redirects Gboard's known tracking, analytics, and ad host literals to 0.0.0.0 using a built-in blocklist. Note: telemetry sent through Google Play Services is not affected; use the always-incognito patch for that.",
+            "description": "Redirects Gboard's known tracking, analytics, and ad host to 0.0.0.0. Note: telemetry sent through Google Play Services is not affected; use the always-incognito patch for that.",
             "name": "Block tracking and analytics",
             "options": [
                 {
@@ -64,19 +64,59 @@
         {
             "compatiblePackages": null,
             "default": false,
+            "dependencies": [
+                "BytecodePatch"
+            ],
+            "description": "Redirects known tracking, analytics, and ad host literals to 0.0.0.0 using a built-in blocklist, optionally extended with your own hosts file. Only affects hosts that appear as literal strings in the app; telemetry sent through Google Play Services is not affected.",
+            "name": "Block tracking hosts",
+            "options": [
+                {
+                    "default": true,
+                    "description": "When enabled, an entry like \"example.com\" also blocks subdomains such as \"www.example.com\".",
+                    "key": "isWildcard",
+                    "required": false,
+                    "title": "Wildcard blocking",
+                    "type": "kotlin.Boolean",
+                    "values": null
+                },
+                {
+                    "default": null,
+                    "description": "Optional absolute path to a hosts/blocklist file (hosts-file lines, bare domains, or URLs; one per line, \"#\" comments allowed). Its entries are added to the built-in blocklist. Leave empty to use the built-in list only.",
+                    "key": "userHostsFile",
+                    "required": false,
+                    "title": "Additional hosts file",
+                    "type": "kotlin.String",
+                    "values": null
+                }
+            ]
+        },
+        {
+            "compatiblePackages": null,
+            "default": false,
+            "dependencies": [],
+            "description": "Makes apps believe they are already exempt from battery optimization so they stop prompting you to disable it. Only affects what the app sees, not the real system setting.",
+            "name": "Bypass battery optimization nag",
+            "options": []
+        },
+        {
+            "compatiblePackages": null,
+            "default": false,
             "dependencies": [],
             "description": "Renames the app (default: append \".entree\") so it installs as a clone next to the original. The name is configurable. Changing a package name can lead to unexpected issues.",
             "name": "Change package name",
             "options": [
                 {
                     "default": ".entree",
-                    "description": "A suffix (starting with \".\", appended to the original package) or a full replacement package name. Defaults to appending \".entree\".",
+                    "description": "Pick a preset from the dropdown (e.g. \".clone\", \".clone2\", \".clone3\") to install several copies of the same app side by side, or type any word (e.g. \"clone\") to append it as \".clone\", a suffix starting with \".\", or a full replacement package name. Defaults to appending \".entree\".",
                     "key": "packageName",
                     "required": true,
                     "title": "Package name",
                     "type": "kotlin.String",
                     "values": {
-                        "Append \".entree\"": ".entree"
+                        "Append \".entree\"": ".entree",
+                        "Clone (append \".clone\")": ".clone",
+                        "Clone 2 (append \".clone2\")": ".clone2",
+                        "Clone 3 (append \".clone3\")": ".clone3"
                     }
                 },
                 {
@@ -194,6 +234,22 @@
             "options": []
         },
         {
+            "compatiblePackages": null,
+            "default": false,
+            "dependencies": [],
+            "description": "Turns off Firebase / Google Analytics collection and removes the advertising-ID and ad-services permissions. Blocks ad personalization and analytics opt-in without cutting off the app's legitimate network features. Pair with a host blocker to also stop the traffic.",
+            "name": "Disable analytics & ad tracking",
+            "options": []
+        },
+        {
+            "compatiblePackages": null,
+            "default": false,
+            "dependencies": [],
+            "description": "Blocks apps from clipboard access",
+            "name": "Disable clipboard access",
+            "options": []
+        },
+        {
             "compatiblePackages": [
                 {
                     "appIconColor": "#2196F3",
@@ -214,6 +270,31 @@
             "dependencies": [],
             "description": "Disable Signature Verification So The App Doesn't Crash When The APK Signature Changes After Patching",
             "name": "Disable Signature Verification",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "name": "Gboard",
+                    "packageName": "com.google.android.inputmethod.latin",
+                    "signatures": [
+                        "7ce83c1b71f3d572fed04c8d40c5cb10ff75e6d87d9df6fbd53f0468c2905053",
+                        "f0fd6c5b410f25cb25c3b53346c8972fae30f8ee7411df910480ad6b2d60db83"
+                    ],
+                    "targets": [
+                        {
+                            "isExperimental": false
+                        }
+                    ]
+                }
+            ],
+            "default": false,
+            "dependencies": [
+                "BytecodePatch"
+            ],
+            "description": "Forces Gboard's \"Improve Gboard\" / usage-statistics and federated-learning flags off at startup, regardless of the in-app settings, so your typing is not used for training or metrics. Best combined with the \"Network privacy\" patch.",
+            "name": "Disable telemetry & federated learning",
             "options": []
         },
         {
@@ -726,11 +807,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "1.25.1.2"
+                            "version": "1.25.1.1"
                         }
                     ],
                     "versions": [
-                        "1.25.1.2"
+                        "1.25.1.1"
                     ]
                 }
             ],
@@ -1068,6 +1149,55 @@
             "options": []
         },
         {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "name": "Gboard",
+                    "packageName": "com.google.android.inputmethod.latin",
+                    "signatures": [
+                        "7ce83c1b71f3d572fed04c8d40c5cb10ff75e6d87d9df6fbd53f0468c2905053",
+                        "f0fd6c5b410f25cb25c3b53346c8972fae30f8ee7411df910480ad6b2d60db83"
+                    ],
+                    "targets": [
+                        {
+                            "isExperimental": false
+                        }
+                    ]
+                }
+            ],
+            "default": false,
+            "dependencies": [
+                "BytecodePatch",
+                "ResourcePatch"
+            ],
+            "description": "Controls what Gboard is allowed to talk to. Choose a network level: block only telemetry (keep all features), lock it down to GIFs and voice typing only, or block all internet access.",
+            "name": "Network privacy",
+            "options": [
+                {
+                    "default": "telemetry",
+                    "description": "How much of Gboard's network access to cut. \"Telemetry only\" keeps every feature working. \"Privacy lockdown\" keeps GIF search and cloud voice typing but blocks everything else. \"Block all internet\" removes network access entirely.",
+                    "key": "gboardNetworkLevel",
+                    "required": true,
+                    "title": "Network level",
+                    "type": "kotlin.String",
+                    "values": {
+                        "Block all internet": "block_all",
+                        "Block telemetry only (keep all features)": "telemetry",
+                        "Privacy lockdown (keep GIFs & voice typing)": "lockdown"
+                    }
+                },
+                {
+                    "default": true,
+                    "description": "When enabled, a blocked entry like \"example.com\" also covers subdomains such as \"sub.example.com\".",
+                    "key": "isWildcard",
+                    "required": false,
+                    "title": "Wildcard blocking",
+                    "type": "kotlin.Boolean",
+                    "values": null
+                }
+            ]
+        },
+        {
             "compatiblePackages": null,
             "default": false,
             "dependencies": [],
@@ -1127,11 +1257,60 @@
             "options": []
         },
         {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APKS",
+                    "appIconColor": "#1565C0",
+                    "name": "Send Files To TV",
+                    "packageName": "com.yablio.sendfilestotv",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "1.4.22"
+                        }
+                    ],
+                    "versions": [
+                        "1.4.22"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Removes ads",
+            "name": "Remove Ads",
+            "options": []
+        },
+        {
             "compatiblePackages": null,
             "default": false,
             "dependencies": [],
             "description": "Removes the INTERNET permission so the app cannot access the network at all. Blocks all trackers, analytics and ads from phoning home, but also disables any legitimate online features. Only enable for apps you want fully offline.",
             "name": "Remove internet permission",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "name": "Gboard",
+                    "packageName": "com.google.android.inputmethod.latin",
+                    "signatures": [
+                        "7ce83c1b71f3d572fed04c8d40c5cb10ff75e6d87d9df6fbd53f0468c2905053",
+                        "f0fd6c5b410f25cb25c3b53346c8972fae30f8ee7411df910480ad6b2d60db83"
+                    ],
+                    "targets": [
+                        {
+                            "isExperimental": false
+                        }
+                    ]
+                }
+            ],
+            "default": false,
+            "dependencies": [
+                "BytecodePatch"
+            ],
+            "description": "Hides Gboard's in-keyboard promotional / \"try this feature\" banners by forcing their promo flags off. Does not disable the underlying features, only their nag banners.",
+            "name": "Remove promotional banners",
             "options": []
         },
         {
@@ -1187,6 +1366,184 @@
                     "required": true,
                     "title": "Base64-encoded signature",
                     "type": "kotlin.String",
+                    "values": null
+                }
+            ]
+        },
+        {
+            "compatiblePackages": null,
+            "default": false,
+            "dependencies": [],
+            "description": "Spoofs TelephonyManager SIM/network provider values.",
+            "name": "Spoof SIM provider",
+            "options": [
+                {
+                    "default": "us",
+                    "description": "Value returned for getSimCountryIso / getNetworkCountryIso.",
+                    "key": "universalSimCountryIso",
+                    "required": true,
+                    "title": "Country ISO",
+                    "type": "kotlin.String",
+                    "values": null
+                },
+                {
+                    "default": "310260",
+                    "description": "MCC+MNC returned for getSimOperator / getNetworkOperator.",
+                    "key": "universalSimOperator",
+                    "required": true,
+                    "title": "Operator code",
+                    "type": "kotlin.String",
+                    "values": null
+                },
+                {
+                    "default": "T-Mobile",
+                    "description": "Value returned for getSimOperatorName / getNetworkOperatorName.",
+                    "key": "universalSimOperatorName",
+                    "required": true,
+                    "title": "Operator name",
+                    "type": "kotlin.String",
+                    "values": null
+                }
+            ]
+        },
+        {
+            "compatiblePackages": null,
+            "default": false,
+            "dependencies": [],
+            "description": "Spoofs IMEI, MEID, subscriber ID, SIM serial, and line number reads.",
+            "name": "Spoof telephony IDs",
+            "options": [
+                {
+                    "default": "356938035643809",
+                    "description": "Value returned for getDeviceId / getImei.",
+                    "key": "universalImei",
+                    "required": true,
+                    "title": "IMEI",
+                    "type": "kotlin.String",
+                    "values": null
+                },
+                {
+                    "default": "A000004E4F4F50",
+                    "description": "Value returned for getMeid.",
+                    "key": "universalMeid",
+                    "required": true,
+                    "title": "MEID",
+                    "type": "kotlin.String",
+                    "values": null
+                },
+                {
+                    "default": "310260000000000",
+                    "description": "Value returned for getSubscriberId (IMSI).",
+                    "key": "universalSubscriberId",
+                    "required": true,
+                    "title": "Subscriber ID",
+                    "type": "kotlin.String",
+                    "values": null
+                },
+                {
+                    "default": "89014103211118510720",
+                    "description": "Value returned for getSimSerialNumber.",
+                    "key": "universalSimSerial",
+                    "required": true,
+                    "title": "SIM serial",
+                    "type": "kotlin.String",
+                    "values": null
+                },
+                {
+                    "default": "+15551234567",
+                    "description": "Value returned for getLine1Number.",
+                    "key": "universalLineNumber",
+                    "required": true,
+                    "title": "Line number",
+                    "type": "kotlin.String",
+                    "values": null
+                }
+            ]
+        },
+        {
+            "compatiblePackages": null,
+            "default": false,
+            "dependencies": [],
+            "description": "Spoof Wi-Fi connection",
+            "name": "Spoof Wi-Fi connection",
+            "options": []
+        },
+        {
+            "compatiblePackages": null,
+            "default": false,
+            "dependencies": [],
+            "description": "Spoofs Wi-Fi SSID, BSSID, and MAC address reads.",
+            "name": "Spoof Wi-Fi identifiers",
+            "options": [
+                {
+                    "default": "Pixel_WiFi",
+                    "description": "Value returned for WifiInfo.getSSID.",
+                    "key": "universalWifiSsid",
+                    "required": true,
+                    "title": "SSID",
+                    "type": "kotlin.String",
+                    "values": null
+                },
+                {
+                    "default": "02:00:00:12:34:56",
+                    "description": "Value returned for WifiInfo.getBSSID.",
+                    "key": "universalWifiBssid",
+                    "required": true,
+                    "title": "BSSID",
+                    "type": "kotlin.String",
+                    "values": null
+                },
+                {
+                    "default": "02:00:00:65:43:21",
+                    "description": "Value returned for WifiInfo.getMacAddress.",
+                    "key": "universalWifiMac",
+                    "required": true,
+                    "title": "MAC address",
+                    "type": "kotlin.String",
+                    "values": null
+                }
+            ]
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "name": "Gboard",
+                    "packageName": "com.google.android.inputmethod.latin",
+                    "signatures": [
+                        "7ce83c1b71f3d572fed04c8d40c5cb10ff75e6d87d9df6fbd53f0468c2905053",
+                        "f0fd6c5b410f25cb25c3b53346c8972fae30f8ee7411df910480ad6b2d60db83"
+                    ],
+                    "targets": [
+                        {
+                            "isExperimental": false
+                        }
+                    ]
+                }
+            ],
+            "default": false,
+            "dependencies": [
+                "BytecodePatch"
+            ],
+            "description": "Toggles Gboard feature flags to enable or disable experimental or hidden features.",
+            "name": "Toggle feature flags",
+            "options": [
+                {
+                    "default": null,
+                    "description": "The Gboard feature flags to toggle, such as experimental or hidden features.",
+                    "key": "featureFlags",
+                    "required": true,
+                    "title": "Feature flags",
+                    "type": "kotlin.collections.List<kotlin.String>",
+                    "values": null
+                },
+                {
+                    "default": true,
+                    "description": "Enables or disables all specified feature flags.",
+                    "key": "enableFlags",
+                    "required": false,
+                    "title": "Enable feature flags",
+                    "type": "kotlin.Boolean",
                     "values": null
                 }
             ]
@@ -1953,6 +2310,29 @@
         {
             "compatiblePackages": [
                 {
+                    "appIconColor": "#000000",
+                    "name": "Athena",
+                    "packageName": "com.kin.athena",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "1.5.6"
+                        }
+                    ],
+                    "versions": [
+                        "1.5.6"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Unlocks Ppremium",
+            "name": "Unlock Premium",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
                     "appIconColor": "#7CB342",
                     "name": "Automate",
                     "packageName": "com.llamalab.automate",
@@ -1973,6 +2353,62 @@
             "default": true,
             "dependencies": [],
             "description": "Unlocks Automate Premium",
+            "name": "Unlock Premium",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#F2C200",
+                    "name": "ColorNote",
+                    "packageName": "com.socialnmobile.dictapps.notepad.color.note",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "4.8.6"
+                        }
+                    ],
+                    "versions": [
+                        "4.8.6"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [
+                "ResourcePatch"
+            ],
+            "description": "Unlocks Premium",
+            "name": "Unlock Premium",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APKS",
+                    "appIconColor": "#E53935",
+                    "name": "OBD Android",
+                    "packageName": "ai.metaverselabs.obdandroid",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "4.9",
+                            "versionCodes": {
+                                "ARM64_V8A": 133,
+                                "ARMEABI_V7A": 133,
+                                "X86": 133,
+                                "X86_64": 133
+                            }
+                        }
+                    ],
+                    "versions": [
+                        "4.9"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Unlock Premium",
             "name": "Unlock Premium",
             "options": []
         },
@@ -2024,6 +2460,37 @@
             "dependencies": [],
             "description": "Unlocks the Pro",
             "name": "Unlock Pro",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "appIconColor": "#2196F3",
+                    "name": "ML Manager",
+                    "packageName": "com.javiersantos.mlmanager",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "5.0"
+                        }
+                    ],
+                    "versions": [
+                        "5.0"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Unlocks Pro Features",
+            "name": "Unlock Pro",
+            "options": []
+        },
+        {
+            "compatiblePackages": null,
+            "default": true,
+            "dependencies": [],
+            "description": "Premium patch for apps that use RevenueCat",
+            "name": "Unlock RevenueCat",
             "options": []
         }
     ]

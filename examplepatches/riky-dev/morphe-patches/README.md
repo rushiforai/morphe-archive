@@ -1,8 +1,8 @@
-# 👋🧩 Riky's Morphe Patches
+# 👋🧩 riky's patches
 
 ## ❓ About
 
-Ad-removal and premium-unlock patches for Android apps, published as a Morphe patch bundle.
+Personal Morphe patch bundle (ad removal, unlocks, and experiments).
 
 This project is a fork of the [Morphe patches template](https://github.com/MorpheApp/morphe-patches-template) by the Morphe contributors, extended with additional patches and development tooling.
 
@@ -10,26 +10,12 @@ This project is a fork of the [Morphe patches template](https://github.com/Morph
 
 Click here to add these patches to Morphe: https://morphe.software/add-source?github=riky-dev/morphe-patches
 
+Stable releases come from `main`. To try preview builds from `dev`, enable **pre-release** for this source in Morphe Manager.
+
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.7.1](https://github.com/riky-dev/morphe-patches/releases/tag/v1.7.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;6 patches total
-<details open>
-<summary>📦 CapCut&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 19.2.0 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Bypass APK security check](#bypass-apk-security-check) | Disables the retouch SDK APK signature check that shows a toast when the app was repatched (e.g. after applying Morphe patches). The native check in libretouch_sdk.so still runs but its error UI is suppressed. |  |
-| [Unlock Pro](#unlock-pro) | Spoofs client-side Pro/VIP status to unlock premium-gated effects, export options (watermark removal where VIP-gated), and retouch subscribe checks. Also disables watermark_trailer_config so the CapCut ending clip is not applied. ISubscribe.isVip is native and not patchable here. Server-verified features may still require a real subscription. |  |
-
-</details>
-
+> **[v1.0.0](https://github.com/riky-dev/morphe-patches/releases/tag/v1.0.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
 <details open>
 <summary>📦 Electron: battery health info&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -104,7 +90,7 @@ See the [Morphe documentation](https://github.com/MorpheApp/morphe-documentation
 
 ## 📜 License
 
-Riky's Morphe Patches are licensed under the [GNU General Public License v3.0](LICENSE).
+riky's patches are licensed under the [GNU General Public License v3.0](LICENSE).
 
 This project is based on the [Morphe patches template](https://github.com/MorpheApp/morphe-patches-template). Copyright (C) 2025 Morphe contributors. Modifications copyright (C) 2026 [riky-dev](https://github.com/riky-dev).
 

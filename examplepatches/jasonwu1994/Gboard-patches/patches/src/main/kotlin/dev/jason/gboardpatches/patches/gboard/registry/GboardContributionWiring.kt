@@ -20,6 +20,7 @@ import dev.jason.gboardpatches.patches.gboard.features.longpressquickactions.gbo
 import dev.jason.gboardpatches.patches.gboard.features.ocr.gboardOcrFlagValuePatch
 import dev.jason.gboardpatches.patches.gboard.features.ocr.gboardOcrRuntimePatch
 import dev.jason.gboardpatches.patches.gboard.features.rambler.gboardRambler1803OfficialSelectorPatch
+import dev.jason.gboardpatches.patches.gboard.features.roundedkeyboard.gboardRoundedKeyboardBytecodePatch
 import dev.jason.gboardpatches.patches.gboard.features.spacebarlogo.gboardSpacebarLogoSoftKeyPatch
 import dev.jason.gboardpatches.patches.gboard.features.toprowswipe.gboardTopRowSwipeGesturePatch
 import dev.jason.gboardpatches.patches.gboard.features.toprowswipe.gboardTopRowSwipePointerPatch
@@ -105,6 +106,14 @@ internal object GboardContributionWiring {
             },
             unit("long_press_editing_shortcuts.pointer") {
                 arrayOf(gboardLongPressQuickActionsPointerOwnerPatch)
+            },
+        ),
+        "rounded_keyboard_panel" to listOf(
+            unit(
+                "rounded_keyboard_panel.admission",
+                "rounded_keyboard_panel.style",
+            ) {
+                arrayOf(gboardRoundedKeyboardBytecodePatch)
             },
         ),
         "swipeable_custom_top_row" to listOf(

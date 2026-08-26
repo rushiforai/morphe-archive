@@ -1,5 +1,7 @@
 package dev.jason.gboardpatches.extension.settings;
 
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.annotation.SuppressLint;
@@ -41,6 +43,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowInsets;
+import android.view.animation.LinearInterpolator;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -80,6 +83,8 @@ public final class GboardPatchesSettingsActivity extends Activity
             "android.service.quicksettings.action.QS_TILE_PREFERENCES";
     private static final String EXTRA_OPEN_WEB_CLIPBOARD =
             "dev.jason.gboardpatches.extension.extra.OPEN_WEB_CLIPBOARD";
+    private static final String EXTRA_NAVIGATION_PATH =
+            "dev.jason.gboardpatches.extension.extra.PATCHES_NAVIGATION_PATH";
     private static final String ENTER_PREF_HEADER_EXTRA = "ENTER_PREF_HEADER";
     private static final String GBOARD_SETTINGS_ACTIVITY_CLASS =
             "com.google.android.apps.inputmethod.latin.preference.SettingsActivity";
@@ -104,6 +109,9 @@ public final class GboardPatchesSettingsActivity extends Activity
             "https://play.google.com/store/apps/details?id=com.google.audio.hearing.visualization.accessibility.scribe";
     private static final String PLAY_STORE_PACKAGE_NAME = "com.android.vending";
     private static final long OFFLINE_SPEECH_LANGUAGE_QUERY_TIMEOUT_MS = 10_000L;
+    private static final long RESTART_ICON_ROTATION_DURATION_MS = 700L;
+    private static final long RESTART_DELAY_MS = 500L;
+    private static final long RESTART_CRASH_RECOVERY_RESTORE_DELAY_MS = 2000L;
     private static final int REQUEST_CREATE_TEXT_DOCUMENT = 0x4742;
     private static final int REQUEST_OPEN_TEXT_DOCUMENT = 0x4743;
     private static final int TOOLBAR_HEIGHT_DP = 56;
@@ -119,6 +127,8 @@ public final class GboardPatchesSettingsActivity extends Activity
     private Palette palette;
     private LinearLayout toolbarView;
     private TextView toolbarTitleView;
+    private View restartButton;
+    private ObjectAnimator restartButtonAnimator;
     private TextView headerBadgeView;
     private TextView headerTitleView;
     private TextView headerSummaryView;
@@ -172,6 +182,7 @@ public final class GboardPatchesSettingsActivity extends Activity
         setTheme(resolveActivityTheme());
         super.onCreate(savedInstanceState);
         try {
+            scheduleRestartCrashRecoveryGuardRestore();
             palette = Palette.forConfiguration(getResources().getConfiguration());
             features = Collections.emptyList();
             featuresInitialized = false;
@@ -189,6 +200,7 @@ public final class GboardPatchesSettingsActivity extends Activity
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
+        setRestartButtonPending(false);
         initialFeatureFromIntentHandled = false;
         scheduleDeferredRender();
     }
@@ -219,6 +231,7 @@ public final class GboardPatchesSettingsActivity extends Activity
     protected void onDestroy() {
         applyOrchestration(settingsOrchestrator.accept(
                 GboardPatchesSettingsOrchestrator.Event.pause()));
+        setRestartButtonPending(false);
         cancelDeferredRender();
         cancelOfflineSpeechLanguageQuery();
         unregisterBackCallback();
@@ -1169,7 +1182,226 @@ public final class GboardPatchesSettingsActivity extends Activity
 
         toolbarView.addView(backButton);
         toolbarView.addView(toolbarTitleView);
+        toolbarView.addView(buildRestartButton());
         return toolbarView;
+    }
+
+    private View buildRestartButton() {
+        String restartLabel = text(R.string.gboard_patches_restart_action);
+        restartButton = new View(this) {
+            private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            private final Path path = new Path();
+
+            {
+                paint.setStyle(Paint.Style.STROKE);
+                paint.setStrokeCap(Paint.Cap.ROUND);
+                paint.setStrokeJoin(Paint.Join.ROUND);
+                paint.setStrokeWidth(getResources().getDisplayMetrics().density * 1.8f);
+            }
+
+            @Override
+            protected void onDraw(Canvas canvas) {
+                super.onDraw(canvas);
+                float density = getResources().getDisplayMetrics().density;
+                float iconSize = density * 24f;
+                float left = (getWidth() - iconSize) / 2f;
+                float top = (getHeight() - iconSize) / 2f;
+                float scale = iconSize / 24f;
+
+                paint.setColor(palette.accent);
+                path.reset();
+                path.moveTo(left + (4.48f * scale), top + (14.5f * scale));
+                path.cubicTo(
+                        left + (5.6f * scale), top + (17.7f * scale),
+                        left + (8.65f * scale), top + (20f * scale),
+                        left + (12.25f * scale), top + (20f * scale));
+                path.cubicTo(
+                        left + (16.8f * scale), top + (20f * scale),
+                        left + (20.5f * scale), top + (16.3f * scale),
+                        left + (20.5f * scale), top + (11.75f * scale));
+                path.cubicTo(
+                        left + (20.5f * scale), top + (7.2f * scale),
+                        left + (16.8f * scale), top + (3.5f * scale),
+                        left + (12.25f * scale), top + (3.5f * scale));
+                path.cubicTo(
+                        left + (8.55f * scale), top + (3.5f * scale),
+                        left + (5.55f * scale), top + (5.95f * scale),
+                        left + (4.5f * scale), top + (9.5f * scale));
+                canvas.drawPath(path, paint);
+
+                path.reset();
+                path.moveTo(left + (4.5f * scale), top + (4.5f * scale));
+                path.lineTo(left + (4.5f * scale), top + (9.5f * scale));
+                path.lineTo(left + (9.5f * scale), top + (9.5f * scale));
+                canvas.drawPath(path, paint);
+            }
+        };
+        restartButton.setContentDescription(restartLabel);
+        restartButton.setLayoutParams(new LinearLayout.LayoutParams(dp(48), dp(48)));
+        restartButton.setBackground(buildRippleDrawable(dp(24)));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            restartButton.setTooltipText(restartLabel);
+        } else {
+            restartButton.setOnLongClickListener(view -> {
+                showSafeToast(R.string.gboard_patches_restart_action);
+                return true;
+            });
+        }
+        restartButton.setOnClickListener(view -> requestGboardRestart());
+        return restartButton;
+    }
+
+    private void scheduleRestartCrashRecoveryGuardRestore() {
+        try {
+            Context applicationContext = getApplicationContext();
+            Context restoreContext = applicationContext != null ? applicationContext : this;
+            boolean scheduled = screenRefreshHandler.postDelayed(
+                    () -> restoreRestartCrashRecoveryGuard(restoreContext),
+                    RESTART_CRASH_RECOVERY_RESTORE_DELAY_MS);
+            if (!scheduled) {
+                Log.w(TAG, "Failed to schedule Gboard crash recovery cleanup restoration");
+            }
+        } catch (Throwable throwable) {
+            try {
+                Log.w(TAG, "Failed to defer Gboard crash recovery cleanup restoration", throwable);
+            } catch (Throwable ignored) {
+                // The restart guard must never escape into the host app.
+            }
+        }
+    }
+
+    private void restoreRestartCrashRecoveryGuard(Context context) {
+        try {
+            if (!GboardRestartCrashRecoveryGuard.restoreIfPending(context)) {
+                Log.w(TAG, "Failed to restore Gboard crash recovery cleanup setting");
+            }
+        } catch (Throwable throwable) {
+            try {
+                Log.w(TAG, "Failed to run Gboard crash recovery cleanup restoration", throwable);
+            } catch (Throwable ignored) {
+                // The restart guard must never escape into the host app.
+            }
+        }
+    }
+
+    private void requestGboardRestart() {
+        try {
+            GboardPatchesSettingsOrchestrator.State<GboardPatchesSettingsContract.Feature> state =
+                    settingsOrchestrator.snapshot();
+            ArrayList<String> navigationPath = GboardPatchesNavigationPath.capture(
+                    state.getBackStack(), state.getCurrent());
+
+            Context applicationContext = getApplicationContext();
+            Context restartContext = applicationContext != null ? applicationContext : this;
+            if (!GboardRestartCrashRecoveryGuard.prepare(restartContext)) {
+                handleRestartFailure("Failed to prepare safe Gboard restart", null);
+                return;
+            }
+            setRestartButtonPending(true);
+            boolean scheduled = screenRefreshHandler.postDelayed(
+                    () -> coldRestartGboard(restartContext, navigationPath),
+                    RESTART_DELAY_MS);
+            if (!scheduled) {
+                handleRestartFailure("Failed to schedule Gboard restart", null);
+            }
+        } catch (Throwable throwable) {
+            handleRestartFailure("Failed to request Gboard restart", throwable);
+        }
+    }
+
+    private void coldRestartGboard(Context context, ArrayList<String> navigationPath) {
+        try {
+            ComponentName patchesComponent =
+                    new ComponentName(context, GboardPatchesSettingsActivity.class);
+            Intent restartIntent = Intent.makeRestartActivityTask(patchesComponent);
+            restartIntent.putStringArrayListExtra(EXTRA_NAVIGATION_PATH, navigationPath);
+            restartIntent.setPackage(context.getPackageName());
+            context.startActivity(restartIntent);
+            System.exit(0);
+        } catch (Throwable throwable) {
+            handleRestartFailure("Failed to cold restart Gboard", throwable);
+        }
+    }
+
+    private void setRestartButtonPending(boolean pending) {
+        try {
+            if (!pending) {
+                stopRestartButtonAnimation();
+            }
+            if (restartButton == null) {
+                return;
+            }
+            restartButton.setEnabled(!pending);
+            restartButton.setAlpha(1f);
+            if (pending) {
+                startRestartButtonAnimation();
+            }
+        } catch (Throwable throwable) {
+            try {
+                Log.w(TAG, "Failed to update Gboard restart action", throwable);
+            } catch (Throwable ignored) {
+                // A restart failure must never escape into the host app.
+            }
+        }
+    }
+
+    private void startRestartButtonAnimation() {
+        stopRestartButtonAnimation();
+        if (restartButton == null) {
+            return;
+        }
+        restartButtonAnimator = ObjectAnimator.ofFloat(
+                restartButton,
+                View.ROTATION,
+                0f,
+                -360f);
+        restartButtonAnimator.setDuration(RESTART_ICON_ROTATION_DURATION_MS);
+        restartButtonAnimator.setInterpolator(new LinearInterpolator());
+        restartButtonAnimator.setRepeatCount(ValueAnimator.INFINITE);
+        restartButtonAnimator.start();
+    }
+
+    private void stopRestartButtonAnimation() {
+        if (restartButtonAnimator != null) {
+            restartButtonAnimator.cancel();
+            restartButtonAnimator = null;
+        }
+        if (restartButton != null) {
+            restartButton.setRotation(0f);
+        }
+    }
+
+    private void handleRestartFailure(String message, Throwable throwable) {
+        try {
+            if (!GboardRestartCrashRecoveryGuard.restoreIfPending(this)) {
+                Log.w(TAG, "Failed to roll back Gboard restart guard");
+            }
+        } catch (Throwable ignored) {
+            // A restart failure must never escape into the host app.
+        }
+        try {
+            Log.w(TAG, message, throwable);
+        } catch (Throwable ignored) {
+            // A restart failure must never escape into the host app.
+        }
+        setRestartButtonPending(false);
+        try {
+            showRestartFailure();
+        } catch (Throwable notificationThrowable) {
+            try {
+                Log.w(TAG, "Failed to show Gboard restart error", notificationThrowable);
+            } catch (Throwable ignored) {
+                // A restart failure must never escape into the host app.
+            }
+        }
+    }
+
+    private void showRestartFailure() {
+        Toast.makeText(
+                this,
+                text(R.string.gboard_patches_restart_failed),
+                Toast.LENGTH_LONG)
+                .show();
     }
 
     private View buildBackButton() {
@@ -1951,6 +2183,9 @@ public final class GboardPatchesSettingsActivity extends Activity
         if (intent == null) {
             return false;
         }
+        if (restoreNavigationPathFromIntent(intent)) {
+            return true;
+        }
         boolean tilePreferencesIntent = ACTION_QS_TILE_PREFERENCES.equals(intent.getAction());
         boolean openWebClipboard = intent.getBooleanExtra(EXTRA_OPEN_WEB_CLIPBOARD, false);
         if (!tilePreferencesIntent && !openWebClipboard) {
@@ -1969,6 +2204,28 @@ public final class GboardPatchesSettingsActivity extends Activity
             requestScrollPositionOnNextScreenApply(0);
             applyOrchestration(settingsOrchestrator.accept(
                     GboardPatchesSettingsOrchestrator.Event.replacePath(featurePath)));
+        });
+        return true;
+    }
+
+    private boolean restoreNavigationPathFromIntent(Intent intent) {
+        if (!intent.hasExtra(EXTRA_NAVIGATION_PATH)) {
+            return false;
+        }
+        ArrayList<String> pathIds = intent.getStringArrayListExtra(EXTRA_NAVIGATION_PATH);
+        intent.removeExtra(EXTRA_NAVIGATION_PATH);
+        List<GboardPatchesSettingsContract.Feature> resolvedPath =
+                GboardPatchesNavigationPath.resolve(this, features, pathIds);
+        if (pathIds == null
+                || pathIds.isEmpty()
+                || resolvedPath.size() != pathIds.size()) {
+            return false;
+        }
+        runOnUiThread(() -> {
+            scrollState.resetForDirectPath(resolvedPath.size() - 1);
+            requestScrollPositionOnNextScreenApply(0);
+            applyOrchestration(settingsOrchestrator.accept(
+                    GboardPatchesSettingsOrchestrator.Event.replacePath(resolvedPath)));
         });
         return true;
     }
@@ -2025,6 +2282,7 @@ public final class GboardPatchesSettingsActivity extends Activity
     private void showFatalFallbackScreen(String reason, Throwable throwable) {
         settingsOrchestrator.accept(GboardPatchesSettingsOrchestrator.Event.fatal());
         cancelScheduledScreenRefresh();
+        setRestartButtonPending(false);
         Log.e(TAG, reason, throwable);
         detachKeyboardPreviewSafely();
         if (palette == null) {
@@ -2032,6 +2290,7 @@ public final class GboardPatchesSettingsActivity extends Activity
         }
         toolbarView = null;
         toolbarTitleView = null;
+        restartButton = null;
         headerBadgeView = null;
         headerTitleView = null;
         headerSummaryView = null;

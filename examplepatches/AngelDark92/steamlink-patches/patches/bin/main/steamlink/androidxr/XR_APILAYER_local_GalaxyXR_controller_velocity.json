@@ -1,0 +1,11 @@
+{
+  "file_format_version": "1.0.0",
+  "api_layer": {
+    "name": "XR_APILAYER_local_GalaxyXR_controller_velocity",
+    "library_path": "libgxr_controller_velocity.so",
+    "api_version": "1.0",
+    "implementation_version": "1",
+    "description": "Derives low-latency controller velocity from OpenXR pose history",
+    "disable_environment": "GXR_DISABLE_CONTROLLER_VELOCITY"
+  }
+}

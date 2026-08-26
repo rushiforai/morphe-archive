@@ -34,7 +34,7 @@ def _ver_key(ver: str) -> tuple[int, ...]:
 def _strip_src_prefix(src: str) -> str:
     for prefix in _KNOWN_PREFIXES:
         if src.startswith(prefix):
-            return src[len(prefix):]
+            return src.removeprefix(prefix)
     raise PrebuiltsError(f"Unknown source scheme in {src!r}, expected one of {_KNOWN_PREFIXES}")
 
 def get_highest_ver(versions: list[str]) -> str:

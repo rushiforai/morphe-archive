@@ -1,0 +1,11 @@
+{
+  "file_format_version": "1.0.0",
+  "api_layer": {
+    "name": "XR_APILAYER_local_GalaxyXR_xr_bridge",
+    "library_path": "libgxr_xr_bridge.so",
+    "api_version": "1.0",
+    "implementation_version": "1",
+    "description": "Galaxy XR runtime compatibility and telemetry bridge",
+    "disable_environment": "GXR_DISABLE_XR_BRIDGE"
+  }
+}

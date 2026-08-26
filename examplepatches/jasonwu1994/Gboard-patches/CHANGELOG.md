@@ -1,3 +1,51 @@
+## [3.4.0](https://github.com/jasonwu1994/Gboard-patches/compare/v3.3.0...v3.4.0) (2026-08-25)
+
+### ✨ New Features
+
+* **Gboard:** add the `Rounded Keyboard Panel` patch, which lets you choose which corners of the keyboard panel are rounded and configure the top and bottom corner radii independently.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Rounded Keyboard Panel` Patch，可自訂鍵盤面板哪些角落呈現圓角，並可分別設定上方與下方半徑。
+
+## [3.4.0-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v3.3.0...v3.4.0-dev.1) (2026-08-25)
+
+### ✨ New Features
+
+* **Gboard:** add the `Rounded Keyboard Panel` patch, which lets you choose which corners of the keyboard panel are rounded and configure the top and bottom corner radii independently.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Rounded Keyboard Panel` Patch，可自訂鍵盤面板哪些角落呈現圓角，並可分別設定上方與下方半徑。
+
+## [3.3.0](https://github.com/jasonwu1994/Gboard-patches/compare/v3.2.0...v3.3.0) (2026-08-25)
+
+### ✨ New Features
+
+* **Gboard:** add a restart button to the top-right corner of the `Patches` page.<br>
+  🤡 Previously, applying changes required long-pressing the app icon → opening App info → tapping Force stop → returning to the Home screen → opening Gboard → selecting Gboard as the keyboard.<br>
+  😎 Now, one tap quickly restarts Gboard, applies your changes, and automatically returns you to the `Patches` page—greatly improving the experience.
+
+### ✨ 新功能
+
+* **Gboard:** 在 `Patches` 頁面右上角新增重新啟動按鈕。<br>
+  🤡 過去要讓修改生效，必須長按 App 圖示 → 進入系統 App 資訊 → 點選強制停止 → 回到桌面開啟 Gboard → 選擇 Gboard 為鍵盤，才能看到修改效果。<br>
+  😎 現在只需點一下，就能快速重新啟動 Gboard、讓修改生效，並在重啟後自動回到 `Patches` 頁面，大幅提升使用體驗。
+
+## [3.3.0-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v3.2.0...v3.3.0-dev.1) (2026-08-24)
+
+### ✨ New Features
+
+* **Gboard:** add a restart button to the top-right corner of the `Patches` page.<br>
+  🤡 Previously, applying changes required long-pressing the app icon → opening App info → tapping Force stop → returning to the Home screen → opening Gboard → selecting Gboard as the keyboard.<br>
+  😎 Now, one tap quickly restarts Gboard, applies your changes, and automatically returns you to the `Patches` page—greatly improving the experience.
+
+### ✨ 新功能
+
+* **Gboard:** 在 `Patches` 頁面右上角新增重新啟動按鈕。<br>
+  🤡 過去要讓修改生效，必須長按 App 圖示 → 進入系統 App 資訊 → 點選強制停止 → 回到桌面開啟 Gboard → 選擇 Gboard 為鍵盤，才能看到修改效果。<br>
+  😎 現在只需點一下，就能快速重新啟動 Gboard、讓修改生效，並在重啟後自動回到 `Patches` 頁面，大幅提升使用體驗。
+
 ## [3.2.0](https://github.com/jasonwu1994/Gboard-patches/compare/v3.1.0...v3.2.0) (2026-08-24)
 
 ### ✨ New Features

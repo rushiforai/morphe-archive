@@ -1,10 +1,5 @@
 package morningentree.morphe.patches.google.gboard.tracking
 
-/**
- * Curated blocklist of tracking / analytics / ads hosts, baked into the repo so the Gboard
- * tracking-blocker patch needs no user-supplied file. Edit freely — one host per line, `#` comments
- * allowed. Wildcard matching means "example.com" also covers "sub.example.com".
- */
 internal const val GBOARD_TRACKING_HOSTS = """
     federatedcompute-pa.googleapis.com
 
@@ -30,4 +25,33 @@ internal const val GBOARD_TRACKING_HOSTS = """
     # --- Third-party analytics (rarely in Gboard; kept for completeness) ---
     api.mixpanel.com
     graph.facebook.com
+"""
+
+internal const val GBOARD_LOCKDOWN_HOSTS = """
+    # --- Block: broad Google endpoints (everything Gboard talks to routes through these) ---
+    googleapis.com
+    google.com
+    gstatic.com
+    gvt1.com
+    gvt2.com
+    ggpht.com
+
+    # --- Block: third-party analytics / ads (belt and suspenders) ---
+    app-measurement.com
+    doubleclick.net
+    googlesyndication.com
+    googleadservices.com
+    google-analytics.com
+    crashlytics.com
+
+    # --- Allow: GIF search (Tenor) ---
+    @@tenor.googleapis.com
+    @@tenor.com
+    @@media.tenor.com
+    @@media1.tenor.com
+    @@media.tenor.co
+    @@c.tenor.com
+
+    # --- Allow: cloud voice typing (speech) ---
+    @@speechs3proto2-pa.googleapis.com
 """

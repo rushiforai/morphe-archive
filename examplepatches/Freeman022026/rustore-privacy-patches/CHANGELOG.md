@@ -1,3 +1,9 @@
+## [1.1.8](https://github.com/Freeman022026/rustore-privacy-patches/compare/v1.1.7...v1.1.8) (2026-08-25)
+
+### 🐛 Bug Fixes
+
+* allow automatic updates to complete in foreground ([03d0ceb](https://github.com/Freeman022026/rustore-privacy-patches/commit/03d0ceb61cfac5aa8c60a11bea46384e3b8d99bc))
+
 ## [1.1.7](https://github.com/Freeman022026/rustore-privacy-patches/compare/v1.1.6...v1.1.7) (2026-08-24)
 
 ### 🐛 Bug Fixes

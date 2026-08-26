@@ -10,7 +10,7 @@ Personal [Morphe](https://morphe.software) patches for paid Android apps.
 ## 🩹 Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.50.3](https://github.com/arandomhooman/hoomans-morphe-patches/releases/tag/v1.50.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;63 patches total
+> **[v1.51.1](https://github.com/arandomhooman/hoomans-morphe-patches/releases/tag/v1.51.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;63 patches total
 <details>
 <summary>📦 Twitch&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
 <br>
@@ -112,6 +112,22 @@ Personal [Morphe](https://morphe.software) patches for paid Android apps.
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Enable call recording](#enable-call-recording) | Turns on the built-in call recorder in regions where Google normally hides it. Recordings stay on your phone. Recording calls is regulated in many places, so check what is allowed where you live before using it. |  |
+
+</details>
+
+<details>
+<summary>📦 Todoist&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| v12190 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [No date first](#no-date-first) | Moves undated tasks to the top of the task list in grouped views, so tasks without a due date appear before dated ones. The reordering is applied on the client side when the section list is built; synced data and server behaviour are untouched. |  |
+| [Unlock Pro](#unlock-pro) | Turns on Todoist Pro on the signed-in account: the project, task, section, filter and label caps go to unlimited, reminders, comments, deadlines, durations, calendar layout, the activity log, file uploads and the paid templates all open, and the plan badge reads Pro. Pro on Todoist is a plan the server sends down and the app caches, so the unlock takes hold once a signed-in account loads and it holds across a sync. Anything the Todoist server runs itself is untouched: the AI assistant, real team/Business collaboration, and server-enforced storage still need a paid account. Re-signing breaks Google sign-in, so sign in with email and password. |  |
 
 </details>
 
@@ -450,21 +466,6 @@ Personal [Morphe](https://morphe.software) patches for paid Android apps.
 </details>
 
 <details>
-<summary>📦 Projectivy Launcher&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 4.68 | 4.70 |
-| :---: | :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Unlock Premium](#unlock-premium) | Unlocks Projectivy Launcher's premium so the paywall stops sending you to the upgrade screen. Display profiles, custom wallpapers and backgrounds, parental controls, and the locked settings and customization options all open up. The gate is decided on the device, so there is no account to sign in to. |  |
-
-</details>
-
-<details>
 <summary>📦 Replaio&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -626,21 +627,6 @@ Personal [Morphe](https://morphe.software) patches for paid Android apps.
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Unlock Pro](#unlock-pro) | Turns on Stash Pro and removes the ads. Pro is a flag the server sends with your account, so the unlock takes effect on a signed-in account once it loads. With it on the ads go away and the Pro-gated UI opens up: the Become Pro upsell card, the home screen block layout, custom collection cover images, and the locked review detail fields. Anything the Stash server checks for a non-paying account is unaffected, so data kept behind a paid account does not sync. Re-signing breaks Google and Facebook login, so sign in with email. |  |
-
-</details>
-
-<details>
-<summary>📦 Todoist&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| v12190 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Unlock Pro](#unlock-pro) | Turns on Todoist Pro on the signed-in account: the project, task, section, filter and label caps go to unlimited, reminders, comments, deadlines, durations, calendar layout, the activity log, file uploads and the paid templates all open, and the plan badge reads Pro. Pro on Todoist is a plan the server sends down and the app caches, so the unlock takes hold once a signed-in account loads and it holds across a sync. Anything the Todoist server runs itself is untouched: the AI assistant, real team/Business collaboration, and server-enforced storage still need a paid account. Re-signing breaks Google sign-in, so sign in with email and password. |  |
 
 </details>
 

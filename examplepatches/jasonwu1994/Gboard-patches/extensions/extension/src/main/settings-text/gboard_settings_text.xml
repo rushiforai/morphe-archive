@@ -120,6 +120,14 @@
         <translation locale="en">Navigate up</translation>
         <translation locale="zh-Hant">返回上一層</translation>
     </string>
+    <string name="gboard_patches_restart_action">
+        <translation locale="en">Restart Gboard</translation>
+        <translation locale="zh-Hant">重新啟動 Gboard</translation>
+    </string>
+    <string name="gboard_patches_restart_failed">
+        <translation locale="en">Gboard could not be restarted. Reopen Gboard settings and try again.</translation>
+        <translation locale="zh-Hant">無法重新啟動 Gboard。請重新開啟 Gboard 設定後再試一次。</translation>
+    </string>
     <string name="gboard_patches_language_title">
         <translation locale="en">Language</translation>
         <translation locale="zh-Hant">語言</translation>
@@ -2033,6 +2041,114 @@
     <string name="gboard_patches_accessibility_layout_title">
         <translation locale="en">Show accessibility layout</translation>
         <translation locale="zh-Hant">顯示無障礙鍵盤配置</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_title">
+        <translation locale="en">Rounded Keyboard Panel</translation>
+        <translation locale="zh-Hant">圓角鍵盤面板</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_summary">
+        <translation locale="en">Customize which corners of the keyboard panel are rounded, and set the top and bottom radii separately.</translation>
+        <translation locale="zh-Hant">自訂鍵盤面板哪些角落呈現圓角，並分別設定上方與下方半徑。</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_error_title">
+        <translation locale="en">Rounded keyboard settings unavailable</translation>
+        <translation locale="zh-Hant">圓角鍵盤設定無法使用</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_error_summary">
+        <translation locale="en">The rounded keyboard settings screen failed to load. Reopen Gboard settings and try again.</translation>
+        <translation locale="zh-Hant">圓角鍵盤設定畫面載入失敗。請重新開啟 Gboard 設定再試一次。</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_section">
+        <translation locale="en">Appearance</translation>
+        <translation locale="zh-Hant">外觀</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_enabled_title">
+        <translation locale="en">Enable rounded keyboard panel</translation>
+        <translation locale="zh-Hant">啟用圓角鍵盤面板</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_enabled_summary">
+        <translation locale="en">Force-stop and restart Gboard for changes to take effect.</translation>
+        <translation locale="zh-Hant">需強制停止並重新啟動 Gboard 才會生效。</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_mode_title">
+        <translation locale="en">Rounded corners</translation>
+        <translation locale="zh-Hant">圓角位置</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_mode_summary">
+        <translation locale="en">Choose which corners of the keyboard panel are rounded.</translation>
+        <translation locale="zh-Hant">選擇鍵盤面板哪些角落呈現圓角。</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_mode_dialog_title">
+        <translation locale="en">Rounded corners</translation>
+        <translation locale="zh-Hant">選擇圓角位置</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_mode_all">
+        <translation locale="en">All corners</translation>
+        <translation locale="zh-Hant">四角</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_mode_top">
+        <translation locale="en">Top</translation>
+        <translation locale="zh-Hant">上方</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_mode_bottom">
+        <translation locale="en">Bottom</translation>
+        <translation locale="zh-Hant">下方</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_top_radius_title">
+        <translation locale="en">Top radius</translation>
+        <translation locale="zh-Hant">上方圓角程度</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_top_radius_summary">
+        <translation locale="en">Set the radius for the upper corners.</translation>
+        <translation locale="zh-Hant">設定上方兩個角落的半徑。</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_top_radius_dialog_title">
+        <translation locale="en">Top radius</translation>
+        <translation locale="zh-Hant">上方圓角程度</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_bottom_radius_title">
+        <translation locale="en">Bottom radius</translation>
+        <translation locale="zh-Hant">下方圓角程度</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_bottom_radius_summary">
+        <translation locale="en">Set the radius for the lower corners.</translation>
+        <translation locale="zh-Hant">設定下方兩個角落的半徑。</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_bottom_radius_dialog_title">
+        <translation locale="en">Bottom radius</translation>
+        <translation locale="zh-Hant">下方圓角程度</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_radius_dialog_hint">
+        <translation locale="en">0–64 dp</translation>
+        <translation locale="zh-Hant">0–64 dp</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_radius_dialog_error">
+        <translation locale="en">Enter a whole number from 0 to 64.</translation>
+        <translation locale="zh-Hant">請輸入 0 到 64 的整數。</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_radius_value">
+        <translation locale="en">%1$d dp</translation>
+        <translation locale="zh-Hant">%1$d dp</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_advanced_section">
+        <translation locale="en">Advanced</translation>
+        <translation locale="zh-Hant">進階</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_reset_title">
+        <translation locale="en">Restore corner radii to 32 dp</translation>
+        <translation locale="zh-Hant">恢復圓角程度32dp</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_reset_summary">
+        <translation locale="en">Restore the top and bottom corner radii to 32 dp.</translation>
+        <translation locale="zh-Hant">將上方與下方圓角程度恢復為 32dp。</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_reset_confirm_title">
+        <translation locale="en">Restore corner radii?</translation>
+        <translation locale="zh-Hant">恢復圓角程度？</translation>
+    </string>
+    <string name="gboard_patches_rounded_keyboard_reset_confirm_message">
+        <translation locale="en">Restore the top and bottom corner radii to 32 dp?</translation>
+        <translation locale="zh-Hant">要將上方與下方圓角程度恢復為 32dp 嗎？</translation>
     </string>
     <string name="gboard_patches_cursor_trackpad_preview_mode">
         <translation locale="en">Trackpad mode</translation>

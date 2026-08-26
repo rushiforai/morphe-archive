@@ -1,3 +1,45 @@
+## [1.6.0](https://gitlab.com/IMXEren/mix-patches/compare/v1.5.0...v1.6.0) (2026-08-25)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency com.squareup.okhttp3:okhttp to v5.5.0 ([665276e](https://gitlab.com/IMXEren/mix-patches/commit/665276ee766cc4b1e98ec1df2197666df2715e07))
+* **gradle:** avoid extension resolution during IntelliJ sync ([6a5eca9](https://gitlab.com/IMXEren/mix-patches/commit/6a5eca91e1c837be6f2813d0a1446660c992f7a0))
+* **redgifs:** canonicalize malformed media URLs ([9c353b0](https://gitlab.com/IMXEren/mix-patches/commit/9c353b09801031165055e63b31927e382cb3a868))
+* **redgifs:** normalize extracted gif IDs ([7344a90](https://gitlab.com/IMXEren/mix-patches/commit/7344a9021184a45d6be327e963f0c864cb8ae6e5))
+* **redgifs:** restore removed API flow and token recovery ([8acc1c9](https://gitlab.com/IMXEren/mix-patches/commit/8acc1c943085c08d1f5880c52197c3fab790551b))
+* **redgifs:** support modified WebView calls ([606d539](https://gitlab.com/IMXEren/mix-patches/commit/606d539120456f5a351bed42f4e41387a8841453))
+
+### ✨ New Features
+
+* **redgifs:** fall back to WebView after playback failures ([af578da](https://gitlab.com/IMXEren/mix-patches/commit/af578dafb4fd34d0ba1e0ccec977829de441fc72))
+* **Sync for reddit:** port `Fix Redgifs API` patch from wchill/patcheddit ([627d388](https://gitlab.com/IMXEren/mix-patches/commit/627d3881b6d6ec6d743e17295b31651bd8312537))
+
+## [1.6.0-dev.3](https://gitlab.com/IMXEren/mix-patches/compare/v1.6.0-dev.2...v1.6.0-dev.3) (2026-08-25)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency com.squareup.okhttp3:okhttp to v5.5.0 ([665276e](https://gitlab.com/IMXEren/mix-patches/commit/665276ee766cc4b1e98ec1df2197666df2715e07))
+
+## [1.6.0-dev.2](https://gitlab.com/IMXEren/mix-patches/compare/v1.6.0-dev.1...v1.6.0-dev.2) (2026-08-23)
+
+### 🐛 Bug Fixes
+
+* **redgifs:** support modified WebView calls ([606d539](https://gitlab.com/IMXEren/mix-patches/commit/606d539120456f5a351bed42f4e41387a8841453))
+
+## [1.6.0-dev.1](https://gitlab.com/IMXEren/mix-patches/compare/v1.5.0...v1.6.0-dev.1) (2026-08-23)
+
+### 🐛 Bug Fixes
+
+* **gradle:** avoid extension resolution during IntelliJ sync ([6a5eca9](https://gitlab.com/IMXEren/mix-patches/commit/6a5eca91e1c837be6f2813d0a1446660c992f7a0))
+* **redgifs:** canonicalize malformed media URLs ([9c353b0](https://gitlab.com/IMXEren/mix-patches/commit/9c353b09801031165055e63b31927e382cb3a868))
+* **redgifs:** normalize extracted gif IDs ([7344a90](https://gitlab.com/IMXEren/mix-patches/commit/7344a9021184a45d6be327e963f0c864cb8ae6e5))
+* **redgifs:** restore removed API flow and token recovery ([8acc1c9](https://gitlab.com/IMXEren/mix-patches/commit/8acc1c943085c08d1f5880c52197c3fab790551b))
+
+### ✨ New Features
+
+* **redgifs:** fall back to WebView after playback failures ([af578da](https://gitlab.com/IMXEren/mix-patches/commit/af578dafb4fd34d0ba1e0ccec977829de441fc72))
+* **Sync for reddit:** port `Fix Redgifs API` patch from wchill/patcheddit ([627d388](https://gitlab.com/IMXEren/mix-patches/commit/627d3881b6d6ec6d743e17295b31651bd8312537))
+
 ## [1.5.0](https://gitlab.com/IMXEren/mix-patches/compare/v1.4.2...v1.5.0) (2026-08-19)
 
 ### 🐛 Bug Fixes

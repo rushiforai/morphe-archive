@@ -49,6 +49,18 @@
   ],
   "packageRules": [
     {
+      "description": "Resolve AndroidX from Google Maven",
+      "matchDatasources": [
+        "maven"
+      ],
+      "matchPackageNames": [
+        "/^androidx\\./"
+      ],
+      "registryUrls": [
+        "https://dl.google.com/dl/android/maven2/"
+      ]
+    },
+    {
       "description": "Update Morphe dependencies manually",
       "matchDatasources": [
         "maven"

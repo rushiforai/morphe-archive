@@ -508,6 +508,14 @@ class TildesInterceptor private constructor() : Interceptor {
         synchronized(this) {
             Tildes.cookies = mutableMapOf()
             Tildes.csrfToken = null
+            // The name goes with the credentials that proved it. Left standing
+            // it outlives them, and the parser reads "somebody is signed in"
+            // off it while every fetch comes back anonymous -- so a topic with
+            // no vote button reads as one Tildes closed voting on rather than
+            // as one nobody is signed in for, and the app says it will not take
+            // votes on anything. See [Tildes.votingClosedIn], which is the only
+            // thing that asks.
+            Tildes.username = null
             restored = false
         }
     }
@@ -738,6 +746,20 @@ class TildesInterceptor private constructor() : Interceptor {
                             .joinToString("") { "%02x".format(it) }
                         token = issued
                         groupCache = emptyList()
+                        // Signing in is what makes the account exist, so the
+                        // guest flag comes off here rather than waiting for
+                        // Boost to attach it a moment later.
+                        //
+                        // [Session.saveIfChanged] refuses to write while that
+                        // flag is on, and it is right to: a parked guest would
+                        // otherwise erase the stored session. But this is the
+                        // one write that cannot be skipped. [unparkSession]
+                        // empties the jar as soon as Boost attaches the
+                        // account, and the next request reads back whatever is
+                        // on disk -- so with nothing written here the account
+                        // signed in and was anonymous again two seconds later,
+                        // with Boost still drawing itself signed in.
+                        Session.rememberGuest(false)
                         json(
                             request,
                             JSONObject().put("jwt", issued).put("registration_created", false)

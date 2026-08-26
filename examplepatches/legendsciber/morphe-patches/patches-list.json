@@ -1,7 +1,33 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.2.0",
+  "version": "1.6.0",
   "patches": [
+    {
+      "name": "Bypass Google Play Install Check",
+      "description": "Minecraft'in nereden yuklendigi kontrol edilmez: her zaman Google Play'den kurulmus gibi islem gorur.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "io.mrarm.mctoolbox",
+          "name": "Toolbox for Minecraft PE",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#3E2723",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "5.4.58",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
     {
       "name": "Hill Climb Racing Ad Removal",
       "description": "Completely removes ads: banners and interstitials can never be displayed (CFirebaseAds.showBanners/showInterstitial become no-ops) and ad-free is granted once per app start — loadStore() seeds mAdFree = 1, the native engine's poll grants it and the store's own reset (inappPurchasesProcessed) zeroes the field, so no repeated purchase popups.",
@@ -81,8 +107,8 @@
       "options": []
     },
     {
-      "name": "Toolbox Always Valid Install Location",
-      "description": "The Minecraft installation check always succeeds: package lookups resolve to the app itself, and both the generic and the 32/64-bit supported-version gates accept any version (no more \"Unsupported 64-bit Minecraft\").",
+      "name": "Watch Ad Instant Reward",
+      "description": "\"Watch ad\" butonuna basmak yeterli: reklam izlemeden 15 dakikalik premium aninda eklenir ve her basinca ustune eklenmeye devam eder.",
       "default": true,
       "dependencies": [],
       "compatiblePackages": [

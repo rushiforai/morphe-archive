@@ -101,7 +101,10 @@ internal object Session {
      * was given for it, or null when there is nothing to restore.
      */
     fun restore(): String? {
-        val text = prefs()?.getString(KEY, null) ?: return null
+        val text = prefs()?.getString(KEY, null)
+        if (text == null) {
+            return null
+        }
         val session = try {
             JSONObject(text)
         } catch (e: Throwable) {

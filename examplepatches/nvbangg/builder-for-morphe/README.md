@@ -61,7 +61,7 @@ In step 3, enter the APK prefix (e.g. `youtube`, `yt-music`, `x-twitter`, etc.) 
 
 For full configuration reference, setup and contributing guide, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
-For all Morphe resources, patches and community projects, visit [nvbangg/awesome-morphe](https://github.com/nvbangg/awesome-morphe).
+For all Morphe resources, patch bundles and community projects, visit [nvbangg/awesome-morphe](https://github.com/nvbangg/awesome-morphe).
 
 ---
 

@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.27.1",
+  "version": "1.29.0",
   "patches": [
     {
       "name": "Ads Free Rewards",
@@ -37,7 +37,9 @@
             "Auto (all networks)": "auto",
             "AppLovin MAX": "max",
             "Unity Ads": "unityAds",
-            "ironSource / LevelPlay": "ironSource"
+            "ironSource / LevelPlay": "ironSource",
+            "RuStore / VK MyTarget": "rustore",
+            "Huawei Ads Kit / Petal Ads": "huawei"
           }
         },
         {
@@ -133,6 +135,14 @@
     {
       "name": "Spoof Play Store Install Source",
       "description": "Make the app believe it was installed from the Play Store",
+      "default": false,
+      "dependencies": [],
+      "compatiblePackages": null,
+      "options": []
+    },
+    {
+      "name": "Spoof Amazon Appstore Availability",
+      "description": "Makes app-specific Amazon Appstore availability checks succeed without changing the system package manager.",
       "default": false,
       "dependencies": [],
       "compatiblePackages": null,
@@ -311,7 +321,15 @@
     },
     {
       "name": "Export All Activities",
-      "description": "Marks every activity as android:exported so other apps and ADB can launch them",
+      "description": "Marks every activity and activity-alias as android:exported=true so other apps and ADB can launch them. Unlike Repair Missing Component Export Flags, this intentionally exports every activity even when it has no intent filter; use the repair patch when you only need explicit exported values for filtered legacy components.",
+      "default": false,
+      "dependencies": [],
+      "compatiblePackages": null,
+      "options": []
+    },
+    {
+      "name": "Repair Missing Component Export Flags",
+      "description": "Adds missing android:exported values only to activities, aliases, services, and receivers that declare intent filters. Launcher components become exported=true and other filtered components become exported=false. Unlike Export All Activities, this does not export every activity or alter components without filters; verify apps that expect external service or receiver access after patching.",
       "default": false,
       "dependencies": [],
       "compatiblePackages": null,
@@ -350,8 +368,40 @@
       "options": []
     },
     {
+      "name": "Prefer ANGLE Graphics Driver",
+      "description": "Requests ANGLE as the OpenGL ES driver so compatible modern Android devices may run OpenGL ES through ANGLE for improved graphics compatibility. This is only a driver preference, is not guaranteed, does not convert Vulkan apps to OpenGL, and may cause rendering issues on unsupported devices.",
+      "default": false,
+      "dependencies": [],
+      "compatiblePackages": null,
+      "options": []
+    },
+    {
       "name": "Legacy External Storage",
       "description": "Sets android:requestLegacyExternalStorage so the app keeps using the classic shared-storage model instead of scoped storage (Android 10; ignored on 11+)",
+      "default": false,
+      "dependencies": [],
+      "compatiblePackages": null,
+      "options": []
+    },
+    {
+      "name": "Ensure Storage Permissions",
+      "description": "Adds READ_EXTERNAL_STORAGE and WRITE_EXTERNAL_STORAGE for older apps that can see photos, videos, or music but cannot access ordinary files on modern Android ROMs. The permissions still require Android to grant them at runtime and have limited effect for apps targeting Android 13+.",
+      "default": false,
+      "dependencies": [],
+      "compatiblePackages": null,
+      "options": []
+    },
+    {
+      "name": "Ensure Modern Media Permissions",
+      "description": "Adds Android 13+ media permissions so older apps that can see some media but cannot properly access photos, videos, or music can request the modern permissions. Android still requires runtime approval, and this does not grant unrestricted access to arbitrary files.",
+      "default": false,
+      "dependencies": [],
+      "compatiblePackages": null,
+      "options": []
+    },
+    {
+      "name": "Restore Package Visibility",
+      "description": "Adds QUERY_ALL_PACKAGES so older apps can detect installed stores, file managers, and other companion apps hidden by Android 11+ package-visibility filtering. This is a broad visibility override, may be restricted by Google Play policy, and does not install or grant access to the packages being detected.",
       "default": false,
       "dependencies": [],
       "compatiblePackages": null,
@@ -462,6 +512,14 @@
     {
       "name": "Ensure Internet Permission",
       "description": "Adds the INTERNET permission if it is missing. Useful after aggressive permission stripping or for offline builds that still need web endpoints",
+      "default": false,
+      "dependencies": [],
+      "compatiblePackages": null,
+      "options": []
+    },
+    {
+      "name": "Ensure Notification Permission",
+      "description": "Adds POST_NOTIFICATIONS to the manifest so older apps can request notification access on Android 13+. This only declares the permission; Android may still require a runtime approval. Unlike Spoof Notifications as Enabled, it does not change the app's NotificationManager.areNotificationsEnabled check.",
       "default": false,
       "dependencies": [],
       "compatiblePackages": null,
@@ -733,6 +791,14 @@
       "options": []
     },
     {
+      "name": "Ensure Exact Alarm Availability",
+      "description": "Makes AlarmManager.canScheduleExactAlarms return true so older alarm, reminder, and scheduler apps do not disable their exact-alarm features on modern Android. Warning: this only changes the app's availability check; it does not grant Android's special exact-alarm access, and scheduling may still fail or throw SecurityException.",
+      "default": false,
+      "dependencies": [],
+      "compatiblePackages": null,
+      "options": []
+    },
+    {
       "name": "Hide Roaming Status",
       "description": "Makes TelephonyManager.isNetworkRoaming always return false so apps that block or warn while roaming behave as if the device is on its home network",
       "default": false,
@@ -749,8 +815,8 @@
       "options": []
     },
     {
-      "name": "Force Notifications Enabled",
-      "description": "Makes NotificationManager.areNotificationsEnabled always return true so apps that refuse to run when notifications are blocked keep working",
+      "name": "Spoof Notifications as Enabled",
+      "description": "Makes NotificationManager.areNotificationsEnabled always return true so apps that refuse to run when notifications are blocked keep working. This only changes the app's internal check; it does not grant POST_NOTIFICATIONS or enable notifications in Android system settings. Use Ensure Notification Permission for the manifest entry.",
       "default": false,
       "dependencies": [],
       "compatiblePackages": null,
@@ -812,7 +878,125 @@
         "ResourcePatch"
       ],
       "compatiblePackages": null,
-      "options": []
+      "options": [
+        {
+          "key": "automaticStrategySelection",
+          "title": "Automatic strategy selection",
+          "description": "Apply every compatible PairIP strategy whose target is found. Turn this off to select only the strategy groups needed for testing.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "manifestCleanupStrategy",
+          "title": "XML manifest cleanup",
+          "description": "Redirect the PairIP Application wrapper when possible, then remove PairIP license activities, provider, and CHECK_LICENSE permission from AndroidManifest.xml.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "pairipVmRunnerChecks",
+          "title": "PairIP VMRunner checks",
+          "description": "Bypass Application.<clinit> and VMRunner.invoke startup paths that can execute the PairIP VM.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "startupLauncherChecks",
+          "title": "StartupLauncher checks",
+          "description": "Bypass both PairIP StartupLauncher.launch and StartupLauncher.pairip entry points.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "licenseClientV3Activity",
+          "title": "LicenseClient V3 activity",
+          "description": "Disable the PairIP V3 LicenseClient.onActivityCreate path.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "localInstallerChecks",
+          "title": "Local installer checks",
+          "description": "Spoof checks that verify which installer installed the app.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "signatureChecks",
+          "title": "Signature checks",
+          "description": "Bypass APK integrity and signature-match checks.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "licenseUiSuppression",
+          "title": "License error and paywall UI",
+          "description": "Suppress PairIP error dialogs, paywalls, and close-app screens.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "applicationStartupHooks",
+          "title": "Application startup hooks",
+          "description": "Bypass PairIP Application attachBaseContext and onCreate hooks. These run early and may be less compatible with some apps.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "licenseClientChecks",
+          "title": "License client checks",
+          "description": "Disable the legacy LicenseClient license-check and root-termination path.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "contentProviderChecks",
+          "title": "Content provider checks",
+          "description": "Bypass PairIP content-provider initialization and query checks.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "responseValidationChecks",
+          "title": "Response validation checks",
+          "description": "Bypass license-response validation, metadata, and signature checks across legacy validator variants.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "pairipV2Checks",
+          "title": "PairIP V2 checks",
+          "description": "Bypass PairIP V2 license flow, response signature verification, and repeated background checks.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        }
+      ]
     },
     {
       "name": "Unlock RevenueCat Entitlements",
@@ -1175,7 +1359,7 @@
     },
     {
       "name": "Bypass Emulator Detection",
-      "description": "Spoofs android.os.Build identity (model, device, manufacturer, hardware, fingerprint, serial, user, host, radio, bootloader) and Build.getRadioVersion(), TelephonyManager.getPhoneType(), and telltale system properties (ro.kernel.qemu, ro.hardware, ro.product.model/device, ro.bootloader, ro.radio) so apps and games that refuse to run, crash or match you with emulator lobbies cannot tell they are on an emulator. Does not hide root or a debugger connection.",
+      "description": "Spoofs android.os.Build identity (model, device, manufacturer, hardware, fingerprint, serial, user, host, radio, bootloader) and Build.getRadioVersion(), TelephonyManager.getPhoneType(), and telltale system properties (ro.kernel.qemu, ro.hardware, ro.product.model/device, ro.bootloader, ro.radio) so apps and games that refuse to run, crash or match you with emulator lobbies cannot tell they are on an emulator. Optional Hide Emulator Radio and Spoof Build Extras settings also cover TelephonyManager radio type and additional Build/Build.VERSION identity fields. Does not hide root or a debugger connection.",
       "default": false,
       "dependencies": [],
       "compatiblePackages": null,
@@ -1192,6 +1376,24 @@
             "Samsung Galaxy S23": "samsungS23",
             "Xiaomi 13": "xiaomi13"
           }
+        },
+        {
+          "key": "hideEmulatorRadio",
+          "title": "Hide Emulator Radio",
+          "description": "Make TelephonyManager report a normal GSM radio type.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "spoofBuildExtras",
+          "title": "Spoof Build Extras",
+          "description": "Spoof additional Build and Build.VERSION fields used by emulator checks.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
         }
       ]
     },
@@ -1334,6 +1536,14 @@
     {
       "name": "Classic Back Gesture",
       "description": "Sets android:enableOnBackInvokedCallback to false so apps that break under the Android 13+ predictive back system keep the classic back behavior",
+      "default": false,
+      "dependencies": [],
+      "compatiblePackages": null,
+      "options": []
+    },
+    {
+      "name": "Clearing Split Metadata",
+      "description": "Removes split-install manifest attributes and Play Store split metadata from the app manifest.",
       "default": false,
       "dependencies": [],
       "compatiblePackages": null,
@@ -1493,32 +1703,6 @@
       "default": false,
       "dependencies": [],
       "compatiblePackages": null,
-      "options": []
-    },
-    {
-      "name": "Disable Gemini Tracking",
-      "description": "Gemini: disables Clearcut/Primes and Firebase analytics pings.",
-      "default": false,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.google.android.apps.bard",
-          "name": null,
-          "description": null,
-          "apkFileType": null,
-          "appIconColor": null,
-          "signatures": null,
-          "targets": [
-            {
-              "version": null,
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
       "options": []
     },
     {
@@ -1774,58 +1958,6 @@
       "options": []
     },
     {
-      "name": "Enable Debug Features",
-      "description": "Gemini: enables hidden dogfood/internal/debug flags (isDogfoodEnabled/isDebugEnabled) for extra settings.",
-      "default": false,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.google.android.apps.bard",
-          "name": null,
-          "description": null,
-          "apkFileType": null,
-          "appIconColor": null,
-          "signatures": null,
-          "targets": [
-            {
-              "version": null,
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Enable Developer Support",
-      "description": "Steam: forces React Native getUseDeveloperSupport to true to unlock dev menu (reload, inspector).",
-      "default": false,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.valvesoftware.android.steam.community",
-          "name": null,
-          "description": null,
-          "apkFileType": null,
-          "appIconColor": null,
-          "signatures": null,
-          "targets": [
-            {
-              "version": null,
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
       "name": "Enable Hidden Settings",
       "description": "Bandcamp: turns on hidden feature flags - audio-cache indicators, podcast player controls and public-playlist track visibility.",
       "default": false,
@@ -1833,84 +1965,6 @@
       "compatiblePackages": [
         {
           "packageName": "com.bandcamp.android",
-          "name": null,
-          "description": null,
-          "apkFileType": null,
-          "appIconColor": null,
-          "signatures": null,
-          "targets": [
-            {
-              "version": null,
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Enable Memory",
-      "description": "Gemini: enables Memory/Personalization (Saved Info) features by spoofing their availability checks.",
-      "default": false,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.google.android.apps.bard",
-          "name": null,
-          "description": null,
-          "apkFileType": null,
-          "appIconColor": null,
-          "signatures": null,
-          "targets": [
-            {
-              "version": null,
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Enable Veo",
-      "description": "Gemini: enables Veo video generation UI by spoofing isVeoEnabled/isVeoAvailable checks.",
-      "default": false,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.google.android.apps.bard",
-          "name": null,
-          "description": null,
-          "apkFileType": null,
-          "appIconColor": null,
-          "signatures": null,
-          "targets": [
-            {
-              "version": null,
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Enable Visual Interpreter",
-      "description": "Gemini: enables Visual Interpreter and Remember This shortcuts (shellapp activities) by spoofing their gated checks.",
-      "default": false,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.google.android.apps.bard",
           "name": null,
           "description": null,
           "apkFileType": null,
@@ -2127,32 +2181,6 @@
       "default": false,
       "dependencies": [],
       "compatiblePackages": null,
-      "options": []
-    },
-    {
-      "name": "Force Debug Build",
-      "description": "Steam: forces BuildConfig.DEBUG to true to enable debug logs and toasts.",
-      "default": false,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.valvesoftware.android.steam.community",
-          "name": null,
-          "description": null,
-          "apkFileType": null,
-          "appIconColor": null,
-          "signatures": null,
-          "targets": [
-            {
-              "version": null,
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
       "options": []
     },
     {
@@ -2380,14 +2408,6 @@
       "options": []
     },
     {
-      "name": "Hide Emulator Radio",
-      "description": "Makes TelephonyManager.getPhoneType always report GSM so emulator detection based on a missing radio reports a normal device",
-      "default": false,
-      "dependencies": [],
-      "compatiblePackages": null,
-      "options": []
-    },
-    {
       "name": "Hide Installed Apps",
       "description": "Redirects PackageManager.getInstalledPackages/getInstalledApplications to Collections.emptyList() so the app sees no other installed apps.",
       "default": false,
@@ -2420,110 +2440,6 @@
       "options": []
     },
     {
-      "name": "Increase Context Limit",
-      "description": "Gemini: increases hidden context/token limits (getMaxTokens/getContextLimit) to 1M tokens.",
-      "default": false,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.google.android.apps.bard",
-          "name": null,
-          "description": null,
-          "apkFileType": null,
-          "appIconColor": null,
-          "signatures": null,
-          "targets": [
-            {
-              "version": null,
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Increase Limits",
-      "description": "Steam: removes quota/rate limits and raises file/context caps (getMaxFiles→100, getMaxTokens→1M).",
-      "default": false,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.valvesoftware.android.steam.community",
-          "name": null,
-          "description": null,
-          "apkFileType": null,
-          "appIconColor": null,
-          "signatures": null,
-          "targets": [
-            {
-              "version": null,
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Increase Upload Limit",
-      "description": "Gemini: raises hidden file/attachment count limits (getMaxFiles/getMaxUploads) to 100.",
-      "default": false,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.google.android.apps.bard",
-          "name": null,
-          "description": null,
-          "apkFileType": null,
-          "appIconColor": null,
-          "signatures": null,
-          "targets": [
-            {
-              "version": null,
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Nai Patches Settings",
-      "description": "Steam: adds unified Settings dialog (Options Menu → Nai Patches) to toggle all Steam patches at runtime without re-patching.",
-      "default": false,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.valvesoftware.android.steam.community",
-          "name": null,
-          "description": null,
-          "apkFileType": null,
-          "appIconColor": null,
-          "signatures": null,
-          "targets": [
-            {
-              "version": null,
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
       "name": "Preserve App Data",
       "description": "Helps keep saves and app data when a patched build replaces an installed app. Sets android:hasFragileUserData (Android offers to keep data on uninstall and restores it when the same package is reinstalled), enables android:allowBackup, sets android:restoreAnyVersion so a backup can be restored across versions, and removes backup-exclusion rules that hide app data from device/cloud backups. Note: the patched APK is re-signed, so it must replace the original via uninstall-then-install; keep the package name unchanged (these patches never rename it) and the data returns",
       "default": false,
@@ -2553,58 +2469,6 @@
       "default": false,
       "dependencies": [],
       "compatiblePackages": null,
-      "options": []
-    },
-    {
-      "name": "Remove File Restrictions",
-      "description": "Gemini: removes file/image upload type and size restrictions by spoofing file support checks.",
-      "default": false,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.google.android.apps.bard",
-          "name": null,
-          "description": null,
-          "apkFileType": null,
-          "appIconColor": null,
-          "signatures": null,
-          "targets": [
-            {
-              "version": null,
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Remove Gemini Limits",
-      "description": "Gemini: forces quota/rate-limit checks to false to hide input/file-size and rate-limit dialogs.",
-      "default": false,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.google.android.apps.bard",
-          "name": null,
-          "description": null,
-          "apkFileType": null,
-          "appIconColor": null,
-          "signatures": null,
-          "targets": [
-            {
-              "version": null,
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
       "options": []
     },
     {
@@ -2763,14 +2627,6 @@
     {
       "name": "Spoof Bluetooth Name",
       "description": "Reports a constant name from BluetoothAdapter.getName() so apps cannot read the real local Bluetooth adapter name.",
-      "default": false,
-      "dependencies": [],
-      "compatiblePackages": null,
-      "options": []
-    },
-    {
-      "name": "Spoof Build Extras",
-      "description": "Spoofs the remaining android.os.Build identity fields not covered by Bypass Emulator Detection (BOOTLOADER, RADIO, USER, HOST, getRadioVersion, and Build.VERSION RELEASE/INCREMENTAL/SECURITY_PATCH/CODENAME) with values from a real Pixel 6, so apps cannot fingerprint the device through these fields.",
       "default": false,
       "dependencies": [],
       "compatiblePackages": null,
@@ -3122,136 +2978,6 @@
       "default": false,
       "dependencies": [],
       "compatiblePackages": null,
-      "options": []
-    },
-    {
-      "name": "Unlock Beta Features",
-      "description": "Steam: enables hidden beta/experimental flags (isBetaEnabled/isExperimentalEnabled).",
-      "default": false,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.valvesoftware.android.steam.community",
-          "name": null,
-          "description": null,
-          "apkFileType": null,
-          "appIconColor": null,
-          "signatures": null,
-          "targets": [
-            {
-              "version": null,
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Unlock Gemini Advanced",
-      "description": "Gemini: spoofs entitlement checks (isPremium/isPro/isAdvanced/hasSubscription etc.) to unlock Advanced/Pro UI and model picker.",
-      "default": false,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.google.android.apps.bard",
-          "name": null,
-          "description": null,
-          "apkFileType": null,
-          "appIconColor": null,
-          "signatures": null,
-          "targets": [
-            {
-              "version": null,
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Unlock Gemini Extensions",
-      "description": "Gemini: enables Workspace/Gmail/Drive/YouTube/Maps extensions by spoofing their gated checks.",
-      "default": false,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.google.android.apps.bard",
-          "name": null,
-          "description": null,
-          "apkFileType": null,
-          "appIconColor": null,
-          "signatures": null,
-          "targets": [
-            {
-              "version": null,
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Unlock Gemini Live",
-      "description": "Gemini: enables Live voice conversation UI by spoofing isLiveEnabled/isVoiceAvailable checks.",
-      "default": false,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.google.android.apps.bard",
-          "name": null,
-          "description": null,
-          "apkFileType": null,
-          "appIconColor": null,
-          "signatures": null,
-          "targets": [
-            {
-              "version": null,
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Unlock Gems",
-      "description": "Gemini: enables Gems, Canvas and Deep Research features by spoofing their availability checks.",
-      "default": false,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.google.android.apps.bard",
-          "name": null,
-          "description": null,
-          "apkFileType": null,
-          "appIconColor": null,
-          "signatures": null,
-          "targets": [
-            {
-              "version": null,
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
       "options": []
     },
     {

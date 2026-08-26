@@ -1,3 +1,5 @@
+import org.gradle.language.jvm.tasks.ProcessResources
+
 group = "app.mix"
 
 patches {
@@ -21,6 +23,17 @@ kotlin {
 // Separate configuration so gson is available at runtime for the
 // generatePatchesList task but never bundled into the APK.
 val patchListGeneratorClasspath = configurations.create("patchListGeneratorClasspath")
+
+// The Morphe plugin adds extensionConfiguration as a resource source directory. IntelliJ's
+// tooling model then resolves it outside Gradle's project lock. Keep generated extension
+// artifacts as processResources inputs instead, so they are resolved only during task execution.
+val extensionArtifacts = configurations.named("extensionConfiguration")
+sourceSets.named("main") {
+    resources.setSrcDirs(listOf("src/main/resources"))
+}
+tasks.named<ProcessResources>("processResources") {
+    from(extensionArtifacts)
+}
 
 dependencies {
     patchListGeneratorClasspath(libs.gson)

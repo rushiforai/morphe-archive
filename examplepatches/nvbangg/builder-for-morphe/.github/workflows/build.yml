@@ -11,11 +11,12 @@ on:
           - morphe
           - morphe-dev
           - piko
-          - hoo-dles
-          - paresh
           - rushi
+          - hoo-dles
+          - hooman
+          - paresh
           - de-vanced
-          - anddea
+          - tiktok
   workflow_call:
     inputs:
       patch_source:

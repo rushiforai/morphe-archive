@@ -7,7 +7,7 @@ patches {
         description = "Efficiency justice for morphe patches"
         source = "https://github.com/ShuhaibNC/morphe-patches"
         author = "ShuhaibNC"
-        contact = "t.me/shuhaibnc"
+        contact = "https://t.me/shuhaibnc"
         website = "https://shuhaibnc.github.io"
         license = "GPLv3"
     }
