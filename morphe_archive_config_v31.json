@@ -1353,6 +1353,62 @@
                 "sortOrder": 171,
                 "createdAt": 1787620440858,
                 "updatedAt": 1787620440858
+            },
+            {
+                "name": "steamlink-patches",
+                "source": "https://raw.githubusercontent.com/AngelDark92/steamlink-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 172,
+                "createdAt": 1787707029265,
+                "updatedAt": 1787707029265
+            },
+            {
+                "name": "aniskip-stremio",
+                "source": "https://raw.githubusercontent.com/AzukiSensei/aniskip-stremio/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 173,
+                "createdAt": 1787707029292,
+                "updatedAt": 1787707029292
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/Kecerim24/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 174,
+                "createdAt": 1787707029808,
+                "updatedAt": 1787707029808
+            },
+            {
+                "name": "FroggoMorphePatches",
+                "source": "https://raw.githubusercontent.com/SapitoSucio/FroggoMorphePatches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 175,
+                "createdAt": 1787707030519,
+                "updatedAt": 1787707030519
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/V4n1X/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 176,
+                "createdAt": 1787707031229,
+                "updatedAt": 1787707031229
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/Z-drgon/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 177,
+                "createdAt": 1787707031657,
+                "updatedAt": 1787707031657
+            },
+            {
+                "name": "roadsync-patches",
+                "source": "https://raw.githubusercontent.com/subenoeva/roadsync-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 178,
+                "createdAt": 1787707033756,
+                "updatedAt": 1787707033756
             }
         ]
     }

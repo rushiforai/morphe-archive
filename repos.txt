@@ -3,7 +3,9 @@ Alastor-Kaneki/Morphe-Patches
 AlexNaga/android-patches
 Almewty/my-morphe-patches
 AmpleReVanced/revanced-patches
+AngelDark92/steamlink-patches
 Apostolique/apos-morphe-patches
+AzukiSensei/aniskip-stremio
 BholeyKaBhakt/android-patches-xtra
 BlazeFTL/FTL-Patches
 BlazeFTL/Morphe-Portal-Patches-New
@@ -28,6 +30,7 @@ Jman-Github/ReVanced-Patch-Bundles
 Jman-Github/Universal-ReVanced-Manager
 Joristdh/Platypatch
 Joussflls10/Jouss-Patches
+Kecerim24/morphe-patches
 LaBlazer/morphe-patches
 LaKakaReal/LaKakaShitPatches
 Lynx6319/patch-youtube-scroll-block
@@ -51,6 +54,7 @@ RealCyberwash/max-patches
 Ripthulhu/morphe-google-patches
 RookieEnough/De-Vanced
 RoundSalmon4/morphe-patches-template
+SapitoSucio/FroggoMorphePatches
 Seobject/Seobject-patches
 ShuhaibNC/morphe-patches
 SouBryan/pinterest-morphed
@@ -59,11 +63,13 @@ TheRealSkywarp/morphe-patches
 Tornillo2/movistar-block-ads-morphe
 Trimpsuz/morphe-busuu
 Utsavrajputt/Modx-patches
+V4n1X/morphe-patches
 WZSE/aapam-patches
 WZSE/morphe-patches
 XTapped/morphe-patches
 Xhehab/Xhehab-Patches
 Xisrr1/Revancify-Xisr
+Z-drgon/morphe-patches
 abhis1n/Morphe-Patches
 adderalladmiral/psychonaut-wiki-journal-patches
 ajstrick81/morphe-androidtv-patches
@@ -177,6 +183,7 @@ shaun-the-sheep-patches/morphe-patches
 sjshb57/Pairip-Patches
 skulldogged/cobalt-morphe
 spookyexe/morphe-patches
+subenoeva/roadsync-patches
 sushruth/imgur-patches
 tadikwa/google-clock-morphe-patches
 theabhishekbhujang/morphe-patches
