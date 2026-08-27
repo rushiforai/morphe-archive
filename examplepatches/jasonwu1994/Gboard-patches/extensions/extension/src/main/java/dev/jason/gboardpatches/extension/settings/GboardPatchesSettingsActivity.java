@@ -503,6 +503,8 @@ public final class GboardPatchesSettingsActivity extends Activity
                     consumer.accept(value);
                     dialog.dismiss();
                     renderCurrentScreenSafely();
+                } catch (IllegalArgumentException exception) {
+                    input.setError(exception.getMessage());
                 } catch (Throwable throwable) {
                     Log.w(TAG, "Failed to persist positive integer setting", throwable);
                     input.setError(text(R.string.gboard_patches_dialog_error_save_failed));

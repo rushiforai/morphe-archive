@@ -8,7 +8,7 @@ body:
       value: |
         # NuvioTV Morphe Patches bug report
 
-        All patches are prerelease work in progress. They are not fully tested and may disrupt NuvioTV functionality. Search [existing issues](https://github.com/liongalahad/nuviotv-morphe-patches/issues?q=is%3Aissue) before submitting a report.
+        All patches are prerelease work in progress. They are not fully tested and may disrupt NuvioTV functionality. Search [existing issues](https://github.com/liongalahad/liongalahad-nuviotv-morphe-patches/issues?q=is%3Aissue) before submitting a report.
 
         Do not upload or link to an original, patched, or modified NuvioTV APK.
   - type: input

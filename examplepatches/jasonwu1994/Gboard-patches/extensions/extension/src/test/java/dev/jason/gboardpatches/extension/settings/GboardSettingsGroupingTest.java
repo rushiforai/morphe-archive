@@ -122,7 +122,8 @@ public final class GboardSettingsGroupingTest {
                 "new GboardAccessPointsMenuSettingsFeature(context)",
                 "new GboardSplitKeyboardSettingsFeature(context)",
                 "new GboardAccessibilityLayoutSettingsFeature(context)",
-                "new GboardRoundedKeyboardSettingsFeature(context)");
+                "new GboardRoundedKeyboardSettingsFeature(context)",
+                "new GboardAccessPointCountSettingsFeature(context)");
         Assert.assertFalse(registrySource.contains("GboardKeyboardSettingsGroupFeature"));
     }
 
@@ -142,6 +143,9 @@ public final class GboardSettingsGroupingTest {
                 "dev.jason.gboardpatches.feature.flow_mode_animation"));
         Assert.assertTrue(availabilitySource.contains(
                 "dev.jason.gboardpatches.feature.quick_insert"));
+        Assert.assertTrue(availabilitySource.contains("FEATURE_ACCESS_POINT_COUNT"));
+        Assert.assertTrue(availabilitySource.contains(
+                "dev.jason.gboardpatches.feature.access_point_count"));
     }
 
     @Test

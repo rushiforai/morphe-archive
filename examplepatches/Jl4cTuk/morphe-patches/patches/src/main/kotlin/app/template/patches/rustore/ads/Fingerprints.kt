@@ -10,8 +10,124 @@ private const val PERSONAL_RECOMMENDATION_ADVERTISEMENT_DTO =
         "PersonalRecommendationAdvertisementDto;"
 private const val PROMO_SCREEN_TYPE_DTO =
     "Lru/vk/store/feature/promo/impl/data/PromoScreenTypeDto;"
+private const val GOOGLE_ADVERTISING_ID_CLIENT =
+    "Lcom/google/android/gms/ads/identifier/AdvertisingIdClient;"
+private const val GOOGLE_ADVERTISING_ID_INFO =
+    "Lcom/google/android/gms/ads/identifier/AdvertisingIdClient\$Info;"
+private const val IN_APP_STORY_MANAGER =
+    "Lcom/inappstory/sdk/InAppStoryManager;"
 private val PROMO_SCREEN_FIELDS =
     setOf("INTERESTING", "APPS", "GAMES", "KIOSK", "APP_CARD", "SEARCH")
+
+private val AdvertisementIdsClassFingerprint = Fingerprint(
+    strings = listOf("AdvertisementIds(gaid=", ", hoaid=", ", androidId="),
+)
+
+private val AdvertisingSettingClassFingerprint = Fingerprint(
+    strings = listOf("Setting(settingId=", ", iconUrl=", ", value="),
+)
+
+private val AdvertisingAgreementSettingClassFingerprint = Fingerprint(
+    strings = listOf("AgreementSetting(id=", ", value="),
+)
+
+/** Matches the model carrying stable advertising identifiers. */
+object AdvertisementIdsConstructorFingerprint : Fingerprint(
+    classFingerprint = AdvertisementIdsClassFingerprint,
+    name = "<init>",
+    returnType = "V",
+    parameters = List(6) { "Ljava/lang/String;" },
+)
+
+/** Matches the advertising preference shown in the settings list. */
+object AdvertisingSettingConstructorFingerprint : Fingerprint(
+    classFingerprint = AdvertisingSettingClassFingerprint,
+    name = "<init>",
+    returnType = "V",
+    parameters = listOf(
+        "J",
+        "Ljava/lang/String;",
+        "Ljava/lang/String;",
+        "Ljava/lang/String;",
+        "Z",
+    ),
+)
+
+/** Matches the compact advertising-consent model used by the agreement API. */
+object AdvertisingAgreementSettingConstructorFingerprint : Fingerprint(
+    classFingerprint = AdvertisingAgreementSettingClassFingerprint,
+    name = "<init>",
+    returnType = "V",
+    parameters = listOf("J", "Z"),
+)
+
+/** Matches every construction of a Google advertising-ID result. */
+object GoogleAdvertisingIdInfoConstructorFingerprint : Fingerprint(
+    name = "<init>",
+    returnType = "V",
+    parameters = listOf("Ljava/lang/String;", "Z"),
+    custom = { _, classDef -> classDef.type == GOOGLE_ADVERTISING_ID_INFO },
+)
+
+/** Matches the static Google advertising-ID lookup entry point. */
+object GoogleAdvertisingIdLookupFingerprint : Fingerprint(
+    name = "getAdvertisingIdInfo",
+    returnType = GOOGLE_ADVERTISING_ID_INFO,
+    parameters = listOf("Landroid/content/Context;"),
+    custom = { _, classDef -> classDef.type == GOOGLE_ADVERTISING_ID_CLIENT },
+)
+
+/** Matches the internal lookup used by `AdvertisingIdClient.getInfo()`. */
+object GoogleAdvertisingIdInternalLookupFingerprint : Fingerprint(
+    name = "zzf",
+    returnType = GOOGLE_ADVERTISING_ID_INFO,
+    parameters = listOf("I"),
+    custom = { _, classDef -> classDef.type == GOOGLE_ADVERTISING_ID_CLIENT },
+)
+
+/** Matches the Google advertising-ID debug lookup. */
+object GoogleAdvertisingIdDebugLookupFingerprint : Fingerprint(
+    name = "getIsAdIdFakeForDebugLogging",
+    returnType = "Z",
+    parameters = listOf("Landroid/content/Context;"),
+    custom = { _, classDef -> classDef.type == GOOGLE_ADVERTISING_ID_CLIENT },
+)
+
+/** Matches MyTarget's manifest-driven automatic initializer. */
+object MyTargetAutoInitFingerprint : Fingerprint(
+    name = "onCreate",
+    returnType = "Z",
+    parameters = emptyList(),
+    custom = { _, classDef ->
+        classDef.type == "Lcom/my/target/common/MyTargetContentProvider;"
+    },
+)
+
+/** Matches RuStore's coroutine entry point that initializes InAppStory. */
+object InAppStoryInitializerFingerprint : Fingerprint(
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf("L"),
+    custom = { method, classDef ->
+        val inAppStoryCalls = method.implementation?.instructions
+            ?.mapNotNull { instruction ->
+                (instruction as? ReferenceInstruction)?.reference as? MethodReference
+            }
+            ?.filter { methodReference ->
+                methodReference.definingClass == IN_APP_STORY_MANAGER
+            }
+            ?.map { methodReference -> methodReference.name }
+            ?.toSet()
+            .orEmpty()
+
+        classDef.sourceFile == "InAppStoryInitializerImpl.kt" &&
+            "initSDK" !in inAppStoryCalls &&
+            setOf(
+                "setCallToActionCallback",
+                "setCloseStoryCallback",
+                "setShowSlideCallback",
+            ).all(inAppStoryCalls::contains)
+    },
+)
 
 /**
  * Matches `RawAdvertisementRepositoryImpl.get()`, the central entry point

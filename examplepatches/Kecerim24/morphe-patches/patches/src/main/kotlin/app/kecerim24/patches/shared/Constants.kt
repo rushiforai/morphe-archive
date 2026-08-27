@@ -38,4 +38,30 @@ object Constants {
             )
         )
     )
+
+    /**
+     * Settle Up, a group expense splitter by Step Up Labs.
+     *
+     * The app id is cz.destil.settleup, but the code lives in io.stepuplabs.settleup.
+     */
+    val COMPATIBILITY_SETTLE_UP = Compatibility(
+        name = "Settle Up",
+        packageName = "cz.destil.settleup",
+        apkFileType = ApkFileType.APKM,
+        appIconColor = 0xE47048,
+        signatures = setOf(
+            // O=Step Up Labs (single signer, no key rotation)
+            "e3cc443274d899c540326e620ae730112316a9d02e566a6e3dbbcbdf11c01264"
+        ),
+        targets = listOf(
+            AppTarget(
+                version = null,
+                isExperimental = true
+            ),
+            // Developed and confirmed working against 11.0.2280 (version code 2280).
+            AppTarget(
+                version = "11.0.2280"
+            )
+        )
+    )
 }

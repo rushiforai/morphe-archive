@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/bunny_branding_bg_vendetta_manager" />
+    <item android:drawable="@drawable/bunny_branding_vendetta_manager_foreground" />
+</layer-list>

@@ -63,13 +63,13 @@ end = text.find('.end method', m.start())
 print(text[m.start():end if end != -1 else None])
 PY
 )" || method_block=""
-      if [[ -n "$method_block" ]] && echo "$method_block" | rg -q "$pattern"; then
+      if [[ -n "$method_block" ]] && echo "$method_block" | rg -U -q "$pattern"; then
         echo "OK   $label (smali)"
       else
         echo "MISS $label ($file::$method: $pattern)"
         failed=1
       fi
-    elif rg -q "$pattern" "$target" 2>/dev/null; then
+    elif rg -U -q "$pattern" "$target" 2>/dev/null; then
       echo "OK   $label (smali)"
     else
       echo "MISS $label ($file: $pattern)"

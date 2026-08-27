@@ -1,0 +1,154 @@
+{
+  "$schema": "../patch.schema.json",
+  "id": "local-downloads",
+  "name": "Local Downloads",
+  "category": "playback",
+  "target": {
+    "application": "NuvioTV",
+    "package": "com.nuvio.tv",
+    "versions": ["0.8.7-beta"],
+    "launchComponent": "com.nuvio.tv/.MainActivity"
+  },
+  "assets": {
+    "universal": {
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.7-beta/app-full-universal-release.apk",
+      "sha256": "dddcaa303ae47254df611f97bded0b9661f91bdb831f6e3eb23d57b25018370a"
+    },
+    "x86_64": {
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.7-beta/app-full-x86_64-release.apk",
+      "sha256": "b77ea174ba30dc2a0c194df3cd8ae11ee7adff7529db710a9fd3bf1be8135514"
+    },
+    "arm64-v8a": {
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.7-beta/app-full-arm64-v8a-release.apk",
+      "sha256": "16e6b679009f518ef8d45cae7d3eeb570de1f0cdc688b381489797f8db0c13f3"
+    },
+    "armeabi-v7a": {
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.7-beta/app-full-armeabi-v7a-release.apk",
+      "sha256": "7e1c84b104e1976d9861287ba96e9efb1dc9d387ef43d1934f6005eed033a6b3"
+    }
+  },
+  "dependencies": ["settings-hub"],
+  "emulators": {"phone": "Pixel_10", "tv": "Television_4K"},
+  "fingerprints": [
+    "HeroContentFingerprint",
+    "HeroActionRowFingerprint",
+    "HeroOptionsDialogFingerprint",
+    "EpisodeOptionsDialogFingerprint",
+    "ContinueOptionsDialogFingerprint",
+    "StreamRouteFingerprint",
+    "StreamScreenFingerprint",
+    "SubtitleWorkerFingerprint",
+    "EpisodeCardContentFingerprint",
+    "NuvioNavHostFingerprint",
+    "PlayerMediaSourceFactoryFingerprint",
+    "FullscreenPlaybackStateListenerFingerprint"
+  ],
+  "inspection": {
+    "provider": "io.github.liongalahad.nuviotv.extension.settings.MorpheInitProvider",
+    "metadata": "io.github.liongalahad.nuviotv.settings.provider.local_downloads",
+    "classes": [
+      "io.github.liongalahad.nuviotv.extension.playback.localdownloads.Extension",
+      "io.github.liongalahad.nuviotv.extension.playback.localdownloads.LocalDownloadsRuntime",
+      "io.github.liongalahad.nuviotv.extension.playback.localdownloads.LocalDownloadsService",
+      "io.github.liongalahad.nuviotv.extension.playback.localdownloads.LocalDownloadsProgressActivity",
+      "io.github.liongalahad.nuviotv.extension.playback.localdownloads.LocalDownloadsDeleteActivity",
+      "io.github.liongalahad.nuviotv.extension.playback.localdownloads.LocalDownloadsManagerActivity",
+      "io.github.liongalahad.nuviotv.extension.playback.localdownloads.LocalDownloadsEntryActionActivity",
+      "io.github.liongalahad.nuviotv.extension.playback.localdownloads.LocalDownloadsMovieActionActivity",
+      "io.github.liongalahad.nuviotv.extension.playback.localdownloads.LocalDownloadsDeleteAllActivity",
+      "io.github.liongalahad.nuviotv.extension.playback.localdownloads.LocalDownloadsRefreshState",
+      "io.github.liongalahad.nuviotv.extension.playback.localdownloads.LocalDownloadsTvUi",
+      "io.github.liongalahad.nuviotv.extension.playback.localdownloads.LocalDownloadsDefaultFolderAccessActivity",
+      "io.github.liongalahad.nuviotv.extension.playback.localdownloads.LocalDownloadsSettings",
+      "io.github.liongalahad.nuviotv.extension.playback.localdownloads.LocalDownloadsStorageStats",
+      "io.github.liongalahad.nuviotv.extension.playback.localdownloads.LocalDownloadsSettingsCategory",
+      "io.github.liongalahad.nuviotv.extension.playback.localdownloads.LocalDownloadsSettingsContent",
+      "io.github.liongalahad.nuviotv.extension.settings.MorpheStoragePath",
+      "io.github.liongalahad.nuviotv.extension.settings.MorpheStorageConsumers",
+      "io.github.liongalahad.nuviotv.extension.settings.MorpheStorageSettingsCategory",
+      "io.github.liongalahad.nuviotv.extension.settings.MorpheStorageSettingsContent",
+      "io.github.liongalahad.nuviotv.extension.settings.MorpheStorageFolderPickerActivity",
+      "io.github.liongalahad.nuviotv.extension.settings.MorpheStorageInternalFolderPickerActivity"
+    ],
+    "needles": [
+      "Allow local downloads",
+      "Download to storage",
+      "Download in progress...",
+      "Play local file",
+      "Delete local file",
+      "Downloaded",
+      "Downloads",
+      "Delete all downloads",
+      "Maximum usable selected storage",
+      "Autoplay local storage when available",
+      "Local storage path"
+    ],
+    "forbiddenNeedles": [],
+    "smali": [
+      {
+        "class": "na.k1",
+        "required": [
+          "invoke-static/range {p0 .. p2}, Lio/github/liongalahad/nuviotv/extension/playback/localdownloads/LocalDownloadsRuntime;->renderDownloadedEpisodeBadge(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V"
+        ],
+        "forbidden": [
+          "renderDownloadedEpisodeBadge(Ljava/lang/Object;ZLjava/lang/Object;)V"
+        ]
+      },
+      {
+        "class": "c0.u",
+        "required": [
+          ".field public static final a:Lc0/u;",
+          ".method public final a(Lu1/q;Lu1/i;)Lu1/q;"
+        ],
+        "forbidden": []
+      },
+      {
+        "class": "w.n",
+        "required": [
+          ".method public static final g(Lu1/q;JLb2/u0;)Lu1/q;"
+        ],
+        "forbidden": []
+      }
+    ]
+  },
+  "focusedTests": [
+    "LocalDownloadsRuntimeTest, LocalMediaRuntimeTest and generic storage write-capability tests",
+    "isolated application on all declared APK assets",
+    "combined application with Local Media and every current optional patch",
+    "TV AVD real transfer of a small direct progressive source for a series episode"
+  ],
+  "acceptance": [
+    "Settings > Morphe > Playback shows Allow local downloads above Show local storage in Library when both patches are installed",
+    "Local Downloads and autoplay default on for fresh preferences; the native Maximum usable selected storage slider defaults to 80%, with positions 1, 5, 10 through 100, and stored choices remain authoritative",
+    "Startup and toggle changes never request storage; the first Download action requests access only when needed, denial leaves Downloads on with a retryable Storage access required message, and one grant is usable by Local Media",
+    "One unsectioned Local storage path row remains at the bottom whenever Local Downloads or Local Media is installed and is greyed and unfocusable only while both features are off",
+    "Local Downloads applies and runs without Local Media, and Local Media applies and runs without Local Downloads",
+    "Every title options dialog that contains Play manually also contains Download to storage while enabled",
+    "For the exact movie or episode currently downloading, every Download to storage action becomes Download in progress... and restores the hidden progress popup without starting another transfer",
+    "Selecting Download to storage opens Nuvio's existing manual source picker and consumes the resolved source without starting playback",
+    "Download mode remains active for every source selected in the same picker session and clears only after leaving that picker",
+    "Torrent, YouTube, HLS and DASH sources are rejected with a clear direct-source message",
+    "A source larger than the configured percentage of currently free storage is rejected before transfer, with smaller-source guidance",
+    "The progress popup reports bytes and percentage, identifies episodes as Title · SnnEnn, keeps movie titles unchanged, allows Hide to keep the foreground transfer running, and removes the partial file on Cancel",
+    "Cancel disconnects a source check that is still blocked and returns from Cancelling without waiting for the network timeout",
+    "Settings and progress both show one-decimal used/total GB for the volume containing Local storage path, followed by parenthesized percent full",
+    "The TV-native D-pad folder picker lists mounted internal, SD-card and USB volumes through Android StorageManager and persists the selected volume across relaunches",
+    "While Local Downloads is enabled, raw paths pass a real create/delete probe and SAF paths include a persisted write grant before selection is saved; Local Media alone remains read-only capable",
+    "Every Download action revalidates a saved path and reopens write-capable folder selection after permission revocation, a read-only remount or folder removal before resolving a source",
+    "If selected removable storage is disconnected, usage is reported unavailable and downloads fail with reconnection guidance instead of silently using internal storage",
+    "A hidden successful download reopens the completion popup unless full-screen playback is active",
+    "Movies use a sanitized title folder; series episodes use a sanitized Title - Season n folder; addon subtitle sidecars share the video basename",
+    "Only addon subtitles matching Nuvio's preferred primary or secondary subtitle language are downloaded",
+    "Play local file appears for an exact downloaded title or episode and routes through Nuvio's player with catalogue identity preserved",
+    "Delete local file removes the exact downloaded video and indexed subtitle sidecars, removes the folder only when empty, and immediately removes its episode badge",
+    "Downloads lists only indexed Nuvio downloads with separated rows and a visible TV focus cursor; pressing an entry plays it, holding it opens Play and Delete actions, and Delete all downloads never removes manually copied files",
+    "Downloaded episodes show a native-feeling circular arrow-down badge at the top-right inset mirroring Nuvio's watched tick",
+    "Enabled movie detail pages show the arrow-down action immediately right of Watched using the same native spacing, selected colours and D-pad focus enlargement",
+    "The movie detail action opens a one-Back popup whose undownloaded state enters the existing source picker and whose downloaded state offers Play local file and Delete local file",
+    "Movie detail and Play long-press resolve downloaded movies by stable catalogue content id even when the selected source video id differs",
+    "Autoplay local storage when available replaces only an exact normal-play route and never changes manual source selection",
+    "Local Media recognizes both exact and language-tagged subtitle sidecars without depending on Local Downloads",
+    "No source URL or HTTP header is persisted after a download completes",
+    "No crash, ANR, VerifyError, leaked partial file or fatal log occurs during download, hide, cancel, completion or local playback"
+  ]
+}

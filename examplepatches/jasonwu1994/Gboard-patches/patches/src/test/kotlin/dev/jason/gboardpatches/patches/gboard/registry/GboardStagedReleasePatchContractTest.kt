@@ -15,7 +15,7 @@ class GboardStagedReleasePatchContractTest {
         val activeRegistry = registry.replace(Regex("(?s)/\\*.*?\\*/"), "")
         val names = generatedPublishedPatches().map { patch -> patch.get("name").asString }
 
-        assertEquals(35, names.size)
+        assertEquals(36, names.size)
         PUBLISHED_PATCHES.forEach { published ->
             assertTrue(registry.contains("val ${published.declaration} = gboardPublicResourcePatch("))
             assertTrue(activeRegistry.contains("val ${published.declaration} = gboardPublicResourcePatch("))

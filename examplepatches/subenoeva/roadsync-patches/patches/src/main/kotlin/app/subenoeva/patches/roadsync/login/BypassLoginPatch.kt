@@ -81,5 +81,24 @@ val bypassGoogleLoginPatch = bytecodePatch(
         listOf(TokenEmptyHandlerFingerprint, TokenEmptyHandlerOffFingerprint).forEach {
             it.method.addInstructions(0, "return-object p1")
         }
+
+        // First-run onboarding shows the login screen directly (HomeActivity -> OnboardingActivity
+        // -> OnboardingLoginFragment), NOT through the blocker patched above. Invoke the app's own
+        // skipSignIn() (E0) at the very start of onViewCreated: it sets the onboarding state to
+        // CONSENT and posts goToNextEvent with no server call, and the observer this same method
+        // registers delivers it once the view lifecycle reaches STARTED, navigating past login.
+        //
+        // The call MUST go in at index 0. `this` lives in register p0 only at method entry; R8
+        // reuses that physical register later in the body to hold an Observer lambda, so injecting
+        // near the return makes the verifier see p0 as SabFragment$sam$...$Observer$0 and reject the
+        // class (VerifyError -> crash). b0() is the PRIVATE FINAL view-model getter (invoke-direct).
+        OnboardingLoginAutoSkipFingerprint.method.addInstructions(
+            0,
+            """
+                invoke-direct { p0 }, Lcom/drivemode/sab/onboarding/setup/login/OnboardingLoginFragment;->b0()Lcom/drivemode/sab/onboarding/setup/login/OnboardingLoginViewModel;
+                move-result-object v0
+                invoke-virtual { v0 }, Lcom/drivemode/sab/onboarding/setup/login/OnboardingLoginViewModel;->E0()V
+            """,
+        )
     }
 }

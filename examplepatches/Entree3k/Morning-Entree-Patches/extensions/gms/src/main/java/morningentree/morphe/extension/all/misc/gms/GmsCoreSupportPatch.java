@@ -1,0 +1,51 @@
+package morningentree.morphe.extension.all.misc.gms;
+
+import android.app.Activity;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.widget.Toast;
+
+@SuppressWarnings("unused")
+public class GmsCoreSupportPatch {
+
+    private static String getOriginalPackageName() {
+        return null; // Patched at build time to return the original package name.
+    }
+
+    private static String getGmsCoreVendorGroupId() {
+        return "app.revanced"; // Patched at build time to return the user-selected vendor.
+    }
+
+    public static void checkGmsCore(Context context) {
+        try {
+            String originalPackageName = getOriginalPackageName();
+            if (originalPackageName != null &&
+                    originalPackageName.equals(context.getPackageName())) {
+                // App is running under original package name (root mount) — skip check.
+                return;
+            }
+
+            String gmsCoreVendor = getGmsCoreVendorGroupId();
+            String gmsCorePackage = gmsCoreVendor.endsWith(".android.gms")
+                    ? gmsCoreVendor
+                    : gmsCoreVendor + ".android.gms";
+
+            try {
+                context.getPackageManager()
+                        .getPackageInfo(gmsCorePackage, PackageManager.GET_ACTIVITIES);
+            } catch (PackageManager.NameNotFoundException e) {
+                // GmsCore not installed — show toast.
+                Toast.makeText(
+                        context,
+                        "MicroG / GmsCore (" + gmsCorePackage + ") is not installed. " +
+                                "Google sign-in will not work.",
+                        Toast.LENGTH_LONG
+                ).show();
+            }
+        } catch (Exception ignored) {}
+    }
+
+    public static void checkGmsCore(Activity activity) {
+        checkGmsCore((Context) activity);
+    }
+}

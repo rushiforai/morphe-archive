@@ -1,5 +1,88 @@
 # Roadmap
 
+
+# Roadmap entries written by the user verbatim.
+
+make the import look nicer
+
+some settings disabled like grammer check and ai writing tools, rambler mode etc
+
+flick up to undo autocorrect 
+
+gesture down on a to select all?
+
+increased tool bar size fit more buttons
+
+clean up the current changelog, remove all bump commits from the changelog, and make the past stable releases show all commits from the dev releases before it
+
+
+## Done from the queue
+
+- **"redo settings to use native gboard"** (1.4.0-dev, after dev.2): the settings screen is hosted
+  by Gboard's own settings stack — the row's `android:fragment` instantiates an extension fragment
+  subclassing `CommonPreferenceFragment` (compile-only stub; see `stubs/`), the screen is a real
+  `res/xml/flexboard_settings.xml` of `InlineSliderPreference` rows, and values persist through the
+  datastore bridge into the same store the swipe patch reads. The hand-built Activity, its theme
+  mirroring and the rename-patch retarget are deleted; old int-typed keys abandoned for
+  `flexboard_swipe_*`. Mechanism and pins: [`docs/gboard-settings-hosting.md`](gboard-settings-hosting.md).
+
+## Historical: the dead merge-splice architecture (kept for context)
+
+Under "Formerly broken / solved by native registration": the old design tried to splice extra
+buttons into the split-method list and hand-merge them against `access_points_showing_order` in
+`ToolbarMerge.merge`. It never landed ordering right, crashed the 4-square customize overflow
+(persistence write couldn't see unregistered ids), and snapped buttons back to the front on
+every rebuild. All of that is deleted; native registration via `emitNativeToolbarButtons` is
+the only way in.
+
+**Summary of the pre-native findings (the 'fix X' series that was wrong-headed):**
+- "ToolbarMerge previously fought itself: merged-by-pairs-approach produced duplicates and drift" — fixed by deleting ToolbarMerge.
+- "Hotkey.labelAt returns '' / hasContent / hotkeySlotOf" — fixed by deleting Hotkey.
+- "`addInstructionsWithLabels` chokes on two sequential insertions" — still true; emission is label-free everywhere.
+- "?attr/colorControlNormal does not resolve at recompile time" — still true; don't use AppCompat attrs.
+- "The settings Activity should render only enabled sections via markers" — deferred by user.
+
+## Pending (investigated, needs implementation)
+
+**Bigger Toolbar and Hotkeys return natively.** The user deleted these in the cleanup sweep;
+each needs a fresh rewrite on the native registration helper. Bigger Toolbar overrides
+`definedCountOnBar` — was unchanged structurally by the merge refactor, but the UI section is
+gone. Hotkeys need enough dormant allowed-set ids to make it useful; past scope, see "widening
+0x7f0300dc" below.
+
+**Widen the allowed-set array when hotkeys return.** Done — `ToolbarSlotsPatch` splices the
+twelve `flexboard_hotkey_N` ids into the allowed-set array via `res/values` (strings + items),
+zero dex change; research in [`docs/toolbar-access-points.md`](toolbar-access-points.md). Inert
+until a patch registers those ids — which is the hotkeys return, when it comes.
+
+**Rolled back: the 1.4.0-dev.1–dev.5 native hotkeys.** The dex side was solid (conditional
+`Lmlh` blocks + the `Lmjv;->c` order-filter bypass), but the feature's per-slot ListPreference
+screens needed two string-array entries in `res/values/`, and values-file surgery failed twice
+inside Morphe's encode: once from arsclib minting a fake type out of the filename
+(`flexboard_hotkey_icons.xml` → type `flexboard_hotkey_icon`), once from a splice that left a
+second `<resources>` opening tag mid-file (parse died at `arrays.xml` line 7141). The whole
+stack was reset to the pre-hotkeys base. When hotkeys re-land: keep the dex half, and serve
+the slot pickers **without touching `res/values/`** — hardcode the icon choices in the
+extension's Java and build the lists at runtime.
+
+**Re-landed in 1.4.0-dev.4** on the widened allowed-set array instead of the filter bypass:
+extension core (`499af89`), registration + settings rows (`fc80d12`) — count slider,
+twelve inline text EditText rows, label/labelOf fixes and trailing-nop carried over — and the
+import/export blob row (`3ba0de6`), later replaced by real Export/Import buttons. Slot icons
+default from the bundled-glyph table and are user-changeable again, wired through the ported
+click hook (`aA`) that finally exists. The ui went through two passes: first tap-to-cycle rows
+(superseded — user feedback), then the current **picker grid dialog** off the tapped row's own
+activity context, with export/import as a show-the-blob / paste-the-blob popup pair.
+`IconListPreference` was skipped deliberately: its icon list arrives through the extras *Bundle*,
+which no XML inflater in the port populates.
+
+Device note, resolved in dev.5: slots also re-register from the toolbar module's start-input
+callback (`Lmln.fn`), so a settings edit takes effect when the keyboard next opens. The
+constructor emission stays as the session seed. (The count slider went away too: slots ship as
+numbered placeholders, clear-text to hide.)
+
+
+
 ## Native registration (being proven out — Parked)
 
 The "Pending (investigated, needs implementation)" section above named the right goal but
@@ -86,6 +169,49 @@ hotkey patch returns in native form.
 
 **Toolbar crash on clicking the 4-square overflow icon.** Reproduces as a crash depending on state; likely the icons where a draw with our registered ids into Customize's key paths. Needs a device logcat to identify. Likely related to not persisting: the customize view expects reordable ids, ours are absent, and the difference in list contents likely crashes the section/commit handler with an unexpected value.
 
+## Parked: grey out settings rows for un-ticked patches
+
+Replaces the older "conditional settings sections" idea (dead: re-deriving patch selection at
+build time; shared-file finalize ordering between patches would be a new, unproven assumption;
+checkers would have to weaken their exact row sets). **This design keeps the static screen and
+verifies everything statically — the only runtime question is which probe says a feature is in.**
+
+Why it was kicked down the road in Aug 2026: worth doing, not urgent — the only always-visible
+inert row today is the swipe slider, and the hotkeys block *works* even with its engine unticked
+(it accumulates prefs that go live on a later tick).
+
+**Step 1 — how the screen knows what was patched in (per feature):**
+
+- *Hotkeys: free probe, zero patch code.* `ToolbarSlotsPatch` splices `flexboard_hotkey_N`
+  strings into resources, so `getIdentifier("flexboard_hotkey_1", "string", pkg) != 0` at
+  runtime == hotkeys are in the APK. Nothing to write, nothing to stale.
+- *Swipe (and anything without a resource probe): store marker.* The feature patch seeds
+  `flexboard_feature_swipe=1` from the app-start hook (the `SeedDefaultsPatch` shape: one
+  fingerprint-anchored call into an extension writer). Known caveat: repatching *without* the
+  feature leaves the marker behind (prefs survive). Parked decision: acceptable on the dev
+  channel; if it ever matters, version the marker value with a build stamp.
+
+**Step 2 — what "greyed" renders as (two tiers):**
+
+- *Tier 1 — text-disabled, zero new dex surface:* the existing first-tap sync pass
+  (`FlexboardSettingsFragment.syncRowIconsOnce`, post-popup-build version) also reads the
+  probes; rows whose feature is absent get a summary like "needs the Swipe to Delete patch"
+  and `aA` short-circuits them (still returns true — no dialog, no cycle). No new pinned
+  letters, fragment already falls through `d()` nulls safely. ~40 extension lines + the marker
+  seed; checker contract untouched (rows always exist).
+- *Tier 2 — visual disable:* `setEnabled(false)` on the port — findable the way `n`/`N` were
+  (`performClick`'s `ac()Z` reads the enabled field; the letter writing it is one `(... Z)V`
+  away). Adds exactly one preflight pin. Real grey, at the cost of a bind-flash: rows look
+  enabled from inflation until the first sync pass, because the port offers no row-bind hook
+  the stub can override (same staleness story as the icons — accepted there too).
+
+Do NOT weaken the checker lanes to build this: the row-count pin and key-family rules keep exact
+sets; greyness is a runtime decision read off properties that don't touch the XML.
+
+Trigger to revisit Tier 2 or conditional sections for real: the screen collecting several more
+always-visible sections, or a feature whose inert rows actively mislead (user moves a slider,
+nothing happens, no hint why).
+
 ## Earlier observations to not lose
 
 - `ToolbarMerge` previously fought itself: merged-by-pairs-approach produced duplicates and drift. Simplified to: always prepend, never read the order.
@@ -95,27 +221,6 @@ hotkey patch returns in native form.
 - morphe-patcher's `addInstructionsWithLabels` (label-aware smali insertion) chokes on two sequential insertions into one method if labels are involved (`ArrayIndexOutOfBoundsException: length=0`). The fix is to remove labels from the inserted bytecode entirely (avoid `if-eqz`-generated `:absent` chains); branchless smali survives.
 - The settings Activity should render only enabled sections via markers — parked pending a decision; user's roadmap entry says "hotkeys and toolbar config still in flexboard settings when they arent patched; settings should only be added with the patches".
 
-# Roadmap entries written by the user verbatim.
-
-swipe length seem to be reversed? lower value takes more swipe to swipe multiple words on the delete key
-
-update settings to match rest of gboard
-
-some settings disabled like grammer check and ai writing tools, rambler mode etc
-
-flick up to undo autocorrect 
-
-gesture down on a to select all
-
-use graph 6 material icon for fleksy settings
-
-increased tool bar size fit more buttons
-
-ok now clean up the current changelog, remove all bump commits from the changelog, and make the past stable releases show all commits from the dev releases before it
-
-read the package rename patch from morphe, and see if any improvments can be made to ours, or should we just use theirs.
-
-Task 4 — Already shipped per the roadmap. The settings screen inherits Gboard's theme (colours, Material You), uses framework-only widgets, and approximates androidx metrics. The remaining gap is structural: Gboard uses SwitchPreferenceCompat and custom slider preferences, which the extension can't use without resources. Needs device testing to identify specific visual gaps.
 
 ## Shipped
 
@@ -125,16 +230,16 @@ The list above is kept as written; this notes which of it has landed, rather tha
   the colours follow it including Material You, and the metrics match androidx preference rows.
 - **can we make the backspace swipe work as before without being limited to max 1 word delete** — a
   swipe starting on the backspace key keeps Gboard's distance per word and is not capped.
-- **increased tool bar size fit more buttons** — *Bigger Toolbar*, a 3–12 slider for the number of
-  icons on the access points bar. Shipped in `1.1.0-dev.1` and did nothing, withheld in
-  `1.1.0-dev.2`, rebuilt against the right target: it had been raising the bar's *capacity*, which
-  the count is computed from but not bound by. The count itself is now overridden, above both of the
-  gates that were discarding the capacity. Also covers **max tool icon slider isnt working**.
+- **increased tool bar size fit more buttons** — *Bigger Toolbar*, raise-only slider for the
+  bar's capacity (the max Gboard allows before pushing to overflow). Deferred to a later release;
+  the mechanism and seam are researched in [`docs/toolbar-capacity.md`](toolbar-capacity.md) —
+  one stock-capacity tail patch plus staging Gboard's own count prefs. Also covers **max tool
+  icon slider isnt working**.
 
-- **tool bar amount used to be different between inner and outer screen of a fold** — it was, and
-  the first cut of *Bigger Toolbar* flattened it: Gboard picks its count preference by device class,
-  a fold changes class when it opens, and overriding at entry returned before that choice. There are
-  now two sliders, the second applying only while unfolded and falling back to the first.
+- **tool bar amount used to be different between inner and outer screen of a fold** — covered
+  natively by the capacity plan: Gboard already branches the count preference by device class
+  (`foldable_access_points_count_on_bar` vs `access_points_count_on_bar`), and the first cut of
+  (deferred) *Bigger Toolbar* writes both, so inner/outer tracks one slider each.
 
 - **add select all copy paste hotkeys** — *Text Editing Buttons* puts one-tap **Select all**,
   **Copy** and **Paste** on the toolbar. Cut is not built; it is the same shape again, one entry in

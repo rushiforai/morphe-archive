@@ -16,7 +16,7 @@ import dev.jz6.flexboard.patches.features.swipetodelete.HANDLER_CONTEXT_FIELD_NA
 import dev.jz6.flexboard.patches.features.swipetodelete.HANDLER_CONTEXT_OWNER
 import dev.jz6.flexboard.patches.features.swipetodelete.INTEGER_VALUE_OF
 import dev.jz6.flexboard.patches.features.swipetodelete.checkPreferenceStorePins
-import dev.jz6.flexboard.patches.features.swipetodelete.resolvePreferenceGetInt
+import dev.jz6.flexboard.patches.features.swipetodelete.resolvePreferenceGetParsedInt
 import dev.jz6.flexboard.patches.features.swipetodelete.PREFERENCE_STORE_GET
 import dev.jz6.flexboard.patches.features.swipetodelete.SCRUB_DELETE_MOTION_EVENT_HANDLER
 import dev.jz6.flexboard.patches.features.swipetodelete.SCRUB_MOTION_EVENT_HANDLER
@@ -26,7 +26,6 @@ import dev.jz6.flexboard.patches.features.swipetodelete.resolveStartKeyChain
 import dev.jz6.flexboard.patches.features.swipetodelete.ScrubDeleteConstructorFingerprint
 import dev.jz6.flexboard.patches.features.swipetodelete.ScrubDispatchFingerprint
 import dev.jz6.flexboard.patches.features.swipetodelete.ScrubEngineConstructorFingerprint
-import dev.jz6.flexboard.patches.features.settings.scrubSettingsScreenPatch
 import dev.jz6.flexboard.patches.shared.ANDROID_CONTEXT
 import dev.jz6.flexboard.patches.shared.Constants.COMPATIBILITY_GBOARD
 import dev.jz6.flexboard.patches.shared.PACKED_INVOKE_REGISTER_LIMIT
@@ -62,10 +61,15 @@ import dev.jz6.flexboard.patches.shared.validateScratchRegisters
  * See `docs/motion-event-handlers.md` for how the engine was derived.
  */
 internal val scrubTuningPatch = bytecodePatch(
-    description = "Reads the swipe length, word cap and hold delay from Gboard's preference " +
-        "store, so the scrub engine's feel can be adjusted from its settings.",
+    description = "Reads the swipe length and word cap from Gboard's preference " +
+        "store, so the scrub engine's feel can be adjusted from its settings. " +
+        "Hold delay is fixed at 0 — its settings row was dropped; everyone wants hold-none.",
 ) {
     compatibleWith(COMPATIBILITY_GBOARD)
+
+    // The seed is swipe-scoped (it writes exactly the keys this patch reads), so it hangs off the
+    // swipe tree rather than the base patch — deselecting Swipe to Delete now skips both.
+    dependsOn(seedDefaultsPatch)
 
     execute {
         checkPreferenceStorePins()
@@ -88,14 +92,21 @@ internal val scrubTuningPatch = bytecodePatch(
  * string-keyed getter alongside its resource-id one, and a *new* resource has no id until aapt2
  * recompiles, which is long after this patch runs. Literals sidestep the problem entirely.
  *
- * **These three are duplicated in `FlexboardSettingsActivity`**, which writes what this reads. They
- * cannot be shared: that class is compiled into the extension DEX, a separate Gradle module with no
- * dependency on the patches. Changing one without the other silently decouples the slider from the
- * value the engine uses, so both sides carry a comment pointing at the other.
+ * **These are set by `res/xml/flexboard_settings.xml`**, written by `SettingsScreenPatch` — the
+ * native slider rows persist integer-as-string values under them through Gboard's own preference
+ * datastore. Two things follow: the readers below use the store's *parsing* getInt (see
+ * `resolvePreferenceGetParsedInt` in `Fingerprints.kt`), and none of these keys can change without
+ * the XML moving with it. `check_shared_constants.py` compares the two files and fails the build
+ * when they drift.
+ *
+ * The `_swipe_` keys are the second generation — the hand-built Activity's int-typed
+ * `flexboard_max_words`/`flexboard_scrub_hold_ms` were abandoned without migration when the screen
+ * went native, because a String at an int key makes the old typed getter throw. The step-scale
+ * seed keeps its original int-typed key: nothing uses a UI value for it.
  */
 internal const val STEP_SCALE_KEY = "flexboard_scrub_step_scale"
-internal const val HOLD_DELAY_KEY = "flexboard_scrub_hold_ms"
-internal const val MAX_WORDS_KEY = "flexboard_max_words"
+internal const val HOLD_DELAY_KEY = "flexboard_swipe_hold_ms"
+internal const val MAX_WORDS_KEY = "flexboard_swipe_max_words"
 
 /**
  * Percent of Gboard's own swipe distance.
@@ -133,10 +144,19 @@ internal const val MAX_WORDS_DEFAULT = 1
 /**
  * The slider's top position, and "no limit": at or above it the clamp is skipped entirely, leaving
  * the engine's progressive delete exactly as Gboard wrote it. **Not the default**, for the same
- * reason as [STEP_SCALE_IDENTITY] — sharing them would put the sentinel at 1 and disable the cap at
- * every setting.
+ * reason as [STEP_SCALE_IDENTITY] — sharing them would put the sentinel at 1 and disable the cap
+ * at every setting.
  */
 internal const val MAX_WORDS_NO_LIMIT = 10
+
+/**
+ * The sliders' span, mirrored into `flexboard_settings.xml` by attributes — see the key docs above
+ * for why a file the build checker does not compare would be a silent breakage. These exist on the
+ * Kotlin side only so `check_shared_constants.py` can assert the XML agrees; nothing emits them.
+ */
+internal const val MAX_WORDS_MIN = 1
+internal const val HOLD_DELAY_MIN = 0
+internal const val HOLD_DELAY_MAX = 300
 
 /** `regs=11, ins=4` — asserted so the scratch register below is provably the one that was read. */
 private const val ENGINE_CONSTRUCTOR_REGISTER_COUNT = 11
@@ -180,7 +200,7 @@ private const val STEPS_DONE_LABEL = "flexboard_steps_done"
  * id can silently mislead it.
  */
 private fun MutableMethod.substituteHoldDelay(context: BytecodePatchContext) {
-    val getInt = context.resolvePreferenceGetInt()
+    val getInt = context.resolvePreferenceGetParsedInt()
     assertRegisterCount(ENGINE_CONSTRUCTOR_REGISTER_COUNT, THREE_ARGUMENT_ENGINE_CONSTRUCTOR)
 
     val forwardIndex = instructions.indexOfSoleCall(
@@ -249,7 +269,7 @@ private fun MutableMethod.substituteHoldDelay(context: BytecodePatchContext) {
  * static* fallback, so the scaling is skipped rather than corrupting global state.
  */
 private fun MutableMethod.scaleStepTable(context: BytecodePatchContext) {
-    val getInt = context.resolvePreferenceGetInt()
+    val getInt = context.resolvePreferenceGetParsedInt()
     val registerCount = assertRegisterCount(
         DELETE_CONSTRUCTOR_REGISTER_COUNT,
         "$SCRUB_DELETE_MOTION_EVENT_HANDLER-><init>",
@@ -362,7 +382,7 @@ private fun MutableMethod.capWordCount(
     context: BytecodePatchContext,
     startKey: StartKeyChain,
 ) {
-    val getInt = context.resolvePreferenceGetInt()
+    val getInt = context.resolvePreferenceGetParsedInt()
     val (thisRegister, resolvedHandlerContext) = resolveDispatchEntry(context)
 
     // Boxing the payload is what identifies the count register beyond doubt.
@@ -518,7 +538,7 @@ private fun MutableMethod.useStockDistanceFromBackspace(
     context: BytecodePatchContext,
     startKey: StartKeyChain,
 ) {
-    val getInt = context.resolvePreferenceGetInt()
+    val getInt = context.resolvePreferenceGetParsedInt()
     val (thisRegister, resolvedHandlerContext) = resolveDispatchEntry(context)
 
     // `Math.abs` is the one unambiguous landmark in the walk; the delta is simply what it is

@@ -42,4 +42,15 @@ object Constants {
             AppTarget(version = "3.0.3")
         )
     )
+
+    // CapCut (international): https://apkpure.net/capcut-video-editor/com.lemon.lvoverseas
+    val COMPATIBILITY_CAPCUT = Compatibility(
+        name = "CapCut",
+        packageName = "com.lemon.lvoverseas",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x00C4CC,
+        targets = listOf(
+            AppTarget(version = "19.2.0")
+        )
+    )
 }

@@ -82,10 +82,93 @@ val buildPinPlaylistExtension = tasks.register<Exec>("buildPinPlaylistExtension"
     }
 }
 
+val bunnyClasses = project(":extensions:discord").layout.buildDirectory.dir(
+    "intermediates/javac/release/compileReleaseJavaWithJavac/classes",
+)
+val bunnyJarDirectory = layout.buildDirectory.dir("tmp/bunny")
+val bunnyJar = bunnyJarDirectory.map { it.file("bunny.jar") }
+val bunnyDexDirectory = layout.buildDirectory.dir("tmp/bunny/dex")
+val bunnyResources = layout.buildDirectory.dir(
+    "generated/bunny-extension",
+)
+val buildBunnyJar = tasks.register<Jar>("buildBunnyJar") {
+    dependsOn(":extensions:discord:compileReleaseJavaWithJavac")
+    archiveFileName.set("bunny.jar")
+    destinationDirectory.set(bunnyJarDirectory)
+    from(bunnyClasses) {
+        include("app/morphe/extension/discord/bunny/**")
+    }
+}
+
+val buildBunnyExtension = tasks.register<Exec>("buildBunnyExtension") {
+    dependsOn(buildBunnyJar)
+    inputs.file(bunnyJar)
+    outputs.file(
+        bunnyResources.map { it.file("extensions/bunny.mpe") },
+    )
+
+    doFirst {
+        val sdkRoot = sequenceOf(
+            providers.environmentVariable("ANDROID_SDK_ROOT").orNull,
+            providers.environmentVariable("ANDROID_HOME").orNull,
+            providers.environmentVariable("LOCALAPPDATA").orNull
+                ?.let { "$it/Android/Sdk" },
+        )
+            .filterNotNull()
+            .map(::file)
+            .firstOrNull { it.isDirectory }
+            ?: error("Android SDK not found")
+
+        val buildToolsDirectory = sdkRoot.resolve("build-tools")
+        val d8 = buildToolsDirectory.listFiles()
+            ?.asSequence()
+            ?.filter { it.isDirectory }
+            ?.mapNotNull { directory ->
+                runCatching {
+                    org.gradle.util.GradleVersion.version(directory.name)
+                }.getOrNull()?.let { version -> directory to version }
+            }
+            ?.sortedByDescending { (_, version) -> version }
+            ?.flatMap { (directory, _) ->
+                sequenceOf(
+                    directory.resolve("d8"),
+                    directory.resolve("d8.bat"),
+                )
+            }
+            ?.firstOrNull { it.isFile }
+            ?: error("D8 not found under: $buildToolsDirectory")
+
+        delete(bunnyDexDirectory)
+        bunnyDexDirectory.get().asFile.mkdirs()
+
+        commandLine(
+            d8,
+            "--release",
+            "--min-api",
+            "24",
+            "--output",
+            bunnyDexDirectory.get().asFile,
+            bunnyJar.get().asFile,
+        )
+    }
+
+    doLast {
+        val output = bunnyResources.get()
+            .file("extensions/bunny.mpe").asFile
+
+        output.parentFile.mkdirs()
+
+        bunnyDexDirectory.get()
+            .file("classes.dex")
+            .asFile
+            .copyTo(output, overwrite = true)
+    }
+}
+
 patches {
     about {
         name = "Seobjects Random Patches"
-        description = "Random QoL Patches"
+        description = "Random QoL patches"
         source = "git@github.com:Seobject/Seobject-patches.git"
         author = "Seobject"
         contact = "na"
@@ -109,16 +192,7 @@ dependencies {
 
 tasks {
     processResources {
-        dependsOn(buildPinPlaylistExtension)
-    }
-
-    register<JavaExec>("checkStringResources") {
-        description = "Checks resource strings for invalid formatting"
-
-        dependsOn(build)
-
-        classpath = sourceSets["main"].runtimeClasspath
-        mainClass.set("app.morphe.patches.util.resource.CheckStringResourcesKt")
+        dependsOn(buildPinPlaylistExtension, buildBunnyExtension)
     }
 
     register<JavaExec>("generatePatchesList") {
@@ -139,10 +213,12 @@ kotlin {
     sourceSets.named("main") {
         kotlin.setSrcDirs(listOf("src/main/kotlin"))
         resources.srcDir(pinPlaylistResources)
+        resources.srcDir(bunnyResources)
         kotlin.include(
             "app/morphe/patches/music/layout/pinplaylist/**",
             "app/seobject/patches/music/Compatibility.kt",
-            "app/seobject/patches/music/settings/**",
+            "app/morphe/patches/discord/**",
+            "app/seobject/patches/discord/**",
         )
     }
 
@@ -152,5 +228,5 @@ kotlin {
 }
 
 tasks.named("sourcesJar") {
-    dependsOn("buildPinPlaylistExtension")
+    dependsOn("buildPinPlaylistExtension", "buildBunnyExtension")
 }

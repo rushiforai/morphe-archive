@@ -7,6 +7,7 @@ import java.util.List;
 
 import dev.jason.gboardpatches.extension.R;
 import dev.jason.gboardpatches.extension.accessibilitylayout.GboardAccessibilityLayoutSettingsFeature;
+import dev.jason.gboardpatches.extension.accesspointcount.GboardAccessPointCountSettingsFeature;
 import dev.jason.gboardpatches.extension.accesspointsmenu.GboardAccessPointsMenuSettingsFeature;
 import dev.jason.gboardpatches.extension.closeproactivesuggestions.GboardCloseProactiveSuggestionsSettingsFeature;
 import dev.jason.gboardpatches.extension.emojisize.GboardEmojiSizeSettingsFeature;
@@ -49,7 +50,8 @@ public final class GboardKeyboardLayoutSettingsGroupFeature
                         new GboardAccessPointsMenuSettingsFeature(context),
                         new GboardSplitKeyboardSettingsFeature(context),
                         new GboardAccessibilityLayoutSettingsFeature(context),
-                        new GboardRoundedKeyboardSettingsFeature(context)));
+                        new GboardRoundedKeyboardSettingsFeature(context),
+                        new GboardAccessPointCountSettingsFeature(context)));
     }
 
     @Override

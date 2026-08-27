@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-08-25T20:35:57",
-  "description": "## [1.29.3](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.29.2...v1.29.3) (2026-08-25)\n\n\n### Bug Fixes\n\n* **hbomax:** enable Block SSAI Ad Origins by default ([#134](https://github.com/ajstrick81/morphe-androidtv-patches/issues/134)) ([df5a33a](https://github.com/ajstrick81/morphe-androidtv-patches/commit/df5a33ac50824010f3264f6cfb4d3e0d31b4a875)), closes [#125](https://github.com/ajstrick81/morphe-androidtv-patches/issues/125) [#125](https://github.com/ajstrick81/morphe-androidtv-patches/issues/125)",
-  "download_url": "https://github.com/ajstrick81/morphe-androidtv-patches/releases/download/v1.29.3/patches-1.29.3.mpp",
+  "created_at": "2026-08-27T01:57:33",
+  "description": "# [1.30.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.29.4...v1.30.0) (2026-08-27)\n\n\n### Features\n\n* **hbomax:** prefer HBO's ad-free FALLBACK stream (clean SSAI fix, [#125](https://github.com/ajstrick81/morphe-androidtv-patches/issues/125)) ([#137](https://github.com/ajstrick81/morphe-androidtv-patches/issues/137)) ([70b6dd4](https://github.com/ajstrick81/morphe-androidtv-patches/commit/70b6dd40872f2835ec5b40809bed2180fae714e4))",
+  "download_url": "https://github.com/ajstrick81/morphe-androidtv-patches/releases/download/v1.30.0/patches-1.30.0.mpp",
   "signature_download_url": "",
-  "version": "1.29.3"
+  "version": "1.30.0"
 }

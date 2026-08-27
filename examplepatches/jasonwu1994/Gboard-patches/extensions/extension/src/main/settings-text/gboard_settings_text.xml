@@ -248,6 +248,50 @@
         <translation locale="en">Feature</translation>
         <translation locale="zh-Hant">功能</translation>
     </string>
+    <string name="gboard_patches_access_point_count_title">
+        <translation locale="en">Top Toolbar Item Count</translation>
+        <translation locale="zh-Hant">頂端工具列項目數量</translation>
+    </string>
+    <string name="gboard_patches_access_point_count_summary">
+        <translation locale="en"></translation>
+        <translation locale="zh-Hant"></translation>
+    </string>
+    <string name="gboard_patches_access_point_count_error_title">
+        <translation locale="en">Top toolbar item count unavailable</translation>
+        <translation locale="zh-Hant">頂端工具列項目數量設定無法使用</translation>
+    </string>
+    <string name="gboard_patches_access_point_count_error_summary">
+        <translation locale="en">The top toolbar item count settings screen failed to load. Reopen Gboard settings and try again.</translation>
+        <translation locale="zh-Hant">頂端工具列項目數量設定畫面載入失敗。請重新開啟 Gboard 設定再試一次。</translation>
+    </string>
+    <string name="gboard_patches_access_point_count_section">
+        <translation locale="en">Behavior</translation>
+        <translation locale="zh-Hant">行為</translation>
+    </string>
+    <string name="gboard_patches_access_point_count_enabled_title">
+        <translation locale="en">Enable</translation>
+        <translation locale="zh-Hant">啟用</translation>
+    </string>
+    <string name="gboard_patches_access_point_count_enabled_summary">
+        <translation locale="en">Force-stop and restart Gboard for the change to take effect.</translation>
+        <translation locale="zh-Hant">需要強制停止並重新啟動 Gboard 才會生效。</translation>
+    </string>
+    <string name="gboard_patches_access_point_count_value_title">
+        <translation locale="en">Count</translation>
+        <translation locale="zh-Hant">數量</translation>
+    </string>
+    <string name="gboard_patches_access_point_count_value_summary">
+        <translation locale="en">Enter the number of toolbar items, from 3 through 8.</translation>
+        <translation locale="zh-Hant">輸入工具列項目數量，範圍為 3 到 8。</translation>
+    </string>
+    <string name="gboard_patches_access_point_count_value_hint">
+        <translation locale="en">3–8</translation>
+        <translation locale="zh-Hant">3–8</translation>
+    </string>
+    <string name="gboard_patches_access_point_count_value_error">
+        <translation locale="en">Enter a whole number from 3 through 8.</translation>
+        <translation locale="zh-Hant">請輸入 3 到 8 的整數。</translation>
+    </string>
     <string name="gboard_patches_developer_options_title">
         <translation locale="en">Developer options</translation>
         <translation locale="zh-Hant">開發人員選項</translation>

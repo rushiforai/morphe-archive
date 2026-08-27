@@ -9,7 +9,7 @@ Patches for learning
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.18.0](https://github.com/Entree3k/Morning-Entree-Patches/releases/tag/v1.18.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;120 patches total
+> **[v1.19.0](https://github.com/Entree3k/Morning-Entree-Patches/releases/tag/v1.19.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;125 patches total
 <details open>
 <summary>📦 Gboard&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
 <br>
@@ -22,7 +22,7 @@ Patches for learning
 | [Disable telemetry & federated learning](#disable-telemetry-federated-learning) | Forces Gboard's "Improve Gboard" / usage-statistics and federated-learning flags off at startup, regardless of the in-app settings, so your typing is not used for training or metrics. Best combined with the "Network privacy" patch. |  |
 | [Network privacy](#network-privacy) | Controls what Gboard is allowed to talk to. Choose a network level: block only telemetry (keep all features), lock it down to GIFs and voice typing only, or block all internet access. | • Network level<br>• Wildcard blocking |
 | [Remove promotional banners](#remove-promotional-banners) | Hides Gboard's in-keyboard promotional / "try this feature" banners by forcing their promo flags off. Does not disable the underlying features, only their nag banners. |  |
-| [Toggle feature flags](#toggle-feature-flags) | Toggles Gboard feature flags to enable or disable experimental or hidden features. | • Feature flags<br>• Enable feature flags |
+| [Toggle feature flags](#toggle-feature-flags) | Turn Gboard features on with individual switches. Each switch maps to a Gboard feature flag; flip it on to enable that feature. Unknown or already-default flags are skipped safely. | • Email suggestions (from device accounts)<br>• Android Autofill in keyboard<br>• Number row<br>• Fast access bar (symbols row)<br>• Grammar checker<br>• Multilingual typing<br>• Settings search<br>• AI writing tools<br>• Emojify (text to emoji)<br>• Semantic emoji search<br>• Proactive Emoji Kitchen<br>• Expression moment stickers<br>• Sticker predictions while typing<br>• Dynamic art stickers<br>• Trending GIFs<br>• Text conversion (CJK)<br>• Split keyboard (large tablet)<br>• Custom flags to enable (advanced)<br>• Custom flags to disable (advanced) |
 
 </details>
 
@@ -70,6 +70,36 @@ Patches for learning
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Enable Full Version](#enable-full-version) | Unlocks the full version of Smart AudioBook Player |  |
+
+</details>
+
+<details open>
+<summary>📦 Niagara Launcher&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.16.7 | 1.16.15 |
+| :---: | :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Enable Niagara Pro](#enable-niagara-pro) | Unlocks Pro |  |
+
+</details>
+
+<details open>
+<summary>📦 AIO Launcher&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 7.4.2 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Enable Premium](#enable-premium) | Unlocks Premium |  |
 
 </details>
 
@@ -464,6 +494,21 @@ Patches for learning
 </details>
 
 <details open>
+<summary>📦 Square Home 2&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 4.0.10 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Enable Premium](#enable-premium) | Unlocks Premium |  |
+
+</details>
+
+<details open>
 <summary>📦 Super Status Bar&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -565,6 +610,21 @@ Patches for learning
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Enable Pro](#enable-pro) | Enables Appsales Premium. |  |
+
+</details>
+
+<details open>
+<summary>📦 Smart Launcher&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 6.6 build 016 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Enable Pro](#enable-pro) | Enables Pro |  |
 
 </details>
 
@@ -1484,7 +1544,7 @@ Patches for learning
 </details>
 
 <details open>
-<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;14 patches</summary>
+<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;15 patches</summary>
 <br>
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -1494,6 +1554,7 @@ Patches for learning
 | [Change package name](#change-package-name) | Renames the app (default: append ".entree") so it installs as a clone next to the original. The name is configurable. Changing a package name can lead to unexpected issues. | • Package name<br>• Update permissions<br>• Update other permissions<br>• Update content providers |
 | [Disable analytics & ad tracking](#disable-analytics-ad-tracking) | Turns off Firebase / Google Analytics collection and removes the advertising-ID and ad-services permissions. Blocks ad personalization and analytics opt-in without cutting off the app's legitimate network features. Pair with a host blocker to also stop the traffic. |  |
 | [Disable clipboard access](#disable-clipboard-access) | Blocks apps from clipboard access |  |
+| [GmsCore support (MicroG)](#gmscore-support-microg) | Routes Google Play Services calls through MicroG instead of real GPS.<br><br>Works for: Google apps (YouTube, Maps, News, Photos) and third-party apps using classic Google Sign-In (Android 13 and below).<br><br>Does not work for: Android 14+ Credential Manager sign-in (most modern third-party apps), Play Integrity / SafetyNet checks, or apps with custom auth.<br><br>Requires MicroG RE installed. Apply with the original app certificate patch. | • MicroG package name<br>• Main activity class (optional)<br>• Custom package name (optional)<br>• Spoofed signing certificate SHA-256 (optional) |
 | [Provide original app certificate](#provide-original-app-certificate) | Extracts and Base64-encodes the original app's signing certificate. Applied automatically by 'Spoof signature verification'; you normally do not need to touch it. Use 'Certificate source' to control where the certificate comes from. | • Certificate source<br>• Original APK file |
 | [Remove internet permission](#remove-internet-permission) | Removes the INTERNET permission so the app cannot access the network at all. Blocks all trackers, analytics and ads from phoning home, but also disables any legitimate online features. Only enable for apps you want fully offline. |  |
 | [Spoof SIM provider](#spoof-sim-provider) | Spoofs TelephonyManager SIM/network provider values. | • Country ISO<br>• Operator code<br>• Operator name |

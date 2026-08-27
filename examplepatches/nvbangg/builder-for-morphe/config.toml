@@ -141,7 +141,7 @@ changelog-keywords = ["Acrobat"]
 enabled = false
 brand = "rushi"
 apkmirror-dlurl = "https://www.apkmirror.com/apk/proton-technologies-ag/protonvpn-secure-and-free-vpn/"
-changelog-keywords = ["Proton VPN"]
+changelog-keywords = ["Proton"]
 
 [Proton-VPN.patches]
 "github:rushiranpise/morphe-patches" = []
@@ -204,7 +204,7 @@ changelog-keywords = ["Truecaller"]
 [JioHotstar]
 enabled = false
 brand = "paresh"
-apkmirror-dlurl = "https://www.apkmirror.com/apk/jiostar-india-private-limited/hotstar-2/"
+apkmirror-dlurl = "https://www.apkmirror.com/apk/jiostar-india-private-limited/jiohotstar-4/"
 changelog-keywords = ["JioHotstar"]
 
 [JioHotstar.patches]

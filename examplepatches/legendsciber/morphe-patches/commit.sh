@@ -4,8 +4,8 @@
 # Mesaj asagida MSG satirinda tutulur; her duzeltmede guncellenir.
 set -e
 
-DIR="$HOME/hillclimb-patches"
-MSG="feat(mctoolbox): watch-ad grants +15min instantly without playing any ad"
+DIR="${DIR:-$HOME/hillclimb-patches}"
+MSG="fix(blockblast): correct AdSdkInitFingerprint method name to h(Context)"
 
 cd "$DIR"
 
@@ -35,3 +35,4 @@ git push
 echo ""
 echo "Push tamamlandi. Workflow durumu:"
 echo "https://github.com/legendsciber/morphe-patches/actions"
+

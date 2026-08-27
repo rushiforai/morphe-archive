@@ -1,0 +1,101 @@
+﻿{
+  "$schema": "../patch.schema.json",
+  "id": "local-storage-subtitles",
+  "name": "Allow Importing Subs from Local Storage",
+  "category": "subtitles",
+  "target": {
+    "application": "NuvioTV",
+    "package": "com.nuvio.tv",
+    "versions": ["0.8.7-beta"],
+    "launchComponent": "com.nuvio.tv/.MainActivity"
+  },
+  "assets": {
+    "universal": {
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.7-beta/app-full-universal-release.apk",
+      "sha256": "dddcaa303ae47254df611f97bded0b9661f91bdb831f6e3eb23d57b25018370a"
+    },
+    "x86_64": {
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.7-beta/app-full-x86_64-release.apk",
+      "sha256": "b77ea174ba30dc2a0c194df3cd8ae11ee7adff7529db710a9fd3bf1be8135514"
+    },
+    "arm64-v8a": {
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.7-beta/app-full-arm64-v8a-release.apk",
+      "sha256": "16e6b679009f518ef8d45cae7d3eeb570de1f0cdc688b381489797f8db0c13f3"
+    },
+    "armeabi-v7a": {
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.7-beta/app-full-armeabi-v7a-release.apk",
+      "sha256": "7e1c84b104e1976d9861287ba96e9efb1dc9d387ef43d1934f6005eed033a6b3"
+    }
+  },
+  "dependencies": [],
+  "emulators": {"phone": "Pixel_10", "tv": "Television_4K"},
+  "fingerprints": [
+    "SubtitleOverlayFingerprint",
+    "SubtitleOptionBuilderFingerprint",
+    "SubtitleInitialFocusFingerprint",
+    "PlayerEventDispatcherFingerprint",
+    "RememberAddonSubtitleFingerprint",
+    "RememberInternalSubtitleFingerprint",
+    "RememberDisabledSubtitleFingerprint",
+    "SelectAddonSubtitleFingerprint",
+    "DisableSubtitlesFingerprint",
+    "SelectInternalSubtitleFingerprint",
+    "RestoreTrackPreferencesFingerprint",
+    "PersistTrackPreferencesFingerprint",
+    "LoadTrackPreferencesFingerprint",
+    "SubtitleConfigurationFingerprint",
+    "SubtitleTextDownloaderFingerprint"
+  ],
+  "inspection": {
+    "provider": "io.github.liongalahad.nuviotv.extension.subtitles.localstoragesubtitles.LocalSubtitleInitProvider",
+    "metadata": "io.github.liongalahad.nuviotv.extension.subtitles.localstoragesubtitles.LocalSubtitlePickerActivity",
+    "classes": [
+      "io.github.liongalahad.nuviotv.extension.subtitles.localstoragesubtitles.LocalSubtitleRuntime",
+      "io.github.liongalahad.nuviotv.extension.subtitles.localstoragesubtitles.LocalSubtitleRefreshState",
+      "io.github.liongalahad.nuviotv.extension.subtitles.localstoragesubtitles.LocalSubtitleInitProvider",
+      "io.github.liongalahad.nuviotv.extension.subtitles.localstoragesubtitles.LocalSubtitlePickerActivity",
+      "io.github.liongalahad.nuviotv.extension.subtitles.localstoragesubtitles.LocalSubtitleSettingsCategory",
+      "io.github.liongalahad.nuviotv.extension.subtitles.localstoragesubtitles.LocalSubtitleSettingsContent",
+      "io.github.liongalahad.nuviotv.extension.subtitles.localstoragesubtitles.LocalSubtitleSettingsToggleAction"
+    ],
+    "needles": [
+      "Local Storage",
+      "Choose subtitle file",
+      "Allow Importing Subs from Local Storage"
+    ],
+    "forbiddenNeedles": []
+  },
+  "focusedTests": [
+    "LocalSubtitleRuntimeTest",
+    "SdhSubtitleDetectorTest local-file scan",
+    "isolated x86_64 and universal exclusive-mode application"
+  ],
+  "acceptance": [
+    "Settings > Morphe > Subtitles exposes an enabled-by-default Allow Importing Subs from Local Storage switch that controls the feature",
+    "The subtitle language rail shows Local Storage immediately after None while ExoPlayer is active",
+    "Local Storage shows a Choose subtitle file action before imported files",
+    "Choosing the action keeps the subtitle overlay open behind Android's document picker without broad storage permission",
+    "SRT, VTT, WebVTT, ASS, SSA, TTML and DFXP files up to 10 MB can be imported into private app storage",
+    "Returning from the picker immediately shows the imported row selected in Local Storage and activates it in playback",
+    "Choose subtitle file never displays a selected tick; the imported row does",
+    "While an imported subtitle is active, no native subtitle row retains a second selected tick",
+    "Repeated D-pad focus changes and overlay recomposition never duplicate imported rows or increase the Local Storage count",
+    "Imported rows show the detected language as the primary title and exact filename as light secondary text",
+    "The first imported-row selection loads supported local sidecar text from patch-private storage and preserves playback position and play state",
+    "Selecting a supported local sidecar does not rebuild the playing media source, and restoration runs once per player controller and content key",
+    "Reopening the subtitle overlay restores usable D-pad focus without changing the active local subtitle",
+    "Subtitle style and delay controls remain available for the imported subtitle",
+    "The active imported subtitle is restored for the same movie or episode after leaving and reopening playback",
+    "An imported row is available only to its owning movie or exact season and episode and is absent from every other playback",
+    "The same source filename can be imported independently for different videos without replacing another video's private copy",
+    "Import ownership and cross-content isolation survive an app restart",
+    "Private imported files expire after seven days without that movie or episode being watched",
+    "Imported selections remain patch-private and are not written to Nuvio sync or its addon subtitle preference",
+    "A filename SDH marker is not misread as Southern Kurdish; Mark SDH Subtitles displays it immediately",
+    "Mark SDH Subtitles scans English local files in the background when no explicit marker exists",
+    "Remove SDH Annotations processes imported Media3 cues under its existing mode",
+    "The original selected file is never modified",
+    "Local Storage is omitted for MPV and no imported subtitle is sent to MPV",
+    "No crash, ANR, VerifyError or fatal log occurs during picker launch, import, selection, seeking or exit"
+  ]
+}

@@ -87,9 +87,9 @@ weather — because those gRPC calls now send an empty `Authorization` header.
 > A motorcycle already paired in this build connects straight away and needs none of the above.
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.1.0](https://github.com/subenoeva/roadsync-patches/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
+> **[v1.2.2](https://github.com/subenoeva/roadsync-patches/releases/tag/v1.2.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;3 patches total
 <details open>
-<summary>📦 RoadSync&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<summary>📦 RoadSync&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -101,6 +101,7 @@ weather — because those gRPC calls now send an empty `Authorization` header.
 |----------|----------------|-----------|
 | [Add music sources](#add-music-sources) | Adds music apps to the list of sources RoadSync can browse and control from the handlebar. Apps must expose a media browser service to be browsable. | • Music app packages |
 | [Bypass Google login](#bypass-google-login) | Lets RoadSync reach the motorcycle controls without a Google account. Server features (account, trip history, weather) stay unavailable, and pairing a new motorcycle still depends on Honda's server accepting an unauthenticated request. |  |
+| [Offline pairing](#offline-pairing) | Lets RoadSync pair a new motorcycle and reach the handlebar controls with no Google account and no network, by serving the vehicle catalog locally instead of from Honda's server. Complements "Bypass Google login". Control pages fall back to defaults for the placeholder model. |  |
 
 </details>
 

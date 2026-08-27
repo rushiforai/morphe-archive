@@ -1,3 +1,23 @@
+## [3.5.0](https://github.com/jasonwu1994/Gboard-patches/compare/v3.4.0...v3.5.0) (2026-08-26)
+
+### ✨ New Features
+
+* **Gboard:** add the `Top Toolbar Item Count` patch, which lets you customize how many items appear in the Gboard top toolbar.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Top Toolbar Item Count` Patch，可自訂 Gboard 頂端工具列項目數量。
+
+## [3.5.0-dev.1](https://github.com/jasonwu1994/Gboard-patches/compare/v3.4.0...v3.5.0-dev.1) (2026-08-25)
+
+### ✨ New Features
+
+* **Gboard:** add the `Top Toolbar Item Count` patch, which lets you customize how many items appear in the Gboard top toolbar.
+
+### ✨ 新功能
+
+* **Gboard:** 新增 `Top Toolbar Item Count` Patch，可自訂 Gboard 頂端工具列項目數量。
+
 ## [3.4.0](https://github.com/jasonwu1994/Gboard-patches/compare/v3.3.0...v3.4.0) (2026-08-25)
 
 ### ✨ New Features

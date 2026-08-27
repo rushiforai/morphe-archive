@@ -9,9 +9,9 @@ Patches for apps I like.
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.3.0](https://github.com/Jl4cTuk/morphe-patches/releases/tag/v1.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;16 patches total
+> **[v1.4.0](https://github.com/Jl4cTuk/morphe-patches/releases/tag/v1.4.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;24 patches total
 <details open>
-<summary>📦 RuStore&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
+<summary>📦 RuStore&nbsp;&nbsp;•&nbsp;&nbsp;12 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -22,10 +22,17 @@ Patches for apps I like.
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Disable Mine redesign](#disable-mine-redesign) | Reverts the Mine screen to the classic layout, disabling the redesigned V2/V3 interface. |  |
-| [Disable ads](#disable-ads) | Removes advertisements, search recommendations, and the unsolicited VK ID prompt, with options for additional interface cleanup. | • Disable gaming profile<br>• Disable loyalty program<br>• Hide Featured and Games tabs<br>• Hide notification buttons |
+| [Disable ads](#disable-ads) | Removes advertisements and search recommendations, clears advertising identifiers, keeps advertising consent disabled, and removes the unsolicited VK ID prompt, with options for additional interface cleanup. | • Disable loyalty program<br>• Hide Featured and Games tabs<br>• Hide notification buttons |
 | [Disable analytics](#disable-analytics) | Disables analytics and tracking in RuStore. |  |
+| [Disable background hooks](#disable-background-hooks) | Disables RuStore network-state monitoring, built-in VPN sessions, and startup hooks. |  |
 | [Disable background scan](#disable-background-scan) | Disables the periodic Kaspersky background device scan. |  |
+| [Disable gaming profile](#disable-gaming-profile) | Removes the Game Profile and usage statistics access, hides both gaming cards, and blocks navigation to the profile. |  |
+| [Disable invasive permissions](#disable-invasive-permissions) | Removes privileged, phone, SMS, location, storage, billing, USB, and vendor access. |  |
+| [Disable push services](#disable-push-services) | Disables RuStore and VK remote push services and background tasks. |  |
 | [Exclude Google Play apps from updates](#exclude-google-play-apps-from-updates) | Excludes Google Play installs from RuStore update checks while keeping RuStore and sideloaded apps. |  |
+| [Restore secure-session compatibility](#restore-secure-session-compatibility) | Preserves RuStore secure-session requests when the APK is re-signed. |  |
+| [Restrict background work to updates](#restrict-background-work-to-updates) | Keeps background workers required for update checks, downloads, patching, and installation. |  |
+| [Skip update authentication](#skip-update-authentication) | Skips the VK ID authorization suggestion shown during app installs and updates. |  |
 
 </details>
 
@@ -47,7 +54,7 @@ Patches for apps I like.
 </details>
 
 <details open>
-<summary>📦 Ozon&nbsp;&nbsp;•&nbsp;&nbsp;8 patches</summary>
+<summary>📦 Ozon&nbsp;&nbsp;•&nbsp;&nbsp;9 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -60,6 +67,7 @@ Patches for apps I like.
 | [Disable checkout tips](#disable-checkout-tips) | Removes courier tips UI and prevents tip IDs or tip API calls from being submitted. |  |
 | [Disable lottery and in-app pushes](#disable-lottery-and-in-app-pushes) | Disables lottery onboarding and the in-app push SDK used for reward popups. |  |
 | [Disable telemetry](#disable-telemetry) | Disables Ozon analytics, attribution, crash reporting, and telemetry uploads. |  |
+| [Disable tip notifications](#disable-tip-notifications) | Suppresses Ozon push notifications asking the user to leave a pickup-point tip. |  |
 | [Hide Ozon Bank ad banner](#hide-ozon-bank-ad-banner) | Removes the advertising banner carousel from the Ozon Bank screen. |  |
 | [Hide account lottery and review feed](#hide-account-lottery-and-review-feed) | Removes the lottery entry banner and review feed shortcut from the account screen. |  |
 | [Hide seller rating prompt](#hide-seller-rating-prompt) | Removes the post-purchase seller rating prompt. |  |

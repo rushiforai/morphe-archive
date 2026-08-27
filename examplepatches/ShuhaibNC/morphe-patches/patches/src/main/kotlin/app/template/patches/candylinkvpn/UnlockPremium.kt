@@ -6,6 +6,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.template.patches.shared.Constants.CANDYLINK_VPN_COMPATIBILITY
 import app.template.patches.candylinkvpn.IsPremiumFingerprint
+import app.template.patches.shared.clearBody
 
 @Suppress("unused")
 val unlockPremiumPatch = bytecodePatch(
@@ -18,7 +19,7 @@ val unlockPremiumPatch = bytecodePatch(
     // Business logic to unlock premium features.
     execute {
         IsPremiumFingerprint.method.apply {
-            removeInstructions(instructions.size)
+            clearBody()
             addInstructions(
                 0,
                 """

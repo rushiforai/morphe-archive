@@ -117,7 +117,7 @@ $checklist
 
 ## Manager check (Pixel_10)
 
-- [ ] Add the public `liongalahad/nuviotv-morphe-patches` source and enable prereleases.
+- [ ] Add the public `liongalahad/liongalahad-nuviotv-morphe-patches` source and enable prereleases.
 - [ ] Select only `$($manifest.name)` and export with the same test signing identity.
 - [ ] Install the exported APK on the TV test target and repeat the runtime checks.
 "@ | Set-Content -Encoding UTF8 (Join-Path $run 'TEST_REPORT.md')

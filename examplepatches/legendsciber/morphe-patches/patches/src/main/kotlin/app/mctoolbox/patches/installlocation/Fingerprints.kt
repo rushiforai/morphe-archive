@@ -4,11 +4,11 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.string
 
 /**
- * MinecraftActivity.onCreate — metodun İLK talimatı
+ * MinecraftActivity.onCreate — first instruction of the method
  * (const-string "com.mojang.minecraftpe", index 0).
  *
- * PlaySpoof yamasinin METOT BASINA pref-yazimi enjekte etmesi icin sabit
- * cipa olarak kullanilir (index 0 garanti, kayma riski yok).
+ * Used as a stable anchor for the PlaySpoof patch to inject
+ * pref-write at method start (index 0 is guaranteed, no drift risk).
  */
 object McPackageLookupFingerprint : Fingerprint(
     definingClass = "Lio/mrarm/mctoolbox/MinecraftActivity;",

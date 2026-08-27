@@ -29,8 +29,8 @@ val gboardNetworkPrivacyPatch = bytecodePatch(
         key = "gboardNetworkLevel",
         default = LEVEL_TELEMETRY,
         values = mapOf(
-            "Block telemetry only (keep all features)" to LEVEL_TELEMETRY,
-            "Privacy lockdown (keep GIFs & voice typing)" to LEVEL_LOCKDOWN,
+            "Block telemetry only" to LEVEL_TELEMETRY,
+            "Allow only GIFs & voice typing)" to LEVEL_LOCKDOWN,
             "Block all internet" to LEVEL_BLOCK_ALL,
         ),
         title = "Network level",

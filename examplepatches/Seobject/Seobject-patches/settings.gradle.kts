@@ -1,4 +1,4 @@
-rootProject.name = "ytmusic-pin-playlists"
+rootProject.name = "seobject-patches"
 
 pluginManagement {
     repositories {

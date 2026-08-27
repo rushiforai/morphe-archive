@@ -1,0 +1,6 @@
+{
+  "id": "multi-account",
+  "order": 100,
+  "apply": "apply.ps1",
+  "augment": "augment.ps1"
+}

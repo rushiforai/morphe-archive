@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Flexboard's settings screen, inflated by Gboard's own settings host when the header row on the
+  root settings screen is tapped (the row's android:fragment names the extension fragment that
+  returns this resource's runtime id).
+
+  Rows are Gboard's own InlineSliderPreference — the widget the Morse-keyboard screen uses. Two
+  things are why:
+
+  - It reads its configuration by literal attribute name with a null namespace (slider_min_value,
+    slider_max_value, slider_scale, slider_display_scale, slider_unit, slider_text_left,
+    slider_text_right), so no new attribute resources are needed and aapt2 has nothing to link.
+  - It persists an integer-as-string (scale defaults to 1.0) through the PreferenceDataStore that
+    Gboard's fragment-lifecycle hook installs on every hosted fragment, which lands the value in
+    the same store the scrub patch reads with the store's string-parsing getInt.
+
+  The keys, defaults and bounds below are mirrored by constants in ScrubTuningPatch.kt, and
+  .github/scripts/check_shared_constants.py fails the build when the two drift. There is no
+  android:defaultValue more native than these literals: Gboard's own binaries carry that
+  attribute under the res/android namespace the same way.
+-->
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:title="Flexboard">
+
+    <PreferenceCategory android:title="Swipe to delete">
+
+        <com.google.android.libraries.inputmethod.preferencewidgets.InlineSliderPreference
+            android:key="flexboard_swipe_max_words"
+            android:title="Words per swipe"
+            android:summary="The most one swipe can delete. Swiping back always restores them."
+            android:defaultValue="1"
+            slider_min_value="1"
+            slider_max_value="10"
+            slider_text_left="1"
+            slider_text_right="No limit" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Hotkeys">
+
+        <!--
+          No count slider by design: a slot appears when its text is set (the gate is read at
+          toolbar build time). Clearing takes it away at the next bar-controller rebuild —
+          rotation, an IME switch, a restart — because the registry has no mid-session
+          un-register, and a lagging button is simpler than one. Text and icon edits apply on
+          the next keyboard open through the start-input refresh.
+        -->
+        <!--
+          One row per slot is the whole editor: the tap is intercepted by
+          FlexboardSettingsFragment.aA(Preference) — the port's click dispatch — and opens the
+          composite dialog (text field + the bundled-pack icon grid). The rows are PLAIN
+          Preference widgets on purpose: a DialogPreference's onClick fires the stock editor
+          ahead of our intercept, which is how one tap produced two stacked dialogs. So this
+          screen carries no dialog-backed rows at all. Identification is by identity against
+          the screen tree — the port's getKey does not survive R8. The row's icon and its summary
+          (the committed text) are painted from the store by a looper-posted pass in aB() (rows
+          don't exist before the XML they live on inflates); the first-tap sync is its backup.
+        -->
+        <androidx.preference.Preference
+            android:icon="@drawable/flexboard_icon_alternate_email"
+            android:key="flexboard_hotkey_1_text"
+            android:title="Hotkey 1" />
+        <androidx.preference.Preference
+            android:icon="@drawable/flexboard_icon_password"
+            android:key="flexboard_hotkey_2_text"
+            android:title="Hotkey 2" />
+        <androidx.preference.Preference
+            android:icon="@drawable/flexboard_icon_phone_enabled"
+            android:key="flexboard_hotkey_3_text"
+            android:title="Hotkey 3" />
+        <androidx.preference.Preference
+            android:icon="@drawable/flexboard_icon_local_post_office"
+            android:key="flexboard_hotkey_4_text"
+            android:title="Hotkey 4" />
+        <androidx.preference.Preference
+            android:icon="@drawable/flexboard_icon_home_pin"
+            android:key="flexboard_hotkey_5_text"
+            android:title="Hotkey 5" />
+        <androidx.preference.Preference
+            android:icon="@drawable/flexboard_icon_work"
+            android:key="flexboard_hotkey_6_text"
+            android:title="Hotkey 6" />
+
+        <!--
+          Real picker/buttons with popups, not text fields full of serialization. The host
+          port's click dispatch reaches FlexboardSettingsFragment.aA(Preference) by name; each
+          slot row above opens the composite editor (text field + icon grid of the bundled
+          pack), Export copies the blob AND shows it in a dialog, Import shows a paste box with
+          Apply. The dialogs hang off the tapped row's own context (the port's context field,
+          pinned in preflight); when that's unavailable a slot row reports the miss in its
+          summary instead of a dialog, and Import reads the clipboard.
+        -->
+        <Preference
+            android:key="flexboard_hotkey_copy"
+            android:summary="Copies your hotkeys and shows the text"
+            android:title="Export" />
+        <Preference
+            android:key="flexboard_hotkey_paste"
+            android:summary="Opens a text box to paste an export into"
+            android:title="Import" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="About">
+
+        <!--
+          A disabled plain Preference carrying just the bundle version for reference. The
+          placeholder is filled in by the patch before the file is written; the text comes from
+          gradle.properties through flexboard_version.txt, baked by :patches:processResources.
+        -->
+        <Preference
+            android:icon="@drawable/flexboard_settings_icon"
+            android:persistent="false"
+            android:selectable="false"
+            android:title="Flexboard @FLEXBOARD_VERSION@" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

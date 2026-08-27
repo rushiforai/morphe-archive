@@ -1,27 +1,175 @@
+# [2.0.0](https://github.com/JZ6/Flexboard/compare/v1.3.0...v2.0.0) (2026-08-27)
+
+* **Gboard:** refactor: hotkeys run at six slots
+* **Gboard:** feat: imports tolerate slots beyond this build's count
+* **Gboard:** feat: paint rows at screen open, not first tap
+* **Gboard:** feat: counter_0 icon joins the picker pack
+* **Gboard:** fix: review fallout of the dialog fix — honest pins, swept docs
+* **Gboard:** fix: one tap, one dialog — kill the double-dialog on hotkey rows
+* **Gboard:** feat: popups borrow Gboard's own editor-dialog layout
+* **Gboard:** feat: one row per hotkey — the composite editor dialog
+* **Gboard:** fix: after an import, the settings rows keep showing the old text
+* **Gboard:** refactor: one hotkey emission template, two site configs
+* **Gboard:** docs: park the grey-out-unpatched-rows design with its mechanisms pinned
+* **Gboard:** refactor: patch structure — slots internal, swipe-scoped seed, one controller resolution
+* **Gboard:** feat: real popups — icon picker grid, export text box, import paste box
+* **Gboard:** fix: hotkey bug hunt — validated legacy icons, honest clear contract, two new pins
+* **Gboard:** chore: keep the extracted Gboard APK in-repo for the dex gates
+* **Gboard:** fix: icon picker review — dispatch through the fragment's public d, not protected t
+* **Gboard:** feat: per-slot icon picker — cycle rows on the aA click hook
+* **Gboard:** feat: import/export as real buttons — the port's click hook finally exists
+* **Gboard:** feat: drop the hold-delay settings row — fixed at 0ms
+* **Gboard:** feat: settings polish — per-slot icons on hotkey rows, version under About
+* **Gboard:** docs: park the bigger-toolbar plan with the corrected stock model
+* **Gboard:** docs: trace the toolbar-capacity chain and the native raise-the-max plan
+* **Gboard:** refactor: hotkey icon drawables carry their symbol names
+* **Gboard:** feat: default hotkey icons are the Flexboard vector pack from 8a25e2f
+* **Gboard:** docs: hotkey visibility contract — set text shows at open, clear removes at restart
+* **Gboard:** feat: hotkey slots appear only when the user types a value
+* **Gboard:** fix: toolbar module anchor needs the controller field, not just the signature
+* **Gboard:** docs: refresh-on-open lands; count slider retired
+* **Gboard:** feat: drop the hotkey count slider — slots are numbered placeholders
+* **Gboard:** feat: hotkey slots re-register on every keyboard open
+* **Gboard:** docs: hotkeys register on controller init — settings edits need a keyboard cycle
+* **Gboard:** test: pin the hotkey defaults table and the widened-array seam
+* **Gboard:** feat: hotkey import/export through a single edit-text row
+* **Gboard:** feat: hotkeys return — patch registration and settings rows
+* **Gboard:** feat: hotkeys return — the extension half
+* **Gboard:** feat: widen Gboard's toolbar allowed-id set with the Flexboard ids
+* **Gboard:** docs: research how to admit unlimited toolbar buttons natively
+* **Gboard:** docs: user queue adds hotkeys clarification and sdk-benefit questions
+* **Gboard:** test: run Morphe's whole patch pipeline on the desk with :driver
+* **Gboard:** test: compile the extension with plain javac, no SDK
+* **Gboard:** test: lint dex anchors and emitted smali before they reach a phone
+* **Gboard:** test: hold every settings row to the contract lanes
+* **Gboard:** test: pin the grammar flag-holder seam in preflight
+* **Gboard:** test: dress-rehearse the resource half of a release, on the desk
+* **Gboard:** docs: roadbook notes the hotkeys rollback and the rule for their return
+* **Gboard:** test: parse every patch-written resource file before handing it to Morphe
+* **Gboard:** feat: show the Flexboard version at the bottom of the settings screen
+* **Gboard:** fix: writePatchResource name/target concatenates the directory twice
+* **Gboard:** ci: skip build-provenance attestation on private repos
+* **Gboard:** docs: record the native settings-hosting mechanism
+* **Gboard:** test: pin the native-settings seam in preflight; checker lanes for the XML contract
+* **Gboard:** feat: host the settings screen as a native Gboard fragment (patch half)
+* **Gboard:** feat: host the settings screen as a native Gboard fragment (extension half)
+* **Gboard:** fix: drop duplicated palette constants in settings activity
+* **Gboard:** chore: drop an unused import
+* **Gboard:** chore: harden native toolbar emission and its checkers
+* **Gboard:** chore: remove Bigger Toolbar and Hotkeys — both are being rewritten natively
+
+# [2.0.0-dev.6](https://github.com/JZ6/Flexboard/compare/v2.0.0-dev.5...v2.0.0-dev.6) (2026-08-27)
+
+* **Gboard:** refactor: hotkeys run at six slots
+* **Gboard:** feat: imports tolerate slots beyond this build's count
+
+# [2.0.0-dev.5](https://github.com/JZ6/Flexboard/compare/v2.0.0-dev.4...v2.0.0-dev.5) (2026-08-27)
+
+* **Gboard:** feat: paint rows at screen open, not first tap
+* **Gboard:** feat: counter_0 icon joins the picker pack
+
+# [2.0.0-dev.4](https://github.com/JZ6/Flexboard/compare/v2.0.0-dev.1...v2.0.0-dev.4) (2026-08-27)
+
+* **Gboard:** fix: review fallout of the dialog fix — honest pins, swept docs
+* **Gboard:** fix: one tap, one dialog — kill the double-dialog on hotkey rows
+* **Gboard:** feat: popups borrow Gboard's own editor-dialog layout
+* **Gboard:** feat: one row per hotkey — the composite editor dialog
+* **Gboard:** fix: after an import, the settings rows keep showing the old text
+
+# [2.0.0-dev.3](https://github.com/JZ6/Flexboard/compare/v2.0.0-dev.2...v2.0.0-dev.3) (2026-08-26)
+
+* **Gboard:** feat: popups borrow Gboard's own editor-dialog layout
+* **Gboard:** feat: one row per hotkey — the composite editor dialog
+
+# [2.0.0-dev.2](https://github.com/JZ6/Flexboard/compare/v2.0.0-dev.1...v2.0.0-dev.2) (2026-08-25)
+
+* **Gboard:** fix: after an import, the settings rows keep showing the old text
+
+# [2.0.0-dev.1](https://github.com/JZ6/Flexboard/compare/v2.0.0-dev.0...v2.0.0-dev.1) (2026-08-25)
+
+* **Gboard:** refactor: one hotkey emission template, two site configs
+* **Gboard:** docs: park the grey-out-unpatched-rows design with its mechanisms pinned
+* **Gboard:** refactor: patch structure — slots internal, swipe-scoped seed, one controller resolution
+* **Gboard:** feat: real popups — icon picker grid, export text box, import paste box
+* **Gboard:** fix: hotkey bug hunt — validated legacy icons, honest clear contract, two new pins
+
+# [2.0.0-dev.0](https://github.com/JZ6/Flexboard/compare/v1.4.0-dev.9...v2.0.0-dev.0) (2026-08-25)
+
+* **Gboard:** chore: keep the extracted Gboard APK in-repo for the dex gates
+* **Gboard:** fix: icon picker review — dispatch through the fragment's public d, not protected t
+* **Gboard:** feat: per-slot icon picker — cycle rows on the aA click hook
+* **Gboard:** feat: import/export as real buttons — the port's click hook finally exists
+* **Gboard:** feat: drop the hold-delay settings row — fixed at 0ms
+* **Gboard:** feat: settings polish — per-slot icons on hotkey rows, version under About
+* **Gboard:** docs: park the bigger-toolbar plan with the corrected stock model
+* **Gboard:** docs: trace the toolbar-capacity chain and the native raise-the-max plan
+
+# [1.4.0-dev.9](https://github.com/JZ6/Flexboard/compare/v1.4.0-dev.8...v1.4.0-dev.9) (2026-08-24)
+
+* **Gboard:** refactor: hotkey icon drawables carry their symbol names
+
+# [1.4.0-dev.8](https://github.com/JZ6/Flexboard/compare/v1.4.0-dev.7...v1.4.0-dev.8) (2026-08-24)
+
+* **Gboard:** feat: default hotkey icons are the Flexboard vector pack from 8a25e2f
+* **Gboard:** docs: hotkey visibility contract — set text shows at open, clear removes at restart
+
+# [1.4.0-dev.7](https://github.com/JZ6/Flexboard/compare/v1.4.0-dev.6...v1.4.0-dev.7) (2026-08-24)
+
+* **Gboard:** feat: hotkey slots appear only when the user types a value
+
+# [1.4.0-dev.6](https://github.com/JZ6/Flexboard/compare/v1.4.0-dev.5...v1.4.0-dev.6) (2026-08-24)
+
+* **Gboard:** fix: toolbar module anchor needs the controller field, not just the signature
+
+# [1.4.0-dev.5](https://github.com/JZ6/Flexboard/compare/v1.4.0-dev.4...v1.4.0-dev.5) (2026-08-23)
+
+* **Gboard:** docs: refresh-on-open lands; count slider retired
+* **Gboard:** feat: drop the hotkey count slider — slots are numbered placeholders
+* **Gboard:** feat: hotkey slots re-register on every keyboard open
+* **Gboard:** docs: hotkeys register on controller init — settings edits need a keyboard cycle
+
+# [1.4.0-dev.4](https://github.com/JZ6/Flexboard/compare/v1.4.0-dev.3...v1.4.0-dev.4) (2026-08-23)
+
+* **Gboard:** test: pin the hotkey defaults table and the widened-array seam
+* **Gboard:** feat: hotkey import/export through a single edit-text row
+* **Gboard:** feat: hotkeys return — patch registration and settings rows
+* **Gboard:** feat: hotkeys return — the extension half
+
+# [1.4.0-dev.3](https://github.com/JZ6/Flexboard/compare/v1.4.0-dev.2...v1.4.0-dev.3) (2026-08-23)
+
+* **Gboard:** feat: widen Gboard's toolbar allowed-id set with the Flexboard ids
+* **Gboard:** docs: research how to admit unlimited toolbar buttons natively
+
+# [1.4.0-dev.2](https://github.com/JZ6/Flexboard/compare/v1.4.0-dev.1...v1.4.0-dev.2) (2026-08-23)
+
+* **Gboard:** docs: user queue adds hotkeys clarification and sdk-benefit questions
+* **Gboard:** test: run Morphe's whole patch pipeline on the desk with :driver
+* **Gboard:** test: compile the extension with plain javac, no SDK
+* **Gboard:** test: lint dex anchors and emitted smali before they reach a phone
+* **Gboard:** test: hold every settings row to the contract lanes
+* **Gboard:** test: pin the grammar flag-holder seam in preflight
+* **Gboard:** test: dress-rehearse the resource half of a release, on the desk
+
+# [1.4.0-dev.1](https://github.com/JZ6/Flexboard/compare/v1.4.0-dev.0...v1.4.0-dev.1) (2026-08-22)
+
+* **Gboard:** docs: roadbook notes the hotkeys rollback and the rule for their return
+* **Gboard:** test: parse every patch-written resource file before handing it to Morphe
+* **Gboard:** feat: show the Flexboard version at the bottom of the settings screen
+
+# [1.4.0-dev.0](https://github.com/JZ6/Flexboard/compare/v1.3.0...v1.4.0-dev.0) (2026-08-22)
+
+* **Gboard:** fix: writePatchResource name/target concatenates the directory twice
+* **Gboard:** ci: skip build-provenance attestation on private repos
+* **Gboard:** docs: record the native settings-hosting mechanism
+* **Gboard:** test: pin the native-settings seam in preflight; checker lanes for the XML contract
+* **Gboard:** feat: host the settings screen as a native Gboard fragment (patch half)
+* **Gboard:** feat: host the settings screen as a native Gboard fragment (extension half)
+* **Gboard:** fix: drop duplicated palette constants in settings activity
+* **Gboard:** chore: drop an unused import
+* **Gboard:** chore: harden native toolbar emission and its checkers
+* **Gboard:** chore: remove Bigger Toolbar and Hotkeys — both are being rewritten natively
+
 # 1.3.0 (2026-08-21)
-
-* **Gboard:** refactor: toolbar buttons go native; drop the merge-splice architecture
-* **Gboard:** refactor: generalize native toolbar registration into NativeToolbarButton + emitNativeToolbarButtons
-* **Gboard:** feat: toolbar native test — register one button through Gboard's own AP registry
-* **Gboard:** docs: capture toolbar reorder findings — next step is provider registration
-* **Gboard:** fix: simplify toolbar merge to always prepend — drag persistence lands later
-* **Gboard:** chore: default the toolbar count patch off while reorder is worked out
-* **Gboard:** chore: default custom hotkeys off while the reorder crash is being isolated
-* **Gboard:** fix: hotkeySlotOf was called without being declared
-* **Gboard:** fix: drop empty-slot smali labels — merge filters them in the extension
-* **Gboard:** fix: import emitToolbarMergeCall in BasePatch
-* **Gboard:** fix: collapse the two-merge composition into one merge driven by the base patch
-* **Gboard:** feat: split hotkeys and text actions into separate patches
-* **Gboard:** fix: harden toolbar merge — never crash the keyboard over order placement
-* **Gboard:** fix: keep the conventional-commit type in release notes/' changelog
-* **Gboard:** fix: keep conventional-commit type in changelog bullets
-* **Gboard:** fix: Kotlin equality between Int and Long is always false
-* **Gboard:** feat: force the grammar check row on
-* **Gboard:** fix: suggest settings missing basePatch, correct comment reference
-* **Gboard:** polish: neutral underline for hotkey text fields
-* **Gboard:** preflight: pin the toolbar order preference keys
-
-# 1.3.0-dev.1 (2026-08-21)
 
 * **Gboard:** refactor: toolbar buttons go native; drop the merge-splice architecture
 * **Gboard:** refactor: generalize native toolbar registration into NativeToolbarButton + emitNativeToolbarButtons
@@ -248,9 +396,6 @@
 * **Gboard:** check a register really holds what the instruction using it needs
 * **Gboard:** add tools/promote, so a stable release cannot ship a stale build
 
-# [1.0.0-dev.1](https://github.com/JZ6/Flexboard/compare/v0.0.3-dev.3...v1.0.0-dev.1) (2026-08-17)
-
-* **Gboard:** No changes recorded.
 
 # [0.0.3-dev.3](https://github.com/JZ6/Flexboard/compare/v0.0.3-dev.2...v0.0.3-dev.3) (2026-08-16)
 

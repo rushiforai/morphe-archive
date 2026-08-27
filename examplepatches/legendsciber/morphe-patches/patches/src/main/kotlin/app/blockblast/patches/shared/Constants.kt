@@ -1,0 +1,17 @@
+package app.blockblast.patches.shared
+
+import app.morphe.patcher.patch.ApkFileType
+import app.morphe.patcher.patch.AppTarget
+import app.morphe.patcher.patch.Compatibility
+
+object Constants {
+    val COMPATIBILITY_BLOCKBLAST = Compatibility(
+        name = "Block Blast",
+        packageName = "com.block.juggle",
+        apkFileType = ApkFileType.XAPK,
+        appIconColor = 0x1A237E,
+        targets = listOf(
+            AppTarget(version = "10.4.5")
+        )
+    )
+}

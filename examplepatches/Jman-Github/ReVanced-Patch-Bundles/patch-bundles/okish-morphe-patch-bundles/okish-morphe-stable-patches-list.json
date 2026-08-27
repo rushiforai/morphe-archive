@@ -1,5 +1,5 @@
 {
-    "version": "v1.17.0",
+    "version": "v1.19.0",
     "patches": [
         {
             "compatiblePackages": [
@@ -359,6 +359,30 @@
             "dependencies": [],
             "description": "Bypasses the Pairip Play Store installation check so the app launches normally.",
             "name": "FreeJobAlert License Bypass",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "XAPK",
+                    "appIconColor": "#00BCD4",
+                    "name": "HAAK",
+                    "packageName": "com.blingame.haaktestb",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "1.4.3"
+                        }
+                    ],
+                    "versions": [
+                        "1.4.3"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Redirects purchase failure callbacks to their success twins: cancelling the Google Play dialog, a billing error, or an \"not purchased\" query result all grant the product instead.",
+            "name": "HAAK Free Purchases and Unlocked Paid Content",
             "options": []
         },
         {
@@ -743,6 +767,54 @@
             "dependencies": [],
             "description": "Unlocks MovieBox Premium (VIP) by forcing the member state active at Pro level.",
             "name": "MovieBox Premium Unlock",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "XAPK",
+                    "appIconColor": "#E2E2E2",
+                    "name": "Only One",
+                    "packageName": "com.rebelbinary.onlyone",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "1.2983"
+                        }
+                    ],
+                    "versions": [
+                        "1.2983"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Makes 'Restore Purchases' grant every store item for free (Ultimate Power, all classes, bundles and powers) — also removes ads.",
+            "name": "Only One Free Store",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "XAPK",
+                    "appIconColor": "#E2E2E2",
+                    "name": "Only One",
+                    "packageName": "com.rebelbinary.onlyone",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "1.2983"
+                        }
+                    ],
+                    "versions": [
+                        "1.2983"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Bypasses the PairIP Play Store license check so the app launches normally.",
+            "name": "Only One License Bypass",
             "options": []
         },
         {

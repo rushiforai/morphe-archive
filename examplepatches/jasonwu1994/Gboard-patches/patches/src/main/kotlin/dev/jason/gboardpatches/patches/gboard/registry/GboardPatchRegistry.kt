@@ -8,6 +8,8 @@ import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
 import dev.jason.gboardpatches.patches.gboard.features.accessibilitylayout.gboardAccessibilityLayoutFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.accessibilitylayout.gboardAccessibilityLayoutFlagValuePatch
+import dev.jason.gboardpatches.patches.gboard.features.accesspointcount.gboardAccessPointCountFeatureMarkerPatch
+import dev.jason.gboardpatches.patches.gboard.features.accesspointcount.gboardAccessPointCountFlagValuePatch
 import dev.jason.gboardpatches.patches.gboard.features.accesspointsmenu.gboardAccessPointsMenuFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.accesspointsmenu.gboardAccessPointsMenuFlagValuePatch
 import dev.jason.gboardpatches.patches.gboard.features.advancedvoice.gboardAdvancedVoiceFeatureMarkerPatch
@@ -313,6 +315,23 @@ val gboardRoundedKeyboardPanelPatch = gboardPublicResourcePatch(
     dependsOn(
         gboardPatchesSettingsPatch,
         gboardRoundedKeyboardFeatureMarkerPatch,
+    )
+}
+
+@Suppress("unused")
+val gboardAccessPointCountPatch = gboardPublicResourcePatch(
+    featureId = "access_point_count",
+    name = "Top Toolbar Item Count",
+    description = "自訂 Gboard 頂端工具列項目數量\n" +
+        "Customize the Gboard top toolbar item count.",
+    default = true,
+) {
+    compatibleWith(COMPATIBILITY_GBOARD)
+
+    dependsOn(
+        gboardPatchesSettingsPatch,
+        gboardAccessPointCountFeatureMarkerPatch,
+        gboardAccessPointCountFlagValuePatch,
     )
 }
 
@@ -716,6 +735,7 @@ object GboardPublishedPatchCatalog {
         gboardSplitKeyboardPatch,
         gboardAccessibilityLayoutPatch,
         gboardRoundedKeyboardPanelPatch,
+        gboardAccessPointCountPatch,
         gboardCloseProactiveSuggestionsPatch,
         gboardFlowModeAnimationPatch,
         gboardQuickInsertPatch,

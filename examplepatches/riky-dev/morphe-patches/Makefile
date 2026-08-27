@@ -4,7 +4,7 @@
 
 APP ?= meteo3b
 
-.PHONY: help check fetch extract decompile analyze build verify check-apk spoof-crc
+.PHONY: help check fetch extract decompile analyze build verify check-apk spoof-crc setup-tools patch-local deploy smoke device-test
 
 help:
 	@echo "Targets (set APP=<app_id>, default: meteo3b):"
@@ -17,6 +17,11 @@ help:
 	@echo "  make verify APP=meteo3b     Apply .mpp to base APK"
 	@echo "  make check-apk APK=... APP=meteo3b  Smali-check a Morphe-patched APK"
 	@echo "  make spoof-crc ORIG=... PATCHED=...  Copy original CRC onto patched APK"
+	@echo "  make setup-tools             Download Morphe Desktop CLI to tools/"
+	@echo "  make patch-local APP=capcut  Patch APK with local .mpp"
+	@echo "  make deploy APP=capcut       Install patched APK over adb"
+	@echo "  make smoke APP=capcut        Crash/ANR smoke + screenshot"
+	@echo "  make device-test APP=capcut  build→patch→deploy→smoke"
 
 check:
 	@scripts/check_env.sh
@@ -46,3 +51,18 @@ check-apk:
 spoof-crc:
 	@test -n "$(ORIG)" && test -n "$(PATCHED)" || (echo "Usage: make spoof-crc ORIG=base.apk PATCHED=patched.apk [OUT=out.apk]" && exit 1)
 	@python3 scripts/spoof_apk_crc.py "$(ORIG)" "$(PATCHED)" $(if $(OUT),-o "$(OUT)",)
+
+setup-tools:
+	@scripts/setup_tools.sh
+
+patch-local:
+	@scripts/patch_local.sh $(APP)
+
+deploy:
+	@scripts/device_deploy.sh $(APP)
+
+smoke:
+	@scripts/device_smoke.sh $(APP) --screenshot
+
+device-test:
+	@scripts/device_test.sh $(APP)

@@ -1,0 +1,72 @@
+{
+  "$schema": "../patch.schema.json",
+  "id": "sdh-annotations",
+  "name": "Remove SDH Annotations",
+  "category": "subtitles",
+  "target": {
+    "application": "NuvioTV",
+    "package": "com.nuvio.tv",
+    "versions": ["0.8.7-beta"],
+    "launchComponent": "com.nuvio.tv/.MainActivity"
+  },
+  "assets": {
+    "universal": {
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.7-beta/app-full-universal-release.apk",
+      "sha256": "dddcaa303ae47254df611f97bded0b9661f91bdb831f6e3eb23d57b25018370a"
+    },
+    "x86_64": {
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.7-beta/app-full-x86_64-release.apk",
+      "sha256": "b77ea174ba30dc2a0c194df3cd8ae11ee7adff7529db710a9fd3bf1be8135514"
+    },
+    "arm64-v8a": {
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.7-beta/app-full-arm64-v8a-release.apk",
+      "sha256": "16e6b679009f518ef8d45cae7d3eeb570de1f0cdc688b381489797f8db0c13f3"
+    },
+    "armeabi-v7a": {
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.7-beta/app-full-armeabi-v7a-release.apk",
+      "sha256": "7e1c84b104e1976d9861287ba96e9efb1dc9d387ef43d1934f6005eed033a6b3"
+    }
+  },
+  "dependencies": ["settings-hub"],
+  "emulators": {"phone": "Pixel_10", "tv": "Television_4K"},
+  "fingerprints": ["SettingsScreenFingerprint", "ExperienceSettingsHeaderFingerprint", "ExperienceSettingsCardFingerprint", "NativeSettingsSwitchUsageFingerprint", "NativeSdhFilterFingerprint", "CueGroupOutputFingerprint", "LegacyCueOutputFingerprint", "SidecarCueRenderFingerprint"],
+  "inspection": {
+    "provider": "io.github.liongalahad.nuviotv.extension.settings.MorpheInitProvider",
+    "metadata": "io.github.liongalahad.nuviotv.settings.provider.remove_sdh_annotations",
+    "classes": [
+      "io.github.liongalahad.nuviotv.extension.settings.MorpheSettingsRuntime",
+      "io.github.liongalahad.nuviotv.extension.settings.MorpheSettingsPageContent",
+      "io.github.liongalahad.nuviotv.extension.settings.MorpheSettingsRows",
+      "io.github.liongalahad.nuviotv.extension.subtitles.sdh.RemoveSdhSettingsCategory",
+      "io.github.liongalahad.nuviotv.extension.subtitles.sdh.RemoveSdhSettingsContent",
+      "io.github.liongalahad.nuviotv.extension.settings.MorpheComposeModeAction",
+      "io.github.liongalahad.nuviotv.extension.settings.MorpheSdhModeDialogAction",
+      "io.github.liongalahad.nuviotv.extension.settings.MorpheSdhModeDialog",
+      "io.github.liongalahad.nuviotv.extension.subtitles.sdh.SdhCleanupMode",
+      "io.github.liongalahad.nuviotv.extension.subtitles.sdh.SdhCueTransformer"
+    ],
+    "needles": [
+      "subtitles.sdh_cleanup_mode",
+      "NORMALIZE_MUSIC_SYMBOLS",
+      "Normalize music symbols only",
+      "shouldApplyNativeFilter",
+      "Landroidx/media3/common/text/CueGroup;"
+    ],
+    "forbiddenNeedles": ["Lcom/google/common/collect/ImmutableList;"]
+  },
+  "focusedTests": ["SdhSubtitleCleanerTest", "isolated x86_64 and universal exclusive-mode application", "manifest and injected-class inspection"],
+  "acceptance": [
+    "Unpatched NuvioTV has no Morphe entry",
+    "Patched NuvioTV shows Settings → Morphe → Subtitles",
+    "Subtitles expands in the existing pane and shows one native SDH subtitle processing selector with its current value",
+    "The selector opens the same native choice-modal layout, focus treatment, typography, spacing, selected fill, checkmark, and D-pad order as Nuvio's Playback selector",
+    "Exactly one of Off, Normalize music symbols only, Remove SDH, keep lyrics, and Full cleanup is selected in the modal",
+    "A fresh installation defaults to Normalize music symbols only, while every stored mode persists after force-stop and reboot",
+    "Off preserves the full subtitle text and source identity",
+    "Normalize music symbols only replaces supported mojibake and boundary tokens inferred after three total or two consecutive case-insensitive occurrences without removing text",
+    "Remove SDH, keep lyrics removes complete single-line and multiline annotations while preserving likely lyrics with normalized markers",
+    "Full cleanup also removes all text enclosed by normal, supported mojibake, or evidence-inferred music-note markers",
+    "When Nuvio's native Strip SDH annotations setting is also enabled, Morphe bypasses the native Media3 filter while a Morphe mode is active and restores native filtering when Morphe is Off",
+    "No crash, ANR, VerifyError, or fatal log during launch, settings, playback, seeking, or track changes"
+  ]
+}

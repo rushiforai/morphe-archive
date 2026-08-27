@@ -17,6 +17,9 @@ Figure out what bytecode to change in a target app, implement Morphe patches in 
 | Analysis hints | `scripts/analyze.sh <app_id>` |
 | Build `.mpp` | `scripts/build.sh` |
 | Verify patch | `scripts/verify_patch.sh <app_id>` |
+| Setup Morphe CLI | `scripts/setup_tools.sh` |
+| Patch APK locally | `scripts/patch_local.sh <app_id>` |
+| Device smoke test | `scripts/device_test.sh <app_id>` |
 
 Or use the Makefile: `make fetch APP=meteo3b`, etc.
 
@@ -30,7 +33,7 @@ Each target app has metadata in `config/apps/<app_id>.yaml`:
 
 Copy `config/apps/_template.yaml` for a new app. Config tells you **where things are**, not **what to patch**.
 
-Current apps: `meteo3b` (3B Meteo — reference implementation), `electron` (battery health info).
+Current apps: `meteo3b` (3B Meteo — reference implementation), `electron` (battery health info), `komoot`.
 
 ## Sandbox layout
 

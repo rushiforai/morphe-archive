@@ -6,10 +6,10 @@ patches {
     about {
         name = "NuvioTV Morphe Patches"
         description = "Morphe patches for the official NuvioTV Android application"
-        source = "https://github.com/liongalahad/nuviotv-morphe-patches"
+        source = "https://github.com/liongalahad/liongalahad-nuviotv-morphe-patches"
         author = "liongalahad"
-        contact = "https://github.com/liongalahad/nuviotv-morphe-patches/issues"
-        website = "https://github.com/liongalahad/nuviotv-morphe-patches"
+        contact = "https://github.com/liongalahad/liongalahad-nuviotv-morphe-patches/issues"
+        website = "https://github.com/liongalahad/liongalahad-nuviotv-morphe-patches"
         license = "GPLv3"
     }
 }

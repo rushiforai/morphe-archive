@@ -5,7 +5,7 @@ Public Morphe patch source for the official NuvioTV Android application. The nin
 This repository distributes patch code and `.mpp` bundles. It never distributes original, patched, or modified NuvioTV APKs.
 
 > [!WARNING]
-> **All patches in this repository are prerelease work in progress.** They are not fully tested and may disrupt NuvioTV features or cause unexpected behavior. Use them only if you understand and accept this risk. Testers can share feedback and report bugs, regressions, or other malfunctions by [opening a GitHub issue](https://github.com/liongalahad/nuviotv-morphe-patches/issues/new/choose). Do not attach original, patched, or modified NuvioTV APKs to an issue.
+> **All patches in this repository are prerelease work in progress.** They are not fully tested and may disrupt NuvioTV features or cause unexpected behavior. Use them only if you understand and accept this risk. Testers can share feedback and report bugs, regressions, or other malfunctions by [opening a GitHub issue](https://github.com/liongalahad/liongalahad-nuviotv-morphe-patches/issues/new/choose). Do not attach original, patched, or modified NuvioTV APKs to an issue.
 
 The suite adds a default-selected side-by-side install identity, local-media playback, direct local downloads, storage subtitle imports, SDH detection and cleanup, random-episode playback, source-picker selection restoration, and a setting-free Library focus correction. Each optional patch owns its settings, state, runtime logic, tests, manifest registration, and documentation. Shared code is limited to generic infrastructure required by multiple patches.
 
@@ -18,13 +18,13 @@ The SDH cleanup patch provides `Off`, `Normalize music symbols only`, `Remove SD
 ## Install in Morphe Manager
 
 1. Download and install [Morphe Manager](https://morphe.software/) on your phone or TV.
-2. Add `github.com/liongalahad/nuviotv-morphe-patches` as a GitHub patch source. No GitHub PAT is required because the repository is public.
+2. Add `github.com/liongalahad/liongalahad-nuviotv-morphe-patches` as a GitHub patch source. No GitHub PAT is required because the repository is public.
 3. Enable prerelease patches while the bundle remains on `dev`.
 4. Import the official [NuvioTV 0.8.7-beta APK](https://github.com/NuvioMedia/NuvioTV/releases/tag/0.8.7-beta) for the target ABI, or the official universal APK.
 5. Select the patches to apply. `Side-by-side installation` is selected by default and produces package `com.nuvio.morphe` with label `Nuvio Morphe`; deselect it only when replacement-install behavior is intended.
 6. Save the patched APK locally, then sideload and install it on your TV. The default side-by-side output installs beside the official app. A replacement output cannot upgrade the official app in place because the patched APK has a different signature.
 
-Deep link: `https://morphe.software/add-source?github=liongalahad/nuviotv-morphe-patches`
+Deep link: `https://morphe.software/add-source?github=liongalahad/liongalahad-nuviotv-morphe-patches`
 
 ## Local workflow
 
@@ -49,7 +49,7 @@ Automated validation covers extension and patcher tests, isolated application ac
 ## Available patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.0-dev.29](https://github.com/liongalahad/nuviotv-morphe-patches/releases/tag/v1.0.0-dev.29)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;9 patches total
+> **[v1.0.0-dev.29](https://github.com/liongalahad/liongalahad-nuviotv-morphe-patches/releases/tag/v1.0.0-dev.29)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;9 patches total
 <details open>
 <summary>📦 NuvioTV&nbsp;&nbsp;•&nbsp;&nbsp;9 patches</summary>
 <br>

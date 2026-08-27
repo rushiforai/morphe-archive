@@ -3,10 +3,9 @@ package app.mctoolbox.patches.premium
 import app.morphe.patcher.Fingerprint
 
 /**
- * Lvs0.a()Z — "reklam suresi doldu mu?" kontrolu.
- * currentTimeMillis >= baslangic + sure*1000 karsilastirmasi yapar.
- *
- * Govdesi tamamen degistirilir: HER ZAMAN true doner.
+ * vs0.a()Z — checks if ad duration has elapsed.
+ * Compares currentTimeMillis >= start + duration*1000.
+ * Body is replaced: always returns true.
  */
 object Vs0TimeElapsedFingerprint : Fingerprint(
     definingClass = "Lvs0;",
@@ -16,10 +15,9 @@ object Vs0TimeElapsedFingerprint : Fingerprint(
 )
 
 /**
- * Lvs0.b()Z — ikinci tamamlandi kontrolu (erken kapatma diyalogu ve
- * odul kosulu icin kullanilan diger boolean).
- *
- * Govdesi tamamen degistirilir: HER ZAMAN true doner.
+ * vs0.b()Z — second completion check used for early-close dialog
+ * and reward condition.
+ * Body is replaced: always returns true.
  */
 object Vs0CanCloseFingerprint : Fingerprint(
     definingClass = "Lvs0;",
@@ -29,14 +27,36 @@ object Vs0CanCloseFingerprint : Fingerprint(
 )
 
 /**
- * SimpleInterstitialAdActivity.r() — reklam ekraninin geri sayim tick'i.
- * Butona basilinca aktivite olusturulur ve bu metod 100ms sonra ilk kez
- * calisir. Govde basina finish() enjekte edilir: aktivite hic icerik
- * gostermadan aninda kapanir ve finish() icindeki odul yolu isler.
+ * SimpleInterstitialAdActivity.r() — ad screen countdown tick.
+ * Called 100ms after the activity is created.
+ * finish() is injected at method start: activity closes immediately
+ * without showing content, and the reward path inside finish() runs.
  */
 object AdScreenTickFingerprint : Fingerprint(
     definingClass = "Lio/mrarm/simpleads/SimpleInterstitialAdActivity;",
     name = "r",
     returnType = "V",
     parameters = listOf()
+)
+
+/**
+ * n21$a.b()V — called when all ad sources have failed.
+ * Shows toast, dismisses dialog, resets n21.W flag.
+ * Premium is written directly via bridge.b.S() at method start.
+ */
+object AdAllSourcesFailedFingerprint : Fingerprint(
+    definingClass = "Ln21\$a;",
+    name = "b",
+    returnType = "V",
+    parameters = listOf()
+)
+
+/**
+ * m21.onClick(View)V — "Watch ad" button click handler.
+ * Contains "premium_ticket" string used in r2.b() call.
+ */
+object M21OnClickFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = listOf("Landroid/view/View;"),
+    strings = listOf("premium_ticket")
 )

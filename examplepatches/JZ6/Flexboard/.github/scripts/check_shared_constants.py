@@ -15,33 +15,22 @@ nothing on a phone.
     check_shared_constants.py        -> silent, or exits 1 listing every disagreement
 """
 
+import os
 import pathlib
 import re
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 PATCHES = ROOT / "patches/src/main/kotlin"
+# The native settings screen. Rows in this XML are what persist the values the smali readers read,
+# so the key/default/bounds literals here are one side of the same contract the PAIRS below
+# covered when the screen was extension Java.
+SETTINGS_XML = ROOT / "patches/src/main/resources/xml/flexboard_settings.xml"
 # (Kotlin name, Java name). The names differ where each side reads more naturally on its own terms;
 # what has to match is the value.
 PAIRS = [
     ("STEP_SCALE_KEY", "KEY_STEP_SCALE"),
-    ("MAX_WORDS_KEY", "KEY_MAX_WORDS"),
-    ("HOLD_DELAY_KEY", "KEY_HOLD_DELAY"),
     ("STEP_SCALE_DEFAULT", "STEP_SCALE_DEFAULT"),
-    ("MAX_WORDS_DEFAULT", "MAX_WORDS_DEFAULT"),
-    # The slider's top position, and the "no limit" sentinel the clamp tests against. Split from the
-    # default when that moved to 1 — sharing them would have put the sentinel at 1 and disabled the
-    # cap at every setting.
-    ("MAX_WORDS_NO_LIMIT", "MAX_WORDS_MAX"),
-    ("HOLD_DELAY_DEFAULT", "HOLD_DELAY_DEFAULT"),
-    # The toolbar count has no shared *default*: the patch reads the preference with whatever Gboard
-    # itself computed as the fallback, so an unset value is stock behaviour rather than a number
-    # either side had to agree on. The bounds are shared, because the patch rejects anything outside
-    # them and the slider is what has to stay inside them.
-    ("TOOLBAR_COUNT_KEY", "KEY_TOOLBAR_COUNT"),
-    ("TOOLBAR_COUNT_UNFOLDED_KEY", "KEY_TOOLBAR_COUNT_UNFOLDED"),
-    ("TOOLBAR_COUNT_MIN", "TOOLBAR_COUNT_MIN"),
-    ("TOOLBAR_COUNT_MAX", "TOOLBAR_COUNT_MAX"),
     # The ordinals the patch hands the extension's constructor. The extension maps them to
     # android.R.id.* so the framework constants stay symbolic in the one language that can name
     # them -- which means the number crossing the boundary is meaningless on its own, and a drift
@@ -49,6 +38,23 @@ PAIRS = [
     ("TEXT_ACTION_SELECT_ALL", "SELECT_ALL"),
     ("TEXT_ACTION_COPY", "COPY"),
     ("TEXT_ACTION_PASTE", "PASTE"),
+    # Hotkeys: the slot fan-out moving with the extension. (No count slider by design —
+    # placeholders ship; clearing a slot's text hides it.)
+    ("HOTKEY_SLOTS", "SLOT_COUNT"),
+]
+
+# The slider contract between ScrubTuningPatch.kt and flexboard_settings.xml: the Kotlin name of
+# the key a row stores under, then the Kotlin names of the values the row's attributes have to
+# carry exactly. A change that moves one side — a key, a bound, a default — while leaving the
+# other silently decouples the slider from the number the engine uses.
+#
+# ("<kotlin const of key>", {"<xml attribute>": "<kotlin const>"})
+XML_ROWS = [
+    ("MAX_WORDS_KEY", {
+        "android:defaultValue": "MAX_WORDS_DEFAULT",
+        "slider_min_value": "MAX_WORDS_MIN",
+        "slider_max_value": "MAX_WORDS_NO_LIMIT",
+    }),
 ]
 
 # Hex is accepted because resource ids are written that way on both sides -- and on the Kotlin side
@@ -204,6 +210,17 @@ def _declares(body, class_name, member, params, returns, needs_static):
     return False
 
 
+def _collect_body(name):
+    """The raw initializer text of a named list/array, whichever of the patch or extension of it
+    it lives in. Used to compare members *in order*, which the per-const maps can't express."""
+    for path in sorted(PATCHES.rglob("*.kt")) + sorted(EXTENSION_ROOT.rglob("*.java")):
+        m = re.search(rf"\b{name}\s*=\s*(?:listOf|new String\[\])\s*({{|\()"
+                      r"(.*?)(\}|\))", path.read_text(), re.S)
+        if m:
+            return m.group(2)
+    return ""
+
+
 def _check_extension_references(problems):
     for path in PATCHES.rglob("*.kt"):
         # Comments first: KDoc talking about a member descriptor is not an emission of it, and
@@ -299,23 +316,208 @@ def _check_extension_references(problems):
                 f"parsed from it — this check has silently stopped checking anything"
             )
 
-        # A class handed to a (Ljava/lang/Runnable;)V setter has to actually be a Runnable;
-        # nothing else in this pipeline would notice if it stopped being one.
-        for descriptor, (source, body) in sources.items():
+        # Every class the patch route puts into an `(Ljava/lang/Runnable;)V`-typed slot has to
+        # actually implement Runnable; Gboard's toolbar-builder setter happily stores whatever it
+        # is given and the failure surfaces as an ART class-verification crash at keyboard start.
+        #
+        # Two lanes in: the legacy `new-instance <T>` line at the use site (none today, but keep it
+        # — future authors will reach for it first), and the helper lane's `actionCtor` descriptor,
+        # which is a `<init>(...)V` on a class the helper turns into a Runnable.
+        runnable_distinct = set()
+        for descriptor, (_source, _body) in sources.items():
             constructed = re.search(rf"new-instance\s+\w+\s*,\s*{re.escape(descriptor)}", text)
             if constructed and "(Ljava/lang/Runnable;)V" in text:
-                if not re.search(r"\bimplements\b[^{]*\bRunnable\b", body):
-                    problems.append(
-                        f"  {path.name} hands {descriptor} to a Runnable setter, but "
-                        f"{source.name} does not declare `implements Runnable`"
-                    )
+                runnable_distinct.add(descriptor)
+        for arg in NATIVE_TOOLBAR_ARG.findall(text):
+            descriptor = arg[1:-1] if arg.startswith('"') else constants.get(arg)
+            if descriptor is not None:
+                # NATIVE_TOOLBAR_ARG is a full member descriptor; strip "-><init>(…)V" to get the
+                # class it belongs to.
+                runnable_distinct.add(descriptor.split("->")[0])
+        for descriptor in runnable_distinct:
+            if descriptor not in sources:
+                continue
+            source, body = sources[descriptor]
+            if not re.search(r"\bimplements\b[^{]*\bRunnable\b", body):
+                problems.append(
+                    f"  {path.name} hands {descriptor} to a Runnable action slot, but "
+                    f"{source.name} does not declare `implements Runnable`"
+                )
 
+
+def _xml_entries(text):
+    """{android:key: {attribute: value}} for each element in a settings XML resource."""
+    entries = {}
+    for element in re.findall(r"<([\w$.]+)\s+([^>]+?)/?>", text):
+        attrs = dict(re.findall(r'([\w:]+)="([^"]*)"', element[1]))
+        key = attrs.get("android:key")
+        if key:
+            entries[key] = attrs
+    return entries
+
+
+def _check_settings_xml(problems, kotlin):
+    """The native settings rows agree with the smali readers about keys, defaults and bounds.
+
+    Same silent-drift class as the preference keys this file started with: the XML compiles, the
+    smali assembles, the slider moves, and the number it writes is read back under a different key
+    or clamped by a different bound. Nothing fails until someone notices a setting doing nothing.
+    """
+    text = SETTINGS_XML.read_text()
+    entries = _xml_entries(text)
+    for key_const, attributes in XML_ROWS:
+        key = kotlin.get(key_const)
+        if key is None:
+            problems.append(f"  {key_const} is not declared in any patch")
+            continue
+        row = entries.get(key)
+        if row is None:
+            problems.append(
+                f"  {key_const} = {key!r} has no row in flexboard_settings.xml — the engine reads "
+                f"a key the screen never writes"
+            )
+            continue
+        for attribute, value_const in attributes.items():
+            wanted = kotlin.get(value_const)
+            if wanted is None:
+                problems.append(f"  {value_const} is not declared in any patch")
+                continue
+            actual = row.get(attribute)
+            if actual is None:
+                problems.append(
+                    f"  the {key!r} row in flexboard_settings.xml has no {attribute} attribute"
+                )
+            elif _normalised(actual) != _normalised(wanted):
+                problems.append(
+                    f"  the {key!r} row's {attribute} = {actual!r} but {value_const} = "
+                    f"{wanted!r} — the screen and the engine disagree"
+                )
+
+
+# A dotted extension class name (the settings fragment is referenced from a *resource* row, so no
+# descriptor string exists for it). Existence is all that is checked: the host does
+# Class.forName on this string, and a rename breaks only on a phone. The final component must
+# start uppercase so that package mentions ("…extension.settings") are not mistaken for classes.
+DOTTED_EXTENSION_CLASS = re.compile(r"dev\.jz6\.flexboard\.extension(?:\.\w+)*\.[A-Z]\w*")
+
+# The emitted smali stages a key as `const-string v$x, "$SOME_KEY"` — the consumers of the
+# screen's keys are the injected readers, not extension Java.
+EMITTED_KEY_READ = re.compile(r'const-string\s+v\$\w+,\s*"\$(\w*KEY\w*)"')
+
+
+def _check_screen_contract(problems, kotlin):
+    """Coverage rules for every keyed row of flexboard_settings.xml, no per-row opt-out.
+
+    XML_ROWS asserts the rows it knows about, attribute by attribute. That leaves a silent lane:
+    adding a row nobody registered passes every check while the engine under it reads a key the
+    screen never writes, or a row typoed `…_hol_ms` writes a key nothing reads. These rules close
+    that: uniqueness, every key must be a declared patch constant, every key an emitted reader
+    stages must have a row, and any row that carries bounds or a default must be registered in
+    XML_ROWS so its attrs get asserted pair by pair.
+    """
+    keys = re.findall(r'android:key="([^"]+)"', SETTINGS_XML.read_text())
+    entries = _xml_entries(SETTINGS_XML.read_text())
+    for dup in {k for k in keys if keys.count(k) > 1}:
+        problems.append(f"  flexboard_settings.xml carries the key {dup!r} twice")
+
+    const_values = set(kotlin.values())
+    # A constant whose value ends with "_" declares a key *family*: generated keys like
+    # `flexboard_hotkey_7_text` are produced by code, so they can't all be literal const values —
+    # but they must begin with a family prefix an author committed to somewhere.
+    families = [v for v in const_values if isinstance(v, str) and v.endswith("_")]
+    for key in set(keys):
+        if key in const_values:
+            continue
+        if any(key.startswith(family) for family in families):
+            continue
+        problems.append(
+            f"  flexboard_settings.xml row {key!r} is not the value of any patch constant — "
+            f"either the key is typoed or the constant it feeds was renamed"
+        )
+
+    # Staged in smali with no settings row by design: step-scale's KDoc pins "nothing uses a UI
+    # value for it" — the key stays int-typed against the pre-native Activity, and the engine
+    # just reads the seeded default. HOLD_DELAY_KEY joins it — the row was dropped ("default 0,
+    # nobody wants a delay") while the smali read stays so blobless users get exactly 0.
+    # Declared here so the rule still covers keys nobody thought about.
+    stage_only = {"STEP_SCALE_KEY", "HOLD_DELAY_KEY"}
+    staged = set()
+    for path in PATCHES.rglob("*.kt"):
+        text = LINE_COMMENT.sub("", BLOCK_COMMENT.sub("", path.read_text()))
+        for const_name in EMITTED_KEY_READ.findall(text):
+            staged.add((path.name, const_name))
+    for file_name, const_name in sorted(staged):
+        if const_name in stage_only:
+            continue
+        key = kotlin.get(const_name)
+        if key and key not in entries:
+            problems.append(
+                f"  {file_name}'s smali stages {key!r} for {const_name}, but the screen "
+                f"has no row that writes it — the slider would read the patch default forever"
+            )
+    registered = {kotlin.get(name) for name, _ in XML_ROWS}
+    registered.discard(None)
+    for key, attrs in entries.items():
+        if key in registered:
+            continue
+        bounded = [a for a in attrs if a in ("android:defaultValue", "slider_min_value",
+                                             "slider_max_value")]
+        if bounded:
+            problems.append(
+                f"  the {key!r} row carries {sorted(bounded)} but is not registered in "
+                f"XML_ROWS, so nothing asserts those literals against the engine's constants — "
+                f"add the row or drop the attribute"
+            )
+
+    # The per-slot fan-out has a count, not just a family: the screen must carry exactly
+    # HOTKEY_SLOTS merged text rows and no icon rows — the icon lives in the same row's dialog
+    # now, so a flexboard_hotkey_N_icon row key is regression, not a feature. The family rule
+    # above can't see either: a 13th row is a dead control, an 11th is a slot with no editor,
+    # a revived icon row splits the edit surface in two.
+    slot_count = int(kotlin.get("HOTKEY_SLOTS", "0"))
+    want = {f"flexboard_hotkey_{n}_text" for n in range(1, slot_count + 1)}
+    got = {k for k in keys if re.fullmatch(r"flexboard_hotkey_\d+_text", k)}
+    if got != want:
+        problems.append(
+            f"  flexboard_settings.xml should carry exactly the {slot_count} merged "
+            f"hotkey rows (flexboard_hotkey_1..{slot_count}_text); "
+            f"missing {sorted(want - got)}, extra {sorted(got - want)}"
+        )
+    icon_rows = sorted(k for k in keys if re.fullmatch(r"flexboard_hotkey_\d+_icon", k))
+    if icon_rows:
+        problems.append(
+            f"  flexboard_settings.xml carries icon rows {icon_rows} — icon editing lives in "
+            f"each hotkey row's composite dialog; icon keys are store keys, not row keys"
+        )
+
+
+def _check_dotted_extension_classes(problems):
+    for path in PATCHES.rglob("*.kt"):
+        text = LINE_COMMENT.sub("", BLOCK_COMMENT.sub("", path.read_text()))
+        for name in sorted(set(DOTTED_EXTENSION_CLASS.findall(text))):
+            source = EXTENSION_ROOT / (name.replace(".", os.sep) + ".java")
+            if not source.is_file():
+                problems.append(
+                    f"  {path.name} names the extension class {name}, but "
+                    f"{source.relative_to(ROOT)} does not exist"
+                )
 
 def main():
-    kotlin = {}
-    for path in PATCHES.rglob("*.kt"):
-        kotlin.update(_collect(KOTLIN_CONST, path.read_text()))
     problems = []
+    kotlin, kotlin_from = {}, {}
+    for path in PATCHES.rglob("*.kt"):
+        # Comments carry prose shaped like constants ("`internal const val X = 0`" in a KDoc
+        # paragraph) and would poison the same-name lookup on the Java side. Strip them here the
+        # same way the reference check does it.
+        text = LINE_COMMENT.sub("", BLOCK_COMMENT.sub("", path.read_text()))
+        for name, value in _collect(KOTLIN_CONST, text).items():
+            if name in kotlin and kotlin[name] != value:
+                problems.append(
+                    f"  {name} is declared in multiple patch files with different values — "
+                    f"{kotlin_from[name].name} says {kotlin[name]!r}, {path.name} says {value!r}"
+                )
+                continue
+            kotlin[name], kotlin_from[name] = value, path
 
     # Every Java file in the extension, not just the settings screen. The screen was the only side
     # of the contract until the toolbar buttons arrived: their action ordinals are shared with
@@ -332,6 +534,29 @@ def main():
                 continue
             java[name], declared_in[name] = value, source.name
 
+    # The hotkey default-icon order, held in lockstep across the patch's drawable loop and the
+    # extension's defaults table: Kotlin names the symbol, Java the flexboard_icon_<symbol>. An
+    # empty parse on either side must fail too — renamed initializers otherwise compare [] != []
+    # green while pinning nothing.
+    kt_syms = re.findall(r'"([a-z_]+)"', _collect_body("HOTKEY_DEFAULT_SYMBOLS"))
+    java_names = re.findall(r'"flexboard_icon_([a-z_]+)"', _collect_body("DEFAULT_ICON_NAMES"))
+    if not kt_syms or not java_names or kt_syms != java_names:
+        problems.append(
+            f"  hotkey default icon order drifted or failed to parse: patch says {kt_syms}, "
+            f"extension says {java_names}"
+        )
+
+    # Same rule for the picker's back half: the patch writes the extra drawables, the extension
+    # lays them out past the defaults in the same order. (Digits appear in counter_*, so
+    # this pattern admits them where the defaults' does not.)
+    kt_extra = re.findall(r'"([a-z0-9_]+)"', _collect_body("HOTKEY_EXTRA_SYMBOLS"))
+    java_extra = re.findall(r'"flexboard_icon_([a-z0-9_]+)"', _collect_body("EXTRA_ICON_NAMES"))
+    if not kt_extra or not java_extra or kt_extra != java_extra:
+        problems.append(
+            f"  hotkey picker extra-icon order drifted or failed to parse: patch says {kt_extra}, "
+            f"extension says {java_extra}"
+        )
+
     for kt_name, java_name in PAIRS:
         kt_value, java_value = kotlin.get(kt_name), java.get(java_name)
         if kt_value is None:
@@ -345,6 +570,9 @@ def main():
             )
 
     _check_extension_references(problems)
+    _check_settings_xml(problems, kotlin)
+    _check_dotted_extension_classes(problems)
+    _check_screen_contract(problems, kotlin)
 
     if problems:
         print("::error::The patches and the extension disagree about the preference contract:",
@@ -352,7 +580,8 @@ def main():
         print("\n".join(problems), file=sys.stderr)
         return 1
 
-    print(f"Patch and extension agree on all {len(PAIRS)} shared constants.")
+    print(f"Patch, extension and settings XML agree on all {len(PAIRS)} shared constants, "
+          f"{len(XML_ROWS)} slider rows, and every row-level coverage rule.")
     return 0
 
 

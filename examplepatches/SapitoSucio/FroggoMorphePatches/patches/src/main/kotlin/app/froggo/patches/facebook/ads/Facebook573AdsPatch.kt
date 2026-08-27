@@ -2,17 +2,9 @@
  * Facebook 573.0.0.37.74 / 473623755
  *
  * Validated against the target APK with JADX/MCP and the DEX string table:
- * - AdBucketDataSourceUtil$attemptAdsInsertion$1 -> run(): V
- * - AdBucketDataSourceUtil$attemptFetchMoreAds$1 -> run(): V
- * - AdBucketDataSourceUtil$fetchDeferredAds$1 -> run(): V
- * - AdBucketDataSourceUtil$triggerCtaTailload$1 -> run(): V
- * - AdBucketDataSourceUtil$triggerDwellTailload$1 -> run(): V
- * - MainFeedCSRDataLoaderImpl$handlerTailLoadEvent$2 -> run(): V
  * - MainFeedCSRDataLoaderImpl$maybeDoAsyncAdsTailLoad$1 -> run(): V
  * - MainFeedCSRDataLoaderImpl.maybeDoAsyncAdsTailLoad -> A08(X.1wV): V
  * - FeedCSRAdChannelControllerImpl converter -> X.bZU.A00(...): X.3JJ
- * - X.AuI.B46(FbUserSession, X.Aly, ImmutableList): ImmutableList
- *   (StoryViewerBucketDataController provider merge)
  * - AdBreakFetchHelper -> A05(...): V
  * - AdBreakStateMachine callback -> onSuccess(Object): V
  * - X.5Vs.A03(...): V (Reels/video banner and video ad fetch)
@@ -23,7 +15,6 @@
  * - X.1vv.addNewEdgeToCollection(...): Z (final feed UI insertion filter for
  *   SPONSORED/PROMOTION edges)
  * - GraphQLFBMultiAdsFeedUnit.A00(): X.41Q
- * - GraphQLPartialStory.getSponsoredData(): X.41Q
  */
 
 /*
@@ -32,25 +23,27 @@
  * Facebook 573 does not have one ad pipeline. The working map is:
  *
  * 1. Feed CSR: C23I.A0F -> bZU.A00 -> GraphQLFeedUnitEdge. The converter
- *    produces feed units from the CSR response.
+ *    produces feed units from the CSR response. Do not suppress the generic
+ *    MainFeedCSRDataLoaderImpl$handlerTailLoadEvent$2 runnable: it resumes the
+ *    base CSR tail-load state machine and is not ad-specific.
  * 2. Feed async ads: 3JX.A0F (FeedAsyncAdsController) can build ASYNC_ADS
  *    edges after the normal feed response. DbP consumes its C6Ke result.
  * 3. Final feed insertion: 1vv.addNewEdgeToCollection(...) is the last
  *    source-independent seam before the feed collection reaches the UI.
  *    In this APK GraphQLFeedStoryCategory.A0K is SPONSORED and A0I is
  *    PROMOTION; both are rejected there as a defensive final filter.
- * 4. Story Ads: StoryViewerBucketDataController chains provider merges through
- *    AuI.B46(...). That method also advances the provider's organic/ad queues
- *    and positions; it must run normally. The generated output is discarded
- *    in favor of the original organic list, keeping provider state and the
- *    controller's pagination list in sync without publishing Story Ads.
+ * 4. Story Ads are intentionally not modified by this stable patch. Story
+ *    experiments belong on the dev/pre-release source so regressions cannot
+ *    affect the proven Feed/Reels patch.
  * 5. Reels/video: 5Vs.A03 starts banner/video ad work and 62B/9mO consume
  *    banner/card and video callbacks. Qsb.A05 and Qsw.onSuccess handle the
  *    separate commercial-break / AdBreak state machine, including
  *    NON_INTERRUPTIVE_AD.
- * 6. Model fallbacks: GraphQLFBMultiAdsFeedUnit.A00 and
- *    GraphQLPartialStory.getSponsoredData expose sponsored data to later
- *    renderers, so they are kept as narrow null-return guards.
+ * 6. Model fallback: GraphQLFBMultiAdsFeedUnit.A00 exposes sponsored data on
+ *    the dedicated multi-ad feed unit, so it remains a narrow null guard.
+ *    Do not patch GraphQLPartialStory.getSponsoredData(): that accessor is
+ *    also used by GraphQLPartialStory.asTree* and withFetchTime model rebuilds,
+ *    so forcing it null can corrupt ordinary Story state across transitions.
  *
  * To port this patch to a new APK:
  *
@@ -83,8 +76,6 @@ import app.froggo.patches.shared.Constants.COMPATIBILITY_FACEBOOK_573
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
-import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.value.StringEncodedValue
 
 private fun redexRunnable(originalName: String) = Fingerprint(
@@ -109,10 +100,6 @@ private fun exactMethod(
     },
 )
 
-private val mainFeedTailLoad = redexRunnable(
-    "MainFeedCSRDataLoaderImpl\$handlerTailLoadEvent\$2",
-)
-
 private val mainFeedAsyncAdsTailLoadRunnable = redexRunnable(
     "MainFeedCSRDataLoaderImpl\$maybeDoAsyncAdsTailLoad\$1",
 )
@@ -130,16 +117,6 @@ private val feedAdsResponseConverter = exactMethod(
         "Lcom/facebook/api/feed/model/FetchFeedParams;",
         "LX/3pN;",
         "LX/41R;",
-    ),
-)
-
-private val storyAdsBucketMerge = exactMethod(
-    "LX/AuI;",
-    "B46",
-    listOf(
-        "Lcom/facebook/auth/usersession/FbUserSession;",
-        "LX/Aly;",
-        "Lcom/google/common/collect/ImmutableList;",
     ),
 )
 
@@ -222,24 +199,15 @@ private val multiAdsSponsoredData = exactMethod(
     "A00",
 )
 
-private val partialStorySponsoredData = exactMethod(
-    "Lcom/facebook/graphql/model/GraphQLPartialStory;",
-    "getSponsoredData",
-)
-
 @Suppress("unused")
 val blockFacebookAds573Patch = bytecodePatch(
     name = "Block Facebook ads (573)",
-    description = "Stops feed, Story ad-bucket merge, deferred/tail loads, and video commercial-break ads.",
+    description = "Stops feed, Reels/video, and commercial-break ads without modifying the Story viewer pipeline.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_FACEBOOK_573)
 
     execute {
-        mainFeedTailLoad.method.addInstructions(
-            0,
-            "return-void",
-        )
         mainFeedAsyncAdsTailLoadRunnable.method.addInstructions(
             0,
             "return-void",
@@ -253,19 +221,6 @@ val blockFacebookAds573Patch = bytecodePatch(
             """
                 const/4 v0, 0x0
                 return-object v0
-            """.trimIndent(),
-        )
-        val storyAdsMergeReturnIndex = storyAdsBucketMerge.method.implementation!!.instructions
-            .withIndex()
-            .last { (_, instruction) ->
-                instruction.opcode == Opcode.RETURN_OBJECT &&
-                    (instruction as OneRegisterInstruction).registerA == 0
-            }
-            .index
-        storyAdsBucketMerge.method.addInstructions(
-            storyAdsMergeReturnIndex,
-            """
-                move-object/from16 v0, p3
             """.trimIndent(),
         )
         videoAdBreakFetch.method.addInstructions(
@@ -319,13 +274,6 @@ val blockFacebookAds573Patch = bytecodePatch(
             """.trimIndent(),
         )
         multiAdsSponsoredData.method.addInstructions(
-            0,
-            """
-                const/4 v0, 0x0
-                return-object v0
-            """.trimIndent(),
-        )
-        partialStorySponsoredData.method.addInstructions(
             0,
             """
                 const/4 v0, 0x0

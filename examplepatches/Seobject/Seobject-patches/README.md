@@ -5,7 +5,7 @@ Random QoL patches.
 ## 🩹 Patches list
 
 <!-- PATCHES_START -->
-> **[v1.0.7](https://github.com/Seobject/Seobject-patches/releases/tag/v1.0.7)**&nbsp;&nbsp;&bull;&nbsp;&nbsp;1 patch total
+> **[v1.1.0](https://github.com/Seobject/Seobject-patches/releases/tag/v1.1.0)**&nbsp;&nbsp;&bull;&nbsp;&nbsp;1 patch total
 
 <details>
 <summary>📦 YouTube Music&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
@@ -13,8 +13,8 @@ Random QoL patches.
 
 **🎯 Supported versions:**
 
-| 9.15.51 |
-| :---: |
+| 9.24.51 | 9.25.50 | 9.26.51 | 9.28.51 |
+| :---: | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |---|---|---|

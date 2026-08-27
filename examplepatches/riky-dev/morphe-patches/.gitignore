@@ -134,3 +134,7 @@ analysis/
 
 # Throwaway verify project
 build/verify-one/
+
+# Local Morphe CLI + device-test outputs (APKs already ignored)
+tools/
+

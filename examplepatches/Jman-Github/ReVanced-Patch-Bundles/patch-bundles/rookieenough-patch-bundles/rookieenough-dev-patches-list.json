@@ -1,5 +1,5 @@
 {
-    "version": "v1.3.0-dev.1",
+    "version": "v1.3.0-dev.3",
     "patches": [
         {
             "compatiblePackages": [
@@ -10,18 +10,19 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "473.11"
+                            "version": "477.14"
                         }
                     ],
                     "versions": [
-                        "473.11"
+                        "477.14"
                     ]
                 }
             ],
             "default": true,
             "dependencies": [
+                "BytecodePatch",
                 "ResourcePatch",
-                "BytecodePatch"
+                "ResourcePatch"
             ],
             "description": "Adds a button that triggers the same action as shaking your phone would.",
             "name": "Add 'Give Kudos' button to 'Group Activity'",
@@ -36,11 +37,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "473.11"
+                            "version": "477.14"
                         }
                     ],
                     "versions": [
-                        "473.11"
+                        "477.14"
                     ]
                 }
             ],
@@ -51,6 +52,32 @@
             ],
             "description": "Extends the full-screen media viewer menu with items to copy or open their URLs or download them directly.",
             "name": "Add media download",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "appIconColor": "#FC6925",
+                    "name": "Strava",
+                    "packageName": "com.strava",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "477.14"
+                        }
+                    ],
+                    "versions": [
+                        "477.14"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [
+                "ResourcePatch",
+                "BytecodePatch"
+            ],
+            "description": "Allows exporting and downloading Strava routes as GPX or TCX files directly from the app.",
+            "name": "Add route export",
             "options": []
         },
         {
@@ -165,11 +192,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "473.11"
+                            "version": "477.14"
                         }
                     ],
                     "versions": [
-                        "473.11"
+                        "477.14"
                     ]
                 }
             ],
@@ -320,11 +347,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "473.11"
+                            "version": "477.14"
                         }
                     ],
                     "versions": [
-                        "473.11"
+                        "477.14"
                     ]
                 }
             ],
@@ -389,11 +416,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "473.11"
+                            "version": "477.14"
                         }
                     ],
                     "versions": [
-                        "473.11"
+                        "477.14"
                     ]
                 }
             ],
@@ -653,11 +680,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "473.11"
+                            "version": "477.14"
                         }
                     ],
                     "versions": [
-                        "473.11"
+                        "477.14"
                     ]
                 }
             ],
@@ -1019,11 +1046,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "473.11"
+                            "version": "477.14"
                         }
                     ],
                     "versions": [
-                        "473.11"
+                        "477.14"
                     ]
                 }
             ],
@@ -1514,11 +1541,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "473.11"
+                            "version": "477.14"
                         }
                     ],
                     "versions": [
-                        "473.11"
+                        "477.14"
                     ]
                 }
             ],

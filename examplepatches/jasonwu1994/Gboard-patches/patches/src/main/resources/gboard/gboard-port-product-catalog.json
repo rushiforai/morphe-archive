@@ -1,7 +1,7 @@
 {
   "$schema": "gboard-port-product-catalog.schema.json",
   "format": "gboard-port-product-catalog.v1",
-  "catalog_version": "1.9.0",
+  "catalog_version": "1.10.0",
   "composition": {
     "selected_only_call_chain": true,
     "runtime_feature_mask": false
@@ -49,6 +49,22 @@
     "soft_key_bind"
   ],
   "features": [
+    {
+      "feature_id": "access_point_count",
+      "public_patch_name": "Top Toolbar Item Count",
+      "feature_marker": "dev.jason.gboardpatches.feature.access_point_count",
+      "target_family_ids": ["accesspointcount", "flag.reader"],
+      "migration_scope": "version-sensitive",
+      "consumer_files": [
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/accesspointcount/GboardAccessPointCountFeatureMarkerPatch.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/accesspointcount/GboardAccessPointCountFlagValuePatch.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/registry/GboardPatchRegistry.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/shared/GboardFlagFamilyComposer.kt"
+      ],
+      "contributions": [
+        { "contribution_id": "access_point_count.flag", "anchor_family_id": "flag_bool_getter", "phase": "after_stock_result", "order": 1300, "required_bindings": ["flag_bool_getter", "flag_name_field"], "runtime_calls": ["ACCESS_POINT_COUNT_RUNTIME_APPLY_FLAG_VALUE"] }
+      ]
+    },
     {
       "feature_id": "access_points_menu_style",
       "public_patch_name": "Access Points menu style",

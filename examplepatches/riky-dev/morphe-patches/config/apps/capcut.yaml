@@ -1,0 +1,55 @@
+id: capcut
+package: com.lemon.lvoverseas
+display_name: CapCut
+apk_file_type: APK          # switch to XAPK/APKM if apkpure serves a split bundle
+apkpure_slug: capcut-video-editor
+analysis_dir: analysis/capcut
+
+verify:
+  apk: analysis/capcut/extract/com.lemon.lvoverseas.apk
+  smali_assertions:
+    - file: com/vega/subscribe/SubscribeImpl.smali
+      pattern: 'const/4 v0, 0x1'
+      label: SubscribeImpl isVip spoof
+    - file: com/lemon/editor/proxy/PayVipImpl.smali
+      pattern: 'const/4 v0, 0x1'
+      label: PayVipImpl isVip spoof
+    - file: com/lemon/clipmonetize/biz/userinfoapi/UserInfoServiceServiceImpl.smali
+      pattern: 'SSVIP:Lcom/lemon/lv/clipmonetize/data/VipState;'
+      label: UserInfoService SSVIP spoof
+    - file: com/xt/retouch/account/api/subscribe/SubscribeFacade.smali
+      pattern: 'const/4 v0, 0x1'
+      label: SubscribeFacade subscribed spoof
+    - file: com/lemon/lv/config/WatermarkTrailerConfig.smali
+      pattern: 'const/4 p2, 0x0'
+      label: WatermarkTrailerConfig trailer disabled
+    - file: com/lemon/vega/ug/ui/DiversionPCActivity.smali
+      pattern: 'DiversionPCActivity;->finish\(\)V'
+      label: DiversionPCActivity suppressed
+    - file: com/lemon/vega/ug/ui/NoLoginDiversionPCActivity.smali
+      pattern: 'NoLoginDiversionPCActivity;->finish\(\)V'
+      label: NoLoginDiversionPCActivity suppressed
+    - file: com/lemon/lv/clipmonetize/data/UserSubscribeInfo.smali
+      pattern: 'const/4 v0, 0x1'
+      label: UserSubscribeInfo getFlag spoof
+    - file: com/lemon/lv/clipmonetize/data/UserSubscribeInfo.smali
+      pattern: 'const-string v0, "ssvip"'
+      label: UserSubscribeInfo getLevel spoof
+    - file: com/vega/main/BaseMainActivity$initMainTab$10.smali
+      pattern: 'ViewExtKt;->d\(Landroid/view/View;Z\)V'
+      label: BaseMainActivity initMainTab 10 invoke view gone
+    - file: com/bytedance/applog/AppLog.smali
+      pattern: '\.method public static init\(Landroid/content/Context;Lcom/bytedance/applog/InitConfig;\)V[\s\S]+?return-void'
+      label: AppLog init no-op
+    - file: com/lemon/lv/config/ExportHighDefinitionConfig.smali
+      pattern: '\.method public final b\(\)Z[\s\S]+?const/4 v0, 0x0\s+?return v0'
+      label: ExportHighDefinitionConfig getEnable returns false
+    - file: com/vega/edit/speed/data/SlowMotionSource.smali
+      pattern: '\.method public static a\(\)Ljava/util/List;[\s\S]+?return-object v4'
+      label: SlowMotionSource only returns Frame Blending
+
+
+
+
+
+

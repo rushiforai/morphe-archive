@@ -1,5 +1,5 @@
 {
-    "version": "v1.1.6",
+    "version": "v1.1.17",
     "patches": [
         {
             "compatiblePackages": [
@@ -24,7 +24,7 @@
             ],
             "default": true,
             "dependencies": [],
-            "description": "Stops feed, Story ad-bucket merge, deferred/tail loads, and video commercial-break ads.",
+            "description": "Stops feed, Story ad-bucket insertion/fetch, deferred/tail loads, and video commercial-break ads.",
             "name": "Block Facebook ads (573)",
             "options": []
         },
@@ -51,7 +51,7 @@
             ],
             "default": true,
             "dependencies": [],
-            "description": "Disables News Feed hot-start refresh while preserving manual pull-to-refresh.",
+            "description": "Suppresses lifecycle feed refresh while preserving explicit refresh paths.",
             "name": "Block Facebook automatic refresh (573)",
             "options": []
         }

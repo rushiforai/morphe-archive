@@ -5,19 +5,19 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.mctoolbox.patches.shared.Constants.COMPATIBILITY_MCTOOLBOX
 
 /**
- * Bypass Google Play Install Check — kurulum kaynagi kontrolunu gecersiz kil.
+ * Bypass Google Play Install Check — bypasses the installation source check.
  *
- * MinecraftActivity.onCreate'un en basina test="0" pref'i DOGRUDAN yazilir;
- * installer adi ne olursa olsun (null/packageinstaller/baska market) uygulama
- * MCPE'nin Google Play'den kurulmus gibi davranir.
+ * Writes test="0" pref directly at the start of MinecraftActivity.onCreate;
+ * regardless of the installer name (null/packageinstaller/other market),
+ * the app behaves as if it was installed from Google Play.
  *
- * Register guvenligi: onCreate .locals 14; metodun ilk talimatinda v11/v12/v13
- * canli deger tasimaz.
+ * Register safety: onCreate has .locals 14; v11/v12/v13 are not live
+ * at the first instruction of the method.
  */
 @Suppress("unused")
 val mctoolboxPlaySpoofPatch = bytecodePatch(
     name = "Bypass Google Play Install Check",
-    description = "Minecraft'in nereden yuklendigi kontrol edilmez: her zaman Google Play'den kurulmus gibi islem gorur.",
+    description = "App always behaves as if installed from Google Play, bypassing the install source check.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_MCTOOLBOX)

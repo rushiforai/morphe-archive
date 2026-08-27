@@ -1,3 +1,50 @@
+## [1.8.1](https://github.com/legendsciber/morphe-patches/compare/v1.8.0...v1.8.1) (2026-08-26)
+
+### 🐛 Bug Fixes
+
+* **blockblast:** correct AdSdkInitFingerprint method name to h(Context) ([1ffd2bb](https://github.com/legendsciber/morphe-patches/commit/1ffd2bb629c22c640897bf02c6833edb5eb50236))
+
+## [1.8.0](https://github.com/legendsciber/morphe-patches/compare/v1.7.4...v1.8.0) (2026-08-26)
+
+### ✨ New Features
+
+* **blockblast:** add ad removal + subscription simulation patch ([6e4c075](https://github.com/legendsciber/morphe-patches/commit/6e4c075afafae50d689d1ca79e78b379c716e21a))
+
+## [1.7.4](https://github.com/legendsciber/morphe-patches/compare/v1.7.3...v1.7.4) (2026-08-26)
+
+### 🐛 Bug Fixes
+
+* **mctoolbox:** also set internal/premium_unlocked and refresh ya0.Q flag ([7a70d7d](https://github.com/legendsciber/morphe-patches/commit/7a70d7d58e121e678ae5f4b6bb3e554a3c731757))
+
+## [1.7.3](https://github.com/legendsciber/morphe-patches/compare/v1.7.2...v1.7.3) (2026-08-26)
+
+### 🐛 Bug Fixes
+
+* **mctoolbox:** use bridge.b.S() to directly write premium time instead of native I(900.0f) ([e1f5e14](https://github.com/legendsciber/morphe-patches/commit/e1f5e1451b10048918ba4b64d8fc658ea8a9f022))
+
+## [1.7.2](https://github.com/legendsciber/morphe-patches/compare/v1.7.1...v1.7.2) (2026-08-26)
+
+### 🐛 Bug Fixes
+
+* **mctoolbox:** watch-ad instant reward now actually grants +15min premium ([87ec60e](https://github.com/legendsciber/morphe-patches/commit/87ec60ef0e17a4b6729363ef4b37ffdca895295b))
+
+## [1.7.1](https://github.com/legendsciber/morphe-patches/compare/v1.7.0...v1.7.1) (2026-08-26)
+
+### 🐛 Bug Fixes
+
+* **mctoolbox:** watch-ad instant reward now actually grants +15min premium ([eb02de4](https://github.com/legendsciber/morphe-patches/commit/eb02de4f8ec4967a8c59ece4289ea8d5982a1723))
+* **mctoolbox:** watch-ad instant reward now actually grants +15min premium ([500984a](https://github.com/legendsciber/morphe-patches/commit/500984aba5af19bd5117e9d0bea80cc3f5b695f8))
+
+## [1.7.0](https://github.com/legendsciber/morphe-patches/compare/v1.6.0...v1.7.0) (2026-08-26)
+
+### 🐛 Bug Fixes
+
+* **mctoolbox:** compile errors — escape dollar signs, simplify to prepend injection ([8aca409](https://github.com/legendsciber/morphe-patches/commit/8aca40935eb60e567655bfd6f21c825d56ba4127))
+
+### ✨ New Features
+
+* **mctoolbox:** watch-ad failure handler now instantly grants +15min premium ([2c15b29](https://github.com/legendsciber/morphe-patches/commit/2c15b29936ac009bd4be7fcb58c7189d1efe65ac))
+
 ## [1.6.0](https://github.com/legendsciber/morphe-patches/compare/v1.5.0...v1.6.0) (2026-08-25)
 
 ### ✨ New Features

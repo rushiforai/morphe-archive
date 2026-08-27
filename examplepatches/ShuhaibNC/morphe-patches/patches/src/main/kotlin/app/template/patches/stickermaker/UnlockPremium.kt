@@ -5,6 +5,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.template.patches.shared.Constants.STICKER_MAKER_COMPATIBILITY
+import app.template.patches.shared.clearBody
 
 @Suppress("unused")
 val unlockPremiumPatch = bytecodePatch(
@@ -17,7 +18,7 @@ val unlockPremiumPatch = bytecodePatch(
     // Business logic to unlock premium features.
     execute {
         IsPremiumFingerPrint.method.apply {
-            removeInstructions(instructions.size)
+            clearBody()
             addInstructions(
                 0,
                 """
@@ -28,7 +29,7 @@ val unlockPremiumPatch = bytecodePatch(
         }
 
         PremiumDialogShownFinger.method.apply {
-            removeInstructions(instructions.size)
+            clearBody()
             addInstructions(
                 0,
                 """

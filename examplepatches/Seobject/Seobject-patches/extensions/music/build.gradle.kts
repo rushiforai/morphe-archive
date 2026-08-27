@@ -3,8 +3,6 @@ import org.gradle.api.tasks.compile.JavaCompile
 
 dependencies {
     compileOnly(libs.morphe.extensions.library)
-    compileOnly(project(":extensions:shared-youtube:library"))
-    compileOnly(project(":extensions:shared:library"))
     compileOnly(libs.annotation)
 }
 
@@ -27,3 +25,4 @@ afterEvaluate {
         )
     }
 }
+

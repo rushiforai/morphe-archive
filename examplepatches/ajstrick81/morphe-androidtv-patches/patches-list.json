@@ -1,5 +1,5 @@
 {
-  "version": "1.29.3",
+  "version": "1.30.0",
   "appNames": {
     "com.fox.foxone": "Fox One Android TV",
     "com.netflix.ninja": "Netflix Android TV",
@@ -328,8 +328,8 @@
     },
     {
       "name": "HBO Max - Block SSAI Ad Origins",
-      "description": "Reproduces the AdGuard DNS ad-block inside the app: fails media3 segment requests to HBO's SSAI ad origins (amer-free/emea-free.prd.media.max.com, gmss, FreeWheel) so the player's resiliency layer falls back to the clean, ad-free manifest — removing the stitched ad VIDEO the default Disable Ads patch leaves behind. On by default (field-verified 7.9.0.61); expect a slightly longer initial spinner while the clean manifest is fetched.",
-      "use": true,
+      "description": "Reproduces the AdGuard DNS ad-block inside the app: fails media3 segment requests to HBO's SSAI ad origins (amer-free/emea-free.prd.media.max.com, gmss, FreeWheel) so the player's resiliency layer falls back to the clean, ad-free manifest — removing the stitched ad VIDEO the default Disable Ads patch leaves behind. OPT-IN: works on a fresh start, but a RESUMED session that reaches a mid-roll throws a fatal 'Couldn't Play Content' (39999) error, so it is default-off pending the upstream connection-layer fix.",
+      "use": false,
       "dependencies": [],
       "compatiblePackages": {
         "com.wbd.hbomax": [
@@ -370,6 +370,47 @@
     {
       "name": "HBO Max - Disable Ads",
       "description": "Suppresses nonlinear overlay ads (Bolt), SSAI linear ad timeline registration (GMSS/AdSparx), and live stream preroll ad timeline entry generation for all content types.",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "com.wbd.hbomax": [
+          "7.9.0.61",
+          "7.7.0.78",
+          "7.5.0.73",
+          "7.2.0.41"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "HBO Max Android TV",
+          "packageName": "com.wbd.hbomax",
+          "description": null,
+          "appIconColor": 16777215,
+          "targets": [
+            {
+              "version": "7.9.0.61",
+              "experimental": false
+            },
+            {
+              "version": "7.7.0.78",
+              "experimental": false
+            },
+            {
+              "version": "7.5.0.73",
+              "experimental": false
+            },
+            {
+              "version": "7.2.0.41",
+              "experimental": false
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "HBO Max - Prefer Ad-Free Stream",
+      "description": "Loads HBO's own ad-free FALLBACK manifest instead of the ad-stitched PRIMARY one by remapping the stream selection in getStreamInfo (only when a FALLBACK stream exists). Ad-free on fresh start and resume with no markers, no timeline gaps, and no 'Couldn't Play Content' (39999) error — and loads faster since no ads are stitched. On by default; field-verified on 7.9.0.61.",
       "use": true,
       "dependencies": [],
       "compatiblePackages": {

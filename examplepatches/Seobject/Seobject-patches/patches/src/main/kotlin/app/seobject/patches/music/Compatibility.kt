@@ -18,9 +18,25 @@ internal object Compatibility {
         ),
         targets = listOf(
             AppTarget(
-                version = "9.15.51",
-                minSdk = 26
-            )
+                version = "9.28.51",
+                minSdk = 26,
+                isExperimental = true,
+            ),
+            AppTarget(
+                version = "9.26.51",
+                minSdk = 26,
+                isExperimental = true,
+            ),
+            AppTarget(
+                version = "9.25.50",
+                minSdk = 26,
+                isExperimental = true,
+            ),
+            AppTarget(
+                version = "9.24.51",
+                minSdk = 26,
+                isExperimental = true,
+            ),
         )
     )
 }

@@ -38,7 +38,7 @@ private fun ResourcePatchContext.discoverPairipAppClass(logger: Logger): String?
 @Suppress("unused")
 val pairipBypassPatch = bytecodePatch(
     name = "Pairip Bypass (Experimental)",
-    description = "Pairip is anti-tamper / license protection used by some games. This bypasses its checks so patched or modified builds run instead of being blocked.",
+    description = "PairIP is anti-tamper and license protection used by some apps and games. This experimental patch provides configurable strategies to bypass PairIP checks so patched or modified builds can run instead of being blocked. Automatic strategy selection is enabled by default and applies compatible strategies found in the APK; disable it to manually select individual strategies for testing. Not every PairIP-protected app is guaranteed to work, and aggressive strategies may cause crashes, startup failures, missing license features, or other app-specific problems.",
     default = false,
 ) {
     val automaticStrategySelection by booleanOption(
@@ -611,6 +611,9 @@ val pairipBypassPatch = bytecodePatch(
             logger.warning(reason)
         } else {
             logger.info("Pairip Bypass (Experimental) patch succeeded (${applied.size} strategy(s) applied)")
+            logger.warning("IF THE APP CRASHES OR STILL BRINGS UP PLAY STORE, DON'T ASK ME TO FIX IT. IT IS NOT POSSIBLE")
+            logger.warning("IF THE APP CRASHES OR STILL BRINGS UP PLAY STORE, DON'T ASK ME TO FIX IT. IT IS NOT POSSIBLE")
+            logger.warning("IF THE APP CRASHES OR STILL BRINGS UP PLAY STORE, DON'T ASK ME TO FIX IT. IT IS NOT POSSIBLE")
         }
     }
 }

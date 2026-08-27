@@ -6,7 +6,7 @@ import io.github.liongalahad.nuviotv.extension.BuildConfig;
 public final class MorpheBuildInfo {
     private static final String AUTHOR = "liongalahad";
     private static final String REPOSITORY_URL =
-            "https://github.com/liongalahad/nuviotv-morphe-patches";
+            "https://github.com/liongalahad/liongalahad-nuviotv-morphe-patches";
 
     private MorpheBuildInfo() {}
 

@@ -1,0 +1,45 @@
+name: Feedback or feature request
+description: Share patch-testing feedback or propose an improvement.
+title: "feedback: "
+labels: ["Feature request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # NuvioTV Morphe Patches feedback
+
+        Testing feedback is welcome. All patches are prerelease work in progress and may disrupt NuvioTV functionality. For a reproducible bug or malfunction, use the bug report form instead.
+
+        Do not upload or link to an original, patched, or modified NuvioTV APK.
+  - type: dropdown
+    id: feedback-type
+    attributes:
+      label: Feedback type
+      options:
+        - Testing feedback
+        - Existing patch improvement
+        - New patch request
+        - Documentation improvement
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Feedback or requested improvement
+      description: Explain what you tested or what should change, including examples and the expected benefit.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Test context
+      description: When applicable, include bundle version, NuvioTV version, device, Android version, ABI, and selected patches.
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements
+      options:
+        - label: I searched open and closed issues and did not find a duplicate.
+          required: true
+        - label: I have not attached or linked to an original, patched, or modified NuvioTV APK.
+          required: true

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/bunny_branding_bg_discord" />
+    <foreground android:drawable="@mipmap/bunny_branding_discord_foreground" />
+    <monochrome android:drawable="@mipmap/bunny_branding_discord_foreground" />
+</adaptive-icon>

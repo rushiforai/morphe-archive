@@ -163,6 +163,12 @@ Customize the bottom tab order in Gboard's Emojis, stickers & GIFs panel with dr
 </details>
 
 <details>
+  <summary><code>Top Toolbar Item Count</code></summary>
+
+  Lets you customize the top toolbar item count.
+</details>
+
+<details>
   <summary><code>Enable split keyboard</code></summary>
 
   Enables Gboard's split keyboard layout.

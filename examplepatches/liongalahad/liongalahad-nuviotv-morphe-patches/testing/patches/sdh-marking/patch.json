@@ -1,0 +1,61 @@
+{
+  "$schema": "../patch.schema.json",
+  "id": "sdh-marking",
+  "name": "Mark SDH Subtitles",
+  "category": "subtitles",
+  "target": {
+    "application": "NuvioTV",
+    "package": "com.nuvio.tv",
+    "versions": ["0.8.7-beta"],
+    "launchComponent": "com.nuvio.tv/.MainActivity"
+  },
+  "assets": {
+    "universal": {
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.7-beta/app-full-universal-release.apk",
+      "sha256": "dddcaa303ae47254df611f97bded0b9661f91bdb831f6e3eb23d57b25018370a"
+    },
+    "x86_64": {
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.7-beta/app-full-x86_64-release.apk",
+      "sha256": "b77ea174ba30dc2a0c194df3cd8ae11ee7adff7529db710a9fd3bf1be8135514"
+    },
+    "arm64-v8a": {
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.7-beta/app-full-arm64-v8a-release.apk",
+      "sha256": "16e6b679009f518ef8d45cae7d3eeb570de1f0cdc688b381489797f8db0c13f3"
+    },
+    "armeabi-v7a": {
+      "url": "https://github.com/NuvioMedia/NuvioTV/releases/download/0.8.7-beta/app-full-armeabi-v7a-release.apk",
+      "sha256": "7e1c84b104e1976d9861287ba96e9efb1dc9d387ef43d1934f6005eed033a6b3"
+    }
+  },
+  "dependencies": ["settings-hub"],
+  "emulators": {"phone": "Pixel_10", "tv": "Television_4K"},
+  "fingerprints": ["TrackInfoConstructorFingerprint", "SubtitleOptionBuilderFingerprint", "SubtitleOptionContentFingerprint"],
+  "inspection": {
+    "provider": "io.github.liongalahad.nuviotv.extension.settings.MorpheInitProvider",
+    "metadata": "io.github.liongalahad.nuviotv.settings.provider.mark_sdh_subtitles",
+    "classes": [
+      "io.github.liongalahad.nuviotv.extension.subtitles.sdhmarking.SdhSubtitleDetector",
+      "io.github.liongalahad.nuviotv.extension.subtitles.sdhmarking.SdhSubtitleMarker",
+      "io.github.liongalahad.nuviotv.extension.subtitles.sdhmarking.SdhMarkingSettingsCategory",
+      "io.github.liongalahad.nuviotv.extension.subtitles.sdhmarking.SdhMarkingSettingsContent",
+      "io.github.liongalahad.nuviotv.extension.settings.MorpheSdhMarkingToggleAction"
+    ],
+    "needles": ["subtitles.mark_sdh", "Mark SDH subtitles"],
+    "forbiddenNeedles": []
+  },
+  "focusedTests": ["SdhSubtitleDetectorTest including local file sampling", "isolated x86_64 and universal exclusive-mode application"],
+  "acceptance": [
+    "Patched NuvioTV shows Settings > Morphe > Subtitles > Mark SDH subtitles as a native switch",
+    "The switch defaults on for a fresh preference and a stored On or Off choice persists after force-stop and reboot",
+    "Off preserves every subtitle title",
+    "Tracks in any language with explicit SDH, HI, HOH, CC, hearing-impaired, or closed-caption evidence display SDH once",
+    "Addon tracks with explicit metadata display SDH immediately",
+    "English addon files with repeated annotation evidence display SDH after bounded background sampling",
+    "English local file sources with repeated annotation evidence display SDH after bounded background sampling",
+    "At least 20 bracketed parentheses or square-bracket annotation blocks are required for content detection",
+    "Music-note lyrics and speaker labels without bracketed annotations do not mark a subtitle as SDH",
+    "Non-English tracks are not content-sampled unless they carry an explicit SDH marker",
+    "Playback startup and initial addon repository completion do not wait for content detection",
+    "No crash, ANR, VerifyError, or fatal log during launch, settings, playback, or subtitle selection"
+  ]
+}

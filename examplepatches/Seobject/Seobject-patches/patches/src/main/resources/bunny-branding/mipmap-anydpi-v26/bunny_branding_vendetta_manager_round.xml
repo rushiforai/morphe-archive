@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/bunny_branding_bg_vendetta_manager" />
+    <foreground android:drawable="@drawable/bunny_branding_vendetta_manager_foreground" />
+    <monochrome android:drawable="@drawable/bunny_branding_vendetta_manager_foreground" />
+</adaptive-icon>

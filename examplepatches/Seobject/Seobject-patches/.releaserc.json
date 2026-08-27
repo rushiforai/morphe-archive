@@ -36,6 +36,7 @@
           "README.md",
           "gradle.properties",
           "patch-bundle.json",
+          "patches-bundle.json",
           "patches-list.json",
           "seobjects-random-patches.json",
           "seobjects-random-patches-stable.json",

@@ -37,7 +37,7 @@ class GboardCompatibilitySourceTest {
                     .containsMatchIn(block)
             }
 
-        assertEquals(35, publicPatchBlocks.size)
+        assertEquals(36, publicPatchBlocks.size)
         publicPatchBlocks.forEach { block ->
             assertEquals(
                 1,

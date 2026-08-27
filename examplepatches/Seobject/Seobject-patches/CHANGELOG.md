@@ -1,3 +1,13 @@
+## [1.1.0](https://github.com/Seobject/Seobject-patches/compare/v1.0.7...v1.1.0) (2026-08-27)
+
+### Features
+
+* publish Bunny client and current patches ([0cbed17](https://github.com/Seobject/Seobject-patches/commit/0cbed172675d889ffc2adf02c1490eaa41e4e326))
+
+### Bug Fixes
+
+* publish Morphe patches-bundle metadata ([3df7b33](https://github.com/Seobject/Seobject-patches/commit/3df7b33be5f04de8d86cac494beee5ac1bbc9a9d))
+
 ## [1.0.7](https://github.com/Seobject/Seobject-patches/compare/v1.0.6...v1.0.7) (2026-07-16)
 
 ### Bug Fixes

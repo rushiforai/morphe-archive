@@ -41,3 +41,34 @@ crowdin-credentials.yml
 
 # Semantic Release debug output
 semantic-release-debug.log
+
+# BEGIN SEOBJECT RELEASE CLEANUP
+# Generated build/work artifacts
+.gradle/
+**/.gradle/
+build/
+**/build/
+.work/
+**/.work/
+diagnostic/
+diagnostics/
+**/diagnostic/
+**/diagnostics/
+decompiled/
+**/decompiled/
+verification-apks/
+**/verification-apks/
+tmp/
+temp/
+**/tmp/
+**/temp/
+out/
+**/out/
+
+# Backup/editor residue
+*.bak
+*.orig
+*.rej
+*.tmp
+*~
+# END SEOBJECT RELEASE CLEANUP

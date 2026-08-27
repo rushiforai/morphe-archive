@@ -111,6 +111,17 @@ public final class GboardPatchesSettingsActivitySourceTest {
     }
 
     @Test
+    public void positiveIntegerDialogShowsFeatureRangeErrorsInline() throws Exception {
+        String source = readSource(
+                "src/main/java/dev/jason/gboardpatches/extension/settings/"
+                        + "GboardPatchesSettingsActivity.java");
+        String method = extractMethod(source, "public void showPositiveIntegerDialog(");
+
+        Assert.assertTrue(method.contains("catch (IllegalArgumentException exception)"));
+        Assert.assertTrue(method.contains("input.setError(exception.getMessage());"));
+    }
+
+    @Test
     public void previewVideoErrorsAreHandledInsideSettingsHost() throws Exception {
         String source = readSource(
                 "src/main/java/dev/jason/gboardpatches/extension/settings/"

@@ -69,6 +69,8 @@ public final class GboardPatchesFeatureAvailability {
             "dev.jason.gboardpatches.feature.flow_mode_animation";
     public static final String FEATURE_QUICK_INSERT =
             "dev.jason.gboardpatches.feature.quick_insert";
+    public static final String FEATURE_ACCESS_POINT_COUNT =
+            "dev.jason.gboardpatches.feature.access_point_count";
 
     private static final String TAG = "GboardPatches";
 

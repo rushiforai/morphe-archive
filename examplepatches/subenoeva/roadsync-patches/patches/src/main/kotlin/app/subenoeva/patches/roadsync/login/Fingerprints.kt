@@ -1,6 +1,7 @@
 package app.subenoeva.patches.roadsync.login
 
 import app.morphe.patcher.Fingerprint
+import com.android.tools.smali.dexlib2.AccessFlags
 
 /**
  * `OnboardingLoginBlockerScreen.shouldBeDisplayed()`.
@@ -61,4 +62,24 @@ internal object TokenEmptyHandlerOffFingerprint : Fingerprint(
     returnType = "Ljava/lang/Object;",
     parameters = listOf("Ljava/lang/Object;"),
     strings = listOf("token is empty."),
+)
+
+/**
+ * `OnboardingLoginFragment.onViewCreated(View, Bundle)`.
+ *
+ * On a fresh install the login screen is shown by the first-run onboarding flow
+ * (`HomeActivity` -> `OnboardingActivity` -> this fragment), NOT by the blocker system, so
+ * [LoginBlockerShouldDisplayFingerprint] does not cover it. The fragment's view model already has a
+ * `skipSignIn()` method (`E0()`, wired to a debug-only "button_skip" that release builds never
+ * render); it advances onboarding to the consent step with no server call. This fingerprint locates
+ * `onViewCreated` so the patch can invoke that skip as soon as the screen appears.
+ *
+ * `onViewCreated` is an Android framework override, so its name is not obfuscated; the match anchors
+ * on the class plus the exact `(View, Bundle)` signature.
+ */
+internal object OnboardingLoginAutoSkipFingerprint : Fingerprint(
+    definingClass = "Lcom/drivemode/sab/onboarding/setup/login/OnboardingLoginFragment;",
+    accessFlags = listOf(AccessFlags.PUBLIC),
+    returnType = "V",
+    parameters = listOf("Landroid/view/View;", "Landroid/os/Bundle;"),
 )

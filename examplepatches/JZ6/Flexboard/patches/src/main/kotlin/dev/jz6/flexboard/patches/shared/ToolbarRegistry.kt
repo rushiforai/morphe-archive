@@ -1,8 +1,8 @@
 package dev.jz6.flexboard.patches.shared
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.BytecodePatchContext
-import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -13,17 +13,16 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
  * spliced into the split method's list.
  *
  * Handles a button end-to-end: an allowed-set id, a label (string resource id or a literal),
- * an icon, and a `Runnable` click action. The action may take `Int` constructor arguments —
- * one class in the extension can serve many buttons this way, told apart by an ordinal (see
- * `TextAction.java`).
+ * an icon, and a `Runnable` click action. The action may take a single `Int` constructor
+ * argument — one class in the extension can serve many buttons this way, told apart by an
+ * ordinal (see `TextAction.java`).
  *
  * ## What makes this "native"
  *
  * The access-point id has to be picked from Gboard's allowed set — `res/array/…` id
  * `0x7f0300dc`, read once at startup into the order manager. Any other string is dropped by the
  * read filter before the customize UI ever writes the order back, so a button keyed on it can
- * be dragged but never persisted. The ids this layer is used with are the dormant ones in that
- * array — borrowed without touching a single resource file.
+ * be dragged but never persisted.
  *
  * With an allowed id, the whole Gboard-native flow then just happens: the read filter passes,
  * the controller's register call lands the definition in the registry map and folds the id into
@@ -54,7 +53,8 @@ internal data class NativeToolbarButton(
     /**
      * The label as a literal string written straight into the builder's pass-through field.
      * The completeness bit still has to be set, so when a literal is given the resource-id
-     * setter is called with `0` first.
+     * setter is called with `0` first. Must be a smali-safe string — no `"`, no newlines,
+     * no `\`, because this flows into a `const-string` operand unparsed.
      */
     val labelLiteral: String? = null,
     /** Same shape as label. Defaults to whatever the label uses. Mutually exclusive per-row. */
@@ -68,13 +68,14 @@ internal data class NativeToolbarButton(
      * `invoke-direct`.
      *
      * Declaring it as a `const val` in the patch file is what lets `check_shared_constants.py`
-     * see the emission across the helper boundary.
+     * see the emission across the helper boundary and verify the Java side actually declares
+     * `implements Runnable`.
      */
     val actionCtor: String,
     /**
      * `Int` constructor arguments, loaded as `const/4` (or `const/16` above 7) before the
-     * `<init>` invoke. The count and types must match [actionCtor]'s parameter list. At most
-     * one int is supported today — that is the shape the existing consumers need.
+     * `<init>` invoke. Must match [actionCtor]'s parameter list. At most one Int slot is
+     * emitted today — the shape that needs more is also the place to generalize this.
      */
     val actionArgs: List<Int> = emptyList(),
 ) {
@@ -105,6 +106,14 @@ internal data class NativeToolbarButton(
             "actionArgs on $id carries ${actionArgs.size} parameters; only one Int slot is " +
                 "emitted today, and the shape that needs more is also the place to generalize this"
         }
+        actionArgs.forEach { arg ->
+            require(arg in -32768..MAX_CONST_16_SAFE) {
+                "actionArgs on $id contains $arg — the emission picks const/4 in -8..7 and " +
+                    "const/16 down to -32768; outside that range the smali fails to assemble"
+            }
+        }
+        labelLiteral?.let { requireSmaliSafe(it, "labelLiteral", id) }
+        contentDescriptionLiteral?.let { requireSmaliSafe(it, "contentDescriptionLiteral", id) }
     }
 
     /** The content-description spec: its own if given, the label's otherwise. */
@@ -112,12 +121,28 @@ internal data class NativeToolbarButton(
     val effectiveContentDescriptionLiteral: String? get() = contentDescriptionLiteral ?: labelLiteral
 }
 
+// Smali constants are uninterpreted text — a `"`, `\`, or a newline breaks assembly.
+private fun requireSmaliSafe(literal: String, what: String, id: String) {
+    require(
+        !literal.contains('"') &&
+            !literal.contains('\\') &&
+            !literal.contains('\n') &&
+            !literal.contains('\r'),
+    ) {
+        "$what on $id contains a character smali can't carry unparsed — " +
+            "use the resource-id variant for that shape"
+    }
+}
+
 /** The bar-controller's `<init>` register count on Gboard 18.0.3 — the value the insertion
  * assumes. A Gboard bump that moves this is asserted by preflight. */
 private const val CONTROLLER_INIT_REGISTER_COUNT = 13
 
-/** `const/4` encodes a 4-bit signed value, so it holds at most 7; larger args use `const/16`. */
+/** `const/4` encodes a 4-bit signed value (-8..7). Larger-or-more-negative args use `const/16`. */
 private const val MAX_CONST_4_VALUE = 7
+
+/** `const/16` encodes a 16-bit signed value; the emission does not reach below it. */
+private const val MAX_CONST_16_SAFE = 32767
 
 /** The bar-versus-overflow split, identified by what it does to its `List` parameter. */
 private fun Method.splitsAccessPoints(): Boolean {
@@ -128,13 +153,40 @@ private fun Method.splitsAccessPoints(): Boolean {
         called.any { it == "Ljava/lang/Math;->min(II)I" }
 }
 
-private fun Method.calledDescriptors(): List<String> =
-    implementation?.instructions?.toList().orEmpty()
-        .mapNotNull { ((it as? ReferenceInstruction)?.reference as? MethodReference)?.toString() }
-
 // -------------------------------------------------------------------------------------------
 // Where the call goes
 // -------------------------------------------------------------------------------------------
+
+/**
+ * The shared controller resolution behind every emission: where the controller lives and what
+ * its register call is called today. One copy, so the three emitters can't drift a Gboard-bump
+ * fix between them (that drift class has no gate of its own — only preflight's shape pins see
+ * through it, and they cover the result, not the Kotlin).
+ */
+private class ControllerCanvas(
+    val controllerType: String,
+    val registerCall: String,
+    val initDescriptor: String,
+)
+
+private fun BytecodePatchContext.resolveControllerCanvas(): ControllerCanvas {
+    // Anchor the bar-controller class on the split method — shape-derived, not name-derived.
+    val splits = methodsMatching { it.splitsAccessPoints() }
+    check(splits.size == 1) {
+        "The bar-controller anchor moved: expected exactly one method that splits a List around " +
+            "subList+Math.min, found ${splits.size}: ${splits.map { it.toDescriptor() }}"
+    }
+    val controllerType = splits.single().definingClass
+    val controllerClass = classDefByOrNull(controllerType)
+        ?: error("$controllerType is not in the APK; the bar controller cannot be hooked")
+
+    // The register call's name is a one-letter R8 alias on every Gboard build and changes
+    // underneath us; what does not change is the *shape* — a (ApType, Z)V method on the
+    // controller that Lays.put's into the registry map.
+    val registerCall = resolveControllerRegisterCall(controllerClass)
+    val initDescriptor = resolveInitDef(controllerClass).toDescriptor()
+    return ControllerCanvas(controllerType, registerCall, initDescriptor)
+}
 
 /**
  * Emits one block per button that builds its access point with the existing builder and calls
@@ -148,36 +200,29 @@ internal fun BytecodePatchContext.emitNativeToolbarButtons(
 ) {
     check(buttons.isNotEmpty()) { "emitNativeToolbarButtons called with no buttons" }
 
-    // Anchor the bar-controller class on the split method — shape-derived, not name-derived.
-    val split = methodsMatching { it.splitsAccessPoints() }.single()
-    val controllerType = split.definingClass
-    val controllerClass = classDefByOrNull(controllerType)
-        ?: error("$controllerType is not in the APK; the bar controller cannot be hooked")
-
-    // The register call's name is a one-letter R8 alias on every Gboard build and changes
-    // underneath us; what does not change is the *shape* — a (ApType, Z)V method on the
-    // controller that Lays.put's into the registry map.
-    val registerCall = resolveControllerRegisterCall(controllerClass)
-    val init = mutableInitOf(controllerType, controllerClass)
-    val initDescriptor = initDef(controllerType, controllerClass).toDescriptor()
+    val canvas = resolveControllerCanvas()
+    val init = mutableClassDefBy(canvas.controllerType).methods.single {
+        it.toDescriptor() == canvas.initDescriptor
+    }
+    init.assertRegisterCount(CONTROLLER_INIT_REGISTER_COUNT, canvas.initDescriptor)
 
     val tailIndex = init.implementation!!.instructions
         .indexOfLast { it.opcodeName() == "RETURN_VOID" }
     check(tailIndex >= 0) {
-        "$initDescriptor has no return-void — the constructor's shape has changed"
+        "${canvas.initDescriptor} has no return-void — the constructor's shape has changed"
     }
 
     // Three scratch registers cover everything a button's emission touches: v0 holds the builder
     // then the finished `mic`, v1 holds each argument in turn, and v2 is needed only when an
-    // action has an Int ordinal (the action instance sits in v1, the ordinal in v2).
-    // The receiver `p0` (v10 at this register count) is read as `g`'s target, never written.
+    // action has an Int ordinal (the action instance sits in v1, the ordinal in v2). The
+    // receiver `p0` (v10 at this register count) is read as `g`'s target, never written.
     validateScratchRegisters(
         scratch = listOf(0, 1, 2),
         avoid = listOf(10, 11, 12),
-        what = initDescriptor,
+        what = canvas.initDescriptor,
     )
 
-    val emission = buttons.joinToString("\n\n") { it.toSmali(builder, registerCall) }
+    val emission = buttons.joinToString("\n\n") { it.toSmali(builder, canvas.registerCall) }
     init.addInstructions(tailIndex, emission)
 }
 
@@ -187,6 +232,7 @@ internal fun BytecodePatchContext.emitNativeToolbarButtons(
  * map via `Lays.put`; others are similar in either/or. Shape + call-target together is the pin.
  */
 private fun resolveControllerRegisterCall(controllerClass: ClassDef): String {
+    val lAysPut = "Lays;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"
     val candidates = controllerClass.methods.filter { method ->
         val params = method.parameterTypes.map(Any::toString)
         params.size == 2 &&
@@ -195,21 +241,19 @@ private fun resolveControllerRegisterCall(controllerClass: ClassDef): String {
             method.implementation?.instructions?.any { instruction ->
                 instruction.opcodeName() == "INVOKE_VIRTUAL" &&
                     ((instruction as? ReferenceInstruction)?.reference as? MethodReference)
-                        ?.toString() ==
-                    "Lays;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"
+                        ?.toString() == lAysPut
             } == true
     }
     check(candidates.size == 1) {
-        "Expected exactly one (*, Z)V method on ${controllerClass.type} that Ays.put's into " +
-            "the registry — the bar-controller's register call — but found ${candidates.size}: " +
+        "The bar controller's register call moved: expected exactly one (*, Z)V method on " +
+            "${controllerClass.type} that invokes Lays.put on `h`, found ${candidates.size}: " +
             candidates.map { it.toDescriptor() }
     }
     return candidates.single().toDescriptor()
 }
 
-/** The immutable `<init>(Context, ?)` declaration — found once, reused for descriptor + mutate. */
-private fun initDef(
-    controllerType: String,
+/** The immutable `<init>(Context, ?)` declaration; identified once and shared by the rest. */
+private fun resolveInitDef(
     controllerClass: ClassDef,
 ): com.android.tools.smali.dexlib2.iface.Method {
     return controllerClass.methods.singleOrNull {
@@ -217,22 +261,9 @@ private fun initDef(
             it.parameterTypes.size == 2 &&
             it.parameterTypes[0].toString() == "Landroid/content/Context;"
     } ?: error(
-        "$controllerType has no <init>(Context, ?) — the bar-controller constructor's shape " +
-            "has changed and the hook point must be re-derived",
+        "${controllerClass.type} has no <init>(Context, ?) — the bar-controller constructor's " +
+            "shape has changed and the hook point must be re-derived",
     )
-}
-
-/** The mutable `<init>(Context, ?)` of the bar controller, with its pin asserted. */
-private fun BytecodePatchContext.mutableInitOf(
-    controllerType: String,
-    controllerClass: ClassDef,
-): MutableMethod {
-    val definition = initDef(controllerType, controllerClass)
-    val init = mutableClassDefBy(controllerType).methods.single {
-        it.toDescriptor() == definition.toDescriptor()
-    }
-    init.assertRegisterCount(CONTROLLER_INIT_REGISTER_COUNT, definition.toDescriptor())
-    return init
 }
 
 // -------------------------------------------------------------------------------------------
@@ -277,11 +308,11 @@ private fun NativeToolbarButton.toSmali(
             iput-object v1, v0, ${builder.contentDescriptionField}
         """.trimIndent()
 
-    // v1: the Runnable instance. v2 (scratch, only when args exist): the ordinal load.
+    // v1: the Runnable instance. v2 (scratch, only when an ordinal is passed): the Int load.
     val argSetup = if (actionArgs.isEmpty()) ""
     else {
         val arg = actionArgs.single()
-        val constOp = if (arg <= MAX_CONST_4_VALUE) "const/4" else "const/16"
+        val constOp = if (arg in -8..MAX_CONST_4_VALUE) "const/4" else "const/16"
         "\n        $constOp v2, $arg"
     }
     val ctorRegisters = if (actionArgs.isEmpty()) "v1" else "v1, v2"
@@ -310,3 +341,282 @@ private fun NativeToolbarButton.toSmali(
         invoke-virtual { p0, v0, v1 }, $registerCall
     """.trimIndent()
 }
+
+/** The hotkey slots Flexboard registers: everything emitted loops this range once. */
+internal const val HOTKEY_SLOTS = 6
+
+/** Every flexboard toolbar id carries this prefix — how the constants checker tells the
+ * generated per-slot keys from a typo. If it changes, `ToolbarSlotsPatch`'s strings move too. */
+internal const val HOTKEY_ID_PREFIX = "flexboard_hotkey_"
+
+// -------------------------------------------------------------------------------------------
+// Per-slot toolbar buttons whose every attribute is runtime data
+// -------------------------------------------------------------------------------------------
+
+/**
+ * Emits one conditional registration block per hotkey slot at the tail of the bar controller's
+ * `<init>`.
+ *
+ * Unlike [emitNativeToolbarButtons] — where the label, icon and id are constants picked at
+ * patch time — every attribute of a hotkey is read at toolbar-build time by the extension's
+ * `Hotkeys` class: the id's existence at all is gated by `shown`, and the icon/label/action are
+ * derived from the user's settings. The block the patcher builds is therefore identical in
+ * *shape* per slot but entirely runtime-populated.
+ *
+ * Registers (same wiring as the text-action buttons):
+ *  - `p0` is the receiver the register call is invoked on;
+ *  - `v0` holds the builder then the finished `mic`;
+ *  - `v1` carries each argument in turn;
+ *  - `v2` is the second Int passed into the action's constructor when it takes an ordinal;
+ *  - `v4` is the shown-guard's scratch — dead before and after the block's own use.
+ *
+ * Admission changed hands since the first implementation: the ids are widened into Gboard's
+ * own allowed-set array by `ToolbarSlotsPatch` now (docs/toolbar-access-points.md), so no dex
+ * touches the order-read filter at all.
+ */
+internal fun BytecodePatchContext.emitNativeHotkeys(builder: AccessPointBuilder) {
+    val canvas = resolveControllerCanvas()
+    val init = mutableClassDefBy(canvas.controllerType).methods.single {
+        it.toDescriptor() == canvas.initDescriptor
+    }
+    init.assertRegisterCount(CONTROLLER_INIT_REGISTER_COUNT, canvas.initDescriptor)
+
+    val tailIndex = init.implementation!!.instructions
+        .indexOfLast { it.opcodeName() == "RETURN_VOID" }
+    check(tailIndex >= 0) {
+        "${canvas.initDescriptor} has no return-void — the constructor's shape has changed"
+    }
+
+    // p1 is the constructor's Context argument at this register count; p0 is the receiver.
+    validateScratchRegisters(
+        scratch = listOf(0, 1, 2, 4),
+        avoid = listOf(10, 11, 12),
+        what = canvas.initDescriptor,
+    )
+
+    val emission = ((1..HOTKEY_SLOTS).joinToString("\n\n") { slot ->
+        hotkeyBlock(slot, builder, HOTKEY_CTOR_SITE, canvas.registerCall)
+    } + "\n\nnop\n").trimIndent()
+    // WithLabels: the slot blocks each carry their own internal `:…skip_N` label, which the
+    // plain `addInstructions` rejects. The trailing `nop` is not decoration:
+    // `addInstructionsWithLabels` (reversed-SubList-walk, `externalLabels[0]` on an empty array →
+    // `ArrayIndexOutOfBoundsException: length=0; index=0`) crashes the patcher whenever a branch
+    // targets an internal label that has no instruction after it *in the same emission*. Every
+    // slot's label but the last binds to the next block's opening instruction; the last needs a
+    // home past the end — one `nop` is it. check_emission_lint.py greps for this shape too.
+    init.addInstructionsWithLabels(tailIndex, emission)
+}
+
+/**
+ * The per-site differences between the two homes of one emission shape: the controller
+ * `<init>` (context arrives as the constructor's `p1`; the register call rides `p0`) and the
+ * start-input refresh (context comes off the module's own getter; the register call rides the
+ * module's held controller field). Everything else — the guard, the builder chain, the label —
+ * is one template, so a fix to the block shape cannot land in one site and not the other.
+ *
+ * Registers are fixed per site and both sites use scratch {v0,v1,v2,v4} only, disjoint from the
+ * pinned parameters of either hook (validated next to each insertion).
+ */
+private class HotkeySite(
+    /** Skip-label prefix; the slot number is appended by the template. */
+    val labelPrefix: String,
+    /** Instructions loading the Context into [ctx]; empty when the hook hands one over. */
+    val prelude: String,
+    /** Register naming the Context for the shown/icon/label calls (`p1` or a local like `v1`). */
+    val ctx: String,
+    /** Scratch register for the slot constant and the guard result. Must differ from [ctx]. */
+    val guard: String,
+    /** Register each builder argument is staged in (the icon id, the label string, the action). */
+    val arg: String,
+    /** Register the Hotkey constructor's ordinal is staged in. */
+    val ordinal: String,
+    /** Instructions staging the register call's receiver into [receiver]; empty for the ctor. */
+    val tailLoad: String,
+    /** Register the register call is invoked on. */
+    val receiver: String,
+)
+
+private val HOTKEY_CTOR_SITE = HotkeySite(
+    labelPrefix = HOTKEY_SKIP_LABEL,
+    prelude = "",
+    ctx = "p1",
+    guard = "v4",
+    arg = "v1",
+    ordinal = "v2",
+    tailLoad = "",
+    receiver = "p0",
+)
+
+private fun hotkeyRefreshSite(controllerField: String) = HotkeySite(
+    labelPrefix = HOTKEY_REFRESH_LABEL,
+    prelude = """
+        invoke-virtual { p0 }, $MODULE_CONTEXT
+        move-result-object v1
+    """.trimIndent(),
+    ctx = "v1",
+    guard = "v0",
+    arg = "v2",
+    ordinal = "v4",
+    tailLoad = "iget-object v1, p0, $controllerField",
+    receiver = "v1",
+)
+
+/** One slot's conditional registration block. The guard is a single forward jump. */
+private fun hotkeyBlock(
+    slot: Int,
+    builder: AccessPointBuilder,
+    site: HotkeySite,
+    registerCall: String,
+): String {
+    // const/4 only encodes -8..7; slots 8–12 need const/16.
+    val constOp = if (slot in 1..7) "const/4" else "const/16"
+    // Plain unbraced names in the template: `${site.x}` inside an invoke's `{ ... }` would put a
+    // `}` mid-register-list, and the constants checker's emitted-call parser would silently stop
+    // seeing the extension invocations it exists to verify.
+    val pre = site.prelude
+    val lab = site.labelPrefix
+    val ctx = site.ctx
+    val g = site.guard
+    val a = site.arg
+    val ord = site.ordinal
+    val tail = site.tailLoad
+    val recv = site.receiver
+
+    return """
+        $pre
+        $constOp $g, $slot
+        invoke-static { $ctx, $g }, $HOTKEYS_SHOWN
+        move-result $g
+        if-eqz $g, :$lab$slot
+
+        invoke-static { }, ${builder.newBuilder}
+        move-result-object v0
+
+        const-string $a, "$HOTKEY_ID_PREFIX$slot"
+        invoke-virtual { v0, $a }, ${builder.setId}
+
+        $constOp $a, $slot
+        invoke-static { $ctx, $a }, $HOTKEYS_ICON
+        move-result $a
+        invoke-virtual { v0, $a }, ${builder.setIcon}
+
+        const/4 $a, 0x0
+        invoke-virtual { v0, $a }, ${builder.setLabel}
+        $constOp $a, $slot
+        invoke-static { $ctx, $a }, $HOTKEYS_LABEL
+        move-result-object $a
+        iput-object $a, v0, ${builder.labelField}
+
+        const/4 $a, 0x0
+        invoke-virtual { v0, $a }, ${builder.setContentDescription}
+        $constOp $a, $slot
+        invoke-static { $ctx, $a }, $HOTKEYS_LABEL
+        move-result-object $a
+        iput-object $a, v0, ${builder.contentDescriptionField}
+
+        new-instance $a, $HOTKEY_CLASS
+        $constOp $ord, $slot
+        invoke-direct { $a, $ord }, $HOTKEY_CTOR
+        invoke-virtual { v0, $a }, ${builder.setAction}
+
+        invoke-virtual { v0 }, ${builder.build}
+        move-result-object v0
+
+        $tail
+        const/4 $a, 0x1
+        invoke-virtual { $recv, v0, $a }, $registerCall
+
+        :$lab$slot
+    """.trimIndent()
+}
+
+// Credit where it is due: these consts exist solely so the constants checker can see the
+// descriptor across the string-interpolation boundary and verify the Java side declares them.
+private const val HOTKEYS_CLASS = "Ldev/jz6/flexboard/extension/toolbar/Hotkeys;"
+private const val HOTKEYS_SHOWN = "$HOTKEYS_CLASS->shown(Landroid/content/Context;I)Z"
+private const val HOTKEYS_ICON = "$HOTKEYS_CLASS->iconOf(Landroid/content/Context;I)I"
+private const val HOTKEYS_LABEL = "$HOTKEYS_CLASS->labelOf(Landroid/content/Context;I)Ljava/lang/String;"
+private const val HOTKEY_CLASS = "Ldev/jz6/flexboard/extension/toolbar/Hotkey;"
+private const val HOTKEY_CTOR = "$HOTKEY_CLASS-><init>(I)V"
+
+private const val HOTKEY_SKIP_LABEL = "flexboard_hotkey_skip_"
+
+
+// -------------------------------------------------------------------------------------------
+// Refresh on every keyboard open
+// -------------------------------------------------------------------------------------------
+
+/**
+ * Emits one guarded re-registration block per slot at the tail of the toolbar module's
+ * start-input callback, so a settings edit takes effect on the next keyboard open instead of
+ * the next process start. The stock constructor emission stays — it seeds the session — and
+ * re-registration is safe by construction: the register call re-`put`s the entry into the
+ * registry map and the fold's dedupe set swallows the repeat.
+ *
+ * The hook is `Lmln.fn(Loru;LEditorInfo;ZLjava/util/Map;Lnve;)Z` — the module's
+ * onStartInputView, public final on 18.0.3 — inserted ahead of its tail `return`. At that
+ * point every local (v0..v7) is dead: only the return statement remains. The module's Context
+ * comes from `Lnvd;->ac()`, and the live bar controller is its Lmlh-typed field.
+ */
+internal fun BytecodePatchContext.emitHotkeyRefresh(builder: AccessPointBuilder) {
+    // Same controller resolution as the constructor emission; the register call is shared.
+    val canvas = resolveControllerCanvas()
+
+    // The start-input signature is the *module-wide* base API (Lnvd) — dozens of modules
+    // declare it. What singles out the toolbar module is that it also OWNS the bar controller:
+    // one field of the controller's type. Both conditions together identify it uniquely.
+    val owning = methodsMatching { it.signatureMatchesToolbarStartInput() }
+        .filter { moduleMethod ->
+            val cls = classDefByOrNull(moduleMethod.definingClass) ?: return@filter false
+            cls.fields.any { it.type == canvas.controllerType }
+        }
+    check(owning.size == 1) {
+        "The toolbar module start-input anchor moved: expected exactly one start-input method " +
+            "on a class that also fields the bar controller, found ${owning.size}: " +
+            owning.map { it.toDescriptor() }
+    }
+    val modules = owning
+    val startDef = modules.single()
+    val moduleType = startDef.definingClass
+    val moduleClass = classDefByOrNull(moduleType)
+        ?: error("$moduleType is not in the APK; the toolbar module cannot be hooked")
+    val controllerFields = moduleClass.fields.filter { it.type == canvas.controllerType }.toList()
+    check(controllerFields.size == 1) {
+        "$moduleType should carry exactly one ${canvas.controllerType} field, found " +
+            controllerFields.map { "${it.definingClass}->${it.name}:${it.type}" }
+    }
+    val controllerField = controllerFields.single().let {
+        "${it.definingClass}->${it.name}:${it.type}"
+    }
+
+    val startDescriptor = startDef.toDescriptor()
+    val start = mutableClassDefBy(moduleType).methods.single {
+        it.toDescriptor() == startDescriptor
+    }
+    start.assertRegisterCount(START_INPUT_REGISTER_COUNT, startDescriptor)
+
+    val returnIndex = start.implementation!!.instructions
+        .indexOfLast { it.opcodeName().startsWith("RETURN") }
+    check(returnIndex >= 0) { "$startDescriptor has no return — shape moved" }
+
+    val refreshSite = hotkeyRefreshSite(controllerField)
+    val emission = ((1..HOTKEY_SLOTS).joinToString("\n\n") { slot ->
+        hotkeyBlock(slot, builder, refreshSite, canvas.registerCall)
+    } + "\n\nnop\n").trimIndent()
+    // Same trailing-label rule as the constructor emission: the nop houses the twelfth branch.
+    start.addInstructionsWithLabels(returnIndex, emission)
+}
+
+/** The module-wide start-input signature (declared per module; dozens match — see the caller
+ * for the bar-controller-field narrowing that makes it unique). */
+private fun Method.signatureMatchesToolbarStartInput(): Boolean =
+    returnType == "Z" &&
+        parameterTypes.map(Any::toString) == listOf(
+            "Loru;", "Landroid/view/inputmethod/EditorInfo;", "Z", "Ljava/util/Map;", "Lnve;",
+        )
+
+private const val MODULE_CONTEXT = "Lnvd;->ac()Landroid/content/Context;"
+private const val HOTKEY_REFRESH_LABEL = "flexboard_hotkey_refresh_"
+
+/** `fn`'s register count on 18.0.3 — what the insertion assumes; pinned by preflight. */
+private const val START_INPUT_REGISTER_COUNT = 14

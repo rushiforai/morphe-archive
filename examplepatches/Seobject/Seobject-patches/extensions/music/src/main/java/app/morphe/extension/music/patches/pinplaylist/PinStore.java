@@ -123,10 +123,6 @@ public final class PinStore {
 
         editor.apply();
 
-        Log.d(TAG, "synchronizeFeatureState"
-                + " previousEnabled=" + previouslyEnabled
-                + " enabled=" + enabled
-                + " clearedPins=" + clearPins);
 
         return clearPins;
     }
@@ -199,8 +195,6 @@ public final class PinStore {
                     .apply();
 
             if (removedInvalidValue) {
-                Log.d(TAG, "Removed unsupported playlist IDs"
-                        + " from persisted pin state");
             }
         }
 
@@ -217,7 +211,6 @@ public final class PinStore {
 
     public static void setPinned(Context context, String playlistId, boolean pinned) {
         if (!isSupportedPlaylistId(playlistId)) {
-            Log.d(TAG, "Ignoring unsupported playlist ID");
             return;
         }
 
@@ -481,7 +474,6 @@ public final class PinStore {
             String playlistId
     ) {
         if (!isSupportedPlaylistId(playlistId)) {
-            Log.d(TAG, "togglePinned() ignored unsupported playlist ID");
             return false;
         }
 

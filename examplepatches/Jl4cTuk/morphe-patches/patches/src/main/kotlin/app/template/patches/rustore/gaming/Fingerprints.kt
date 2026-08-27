@@ -3,6 +3,17 @@ package app.template.patches.rustore.gaming
 import app.morphe.patcher.Fingerprint
 import com.android.tools.smali.dexlib2.AccessFlags
 
+/** Matches the direct Game Profile navigation action from the V2 Mine screen. */
+object MineV2OpenGameCenterFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = emptyList(),
+    strings = listOf("gameProfile.click"),
+    custom = { method, classDef ->
+        classDef.sourceFile == "MineV2ViewModel.kt" &&
+            method.implementation != null
+    },
+)
+
 /** Matches the widget ViewModel implementation without relying on any R8 descriptor. */
 object GameCenterWidgetViewModelConstructorFingerprint : Fingerprint(
     name = "<init>",

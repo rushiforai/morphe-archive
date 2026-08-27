@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bunny_branding_bg_angry">#FF190403</color>
+    <color name="bunny_branding_bg_beanie">#FFC1C5F4</color>
+    <color name="bunny_branding_bg_blurple_twilight">#FF2547C4</color>
+    <color name="bunny_branding_bg_blush">#FFEFBEC7</color>
+    <color name="bunny_branding_bg_brand_dark">#FF000000</color>
+    <color name="bunny_branding_bg_brand_inverted">#FFFFFFFF</color>
+    <color name="bunny_branding_bg_bunny">#FF48488B</color>
+    <color name="bunny_branding_bg_bunny_manager">#FF48488B</color>
+    <color name="bunny_branding_bg_camo">#FF7A8046</color>
+    <color name="bunny_branding_bg_circuit">#FF0D4439</color>
+    <color name="bunny_branding_bg_color_wave">#FFFFFFFF</color>
+    <color name="bunny_branding_bg_controller">#FFCDD0ED</color>
+    <color name="bunny_branding_bg_discord">#FF5865F2</color>
+    <color name="bunny_branding_bg_holo_waves">#FF040404</color>
+    <color name="bunny_branding_bg_in_rainbows">#FFA8CD32</color>
+    <color name="bunny_branding_bg_manga">#FF040404</color>
+    <color name="bunny_branding_bg_matte_dark">#FF2A2D33</color>
+    <color name="bunny_branding_bg_matte_light">#FFEBEBEB</color>
+    <color name="bunny_branding_bg_midnight_prism">#FF030303</color>
+    <color name="bunny_branding_bg_mushroom">#FFAEE1EF</color>
+    <color name="bunny_branding_bg_pastel">#FFEFBEC7</color>
+    <color name="bunny_branding_bg_pirate">#FFDA8A5D</color>
+    <color name="bunny_branding_bg_sunset">#FFF576B0</color>
+    <color name="bunny_branding_bg_vendetta">#FF5865F2</color>
+    <color name="bunny_branding_bg_vendetta_manager">#FF3AB8BA</color>
+    <color name="bunny_branding_bg_y2k">#FF2E3E9B</color>
+</resources>

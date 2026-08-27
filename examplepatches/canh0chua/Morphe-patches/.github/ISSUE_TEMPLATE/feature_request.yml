@@ -1,0 +1,43 @@
+name: Feature Request
+description: Suggest a new patch or improvement
+title: "[Feature]: "
+labels: ["feature"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new patch or improvement!
+  - type: input
+    id: app-name
+    attributes:
+      label: App Name
+      description: The name of the app you want patched
+      placeholder: e.g. "YouTube"
+    validations:
+      required: true
+  - type: input
+    id: app-package
+    attributes:
+      label: App Package Name
+      description: The package name of the target app (if known)
+      placeholder: e.g. "com.google.android.youtube"
+  - type: textarea
+    id: description
+    attributes:
+      label: Feature Description
+      description: A clear and concise description of what you want the patch to do
+      placeholder: What should the patch do? What feature should it add/remove/modify?
+    validations:
+      required: true
+  - type: textarea
+    id: reasoning
+    attributes:
+      label: Reasoning
+      description: Why would this be useful? What problem does it solve?
+    validations:
+      required: false
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Add any other context, links, or screenshots about the feature request here

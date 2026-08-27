@@ -78,12 +78,19 @@ BINDINGS = {
     'undo_slot': 'Lqyc;',
     'committable': 'Lojt;',
     'sigcheck': 'Lrpv;',
+    'toolbar_module': 'Lmln;',
+    'bar_controller': 'Lmlh;',
+    'toolbar_module_base': 'Lnvd;',
     # Not a cached signature verdict, despite the company it keeps here. Lrox;->b:Z is the global
     # test-environment flag (Build.FINGERPRINT.equals("robolectric")), permanently false on a
     # device and read in ~40 unrelated places. The signature check reads it once, as the value to
     # return when the caller's digest cannot be computed -- an input, never an output. It is
     # tracked only because reading it is part of what identifies the check.
     'test_environment': 'Lrox;',
+    # The Phenotype flag holder whose <clinit> the grammar patch flips, and the flag factory it
+    # stores through. The class names move every build; the strings inside are what R8 cannot.
+    'grammar_flags': 'Ljpf;',
+    'flag_store': 'Lnxs;',
 }
 
 EXPECTED = {
@@ -121,13 +128,10 @@ EXPECTED = {
         (0x7f140b6e, 'show_suggestion_strip'),
         (0x7f140a07, 'pref_key_enable_grammar_checker'),
         (0x7f140a28, 'enable_smart_reply'),
-        # Semicolon-joined access-point ids the toolbar is ordered by. ToolbarMerge reads these
-        # to place the injected buttons where the user dragged them.
-        (0x7f1409b0, 'access_points_showing_order'),
-        (0x7f140a44, 'foldable_access_points_showing_order'),
     ],
     'sigcheck_registers': 8,
     'sigcheck_returns': [6, 4, 3],
+    'grammar_clinit_registers': 4,
     'undo_scratch': [2, 3],
     'clamp_scratch': [5, 7, 9],
     'distance_scratch': [7, 8, 9],
@@ -160,6 +164,24 @@ EXPECTED = {
     # the read filter drops the persisted order's mention of the button, which is the whole point
     # of native registration.
     'native_allowed_array': 0x7f0300dc,
+    # The widening feature (docs/toolbar-access-points.md) splices flexboard_* ids into this
+    # array in res/values — its size is the cheap whole-content canary, and the <init> that
+    # reads it exactly once into the allowed-id set is the dex seam the splice relies on.
+    'native_allowed_array_size': 43,
+    # Lmku.<init>: getResources().getStringArray(id) -> Lvxe.o(array) -> iput allowed set.
+    # The 43-entry array's one construction site; a bump that moves the read elsewhere or reads
+    # it twice changes the fold/filter semantics the widening design depends on.
+    'order_helper_init': 'Lmku;-><init>(Landroid/content/Context;Lmxf;)V',
+    'order_helper_init_registers': 7,
+    # The per-open refresh seam: the toolbar module's start-input method (fn — its obfuscated
+    # name is R8-moved every build; the descriptor is what it anchors on), its register count,
+    # and the tail return placement the refresh insertion depends on.
+    'toolbar_refresh_method':
+        'Lmln;->fn(Loru;Landroid/view/inputmethod/EditorInfo;ZLjava/util/Map;Lnve;)Z',
+    'toolbar_refresh_registers': 14,
+    # The hotkey default icons live by name now: the picker grid is the Flexboard vector pack
+    # through getIdentifier, so the id table this used to pin has no consumer left and its
+    # false alarms on a renumbering would guard nothing.
     # ---- text editing buttons
     # The three resource ids Gboard's text-editing access-point seed uses together. The patch finds
     # the seed by them and then reads the builder's setters out of it by the value each is handed,
@@ -197,6 +219,24 @@ EXPECTED = {
     # The keycode Gboard wraps a Runnable in, and the dispatcher that runs it. Two other classes
     # test this keycode and decline it, so "something tests it" is not the check that matters.
     'buttons_runnable_keycode': -40007,
+    # ---- the native settings screen
+    # Unobfuscated names — Gboard's preference XML addresses both by class-name string, so R8 can
+    # never move them. The attrs are read by literal name off NullNamespace; rename-safe the same
+    # way, which is what makes them pinnable at all.
+    'native_settings_host_fragment':
+        'Lcom/google/android/libraries/inputmethod/preferencewidgets/CommonPreferenceFragment;',
+    'native_settings_slider':
+        'Lcom/google/android/libraries/inputmethod/preferencewidgets/InlineSliderPreference;',
+    'native_settings_slider_attrs': [
+        'slider_min_value', 'slider_max_value', 'slider_scale',
+        'slider_unit', 'slider_text_left', 'slider_text_right',
+    ],
+    # The click dispatch the extension's settings fragment overrides (the ported
+    # onPreferenceTreeClick) and the preference manager it is reached through. Obfuscated
+    # letters, moved by R8 every build — run() pins the *shapes* behind them, which is what
+    # tells "renamed" apart from "removed" on a bump.
+    'native_settings_tree_listener': 'Lcdr;',
+    'native_settings_manager': 'Lcdw;',
 }
 
 # --------------------------------------------------------------------------- dex helpers
@@ -216,6 +256,18 @@ def find_class(dl, name):
             if cname == name:
                 return d, sup, cd
     return None, None, None
+
+
+def class_access_flags(dl, name):
+    """The class_def_item's access flags, or None when the class is absent."""
+    import struct
+    for d in dl:
+        for i in range(d.cls_n):
+            ci, af, _su, _io, _sf, _ao, _cd, _sv = struct.unpack_from(
+                '<8I', d.b, d.cls_o + 32 * i)
+            if d.type(ci) == name:
+                return af
+    return None
 
 
 def class_fields(d, cd):
@@ -421,9 +473,9 @@ def _read_string_array(data, table, type_id, entry_index):
     """Items in the ARSC string-array at (type_id, entry_index), resolved to their values.
 
     `arsc.Table` deliberately skips complex (bag) entries — string arrays are bags, so the entry
-    itself never lands in its `entries` map and we have to walk it here. Sparse/packed index
-    layouts are unsupported on purpose: this is a patch-time check, and the only array it is ever
-    asked about is dense.
+    itself never lands in its `entries` map and we walk it here. All three entry-table layouts are
+    supported (dense, FLAG_SPARSE, FLAG_OFFSET16), because a future aapt2 build is allowed to
+    pick any of them for this array and the check should not care which.
     """
     pos = 12  # skip the ResTable header's own ResChunk_header
     _ct, _hs, cs = struct.unpack_from('<HHI', data, pos)
@@ -1342,7 +1394,7 @@ def run(dl, apk=None):
     # the controller's `<init>` tail, where each native button registers via `g(mic, true)`.
     # The class is pinned by the split-method owning it — the same `splits` symbol the old
     # scratch checks used to derive.
-    if splits:
+    if check('native: exactly one access-points split method', len(splits) == 1, str(splits)):
         controller = splits[0].split('->')[0]
         d_c, _sup_c, cd_c = find_class(dl, controller)
         if check('native: the bar controller class is present', d_c is not None, controller):
@@ -1383,11 +1435,26 @@ def run(dl, apk=None):
                       f'got {c and c["registers"]}, '
                       f'expected {E["native_controller_init_registers"]}')
                 if ins is not None:
-                    tail = len(ins) - 2   # before the final return-void
-                    free = live_free(ins, c['registers'], tail)
-                    want = [0, 1, 2]
-                    check('native: the patch\'s scratch v0, v1, v2 are dead at the construct tail',
-                          all(r in free for r in want), f'free={free} want={want}')
+                    # The insertion goes before the last instruction. That only holds if the
+                    # constructor really has a straight-line tail: `ins[-1]` is the single
+                    # `return-void`, and nothing branches to it (i.e. it is genuinely the end of a
+                    # fall-through path, not a shared epilogue).
+                    #
+                    # A backward-liveness scratch check would prove nothing here: at the final
+                    # return-void nothing is live by construction, so the answer is vacuously
+                    # "everything is dead". The property that matters is the CFG shape.
+                    tail_pc, tail_mn, _ = ins[-1]
+                    check('native: the <init> tail is a return-void',
+                          tail_mn == 'return-void', f'got {tail_mn}')
+                    # The goto/if targets reachable from this body. dis.disasm prints them as
+                    # `-> N` where N is a code-unit pc.
+                    targets = {int(m.group(1))
+                               for _p, mn2, a2 in ins
+                               if a2 and (m := re.search(r'-> (\d+)', a2))
+                               and mn2.startswith(('goto', 'if-'))}
+                    check('native: the <init> tail is not branch-targeted (single exit)',
+                          tail_pc not in targets,
+                          f'targets include the tail: {sorted(targets & {tail_pc})}')
 
     # Each id the native path registers has to be dormant — nothing in Gboard's own dex should
     # reference it. A future Gboard version adopting one of them as a real handler would collide
@@ -1427,6 +1494,9 @@ def run(dl, apk=None):
             members = _read_string_array(data, table, tid, eidx) or []
             check('native: the toolbar allowed-set array is readable',
                   bool(members), 'bag walk returned nothing usable')
+            check('native: allowed-set array holds exactly the stock set',
+                  len(members) == E['native_allowed_array_size'],
+                  f'got {len(members)}, expected {E["native_allowed_array_size"]}')
             for dorm_id in E['native_button_ids']:
                 check(f'native: {dorm_id!r} is in the toolbar allowed-set array',
                       dorm_id in members,
@@ -1434,6 +1504,68 @@ def run(dl, apk=None):
         except Exception as exc:
             check('native: the toolbar allowed-set array is readable', False,
                   f'could not read from {apk}: {exc}')
+
+    # The widening splice relies on the allowed set being built exactly once, from exactly this
+    # constructor: getStringArray -> Lvxe immutable set -> one iput. A second reader or a move
+    # to a phenotype flag would both make the array half of the seam stale silently.
+    c, ins = body(dl, E['order_helper_init'])
+    if check('native: order-helper <init> exists for the allowed-set seam', ins is not None):
+        check('native: order-helper <init> register count',
+              c['registers'] == E['order_helper_init_registers'], f'got {c["registers"]}')
+        consts = [a for _, n, a in ins if n.startswith('const') and '0x7f0300dc' in a]
+        check('native: allowed-array id loaded once in <init>', len(consts) == 1, str(consts))
+        reads = [a for _, n, a in ins if 'getStringArray' in a]
+        check('native: one getStringArray call', len(reads) == 1, str(reads))
+        stores = [a for _, n, a in ins
+                  if n == 'iput-object' and a.rsplit(', ', 1)[-1].endswith(':Lvxe;')]
+        check('native: one immutable set is stored', len(stores) == 1, str(stores))
+
+    # The per-open refresh seam (hotkeys re-register on every start-input): the module's
+    # start-input method, the register count its tail-insert assumes, the field the live bar
+    # controller rides on, and the module's Context getter.
+    refresh = E['toolbar_refresh_method']
+    c, ins = body(dl, refresh)
+    if check('native: toolbar start-input method exists',
+             ins is not None, refresh):
+        check('native: toolbar start-input register count',
+              c['registers'] == E['toolbar_refresh_registers'],
+              f'got {c["registers"]}')
+        check('native: toolbar start-input ends in a return',
+              ins and ins[-1][1].startswith('return'), ins[-1][1] if ins else '')
+        # The refresh emission owns v0/v1/v2/v4 at the tail. Insertion sits ahead of the final
+        # return, so the return's *operand* must be a parameter slot: a future build that leaves
+        # the value in v0..v4 would have it clobbered by our blocks, with every other pin green.
+        if ins:
+            tail_regs = regs(ins[-1][2])
+            check('native: the start-input return reads a parameter slot',
+                  bool(tail_regs)
+                  and all(r >= c['registers'] - c['ins'] for r in tail_regs),
+                  f'tail reads v{tail_regs}; the refresh emission owns v0/v1/v2/v4')
+    module_cls = B['toolbar_module']
+    fdesc = f"{module_cls}->s:{B['bar_controller']}"
+    field_hits = []
+    modules_with_field = []
+    fn_sig = '(Loru;Landroid/view/inputmethod/EditorInfo;ZLjava/util/Map;Lnve;)Z'
+    for dex in dl:
+        for typename, _af, cls_data in dex.classes():
+            if not cls_data:
+                continue
+            if typename == module_cls:
+                field_hits.extend(fd for fd, _static in class_fields(dex, cls_data) if fd == fdesc)
+            declares_fn = any(mn.endswith(f'->fn{fn_sig}')
+                              for mn, _maf, _co in dex.class_methods(cls_data))
+            if declares_fn and any(fd.endswith(f':{B["bar_controller"]}')
+                                   for fd, _st in class_fields(dex, cls_data)):
+                modules_with_field.append(typename)
+    check('native: module carries its bar-controller field', len(field_hits) == 1,
+          f'found {len(field_hits)} matching {fdesc}')
+    # The patch resolves the toolbar module by "declares fn(...)Z AND has a bar-controller
+    # field" * because the bare signature is the module-wide base API (75 modules on 18.0.3).
+    check('native: the fn+controller-field selector uniquely resolves to the toolbar module',
+          modules_with_field == [module_cls], str(modules_with_field))
+    getter = f"{B['toolbar_module_base']}->ac()Landroid/content/Context;"
+    c, ins = body(dl, getter)
+    check('native: module Context getter exists', ins is not None, getter)
 
 
     # Read superclasses straight out of each class_def rather than resolving every class through
@@ -1490,6 +1622,201 @@ def run(dl, apk=None):
             check('prefs: the preference ids still name the right settings', False,
                   f'could not read resources from {apk}: {exc}')
 
+    # ---- the native settings host
+    #
+    # The settings screen is Gboard's own fragment stack extended by one extension class, so the
+    # pins are the seam that class docks onto: the base class must stay public and concrete with a
+    # public no-arg constructor and a concrete `aB()`, and the row widget must still read its
+    # attributes off the XML by literal name. A rename of any of it compiles the patch (the stub
+    # module sees its own copy) and then fails at tap time on the phone.
+    host = E['native_settings_host_fragment']
+    d_host, sup_host, cd_host = find_class(dl, host)
+    if check('settings: the fragment base class exists', cd_host is not None, host):
+        # PUBLIC without ABSTRACT is the whole contract: concrete-ness is what lets the extension
+        # subclass inherit every abstract-method implementation it will never see.
+        af = class_access_flags(dl, host)
+        check('settings: it is public and concrete',
+              af is not None and af & 0x1 == 1 and af & 0x400 == 0,
+              f'access={af is not None and hex(af)}')
+        methods = list(d_host.class_methods(cd_host))
+        abstracts = [m for m, af, co in methods if af & 0x400]
+        check('settings: no abstract methods anywhere on it',
+              not abstracts, str(abstracts))
+        ctors = [af for m, af, co in methods if m == f'{host}-><init>()V']
+        check('settings: a public no-arg constructor',
+              bool(ctors) and ctors[0] & 0x1 == 1,
+              f'access={ctors and hex(ctors[0])}')
+        ab = [ (af, co) for m, af, co in methods if m == f'{host}->aB()I']
+        check('settings: aB()I exists, public and concrete',
+              bool(ab) and ab[0][0] & 0x1 == 1 and ab[0][0] & 0x400 == 0 and ab[0][1] != 0,
+              f'access={ab and hex(ab[0][0])}')
+
+    slider = E['native_settings_slider']
+    d_sl, _sup_sl, cd_sl = find_class(dl, slider)
+    if check('settings: the inline slider preference exists', cd_sl is not None, slider):
+        ctor = f'{slider}-><init>({CONTEXT}Landroid/util/AttributeSet;)V'
+        c, ins = body(dl, ctor)
+        if check('settings: it keeps the XML-inflation constructor', ins is not None, ctor):
+            literals = {a.split(' ', 1)[1].strip("'") for pc, n, a in ins
+                        if n.startswith('const-string')}
+            missing = [a for a in E['native_settings_slider_attrs'] if a not in literals]
+            check('settings: its attributes are still read by literal name',
+                  not missing, f'missing {missing}')
+
+        # Persistence is what makes the whole screen real: the slider stores through these two,
+        # and the fragment-lifecycle datastore hook only exists for instances of the ported
+        # PreferenceFragmentCompat — our fragment's superclass chain.
+        for sig in ('Landroidx/preference/Preference;->ae(Ljava/lang/String;)Z',
+                    'Landroidx/preference/Preference;->w(Ljava/lang/String;)Ljava/lang/String;'):
+            _, ins2 = body(dl, sig)
+            check(f'settings: {sig.split("->")[1]} still on androidx Preference',
+                  ins2 is not None, sig)
+        chain = superclass_chain(dl, host)
+        check('settings: the host base descends from the ported Fragment chain',
+              'Lad;' in chain and '(not in dex)' not in chain, str(chain[-2:]))
+
+    # ---- the extension's click seam: aA dispatch and the row letters
+    #
+    # The settings fragment overrides aA (the ported onPreferenceTreeClick), identifies rows
+    # through the listener's d (findPreference), and rewrites them through n (setSummary) and
+    # N (setIcon). The letters are R8 output and re-rolled every build, so what is pinned is the
+    # *shape* behind each — a rename fails here instead of as a NoSuchMethodError at tap time —
+    # PLUS the access flags: obfuscated-member pinning by shape alone once shipped
+    # Preference.t (findPreference) as green while it sat there `protected`, an IllegalAccessError
+    # waiting for the first tap. Every letter the extension calls is asserted public+concrete.
+    pref = 'Landroidx/preference/Preference;'
+    tree_listener = E['native_settings_tree_listener']
+    manager = E['native_settings_manager']
+    chain = superclass_chain(dl, host)
+    if check('settings: the tree listener is on the host fragment chain',
+             tree_listener in chain, str(chain)):
+        d_tl, _sup_tl, cd_tl = find_class(dl, tree_listener)
+        a_a = [(m, af, co) for m, af, co in d_tl.class_methods(cd_tl)
+               if m == f'{tree_listener}->aA({pref})Z']
+        check('settings: aA(Preference)Z on the tree listener, public and concrete',
+              bool(a_a) and a_a[0][1] & 0x1 == 1 and a_a[0][1] & 0x400 == 0
+              and a_a[0][2] != 0,
+              f'access={a_a and hex(a_a[0][1])}')
+
+    # The click path itself, with no name of its own: performClick's port reads the hosted
+    # fragment off the manager and invokes aA through it. Every letter above could exist while
+    # this wiring moves, which would compile and then dispatch nothing anywhere. The row-context
+    # field j is pinned alongside because the settings dialogs reflect on it by name — a rename
+    # is a silent fallback to the no-dialog path, noticed only by a missing popup.
+    c, ins = body(dl, f'{pref}->I()V')
+    if check('settings: the ported performClick exists', ins is not None):
+        calls = [a.split(', ')[-1] for _pc, mn, a in ins if mn.startswith('invoke')]
+        aA_calls = [a for a in calls if a.startswith(f'{tree_listener}->aA(')]
+        check('settings: performClick dispatches to aA exactly once',
+              len(aA_calls) == 1, str(aA_calls))
+        reads = [a.rsplit(', ', 1)[-1] for _pc, mn, a in ins if mn.startswith('iget')]
+        check('settings: performClick reads the manager, fragment and row-context fields',
+              f'{pref}->k:{manager}' in reads
+              and f'{manager}->d:{tree_listener}' in reads
+              and f'{pref}->j:Landroid/content/Context;' in reads,
+              str(reads))
+
+    # d(CharSequence) — PreferenceFragmentCompat.findPreference, the extension's row identity
+    # source. With no getKey to dispatch on, a row is identified by looking its key up in the
+    # screen tree and comparing the tapped instance. NOTE what this is NOT: Preference's own
+    # findPreference (t(String)) survives R8 protected, so calling it from the fragment would
+    # compile against the stub and throw IllegalAccessError at tap time — which is also why every
+    # letter below asserts its access flags, not just its shape. The shape here: read the
+    # manager field off the fragment, delegate to the manager's key lookup.
+    d_tl, _s_t, cd_tl = find_class(dl, tree_listener)
+    d_fp = [(m, af, co) for m, af, co in d_tl.class_methods(cd_tl)
+            if m == f'{tree_listener}->d(Ljava/lang/CharSequence;){pref}'] \
+        if cd_tl else []
+    check('settings: d(CharSequence)Preference on the tree listener, public',
+          bool(d_fp) and d_fp[0][1] & 0x1 == 1 and d_fp[0][1] & 0x400 == 0
+          and d_fp[0][2] != 0,
+          f'access={d_fp and hex(d_fp[0][1])}')
+    c, ins = body(dl, f'{tree_listener}->d(Ljava/lang/CharSequence;){pref}')
+    if check('settings: d(CharSequence)Preference has a body', ins is not None):
+        refs = [a.rsplit(', ', 1)[-1] for _pc, _mn, a in ins]
+        check('settings: d delegates to the manager key lookup',
+              f'{tree_listener}->b:{manager}' in refs
+              and f'{manager}->d(Ljava/lang/CharSequence;){pref}' in refs,
+              str(refs))
+
+    # Every remaining row-letter the extension calls must stay public AND concrete — a shape
+    # match alone once shipped a protected findPreference as green.
+    def public_concrete(owner, member):
+        d_x, _s, cd_x = find_class(dl, owner)
+        if d_x is None:
+            return None
+        hits = [(af, co) for m, af, co in d_x.class_methods(cd_x)
+                if m == f'{owner}->{member}']
+        return hits if hits else None
+
+    # n(CharSequence) — setSummary, told apart from its sibling setter by the throw only it
+    # carries; the string is the anchor because R8 cannot rename it.
+    pc_n = public_concrete(pref, 'n(Ljava/lang/CharSequence;)V')
+    check('settings: n(CharSequence)V is public and concrete',
+          bool(pc_n) and pc_n[0][0] & 0x1 == 1 and pc_n[0][0] & 0x400 == 0
+          and pc_n[0][1] != 0,
+          f'access={pc_n and hex(pc_n[0][0])}')
+    c, ins = body(dl, f'{pref}->n(Ljava/lang/CharSequence;)V')
+    if check('settings: n(CharSequence)V exists', ins is not None):
+        strings = [a for _pc, mn, a in ins if mn.startswith('const-string')]
+        check("settings: n is the provider-guarded summary setter",
+              any('SummaryProvider' in a for a in strings), str(strings))
+
+    # N(Drawable) — setIcon: writes the icon field, clears the resource id, notifies. Both field
+    # writes are the identity; a rename that left them behind would draw nothing on a pick.
+    pc_ni = public_concrete(pref, 'N(Landroid/graphics/drawable/Drawable;)V')
+    check('settings: N(Drawable)V is public and concrete',
+          bool(pc_ni) and pc_ni[0][0] & 0x1 == 1 and pc_ni[0][0] & 0x400 == 0
+          and pc_ni[0][1] != 0,
+          f'access={pc_ni and hex(pc_ni[0][0])}')
+    c, ins = body(dl, f'{pref}->N(Landroid/graphics/drawable/Drawable;)V')
+    if check('settings: N(Drawable)V exists', ins is not None):
+        writes = [a.rsplit(', ', 1)[-1] for _pc, mn, a in ins if mn.startswith('iput')]
+        check('settings: N writes the icon field and clears the resource id',
+              f'{pref}->c:Landroid/graphics/drawable/Drawable;' in writes
+              and f'{pref}->b:I' in writes,
+              str(writes))
+
+    # The composite dialog constructs a probe EditTextPreference on the spot to reach the layout
+    # id on the DialogPreference chain. Pins: the 2-arg ctor exists, has a body, and is PUBLIC on
+    # a public concrete class — an invoke-direct to anything less throws IllegalAccessError, an
+    # Error that the dialogs' catch(Exception) fallback deliberately around would sail past. And
+    # the chain really does pass through DialogPreference, whose `f` field the reflection walks
+    # down to.
+    etp = 'Landroidx/preference/EditTextPreference;'
+    d_e, _s_e, cd_e = find_class(dl, etp)
+    ctors = [(m, af, co) for m, af, co in (d_e.class_methods(cd_e) if cd_e else [])
+             if m == f'{etp}-><init>({CONTEXT}Landroid/util/AttributeSet;)V']
+    check('settings: the EditTextPreference 2-arg ctor exists, public and concrete',
+          bool(ctors) and ctors[0][1] & 0x1 == 1 and ctors[0][1] & 0x400 == 0
+          and ctors[0][2] != 0,
+          f'access={ctors and hex(ctors[0][1])}')
+    af = class_access_flags(dl, etp)
+    check('settings: EditTextPreference is public and concrete',
+          af is not None and af & 0x1 == 1 and af & 0x400 == 0,
+          f'access={af is not None and hex(af)}')
+    chain = superclass_chain(dl, etp)
+    check('settings: EditTextPreference descends from DialogPreference',
+          'Landroidx/preference/DialogPreference;' in chain, str(chain))
+
+    # The stock editor-dialog borrow: the popups inflate Gboard's own editor-dialog layout, the
+    # id learned at runtime off DialogPreference's `f` field (the dialogLayoutResId). Pins: the
+    # ctor writes f from the theme/attr read (Lbhp K call), and the dialog base (Lcdm.onCreateDialog)
+    # reads it — exactly once, or the layout may have moved readers without a write.
+    dlg = 'Landroidx/preference/DialogPreference;'
+    c, ins = body(dl, f'{dlg}-><init>(Landroid/content/Context;Landroid/util/AttributeSet;II)V')
+    if check('settings: the DialogPreference ctor exists', ins is not None):
+        k_calls = [a for _pc, _mn, a in ins if 'Lbhp;->K(' in a]
+        writes = [a for _pc, mn, a in ins
+                  if mn == 'iput' and a.rsplit(', ', 1)[-1] == f'{dlg}->f:I']
+        check('settings: the dialog layout id comes from the theme read and lands in f',
+              len(k_calls) == 1 and len(writes) == 1, f'K={k_calls} writes={writes}')
+    c, ins = body(dl, 'Lcdm;->f(Landroid/os/Bundle;)V')
+    if check('settings: the dialog base still reads the layout id', ins is not None):
+        reads = [a for _pc, mn, a in ins
+                 if mn.startswith('iget') and a.rsplit(', ', 1)[-1] == f'{dlg}->f:I']
+        check('settings: exactly one reader of the layout id', len(reads) == 1, str(reads))
+
     # ---- bypass signature
     sig_cls = B['sigcheck']
     c, ins = body(dl, f'{sig_cls}->a({CONTEXT}Ljava/lang/String;)Z')
@@ -1504,6 +1831,28 @@ def run(dl, apk=None):
             check(f'bypass: reads {fd}', fd in seen)
         c2, _ = body(dl, f'{sig_cls}->c({CONTEXT}Ljava/lang/String;)[B')
         check('bypass: digest method exists', c2 is not None)
+
+    # The grammar row flip: Ljpf's <clinit> initialises one Phenotype flag per
+    # const-string/const/4/factory triple, and the patch finds its site by the flag's name
+    # string and flips the zero that follows. The fingerprint asserts the class; these pins
+    # assert the two instructions the flip depends on.
+    grammar_cls = B['grammar_flags']
+    c, ins = body(dl, f'{grammar_cls}-><clinit>()V')
+    if check('grammar: flag-holder clinit exists', ins is not None):
+        check('grammar: clinit register count', c['registers'] == E['grammar_clinit_registers'],
+              f'got {c["registers"]}')
+        sites = [i for i, (_, n, a) in enumerate(ins)
+                 if n == 'const-string' and "'enable_grammar_checker'" in a]
+        if check('grammar: exactly one enable_grammar_checker flag', len(sites) == 1,
+                 str(len(sites))):
+            i = sites[0]
+            n1, a1 = ins[i + 1][1], ins[i + 1][2]
+            check('grammar: default is const/4 zero', n1 == 'const/4' and a1.rstrip().endswith('#0'),
+                  f'{n1} {a1}')
+            target = f"{B['flag_store']}->a(Ljava/lang/String;Z)Lnxp;"
+            n2, a2 = ins[i + 2][1], ins[i + 2][2]
+            check('grammar: stored through the flag factory',
+                  n2 == 'invoke-static' and target in a2, f'{n2} {a2}')
 
     failed = check.finish()
     print('resolved handler Context field: ', handler_ctx)

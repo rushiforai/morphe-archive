@@ -108,6 +108,11 @@ internal enum class GboardFlagFamilyFeature(
         RuntimeCallId.QUICK_INSERT_RUNTIME_APPLY_FLAG_VALUE,
         GboardFlagFamilyArgumentShape.FLAG_NAME_AND_RESULT,
     ),
+    ACCESS_POINT_COUNT(
+        1300,
+        RuntimeCallId.ACCESS_POINT_COUNT_RUNTIME_APPLY_FLAG_VALUE,
+        GboardFlagFamilyArgumentShape.FLAG_NAME_AND_RESULT,
+    ),
     ;
 
     val spec: GboardFlagFamilyFeatureSpec
@@ -518,6 +523,10 @@ private fun MethodReference.matches(abi: RuntimeAbi): Boolean =
 private fun String.normalized(): String = uppercase().replace('-', '_').replace('/', '_')
 
 private fun emitFlagFamilyRuntimeCall(call: RuntimeCallId, registers: String): String = when (call) {
+    RuntimeCallId.ACCESS_POINT_COUNT_RUNTIME_APPLY_FLAG_VALUE -> RuntimeCallEmitter.invoke(
+        RuntimeCallId.ACCESS_POINT_COUNT_RUNTIME_APPLY_FLAG_VALUE,
+        registers,
+    )
     RuntimeCallId.ACCESSIBILITY_LAYOUT_RUNTIME_APPLY_OVERRIDDEN_FLAG_VALUE ->
         RuntimeCallEmitter.invoke(
             RuntimeCallId.ACCESSIBILITY_LAYOUT_RUNTIME_APPLY_OVERRIDDEN_FLAG_VALUE,
@@ -608,6 +617,7 @@ private const val FORMAL_18_0_3_REGISTER_COUNT = 3
 private const val MAX_MOVE_RESULT_OBJECT_REGISTER = 255
 
 private val ALL_FLAG_FAMILY_RUNTIME_CALLS: Set<RuntimeCallId> = setOf(
+    RuntimeCallId.ACCESS_POINT_COUNT_RUNTIME_APPLY_FLAG_VALUE,
     RuntimeCallId.ACCESSIBILITY_LAYOUT_RUNTIME_APPLY_OVERRIDDEN_FLAG_VALUE,
     RuntimeCallId.ACCESS_POINTS_MENU_RUNTIME_APPLY_OVERRIDDEN_FLAG_VALUE,
     RuntimeCallId.ADVANCED_VOICE_RUNTIME_AFTER_FLAG_VALUE,

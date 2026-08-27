@@ -1,6 +1,30 @@
 {
-    "version": "v1.1.0-dev.1",
+    "version": "v1.1.0-dev.3",
     "patches": [
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "XAPK",
+                    "appIconColor": "#2E7D32",
+                    "name": "Electron: battery health info",
+                    "packageName": "com.mahersafadi.electron",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "3.0.3"
+                        }
+                    ],
+                    "versions": [
+                        "3.0.3"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Spoofs premium/unlocked state to disable ad-gated behavior.",
+            "name": "Hide ads",
+            "options": []
+        },
         {
             "compatiblePackages": [
                 {
@@ -13,6 +37,9 @@
                             "isExperimental": false,
                             "version": "4.9.15"
                         }
+                    ],
+                    "versions": [
+                        "4.9.15"
                     ]
                 }
             ],
@@ -20,6 +47,174 @@
             "dependencies": [],
             "description": "Removes banner, native, cover and interstitial ads and unlocks premium features.",
             "name": "Hide ads",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#00C4CC",
+                    "name": "CapCut",
+                    "packageName": "com.lemon.lvoverseas",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "19.2.0"
+                        }
+                    ],
+                    "versions": [
+                        "19.2.0"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Removes the third bottom navigation tab ('AI Lab' / 'Lab. IA') by forcing its visibility observer to always hide the tab.",
+            "name": "Hide AI Lab Tab",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#00C4CC",
+                    "name": "CapCut",
+                    "packageName": "com.lemon.lvoverseas",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "19.2.0"
+                        }
+                    ],
+                    "versions": [
+                        "19.2.0"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Hides 'IA ultra HD' (Export Super Resolution) and 'Flusso ottico' (Slow Motion Optical Flow) options since they are cloud-gated.",
+            "name": "Hide False Hopes Features",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#00C4CC",
+                    "name": "CapCut",
+                    "packageName": "com.lemon.lvoverseas",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "19.2.0"
+                        }
+                    ],
+                    "versions": [
+                        "19.2.0"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Suppresses the modified-build security notice by disabling the risk SDK dialog entry point and the isCracking flag writer.",
+            "name": "Remove security notice",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#00C4CC",
+                    "name": "CapCut",
+                    "packageName": "com.lemon.lvoverseas",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "19.2.0"
+                        }
+                    ],
+                    "versions": [
+                        "19.2.0"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Disables background monitoring and analytics frameworks including ByteDance Helios, AppLog, and AppsFlyer.",
+            "name": "Suppress Telemetry and Trackers",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#ECEBB4",
+                    "name": "Komoot",
+                    "packageName": "de.komoot.android",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "2026.34.2"
+                        }
+                    ],
+                    "versions": [
+                        "2026.34.2"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Spoof Komoot Maps ownership client-side (world pack / owned regions in shop and offline UI). Server-side limits may still apply: offline tile download auth, sync overwriting local state, and Play receipt validation. Does not replace a real Play Store purchase.",
+            "name": "Unlock map regions",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#00C4CC",
+                    "name": "CapCut",
+                    "packageName": "com.lemon.lvoverseas",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "19.2.0"
+                        }
+                    ],
+                    "versions": [
+                        "19.2.0"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Forces the VIP flag to true so premium features are unlocked client-side. Server-validated assets (cloud effects/templates) are not affected.",
+            "name": "Unlock Premium",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#ECEBB4",
+                    "name": "Komoot",
+                    "packageName": "de.komoot.android",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "2026.34.2"
+                        }
+                    ],
+                    "versions": [
+                        "2026.34.2"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Unlock Premium features. Some features are not possible to patch (server sided), such as saving a multi-days hike.",
+            "name": "Unlock Premium features",
             "options": []
         }
     ]

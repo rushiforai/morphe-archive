@@ -142,4 +142,23 @@ object Constants {
             )
         )
     )
+
+    val APK_SIGNER_COMPATIBILITY = Compatibility(
+        name = "apk-signer",
+        packageName = "com.haibison.apksigner",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0xFFFFFF,
+        targets = listOf(
+            AppTarget(
+                version = null,
+            ),
+            AppTarget(
+                version = "7.3.13",
+                versionCodes = mapOf(
+                    SupportedAbi.ARM64_V8A to 123,
+                    SupportedAbi.ARMEABI_V7A to 123
+                )
+            )
+        )
+    )
 }

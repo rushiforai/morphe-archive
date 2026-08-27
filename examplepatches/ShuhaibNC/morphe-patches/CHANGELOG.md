@@ -1,3 +1,15 @@
+## [1.3.0](https://github.com/ShuhaibNC/morphe-patches/compare/v1.2.0...v1.3.0) (2026-08-26)
+
+### ✨ New Features
+
+* apksigner ([dfd784e](https://github.com/ShuhaibNC/morphe-patches/commit/dfd784ec2b9a699c6bc326bebe26953884e6c8ae))
+
+## [1.3.0-dev.1](https://github.com/ShuhaibNC/morphe-patches/compare/v1.2.0...v1.3.0-dev.1) (2026-08-26)
+
+### ✨ New Features
+
+* apksigner ([dfd784e](https://github.com/ShuhaibNC/morphe-patches/commit/dfd784ec2b9a699c6bc326bebe26953884e6c8ae))
+
 ## [1.2.0](https://github.com/ShuhaibNC/morphe-patches/compare/v1.1.0...v1.2.0) (2026-08-25)
 
 ### ✨ New Features

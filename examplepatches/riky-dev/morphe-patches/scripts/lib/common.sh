@@ -37,6 +37,84 @@ require_cmd() {
   command -v "$cmd" >/dev/null 2>&1 || die "required command not found: $cmd"
 }
 
+# Morphe Desktop (recent) needs Java 21+. Prefer tools/jdk-21 if present.
+ensure_java21() {
+  local portable="$ROOT_DIR/tools/jdk-21"
+  if [[ -x "$portable/bin/java" ]]; then
+    export JAVA_HOME="$portable"
+    export PATH="$JAVA_HOME/bin:$PATH"
+    return 0
+  fi
+  local ver
+  ver="$(java -version 2>&1 | head -1 || true)"
+  if echo "$ver" | rg -q '"2(1|2|3|4|5)\.'; then
+    return 0
+  fi
+  die "Java 21+ required for Morphe Desktop (found: ${ver:-none}). Run scripts/setup_tools.sh to fetch a portable JDK into tools/jdk-21."
+}
+
+# Prefer Android SDK platform-tools adb when present (mdns / newer wireless debug).
+prefer_sdk_adb() {
+  local sdk_adb="${ANDROID_HOME:-$HOME/Android/Sdk}/platform-tools/adb"
+  if [[ -x "$sdk_adb" ]]; then
+    export PATH="$(dirname "$sdk_adb"):$PATH"
+  fi
+}
+
+# Pick an authorized adb serial. Prefers ANDROID_SERIAL, then tcpip/wifi, then USB.
+pick_adb_serial() {
+  prefer_sdk_adb
+  require_cmd adb
+  local devices count serial
+  devices="$(adb devices | awk 'NR>1 && $2=="device" {print $1}')"
+  count="$(echo "$devices" | grep -c . || true)"
+  [[ "$count" -ge 1 ]] || die "no authorized adb device (USB or wireless debugging)"
+
+  if [[ -n "${ANDROID_SERIAL:-}" ]]; then
+    echo "$devices" | grep -qx "$ANDROID_SERIAL" || die "ANDROID_SERIAL=$ANDROID_SERIAL not in adb devices"
+    echo "$ANDROID_SERIAL"
+    return 0
+  fi
+  if [[ "$count" -eq 1 ]]; then
+    echo "$devices" | head -1
+    return 0
+  fi
+  serial="$(echo "$devices" | rg -m1 ':' || true)"
+  [[ -n "$serial" ]] || serial="$(echo "$devices" | head -1)"
+  warn "multiple devices — using: $serial (set ANDROID_SERIAL to override)"
+  echo "$serial"
+}
+
+# Keep screen awake for device tests (no root). Saves prior settings in globals.
+# stay_on_while_plugged_in: 1=AC 2=USB 4=wireless → 7=all
+DEVICE_STAY_ON_PREV=""
+DEVICE_SCREEN_OFF_PREV=""
+
+device_keep_awake() {
+  local -n _adb=$1
+  DEVICE_STAY_ON_PREV="$("${_adb[@]}" shell settings get global stay_on_while_plugged_in 2>/dev/null | tr -d '\r' || true)"
+  DEVICE_SCREEN_OFF_PREV="$("${_adb[@]}" shell settings get system screen_off_timeout 2>/dev/null | tr -d '\r' || true)"
+  log "Keeping screen awake (was stay_on=${DEVICE_STAY_ON_PREV:-?}, timeout=${DEVICE_SCREEN_OFF_PREV:-?})"
+  "${_adb[@]}" shell settings put global stay_on_while_plugged_in 7 >/dev/null
+  # 30 minutes; also covers unplugged wireless-debug sessions
+  "${_adb[@]}" shell settings put system screen_off_timeout 1800000 >/dev/null
+  "${_adb[@]}" shell svc power stayon true >/dev/null 2>&1 || true
+  "${_adb[@]}" shell input keyevent KEYCODE_WAKEUP >/dev/null 2>&1 || true
+  "${_adb[@]}" shell wm dismiss-keyguard >/dev/null 2>&1 || true
+  "${_adb[@]}" shell cmd statusbar collapse >/dev/null 2>&1 || true
+}
+
+device_restore_awake() {
+  local -n _adb=$1
+  if [[ -n "${DEVICE_STAY_ON_PREV}" && "${DEVICE_STAY_ON_PREV}" != "null" ]]; then
+    "${_adb[@]}" shell settings put global stay_on_while_plugged_in "$DEVICE_STAY_ON_PREV" >/dev/null 2>&1 || true
+  fi
+  if [[ -n "${DEVICE_SCREEN_OFF_PREV}" && "${DEVICE_SCREEN_OFF_PREV}" != "null" ]]; then
+    "${_adb[@]}" shell settings put system screen_off_timeout "$DEVICE_SCREEN_OFF_PREV" >/dev/null 2>&1 || true
+  fi
+  "${_adb[@]}" shell svc power stayon false >/dev/null 2>&1 || true
+}
+
 # Convert com.example.app -> com/example/app
 package_to_path() {
   echo "$1" | tr '.' '/'
