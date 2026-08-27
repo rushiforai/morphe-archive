@@ -10,7 +10,9 @@ BholeyKaBhakt/android-patches-xtra
 BlazeFTL/FTL-Patches
 BlazeFTL/Morphe-Portal-Patches-New
 Burhanverse/test
+Dan1elTheMan1el/Morphe-Patches
 Dr4w/morphe-patches
+Educal72/educal-patches
 Entree3k/Morning-Entree-Patches
 Freeman022026/rustore-privacy-patches
 GoldRift/morphe-patches
@@ -98,6 +100,7 @@ brosssh/morphe-patches
 browzomje/browzomje-patches
 bufferk/morphe-patches
 byehi98/okish-morphe-patches
+canh0chua/Morphe-patches
 catsmoker/anime-witcher-patches
 cesbar/zpatches
 ch3thanhs/stylus
@@ -145,7 +148,9 @@ ilikeadofai/vocacolle-morphe-patches
 isuruhg/cricinfo-tweaks
 isuruhg/fin-tweaks
 itsthejoker/itsthejoker-patches
+jackblk/morphe-patches
 jancerny2001/morphe-patches
+jaredcat/morphe-patches
 jasonwu1994/Gboard-patches
 jkennethcarino/adobo
 kareemlukitomo/morphe-patches
@@ -157,6 +162,8 @@ kuchingneko28/ipusnas-patches
 kun-codes/npci-bhim-morphe-patches
 kveld9/kveld-morphe-patches
 legendsciber/morphe-patches
+liongalahad/liongalahad-nuviotv-morphe-patches
+liongalahad/liongalahad-stremio-morphe-patches
 liongalahad/nuviotv-morphe-patches
 liongalahad/nuviotv-patches
 liongalahad/stremio-androidTV-morphe-patches

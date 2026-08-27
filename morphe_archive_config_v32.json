@@ -1409,6 +1409,70 @@
                 "sortOrder": 178,
                 "createdAt": 1787707033756,
                 "updatedAt": 1787707033756
+            },
+            {
+                "name": "Morphe-Patches",
+                "source": "https://raw.githubusercontent.com/Dan1elTheMan1el/Morphe-Patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 179,
+                "createdAt": 1787815654850,
+                "updatedAt": 1787815654850
+            },
+            {
+                "name": "educal-patches",
+                "source": "https://raw.githubusercontent.com/Educal72/educal-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 180,
+                "createdAt": 1787815654876,
+                "updatedAt": 1787815654876
+            },
+            {
+                "name": "Seobject-patches",
+                "source": "https://raw.githubusercontent.com/Seobject/Seobject-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 181,
+                "createdAt": 1787815656053,
+                "updatedAt": 1787815656053
+            },
+            {
+                "name": "Morphe-patches",
+                "source": "https://raw.githubusercontent.com/canh0chua/Morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 182,
+                "createdAt": 1787815657486,
+                "updatedAt": 1787815657486
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/jackblk/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 183,
+                "createdAt": 1787815658425,
+                "updatedAt": 1787815658425
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/jaredcat/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 184,
+                "createdAt": 1787815658450,
+                "updatedAt": 1787815658450
+            },
+            {
+                "name": "liongalahad-nuviotv-morphe-patches",
+                "source": "https://raw.githubusercontent.com/liongalahad/liongalahad-nuviotv-morphe-patches/master/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 185,
+                "createdAt": 1787815658705,
+                "updatedAt": 1787815658705
+            },
+            {
+                "name": "liongalahad-stremio-morphe-patches",
+                "source": "https://raw.githubusercontent.com/liongalahad/liongalahad-stremio-morphe-patches/master/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 186,
+                "createdAt": 1787815658866,
+                "updatedAt": 1787815658866
             }
         ]
     }
