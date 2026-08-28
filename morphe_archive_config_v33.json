@@ -1473,6 +1473,30 @@
                 "sortOrder": 186,
                 "createdAt": 1787815658866,
                 "updatedAt": 1787815658866
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/NullWaypoint/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 187,
+                "createdAt": 1787910074437,
+                "updatedAt": 1787910074437
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/csagataj2/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 188,
+                "createdAt": 1787910075027,
+                "updatedAt": 1787910075027
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/rafag00/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 189,
+                "createdAt": 1787910075557,
+                "updatedAt": 1787910075557
             }
         ]
     }

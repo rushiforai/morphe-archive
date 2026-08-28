@@ -44,6 +44,7 @@ MorpheApp/morphe-patches
 Nagol12344/patch
 Nai64/Nai64Patches
 NekoGryphou/gryphous-morphe-patches
+NullWaypoint/morphe-patches
 Pa-kon/morphe-screenshot-patches
 Paresh-Maheshwari/patch-explorer
 PawiX25/pepper-morphe-patches
@@ -110,6 +111,7 @@ chukfinley/tidal-patches
 ciraolone/morphe-watch-later
 claviola/morphe-patches-nl
 crimera/piko
+csagataj2/morphe-patches
 d0nj/morphe-patches
 david419kr/niconico-yt-morphe-patches
 dexnis-dev/morphe-patches
@@ -181,6 +183,7 @@ ozeroztas/Morphe-Patch
 polka-bear/morphe-patches
 pseudofractal/morphe-patches
 quantavil/edge-morphe-patches
+rafag00/morphe-patches
 rhubarbshoelaces/morphe-patches
 riky-dev/morphe-patches
 rushiranpise/RI-Vanced-Universal-Morphe-Patches
