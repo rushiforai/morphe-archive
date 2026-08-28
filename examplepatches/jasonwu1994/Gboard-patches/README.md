@@ -199,6 +199,12 @@ Enables the Quick Insert panel and toolbar access point.
 </details>
 
 <details>
+  <summary><code>Floating Web Search</code></summary>
+
+  Open a floating web page directly from Gboard to quickly search for the information you need.
+</details>
+
+<details>
   <summary><code>Hyperspeed Typing Animation</code></summary>
 
 Shows the animation during sustained fast typing with support for all keyboards.

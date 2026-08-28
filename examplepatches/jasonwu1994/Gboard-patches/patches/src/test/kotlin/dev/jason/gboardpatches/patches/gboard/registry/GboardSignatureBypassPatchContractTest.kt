@@ -35,7 +35,7 @@ class GboardSignatureBypassPatchContractTest {
         )
 
         val patches = generatedPublishedPatches()
-        assertEquals(36, patches.size)
+        assertEquals(37, patches.size)
         val signatureRows = patches.filter { row ->
             row.get("name").asString == "Add Gboard Signature Bypass"
         }

@@ -34,25 +34,6 @@ internal object GboardManualIncognitoTargets {
         parameters = listOf("Lenf;", "Z", "Z"),
         returns = "Lkmp;",
     )
-    val orderFactory = method(
-        owner = "Lmjv;",
-        name = "n",
-        parameters = listOf(
-            "Landroid/content/Context;",
-            "Lmxf;",
-            "Lnmm;",
-            "Lvxe;",
-            "Lvxe;",
-        ),
-        returns = "Lmjv;",
-    )
-    val accessPointControllerConstructor = method(
-        owner = "Lmlh;",
-        name = "<init>",
-        parameters = listOf("Landroid/content/Context;", "Lmmq;"),
-        returns = "V",
-    )
-
     private fun method(
         owner: String,
         name: String,

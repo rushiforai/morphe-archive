@@ -132,6 +132,9 @@ local.properties
 # Analysis artifacts (APKs, decompiled output)
 analysis/
 
+# Agent session scratch (notes, hypotheses, device profile)
+scratch/
+
 # Throwaway verify project
 build/verify-one/
 

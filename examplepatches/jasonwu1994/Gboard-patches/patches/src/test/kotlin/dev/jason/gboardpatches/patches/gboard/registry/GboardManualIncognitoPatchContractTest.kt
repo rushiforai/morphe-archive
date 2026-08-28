@@ -1,6 +1,6 @@
 package dev.jason.gboardpatches.patches.gboard.registry
 
-import dev.jason.gboardpatches.patches.gboard.features.manualincognito.gboardManualIncognitoAccessPointPatch
+import dev.jason.gboardpatches.patches.gboard.shared.accesspoint.gboardAccessPointContributions1803Patch
 import dev.jason.gboardpatches.patches.gboard.features.manualincognito.gboardManualIncognitoFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.manualincognito.gboardManualIncognitoLifecyclePatch
 import dev.jason.gboardpatches.patches.gboard.features.manualincognito.gboardManualIncognitoPolicyPatch
@@ -26,7 +26,7 @@ class GboardManualIncognitoPatchContractTest {
                 gboardManualIncognitoFeatureMarkerPatch,
                 gboardManualIncognitoLifecyclePatch,
                 gboardManualIncognitoPolicyPatch,
-                gboardManualIncognitoAccessPointPatch,
+                gboardAccessPointContributions1803Patch,
             ),
             patch.dependencies.toList(),
         )

@@ -7,9 +7,16 @@ import java.util.logging.Logger
 
 private val logger = Logger.getLogger("UniversalSkipSplashScreenPatch")
 
-private val KNOWN_LAUNCHER_CATEGORIES = setOf(
+// The categories that mark "this filter is just another way to launch the app" - LEANBACK_LAUNCHER
+// (Android TV) and MULTIWINDOW_LAUNCHER (legacy multi-window) are separate launcher surfaces for
+// the SAME activity, not extra functionality, so a filter using only these plus MAIN is still bare.
+private val PURE_LAUNCHER_MARKERS = setOf(
     "android.intent.category.LAUNCHER",
+    "android.intent.category.LEANBACK_LAUNCHER",
+)
+private val KNOWN_LAUNCHER_CATEGORIES = PURE_LAUNCHER_MARKERS + setOf(
     "android.intent.category.DEFAULT",
+    "android.intent.category.MULTIWINDOW_LAUNCHER",
 )
 
 // Below this combined confidence score, auto-detect refuses to rename anything.
@@ -33,17 +40,19 @@ private fun findLauncherActivity(document: org.w3c.dom.Document): Element? =
             val actions = filter.children("action").map { it.attr("android:name") }
             val categories = filter.children("category").map { it.attr("android:name") }
             actions.contains("android.intent.action.MAIN") &&
-                categories.contains("android.intent.category.LAUNCHER")
+                categories.any { it in PURE_LAUNCHER_MARKERS }
         }
     }
 
-/** A filter that does nothing but launch: MAIN action, only LAUNCHER/DEFAULT categories, no data. */
+/** A filter that does nothing but launch (via any launcher-surface variant): MAIN action, only
+ *  launcher-marker/DEFAULT/multiwindow categories, no data. Multiple such filters on one activity
+ *  (e.g. phone + TV + multi-window entries) are still bare - they're the same launch, not new features. */
 private fun isBareLauncherFilter(filter: Element): Boolean {
     val actions = filter.children("action").map { it.attr("android:name") }
     val categories = filter.children("category").map { it.attr("android:name") }
     val hasData = filter.children("data").isNotEmpty()
     return actions == listOf("android.intent.action.MAIN") &&
-        categories.contains("android.intent.category.LAUNCHER") &&
+        categories.any { it in PURE_LAUNCHER_MARKERS } &&
         categories.all { it in KNOWN_LAUNCHER_CATEGORIES } &&
         !hasData
 }
@@ -128,14 +137,37 @@ private fun guessRealMainActivity(
             var score = 0
             when (activity.attr("android:launchMode")) {
                 "singleTask", "singleInstance" -> score += 3
+                "singleTop" -> score += 1
             }
-            if (filters.any { f -> f.children("action").any { it.attr("android:name") == "android.intent.action.VIEW" } }) {
-                score += 2
+            // A bare VIEW filter with no <data> at all is typically an internal launch entry
+            // (search, shortcuts, same-app navigation) - real hub-screen evidence. A VIEW filter
+            // with specific <data> (scheme/mimeType), with or without BROWSABLE, is a content-type
+            // handler for files/links from OTHER apps - a utility activity (a player screen that
+            // accepts video/* or rtsp/mp4/etc.), not the home screen, even though it's often the
+            // busiest and most "exported-looking" activity in the whole manifest. Reward the former,
+            // penalize the latter instead of treating "more intent-filters" as uniformly positive.
+            var genericView = false
+            var contentHandlerFilters = 0
+            filters.forEach { f ->
+                val actions = f.children("action").map { it.attr("android:name") }
+                val hasData = f.children("data").isNotEmpty()
+                if (actions.contains("android.intent.action.VIEW")) {
+                    if (hasData) contentHandlerFilters++ else genericView = true
+                }
             }
-            score += minOf(filters.size, 5)
+            if (genericView) score += 3
+            score -= minOf(contentHandlerFilters, 3) * 2
             if (activity.attr("android:alwaysRetainTaskState") == "true") score += 1
             if (activity.attr("android:exported") == "true") score += 1
             if (activity.attr("android:taskAffinity") == "") score -= 5
+            // android.app.searchable / default_searchable meta-data marks the app's designated
+            // content-browsing screen - a rare, specific signal, stronger than launch-mode guesses.
+            if (activity.children("meta-data").any {
+                    it.attr("android:name") in setOf("android.app.searchable", "android.app.default_searchable")
+                }
+            ) {
+                score += 3
+            }
             if (HUB_NAME_KEYWORDS.any { activity.attr("android:name").substringAfterLast('.').contains(it, ignoreCase = true) }) {
                 score += 4
             }
@@ -148,8 +180,8 @@ private fun guessRealMainActivity(
 // per PatchBuilder.resolveDefaultValue(), since a universal patch cannot default to enabled.
 @Suppress("unused")
 val universalSkipSplashScreenPatch = resourcePatch(
-    name = "Remove Splash Screen - Expert Only",
-    description = "EXPERT USERS ONLY. Manually Configure It To Point At Real Splash And Main Activity As Many Apps Use Other Names. " +
+    name = "Skip Splash Screen - Expert Only",
+        description = "EXPERT USERS ONLY. Manually Configure It To Point At Real Splash And Main Activity As Many Apps Use Other Names. " +
         "Check the log to know what the patch is doing " +
         "Ensure App Doesnt Ask For Permission In Splash Screen.",
     default = false,

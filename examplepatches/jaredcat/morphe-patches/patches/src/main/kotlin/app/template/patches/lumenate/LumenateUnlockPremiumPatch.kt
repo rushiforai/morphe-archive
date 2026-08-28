@@ -5,7 +5,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.template.patches.shared.Constants.COMPATIBILITY_LUMENATE
 
 /**
- * Unlocks Lumenate Premium (entitlement id `"unlocked"`) for version 7.1.1.
+ * Unlocks Lumenate Premium (entitlement id `"unlocked"`) for version 7.1.3.
  *
  * Prefer first-party gates over rewriting RevenueCat:
  * 1. [IsSubscriberFingerprint] — `SubscriptionManager` always reports subscribed and
@@ -16,6 +16,9 @@ import app.template.patches.shared.Constants.COMPATIBILITY_LUMENATE
  *    always returns true if any path still constructs a free-tier result.
  * 4. [PremiumLiveDataInitFingerprint] — initial LiveData value is true so UI does not
  *    briefly treat the user as free before callbacks.
+ * 5. [LumenateOnCreateFingerprint] — set `Lumenate.q` at Application start so Activity
+ *    snapshots (Guide Begin lock, favourite overlays) see premium immediately.
+ * 6. UI belts: Guide Begin click, session-landing favourite lock wiring, demo toast overlays.
  *
  * Leaves Nova hardware, journey progression, account/network, and real Play Billing
  * purchase flows untouched except for the entitlement result used for access checks.
@@ -81,15 +84,45 @@ val unlockPremiumPatch = bytecodePatch(
             """,
         )
 
-        // new J(Boolean.TRUE) instead of Boolean.FALSE
+        // new I(Boolean.TRUE) instead of Boolean.FALSE (7.1.3 uses lifecycle.I)
         PremiumLiveDataInitFingerprint.method.addInstructions(
             0,
             """
-                new-instance v0, Landroidx/lifecycle/J;
+                new-instance v0, Landroidx/lifecycle/I;
                 sget-object v1, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
-                invoke-direct {v0, v1}, Landroidx/lifecycle/J;-><init>(Ljava/lang/Object;)V
+                invoke-direct {v0, v1}, Landroidx/lifecycle/I;-><init>(Ljava/lang/Object;)V
                 return-object v0
             """,
         )
+
+        // Eager premium flag before any Activity onCreate snapshots Lumenate.q.
+        LumenateOnCreateFingerprint.method.addInstructions(
+            0,
+            """
+                const/4 v0, 0x1
+                sput-boolean v0, Lcom/lumenate/lumenate/Lumenate;->q:Z
+            """,
+        )
+
+        // Guide Begin: always take the OpenAIFlow path (never Paywall / UnlockAllContent).
+        GuideBeginClickFingerprint.method.addInstructions(
+            0,
+            """
+                const/4 p0, 0x1
+            """,
+        )
+
+        // Free-tier favourite/download lock → wire premium handlers instead.
+        SessionLandingLockFavoritesFingerprint.method.addInstructions(
+            0,
+            """
+                invoke-direct {p0}, Lcom/lumenate/lumenate/landing/b;->I1()V
+                return-void
+            """,
+        )
+
+        // Demo landing unlock toasts (favourite / download overlays).
+        DemoFavoriteUnlockToastFingerprint.method.addInstructions(0, "return-void")
+        DemoDownloadUnlockToastFingerprint.method.addInstructions(0, "return-void")
     }
 }

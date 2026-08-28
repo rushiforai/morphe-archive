@@ -1,0 +1,41 @@
+# Gradle
+.gradle/
+**/build/
+
+# IntelliJ IDEA / Android Studio
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# Local Android/Gradle configuration
+local.properties
+
+# Visual Studio Code
+.vscode/
+
+# Node.js dependencies
+node_modules/
+
+# Compiled/generated files
+*.class
+*.log
+
+# Test APKs should not be committed
+*.apk
+
+# JVM crash logs
+hs_err_pid*
+replay_pid*
+
+# Local environment and credentials
+.env
+.env.*
+*.jks
+*.keystore
+*.p12
+
+# Operating system files
+.DS_Store
+Thumbs.db

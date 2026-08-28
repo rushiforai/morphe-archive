@@ -71,6 +71,8 @@ public final class GboardPatchesFeatureAvailability {
             "dev.jason.gboardpatches.feature.quick_insert";
     public static final String FEATURE_ACCESS_POINT_COUNT =
             "dev.jason.gboardpatches.feature.access_point_count";
+    public static final String FEATURE_FLOATING_WEB_SEARCH =
+            "dev.jason.gboardpatches.feature.floating_web_search";
 
     private static final String TAG = "GboardPatches";
 

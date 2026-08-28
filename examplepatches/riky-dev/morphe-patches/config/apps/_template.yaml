@@ -6,6 +6,19 @@ apk_file_type: APK          # APK, APKM, or XAPK
 apkpure_slug: example/app-slug-on-apkpure
 analysis_dir: analysis/example
 
+# Optional — large APKs (CapCut-scale). Used by decompile.sh.
+# decompile:
+#   jadx_max_heap: 4g
+#   jadx_threads: 2
+#   jadx_no_res: true
+
+# Optional — device test navigation hints (match strings for uiautomator grep).
+# device:
+#   launch_activity: com.example.app/.MainActivity
+#   nav:
+#     - name: settings_tab
+#       match: Settings
+
 # Optional verify block — add after you know what your patches change:
 # verify:
 #   apk: analysis/example/extract/com.example.app.apk

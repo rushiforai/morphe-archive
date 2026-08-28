@@ -358,6 +358,23 @@
       ]
     },
     {
+      "feature_id": "floating_web_search",
+      "public_patch_name": "Floating Web Search",
+      "feature_marker": "dev.jason.gboardpatches.feature.floating_web_search",
+      "target_family_ids": ["accesspoint.1803"],
+      "migration_scope": "version-sensitive",
+      "consumer_files": [
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/websearch/GboardFloatingWebSearchFeatureMarkerPatch.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/websearch/GboardFloatingWebSearchManifestPatch.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/registry/GboardPatchRegistry.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/shared/accesspoint/GboardAccessPointContributions1803Patch.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/shared/accesspoint/GboardAccessPointContributions1803Targets.kt"
+      ],
+      "contributions": [
+        { "contribution_id": "floating_web_search.access_point", "anchor_family_id": "dedicated_bytecode", "phase": "dedicated", "order": 1250, "required_bindings": [], "runtime_calls": ["ACCESS_POINT_CONTRIBUTIONS_1803_AFTER_CONTROLLER_CREATED", "ACCESS_POINT_CONTRIBUTIONS_1803_INCLUDE_ORDER_CATALOG"] }
+      ]
+    },
+    {
       "feature_id": "flow_mode_animation",
       "public_patch_name": "Hyperspeed Typing Animation",
       "feature_marker": "dev.jason.gboardpatches.feature.flow_mode_animation",
@@ -417,15 +434,16 @@
       "target_family_ids": ["manualincognito"],
       "migration_scope": "version-sensitive",
       "consumer_files": [
-        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/manualincognito/GboardManualIncognitoAccessPointPatch.kt",
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/manualincognito/GboardManualIncognitoFeatureMarkerPatch.kt",
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/manualincognito/GboardManualIncognitoLifecyclePatch.kt",
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/manualincognito/GboardManualIncognitoPolicyPatch.kt",
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/manualincognito/GboardManualIncognitoTargets.kt",
-        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/registry/GboardPatchRegistry.kt"
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/registry/GboardPatchRegistry.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/shared/accesspoint/GboardAccessPointContributions1803Patch.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/shared/accesspoint/GboardAccessPointContributions1803Targets.kt"
       ],
       "contributions": [
-        { "contribution_id": "incognito_mode_toggle.bytecode", "anchor_family_id": "dedicated_bytecode", "phase": "dedicated", "order": 1200, "required_bindings": [], "runtime_calls": ["MANUAL_INCOGNITO_RUNTIME_AFTER_CONTROLLER_CREATED", "MANUAL_INCOGNITO_RUNTIME_APPLY_CLIPBOARD_POLICY", "MANUAL_INCOGNITO_RUNTIME_APPLY_DICTATION_FLAG", "MANUAL_INCOGNITO_RUNTIME_APPLY_INCOGNITO_PREDICATE", "MANUAL_INCOGNITO_RUNTIME_APPLY_VOICE_POLICY", "MANUAL_INCOGNITO_RUNTIME_INCLUDE_ACCESS_POINT_CATALOG", "MANUAL_INCOGNITO_RUNTIME_ON_INPUT_STARTING", "MANUAL_INCOGNITO_RUNTIME_ON_INPUT_VIEW_STARTING", "MANUAL_INCOGNITO_RUNTIME_ON_INPUT_WINDOW_HIDDEN"] }
+        { "contribution_id": "incognito_mode_toggle.bytecode", "anchor_family_id": "dedicated_bytecode", "phase": "dedicated", "order": 1200, "required_bindings": [], "runtime_calls": ["ACCESS_POINT_CONTRIBUTIONS_1803_AFTER_CONTROLLER_CREATED", "ACCESS_POINT_CONTRIBUTIONS_1803_INCLUDE_ORDER_CATALOG", "MANUAL_INCOGNITO_RUNTIME_APPLY_CLIPBOARD_POLICY", "MANUAL_INCOGNITO_RUNTIME_APPLY_DICTATION_FLAG", "MANUAL_INCOGNITO_RUNTIME_APPLY_INCOGNITO_PREDICATE", "MANUAL_INCOGNITO_RUNTIME_APPLY_VOICE_POLICY", "MANUAL_INCOGNITO_RUNTIME_ON_INPUT_STARTING", "MANUAL_INCOGNITO_RUNTIME_ON_INPUT_VIEW_STARTING", "MANUAL_INCOGNITO_RUNTIME_ON_INPUT_WINDOW_HIDDEN"] }
       ]
     },
     {

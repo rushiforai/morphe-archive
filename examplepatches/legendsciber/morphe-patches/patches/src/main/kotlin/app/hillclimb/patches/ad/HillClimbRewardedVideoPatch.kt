@@ -6,9 +6,10 @@ import app.hillclimb.patches.shared.Constants.COMPATIBILITY_HILLCLIMB
 
 // Smali class descriptors. The \$ escapes keep Kotlin string interpolation
 // from treating "$$ExternalSyntheticLambda6" as a template expression.
+// NOTE: Lambda numbering changed between 1.70.0 and 1.71.1. These are for 1.71.1+.
 private const val MAIN_ACTIVITY = "Lcom/fingersoft/game/MainActivity;"
-private const val LAMBDA_VIDEO_STARTED = "Lcom/fingersoft/game/MainActivity\$\$ExternalSyntheticLambda6;"
-private const val LAMBDA_VIDEO_CLOSED = "Lcom/fingersoft/game/MainActivity\$\$ExternalSyntheticLambda11;"
+private const val LAMBDA_VIDEO_STARTED = "Lcom/fingersoft/game/MainActivity\$\$ExternalSyntheticLambda12;"
+private const val LAMBDA_VIDEO_CLOSED = "Lcom/fingersoft/game/MainActivity\$\$ExternalSyntheticLambda16;"
 
 /**
  * Hill Climb Racing — Instant Rewarded Video Rewards
@@ -19,9 +20,9 @@ private const val LAMBDA_VIDEO_CLOSED = "Lcom/fingersoft/game/MainActivity\$\$Ex
  * onVideoStarted/onVideoClosed callbacks. We skip the ad entirely and instead
  * fire the SAME native callbacks the engine uses for a completed video:
  *
- *   MainActivity$$ExternalSyntheticLambda6  (Runnable) → lambda$onVideoStarted$15
+ *   MainActivity$$ExternalSyntheticLambda12 (Runnable) → lambda$onVideoStarted$19
  *     → MainActivity.onVideoStartedSuccess()   (native — tells engine "ad started")
- *   MainActivity$$ExternalSyntheticLambda11 (Runnable) → lambda$onVideoClosed$16
+ *   MainActivity$$ExternalSyntheticLambda16 (Runnable) → lambda$onVideoClosed$20
  *     → MainActivity.onVideoCompletedSuccess() (native — tells engine "video done, grant reward")
  *
  * Both lambdas are queued via MainActivity.queueOnGLThread(Runnable), the
@@ -36,8 +37,8 @@ private const val LAMBDA_VIDEO_CLOSED = "Lcom/fingersoft/game/MainActivity\$\$Ex
  * unreachable. This mirrors the game's own exception path, which also
  * clobbers p0 with new-instance (MainActivity.smali:2656).
  *
- * Confirmed smali: MainActivity.smali:2640, 2354 (lambda$onVideoStarted$15),
- * 2340 (lambda$onVideoClosed$16), ExternalSyntheticLambda6/11 run() methods.
+ * Confirmed smali: MainActivity.smali:2640, 2354 (lambda$onVideoStarted$19),
+ * 2340 (lambda$onVideoClosed$20), ExternalSyntheticLambda12/16 run() methods.
  */
 @Suppress("unused")
 val hillClimbRewardedVideoPatch = bytecodePatch(

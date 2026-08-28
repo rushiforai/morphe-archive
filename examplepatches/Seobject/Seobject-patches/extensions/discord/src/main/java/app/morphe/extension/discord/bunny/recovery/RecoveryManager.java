@@ -55,6 +55,8 @@ public final class RecoveryManager {
     private static RecoveryState state;
     private static boolean sessionInitialized;
     private static boolean sessionSafeMode;
+    /* BUNNY_PERSISTENT_SAFE_MODE_STATUS_V1 */
+    private static boolean persistentSafeModeEnabled;
     private static Object pendingPromise;
     private static PendingRestore pendingRestore;
     private static Set<String> pendingBackupCategories;
@@ -76,14 +78,6 @@ public final class RecoveryManager {
 
         /*
          * BUNNY_TEMP_SAFE_MODE_ONE_LAUNCH_V1
-         *
-         * A temporary Safe Mode session lives for the Android process.
-         * If Android keeps that process after the task is closed, a later
-         * fresh launcher open must restart into a normal Bunny bootstrap.
-         *
-         * savedInstanceState != null means Android is recreating the same
-         * Activity (for example rotation/configuration), so Safe Mode stays.
-         * Persistent Safe Mode is a separate Bunny setting and is not modified here.
          */
         if (
                 !shortcutHandled
@@ -99,11 +93,55 @@ public final class RecoveryManager {
         Context app =
                 activity.getApplicationContext();
 
+        /*
+         * BUNNY_RESTORE_BEFORE_RECOVERY_INIT_V5
+         */
+        Context bunnyRestoreContext =
+                activity.getApplicationContext();
+
+        if (bunnyRestoreContext == null) {
+            bunnyRestoreContext = activity;
+        }
+
+        try {
+            if (
+                    BackupRestoreManager
+                            .applyPendingRestoreBeforeRecoveryInit(
+                                    bunnyRestoreContext
+                            )
+            ) {
+                Log.i(
+                        TAG,
+                        "PENDING_RESTORE_APPLIED_BEFORE_RECOVERY_INIT"
+                );
+            }
+        } catch (Throwable failure) {
+            Log.e(
+                    TAG,
+                    "Pending Bunny restore failed before Recovery initialization",
+                    failure
+            );
+
+            BackupRestoreManager
+                    .discardPendingRestoreBeforeRecoveryInit(
+                            bunnyRestoreContext
+                    );
+        }
+
         ensure(
                 app != null
                         ? app
                         : activity
         );
+
+        /*
+         * BUNNY_COLD_RESTORE_BEFORE_JS_V1
+         *
+         * BunnyBootstrap calls RecoveryManager.onActivityCreate before it
+         * starts Bunny's JS bundle. Apply the staged archive here so the new
+         * vd_mmkv/theme/font/plugin proxies initialize from restored disk state.
+         */
+        applyPendingRestoreBeforeBunnyBootstrap();
 
         synchronized (LOCK) {
             if (!sessionInitialized) {
@@ -112,6 +150,35 @@ public final class RecoveryManager {
         }
 
         BunnyShortcutPublisher.publish(activity);
+    }
+
+    /*
+     * BUNNY_PENDING_RESTORE_STARTUP_HELPER_V1
+     */
+    private static void applyPendingRestoreBeforeBunnyBootstrap() {
+        try {
+            if (backups != null && backups.applyPendingRestoreIfPresent()) {
+                Log.i(
+                        TAG,
+                        "PENDING_RESTORE_APPLIED_BEFORE_BUNNY_BOOTSTRAP"
+                );
+
+                appendEvent(
+                        "backup-restored-cold-start",
+                        new JSONObject()
+                );
+            }
+        } catch (Throwable failure) {
+            Log.e(
+                    TAG,
+                    "Pending Bunny restore failed before bootstrap",
+                    failure
+            );
+
+            if (backups != null) {
+                backups.discardPendingRestore();
+            }
+        }
     }
 
     private static boolean restartNormalAfterTemporarySafeMode(
@@ -305,7 +372,7 @@ public final class RecoveryManager {
                     setSafeMode(parseBoolean(uri.getQueryParameter("enabled")), promise);
                     break;
                 case "restore-known-good":
-                    runAsync(promise, backups::restoreKnownGood);
+                    stageKnownGoodRestoreAndRestart(promise);
                     break;
                 case "rollback-plugin":
                     rollbackPlugin(promise);
@@ -327,6 +394,12 @@ public final class RecoveryManager {
                     break;
                 case "restore-apply":
                     applyPendingRestore(uri.getQueryParameter("token"), promise);
+                    break;
+                case "restore-apply-reload":
+                    applyPendingRestoreForBundleReload(
+                            uri.getQueryParameter("token"),
+                            promise
+                    );
                     break;
                 case "restore-cancel":
                     cancelPendingRestore(uri.getQueryParameter("token"), promise);
@@ -377,7 +450,11 @@ public final class RecoveryManager {
         try {
             String rollbackPlugin = state.mostRecentlyChangedPlugin;
             recovery.put("status", "success");
-            recovery.put("safeMode", sessionSafeMode);
+            boolean effectiveSafeMode =
+                    sessionSafeMode
+                            || persistentSafeModeEnabled;
+            recovery.put("safeMode", effectiveSafeMode);
+            recovery.put("persistentSafeMode", persistentSafeModeEnabled);
             recovery.put("temporarySafeModeCurrentSession", sessionSafeMode && !state.recoveryLatch);
             recovery.put("recoveryImposedBypass", sessionSafeMode && state.recoveryLatch);
             recovery.put("temporarySafeModeNextLaunch", state.temporarySafeModeNextLaunch);
@@ -508,10 +585,84 @@ public final class RecoveryManager {
     }
 
     private static void setSafeMode(boolean enabled, Object promise) {
-        // The durable preference belongs to Bunny's JS settings store. This
-        // signal deliberately does not mutate one-shot or recovery state.
+        /*
+         * The durable preference still belongs exclusively to Bunny's JS
+         * settings store. Recovery only mirrors its current value so status
+         * can represent every Safe Mode source without making the temporary
+         * launcher/quick path persistent.
+         */
+        synchronized (LOCK) {
+            persistentSafeModeEnabled = enabled;
+        }
         appendEvent("persistent-safe-mode", eventDetails("enabled", enabled));
         resolve(promise, ok());
+    }
+
+    /*
+     * BUNNY_KNOWN_GOOD_COLD_RESTORE_V1
+     */
+    private static void stageKnownGoodRestoreAndRestart(
+            Object promise
+    ) {
+        final Activity activity =
+                activityRef.get();
+
+        if (activity == null) {
+            resolve(
+                    promise,
+                    error("No active Discord window")
+            );
+            return;
+        }
+
+        IO.execute(() -> {
+            try {
+                backups.stageKnownGoodRestore();
+
+                appendEvent(
+                        "known-good-restore-staged",
+                        new JSONObject()
+                );
+
+                resolve(
+                        promise,
+                        new JSONObject()
+                                .put("status", "restarting")
+                                .put(
+                                        "message",
+                                        "Last working state staged; restarting Bunny"
+                                )
+                                .toString()
+                );
+
+                activity.runOnUiThread(
+                        () -> {
+                            if (
+                                    !BunnyShortcutActivity
+                                            .restartAtFreshBootstrap(
+                                                    activity
+                                            )
+                            ) {
+                                Log.e(
+                                        TAG,
+                                        "Could not perform controlled restart after staging known-good restore"
+                                );
+                            }
+                        }
+                );
+            } catch (Throwable failure) {
+                Log.e(
+                        TAG,
+                        "Could not stage last working Bunny state",
+                        failure
+                );
+
+                resolve(
+                        promise,
+                        error(failure.getMessage())
+                );
+            }
+        });
     }
 
     private static void rollbackPlugin(Object promise) {
@@ -713,7 +864,9 @@ public final class RecoveryManager {
                 ready.put("status", "ready");
                 ready.put("token", token);
                 ready.put("schemaVersion", BunnyBackup.SCHEMA_VERSION);
-                ready.put("summary", restoreSummary(validated, categories));
+                JSONObject changes = restoreChangeCategories(validated);
+                ready.put("summary", restoreSummary(changes));
+                ready.put("changes", changes);
                 ready.put("categories", categories == null ? new JSONObject() : categories);
                 resolve(promise, ready.toString());
             } catch (Throwable failure) {
@@ -725,19 +878,162 @@ public final class RecoveryManager {
 
     private static void applyPendingRestore(String token, Object promise) {
         final PendingRestore restore;
+
         synchronized (LOCK) {
             restore = pendingRestore;
-            if (restore == null
-                    || token == null
-                    || !restore.token.equals(token)
-                    || System.currentTimeMillis() - restore.createdAt > RESTORE_CONFIRMATION_TTL_MS) {
+
+            if (
+                    restore == null
+                            || token == null
+                            || !restore.token.equals(token)
+                            || System.currentTimeMillis()
+                            - restore.createdAt
+                            > RESTORE_CONFIRMATION_TTL_MS
+            ) {
                 pendingRestore = null;
-                resolve(promise, error("The validated restore plan expired; select the backup again"));
+
+                resolve(
+                        promise,
+                        error(
+                                "The validated restore plan expired; select the backup again"
+                        )
+                );
+
                 return;
             }
+
             pendingRestore = null;
         }
-        runAsync(promise, () -> backups.restore(restore.backup));
+
+        final Activity activity =
+                activityRef.get();
+
+        if (activity == null) {
+            resolve(
+                    promise,
+                    error("No active Discord window")
+            );
+            return;
+        }
+
+        IO.execute(() -> {
+            try {
+                /*
+                 * BUNNY_STAGE_RESTORE_THEN_PROCESS_RESTART_V1
+                 *
+                 * Do not overwrite live pyoncord files while the old Bunny JS
+                 * storage proxies still exist.
+                 */
+                backups.stageRestore(
+                        restore.backup
+                );
+
+                appendEvent(
+                        "backup-restore-staged",
+                        eventDetails(
+                                "entries",
+                                restore.backup.entries.size()
+                        )
+                );
+
+                resolve(
+                        promise,
+                        new JSONObject()
+                                .put("status", "restarting")
+                                .put(
+                                        "message",
+                                        "Restore staged; restarting Bunny"
+                                )
+                                .toString()
+                );
+
+                activity.runOnUiThread(
+                        () -> {
+                            if (
+                                    !BunnyShortcutActivity
+                                            .restartAtFreshBootstrap(
+                                                    activity
+                                            )
+                            ) {
+                                Log.e(
+                                        TAG,
+                                        "Could not perform controlled restart after staging Bunny restore"
+                                );
+                            }
+                        }
+                );
+            } catch (Throwable failure) {
+                Log.e(
+                        TAG,
+                        "Could not stage Bunny restore",
+                        failure
+                );
+
+                resolve(
+                        promise,
+                        error(failure.getMessage())
+                );
+            }
+        });
+    }
+
+    /*
+     * BUNNY_LIVE_RESTORE_FOR_BUNDLE_RELOAD_V1
+     *
+     * A React Native bundle reload does not recreate Activity.onCreate(), so
+     * the external pending/cold-start restore path cannot be used here.
+     * Apply the already validated backup transactionally to the live files,
+     * then let the Bunny UI request BundleUpdaterManager.reload().
+     */
+    private static void applyPendingRestoreForBundleReload(
+            String token,
+            Object promise
+    ) {
+        final PendingRestore restore;
+
+        synchronized (LOCK) {
+            restore = pendingRestore;
+
+            if (
+                    restore == null
+                            || token == null
+                            || !restore.token.equals(token)
+                            || System.currentTimeMillis()
+                                    - restore.createdAt
+                                    > RESTORE_CONFIRMATION_TTL_MS
+            ) {
+                pendingRestore = null;
+
+                resolve(
+                        promise,
+                        error(
+                                "The validated restore plan expired; select the backup again"
+                        )
+                );
+
+                return;
+            }
+
+            pendingRestore = null;
+        }
+
+        runAsync(
+                promise,
+                () -> {
+                    BackupRestoreManager.discardPendingRestoreBeforeRecoveryInit(
+                            context
+                    );
+
+                    backups.restore(
+                            restore.backup
+                    );
+
+                    Log.i(
+                            TAG,
+                            "LIVE_RESTORE_APPLIED_FOR_BUNDLE_RELOAD"
+                    );
+                }
+        );
     }
 
     private static void cancelPendingRestore(String token, Object promise) {
@@ -749,21 +1045,512 @@ public final class RecoveryManager {
         resolve(promise, cancelled());
     }
 
-    private static String restoreSummary(BunnyBackup.Validated backup, JSONObject categories) {
-        StringBuilder summary = new StringBuilder();
-        summary.append(backup.entries.size()).append(" portable item");
-        if (backup.entries.size() != 1) summary.append('s');
-        if (categories == null || categories.length() == 0) return summary.toString();
-        summary.append(": ");
-        Iterator<String> keys = categories.keys();
-        boolean first = true;
-        while (keys.hasNext()) {
-            String key = keys.next();
-            if (!first) summary.append(" • ");
-            first = false;
-            summary.append(categoryLabel(key)).append(' ').append(categories.optInt(key, 0));
+    /*
+     * BUNNY_SEMANTIC_RESTORE_PREVIEW_COUNTS_V1
+     *
+     * Restore previews describe what will actually change on this device,
+     * not how many files happen to exist inside the backup.
+     *
+     * For Bunny's primary MMKV stores, compare top-level keys so a single
+     * changed Bunny setting reports as one setting change. Other changed
+     * files count as one change each.
+     */
+    private static JSONObject restoreChangeCategories(
+            BunnyBackup.Validated backup
+    ) throws Exception {
+        Set<String> selected =
+                restoreSelectedCategories(
+                        backup
+                );
+
+        BunnyBackup.Validated current =
+                BunnyBackup.validateAndMigrate(
+                        backups.createBytes(
+                                "restore-preview",
+                                selected
+                        )
+                );
+
+        java.util.HashMap<String, BunnyBackup.Entry> wanted =
+                new java.util.HashMap<>();
+
+        java.util.HashMap<String, BunnyBackup.Entry> live =
+                new java.util.HashMap<>();
+
+        for (BunnyBackup.Entry entry : backup.entries) {
+            wanted.put(
+                    entry.path,
+                    entry
+            );
         }
-        return summary.toString();
+
+        for (BunnyBackup.Entry entry : current.entries) {
+            live.put(
+                    entry.path,
+                    entry
+            );
+        }
+
+        java.util.LinkedHashSet<String> paths =
+                new java.util.LinkedHashSet<>();
+
+        paths.addAll(
+                wanted.keySet()
+        );
+
+        paths.addAll(
+                live.keySet()
+        );
+
+        java.util.ArrayList<String> orderedPaths =
+                new java.util.ArrayList<>(
+                        paths
+                );
+
+        java.util.Collections.sort(
+                orderedPaths
+        );
+
+        JSONObject changes =
+                new JSONObject();
+
+        for (String path : orderedPaths) {
+            BunnyBackup.Entry wantedEntry =
+                    wanted.get(
+                            path
+                    );
+
+            BunnyBackup.Entry liveEntry =
+                    live.get(
+                            path
+                    );
+
+            if (
+                    wantedEntry != null
+                            && liveEntry != null
+                            && java.util.Arrays.equals(
+                                    wantedEntry.data,
+                                    liveEntry.data
+                            )
+            ) {
+                continue;
+            }
+
+            String category =
+                    restoreCategoryForPath(
+                            path
+                    );
+
+            int delta =
+                    semanticEntryDifferenceCount(
+                            path,
+                            wantedEntry,
+                            liveEntry
+                    );
+
+            if (delta <= 0) {
+                continue;
+            }
+
+            changes.put(
+                    category,
+                    changes.optInt(
+                            category,
+                            0
+                    )
+                            + delta
+            );
+        }
+
+        return changes;
+    }
+
+    private static Set<String> restoreSelectedCategories(
+            BunnyBackup.Validated backup
+    ) throws Exception {
+        java.util.LinkedHashSet<String> selected =
+                new java.util.LinkedHashSet<>();
+
+        JSONObject contents =
+                backup.root.optJSONObject(
+                        "contents"
+                );
+
+        JSONArray explicit =
+                contents == null
+                        ? null
+                        : contents.optJSONArray(
+                                "selectedCategories"
+                        );
+
+        if (explicit != null) {
+            for (int i = 0; i < explicit.length(); i++) {
+                String category =
+                        explicit.optString(
+                                i,
+                                ""
+                        )
+                                .trim()
+                                .toLowerCase(
+                                        Locale.ROOT
+                                );
+
+                if (!category.isEmpty()) {
+                    selected.add(
+                            category
+                    );
+                }
+            }
+        }
+
+        if (selected.isEmpty()) {
+            for (BunnyBackup.Entry entry : backup.entries) {
+                selected.add(
+                        restoreCategoryForPath(
+                                entry.path
+                        )
+                );
+            }
+        }
+
+        if (selected.isEmpty()) {
+            selected.addAll(
+                    BunnyBackup.allCategories()
+            );
+        }
+
+        return java.util.Collections.unmodifiableSet(
+                selected
+        );
+    }
+
+    private static int semanticEntryDifferenceCount(
+            String path,
+            BunnyBackup.Entry wanted,
+            BunnyBackup.Entry live
+    ) {
+        if (
+                isSemanticMmkvStore(
+                        path
+                )
+        ) {
+            try {
+                JSONObject wantedObject =
+                        wanted == null
+                                ? new JSONObject()
+                                : new JSONObject(
+                                        new String(
+                                                wanted.data,
+                                                StandardCharsets.UTF_8
+                                        )
+                                );
+
+                JSONObject liveObject =
+                        live == null
+                                ? new JSONObject()
+                                : new JSONObject(
+                                        new String(
+                                                live.data,
+                                                StandardCharsets.UTF_8
+                                        )
+                                );
+
+                java.util.LinkedHashSet<String> keys =
+                        new java.util.LinkedHashSet<>();
+
+                Iterator<String> wantedKeys =
+                        wantedObject.keys();
+
+                while (wantedKeys.hasNext()) {
+                    keys.add(
+                            wantedKeys.next()
+                    );
+                }
+
+                Iterator<String> liveKeys =
+                        liveObject.keys();
+
+                while (liveKeys.hasNext()) {
+                    keys.add(
+                            liveKeys.next()
+                    );
+                }
+
+                int changed =
+                        0;
+
+                for (String key : keys) {
+                    Object wantedValue =
+                            wantedObject.has(
+                                    key
+                            )
+                                    ? wantedObject.opt(
+                                            key
+                                    )
+                                    : null;
+
+                    Object liveValue =
+                            liveObject.has(
+                                    key
+                            )
+                                    ? liveObject.opt(
+                                            key
+                                    )
+                                    : null;
+
+                    if (
+                            !jsonValuesEqual(
+                                    wantedValue,
+                                    liveValue
+                            )
+                    ) {
+                        changed++;
+                    }
+                }
+
+                return changed;
+            } catch (Throwable ignored) {
+                /*
+                 * If a future MMKV format stops being a JSON object, fall
+                 * back to treating the changed store as one changed item.
+                 */
+                return 1;
+            }
+        }
+
+        return 1;
+    }
+
+    private static boolean isSemanticMmkvStore(
+            String path
+    ) {
+        return "vd_mmkv/VENDETTA_SETTINGS".equals(path)
+                || "vd_mmkv/VENDETTA_PLUGINS".equals(path)
+                || "vd_mmkv/VENDETTA_THEMES".equals(path)
+                || "vd_mmkv/BUNNY_FONTS".equals(path);
+    }
+
+    /*
+     * BUNNY_ANDROID_JSON_DEEP_EQUALITY_V1
+     *
+     * Android's bundled org.json does not expose JSONObject.similar() or
+     * JSONArray.similar(). Compare recursively using supported APIs only.
+     */
+    private static boolean jsonValuesEqual(
+            Object left,
+            Object right
+    ) {
+        if (left == right) {
+            return true;
+        }
+
+        if (left == null || right == null) {
+            return false;
+        }
+
+        if (
+                left == JSONObject.NULL
+                        || right == JSONObject.NULL
+        ) {
+            return left == JSONObject.NULL
+                    && right == JSONObject.NULL;
+        }
+
+        if (
+                left instanceof JSONObject
+                        && right instanceof JSONObject
+        ) {
+            JSONObject leftObject =
+                    (JSONObject) left;
+
+            JSONObject rightObject =
+                    (JSONObject) right;
+
+            if (
+                    leftObject.length()
+                            != rightObject.length()
+            ) {
+                return false;
+            }
+
+            Iterator<String> keys =
+                    leftObject.keys();
+
+            while (keys.hasNext()) {
+                String key =
+                        keys.next();
+
+                if (!rightObject.has(key)) {
+                    return false;
+                }
+
+                if (
+                        !jsonValuesEqual(
+                                leftObject.opt(key),
+                                rightObject.opt(key)
+                        )
+                ) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        if (
+                left instanceof JSONArray
+                        && right instanceof JSONArray
+        ) {
+            JSONArray leftArray =
+                    (JSONArray) left;
+
+            JSONArray rightArray =
+                    (JSONArray) right;
+
+            if (
+                    leftArray.length()
+                            != rightArray.length()
+            ) {
+                return false;
+            }
+
+            for (
+                    int index = 0;
+                    index < leftArray.length();
+                    index++
+            ) {
+                if (
+                        !jsonValuesEqual(
+                                leftArray.opt(index),
+                                rightArray.opt(index)
+                        )
+                ) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        if (
+                left instanceof Number
+                        && right instanceof Number
+        ) {
+            return String.valueOf(left)
+                    .equals(
+                            String.valueOf(right)
+                    );
+        }
+
+        return left.equals(right);
+    }
+
+    private static String restoreCategoryForPath(
+            String path
+    ) {
+        String upper =
+                path.toUpperCase(
+                        Locale.ROOT
+                );
+
+        if (
+                path.startsWith(
+                        "plugins/"
+                )
+                        || upper.contains(
+                                "VENDETTA_PLUGIN"
+                        )
+        ) {
+            return "plugins";
+        }
+
+        if (
+                path.equals(
+                        "fonts.json"
+                )
+                        || path.startsWith(
+                                "downloads/fonts/"
+                        )
+                        || upper.contains(
+                                "FONT"
+                        )
+        ) {
+            return "fonts";
+        }
+
+        if (
+                path.equals(
+                        "current-theme.json"
+                )
+                        || path.equals(
+                                "bunny-theme-creator-colors.json"
+                        )
+                        || path.startsWith(
+                                "themes/"
+                        )
+                        || path.startsWith(
+                                "downloads/backgrounds/"
+                        )
+                        || upper.contains(
+                                "THEME"
+                        )
+        ) {
+            return "themes";
+        }
+
+        return "settings";
+    }
+
+    /*
+     * BUNNY_RESTORE_PREVIEW_STATIC_CATEGORIES_V2
+     *
+     * Keep one compact Validated Backup row. The four Bunny backup
+     * categories are permanent, ordered, and always visible. Only their
+     * semantic change counts vary.
+     */
+    private static String restoreSummary(
+            JSONObject changes
+    ) {
+        int settings =
+                changes == null
+                        ? 0
+                        : changes.optInt(
+                                "settings",
+                                0
+                        );
+
+        int plugins =
+                changes == null
+                        ? 0
+                        : changes.optInt(
+                                "plugins",
+                                0
+                        );
+
+        int themes =
+                changes == null
+                        ? 0
+                        : changes.optInt(
+                                "themes",
+                                0
+                        );
+
+        int fonts =
+                changes == null
+                        ? 0
+                        : changes.optInt(
+                                "fonts",
+                                0
+                        );
+
+        return "Bunny Settings: "
+                + settings
+                + "\nPlugins: "
+                + plugins
+                + "\nThemes: "
+                + themes
+                + "\nFonts: "
+                + fonts;
     }
 
     private static String categoryLabel(String key) {

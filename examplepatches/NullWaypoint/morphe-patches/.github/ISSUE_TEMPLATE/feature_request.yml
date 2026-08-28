@@ -1,0 +1,45 @@
+name: ⭐ Feature request
+description: Suggest a new feature or patch.
+title: "feat: "
+labels: ["Feature request"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please check existing requests first and explain what you would like the patch to do.
+
+  - type: textarea
+    attributes:
+      label: What would you like added?
+      description: Describe the feature or patch and what it should do.
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: Target app
+      description: Include the app version if you know it.
+      placeholder: "Example: Crunchyroll 3.117.0"
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Why would it be useful?
+      description: Explain the problem it solves or the functionality it adds.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Additional context
+      description: Add screenshots, videos, links, or references if useful.
+
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Before submitting
+      options:
+        - label: I checked open and closed feature requests for duplicates.
+          required: true

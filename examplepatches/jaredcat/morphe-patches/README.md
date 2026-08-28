@@ -15,7 +15,7 @@ Click here to add these patches to Morphe: <https://morphe.software/add-source?g
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.0](https://github.com/jaredcat/morphe-patches/releases/tag/v1.0.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;3 patches total
+> **[v1.0.1](https://github.com/jaredcat/morphe-patches/releases/tag/v1.0.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;3 patches total
 <details open>
 <summary>📦 Expand&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -24,6 +24,7 @@ Click here to add these patches to Morphe: <https://morphe.software/add-source?g
 
 | 2.1.1 |
 | :---: |
+| Download the arm64 XAPK from APKPure (not APKMirror). Use Morphe’s file picker if Continue opens Google. |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -38,8 +39,9 @@ Click here to add these patches to Morphe: <https://morphe.software/add-source?g
 
 **🎯 Supported versions:**
 
-| 7.1.1 |
+| 7.1.3 |
 | :---: |
+| Download the arm64 XAPK from APKPure (not APKMirror). Use Morphe’s file picker if Continue opens Google. |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|

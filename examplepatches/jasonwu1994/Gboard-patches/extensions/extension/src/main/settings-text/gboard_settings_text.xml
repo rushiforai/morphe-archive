@@ -2334,4 +2334,88 @@
         <translation locale="en">The feature settings could not be loaded.</translation>
         <translation locale="zh-Hant">目前無法載入這項功能的設定。</translation>
     </string>
+    <string name="gboard_patches_floating_web_search_title">
+        <translation locale="en">Floating Web Search</translation>
+        <translation locale="zh-Hant">懸浮網頁搜尋</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_summary">
+        <translation locale="en">Open a browser-owned floating web page from Gboard. The selected browser supplies its cookies, login state, toolbar, and site compatibility.</translation>
+        <translation locale="zh-Hant">從 Gboard 開啟由瀏覽器管理的懸浮網頁。Cookie、登入狀態、工具列與網站相容性皆由選定的瀏覽器提供。</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_enable_title">
+        <translation locale="en">Enable Floating Web Search</translation>
+        <translation locale="zh-Hant">啟用懸浮網頁搜尋</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_enable_summary">
+        <translation locale="en">Force-stop and restart Gboard for changes to take effect.</translation>
+        <translation locale="zh-Hant">強制停止並重新啟動 Gboard 後生效</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_section_feature">
+        <translation locale="en">Feature</translation>
+        <translation locale="zh-Hant">功能</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_section_launch">
+        <translation locale="en">Launch</translation>
+        <translation locale="zh-Hant">啟動</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_start_page_title">
+        <translation locale="en">Start page</translation>
+        <translation locale="zh-Hant">啟動頁面</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_start_page_summary">
+        <translation locale="en">Choose the HTTPS page opened whenever Web Search starts.</translation>
+        <translation locale="zh-Hant">選擇每次啟動 Web Search 時開啟的 HTTPS 頁面。</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_start_page_custom">
+        <translation locale="en">Custom HTTPS URL</translation>
+        <translation locale="zh-Hant">自訂 HTTPS 網址</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_custom_url_title">
+        <translation locale="en">Custom start page URL</translation>
+        <translation locale="zh-Hant">自訂啟動頁面網址</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_custom_url_summary">
+        <translation locale="en">The complete HTTPS URL opened by the Web Search button.</translation>
+        <translation locale="zh-Hant">Web Search 按鈕將開啟的完整 HTTPS 網址。</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_custom_url_error">
+        <translation locale="en">Enter a complete HTTPS URL.</translation>
+        <translation locale="zh-Hant">請輸入完整的 HTTPS 網址。</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_height_title">
+        <translation locale="en">Initial window height</translation>
+        <translation locale="zh-Hant">初始視窗高度</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_height_summary" formatted="false">
+        <translation locale="en">Choose 50–100%. The default is 100%; supported browsers may still let you resize the tab.</translation>
+        <translation locale="zh-Hant">可選擇 50–100%。預設為 100%；支援的瀏覽器仍可讓使用者調整分頁大小。</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_browser_title">
+        <translation locale="en">Browser</translation>
+        <translation locale="zh-Hant">瀏覽器</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_browser_summary">
+        <translation locale="en">Follow the system default or select an installed browser that supports Custom Tabs. Chrome, Edge, and Brave are recommended.</translation>
+        <translation locale="zh-Hant">跟隨系統預設，或選擇已安裝且支援 Custom Tabs 的瀏覽器。推薦使用 Chrome、Edge、Brave。</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_browser_system_default">
+        <translation locale="en">System default</translation>
+        <translation locale="zh-Hant">系統預設</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_test_title">
+        <translation locale="en">Test open</translation>
+        <translation locale="zh-Hant">測試開啟</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_test_summary">
+        <translation locale="en">Open the current page, browser, and height settings now.</translation>
+        <translation locale="zh-Hant">立即使用目前的頁面、瀏覽器與高度設定開啟。</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_error_title">
+        <translation locale="en">Floating Web Search setting unavailable</translation>
+        <translation locale="zh-Hant">懸浮網頁搜尋設定無法使用</translation>
+    </string>
+    <string name="gboard_patches_floating_web_search_error_summary">
+        <translation locale="en">The Floating Web Search settings screen failed to load. Reopen Gboard settings and try again.</translation>
+        <translation locale="zh-Hant">懸浮網頁搜尋設定畫面載入失敗。請重新開啟 Gboard 設定再試一次。</translation>
+    </string>
 </settings-text>

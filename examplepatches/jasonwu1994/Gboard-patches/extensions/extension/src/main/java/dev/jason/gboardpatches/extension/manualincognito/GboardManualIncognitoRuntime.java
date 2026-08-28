@@ -54,8 +54,11 @@ public final class GboardManualIncognitoRuntime {
         });
     }
 
-    public static Object includeAccessPointInOrderCatalog(Object original) {
+    public static Object includeAccessPointInOrderCatalog(Context context, Object original) {
         try {
+            if (!GboardManualIncognitoSettings.read(context).featureEnabled) {
+                return original;
+            }
             return GboardManualIncognitoAccessPointSupport.includeToken(original);
         } catch (Throwable failure) {
             logFailure("failed to extend Access Point order catalog", failure);

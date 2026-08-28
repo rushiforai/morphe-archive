@@ -1,3 +1,25 @@
+## [1.2.0](https://github.com/riky-dev/morphe-patches/compare/v1.1.0...v1.2.0) (2026-08-28)
+
+### 🐛 Bug Fixes
+
+* **capcut:** tolerate obfuscated HeliosEnvImpl init parameter ([42cd0e3](https://github.com/riky-dev/morphe-patches/commit/42cd0e341cf1ef8257fab693776e617ffdcc58ac)), closes [#7](https://github.com/riky-dev/morphe-patches/issues/7) [#9](https://github.com/riky-dev/morphe-patches/issues/9)
+
+### ✨ New Features
+
+* add agent patch workflow framework ([a5a7520](https://github.com/riky-dev/morphe-patches/commit/a5a75206f04f6ba41d6be30d8804cd8ee54303e1))
+
+## [1.2.0-dev.2](https://github.com/riky-dev/morphe-patches/compare/v1.2.0-dev.1...v1.2.0-dev.2) (2026-08-28)
+
+### 🐛 Bug Fixes
+
+* **capcut:** tolerate obfuscated HeliosEnvImpl init parameter ([42cd0e3](https://github.com/riky-dev/morphe-patches/commit/42cd0e341cf1ef8257fab693776e617ffdcc58ac)), closes [#7](https://github.com/riky-dev/morphe-patches/issues/7) [#9](https://github.com/riky-dev/morphe-patches/issues/9)
+
+## [1.2.0-dev.1](https://github.com/riky-dev/morphe-patches/compare/v1.1.0...v1.2.0-dev.1) (2026-08-27)
+
+### ✨ New Features
+
+* add agent patch workflow framework ([a5a7520](https://github.com/riky-dev/morphe-patches/commit/a5a75206f04f6ba41d6be30d8804cd8ee54303e1))
+
 ## [1.1.0](https://github.com/riky-dev/morphe-patches/compare/v1.0.0...v1.1.0) (2026-08-26)
 
 ### ✨ New Features

@@ -47,6 +47,9 @@ verify:
     - file: com/vega/edit/speed/data/SlowMotionSource.smali
       pattern: '\.method public static a\(\)Ljava/util/List;[\s\S]+?return-object v4'
       label: SlowMotionSource only returns Frame Blending
+    - file: com/bytedance/helios/sdk/HeliosEnvImpl.smali
+      pattern: '\.method public final e\(Lcom/bytedance/pumbaa/monitor/adapter/MonitorServiceImpl\$init\$1;LX/[\s\S]+?return-void'
+      label: HeliosEnvImpl init no-op (telemetry suppressed)
 
 
 

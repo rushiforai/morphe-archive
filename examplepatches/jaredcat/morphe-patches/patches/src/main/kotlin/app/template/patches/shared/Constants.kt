@@ -7,30 +7,41 @@ import app.morphe.patcher.patch.SupportedAbi
 
 object Constants {
     /**
-     * Expand (Monroe Institute) — package + version from the APK you are patching.
-     * Confirm these against decompiled Expand BuildConfig / manifest.json.
+     * Expand (Monroe Institute) — APKPure XAPK (base + arm64 + density + locale splits).
+     * Not reliably listed on APKMirror/UpToDown, so Manager may fall back to Google search;
+     * download the XAPK yourself and pick it in the file picker.
      */
     val COMPATIBILITY_EXPAND = Compatibility(
         name = "Expand",
         packageName = "org.monroeinstitute.expand",
-        apkFileType = ApkFileType.APK,
+        apkFileType = ApkFileType.XAPK,
         appIconColor = 0x2C2C31,
         targets = listOf(
-            AppTarget(version = "2.1.1")
-        )
+            AppTarget(
+                version = "2.1.1",
+                versionCodes = mapOf(SupportedAbi.ARM64_V8A to 841),
+                description = "Download the arm64 XAPK from APKPure (not APKMirror). " +
+                    "Use Morphe’s file picker if Continue opens Google.",
+            ),
+        ),
     )
 
     /**
-     * Lumenate — package + version from APKPure XAPK manifest.json (7.1.1 / 388).
-     * Split XAPK: base + config.arm64_v8a + config.xxxhdpi; patch against merged APK.
+     * Lumenate — APKPure XAPK (base + arm64 + density). Patches tested on 7.1.3 (394).
+     * Same download caveat as Expand: prefer APKPure + file picker over Manager web-search.
      */
     val COMPATIBILITY_LUMENATE = Compatibility(
         name = "Lumenate",
         packageName = "com.lumenate.lumenateaa",
-        apkFileType = ApkFileType.APK,
+        apkFileType = ApkFileType.XAPK,
         appIconColor = 0x1AABB8,
         targets = listOf(
-            AppTarget(version = "7.1.1")
-        )
+            AppTarget(
+                version = "7.1.3",
+                versionCodes = mapOf(SupportedAbi.ARM64_V8A to 394),
+                description = "Download the arm64 XAPK from APKPure (not APKMirror). " +
+                    "Use Morphe’s file picker if Continue opens Google.",
+            ),
+        ),
     )
 }

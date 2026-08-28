@@ -2,7 +2,14 @@
 
 Personal patches for Viber and other apps.
 
-This repository contains patches for Viber that remove ads, ChatGPT, and AI News, and force tablet detection.
+This repository contains **experimental/WIP** patches for Viber. They are not guaranteed to work and may crash the app. Use at your own risk.
+
+## ⚠️ Warning: Work in Progress
+
+**These patches are currently unstable and may cause crashes or unexpected behavior.**
+- The Remove Ads, Remove ChatGPT, and Remove AI News patches have not been fully tested
+- Only the "Secondary Viber Device" patch is verified working
+- Use with caution and only if you know how to restore your app if something goes wrong
 
 ### How to use these patches
 
@@ -18,7 +25,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 | Viber | Remove AI News | Disables the AI News feature in Viber. |
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.3.0](https://github.com/canh0chua/Morphe-patches/releases/tag/v1.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
+> **[v1.3.1](https://github.com/canh0chua/Morphe-patches/releases/tag/v1.3.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
 <details open>
 <summary>📦 Viber&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>

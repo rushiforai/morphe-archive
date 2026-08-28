@@ -5,10 +5,10 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.blockblast.patches.shared.Constants.COMPATIBILITY_BLOCKBLAST
 
 /**
- * Block Blast Ad Removal + Subscription Simulation
+ * Block Blast Ad Removal
  *
- * Removes all ads (banner, interstitial, rewarded) and simulates
- * an active subscription by always calling notifySubStateUpdate().
+ * Removes all ads (banner, interstitial, rewarded) by patching
+ * all ad-related code paths to skip execution.
  *
  * How it works:
  *
@@ -24,17 +24,14 @@ import app.blockblast.patches.shared.Constants.COMPATIBILITY_BLOCKBLAST
  * 4. Ad SDK init (wg/h0.smali preAsyncInitWorkManager) → always returns immediately.
  *    Prevents AppLovin MAX SDK initialization.
  *
- * 5. Subscription check (wf/j.smali e()) → always calls notifySubStateUpdate().
- *    Bypasses server verification and notifies JS layer of active subscription.
- *
  * Note: isADShow is set from native Hermes bytecode and cannot be patched
  * at smali level. Instead, we patch all code paths that CHECK isADShow
  * to skip ad logic entirely.
  */
 @Suppress("unused")
 val blockblastAdRemovalPatch = bytecodePatch(
-    name = "Ad Removal + Subscription",
-    description = "Removes all ads and simulates an active subscription.",
+    name = "Ad Removal",
+    description = "Removes all ads (banner, interstitial, rewarded).",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_BLOCKBLAST)
@@ -62,14 +59,6 @@ val blockblastAdRemovalPatch = bytecodePatch(
 
         // 5. wg/h0.preAsyncInitWorkManager → return immediately (skip ad SDK init)
         AdSdkInitFingerprint.method.addInstructions(0, """
-            return-void
-        """.trimIndent())
-
-        // 6. wf/j.e() → always call notifySubStateUpdate() (simulate subscription)
-        // Original flow: checks SPStore.p() == 1, then calls notifySubStateUpdate()
-        // Patched: always calls notifySubStateUpdate() and returns
-        SubscriptionCheckFingerprint.method.addInstructions(0, """
-            invoke-static {}, Lorg/cocos2dx/javascript/JsCallJava;->notifySubStateUpdate()V
             return-void
         """.trimIndent())
     }

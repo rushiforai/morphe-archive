@@ -1,0 +1,50 @@
+name: 🐞 Bug report
+description: Report a problem with a NullWaypoint patch.
+title: "bug: "
+labels: ["Bug report"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please check existing issues first and include enough detail to reproduce the problem.
+
+  - type: textarea
+    attributes:
+      label: What happened?
+      description: Describe what you expected, what happened instead, and how to reproduce it.
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: App version
+      placeholder: "Example: Crunchyroll 3.117.0"
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: Patch version
+      placeholder: "Example: 1.0.0"
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Logs
+      description: Add any relevant logs here.
+      render: shell
+
+  - type: textarea
+    attributes:
+      label: Additional context
+      description: Screenshots, videos, or anything else that may help.
+
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Before submitting
+      options:
+        - label: I checked open and closed issues for duplicates.
+          required: true

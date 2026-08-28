@@ -84,6 +84,16 @@ public final class PatchPanel {
     private static final String DIAGNOSTICS = "Diagnostics";
 
     private static final Set<String> INSTALLED = new HashSet<>();
+    private static final String SPOOF_SIGNATURE_KEY = "pep_spoof_signature";
+    private static final String SPOOF_IOS_PLATFORM_KEY = "pep_spoof_ios_platform";
+    private static final String[][] ALWAYS_ON = {
+            {SPOOF_SIGNATURE_KEY, "Spoof signature",
+                    "Spoofs the original app signature and disables the pairip client-side "
+                            + "license check"},
+            {SPOOF_IOS_PLATFORM_KEY, "Spoof iOS platform",
+                    "Reports the AI requests as coming from the iOS app, so the server does "
+                            + "not ask for a Play Integrity token"},
+    };
     private static final Set<String> SAFE_METHODS = Set.of("GET", "HEAD", "OPTIONS", "TRACE");
     private static final Set<String> HTTP_METHODS = Set.of(
             "GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "TRACE", "CONNECT");
@@ -93,18 +103,20 @@ public final class PatchPanel {
             new Entry(PatchSettings.HIDE_ADS, GENERAL, "Hide ads",
                     "Hides banner, interstitial, app-open and rewarded ads"),
             new Entry(PatchSettings.UNLOCK_PREMIUM, GENERAL, "Unlock premium",
-                    "Unlocks the pro tools and removes the export watermark"),
+                    "Unlocks the pro tools, removes the export watermark and hides the "
+                            + "upgrade prompts"),
             new Entry(PatchSettings.SHOW_AI_PROGRESS, AI_TOOLS,
                     "Show AI progress",
-                    "Reads the stage off the real network activity instead of InShot's "
-                            + "fake progress bar"),
+                    "Reads the current stage off the real network activity instead of the "
+                            + "fake progress bar InShot ships"),
             new Entry(PatchSettings.LOG_ENDPOINTS, DIAGNOSTICS,
                     "Inspect AI requests",
-                    "Shows the network calls an AI tool makes (GET, POST, Firebase uploads) "
-                            + "and keeps a log in memory"),
+                    "Shows the network calls an AI tool makes, such as HTTP requests and "
+                            + "Firebase uploads, and keeps a log, so you can watch your photo "
+                            + "fly to China or the US"),
             new Entry(PatchSettings.OVERLAY_POSITION, DIAGNOSTICS,
                     "Live overlay position",
-                    "Screen position of the live call list",
+                    "Screen position of the live network request list",
                     PatchSettings.LOG_ENDPOINTS),
             new Entry(PatchSettings.OVERLAY_LINGER, DIAGNOSTICS,
                     "Live overlay hold time",
@@ -113,6 +125,10 @@ public final class PatchPanel {
 
     static boolean installed(Setting<?> setting) {
         return INSTALLED.contains(setting.key);
+    }
+
+    static boolean installed(String key) {
+        return INSTALLED.contains(key);
     }
 
     public static void markInstalled(String key) {
@@ -312,6 +328,19 @@ public final class PatchPanel {
             content.addView(divider(activity));
             content.addView(traceRow(activity, "AI requests", RequestLog.summary(),
                     () -> RequestLog.show(activity)));
+        }
+
+        boolean anyAlwaysOn = false;
+        for (String[] item : ALWAYS_ON) {
+            if (!installed(item[0])) {
+                continue;
+            }
+            if (!anyAlwaysOn) {
+                content.addView(sectionHeader(activity, "Always on"));
+                anyAlwaysOn = true;
+            }
+            content.addView(divider(activity));
+            content.addView(staticRow(activity, item[1], item[2]));
         }
 
         content.addView(sectionHeader(activity, "About"));

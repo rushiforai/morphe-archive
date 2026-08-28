@@ -17,7 +17,8 @@ object Constants {
             AppTarget(version = "1.2.5"),
             AppTarget(version = "1.2.7"),
             AppTarget(version = "1.2.8"),
-            AppTarget(version = "1.2.9")
+            AppTarget(version = "1.2.9"),
+            AppTarget(version = "1.2.10")
         )
     )
 }

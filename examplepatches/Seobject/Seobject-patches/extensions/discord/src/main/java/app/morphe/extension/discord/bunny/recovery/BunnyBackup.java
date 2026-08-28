@@ -148,77 +148,215 @@ final class BunnyBackup {
         return new Validated(root, entries);
     }
 
+    /*
+     * BUNNY_FULL_PYONCORD_SNAPSHOT_V5
+     *
+     * Back up the real Bunny persistence tree rather than a hand-maintained
+     * allowlist. Recovery's own transaction/log directory is deliberately
+     * excluded, as are startup preloads because importing arbitrary preload
+     * code from a backup would create a separate executable-code trust path.
+     */
+    /*
+     * BUNNY_REAL_DOCUMENTS_MMKV_ROOT_V6
+     *
+     * Discord RTNFileManager exposes DocumentsDirPath as Context.getFilesDir().
+     * Bunny createMMKVBackend("VENDETTA_*") therefore persists under:
+     *
+     *   files/vd_mmkv/VENDETTA_SETTINGS
+     *   files/vd_mmkv/VENDETTA_THEMES
+     *   files/vd_mmkv/VENDETTA_PLUGINS
+     *
+     * Loader-owned files remain under files/pyoncord.
+     *
+     * Preserve the historical logical backup paths: pyoncord files stay
+     * relative to pyoncord, and the real external store is vd_mmkv/<name>.
+     */
     private static List<Entry> collect(File root, Set<String> selected) throws Exception {
-        List<File> files = new ArrayList<>();
-        for (String relative : EXACT_FILES) addIfFile(new File(root, relative), files);
-        for (String relative : PORTABLE_ROOTS) collectFiles(new File(root, relative), files);
-
-        /*
-         * Local modern plugins are executable payloads, so enumerate them
-         * deliberately rather than making all plugins/manifests and
-         * plugins/scripts content portable.
-         */
-        collectInstalledLocalPluginPayloads(root, files);
-
         List<Entry> entries = new ArrayList<>();
-        String rootPath = root.getCanonicalPath() + File.separator;
-        for (File file : files) {
-            String canonical = file.getCanonicalPath();
-            if (!canonical.startsWith(rootPath)) throw new IOException("Backup path escaped Bunny storage");
-            String path = normalizePath(canonical.substring(rootPath.length()));
-            if (!isAllowedPath(path)) continue;
-            if (!selected.contains(categoryForPath(path))) continue;
-            byte[] data = readBounded(file);
-            boolean json = isJsonPath(path);
-            if (json) {
-                Object parsed = new org.json.JSONTokener(new String(data, StandardCharsets.UTF_8)).nextValue();
-                parsed = sanitize(parsed, "");
-                data = canonicalJson(parsed).getBytes(StandardCharsets.UTF_8);
+
+        List<File> pyoncordFiles = new ArrayList<>();
+        collectSnapshotFiles(root, root, pyoncordFiles);
+
+        String pyoncordRootPath =
+                root.getCanonicalPath()
+                        + File.separator;
+
+        for (File file : pyoncordFiles) {
+            String canonical =
+                    file.getCanonicalPath();
+
+            if (!canonical.startsWith(pyoncordRootPath)) {
+                throw new IOException(
+                        "Backup path escaped Bunny pyoncord storage"
+                );
             }
-            entries.add(new Entry(path, data, json));
+
+            String path =
+                    normalizePath(
+                            canonical.substring(
+                                    pyoncordRootPath.length()
+                            )
+                    );
+
+            /*
+             * Do not let an experimental pyoncord/vd_mmkv directory shadow
+             * the authoritative DocumentsDirPath store below.
+             */
+            if (
+                    path.equals("vd_mmkv")
+                            || path.startsWith("vd_mmkv/")
+            ) {
+                continue;
+            }
+
+            addSnapshotEntry(
+                    entries,
+                    file,
+                    path,
+                    selected
+            );
         }
-        Collections.sort(entries, Comparator.comparing(value -> value.path));
+
+        File documentsRoot =
+                root.getParentFile();
+
+        if (documentsRoot == null) {
+            throw new IOException(
+                    "Bunny DocumentsDirPath parent is unavailable"
+            );
+        }
+
+        File mmkvRoot =
+                new File(
+                        documentsRoot,
+                        "vd_mmkv"
+                );
+
+        if (mmkvRoot.isDirectory()) {
+            List<File> mmkvFiles =
+                    new ArrayList<>();
+
+            collectSnapshotFiles(
+                    mmkvRoot,
+                    mmkvRoot,
+                    mmkvFiles
+            );
+
+            String mmkvRootPath =
+                    mmkvRoot.getCanonicalPath()
+                            + File.separator;
+
+            for (File file : mmkvFiles) {
+                String canonical =
+                        file.getCanonicalPath();
+
+                if (!canonical.startsWith(mmkvRootPath)) {
+                    throw new IOException(
+                            "Backup path escaped Bunny MMKV storage"
+                    );
+                }
+
+                String relative =
+                        normalizePath(
+                                canonical.substring(
+                                        mmkvRootPath.length()
+                                )
+                        );
+
+                addSnapshotEntry(
+                        entries,
+                        file,
+                        "vd_mmkv/" + relative,
+                        selected
+                );
+            }
+        }
+
+        Collections.sort(
+                entries,
+                Comparator.comparing(
+                        value -> value.path
+                )
+        );
+
+        String previous = null;
+
+        for (Entry entry : entries) {
+            if (
+                    previous != null
+                            && previous.equals(
+                                    entry.path
+                            )
+            ) {
+                throw new IOException(
+                        "Duplicate Bunny snapshot path: "
+                                + entry.path
+                );
+            }
+
+            previous =
+                    entry.path;
+        }
+
         return entries;
     }
 
+    /*
+     * BUNNY_FULL_FIDELITY_BACKUP_V2
+     *
+     * pyoncord is Bunny-owned configuration. A backup must preserve it
+     * faithfully. The previous generic secret/code sanitizer silently removed
+     * legitimate Bunny/plugin keys such as js, hash, token, session and email.
+     *
+     * Keep deterministic key ordering, but do not mutate user configuration.
+     * Backups may therefore contain plugin credentials/API keys and must be
+     * treated as sensitive files.
+     */
     private static Object sanitize(Object value, String parent) throws JSONException {
         if (value instanceof JSONObject) {
             JSONObject input = (JSONObject) value;
             JSONObject output = new JSONObject();
             List<String> keys = new ArrayList<>();
             Iterator<String> iterator = input.keys();
-            while (iterator.hasNext()) keys.add(iterator.next());
-            Collections.sort(keys);
-            for (String key : keys) {
-                String lower = key.toLowerCase(Locale.ROOT);
-                if (lower.equals("js") || lower.equals("script") || lower.equals("code") || lower.equals("hash")
-                        || lower.contains("password") || lower.contains("discordtoken")
-                        || lower.equals("token") || lower.contains("session")
-                        || lower.contains("authorization") || lower.contains("cookie")
-                        || lower.equals("email") || lower.equals("messages")
-                        || lower.equals("privateMessages".toLowerCase(Locale.ROOT))) continue;
-                output.put(key, sanitize(input.opt(key), key));
+
+            while (iterator.hasNext()) {
+                keys.add(iterator.next());
             }
+
+            Collections.sort(keys);
+
+            for (String key : keys) {
+                output.put(
+                        key,
+                        sanitize(
+                                input.opt(key),
+                                key
+                        )
+                );
+            }
+
             return output;
         }
+
         if (value instanceof JSONArray) {
             JSONArray input = (JSONArray) value;
             JSONArray output = new JSONArray();
-            for (int i = 0; i < input.length(); i++) output.put(sanitize(input.opt(i), parent));
+
+            for (int i = 0; i < input.length(); i++) {
+                output.put(
+                        sanitize(
+                                input.opt(i),
+                                parent
+                        )
+                );
+            }
+
             return output;
         }
-        if (value instanceof String) {
-            String text = (String) value;
-            if (text.startsWith("mfa.")
-                    || text.matches("[A-Za-z0-9_-]{20,}\\.[A-Za-z0-9_-]{5,}\\.[A-Za-z0-9_-]{20,}")) {
-                return "[redacted-secret]";
-            }
-            return text.replaceAll(
-                    "(?i)([?&](?:token|auth|authorization|session|password|cookie)=)[^&#]*",
-                    "$1[redacted]"
-            );
-        }
-        return value == null ? JSONObject.NULL : value;
+
+        return value == null
+                ? JSONObject.NULL
+                : value;
     }
 
     private static String canonicalJson(Object value) throws JSONException {
@@ -295,26 +433,44 @@ final class BunnyBackup {
         return CATEGORY_SETTINGS;
     }
 
+    /*
+     * BUNNY_FULL_PYONCORD_ALLOWED_PATHS_V5
+     */
     private static boolean isAllowedPath(String path) {
-        if (EXACT_FILES.contains(path)) return true;
-        if (isPortableLocalPluginPayloadPath(path)) return true;
-        for (String root : PORTABLE_ROOTS) if (path.startsWith(root)) return true;
-        return false;
+        if (
+                path == null
+                        || path.isEmpty()
+                        || path.startsWith("recovery/")
+                        || path.equals("recovery")
+                        || path.startsWith("preloads/")
+                        || path.equals("preloads")
+                        || path.endsWith(".recovery-tmp")
+        ) {
+            return false;
+        }
+
+        return true;
     }
 
+    /*
+     * BUNNY_FULL_PYONCORD_JSON_CLASSIFIER_V5
+     */
     private static boolean isJsonPath(String path) {
-        /*
-         * Preserve executable/plugin identity bytes exactly.
-         *
-         * provenance.json is also handled as bounded raw bytes because its
-         * top-level keys are semantic plugin IDs; the generic JSON sanitizer
-         * intentionally filters credential-looking key names and must not
-         * reinterpret a legitimate plugin ID.
-         */
-        return !path.startsWith("downloads/")
-                && !path.equals("plugins/provenance.json")
-                && !path.startsWith("plugins/manifests/")
-                && !path.startsWith("plugins/scripts/");
+        String lower = path.toLowerCase(Locale.ROOT);
+
+        if (lower.endsWith(".json")) {
+            return true;
+        }
+
+        if (path.startsWith("vd_mmkv/")) {
+            return true;
+        }
+
+        if (path.startsWith("plugins/storage/")) {
+            return true;
+        }
+
+        return false;
     }
 
     private static void validatePortableBinary(String path, byte[] data) throws IOException {
@@ -658,6 +814,9 @@ final class BunnyBackup {
         }
     }
 
+    /*
+     * BUNNY_FULL_PROVENANCE_FIDELITY_V5
+     */
     private static void validatePluginProvenance(
             byte[] data
     ) throws IOException {
@@ -667,143 +826,47 @@ final class BunnyBackup {
             );
         }
 
-        final JSONObject root;
-
         try {
-            root =
-                    new JSONObject(
-                            new String(
-                                    data,
-                                    StandardCharsets.UTF_8
-                            )
-                    );
+            new JSONObject(
+                    new String(
+                            data,
+                            StandardCharsets.UTF_8
+                    )
+            );
         } catch (Throwable error) {
             throw new IOException(
                     "Plugin provenance is malformed",
                     error
             );
         }
-
-        Iterator<String> ids =
-                root.keys();
-
-        while (ids.hasNext()) {
-            String id =
-                    ids.next();
-
-            if (!isSafePluginId(id)) {
-                throw new IOException(
-                        "Plugin provenance contains an invalid plugin ID"
-                );
-            }
-
-            JSONObject entry =
-                    root.optJSONObject(id);
-
-            if (entry == null) {
-                throw new IOException(
-                        "Plugin provenance entry is malformed: " + id
-                );
-            }
-
-            JSONObject installedFrom =
-                    entry.optJSONObject(
-                            "installedFrom"
-                    );
-
-            if (
-                    installedFrom == null
-                            || !"local-file".equals(
-                                    installedFrom.optString(
-                                            "kind",
-                                            ""
-                                    )
-                            )
-            ) {
-                throw new IOException(
-                        "Plugin provenance has an unsupported install source: " + id
-                );
-            }
-
-            if (
-                    entry.has("updateSource")
-                            && !entry.isNull("updateSource")
-            ) {
-                throw new IOException(
-                        "Local plugin provenance must not invent an update source: " + id
-                );
-            }
-
-            if (
-                    entry.has("repository")
-                            && !entry.isNull("repository")
-            ) {
-                String repository =
-                        entry.optString(
-                                "repository",
-                                ""
-                        );
-
-                try {
-                    java.net.URI uri =
-                            java.net.URI.create(
-                                    repository
-                            );
-
-                    if (
-                            !"https".equalsIgnoreCase(
-                                    uri.getScheme()
-                            )
-                                    || uri.getHost() == null
-                                    || uri.getHost().isEmpty()
-                                    || uri.getUserInfo() != null
-                    ) {
-                        throw new IllegalArgumentException();
-                    }
-                } catch (Throwable error) {
-                    throw new IOException(
-                            "Plugin provenance repository is not safe HTTPS: " + id
-                    );
-                }
-            }
-        }
     }
 
+    /*
+     * BUNNY_FULL_SNAPSHOT_PLUGIN_PAIR_VALIDATION_V51
+     *
+     * A full filesystem snapshot preserves the live Bunny tree exactly.
+     * Stale/orphaned plugin manifests or scripts must not invalidate the
+     * entire backup. Individual payload paths remain validated.
+     */
     private static void validateLocalPluginPayloadSet(
             List<Entry> entries
     ) throws IOException {
-        java.util.HashSet<String> manifests =
-                new java.util.HashSet<>();
-
-        java.util.HashSet<String> scripts =
-                new java.util.HashSet<>();
-
         for (Entry entry : entries) {
             if (
                     entry.path.startsWith("plugins/manifests/")
                             && entry.path.endsWith(".json")
             ) {
-                manifests.add(
-                        localPluginIdFromPayloadPath(
-                                entry.path
-                        )
+                localPluginIdFromPayloadPath(
+                        entry.path
                 );
             } else if (
                     entry.path.startsWith("plugins/scripts/")
                             && entry.path.endsWith(".js")
             ) {
-                scripts.add(
-                        localPluginIdFromPayloadPath(
-                                entry.path
-                        )
+                localPluginIdFromPayloadPath(
+                        entry.path
                 );
             }
-        }
-
-        if (!manifests.equals(scripts)) {
-            throw new IOException(
-                    "Portable local plugin manifest/script pairs are incomplete"
-            );
         }
     }
     private static boolean startsWith(byte[] data, byte[] prefix) {
@@ -818,6 +881,123 @@ final class BunnyBackup {
             throw new IOException("Unsafe backup path");
         }
         return value;
+    }
+
+    /*
+     * BUNNY_SNAPSHOT_COLLECTOR_V5
+     */
+    /*
+     * BUNNY_SNAPSHOT_ENTRY_ENCODER_V6
+     */
+    private static void addSnapshotEntry(
+            List<Entry> entries,
+            File file,
+            String path,
+            Set<String> selected
+    ) throws Exception {
+        if (!isAllowedPath(path)) {
+            return;
+        }
+
+        if (
+                !selected.contains(
+                        categoryForPath(
+                                path
+                        )
+                )
+        ) {
+            return;
+        }
+
+        byte[] data =
+                readBounded(
+                        file
+                );
+
+        boolean json =
+                isJsonPath(
+                        path
+                );
+
+        if (json) {
+            Object parsed =
+                    new org.json.JSONTokener(
+                            new String(
+                                    data,
+                                    StandardCharsets.UTF_8
+                            )
+                    ).nextValue();
+
+            if (
+                    !(parsed instanceof JSONObject)
+                            && !(parsed instanceof JSONArray)
+            ) {
+                throw new IOException(
+                        "Expected JSON object or array at "
+                                + path
+                );
+            }
+
+            data =
+                    canonicalJson(
+                            parsed
+                    )
+                            .getBytes(
+                                    StandardCharsets.UTF_8
+                            );
+        }
+
+        entries.add(
+                new Entry(
+                        path,
+                        data,
+                        json
+                )
+        );
+    }
+
+    private static void collectSnapshotFiles(
+            File root,
+            File current,
+            List<File> output
+    ) throws Exception {
+        File[] children = current.listFiles();
+
+        if (children == null) {
+            return;
+        }
+
+        Arrays.sort(children, Comparator.comparing(File::getName));
+        String rootPath = root.getCanonicalPath() + File.separator;
+
+        for (File child : children) {
+            String canonical = child.getCanonicalPath();
+
+            if (!canonical.startsWith(rootPath)) {
+                throw new IOException("Snapshot path escaped Bunny storage");
+            }
+
+            String relative = normalizePath(canonical.substring(rootPath.length()));
+
+            if (
+                    relative.equals("recovery")
+                            || relative.startsWith("recovery/")
+                            || relative.equals("preloads")
+                            || relative.startsWith("preloads/")
+            ) {
+                continue;
+            }
+
+            if (child.isDirectory()) {
+                collectSnapshotFiles(root, child, output);
+            } else if (
+                    child.isFile()
+                            && child.length() <= MAX_ENTRY_BYTES
+                            && !relative.endsWith(".recovery-tmp")
+            ) {
+                output.add(child);
+            }
+        }
     }
 
     private static void collectFiles(File directory, List<File> output) {
@@ -867,5 +1047,67 @@ final class BunnyBackup {
         final List<Entry> entries;
         Validated(JSONObject root, List<Entry> entries) { this.root = root; this.entries = entries; }
         JSONObject categories() { return root.optJSONObject("contents").optJSONObject("categories"); }
+        /*
+         * BUNNY_VALIDATED_SELECTED_CATEGORIES_V1
+         */
+        Set<String> selectedCategories() throws IOException {
+            JSONObject contents =
+                    root.optJSONObject("contents");
+
+            JSONArray selected =
+                    contents == null
+                            ? null
+                            : contents.optJSONArray(
+                                    "selectedCategories"
+                            );
+
+            if (selected == null) {
+                LinkedHashSet<String> inferred =
+                        new LinkedHashSet<>();
+
+                for (Entry entry : entries) {
+                    inferred.add(
+                            categoryForPath(
+                                    entry.path
+                            )
+                    );
+                }
+
+                /*
+                 * Earliest development backups did not carry an explicit
+                 * selection. They represented full backups.
+                 */
+                if (inferred.isEmpty()) {
+                    return ALL_CATEGORIES;
+                }
+
+                return normalizeCategories(
+                        inferred
+                );
+            }
+
+            LinkedHashSet<String> result =
+                    new LinkedHashSet<>();
+
+            for (int index = 0; index < selected.length(); index++) {
+                String category =
+                        selected.optString(
+                                index,
+                                ""
+                        )
+                                .trim()
+                                .toLowerCase(
+                                        Locale.ROOT
+                                );
+
+                if (!category.isEmpty()) {
+                    result.add(category);
+                }
+            }
+
+            return normalizeCategories(
+                    result
+            );
+        }
     }
 }

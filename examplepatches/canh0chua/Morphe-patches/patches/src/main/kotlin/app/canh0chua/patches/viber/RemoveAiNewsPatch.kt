@@ -9,7 +9,7 @@ import app.canh0chua.patches.shared.Constants.COMPATIBILITY_VIBER
 object AiNewsFingerprint : Fingerprint(
     definingClass = "Lz41/a;",
     name = "b",
-    accessFlags = listOf(AccessFlags.PUBLIC),
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "V",
     parameters = listOf(
         "Landroid/content/Context;",

@@ -15,6 +15,7 @@ import dev.jason.gboardpatches.extension.settings.GboardFeatureGroup;
 import dev.jason.gboardpatches.extension.settings.GboardPatchesSettingsContract;
 import dev.jason.gboardpatches.extension.settings.GboardSettingsText;
 import dev.jason.gboardpatches.extension.toprowswipe.GboardTopRowSwipeSettingsFeature;
+import dev.jason.gboardpatches.extension.websearch.GboardFloatingWebSearchSettingsFeature;
 
 public final class GboardKeyboardToolsSettingsGroupFeature
         implements GboardPatchesSettingsContract.Feature {
@@ -39,7 +40,8 @@ public final class GboardKeyboardToolsSettingsGroupFeature
                         new GboardLongPressQuickActionsSettingsFeature(context),
                         new GboardCursorTrackpadSettingsFeature(context),
                         new GboardOcrSettingsFeature(context),
-                        new GboardQuickInsertSettingsFeature(context)));
+                        new GboardQuickInsertSettingsFeature(context),
+                        new GboardFloatingWebSearchSettingsFeature(context)));
     }
 
     @Override

@@ -198,7 +198,11 @@ final class BunnyRecoveryBundlePatch {
       if (recoveryBusy) return Promise.resolve();
       setRecoveryBusy(busyKey);
       return bunnyRecoveryCall(event, details).then((result) => {
-        if (result.status === "cancelled") return result;
+        if (result.status === "cancelled") {
+          /* BUNNY_CANCEL_RESTORE_UI_CLEAR_V1 */
+          afterSuccess?.(result);
+          return result;
+        }
         if (successText)
           showToast(successText, findAssetId("Check"));
         afterSuccess?.(result);
@@ -218,13 +222,35 @@ final class BunnyRecoveryBundlePatch {
         showToast("Backup validation failed: " + (error?.message ?? String(error)), findAssetId("Small"));
       }).finally(() => setRecoveryBusy(null));
     };
-    var confirmRestoreBackup = () => runRecoveryAction(
-      "restore-apply",
-      "restore-apply",
-      "Backup restored. Reload Discord to apply it.",
-      { token: restorePlan?.token ?? "" },
-      () => setRestorePlan(null)
-    );
+    // BUNNY_RESTORE_UI_NATIVE_RESTART_V1
+    /*
+     * BUNNY_RESTORE_BUNDLE_RELOAD_V1
+     *
+     * Restore the validated snapshot immediately, then use Discord's native
+     * React Native bundle reload rather than terminating/relaunching Android.
+     */
+    var confirmRestoreBackup = () => {
+      if (recoveryBusy || !restorePlan?.token)
+        return;
+
+      setRecoveryBusy("restore-apply");
+
+      bunnyRecoveryCall(
+        "restore-apply-reload",
+        { token: restorePlan.token }
+      ).then((result) => {
+        setRestorePlan(null);
+        setRecoveryBusy(null);
+        BundleUpdaterManager.reload();
+        return result;
+      }).catch((error) => {
+        showToast(
+          "Restore failed: " + (error?.message ?? String(error)),
+          findAssetId("Small")
+        );
+        setRecoveryBusy(null);
+      });
+    };
     var cancelRestoreBackup = () => runRecoveryAction(
       "restore-cancel",
       "restore-cancel",
@@ -235,9 +261,12 @@ final class BunnyRecoveryBundlePatch {
     var statusRows = recoveryStatus ? [
       /* @__PURE__ */ jsx(TableRow, {
         label: "Current mode",
-        subLabel: recoveryStatus.safeMode
-          ? "Temporary Safe Mode is active for this launch."
-          : "Bunny started normally.",
+        /* BUNNY_COMBINED_SAFE_MODE_CURRENT_ROW_V1 */
+        subLabel: recoveryStatus.persistentSafeMode
+          ? "Safe Mode is enabled by the Bunny toggle."
+          : recoveryStatus.safeMode
+            ? "Temporary Safe Mode is active for this launch."
+            : "Bunny started normally.",
         icon: /* @__PURE__ */ jsx(TableRow.Icon, { source: findAssetId(recoveryStatus.safeMode ? "ShieldIcon" : "Check") }),
         trailing: /* @__PURE__ */ jsx(Text, {
           variant: "text-md/normal",
@@ -288,7 +317,13 @@ final class BunnyRecoveryBundlePatch {
         subLabel: "Restore Bunny's most recent healthy configuration snapshot.",
         icon: /* @__PURE__ */ jsx(TableRow.Icon, { source: findAssetId("RetryIcon") }),
         disabled: !!recoveryBusy,
-        onPress: () => runRecoveryAction("known-good", "restore-known-good", "Last working state restored. Reload Discord to apply it.")
+        // BUNNY_KNOWN_GOOD_UI_NATIVE_RESTART_V1
+        onPress: () => runRecoveryAction(
+          "known-good",
+          "restore-known-good",
+          "Last working state staged. Restarting Bunny..."
+        )
+
       }, "recovery-known-good") : null,
       recoveryStatus.rollbackAvailable ? /* @__PURE__ */ jsx(TableRow, {
         arrow: true,
@@ -517,13 +552,68 @@ final class BunnyRecoveryBundlePatch {
 
         patched = replace(patched,
                 "        window.bunny = lib_exports;\n        VdPluginManager.initPlugins().then((u) => unload.push(u)).catch(() => alert(\"Failed to initialize Vendetta plugins\"));\n        initPlugins();\n        updateFonts();\n        logger.log(\"Bunny is ready!\");",
-                "        window.bunny = lib_exports;\n        yield bunnyRecoverySignal(\"startup-in-progress\");\n        var bunnyVendettaUnloader = yield VdPluginManager.initPlugins();\n        if (bunnyVendettaUnloader) unload.push(bunnyVendettaUnloader);\n        yield initPlugins();\n        updateFonts();\n        logger.log(\"Bunny is ready!\");\n        yield bunnyRecoverySignal(\"startup-healthy\");",
+                "        window.bunny = lib_exports;\n        /* BUNNY_PERSISTENT_SAFE_MODE_STARTUP_SYNC_V1 */\n        yield bunnyRecoverySignal(\"safe-mode\", { enabled: !!settings.safeMode?.enabled });\n        yield bunnyRecoverySignal(\"startup-in-progress\");\n        var bunnyVendettaUnloader = yield VdPluginManager.initPlugins();\n        if (bunnyVendettaUnloader) unload.push(bunnyVendettaUnloader);\n        yield initPlugins();\n        updateFonts();\n        logger.log(\"Bunny is ready!\");\n        yield bunnyRecoverySignal(\"startup-healthy\");",
                 "Bunny Recovery startup transaction");
 
         patched = replace(patched,
                 "      _define_property(ErrorBoundary, \"getDerivedStateFromError\", (error) => ({\n        hasErr: true,\n        error\n      }));",
                 "      _define_property(ErrorBoundary, \"getDerivedStateFromError\", (error) => {\n        void bunnyRecoverySignal(\"js-crash\", {\n          message: String(error?.message ?? error ?? \"Unknown render crash\").slice(0, 512),\n          stack: String(error?.stack ?? \"\").slice(0, 4096)\n        });\n        return {\n          hasErr: true,\n          error\n        };\n      });",
                 "Bunny render crash tracking boundary");
+
+
+        /*
+         * BUNNY_PLUGIN_RENDER_ASSET_COMPAT_V1
+         *
+         * 1) Vendetta PluginCard can render against an entry that disappeared
+         *    between list construction and render. Keep hook order stable and
+         *    simply skip emitter subscription when that storage object is gone.
+         *
+         * 2) AssetRegistry may be temporarily unavailable after a Bunny/Discord
+         *    reload. Retain the captured registry and never dereference an
+         *    absent getAssetByID implementation.
+         */
+        patched = replace(patched,
+                "  function useProxy(storage) {\n"
+                        + "    var emitter = storage?.[emitterSymbol];\n"
+                        + "    if (!emitter)\n"
+                        + "      throw new Error(\"storage?.[emitterSymbol] is undefined\");\n"
+                        + "    var [, forceUpdate] = React.useReducer((n) => ~n, 0);\n"
+                        + "    React.useEffect(() => {\n",
+                "  function useProxy(storage) {\n"
+                        + "    var emitter = storage?.[emitterSymbol];\n"
+                        + "    var [, forceUpdate] = React.useReducer((n) => ~n, 0);\n"
+                        + "    React.useEffect(() => {\n"
+                        + "      if (!emitter)\n"
+                        + "        return;\n",
+                "Bunny Vendetta missing storage emitter render guard");
+
+        patched = replace(patched,
+                "  function patchAssets(module) {\n"
+                        + "    if (assetsModule)\n"
+                        + "      return;\n"
+                        + "    assetsModule = module;\n",
+                "  function patchAssets(module) {\n"
+                        + "    if (assetsModule)\n"
+                        + "      return;\n"
+                        + "    assetsModule = module;\n"
+                        + "    globalThis.__BUNNY_ASSETS_MODULE__ = module;\n",
+                "Bunny asset registry reload retention");
+
+        patched = replace(patched,
+                "  function getAssetById(id) {\n"
+                        + "    var asset = assetsModule.getAssetByID(id);\n"
+                        + "    if (!asset)\n"
+                        + "      return asset;\n",
+                "  function getAssetById(id) {\n"
+                        + "    var registry = assetsModule ?? globalThis.__BUNNY_ASSETS_MODULE__;\n"
+                        + "    if (!registry || typeof registry.getAssetByID !== \"function\")\n"
+                        + "      return void 0;\n"
+                        + "    if (!assetsModule)\n"
+                        + "      assetsModule = registry;\n"
+                        + "    var asset = registry.getAssetByID(id);\n"
+                        + "    if (!asset)\n"
+                        + "      return asset;\n",
+                "Bunny asset registry missing-module guard");
 
         return patched;
     }

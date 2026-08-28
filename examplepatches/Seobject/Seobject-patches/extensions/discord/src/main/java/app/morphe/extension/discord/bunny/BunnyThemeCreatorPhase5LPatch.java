@@ -62,7 +62,15 @@ final class BunnyThemeCreatorPhase5LPatch {
             );
         }
 
+        patched = patchFinalChatBackgroundMedia(patched);
+        patched = patchChatBackgroundIntoNativeViewV5(patched);
+        patched = patchUrlBackgroundPreview(patched);
+        patched = patchUrlBackgroundImmediateLocalImportV8(patched);
+        patched = patchChatBackgroundThemeLifecycleV10(patched);
+        patched = patchCreatorSaveStorageResilienceV11(patched);
+
         verifyShippingRuntime(patched);
+        verifyFinalBackgroundFix(patched);
         return patched;
     }
 
@@ -801,6 +809,1218 @@ final class BunnyThemeCreatorPhase5LPatch {
                 fontBlock,
                 "single edit 4 FontEditor button dismissal replacement"
         );
+    }
+
+
+    private static String patchFinalChatBackgroundMedia(String source) throws IOException {
+        final String marker = "BUNNY_CHAT_BACKGROUND_MEDIA_FINAL_V1";
+        if (source.contains(marker)) return source;
+
+        String replacement = """
+  /* BUNNY_CHAT_BACKGROUND_MEDIA_FINAL_V1 */
+  var bunnyFinalThemeBackgroundSourceCache = new Map();
+  var bunnyFinalThemeBackgroundRemoteCache = new Map();
+  var bunnyFinalThemeBackgroundRemotePending = new Map();
+
+  function bunnyFinalThemeBackgroundUri(value) {
+    var uri = String(value ?? "").trim();
+    if (!uri) return "";
+    if (/^(https?:|file:|content:|asset:|data:|ph:)/i.test(uri))
+      return uri;
+    if (uri.startsWith("/"))
+      return "file://" + uri;
+    return uri;
+  }
+
+  function bunnyFinalThemeBackgroundSource(uri) {
+    var source = bunnyFinalThemeBackgroundSourceCache.get(uri);
+    if (!source) {
+      source = { uri };
+      bunnyFinalThemeBackgroundSourceCache.set(uri, source);
+      if (bunnyFinalThemeBackgroundSourceCache.size > 16) {
+        var firstKey = bunnyFinalThemeBackgroundSourceCache.keys().next().value;
+        if (firstKey && firstKey !== uri)
+          bunnyFinalThemeBackgroundSourceCache.delete(firstKey);
+      }
+    }
+    return source;
+  }
+
+  function bunnyFinalThemeBackgroundResolve(uri) {
+    if (!/^https?:/i.test(uri))
+      return Promise.resolve(uri);
+
+    var cached = bunnyFinalThemeBackgroundRemoteCache.get(uri);
+    if (cached)
+      return Promise.resolve(cached);
+
+    var pending = bunnyFinalThemeBackgroundRemotePending.get(uri);
+    if (pending)
+      return pending;
+
+    /* BUNNY_URL_BACKGROUND_CONVERGENCE_V7 */
+    pending = import_react_native24.Linking.openURL(
+      "bunny-morphe://theme-background-url?url=" +
+      encodeURIComponent(uri)
+    ).then((raw) => {
+      var result =
+        typeof raw === "string"
+          ? JSON.parse(raw)
+          : raw;
+
+      if (
+        result?.status !== "success" ||
+        typeof result?.name !== "string" ||
+        !result.name
+      ) {
+        throw new Error(
+          result?.message ||
+          "Failed to cache chat background."
+        );
+      }
+
+      bunnyFinalThemeBackgroundRemoteCache.set(
+        uri,
+        result.name
+      );
+      return result.name;
+    }).finally(() => {
+      bunnyFinalThemeBackgroundRemotePending.delete(uri);
+    });
+
+    bunnyFinalThemeBackgroundRemotePending.set(uri, pending);
+    return pending;
+  }
+
+  function ThemeBackground({ children }) {
+    useObservable([
+      colorsPref
+    ]);
+
+    var background =
+      _colorRef.current?.background;
+
+    var rawUri =
+      bunnyFinalThemeBackgroundUri(
+        background?.url
+      );
+
+    var [resolvedUri, setResolvedUri] =
+      React.useState(() => {
+        if (!rawUri) return "";
+        return (
+          bunnyFinalThemeBackgroundRemoteCache.get(rawUri) ??
+          (!/^https?:/i.test(rawUri) ? rawUri : "")
+        );
+      });
+
+    React.useEffect(() => {
+      var alive = true;
+
+      if (!rawUri) {
+        setResolvedUri("");
+        return () => {
+          alive = false;
+        };
+      }
+
+      if (!/^https?:/i.test(rawUri)) {
+        setResolvedUri(rawUri);
+        return () => {
+          alive = false;
+        };
+      }
+
+      var cached =
+        bunnyFinalThemeBackgroundRemoteCache.get(rawUri);
+
+      if (cached) {
+        setResolvedUri(cached);
+        return () => {
+          alive = false;
+        };
+      }
+
+      setResolvedUri("");
+
+      bunnyFinalThemeBackgroundResolve(rawUri)
+        .then((uri) => {
+          if (alive)
+            setResolvedUri(uri);
+        })
+        .catch(() => {
+          if (alive)
+            setResolvedUri("");
+        });
+
+      return () => {
+        alive = false;
+      };
+    }, [rawUri]);
+
+    if (
+      !_colorRef.current ||
+      colorsPref.customBackground === "hidden" ||
+      !rawUri ||
+      !resolvedUri ||
+      background?.blur &&
+        typeof background?.blur !== "number"
+    ) {
+      return children;
+    }
+
+    return /* @__PURE__ */ jsx(
+      import_react_native3.ImageBackground,
+      {
+        style: {
+          flex: 1,
+          flexGrow: 1,
+          width: "100%",
+          height: "100%",
+          alignSelf: "stretch"
+        },
+        source:
+          bunnyFinalThemeBackgroundSource(
+            resolvedUri
+          ),
+        resizeMode: "cover",
+        blurRadius: background?.blur,
+        children
+      }
+    );
+  }
+""";
+
+        String patched = replaceRangeExactlyOnce(
+                source,
+                "  function ThemeBackground({ children }) {\n",
+                "  function patchChatBackground() {\n",
+                replacement,
+                "final chat background media renderer"
+        );
+
+        String oldOpacity =
+                "(_colorRef.current.background?.opacity ?? 1)";
+        String newOpacity =
+                "(_colorRef.current.background?.opacity ?? " +
+                "_colorRef.current.background?.alpha ?? 1)";
+
+        int oldCount = countLiteral(patched, oldOpacity);
+        int newCount = countLiteral(patched, newOpacity);
+
+        if (oldCount == 1 && newCount == 0) {
+            patched = replaceExactlyOnce(
+                    patched,
+                    oldOpacity,
+                    newOpacity,
+                    "final chat background opacity compatibility"
+            );
+        } else if (!(oldCount == 0 && newCount == 1)) {
+            throw new IOException(
+                    "final chat background opacity state ambiguous"
+            );
+        }
+
+        return patched;
+    }
+
+
+
+
+
+    private static String patchChatBackgroundIntoNativeViewV5(
+            String source
+    ) throws IOException {
+        final String marker =
+                "BUNNY_CHAT_BACKGROUND_NATIVE_VIEW_V5";
+
+        if (source.contains(marker)) {
+            return source;
+        }
+
+        String outerWrapper = """
+        return /* @__PURE__ */ jsx(ThemeBackground, {
+          children: ret
+        });
+""";
+
+        String plainReturn = """
+        return ret;
+""";
+
+        String patched = replaceExactlyOnce(
+                source,
+                outerWrapper,
+                plainReturn,
+                "Bunny remove React chat background wrapper V5"
+        );
+
+        String functionAnchor =
+                "  function patchChatBackground() {\n";
+
+        String nativeBridgeHelpers = """
+  /* BUNNY_CHAT_BACKGROUND_NATIVE_VIEW_V5 */
+  var bunnyNativeChatBackgroundLastSignature = "";
+  var bunnyNativeChatBackgroundPendingSignature = "";
+  var bunnyNativeChatBackgroundRequestId = 0;
+
+  function bunnySendNativeChatBackground(
+    uri,
+    opacity,
+    signature
+  ) {
+    if (
+      signature ===
+      bunnyNativeChatBackgroundLastSignature
+    ) {
+      return;
+    }
+
+    bunnyNativeChatBackgroundLastSignature =
+      signature;
+
+    import_react_native3.Linking.openURL(
+      "bunny-morphe://theme-chat-background-native" +
+      "?url=" +
+      encodeURIComponent(uri) +
+      "&opacity=" +
+      encodeURIComponent(String(opacity))
+    ).catch(() => {
+      if (
+        bunnyNativeChatBackgroundLastSignature ===
+        signature
+      ) {
+        bunnyNativeChatBackgroundLastSignature = "";
+      }
+    });
+  }
+
+  function bunnySyncNativeChatBackground() {
+    var background =
+      _colorRef.current?.background;
+
+    var rawUri =
+      bunnyFinalThemeBackgroundUri(
+        background?.url
+      );
+
+    var opacity =
+      Number(
+        background?.opacity ??
+        background?.alpha ??
+        1
+      );
+
+    if (!Number.isFinite(opacity)) {
+      opacity = 1;
+    }
+
+    opacity =
+      Math.max(
+        0,
+        Math.min(1, opacity)
+      );
+
+    var signature =
+      rawUri + "|" + String(opacity);
+
+    if (!rawUri) {
+      bunnyNativeChatBackgroundRequestId++;
+      bunnyNativeChatBackgroundPendingSignature = "";
+      bunnySendNativeChatBackground("", opacity, signature);
+      return;
+    }
+
+    if (/^https?:/i.test(rawUri)) {
+      if (
+        signature ===
+          bunnyNativeChatBackgroundLastSignature ||
+        signature ===
+          bunnyNativeChatBackgroundPendingSignature
+      ) {
+        return;
+      }
+
+      var requestId =
+        ++bunnyNativeChatBackgroundRequestId;
+
+      bunnyNativeChatBackgroundPendingSignature =
+        signature;
+
+      bunnyFinalThemeBackgroundResolve(rawUri)
+        .then((localUri) => {
+          if (
+            requestId !==
+            bunnyNativeChatBackgroundRequestId
+          ) {
+            return;
+          }
+
+          bunnyNativeChatBackgroundPendingSignature = "";
+          bunnySendNativeChatBackground(
+            localUri,
+            opacity,
+            signature
+          );
+        })
+        .catch(() => {
+          if (
+            requestId ===
+            bunnyNativeChatBackgroundRequestId
+          ) {
+            bunnyNativeChatBackgroundPendingSignature = "";
+            bunnyNativeChatBackgroundLastSignature = "";
+          }
+        });
+
+      return;
+    }
+
+    bunnyNativeChatBackgroundRequestId++;
+    bunnyNativeChatBackgroundPendingSignature = "";
+    bunnySendNativeChatBackground(
+      rawUri,
+      opacity,
+      signature
+    );
+  }
+
+""";
+
+        if (countLiteral(patched, functionAnchor) != 1) {
+            throw new IOException(
+                    "Bunny native chat bridge function anchor was not unique"
+            );
+        }
+
+        patched = patched.replace(
+                functionAnchor,
+                nativeBridgeHelpers + functionAnchor
+        );
+
+        String callbackAnchor = """
+      after("render", Messages, (_2, ret) => {
+        if (!_colorRef.current || !_colorRef.current.background?.url)
+          return;
+""";
+
+        String callbackReplacement = """
+      after("render", Messages, (_2, ret) => {
+        bunnySyncNativeChatBackground();
+
+        if (!_colorRef.current || !_colorRef.current.background?.url)
+          return;
+""";
+
+        patched = replaceExactlyOnce(
+                patched,
+                callbackAnchor,
+                callbackReplacement,
+                "Bunny native chat background sync callback V5"
+        );
+
+        return patched;
+    }
+
+    private static String patchUrlBackgroundPreview(String source) throws IOException {
+        final String marker = "BUNNY_URL_BACKGROUND_PREVIEW_CACHE_V1";
+        if (source.contains(marker)) return source;
+
+        String resolverStart =
+                "  function bunnyResolveCreatorBackground(draft) {\n";
+        String resolverEnd =
+                "  function bunnyCreatorManifest(draft) {\n";
+
+        String resolver = extractRangeExactlyOnce(
+                source,
+                resolverStart,
+                resolverEnd,
+                "final creator background resolver"
+        );
+
+        String oldAlpha =
+                "    return { url, alpha: opacity };\n";
+        String oldOpacity =
+                "    return { url, opacity };\n";
+        String compatible =
+                "    return { url, opacity, alpha: opacity };\n";
+
+        if (countLiteral(resolver, compatible) == 1) {
+            // already compatible
+        } else if (countLiteral(resolver, oldAlpha) == 1) {
+            resolver = replaceExactlyOnce(
+                    resolver,
+                    oldAlpha,
+                    compatible,
+                    "final creator alpha/opacity compatibility"
+            );
+        } else if (countLiteral(resolver, oldOpacity) == 1) {
+            resolver = replaceExactlyOnce(
+                    resolver,
+                    oldOpacity,
+                    compatible,
+                    "final creator opacity/alpha compatibility"
+            );
+        } else {
+            throw new IOException(
+                    "final creator background return shape is unsupported"
+            );
+        }
+
+        source = replaceRangeExactlyOnce(
+                source,
+                resolverStart,
+                resolverEnd,
+                resolver,
+                "final creator background resolver install"
+        );
+
+        String creatorStart =
+                "  function BunnyThemeCreator({ onSaved, controllerRef, onStatusChange }) {\n";
+        String creatorEnd =
+                "  function Themes() {\n";
+
+        String creator = extractRangeExactlyOnce(
+                source,
+                creatorStart,
+                creatorEnd,
+                "final creator URL background preview"
+        );
+
+        String stateAnchor =
+                "    var backgroundSourceRef = React.useRef(\"url\");\n";
+
+        creator = replaceExactlyOnce(
+                creator,
+                stateAnchor,
+                stateAnchor +
+                        "    /* BUNNY_URL_BACKGROUND_PREVIEW_CACHE_V1 */\n" +
+                        "    var [bunnyUrlBackgroundPreview, setBunnyUrlBackgroundPreview] =\n" +
+                        "      React.useState(null);\n" +
+                        "    var bunnyUrlBackgroundRequestRef = React.useRef(0);\n",
+                "final URL background preview state"
+        );
+
+        String pickerAnchor =
+                "    var pickLocalBackground = () => {\n";
+
+        String effect = """
+    React.useEffect(() => {
+      var remoteUrl =
+        String(
+          draft.backgroundUrl ??
+          ""
+        ).trim();
+
+      var requestId =
+        ++bunnyUrlBackgroundRequestRef.current;
+
+      if (
+        draft.backgroundMode !== "url" ||
+        !/^https?:\\/\\//i.test(remoteUrl)
+      ) {
+        setBunnyUrlBackgroundPreview(null);
+        return;
+      }
+
+      var timer = setTimeout(() => {
+        bunnyFinalThemeBackgroundResolve(remoteUrl)
+          .then((localUrl) => {
+            if (
+              requestId !==
+              bunnyUrlBackgroundRequestRef.current
+            ) {
+              return;
+            }
+
+            if (
+              typeof localUrl !== "string" ||
+              !localUrl
+            ) {
+              setBunnyUrlBackgroundPreview(null);
+              return;
+            }
+
+            setBunnyUrlBackgroundPreview({
+              remoteUrl,
+              localUrl
+            });
+          })
+          .catch(() => {
+            if (
+              requestId ===
+              bunnyUrlBackgroundRequestRef.current
+            ) {
+              setBunnyUrlBackgroundPreview(null);
+            }
+          });
+      }, 400);
+
+      return () => {
+        clearTimeout(timer);
+      };
+    }, [
+      draft.backgroundMode,
+      draft.backgroundUrl
+    ]);
+
+""";
+
+        creator = replaceExactlyOnce(
+                creator,
+                pickerAnchor,
+                effect + pickerAnchor,
+                "final URL background preview downloader"
+        );
+
+        String previewManifestAnchor =
+                "    var previewManifest = bunnyCreatorManifest(draft);\n";
+
+        String previewManifestReplacement = """
+    var bunnyPreviewRemoteUrl =
+      String(
+        draft.backgroundUrl ??
+        ""
+      ).trim();
+
+    var bunnyPreviewHasResolvedUrl =
+      draft.backgroundMode === "url" &&
+      bunnyUrlBackgroundPreview?.remoteUrl ===
+        bunnyPreviewRemoteUrl &&
+      !!bunnyUrlBackgroundPreview?.localUrl;
+
+    var bunnyPreviewDraft =
+      draft.backgroundMode === "url"
+        ? (
+            bunnyPreviewHasResolvedUrl
+              ? {
+                  ...draft,
+                  backgroundMode: "local",
+                  backgroundPath:
+                    bunnyUrlBackgroundPreview.localUrl
+                }
+              : {
+                  ...draft,
+                  backgroundMode: "none"
+                }
+          )
+        : draft;
+
+    var previewManifest =
+      bunnyCreatorManifest(
+        bunnyPreviewDraft
+      );
+""";
+
+        creator = replaceExactlyOnce(
+                creator,
+                previewManifestAnchor,
+                previewManifestReplacement,
+                "final URL background live preview source"
+        );
+
+        String backgroundPreviewAnchor =
+                "    var backgroundPreview = bunnyResolveCreatorBackground(draft);\n";
+
+        creator = replaceExactlyOnce(
+                creator,
+                backgroundPreviewAnchor,
+                "    var backgroundPreview = " +
+                        "bunnyResolveCreatorBackground(bunnyPreviewDraft);\n",
+                "final URL selected media preview source"
+        );
+
+        String saveAnchor = """
+      if (!remoteUrl) {
+        return Promise.resolve(draft);
+      }
+
+      return import_react_native24.Linking.openURL(
+""";
+
+        String saveReplacement = """
+      if (!remoteUrl) {
+        return Promise.resolve(draft);
+      }
+
+      if (
+        bunnyUrlBackgroundPreview?.remoteUrl === remoteUrl &&
+        bunnyUrlBackgroundPreview?.localUrl
+      ) {
+        return Promise.resolve({
+          ...draft,
+          backgroundMode: "local",
+          backgroundPath:
+            bunnyUrlBackgroundPreview.localUrl
+        });
+      }
+
+      return import_react_native24.Linking.openURL(
+""";
+
+        creator = replaceExactlyOnce(
+                creator,
+                saveAnchor,
+                saveReplacement,
+                "final URL background save cache reuse"
+        );
+
+        String bunnyV7SaveFunctionStart =
+                "    var bunnyPrepareBackgroundForSave = () => {\n";
+
+        String bunnyV7SaveFunctionEnd =
+                "    var save = (apply) => {\n";
+
+        String bunnyV7SaveFunctionReplacement = """
+    var bunnyPrepareBackgroundForSave = () => {
+      if (draft.backgroundMode !== "url") {
+        return Promise.resolve(draft);
+      }
+
+      var remoteUrl =
+        String(
+          draft.backgroundUrl ??
+          ""
+        ).trim();
+
+      if (!remoteUrl) {
+        return Promise.resolve(draft);
+      }
+
+      if (
+        bunnyUrlBackgroundPreview?.remoteUrl === remoteUrl &&
+        bunnyUrlBackgroundPreview?.localUrl
+      ) {
+        return Promise.resolve({
+          ...draft,
+          backgroundMode: "local",
+          backgroundPath:
+            bunnyUrlBackgroundPreview.localUrl
+        });
+      }
+
+      return bunnyFinalThemeBackgroundResolve(
+        remoteUrl
+      ).then((localUrl) => {
+        if (
+          typeof localUrl !== "string" ||
+          !localUrl
+        ) {
+          throw new Error(
+            "Background download did not return a local file."
+          );
+        }
+
+        return {
+          ...draft,
+          backgroundMode: "local",
+          backgroundPath: localUrl
+        };
+      });
+    };
+
+""";
+
+        creator = replaceRangeExactlyOnce(
+                creator,
+                bunnyV7SaveFunctionStart,
+                bunnyV7SaveFunctionEnd,
+                bunnyV7SaveFunctionReplacement,
+                "final URL background save shared resolver V7C"
+        );
+
+        return replaceRangeExactlyOnce(
+                source,
+                creatorStart,
+                creatorEnd,
+                creator,
+                "final URL background creator install"
+        );
+    }
+
+
+    private static String patchUrlBackgroundImmediateLocalImportV8(
+            String source
+    ) throws IOException {
+        final String marker =
+                "BUNNY_URL_BACKGROUND_IMMEDIATE_LOCAL_V8";
+
+        if (source.contains(marker)) {
+            return source;
+        }
+
+        /*
+         * First make the shared resolver use the same React Native Linking
+         * owner already used by Bunny's working local/background import UI.
+         */
+        String oldResolverBridge =
+                "    pending = import_react_native3.Linking.openURL(\n" +
+                "      \"bunny-morphe://theme-background-url?url=\" +\n";
+
+        String newResolverBridge =
+                "    pending = import_react_native24.Linking.openURL(\n" +
+                "      \"bunny-morphe://theme-background-url?url=\" +\n";
+
+        int oldResolverCount =
+                countLiteral(
+                        source,
+                        oldResolverBridge
+                );
+
+        int newResolverCount =
+                countLiteral(
+                        source,
+                        newResolverBridge
+                );
+
+        if (
+                oldResolverCount == 1
+                        && newResolverCount == 0
+        ) {
+            source = replaceExactlyOnce(
+                    source,
+                    oldResolverBridge,
+                    newResolverBridge,
+                    "V8 URL resolver Linking owner"
+            );
+        } else if (
+                !(
+                        oldResolverCount == 0
+                                && newResolverCount == 1
+                )
+        ) {
+            throw new IOException(
+                    "V8 URL resolver bridge state is ambiguous"
+            );
+        }
+
+        String creatorStart =
+                "  function BunnyThemeCreator({ onSaved, controllerRef, onStatusChange }) {\n";
+
+        String creatorEnd =
+                "  function Themes() {\n";
+
+        String creator =
+                extractRangeExactlyOnce(
+                        source,
+                        creatorStart,
+                        creatorEnd,
+                        "V8 URL immediate local creator"
+                );
+
+        String stateAnchor =
+                "    var backgroundSourceRef = React.useRef(\"url\");\n";
+
+        if (countLiteral(
+                creator,
+                stateAnchor
+        ) != 1) {
+            throw new IOException(
+                    "V8 URL import state anchor was not unique"
+            );
+        }
+
+        creator = replaceExactlyOnce(
+                creator,
+                stateAnchor,
+                stateAnchor
+                        + "    /* BUNNY_URL_BACKGROUND_IMMEDIATE_LOCAL_V8 */\n"
+                        + "    var bunnyUrlImmediateImportRequestRef = React.useRef(0);\n",
+                "V8 URL immediate import state"
+        );
+
+        String pickerAnchor =
+                "    var pickLocalBackground = () => {\n";
+
+        String effect = """
+    React.useEffect(() => {
+      var remoteUrl =
+        String(
+          draft.backgroundUrl ??
+          ""
+        ).trim();
+
+      var requestId =
+        ++bunnyUrlImmediateImportRequestRef.current;
+
+      if (
+        draft.backgroundMode !== "url" ||
+        !/^https?:\\/\\//i.test(remoteUrl)
+      ) {
+        return;
+      }
+
+      var timer = setTimeout(() => {
+        bunnyFinalThemeBackgroundResolve(remoteUrl)
+          .then((localUrl) => {
+            if (
+              requestId !==
+              bunnyUrlImmediateImportRequestRef.current
+            ) {
+              return;
+            }
+
+            if (
+              typeof localUrl !== "string" ||
+              !localUrl
+            ) {
+              return;
+            }
+
+            backgroundSourceRef.current = "local";
+
+            if (
+              typeof setBunnyUrlBackgroundPreview ===
+              "function"
+            ) {
+              setBunnyUrlBackgroundPreview({
+                remoteUrl,
+                localUrl
+              });
+            }
+
+            setDraft((prev) => {
+              var currentUrl =
+                String(
+                  prev.backgroundUrl ??
+                  ""
+                ).trim();
+
+              if (
+                prev.backgroundMode !== "url" ||
+                currentUrl !== remoteUrl
+              ) {
+                return prev;
+              }
+
+              return {
+                ...prev,
+                backgroundMode: "local",
+                backgroundPath: localUrl
+              };
+            });
+          })
+          .catch((error) => {
+            if (
+              requestId !==
+              bunnyUrlImmediateImportRequestRef.current
+            ) {
+              return;
+            }
+
+            try {
+              showToast(
+                "Failed to import background URL: " +
+                  (error?.message ?? String(error)),
+                findAssetId("Small")
+              );
+            } catch (_) {
+            }
+          });
+      }, 450);
+
+      return () => {
+        clearTimeout(timer);
+      };
+    }, [
+      draft.backgroundMode,
+      draft.backgroundUrl
+    ]);
+
+""";
+
+        if (countLiteral(
+                creator,
+                pickerAnchor
+        ) != 1) {
+            throw new IOException(
+                    "V8 URL picker anchor was not unique"
+            );
+        }
+
+        creator = replaceExactlyOnce(
+                creator,
+                pickerAnchor,
+                effect + pickerAnchor,
+                "V8 URL immediate local import effect"
+        );
+
+        return replaceRangeExactlyOnce(
+                source,
+                creatorStart,
+                creatorEnd,
+                creator,
+                "V8 URL immediate local creator install"
+        );
+    }
+
+
+
+    private static String patchChatBackgroundThemeLifecycleV10(
+            String source
+    ) throws IOException {
+        final String marker =
+                "BUNNY_CHAT_BACKGROUND_THEME_LIFECYCLE_V10";
+
+        if (source.contains(marker)) {
+            return source;
+        }
+
+        /*
+         * First-install / first-launch hardening.
+         *
+         * The native V5 path is deliberately independent from React rendering,
+         * but its JS handoff historically depended on Messages.render().
+         * On a cold first launch, the message surface can render before the
+         * active Bunny theme has populated _colorRef.current. If that render is
+         * not repeated after theme hydration, native never receives the saved
+         * background until a later process/install cycle changes timing.
+         *
+         * updateBunnyColor() is the authoritative lifecycle boundary where
+         * _colorRef.current is assigned. Queue one microtask after every
+         * successful assignment so the existing native bridge receives the
+         * current media as soon as the theme is authoritative. The existing
+         * Messages.render sync remains as a fail-open fallback.
+         */
+        String updateAnchor =
+                "    if (update) {\n" +
+                "      AppearanceManager.setShouldSyncAppearanceSettings(false);\n" +
+                "      AppearanceManager.updateTheme(internalDef != null ? ref.key : ref.lastSetDiscordTheme);\n" +
+                "    }\n" +
+                "  }\n" +
+                "  var tokenRef2, origRawColor, AppearanceManager, ThemeStore, FormDivider, _inc, _colorRef;\n";
+
+        String updateReplacement =
+                "    if (update) {\n" +
+                "      AppearanceManager.setShouldSyncAppearanceSettings(false);\n" +
+                "      AppearanceManager.updateTheme(internalDef != null ? ref.key : ref.lastSetDiscordTheme);\n" +
+                "    }\n" +
+                "\n" +
+                "    /* BUNNY_CHAT_BACKGROUND_THEME_LIFECYCLE_V10 */\n" +
+                "    try {\n" +
+                "      Promise.resolve()\n" +
+                "        .then(() => bunnySyncNativeChatBackground())\n" +
+                "        .catch(() => {});\n" +
+                "    } catch (_) {\n" +
+                "    }\n" +
+                "  }\n" +
+                "  var tokenRef2, origRawColor, AppearanceManager, ThemeStore, FormDivider, _inc, _colorRef;\n";
+
+        return replaceExactlyOnce(
+                source,
+                updateAnchor,
+                updateReplacement,
+                "Bunny chat background theme lifecycle V10"
+        );
+    }
+
+
+
+
+    private static String patchCreatorSaveStorageResilienceV11(
+            String source
+    ) throws IOException {
+        final String marker =
+                "BUNNY_CREATOR_SAVE_STORAGE_RESILIENCE_V11";
+
+        if (source.contains(marker)) {
+            return source;
+        }
+
+        String creatorStart =
+                "  function BunnyThemeCreator({ onSaved, controllerRef, onStatusChange }) {\n";
+        String creatorEnd =
+                "  function Themes() {\n";
+
+        String creator = extractRangeExactlyOnce(
+                source,
+                creatorStart,
+                creatorEnd,
+                "Creator save storage V11"
+        );
+
+        /*
+         * Do not match the whole historical promise chain. Earlier Creator
+         * transforms legitimately change formatting and individual statements
+         * inside this range. Only the two lifecycle boundaries are owned by
+         * this patch:
+         *
+         *   start: Creator begins persistence through awaitStorage(themes)
+         *   end:   Creator begins its post-save UI/state finalization
+         *
+         * Both boundaries are unique inside BunnyThemeCreator.
+         */
+        String persistenceStart =
+                "        return awaitStorage(themes).then(() => {\n";
+
+        String persistenceEnd =
+                "          initialDraftRef.current = bunnyCreatorSnapshot(saveDraft);\n";
+
+        String newPersistence = """
+        /* BUNNY_CREATOR_SAVE_STORAGE_RESILIENCE_V11 */
+        var bunnyThemeBackend =
+          createFileBackend("vd_mmkv/VENDETTA_THEMES");
+
+        return Promise.resolve(
+          bunnyThemeBackend.get()
+        ).catch(() => ({})).then((storedThemes) => {
+          var bunnyStoredThemes =
+            storedThemes &&
+            typeof storedThemes === "object"
+              ? { ...storedThemes }
+              : {};
+
+          if (bunnySavingExistingTheme) {
+            entry.selected =
+              !!bunnyStoredThemes[id]?.selected;
+          }
+
+          if (apply) {
+            Object.keys(bunnyStoredThemes).forEach((key) => {
+              if (
+                bunnyStoredThemes[key] &&
+                typeof bunnyStoredThemes[key] === "object"
+              ) {
+                bunnyStoredThemes[key] = {
+                  ...bunnyStoredThemes[key],
+                  selected: key === id
+                };
+              }
+            });
+            entry.selected = true;
+          }
+
+          bunnyStoredThemes[id] = entry;
+
+          return Promise.resolve(
+            bunnyThemeBackend.set(bunnyStoredThemes)
+          ).then(() => {
+            /*
+             * Persist first, then mirror through wrapSync immediately.
+             * The fresh-storage bridge queues/replays these writes if the
+             * backing themes store has not resolved yet.
+             */
+            Object.keys(bunnyStoredThemes).forEach((key) => {
+              themes[key] = bunnyStoredThemes[key];
+            });
+
+            return bunnyStoredThemes;
+          });
+        }).then((bunnyStoredThemes) => {
+          if (!apply) return bunnyStoredThemes;
+
+          return Promise.resolve(
+            selectTheme(entry)
+          ).then(() => {
+            updateBunnyColor(
+              entry.data,
+              { update: true }
+            );
+            return bunnyStoredThemes;
+          });
+        }).then((bunnyStoredThemes) =>
+          Promise.resolve(
+            bunnyThemeBackend.set(bunnyStoredThemes)
+          )
+        ).then(() => {
+
+""";
+
+        creator = replaceRangeExactlyOnce(
+                creator,
+                persistenceStart,
+                persistenceEnd,
+                newPersistence,
+                "Creator save persistence V11"
+        );
+
+        if (creator.contains(persistenceStart)) {
+            throw new IOException(
+                    "Creator save persistence V11 old blocking start survived"
+            );
+        }
+
+        if (!creator.contains(marker)) {
+            throw new IOException(
+                    "Creator save persistence V11 marker missing after transform"
+            );
+        }
+
+        return replaceRangeExactlyOnce(
+                source,
+                creatorStart,
+                creatorEnd,
+                creator,
+                "Creator save storage V11 install"
+        );
+    }
+
+
+    private static void verifyFinalBackgroundFix(String source) throws IOException {
+        String[] required = {
+                "BUNNY_CHAT_BACKGROUND_MEDIA_FINAL_V1",
+                "BUNNY_URL_BACKGROUND_PREVIEW_CACHE_V1",
+                "BUNNY_CHAT_BACKGROUND_THEME_LIFECYCLE_V10",
+                "BUNNY_CREATOR_SAVE_STORAGE_RESILIENCE_V11",
+                "bunnyFinalThemeBackgroundResolve",
+                "bunnyFinalThemeBackgroundRemoteCache",
+                "bunnyUrlBackgroundPreview",
+                "bunnyPreviewDraft",
+                "theme-background-url?url=",
+                "return { url, opacity, alpha: opacity };"
+        };
+
+        for (String value : required) {
+            if (!source.contains(value)) {
+                throw new IOException(
+                        "final background verification missing: " +
+                        value
+                );
+            }
+        }
+
+        /* BUNNY_CHAT_BACKGROUND_V3_VERIFY_COMPAT */
+        boolean legacyStretchLayout =
+                source.contains(
+                        "width: \"100%\",\n" +
+                        "          height: \"100%\",\n" +
+                        "          alignSelf: \"stretch\""
+                );
+
+        boolean v3AbsoluteLayer =
+                source.contains(
+                        "position: \"absolute\",\n" +
+                        "          top: 0,\n" +
+                        "          left: 0,\n" +
+                        "          right: 0,\n" +
+                        "          bottom: 0,\n" +
+                        "          width: \"100%\",\n" +
+                        "          height: \"100%\""
+                )
+                && source.contains(
+                        "pointerEvents: \"none\""
+                )
+                && source.contains(
+                        "bunnyChatBackgroundImageOpacity"
+                )
+                && source.contains(
+                        "bunny-chat-background-inner-surface-v3"
+                );
+
+        if (!legacyStretchLayout && !v3AbsoluteLayer) {
+            throw new IOException(
+                    "final chat background layout verification missing"
+            );
+        }
+
+        if (!source.contains(
+                "_colorRef.current.background?.opacity ?? " +
+                "_colorRef.current.background?.alpha ?? 1"
+        )) {
+            throw new IOException(
+                    "final chat background opacity compatibility missing"
+            );
+        }
     }
 
     private static void verifyShippingRuntime(String source) throws IOException {

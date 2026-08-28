@@ -4,8 +4,8 @@
 # Mesaj asagida MSG satirinda tutulur; her duzeltmede guncellenir.
 set -e
 
-DIR="${DIR:-$HOME/hillclimb-patches}"
-MSG="fix(blockblast): correct AdSdkInitFingerprint method name to h(Context)"
+DIR="${DIR:-/tmp/morphe-patches}"
+MSG="fix(mctoolbox): premium (under testing) - clean up naming and docs"
 
 cd "$DIR"
 

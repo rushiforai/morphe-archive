@@ -6,6 +6,7 @@ package app.morphe.patches.photoeditorpro.misc.fix.signature
 
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patches.photoeditorpro.shared.markPatchInstalled
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.matchSingle
 import app.morphe.util.returnEarly
@@ -17,8 +18,8 @@ private const val ANDROID_APPLICATION_CLASS = "Landroid/app/Application;"
 @Suppress("unused")
 val spoofSignaturePatch = bytecodePatch(
     name = "Spoof signature",
-    description = "Restores the AI tools and stops the app killing itself by spoofing the " +
-        "original app signature.",
+    description = "Spoofs the original app signature and disables the pairip client-side " +
+        "license check. Required: the app does not start without it.",
 ) {
     compatibleWith(AppCompatibilities.PHOTO_EDITOR_PRO)
     extendWith("extensions/extension.mpe")
@@ -43,5 +44,7 @@ val spoofSignaturePatch = bytecodePatch(
         applicationClass.setSuperClass(EXTENSION_CLASS)
 
         InitializeLicenseCheckFingerprint.matchSingle().method.returnEarly()
+
+        markPatchInstalled("pep_spoof_signature")
     }
 }

@@ -65,9 +65,9 @@ class GboardPortProductCatalogContractTest {
             features.map { feature -> feature["feature_id"].asString }.sorted(),
             features.map { feature -> feature["feature_id"].asString },
         )
-        assertEquals(36, features.size)
-        assertEquals(36, features.map { it["feature_id"].asString }.distinct().size)
-        assertEquals(36, features.map { it["public_patch_name"].asString }.distinct().size)
+        assertEquals(37, features.size)
+        assertEquals(37, features.map { it["feature_id"].asString }.distinct().size)
+        assertEquals(37, features.map { it["public_patch_name"].asString }.distinct().size)
 
         val expectedDigest = Files.readString(
             repositoryRoot().resolve(DIGEST_PATH),
@@ -669,6 +669,7 @@ class GboardPortProductCatalogContractTest {
             "enable_split_keyboard" to "version-sensitive",
             "english_qwerty_up_flick_uppercase" to "version-sensitive",
             "flow_mode_animation" to "version-sensitive",
+            "floating_web_search" to "version-sensitive",
             "g_logo_on_spacebar" to "version-sensitive",
             "grammar_checker" to "version-sensitive",
             "incognito_mode_toggle" to "version-sensitive",

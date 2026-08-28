@@ -4,11 +4,12 @@
 
 APP ?= meteo3b
 
-.PHONY: help check fetch extract decompile analyze build verify check-apk spoof-crc setup-tools patch-local deploy smoke device-test
+.PHONY: help check session-init fetch extract decompile analyze build verify check-apk spoof-crc setup-tools patch-local deploy smoke device-test
 
 help:
 	@echo "Targets (set APP=<app_id>, default: meteo3b):"
 	@echo "  make check                  Environment preflight"
+	@echo "  make session-init APP=meteo3b  Bootstrap scratch/<app>/ for agent workflow"
 	@echo "  make fetch APP=meteo3b      Download APK bundle"
 	@echo "  make extract APP=meteo3b    Unzip bundle to analysis/<app>/extract/"
 	@echo "  make decompile APP=meteo3b  Run jadx + apktool"
@@ -25,6 +26,9 @@ help:
 
 check:
 	@scripts/check_env.sh
+
+session-init:
+	@scripts/init_session.sh $(APP)
 
 fetch:
 	@scripts/fetch_apk.sh $(APP)

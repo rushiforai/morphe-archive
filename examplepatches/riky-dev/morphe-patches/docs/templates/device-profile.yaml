@@ -1,0 +1,9 @@
+# Captured once per device. Fill via adb commands in AGENTS.md (Phase 0).
+device_id: ""
+model: ""
+screen_size: ""   # adb shell wm size
+density: ""       # adb shell wm density
+
+apps:
+  PACKAGE_PLACEHOLDER:
+    nav: {}

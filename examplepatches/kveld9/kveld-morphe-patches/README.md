@@ -1,6 +1,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Platform-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white" />
   <img src="https://img.shields.io/badge/Target-Brave_Browser-FF4500?style=for-the-badge&logo=brave&logoColor=white" />
+  <img src="https://img.shields.io/badge/Target-Vivaldi_Snapshot-EF3939?style=for-the-badge&logo=vivaldi&logoColor=white" />
   <img src="https://img.shields.io/badge/Target-Gboard_Lite-4285F4?style=for-the-badge&logo=google&logoColor=white" />
   <img src="https://img.shields.io/badge/Runtime-Morphe_Patcher_1.8.0-8A2BE2?style=for-the-badge" />
   <img src="https://img.shields.io/badge/License-GPLv3-blue?style=for-the-badge" />
@@ -9,7 +10,7 @@
 <h1 align="center">🔮 Morphe Patches</h1>
 
 <p align="center">
-  Modular bytecode, resource, and native patch suite for <b>Brave Browser</b> and <b>Gboard Lite</b> on Android using the <b><a href="https://morphe.software">Morphe</a></b> patcher framework.
+  Modular bytecode, resource, and native patch suite for <b>Brave Browser</b>, <b>Vivaldi Browser Snapshot</b>, and <b>Gboard Lite</b> on Android using the <b><a href="https://morphe.software">Morphe</a></b> patcher framework.
 </p>
 
 <p align="center">
@@ -30,13 +31,23 @@ This repository provides modular, high-performance bytecode, resource, and nativ
 - **🎨 UI Enhancements**: Activates Key Shape Selection (Default, Semi-rounded, Round) and the redesigned Access Points Menu (Panel V2).
 - **🔒 Hardened Privacy & Debloat**: Neutralizes Google Primes profiling, WorkManager background wakeups, Phenotype sync, MDD background sync, Tenor tracking, in-app training, diagnostics telemetry, and forces Incognito mode.
 - **🛡️ Signature Bypass**: Neutralizes internal APK signature validation to allow custom execution.
+- **📦 APK Slimming & Asset Optimization**: Strips unselected language translation directories (`Locale Resource Slimmer`), purges redundant onboarding animations, GIFs, and junk files (`Resource Slimmer`), and recompresses PNG assets losslessly (`PNG Asset Optimizer`).
 
 #### 🦁 Brave Browser
 
 - **🔓 Brave Origin Unlock**: Unlocks Brave Origin features and developer toggles.
 - **🚫 Complete Telemetry Block**: Strips P3A product analytics, stats pings, crash dump uploads, and variations seed fetching at both native (`libchrome.so`) and bytecode levels.
-- **⚡ Performance & Battery Optimization**: Eliminates background scheduler wakeups (Job ID 105), OEM partner carrier customizations, BatteryStatusManager broadcast listeners, and Background / Periodic Sync tasks.
+- **⚡ Performance & Battery Optimization**: Eliminates background scheduler wakeups (Job ID 105), commercial onboarding promos, retention marketing campaigns, OEM partner carrier customizations, BatteryStatusManager broadcast listeners, and Background / Periodic Sync tasks.
 - **🔄 UI & Gesture Control**: Disables accidental pull-to-refresh overscroll reloads and streamlines the First Run Experience.
+- **📦 APK Slimming & Asset Optimization**: Strips unselected language PAKs (`Locale PAK Slimmer`), removes unused companion binaries for Vision AI, WireGuard, and XR (`Native Bloat Slimmer`), and recompresses PNG assets losslessly (`PNG Asset Optimizer`).
+
+#### 🔴 Vivaldi Browser Snapshot
+
+- **🛡️ Telemetry & Endpoint Blocker**: Redirects statistics (`update.vivaldi.com`), crash reporting (`crash.vivaldi.com`), Crashpad endpoints, and DirectMatch suggestions to `0.0.0.0` in `libchrome.so` and bytecode.
+- **🧹 Clean Speed Dial Bookmarks**: Strips all 47 regional default commercial affiliate bookmarks (`vivaldi.com/bk/*`) and clears partner tracking IDs.
+- **⚡ Cold Startup & Notification Optimization**: Neutralizes OEM carrier customizations (safely mapped to field `d`), disables Chromium tips scheduler, and eliminates periodic privacy report alarms.
+- **🔒 Air-Gapped Sync Toggle**: Optional opt-in patch to cleanly isolate account sync (`bifrost.vivaldi.com`).
+- **📦 APK Slimming & Asset Optimization**: Strips unselected language PAKs (`Locale PAK Slimmer`), removes preloaded wallpapers and Speed Dial thumbnails (`Resource Slimmer`), and recompresses PNG assets losslessly (`PNG Asset Optimizer`).
 
 ---
 
@@ -52,7 +63,7 @@ Click the badge above or add `kveld9/kveld-morphe-patches` directly into your Mo
 
 <!-- PATCHES_START EXPANDED -->
 <details open>
-<summary>📦 Gboard Lite&nbsp;&nbsp;•&nbsp;&nbsp;17 patches</summary>
+<summary>📦 Gboard Lite&nbsp;&nbsp;•&nbsp;&nbsp;19 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -78,12 +89,14 @@ Click the badge above or add `kveld9/kveld-morphe-patches` directly into your Mo
 | [Enable Key Shape Selection](#enable-key-shape-selection) | Enables the key border shape selection UI (Default, Semi-rounded, Round) in theme customization. |  |
 | [Force Incognito Mode](#force-incognito-mode) | Forces Gboard to always operate in incognito mode (disabling personalized learning and persistent input logging) while keeping clipboard functionality enabled. |  |
 | [Hardened Intent Security](#hardened-intent-security) | Enables Gboard internal external intent protection against unauthorized intent hijacking. |  |
-| [Resource Slimmer](#resource-slimmer) | Strips embedded third-party license text, onboarding tutorial Lottie animations, and promotional GIFs using dynamic content heuristics. |  |
+| [Locale Resource Slimmer](#locale-resource-slimmer) | Strips unselected language translation directories from res/ (e.g. values-*, raw-*, xml-*). Base fallback resources with no language qualifiers are always preserved. | • Locales to keep |
+| [PNG Asset Optimizer](#png-asset-optimizer) | Losslessly recompresses PNG assets with maximum zlib compression and strips non-rendering metadata chunks (pHYs, tEXt, tIME) while preserving 9-patch structures and pixel accuracy. |  |
+| [Resource Slimmer](#resource-slimmer) | Strips embedded third-party license text, onboarding tutorial Lottie animations, promotional GIFs, and APK root metadata/junk files. |  |
 
 </details>
 
 <details open>
-<summary>📦 Brave Private Web Browser, VPN&nbsp;&nbsp;•&nbsp;&nbsp;9 patches</summary>
+<summary>📦 Brave Private Web Browser, VPN&nbsp;&nbsp;•&nbsp;&nbsp;11 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -94,14 +107,42 @@ Click the badge above or add `kveld9/kveld-morphe-patches` directly into your Mo
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Block Brave Telemetry](#block-brave-telemetry) | Blocks P3A product analytics, Brave Stats usage pings, crash dump uploads, WDP, and Variations seed fetching. |  |
-| [Brave In-Product Notification Scheduler Optimization](#brave-in-product-notification-scheduler-optimization) | Eliminates periodic background wakeups and native library loading caused by Chromium in-product tips/promo scheduler (Job ID 105). |  |
+| [Brave In-Product & Commercial Notification Optimizer](#brave-in-product-commercial-notification-optimizer) | Eliminates background wakeups and notifications from Chromium tips scheduler (Job ID 105), Brave Rewards onboarding promo, and retention marketing campaigns. |  |
 | [Brave Origin](#brave-origin) | Unlocks Brave Origin and enables local feature toggle controls. |  |
 | [Brave Startup Performance Optimization](#brave-startup-performance-optimization) | Optimizes startup time and eliminates background CPU/disk overhead by disabling unused OEM carrier partner customizations. |  |
 | [Disable Background Sync & Periodic Sync](#disable-background-sync-periodic-sync) | Eliminates background wakeups, radio modem activity, and battery drain by forcing GooglePlayServicesChecker.shouldDisableBackgroundSync() -> true and neutralizing wakeup tasks. |  |
 | [Disable Battery Status API & OS Listener](#disable-battery-status-api-os-listener) | Neutralizes the Android BatteryStatusManager broadcast listener to prevent continuous OS battery wakeups. |  |
 | [Disable Pull To Refresh](#disable-pull-to-refresh) | Completely disables the pull-to-refresh overscroll gesture and animation to prevent accidental page reloads. |  |
 | [Locale PAK Slimmer](#locale-pak-slimmer) | Strips unselected language resource PAKs from assets/locales/. | • Locales to keep |
+| [Native Bloat Slimmer](#native-bloat-slimmer) | Strips unused native companion binaries (Impress Vision AI, WireGuard VPN, and Android XR) to significantly reduce APK size. |  |
+| [PNG Asset Optimizer](#png-asset-optimizer) | Losslessly recompresses PNG assets with maximum zlib compression and strips non-rendering metadata chunks (pHYs, tEXt, tIME) while preserving 9-patch structures and pixel accuracy. |  |
 | [Skip First Run](#skip-first-run) | Skips the welcome screen, search engine selection, and onboarding First Run Experience (FRE) on clean installs. |  |
+
+</details>
+
+<details open>
+<summary>📦 Vivaldi Browser Snapshot&nbsp;&nbsp;•&nbsp;&nbsp;12 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 8.2.4143.3 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Block Vivaldi Sync](#block-vivaldi-sync) | Redirects bifrost.vivaldi.com to 0.0.0.0 in libchrome.so to completely disable Vivaldi account synchronization for an air-gapped experience. |  |
+| [Block Vivaldi Telemetry](#block-vivaldi-telemetry) | Blocks Vivaldi usage statistics, crash reporting, Crashpad endpoints, and DirectMatch suggestions. |  |
+| [Clean Speed Dial Bookmarks](#clean-speed-dial-bookmarks) | Removes sponsored commercial affiliate bookmarks, hides the 3-dot customize button, and disables phantom touch actions on the blank Start Page. |  |
+| [Disable Background Sync & Periodic Sync](#disable-background-sync-periodic-sync) | Eliminates background wakeups, radio modem activity, and battery drain by neutralizing periodic and one-shot background sync tasks. |  |
+| [Disable Battery Status API & OS Listener](#disable-battery-status-api-os-listener) | Neutralizes the Android BatteryStatusManager broadcast listener to prevent continuous OS battery wakeups. |  |
+| [Disable Chromium Tips & Notification Scheduler](#disable-chromium-tips-notification-scheduler) | Eliminates periodic background wakeups, native library loading, and in-product promotional tips from Chromium tips scheduler. |  |
+| [Disable Vivaldi Prompts & In-App Popups](#disable-vivaldi-prompts-in-app-popups) | Disables in-app donation prompts, search engine switch promos, rate-app popups, background privacy report alarms, and default browser promotional handlers. |  |
+| [Locale PAK Slimmer](#locale-pak-slimmer) | Strips unselected language resource PAKs from assets/locales/. | • Locales to keep |
+| [PNG Asset Optimizer](#png-asset-optimizer) | Losslessly recompresses PNG assets with maximum zlib compression and strips non-rendering metadata chunks (pHYs, tEXt, tIME) while preserving 9-patch structures and pixel accuracy. |  |
+| [Resource Slimmer](#resource-slimmer) | Strips bundled stock wallpapers and sponsored Speed Dial thumbnails to reduce APK size. |  |
+| [Skip First Run](#skip-first-run) | Skips the welcome screen, search engine selection, and onboarding First Run Experience (FRE) on clean installs. |  |
+| [Vivaldi Startup Performance Optimization](#vivaldi-startup-performance-optimization) | Optimizes cold startup time, eliminates background CPU/disk overhead, and guards against early CompositorView LayoutStateObserver crashes. |  |
 
 </details>
 
@@ -163,11 +204,29 @@ If you perform a clean install of Gboard Lite with background sync debloat patch
 
 ---
 
-### 🦁 Brave Locale PAK Slimmer: Valid Language Codes
+### 🔴 Vivaldi Browser Snapshot: Required Target APK & Download Source
 
-The **`Locale PAK Slimmer`** patch allows you to strip unneeded language resource PAKs from `assets/locales/` to reduce APK size.
+> [!IMPORTANT]
+> **Always download the official `arm64-v8a` APK directly from the [Vivaldi Android Blog](https://vivaldi.com/blog/android/).**
+> In every release announcement blog post, Vivaldi provides direct official APK download links at the bottom.
+>
+> - **Current Target**: `Vivaldi.8.2.4143.3_arm64-v8a.apk`
+> - **Architecture**: `arm64-v8a` (Do **NOT** use `armeabi-v7a`, `x86`, or `x86_64`)
+> - **Package Name**: `com.vivaldi.browser.snapshot`
 
-When configuring the **`Locales to keep`** option in Morphe Manager, specify a comma-separated list of locale codes (e.g. `es-419, es, en-US, pt-BR`). English (`en-US`) is always preserved automatically as an essential Chromium fallback.
+#### ❓ Why Vivaldi Snapshot & Future Transition to Stable
+
+- **Extension Support & Experimental Features**: Morphe Patches currently targets **Vivaldi Snapshot** to leverage native Desktop Extension support and bleeding-edge Chromium components.
+- **Stable Transition Roadmap**: Vivaldi Snapshot is maintained as the primary target **only until Web Extensions support is enabled by default in the stable release** of Vivaldi Browser (`com.vivaldi.browser`), at which point patch compatibility will expand/transition to the stable channel.
+- **Native 64-bit Binary Offsets**: Byte-level offsets in `lib/arm64-v8a/libchrome.so` (telemetry endpoints, Crashpad, and DirectMatch suggestions) are strictly calculated against 64-bit ARM builds.
+
+---
+
+### 🌐 Brave & Vivaldi Locale PAK Slimmer: Valid Language Codes
+
+The **`Locale PAK Slimmer`** patch allows you to strip unneeded language resource PAKs from `assets/locales/` to reduce APK size (saving **~28 MB in Brave** and **~52 MB in Vivaldi**).
+
+When configuring the **`Locales to keep`** option in Morphe Manager, specify a comma-separated list of locale codes (e.g. `es-419, es, en-US, pt-BR`). English (`en-US`) is always preserved automatically as an essential Chromium fallback. In Vivaldi, any corresponding grammatical gender variants (e.g. `es-419_FEMININE`) for your chosen languages are preserved automatically.
 
 #### 📋 Popular Language Codes:
 
@@ -185,7 +244,7 @@ When configuring the **`Locales to keep`** option in Morphe Manager, specify a c
 | **Arabic / Turkish / Hebrew**    | `ar`, `tr`, `he`                                                                  |
 
 <details>
-<summary><b>🔍 View all 81 available locale codes in Brave</b></summary>
+<summary><b>🔍 View all 81 available base locale codes in Brave & Vivaldi</b></summary>
 <br>
 
 ```text
@@ -232,6 +291,17 @@ patches/build/libs/patches-*.mpp
 
 ---
 
+## 🤝 Credits & Contributors
+
+A huge thanks to the contributors and testers who help improve, validate, and maintain Morphe Patches:
+
+| Contributor | Role & Contributions |
+| :--- | :--- |
+| <a href="https://github.com/Lxchoooo"><img src="https://github.com/Lxchoooo.png" width="48" height="48" style="border-radius: 50%;" /><br><b>@Lxchoooo</b></a> | 🧪 Daily patch testing, runtime APK validation, and bug diagnostics. |
+
+---
+
 ## 📜 License
 
 Morphe Patches is open-source software licensed under the [GNU General Public License v3.0](LICENSE).
+

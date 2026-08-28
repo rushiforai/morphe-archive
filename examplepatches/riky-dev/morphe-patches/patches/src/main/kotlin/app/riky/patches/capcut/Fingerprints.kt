@@ -374,9 +374,14 @@ internal object HeliosEnvImplInitFingerprint : Fingerprint(
     name = "e",
     returnType = "V",
     parameters = listOf(
-        "Lcom/bytedance/pumbaa/monitor/adapter/MonitorServiceImpl\$init$1;",
-        "LX/3Dp;"
-    )
+        "Lcom/bytedance/pumbaa/monitor/adapter/MonitorServiceImpl\$init\$1;",
+        "LX/"
+    ),
+    custom = { method, _ ->
+        // The second parameter is an obfuscated ByteDance type (e.g. LX/3Dp;)
+        // whose name changes every build, so match it loosely by prefix.
+        method.parameterTypes.size == 2 && method.parameterTypes[1].startsWith("LX/")
+    }
 )
 
 internal object AppsFlyerAnalyticsStartFingerprint : Fingerprint(

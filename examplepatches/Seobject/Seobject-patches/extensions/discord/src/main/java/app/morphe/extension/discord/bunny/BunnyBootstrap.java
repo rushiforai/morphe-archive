@@ -692,214 +692,181 @@ public final class BunnyBootstrap {
                 "Messages = findByFilePathLazy(\"components_native/chat/Messages.tsx\", true);",
                 joinBunnyString(
                         "Messages = {\n",
-                        "  [Symbol.for(\"bunny.api.patcher.delay\")]: () => {\n",
-                        "    var bunnyDcdChatInstallKey =\n",
-                        "      Symbol.for(\"bunny.morphe.live-dcdchat-background-v1\");\n\n",
+                        "  [Symbol.for(\"bunny.api.patcher.delay\")]: (bunnyResolveMessagesTarget) => {\n",
+                        "    var bunnyMessagesBridgeKey =\n",
+                        "      Symbol.for(\"bunny.morphe.messages-render-bridge-v4\");\n\n",
 
-                        "    if (globalThis[bunnyDcdChatInstallKey]) {\n",
-                        "      void 0;\n",
+                        "    var bunnyExistingMessagesBridge =\n",
+                        "      globalThis[bunnyMessagesBridgeKey];\n\n",
+
+                        "    if (bunnyExistingMessagesBridge?.target) {\n",
+                        "      bunnyResolveMessagesTarget(\n",
+                        "        bunnyExistingMessagesBridge.target\n",
+                        "      );\n",
                         "      return;\n",
                         "    }\n\n",
 
-                        "    var bunnyDcdChatJsxRuntime =\n",
+                        "    /*\n",
+                        "     * First use Discord's real Metro chat component.\n",
+                        "     * modules/messages/native/Messages.tsx was the\n",
+                        "     * concrete post-legacy target found during the\n",
+                        "     * Discord 341.13 compatibility work. Newer Discord\n",
+                        "     * layouts also expose modules/chat/native/Chat.android.tsx.\n",
+                        "     */\n",
+                        "    var bunnyRealMessagesTarget = null;\n\n",
+
+                        "    try {\n",
+                        "      for (var bunnyModuleId in metroModules) {\n",
+                        "        var bunnyModulePath = String(\n",
+                        "          metroModules?.[bunnyModuleId]?.__filePath ?? \"\"\n",
+                        "        );\n\n",
+
+                        "        var bunnyChatCandidate =\n",
+                        "          bunnyModulePath === \"modules/messages/native/Messages.tsx\" ||\n",
+                        "          bunnyModulePath === \"modules/chat/native/Chat.android.tsx\" ||\n",
+                        "          bunnyModulePath.endsWith(\"/chat/native/Chat.android.tsx\") ||\n",
+                        "          bunnyModulePath.endsWith(\"/messages/native/Messages.tsx\");\n\n",
+
+                        "        if (!bunnyChatCandidate)\n",
+                        "          continue;\n\n",
+
+                        "        var bunnyModuleExports =\n",
+                        "          requireModule(Number(bunnyModuleId));\n\n",
+
+                        "        var bunnyExportedTarget =\n",
+                        "          bunnyModuleExports?.default ?? bunnyModuleExports;\n\n",
+
+                        "        var bunnyTargetCandidates = [\n",
+                        "          bunnyExportedTarget,\n",
+                        "          bunnyExportedTarget?.type\n",
+                        "        ];\n\n",
+
+                        "        for (var bunnyTargetCandidate of bunnyTargetCandidates) {\n",
+                        "          if (\n",
+                        "            bunnyTargetCandidate &&\n",
+                        "            typeof bunnyTargetCandidate.render === \"function\"\n",
+                        "          ) {\n",
+                        "            bunnyRealMessagesTarget = bunnyTargetCandidate;\n",
+                        "            break;\n",
+                        "          }\n",
+                        "        }\n\n",
+
+                        "        if (bunnyRealMessagesTarget)\n",
+                        "          break;\n",
+                        "      }\n",
+                        "    } catch (_) {\n",
+                        "    }\n\n",
+
+                        "    if (bunnyRealMessagesTarget) {\n",
+                        "      globalThis[bunnyMessagesBridgeKey] = {\n",
+                        "        target: bunnyRealMessagesTarget,\n",
+                        "        mode: \"metro\"\n",
+                        "      };\n\n",
+
+                        "      bunnyResolveMessagesTarget(\n",
+                        "        bunnyRealMessagesTarget\n",
+                        "      );\n",
+                        "      return;\n",
+                        "    }\n\n",
+
+                        "    /*\n",
+                        "     * Fallback for layouts where the chat module export\n",
+                        "     * is not patchable through render. Feed Bunny's own\n",
+                        "     * after(render) callback a synthetic target and route\n",
+                        "     * live chat elements through it.\n",
+                        "     */\n",
+                        "    var bunnyMessagesTarget = {\n",
+                        "      render: (ret) => ret\n",
+                        "    };\n\n",
+
+                        "    var bunnyMessagesBridge = {\n",
+                        "      target: bunnyMessagesTarget,\n",
+                        "      mode: \"element-fallback\",\n",
+                        "      unpatchJsx: null,\n",
+                        "      unpatchJsxs: null,\n",
+                        "      unpatchJsxDev: null,\n",
+                        "      unpatchCreateElement: null\n",
+                        "    };\n\n",
+
+                        "    globalThis[bunnyMessagesBridgeKey] =\n",
+                        "      bunnyMessagesBridge;\n\n",
+
+                        "    bunnyResolveMessagesTarget(\n",
+                        "      bunnyMessagesTarget\n",
+                        "    );\n\n",
+
+                        "    var bunnyMessagesJsxRuntime =\n",
                         "      findByPropsLazy(\"jsx\", \"jsxs\");\n\n",
 
-                        "    var bunnyDcdChatHitCount = 0;\n",
-                        "    var bunnyDcdChatUnsupportedColorLogged = false;\n\n",
+                        "    var bunnyMessagesReact =\n",
+                        "      findByPropsLazy(\"createElement\");\n\n",
 
-                        "    var bunnyDcdChatAlphaHex = (alpha) => {\n",
-                        "      var byte = Math.round(\n",
-                        "        Math.max(0, Math.min(1, alpha)) * 255\n",
-                        "      ).toString(16);\n\n",
-                        "      if (byte.length < 2)\n",
-                        "        byte = \"0\" + byte;\n\n",
-                        "      return byte;\n",
-                        "    };\n\n",
-
-                        "    var bunnyDcdChatColorWithAlpha = (\n",
-                        "      value,\n",
-                        "      alpha\n",
-                        "    ) => {\n",
-                        "      var resolvedAlpha = Number(alpha);\n\n",
-                        "      if (!Number.isFinite(resolvedAlpha))\n",
-                        "        resolvedAlpha = 0;\n\n",
-                        "      resolvedAlpha = Math.max(\n",
-                        "        0,\n",
-                        "        Math.min(1, resolvedAlpha)\n",
-                        "      );\n\n",
-
-                        "      var text = String(value ?? \"\").trim();\n",
-                        "      var alphaHex =\n",
-                        "        bunnyDcdChatAlphaHex(resolvedAlpha);\n\n",
-
-                        "      var hex6 = text.match(\n",
-                        "        /^#([0-9a-f]{6})(?:[0-9a-f]{2})?$/i\n",
-                        "      );\n\n",
-
-                        "      if (hex6)\n",
-                        "        return \"#\" + hex6[1] + alphaHex;\n\n",
-
-                        "      var hex3 = text.match(\n",
-                        "        /^#([0-9a-f]{3})(?:[0-9a-f])?$/i\n",
-                        "      );\n\n",
-
-                        "      if (hex3) {\n",
-                        "        var h = hex3[1];\n",
-                        "        return (\n",
-                        "          \"#\" +\n",
-                        "          h[0] + h[0] +\n",
-                        "          h[1] + h[1] +\n",
-                        "          h[2] + h[2] +\n",
-                        "          alphaHex\n",
-                        "        );\n",
-                        "      }\n\n",
-
-                        "      var rgb = text.match(\n",
-                        "        /^rgba?\\(\\s*([0-9.]+)\\s*,\\s*([0-9.]+)\\s*,\\s*([0-9.]+)(?:\\s*,\\s*[0-9.]+)?\\s*\\)$/i\n",
-                        "      );\n\n",
-
-                        "      if (rgb) {\n",
-                        "        return (\n",
-                        "          \"rgba(\" +\n",
-                        "          rgb[1] + \",\" +\n",
-                        "          rgb[2] + \",\" +\n",
-                        "          rgb[3] + \",\" +\n",
-                        "          String(resolvedAlpha) +\n",
-                        "          \")\"\n",
-                        "        );\n",
-                        "      }\n\n",
-
-                        "      if (text.toLowerCase() === \"black\") {\n",
-                        "        return (\n",
-                        "          \"rgba(0,0,0,\" +\n",
-                        "          String(resolvedAlpha) +\n",
-                        "          \")\"\n",
-                        "        );\n",
-                        "      }\n\n",
-
-                        "      if (text.toLowerCase() === \"white\") {\n",
-                        "        return (\n",
-                        "          \"rgba(255,255,255,\" +\n",
-                        "          String(resolvedAlpha) +\n",
-                        "          \")\"\n",
-                        "        );\n",
-                        "      }\n\n",
-
-                        "      if (!bunnyDcdChatUnsupportedColorLogged) {\n",
-                        "        bunnyDcdChatUnsupportedColorLogged = true;\n",
-                        "        void 0;\n",
-                        "      }\n\n",
-
-                        "      return (\n",
-                        "        \"rgba(0,0,0,\" +\n",
-                        "        String(resolvedAlpha) +\n",
-                        "        \")\"\n",
-                        "      );\n",
-                        "    };\n\n",
-
-                        "    var bunnyDcdChatPatch = ([Component], ret) => {\n",
+                        "    var bunnyForwardLiveChat = ([Component], ret) => {\n",
                         "      try {\n",
-                        "        if (Component !== \"DCDChat\")\n",
+                        "        if (!ret || typeof ret !== \"object\")\n",
                         "          return;\n\n",
 
-                        "        var props = ret?.props;\n\n",
+                        "        var props = ret?.props;\n",
+                        "        if (!props)\n",
+                        "          return;\n\n",
 
-                        "        if (\n",
-                        "          !props ||\n",
-                        "          !(\"HACK_fixModalInteraction\" in props) ||\n",
-                        "          !props.channelId ||\n",
-                        "          props.style == null\n",
-                        "        ) {\n",
-                        "          return;\n",
-                        "        }\n\n",
+                        "        var componentName =\n",
+                        "          typeof Component === \"string\"\n",
+                        "            ? Component\n",
+                        "            : (\n",
+                        "                Component?.displayName ??\n",
+                        "                Component?.name ??\n",
+                        "                Component?.type?.displayName ??\n",
+                        "                Component?.type?.name ??\n",
+                        "                \"\"\n",
+                        "              );\n\n",
 
-                        "        var bunnyBackground =\n",
-                        "          _colorRef.current?.background;\n\n",
+                        "        var isDcdChat =\n",
+                        "          componentName === \"DCDChat\";\n\n",
 
-                        "        if (\n",
-                        "          !_colorRef.current ||\n",
-                        "          colorsPref.customBackground === \"hidden\" ||\n",
-                        "          !bunnyBackground?.url ||\n",
-                        "          (\n",
-                        "            bunnyBackground?.blur &&\n",
-                        "            typeof bunnyBackground.blur !== \"number\"\n",
-                        "          )\n",
-                        "        ) {\n",
-                        "          return;\n",
-                        "        }\n\n",
+                        "        var hasChatRootMarker =\n",
+                        "          \"HACK_fixModalInteraction\" in props;\n\n",
 
-                        "        var flattened =\n",
-                        "          import_react_native3.StyleSheet.flatten(\n",
-                        "            props.style\n",
-                        "          );\n\n",
+                        "        if (!isDcdChat && !hasChatRootMarker)\n",
+                        "          return;\n\n",
 
-                        "        var baseBackground =\n",
-                        "          flattened?.backgroundColor ?? \"black\";\n\n",
-
-                        "        var imageOpacity = Number(\n",
-                        "          bunnyBackground?.opacity ?? 1\n",
-                        "        );\n\n",
-
-                        "        if (!Number.isFinite(imageOpacity))\n",
-                        "          imageOpacity = 1;\n\n",
-
-                        "        imageOpacity = Math.max(\n",
-                        "          0,\n",
-                        "          Math.min(1, imageOpacity)\n",
-                        "        );\n\n",
-
-                        "        var overlayAlpha =\n",
-                        "          1 - imageOpacity;\n\n",
-
-                        "        var newBackground =\n",
-                        "          bunnyDcdChatColorWithAlpha(\n",
-                        "            baseBackground,\n",
-                        "            overlayAlpha\n",
-                        "          );\n\n",
-
-                        "        ret.props.style =\n",
-                        "          import_react_native3.StyleSheet.flatten([\n",
-                        "            props.style,\n",
-                        "            {\n",
-                        "              backgroundColor: newBackground\n",
-                        "            }\n",
-                        "          ]);\n\n",
-
-                        "        bunnyDcdChatHitCount++;\n\n",
-
-                        "        if (bunnyDcdChatHitCount <= 4) {\n",
-                        "          void 0;\n",
-                        "        }\n\n",
-
-                        "        return bunnyDcdChatJsxRuntime.jsx(\n",
-                        "          ThemeBackground,\n",
-                        "          {\n",
-                        "            children: ret\n",
-                        "          }\n",
-                        "        );\n",
-                        "      } catch (error) {\n",
-                        "        void 0;\n",
+                        "        return bunnyMessagesTarget.render(ret);\n",
+                        "      } catch (_) {\n",
+                        "        return;\n",
                         "      }\n",
                         "    };\n\n",
 
-                        "    var bunnyDcdChatUnpatchJsx = after(\n",
+                        "    bunnyMessagesBridge.unpatchJsx = after(\n",
                         "      \"jsx\",\n",
-                        "      bunnyDcdChatJsxRuntime,\n",
-                        "      bunnyDcdChatPatch\n",
+                        "      bunnyMessagesJsxRuntime,\n",
+                        "      bunnyForwardLiveChat\n",
                         "    );\n\n",
 
-                        "    var bunnyDcdChatUnpatchJsxs = after(\n",
+                        "    bunnyMessagesBridge.unpatchJsxs = after(\n",
                         "      \"jsxs\",\n",
-                        "      bunnyDcdChatJsxRuntime,\n",
-                        "      bunnyDcdChatPatch\n",
+                        "      bunnyMessagesJsxRuntime,\n",
+                        "      bunnyForwardLiveChat\n",
                         "    );\n\n",
 
-                        "    globalThis[bunnyDcdChatInstallKey] = {\n",
-                        "      unpatchJsx: bunnyDcdChatUnpatchJsx,\n",
-                        "      unpatchJsxs: bunnyDcdChatUnpatchJsxs\n",
-                        "    };\n\n",
+                        "    try {\n",
+                        "      if (typeof bunnyMessagesJsxRuntime.jsxDEV === \"function\") {\n",
+                        "        bunnyMessagesBridge.unpatchJsxDev = after(\n",
+                        "          \"jsxDEV\",\n",
+                        "          bunnyMessagesJsxRuntime,\n",
+                        "          bunnyForwardLiveChat\n",
+                        "        );\n",
+                        "      }\n",
+                        "    } catch (_) {\n",
+                        "    }\n\n",
 
-                        "    void 0;\n",
+                        "    try {\n",
+                        "      bunnyMessagesBridge.unpatchCreateElement = after(\n",
+                        "        \"createElement\",\n",
+                        "        bunnyMessagesReact,\n",
+                        "        bunnyForwardLiveChat\n",
+                        "      );\n",
+                        "    } catch (_) {\n",
+                        "    }\n",
                         "  }\n",
                         "};"
                 ),
@@ -1046,7 +1013,7 @@ public final class BunnyBootstrap {
                 "        initColors(currentTheme?.data ?? null);\n        bunnySyncStatusBar(currentTheme?.data ?? null);\n        if (String(currentTheme?.id ?? \"\").startsWith(\"bunny-custom:\") && currentTheme?.data) {",
                 "Bunny Discord Phase 5G startup status bar"
         );
-        
+
         patched = replaceBundleStructureExactlyOnce(
                 patched,
                 "          if (apply) return Promise.resolve(selectTheme(entry)).then(() => updateBunnyColor(entry.data, { update: true }));",
@@ -1510,15 +1477,6 @@ public final class BunnyBootstrap {
                 "        var bunnySettingsBaseIndex =\n          -~sections.findIndex(\n            (i) =>\n              Array.isArray(i?.settings) &&\n              i.settings.includes(\"ACCOUNT\")\n          ) || 1;\n\n        if (index === bunnySettingsBaseIndex) {\n          var bunnySettingsRegisteredNames =\n            new Set(Object.keys(registeredSections));\n\n          var bunnySettingsRemoved = 0;\n\n          for (\n            var bunnySettingsExistingIndex =\n              sections.length - 1;\n            bunnySettingsExistingIndex >= 0;\n            bunnySettingsExistingIndex--\n          ) {\n            var bunnySettingsExistingSection =\n              sections[bunnySettingsExistingIndex];\n\n            var bunnySettingsExistingName =\n              String(\n                bunnySettingsExistingSection?.label ??\n                bunnySettingsExistingSection?.title ??\n                \"\"\n              );\n\n            if (\n              bunnySettingsRegisteredNames.has(\n                bunnySettingsExistingName\n              )\n            ) {\n              sections.splice(\n                bunnySettingsExistingIndex,\n                1\n              );\n\n              bunnySettingsRemoved++;\n            }\n          }\n\n          index =\n            -~sections.findIndex(\n              (i) =>\n                Array.isArray(i?.settings) &&\n                i.settings.includes(\"ACCOUNT\")\n            ) || 1;\n\n          void 0;\n        }\n\n        void 0;\n\n        sections.splice(index++, 0, {",
                 "Bunny Discord settings idempotency fix"
         );
-
-        patched = replaceBundleStructureExactlyOnce(
-                patched,
-                "        var messagesComponent = findInReactTree(ret, (x2) => x2 && \"HACK_fixModalInteraction\" in x2.props && x2?.props?.style);",
-                "        var messagesComponent = null;\n\n        try {\n          var bunnyRootStyle =\n            ret?.props?.style != null\n              ? import_react_native3.StyleSheet.flatten(ret.props.style)\n              : null;\n\n          if (bunnyRootStyle?.backgroundColor != null) {\n            messagesComponent = ret;\n          } else {\n            messagesComponent = findInReactTree(\n              ret,\n              (x2) => {\n                try {\n                  if (!x2?.props || x2.props.style == null)\n                    return false;\n\n                  var bunnyOpenChatStyle =\n                    import_react_native3.StyleSheet.flatten(\n                      x2.props.style\n                    );\n\n                  return (\n                    bunnyOpenChatStyle?.backgroundColor != null\n                  );\n                } catch (_) {\n                  return false;\n                }\n              }\n            );\n          }\n        } catch (_) {}",
-                "Bunny Discord delayed open chat background target"
-        );
-
-
 
         /*
          * Discord adds semantic tokens that do not exist in Bunny spec 2.
@@ -3049,6 +3007,1027 @@ public final class BunnyBootstrap {
                 "Bunny Discord Phase 5L measured color picker"
         );
 
+
+        /*
+         * BUNNY_THEME_RUNTIME_AND_MANUAL_ORDER_V1
+         *
+         * 1. Keep the Morphe DCDChat compatibility renderer, but remove the
+         *    channelId requirement and accept either the historical
+         *    HACK_fixModalInteraction marker or a DCDChat component identity.
+         * 2. Reuse stable Image source objects and warm each wallpaper URI once.
+         * 3. Add persistent Manual ordering for Themes and Fonts.
+         */
+        patched = replaceBundleStructureExactlyOnce(
+                patched,
+                "  function ThemeBackground({ children }) {",
+                """
+  var bunnyLiveThemeMediaSourceCache = new Map();
+  var bunnyLiveThemeMediaWarmSet = new Set();
+
+  function bunnyLiveThemeBackgroundSource(value) {
+    var url = String(value ?? "").trim();
+    if (!url) return null;
+
+    var source = bunnyLiveThemeMediaSourceCache.get(url);
+    if (!source) {
+      source = { uri: url };
+      bunnyLiveThemeMediaSourceCache.set(url, source);
+
+      if (bunnyLiveThemeMediaSourceCache.size > 16) {
+        var firstKey = bunnyLiveThemeMediaSourceCache.keys().next().value;
+        if (firstKey && firstKey !== url)
+          bunnyLiveThemeMediaSourceCache.delete(firstKey);
+      }
+    }
+
+    if (!bunnyLiveThemeMediaWarmSet.has(url)) {
+      bunnyLiveThemeMediaWarmSet.add(url);
+
+      if (bunnyLiveThemeMediaWarmSet.size > 32) {
+        var firstWarmKey = bunnyLiveThemeMediaWarmSet.values().next().value;
+        if (firstWarmKey && firstWarmKey !== url)
+          bunnyLiveThemeMediaWarmSet.delete(firstWarmKey);
+      }
+
+      try {
+        if (
+          /^https?:/i.test(url) &&
+          typeof import_react_native3.Image?.prefetch === "function"
+        ) {
+          Promise.resolve(
+            import_react_native3.Image.prefetch(url)
+          ).catch(() => {});
+        } else if (
+          typeof import_react_native3.Image?.getSize === "function"
+        ) {
+          import_react_native3.Image.getSize(
+            url,
+            () => {},
+            () => {}
+          );
+        }
+      } catch (_) {
+      }
+    }
+
+    return source;
+  }
+
+  function ThemeBackground({ children }) {
+""",
+                "Bunny live wallpaper source cache"
+        );
+
+        patched = replaceBundleStructureExactlyOnce(
+                patched,
+                """
+      source: {
+        uri: _colorRef.current.background?.url
+      },
+""",
+                """
+      source: bunnyLiveThemeBackgroundSource(
+        _colorRef.current.background?.url
+      ),
+""",
+                "Bunny live wallpaper stable source"
+        );
+
+        patched = replaceBundleStructureExactlyOnce(
+                patched,
+                "  function bunnyClamp(value, min, max) {",
+                """
+  var bunnyThemeMediaSourceCache = new Map();
+  var bunnyThemeMediaWarmSet = new Set();
+
+  function bunnyThemeMediaSource(value) {
+    var url = bunnyNormalizeThemeMediaUri(value);
+    if (!url) return null;
+
+    var source = bunnyThemeMediaSourceCache.get(url);
+    if (!source) {
+      source = { uri: url };
+      bunnyThemeMediaSourceCache.set(url, source);
+
+      if (bunnyThemeMediaSourceCache.size > 32) {
+        var firstKey = bunnyThemeMediaSourceCache.keys().next().value;
+        if (firstKey && firstKey !== url)
+          bunnyThemeMediaSourceCache.delete(firstKey);
+      }
+    }
+
+    if (!bunnyThemeMediaWarmSet.has(url)) {
+      bunnyThemeMediaWarmSet.add(url);
+
+      if (bunnyThemeMediaWarmSet.size > 64) {
+        var firstWarmKey = bunnyThemeMediaWarmSet.values().next().value;
+        if (firstWarmKey && firstWarmKey !== url)
+          bunnyThemeMediaWarmSet.delete(firstWarmKey);
+      }
+
+      try {
+        if (
+          /^https?:/i.test(url) &&
+          typeof import_react_native24.Image?.prefetch === "function"
+        ) {
+          Promise.resolve(
+            import_react_native24.Image.prefetch(url)
+          ).catch(() => {});
+        } else if (
+          typeof import_react_native24.Image?.getSize === "function"
+        ) {
+          import_react_native24.Image.getSize(
+            url,
+            () => {},
+            () => {}
+          );
+        }
+      } catch (_) {
+      }
+    }
+
+    return source;
+  }
+
+  function bunnyClamp(value, min, max) {
+""",
+                "Bunny Theme Creator wallpaper source cache"
+        );
+
+        patched = replaceBundleOccurrencesExactly(
+                patched,
+                "source: { uri: mediaUrl }",
+                "source: bunnyThemeMediaSource(mediaUrl)",
+                1,
+                "Bunny Theme Creator media source reuse"
+        );
+
+        patched = replaceBundleOccurrencesExactly(
+                patched,
+                "source: { uri: backgroundPreview.url }",
+                "source: bunnyThemeMediaSource(backgroundPreview.url)",
+                1,
+                "Bunny Theme Creator selected media source reuse"
+        );
+
+        patched = replaceBundleOccurrencesExactly(
+                patched,
+                "source: { uri: bunnyChatPreview }",
+                "source: bunnyThemeMediaSource(bunnyChatPreview)",
+                1,
+                "Bunny theme card chat preview source reuse"
+        );
+
+        patched = replaceBundleOccurrencesExactly(
+                patched,
+                "source: { uri: bunnyExplicitPreview }",
+                "source: bunnyThemeMediaSource(bunnyExplicitPreview)",
+                1,
+                "Bunny theme card explicit preview source reuse"
+        );
+
+        patched = replaceBundleStructureExactlyOnce(
+                patched,
+                "  function ThemeCard({ item: theme }) {",
+                """
+  function bunnyManualValues(values) {
+    return values.filter(
+      (value) =>
+        value &&
+        typeof value === "object"
+    );
+  }
+
+  function bunnyManualOrderKeys(
+    values,
+    keyOf,
+    savedOrder
+  ) {
+    var items =
+      bunnyManualValues(values);
+
+    var existing =
+      new Set();
+
+    for (var item of items) {
+      var key =
+        String(
+          keyOf(item) ?? ""
+        );
+
+      if (key)
+        existing.add(key);
+    }
+
+    var order = [];
+    var seen = new Set();
+
+    if (Array.isArray(savedOrder)) {
+      for (var rawKey of savedOrder) {
+        var key =
+          String(
+            rawKey ?? ""
+          );
+
+        if (
+          key &&
+          existing.has(key) &&
+          !seen.has(key)
+        ) {
+          seen.add(key);
+          order.push(key);
+        }
+      }
+    }
+
+    for (var item of items) {
+      var key =
+        String(
+          keyOf(item) ?? ""
+        );
+
+      if (
+        key &&
+        !seen.has(key)
+      ) {
+        seen.add(key);
+        order.push(key);
+      }
+    }
+
+    return order;
+  }
+
+  function bunnyManualOrderedItems(
+    values,
+    keyOf,
+    savedOrder
+  ) {
+    var items =
+      bunnyManualValues(values);
+
+    var order =
+      bunnyManualOrderKeys(
+        items,
+        keyOf,
+        savedOrder
+      );
+
+    var rank =
+      new Map(
+        order.map(
+          (key, index) =>
+            [key, index]
+        )
+      );
+
+    return items
+      .slice()
+      .sort(
+        (a, b) => {
+          var aKey =
+            String(
+              keyOf(a) ?? ""
+            );
+
+          var bKey =
+            String(
+              keyOf(b) ?? ""
+            );
+
+          var aRank =
+            rank.has(aKey)
+              ? rank.get(aKey)
+              : Number.MAX_SAFE_INTEGER;
+
+          var bRank =
+            rank.has(bKey)
+              ? rank.get(bKey)
+              : Number.MAX_SAFE_INTEGER;
+
+          return aRank - bRank;
+        }
+      );
+  }
+
+  function bunnyManualCompare(
+    a,
+    b,
+    keyOf,
+    savedOrder
+  ) {
+    var order =
+      Array.isArray(savedOrder)
+        ? savedOrder.map(
+            (key) =>
+              String(
+                key ?? ""
+              )
+          )
+        : [];
+
+    var aKey =
+      String(
+        keyOf(a) ?? ""
+      );
+
+    var bKey =
+      String(
+        keyOf(b) ?? ""
+      );
+
+    var aRank =
+      order.indexOf(aKey);
+
+    var bRank =
+      order.indexOf(bKey);
+
+    if (
+      aRank < 0 &&
+      bRank < 0
+    ) {
+      return 0;
+    }
+
+    if (aRank < 0)
+      return 1;
+
+    if (bRank < 0)
+      return -1;
+
+    return aRank - bRank;
+  }
+
+  function bunnyMoveManualOrder(
+    values,
+    keyOf,
+    savedOrder,
+    requestedKey,
+    delta
+  ) {
+    var order =
+      bunnyManualOrderKeys(
+        values,
+        keyOf,
+        savedOrder
+      );
+
+    var key =
+      String(
+        requestedKey ?? ""
+      );
+
+    var index =
+      order.indexOf(key);
+
+    if (index < 0)
+      return order;
+
+    var nextIndex =
+      Math.max(
+        0,
+        Math.min(
+          order.length - 1,
+          index + Math.trunc(Number(delta) || 0)
+        )
+      );
+
+    if (nextIndex === index)
+      return order;
+
+    var next =
+      order.slice();
+
+    var temporary =
+      next[index];
+
+    next[index] =
+      next[nextIndex];
+
+    next[nextIndex] =
+      temporary;
+
+    return next;
+  }
+
+  function bunnyThemeKey(theme) {
+    return String(
+      theme?.id ?? ""
+    );
+  }
+
+  function bunnyFontKey(font) {
+    return String(
+      font?.name ?? ""
+    );
+  }
+
+  function bunnyThemeManualItems() {
+    return bunnyManualOrderedItems(
+      Object.values(themes),
+      bunnyThemeKey,
+      settings.bunnyThemeOrder
+    );
+  }
+
+  function bunnyFontManualItems() {
+    return bunnyManualOrderedItems(
+      Object.values(fonts),
+      bunnyFontKey,
+      settings.bunnyFontOrder
+    );
+  }
+
+  function bunnyThemeManualCompare(
+    a,
+    b
+  ) {
+    return bunnyManualCompare(
+      a,
+      b,
+      bunnyThemeKey,
+      settings.bunnyThemeOrder
+    );
+  }
+
+  function bunnyFontManualCompare(
+    a,
+    b
+  ) {
+    return bunnyManualCompare(
+      a,
+      b,
+      bunnyFontKey,
+      settings.bunnyFontOrder
+    );
+  }
+
+  function bunnyMoveThemeOrder(
+    themeId,
+    delta
+  ) {
+    settings.bunnyThemeOrder =
+      bunnyMoveManualOrder(
+        Object.values(themes),
+        bunnyThemeKey,
+        settings.bunnyThemeOrder,
+        themeId,
+        delta
+      );
+
+    settings.bunnyThemeSortMode =
+      "Manual";
+  }
+
+  function bunnyMoveFontOrder(
+    fontName,
+    delta
+  ) {
+    settings.bunnyFontOrder =
+      bunnyMoveManualOrder(
+        Object.values(fonts),
+        bunnyFontKey,
+        settings.bunnyFontOrder,
+        fontName,
+        delta
+      );
+
+    settings.bunnyFontSortMode =
+      "Manual";
+  }
+
+  function ThemeCard({ item: theme }) {
+""",
+                "Bunny manual theme and font order model"
+        );
+
+        patched = replaceBundleStructureExactlyOnce(
+                patched,
+                "    var [sortFn, setSortFn] = React.useState(() => null);",
+                """
+    var [sortName, setSortName] =
+      React.useState(
+        () =>
+          props.defaultSortOption ??
+          null
+      );
+
+    var sortFn =
+      sortName
+        ? props.sortOptions?.[
+            sortName
+          ] ?? null
+        : null;
+
+    React.useEffect(
+      () => {
+        if (
+          props.defaultSortOption ===
+          void 0
+        ) {
+          return;
+        }
+
+        var requestedSort =
+          props.defaultSortOption ??
+          null;
+
+        if (
+          requestedSort !==
+          sortName
+        ) {
+          setSortName(
+            requestedSort
+          );
+        }
+      },
+      [
+        props.defaultSortOption,
+        sortName
+      ]
+    );
+""",
+                "Bunny persistent addon sort state"
+        );
+
+        patched = replaceBundleStructureExactlyOnce(
+                patched,
+                "                      setSortFn(() => fn);",
+                """
+                      setSortName(
+                        String(name)
+                      );
+
+                      props.onSortOptionChange?.(
+                        String(name)
+                      );
+""",
+                "Bunny persistent addon sort selection"
+        );
+
+        patched = replaceBundleStructureExactlyOnce(
+                patched,
+                """
+      sortOptions: {
+        "Name (A-Z)": (a, b3) => a.data.name.localeCompare(b3.data.name),
+        "Name (Z-A)": (a, b3) => b3.data.name.localeCompare(a.data.name)
+      },
+""",
+                """
+      sortOptions: {
+        "Manual": bunnyThemeManualCompare,
+        "Name (A-Z)": (a, b3) => a.data.name.localeCompare(b3.data.name),
+        "Name (Z-A)": (a, b3) => b3.data.name.localeCompare(a.data.name)
+      },
+      defaultSortOption: settings.bunnyThemeSortMode ?? "Manual",
+      onSortOptionChange: (name) => {
+        settings.bunnyThemeSortMode =
+          String(name);
+      },
+""",
+                "Bunny Themes persistent sort options"
+        );
+
+        patched = replaceBundleStructureExactlyOnce(
+                patched,
+                "      items: Object.values(themes),",
+                "      items: bunnyThemeManualItems(),",
+                "Bunny Themes manual item order"
+        );
+
+        patched = replaceBundleStructureExactlyOnce(
+                patched,
+                """
+      title: Strings.FONTS,
+      searchKeywords: [
+        "name",
+        "description"
+      ],
+      sortOptions: {
+        "Name (A-Z)": (a, b3) => a.name.localeCompare(b3.name),
+        "Name (Z-A)": (a, b3) => b3.name.localeCompare(a.name)
+      },
+""",
+                """
+      title: Strings.FONTS,
+      searchKeywords: [
+        "name",
+        "description"
+      ],
+      sortOptions: {
+        "Manual": bunnyFontManualCompare,
+        "Name (A-Z)": (a, b3) => a.name.localeCompare(b3.name),
+        "Name (Z-A)": (a, b3) => b3.name.localeCompare(a.name)
+      },
+      defaultSortOption: settings.bunnyFontSortMode ?? "Manual",
+      onSortOptionChange: (name) => {
+        settings.bunnyFontSortMode =
+          String(name);
+      },
+""",
+                "Bunny Fonts persistent sort options"
+        );
+
+        patched = replaceBundleStructureExactlyOnce(
+                patched,
+                "      items: Object.values(fonts),",
+                "      items: bunnyFontManualItems(),",
+                "Bunny Fonts manual item order"
+        );
+
+
+        /*
+         * BUNNY_MANUAL_SORT_REORDER_WORKFLOW_V3
+         *
+         * Keep Manual in the existing sort sheet beside A-Z and Z-A.
+         * When Manual is the active mode, show a dedicated Reorder button.
+         * Reordering writes the exact persistent manual order immediately.
+         */
+        patched = replaceBundleStructureExactlyOnce(
+                patched,
+                "  function ThemeCard({ item: theme }) {",
+                """
+  function BunnyThemeReorderPage() {
+    useProxy(settings);
+    useProxy(themes);
+
+    var items =
+      bunnyThemeManualItems();
+
+    return /* @__PURE__ */ jsx(
+      import_react_native24.ScrollView,
+      {
+        contentContainerStyle: {
+          paddingHorizontal: 12,
+          paddingTop: 12,
+          paddingBottom: 48,
+          gap: 8
+        },
+        children: [
+          /* @__PURE__ */ jsx(Text, {
+            variant: "text-md/medium",
+            color: "text-muted",
+            style: {
+              marginBottom: 4
+            },
+            children:
+              "Arrange themes in the exact order used by Manual sorting. Changes save immediately."
+          }),
+          ...items.map(
+            (theme, index) =>
+              /* @__PURE__ */ jsx(
+                Card,
+                {
+                  children: /* @__PURE__ */ jsxs(
+                    import_react_native24.View,
+                    {
+                      style: {
+                        gap: 10
+                      },
+                      children: [
+                        /* @__PURE__ */ jsxs(
+                          import_react_native24.View,
+                          {
+                            style: {
+                              flexDirection: "row",
+                              alignItems: "center",
+                              gap: 10
+                            },
+                            children: [
+                              /* @__PURE__ */ jsx(
+                                Text,
+                                {
+                                  variant: "text-md/semibold",
+                                  color: "text-muted",
+                                  style: {
+                                    minWidth: 28
+                                  },
+                                  children:
+                                    String(index + 1)
+                                }
+                              ),
+                              /* @__PURE__ */ jsx(
+                                Text,
+                                {
+                                  variant: "heading-md/semibold",
+                                  numberOfLines: 2,
+                                  style: {
+                                    flex: 1,
+                                    minWidth: 0
+                                  },
+                                  children:
+                                    theme?.data?.name ??
+                                    theme?.id ??
+                                    "Unnamed theme"
+                                }
+                              )
+                            ]
+                          }
+                        ),
+                        /* @__PURE__ */ jsxs(Stack, {
+                          direction: "horizontal",
+                          spacing: 8,
+                          children: [
+                            /* @__PURE__ */ jsx(Button, {
+                              size: "sm",
+                              variant: "secondary",
+                              text: "Top",
+                              disabled: index === 0,
+                              onPress: () =>
+                                bunnyMoveThemeOrder(
+                                  theme.id,
+                                  -items.length
+                                )
+                            }),
+                            /* @__PURE__ */ jsx(Button, {
+                              size: "sm",
+                              variant: "secondary",
+                              text: "Up",
+                              disabled: index === 0,
+                              onPress: () =>
+                                bunnyMoveThemeOrder(
+                                  theme.id,
+                                  -1
+                                )
+                            }),
+                            /* @__PURE__ */ jsx(Button, {
+                              size: "sm",
+                              variant: "secondary",
+                              text: "Down",
+                              disabled:
+                                index === items.length - 1,
+                              onPress: () =>
+                                bunnyMoveThemeOrder(
+                                  theme.id,
+                                  1
+                                )
+                            }),
+                            /* @__PURE__ */ jsx(Button, {
+                              size: "sm",
+                              variant: "secondary",
+                              text: "Bottom",
+                              disabled:
+                                index === items.length - 1,
+                              onPress: () =>
+                                bunnyMoveThemeOrder(
+                                  theme.id,
+                                  items.length
+                                )
+                            })
+                          ]
+                        })
+                      ]
+                    }
+                  )
+                },
+                theme.id
+              )
+          )
+        ]
+      }
+    );
+  }
+
+  function ThemeCard({ item: theme }) {
+""",
+                "Bunny Themes manual reorder page"
+        );
+
+        patched = replaceBundleStructureExactlyOnce(
+                patched,
+                "      title: Strings.THEMES,\n      searchKeywords:",
+                """
+      title: Strings.THEMES,
+      ListHeaderComponent:
+        settings.bunnyThemeSortMode === "Manual"
+          ? () =>
+              /* @__PURE__ */ jsx(
+                import_react_native24.View,
+                {
+                  style: {
+                    paddingTop: 8,
+                    paddingBottom: 4
+                  },
+                  children: /* @__PURE__ */ jsx(Button, {
+                    size: "sm",
+                    variant: "secondary",
+                    text: "Reorder Manual",
+                    onPress: () =>
+                      bunnyThemeNavigation.push(
+                        "BUNNY_CUSTOM_PAGE",
+                        {
+                          title: "Reorder Themes",
+                          render: () =>
+                            /* @__PURE__ */ jsx(
+                              BunnyThemeReorderPage,
+                              {}
+                            )
+                        }
+                      )
+                  })
+                }
+              )
+          : void 0,
+      searchKeywords:
+""",
+                "Bunny Themes Manual-only reorder entry"
+        );
+
+        patched = replaceBundleStructureExactlyOnce(
+                patched,
+                "  function FontCard({ item: font }) {",
+                """
+  function BunnyFontReorderPage() {
+    useProxy(settings);
+    useProxy(fonts);
+
+    var items =
+      bunnyFontManualItems();
+
+    return /* @__PURE__ */ jsx(
+      import_react_native26.ScrollView,
+      {
+        contentContainerStyle: {
+          paddingHorizontal: 12,
+          paddingTop: 12,
+          paddingBottom: 48,
+          gap: 8
+        },
+        children: [
+          /* @__PURE__ */ jsx(Text, {
+            variant: "text-md/medium",
+            color: "text-muted",
+            style: {
+              marginBottom: 4
+            },
+            children:
+              "Arrange fonts in the exact order used by Manual sorting. Changes save immediately."
+          }),
+          ...items.map(
+            (font, index) =>
+              /* @__PURE__ */ jsx(
+                Card,
+                {
+                  children: /* @__PURE__ */ jsxs(
+                    import_react_native26.View,
+                    {
+                      style: {
+                        gap: 10
+                      },
+                      children: [
+                        /* @__PURE__ */ jsxs(
+                          import_react_native26.View,
+                          {
+                            style: {
+                              flexDirection: "row",
+                              alignItems: "center",
+                              gap: 10
+                            },
+                            children: [
+                              /* @__PURE__ */ jsx(
+                                Text,
+                                {
+                                  variant: "text-md/semibold",
+                                  color: "text-muted",
+                                  style: {
+                                    minWidth: 28
+                                  },
+                                  children:
+                                    String(index + 1)
+                                }
+                              ),
+                              /* @__PURE__ */ jsx(
+                                Text,
+                                {
+                                  variant: "heading-md/semibold",
+                                  numberOfLines: 2,
+                                  style: {
+                                    flex: 1,
+                                    minWidth: 0,
+                                    fontFamily:
+                                      bunnyPreviewFontFamily(
+                                        font,
+                                        "heading-md/semibold"
+                                      )
+                                  },
+                                  children:
+                                    font?.name ??
+                                    "Unnamed font"
+                                }
+                              )
+                            ]
+                          }
+                        ),
+                        /* @__PURE__ */ jsxs(Stack, {
+                          direction: "horizontal",
+                          spacing: 8,
+                          children: [
+                            /* @__PURE__ */ jsx(Button, {
+                              size: "sm",
+                              variant: "secondary",
+                              text: "Top",
+                              disabled: index === 0,
+                              onPress: () =>
+                                bunnyMoveFontOrder(
+                                  font.name,
+                                  -items.length
+                                )
+                            }),
+                            /* @__PURE__ */ jsx(Button, {
+                              size: "sm",
+                              variant: "secondary",
+                              text: "Up",
+                              disabled: index === 0,
+                              onPress: () =>
+                                bunnyMoveFontOrder(
+                                  font.name,
+                                  -1
+                                )
+                            }),
+                            /* @__PURE__ */ jsx(Button, {
+                              size: "sm",
+                              variant: "secondary",
+                              text: "Down",
+                              disabled:
+                                index === items.length - 1,
+                              onPress: () =>
+                                bunnyMoveFontOrder(
+                                  font.name,
+                                  1
+                                )
+                            }),
+                            /* @__PURE__ */ jsx(Button, {
+                              size: "sm",
+                              variant: "secondary",
+                              text: "Bottom",
+                              disabled:
+                                index === items.length - 1,
+                              onPress: () =>
+                                bunnyMoveFontOrder(
+                                  font.name,
+                                  items.length
+                                )
+                            })
+                          ]
+                        })
+                      ]
+                    }
+                  )
+                },
+                font.name
+              )
+          )
+        ]
+      }
+    );
+  }
+
+  function FontCard({ item: font }) {
+""",
+                "Bunny Fonts manual reorder page"
+        );
+
+        patched = replaceBundleStructureExactlyOnce(
+                patched,
+                "      title: Strings.FONTS,\n      searchKeywords:",
+                """
+      title: Strings.FONTS,
+      ListHeaderComponent:
+        settings.bunnyFontSortMode === "Manual"
+          ? () =>
+              /* @__PURE__ */ jsx(
+                import_react_native26.View,
+                {
+                  style: {
+                    paddingTop: 8,
+                    paddingBottom: 4
+                  },
+                  children: /* @__PURE__ */ jsx(Button, {
+                    size: "sm",
+                    variant: "secondary",
+                    text: "Reorder Manual",
+                    onPress: () =>
+                      navigation2.push(
+                        "BUNNY_CUSTOM_PAGE",
+                        {
+                          title: "Reorder Fonts",
+                          render: () =>
+                            /* @__PURE__ */ jsx(
+                              BunnyFontReorderPage,
+                              {}
+                            )
+                        }
+                      )
+                  })
+                }
+              )
+          : void 0,
+      searchKeywords:
+""",
+                "Bunny Fonts Manual-only reorder entry"
+        );
+
+
         return patched;
     }
 
@@ -3229,6 +4208,43 @@ public final class BunnyBootstrap {
                 + creatorAction
                 + source.substring(arrayOpen + 1);
     }
+    private static String replaceBundleOccurrencesExactly(
+            String source,
+            String anchor,
+            String replacement,
+            int expectedCount,
+            String label
+    ) throws IOException {
+        int count = 0;
+        int index = 0;
+
+        while (true) {
+            index = source.indexOf(anchor, index);
+
+            if (index < 0) {
+                break;
+            }
+
+            count++;
+            index += anchor.length();
+        }
+
+        if (count != expectedCount) {
+            throw new IOException(
+                    label
+                            + " expected "
+                            + expectedCount
+                            + " occurrence(s), found "
+                            + count
+            );
+        }
+
+        return source.replace(
+                anchor,
+                replacement
+        );
+    }
+
     private static String replaceBundleStructureExactlyOnce(
             String source,
             String anchor,
@@ -3922,7 +4938,7 @@ public final class BunnyBootstrap {
                 file.isFile() ? file.lastModified() : -1L;
         bunnyThemeFileLength =
                 file.isFile() ? file.length() : -1L;
-    
+
         /*
          * The new theme maps are now committed. Native resource/semantic
          * callers naturally see them on their next lookup; the mounted
@@ -4069,6 +5085,673 @@ public final class BunnyBootstrap {
     }
 
 
+
+    /*
+     * BUNNY_CHAT_BACKGROUND_NATIVE_VIEW_V5
+     *
+     * Background media stays completely outside React/Fabric. Discord's
+     * actual chat canvas is com.discord.chat.presentation.root.ChatView.
+     */
+    private static final java.lang.Object
+            BUNNY_NATIVE_CHAT_BACKGROUND_LOCK =
+            new java.lang.Object();
+
+    private static volatile String
+            bunnyNativeChatBackgroundSource = "";
+
+    private static volatile float
+            bunnyNativeChatBackgroundOpacity = 1.0f;
+
+    private static volatile long
+            bunnyNativeChatBackgroundGeneration = 0L;
+
+    private static volatile String
+            bunnyNativeChatBackgroundPendingSignature = "";
+
+    private static volatile String
+            bunnyNativeChatBackgroundAppliedSignature = "";
+
+    private static volatile java.lang.ref.WeakReference<android.view.View>
+            bunnyNativeChatBackgroundAppliedView =
+            new java.lang.ref.WeakReference<>(null);
+
+
+    private static final class BunnyNativeChatBackgroundDrawable
+            extends android.graphics.drawable.Drawable
+            implements android.graphics.drawable.Drawable.Callback {
+
+        private final int baseColor;
+        private final android.graphics.drawable.Drawable image;
+        private final int imageAlpha;
+
+        BunnyNativeChatBackgroundDrawable(
+                int baseColor,
+                android.graphics.drawable.Drawable image,
+                float opacity
+        ) {
+            this.baseColor = baseColor;
+            this.image = image;
+
+            float safeOpacity =
+                    java.lang.Math.max(
+                            0.0f,
+                            java.lang.Math.min(1.0f, opacity)
+                    );
+
+            this.imageAlpha =
+                    java.lang.Math.round(
+                            safeOpacity * 255.0f
+                    );
+
+            if (this.image != null) {
+                this.image.setCallback(this);
+                this.image.setAlpha(this.imageAlpha);
+            }
+        }
+
+        @Override
+        public void draw(android.graphics.Canvas canvas) {
+            android.graphics.Rect bounds = getBounds();
+
+            canvas.drawColor(baseColor);
+
+            if (
+                    image == null
+                            || bounds.width() <= 0
+                            || bounds.height() <= 0
+            ) {
+                return;
+            }
+
+            int iw = image.getIntrinsicWidth();
+            int ih = image.getIntrinsicHeight();
+
+            if (iw <= 0 || ih <= 0) {
+                image.setBounds(bounds);
+                image.setAlpha(imageAlpha);
+                image.draw(canvas);
+                return;
+            }
+
+            float scale =
+                    java.lang.Math.max(
+                            bounds.width() / (float) iw,
+                            bounds.height() / (float) ih
+                    );
+
+            int width =
+                    java.lang.Math.max(
+                            1,
+                            java.lang.Math.round(iw * scale)
+                    );
+
+            int height =
+                    java.lang.Math.max(
+                            1,
+                            java.lang.Math.round(ih * scale)
+                    );
+
+            int left =
+                    bounds.left
+                            + (bounds.width() - width) / 2;
+
+            int top =
+                    bounds.top
+                            + (bounds.height() - height) / 2;
+
+            image.setBounds(
+                    left,
+                    top,
+                    left + width,
+                    top + height
+            );
+
+            image.setAlpha(imageAlpha);
+            image.draw(canvas);
+        }
+
+        void startIfAnimated() {
+            if (
+                    android.os.Build.VERSION.SDK_INT >= 28
+                            && image
+                            instanceof android.graphics.drawable.AnimatedImageDrawable
+            ) {
+                ((android.graphics.drawable.AnimatedImageDrawable) image)
+                        .start();
+            }
+        }
+
+        void stopIfAnimated() {
+            if (
+                    android.os.Build.VERSION.SDK_INT >= 28
+                            && image
+                            instanceof android.graphics.drawable.AnimatedImageDrawable
+            ) {
+                ((android.graphics.drawable.AnimatedImageDrawable) image)
+                        .stop();
+            }
+
+            if (image != null) {
+                image.setCallback(null);
+            }
+        }
+
+        @Override
+        public void setAlpha(int alpha) {
+        }
+
+        @Override
+        public void setColorFilter(
+                android.graphics.ColorFilter colorFilter
+        ) {
+            if (image != null) {
+                image.setColorFilter(colorFilter);
+            }
+        }
+
+        @Override
+        public int getOpacity() {
+            return android.graphics.PixelFormat.TRANSLUCENT;
+        }
+
+        @Override
+        public void invalidateDrawable(
+                android.graphics.drawable.Drawable who
+        ) {
+            invalidateSelf();
+        }
+
+        @Override
+        public void scheduleDrawable(
+                android.graphics.drawable.Drawable who,
+                java.lang.Runnable what,
+                long when
+        ) {
+            scheduleSelf(what, when);
+        }
+
+        @Override
+        public void unscheduleDrawable(
+                android.graphics.drawable.Drawable who,
+                java.lang.Runnable what
+        ) {
+            unscheduleSelf(what);
+        }
+    }
+
+
+    private static boolean hasBunnyNativeChatBackground() {
+        String source =
+                bunnyNativeChatBackgroundSource;
+
+        return source != null
+                && !source.trim().isEmpty();
+    }
+
+
+    private static boolean updateBunnyNativeChatBackground(
+            android.net.Uri request,
+            Object promise
+    ) {
+        final String source;
+        final float opacity;
+
+        try {
+            String rawSource =
+                    request.getQueryParameter("url");
+
+            source =
+                    rawSource != null
+                            ? rawSource.trim()
+                            : "";
+
+            float parsedOpacity = 1.0f;
+
+            String rawOpacity =
+                    request.getQueryParameter("opacity");
+
+            if (
+                    rawOpacity != null
+                            && !rawOpacity.trim().isEmpty()
+            ) {
+                parsedOpacity =
+                        java.lang.Float.parseFloat(
+                                rawOpacity.trim()
+                        );
+            }
+
+            if (
+                    java.lang.Float.isNaN(parsedOpacity)
+                            || java.lang.Float.isInfinite(parsedOpacity)
+            ) {
+                parsedOpacity = 1.0f;
+            }
+
+            opacity =
+                    java.lang.Math.max(
+                            0.0f,
+                            java.lang.Math.min(
+                                    1.0f,
+                                    parsedOpacity
+                            )
+                    );
+
+        } catch (java.lang.Throwable error) {
+            resolveBunnyFontImportPromise(
+                    promise,
+                    bunnyFontImportResult(
+                            "error",
+                            null,
+                            null,
+                            "Could not read the native chat background request."
+                    )
+            );
+            return true;
+        }
+
+        synchronized (BUNNY_NATIVE_CHAT_BACKGROUND_LOCK) {
+            bunnyNativeChatBackgroundSource = source;
+            bunnyNativeChatBackgroundOpacity = opacity;
+            bunnyNativeChatBackgroundGeneration++;
+            bunnyNativeChatBackgroundPendingSignature = "";
+            bunnyNativeChatBackgroundAppliedSignature = "";
+            bunnyNativeChatBackgroundAppliedView =
+                    new java.lang.ref.WeakReference<>(null);
+        }
+
+        scheduleBunnyNativeChatBackgroundApply();
+
+        resolveBunnyFontImportPromise(
+                promise,
+                bunnyFontImportResult(
+                        "success",
+                        source,
+                        "native-chat-background",
+                        null
+                )
+        );
+
+        return true;
+    }
+
+
+    private static android.graphics.drawable.Drawable
+    decodeBunnyNativeChatBackground(
+            android.content.Context context,
+            String source
+    ) throws java.lang.Exception {
+        if (
+                context == null
+                        || source == null
+                        || source.trim().isEmpty()
+        ) {
+            return null;
+        }
+
+        String normalized = source.trim();
+
+        android.net.Uri uri =
+                android.net.Uri.parse(normalized);
+
+        String scheme = uri.getScheme();
+
+        if (
+                scheme == null
+                        || scheme.isEmpty()
+                        || "file".equalsIgnoreCase(scheme)
+        ) {
+            String path =
+                    "file".equalsIgnoreCase(scheme)
+                            ? uri.getPath()
+                            : normalized;
+
+            if (path == null || path.trim().isEmpty()) {
+                throw new java.io.IOException(
+                        "Native chat background file path is empty."
+                );
+            }
+
+            java.io.File file = new java.io.File(path);
+
+            if (!file.isFile()) {
+                throw new java.io.IOException(
+                        "Native chat background file does not exist."
+                );
+            }
+
+            if (android.os.Build.VERSION.SDK_INT >= 28) {
+                android.graphics.ImageDecoder.Source decoderSource =
+                        android.graphics.ImageDecoder.createSource(file);
+
+                return android.graphics.ImageDecoder.decodeDrawable(
+                        decoderSource
+                );
+            }
+
+            android.graphics.Bitmap bitmap =
+                    android.graphics.BitmapFactory.decodeFile(
+                            file.getAbsolutePath()
+                    );
+
+            if (bitmap == null) {
+                throw new java.io.IOException(
+                        "Native chat background file could not be decoded."
+                );
+            }
+
+            return new android.graphics.drawable.BitmapDrawable(
+                    context.getResources(),
+                    bitmap
+            );
+        }
+
+        if ("content".equalsIgnoreCase(scheme)) {
+            if (android.os.Build.VERSION.SDK_INT >= 28) {
+                android.graphics.ImageDecoder.Source decoderSource =
+                        android.graphics.ImageDecoder.createSource(
+                                context.getContentResolver(),
+                                uri
+                        );
+
+                return android.graphics.ImageDecoder.decodeDrawable(
+                        decoderSource
+                );
+            }
+
+            try (
+                    java.io.InputStream input =
+                            context.getContentResolver()
+                                    .openInputStream(uri)
+            ) {
+                if (input == null) {
+                    throw new java.io.IOException(
+                            "Native chat background content URI could not be opened."
+                    );
+                }
+
+                android.graphics.Bitmap bitmap =
+                        android.graphics.BitmapFactory.decodeStream(input);
+
+                if (bitmap == null) {
+                    throw new java.io.IOException(
+                            "Native chat background content URI could not be decoded."
+                    );
+                }
+
+                return new android.graphics.drawable.BitmapDrawable(
+                        context.getResources(),
+                        bitmap
+                );
+            }
+        }
+
+        throw new java.io.IOException(
+                "Native chat background source must already be local."
+        );
+    }
+
+
+    private static void stopBunnyNativeChatBackgroundDrawable(
+            android.graphics.drawable.Drawable drawable
+    ) {
+        if (
+                drawable
+                instanceof BunnyNativeChatBackgroundDrawable
+        ) {
+            ((BunnyNativeChatBackgroundDrawable) drawable)
+                    .stopIfAnimated();
+        }
+    }
+
+
+    private static void scheduleBunnyNativeChatBackgroundApply() {
+        final android.view.View target =
+                bunnyChatBackgroundViewReference.get();
+
+        if (
+                target == null
+                        || !isBunnyChatBackgroundOwner(target)
+        ) {
+            return;
+        }
+
+        final android.content.Context context =
+                bunnyThemeContext != null
+                        ? bunnyThemeContext
+                        : (
+                        appContext != null
+                                ? appContext
+                                : bunnyFontContext
+                );
+
+        if (context == null) {
+            return;
+        }
+
+        final String source =
+                bunnyNativeChatBackgroundSource != null
+                        ? bunnyNativeChatBackgroundSource.trim()
+                        : "";
+
+        final float opacity =
+                bunnyNativeChatBackgroundOpacity;
+
+        final long generation =
+                bunnyNativeChatBackgroundGeneration;
+
+        java.lang.Integer resolvedBase =
+                resolveBunnyMainBackgroundColor();
+
+        final int baseColor =
+                resolvedBase != null
+                        ? resolvedBase.intValue()
+                        : 0xFF1A1A1E;
+
+        final String signature =
+                generation
+                        + "|"
+                        + source
+                        + "|"
+                        + opacity
+                        + "|"
+                        + java.lang.Integer.toHexString(
+                        baseColor
+                );
+
+        synchronized (BUNNY_NATIVE_CHAT_BACKGROUND_LOCK) {
+            android.view.View applied =
+                    bunnyNativeChatBackgroundAppliedView.get();
+
+            if (
+                    applied == target
+                            && signature.equals(
+                            bunnyNativeChatBackgroundAppliedSignature
+                    )
+            ) {
+                return;
+            }
+
+            if (
+                    signature.equals(
+                            bunnyNativeChatBackgroundPendingSignature
+                    )
+            ) {
+                return;
+            }
+
+            bunnyNativeChatBackgroundPendingSignature =
+                    signature;
+        }
+
+        if (source.isEmpty()) {
+            target.post(
+                    new java.lang.Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                if (
+                                        target
+                                        != bunnyChatBackgroundViewReference.get()
+                                                || !target.isAttachedToWindow()
+                                                || !isBunnyChatBackgroundOwner(
+                                                target
+                                        )
+                                ) {
+                                    return;
+                                }
+
+                                stopBunnyNativeChatBackgroundDrawable(
+                                        target.getBackground()
+                                );
+
+                                target.setBackgroundColor(baseColor);
+
+                                synchronized (
+                                        BUNNY_NATIVE_CHAT_BACKGROUND_LOCK
+                                ) {
+                                    bunnyNativeChatBackgroundAppliedView =
+                                            new java.lang.ref.WeakReference<>(
+                                                    target
+                                            );
+                                    bunnyNativeChatBackgroundAppliedSignature =
+                                            signature;
+                                }
+
+                            } finally {
+                                synchronized (
+                                        BUNNY_NATIVE_CHAT_BACKGROUND_LOCK
+                                ) {
+                                    if (
+                                            signature.equals(
+                                                    bunnyNativeChatBackgroundPendingSignature
+                                            )
+                                    ) {
+                                        bunnyNativeChatBackgroundPendingSignature =
+                                                "";
+                                    }
+                                }
+                            }
+                        }
+                    }
+            );
+            return;
+        }
+
+        BUNNY_THEME_BACKGROUND_IMPORT_EXECUTOR.execute(
+                new java.lang.Runnable() {
+                    @Override
+                    public void run() {
+                        android.graphics.drawable.Drawable decoded = null;
+                        java.lang.Throwable failure = null;
+
+                        try {
+                            decoded =
+                                    decodeBunnyNativeChatBackground(
+                                            context,
+                                            source
+                                    );
+                        } catch (java.lang.Throwable error) {
+                            failure = error;
+                        }
+
+                        final android.graphics.drawable.Drawable
+                                finalDecoded = decoded;
+
+                        final java.lang.Throwable
+                                finalFailure = failure;
+
+                        target.post(
+                                new java.lang.Runnable() {
+                                    @Override
+                                    public void run() {
+                                        try {
+                                            if (
+                                                    generation
+                                                    != bunnyNativeChatBackgroundGeneration
+                                                            || target
+                                                            != bunnyChatBackgroundViewReference.get()
+                                                            || !target.isAttachedToWindow()
+                                                            || !isBunnyChatBackgroundOwner(
+                                                            target
+                                                    )
+                                            ) {
+                                                return;
+                                            }
+
+                                            if (
+                                                    finalFailure != null
+                                                            || finalDecoded == null
+                                            ) {
+                                                android.util.Log.w(
+                                                        TAG,
+                                                        "Native chat background decode failed: "
+                                                                + source,
+                                                        finalFailure
+                                                );
+
+                                                stopBunnyNativeChatBackgroundDrawable(
+                                                        target.getBackground()
+                                                );
+
+                                                target.setBackgroundColor(
+                                                        baseColor
+                                                );
+                                                return;
+                                            }
+
+                                            stopBunnyNativeChatBackgroundDrawable(
+                                                    target.getBackground()
+                                            );
+
+                                            BunnyNativeChatBackgroundDrawable
+                                                    background =
+                                                    new BunnyNativeChatBackgroundDrawable(
+                                                            baseColor,
+                                                            finalDecoded,
+                                                            opacity
+                                                    );
+
+                                            target.setBackground(background);
+                                            background.startIfAnimated();
+
+                                            synchronized (
+                                                    BUNNY_NATIVE_CHAT_BACKGROUND_LOCK
+                                            ) {
+                                                bunnyNativeChatBackgroundAppliedView =
+                                                        new java.lang.ref.WeakReference<>(
+                                                                target
+                                                        );
+                                                bunnyNativeChatBackgroundAppliedSignature =
+                                                        signature;
+                                            }
+
+                                            android.util.Log.i(
+                                                    TAG,
+                                                    "Native chat background applied"
+                                            );
+
+                                        } finally {
+                                            synchronized (
+                                                    BUNNY_NATIVE_CHAT_BACKGROUND_LOCK
+                                            ) {
+                                                if (
+                                                        signature.equals(
+                                                                bunnyNativeChatBackgroundPendingSignature
+                                                        )
+                                                ) {
+                                                    bunnyNativeChatBackgroundPendingSignature =
+                                                            "";
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                        );
+                    }
+                }
+        );
+    }
+
     private static boolean isBunnyChatBackgroundOwner(
             android.view.View view
     ) {
@@ -4154,6 +5837,8 @@ public final class BunnyBootstrap {
                 new java.lang.ref.WeakReference<>(
                         view
                 );
+
+        scheduleBunnyNativeChatBackgroundApply();
     }
 
 
@@ -4195,6 +5880,11 @@ public final class BunnyBootstrap {
                                         resolveBunnyMainBackgroundColor();
 
                                 if (background == null) {
+                                    return;
+                                }
+
+                                if (hasBunnyNativeChatBackground()) {
+                                    scheduleBunnyNativeChatBackgroundApply();
                                     return;
                                 }
 
@@ -5046,7 +6736,7 @@ public final class BunnyBootstrap {
      * theme's Surface value, including imported themes. This is not a
      * Theme Creator-only substitution.
      */
-    
+
         /*
      * BUNNY_DM_NAVIGATION_HARDENING
      *
@@ -5070,7 +6760,7 @@ public final class BunnyBootstrap {
     }
 
 
-    
+
     /*
      * Discord server-drawer ownership.
      *
@@ -6146,6 +7836,13 @@ public static java.lang.Integer resolveBunnyReactBackgroundColorBase(
             return beginBunnyThemeBackgroundImport(promise);
         }
 
+        if ("theme-chat-background-native".equals(requestHost)) {
+            return updateBunnyNativeChatBackground(
+                    request,
+                    promise
+            );
+        }
+
         if ("theme-background-url".equals(requestHost)) {
             return beginBunnyThemeBackgroundUrlImport(
                     request,
@@ -6376,6 +8073,461 @@ public static java.lang.Integer resolveBunnyReactBackgroundColorBase(
     }
 
 
+
+    /*
+     * BUNNY_URL_BACKGROUND_SUPPORT_V9
+     *
+     * Remote backgrounds are still imported to Bunny-private local storage.
+     * This layer broadens what can resolve to an image:
+     *   - direct image URLs
+     *   - signed/query-string/extensionless CDN URLs
+     *   - HTTP redirects
+     *   - ordinary HTML pages exposing og:image, twitter:image, or image_src
+     *
+     * The final authority remains Android's decoder, not filename/MIME.
+     */
+    private static String bunnyResolveBackgroundHtmlImageUrl(
+            String pageUrl,
+            File htmlFile
+    ) {
+        if (
+                pageUrl == null
+                        || htmlFile == null
+                        || !htmlFile.isFile()
+        ) {
+            return null;
+        }
+
+        final long maximumHtmlBytes =
+                2L * 1024L * 1024L;
+
+        if (
+                htmlFile.length() <= 0L
+                        || htmlFile.length() > maximumHtmlBytes
+        ) {
+            return null;
+        }
+
+        try {
+            byte[] data =
+                    new byte[
+                            (int) htmlFile.length()
+                    ];
+
+            int offset =
+                    0;
+
+            try (
+                    java.io.InputStream input =
+                            new java.io.BufferedInputStream(
+                                    new java.io.FileInputStream(
+                                            htmlFile
+                                    )
+                            )
+            ) {
+                while (offset < data.length) {
+                    int read =
+                            input.read(
+                                    data,
+                                    offset,
+                                    data.length - offset
+                            );
+
+                    if (read < 0) {
+                        break;
+                    }
+
+                    offset += read;
+                }
+            }
+
+            if (offset <= 0) {
+                return null;
+            }
+
+            String html =
+                    new String(
+                            data,
+                            0,
+                            offset,
+                            java.nio.charset.StandardCharsets.UTF_8
+                    );
+
+            java.util.regex.Pattern[] patterns =
+                    new java.util.regex.Pattern[] {
+                            java.util.regex.Pattern.compile(
+                                    "<meta[^>]+(?:property|name)\\s*=\\s*[\"'](?:og:image(?::url)?|twitter:image(?::src)?)[\"'][^>]+content\\s*=\\s*[\"']([^\"']+)[\"']",
+                                    java.util.regex.Pattern.CASE_INSENSITIVE
+                                            | java.util.regex.Pattern.DOTALL
+                            ),
+                            java.util.regex.Pattern.compile(
+                                    "<meta[^>]+content\\s*=\\s*[\"']([^\"']+)[\"'][^>]+(?:property|name)\\s*=\\s*[\"'](?:og:image(?::url)?|twitter:image(?::src)?)[\"']",
+                                    java.util.regex.Pattern.CASE_INSENSITIVE
+                                            | java.util.regex.Pattern.DOTALL
+                            ),
+                            java.util.regex.Pattern.compile(
+                                    "<link[^>]+rel\\s*=\\s*[\"'](?:image_src|apple-touch-icon|icon)[\"'][^>]+href\\s*=\\s*[\"']([^\"']+)[\"']",
+                                    java.util.regex.Pattern.CASE_INSENSITIVE
+                                            | java.util.regex.Pattern.DOTALL
+                            ),
+                            java.util.regex.Pattern.compile(
+                                    "<link[^>]+href\\s*=\\s*[\"']([^\"']+)[\"'][^>]+rel\\s*=\\s*[\"'](?:image_src|apple-touch-icon|icon)[\"']",
+                                    java.util.regex.Pattern.CASE_INSENSITIVE
+                                            | java.util.regex.Pattern.DOTALL
+                            )
+                    };
+
+            for (
+                    java.util.regex.Pattern pattern
+                            : patterns
+            ) {
+                java.util.regex.Matcher matcher =
+                        pattern.matcher(
+                                html
+                        );
+
+                if (!matcher.find()) {
+                    continue;
+                }
+
+                String candidate =
+                        matcher.group(1);
+
+                if (candidate == null) {
+                    continue;
+                }
+
+                candidate =
+                        android.text.Html.fromHtml(
+                                candidate,
+                                android.text.Html.FROM_HTML_MODE_LEGACY
+                        ).toString().trim();
+
+                if (candidate.isEmpty()) {
+                    continue;
+                }
+
+                if (
+                        candidate.startsWith("//")
+                ) {
+                    candidate =
+                            "https:"
+                                    + candidate;
+                }
+
+                try {
+                    return new java.net.URL(
+                            new java.net.URL(
+                                    pageUrl
+                            ),
+                            candidate
+                    ).toString();
+                } catch (
+                        java.lang.Throwable ignored
+                ) {
+                    // Try the next advertised image.
+                }
+            }
+
+        } catch (
+                java.lang.Throwable ignored
+        ) {
+            // Caller will report the unsupported page.
+        }
+
+        return null;
+    }
+
+
+    private static boolean bunnyBackgroundFileLooksHtml(
+            File file,
+            String contentType
+    ) {
+        if (
+                contentType != null
+                        && contentType.toLowerCase(
+                        java.util.Locale.ROOT
+                ).contains("text/html")
+        ) {
+            return true;
+        }
+
+        if (
+                file == null
+                        || !file.isFile()
+                        || file.length() <= 0L
+        ) {
+            return false;
+        }
+
+        try (
+                java.io.InputStream input =
+                        new java.io.BufferedInputStream(
+                                new java.io.FileInputStream(
+                                        file
+                                )
+                        )
+        ) {
+            byte[] prefix =
+                    new byte[1024];
+
+            int read =
+                    input.read(
+                            prefix
+                    );
+
+            if (read <= 0) {
+                return false;
+            }
+
+            String text =
+                    new String(
+                            prefix,
+                            0,
+                            read,
+                            java.nio.charset.StandardCharsets.UTF_8
+                    ).trim().toLowerCase(
+                            java.util.Locale.ROOT
+                    );
+
+            return text.startsWith("<!doctype html")
+                    || text.startsWith("<html")
+                    || text.contains("<meta ")
+                    || text.contains("<head");
+
+        } catch (
+                java.lang.Throwable ignored
+        ) {
+            return false;
+        }
+    }
+
+
+    private static boolean bunnyBackgroundFileDecodes(
+            File file
+    ) {
+        if (
+                file == null
+                        || !file.isFile()
+                        || file.length() <= 0L
+        ) {
+            return false;
+        }
+
+        if (
+                android.os.Build.VERSION.SDK_INT >= 28
+        ) {
+            try {
+                android.graphics.ImageDecoder.Source source =
+                        android.graphics.ImageDecoder.createSource(
+                                file
+                        );
+
+                android.graphics.drawable.Drawable decoded =
+                        android.graphics.ImageDecoder.decodeDrawable(
+                                source
+                        );
+
+                return decoded != null
+                        && (
+                        decoded.getIntrinsicWidth() > 0
+                                || decoded.getIntrinsicHeight() > 0
+                                || decoded
+                                instanceof android.graphics.drawable.AnimatedImageDrawable
+                );
+
+            } catch (
+                    java.lang.Throwable ignored
+            ) {
+                return false;
+            }
+        }
+
+        android.graphics.BitmapFactory.Options bounds =
+                new android.graphics.BitmapFactory.Options();
+
+        bounds.inJustDecodeBounds =
+                true;
+
+        android.graphics.BitmapFactory.decodeFile(
+                file.getAbsolutePath(),
+                bounds
+        );
+
+        return bounds.outWidth > 0
+                && bounds.outHeight > 0;
+    }
+
+
+    private static String bunnyBackgroundExtension(
+            File file,
+            String contentType
+    ) {
+        byte[] signature =
+                new byte[32];
+
+        int signatureLength =
+                0;
+
+        try (
+                java.io.InputStream input =
+                        new java.io.BufferedInputStream(
+                                new java.io.FileInputStream(
+                                        file
+                                )
+                        )
+        ) {
+            signatureLength =
+                    input.read(
+                            signature
+                    );
+
+        } catch (
+                java.lang.Throwable ignored
+        ) {
+            // Fall through to MIME / generic extension.
+        }
+
+        if (
+                signatureLength >= 3
+                        && (signature[0] & 0xFF) == 0xFF
+                        && (signature[1] & 0xFF) == 0xD8
+                        && (signature[2] & 0xFF) == 0xFF
+        ) {
+            return "jpg";
+        }
+
+        if (
+                signatureLength >= 4
+                        && (signature[0] & 0xFF) == 0x89
+                        && signature[1] == 0x50
+                        && signature[2] == 0x4E
+                        && signature[3] == 0x47
+        ) {
+            return "png";
+        }
+
+        if (
+                signatureLength >= 4
+                        && signature[0] == 0x47
+                        && signature[1] == 0x49
+                        && signature[2] == 0x46
+                        && signature[3] == 0x38
+        ) {
+            return "gif";
+        }
+
+        if (
+                signatureLength >= 12
+                        && signature[0] == 0x52
+                        && signature[1] == 0x49
+                        && signature[2] == 0x46
+                        && signature[3] == 0x46
+                        && signature[8] == 0x57
+                        && signature[9] == 0x45
+                        && signature[10] == 0x42
+                        && signature[11] == 0x50
+        ) {
+            return "webp";
+        }
+
+        if (
+                signatureLength >= 2
+                        && signature[0] == 0x42
+                        && signature[1] == 0x4D
+        ) {
+            return "bmp";
+        }
+
+        if (
+                signatureLength >= 12
+                        && signature[4] == 0x66
+                        && signature[5] == 0x74
+                        && signature[6] == 0x79
+                        && signature[7] == 0x70
+        ) {
+            String brand =
+                    new String(
+                            signature,
+                            8,
+                            4,
+                            java.nio.charset.StandardCharsets.US_ASCII
+                    ).toLowerCase(
+                            java.util.Locale.ROOT
+                    );
+
+            if (
+                    "avif".equals(brand)
+                            || "avis".equals(brand)
+            ) {
+                return "avif";
+            }
+
+            if (
+                    brand.startsWith("hei")
+                            || "mif1".equals(brand)
+                            || "msf1".equals(brand)
+            ) {
+                return "heic";
+            }
+        }
+
+        if (contentType != null) {
+            String normalized =
+                    contentType.toLowerCase(
+                            java.util.Locale.ROOT
+                    );
+
+            int separator =
+                    normalized.indexOf(';');
+
+            if (separator >= 0) {
+                normalized =
+                        normalized.substring(
+                                0,
+                                separator
+                        );
+            }
+
+            normalized =
+                    normalized.trim();
+
+            switch (normalized) {
+                case "image/jpeg":
+                case "image/jpg":
+                    return "jpg";
+
+                case "image/png":
+                    return "png";
+
+                case "image/gif":
+                    return "gif";
+
+                case "image/webp":
+                    return "webp";
+
+                case "image/bmp":
+                case "image/x-ms-bmp":
+                    return "bmp";
+
+                case "image/heic":
+                case "image/heif":
+                case "image/heic-sequence":
+                case "image/heif-sequence":
+                    return "heic";
+
+                case "image/avif":
+                    return "avif";
+
+                default:
+                    break;
+            }
+        }
+
+        return "img";
+    }
+
+
     private static void completeBunnyThemeBackgroundUrlImport(
             String remoteUrl,
             Object promise
@@ -6385,10 +8537,7 @@ public static java.lang.Integer resolveBunnyReactBackgroundColorBase(
                         ? appContext
                         : bunnyFontContext;
 
-        File importedFile =
-                null;
-
-        java.net.HttpURLConnection connection =
+        File workingFile =
                 null;
 
         try {
@@ -6398,180 +8547,26 @@ public static java.lang.Integer resolveBunnyReactBackgroundColorBase(
                 );
             }
 
-            java.net.URL url =
-                    new java.net.URL(remoteUrl);
-
-            java.net.URLConnection rawConnection =
-                    url.openConnection();
-
-            if (
-                    !(rawConnection
-                            instanceof java.net.HttpURLConnection)
-            ) {
-                throw new java.io.IOException(
-                        "The chat background URL is not HTTP or HTTPS."
-                );
-            }
-
-            connection =
-                    (java.net.HttpURLConnection)
-                            rawConnection;
-
-            connection.setInstanceFollowRedirects(true);
-            connection.setConnectTimeout(15000);
-            connection.setReadTimeout(30000);
-            connection.setUseCaches(false);
-
-            connection.setRequestProperty(
-                    "User-Agent",
-                    "BunnyMorphe/1.0"
-            );
-
-            connection.setRequestProperty(
-                    "Accept",
-                    "image/*,*/*;q=0.8"
-            );
-
-            int responseCode =
-                    connection.getResponseCode();
+            String currentUrl =
+                    remoteUrl == null
+                            ? ""
+                            : remoteUrl.trim();
 
             if (
-                    responseCode < 200
-                            || responseCode >= 300
+                    currentUrl.startsWith("//")
             ) {
-                throw new java.io.IOException(
-                        "Image server returned HTTP "
-                                + responseCode
-                                + "."
-                );
+                currentUrl =
+                        "https:"
+                                + currentUrl;
             }
-
-            long declaredLength =
-                    connection.getContentLengthLong();
-
-            final long maximumBytes =
-                    64L * 1024L * 1024L;
 
             if (
-                    declaredLength >
-                            maximumBytes
+                    !currentUrl.matches(
+                            "(?i)^https?://.+"
+                    )
             ) {
                 throw new java.io.IOException(
-                        "Chat backgrounds must be 64 MB or smaller."
-                );
-            }
-
-            String contentType =
-                    connection.getContentType();
-
-            if (contentType != null) {
-                int separator =
-                        contentType.indexOf(';');
-
-                if (separator >= 0) {
-                    contentType =
-                            contentType.substring(
-                                    0,
-                                    separator
-                            );
-                }
-
-                contentType =
-                        contentType
-                                .trim()
-                                .toLowerCase(
-                                        java.util.Locale.ROOT
-                                );
-            }
-
-            String extension =
-                    null;
-
-            if (contentType != null) {
-                switch (contentType) {
-                    case "image/jpeg":
-                    case "image/jpg":
-                        extension = "jpg";
-                        break;
-
-                    case "image/png":
-                        extension = "png";
-                        break;
-
-                    case "image/webp":
-                        extension = "webp";
-                        break;
-
-                    case "image/gif":
-                        extension = "gif";
-                        break;
-
-                    case "image/bmp":
-                    case "image/x-ms-bmp":
-                        extension = "bmp";
-                        break;
-
-                    case "image/heic":
-                    case "image/heic-sequence":
-                        extension = "heic";
-                        break;
-
-                    case "image/heif":
-                    case "image/heif-sequence":
-                        extension = "heif";
-                        break;
-
-                    case "image/avif":
-                        extension = "avif";
-                        break;
-                }
-            }
-
-            if (extension == null) {
-                String path =
-                        android.net.Uri
-                                .parse(remoteUrl)
-                                .getPath();
-
-                String lowerPath =
-                        path != null
-                                ? path.toLowerCase(
-                                        java.util.Locale.ROOT
-                                )
-                                : "";
-
-                String[] acceptedExtensions = {
-                        "jpg",
-                        "jpeg",
-                        "png",
-                        "webp",
-                        "gif",
-                        "bmp",
-                        "heic",
-                        "heif",
-                        "avif"
-                };
-
-                for (
-                        String candidate :
-                        acceptedExtensions
-                ) {
-                    if (
-                            lowerPath.endsWith(
-                                    "." + candidate
-                            )
-                    ) {
-                        extension =
-                                candidate;
-
-                        break;
-                    }
-                }
-            }
-
-            if (extension == null) {
-                throw new java.io.IOException(
-                        "The URL must point directly to a supported image or GIF."
+                        "Enter an HTTP or HTTPS image URL."
                 );
             }
 
@@ -6590,112 +8585,377 @@ public static java.lang.Integer resolveBunnyReactBackgroundColorBase(
                 );
             }
 
-            String storedName =
-                    "url-background-"
-                            + java.lang.Long.toString(
-                            System.currentTimeMillis(),
-                            36
-                    )
-                            + "."
-                            + extension;
+            final long maximumImageBytes =
+                    64L * 1024L * 1024L;
 
-            importedFile =
-                    new File(
-                            backgroundsDirectory,
-                            storedName
-                    );
+            final long maximumHtmlBytes =
+                    2L * 1024L * 1024L;
 
-            long copied =
-                    0L;
+            String referer =
+                    null;
 
-            try (
-                    java.io.InputStream input =
-                            new java.io.BufferedInputStream(
-                                    connection.getInputStream()
-                            );
-                    java.io.OutputStream output =
-                            new java.io.BufferedOutputStream(
-                                    new java.io.FileOutputStream(
-                                            importedFile
-                                    )
-                            )
+            for (
+                    int resolutionDepth = 0;
+                    resolutionDepth < 3;
+                    resolutionDepth++
             ) {
-                byte[] buffer =
-                        new byte[32768];
+                java.net.HttpURLConnection connection =
+                        null;
 
-                int count;
-
-                while (
-                        (count = input.read(buffer)) != -1
-                ) {
-                    copied +=
-                            count;
-
-                    if (
-                            copied >
-                                    maximumBytes
+                try {
+                    /*
+                     * Follow redirects manually so relative Location headers
+                     * and cross-host CDN redirects behave consistently.
+                     */
+                    for (
+                            int redirectCount = 0;
+                            redirectCount < 8;
+                            redirectCount++
                     ) {
+                        java.net.URL url =
+                                new java.net.URL(
+                                        currentUrl
+                                );
+
+                        java.net.URLConnection raw =
+                                url.openConnection();
+
+                        if (
+                                !(raw
+                                        instanceof java.net.HttpURLConnection)
+                        ) {
+                            throw new java.io.IOException(
+                                    "The background link is not HTTP or HTTPS."
+                            );
+                        }
+
+                        connection =
+                                (java.net.HttpURLConnection)
+                                        raw;
+
+                        connection.setInstanceFollowRedirects(
+                                false
+                        );
+
+                        connection.setConnectTimeout(
+                                15000
+                        );
+
+                        connection.setReadTimeout(
+                                30000
+                        );
+
+                        connection.setUseCaches(
+                                false
+                        );
+
+                        connection.setRequestProperty(
+                                "User-Agent",
+                                "Mozilla/5.0 (Linux; Android 16) "
+                                        + "AppleWebKit/537.36 (KHTML, like Gecko) "
+                                        + "Chrome/140 Mobile Safari/537.36"
+                        );
+
+                        connection.setRequestProperty(
+                                "Accept",
+                                "image/avif,image/webp,image/apng,image/*,"
+                                        + "text/html,application/xhtml+xml,"
+                                        + "application/octet-stream,*/*;q=0.7"
+                        );
+
+                        connection.setRequestProperty(
+                                "Accept-Language",
+                                "en-US,en;q=0.9"
+                        );
+
+                        if (
+                                referer != null
+                                        && !referer.isEmpty()
+                        ) {
+                            connection.setRequestProperty(
+                                    "Referer",
+                                    referer
+                            );
+                        }
+
+                        int responseCode =
+                                connection.getResponseCode();
+
+                        if (
+                                responseCode == 301
+                                        || responseCode == 302
+                                        || responseCode == 303
+                                        || responseCode == 307
+                                        || responseCode == 308
+                        ) {
+                            String location =
+                                    connection.getHeaderField(
+                                            "Location"
+                                    );
+
+                            if (
+                                    location == null
+                                            || location.trim().isEmpty()
+                            ) {
+                                throw new java.io.IOException(
+                                        "The image redirect did not provide a destination."
+                                );
+                            }
+
+                            String next =
+                                    new java.net.URL(
+                                            url,
+                                            location
+                                    ).toString();
+
+                            connection.disconnect();
+                            connection =
+                                    null;
+
+                            currentUrl =
+                                    next;
+
+                            continue;
+                        }
+
+                        if (
+                                responseCode < 200
+                                        || responseCode >= 300
+                        ) {
+                            throw new java.io.IOException(
+                                    "Image server returned HTTP "
+                                            + responseCode
+                                            + "."
+                            );
+                        }
+
+                        break;
+                    }
+
+                    if (connection == null) {
                         throw new java.io.IOException(
-                                "Chat backgrounds must be 64 MB or smaller."
+                                "Too many image redirects."
                         );
                     }
 
-                    output.write(
-                            buffer,
-                            0,
-                            count
-                    );
+                    String contentType =
+                            connection.getContentType();
+
+                    long declaredLength =
+                            connection.getContentLengthLong();
+
+                    boolean declaredHtml =
+                            contentType != null
+                                    && contentType.toLowerCase(
+                                    java.util.Locale.ROOT
+                            ).contains(
+                                    "text/html"
+                            );
+
+                    long maximumBytes =
+                            declaredHtml
+                                    ? maximumHtmlBytes
+                                    : maximumImageBytes;
+
+                    if (
+                            declaredLength > maximumBytes
+                    ) {
+                        throw new java.io.IOException(
+                                declaredHtml
+                                        ? "The linked webpage is too large to inspect."
+                                        : "Chat backgrounds must be 64 MB or smaller."
+                        );
+                    }
+
+                    String identity =
+                            java.lang.Long.toString(
+                                    System.currentTimeMillis(),
+                                    36
+                            )
+                                    + "-"
+                                    + resolutionDepth;
+
+                    workingFile =
+                            new File(
+                                    backgroundsDirectory,
+                                    "url-background-"
+                                            + identity
+                                            + ".download"
+                            );
+
+                    long copied =
+                            0L;
+
+                    try (
+                            java.io.InputStream input =
+                                    new java.io.BufferedInputStream(
+                                            connection.getInputStream()
+                                    );
+                            java.io.OutputStream output =
+                                    new java.io.BufferedOutputStream(
+                                            new java.io.FileOutputStream(
+                                                    workingFile
+                                            )
+                                    )
+                    ) {
+                        byte[] buffer =
+                                new byte[32768];
+
+                        int count;
+
+                        while (
+                                (count = input.read(buffer)) != -1
+                        ) {
+                            copied +=
+                                    count;
+
+                            if (
+                                    copied > maximumBytes
+                            ) {
+                                throw new java.io.IOException(
+                                        declaredHtml
+                                                ? "The linked webpage is too large to inspect."
+                                                : "Chat backgrounds must be 64 MB or smaller."
+                                );
+                            }
+
+                            output.write(
+                                    buffer,
+                                    0,
+                                    count
+                            );
+                        }
+
+                        output.flush();
+                    }
+
+                    if (copied <= 0L) {
+                        throw new java.io.IOException(
+                                "The background URL returned an empty response."
+                        );
+                    }
+
+                    if (
+                            bunnyBackgroundFileDecodes(
+                                    workingFile
+                            )
+                    ) {
+                        String extension =
+                                bunnyBackgroundExtension(
+                                        workingFile,
+                                        contentType
+                                );
+
+                        File persistentFile =
+                                new File(
+                                        backgroundsDirectory,
+                                        "url-background-"
+                                                + identity
+                                                + "."
+                                                + extension
+                                );
+
+                        if (
+                                workingFile.renameTo(
+                                        persistentFile
+                                )
+                        ) {
+                            workingFile =
+                                    persistentFile;
+                        }
+
+                        String persistentUri =
+                                android.net.Uri
+                                        .fromFile(
+                                                workingFile
+                                        )
+                                        .toString();
+
+                        android.util.Log.i(
+                                TAG,
+                                "Bunny background URL resolved to local "
+                                        + extension
+                        );
+
+                        resolveBunnyFontImportPromise(
+                                promise,
+                                bunnyFontImportResult(
+                                        "success",
+                                        persistentUri,
+                                        extension,
+                                        null
+                                )
+                        );
+
+                        return;
+                    }
+
+                    if (
+                            !bunnyBackgroundFileLooksHtml(
+                                    workingFile,
+                                    contentType
+                            )
+                    ) {
+                        throw new java.io.IOException(
+                                "The URL did not return an image Android can decode."
+                        );
+                    }
+
+                    if (
+                            resolutionDepth >= 2
+                    ) {
+                        throw new java.io.IOException(
+                                "The webpage did not resolve to a supported image."
+                        );
+                    }
+
+                    String imageUrl =
+                            bunnyResolveBackgroundHtmlImageUrl(
+                                    currentUrl,
+                                    workingFile
+                            );
+
+                    if (
+                            imageUrl == null
+                                    || imageUrl.trim().isEmpty()
+                    ) {
+                        throw new java.io.IOException(
+                                "The webpage does not expose an image preview."
+                        );
+                    }
+
+                    referer =
+                            currentUrl;
+
+                    currentUrl =
+                            imageUrl.trim();
+
+                    if (workingFile.exists()) {
+                        workingFile.delete();
+                    }
+
+                    workingFile =
+                            null;
+
+                } finally {
+                    if (connection != null) {
+                        connection.disconnect();
+                    }
                 }
-
-                output.flush();
             }
 
-            if (copied <= 0L) {
-                throw new java.io.IOException(
-                        "The image URL returned an empty file."
-                );
-            }
-
-            android.graphics.BitmapFactory.Options bounds =
-                    new android.graphics.BitmapFactory.Options();
-
-            bounds.inJustDecodeBounds =
-                    true;
-
-            android.graphics.BitmapFactory.decodeFile(
-                    importedFile.getAbsolutePath(),
-                    bounds
+            throw new java.io.IOException(
+                    "The URL did not resolve to a supported image."
             );
 
+        } catch (
+                java.lang.Throwable error
+        ) {
             if (
-                    bounds.outWidth <= 0
-                            || bounds.outHeight <= 0
+                    workingFile != null
+                            && workingFile.exists()
             ) {
-                throw new java.io.IOException(
-                        "The downloaded file is not a valid image."
-                );
-            }
-
-            String persistentUri =
-                    android.net.Uri
-                            .fromFile(importedFile)
-                            .toString();
-
-            resolveBunnyFontImportPromise(
-                    promise,
-                    bunnyFontImportResult(
-                            "success",
-                            persistentUri,
-                            extension,
-                            null
-                    )
-            );
-        } catch (Throwable error) {
-            if (
-                    importedFile != null
-                            && importedFile.exists()
-            ) {
-                importedFile.delete();
+                workingFile.delete();
             }
 
             String message =
@@ -6706,8 +8966,15 @@ public static java.lang.Integer resolveBunnyReactBackgroundColorBase(
                             || message.trim().isEmpty()
             ) {
                 message =
-                        "Failed to download the chat background.";
+                        "Failed to import the background URL.";
             }
+
+            android.util.Log.w(
+                    TAG,
+                    "Bunny background URL import failed: "
+                            + message,
+                    error
+            );
 
             resolveBunnyFontImportPromise(
                     promise,
@@ -6718,13 +8985,8 @@ public static java.lang.Integer resolveBunnyReactBackgroundColorBase(
                             message
                     )
             );
-        } finally {
-            if (connection != null) {
-                connection.disconnect();
-            }
         }
     }
-
 
     private static boolean beginBunnyThemeBackgroundImport(
             Object promise
@@ -8749,7 +11011,7 @@ public static java.lang.Integer resolveBunnyReactBackgroundColorBase(
     public static void applyBunnyGlobalColorToSpannable(
             android.text.Spannable text
     ) {
-        
+
         /*
          * A Fonts-page preview belongs to the font represented by that card,
          * not to fonts.__selected. Never recolor it with the selected Bunny
@@ -8841,7 +11103,7 @@ public static java.lang.Integer resolveBunnyReactBackgroundColorBase(
         }
 
         try {
-            
+
             CharSequence value =
                     textView.getText();
 
@@ -10035,7 +12297,9 @@ public static java.lang.Integer resolveBunnyReactBackgroundColorBase(
 
         String[] replacementLines = {
                 "function wrapSync(store) {",
+                "  /* BUNNY_FRESH_STORAGE_PENDING_WRITE_REPLAY_V2 */",
                 "  var awaited = void 0;",
+                "  var bunnyPendingStorage = {};",
                 "  var awaitQueue = [];",
                 "  var bunnyStorageListeners = {",
                 "    SET: /* @__PURE__ */ new Set(),",
@@ -10058,14 +12322,28 @@ public static java.lang.Integer resolveBunnyReactBackgroundColorBase(
                 "      resolvedEmitter.on(\"SET\", bunnyForwardStorageEvent);",
                 "      resolvedEmitter.on(\"DEL\", bunnyForwardStorageEvent);",
                 "    }",
+                "    for (var key of Reflect.ownKeys(bunnyPendingStorage)) {",
+                "      Reflect.set(awaited, key, Reflect.get(bunnyPendingStorage, key));",
+                "    }",
+                "    for (var key of Reflect.ownKeys(bunnyPendingStorage)) {",
+                "      Reflect.deleteProperty(bunnyPendingStorage, key);",
+                "    }",
                 "    awaitQueue.forEach((cb) => cb());",
                 "    awaitQueue.length = 0;",
                 "    bunnyStorageEmitter.emit(\"SET\", { path: [], value: awaited });",
                 "  });",
-                "  return new Proxy({}, {",
+                "  return new Proxy(bunnyPendingStorage, {",
                 "    ...Object.fromEntries(",
                 "      Object.getOwnPropertyNames(Reflect).map((k) => [k, (t, ...a) => Reflect[k](awaited ?? t, ...a)])",
                 "    ),",
+                "    set(target, prop, value) {",
+                "      if (awaited)",
+                "        return Reflect.set(awaited, prop, value);",
+                "      var result = Reflect.set(target, prop, value);",
+                "      if (result)",
+                "        bunnyStorageEmitter.emit(\"SET\", { path: [prop], value });",
+                "      return result;",
+                "    },",
                 "    get(target, prop, recv) {",
                 "      if (prop === emitterSymbol)",
                 "        return bunnyStorageEmitter;",
