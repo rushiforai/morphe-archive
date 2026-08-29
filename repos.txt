@@ -111,6 +111,7 @@ chukfinley/tidal-patches
 ciraolone/morphe-watch-later
 claviola/morphe-patches-nl
 crimera/piko
+crimera/piko-newx
 csagataj2/morphe-patches
 d0nj/morphe-patches
 david419kr/niconico-yt-morphe-patches
@@ -198,6 +199,7 @@ sushruth/imgur-patches
 tadikwa/google-clock-morphe-patches
 theabhishekbhujang/morphe-patches
 tiaruebar1024/tiaruebar-patches
+timpra/a17
 totsiaw/proxma-patches
 variablenine/morphe-patches
 vladon/morphe-patches-navi

@@ -1497,6 +1497,22 @@
                 "sortOrder": 189,
                 "createdAt": 1787910075557,
                 "updatedAt": 1787910075557
+            },
+            {
+                "name": "piko-newx",
+                "source": "https://raw.githubusercontent.com/crimera/piko-newx/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 190,
+                "createdAt": 1787982404603,
+                "updatedAt": 1787982404603
+            },
+            {
+                "name": "a17",
+                "source": "https://raw.githubusercontent.com/timpra/a17/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 191,
+                "createdAt": 1787982406437,
+                "updatedAt": 1787982406437
             }
         ]
     }

@@ -1,19 +1,19 @@
 {
-  "generatedAt": "2026-08-28 09:41 UTC",
-  "configFile": "morphe_archive_config_v33.json",
-  "configVersion": 33,
-  "repoCount": 181,
-  "appCount": 759,
-  "patchCount": 3320,
-  "universalPatchCount": 497,
+  "generatedAt": "2026-08-29 05:47 UTC",
+  "configFile": "morphe_archive_config_v34.json",
+  "configVersion": 34,
+  "repoCount": 183,
+  "appCount": 760,
+  "patchCount": 3354,
+  "universalPatchCount": 526,
   "hostCounts": {
-    "github.com": 176,
+    "github.com": 178,
     "gitlab.com": 5
   },
   "visitorStats": {
-    "today": 10,
-    "yesterday": 11,
-    "total": 380,
+    "today": 1,
+    "yesterday": 12,
+    "total": 383,
     "online": 0
   },
   "repos": [
@@ -74,12 +74,16 @@
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.29.4 (2026-08-26)",
-        "date": "2026-08-26",
+        "title": "1.30.1 (2026-08-28)",
+        "date": "2026-08-28",
         "items": [
           {
             "category": "Bug Fixes",
-            "text": "**hbomax:** revert Block SSAI Ad Origins to opt-in (resume 39999 regression) (#135) (9ad3118), closes #134 #125"
+            "text": "**paramount:** PTS-align live sports slate for smooth playback (#91) (#139)"
+          },
+          {
+            "category": "Features",
+            "text": "**hbomax:** prefer HBO's ad-free FALLBACK stream (clean SSAI fix, #125) (#137)"
           }
         ]
       },
@@ -2198,19 +2202,27 @@
       "webUrl": "https://github.com/byehi98/okish-morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=byehi98/okish-morphe-patches",
       "avatarUrl": "https://github.com/byehi98.png?size=96",
-      "patchCount": 48,
+      "patchCount": 49,
       "appCount": 21,
       "createdAt": 1784836032190,
       "updatedAt": 1784836032190,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.19.0 (2026-08-26)",
-        "date": "2026-08-26",
+        "title": "1.19.1 (2026-08-29)",
+        "date": "2026-08-29",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "**haak-billing:** implement free purchases patch"
+            "category": "\ud83d\ude80 Updated App Support",
+            "text": "**doodlejump:** add resurrection bypass for Doodle Jump 3.11.40"
+          },
+          {
+            "category": "\ud83d\ude80 Updated App Support",
+            "text": "**hillclimb:** update rewarded video patch for HCR 1.71.1"
+          },
+          {
+            "category": "\ud83d\ude80 Updated App Support",
+            "text": "**rodeosafari:** add support for version 4.24.0"
           }
         ]
       },
@@ -2232,7 +2244,7 @@
         {
           "name": "Doodle Jump",
           "packageName": "com.lima.doodlejump",
-          "patchCount": 1,
+          "patchCount": 2,
           "iconUrl": "",
           "iconColor": "#66BB6A"
         },
@@ -2522,19 +2534,19 @@
       "webUrl": "https://github.com/ch3thanhs/stylus",
       "addUrl": "https://morphe.software/add-source?github=ch3thanhs/stylus",
       "avatarUrl": "https://github.com/ch3thanhs.png?size=96",
-      "patchCount": 5,
-      "appCount": 2,
+      "patchCount": 6,
+      "appCount": 3,
       "createdAt": 1784837694852,
       "updatedAt": 1784837694852,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.4.0 (2026-08-05)",
-        "date": "2026-08-05",
+        "title": "1.5.0 (2026-08-29)",
+        "date": "2026-08-29",
         "items": [
           {
             "category": "\u2728 New Features",
-            "text": "**github:** add force system font webview css override and ui-monospace patch"
+            "text": "**instagram:** add force system font patch"
           }
         ]
       },
@@ -2552,6 +2564,13 @@
           "patchCount": 4,
           "iconUrl": "https://play-lh.googleusercontent.com/nxpwi4UD84GNJuJ42S9U0f3lGDsHu8VkIDPCccFmJL6kyNVb1O3pTY1rl1YZICLBk6EcWIaX6n9prCbdUoQEOw",
           "iconColor": "#181C20"
+        },
+        {
+          "name": "Instagram",
+          "packageName": "com.instagram.android",
+          "patchCount": 1,
+          "iconUrl": "https://play-lh.googleusercontent.com/yHi59jmO_lVamcyJ1i3rM1_E8bAiAspShnGjjURq05ipQQSUksO3QVEsXTegRSqul038-4YNA7O644XAcx251Q",
+          "iconColor": "#FC483C"
         }
       ]
     },
@@ -2929,6 +2948,29 @@
       ]
     },
     {
+      "name": "piko-newx",
+      "repo": "crimera/piko-newx",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/crimera/piko-newx/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/crimera/piko-newx/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/crimera/piko-newx/main/CHANGELOG.md",
+      "webUrl": "https://github.com/crimera/piko-newx",
+      "addUrl": "https://morphe.software/add-source?github=crimera/piko-newx",
+      "avatarUrl": "https://github.com/crimera.png?size=96",
+      "patchCount": 0,
+      "appCount": 0,
+      "createdAt": 1787982404603,
+      "updatedAt": 1787982404603,
+      "createdDate": "2026-08-29",
+      "updatedDate": "2026-08-29",
+      "latestChanges": {
+        "title": "",
+        "date": "",
+        "items": []
+      },
+      "apps": []
+    },
+    {
       "name": "morphe-patches",
       "repo": "csagataj2/morphe-patches",
       "host": "github.com",
@@ -3010,45 +3052,53 @@
       "webUrl": "https://github.com/Dan1elTheMan1el/Morphe-Patches",
       "addUrl": "https://morphe.software/add-source?github=Dan1elTheMan1el/Morphe-Patches",
       "avatarUrl": "https://github.com/Dan1elTheMan1el.png?size=96",
-      "patchCount": 12,
+      "patchCount": 14,
       "appCount": 3,
       "createdAt": 1787815654850,
       "updatedAt": 1787815654850,
       "createdDate": "2026-08-27",
       "updatedDate": "2026-08-27",
       "latestChanges": {
-        "title": "1.2.0 (2026-08-28)",
+        "title": "1.3.0 (2026-08-28)",
         "date": "2026-08-28",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "Keyboard Designer Premium Unlock"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "DeFit tutorial patch error"
           },
           {
             "category": "\u2728 New Features",
-            "text": "Keyboard Designer: Start with PokeGenie-inspired Keyboard"
+            "text": "Add patch with tutorial to fix login in DeFit++"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "Auto claim daily coins via intent in PokeRaid"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "Only show login tutorial when logged out"
           }
         ]
       },
       "apps": [
         {
-          "name": "Custom+ Keyboard Designer",
+          "name": "Custom Keyboard Designer",
           "packageName": "de.humbergsoftware.keyboarddesigner",
           "patchCount": 2,
           "iconUrl": "",
           "iconColor": "#83B6E4"
         },
         {
-          "name": "DeFit - Debugger of Fitness Apps",
+          "name": "DeFit",
           "packageName": "com.fitness.debugger",
-          "patchCount": 4,
+          "patchCount": 5,
           "iconUrl": "",
           "iconColor": "#008577"
         },
         {
-          "name": "PokeRaid - Worldwide Remote Raids",
+          "name": "PokeRaid - for Pok\u00e9mon GO Raid",
           "packageName": "me.pokeraid",
-          "patchCount": 6,
+          "patchCount": 7,
           "iconUrl": "",
           "iconColor": "#395FAA"
         }
@@ -6371,23 +6421,34 @@
       "webUrl": "https://github.com/jaredcat/morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=jaredcat/morphe-patches",
       "avatarUrl": "https://github.com/jaredcat.png?size=96",
-      "patchCount": 3,
-      "appCount": 2,
+      "patchCount": 4,
+      "appCount": 3,
       "createdAt": 1787815658450,
       "updatedAt": 1787815658450,
       "createdDate": "2026-08-27",
       "updatedDate": "2026-08-27",
       "latestChanges": {
-        "title": "1.0.1 (2026-08-27)",
-        "date": "2026-08-27",
+        "title": "1.1.0 (2026-08-28)",
+        "date": "2026-08-28",
         "items": [
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "bump lumenate for 7.1.3"
+            "category": "\u2728 New Features",
+            "text": "add ASL Bloom"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "add ASL Bloom"
           }
         ]
       },
       "apps": [
+        {
+          "name": "ASL Bloom",
+          "packageName": "com.toleio.us",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#232A63"
+        },
         {
           "name": "Expand",
           "packageName": "org.monroeinstitute.expand",
@@ -8327,47 +8388,23 @@
       "webUrl": "https://github.com/Nai64/Nai64Patches",
       "addUrl": "https://morphe.software/add-source?github=Nai64/Nai64Patches",
       "avatarUrl": "https://github.com/Nai64.png?size=96",
-      "patchCount": 311,
+      "patchCount": 340,
       "appCount": 1,
       "createdAt": 1784836023539,
       "updatedAt": 1784836023539,
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.32.0 (2026-08-27)",
-        "date": "2026-08-27",
+        "title": "1.35.1 (2026-08-28)",
+        "date": "2026-08-28",
         "items": [
           {
-            "category": "New Features",
-            "text": "add Fake ADB Enabled patch"
+            "category": "Bug Fixes",
+            "text": "reduce free iap heap usage"
           },
           {
-            "category": "New Features",
-            "text": "add Fake Auto Rotate On patch"
-          },
-          {
-            "category": "New Features",
-            "text": "add Fake Auto Time patch"
-          },
-          {
-            "category": "New Features",
-            "text": "add Fake Auto Time Zone patch"
-          },
-          {
-            "category": "New Features",
-            "text": "add Fake Available Processors patch"
-          },
-          {
-            "category": "New Features",
-            "text": "add Fake Bluetooth Bonded Devices Empty patch"
-          },
-          {
-            "category": "New Features",
-            "text": "add Fake Brightness Auto Mode patch"
-          },
-          {
-            "category": "New Features",
-            "text": "add Fake Cell Info Empty patch"
+            "category": "Bug Fixes",
+            "text": "unlimited currency hotfix"
           }
         ]
       },
@@ -11691,12 +11728,12 @@
       "createdDate": "2026-07-23",
       "updatedDate": "2026-07-23",
       "latestChanges": {
-        "title": "1.10.2 (2026-07-13)",
-        "date": "2026-07-13",
+        "title": "1.10.3 (2026-08-29)",
+        "date": "2026-08-29",
         "items": [
           {
-            "category": "\ud83d\ude80 Updated App Support",
-            "text": "refine release workflow, update gradle, and enhance patch metadata  - Upgrade Gradle wrapper to 9.6.1 and bump morphe-patcher to 1.6.0. - Update Dependabot schedule to monthly and add ignore rules for specific changelog dependencies. - Configure dev as a pre-release branch in .releaserc and implement automatic backmerging from main to dev. - Rewrite open_pull_request.yml workflow to use the GitHub CLI for verifying commits and managing PRs between dev and main. - Update PatchListGenerator to include versionCodes in compatibility targets and inject a warning note into the generated JSON. - Enhance release.yml to verify project compilation for commits that do not trigger a new release. - Update generate_patches_readme.py to use UTF-8 encoding when reading JSON metadata."
+            "category": "\ud83d\udd27 Improvements",
+            "text": "release v1.10.3"
           }
         ]
       },
@@ -12052,6 +12089,29 @@
           "iconColor": "#1565C0"
         }
       ]
+    },
+    {
+      "name": "a17",
+      "repo": "timpra/a17",
+      "host": "github.com",
+      "source": "https://raw.githubusercontent.com/timpra/a17/main/patches-bundle.json",
+      "listUrl": "https://raw.githubusercontent.com/timpra/a17/main/patches-list.json",
+      "changelogUrl": "https://raw.githubusercontent.com/timpra/a17/main/CHANGELOG.md",
+      "webUrl": "https://github.com/timpra/a17",
+      "addUrl": "https://morphe.software/add-source?github=timpra/a17",
+      "avatarUrl": "https://github.com/timpra.png?size=96",
+      "patchCount": 0,
+      "appCount": 0,
+      "createdAt": 1787982406437,
+      "updatedAt": 1787982406437,
+      "createdDate": "2026-08-29",
+      "updatedDate": "2026-08-29",
+      "latestChanges": {
+        "title": "1.3.1",
+        "date": "",
+        "items": []
+      },
+      "apps": []
     },
     {
       "name": "movistar-block-ads-morphe",
@@ -13685,12 +13745,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.19.0 (2026-08-26)",
-            "date": "2026-08-26",
+            "title": "1.19.1 (2026-08-29)",
+            "date": "2026-08-29",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**haak-billing:** implement free purchases patch"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**doodlejump:** add resurrection bypass for Doodle Jump 3.11.40"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**hillclimb:** update rewarded video patch for HCR 1.71.1"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**rodeosafari:** add support for version 4.24.0"
               }
             ]
           },
@@ -17246,6 +17314,68 @@
       "iconUrl": "https://play-lh.googleusercontent.com/9SPwV1m2m248lpDQd9xtd-s70BwEyZJhXd1LDAK3KzIsEPaSlO9mikhsFrzo7ObagZWiJgk57I5-b12AWkF9_Q"
     },
     {
+      "packageName": "com.toleio.us",
+      "name": "ASL Bloom",
+      "repos": [
+        "jaredcat/morphe-patches"
+      ],
+      "sources": [
+        {
+          "repo": "jaredcat/morphe-patches",
+          "host": "github.com",
+          "webUrl": "https://github.com/jaredcat/morphe-patches",
+          "addUrl": "https://morphe.software/add-source?github=jaredcat/morphe-patches",
+          "source": "https://raw.githubusercontent.com/jaredcat/morphe-patches/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/jaredcat/morphe-patches/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/jaredcat.png?size=96",
+          "latestChanges": {
+            "title": "1.1.0 (2026-08-28)",
+            "date": "2026-08-28",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "add ASL Bloom"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add ASL Bloom"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-toleio-us-jaredcat-morphe-patches",
+            "releaseTag": "app-com-toleio-us-jaredcat-morphe-patches",
+            "assetName": "asl-bloom-jaredcat-morphe-patches.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Unlock Premium",
+              "description": "Unlocks ASL Bloom Premium lessons and features."
+            }
+          ],
+          "versions": [
+            "1.36.63"
+          ]
+        }
+      ],
+      "patches": [
+        "Unlock Premium"
+      ],
+      "patchDetails": [
+        {
+          "name": "Unlock Premium",
+          "description": "Unlocks ASL Bloom Premium lessons and features."
+        }
+      ],
+      "versions": [
+        "1.36.63"
+      ],
+      "iconColor": "#232A63",
+      "iconUrl": ""
+    },
+    {
       "packageName": "com.overdevs.at4k",
       "name": "AT4K Launcher",
       "repos": [
@@ -20437,12 +20567,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.19.0 (2026-08-26)",
-            "date": "2026-08-26",
+            "title": "1.19.1 (2026-08-29)",
+            "date": "2026-08-29",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**haak-billing:** implement free purchases patch"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**doodlejump:** add resurrection bypass for Doodle Jump 3.11.40"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**hillclimb:** update rewarded video patch for HCR 1.71.1"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**rodeosafari:** add support for version 4.24.0"
               }
             ]
           },
@@ -20522,12 +20660,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/ch3thanhs/stylus/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/ch3thanhs.png?size=96",
           "latestChanges": {
-            "title": "1.4.0 (2026-08-05)",
-            "date": "2026-08-05",
+            "title": "1.5.0 (2026-08-29)",
+            "date": "2026-08-29",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**github:** add force system font webview css override and ui-monospace patch"
+                "text": "**instagram:** add force system font patch"
               }
             ]
           },
@@ -20545,8 +20683,7 @@
             }
           ],
           "versions": [
-            "2026.6.1",
-            "2026.7.0"
+            "2026.8.0"
           ]
         }
       ],
@@ -20560,8 +20697,7 @@
         }
       ],
       "versions": [
-        "2026.6.1",
-        "2026.7.0"
+        "2026.8.0"
       ],
       "iconColor": "#175DDC",
       "iconUrl": "https://play-lh.googleusercontent.com/ezsPZ5JtRMkMd6DtbUOZghm4m-EbYcZSzXAIxJMumYOaDP9sI8o-DN8-tZpds0HJUXb-ur7F-oB9rFH78Jy2lA"
@@ -25964,12 +26100,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/ajstrick81/morphe-androidtv-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/ajstrick81.png?size=96",
           "latestChanges": {
-            "title": "1.29.4 (2026-08-26)",
-            "date": "2026-08-26",
+            "title": "1.30.1 (2026-08-28)",
+            "date": "2026-08-28",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**hbomax:** revert Block SSAI Ad Origins to opt-in (resume 39999 regression) (#135) (9ad3118), closes #134 #125"
+                "text": "**paramount:** PTS-align live sports slate for smooth playback (#91) (#139)"
+              },
+              {
+                "category": "Features",
+                "text": "**hbomax:** prefer HBO's ad-free FALLBACK stream (clean SSAI fix, #125) (#137)"
               }
             ]
           },
@@ -26455,12 +26595,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/ajstrick81/morphe-androidtv-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/ajstrick81.png?size=96",
           "latestChanges": {
-            "title": "1.29.4 (2026-08-26)",
-            "date": "2026-08-26",
+            "title": "1.30.1 (2026-08-28)",
+            "date": "2026-08-28",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**hbomax:** revert Block SSAI Ad Origins to opt-in (resume 39999 regression) (#135) (9ad3118), closes #134 #125"
+                "text": "**paramount:** PTS-align live sports slate for smooth playback (#91) (#139)"
+              },
+              {
+                "category": "Features",
+                "text": "**hbomax:** prefer HBO's ad-free FALLBACK stream (clean SSAI fix, #125) (#137)"
               }
             ]
           },
@@ -26514,40 +26658,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/Nai64/Nai64Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Nai64.png?size=96",
           "latestChanges": {
-            "title": "1.32.0 (2026-08-27)",
-            "date": "2026-08-27",
+            "title": "1.35.1 (2026-08-28)",
+            "date": "2026-08-28",
             "items": [
               {
-                "category": "New Features",
-                "text": "add Fake ADB Enabled patch"
+                "category": "Bug Fixes",
+                "text": "reduce free iap heap usage"
               },
               {
-                "category": "New Features",
-                "text": "add Fake Auto Rotate On patch"
-              },
-              {
-                "category": "New Features",
-                "text": "add Fake Auto Time patch"
-              },
-              {
-                "category": "New Features",
-                "text": "add Fake Auto Time Zone patch"
-              },
-              {
-                "category": "New Features",
-                "text": "add Fake Available Processors patch"
-              },
-              {
-                "category": "New Features",
-                "text": "add Fake Bluetooth Bonded Devices Empty patch"
-              },
-              {
-                "category": "New Features",
-                "text": "add Fake Brightness Auto Mode patch"
-              },
-              {
-                "category": "New Features",
-                "text": "add Fake Cell Info Empty patch"
+                "category": "Bug Fixes",
+                "text": "unlimited currency hotfix"
               }
             ]
           },
@@ -26759,12 +26879,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/ajstrick81/morphe-androidtv-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/ajstrick81.png?size=96",
           "latestChanges": {
-            "title": "1.29.4 (2026-08-26)",
-            "date": "2026-08-26",
+            "title": "1.30.1 (2026-08-28)",
+            "date": "2026-08-28",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**hbomax:** revert Block SSAI Ad Origins to opt-in (resume 39999 regression) (#135) (9ad3118), closes #134 #125"
+                "text": "**paramount:** PTS-align live sports slate for smooth playback (#91) (#139)"
+              },
+              {
+                "category": "Features",
+                "text": "**hbomax:** prefer HBO's ad-free FALLBACK stream (clean SSAI fix, #125) (#137)"
               }
             ]
           },
@@ -26964,12 +27088,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/ajstrick81/morphe-androidtv-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/ajstrick81.png?size=96",
           "latestChanges": {
-            "title": "1.29.4 (2026-08-26)",
-            "date": "2026-08-26",
+            "title": "1.30.1 (2026-08-28)",
+            "date": "2026-08-28",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**hbomax:** revert Block SSAI Ad Origins to opt-in (resume 39999 regression) (#135) (9ad3118), closes #134 #125"
+                "text": "**paramount:** PTS-align live sports slate for smooth playback (#91) (#139)"
+              },
+              {
+                "category": "Features",
+                "text": "**hbomax:** prefer HBO's ad-free FALLBACK stream (clean SSAI fix, #125) (#137)"
               }
             ]
           },
@@ -27527,12 +27655,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/ajstrick81/morphe-androidtv-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/ajstrick81.png?size=96",
           "latestChanges": {
-            "title": "1.29.4 (2026-08-26)",
-            "date": "2026-08-26",
+            "title": "1.30.1 (2026-08-28)",
+            "date": "2026-08-28",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**hbomax:** revert Block SSAI Ad Origins to opt-in (resume 39999 regression) (#135) (9ad3118), closes #134 #125"
+                "text": "**paramount:** PTS-align live sports slate for smooth playback (#91) (#139)"
+              },
+              {
+                "category": "Features",
+                "text": "**hbomax:** prefer HBO's ad-free FALLBACK stream (clean SSAI fix, #125) (#137)"
               }
             ]
           },
@@ -27587,12 +27719,12 @@
           "changelogUrl": "https://raw.githubusercontent.com/ch3thanhs/stylus/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/ch3thanhs.png?size=96",
           "latestChanges": {
-            "title": "1.4.0 (2026-08-05)",
-            "date": "2026-08-05",
+            "title": "1.5.0 (2026-08-29)",
+            "date": "2026-08-29",
             "items": [
               {
                 "category": "\u2728 New Features",
-                "text": "**github:** add force system font webview css override and ui-monospace patch"
+                "text": "**instagram:** add force system font patch"
               }
             ]
           },
@@ -27622,7 +27754,7 @@
             }
           ],
           "versions": [
-            "1.270.0"
+            "1.273.0"
           ]
         },
         {
@@ -27773,8 +27905,8 @@
         }
       ],
       "versions": [
-        "1.270.0",
-        "1.271.1"
+        "1.271.1",
+        "1.273.0"
       ],
       "iconColor": "#000000",
       "iconUrl": "https://play-lh.googleusercontent.com/nxpwi4UD84GNJuJ42S9U0f3lGDsHu8VkIDPCccFmJL6kyNVb1O3pTY1rl1YZICLBk6EcWIaX6n9prCbdUoQEOw"
@@ -29037,8 +29169,8 @@
         "Enable clipboard in incognito",
         "Enable cursor trackpad mode",
         "Enable Inline Autofill Suggestions",
-        "Enable Key Shape Selection",
         "Enable key shape selection",
+        "Enable Key Shape Selection",
         "Enable OCR / Scan Text",
         "Enable OCR feature",
         "Enable split keyboard",
@@ -29224,12 +29356,12 @@
           "description": "\u555f\u7528\u5167\u5d4c\u81ea\u52d5\u586b\u5165\u5efa\u8b70\nEnable Inline Autofill Suggestions"
         },
         {
-          "name": "Enable Key Shape Selection",
-          "description": "Enables the key border shape selection UI (Default, Semi-rounded, Round) in theme customization."
-        },
-        {
           "name": "Enable key shape selection",
           "description": "Enables an option to select a key shape from the theme."
+        },
+        {
+          "name": "Enable Key Shape Selection",
+          "description": "Enables the key border shape selection UI (Default, Semi-rounded, Round) in theme customization."
         },
         {
           "name": "Enable OCR / Scan Text",
@@ -29843,12 +29975,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/ajstrick81/morphe-androidtv-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/ajstrick81.png?size=96",
           "latestChanges": {
-            "title": "1.29.4 (2026-08-26)",
-            "date": "2026-08-26",
+            "title": "1.30.1 (2026-08-28)",
+            "date": "2026-08-28",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**hbomax:** revert Block SSAI Ad Origins to opt-in (resume 39999 regression) (#135) (9ad3118), closes #134 #125"
+                "text": "**paramount:** PTS-align live sports slate for smooth playback (#91) (#139)"
+              },
+              {
+                "category": "Features",
+                "text": "**hbomax:** prefer HBO's ad-free FALLBACK stream (clean SSAI fix, #125) (#137)"
               }
             ]
           },
@@ -30122,12 +30258,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/ajstrick81/morphe-androidtv-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/ajstrick81.png?size=96",
           "latestChanges": {
-            "title": "1.29.4 (2026-08-26)",
-            "date": "2026-08-26",
+            "title": "1.30.1 (2026-08-28)",
+            "date": "2026-08-28",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**hbomax:** revert Block SSAI Ad Origins to opt-in (resume 39999 regression) (#135) (9ad3118), closes #134 #125"
+                "text": "**paramount:** PTS-align live sports slate for smooth playback (#91) (#139)"
+              },
+              {
+                "category": "Features",
+                "text": "**hbomax:** prefer HBO's ad-free FALLBACK stream (clean SSAI fix, #125) (#137)"
               }
             ]
           },
@@ -30795,12 +30935,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/ajstrick81/morphe-androidtv-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/ajstrick81.png?size=96",
           "latestChanges": {
-            "title": "1.29.4 (2026-08-26)",
-            "date": "2026-08-26",
+            "title": "1.30.1 (2026-08-28)",
+            "date": "2026-08-28",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**hbomax:** revert Block SSAI Ad Origins to opt-in (resume 39999 regression) (#135) (9ad3118), closes #134 #125"
+                "text": "**paramount:** PTS-align live sports slate for smooth playback (#91) (#139)"
+              },
+              {
+                "category": "Features",
+                "text": "**hbomax:** prefer HBO's ad-free FALLBACK stream (clean SSAI fix, #125) (#137)"
               }
             ]
           },
@@ -31762,12 +31906,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/ajstrick81/morphe-androidtv-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/ajstrick81.png?size=96",
           "latestChanges": {
-            "title": "1.29.4 (2026-08-26)",
-            "date": "2026-08-26",
+            "title": "1.30.1 (2026-08-28)",
+            "date": "2026-08-28",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**hbomax:** revert Block SSAI Ad Origins to opt-in (resume 39999 regression) (#135) (9ad3118), closes #134 #125"
+                "text": "**paramount:** PTS-align live sports slate for smooth playback (#91) (#139)"
+              },
+              {
+                "category": "Features",
+                "text": "**hbomax:** prefer HBO's ad-free FALLBACK stream (clean SSAI fix, #125) (#137)"
               }
             ]
           },
@@ -31902,12 +32050,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/ajstrick81/morphe-androidtv-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/ajstrick81.png?size=96",
           "latestChanges": {
-            "title": "1.29.4 (2026-08-26)",
-            "date": "2026-08-26",
+            "title": "1.30.1 (2026-08-28)",
+            "date": "2026-08-28",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**hbomax:** revert Block SSAI Ad Origins to opt-in (resume 39999 regression) (#135) (9ad3118), closes #134 #125"
+                "text": "**paramount:** PTS-align live sports slate for smooth playback (#91) (#139)"
+              },
+              {
+                "category": "Features",
+                "text": "**hbomax:** prefer HBO's ad-free FALLBACK stream (clean SSAI fix, #125) (#137)"
               }
             ]
           },
@@ -34620,7 +34772,7 @@
     },
     {
       "packageName": "de.humbergsoftware.keyboarddesigner",
-      "name": "Custom+ Keyboard Designer",
+      "name": "Custom Keyboard Designer",
       "repos": [
         "Dan1elTheMan1el/Morphe-Patches"
       ],
@@ -34634,23 +34786,31 @@
           "changelogUrl": "https://raw.githubusercontent.com/Dan1elTheMan1el/Morphe-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Dan1elTheMan1el.png?size=96",
           "latestChanges": {
-            "title": "1.2.0 (2026-08-28)",
+            "title": "1.3.0 (2026-08-28)",
             "date": "2026-08-28",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "Keyboard Designer Premium Unlock"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "DeFit tutorial patch error"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "Keyboard Designer: Start with PokeGenie-inspired Keyboard"
+                "text": "Add patch with tutorial to fix login in DeFit++"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "Auto claim daily coins via intent in PokeRaid"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "Only show login tutorial when logged out"
               }
             ]
           },
           "builder": {
             "buildId": "de-humbergsoftware-keyboarddesigner-dan1eltheman1el-morphe-patches",
             "releaseTag": "app-de-humbergsoftware-keyboarddesigner-dan1eltheman1el-morphe-patches",
-            "assetName": "customplus-keyboard-designer-dan1eltheman1el-morphe-patches.apk",
+            "assetName": "custom-keyboard-designer-dan1eltheman1el-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -35379,7 +35539,7 @@
     },
     {
       "packageName": "com.fitness.debugger",
-      "name": "DeFit - Debugger of Fitness Apps",
+      "name": "DeFit",
       "repos": [
         "Dan1elTheMan1el/Morphe-Patches"
       ],
@@ -35393,23 +35553,31 @@
           "changelogUrl": "https://raw.githubusercontent.com/Dan1elTheMan1el/Morphe-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Dan1elTheMan1el.png?size=96",
           "latestChanges": {
-            "title": "1.2.0 (2026-08-28)",
+            "title": "1.3.0 (2026-08-28)",
             "date": "2026-08-28",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "Keyboard Designer Premium Unlock"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "DeFit tutorial patch error"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "Keyboard Designer: Start with PokeGenie-inspired Keyboard"
+                "text": "Add patch with tutorial to fix login in DeFit++"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "Auto claim daily coins via intent in PokeRaid"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "Only show login tutorial when logged out"
               }
             ]
           },
           "builder": {
             "buildId": "com-fitness-debugger-dan1eltheman1el-morphe-patches",
             "releaseTag": "app-com-fitness-debugger-dan1eltheman1el-morphe-patches",
-            "assetName": "defit-debugger-of-fitness-apps-dan1eltheman1el-morphe-patches.apk",
+            "assetName": "defit-dan1eltheman1el-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -35417,6 +35585,10 @@
             {
               "name": "Custom Branding",
               "description": "Changes DeFit's app name, header title, and displayed version."
+            },
+            {
+              "name": "Login Fix Tutorial",
+              "description": "Adds an in-app Google Fit login setup guide and a button to copy the installed APK's signing SHA-1."
             },
             {
               "name": "Material You Theme",
@@ -35438,6 +35610,7 @@
       ],
       "patches": [
         "Custom Branding",
+        "Login Fix Tutorial",
         "Material You Theme",
         "Remove Bottom Banner Ad",
         "Unlimited Time Bypass"
@@ -35446,6 +35619,10 @@
         {
           "name": "Custom Branding",
           "description": "Changes DeFit's app name, header title, and displayed version."
+        },
+        {
+          "name": "Login Fix Tutorial",
+          "description": "Adds an in-app Google Fit login setup guide and a button to copy the installed APK's signing SHA-1."
         },
         {
           "name": "Material You Theme",
@@ -36052,12 +36229,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.19.0 (2026-08-26)",
-            "date": "2026-08-26",
+            "title": "1.19.1 (2026-08-29)",
+            "date": "2026-08-29",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**haak-billing:** implement free purchases patch"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**doodlejump:** add resurrection bypass for Doodle Jump 3.11.40"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**hillclimb:** update rewarded video patch for HCR 1.71.1"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**rodeosafari:** add support for version 4.24.0"
               }
             ]
           },
@@ -36072,24 +36257,35 @@
             {
               "name": "Doodle Jump Billing Bypass",
               "description": "Unlocks the full game by bypassing Google Play billing."
+            },
+            {
+              "name": "Doodle Jump Resurrection Bypass",
+              "description": "Resurrect instantly after death without watching a rewarded ad."
             }
           ],
           "versions": [
-            "3.11.38"
+            "3.11.38",
+            "3.11.40"
           ]
         }
       ],
       "patches": [
-        "Doodle Jump Billing Bypass"
+        "Doodle Jump Billing Bypass",
+        "Doodle Jump Resurrection Bypass"
       ],
       "patchDetails": [
         {
           "name": "Doodle Jump Billing Bypass",
           "description": "Unlocks the full game by bypassing Google Play billing."
+        },
+        {
+          "name": "Doodle Jump Resurrection Bypass",
+          "description": "Resurrect instantly after death without watching a rewarded ad."
         }
       ],
       "versions": [
-        "3.11.38"
+        "3.11.38",
+        "3.11.40"
       ],
       "iconColor": "#66BB6A",
       "iconUrl": ""
@@ -36284,12 +36480,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.19.0 (2026-08-26)",
-            "date": "2026-08-26",
+            "title": "1.19.1 (2026-08-29)",
+            "date": "2026-08-29",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**haak-billing:** implement free purchases patch"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**doodlejump:** add resurrection bypass for Doodle Jump 3.11.40"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**hillclimb:** update rewarded video patch for HCR 1.71.1"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**rodeosafari:** add support for version 4.24.0"
               }
             ]
           },
@@ -36594,12 +36798,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.19.0 (2026-08-26)",
-            "date": "2026-08-26",
+            "title": "1.19.1 (2026-08-29)",
+            "date": "2026-08-29",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**haak-billing:** implement free purchases patch"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**doodlejump:** add resurrection bypass for Doodle Jump 3.11.40"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**hillclimb:** update rewarded video patch for HCR 1.71.1"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**rodeosafari:** add support for version 4.24.0"
               }
             ]
           },
@@ -37932,12 +38144,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/jaredcat/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/jaredcat.png?size=96",
           "latestChanges": {
-            "title": "1.0.1 (2026-08-27)",
-            "date": "2026-08-27",
+            "title": "1.1.0 (2026-08-28)",
+            "date": "2026-08-28",
             "items": [
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "bump lumenate for 7.1.3"
+                "category": "\u2728 New Features",
+                "text": "add ASL Bloom"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add ASL Bloom"
               }
             ]
           },
@@ -40144,12 +40360,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.19.0 (2026-08-26)",
-            "date": "2026-08-26",
+            "title": "1.19.1 (2026-08-29)",
+            "date": "2026-08-29",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**haak-billing:** implement free purchases patch"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**doodlejump:** add resurrection bypass for Doodle Jump 3.11.40"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**hillclimb:** update rewarded video patch for HCR 1.71.1"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**rodeosafari:** add support for version 4.24.0"
               }
             ]
           },
@@ -41432,12 +41656,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.19.0 (2026-08-26)",
-            "date": "2026-08-26",
+            "title": "1.19.1 (2026-08-29)",
+            "date": "2026-08-29",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**haak-billing:** implement free purchases patch"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**doodlejump:** add resurrection bypass for Doodle Jump 3.11.40"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**hillclimb:** update rewarded video patch for HCR 1.71.1"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**rodeosafari:** add support for version 4.24.0"
               }
             ]
           },
@@ -42359,12 +42591,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.19.0 (2026-08-26)",
-            "date": "2026-08-26",
+            "title": "1.19.1 (2026-08-29)",
+            "date": "2026-08-29",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**haak-billing:** implement free purchases patch"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**doodlejump:** add resurrection bypass for Doodle Jump 3.11.40"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**hillclimb:** update rewarded video patch for HCR 1.71.1"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**rodeosafari:** add support for version 4.24.0"
               }
             ]
           },
@@ -42390,7 +42630,8 @@
             }
           ],
           "versions": [
-            "1.70.0"
+            "1.70.0",
+            "1.71.1"
           ]
         },
         {
@@ -44135,12 +44376,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.19.0 (2026-08-26)",
-            "date": "2026-08-26",
+            "title": "1.19.1 (2026-08-29)",
+            "date": "2026-08-29",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**haak-billing:** implement free purchases patch"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**doodlejump:** add resurrection bypass for Doodle Jump 3.11.40"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**hillclimb:** update rewarded video patch for HCR 1.71.1"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**rodeosafari:** add support for version 4.24.0"
               }
             ]
           },
@@ -44404,6 +44653,7 @@
       "name": "Instagram",
       "repos": [
         "brosssh/morphe-patches",
+        "ch3thanhs/stylus",
         "chirag127/morphe-patches",
         "crimera/piko",
         "kareemlukitomo/morphe-patches"
@@ -44522,6 +44772,41 @@
             {
               "name": "Remove build expired popup",
               "description": "Removes the popup that appears after a while, when the app version ages."
+            }
+          ],
+          "versions": [
+            "435.0.0.37.76"
+          ]
+        },
+        {
+          "repo": "ch3thanhs/stylus",
+          "host": "github.com",
+          "webUrl": "https://github.com/ch3thanhs/stylus",
+          "addUrl": "https://morphe.software/add-source?github=ch3thanhs/stylus",
+          "source": "https://raw.githubusercontent.com/ch3thanhs/stylus/main/patches-bundle.json",
+          "changelogUrl": "https://raw.githubusercontent.com/ch3thanhs/stylus/main/CHANGELOG.md",
+          "avatarUrl": "https://github.com/ch3thanhs.png?size=96",
+          "latestChanges": {
+            "title": "1.5.0 (2026-08-29)",
+            "date": "2026-08-29",
+            "items": [
+              {
+                "category": "\u2728 New Features",
+                "text": "**instagram:** add force system font patch"
+              }
+            ]
+          },
+          "builder": {
+            "buildId": "com-instagram-android-ch3thanhs-stylus",
+            "releaseTag": "app-com-instagram-android-ch3thanhs-stylus",
+            "assetName": "instagram-ch3thanhs-stylus.apk",
+            "repo": "rushiforai/morphe-builder",
+            "webUrl": "https://github.com/rushiforai/morphe-builder"
+          },
+          "patches": [
+            {
+              "name": "Force system font (Instagram)",
+              "description": "Renders Instagram UI text using the device system font."
             }
           ],
           "versions": [
@@ -44901,6 +45186,7 @@
         "Download voice message",
         "External downloader",
         "Filter stories",
+        "Force system font (Instagram)",
         "Friendship status indicator",
         "Hide ads",
         "Hide all stories",
@@ -45054,6 +45340,10 @@
         {
           "name": "Filter stories",
           "description": "Filter stories to hide based on different categories"
+        },
+        {
+          "name": "Force system font (Instagram)",
+          "description": "Renders Instagram UI text using the device system font."
         },
         {
           "name": "Friendship status indicator",
@@ -45277,12 +45567,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.19.0 (2026-08-26)",
-            "date": "2026-08-26",
+            "title": "1.19.1 (2026-08-29)",
+            "date": "2026-08-29",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**haak-billing:** implement free purchases patch"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**doodlejump:** add resurrection bypass for Doodle Jump 3.11.40"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**hillclimb:** update rewarded video patch for HCR 1.71.1"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**rodeosafari:** add support for version 4.24.0"
               }
             ]
           },
@@ -46269,12 +46567,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.19.0 (2026-08-26)",
-            "date": "2026-08-26",
+            "title": "1.19.1 (2026-08-29)",
+            "date": "2026-08-29",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**haak-billing:** implement free purchases patch"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**doodlejump:** add resurrection bypass for Doodle Jump 3.11.40"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**hillclimb:** update rewarded video patch for HCR 1.71.1"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**rodeosafari:** add support for version 4.24.0"
               }
             ]
           },
@@ -49740,12 +50046,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/jaredcat/morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/jaredcat.png?size=96",
           "latestChanges": {
-            "title": "1.0.1 (2026-08-27)",
-            "date": "2026-08-27",
+            "title": "1.1.0 (2026-08-28)",
+            "date": "2026-08-28",
             "items": [
               {
-                "category": "\ud83d\udc1b Bug Fixes",
-                "text": "bump lumenate for 7.1.3"
+                "category": "\u2728 New Features",
+                "text": "add ASL Bloom"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "add ASL Bloom"
               }
             ]
           },
@@ -52695,12 +53005,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.19.0 (2026-08-26)",
-            "date": "2026-08-26",
+            "title": "1.19.1 (2026-08-29)",
+            "date": "2026-08-29",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**haak-billing:** implement free purchases patch"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**doodlejump:** add resurrection bypass for Doodle Jump 3.11.40"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**hillclimb:** update rewarded video patch for HCR 1.71.1"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**rodeosafari:** add support for version 4.24.0"
               }
             ]
           },
@@ -54008,12 +54326,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.19.0 (2026-08-26)",
-            "date": "2026-08-26",
+            "title": "1.19.1 (2026-08-29)",
+            "date": "2026-08-29",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**haak-billing:** implement free purchases patch"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**doodlejump:** add resurrection bypass for Doodle Jump 3.11.40"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**hillclimb:** update rewarded video patch for HCR 1.71.1"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**rodeosafari:** add support for version 4.24.0"
               }
             ]
           },
@@ -58300,12 +58626,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.19.0 (2026-08-26)",
-            "date": "2026-08-26",
+            "title": "1.19.1 (2026-08-29)",
+            "date": "2026-08-29",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**haak-billing:** implement free purchases patch"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**doodlejump:** add resurrection bypass for Doodle Jump 3.11.40"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**hillclimb:** update rewarded video patch for HCR 1.71.1"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**rodeosafari:** add support for version 4.24.0"
               }
             ]
           },
@@ -62254,12 +62588,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.19.0 (2026-08-26)",
-            "date": "2026-08-26",
+            "title": "1.19.1 (2026-08-29)",
+            "date": "2026-08-29",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**haak-billing:** implement free purchases patch"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**doodlejump:** add resurrection bypass for Doodle Jump 3.11.40"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**hillclimb:** update rewarded video patch for HCR 1.71.1"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**rodeosafari:** add support for version 4.24.0"
               }
             ]
           },
@@ -64233,7 +64575,7 @@
     },
     {
       "packageName": "me.pokeraid",
-      "name": "PokeRaid - Worldwide Remote Raids",
+      "name": "PokeRaid - for Pok\u00e9mon GO Raid",
       "repos": [
         "Dan1elTheMan1el/Morphe-Patches"
       ],
@@ -64247,23 +64589,31 @@
           "changelogUrl": "https://raw.githubusercontent.com/Dan1elTheMan1el/Morphe-Patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/Dan1elTheMan1el.png?size=96",
           "latestChanges": {
-            "title": "1.2.0 (2026-08-28)",
+            "title": "1.3.0 (2026-08-28)",
             "date": "2026-08-28",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "Keyboard Designer Premium Unlock"
+                "category": "\ud83d\udc1b Bug Fixes",
+                "text": "DeFit tutorial patch error"
               },
               {
                 "category": "\u2728 New Features",
-                "text": "Keyboard Designer: Start with PokeGenie-inspired Keyboard"
+                "text": "Add patch with tutorial to fix login in DeFit++"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "Auto claim daily coins via intent in PokeRaid"
+              },
+              {
+                "category": "\u2728 New Features",
+                "text": "Only show login tutorial when logged out"
               }
             ]
           },
           "builder": {
             "buildId": "me-pokeraid-dan1eltheman1el-morphe-patches",
             "releaseTag": "app-me-pokeraid-dan1eltheman1el-morphe-patches",
-            "assetName": "pokeraid-worldwide-remote-raids-dan1eltheman1el-morphe-patches.apk",
+            "assetName": "pokeraid-for-pok-mon-go-raid-dan1eltheman1el-morphe-patches.apk",
             "repo": "rushiforai/morphe-builder",
             "webUrl": "https://github.com/rushiforai/morphe-builder"
           },
@@ -64271,6 +64621,10 @@
             {
               "name": "Bounty Daily Reward Shortcut",
               "description": "Tap Bounty to open Daily Reward; long press it to open Bounty."
+            },
+            {
+              "name": "Daily Reward Background Status & Auto-Claim",
+              "description": "Checks daily reward eligibility and automatically claims it (bypassing ads) if available. Invoke by sending intent as broadcast, with action app.danielthemaniel.pokeraid.CHECK_DAILY_REWARD, and package me.pokeraid."
             },
             {
               "name": "Disable Ads",
@@ -64300,6 +64654,7 @@
       ],
       "patches": [
         "Bounty Daily Reward Shortcut",
+        "Daily Reward Background Status & Auto-Claim",
         "Disable Ads",
         "Disable Analytics",
         "Hide News Banners",
@@ -64310,6 +64665,10 @@
         {
           "name": "Bounty Daily Reward Shortcut",
           "description": "Tap Bounty to open Daily Reward; long press it to open Bounty."
+        },
+        {
+          "name": "Daily Reward Background Status & Auto-Claim",
+          "description": "Checks daily reward eligibility and automatically claims it (bypassing ads) if available. Invoke by sending intent as broadcast, with action app.danielthemaniel.pokeraid.CHECK_DAILY_REWARD, and package me.pokeraid."
         },
         {
           "name": "Disable Ads",
@@ -67891,8 +68250,8 @@
         "Hide community highlights",
         "Hide community menu badge",
         "Hide Games Tab",
-        "Hide Navigation Buttons",
         "Hide navigation buttons",
+        "Hide Navigation Buttons",
         "Hide permanent ban banner",
         "Hide post view counts",
         "Hide prominent search bar",
@@ -67901,8 +68260,8 @@
         "Hide share count",
         "Hide Sidebar Components",
         "Hide sidebar components",
-        "Hide Trending shelves",
         "Hide Trending Shelves",
+        "Hide Trending shelves",
         "Hide upvote scores",
         "Hide user community badges",
         "Hide user flairs",
@@ -68032,12 +68391,12 @@
           "description": "Removes the Games tab from the bottom navigation bar."
         },
         {
-          "name": "Hide Navigation Buttons",
-          "description": "Removes the Create Post button from the bottom navigation bar."
-        },
-        {
           "name": "Hide navigation buttons",
           "description": "Adds options to hide buttons in the navigation bar."
+        },
+        {
+          "name": "Hide Navigation Buttons",
+          "description": "Removes the Create Post button from the bottom navigation bar."
         },
         {
           "name": "Hide permanent ban banner",
@@ -68072,12 +68431,12 @@
           "description": "Adds options to hide the sidebar components."
         },
         {
-          "name": "Hide Trending shelves",
-          "description": "Adds an option to hide the Trending shelves from feed and search suggestions."
-        },
-        {
           "name": "Hide Trending Shelves",
           "description": "Removes Trending Today from the feed and trending searches from the search screen."
+        },
+        {
+          "name": "Hide Trending shelves",
+          "description": "Adds an option to hide the Trending shelves from feed and search suggestions."
         },
         {
           "name": "Hide upvote scores",
@@ -68664,12 +69023,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.19.0 (2026-08-26)",
-            "date": "2026-08-26",
+            "title": "1.19.1 (2026-08-29)",
+            "date": "2026-08-29",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**haak-billing:** implement free purchases patch"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**doodlejump:** add resurrection bypass for Doodle Jump 3.11.40"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**hillclimb:** update rewarded video patch for HCR 1.71.1"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**rodeosafari:** add support for version 4.24.0"
               }
             ]
           },
@@ -68691,7 +69058,8 @@
             }
           ],
           "versions": [
-            "4.23.0"
+            "4.23.0",
+            "4.24.0"
           ]
         }
       ],
@@ -68710,7 +69078,8 @@
         }
       ],
       "versions": [
-        "4.23.0"
+        "4.23.0",
+        "4.24.0"
       ],
       "iconColor": "#689F38",
       "iconUrl": ""
@@ -71961,12 +72330,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.19.0 (2026-08-26)",
-            "date": "2026-08-26",
+            "title": "1.19.1 (2026-08-29)",
+            "date": "2026-08-29",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**haak-billing:** implement free purchases patch"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**doodlejump:** add resurrection bypass for Doodle Jump 3.11.40"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**hillclimb:** update rewarded video patch for HCR 1.71.1"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**rodeosafari:** add support for version 4.24.0"
               }
             ]
           },
@@ -76269,12 +76646,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.19.0 (2026-08-26)",
-            "date": "2026-08-26",
+            "title": "1.19.1 (2026-08-29)",
+            "date": "2026-08-29",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**haak-billing:** implement free purchases patch"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**doodlejump:** add resurrection bypass for Doodle Jump 3.11.40"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**hillclimb:** update rewarded video patch for HCR 1.71.1"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**rodeosafari:** add support for version 4.24.0"
               }
             ]
           },
@@ -78778,12 +79163,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.19.0 (2026-08-26)",
-            "date": "2026-08-26",
+            "title": "1.19.1 (2026-08-29)",
+            "date": "2026-08-29",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**haak-billing:** implement free purchases patch"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**doodlejump:** add resurrection bypass for Doodle Jump 3.11.40"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**hillclimb:** update rewarded video patch for HCR 1.71.1"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**rodeosafari:** add support for version 4.24.0"
               }
             ]
           },
@@ -82050,12 +82443,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.19.0 (2026-08-26)",
-            "date": "2026-08-26",
+            "title": "1.19.1 (2026-08-29)",
+            "date": "2026-08-29",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**haak-billing:** implement free purchases patch"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**doodlejump:** add resurrection bypass for Doodle Jump 3.11.40"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**hillclimb:** update rewarded video patch for HCR 1.71.1"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**rodeosafari:** add support for version 4.24.0"
               }
             ]
           },
@@ -82377,12 +82778,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/ajstrick81/morphe-androidtv-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/ajstrick81.png?size=96",
           "latestChanges": {
-            "title": "1.29.4 (2026-08-26)",
-            "date": "2026-08-26",
+            "title": "1.30.1 (2026-08-28)",
+            "date": "2026-08-28",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**hbomax:** revert Block SSAI Ad Origins to opt-in (resume 39999 regression) (#135) (9ad3118), closes #134 #125"
+                "text": "**paramount:** PTS-align live sports slate for smooth playback (#91) (#139)"
+              },
+              {
+                "category": "Features",
+                "text": "**hbomax:** prefer HBO's ad-free FALLBACK stream (clean SSAI fix, #125) (#137)"
               }
             ]
           },
@@ -82464,12 +82869,16 @@
           "changelogUrl": "https://raw.githubusercontent.com/ajstrick81/morphe-androidtv-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/ajstrick81.png?size=96",
           "latestChanges": {
-            "title": "1.29.4 (2026-08-26)",
-            "date": "2026-08-26",
+            "title": "1.30.1 (2026-08-28)",
+            "date": "2026-08-28",
             "items": [
               {
                 "category": "Bug Fixes",
-                "text": "**hbomax:** revert Block SSAI Ad Origins to opt-in (resume 39999 regression) (#135) (9ad3118), closes #134 #125"
+                "text": "**paramount:** PTS-align live sports slate for smooth playback (#91) (#139)"
+              },
+              {
+                "category": "Features",
+                "text": "**hbomax:** prefer HBO's ad-free FALLBACK stream (clean SSAI fix, #125) (#137)"
               }
             ]
           },
@@ -83306,12 +83715,20 @@
           "changelogUrl": "https://raw.githubusercontent.com/byehi98/okish-morphe-patches/main/CHANGELOG.md",
           "avatarUrl": "https://github.com/byehi98.png?size=96",
           "latestChanges": {
-            "title": "1.19.0 (2026-08-26)",
-            "date": "2026-08-26",
+            "title": "1.19.1 (2026-08-29)",
+            "date": "2026-08-29",
             "items": [
               {
-                "category": "\u2728 New Features",
-                "text": "**haak-billing:** implement free purchases patch"
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**doodlejump:** add resurrection bypass for Doodle Jump 3.11.40"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**hillclimb:** update rewarded video patch for HCR 1.71.1"
+              },
+              {
+                "category": "\ud83d\ude80 Updated App Support",
+                "text": "**rodeosafari:** add support for version 4.24.0"
               }
             ]
           },
@@ -88880,8 +89297,8 @@
         "Video playback",
         "Video quality",
         "Visual preferences icons for YouTube",
-        "Voice over translation",
         "Voice Over Translation",
+        "Voice over translation",
         "Voice Over Translation (Yandex)",
         "Watch history",
         "Watch later button",
@@ -89399,12 +89816,12 @@
           "description": "Adds icons to specific preferences in the settings."
         },
         {
-          "name": "Voice over translation",
-          "description": "Adds additional voice over languages using text-to-speech synchronized to the video playback."
-        },
-        {
           "name": "Voice Over Translation",
           "description": "Adds an option to enable Yandex voice-over translation of video audio tracks."
+        },
+        {
+          "name": "Voice over translation",
+          "description": "Adds additional voice over languages using text-to-speech synchronized to the video playback."
         },
         {
           "name": "Voice Over Translation (Yandex)",
@@ -92671,49 +93088,25 @@
       "source": "https://raw.githubusercontent.com/Nai64/Nai64Patches/main/patches-bundle.json",
       "changelogUrl": "https://raw.githubusercontent.com/Nai64/Nai64Patches/main/CHANGELOG.md",
       "avatarUrl": "https://github.com/Nai64.png?size=96",
-      "patchCount": 303,
+      "patchCount": 332,
       "latestChanges": {
-        "title": "1.32.0 (2026-08-27)",
-        "date": "2026-08-27",
+        "title": "1.35.1 (2026-08-28)",
+        "date": "2026-08-28",
         "items": [
           {
-            "category": "New Features",
-            "text": "add Fake ADB Enabled patch"
+            "category": "Bug Fixes",
+            "text": "reduce free iap heap usage"
           },
           {
-            "category": "New Features",
-            "text": "add Fake Auto Rotate On patch"
-          },
-          {
-            "category": "New Features",
-            "text": "add Fake Auto Time patch"
-          },
-          {
-            "category": "New Features",
-            "text": "add Fake Auto Time Zone patch"
-          },
-          {
-            "category": "New Features",
-            "text": "add Fake Available Processors patch"
-          },
-          {
-            "category": "New Features",
-            "text": "add Fake Bluetooth Bonded Devices Empty patch"
-          },
-          {
-            "category": "New Features",
-            "text": "add Fake Brightness Auto Mode patch"
-          },
-          {
-            "category": "New Features",
-            "text": "add Fake Cell Info Empty patch"
+            "category": "Bug Fixes",
+            "text": "unlimited currency hotfix"
           }
         ]
       },
       "patches": [
         {
           "name": "Ads Free Rewards (Experimental)",
-          "description": "Claim rewards without watching rewarded ads. Use with No Ads to block other ad formats, but leave No Ads' Block Rewarded option disabled so reward-based features remain available. Currently includes AppLovin MAX, Unity Ads, ironSource/LevelPlay, Huawei Ads Kit, VK MyTarget (including RuStore), and Yandex integrations. Experimental: coverage is not guaranteed for every APK or ad SDK.",
+          "description": "Get rewards without watching ads. Combine with No Ads for other formats, but keep No Ads' rewarded block off.",
           "default": false
         },
         {
@@ -92763,12 +93156,12 @@
         },
         {
           "name": "AMOLED Theme",
-          "description": "Forces pure-black (#FF000000) backgrounds and surfaces on every dark theme so apps that support dark mode render true AMOLED-black instead of dark grey. Light themes are left untouched, so text stays readable. Optional toggles can also blacken the system bars",
+          "description": "Makes dark mode pure black for AMOLED screens. Light mode stays normal.",
           "default": false
         },
         {
           "name": "Apk Junk Cleanup",
-          "description": "Reduces APK size by stripping unused native libraries. Keeps only the selected CPU architecture under lib/ (e.g. arm64-v8a) and deletes the others. Use only if you know the target device ABI - the APK will not run on devices needing a stripped ABI. For translations use Strip Translations instead.",
+          "description": "Removes unused CPU libraries to shrink the APK. Keep only your device's architecture.",
           "default": false
         },
         {
@@ -92793,12 +93186,12 @@
         },
         {
           "name": "Bypass Emulator Detection",
-          "description": "Spoofs android.os.Build identity (model, device, manufacturer, hardware, fingerprint, serial, user, host, radio, bootloader) and Build.getRadioVersion(), TelephonyManager.getPhoneType(), and telltale system properties (ro.kernel.qemu, ro.hardware, ro.product.model/device, ro.bootloader, ro.radio) so apps and games that refuse to run, crash or match you with emulator lobbies cannot tell they are on an emulator. Optional Hide Emulator Radio and Spoof Build Extras settings also cover TelephonyManager radio type and additional Build/Build.VERSION identity fields. Does not hide root or a debugger connection.",
+          "description": "Hides emulator traces by spoofing Build info and related checks so apps cannot detect an emulator.",
           "default": false
         },
         {
           "name": "Bypass Forced Updates (Experimental)",
-          "description": "Attempts to bypass blocking in-app update prompts in older apps and games. Settings enabled by default: Bypass update gate ignores high-confidence update-required boolean checks; Make dialogs dismissible changes detected non-cancelable update dialogs; Block update redirects prevents detected Play Store/browser updater launches; Prevent forced exit removes detected update-related activity exits; Patch Play Core disables Google Play in-app update flow, including the functionality of Disable Google Update Check. Do not select Disable Google Update Check separately when using this patch. Experimental: results are not guaranteed because apps may implement updates differently or enforce them on their own servers.",
+          "description": "Tries to skip forced update screens. Enable the toggles to ignore version checks, make dialogs closable, block store redirects, or disable Play Core updates. Experimental.",
           "default": false
         },
         {
@@ -92938,7 +93331,7 @@
         },
         {
           "name": "Custom App Icon",
-          "description": "Replaces the launcher icon with a custom image you supply (image URL, file path, or base64).",
+          "description": "Replaces the launcher icon with a custom image you supply (image URL, file path, or base64). Optionally apply hue shift, negative, sepia, or flip to the icon (works on original icon even without custom source).",
           "default": false
         },
         {
@@ -92979,6 +93372,11 @@
         {
           "name": "Disable App Links Verification",
           "description": "Removes android:autoVerify from intent filters so Android stops prompting to verify the app's web domains and never converts links into app opens",
+          "default": false
+        },
+        {
+          "name": "Disable Autofill",
+          "description": "Makes AutofillManager report as disabled so apps stop showing autofill prompts.",
           "default": false
         },
         {
@@ -93023,7 +93421,12 @@
         },
         {
           "name": "Disable Crash Reporters",
-          "description": "No-ops the static init/start/register methods of bundled crash-reporting SDKs (Crashlytics, Fabric, Sentry, Bugsnag, ACRA, HockeyApp, AppCenter, Instabug, Countly)",
+          "description": "Blocks crash reporting so the app doesn't send crash logs.",
+          "default": false
+        },
+        {
+          "name": "Disable Edge-To-Edge Enforcement",
+          "description": "Opts out of Android 15 mandatory edge-to-edge so apps that break with enforced edge-to-edge render normally.",
           "default": false
         },
         {
@@ -93043,17 +93446,22 @@
         },
         {
           "name": "Disable Forced Online Checks (Experimental)",
-          "description": "Attempts to bypass client-side online gates that prevent an app or game from starting. Auto mode is enabled by default and runs the common Android/network, detected Unity, detected Unreal, detected Godot, and generic bytecode strategies. Disable auto mode to choose the strategies individually. Experimental: this does not restore unavailable servers, bypass authentication, repair changed APIs, or guarantee that a game can work offline. Potential problems include broken login or matchmaking, unavailable cloud saves, stale or inconsistent game state, repeated connection errors, crashes, startup loops, or false-positive changes to unrelated connectivity logic. Blindly bypassing server checks may break login, cloud saves, matchmaking, or game state, so the patch only changes high-confidence client-side gates. Its common Android/network strategy overlaps Fake Online State, so do not select both patches together.",
+          "description": "Tries to skip online checks that prevent the app from starting. Auto mode handles most apps; turn it off to pick strategies manually. Experimental and may break online features.",
           "default": false
         },
         {
           "name": "Disable Google Update Check",
-          "description": "Disables the Google Play in-app update flow used by newer apps through the Play Core update API. This does not remove the app from Google Play's update list or disable custom update checks implemented by the app itself. Do not select this patch when using Bypass Forced Updates, because that patch already includes this Play Core functionality.",
+          "description": "Disables Play Core in-app update flow. Don't use with Bypass Forced Updates which already includes this.",
           "default": false
         },
         {
           "name": "Disable Haptic Feedback",
           "description": "Makes View.performHapticFeedback(...) report false (and do nothing) so the app's haptic/vibration feedback is suppressed.",
+          "default": false
+        },
+        {
+          "name": "Disable Haptic On Scroll",
+          "description": "Prevents haptic feedback triggered by scrolling.",
           "default": false
         },
         {
@@ -93084,6 +93492,11 @@
         {
           "name": "Disable Location Requests",
           "description": "No-ops LocationManager.requestLocationUpdates/requestSingleUpdate and FusedLocationProviderClient.requestLocationUpdates so the app receives no location updates at all.",
+          "default": false
+        },
+        {
+          "name": "Disable Logcat Logging",
+          "description": "No-ops android.util.Log calls so the app stops spamming logcat.",
           "default": false
         },
         {
@@ -93148,7 +93561,7 @@
         },
         {
           "name": "Disable Sensors",
-          "description": "Makes SensorManager.registerListener(...) report false (and register nothing) so the app cannot read motion, orientation, or other sensor data.",
+          "description": "Stops the app from reading motion and orientation sensors.",
           "default": false
         },
         {
@@ -93199,6 +93612,16 @@
         {
           "name": "Enable Large Heap",
           "description": "Sets android:largeHeap so the app gets a bigger Java heap on devices that allow it, reducing OutOfMemoryError crashes in memory-hungry games",
+          "default": false
+        },
+        {
+          "name": "Enable Unrestricted Background Work",
+          "description": "Makes JobScheduler/WorkManager jobs ignore idle and not require charging so background work runs even in Doze.",
+          "default": false
+        },
+        {
+          "name": "Enable Unrestricted Clipboard Access",
+          "description": "Makes clipboard appear to have content so apps that require clipboard access keep working.",
           "default": false
         },
         {
@@ -93283,7 +93706,7 @@
         },
         {
           "name": "Ensure Exact Alarm Availability",
-          "description": "Makes AlarmManager.canScheduleExactAlarms return true so older alarm, reminder, and scheduler apps do not disable their exact-alarm features on modern Android. Warning: this only changes the app's availability check; it does not grant Android's special exact-alarm access, and scheduling may still fail or throw SecurityException.",
+          "description": "Makes exact alarms appear available so old alarm apps keep working.",
           "default": false
         },
         {
@@ -93293,17 +93716,17 @@
         },
         {
           "name": "Ensure Modern Media Permissions",
-          "description": "Adds Android 13+ media permissions so older apps that can see some media but cannot properly access photos, videos, or music can request the modern permissions. Android still requires runtime approval, and this does not grant unrestricted access to arbitrary files.",
+          "description": "Adds media permissions so old apps can access photos and videos on Android 13+.",
           "default": false
         },
         {
           "name": "Ensure Notification Permission",
-          "description": "Adds POST_NOTIFICATIONS to the manifest so older apps can request notification access on Android 13+. This only declares the permission; Android may still require a runtime approval. Unlike Spoof Notifications as Enabled, it does not change the app's NotificationManager.areNotificationsEnabled check.",
+          "description": "Adds notification permission for old apps on Android 13+.",
           "default": false
         },
         {
           "name": "Ensure Storage Permissions",
-          "description": "Adds READ_EXTERNAL_STORAGE and WRITE_EXTERNAL_STORAGE for older apps that can see photos, videos, or music but cannot access ordinary files on modern Android ROMs. The permissions still require Android to grant them at runtime and have limited effect for apps targeting Android 13+.",
+          "description": "Adds storage permissions so old apps can access files on newer Android.",
           "default": false
         },
         {
@@ -93313,12 +93736,17 @@
         },
         {
           "name": "Export All Activities",
-          "description": "Marks every activity and activity-alias as android:exported=true so other apps and ADB can launch them. Unlike Repair Missing Component Export Flags, this intentionally exports every activity even when it has no intent filter; use the repair patch when you only need explicit exported values for filtered legacy components.",
+          "description": "Makes all activities launchable by other apps and ADB.",
           "default": false
         },
         {
           "name": "Fake ADB Enabled",
           "description": "Reports a chosen ADB state through Settings.Global so apps that restrict features based on developer options stop doing so.",
+          "default": false
+        },
+        {
+          "name": "Fake Animation Scales",
+          "description": "Reports animation scales via Settings so apps that check them see a chosen value.",
           "default": false
         },
         {
@@ -93343,7 +93771,7 @@
         },
         {
           "name": "Fake Battery Whitelist",
-          "description": "Makes PowerManager.isIgnoringBatteryOptimizations always return true so apps stop nagging about battery optimization exemptions",
+          "description": "Makes PowerManager.isIgnoringBatteryOptimizations report a chosen state so apps stop nagging about battery optimization exemptions",
           "default": false
         },
         {
@@ -93422,8 +93850,23 @@
           "default": false
         },
         {
+          "name": "Fake Pointer Location",
+          "description": "Reports pointer location as disabled via Settings so apps that check it stop doing so.",
+          "default": false
+        },
+        {
           "name": "Fake Screen Timeout",
           "description": "Reports a chosen screen timeout through Settings.System so apps that restrict features based on screen timeout stop doing so.",
+          "default": false
+        },
+        {
+          "name": "Fake Show Touches",
+          "description": "Reports show touches as disabled via Settings so apps that check developer touch visualization stop doing so.",
+          "default": false
+        },
+        {
+          "name": "Fake Sound Effects Enabled",
+          "description": "Reports sound effects as disabled via Settings so apps that check it stop playing touch sounds.",
           "default": false
         },
         {
@@ -93459,6 +93902,11 @@
         {
           "name": "Force App Active",
           "description": "Makes UsageStatsManager.isAppInactive() report false so apps are not throttled by Android's app-standby buckets.",
+          "default": false
+        },
+        {
+          "name": "Force Battery Health Good",
+          "description": "Reports battery health as good via BatteryManager so apps that check health stop warning.",
           "default": false
         },
         {
@@ -93517,6 +93965,11 @@
           "default": false
         },
         {
+          "name": "Force Ignore Audio Focus",
+          "description": "Makes AudioManager.requestAudioFocus always return granted so apps never duck or pause for other audio.",
+          "default": false
+        },
+        {
           "name": "Force Landscape / Portrait",
           "description": "Force the app to a fixed screen orientation",
           "default": false
@@ -93553,7 +94006,7 @@
         },
         {
           "name": "Force Resizable Activity",
-          "description": "Sets android:resizeableActivity and drops the required touchscreen feature so the app can run in split-screen, free-form windows, DeX, and Chromebooks",
+          "description": "Sets android:resizeableActivity and supportsFreeformWindowManagement so the app can run in split-screen, free-form windows, DeX, and Chromebooks",
           "default": false
         },
         {
@@ -93618,7 +94071,12 @@
         },
         {
           "name": "Frame Rate Preference (Experimental)",
-          "description": "Requests a preferred display refresh rate for app and game windows using Android's window frame-rate API. Supports common 24, 30, 40, 45, 48, 50, 60, 72, 90, 96, 120, 144, 165, 180, and 185 FPS values. This is not an engine-level FPS override and does not change the target FPS configured by Unity, Unreal, Godot, or other game engines. Experimental: this requests a display rate and may not cap the engine's actual FPS; it does not patch, disable, or override VSync. Android, the device, thermal state, native code, or the game engine may ignore the request. Higher rates increase power use and heat, while unsupported rates may be rounded to the nearest available display mode.",
+          "description": "Requests a preferred refresh rate like 60 or 90 Hz for the app window. The system may ignore it.",
+          "default": false
+        },
+        {
+          "name": "Free In-app Purchases (Experimental)",
+          "description": "Makes Unity in-app purchases appear successful without paying. Supports Unity IAP and Google Play Billing. Use for offline games only \u2014 online verification may still block.",
           "default": false
         },
         {
@@ -93638,7 +94096,7 @@
         },
         {
           "name": "Graphics API Override (Experimental)",
-          "description": "Attempts to override the graphics API of supported Unity Android games by injecting the engine's launch argument. Unity is the only supported engine at this time. Choose OpenGL ES or Vulkan; OpenGL ES is selected by default because it is supported by Android devices more broadly than Vulkan. This is separate from Prefer ANGLE Graphics Driver, which only requests ANGLE for OpenGL ES. Experimental: not guaranteed to work on every APK, engine version, or device, and an incompatible renderer may cause crashes, a black screen, missing graphics, or failure to launch. Games that select their renderer in native code or enforce settings from their own servers may ignore this patch.",
+          "description": "Forces a Unity game to use Vulkan or OpenGL via launch argument. Only for supported Unity games.",
           "default": false
         },
         {
@@ -93657,6 +94115,21 @@
           "default": false
         },
         {
+          "name": "Hide App Ops",
+          "description": "Makes app ops checks appear allowed so apps cannot probe permissions.",
+          "default": false
+        },
+        {
+          "name": "Hide App Tasks",
+          "description": "Makes the app see no recent tasks so it cannot read your recent apps.",
+          "default": false
+        },
+        {
+          "name": "Hide Cell Location",
+          "description": "Makes cell location appear unavailable so apps cannot read your tower location.",
+          "default": false
+        },
+        {
           "name": "Hide Clipboard",
           "description": "Forces ClipboardManager.getPrimaryClip() to return null so the app cannot read the system clipboard.",
           "default": false
@@ -93664,6 +94137,11 @@
         {
           "name": "Hide Clipboard Description",
           "description": "Makes ClipboardManager.getPrimaryClipDescription return null to block MIME and type harvesting",
+          "default": false
+        },
+        {
+          "name": "Hide Current Location",
+          "description": "Prevents the app from requesting your current location.",
           "default": false
         },
         {
@@ -93687,6 +94165,11 @@
           "default": false
         },
         {
+          "name": "Hide Input Methods",
+          "description": "Makes input methods appear empty so apps cannot fingerprint keyboards.",
+          "default": false
+        },
+        {
           "name": "Hide Installed Apps",
           "description": "Redirects PackageManager.getInstalledPackages/getInstalledApplications to Collections.emptyList() so the app sees no other installed apps.",
           "default": false
@@ -93697,8 +94180,18 @@
           "default": false
         },
         {
+          "name": "Hide Neighboring Cells",
+          "description": "Makes neighboring cell info appear empty so apps cannot read nearby towers.",
+          "default": false
+        },
+        {
           "name": "Hide Nfc Adapter",
           "description": "Makes NfcAdapter.getDefaultAdapter return null so NFC probes fail uniformly",
+          "default": false
+        },
+        {
+          "name": "Hide Query Intents",
+          "description": "Makes intent queries appear empty so apps cannot discover other installed apps via intents.",
           "default": false
         },
         {
@@ -93707,8 +94200,28 @@
           "default": false
         },
         {
+          "name": "Hide Running Processes",
+          "description": "Makes the app see no running processes so it cannot fingerprint other apps.",
+          "default": false
+        },
+        {
+          "name": "Hide Running Services",
+          "description": "Makes the app see no running services so it cannot detect other services.",
+          "default": false
+        },
+        {
           "name": "Hide Storage Volumes",
           "description": "Makes StorageManager return empty lists so volume enumeration for fingerprint sees nothing",
+          "default": false
+        },
+        {
+          "name": "Hide Stylus Handwriting",
+          "description": "Makes stylus handwriting appear unavailable so apps hide handwriting UI.",
+          "default": false
+        },
+        {
+          "name": "Hide Usage Events",
+          "description": "Makes usage events appear empty so apps cannot read your app launch history.",
           "default": false
         },
         {
@@ -93778,7 +94291,7 @@
         },
         {
           "name": "No Ads (Experimental)",
-          "description": "Block supported ads. Choose which formats to block below. For rewarded ads that gate progress, use Ads Free Rewards instead \u2014 it grants the reward without showing the ad. Covers AppLovin MAX, AdMob, Unity Ads, ironSource/LevelPlay, Huawei Ads Kit, VK MyTarget (RuStore), Yandex, Vungle, Meta Audience Network, Pangle, StartApp, MoPub and InMobi where detected. Experimental: some apps use custom mediation or obfuscated ad wrappers not yet fingerprinted \u2014 try enabling more categories or report the APK.",
+          "description": "Blocks ads by type. Pick what to block. For rewarded ads use Ads Free Rewards instead.",
           "default": false
         },
         {
@@ -93788,17 +94301,17 @@
         },
         {
           "name": "Pairip Bypass (Experimental)",
-          "description": "PairIP is anti-tamper and license protection used by some apps and games. This experimental patch provides configurable strategies to bypass PairIP checks so patched or modified builds can run instead of being blocked. Automatic strategy selection is enabled by default and applies compatible strategies found in the APK; disable it to manually select individual strategies for testing. Not every PairIP-protected app is guaranteed to work, and aggressive strategies may cause crashes, startup failures, missing license features, or other app-specific problems.",
+          "description": "Tries to bypass PairIP protection so patched apps can run. Experimental.",
           "default": false
         },
         {
           "name": "Prefer ANGLE Graphics Driver",
-          "description": "Requests ANGLE as the OpenGL ES driver so compatible modern Android devices may run OpenGL ES through ANGLE for improved graphics compatibility. This is only a driver preference, is not guaranteed, does not convert Vulkan apps to OpenGL, and may cause rendering issues on unsupported devices.",
+          "description": "Asks the system to use ANGLE for better graphics on supported devices.",
           "default": false
         },
         {
           "name": "Preserve App Data",
-          "description": "Helps keep saves and app data when a patched build replaces an installed app. Sets android:hasFragileUserData (Android offers to keep data on uninstall and restores it when the same package is reinstalled), enables android:allowBackup, sets android:restoreAnyVersion so a backup can be restored across versions, and removes backup-exclusion rules that hide app data from device/cloud backups. Note: the patched APK is re-signed, so it must replace the original via uninstall-then-install; keep the package name unchanged (these patches never rename it) and the data returns",
+          "description": "Keeps app data when reinstalling by setting hasFragileUserData so Android offers to keep data.",
           "default": false
         },
         {
@@ -93843,7 +94356,7 @@
         },
         {
           "name": "Remove Internet Permission",
-          "description": "Removes the INTERNET permission from the manifest for offline use. Apps that require internet for core features will crash or fail to load after this - use only on apps that work offline. Unlike the generic Remove Permissions patch this is a one-tap dedicated toggle with no jargon. No extra patches are required for the removal itself; if the app crashes it means it does not handle missing internet gracefully.",
+          "description": "Removes internet permission for offline use. Apps needing internet will crash.",
           "default": false
         },
         {
@@ -93863,7 +94376,7 @@
         },
         {
           "name": "Repair Missing Component Export Flags",
-          "description": "Adds missing android:exported values only to activities, aliases, services, and receivers that declare intent filters. Launcher components become exported=true and other filtered components become exported=false. Unlike Export All Activities, this does not export every activity or alter components without filters; verify apps that expect external service or receiver access after patching.",
+          "description": "Adds missing android:exported to components with intent filters so the app installs on newer Android.",
           "default": false
         },
         {
@@ -93873,7 +94386,7 @@
         },
         {
           "name": "Restore Package Visibility",
-          "description": "Adds QUERY_ALL_PACKAGES so older apps can detect installed stores, file managers, and other companion apps hidden by Android 11+ package-visibility filtering. This is a broad visibility override, may be restricted by Google Play policy, and does not install or grant access to the packages being detected.",
+          "description": "Lets old apps see all installed apps on Android 11+.",
           "default": false
         },
         {
@@ -93963,7 +94476,7 @@
         },
         {
           "name": "Spoof Build Serial",
-          "description": "Reports a fake device serial through Build.getSerial() so apps that fingerprint by serial number see a constant value.",
+          "description": "Reports a chosen device serial through Build.getSerial() so apps that fingerprint by serial number see a constant value.",
           "default": false
         },
         {
@@ -93973,12 +94486,12 @@
         },
         {
           "name": "Spoof Data State",
-          "description": "Reports an active data connection from TelephonyManager.getDataState() (DATA_CONNECTED) and getDataActivity() (DATA_ACTIVITY_INOUT) so apps that change behavior based on mobile data state see a live connection.",
+          "description": "Makes the app think mobile data is connected.",
           "default": false
         },
         {
           "name": "Spoof Developer Options",
-          "description": "Forces Settings.Global/Settings.Secure getters for developer options, USB debugging and wireless debugging to report disabled (0), so apps that refuse to run or crash when they detect debugging cannot tell it is on.",
+          "description": "Hides developer options and USB debugging so blocking apps keep working.",
           "default": false
         },
         {
@@ -93988,7 +94501,7 @@
         },
         {
           "name": "Spoof Device Software Version",
-          "description": "Reports a constant value from TelephonyManager.getDeviceSoftwareVersion() so apps cannot read the real radio/software version.",
+          "description": "Reports a chosen value from TelephonyManager.getDeviceSoftwareVersion() so apps cannot read the real radio/software version.",
           "default": false
         },
         {
@@ -93998,7 +94511,7 @@
         },
         {
           "name": "Spoof Group ID Level 1",
-          "description": "Reports a constant value from TelephonyManager.getGroupIdLevel1() so apps cannot read the real SIM GID1.",
+          "description": "Reports a chosen value from TelephonyManager.getGroupIdLevel1() so apps cannot read the real SIM GID1.",
           "default": false
         },
         {
@@ -94008,7 +94521,7 @@
         },
         {
           "name": "Spoof ISIM IMPI",
-          "description": "Reports an empty string from TelephonyManager.getIsimImpi() so apps cannot read the ISIM private identity.",
+          "description": "Reports a chosen string from TelephonyManager.getIsimImpi() so apps cannot read the ISIM private identity.",
           "default": false
         },
         {
@@ -94032,8 +94545,8 @@
           "default": false
         },
         {
-          "name": "Spoof NAI",
-          "description": "Reports an empty string from TelephonyManager.getNai() so apps cannot read the Network Access Identifier.",
+          "name": "Spoof Network Access Identifier",
+          "description": "Reports a chosen string from TelephonyManager.getNai() so apps cannot read the network access identifier.",
           "default": false
         },
         {
@@ -94048,7 +94561,7 @@
         },
         {
           "name": "Spoof Notifications as Enabled",
-          "description": "Makes NotificationManager.areNotificationsEnabled always return true so apps that refuse to run when notifications are blocked keep working. This only changes the app's internal check; it does not grant POST_NOTIFICATIONS or enable notifications in Android system settings. Use Ensure Notification Permission for the manifest entry.",
+          "description": "Makes the app think notifications are enabled so it keeps working even if blocked.",
           "default": false
         },
         {
@@ -94073,7 +94586,7 @@
         },
         {
           "name": "Spoof SDK Level",
-          "description": "Replaces every read of Build.VERSION.SDK_INT with a custom value. WARNING: setting a level lower than the device's real API level makes apps call missing APIs and crash; only use when you know the app checks it",
+          "description": "Reports a chosen Android version. Lower values can crash the app.",
           "default": false
         },
         {
@@ -94167,6 +94680,21 @@
           "default": false
         },
         {
+          "name": "Strip BuildConfig DEBUG",
+          "description": "Forces BuildConfig.DEBUG to false so apps hide debug banners and verbose checks.",
+          "default": false
+        },
+        {
+          "name": "Strip Exif Location",
+          "description": "Makes ExifInterface.getLatLong return null so apps cannot read GPS from photos.",
+          "default": false
+        },
+        {
+          "name": "Strip Package Verifier",
+          "description": "Makes package verifier appear disabled via Settings so apps skip verification checks.",
+          "default": false
+        },
+        {
           "name": "Strip Translations",
           "description": "Deletes all translated resources so only the default language remains, reducing APK size. Android falls back to the default strings automatically.",
           "default": false
@@ -94202,8 +94730,18 @@
           "default": false
         },
         {
+          "name": "Unlimited Currencies",
+          "description": "Makes currency checks return a huge amount so you never run out. Covers PlayerPrefs, SharedPreferences and common Unity fields.",
+          "default": false
+        },
+        {
           "name": "Unlock Max Aspect Ratio",
           "description": "Removes maxAspectRatio limits from the application, activities and metadata so the app fills tall edge-to-edge screens instead of letterboxing",
+          "default": false
+        },
+        {
+          "name": "Unlock Notification Channels",
+          "description": "Makes all notification channels blockable and their importance unlocked so greyed-out toggles become interactable.",
           "default": false
         },
         {
@@ -94833,12 +95371,12 @@
       "avatarUrl": "https://github.com/sjshb57.png?size=96",
       "patchCount": 4,
       "latestChanges": {
-        "title": "1.10.2 (2026-07-13)",
-        "date": "2026-07-13",
+        "title": "1.10.3 (2026-08-29)",
+        "date": "2026-08-29",
         "items": [
           {
-            "category": "\ud83d\ude80 Updated App Support",
-            "text": "refine release workflow, update gradle, and enhance patch metadata  - Upgrade Gradle wrapper to 9.6.1 and bump morphe-patcher to 1.6.0. - Update Dependabot schedule to monthly and add ignore rules for specific changelog dependencies. - Configure dev as a pre-release branch in .releaserc and implement automatic backmerging from main to dev. - Rewrite open_pull_request.yml workflow to use the GitHub CLI for verifying commits and managing PRs between dev and main. - Update PatchListGenerator to include versionCodes in compatibility targets and inject a warning note into the generated JSON. - Enhance release.yml to verify project compilation for commits that do not trigger a new release. - Update generate_patches_readme.py to use UTF-8 encoding when reading JSON metadata."
+            "category": "\ud83d\udd27 Improvements",
+            "text": "release v1.10.3"
           }
         ]
       },
@@ -94846,17 +95384,17 @@
         {
           "name": "Inline pairip call wrappers",
           "description": "Inlines pairip's static call-wrapper stubs ($<number>) back into their call sites and removes the stubs.",
-          "default": true
+          "default": false
         },
         {
           "name": "Remove pairip protection",
           "description": "Restores obfuscated strings and removes pairip bytecode protection.",
-          "default": true
+          "default": false
         },
         {
           "name": "Restore extracted methods",
           "description": "Inlines methods hidden in $c<number> helper classes back into the host class, then removes those helper and reflection method-holder classes.",
-          "default": true
+          "default": false
         },
         {
           "name": "Strip debug info",
@@ -95312,23 +95850,34 @@
       "webUrl": "https://github.com/jaredcat/morphe-patches",
       "addUrl": "https://morphe.software/add-source?github=jaredcat/morphe-patches",
       "avatarUrl": "https://github.com/jaredcat.png?size=96",
-      "patchCount": 3,
-      "appCount": 2,
+      "patchCount": 4,
+      "appCount": 3,
       "createdAt": 1787815658450,
       "updatedAt": 1787815658450,
       "createdDate": "2026-08-27",
       "updatedDate": "2026-08-27",
       "latestChanges": {
-        "title": "1.0.1 (2026-08-27)",
-        "date": "2026-08-27",
+        "title": "1.1.0 (2026-08-28)",
+        "date": "2026-08-28",
         "items": [
           {
-            "category": "\ud83d\udc1b Bug Fixes",
-            "text": "bump lumenate for 7.1.3"
+            "category": "\u2728 New Features",
+            "text": "add ASL Bloom"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "add ASL Bloom"
           }
         ]
       },
       "apps": [
+        {
+          "name": "ASL Bloom",
+          "packageName": "com.toleio.us",
+          "patchCount": 1,
+          "iconUrl": "",
+          "iconColor": "#232A63"
+        },
         {
           "name": "Expand",
           "packageName": "org.monroeinstitute.expand",
@@ -95510,45 +96059,53 @@
       "webUrl": "https://github.com/Dan1elTheMan1el/Morphe-Patches",
       "addUrl": "https://morphe.software/add-source?github=Dan1elTheMan1el/Morphe-Patches",
       "avatarUrl": "https://github.com/Dan1elTheMan1el.png?size=96",
-      "patchCount": 12,
+      "patchCount": 14,
       "appCount": 3,
       "createdAt": 1787815654850,
       "updatedAt": 1787815654850,
       "createdDate": "2026-08-27",
       "updatedDate": "2026-08-27",
       "latestChanges": {
-        "title": "1.2.0 (2026-08-28)",
+        "title": "1.3.0 (2026-08-28)",
         "date": "2026-08-28",
         "items": [
           {
-            "category": "\u2728 New Features",
-            "text": "Keyboard Designer Premium Unlock"
+            "category": "\ud83d\udc1b Bug Fixes",
+            "text": "DeFit tutorial patch error"
           },
           {
             "category": "\u2728 New Features",
-            "text": "Keyboard Designer: Start with PokeGenie-inspired Keyboard"
+            "text": "Add patch with tutorial to fix login in DeFit++"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "Auto claim daily coins via intent in PokeRaid"
+          },
+          {
+            "category": "\u2728 New Features",
+            "text": "Only show login tutorial when logged out"
           }
         ]
       },
       "apps": [
         {
-          "name": "Custom+ Keyboard Designer",
+          "name": "Custom Keyboard Designer",
           "packageName": "de.humbergsoftware.keyboarddesigner",
           "patchCount": 2,
           "iconUrl": "",
           "iconColor": "#83B6E4"
         },
         {
-          "name": "DeFit - Debugger of Fitness Apps",
+          "name": "DeFit",
           "packageName": "com.fitness.debugger",
-          "patchCount": 4,
+          "patchCount": 5,
           "iconUrl": "",
           "iconColor": "#008577"
         },
         {
-          "name": "PokeRaid - Worldwide Remote Raids",
+          "name": "PokeRaid - for Pok\u00e9mon GO Raid",
           "packageName": "me.pokeraid",
-          "patchCount": 6,
+          "patchCount": 7,
           "iconUrl": "",
           "iconColor": "#395FAA"
         }
