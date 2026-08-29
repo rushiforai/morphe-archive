@@ -22,7 +22,7 @@ public final class ForceSystemFontPatch {
 
         String lowerCasePath = path.toLowerCase();
         if (lowerCasePath.contains("roboto_mono")) {
-            return Typeface.create(Typeface.MONOSPACE, style);
+            return null;
         }
 
         if (lowerCasePath.contains("inter") || lowerCasePath.contains("monasans")) {

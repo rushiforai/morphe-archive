@@ -81,7 +81,7 @@ private fun String.toSmaliStringLiteral(): String =
 val startWithPokeGenieKeyboardPatch = bytecodePatch(
     name = "Start with PokeGenie keyboard",
     description = "Adds my PokeGenie-inspired keyboard design on fresh setup and makes it the portrait text-input default.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(COMPATIBILITY_KEYBOARD_DESIGNER)
 

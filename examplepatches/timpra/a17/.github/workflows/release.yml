@@ -1,0 +1,109 @@
+name: publish
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/release.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install delta and dex tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y xdelta3 libsmali-java
+          command -v xdelta3
+          command -v baksmali
+          command -v smali
+
+      - name: Fetch r131 base and reconstruct local deltas
+        run: |
+          curl -fL --retry 3 --retry-delay 2 \
+            'https://github.com/timpra/a17/releases/download/r131/a17-v131.mpp' \
+            -o base.mpp
+          echo 'f50739b3b2d433887c7948e91bae0de4807aa0aca57b2abb35b1e3aba722ca26  base.mpp' | sha256sum -c -
+
+          cat delta/v133/patch.part-* | base64 -d > patch-class.xdelta
+          cat delta/v133/classes.part-* | base64 -d > classes-dex.xdelta
+          test "$(stat -c%s patch-class.xdelta)" = '5698'
+          test "$(stat -c%s classes-dex.xdelta)" = '7512'
+
+      - name: Reconstruct exact patch components
+        run: |
+          rm -rf work ext-smali verify-smali
+          mkdir -p work
+          unzip -q base.mpp -d work
+
+          PATCH='work/app/timpra/patches/reddit/redgifs/FixRedgifsFeedAudioPatchKt.class'
+          xdelta3 -d -s "$PATCH" patch-class.xdelta patch-class.new
+          mv patch-class.new "$PATCH"
+          xdelta3 -d -s work/classes.dex classes-dex.xdelta classes.new.dex
+          mv classes.new.dex work/classes.dex
+
+          echo 'd4e05a58c4e21c94da259a13c1a5213bbe9cdf2513a49839ee37614ec2307016  work/app/timpra/patches/reddit/redgifs/FixRedgifsFeedAudioPatchKt.class' | sha256sum -c -
+          echo 'fe5e7e9b127d3630153c2df34d684e34565af3f44af58bd7fcca0fe8469bb5e2  work/classes.dex' | sha256sum -c -
+
+      - name: Add only the new extension bridge class
+        run: |
+          baksmali disassemble work/extensions/extension.mpe -o ext-smali
+          BEFORE="$(find ext-smali -type f -name '*.smali' | wc -l)"
+          mkdir -p ext-smali/app/timpra/extension/redgifs
+          echo 'LmNsYXNzIHB1YmxpYyBmaW5hbCBMYXBwL3RpbXByYS9leHRlbnNpb24vcmVkZ2lmcy9SZWRnaWZzUGFpcmluZ0JyaWRnZTsKLnN1cGVyIExqYXZhL2xhbmcvT2JqZWN0OwoKLmZpZWxkIHByaXZhdGUgc3RhdGljIGZpbmFsIFBFTkRJTkdfTUVESUFfRlJBR01FTlQ6TGphdmEvbGFuZy9UaHJlYWRMb2NhbDsKCi5tZXRob2Qgc3RhdGljIGNvbnN0cnVjdG9yIDxjbGluaXQ+KClWCiAgICAubG9jYWxzIDEKICAgIG5ldy1pbnN0YW5jZSB2MCwgTGphdmEvbGFuZy9UaHJlYWRMb2NhbDsKICAgIGludm9rZS1kaXJlY3Qge3YwfSwgTGphdmEvbGFuZy9UaHJlYWRMb2NhbDstPjxpbml0PigpVgogICAgc3B1dC1vYmplY3QgdjAsIExhcHAvdGltcHJhL2V4dGVuc2lvbi9yZWRnaWZzL1JlZGdpZnNQYWlyaW5nQnJpZGdlOy0+UEVORElOR19NRURJQV9GUkFHTUVOVDpMamF2YS9sYW5nL1RocmVhZExvY2FsOwogICAgcmV0dXJuLXZvaWQKLmVuZCBtZXRob2QKCi5tZXRob2QgcHJpdmF0ZSBjb25zdHJ1Y3RvciA8aW5pdD4oKVYKICAgIC5sb2NhbHMgMAogICAgaW52b2tlLWRpcmVjdCB7cDB9LCBMamF2YS9sYW5nL09iamVjdDstPjxpbml0PigpVgogICAgcmV0dXJuLXZvaWQKLmVuZCBtZXRob2QKCi5tZXRob2QgcHVibGljIHN0YXRpYyBjYXB0dXJlUmVkZ2lmc0ZyYWdtZW50KExqYXZhL2xhbmcvT2JqZWN0OylWCiAgICAubG9jYWxzIDEKICAgIGlmLW5leiBwMCwgOmhhc19mcmFnbWVudAogICAgc2dldC1vYmplY3QgdjAsIExhcHAvdGltcHJhL2V4dGVuc2lvbi9yZWRnaWZzL1JlZGdpZnNQYWlyaW5nQnJpZGdlOy0+UEVORElOR19NRURJQV9GUkFHTUVOVDpMamF2YS9sYW5nL1RocmVhZExvY2FsOwogICAgaW52b2tlLXZpcnR1YWwge3YwfSwgTGphdmEvbGFuZy9UaHJlYWRMb2NhbDstPnJlbW92ZSgpVgogICAgcmV0dXJuLXZvaWQKCjpoYXNfZnJhZ21lbnQKICAgIHNnZXQtb2JqZWN0IHYwLCBMYXBwL3RpbXByYS9leHRlbnNpb24vcmVkZ2lmcy9SZWRnaWZzUGFpcmluZ0JyaWRnZTstPlBFTkRJTkdfTUVESUFfRlJBR01FTlQ6TGphdmEvbGFuZy9UaHJlYWRMb2NhbDsKICAgIGludm9rZS12aXJ0dWFsIHt2MCwgcDB9LCBMamF2YS9sYW5nL1RocmVhZExvY2FsOy0+c2V0KExqYXZhL2xhbmcvT2JqZWN0OylWCiAgICByZXR1cm4tdm9pZAouZW5kIG1ldGhvZAoKLm1ldGhvZCBwdWJsaWMgc3RhdGljIHJlZ2lzdGVyUmVkZ2lmc1ZpZGVvKExqYXZhL2xhbmcvT2JqZWN0OylWCiAgICAubG9jYWxzIDIKICAgIHNnZXQtb2JqZWN0IHYwLCBMYXBwL3RpbXByYS9leHRlbnNpb24vcmVkZ2lmcy9SZWRnaWZzUGFpcmluZ0JyaWRnZTstPlBFTkRJTkdfTUVESUFfRlJBR01FTlQ6TGphdmEvbGFuZy9UaHJlYWRMb2NhbDsKICAgIGludm9rZS12aXJ0dWFsIHt2MH0sIExqYXZhL2xhbmcvVGhyZWFkTG9jYWw7LT5nZXQoKUxqYXZhL2xhbmcvT2JqZWN0OwogICAgbW92ZS1yZXN1bHQtb2JqZWN0IHYxCiAgICBpbnZva2UtdmlydHVhbCB7djB9LCBMamF2YS9sYW5nL1RocmVhZExvY2FsOy0+cmVtb3ZlKClWCiAgICBpZi1lcXogdjEsIDpkb25lCiAgICBpZi1lcXogcDAsIDpkb25lCiAgICBpbnZva2Utc3RhdGljIHt2MSwgcDB9LCBMYXBwL3RpbXByYS9leHRlbnNpb24vcmVkZ2lmcy9SZWRnaWZzRW1iZWRQYXRjaDstPnJlZ2lzdGVyUmVkZ2lmcyhMamF2YS9sYW5nL09iamVjdDtMamF2YS9sYW5nL09iamVjdDspVgo6ZG9uZQogICAgcmV0dXJuLXZvaWQKLmVuZCBtZXRob2QK' | base64 -d > ext-smali/app/timpra/extension/redgifs/RedgifsPairingBridge.smali
+
+          smali assemble ext-smali -o work/extensions/extension.mpe
+          file work/extensions/extension.mpe | grep -F 'Dalvik dex file version 035'
+
+          baksmali disassemble work/extensions/extension.mpe -o verify-smali
+          AFTER="$(find verify-smali -type f -name '*.smali' | wc -l)"
+          test "$AFTER" -eq "$((BEFORE + 1))"
+          test -f verify-smali/app/timpra/extension/redgifs/RedgifsPairingBridge.smali
+          grep -F '.method public static captureRedgifsFragment(Ljava/lang/Object;)V' verify-smali/app/timpra/extension/redgifs/RedgifsPairingBridge.smali
+          grep -F '.method public static registerRedgifsVideo(Ljava/lang/Object;)V' verify-smali/app/timpra/extension/redgifs/RedgifsPairingBridge.smali
+          grep -F 'RedgifsEmbedPatch;->registerRedgifs(Ljava/lang/Object;Ljava/lang/Object;)V' verify-smali/app/timpra/extension/redgifs/RedgifsPairingBridge.smali
+
+      - name: Rebuild and validate v1.3.3 MPP
+        run: |
+          sed -i 's/Version: 1\.3\.1/Version: 1.3.3/' work/META-INF/MANIFEST.MF
+          tr -d '\r' < work/META-INF/MANIFEST.MF | grep -Fx 'Version: 1.3.3'
+          tr -d '\r' < work/META-INF/MANIFEST.MF | grep -Fx 'Patcher-Version: 1.11.0'
+
+          python3 - <<'PY'
+          import pathlib, zipfile
+          base = zipfile.ZipFile('base.mpp', 'r')
+          root = pathlib.Path('work')
+          with zipfile.ZipFile('a17-v133.mpp', 'w') as out:
+              for info in base.infolist():
+                  path = root / info.filename
+                  data = b'' if info.is_dir() else path.read_bytes()
+                  out.writestr(info, data)
+          base.close()
+          PY
+
+          unzip -t a17-v133.mpp >/dev/null
+          unzip -p a17-v133.mpp META-INF/MANIFEST.MF | tr -d '\r' | grep -Fx 'Version: 1.3.3'
+          unzip -p a17-v133.mpp META-INF/MANIFEST.MF | tr -d '\r' | grep -Fx 'Patcher-Version: 1.11.0'
+          unzip -p a17-v133.mpp 'app/timpra/patches/reddit/redgifs/FixRedgifsFeedAudioPatchKt.class' | sha256sum | grep -F 'd4e05a58c4e21c94da259a13c1a5213bbe9cdf2513a49839ee37614ec2307016'
+          unzip -p a17-v133.mpp classes.dex | sha256sum | grep -F 'fe5e7e9b127d3630153c2df34d684e34565af3f44af58bd7fcca0fe8469bb5e2'
+          unzip -p a17-v133.mpp extensions/extension.mpe > final-extension.mpe
+          file final-extension.mpe | grep -F 'Dalvik dex file version 035'
+          echo "A17_REBUILT_SHA256=$(sha256sum a17-v133.mpp | cut -d' ' -f1)"
+          echo "A17_REBUILT_SIZE=$(stat -c%s a17-v133.mpp)"
+
+      - name: Publish r133
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          NOTES='RedGIFs FeedFix 1.3.3 for Reddit 2026.34.0. Fixes Morphe Collection-is-empty failures by bypassing InlineSmaliCompiler and emitting DEX invoke-static/range instructions directly. The extension adds a thread-local pairing bridge for MediaFragment -> RedditVideo association.'
+          if gh release view r133 >/dev/null 2>&1; then
+            gh release upload r133 a17-v133.mpp --clobber
+          else
+            gh release create r133 a17-v133.mpp --title 'a17' --notes "$NOTES"
+          fi

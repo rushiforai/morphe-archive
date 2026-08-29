@@ -1,3 +1,10 @@
+## [1.1.0](https://github.com/jaredcat/morphe-patches/compare/v1.0.1...v1.1.0) (2026-08-28)
+
+### ✨ New Features
+
+* add ASL Bloom ([1247159](https://github.com/jaredcat/morphe-patches/commit/12471599f884f3262e6443e2206f9a7dd1980ad4))
+* add ASL Bloom ([f436839](https://github.com/jaredcat/morphe-patches/commit/f4368398ee19f59cd475268d74f828349410bca6))
+
 ## [1.0.1](https://github.com/jaredcat/morphe-patches/compare/v1.0.0...v1.0.1) (2026-08-27)
 
 ### 🐛 Bug Fixes

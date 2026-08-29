@@ -15,7 +15,7 @@ Click here to add these patches to Morphe: <https://morphe.software/add-source?g
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.1](https://github.com/jaredcat/morphe-patches/releases/tag/v1.0.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;3 patches total
+> **[v1.1.0](https://github.com/jaredcat/morphe-patches/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
 <details open>
 <summary>📦 Expand&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -30,6 +30,22 @@ Click here to add these patches to Morphe: <https://morphe.software/add-source?g
 |----------|----------------|-----------|
 | [Disable Analytics](#disable-analytics) | Prevents Adjust and Firebase Analytics from collecting or sending analytics. |  |
 | [Unlock Plus](#unlock-plus) | Unlocks Expand Plus without a subscription. |  |
+
+</details>
+
+<details open>
+<summary>📦 ASL Bloom&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.36.63 |
+| :---: |
+| Use the XAPK matching your device architecture. |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock Premium](#unlock-premium) | Unlocks ASL Bloom Premium lessons and features. |  |
 
 </details>
 

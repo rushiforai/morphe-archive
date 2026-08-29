@@ -1,3 +1,15 @@
+## [1.43.0-dev.2](https://github.com/BlazeFTL/FTL-Patches/compare/v1.43.0-dev.1...v1.43.0-dev.2) (2026-08-28)
+
+### ✨ New Features
+
+* Up ([83156aa](https://github.com/BlazeFTL/FTL-Patches/commit/83156aac2856113fd4df71f36c9c40f59e08563f))
+
+## [1.43.0-dev.1](https://github.com/BlazeFTL/FTL-Patches/compare/v1.42.0...v1.43.0-dev.1) (2026-08-28)
+
+### ✨ New Features
+
+* Restrict Video Downloader To 2.7.2 ([e16446e](https://github.com/BlazeFTL/FTL-Patches/commit/e16446ed23a18e4fda248b805c80c3e4dd299271))
+
 ## [1.42.0](https://github.com/BlazeFTL/FTL-Patches/compare/v1.41.0...v1.42.0) (2026-08-28)
 
 ### ✨ New Features

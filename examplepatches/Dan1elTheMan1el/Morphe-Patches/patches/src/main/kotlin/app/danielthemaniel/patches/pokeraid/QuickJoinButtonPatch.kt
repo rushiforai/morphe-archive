@@ -82,7 +82,7 @@ private val quickJoinButtonResourcePatch = resourcePatch {
 val quickJoinButtonPatch = bytecodePatch(
     name = "Quick Join Button",
     description = "Adds an optimistic JOIN button to room cards using PokeRaid's stock authenticated join request.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(COMPATIBILITY_POKERAID)
     dependsOn(quickJoinButtonResourcePatch)

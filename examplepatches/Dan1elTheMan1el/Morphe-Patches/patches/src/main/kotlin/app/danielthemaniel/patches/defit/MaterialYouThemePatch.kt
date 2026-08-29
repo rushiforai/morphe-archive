@@ -10,7 +10,7 @@ import org.w3c.dom.Element
 val materialYouThemePatch = resourcePatch(
     name = "Material You Theme",
     description = "Uses Android 12+ wallpaper-derived colors and enables safe system Force Dark without changing DeFit's AppCompat theme parent.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(COMPATIBILITY_DEFIT)
 

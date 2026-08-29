@@ -47,7 +47,37 @@ val customMonospaceFontGithubPatch = resourcePatch(
             )
 
         val fontResDir = get("res").resolve("font")
+        val fontExtension = fontFile.extension.lowercase()
 
-        fontFile.copyTo(fontResDir.resolve("roboto_mono_regular.ttf"), overwrite = true)
+        listOf("ttf", "otf").forEach { extension ->
+            fontResDir.resolve("roboto_mono_regular.$extension").delete()
+        }
+        fontFile.copyTo(
+            fontResDir.resolve("roboto_mono_regular.$fontExtension"),
+            overwrite = true,
+        )
+
+        val webviewResDir = get("assets").resolve("webview")
+        listOf("colors_light.css", "colors_dark.css").forEach { fileName ->
+            val cssFile = webviewResDir.resolve(fileName)
+            val originalCss = cssFile.readText()
+            val patchedCss = originalCss.replace(
+                "--code-font: ui-monospace, Menlo, monospace;",
+                "--code-font: custom-monospace;",
+            )
+
+            if (patchedCss == originalCss) {
+                throw PatchException("Could not find the WebView code font declaration in $fileName.")
+            }
+
+            cssFile.writeText(
+                """@font-face {
+    font-family: custom-monospace;
+    src: url("/android_res/font/roboto_mono_regular.$fontExtension");
+}
+
+$patchedCss"""
+            )
+        }
     }
 }

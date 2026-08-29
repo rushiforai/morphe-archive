@@ -11,7 +11,7 @@ import org.w3c.dom.Element
 val customBrandingPatch = resourcePatch(
     name = "Custom Branding",
     description = "Changes DeFit's app name, header title, and displayed version.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(COMPATIBILITY_DEFIT)
 

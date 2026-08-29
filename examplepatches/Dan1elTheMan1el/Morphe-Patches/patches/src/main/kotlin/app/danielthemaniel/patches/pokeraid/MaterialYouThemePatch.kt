@@ -14,7 +14,7 @@ import org.w3c.dom.Element
 val materialYouThemePatch = resourcePatch(
     name = "Material You Theme",
     description = "Uses Android 12+ wallpaper-derived Material You colors throughout PokeRaid while preserving semantic status and raid-type colors.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(COMPATIBILITY_POKERAID)
 

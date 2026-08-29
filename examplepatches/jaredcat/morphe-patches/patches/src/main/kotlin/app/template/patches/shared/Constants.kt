@@ -7,6 +7,27 @@ import app.morphe.patcher.patch.SupportedAbi
 
 object Constants {
     /**
+     * ASL Bloom — APKPure XAPK (base + armeabi-v7a + density + locale splits).
+     * The unlock patch targets the Hermes v96 bundle shipped in 1.36.63 (871).
+     */
+    val COMPATIBILITY_ASL_BLOOM = Compatibility(
+        name = "ASL Bloom",
+        packageName = "com.toleio.us",
+        apkFileType = ApkFileType.XAPK,
+        appIconColor = 0x232A63,
+        targets = listOf(
+            AppTarget(
+                version = "1.36.63",
+                versionCodes = mapOf(
+                    SupportedAbi.ARM64_V8A to 871,
+                    SupportedAbi.ARMEABI_V7A to 871,
+                ),
+                description = "Use the XAPK matching your device architecture.",
+            ),
+        ),
+    )
+
+    /**
      * Expand (Monroe Institute) — APKPure XAPK (base + arm64 + density + locale splits).
      * Not reliably listed on APKMirror/UpToDown, so Manager may fall back to Google search;
      * download the XAPK yourself and pick it in the file picker.

@@ -5,12 +5,11 @@ import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 
 internal val COMPATIBILITY_POKERAID = Compatibility(
-    name = "PokeRaid - Worldwide Remote Raids",
+    name = "PokeRaid - for Pokémon GO Raid",
     packageName = "me.pokeraid",
-    apkFileType = ApkFileType.APK,
+    apkFileType = ApkFileType.APKM,
     appIconColor = 0x395FAA,
     targets = listOf(
-        AppTarget(version = "0.48.9"),
-        AppTarget(version = null, isExperimental = true),
+        AppTarget(version = "0.48.9", versionCode = 160),
     ),
 )
