@@ -45,6 +45,7 @@ Nagol12344/patch
 Nai64/Nai64Patches
 NekoGryphou/gryphous-morphe-patches
 NullWaypoint/morphe-patches
+Okazakee/iptv-morphe-patches
 Pa-kon/morphe-screenshot-patches
 Paresh-Maheshwari/patch-explorer
 PawiX25/pepper-morphe-patches
@@ -163,6 +164,7 @@ kondratjev/morphe-patches
 kontsevoye/emorphe-patches
 kuchingneko28/ipusnas-patches
 kun-codes/npci-bhim-morphe-patches
+kuntal-devrat/diskwala-patches
 kveld9/kveld-morphe-patches
 legendsciber/morphe-patches
 liongalahad/liongalahad-nuviotv-morphe-patches

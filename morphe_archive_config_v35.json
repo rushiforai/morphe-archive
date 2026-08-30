@@ -1513,6 +1513,22 @@
                 "sortOrder": 191,
                 "createdAt": 1787982406437,
                 "updatedAt": 1787982406437
+            },
+            {
+                "name": "iptv-morphe-patches",
+                "source": "https://raw.githubusercontent.com/Okazakee/iptv-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 192,
+                "createdAt": 1788061721285,
+                "updatedAt": 1788061721285
+            },
+            {
+                "name": "diskwala-patches",
+                "source": "https://raw.githubusercontent.com/kuntal-devrat/diskwala-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 193,
+                "createdAt": 1788061723999,
+                "updatedAt": 1788061723999
             }
         ]
     }
