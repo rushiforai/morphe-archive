@@ -1,0 +1,12 @@
+.gradle/
+build/
+out/
+*.mpp
+local.properties
+decoded_base/
+jadx_out/
+*.apk
+*.xapk
+
+
+

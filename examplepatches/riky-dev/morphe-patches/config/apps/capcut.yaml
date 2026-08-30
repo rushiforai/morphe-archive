@@ -35,9 +35,27 @@ verify:
     - file: com/lemon/lv/clipmonetize/data/UserSubscribeInfo.smali
       pattern: 'const-string v0, "ssvip"'
       label: UserSubscribeInfo getLevel spoof
+    - file: com/vega/main/BaseMainActivity$initMainTab$6.smali
+      pattern: 'const v2, 0x7f093824'
+      label: BaseMainActivity initMainTab 6 discover tab hidden
+    - file: com/vega/main/BaseMainActivity$initMainTab$6.smali
+      pattern: 'const v2, 0x7f09384c'
+      label: BaseMainActivity initMainTab 6 template tab hidden
+    - file: com/vega/main/BaseMainActivity$initMainTab$7.smali
+      pattern: 'const v1, 0x7f093842'
+      label: BaseMainActivity initMainTab 7 inbox tab hidden
     - file: com/vega/main/BaseMainActivity$initMainTab$10.smali
       pattern: 'ViewExtKt;->d\(Landroid/view/View;Z\)V'
       label: BaseMainActivity initMainTab 10 invoke view gone
+    - file: com/vega/edit/base/aisound/config/AISoundEffectAb.smali
+      pattern: '\.method public final b\(\)Z[\s\S]+?const/4 v0, 0x0\s+?return v0'
+      label: AISoundEffectAb AI sounds tab disabled
+    - file: com/vega/main/home/banner/HomeBotBannerFragment.smali
+      pattern: '\.method public final onCreateView\(Landroid/view/LayoutInflater;Landroid/view/ViewGroup;Landroid/os/Bundle;\)Landroid/view/View;[\s\S]+?const/4 v0, 0x0\s+?return-object v0'
+      label: HomeBotBannerFragment suppressed
+    - file: com/vega/main/home/topbar/OverseaHomeTopBannerFragment.smali
+      pattern: '\.method public final onCreateView\(Landroid/view/LayoutInflater;Landroid/view/ViewGroup;Landroid/os/Bundle;\)Landroid/view/View;[\s\S]+?const/4 v0, 0x0\s+?return-object v0'
+      label: OverseaHomeTopBannerFragment suppressed
     - file: com/bytedance/applog/AppLog.smali
       pattern: '\.method public static init\(Landroid/content/Context;Lcom/bytedance/applog/InitConfig;\)V[\s\S]+?return-void'
       label: AppLog init no-op

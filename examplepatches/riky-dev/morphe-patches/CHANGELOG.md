@@ -1,3 +1,24 @@
+## [1.3.0](https://github.com/riky-dev/morphe-patches/compare/v1.2.0...v1.3.0) (2026-08-29)
+
+### 🐛 Bug Fixes
+
+* **capcut:** hide home promotional top and bottom banners ([bf8f9a4](https://github.com/riky-dev/morphe-patches/commit/bf8f9a47b74d2958af951f3704cbb33b171be9da))
+
+### ✨ New Features
+
+* **capcut:** hide inbox notifications bottom nav tab ([de2d512](https://github.com/riky-dev/morphe-patches/commit/de2d512f29f305222ca0aca05c38540eb1f5bb81))
+* **capcut:** hide Modelli navbar tab and AI sounds category ([9ffae46](https://github.com/riky-dev/morphe-patches/commit/9ffae467424db93fc231ccae9a446e07232ee60b))
+
+## [1.3.0-dev.1](https://github.com/riky-dev/morphe-patches/compare/v1.2.0...v1.3.0-dev.1) (2026-08-29)
+
+### 🐛 Bug Fixes
+
+* **capcut:** hide home promotional top and bottom banners ([bf8f9a4](https://github.com/riky-dev/morphe-patches/commit/bf8f9a47b74d2958af951f3704cbb33b171be9da))
+
+### ✨ New Features
+
+* **capcut:** hide Modelli navbar tab and AI sounds category ([9ffae46](https://github.com/riky-dev/morphe-patches/commit/9ffae467424db93fc231ccae9a446e07232ee60b))
+
 ## [1.2.0](https://github.com/riky-dev/morphe-patches/compare/v1.1.0...v1.2.0) (2026-08-28)
 
 ### 🐛 Bug Fixes

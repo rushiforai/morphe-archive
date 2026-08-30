@@ -15,9 +15,9 @@ Stable releases come from `main`. To try preview builds from `dev`, enable **pre
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.2.0](https://github.com/riky-dev/morphe-patches/releases/tag/v1.2.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;9 patches total
+> **[v1.3.0](https://github.com/riky-dev/morphe-patches/releases/tag/v1.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;14 patches total
 <details open>
-<summary>📦 CapCut&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
+<summary>📦 CapCut&nbsp;&nbsp;•&nbsp;&nbsp;10 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -28,7 +28,12 @@ Stable releases come from `main`. To try preview builds from `dev`, enable **pre
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Hide AI Lab Tab](#hide-ai-lab-tab) | Removes the third bottom navigation tab ('AI Lab' / 'Lab. IA') by forcing its visibility observer to always hide the tab. |  |
+| [Hide AI Sounds Tab](#hide-ai-sounds-tab) | Disables the cloud-gated AI sounds category inside the sound-effects panel. |  |
 | [Hide False Hopes Features](#hide-false-hopes-features) | Hides 'IA ultra HD' (Export Super Resolution) and 'Flusso ottico' (Slow Motion Optical Flow) options since they are cloud-gated. |  |
+| [Hide Home Bottom Banner](#hide-home-bottom-banner) | Suppresses the promotional bottom banner on the home screen (e.g. Twitch / subscription promos). |  |
+| [Hide Home Top Banner](#hide-home-top-banner) | Suppresses the promotional header banner on the home screen. |  |
+| [Hide Inbox Tab](#hide-inbox-tab) | Removes the inbox / notifications bottom navigation tab by forcing its visibility observer to always hide the tab. |  |
+| [Hide Templates Tab](#hide-templates-tab) | Removes the second bottom navigation tab ('Templates' / 'Modelli') by forcing its visibility observer to always hide the tab. |  |
 | [Remove security notice](#remove-security-notice) | Suppresses the modified-build security notice by disabling the risk SDK dialog entry point and the isCracking flag writer. |  |
 | [Suppress Telemetry and Trackers](#suppress-telemetry-and-trackers) | Disables background monitoring and analytics frameworks including ByteDance Helios, AppLog, and AppsFlyer. |  |
 | [Unlock Premium](#unlock-premium) | Forces the VIP flag to true so premium features are unlocked client-side. Server-validated assets (cloud effects/templates) are not affected. |  |
@@ -109,29 +114,26 @@ See the [Morphe documentation](https://github.com/MorpheApp/morphe-documentation
 
 ## 🚑 Troubleshooting
 
-Patches modify bytecode, but some failures happen **before** any patch runs — at APK install time. These are device/package-state issues, not patch bugs.
+Patches modify bytecode, but some failures happen at APK install time. These are device/package-state issues, not patch bugs.
 
 ### `INSTALL_FAILED_UPDATE_INCOMPATIBLE` (signatures do not match)
 
-The patched APK is signed with a different key than the CapCut already on the device. Uninstall the existing CapCut first, then install the patched build.
+The patched APK is signed with a different key than the app already on the device. Uninstall the existing app first, then install the patched build.
 
 ### `INSTALL_FAILED_VERSION_DOWNGRADE` (update version code is older)
 
-Android reports a **per-user** install. A normal uninstall from your main profile can leave a copy in a work profile, an OEM "Dual app"/"App clone" (Samsung Dual Messenger, Xiaomi Dual apps, etc.), or as a pending uninstall — and that leftover still blocks the install.
+Android reports a **per-user** install. A normal uninstall from your main profile can leave a copy in a work profile, an OEM "Dual app"/"App clone" (Samsung Dual Messenger, Xiaomi Dual apps, etc.), or as a pending uninstall, and that leftover still blocks the install.
 
 Fixes, easiest first:
 
-1. **Choose a CapCut APK that is newer than or equal to the one installed.** You don't edit anything — just select a CapCut APK file that's the same age or newer than what's on your phone as the patch source. The patched output keeps that APK's `versionCode`, so patching a newer CapCut can never be a downgrade. (The common advice to use the ~271 MB `com.lemon.lvoverseas_19.2.0-19201600_…` build is exactly this — pick a version ≥ what's on your device.)
-2. **Remove the leftover copy:**
-   - Turn off CapCut in your phone's *Dual apps / App twin / Parallel Apps* setting.
-   - For a work profile: Settings → *Passwords & accounts* (or *Work profile*) → remove the work profile.
-3. **From a PC (most reliable):** fully remove it for every user, then reinstall:
+1. **Choose an APK that is newer than or equal to the one installed.** Select an APK file that's the same age or newer than what's on your phone as the patch source. The patched output keeps that APK's `versionCode`, so patching a newer app can never be a downgrade.
+2. **From a PC (most reliable):** fully remove it for every user, then reinstall:
    ```bash
-   adb shell pm list packages --all-users | grep -i lemon   # find the offending user id
-   adb uninstall --user 10 com.lemon.lvoverseas            # repeat for each user shown
-   adb uninstall com.lemon.lvoverseas
+   adb shell pm list packages --all-users | grep -i app
+   adb uninstall --user 10 com.package.name            # repeat for each user shown
+   adb uninstall com.package.name
    ```
-4. **Without a PC (no root):** install **Shizuku** + a shell app (e.g. **aShell** / **App Manager**), pair it via *Wireless debugging*, then run the same `pm uninstall --user <id> com.lemon.lvoverseas` command locally.
+3. **Without a PC (no root):** install **Shizuku** + a shell app (e.g. **aShell** / **App Manager**), pair it via _Wireless debugging_, then run the same `pm uninstall --user <id> com.package.name` command locally.
 
 ## 📜 License
 

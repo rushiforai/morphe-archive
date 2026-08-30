@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.17.13",
+  "version": "1.22.1",
   "patches": [
     {
       "name": "Ad Removal",
@@ -133,6 +133,58 @@
       "options": []
     },
     {
+      "name": "IAP Bypass",
+      "description": "Bypasses in-app purchase verification. All purchases are treated as completed.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.StudioFurukawa.PixelCarRacer",
+          "name": "Pixel Car Racer",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FF6F00",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.2.5",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Premium",
+      "description": "Enables premium features by bypassing in-app purchase verification.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "io.mrarm.mctoolbox",
+          "name": "Toolbox for Minecraft PE",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#3E2723",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "5.4.58",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Premium (Subscription Simulation)",
       "description": "Simulates an active subscription to unlock premium features.",
       "default": true,
@@ -148,32 +200,6 @@
           "targets": [
             {
               "version": "10.4.5",
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Premium (Under Testing)",
-      "description": "Enables premium directly without watching ads.",
-      "default": true,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "io.mrarm.mctoolbox",
-          "name": "Toolbox for Minecraft PE",
-          "description": null,
-          "apkFileType": "APK",
-          "appIconColor": "#3E2723",
-          "signatures": null,
-          "targets": [
-            {
-              "version": "5.4.58",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,

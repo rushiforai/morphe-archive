@@ -99,7 +99,7 @@ private val dailyRewardBackgroundStatusManifestPatchV4 = resourcePatch {
 
 @Suppress("unused")
 val dailyRewardBackgroundStatusPatchV4 = bytecodePatch(
-    name = "Daily Reward Background Status & Auto-Claim",
+    name = "Daily Reward Background Auto-Claim",
     description = "Checks daily reward eligibility and automatically claims it (bypassing ads) if available. Invoke by sending intent as broadcast, with action app.danielthemaniel.pokeraid.CHECK_DAILY_REWARD, and package me.pokeraid.",
     default = true,
 ) {

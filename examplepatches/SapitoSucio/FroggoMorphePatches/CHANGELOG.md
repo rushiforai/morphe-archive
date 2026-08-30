@@ -1,3 +1,21 @@
+## [1.2.2](https://github.com/SapitoSucio/FroggoMorphePatches/compare/v1.2.1...v1.2.2) (2026-08-29)
+
+### 🐛 Bug Fixes
+
+* **release:** stop failing backmerge workflow ([a23b4c4](https://github.com/SapitoSucio/FroggoMorphePatches/commit/a23b4c46b764e532efa095f5e73327e9e833b3e9))
+
+## [1.2.1](https://github.com/SapitoSucio/FroggoMorphePatches/compare/v1.2.0...v1.2.1) (2026-08-29)
+
+### 🐛 Bug Fixes
+
+* **facebook:** promote validated refresh patch ([9b1fa3f](https://github.com/SapitoSucio/FroggoMorphePatches/commit/9b1fa3f9d816ab447272d00dc3fa465d9b1cd4a3))
+
+## [1.2.0](https://github.com/SapitoSucio/FroggoMorphePatches/compare/v1.1.24...v1.2.0) (2026-08-29)
+
+### ✨ New Features
+
+* **facebook:** promote validated ad patches ([a8621cf](https://github.com/SapitoSucio/FroggoMorphePatches/commit/a8621cfc6f1c6a1fb49af764f0914f3b6c7066d1))
+
 ## [1.1.24](https://github.com/SapitoSucio/FroggoMorphePatches/compare/v1.1.23...v1.1.24) (2026-08-27)
 
 ### 🐛 Bug Fixes

@@ -289,7 +289,7 @@ private val loginFixTutorialBytecodePatch = bytecodePatch {
 val loginFixTutorialPatch = resourcePatch(
     name = "Login Fix Tutorial",
     description = "Adds an in-app Google Fit login setup guide and a button to copy the installed APK's signing SHA-1.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(COMPATIBILITY_DEFIT)
     dependsOn(loginFixTutorialBytecodePatch)

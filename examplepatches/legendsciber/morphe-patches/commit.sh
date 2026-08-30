@@ -5,7 +5,7 @@
 set -e
 
 DIR="${DIR:-/tmp/morphe-patches}"
-MSG="fix(mctoolbox): premium (under testing) - clean up naming and docs"
+MSG="fix(pcr): fix smali escape syntax in queryPurchasesAsync bypass"
 
 cd "$DIR"
 

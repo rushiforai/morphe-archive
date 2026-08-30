@@ -200,7 +200,7 @@ if not marker_match or END_MARKER not in readme:
 actual_start = marker_match.group(0)
 
 # Auto-expand threshold
-AUTO_EXPAND_THRESHOLD = 20
+AUTO_EXPAND_THRESHOLD = 10
 
 # Spoilers are expanded if:
 # 1. Total patch count is small (≤ AUTO_EXPAND_THRESHOLD)

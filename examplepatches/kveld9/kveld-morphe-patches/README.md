@@ -63,12 +63,12 @@ Click the badge above or add `kveld9/kveld-morphe-patches` directly into your Mo
 
 <!-- PATCHES_START EXPANDED -->
 <details open>
-<summary>📦 Gboard Lite&nbsp;&nbsp;•&nbsp;&nbsp;19 patches</summary>
+<summary>📦 Gboard Lite&nbsp;&nbsp;•&nbsp;&nbsp;18 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 18.0.3.954559732-lite_beta-arm64-v8a |
+| 18.1.3.962075747-lite_beta-arm64-v8a |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -79,7 +79,6 @@ Click the badge above or add `kveld9/kveld-morphe-patches` directly into your Mo
 | [Clone Gboard](#clone-gboard) | Changes the package name by appending a dot and custom suffix (defaults to 'kveld') to allow installing Gboard alongside the original application. | • Package name suffix |
 | [Disable Diagnostics](#disable-diagnostics) | Disables Google's diagnostic and recovery telemetry. |  |
 | [Disable Google Primes](#disable-google-primes) | Neutralizes Google Primes performance profiling, jank monitoring, native crash sidecars, and background telemetry threads. |  |
-| [Disable In-App Training](#disable-in-app-training) | Neutralizes periodic in-app training cache generation and federated-learning background work while preserving normal keyboard functionality and explicit user-requested operations. |  |
 | [Disable MDD Background Sync](#disable-mdd-background-sync) | Neutralizes Mobile Data Download (MDD) periodic background synchronization, automated polling, and prefetch worker tasks while preserving on-demand and user-requested downloads. |  |
 | [Disable Remote Configuration](#disable-remote-configuration) | Disables periodic remote experiment flag synchronization and background updates. |  |
 | [Disable Superpacks Eager Sync](#disable-superpacks-eager-sync) | Neutralizes eager background Superpacks synchronization during application startup, eliminating unnecessary disk sweeps and network polling while preserving on-demand pack downloads. |  |
@@ -101,7 +100,7 @@ Click the badge above or add `kveld9/kveld-morphe-patches` directly into your Mo
 
 **🎯 Supported versions:**
 
-| 1.93.138 |
+| 1.94.117 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -126,7 +125,7 @@ Click the badge above or add `kveld9/kveld-morphe-patches` directly into your Mo
 
 **🎯 Supported versions:**
 
-| 8.2.4143.3 |
+| 8.2.4145.4 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -180,7 +179,7 @@ If you perform a clean install of Gboard Lite with background sync debloat patch
 > [!IMPORTANT]
 > **Always download the standalone `lite` / `lite_beta` 64-bit APK (nodpi) from [APKMirror](https://www.apkmirror.com/apk/google-inc/gboard/):**
 >
-> - **Current Target**: `18.0.3.954559732-lite_beta-arm64-v8a`
+> - **Current Target**: `18.1.3.962075747-lite_beta-arm64-v8a`
 > - **Format**: `APK` _(Do **NOT** download `BUNDLE` / split packages)_
 > - **Architecture**: `arm64-v8a`
 > - **Screen DPI**: `nodpi`
@@ -210,7 +209,7 @@ If you perform a clean install of Gboard Lite with background sync debloat patch
 > **Always download the official `arm64-v8a` APK directly from the [Vivaldi Android Blog](https://vivaldi.com/blog/android/).**
 > In every release announcement blog post, Vivaldi provides direct official APK download links at the bottom.
 >
-> - **Current Target**: `Vivaldi.8.2.4143.3_arm64-v8a.apk`
+> - **Current Target**: `Vivaldi.8.2.4145.4_arm64-v8a.apk`
 > - **Architecture**: `arm64-v8a` (Do **NOT** use `armeabi-v7a`, `x86`, or `x86_64`)
 > - **Package Name**: `com.vivaldi.browser.snapshot`
 
